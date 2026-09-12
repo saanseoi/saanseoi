@@ -135,7 +135,7 @@ test('narrows division attributes to the selected response profile', () => {
               geometry: { type: 'object' },
               level: { type: 'number' },
               sources: { type: 'object' },
-              sourceKeys: { type: 'object' },
+              identifiers: { type: 'object' },
               type: { type: 'string' },
             },
             type: 'object',
@@ -158,5 +158,43 @@ test('narrows division attributes to the selected response profile', () => {
       getProfileSchema(model, 'divisions', 'full').schemas.DivisionAttributes
         ?.properties ?? {},
     ).sort(),
-  ).toEqual(['geometry', 'level', 'sourceKeys', 'sources', 'type'])
+  ).toEqual(['geometry', 'identifiers', 'level', 'sources', 'type'])
+})
+
+test('keeps parsed address components in every non-compact response profile', () => {
+  const model = getOpenApiSchemaForFamily(
+    {
+      components: {
+        schemas: {
+          Address: { type: 'object' },
+          AddressI18nAttributes: {
+            properties: {
+              buildingName: { type: 'string' },
+              formattedAddress: { type: 'string' },
+              streetName: { type: 'string' },
+            },
+            type: 'object',
+          },
+        },
+      },
+    },
+    'addresses',
+  )
+
+  if (!model) throw new Error('Expected an address schema.')
+
+  for (const profile of ['default', 'map', 'full'] as const) {
+    expect(
+      Object.keys(
+        getProfileSchema(model, 'addresses', profile).schemas.AddressI18nAttributes
+          ?.properties ?? {},
+      ).sort(),
+    ).toEqual(['buildingName', 'formattedAddress', 'streetName'])
+  }
+  expect(
+    Object.keys(
+      getProfileSchema(model, 'addresses', 'compact').schemas.AddressI18nAttributes
+        ?.properties ?? {},
+    ),
+  ).toEqual(['formattedAddress'])
 })

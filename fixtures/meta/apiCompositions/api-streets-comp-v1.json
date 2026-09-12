@@ -6,26 +6,26 @@
   "status": "current",
   "domains": [
     {
-      "code": "official",
+      "code": "saanseoi",
       "isDefault": true,
       "i18n": [
         {
           "locale": "en",
-          "name": "Official",
-          "descriptionShort": "Lands Department street names and centre lines.",
-          "description": "Lands Department street names and road centre lines for approximate location lookup and map labelling."
+          "name": "SaanSeoi",
+          "descriptionShort": "Lands Department street names, with optional centre lines.",
+          "description": "Lands Department street names, optionally enriched with road centre lines for approximate location lookup and map labelling."
         },
         {
           "locale": "zh-hant",
-          "name": "官方",
-          "descriptionShort": "地政總署街道名稱及道路中心線。",
-          "description": "地政總署的街道名稱及道路中心線，用於大概位置查詢及地圖標註。"
+          "name": "山水",
+          "descriptionShort": "地政總署街道名稱及可選道路中心線。",
+          "description": "地政總署的街道名稱，可選配道路中心線用於大概位置查詢及地圖標註。"
         },
         {
           "locale": "zh-hans",
-          "name": "官方",
-          "descriptionShort": "地政总署街道名称及道路中心线。",
-          "description": "地政总署的街道名称及道路中心线，用于大概位置查询及地图标注。"
+          "name": "山水",
+          "descriptionShort": "地政总署街道名称及可选道路中心线。",
+          "description": "地政总署的街道名称，可选配道路中心线用于大概位置查询及地图标注。"
         }
       ],
       "members": [
@@ -41,12 +41,12 @@
           "resourceType": "street",
           "variant": "hkgov-landsd-road-centreline",
           "role": "geometry",
-          "isRequired": true,
+          "isRequired": false,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "priority": 10
         }
       ]
     }
   ],
-  "versionHash": "sha256:75e19e6a69c42dd14c1acd26ed7b15b8918abfa8ddb1c62743faa5f2466f2e81"
+  "versionHash": "sha256:1a4aa742644fcd2e5033f0ed55d0a4919260569bce5cb1ac541748223b62b2e8"
 }

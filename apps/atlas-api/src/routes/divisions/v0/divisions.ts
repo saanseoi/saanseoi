@@ -1,3 +1,10 @@
+import { EmptyRegionCollectionSchema } from '../../../schema/region'
+import { divisionSearchRoutes } from './search'
+import {
+  emptyRegionCollection,
+  regionNotFound,
+  isUnpublishedMacao,
+} from '../../../lib/region'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import {
@@ -63,7 +70,7 @@ const divisionListRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
       200: {
         content: {
           'application/json': {
-            schema: DivisionsListResponseSchema,
+            schema: DivisionsListResponseSchema.or(EmptyRegionCollectionSchema),
           },
         },
         description: openApiText('openapi_divisions_list_response_description'),
@@ -138,6 +145,7 @@ const divisionDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
 )
 
 export const divisionRoutes = [
+  ...divisionSearchRoutes,
   ...divisionListRouteConfigs.map((routeConfig, index) =>
     defineOpenAPIRoute<typeof routeConfig, AppEnv>({
       route: routeConfig,
@@ -155,6 +163,8 @@ export const divisionRoutes = [
           onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) {
           return c.json(result.body, 503)
         }
@@ -186,6 +196,8 @@ export const divisionRoutes = [
           onResolved: attribution => c.set('accessAttribution', attribution),
         })
 
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(regionNotFound(), 404)
         if (result.status === 503) {
           return c.json(result.body, 503)
         }

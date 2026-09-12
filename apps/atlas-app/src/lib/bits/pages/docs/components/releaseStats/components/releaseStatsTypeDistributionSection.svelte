@@ -19,9 +19,8 @@ const legend = $derived([
   { label: labels.unchanged, tone: 'bg-data-neutral' },
 ])
 </script>
-<Section
+<Section id={distribution.id}
   ><Header
-    id={distribution.id}
     eyebrow={distribution.showChangeLegend ? labels.changeDistribution : distribution.eyebrow}
     title={distribution.title}
     ><div class="flex items-center gap-3">

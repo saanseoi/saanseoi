@@ -70,7 +70,7 @@ export async function resolveApiReleaseSetAccessAttribution(
        INNER JOIN snapshotSources
          ON snapshotSources.snapshotId = apiReleaseSetSnapshots.snapshotId
        INNER JOIN releases
-         ON releases.id = snapshotSources.sourceReleaseId
+         ON releases.id = snapshotSources.resourceReleaseId
        INNER JOIN sourceReleases
          ON sourceReleases.id = releases.sourceReleaseId
        INNER JOIN datasets

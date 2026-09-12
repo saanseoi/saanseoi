@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers'
 import {
   createMetaDb,
   eq,
@@ -12,8 +13,8 @@ import { runWithD1ReadRetry } from '#lib/server/d1.js'
 
 import { buildUseTheApiGuideFamilies } from './useTheApiGuide'
 
-export const load: PageServerLoad = async ({ platform }) => {
-  const binding = platform?.env.DB_META
+export const load: PageServerLoad = async () => {
+  const binding = env.DB_META
   if (!binding) throw new Error('D1 binding "DB_META" not found.')
 
   const db = createMetaDb(binding)

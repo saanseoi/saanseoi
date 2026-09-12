@@ -2,7 +2,9 @@ import { describe, expect, test } from 'bun:test'
 
 import {
   getUniqueAddressSamples,
+  getReleaseSampleLoadErrorMessage,
   getSampleApiPath,
+  getSamplePageOffsets,
   groupAddressSamples,
   sampleValueTones,
   supportsReleaseSamples,
@@ -32,6 +34,25 @@ function completeAddressSample(id: string) {
 }
 
 describe('address release samples', () => {
+  test('caps random pages at the available offsets for small releases', () => {
+    for (const maximumOffset of [0, 1, 2, 3]) {
+      expect(getSamplePageOffsets(maximumOffset, 4).sort((a, b) => a - b)).toEqual(
+        Array.from({ length: maximumOffset + 1 }, (_, index) => index),
+      )
+    }
+  })
+
+  test('returns unique in-range pages for large releases', () => {
+    const offsets = getSamplePageOffsets(100_000, 4)
+    expect(new Set(offsets).size).toBe(4)
+    expect(
+      offsets.every(
+        offset => Number.isInteger(offset) && offset >= 0 && offset <= 100_000,
+      ),
+    ).toBe(true)
+    expect(getSamplePageOffsets(10, 0)).toEqual([])
+  })
+
   test('presents every populated branch of a full record below its single id', () => {
     expect(toCompleteAddressSample(address('address-1'))).toEqual({
       id: 'address-1',
@@ -93,7 +114,22 @@ describe('address release samples', () => {
     expect(supportsReleaseSamples('api-addresses-v0.1')).toBe(true)
     expect(supportsReleaseSamples('api-divisions-v0.1')).toBe(true)
     expect(getSampleApiPath('api-divisions-v0.1')).toBe('/divisions/v0')
-    expect(getSampleApiPath('api-stats-v0.1')).toBeNull()
+    expect(supportsReleaseSamples('api-stats-v0.1')).toBe(true)
+    expect(getSampleApiPath('api-stats-v0.1')).toBe('/stats/v0')
+    expect(supportsReleaseSamples('api-stats-v9.9')).toBe(false)
+    expect(getSampleApiPath('api-stats-v9.9')).toBeNull()
+  })
+
+  test('explains when an API release snapshot is unavailable', () => {
+    expect(
+      getReleaseSampleLoadErrorMessage(503, {
+        error: 'snapshot_not_ready',
+        message: 'No active division snapshot is published.',
+      }),
+    ).toBe('No active division snapshot is published.')
+    expect(getReleaseSampleLoadErrorMessage(503, {})).toBe(
+      'Examples could not be loaded. Please try again.',
+    )
   })
 
   test('puts compactable sample ids first and collapses matching values', () => {

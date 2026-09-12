@@ -491,6 +491,12 @@ const handleViewportResize = () => {
   .principles-deck :global(.principle-stack-position-3) {
     left: calc(50% + max(12.75rem, 10.625vw));
   }
+  .principles-deck-expanded :global(.principle-card) {
+    top: max(29.1rem, min(24.21875vw, 43.055556vh));
+    width: max(16.25rem, min(13.541667vw, 24.074074vh));
+    height: max(13.25rem, min(11.041667vw, 19.62963vh));
+    padding: max(1rem, min(0.833333vw, 1.481481vh));
+  }
   .principles-deck:not(.principles-deck-expanded) :global(.principle-card) {
     padding: max(1.35rem, 1.125vw);
   }
@@ -512,12 +518,6 @@ const handleViewportResize = () => {
   }
   .principles-deck-expanded.principles-deck-expanded {
     height: max(44.25rem, min(36.875vw, 65.555556vh));
-  }
-  .principles-deck-expanded :global(.principle-card) {
-    top: max(29.1rem, min(24.21875vw, 43.055556vh));
-    width: max(16.25rem, min(13.541667vw, 24.074074vh));
-    height: max(13.25rem, min(11.041667vw, 19.62963vh));
-    padding: max(1rem, min(0.833333vw, 1.481481vh));
   }
   .principles-deck-expanded :global(.principle-card:not(.principle-card-active)) {
     border-width: clamp(1px, min(calc(0.15625vw - 2px), calc(0.277778vh - 2px)), 2px);

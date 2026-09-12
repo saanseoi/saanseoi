@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "decisions": [
+    {
+      "id": "hing-wah-one-ha-estate-name",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "sourceEnName": "HING WAH (I) ESTATE",
+      "sourceZhName": "興華(一)邨",
+      "preferredEnName": "Hing Wah (I) Estate",
+      "preferredZhName": "興華一邨",
+      "evidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/15.json",
+      "authority": "User decision, 2026-09-07: retain Roman numerals for Hing Wah (I) Estate.",
+      "decision": "Use the estate-specific HA Chinese name and retain Roman I in the canonical English name as explicitly directed by the user. The HA profile spells the English name Hing Wah (1) Estate; it corroborates the estate, not the chosen numeral typography. Preserve ALS names, raw components, identity keys and inventories. This is not a general numeral conversion or a merge with Hing Wah (II) Estate."
+    },
+    {
+      "id": "chuk-yuen-north-ha-estate-name",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "sourceEnName": "CHUK YUEN NORTH ESTATE",
+      "sourceZhName": "竹園北邨",
+      "preferredEnName": "Chuk Yuen (North) Estate",
+      "preferredZhName": "竹園北邨",
+      "evidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/12.json",
+      "authority": "User decision, 2026-09-07: yes, please revert to HA naming convention.",
+      "decision": "Use HA's exact estate-specific name in canonical components and display addresses. Preserve the ALS spelling, raw components, identity keys and inventories. Chuk Yuen South Estate remains distinct."
+    },
+    {
+      "id": "choi-wan-one-ha-estate-name",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "sourceEnName": "CHOI WAN (1) ESTATE",
+      "sourceZhName": "彩雲(一)邨",
+      "preferredEnName": "Choi Wan (I) Estate",
+      "preferredZhName": "彩雲一邨",
+      "evidenceUrl": "https://www.housingauthority.gov.hk/json/property-location/detail/PRH/12.json",
+      "authority": "User decision, 2026-09-07: We should retain the HA naming.",
+      "decision": "Use the exact Housing Authority estate names in canonical components and display addresses. Preserve ALS names, identity keys and raw components as source evidence. This is an estate-specific name decision, not a general Roman numeral conversion or a merge with Choi Wan (2) Estate."
+    }
+  ]
+}

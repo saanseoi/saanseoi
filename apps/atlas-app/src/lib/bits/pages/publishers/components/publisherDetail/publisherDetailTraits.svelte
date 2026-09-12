@@ -36,7 +36,7 @@ const resourceTypeLabel = (resourceType: string) => {
 const frequencyLabel = (frequency: string) => {
   const labels: Record<string, () => string> = {
     'as-needed': m.publishers_cadence_as_needed,
-    census: m.publishers_cadence_five_yearly,
+    census: m.publishers_cadence_census,
     'five-yearly': m.publishers_cadence_five_yearly,
     'half-yearly': m.publishers_cadence_half_yearly,
     monthly: m.publishers_cadence_monthly,

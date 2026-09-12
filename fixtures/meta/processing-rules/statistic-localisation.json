@@ -1,0 +1,23 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "apply-statistic-localisation",
+  "scope": "individual",
+  "basis": "fixture",
+  "summary": "Apply reviewed names and descriptions for a statistic field or measure, including whether the translation has been checked.",
+  "inputs": ["statistic-localisation-curations"],
+  "outputs": ["statsFieldsI18n", "statsMeasuresI18n"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/statistics/statisticLocalisationRule.ts",
+    "symbol": "statisticLocalisationRule"
+  },
+  "review": {
+    "kind": "curation",
+    "guard": {
+      "id": "statistic-measure-localisations",
+      "summary": "A statistic measure requires a consistent reviewed localisation for each locale.",
+      "consequence": "block-ingestion"
+    }
+  }
+}

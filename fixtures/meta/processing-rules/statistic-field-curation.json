@@ -1,0 +1,23 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "curate-statistic-fields",
+  "scope": "bulk",
+  "basis": "fixture",
+  "summary": "Use the reviewed list to choose each dataset field’s name, grouping, unit, calculation and language versions.",
+  "inputs": ["statistic-field-curations"],
+  "outputs": ["statsFields"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/statistics/statisticFieldCurationRule.ts",
+    "symbol": "statisticFieldCurationRule"
+  },
+  "review": {
+    "kind": "curation",
+    "guard": {
+      "id": "statistic-measure-registration",
+      "summary": "Every reviewed statistic field must reference a registered measure.",
+      "consequence": "block-ingestion"
+    }
+  }
+}

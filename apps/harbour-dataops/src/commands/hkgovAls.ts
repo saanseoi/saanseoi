@@ -1,12 +1,13 @@
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
+import { selectInitialisationVersions } from '../../../harbour-cli/src/lib/cli/minimalInitialisation.ts'
 import { dirname, join, resolve } from 'node:path'
 
 import { isCancel, log, note, select } from '@clack/prompts'
 import { and, eq, inArray } from 'drizzle-orm'
 
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
-import { metaSchema } from '@repo/db'
+import { currentSchema, historySchema, metaSchema, toIsoTimestamp } from '@repo/db'
 
 import { formatField } from '../../../harbour-cli/src/lib/cli/display.ts'
 import {
@@ -18,19 +19,57 @@ import {
   type HkgovAlsIdentityDecisions,
   type HkgovAlsIdentityDriftCandidate,
   type HkgovAlsIdentityHistory,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAlsDrift.ts'
-import { prepareHkgovAlsAddressParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovAls.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDrift.ts'
+import {
+  prepareHkgovAlsAddressParquet,
+  type HkgovAlsDivisionQuality,
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts'
+import {
+  serialiseHkgovAlsEstateCurationFixture,
+  updateHkgovAlsEstateCurationApplication,
+  type HkgovAlsEstateCurationFixture,
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsCurationLifecycle.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { runReconcileDraftReleaseSetsCommand } from '../../../harbour-cli/src/lib/commands/reconcile.ts'
+import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
+import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
+import {
+  groupResolvedVersionsByShard,
+  resolveSnapshotVersionState,
+  type ResolvedSnapshotVersion,
+} from '@repo/core/pipeline/db/snapshotReplay'
+import {
+  hasAllOvertureHongKongAreaDivisions,
+  overtureHongKongAreas,
+  overtureHongKongAreaDivisionId,
+} from '@repo/core/pipeline/services/divisions/overtureHongKongAreas'
 import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { terminalSafeText } from '../lib/terminal.ts'
+import { progressPhase } from '../lib/progressPhase.ts'
+import { isolatedAlsReview } from '../lib/isolatedAlsReview.ts'
+import { deliverDivisionPrerequisite } from '../lib/deliverDivisionPrerequisite.ts'
+import {
+  readAlsMembership,
+  reviewAlsDeletions,
+  ALS_DELETION_REPORT_DIRECTORY,
+  type AlsMembership,
+} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDeletionPreflight'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
-const DEFAULT_HISTORY_FILE = '.local/hkgov-dpo/als-identity-history.json'
-const DEFAULT_DECISIONS_FILE = '.local/hkgov-dpo/als-identity-decisions.json'
+const REPO_ROOT = resolve(import.meta.dir, '../../../..')
+const DEFAULT_HISTORY_FILE = resolve(
+  REPO_ROOT,
+  '.local/hkgov-dpo/als-identity-history.json',
+)
+export const HKGOV_ALS_IDENTITY_CURATION_PATH = resolve(
+  REPO_ROOT,
+  'fixtures/meta/curations/hkgov-dpo-address.json',
+)
+const DEFAULT_DECISIONS_FILE = HKGOV_ALS_IDENTITY_CURATION_PATH
 const INVOCATION_CWD = resolve(
   process.env.SAANSEOI_INVOCATION_CWD ?? process.env.INIT_CWD ?? process.cwd(),
 )
@@ -61,7 +100,7 @@ export async function runHkgovAlsPrepCommand(
     divisionCohortKey: cohortKey,
     decisions: decisionsFile
       ? await readDecisions(resolveInvocationPath(decisionsFile))
-      : emptyHkgovAlsIdentityDecisions(),
+      : await readDecisions(DEFAULT_DECISIONS_FILE),
     history: historyFile
       ? await readHistory(resolveInvocationPath(historyFile))
       : emptyHkgovAlsIdentityHistory(),
@@ -70,6 +109,13 @@ export async function runHkgovAlsPrepCommand(
     sourceVersion,
     target,
   })
+
+  if (result.divisionQuality.issues.length > 0) {
+    note(
+      formatAlsDivisionQualitySummary(sourceVersion, result.divisionQuality),
+      'ALS DIVISION LINKAGE ISSUES',
+    )
+  }
 
   if (result.sourceDuplicateFeatureGroups.length > 0) {
     note(
@@ -130,6 +176,7 @@ export async function runHkgovAlsIngestCommand(
   args: ParsedArgs,
   target: UploadTarget,
   printUsage: () => void,
+  options: HkgovAlsIngestOptions = {},
 ) {
   const sourceRoot = args.positionals[0]
     ? resolveInvocationPath(args.positionals[0])
@@ -144,52 +191,97 @@ export async function runHkgovAlsIngestCommand(
   const historyFile = resolveInvocationPath(
     stringOption(args, 'identity-history') ?? DEFAULT_HISTORY_FILE,
   )
-  const decisionsFile = resolveInvocationPath(
-    stringOption(args, 'identity-decisions') ?? DEFAULT_DECISIONS_FILE,
-  )
+  const decisionsOption = stringOption(args, 'identity-decisions')
+  const decisionsFile = decisionsOption
+    ? resolveInvocationPath(decisionsOption)
+    : DEFAULT_DECISIONS_FILE
   let history = await readHistory(historyFile)
   let decisions = await readDecisions(decisionsFile)
   const firstSourceVersion = normaliseAlsSourceVersion(
     stringOption(args, 'from-source-version') ?? `${cohortKey.slice(0, 4)}-01-01.0`,
   )
-  const sourceReleases = await resolveAlsSourceReleases(
-    target,
-    resolveAlsReleaseVersions(await listAlsReleaseDirectories(sourceRoot)).filter(
-      release => release.sourceVersion >= firstSourceVersion,
-    ),
+  const sourceReleases = await progressPhase(
+    'Resolve ALS source releases and division cohorts',
+    async () =>
+      resolveAlsSourceReleases(
+        target,
+        selectInitialisationVersions(
+          resolveAlsReleaseVersions(await listAlsReleaseDirectories(sourceRoot)).filter(
+            release => release.sourceVersion >= firstSourceVersion,
+          ),
+          release => release.sourceVersion,
+        ),
+      ),
   )
   if (sourceReleases.length === 0) {
     throw new Error(
       `No ALS release directories found in ${resolve(sourceRoot)} on or after ${firstSourceVersion}.`,
     )
   }
-  const completedSourceVersions = await listTargetCompletedAlsSourceVersions(
-    target,
-    sourceReleases[0]?.sourceVersion.slice(0, 4) ?? cohortKey.slice(0, 4),
-    Boolean(args.options.continue),
-  )
-  const review = await reviewHkgovAlsIngest({
-    args,
-    decisions,
-    history,
-    sourceReleases,
-    target,
-  })
-  log.message('\u001B[36mALS Preflight Checks\u001B[39m')
-  note(
-    [
-      formatField('releases', String(sourceReleases.length)),
-      formatField(
-        'divisionCohorts',
-        [...new Set(sourceReleases.map(release => release.divisionCohortKey))].join(
-          ', ',
-        ),
+  for (const divisionCohortKey of new Set(
+    sourceReleases.map(release => release.divisionCohortKey),
+  )) {
+    await progressPhase(`Prepare ALS division snapshot ${divisionCohortKey}`, () =>
+      materialiseDivisionSnapshotForAddressRelease(target, divisionCohortKey),
+    )
+  }
+  const completedSourceVersions = await progressPhase(
+    'Read completed ALS releases',
+    () =>
+      listTargetCompletedAlsSourceVersions(
+        target,
+        sourceReleases[0]?.sourceVersion.slice(0, 4) ?? cohortKey.slice(0, 4),
+        shouldIncludeSupersededAlsSourceVersions({
+          allowHistoricalCohort: options.allowHistoricalCohort,
+          continue: args.options.continue === true,
+        }),
       ),
-      formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
-    ].join('\n'),
-    'DATASETS',
   )
+  const pendingSourceReleases = selectPendingAlsSourceReleases(
+    sourceReleases,
+    completedSourceVersions,
+    Boolean(args.options.force),
+  )
+  if (pendingSourceReleases.length === 0) {
+    log.info('Skipping all-release curation preflight; every ALS release is complete.')
+  } else {
+    log.info(
+      `Check identities, curations and division linkage across ${pendingSourceReleases.length} pending ALS releases before ingestion`,
+    )
+    const review = await reviewHkgovAlsIngest({
+      args,
+      decisions,
+      history,
+      // Include completed predecessors: pending-only review loses the first delta
+      // on --continue. Checkpointed source preparation keeps this bounded.
+      sourceReleases,
+      target,
+    })
+    await reviewHkgovAlsCurationApplications(
+      review.curationApplications,
+      Boolean(args.options.yes),
+    )
+    log.message('\u001B[36mALS Preflight Checks\u001B[39m')
+    note(
+      [
+        formatField('releases', String(sourceReleases.length)),
+        formatField(
+          'divisionCohorts',
+          [...new Set(sourceReleases.map(release => release.divisionCohortKey))].join(
+            ', ',
+          ),
+        ),
+        formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
+        formatField(
+          'unverifiedCurationApplications',
+          String(review.curationApplications.length),
+        ),
+      ].join('\n'),
+      'DATASETS',
+    )
+  }
 
+  let renderedCompletedSkip = false
   for (const {
     addressCohortKey,
     divisionCohortKey,
@@ -197,10 +289,10 @@ export async function runHkgovAlsIngestCommand(
     sourceVersion,
   } of sourceReleases) {
     if (completedSourceVersions.has(sourceVersion) && !args.options.force) {
-      note(
-        'A completed local address release already exists for this source version; skipping it.',
-        `ALREADY COMPLETED — ${sourceVersion}`,
-      )
+      if (!renderedCompletedSkip) {
+        console.log((await formatCompletedAlsRelease(target)).join('\n'))
+        renderedCompletedSkip = true
+      }
       continue
     }
     const outputFile = resolveInvocationPath(
@@ -224,7 +316,7 @@ export async function runHkgovAlsIngestCommand(
         `${sourceVersion}.json`,
       )
       await writeDriftReport(reportFile, sourceVersion, result.driftCandidates)
-      if (args.options.yes) {
+      if (args.options.yes && args.options['skip-curation-checks'] !== true) {
         throw new Error(
           [
             'ALS identity drift requires interactive review; --yes cannot choose premise identities.',
@@ -243,6 +335,7 @@ export async function runHkgovAlsIngestCommand(
         decisions,
         result.driftCandidates,
         nextDecisions => writeJson(decisionsFile, nextDecisions),
+        args.options['skip-curation-checks'] === true,
       )
       result = await prepareHkgovAlsRelease({
         args,
@@ -281,23 +374,27 @@ export async function runHkgovAlsIngestCommand(
         positionals: [result.outputFile],
         options: {
           'cohort-key': addressCohortKey,
+          ...(args.options.continue === true ? { continue: true } : {}),
           'release-notes-url':
             stringOption(args, 'release-notes-url') ?? HKGOV_ALS_CATALOGUE_URL,
           region: 'hk',
           source: 'hkgov-dpo',
           'source-version': sourceVersion,
           theme: 'addresses',
-          type: 'address',
+          'resource-type': 'address',
           yes: true,
         },
       },
       target,
       {
+        ...(options.allowHistoricalCohort ? { allowHistoricalCohort: true } : {}),
+        deferApiReleaseSet: true,
         dryRun: Boolean(args.options['dry-run']),
         divisionCohortKey,
         forceUpload: Boolean(args.options.force),
         invocationCwd: INVOCATION_CWD,
         processingActions: result.processingActions,
+        quality: result.divisionQuality,
         printUsage,
         skipConfirm: true,
         skipSnapshotCleanup: Boolean(args.options['skip-cleanup']),
@@ -309,6 +406,24 @@ export async function runHkgovAlsIngestCommand(
       await writeJson(historyFile, history)
     }
   }
+  if (!args.options['dry-run'] && !args.options['defer-api-release-set']) {
+    await runReconcileDraftReleaseSetsCommand(
+      {
+        command: 'release-sets:reconcile',
+        positionals: [],
+        options: { 'api-family': 'addresses', region: 'hk' },
+      },
+      target,
+      printUsage,
+    )
+  }
+}
+
+export async function formatCompletedAlsRelease(target: UploadTarget) {
+  return formatInitialisationSkippedDatasets(target, {
+    datasetCodes: ['ds-hk-hkgov-dpo-address'],
+    releaseCodes: [],
+  })
 }
 
 function formatAlsReviewCommand(input: {
@@ -334,7 +449,37 @@ export async function runHkgovAlsLocalIngestCommand(
   if (target.remote) {
     throw new Error('`hkgov-dpo:backfill-local` only supports --target local.')
   }
-  return runHkgovAlsIngestCommand(args, target, printUsage)
+  return runHkgovAlsIngestCommand(args, target, printUsage, {
+    allowHistoricalCohort: true,
+  })
+}
+
+type HkgovAlsIngestOptions = {
+  /**
+   * A local historical backfill creates an independent address cohort. It must
+   * not supersede the newer active source release or API cohort.
+   */
+  allowHistoricalCohort?: boolean
+}
+
+export function shouldIncludeSupersededAlsSourceVersions(input: {
+  allowHistoricalCohort?: boolean
+  continue?: boolean
+}) {
+  // A historical backfill starts before the newest release. Every later
+  // completed release is normally superseded, so treating only the active
+  // release as complete would needlessly reprocess the rest of the series.
+  return input.allowHistoricalCohort === true || input.continue === true
+}
+
+export function selectPendingAlsSourceReleases<T extends { sourceVersion: string }>(
+  sourceReleases: readonly T[],
+  completedSourceVersions: ReadonlySet<string>,
+  force = false,
+) {
+  return sourceReleases.filter(
+    release => force || !completedSourceVersions.has(release.sourceVersion),
+  )
 }
 
 async function listTargetCompletedAlsSourceVersions(
@@ -369,13 +514,14 @@ async function listTargetCompletedAlsSourceVersions(
   }
 }
 
-async function prepareHkgovAlsRelease(args: {
+export async function prepareHkgovAlsRelease(args: {
   args: ParsedArgs
   addressCohortKey: string
   divisionCohortKey: string
   decisions?: HkgovAlsIdentityDecisions
   history?: HkgovAlsIdentityHistory
   outputFile: string
+  membershipFile?: string
   sourceDir: string
   sourceVersion: string
   target: UploadTarget
@@ -391,26 +537,347 @@ async function prepareHkgovAlsRelease(args: {
         args.addressCohortKey.slice(0, 4),
         {
           cacheTableProfile: 'address',
+          includeAllHistoryShardYears: true,
         },
       )
   try {
     return await prepareHkgovAlsAddressParquet({
       dbPath: explicitDbPath,
       currentDb: dbContext?.currentDb,
+      historyDb: dbContext?.historyDb,
+      historyShards: dbContext
+        ? new Map(
+            dbContext.historyTargets.map(target => [
+              target.bindingName,
+              { bindingName: target.bindingName, db: target.db as never },
+            ]),
+          )
+        : undefined,
       environment: args.target.environment,
       identityDecisions: args.decisions,
       identityHistory: args.history,
       metaDb: dbContext?.metaDb,
       outputFile: args.outputFile,
+      membershipFile: args.membershipFile,
       cohortKey: args.addressCohortKey,
       divisionCohortKey: args.divisionCohortKey,
       sourceDir: args.sourceDir,
       sourceVersion: args.sourceVersion,
       postProcessPremiseStructure: args.postProcessPremiseStructure,
       writeOutput: args.writeOutput,
+      skipCurationChecks: args.args.options['skip-curation-checks'] === true,
     })
   } finally {
     await dbContext?.cleanup()
+  }
+}
+
+/**
+ * Address rows retain the exact division snapshot selected for their cohort.
+ * Current storage may evict an older projection, while immutable history keeps
+ * it; restore that projection before ALS preparation builds its division lookup
+ * and before address SQL introduces its foreign keys. History is a delta journal,
+ * so replay the complete parent-to-target snapshot rather than reading one
+ * snapshot's history rows in isolation.
+ */
+async function materialiseDivisionSnapshotForAddressRelease(
+  target: UploadTarget,
+  cohortKey: string,
+) {
+  const context = await resolveLocalAddressDbContext(
+    target,
+    'hk',
+    cohortKey.slice(0, 4),
+    {
+      cacheTableProfile: 'address',
+      includeAllHistoryShardYears: true,
+    },
+  )
+  try {
+    const snapshot = await context.metaDb
+      .select({ id: metaSchema.metaSnapshots.id })
+      .from(metaSchema.metaSnapshots)
+      .innerJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshots.snapshotLineageId,
+          metaSchema.metaSnapshotLineages.id,
+        ),
+      )
+      .where(
+        and(
+          eq(metaSchema.metaSnapshots.resourceType, 'division'),
+          eq(metaSchema.metaSnapshots.status, 'published'),
+          eq(metaSchema.metaSnapshots.cohortKey, cohortKey),
+          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+        ),
+      )
+      .limit(1)
+      .get()
+    if (!snapshot) {
+      throw new Error(
+        `No published Overture division snapshot found for cohort ${cohortKey}.`,
+      )
+    }
+    const [presentDivisions, presentI18n] = await Promise.all([
+      context.currentDb
+        .select({ id: currentSchema.divisions.id })
+        .from(currentSchema.divisions)
+        .where(eq(currentSchema.divisions.snapshotId, snapshot.id))
+        .all(),
+      context.currentDb
+        .select({
+          divisionId: currentSchema.divisionsI18n.divisionId,
+          locale: currentSchema.divisionsI18n.locale,
+        })
+        .from(currentSchema.divisionsI18n)
+        .where(eq(currentSchema.divisionsI18n.snapshotId, snapshot.id))
+        .all(),
+    ])
+    const historyShards = new Map(
+      context.historyTargets.map(target => [
+        target.bindingName,
+        {
+          bindingName: target.bindingName,
+          db: target.db as never,
+        },
+      ]),
+    )
+    const replayPlan = await resolveSnapshotReplayPlan(
+      context.metaDb as never,
+      snapshot.id,
+    )
+    const replayedVersions = await resolveSnapshotVersionState(
+      replayPlan,
+      historyShards,
+      ['division', 'divisionI18n'],
+    )
+    const divisionVersions = [...replayedVersions.values()].filter(
+      version => version.recordType === 'division',
+    )
+    const i18nVersions = [...replayedVersions.values()].filter(
+      version => version.recordType === 'divisionI18n',
+    )
+    const [divisions, i18n] = await Promise.all([
+      loadReplayedDivisionRows(divisionVersions),
+      loadReplayedDivisionI18nRows(i18nVersions),
+    ])
+    if (divisions.length === 0) {
+      throw new Error(
+        `Division snapshot ${snapshot.id} is absent from both current storage and immutable history.`,
+      )
+    }
+    if (!hasAllOvertureHongKongAreaDivisions(divisions.map(row => row.id))) {
+      const areaNames = overtureHongKongAreas
+        .filter(
+          area =>
+            !divisions.some(
+              row => row.id === overtureHongKongAreaDivisionId(area.code),
+            ),
+        )
+        .map(area => area.names.en)
+        .join(', ')
+      throw new Error(
+        `Replayed division snapshot ${snapshot.id} is missing canonical Hong Kong Area rows (${areaNames}).`,
+      )
+    }
+    const materialisedI18n = filterDivisionI18nToKnownDivisions(
+      i18n,
+      new Set(divisions.map(row => row.id)),
+    )
+    if (
+      !hasAllOvertureHongKongAreaDivisions(materialisedI18n.map(row => row.divisionId))
+    ) {
+      const areaNames = overtureHongKongAreas
+        .filter(
+          area =>
+            !materialisedI18n.some(
+              row => row.divisionId === overtureHongKongAreaDivisionId(area.code),
+            ),
+        )
+        .map(area => area.names.en)
+        .join(', ')
+      throw new Error(
+        `Replayed division snapshot ${snapshot.id} is missing Hong Kong Area translations (${areaNames}).`,
+      )
+    }
+    const expectedDivisionIds = new Set(divisions.map(row => row.id))
+    const presentDivisionIds = new Set(presentDivisions.map(row => row.id))
+    const expectedI18nKeys = new Set(
+      materialisedI18n.map(row => `${row.divisionId}\u0000${row.locale}`),
+    )
+    const presentI18nKeys = new Set(
+      presentI18n.map(row => `${row.divisionId}\u0000${row.locale}`),
+    )
+    const now = toIsoTimestamp()
+    await deliverDivisionPrerequisite({
+      target,
+      databaseId: context.state.bindings.DB_CURRENT?.databaseId,
+      snapshotId: snapshot.id,
+      divisions: divisions.map(row => ({
+        ...row,
+        snapshotId: snapshot.id,
+        createdAt: now,
+        updatedAt: now,
+      })),
+      i18n: materialisedI18n.map(row => ({
+        ...row,
+        snapshotId: snapshot.id,
+        createdAt: now,
+        updatedAt: now,
+      })),
+    })
+    if (
+      expectedDivisionIds.size === presentDivisionIds.size &&
+      [...expectedDivisionIds].every(id => presentDivisionIds.has(id)) &&
+      expectedI18nKeys.size === presentI18nKeys.size &&
+      [...expectedI18nKeys].every(key => presentI18nKeys.has(key))
+    ) {
+      return
+    }
+
+    for (const rows of chunk(divisions, 8)) {
+      await context.currentDb
+        .insert(currentSchema.divisions)
+        .values(
+          rows.map(row => ({
+            ...row,
+            createdAt: now,
+            snapshotId: snapshot.id,
+            updatedAt: now,
+          })),
+        )
+        .onConflictDoNothing()
+        .run()
+    }
+    for (const rows of chunk(materialisedI18n, 8)) {
+      await context.currentDb
+        .insert(currentSchema.divisionsI18n)
+        .values(
+          rows.map(row => ({
+            ...row,
+            createdAt: now,
+            snapshotId: snapshot.id,
+            updatedAt: now,
+          })),
+        )
+        .onConflictDoNothing()
+        .run()
+    }
+  } finally {
+    context.cleanup()
+  }
+}
+
+const SNAPSHOT_REPLAY_QUERY_BATCH_SIZE = 80
+
+export function filterDivisionI18nToKnownDivisions<T extends { divisionId: string }>(
+  rows: readonly T[],
+  divisionIds: ReadonlySet<string>,
+) {
+  return rows.filter(row => divisionIds.has(row.divisionId))
+}
+
+async function loadReplayedDivisionRows(versions: ResolvedSnapshotVersion[]) {
+  const rows: Array<
+    Omit<
+      typeof currentSchema.divisions.$inferSelect,
+      'snapshotId' | 'createdAt' | 'updatedAt'
+    > & { versionHash: string }
+  > = []
+
+  for (const shardVersions of groupResolvedVersionsByShard(versions).values()) {
+    const expected = new Set(
+      shardVersions.map(version => `${version.recordId}\u0000${version.versionHash}`),
+    )
+    const db = shardVersions[0]?.shard.db
+    if (!db) continue
+
+    for (const versionBatch of chunk(shardVersions, SNAPSHOT_REPLAY_QUERY_BATCH_SIZE)) {
+      const versionHashes = [
+        ...new Set(versionBatch.map(version => version.versionHash)),
+      ]
+      const batchRows = await db
+        .select({
+          bbox: historySchema.divisions.bbox,
+          cartography: historySchema.divisions.cartography,
+          divisionCode: historySchema.divisions.divisionCode,
+          geometry: historySchema.divisions.geometry,
+          hierarchies: historySchema.divisions.hierarchies,
+          id: historySchema.divisions.id,
+          identifiers: historySchema.divisions.identifiers,
+          level: historySchema.divisions.level,
+          sources: historySchema.divisions.sources,
+          category: historySchema.divisions.category,
+          class: historySchema.divisions.class,
+          versionHash: historySchema.divisions.versionHash,
+          wikidata: historySchema.divisions.wikidata,
+        })
+        .from(historySchema.divisions)
+        .where(inArray(historySchema.divisions.versionHash, versionHashes))
+        .all()
+
+      rows.push(
+        ...batchRows.filter(row => expected.has(`${row.id}\u0000${row.versionHash}`)),
+      )
+    }
+  }
+
+  return rows.map(({ versionHash: _versionHash, ...row }) => row)
+}
+
+async function loadReplayedDivisionI18nRows(versions: ResolvedSnapshotVersion[]) {
+  const rows: Array<
+    Omit<
+      typeof currentSchema.divisionsI18n.$inferSelect,
+      'snapshotId' | 'createdAt' | 'updatedAt'
+    > & { versionHash: string }
+  > = []
+
+  for (const shardVersions of groupResolvedVersionsByShard(versions).values()) {
+    const expected = new Set(
+      shardVersions.map(
+        version =>
+          `${version.recordId}\u0000${version.versionHash}\u0000${version.locale}`,
+      ),
+    )
+    const db = shardVersions[0]?.shard.db
+    if (!db) continue
+
+    for (const versionBatch of chunk(shardVersions, SNAPSHOT_REPLAY_QUERY_BATCH_SIZE)) {
+      const versionHashes = [
+        ...new Set(versionBatch.map(version => version.versionHash)),
+      ]
+      const batchRows = await db
+        .select({
+          divisionId: historySchema.divisionsI18n.divisionId,
+          isLocaleInferred: historySchema.divisionsI18n.isLocaleInferred,
+          locale: historySchema.divisionsI18n.locale,
+          name: historySchema.divisionsI18n.name,
+          nameAlts: historySchema.divisionsI18n.nameAlts,
+          nameProvenance: historySchema.divisionsI18n.nameProvenance,
+          nameRules: historySchema.divisionsI18n.nameRules,
+          nameVariant: historySchema.divisionsI18n.nameVariant,
+          versionHash: historySchema.divisionsI18n.versionHash,
+        })
+        .from(historySchema.divisionsI18n)
+        .where(inArray(historySchema.divisionsI18n.versionHash, versionHashes))
+        .all()
+
+      rows.push(
+        ...batchRows.filter(row =>
+          expected.has(`${row.divisionId}\u0000${row.versionHash}\u0000${row.locale}`),
+        ),
+      )
+    }
+  }
+
+  return rows.map(({ versionHash: _versionHash, ...row }) => row)
+}
+
+function* chunk<T>(rows: T[], size: number) {
+  for (let index = 0; index < rows.length; index += size) {
+    yield rows.slice(index, index + size)
   }
 }
 
@@ -421,43 +888,179 @@ async function reviewHkgovAlsIngest(args: {
   sourceReleases: AlsSourceRelease[]
   target: UploadTarget
 }) {
+  let reviewed = 0
   let history = args.history
+  let previousMembership: AlsMembership | null = null
   const driftCandidates = new Set<string>()
+  const curationApplications = new Map<
+    string,
+    {
+      fixture: HkgovAlsEstateCurationFixture
+      ids: Set<string>
+      sourceVersion: string
+    }
+  >()
   for (const {
     addressCohortKey,
     divisionCohortKey,
     sourceDir,
     sourceVersion,
   } of args.sourceReleases) {
-    const result = await prepareHkgovAlsRelease({
-      args: args.args,
-      addressCohortKey,
-      divisionCohortKey,
-      decisions: args.decisions,
-      history,
-      outputFile: join(tmpdir(), `hkgov-als-review-${sourceVersion}.parquet`),
-      sourceDir,
-      sourceVersion,
-      target: args.target,
-      writeOutput: false,
+    const result = await progressPhase(
+      `Review ALS release ${reviewed + 1}/${args.sourceReleases.length}: ${sourceVersion}`,
+      () =>
+        isolatedAlsReview({
+          args: args.args,
+          addressCohortKey,
+          divisionCohortKey,
+          decisions: args.decisions,
+          history,
+          outputFile: join(tmpdir(), `hkgov-als-review-${sourceVersion}.parquet`),
+          sourceDir,
+          sourceVersion,
+          target: args.target,
+          writeOutput: false,
+        }),
+    )
+    reviewed += 1
+    const membership = await readAlsMembership(
+      result.membership.path,
+      result.membership.sha256,
+    )
+    await reviewAlsDeletions({
+      previous: previousMembership,
+      current: membership,
+      reportFile: join(ALS_DELETION_REPORT_DIRECTORY, `${sourceVersion}.json`),
     })
+    previousMembership = membership
+    if (result.divisionQuality.issues.length > 0) {
+      note(
+        formatAlsDivisionQualitySummary(sourceVersion, result.divisionQuality),
+        'ALS DIVISION LINKAGE ISSUES',
+      )
+    }
     for (const candidate of result.driftCandidates) {
       const key = `${candidate.previous.identityKey}\u0000${candidate.current.identityKey}`
       driftCandidates.add(key)
     }
+    for (const application of result.curationApplications) {
+      if (application.verification !== 'unverified') continue
+      const key = `${application.fixture}\u0000${sourceVersion}`
+      const group = curationApplications.get(key) ?? {
+        fixture: application.fixture,
+        ids: new Set<string>(),
+        sourceVersion,
+      }
+      group.ids.add(application.id)
+      curationApplications.set(key, group)
+    }
     history = mergeHkgovAlsIdentityHistory(history, result.identityRecords)
+    // The output-free all-release preflight holds large parsed ALS objects briefly;
+    // release them before reviewing the next 600 MB+ 3D payload.
+    if (typeof Bun.gc === 'function') Bun.gc(true)
   }
   return {
+    curationApplications: [...curationApplications.values()].map(group => ({
+      ...group,
+      ids: [...group.ids].sort(),
+    })),
     driftCandidates: driftCandidates.size,
   }
 }
 
-async function promptForDriftDecisions(
+export async function reviewHkgovAlsCurationApplications(
+  applications: Array<{
+    fixture: HkgovAlsEstateCurationFixture
+    ids: string[]
+    sourceVersion: string
+  }>,
+  nonInteractive: boolean,
+  skipCurationChecks = false,
+) {
+  for (const application of applications) {
+    const label = `${application.ids.length} ${application.ids.length === 1 ? 'correction' : 'corrections'} on ${application.sourceVersion}`
+    if (skipCurationChecks) {
+      log.message(
+        `Accepted ${label} with --skip-curation-checks (unverified provenance).`,
+      )
+      continue
+    }
+    if (nonInteractive) {
+      throw new Error(
+        [
+          `ALS ${label} remain active but are newer than their last verification.`,
+          'Run without --yes to verify, keep them provisional, or revoke them.',
+        ].join('\n'),
+      )
+    }
+    note(
+      [
+        `Fixture: ${application.fixture}`,
+        `Decision IDs: ${application.ids.join(', ')}`,
+        `Source version: ${application.sourceVersion}`,
+      ].join('\n'),
+      'UNVERIFIED ALS CURATION',
+    )
+    const resolution = await select({
+      message: `How should ${label} be handled?`,
+      showInstructions: false,
+      options: [
+        {
+          label: 'Verify and continue',
+          value: 'verify',
+          hint: 'Records this source version as reviewed and keeps applying the corrections.',
+        },
+        {
+          label: 'Continue provisionally',
+          value: 'provisional',
+          hint: 'Applies them to this release with unverified provenance.',
+        },
+        {
+          label: 'Revoke correction',
+          value: 'revoke',
+          hint: 'Stops future application; historical releases remain unchanged.',
+        },
+      ],
+    })
+    if (isCancel(resolution)) throw new Error('ALS curation review cancelled.')
+    if (resolution === 'provisional') continue
+    updateHkgovAlsEstateCurationApplication(application.fixture, {
+      ...(resolution === 'revoke' ? { state: 'revoked' as const } : {}),
+      ...(resolution === 'verify'
+        ? { lastVerifiedSourceVersion: application.sourceVersion }
+        : {}),
+    })
+    await writeFile(
+      resolve(REPO_ROOT, 'fixtures/meta/curations', application.fixture),
+      serialiseHkgovAlsEstateCurationFixture(application.fixture),
+    )
+  }
+}
+
+export async function promptForDriftDecisions(
   decisions: HkgovAlsIdentityDecisions,
   candidates: HkgovAlsIdentityDriftCandidate[],
   persist: (decisions: HkgovAlsIdentityDecisions) => Promise<void> = async () => {},
+  skipCurationChecks = false,
 ) {
   const next = [...decisions.decisions]
+  if (skipCurationChecks) {
+    log.message(
+      `Accepted ${candidates.length} ALS identity changes with generated IDs (--skip-curation-checks).`,
+    )
+    return {
+      authority: 'hkgov-dpo' as const,
+      decisions: [
+        ...next,
+        ...candidates.map(candidate => ({
+          currentIdentityKey: candidate.current.identityKey,
+          previousIdentityKey: candidate.previous.identityKey,
+          resolution: 'new-id' as const,
+        })),
+      ],
+      version: 1 as const,
+    }
+  }
   note(
     `Review ${candidates.length} premise ${candidates.length === 1 ? 'change' : 'changes'} and choose whether each should retain its existing ID.`,
     'LIKELY ALS PREMISE DRIFT',
@@ -580,87 +1183,77 @@ type AlsSourceRelease = {
 }
 
 /**
- * An address release must reference a published division snapshot from the same
- * database-shard year. Within that year use the latest snapshot not newer than
- * the ALS release; if none exists, use the first available snapshot.
+ * An address release references the exact published division snapshot when it
+ * exists, otherwise the most recent snapshot, or the soonest available snapshot.
+ * The selected snapshot is materialised before its address release is prepared.
  */
 async function resolveAlsSourceReleases(
   target: UploadTarget,
   sourceReleases: Array<Pick<AlsSourceRelease, 'sourceDir' | 'sourceVersion'>>,
 ): Promise<AlsSourceRelease[]> {
-  const cohortsByYear = new Map<string, string[]>()
-
-  for (const year of new Set(
-    sourceReleases.map(release => release.sourceVersion.slice(0, 4)),
-  )) {
-    const dbContext = await resolveLocalAddressDbContext(target, 'hk', year, {
-      cacheTableProfile: 'address',
-    })
-    try {
-      const rows = await dbContext.metaDb
-        .select({
-          cohortKey: metaSchema.metaSnapshots.cohortKey,
-        })
-        .from(metaSchema.metaSnapshotSources)
-        .innerJoin(
-          metaSchema.metaReleases,
-          and(
-            eq(
-              metaSchema.metaReleases.id,
-              metaSchema.metaSnapshotSources.sourceReleaseId,
-            ),
-            eq(
-              metaSchema.metaReleases.datasetId,
-              metaSchema.metaSnapshotSources.datasetId,
-            ),
-          ),
-        )
-        .innerJoin(
-          metaSchema.metaDatasets,
-          eq(metaSchema.metaDatasets.id, metaSchema.metaSnapshotSources.datasetId),
-        )
-        .innerJoin(
-          metaSchema.metaSnapshots,
-          eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
-        )
-        .innerJoin(
-          metaSchema.metaSnapshotLineages,
+  const firstRelease = sourceReleases[0]
+  if (!firstRelease) return []
+  const dbContext = await resolveLocalAddressDbContext(
+    target,
+    'hk',
+    firstRelease.sourceVersion.slice(0, 4),
+    { cacheTableProfile: 'address' },
+  )
+  let publishedCohorts: string[]
+  try {
+    const rows = await dbContext.metaDb
+      .select({ cohortKey: metaSchema.metaSnapshots.cohortKey })
+      .from(metaSchema.metaSnapshotSources)
+      .innerJoin(
+        metaSchema.metaReleases,
+        and(
           eq(
-            metaSchema.metaSnapshots.snapshotLineageId,
-            metaSchema.metaSnapshotLineages.id,
+            metaSchema.metaReleases.id,
+            metaSchema.metaSnapshotSources.resourceReleaseId,
           ),
-        )
-        .where(
-          and(
-            // Overture source releases are superseded by later monthly releases,
-            // but their published division snapshots remain valid historical
-            // anchors for same-year ALS shards.
-            inArray(metaSchema.metaReleases.status, ['published', 'superseded']),
-            eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
-            eq(metaSchema.metaDatasets.regionCode, 'hk'),
-            eq(metaSchema.metaSnapshots.resourceType, 'division'),
-            eq(metaSchema.metaSnapshots.status, 'published'),
-            eq(metaSchema.metaSnapshotLineages.regionCode, 'hk'),
-            eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
-            eq(metaSchema.metaSnapshotSources.role, 'primary'),
+          eq(
+            metaSchema.metaReleases.datasetId,
+            metaSchema.metaSnapshotSources.datasetId,
           ),
-        )
-        .all()
-      cohortsByYear.set(
-        year,
-        [
-          ...new Set(rows.map(row => row.cohortKey).filter(isSameYearCohort(year))),
-        ].sort(),
+        ),
       )
-    } finally {
-      await dbContext.cleanup()
-    }
+      .innerJoin(
+        metaSchema.metaDatasets,
+        eq(metaSchema.metaDatasets.id, metaSchema.metaSnapshotSources.datasetId),
+      )
+      .innerJoin(
+        metaSchema.metaSnapshots,
+        eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+      )
+      .innerJoin(
+        metaSchema.metaSnapshotLineages,
+        eq(
+          metaSchema.metaSnapshots.snapshotLineageId,
+          metaSchema.metaSnapshotLineages.id,
+        ),
+      )
+      .where(
+        and(
+          inArray(metaSchema.metaReleases.status, ['published', 'superseded']),
+          eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
+          eq(metaSchema.metaDatasets.regionCode, 'hk'),
+          eq(metaSchema.metaSnapshots.resourceType, 'division'),
+          eq(metaSchema.metaSnapshots.status, 'published'),
+          eq(metaSchema.metaSnapshotLineages.regionCode, 'hk'),
+          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
+          eq(metaSchema.metaSnapshotSources.role, 'primary'),
+        ),
+      )
+      .all()
+    publishedCohorts = [...new Set(rows.map(row => row.cohortKey))].sort()
+  } finally {
+    await dbContext.cleanup()
   }
 
   return sourceReleases.map(release => {
     const divisionCohortKey = selectAlsDivisionCohort(
       release.sourceVersion,
-      cohortsByYear.get(release.sourceVersion.slice(0, 4)) ?? [],
+      publishedCohorts,
     )
     return {
       ...release,
@@ -670,25 +1263,19 @@ async function resolveAlsSourceReleases(
   })
 }
 
-/** Select the latest same-year cohort not later than the ALS release. */
+/** Select the exact, most recent, or soonest published Division cohort for ALS. */
 export function selectAlsDivisionCohort(
   sourceVersion: string,
   publishedCohorts: readonly string[],
 ) {
-  const year = sourceVersion.slice(0, 4)
-  const cohorts = [...new Set(publishedCohorts.filter(isSameYearCohort(year)))].sort()
+  const cohorts = [...new Set(publishedCohorts)].sort()
   const cohort = cohorts.filter(value => value <= sourceVersion).at(-1) ?? cohorts[0]
   if (!cohort) {
     throw new Error(
-      `No published Overture division snapshot is available for the ${year} ALS shard. ` +
-        'Publish a same-year division release before ingesting these addresses.',
+      `No published Overture division snapshot is available to match ALS release ${sourceVersion}.`,
     )
   }
   return cohort
-}
-
-function isSameYearCohort(year: string) {
-  return (cohortKey: string) => cohortKey.startsWith(`${year}-`)
 }
 
 function resolveAlsSourceVersion(args: ParsedArgs, sourceDir: string | undefined) {
@@ -809,6 +1396,34 @@ export function formatSourceDuplicateSummary(
     formatField('sourceFeaturesInvolved', String(sourceFeatures)),
     formatField('sourceFeaturesRemoved', String(sourceFeatures - groups.length)),
     formatField('sourceFilesInvolved', String(sourceFiles.size)),
+  ].join('\n')
+}
+
+export function formatAlsDivisionQualitySummary(
+  sourceVersion: string,
+  quality: HkgovAlsDivisionQuality,
+) {
+  const issues = quality.issues.map(issue => {
+    const divisions = [
+      issue.areaStatus !== 'matched'
+        ? `area ${issue.areaStatus}: ${issue.areaName ?? '—'}`
+        : null,
+      issue.districtStatus !== 'matched'
+        ? `district ${issue.districtStatus}: ${issue.districtName ?? '—'}`
+        : null,
+    ].filter((division): division is string => division !== null)
+
+    return `- ${issue.address} | ${divisions.join(' | ')} | ${issue.sourceFile} #${issue.sourceFeatureIndexOneBased}`
+  })
+
+  return [
+    `\u001B[31m${sourceVersion}\u001B[39m`,
+    formatField('unmatchedArea', String(quality.unmatched_area_count)),
+    formatField('ambiguousArea', String(quality.ambiguous_area_count)),
+    formatField('unmatchedDistrict', String(quality.unmatched_district_count)),
+    formatField('ambiguousDistrict', String(quality.ambiguous_district_count)),
+    '',
+    ...issues,
   ].join('\n')
 }
 

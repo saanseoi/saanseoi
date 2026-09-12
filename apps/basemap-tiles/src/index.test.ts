@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { isLatestRequest } from './index'
+import { archiveVersionForRequest, isLatestRequest } from './index'
 import { tileBodyCacheKey } from './lib/cache'
 
 test('allows archive-versioned latest requests to use the edge cache', () => {
@@ -10,6 +10,18 @@ test('keeps unversioned latest resources and latest renders dynamic', () => {
   expect(isLatestRequest('hong-kong-latest', false, null)).toBe(true)
   expect(isLatestRequest('hong-kong-2026-08-13', false, null)).toBe(false)
   expect(isLatestRequest('hong-kong-2026-08-13', true, 'archive-etag')).toBe(true)
+})
+
+test('pins latest tile PMTiles metadata to the advertised archive version', () => {
+  expect(
+    archiveVersionForRequest('hong-kong-latest', [0, 0, 0], undefined, 'etag'),
+  ).toBe('etag')
+  expect(
+    archiveVersionForRequest('hong-kong-latest', [0, 0, 0], 'head-etag', 'etag'),
+  ).toBe('head-etag')
+  expect(
+    archiveVersionForRequest('hong-kong-2026-08-13', [0, 0, 0], undefined, 'etag'),
+  ).toBeUndefined()
 })
 
 test('shares authenticated tile cache entries while retaining version pins', () => {

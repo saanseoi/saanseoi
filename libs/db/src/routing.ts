@@ -1,12 +1,7 @@
 import { and, desc, eq } from 'drizzle-orm'
 
-import {
-  metaApiReleaseSets,
-  metaApiVersions,
-  metaDataShards,
-  metaReleaseSetShardAssignments,
-} from './schema/meta'
-import type { DataShardEnvironment, DataShardType } from './constants/schema'
+import { metaApiReleaseSets, metaApiVersions, metaDataShards } from './schema/meta'
+import type { DataShardType } from './constants/schema'
 import type { MetaDatabase } from './client'
 
 /**
@@ -36,46 +31,6 @@ export async function resolveActiveApiReleaseSet(
       ),
     )
     .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
-    .limit(1)
-
-  return rows[0] ?? null
-}
-
-/**
- * Resolves the active shard assignment for a release set in a specific shard
- * family and deployment environment.
- *
- * `current` and `history` are routed per release set so canonical builders and
- * API reads can target the correct D1 database from meta state.
- */
-export async function resolveShardForReleaseSet(
-  db: MetaDatabase,
-  apiReleaseSetId: string,
-  shardType: Extract<DataShardType, 'history' | 'current'>,
-  environment: DataShardEnvironment,
-) {
-  const rows = await db
-    .select({
-      dataShardId: metaDataShards.id,
-      bindingName: metaDataShards.bindingName,
-      databaseName: metaDataShards.databaseName,
-      databaseId: metaDataShards.databaseId,
-      regionCode: metaDataShards.regionCode,
-      year: metaDataShards.year,
-    })
-    .from(metaReleaseSetShardAssignments)
-    .innerJoin(
-      metaDataShards,
-      eq(metaReleaseSetShardAssignments.dataShardId, metaDataShards.id),
-    )
-    .where(
-      and(
-        eq(metaReleaseSetShardAssignments.apiReleaseSetId, apiReleaseSetId),
-        eq(metaDataShards.shardType, shardType),
-        eq(metaDataShards.environment, environment),
-        eq(metaDataShards.status, 'active'),
-      ),
-    )
     .limit(1)
 
   return rows[0] ?? null

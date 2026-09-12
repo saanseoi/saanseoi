@@ -39,14 +39,14 @@ boundary.
 
 This release is a settlement-place-name collection, not an administrative hierarchy.
 Only records whose publisher class is <black>Settlement</black> enter this Divisions
-domain. Hydrographic and Topographic records remain complete native source assertions
-for a future Places projection; they are not silently recast as divisions.
+domain. Hydrographic and Topographic records remain complete native source records for a
+future Places projection; they are not silently recast as divisions.
 
 ### Directly Retained Fields
 
 - `geometry` - retained as canonical Point geometry
 - `GEO_NAME_ID` - retained as the persistent publisher identifier
-- `PLACE_CLASS`, `PLACE_TYPE`, and `DISTRICT` - retained with the source assertion
+- `PLACE_CLASS`, `PLACE_TYPE`, and `DISTRICT` - with the source record
 - Official and alias `PLACE_NAME` relationship rows - retained with their publisher
   status and bilingual labels
 
@@ -60,16 +60,14 @@ for a future Places projection; they are not silently recast as divisions.
 
 - `GEO_NAME_ID` - becomes the canonical identifier <black>LANDSD:{GEO_NAME_ID}</black>
 - Official English and Traditional Chinese names become locale-specific
-  [DivisionI18n](/docs#models/DivisionI18n) records; aliases remain source assertions
+  [DivisionI18n](/docs#models/DivisionI18n) records; aliases remain source records
 - Every published record has canonical <black>type=settlement</black> and
   <black>level=5</black>
 
-### Compatibility Fields
+### Source fields
 
-Publisher keys are available under <black>sourceKeys.hkgovLandsd</black> as
-<black>geoNameId</black>, <black>placeClass</black>, <black>placeType</black>, and
-<black>district</black>. The complete native feature and properties remain under the
-<black>sources.hkgovLandsd</black> provenance value.
+Publisher keys remain in the source record's <black>properties</black>. The complete
+native feature and properties remain available through the source-record endpoint.
 
 ### Dropped Fields
 
@@ -123,12 +121,10 @@ domain。水文及地形記錄會完整保留為原生來源主張，以供未�
   記錄；別名仍保留為來源主張
 - 每筆已發布記錄的標準值均為 <black>type=settlement</black> 及 <black>level=5</black>
 
-### 兼容欄位
+### 來源欄位
 
-發布者 key 會在 <black>sourceKeys.hkgovLandsd</black> 下以
-<black>geoNameId</black>、<black>placeClass</black>、<black>placeType</black> 及
-<black>district</black> 提供。完整原生 feature 及屬性仍保留於
-<black>sources.hkgovLandsd</black> 來源追溯值。
+發布者 key 會保留在來源記錄的 <black>properties</black>
+中。完整原生 feature 及屬性可透過來源記錄端點取得。
 
 ### 不公開欄位
 
@@ -180,12 +176,10 @@ domain。水文及地形记录会完整保留为原生来源断言，以供未�
   记录；别名仍保留为来源断言
 - 每条已发布记录的规范值均为 <black>type=settlement</black> 及 <black>level=5</black>
 
-### 兼容字段
+### 来源字段
 
-发布者 key 会在 <black>sourceKeys.hkgovLandsd</black> 下以
-<black>geoNameId</black>、<black>placeClass</black>、<black>placeType</black> 及
-<black>district</black> 提供。完整原生 feature 及属性仍保留于
-<black>sources.hkgovLandsd</black> 来源追溯值。
+发布者 key 会保留在源记录的 <black>properties</black>
+中。完整原生 feature 及属性可通过源记录端点取得。
 
 ### 不公开字段
 

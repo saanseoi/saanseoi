@@ -1,5 +1,11 @@
-import { expect, test } from 'vitest'
+import { expect, test, vi } from 'vitest'
 import { render } from 'vitest-browser-svelte'
+
+vi.mock('./createAMapApiKeys.remote', () => ({
+  createGuideApiKey: Object.assign(async () => ({ rawKey: 'pk.guide-test' }), {
+    pending: 0,
+  }),
+}))
 
 import GuideCreateAMapApiKeys from './guideCreateAMapApiKeys.svelte'
 
@@ -23,7 +29,7 @@ test('restores key creation instructions after resetting a confirmed key', async
   await expect
     .element(screen.getByRole('button', { name: 'Reset' }))
     .not.toBeInTheDocument()
-  await screen.getByRole('button', { name: 'API key ready' }).click()
+  await screen.getByRole('button', { name: /^API key ready\b/ }).click()
 
   await expect
     .element(screen.getByText(/We assume your API key is stored as/))
@@ -41,11 +47,15 @@ test('restores key creation instructions after resetting a confirmed key', async
 
 test('asks the user to confirm their existing key is in .env', async () => {
   let confirmed = false
+  let ready = false
   const screen = await render(GuideCreateAMapApiKeys, {
     editorLabel: 'Zed',
     newFileShortcut: 'Ctrl+N',
     onApiKeyConfirmed: () => {
       confirmed = true
+    },
+    onApiKeyReadyChange: value => {
+      ready = value
     },
   })
 
@@ -55,7 +65,7 @@ test('asks the user to confirm their existing key is in .env', async () => {
     .element(screen.getByRole('heading', { name: 'Add your API key to the project' }))
     .toBeVisible()
   await expect
-    .element(screen.getByRole('button', { name: 'API key ready' }))
+    .element(screen.getByRole('button', { name: /^API key ready\b/ }))
     .not.toBeInTheDocument()
   await expect
     .element(screen.getByRole('button', { name: 'I have added my API key to .env' }))
@@ -63,6 +73,51 @@ test('asks the user to confirm their existing key is in .env', async () => {
   await screen.getByRole('button', { name: 'I have added my API key to .env' }).click()
 
   expect(confirmed).toBe(true)
+  expect(ready).toBe(true)
+})
+
+test('automatically confirms an LLM-created key', async () => {
+  let confirmed = false
+  let ready = false
+  const screen = await render(GuideCreateAMapApiKeys, {
+    autoConfirmCreatedKey: true,
+    onApiKeyConfirmed: () => {
+      confirmed = true
+    },
+    onApiKeyReadyChange: value => {
+      ready = value
+    },
+  })
+
+  await screen.getByPlaceholder('e.g. SaanSeoi Project').fill('LLM map')
+  await screen.getByRole('button', { name: 'Create Key' }).click()
+
+  await expect
+    .element(screen.getByRole('button', { name: /^API key ready\b/ }))
+    .toBeVisible()
+  expect(confirmed).toBe(true)
+  expect(ready).toBe(true)
+})
+
+test('does not offer an existing key when a new key is required', async () => {
+  const screen = await render(GuideCreateAMapApiKeys, {
+    allowExistingKey: false,
+  })
+
+  await expect
+    .element(screen.getByRole('button', { name: 'Use Existing' }))
+    .not.toBeInTheDocument()
+})
+
+test('hides environment setup when the LLM will add the new key', async () => {
+  const screen = await render(GuideCreateAMapApiKeys, {
+    showEnvironmentSetup: false,
+    usingExistingKey: true,
+  })
+
+  await expect
+    .element(screen.getByRole('heading', { name: 'Add your API key to the project' }))
+    .not.toBeInTheDocument()
 })
 
 test('opens the existing Mapbox environment file instead of creating another', async () => {
@@ -86,6 +141,7 @@ test('uses PowerShell to inspect the project folder on Windows', async () => {
 
   await screen.getByRole('button', { name: 'Use Existing' }).click()
 
-  await expect.element(screen.getByText('PS> Get-ChildItem -Force')).toBeVisible()
-  await expect.element(screen.getByText('-a---                .env')).toBeVisible()
+  const output = screen.getByText(/^PS> Get-ChildItem -Force/)
+  await expect.element(output).toBeVisible()
+  expect(output.element().textContent).toMatch(/-a---\s+\.env/)
 })

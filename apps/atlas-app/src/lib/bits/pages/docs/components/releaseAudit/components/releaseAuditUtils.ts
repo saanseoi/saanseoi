@@ -4,6 +4,8 @@ const auditSlug = (value: string) =>
     .replaceAll(/^-|-$/g, '')
     .toLowerCase()
 
+export const releaseAuditHeadingId = 'release-audit'
+
 export const auditHeadingId = (kind: 'bulk' | 'record', value: string) =>
   kind === 'bulk' ? `audit-bulk-${auditSlug(value)}` : `audit-${auditSlug(value)}`
 

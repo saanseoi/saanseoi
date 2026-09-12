@@ -7,6 +7,29 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
+Places pagination follows `links.next` until absent. Materialised snapshots provide
+`meta.page.total`; historical snapshots provide `meta.page.hasMore` without scanning the
+whole release for an exact count. Tutorial clients must not require `total`.
+
+Publisher fields can be inspected through the source-release Schema and Samples tabs and
+the [source-record endpoints](../datasets/source-record-access.md). Tutorial marker
+queries use the canonical Places collection and its map profile; source inventories have
+their own schema and return native publisher geometry only when requested. Overture
+source geometry uses WKB bytes encoded as base64; map markers continue to use canonical
+Places coordinates. Source-record access does not form part of the tutorial's pagination
+or basemap-token flow.
+
+The Address API's `saanseoi` domain and `filter[dataset]` select the curated address
+collection independently of the Places endpoint. The tutorial's Places queries and
+free-form address display require no selector changes.
+
+Extended address displays can use optional Place collection/unit references and
+localised `accessHint`. The reference instructions require the recorded address snapshot
+and distinguish unresolved ancestor coverage from verified section membership. The basic
+point-map queries, pagination and token requirements are unchanged; the guide does not
+fetch building unit inventories for ordinary marker rendering. Copy review is still
+needed.
+
 | Objective          | Setup path                                                                                  | Render                                                                  | Basemap                                | Style                                     | Data                                                  | Copy review |
 | ------------------ | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | -------------------------------------- | ----------------------------------------- | ----------------------------------------------------- | ----------- |
 | Local              | OS-specific Bun install and the existing local Vite commands                                | MapLibre, Mapbox and Leaflet starter snippets                           | Direct `pk.` key and regional TileJSON | SaanSeoi carousel and custom-style prompt | Own-data prompt and urban-density calculation example | Needed      |
@@ -29,7 +52,7 @@ solely because it compiles or an LLM generated the wording.
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Existing data                  | Privacy-aware discovery prompt for an LLM or community helper                                                                                                                                       | Review after the first supported import path is published                                                                                                               |
 | SaanSeoi urban-density example | Tutorial-sized browser calculation for Hong Kong, Kowloon and the New Territories; sourced from District geometry, precision-snapped z14 basemap MVT land-use coverage and C&amp;SD population data | Verify the published Statistics collection, its download/API contract, the documented MVT approximation and the region/District grouping before marking fully available |
-| Planned sushi Places example   | Use Places search in pages of no more than 100 results and keep each search query within 200 characters                                                                                             | Verify the published Places snapshot, category vocabulary, pagination design and public-key flow before adding it to the tutorial                                       |
+| Planned sushi Places example   | Use the paginated Places collection with `profile=map` and category filters; use search only to discover an appropriate category term                                                               | Verify the published Places snapshot, category vocabulary, pagination and profile contracts, and public-key flow before adding it to the tutorial                       |
 
 ## Review checklist
 
@@ -48,10 +71,38 @@ solely because it compiles or an LLM generated the wording.
   precision grid, tile overlaps are dissolved before strict-core clipping, and the
   District-clipped coverage is dissolved once before measuring. Keep the deliberate
   boundary-snap trade-off explicit.
-- Before replacing the temporary C&amp;SD population input, verify the published
-  Statistics collection's endpoint, schema, reference-year semantics and download
+- Verify the published Statistics geography endpoint, the 2024 reference-period
+  selection, and both fields' resolved release-set metadata. Check explicit older
+  `releaseSet` requests against their frozen definitions. Collection examples must count
+  geography/period packs and follow pagination independently of field count.
+- Before adding the sushi example, verify the Places category vocabulary, the maximum of
+  100 collection results per request, profile-specific map fields, and bounded
   pagination.
-- Before adding the sushi example, verify that it respects the Places API maximum of 100
-  results per request and does not depend on unbounded search responses.
 - Review the mobile, notebook and Leaflet hand-offs with a practitioner before
   presenting them as full integrations.
+
+## Division hierarchy contract
+
+The urban-density snippets, example responses and preview read
+`attributes.hierarchies.administrative` for area membership. Division classifications
+use `category` and `class`; geometry resource `type` remains a GeoJSON/JSON:API field
+where applicable. Hierarchy labels are stored bilingual `name` values, independent of
+requested locale. The example uses district administrative ancestry rather than a city
+label or source subtype. Branching paths are arrays of arrays; flattening is used only
+to locate an area, never to infer new paths.
+
+## Publisher attribution
+
+The full Places profile exposes `attributes.sources.overture`. Map-profile marker
+queries do not depend on that attribution object. Retained source property keys use
+camelCase; API provenance pairs them with original publisher paths and distinguishes
+registry and curation inputs. The guide's LLM references state this contract.
+
+Source-record examples and the Sources schema use `properties` for retained publisher
+attributes, with `geometry` and `sourceRecordId` as envelope siblings. Places discovery
+references specify latest-release-only text search and the temporary `503 fts_not_ready`
+response during publication finalisation.
+
+Division discovery references cover `/divisions/v0.1/search`, all-domain search,
+optional domain/locale filters, partial English and Chinese text, and opt-in ancestor
+matching. Search is limited to the latest published release selection.

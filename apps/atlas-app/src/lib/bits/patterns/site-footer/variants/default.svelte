@@ -58,7 +58,7 @@ const networkLinks = [
 ] as const
 </script>
 
-<footer class="border-t border-border-card/60 bg-muted/55">
+<footer data-site-footer class="border-t border-border-card/60 bg-muted/55">
   <div
     class="mx-auto grid grid-cols-2 gap-x-4 gap-y-12 max-w-(--spacing-container-max) px-(--spacing-margin-md) py-12 md:px-8 min-[900px]:grid-cols-[1.4fr_0.8fr_0.8fr_0.9fr] xl:px-(--spacing-margin-xl)"
   >

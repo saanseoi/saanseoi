@@ -19,7 +19,7 @@ There is no second division source in the current pipeline.
 - Division uploads run locally from `saanseoi upload`, generate SQL artefacts, and
   import those artefacts into the target D1 databases.
 - The local division SQL runner is
-  `apps/harbour-cli/src/lib/divisionSql/processLocalDivisionSqlUpload.ts`.
+  `apps/harbour-cli/src/lib/pipeline/divisions/processLocalDivisionSqlUpload.ts`.
 - Processing creates or reuses a resourceType-scoped draft snapshot via
   `ensureDraftSnapshotForRelease`.
 - If an earlier published division snapshot exists for the same region, its current rows
@@ -63,7 +63,7 @@ And it writes release-level stats rows in meta:
 
 The division resourceType does not itself populate:
 
-- `placesDivision`
+- current-only `placesDivision` Place projection
 
 That join table belongs to the place pipeline, but it references canonical division IDs
 and snapshots.
@@ -79,15 +79,25 @@ is straightforward:
 - `geometry`: decoded from Overture WKB when needed, otherwise passed through if already
   GeoJSON
 - `bbox`: copied from source when present
-- `sourceKeys`: source-specific lookup and compatibility keys, currently Overture
-  `subtype`, `class`, source-owned `version`, raw `hierarchies`, and derived
-  compatibility `admin_level` where available
-- `wikidata`: retained where present
+- `identifiers`: genuine provider identifiers where a reviewed bridge exists
+- `wikidataId`: retained where present
 - `hierarchy`: normalised from Overture `hierarchies`; country/self entries are dropped,
   entries are mapped to canonical `level`/`type` using the matching division row when
   needed, and labels are resolved from division i18n rows as `en`/`zh-hant`
 - `cartography`: retained when present
 - `sources`: provider-keyed source attribution, currently `{ overture: ... }`
+
+The canonical `attributes.hierarchy` is a normalised API relationship. The source record
+API returns the source object, including fields which are not part of the canonical
+Division resource:
+[list Division source records](/docs#tag/Sources/operation/listDivisionSourceRecordsV0).
+The source release is selected with the required `sourceRelease` query parameter, and
+the original object is returned under `properties`.
+
+Overture source-only fields, including the raw `hierarchies[][]` value and its names,
+are available only in `properties` when the source record remains available. The
+canonical API representations of the hierarchy and classification remain
+`attributes.hierarchy` and the derived `attributes.type`/`attributes.level`.
 
 `divisionsI18n` currently stores:
 
@@ -176,8 +186,8 @@ Division processing computes release-level stats and stores them against the rel
 - churn stats comparing previous and current snapshots
 - quality/regression stats such as locale or name regression
 
-These are built in `libs/core/src/pipeline/services/stats.ts`, serialised into a
-dedicated `stats` SQL artefact, and imported into `DB_META`.
+These are built in `libs/core/src/pipeline/services/metrics/releaseStats.ts`, serialised
+into a dedicated `stats` SQL artefact, and imported into `DB_META`.
 
 Atlas-facing division summaries should be written as `type = apiReleaseSet` stats
 against the API release set. The standard rows are:
@@ -195,12 +205,12 @@ against the API release set. The standard rows are:
 
 ## Latest Release Rollback
 
-`saanseoi rollback:release --release <release-id|code>` can generate and import rollback
-SQL for the active latest division release only. The rollback SQL removes the latest
-release's current snapshot rows, deletes source/history rows inserted for that release,
-reopens rows that were closed by that release, resets the previous published release
-metadata, and removes the latest release metadata. A non-dry-run import requires
-confirmation; automation must opt in explicitly with `--yes`.
+`saanseoi rollback:release --release <release-id|code>` restores the selected published
+Division predecessor from independent base/locale history across its exact owning
+shards. Delivery writes only the current differences, restores search and readiness, and
+publishes a new catalogue selection. Source/history evidence and old catalogues remain
+retained. `--dry-run` prepares a preview; execution requires confirmation or `--yes`.
+Interrupted delivery resumes the same sealed plan with `sql:resume --plan <directory>`.
 
 ## API Support
 
@@ -221,16 +231,18 @@ Implemented Atlas routes now include:
 - `/divisions/v0`
 - `/divisions/v0/{id}`
 - `/v0/meta/...`
-- `/places/v0/{region}/places/{id}`
-- `/places/v0/{region}/places/by-cell/{h3Level}/{h3Cell}`
-- `/places/v0/{region}/search`
+- `/places/v0/{id}`
+- `/places/v0/by-cell/{h3Level}/{h3Cell}`
+- `/places/v0/search`
 
 ### Live runtime dependency on division data
 
 The standalone Atlas divisions routes are public now, and the division resourceType is
 also a live dependency elsewhere:
 
-- place detail responses join `placesDivision` to `divisions` and `divisionsI18n`
+- current place detail responses join the current-only `placesDivision` projection to
+  `divisions` and `divisionsI18n`; historical Place reads traverse the recorded
+  historical address snapshot instead
 - place search FTS uses `divisionsI18n.name` as part of `divisionText`
 - HKGov ALS address preparation also resolves division IDs from the current divisions
   database

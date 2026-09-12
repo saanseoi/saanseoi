@@ -1,0 +1,819 @@
+# HKGov DPO ALS addresses
+
+ALS upload sequences defer Address search finalisation until all selected source
+releases succeed. Without `--defer-api-release-set`, `hkgov-dpo:ingest` reconciles once
+at the end, including when completed releases are skipped on retry. With that option,
+the enclosing initialiser performs reconciliation. A curation stop or failed upload
+leaves the existing search index intact. Search indexes only the current published
+selection and applies differences in indexed content; advancing a snapshot alone does
+not rewrite its search documents.
+
+Unchanged open ALS assertions retain their original release ID and timestamps. Source
+retirement compares complete incoming membership, with indexed omission updates;
+retained retirement plans traverse row IDs monotonically in bounded transactions.
+
+The prepared `publisherSource` envelope carries untouched publisher provenance. Its
+nullable UTF-8 addition is permitted by schema validation only when all other prepared
+fields match the recorded schema. Other additions, removals and type changes remain
+subject to schema-drift rejection. An absent publisher envelope may be encoded as native
+null or JSON null. Both mean that the prepared row carries no publisher assertion;
+neither creates source evidence.
+
+ALS source preparation reads the selected geographic snapshot from immutable history.
+The Address delivery candidate requires its Division projection and translations to
+already exist in the local mirror. Its owned mutation tables cover Addresses, source
+assertions and provenance; it does not restore or upload missing Division rows. Prepare
+those dependencies through the geographic workflow. Identity matching, ownership
+validation and source-omission comparisons use the local mirror.
+
+Address2D and Address3D are fully prepared before delivery starts. Current storage uses
+one stable scope per Address lineage, with `addressPublicationState` identifying the
+logical snapshot and publication status. Delivery claims the scope before changing
+current data, guards each batch with its publication token and records preparation only
+after complete projection validation. Publication marks the matching prepared scope
+ready; interrupted delivery remains unavailable until its sealed plan resumes. Unchanged
+content remains open without timestamp touches or snapshot copies. Changed content and
+explicit retirement journals preserve exact historical membership. Search uses the same
+scope mapping.
+
+Published rollback replays the exact retained Address predecessor and its reviewed ALS
+membership sidecar. A composed restoration prepares Division and Street dependencies
+before Address, then validates the complete current candidate. The sealed delivery
+restores serving selection while retaining publisher evidence and historical versions.
+
+Subsequent canonical comparison uses that selected predecessor's exact component
+journals; building-number lookups use the restored serving content. Retained history
+flags are not permission to inherit a revoked publication's canonical state.
+
+Current Division and Street references contain physical scope IDs. Preparation and
+history retain logical snapshot IDs, and the writer resolves each exact selected
+reference through a completed receipt. Missing or advanced dependency projections fail
+closed and require chronological preparation. The assembly summary records the exact
+logical Division lookup in `lookupSnapshotIds.division` for historical dependency
+replay. Address and the other scoped families deliver final row differences resolved
+locally, with family-specific membership and shared readiness guards. See the
+[publication-state contract](../../publication-state-plan.md).
+
+Address2D base, locale and building-number history are compared independently,
+preserving the original hash and owning shard of unchanged component rows. Address3D
+base inventory and each locale payload have independent version hashes. Locale-only
+changes leave the base inventory open, and historical locale reads follow the matching
+locale journal entry. Source interpretations inherit along snapshot ancestry; identical
+interpretations produce no repeated `sourceResolutions` row. Source changes and explicit
+`source_omission` decisions remain auditable even when a curation retains the canonical
+address.
+
+Complete publisher omission retires the omitted source assertion. Curations can retain
+the canonical address without erasing that source event. Preflight compares final
+prepared canonical membership after alias, hierarchy and curation processing. It groups
+retirements by address level, separates provider omissions from canonical retirements,
+and stops for unreviewed building/complex loss, whole-inventory loss and substantial
+removal spikes. Invalid parent and owner references always fail validation. Flat
+removals remain reportable even when no review stop is required.
+
+Forward-fill fallbacks never replace a present publisher premise or inventory record,
+nor reject its reappearance because its retained evidence hash differs. This applies to
+2D and 3D backfills, house retentions, commercial retentions and estate-premise
+reconstruction. New publisher inventories proceed through normal ownership and conflict
+validation. Dated evidence and the publisher omission remain explicit when a fallback is
+applied.
+
+Preparation retains `<prepared>.membership.json` alongside the prepared data. It records
+raw publisher IDs and unit tokens before curation, final canonical identities and
+levels, parent references, bilingual labels, map coordinates, aliases and compact 3D
+collections. Prepared 2D and 3D hashes bind the membership to the uploaded contents.
+
+Chronological review writes `.local/hkgov-dpo/deletions/<sourceVersion>.json`, including
+predecessor and current membership digests, per-level previous and removed counts,
+percentages, parent chains, map links, descendant counts and curated retentions. Omitted
+publisher assertions include retained canonical IDs, remaining supporting source IDs and
+compact curation references. Retained units distinguish remaining source or alias
+support from curation retention, including reparented inventories. Any building,
+complex, phase, site or section retirement requires review, as does whole inventory
+loss. A deletion spike is at least 100 removals and at least 5% at a level, or at least
+1,000 removals at a level.
+
+Approval is an exact report digest in `.local/hkgov-dpo/deletion-reviews.json`, with
+`schemaVersion: 1` and `reviews` entries containing `digest`, `sourceVersion`,
+`previousSourceVersion`, `reason` and `reviewedAt`. Neither `--yes` nor
+`--skip-curation-checks` bypasses this gate. Changed resolved membership or report
+contents require a fresh review. Prepared-file container hashes are excluded from the
+approval digest; changed files still require preparation and checksum validation.
+Delivery retains a sealed `address-membership.json` inside its `sql-delivery-address`
+directory. After acknowledgement, the mirror receives
+`address-membership/<scopeId>/<snapshotId>.json`. The next release requires that exact
+predecessor file and checks its Address2D IDs, Address3D owners and unit IDs against the
+mirror. A prepared sidecar alone cannot establish the predecessor. Missing or mismatched
+acknowledged membership requires a chronological local rebuild. The upload also retains
+its final comparison as `address-deletions.json` in the release directory.
+
+[Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
+retained versions before division-cohort resolution, curation and completed-release
+filtering. Each selected delivery is processed in full.
+
+Address API publication calculates release churn from immutable Address2D and Address3D
+snapshot membership and content hashes, including retained translations. Comparisons use
+the preceding compatible API release and include history across shard years. Local
+retained release statistics can be rebuilt with
+`saanseoi stats:backfill-addresses --target local`.
+
+The release audit groups reviewed exceptions by their resolution: temporal coverage,
+coordinate replacement, duplicate consolidation, identifier and component corrections,
+containment, inventory edits and dated changes. Group names describe handling; address
+names belong to individual context headers. Each instance presents structured input and
+output fields, a copyable retained decision, and the recorded application lifecycle.
+Counts refer to decisions within the selected release's scope, excluding explicit
+zero-match epochs and empty fixtures. A schedule alone does not prove application; the
+audit distinguishes this from an observed guard result.
+
+Preparation retains separate guard counters at successful identity, coordinate,
+component-gap, inventory-source, parent, section-ownership, shared-owner,
+inventory-agreement and record-size checks. Skipped checks do not produce successful
+guard results. Releases without these counters report that detailed guard results were
+not retained; SQL completion is not a substitute for source validation.
+
+ALS division lookups replay the selected Overture snapshot from parent to target using
+all assigned history shards. Both preflight fingerprints and source preparation use this
+retained membership, so eviction of older current projections cannot interrupt
+chronological review. Translations use their own retained version hashes.
+
+Each release's preflight runs in an isolated Bun process so parsed 2D and 3D payload
+memory is reclaimed when the process exits. Successful preflight checkpoints survive
+interruption and are reused when their inputs match. Source or curation edits,
+processing code changes, incoming identity history changes and selected division lookup
+changes invalidate reuse. Local lookup fingerprints read the configured metadata,
+current and history databases, including historical division fallback. Remote preflight
+results are always recomputed. Uploads and final verification remain separate from the
+preflight cache.
+
+ALS 2D source rows retain supplied `sources` references, including the `hkgovAls`
+wrapper. Missing or empty references are stored as SQL `NULL` in both worker ingestion
+and bulk SQL import; synthetic source-record IDs are not provenance.
+
+Non-blocking curation logs use `ALS_MANUAL_REVIEW` JSON records. Skipped assertion
+guards record their source version, fixture, decision or source assertion hash, and
+failure message; the failed correction remains unapplied. Issue logs require
+reconciliation across every retained release before they constitute a complete review
+inventory.
+
+The guarded `on-yam-combined` suppression takes precedence over coordinate backfills:
+only retained individual house addresses receive canonical point corrections. The
+combined source assertion and its publisher point remain preserved as provenance.
+
+The reviewed Tsui Lam complex promotion routes the blockless Pik Lam House 3D assertion
+to retained Block 1. Both publisher assertions contribute source references to one
+430-unit inventory; conflicting inventories stop preparation. The promoted estate
+complex does not own those residential units.
+
+Pik Lam House's numbered Block 1 parent is forward-filled from the exact 22 July 2026
+Address2D assertion only when that numbered premise is absent. A returning numbered
+source, including `PIK LAM HOUSE (BLK 1)` / `碧林樓(1座)`, bypasses the fallback with
+its publisher point and bilingual premises unchanged. The blockless assertion sharing
+that CSU remains separate. Future omissions beyond 19 August 2026 carry unverified
+curation provenance until reviewed.
+
+ALS Address2D and Address3D source tables retain original publisher attributes in
+`properties`, using documented flat field names. Original geometry is retained in
+`sourceGeometry`, with source identity, release tracking and compact acquisition
+references alongside it. Publisher CSU IDs, coordinate attributes and bilingual
+components remain literal source values; canonical history/current tables own normalised
+and corrected projections. Internal entity references and processing decisions belong to
+snapshot-scoped `sourceResolutions`.
+
+The sealed source ledger includes every uploaded 2D and 3D occurrence, including records
+combined or replaced by house retention. Inventories reconstructed from historical
+evidence belong to canonical collections and carry compact evidence references; they do
+not become additional publisher rows for the current upload. Deliveries containing only
+2D input also retain a sealed ledger.
+
+Address3D source versions are keyed by `(sourceRecordId, versionHash)` and reused when
+their publisher payload is unchanged. Collection corrections and release provenance do
+not contribute to the source payload hash. `validFromRelease` records first appearance;
+changed or removed assertions receive `validToRelease` and cease to be current. Release
+rollback restores the preceding source state without deleting reused source versions.
+
+History resolution preserves prepared ALS canonical premise IDs, including reviewed
+aliases. `CsuId` (or `GeoAddress`) and premise components establish source identity;
+district, street and building number cannot override it. Distinct premises sharing a
+street address retain separate Address2D records and Address3D ownership.
+
+Fresh official-address initialisation replaces a stale target manifest only after the
+clean address baseline checks pass and new before-images are captured. A running
+manifest resumes automatically. Before ingestion, retained official-address SQL
+deliveries are replayed and their owning release finishes from its sealed prepared
+files, including Address3D and publication. Completed source releases are skipped.
+Failed baseline checks preserve the manifest and its reset ownership information.
+
+ALS preflight includes both passes of 3D preparation for each release: source-parent
+ownership resolution followed by corrected bilingual inventory validation. Shared-owner
+ambiguity, conflicting inventories and row-size violations stop preflight before
+ingestion. `writeOutput: false` suppresses artefact writes, while retaining 3D
+validation and its parent block enrichment and duplicate suppression. Block-free
+enrichment candidates must have no bilingual source block objects. Descriptor-only
+blocks such as `CARPARK BLK` / `停車場` retain their publisher components and use their
+existing 2D parent without numbered-block enrichment.
+
+`--skip-curation-checks` accepts pending correction verification and identity drift
+checks during ingestion, including with `--yes`. The upfront chronological preflight
+still runs when releases remain to ingest; deletion review cannot be bypassed. Source
+and integrity validation run during preparation of each ingested release. Grouped
+initialisers broadcast the flag to address ingestion; direct `hkgov-dpo:ingest` also
+accepts it. Corrections retain their existing verification provenance. Unresolved
+identity changes use generated IDs for the run, without writing human-reviewed decisions
+or verification dates to fixtures. This mode supports pre-curation reference and testing
+imports; source validation and database integrity checks still apply. The
+shared-building ownership curation check is skipped: each resolved owner keeps its own
+inventory and source occurrences. Ambiguous parent matches and conflicting inventories
+for the same owner still stop preparation. Skip mode omits parent block enrichment and
+duplicate suppression, retaining publisher 2D components and separate assertions. It
+uses exact parents or unique block-free matches and accepts section inventories without
+a reviewed ownership mapping. Alias coalescences apply only when their source guards
+match. In skip mode, a guard mismatch omits that coalescence and retains both publisher
+records unchanged. Coordinate backfills whose source targets are missing, ambiguous or
+changed are omitted in skip mode; matching backfills still apply with their provenance.
+
+Strict ALS preflight stops on an alias-coalescence guard mismatch with the release,
+curation fixture and decision ID. It writes an unresolved JSON review item under
+`.local/hkgov-dpo/review-queue/`, retaining the decision, failed assertion and
+owner/alias prepared rows, including their source provenance and coordinates. The error
+includes the JSON path for curator or LLM investigation. Identical evidence reuses the
+same item; different evidence creates a separate item. Review items do not approve
+corrections or alter source coordinates. Completed checkpoints remain on disk; reuse
+still requires matching preparation dependencies.
+
+Grandeur Terrace Block 1 uses the curator-selected northern block-alias point
+`[114.00057, 22.46887]` for retained releases from `2026-04-25.0` through
+`2026-08-19.0`. Coalescence requires the exact named-premise point
+`[114.00057, 22.46877]`, alias point and bilingual identity guards. Its provenance
+retains both publisher geometries and the derived geometry. Earlier matching points
+remain unchanged; any different source pair requires review.
+
+Grandeur Terrace Block 4 uses the fixed curator-selected point B `[114.00141, 22.46971]`
+across all historical and future releases, with no release bounds. Publisher coordinate
+differences do not block this decision; bilingual building identity guards still apply.
+The named record retains its identity, the separate alias is suppressed, and provenance
+retains both publisher geometries and the derived geometry.
+
+Grandeur Terrace Blocks 5–11 retain their curator-selected B coordinates from
+`2026-04-25.0` until revoked: respectively `[114.00169, 22.46999]`,
+`[114.00203, 22.46947]`, `[114.00214, 22.46911]`, `[114.00224, 22.46874]`,
+`[114.00235, 22.46837]`, `[114.00155, 22.46891]` and `[114.0012, 22.46866]`. The fixed
+coordinates remain independent of subsequent publisher point changes; bilingual identity
+guards remain mandatory and both publisher geometries remain in provenance. Releases
+after `2026-08-19.0` carry unverified curation provenance. Earlier releases retain their
+matching publisher coordinates.
+
+ALS ingestion retains the effective Address assembly recipe and exact source selections,
+including enrichment and lookup inputs, following the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
+ALS preparation seals its audit inputs to the prepared Parquet digest in an
+`.audit.json` sidecar. The retained R2 audit contains preparation and normalisation
+declarations, automatic substep counts, reviewed fixture documents and individual
+identity-continuity decisions. Publisher payloads remain source evidence; bulk audit
+rules do not copy publisher rows or canonical outputs. Publication requires registered
+provenance and completed delivery retries reuse the same retained graph. See the
+[processing provenance contract](../../processing-provenance.md).
+
+ALS delivery prepares Address2D, grouped Address3D and publisher assertions in the same
+isolated local candidate. Owner and section validation precede the sealed remote plan.
+The plan contains final keyed mutations, and publication follows successful delivery of
+all outputs. The acknowledged mirror advances only after the remote receipts are
+reconciled; interrupted delivery resumes the retained payload and timestamps.
+
+Remote transport groups up to eight consecutive pending batches on the same database
+within a 512-data-statement and 8 MB retained-payload budget. This includes the retained
+2D publisher ledger. Grouping preserves each sealed batch's receipt, statement order and
+bound parameters; committed batches are not resubmitted on recovery.
+
+Local source-version retirement runs in bounded transactions. The final remote plan
+contains only source assertions whose open state or payload differs from the
+acknowledged mirror, using the sealed release timestamp. Unchanged assertions retain
+their original validity start and content. Receipt checks determine whether interrupted
+delivery needs to send a batch again.
+
+ALS supplies bilingual premise addresses. The
+[import specification](../../internal/hkgov/address.md) describes source preparation,
+identity curation and ingestion. The [Addresses family](../../families/addresses.md)
+describes their canonical role.
+
+Uncurated `parentAddressId` is initialised to null. ALS component names and number
+ranges alone do not establish a containing Address or justify creating missing numbers.
+
+The shared normalisation stage classifies `granularity` after guarded component
+corrections, for both SQL and Worker ingestion. The corrected Ngong Ping tourist-complex
+estate component yields `complex`. Supporting decisions and evidence are retained in the
+codebase component and granularity curation fixtures. Only the resulting granularity is
+materialised; classification does not alter publisher source records. Number-only
+addresses, conflicting locale components and ambiguous facility labels remain `unknown`;
+a building-number range never turns its individual numbers into units. See
+[granularity curation](../../families/addresses.md#granularity-curation) for guarded
+manual overrides and how changed evidence reopens review.
+
+## SQL delivery
+
+Grouped Address3D ingestion validates all owners and unresolved sections against the
+selected 2D projection before writing collections. Lookups stream in groups of at most
+99 references, reserving the remaining D1 parameter for the snapshot. Missing owners and
+sections without exactly one reviewed parent match block ingestion; batching does not
+infer or change parent relationships.
+
+One `sql-delivery-address` plan seals the complete Address2D, Address3D and
+source/provenance result against the acknowledged mirror. Source checksums, schema and
+baseline identity bind the delivery to its preparation. Database receipts allow recovery
+after a lost acknowledgement. See [resumable SQL delivery](../../sql-delivery.md).
+
+Initial uploads export the complete prepared database contents, retaining immutable
+history and a single final current projection per lineage. Subsequent uploads compile
+only resolved changes. SQL staging is local preparation state and is excluded from the
+remote plan. The resolved mutation compiler checks 100 parameters, 100,000 SQL bytes and
+a conservative 2,000,000-byte logical-row budget. Address batches reserve space for the
+publication guard and contain at most 63 data statements and slightly less than 4 MiB of
+retained payload. A current Address3D collection stays within one bounded transaction;
+an oversized collection fails preparation. These bounds do not remove D1's database-size
+or execution-time limits.
+
+## Component correction fixture
+
+[`hkgov-dpo-address-components.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-components.json)
+stores reviewed building-to-estate classifications separately from ALS identity
+decisions. Each correction records its ID and revision, inclusive source-version range,
+CSU ID and accepted GeoAddresses, expected bilingual fields, component overrides,
+excluded names and evidence. A null upper version bound allows subsequent releases only
+while their identity and expected components still match.
+
+The shared Address normalisation stage applies the fixture to a copy of the prepared row
+for both local SQL and Worker ingestion. A targeted record with an unexpected identity,
+component or missing source version raises a `requires review` error. Earlier releases
+and unrelated source records receive no correction. Review the retained source before
+updating expectations, accepted identifiers or the applicable range; increment the
+correction revision when changing a reviewed decision.
+
+The correction moves the existing bilingual building labels into `estateName` and clears
+`buildingName`. It preserves publisher spelling and formatted address text. Source
+`properties` and source-content hashes retain the publisher classification. Canonical
+`sources.hkgovAlsComponentCorrections` records the fixture version and applied
+correction IDs/revisions; this provenance participates in canonical content versioning.
+Canonical IDs, street numbers and geometry are not overridden.
+
+## Ngong Ping tourist complex
+
+The fixture classifies `NGONG PING THEME VILLAGE / 昂平市集` as an estate at **111 NGONG
+PING ROAD / 昂平路111號**. These spellings are retained from ALS. Eleven retained
+Islands district deliveries from September 2025 through August 2026 substantiate the
+expected components and stable CSU ID. The GeoAddress changes between the 22 and 25
+April 2026 deliveries; both verified identifiers are recorded in the fixture.
+
+`NGONG PING TSUEN / 昂坪村` is explicitly excluded. No tourist branding aliases are
+introduced. Shop numbers such as `9B` must not replace street number `111`. This rule
+creates only the corrected parent Address2D projection; sub-premise identification and
+Address3D matching are outside its scope.
+
+The fixture is bundled with ingestion code. Editing it requires an updated ingestion
+build and a new snapshot generation; it does not rewrite prepared source files, resume
+already-normalised chunks with new results, or mutate published releases.
+
+## Reviewed estate, building and section hierarchy
+
+The reviewed Chun Shek car-park omission uses the premise-reconstruction fixture to
+restore its February 2026 assertion in all seven retained releases from April onward.
+Actual evidence dates and source absence remain explicit. The car park retains its
+identity and stays distinct from the shopping centre, with no inferred unit inventory.
+
+Chuk Yuen North Estate's reviewed preferred name is `Chuk Yuen (North) Estate` /
+`竹園北邨`, following HA's estate-specific parentheses. The estate-name fixture
+preserves ALS spellings and identity while updating canonical components and display
+addresses.
+
+Reviewed nested commercial premises use `hkgov-dpo-address-nested-premises.json`. Choi
+Yuen Food Court links to Choi Yuen Plaza, which links to Choi Yuen Estate, across all
+retained releases. `hkgov-dpo-address-premise-reconstructions.json` backfills the July
+22 location into twenty-six older representations and both July gaps, retaining the
+actual evidence date and original publisher assertions. The food court has one
+normalised identity. Containment neither merges the unnamed same-CSU record nor assigns
+residential inventory to the food court.
+
+`hkgov-dpo-address-premise-consolidations.json` guards Choi Ying Place's reviewed
+cross-CSU consolidation. Reviewed consolidation, named-premise retention and derived
+hierarchy parents assign stable SaanSeoi-issued `ss-<uuid-v5>` address IDs; these are
+not GERS identifiers. One named `CHOI YING PLACE / 彩盈坊` record is retained in each
+release; the underspecified duplicate is suppressed wherever present and the corrected
+Chinese name is backfilled. Original components and discarded assertions are preserved
+as evidence. A reviewed identity spans the publisher's temporary CSU change; the rule
+does not generalise shared points or CSU values into permission to merge.
+
+`hkgov-dpo-address-school-reconciliations.json` keeps the exact 3 Tsing Luk Street Ho
+Chak Wan Primary School assertions as one school throughout retained history. The
+estate-only CSU is retained as raw estate-membership provenance while the bilingual
+school label is backfilled onto the stable owner; the missing named assertion is not
+treated as a closure. The separate Liu To Road premise is outside this exact-match
+decision.
+
+`--skip-curation-checks` applies reviewed Address3D suppressions when their evidence
+guards match. An unresolved guard mismatch does not fail preparation or apply the
+suppression. Rejected Hung Hom Phase 2 inventories remain raw source evidence and do not
+emit collections referencing removed address owners.
+
+Local ALS baseline ingestion ignores retained address lookup caches without an exact
+parent snapshot. Later releases reuse only the matching parent cache, preventing stale
+unchanged-row decisions from omitting 2D inventory owners.
+
+Skipped 3D section-ownership, ambiguous block-parent and shared-building-owner checks
+emit single-line `ALS_MANUAL_REVIEW` JSON records to the ingestion log. Each carries the
+source version, file, feature index, CSU, names and candidate address IDs. These remain
+unresolved; parent-link integrity failures still stop the affected preparation rather
+than fabricating an owner.
+
+Tsz Lok Phase 3 unnamed CSU `3864823026T20050430` is suppressed from 3D collections for
+its reviewed July 2024–January 2025 assertions using a complete feature hash. Its 633
+bilingual floor/flat expressions are already represented in named building records. Raw
+evidence and 2D addresses remain intact, with no changes to the named inventories or
+reassignment of ownership.
+
+Tung Tau (II) Estate multi-storey car park CSU `3790621798T20050430` persists at 183
+Tung Tau Tsuen Road until revoked under the address-only retention rules. Complete
+source assertions guard the restoration after its publisher disappearance.
+
+`hkgov-dpo-address-oi-hei-backfill.json` guards all 30 retained Oi Hei House 2D
+assertions. GeoAddress `1542227735T20110329` and coordinates `[113.97444, 22.38873]` are
+backfilled without changing CSU `1545427760T20050430` or its inventory. Raw bilingual
+premises, GeoAddress and geometry remain provenance.
+
+The house-retention fixture also retains refuse collection point CSU
+`3796421950T20050430` at 183 Tung Tau Tsuen Road until revoked, including releases after
+its June 2025 source disappearance. Exact 2D assertion hashes guard the retained
+evidence. It has no 3D inventory and is excluded from 3D retention. Its canonical
+English building label is Tung Tau (II) Estate Refuse Collection Point; raw `TUNG TAU`
+and `東頭（二）邨垃圾站` labels remain in provenance. No residential inventory or
+estate-level identity is inferred.
+
+Shek Kip Mei Phase 2 unnamed CSU `3532121484T20121220` is suppressed only for its
+reviewed July and August 2026 assertions, guarded by the complete source-feature hash,
+including bilingual inventory and identity. Both named houses retain their separate
+779-unit inventories. Raw assertions and 2D addresses remain intact; neither a shared
+inventory parent nor a block-number correction is inferred.
+
+Approved issue-batch evidence mismatches warn instead of stopping under
+`--skip-curation-checks`. The unresolved decision leaves its records unchanged, and
+other matching decisions continue to apply.
+
+Reviewed Housing Authority estate names are stored in
+`hkgov-dpo-address-estate-names.json`. Choi Wan uses the preferred `Choi Wan (I) Estate`
+/ `彩雲一邨` names in canonical components and display addresses, preserving ALS `(1)` /
+`(一)` spellings in raw evidence. Naming preferences do not change identity keys or unit
+ownership. Numeral style follows the particular HA name rather than a universal Roman
+numeral rule.
+
+Explicit whole-inventory omissions use `hkgov-dpo-address-3d-backfills.json`. Ching Sum
+House's June 2025 gap receives 949 units corroborated by identical May and August
+inventories. The June bilingual parent must match the evidence premise, and the source
+CSU must be absent from that 3D delivery. Cross-release evidence retains its actual date
+and separate curation provenance; raw deliveries remain unchanged.
+
+Reviewed closures remain dated source removals. Pak Tin Catholic Primary School is
+absent from 25 February 2025, Pak Tin Commercial Centre from 26 April 2025, and the
+Salvation Army Sam Shing Chuen Lau Ng Ying School from 18 October 2024. These are
+delivery dates, not asserted closure dates. Historical assertions remain available;
+these premises are not forward-filled. Pak Tin Shopping Centre remains a separate
+premise. Exact chronology fingerprints in `hkgov-dpo-address-history-decisions.json`
+guard the accepted removal events.
+
+Yung Shing's `8 Fai Ming Road` and `22 Wah Ming Road` entries are two valid addresses of
+one physical building, guarded by `hkgov-dpo-address-yung-shing-shared-building.json`.
+Both address records and bilingual source labels remain available with `building`
+granularity. They share an explicit physical-building identifier and inventory-owner
+reference; Address3D emits one 138-unit collection containing references to both
+original assertions. Neither address is modelled as a subordinate section.
+
+Hin Fat House retains its 872-unit inventory across all reviewed releases from
+January 2025. Its reviewed estate membership aligns the early 2D and 3D assertions; the
+later evidence dates remain explicit. Yip Wong's Yip Wo, Yip Tsz, Yip Tak and Yip Sin
+Houses retain independent identities and inventories of 684, 680, 888 and 1,036 units
+from the July 2024 baseline until revoked. These rules reconstruct missing named 2D
+owners as well as 3D inventories, even where the estate is wholly absent from that
+release's district delivery. Present publisher houses bypass these retention rules,
+including reappearances with changed details; future retained omissions are marked
+unverified. Earlier evidence is backfilled only for these explicitly approved houses,
+without changing other retention rules' dated-evidence requirements.
+
+Ban Tip House at Fu Tip Estate and Kai Wang House and Kai Chun House at Kai Chuen Court
+have omission-only retention rules from July 2024 until revoked. A present publisher
+house bypasses the patch entirely, including on reappearance: its identity, components
+and source payload remain authoritative. When the house is absent, the latest preceding
+retained evidence supplies its address and inventory. The 3D fallback applies only to an
+omitted 2D house and never replaces a present publisher 3D record. The retained
+inventories contain 655, 550 and 468 units respectively. All thirty retained releases
+through August 2026 contain these houses and therefore skip the fallback. Later
+omissions retain dated evidence with unverified curation status; revocation disables
+application to later releases.
+
+`hkgov-dpo-address-house-retentions.json` records the reviewed Queens Hill and Shek Yam
+house assertions and guards. Replayable publisher features live in the ignored
+`.local/hkgov-dpo/curations/house-retention-evidence.jsonl` cache, regenerated on demand
+from retained ALS releases by `bun scripts/build-als-house-retention-evidence.ts`. All
+house-retention rules are omission-only. Queens Hill, Shek Yam, So Uk and the other
+listed houses retain dated address and inventory evidence while the named house is
+absent. A returning named 2D house skips both its address and house-inventory fallback;
+a present 3D record also passes through unchanged. Standalone inventory backfills apply
+only when their corresponding publisher inventory record is missing. Unnamed empty
+aliases remain separate source evidence rather than being replaced by the fallback.
+Active retention continues until revoked, with verification status recorded separately
+from the evidence release. Duplicate coalescence, fixed-point corrections and publisher
+identity overrides are not performed by retention on present records.
+
+`hkgov-dpo-address-approved-issue-batch.json` holds exact bilingual, geometry and
+inventory evidence for reviewed duplicate and component decisions. On Yam's combined Yiu
+Yam/Tak Yam assertion and Shek Kip Mei's combined Mei Shan/Mei Hung assertion do not
+emit additional collections; inventories belong to the separately named houses. Ping
+Tin's empty alias, Sau King's empty alias and the reviewed Shek Mun estate assertion are
+suppressed. Pok Hong Community Hall uses 6H Sha Kok Street across its equivalent
+assertions. Sha Kok's extension label is backfilled without merging the main-school or
+campus records. Sau King uses the user-reviewed 101 Sau Mau Ping Road / 秀茂坪道 address
+while retaining the raw 101 Sau Ming Road / 秀明道 assertion and its 799-flat inventory.
+
+The same issue fixture suppresses Sheung Lok's empty assertion throughout retained
+history, Sheung Tak's separate Sheung Nim and Sheung Yee alias epochs, and the Bik Shui
+and Tung Wong aliases from 22 July 2026. The named houses retain their inventories; Tung
+Wong's discarded 83–88 Tai Hang Tung Road assertion is recorded in provenance.
+
+`hkgov-dpo-address-estate-complex-decisions.json` distinguishes Shun Lee Estate at 15
+Lee On Road from Shun Lee Commercial Centre (Phase II) at 6 Shun King Street. The centre
+references the estate as its parent, with separate coordinates and unchanged raw ALS
+names. The fixture also restores Sun Tin Wai's inventory-free estate premise at 29 Sha
+Tin Tau Road across retained omissions. A returning estate-level premise bypasses
+reconstruction and its associated fallback classification. The existing shopping centre
+is not merged into the estate. These decisions are bounded to the retained releases and
+preserve their source evidence dates.
+
+Camellia House at So Uk retains its last 374-flat inventory and one reviewed identity
+across the source omission, continuing until revoked with explicit verification status.
+Sun Fong House's approved current coordinates are backfilled across retained history;
+its inventory remains intact. Sun Yee House retains its reviewed earlier point,
+`[114.18144, 22.36961]`, throughout retained history with its 720 flats.
+
+`hkgov-dpo-address-street-estate-complexes.json` derives separate `complex` identities
+for Tai Yuen Estate at 10 Ting Kok Road and Tin Wan Estate at 26 Tin Wan Street. Tai
+Yuen uses the user-supplied marker `[114.1667207, 22.4555134]` across the 30 reviewed
+releases; Tin Wan is backfilled and retained until revoked. Deterministic SaanSeoi
+`ss-UUID` identifiers do not claim publisher GeoAddress or CSU values: those fields
+remain null, and exact publisher assertions remain provenance. House inventories are not
+assigned to these estate identities.
+
+`hkgov-dpo-address-complex-promotions.json` promotes only the blockless Pik Lam House
+assertion to the Tsui Lam Estate complex at 11 Tsui Lam Road. Its latest reviewed point,
+`[114.24977, 22.32093]`, is backfilled from the earliest retained release. Block 1 stays
+as the independent numbered building assertion, with its source components and point
+unchanged.
+
+Youth College's campus-specific bilingual label starts on 19 August 2026, guarded by the
+reviewed history-event fingerprint and CSU `4361820309T20050430`. The earlier
+`YOUTH COLLEGE / 青年學院` label is retained without backfill. Tsui Heng House's exact
+`311A/C/D → 311` and `408A/D → 408` mergers are instead backfilled from the start of
+retained history, using bilingual identity and inventory hashes in the 3D correction
+fixture. Original inventories remain source evidence.
+
+`hkgov-dpo-address-upper-estate-complexes.json` retains Upper Ngau Tau Kok Estate at 15
+On Tak Road and Upper Wong Tai Sin Estate at the user-approved 8 Wong Tai Sin Road until
+revoked. The former is a distinct estate identity, leaving the source car-park premise
+and Sheung Yuet House intact. The latter selects only CSU `3781722749T20080408`,
+preserving its original 9 Wong Tai Sin Road assertion as provenance and leaving the
+separate 136 Lung Cheung Road assertion intact. Derived estate identities carry neither
+publisher CSU nor GeoAddress nor house inventories.
+
+Tsz Fai House's exact `418A/B/C` to `418` merger is dated 13 August 2025. Flat `419`
+starts on that same date as a new flat and is not backfilled into earlier releases.
+
+`hkgov-dpo-address-yau-yue-decisions.json` retains separate street-bearing complexes for
+Yau Lai Estate at 9 Yau Tong Road, Yau Oi Estate at 3 Yau Oi Road and Yue Wan Estate at
+365 Chai Wan Road. Yau Lai's other estate premises reference the complex as their
+parent; the Fung Lai/Ying Lai identity and inventory ambiguity is left unchanged. Exact
+source assertions and their evidence dates guard the retained complexes, with publisher
+identifiers kept only in provenance rather than assigned to the derived estate
+identities.
+
+The same fixture removes only Yue Wan's unnamed CSU `4304314177T20050430` across the
+reviewed releases. Both that assertion and the separately retained named pump house are
+checked against release-specific hashes. The discarded assertion remains provenance,
+including its later GeoAddress changes; no pump-house or residential inventory is moved.
+Yiu Cheong House's `412A/B/C`, `212A/B/C` and `213A/B` mergers are backfilled to the
+start of retained history, producing 272 units with exact bilingual inventory guards. Oi
+Hei House retains CSU `1545427760T20050430`, which is already unchanged throughout the
+retained releases; this decision does not change its separate GeoAddress or geometry.
+
+Ching Ho House / 青荷樓 at Cheung Ching Estate is forward-filled from its September 2025
+omission, together with its verified 851-unit inventory. The compact 4/F–40/F, 01–23
+template is guarded by the exact August 2025 bilingual inventory hash. The paired 2D and
+3D curations apply until revoked: releases through 19 August 2026 are verified; later
+releases retain an explicit unverified status until reviewed. The removed ALS assertions
+and evidence source remain provenance rather than being overwritten.
+
+For Ching Lok, Ching Hay, Ching Sin and Ching Shun Houses, the paired
+`hkgov-dpo-address-2d-backfills.json` fixture reconstructs named Address2D records
+across the sixteen retained releases before June 2025. The inventory fixture supplies
+their 4,234 units across seventeen releases before August 2025. Both start at 25 July
+2024, after the Housing Authority's corroborated 2022 intake year. Reconstruction enters
+the ordinary identity and division pipeline; later publisher assertions retain the same
+normalised identities. Existing unnamed same-CSU premises remain separate source
+records.
+
+When a uniquely matching bilingual ALS 2D parent lacks a block while its ALS 3D parent
+supplies matching `BLK n` and `n座` components, SaanSeoi enriches the canonical
+Address2D with the existing building and block fields. The rule requires the same CSU,
+estate, building name, street and number components in both languages. It records the
+exact 3D source feature in Address2D provenance and as a release processing action.
+Missing, ambiguous or non-standard components stop Address3D preparation for review
+rather than creating another Address2D record.
+
+Fortune Estate Carpark's reviewed estate-component restoration fills the five-release
+April–July 2026 gap in derived fields and formatted addresses. Exact versions, CSU and
+bilingual building/street components guard the correction. Raw assertions and identities
+remain intact; the unnamed estate premise is not merged into the car park.
+
+Bounded bilingual estate-component gaps are restored throughout the retained source
+range only where a single unchanged premise has identical bilingual estate components on
+both adjacent source releases. The generated fixture and verification retain the exact
+target and bracketing versions. This restores derived fields rather than raw publisher
+JSON, and never generalises from a CSU alone.
+
+Estate-component restorations may also be active until revoked. Their application starts
+after the fixture's reviewed source version and only when the complete bilingual source
+target still matches. A later application is recorded as unverified in release
+provenance until the ALS preflight explicitly verifies it; the same review can retain it
+provisionally or revoke it. Historical bounded repairs remain bounded.
+
+The unnamed zero-unit CSU `3370111759T20150127` is suppressed only across its reviewed
+February 2025–July 2026 appearances as a duplicate of the named Lei Moon House. Its
+estate, bilingual blank-premise structure, route, point and named owner are all guarded;
+the full publisher assertion is retained in owner provenance. The HA Low Block remains a
+derived section, and the later distinct Lei Fook Low Block source premise is unaffected.
+
+`hkgov-dpo-address-coordinate-backfills.json` applies a current point to its preceding
+continuous publisher-coordinate epoch only when the audited event is named,
+coordinate-only and every shift is strictly below 50 metres. Each generated rule is
+bounded by release, CSU, estate, English building name and the exact earlier point. The
+estate guard uses the retained publisher estate name when supplied, independently of HA
+display-name curation, and otherwise uses the prepared estate component. The replaced
+publisher point is retained in the row's curation provenance; no later record or
+unreviewed premise is altered.
+
+Cheung Hong Commercial Centre No. 2 uses a bounded named-premise retention: preserve the
+named premise, suppress the reviewed unnamed cross-reference only while both source
+records occur, and reconstruct the name only for its five-release absence. The later
+removal of both source records remains dated. The rule guards complete components and
+coordinates, not CSU alone.
+
+The Fai Ming Estate locality fixture backfills FANLING / 粉嶺 into the derived locality
+provenance and formatted addresses for both reviewed buildings. Exact bilingual source
+components and dates guard the decision. Raw source JSON, identities, divisions, block
+details and inventories remain unchanged.
+
+Easeful Court retains ALS Tower 1 and Tower 2 block components, matching the reviewed
+360-unit and 150-unit buildings respectively. The block-identity review fixture guards
+both source layers across retained releases; no building-name backfill or merge is
+needed.
+
+The historical review policy automatically accepts exact same-floor A/B-, A/B/C- or
+A/B/C/D-to-base unit mergers when both languages and unchanged premise components agree.
+Accepted events retain dated publisher inventories and distinct successor IDs; they do
+not backfill earlier snapshots. Policy and authority are stored in
+`hkgov-dpo-address-history-decisions.json`; generated decisions retain exact source
+hashes in the estate audit. Mixed or ambiguous changes remain pending.
+
+Kui Wo House's separately approved correction backfills the 2/F 213A/B/C/D merger to 213
+across earlier retained inventories. Exact bilingual publisher and corrected hashes
+guard this exception; automatic four-way merger acceptance alone preserves dated
+history.
+
+Hing Wai House uses the approved current point across retained releases. Fook Wo House
+uses its reviewed earlier point with Block 11 components. Tai Ping's empty aliases are
+suppressed against their respective Ping Ching and Ping Yee owners, preserving both
+house inventories and their shared 8 Po Ping Road address.
+
+Tai Wo Hau Shopping Centre retains CSU `3079225467T20050430`; the separate Tai Wo Hau
+Shopping Centre (2) retains its latest available CSU `3071925270P20050725`. Both remain
+available until revoked, guarded by reviewed source assertions and explicit verification
+status. The second centre's missing releases are restored from retained evidence,
+without an inferred unit inventory or a merge into the main centre.
+
+User satellite-map review identifies CSU `3363111709T20141201` as Lei Fook Low Block in
+the July and August 2026 deliveries. Its publisher identity and point represent the
+section, with unresolved coverage of Lei Fook's combined 404-unit inventory. The raw
+unnamed source remains intact. This is distinct from the Lei Moon Low Block premise.
+
+The user-identified Lei Moon Low Block premise, CSU `3370111759T20150127`, supplies the
+section's source identity and point in its February 2025–10 July 2026 deliveries. It
+replaces the derived Low Block child in those releases and has unresolved coverage of
+Lei Moon's building inventory. Raw unnamed components remain unchanged; section
+identification is curation evidence. A nonempty inventory on this section requires
+review.
+
+Inventory corrections are stored in
+[`hkgov-dpo-address-3d-corrections.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-3d-corrections.json).
+Each rule specifies source versions, CSU, expected building components, original and
+corrected bilingual inventory hashes, exact floor/unit removals and additions, evidence
+and review authority. Preparation corrects a copy and records the decision in source
+provenance; raw publisher assertions remain intact. Changed evidence fails with a review
+error. Lei Tim's reviewed omission adds flats 207, 217 and 219 on 2/F to nine
+July–October 2024 inventories, yielding 720 units in each, matching the November 2024
+evidence. Heng Tsui House's three reviewed August–September 2024 stale reversions
+replace 1/F 118A/B/C with 118, matching the first merged July 31 inventory. The initial
+July 25 split inventory stays unchanged; removal requires exactly one matching unit in
+each language.
+
+Lei Fook and Lei Moon in Ap Lei Chau Estate retain distinct building owners and 404
+units each. Each owner has reviewed High and Low `section` children with unresolved unit
+membership. The rule checks CSU and bilingual premise components across the 30 retained
+releases, from July 2024 through August 2026. The derived sections retain curation
+provenance and their parent's location; no separate section position or unit partition
+is asserted. Identical floor/unit arrays never merge these two buildings. Other Ap Lei
+Chau historical changes remain pending in the
+[review report](./address3d-review.md#ap-lei-chau-estate).
+
+[`hkgov-dpo-address-hierarchies.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json)
+records source-backed hierarchy observations separately from component corrections. A
+complex such as `MODEL HOUSING ESTATE / 模範邨` contains named buildings, while official
+street-number records can identify sections or entrances within a continuous building.
+The fixture records the finest level supported by ALS and does not infer missing
+numbers.
+
+For example, ALS identifies `MAN NING HSE / 民寧樓` as the `750-758 KING'S ROAD` range,
+whereas `MAN HONG HSE / 民康樓` has separate records for 762, 764, 766, 768, 770 and 774
+King's Road. The 3D entries contain floor and unit references only; they do not identify
+an entrance or street number. A repeated unit payload can therefore be shared across
+section records, but it must not be presented as section-specific unit attribution.
+
+## Grouped inventories and estate hierarchy
+
+The estate review cohort consists of names present in any retained ALS
+public-rental-housing 3D delivery, not every development named in 2D addresses. Review
+the earliest baseline followed by chronological deltas; preserve exact release presence
+and explicit curation bounds. See the report for the separate 2D-only inventory and
+one-estate-at-a-time review queue.
+
+ALS 3D inventories use one collection per reviewed Address2D owner. The
+[hierarchy review report](address3d-review.md) records guarded estate relationships,
+official corroborating evidence, source-release coverage and outstanding decisions.
+Repeated source features remain independently traceable even when their identical unit
+inventories share one curated building owner. Source names are retained, not translated.
+
+Source-release record statistics report Address2D rows and translations, plus Address3D
+collections and collection translations when a validated 3D sidecar is present.
+Collection counts do not count the units stored within each collection. Missing 3D
+statistics are unknown rather than zero. These facts are recorded during source
+ingestion; `stats:backfill-addresses` rebuilds API release-set statistics only.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`properties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+ALS source properties use locale-prefixed flat names, including `enPhaseName`,
+`zhHantPhaseNo`, `enStreetLocationName` and `zhHantStreetLocationName`. The publisher's
+repeated 3D addresses remain arrays under `en3dAddress` and `zhHant3dAddress`; their
+grouping and literal values are preserved. The release schema distinguishes absent
+optional fields from explicit null values.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+Official-address initialisation stores the identity-history before-image in a separate
+file beside its manifest. Keep both files for reset recovery. Completion queries release
+metadata and ready Division publication receipts; it does not export source or history
+shards. A missing before-image blocks reset before mutations.
+
+Initialisation manifest version 2 records baseline and materialised Division scope IDs.
+Scoped reset resolves owned logical Address snapshots to their physical scopes before
+removing current rows and Address/Division publication receipts. History and metadata
+cleanup retain logical snapshot identities. Incompatible manifest versions are rejected;
+reset/reingest creates the required state without backfill or manifest conversion.
+
+## Registry metadata
+
+Dataset processing metadata declares the registered ALS preparation, normalisation and
+curation rules. Releases retain the resolved policy at creation. Source GeoJSON geometry
+uses EPSG:4326; publisher easting and northing properties retain their separate
+coordinate evidence.
+
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
+
+Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
+`buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
+properties. Original publisher paths and language dictionary identifiers retain their
+spelling; demographic measures about language are not locale-bearing labels.

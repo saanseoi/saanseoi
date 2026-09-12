@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers'
 import type { RequestHandler } from '@sveltejs/kit'
 import { eq } from '@repo/db'
 import { createMetaDb } from '@repo/db/client'
@@ -5,9 +6,9 @@ import { facebookDeletionRequest } from '@repo/db'
 import { hashFacebookDeletionConfirmationCode } from '#lib/server/facebook-data-deletion.js'
 
 /** Reports the status of a completed Meta Facebook deletion callback. */
-export const GET: RequestHandler = async ({ platform, url }) => {
+export const GET: RequestHandler = async ({ url }) => {
   const confirmationCode = url.searchParams.get('code')
-  const database = platform?.env.DB_META
+  const database = env.DB_META
   if (!confirmationCode || !database) {
     return Response.json({ status: 'unknown', confirmation_code: confirmationCode })
   }

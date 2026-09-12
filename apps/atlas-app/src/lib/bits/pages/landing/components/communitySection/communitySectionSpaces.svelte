@@ -594,6 +594,12 @@ onMount(() => {
     transform: translateX(0);
   }
 
+  .community-space-card-discussions .community-space-card-title,
+  .community-space-card-discussions .community-space-card-description,
+  .community-space-card-discussions .community-space-card-topics li {
+    color: var(--foreground);
+  }
+
   :global(.dark) .community-space-card-discord .community-space-card-title {
     color: white;
   }
@@ -685,14 +691,14 @@ onMount(() => {
     color: #0f9d85;
   }
 
-  .community-space-card-discussions .community-space-card-title,
-  .community-space-card-discussions .community-space-card-description,
-  .community-space-card-discussions .community-space-card-topics li {
-    color: var(--foreground);
-  }
-
   .community-space-card-discussions .community-space-card-description {
     color: var(--foreground-alt);
+  }
+
+  .community-space-float-icon-instagram :global(svg) {
+    width: 45.714286%;
+    height: 45.714286%;
+    transform: translate(-9%, -7%);
   }
 
   .community-space-card-discussions .community-space-card-topics :global(svg) {
@@ -772,12 +778,6 @@ onMount(() => {
       smooth to 81.43% 53.24%,
       smooth to 58.43% 81.90%
     );
-  }
-
-  .community-space-float-icon-instagram :global(svg) {
-    width: 45.714286%;
-    height: 45.714286%;
-    transform: translate(-9%, -7%);
   }
 
   .community-space-float-icon-linkedin {
@@ -1150,8 +1150,16 @@ onMount(() => {
     color: #5865f2;
   }
 
+  .community-space-card-title {
+    margin-top: 0.25rem;
+  }
+
   .community-space-card-discord .community-space-card-title {
     color: color-mix(in srgb, #5865f2 72%, var(--foreground));
+  }
+
+  .community-space-card-description {
+    margin-top: 0.5rem;
   }
 
   .community-space-card-discord .community-space-card-description {
@@ -1179,14 +1187,6 @@ onMount(() => {
 
   .community-spaces-grid {
     margin-bottom: 0;
-  }
-
-  .community-space-card-title {
-    margin-top: 0.25rem;
-  }
-
-  .community-space-card-description {
-    margin-top: 0.5rem;
   }
 
   .community-space-card-topics {
@@ -1230,6 +1230,14 @@ onMount(() => {
     color: var(--foreground-alt);
   }
 
+  .community-space-float-icon-social :global(svg) {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+
+  .community-space-float-icon-instagram :global(svg) {
+    transform: translate(-9%, -7%);
+  }
   .community-space-card-discussions .community-space-card-topics :global(svg) {
     color: #0f9d85;
   }
@@ -1278,15 +1286,6 @@ onMount(() => {
     color: currentColor;
     text-decoration: none;
     transform: none;
-  }
-
-  .community-space-float-icon-social :global(svg) {
-    width: 2.25rem;
-    height: 2.25rem;
-  }
-
-  .community-space-float-icon-instagram :global(svg) {
-    transform: translate(-9%, -7%);
   }
 }
 

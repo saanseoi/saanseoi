@@ -1,0 +1,414 @@
+import { describe, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
+
+import {
+  buildCanonicalStatsSqlBatches,
+  replayCanonicalStatsSqlBatches,
+} from './canonicalStatsSql.ts'
+
+describe('buildCanonicalStatsSqlBatches', () => {
+  test('keeps unrelated reference periods in the current view', () => {
+    const record = {
+      createdAt: '2026-08-18T00:00:00.000Z',
+      id: 'stats:2016',
+      datasetCode: 'stats',
+      fieldSources: {},
+      fieldDefinitionHashes: {},
+      geography: null,
+      divisionId: null,
+      referencePeriodCode: '2016',
+      referencePeriodEnd: null,
+      referencePeriodEndYear: '2016',
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureRef: 'feature',
+      sourceReleaseId: 'release',
+      updatedAt: '2026-08-18T00:00:00.000Z',
+      values: {},
+    }
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [{ rows: [record], table: 'statsRecords' }],
+      history: [],
+      dictionaries: [],
+    })
+
+    expect(batches.current.join('\n')).not.toContain('DELETE FROM "statsRecords"')
+    expect(batches.current.join('\n')).toContain('ON CONFLICT ("id") DO UPDATE SET')
+  })
+
+  test('combines compatible canonical rows into D1-sized multi-row statements', () => {
+    const rows = Array.from({ length: 100 }, (_, index) => ({
+      createdAt: '2026-08-18T00:00:00.000Z',
+      id: `stats:${index}`,
+      datasetCode: 'stats',
+      fieldSources: {},
+      fieldDefinitionHashes: {},
+      geography: null,
+      divisionId: null,
+      referencePeriodCode: '2021',
+      referencePeriodEnd: null,
+      referencePeriodEndYear: '2021',
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureRef: `feature:${index}`,
+      sourceReleaseId: 'release',
+      updatedAt: '2026-08-18T00:00:00.000Z',
+      values: { population: { numericValue: String(index) } },
+    }))
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [{ rows, table: 'statsRecords' }],
+      history: [],
+      dictionaries: [],
+    })
+
+    expect(batches.current).toHaveLength(1)
+    expect(batches.current[0]?.match(/INSERT INTO/g)).toHaveLength(1)
+    expect(batches.current[0]).toContain("'stats:0'")
+    expect(batches.current[0]).toContain("'stats:99'")
+  })
+
+  test('retains immutable versions without closing or rewriting previous history', () => {
+    const rows = Array.from({ length: 180 }, (_, index) => ({
+      createdAt: '2026-08-18T00:00:00.000Z',
+      datasetCode: 'stats',
+      fieldSources: {},
+      fieldDefinitionHashes: {},
+      geography: null,
+      divisionId: null,
+      id: `stats:${index}`,
+      isCurrent: true,
+      referencePeriodCode: '2021',
+      referencePeriodEnd: null,
+      referencePeriodEndYear: '2021',
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureRef: `feature:${index}`,
+      sourceReleaseId: 'release',
+      updatedAt: '2026-08-18T00:00:00.000Z',
+      values: {},
+      versionHash: 'version',
+    }))
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [],
+      history: [{ rows, table: 'statsRecords' }],
+      dictionaries: [],
+    })
+
+    const historySql = batches.history[0]?.batches.join('\n') ?? ''
+    expect(historySql).not.toContain('UPDATE "statsRecords"')
+    expect(historySql).toContain('ON CONFLICT ("id", "versionHash") DO NOTHING')
+    expect(historySql).toContain("'stats:179'")
+  })
+
+  test('retains dictionary versions without updates or dataset-wide deletes', () => {
+    const record = {
+      createdAt: '2026-08-18T00:00:00.000Z',
+      datasetCode: 'stats',
+      fieldSources: {},
+      fieldDefinitionHashes: {},
+      geography: null,
+      divisionId: null,
+      id: 'stats:2021',
+      isCurrent: true,
+      referencePeriodCode: '2021',
+      referencePeriodEnd: null,
+      referencePeriodEndYear: '2021',
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureRef: 'feature',
+      sourceReleaseId: 'release',
+      updatedAt: '2026-08-18T00:00:00.000Z',
+      values: {},
+      versionHash: 'version',
+    }
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [],
+      history: [{ rows: [record], table: 'statsRecords' }],
+      dictionaries: [
+        {
+          rows: Array.from({ length: 97 }, (_, index) => ({
+            createdAt: record.createdAt,
+            datasetCode: 'stats',
+            fieldName: `field-${index}`,
+            isCurrent: true,
+            sourceReleaseId: record.sourceReleaseId,
+            updatedAt: record.updatedAt,
+            versionHash: 'version',
+          })),
+          table: 'statsFields',
+        },
+      ],
+    })
+
+    const historySql = batches.history[0]?.batches.join('\n') ?? ''
+    expect(historySql).not.toContain('UPDATE "statsFields"')
+    expect(historySql).not.toContain('DELETE FROM')
+    expect(historySql).toContain(
+      'ON CONFLICT ("datasetCode", "fieldName", "versionHash") DO NOTHING',
+    )
+    expect(batches.current).toEqual([])
+  })
+
+  test('groups history by period end year and versions dictionaries in each shard', () => {
+    const base = {
+      createdAt: '2026-08-20T00:00:00.000Z',
+      datasetCode: 'stats',
+      fieldSources: {},
+      fieldDefinitionHashes: {},
+      divisionId: null,
+      geography: null,
+      isCurrent: true,
+      referencePeriodEnd: null,
+      referencePeriodGranularity: 'year',
+      referencePeriodStart: null,
+      sourceFeatureRef: 'feature',
+      sourceReleaseId: 'release-2026',
+      updatedAt: '2026-08-20T00:00:00.000Z',
+      values: {},
+      versionHash: 'version',
+    }
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [],
+      history: [
+        {
+          rows: [
+            {
+              ...base,
+              id: 'stats:2024',
+              referencePeriodCode: '2024',
+              referencePeriodEndYear: '2024',
+            },
+            {
+              ...base,
+              id: 'stats:2024-25',
+              referencePeriodCode: '2024/25',
+              referencePeriodEndYear: '2025',
+            },
+          ],
+          table: 'statsRecords',
+        },
+      ],
+      dictionaries: [
+        {
+          rows: [
+            {
+              createdAt: base.createdAt,
+              datasetCode: 'stats',
+              fieldName: 'population',
+              isCurrent: true,
+              sourceReleaseId: base.sourceReleaseId,
+              updatedAt: base.updatedAt,
+              versionHash: 'field-version',
+            },
+            {
+              createdAt: base.createdAt,
+              datasetCode: 'stats',
+              fieldName: 'population',
+              isCurrent: true,
+              sourceReleaseId: 'release-2025',
+              updatedAt: base.updatedAt,
+              versionHash: 'field-version',
+            },
+          ],
+          table: 'statsFields',
+        },
+      ],
+    })
+
+    expect(batches.history.map(target => target.shardYear)).toEqual(['2024', '2025'])
+    expect(batches.history[0]?.batches.join('\n')).toContain("'stats:2024'")
+    expect(batches.history[1]?.batches.join('\n')).toContain("'stats:2024-25'")
+    expect(batches.history[0]?.batches.join('\n')).toContain(
+      'ON CONFLICT ("datasetCode", "fieldName", "versionHash")',
+    )
+    expect(batches.history[1]?.batches.join('\n')).toContain("'field-version'")
+    expect(batches.history[0]?.batches.join('\n')).toContain('"isCurrent"')
+    expect(batches.current).toEqual([])
+  })
+
+  test('replays an oversized current packed record through bounded append statements', () => {
+    const record = packedRecord({ id: 'stats:large-current' })
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [{ rows: [record], table: 'statsRecords' }],
+      history: [],
+      dictionaries: [],
+    })
+    const statements = sqlStatements(batches.current)
+    expect(statements.length).toBeGreaterThan(2)
+    expect(
+      statements.every(statement => Buffer.byteLength(statement) <= 96 * 1024),
+    ).toBe(true)
+
+    const database = new Database(':memory:')
+    database.exec(currentRecordsTableSql)
+    for (const statement of statements) database.exec(statement)
+    expect(
+      JSON.parse(
+        (
+          database.query('SELECT "values" FROM statsRecords').get() as {
+            values: string
+          }
+        ).values,
+      ),
+    ).toEqual(record.values)
+    database.close()
+  })
+
+  test('retries an oversized immutable packed record without appending its value twice', () => {
+    const record = {
+      ...packedRecord({ id: 'stats:large-history' }),
+      isCurrent: true,
+      versionHash: 'history-version',
+    }
+    const batches = buildCanonicalStatsSqlBatches({
+      current: [],
+      history: [{ rows: [record], table: 'statsRecords' }],
+      dictionaries: [],
+    })
+    const statements = sqlStatements(batches.history[0]?.batches ?? [])
+    expect(
+      statements.every(statement => Buffer.byteLength(statement) <= 96 * 1024),
+    ).toBe(true)
+
+    const database = new Database(':memory:')
+    database.exec(historyRecordsTableSql)
+    for (const statement of statements) database.exec(statement)
+    for (const statement of statements) database.exec(statement)
+    expect(
+      database.query('SELECT "values", isCurrent FROM statsRecords').get(),
+    ).toEqual({ isCurrent: 1, values: JSON.stringify(record.values) })
+    database.close()
+  })
+})
+
+function packedRecord({ id }: { id: string }) {
+  return {
+    createdAt: '2026-09-12T00:00:00.000Z',
+    datasetCode: 'stats',
+    fieldDefinitionHashes: {},
+    fieldSources: {},
+    geography: { kind: 'district', code: 'one' },
+    id,
+    referencePeriodCode: '2024',
+    referencePeriodEnd: null,
+    referencePeriodEndYear: '2024',
+    referencePeriodGranularity: 'year',
+    referencePeriodStart: null,
+    sourceFeatureRef: 'district:one',
+    sourceReleaseId: 'release',
+    updatedAt: '2026-09-12T00:00:00.000Z',
+    values: { publisherPayload: 'x'.repeat(100_000) },
+    versionHash: '',
+    divisionId: null,
+  }
+}
+
+function sqlStatements(batches: string[]) {
+  return batches.flatMap(batch =>
+    batch
+      .split(/(?<=;)\n/)
+      .map(statement => statement.trim())
+      .filter(Boolean),
+  )
+}
+
+const currentRecordsTableSql = `
+  CREATE TABLE statsRecords (
+    id TEXT PRIMARY KEY, datasetCode TEXT NOT NULL, sourceReleaseId TEXT NOT NULL,
+    sourceFeatureRef TEXT NOT NULL, divisionId TEXT, referencePeriodCode TEXT NOT NULL,
+    referencePeriodStart TEXT, referencePeriodEnd TEXT,
+    referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
+    geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
+    fieldDefinitionHashes TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
+    createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL
+  );
+`
+
+const historyRecordsTableSql = `
+  CREATE TABLE statsRecords (
+    id TEXT NOT NULL, datasetCode TEXT NOT NULL, sourceReleaseId TEXT NOT NULL,
+    sourceFeatureRef TEXT NOT NULL, divisionId TEXT, referencePeriodCode TEXT NOT NULL,
+    referencePeriodStart TEXT, referencePeriodEnd TEXT,
+    referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
+    geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
+    fieldDefinitionHashes TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
+    isCurrent INTEGER NOT NULL, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL,
+    PRIMARY KEY (id, versionHash)
+  );
+`
+
+describe('replayCanonicalStatsSqlBatches', () => {
+  test('checks remote prerequisites before mutating the local cache', async () => {
+    const executed: string[] = []
+    await expect(
+      replayCanonicalStatsSqlBatches(
+        { environment: 'preview', remote: true },
+        {
+          currentBinding: {
+            prepare(sql: string) {
+              return {
+                async run() {
+                  executed.push(sql)
+                },
+              }
+            },
+          },
+          historyTargets: [],
+          state: { bindings: {} },
+        } as never,
+        { current: ['SELECT 1;'], history: [] },
+        { importOptions: { accountId: 'account', apiToken: 'token' } },
+      ),
+    ).rejects.toThrow('current.databaseId')
+    expect(executed).toEqual([])
+  })
+
+  test('reports each local canonical SQL batch', async () => {
+    const executed: string[] = []
+    const binding = {
+      prepare(sql: string) {
+        return {
+          async run() {
+            executed.push(sql)
+          },
+        }
+      },
+    }
+    const progress: string[] = []
+
+    await replayCanonicalStatsSqlBatches(
+      { environment: 'dev', remote: false },
+      {
+        currentBinding: binding,
+        historyTargets: [
+          {
+            binding,
+            bindingName: 'DB_HISTORY_HK_BEFORE',
+            year: 'BEFORE',
+          },
+        ],
+        state: { bindings: {} },
+      } as never,
+      {
+        current: ['SELECT 1;', 'SELECT 2;'],
+        history: [{ batches: ['SELECT 3;'], shardYear: '2021' }],
+      },
+      {
+        onProgress(event) {
+          progress.push(
+            `${event.phase}:${event.completedBatches}/${event.totalBatches}`,
+          )
+        },
+      },
+    )
+
+    expect(executed).toEqual(['SELECT 1;', 'SELECT 2;', 'SELECT 3;'])
+    expect(progress).toEqual([
+      'local-current-replay:0/3',
+      'local-current-replay:1/3',
+      'local-current-replay:2/3',
+      'local-history-replay:2/3',
+      'local-history-replay:3/3',
+    ])
+  })
+})

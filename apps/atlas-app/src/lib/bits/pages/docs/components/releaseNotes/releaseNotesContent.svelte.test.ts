@@ -33,12 +33,14 @@ test('renders a short glossary definition when its link is opened', async () => 
     getReleaseNotesPresentation('[release](saanseoi:en:definition/release/v1)', 'en'),
   )
 
+  // Match the document gutter so this short inline trigger is clear of the runner's frame edge.
+  screen.container.classList.add('p-6')
   await screen.getByRole('button', { name: 'Show Release' }).click()
 
   await expect
     .element(
       screen.getByText(
-        'A release is an immutable published version of data and its metadata.',
+        /^A release is an immutable published version of data and its metadata\./,
       ),
     )
     .toBeVisible()
@@ -96,9 +98,11 @@ test('percent-encodes bracketed query parameter names when copying an API URL', 
 
   await screen.getByRole('button', { name: 'Copy' }).click()
 
-  expect(writeText).toHaveBeenCalledWith(
-    'http://localhost:8787/divisions/v0?filter%5Blevel%5D=3&page%5Boffset%5D=25',
-  )
+  await expect
+    .poll(() => writeText.mock.calls)
+    .toEqual([
+      ['http://localhost:8787/divisions/v0?filter%5Blevel%5D=3&page%5Boffset%5D=25'],
+    ])
 })
 
 test('copies each URL from a multi-URL block on its own line', async () => {
@@ -120,9 +124,13 @@ test('copies each URL from a multi-URL block on its own line', async () => {
 
   await screen.getByRole('button', { name: 'Copy' }).click()
 
-  expect(writeText).toHaveBeenCalledWith(
-    'http://localhost:8787/divisions/v0?cohort=2025-09-24.0\nhttp://localhost:8787/divisions/v0?cohort=2025-10-22.0',
-  )
+  await expect
+    .poll(() => writeText.mock.calls)
+    .toEqual([
+      [
+        'http://localhost:8787/divisions/v0?cohort=2025-09-24.0\nhttp://localhost:8787/divisions/v0?cohort=2025-10-22.0',
+      ],
+    ])
 })
 
 test('keeps API versions visible on the URL block primary surface', async () => {
@@ -228,6 +236,21 @@ test('renders allowed presentational HTML in transcluded definitions', async () 
   expect(screen.container.querySelector('br')).not.toBeNull()
 })
 
+test('renders allowed presentational HTML in generated release notes', async () => {
+  const screen = await render(
+    ReleaseNotesContent,
+    getReleaseNotesPresentation(
+      '<b>Building CSU-ID</b> is <u>not</u> a durable identifier.',
+      'en',
+    ),
+  )
+
+  await expect
+    .element(screen.getByText('Building CSU-ID'))
+    .toHaveProperty('tagName', 'B')
+  await expect.element(screen.getByText('not')).toHaveProperty('tagName', 'U')
+})
+
 test('renders release-note callouts', async () => {
   const screen = await render(
     ReleaseNotesContent,
@@ -238,7 +261,7 @@ test('renders release-note callouts', async () => {
   )
 
   await expect.element(screen.getByText('API key required')).toBeVisible()
-  await expect.element(screen.getByText('Use')).toBeVisible()
+  await expect.element(screen.getByText('Use a key.')).toBeVisible()
   await expect
     .element(screen.getByRole('link', { name: 'a key' }))
     .toHaveAttribute('href', '/guides/api-keys')

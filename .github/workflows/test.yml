@@ -46,8 +46,7 @@ jobs:
       - name: 'INSTALL :: Bun'
         uses: oven-sh/setup-bun@v2
         with:
-          bun-version: '1.4.0'
-
+          bun-version: '1.4.2'
       - name: 'CACHE :: Restore Dependencies'
         uses: actions/cache@v5
         id: cache-deps
@@ -82,6 +81,16 @@ jobs:
       - name: 'TEST :: Run tests'
         if: matrix.app.path != 'apps/harbour-api'
         run: bun run test
+        working-directory: ${{ matrix.app.path }}
+
+      - name: 'INSTALL :: Chromium for component tests'
+        if: matrix.app.path == 'apps/atlas-app'
+        run: bunx playwright install --with-deps chromium
+        working-directory: ${{ matrix.app.path }}
+
+      - name: 'TEST :: Run browser component tests'
+        if: matrix.app.path == 'apps/atlas-app'
+        run: bun run test:browser
         working-directory: ${{ matrix.app.path }}
 
       # These two files each initialise SQLite fixture databases. Keep only

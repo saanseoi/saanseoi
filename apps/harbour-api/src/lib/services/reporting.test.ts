@@ -14,6 +14,41 @@ import { listIngestRuns, listReleases, listStats } from './reporting'
 const repoRoot = resolve(import.meta.dir, '../../../../..')
 
 describe('reporting service', () => {
+  test('reports deferred statistics snapshots but excludes lookup and archived snapshots', async () => {
+    const tempDir = await mkdtemp(join(tmpdir(), 'stats-readiness-'))
+    try {
+      const metaSqlite = await initSqlite(
+        join(tempDir, 'meta.sqlite'),
+        resolve(repoRoot, 'libs/db/migrations/meta'),
+      )
+      seedMetaCatalog(metaSqlite)
+      seedRelease(metaSqlite)
+      const metaDb = createLocalHarbourDb(metaSqlite)
+      const ready = async () =>
+        (await listReleases(metaDb, {}, 'preview', { limit: 10 }))[0]
+          ?.hasStatisticsSnapshot
+      expect(await ready()).toBe(false)
+      metaSqlite.exec(`
+        INSERT INTO snapshots (id, resourceType, code, cohortKey, status)
+        VALUES ('stats-readiness', 'divisionStatistic', 'stats-readiness', '2026-06', 'draft');
+        INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role)
+        VALUES ('stats-readiness', 'hkgov-dpo-hk-address',
+          'release-dr-hk-hkgov-dpo-address-2026-06-24.0', 'primary');
+      `)
+      expect(await ready()).toBe(true)
+      metaSqlite.exec(
+        "UPDATE snapshotSources SET role = 'lookup' WHERE snapshotId = 'stats-readiness'",
+      )
+      expect(await ready()).toBe(false)
+      metaSqlite.exec(
+        "UPDATE snapshotSources SET role = 'primary' WHERE snapshotId = 'stats-readiness'; UPDATE snapshots SET status = 'archived' WHERE id = 'stats-readiness'",
+      )
+      expect(await ready()).toBe(false)
+      metaSqlite.close()
+    } finally {
+      await rm(tempDir, { recursive: true, force: true })
+    }
+  })
   test('returns release row counts from real meta/source/history databases', async () => {
     const tempDir = await mkdtemp(join(tmpdir(), 'harbour-reporting-'))
 
@@ -202,11 +237,10 @@ describe('reporting service', () => {
           );
 
         INSERT INTO stats (
-          id, type, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
+          id, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
         ) VALUES
           (
             'stat-release-2',
-            'address',
             'release-2',
             'count',
             'churn',
@@ -219,7 +253,6 @@ describe('reporting service', () => {
           ),
           (
             'stat-release-3',
-            'address',
             'release-3',
             'count',
             'churn',
@@ -232,7 +265,6 @@ describe('reporting service', () => {
           ),
           (
             'stat-release-4',
-            'address',
             'release-4',
             'count',
             'churn',
@@ -618,10 +650,9 @@ function seedIngestRun(sqlite: SQLiteDatabase) {
 function seedStat(sqlite: SQLiteDatabase) {
   sqlite.exec(`
     INSERT INTO stats (
-      id, type, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
+      id, releaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
     ) VALUES (
       'stat-dr-hk-hkgov-dpo-address-2026-06-24.0-rows',
-      'address',
       'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
       'ingest',
       'rows',
@@ -642,7 +673,7 @@ function seedSourceRows(
 ) {
   sqlite.exec(`
     INSERT INTO hkgovAlsAddresses2d (
-      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, identifiers, easting, northing, geometry, addressEn, addressZhHant, sources, rawProperties
+      sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, properties
     ) VALUES (
       '${sourceRecordId}',
       'version-hash-1',
@@ -652,14 +683,7 @@ function seedSourceRows(
       1,
       '2026-06-24T10:40:00.000Z',
       '2026-06-24T10:40:00.000Z',
-      '{"geoAddress":"1 Example Road","csuId":"csu-1"}',
-      null,
-      null,
-      null,
-      '{"formattedAddress":"1 Example Road"}',
-      '{"formattedAddress":"示例路1號"}',
-      '{"hkgovAls":[{"dataset":"hkgov-dpo"}]}',
-      null
+      '{"geoAddress":"1 Example Road","csuId":"csu-1"}'
     );
   `)
 }
@@ -709,7 +733,8 @@ function seedHistoryRows(
       ('${addressId}', 'address-2d-version-1', '${releaseId}', '${snapshotId}', 1, 'zhHant', '示例路1號', null, null, null, null, null, null, null, null, null, null, null, null, null, '示例路', '2026-06-24T12:00:00.000Z', '2026-06-24T12:00:00.000Z');
 
     INSERT INTO address3d (
-      id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, sources, createdAt, updatedAt
+      id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, units, unitCount,
+      contentHash, unresolvedSectionIds, sources, createdAt, updatedAt
     ) VALUES (
       '${address3dId}',
       'address-3d-version-1',
@@ -717,6 +742,10 @@ function seedHistoryRows(
       '${snapshotId}',
       1,
       '${addressId}',
+      '[{"id":"unit-1","unitRef":"A","unitType":"F","floorRef":"1","floorType":"F","unitPortion":null}]',
+      1,
+      'address-3d-content-hash-1',
+      '[]',
       null,
       '2026-06-24T12:00:00.000Z',
       '2026-06-24T12:00:00.000Z'
@@ -724,8 +753,7 @@ function seedHistoryRows(
 
     INSERT INTO address3dI18n (
       address3dId, versionHash, sourceReleaseId, snapshotId, isCurrent, locale,
-      formattedAddressPart, accessHint, unitPortion, unitExpression, unitRef, unitType,
-      floorExpression, floorRef, floorType, createdAt, updatedAt
+      units, createdAt, updatedAt
     ) VALUES (
       '${address3dId}',
       'address-3d-version-1',
@@ -733,15 +761,7 @@ function seedHistoryRows(
       '${snapshotId}',
       1,
       'en',
-      'Flat A',
-      null,
-      null,
-      null,
-      'A',
-      null,
-      null,
-      null,
-      null,
+      '{"unit-1":{"unitExpression":"Flat A","floorExpression":"1/F"}}',
       '2026-06-24T12:00:00.000Z',
       '2026-06-24T12:00:00.000Z'
     );

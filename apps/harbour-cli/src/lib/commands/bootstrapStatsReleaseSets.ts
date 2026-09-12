@@ -1,9 +1,10 @@
+import { runReconcileDraftReleaseSetsCommand } from './reconcile'
 import { note, outro } from '@clack/prompts'
 
 import { formatField } from '../cli/display.ts'
 import type { ParsedArgs, UploadTarget } from '../cli/options.ts'
 import { createApiReleaseSetInitialDraft } from './docs.ts'
-import { recordInitialisationSummaryEvent } from './initialisationSummary.ts'
+import { logApiReleaseSetPublication } from './uploadDisplay.ts'
 import { bootstrapStatsReleaseSets } from '../upload/upload.ts'
 
 /** Creates initial, cohort-complete Statistics release sets from prepared snapshots. */
@@ -31,13 +32,18 @@ export async function runBootstrapStatsReleaseSetsCommand(
   }
 
   const result = await bootstrapStatsReleaseSets(target, { regionCode })
-  await Promise.all(
-    result.createdReleaseSetCodes.map(apiReleaseSetCode =>
-      recordInitialisationSummaryEvent({
-        apiReleaseSetCode,
-        type: 'published-api-release-set',
-      }),
-    ),
+  if (result.createdReleaseSetCodes.length === 0) {
+    return
+  }
+  await logApiReleaseSetPublication({
+    apiReleaseSetPublications: result.createdReleaseSetCodes.map(apiReleaseSetCode => ({
+      apiReleaseSetCode,
+    })),
+  })
+  await runReconcileDraftReleaseSetsCommand(
+    { ...args, options: { ...args.options, 'api-family': 'stats' } },
+    target,
+    printUsage,
   )
   const draftedPaths: string[] = []
   for (const code of result.createdReleaseSetCodes) {
@@ -54,23 +60,15 @@ export async function runBootstrapStatsReleaseSetsCommand(
     [
       formatField('inspected snapshots', String(result.inspectedSnapshots)),
       formatField(
-        'created',
-        result.createdReleaseSetCodes.length > 0
-          ? result.createdReleaseSetCodes.join(', ')
-          : '-',
+        'published release sets',
+        String(result.createdReleaseSetCodes.length),
       ),
-      formatField(
-        'skipped cohorts',
-        result.skippedCohortKeys.length > 0 ? result.skippedCohortKeys.join(', ') : '-',
-      ),
-      formatField(
-        'drafted notes',
-        draftedPaths.length > 0 ? draftedPaths.join(', ') : '-',
-      ),
+      formatField('skipped cohorts', String(result.skippedCohortKeys.length)),
+      formatField('drafted notes', String(draftedPaths.length)),
     ].join('\n'),
     'STATISTICS RELEASE-SET BOOTSTRAP',
   )
-  outro('Statistics release-set bootstrap complete')
+  outro('Statistics release-set bootstrap complete: new release sets published ✓')
 }
 
 function optionRegionCode(

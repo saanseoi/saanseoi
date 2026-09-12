@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f6afff97bb2a5f37a02853779d6638fcf5a59a783ce82539638c0eb384fea7fb",
+  "versionHash": "sha256:6c0ceb1cdeb3788d563ea8ab7585da44f3376d566294c750a9020be2a9a0b846",
   "code": "hkgov-pland",
   "parentCode": "hkgov",
   "url": "https://www.pland.gov.hk/",
@@ -8,16 +8,19 @@
     {
       "locale": "en",
       "name": "Planning Department",
+      "nameShort": "PlanD",
       "description": "Planning Department for the Hong Kong SAR Government"
     },
     {
       "locale": "zh-hant",
       "name": "規劃署",
+      "nameShort": "規劃署",
       "description": "香港特別行政區政府規劃署。"
     },
     {
       "locale": "zh-hans",
       "name": "规划署",
+      "nameShort": "规划署",
       "description": "香港特别行政区政府规划署。"
     }
   ]

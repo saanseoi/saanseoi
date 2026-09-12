@@ -6,22 +6,38 @@ parsed today.
 
 ## Canonical model
 
-`address2d` identifies a physical premise. `address3d` identifies a locatable
-sub-premise within it. A place can link to either, and a place which names more than one
-premise must use a many-to-many association rather than collapse its publisher address
-into one record.
+`address2d` identifies a physical premise. `address3d` contains the unit inventory owned
+by one Address2D, with one collection per owner and snapshot. A place can link to a
+collection and stable unit ID while retaining its precise 2D address. A place which
+names more than one premise must use a many-to-many association rather than collapse its
+publisher address into one record.
 
 The canonical 3D fields distinguish publisher styling from meaning:
 
 - `unitExpression` and `floorExpression` preserve the parsed publisher-facing expression
   where available.
-- `unitType` and `floorType` are small canonical enums; unrecognised types use `other`.
+- Shared `units` JSON stores stable unit IDs, `unitRef`, `unitType`, `floorRef`,
+  `floorType` and optional unit-portion meaning. Locale JSON is keyed by the same IDs.
+- Unit codes are `F` flat, `R` room, `S` shop, `SU` suite, `U` unit, `ST` stall, `K`
+  kiosk, `O` office and `X` other. Floor codes are `F` ordinary floor, `G` ground, `UG`
+  upper ground, `LG` lower ground, `B` basement, `M` mezzanine, `C` concourse, `P`
+  podium, `R` roof and `X` other. Unknown ALS descriptors require review rather than
+  silently falling back to `X`.
 - `unitRef` and `floorRef` are the identifier tokens used for lookup.
-- `formattedAddressPart` is SaanSeoi-formatted output, not a lossless upstream address.
-  Source formatting remains under the publisher source key.
+- `formattedAddressPart` is an optional override when the retained expressions cannot
+  reproduce the required formatting. Publisher source objects remain separate evidence.
 
-`address3dUnitRefLookup` follows the same exact-token and numeric-stem approach as
-`address2dBuildingNumberLookup`.
+There is no per-unit lookup table. Ordinary address reads expose coverage metadata;
+explicit unit requests load the collection. Place unit matching requires a unique,
+explicit floor/flat pair in the selected snapshot. Ambiguous expressions remain
+unlinked. `accessHint` belongs to Place localisation, never to a building's inventory.
+
+Man Hong House has one curated 762–774 building parent and one 422-unit collection. Its
+six numbered children are sections with explicitly unresolved parent-level unit
+coverage. Neither repeated inventories nor the range establish unit-to-section
+membership. No. 772/post office receives no residential coverage. Unit IDs derive from
+the canonical physical-building identity and semantic tokens, not feature order or
+provisional section membership.
 
 ## Cases requiring 3D parsing
 

@@ -23,7 +23,7 @@ export type IngestRunReportRow = {
   startedAt: string
   stats: unknown
   status: string
-  type: string
+  resourceType: string
 }
 
 export type StatReportRow = {
@@ -38,7 +38,7 @@ export type StatReportRow = {
   releaseCode: string
   releaseId: string
   source: string
-  type: string
+  resourceType: string
   updatedAt: string
   value: number
 }
@@ -55,11 +55,12 @@ export type ProcessingActionReportRow = {
   releaseId: string
   source: string
   summary: string
-  type: string
+  resourceType: string
   updatedAt: string
 }
 
 export type ReleaseReportRow = {
+  hasStatisticsSnapshot?: boolean
   createdAt: string
   datasetCode: string
   datasetId: string
@@ -78,7 +79,7 @@ export type ReleaseReportRow = {
   sourceVersion: string
   status: string
   supersededByReleaseId: string | null
-  type: string
+  resourceType: string
   updatedAt: string
 }
 
@@ -170,7 +171,7 @@ export async function fetchIngestRunReport(
     releaseCode?: string
     releaseId?: string
     source?: string
-    type?: string
+    resourceType?: string
   },
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
@@ -192,8 +193,8 @@ export async function fetchIngestRunReport(
     url.searchParams.set('source', options.source)
   }
 
-  if (options?.type) {
-    url.searchParams.set('type', options.type)
+  if (options?.resourceType) {
+    url.searchParams.set('resourceType', options.resourceType)
   }
 
   return fetchReport<IngestRunReportResponse>(url, 'Harbour ingestion report')
@@ -205,7 +206,7 @@ export async function fetchStatsReport(
     limit?: number
     releaseId?: string
     source?: string
-    type?: string
+    resourceType?: string
   },
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
@@ -223,8 +224,8 @@ export async function fetchStatsReport(
     url.searchParams.set('source', options.source)
   }
 
-  if (options?.type) {
-    url.searchParams.set('type', options.type)
+  if (options?.resourceType) {
+    url.searchParams.set('resourceType', options.resourceType)
   }
 
   return fetchReport<StatsReportResponse>(url, 'Harbour stats report')
@@ -237,7 +238,7 @@ export async function fetchProcessingActionReport(
     releaseCode?: string
     releaseId?: string
     source?: string
-    type?: string
+    resourceType?: string
   },
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
@@ -248,7 +249,7 @@ export async function fetchProcessingActionReport(
   if (options?.releaseCode) url.searchParams.set('releaseCode', options.releaseCode)
   if (options?.releaseId) url.searchParams.set('releaseId', options.releaseId)
   if (options?.source) url.searchParams.set('source', options.source)
-  if (options?.type) url.searchParams.set('type', options.type)
+  if (options?.resourceType) url.searchParams.set('resourceType', options.resourceType)
 
   return fetchReport<ProcessingActionReportResponse>(
     url,
@@ -264,7 +265,7 @@ export async function fetchReleaseReport(
     releaseCode?: string
     releaseId?: string
     source?: string
-    type?: string
+    resourceType?: string
   },
 ) {
   const apiBaseUrl = resolveHarbourApiUrl(target)
@@ -290,8 +291,8 @@ export async function fetchReleaseReport(
     url.searchParams.set('source', options.source)
   }
 
-  if (options?.type) {
-    url.searchParams.set('type', options.type)
+  if (options?.resourceType) {
+    url.searchParams.set('resourceType', options.resourceType)
   }
 
   return fetchReport<ReleaseReportResponse>(url, 'Harbour releases report')

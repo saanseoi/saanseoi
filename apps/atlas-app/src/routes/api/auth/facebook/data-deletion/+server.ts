@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers'
 import { error, type RequestHandler } from '@sveltejs/kit'
 import { and, eq } from '@repo/db'
 import { createMetaDb } from '@repo/db/client'
@@ -65,9 +66,9 @@ async function readFormBody(request: Request) {
  * provider tokens are removed. Otherwise the atlas account and its dependent
  * API credentials are deleted.
  */
-export const POST: RequestHandler = async ({ platform, request, url }) => {
-  const database = platform?.env.DB_META
-  const appSecret = platform?.env.FACEBOOK_CLIENT_SECRET
+export const POST: RequestHandler = async ({ request, url }) => {
+  const database = env.DB_META
+  const appSecret = env.FACEBOOK_CLIENT_SECRET
   if (!database || !appSecret) throw error(503, 'FACEBOOK_DELETION_UNAVAILABLE')
 
   const form = await readFormBody(request)

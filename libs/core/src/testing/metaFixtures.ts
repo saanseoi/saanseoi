@@ -95,7 +95,6 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             type TEXT NOT NULL,
             geometry TEXT,
             bbox TEXT,
-            sourceKeys TEXT,
             wikidata TEXT,
             hierarchy TEXT,
             cartography TEXT,
@@ -114,11 +113,10 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
         `
           INSERT INTO divisions (
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, level, type, geometry, bbox,
-            sourceKeys, wikidata, hierarchy, cartography, sources, createdAt, updatedAt
+            wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           )
           SELECT
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, level, type, geometry, bbox,
-            json_object('overture', json_object('subtype', COALESCE(subtype, ''), 'class', COALESCE(class, ''))),
             wikidata, hierarchy, cartography, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
@@ -265,7 +263,7 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             taxonomyPrimary TEXT,
             taxonomyHierarchy TEXT,
             taxonomyAlternates TEXT,
-            brandWikidata TEXT,
+            wikidataId TEXT,
             websites TEXT,
             socials TEXT,
             emails TEXT,
@@ -288,12 +286,12 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
           INSERT INTO places (
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, address3dId, lng, lat, bbox,
             operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
-            brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
+            wikidataId, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
           )
           SELECT
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, address2dId, address3dId, lng, lat, bbox,
             operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates,
-            brandWikidata, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
+            wikidataId, websites, socials, emails, phones, addresses, confidence, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
       )
@@ -389,14 +387,14 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
         CREATE TABLE snapshotSources (
           snapshotId TEXT NOT NULL,
           datasetId TEXT NOT NULL,
-          sourceReleaseId TEXT NOT NULL,
+          resourceReleaseId TEXT NOT NULL,
           role TEXT NOT NULL,
           selectedByRule TEXT,
           selectionMode TEXT,
           anchorReleaseId TEXT,
           sourceCohortKey TEXT,
           createdAt INTEGER NOT NULL,
-          PRIMARY KEY (snapshotId, sourceReleaseId),
+          PRIMARY KEY (snapshotId, resourceReleaseId),
           FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE CASCADE,
           FOREIGN KEY (datasetId) REFERENCES datasets(id) ON DELETE RESTRICT,
           FOREIGN KEY (sourceReleaseId, datasetId) REFERENCES releases(id, datasetId) ON DELETE RESTRICT
@@ -404,7 +402,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       `,
       `
         INSERT INTO snapshotSources (
-          snapshotId, datasetId, sourceReleaseId, role, selectedByRule, selectionMode, anchorReleaseId, sourceCohortKey, createdAt
+          snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode, anchorReleaseId, sourceCohortKey, createdAt
         )
         SELECT snapshotId, datasetId, sourceReleaseId, role, null, null, null, null, createdAt
         FROM __LEGACY_TABLE__;
@@ -441,7 +439,8 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       'apiReleaseSets',
       `
         CREATE TABLE apiReleaseSets (
-          id TEXT PRIMARY KEY NOT NULL,
+          publisherFields TEXT,
+id TEXT PRIMARY KEY NOT NULL,
           apiVersionId TEXT NOT NULL,
           code TEXT NOT NULL,
           schemaVersion TEXT NOT NULL,
@@ -630,15 +629,14 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
           anchorResourceType TEXT,
           maxLagDays INTEGER,
           priority INTEGER NOT NULL DEFAULT 0,
-          configJson TEXT,
           PRIMARY KEY (apiCompositionId, resourceType, variant)
         );
       `,
       `
         INSERT INTO apiCompositionMembers (
-          apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+          apiCompositionId, resourceType, variant, role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority
         )
-        SELECT apiCompositionId, resourceType, 'default', role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority, configJson
+          SELECT apiCompositionId, resourceType, 'default', role, isRequired, selectionMode, anchorResourceType, maxLagDays, priority
         FROM __LEGACY_TABLE__;
       `,
     )
@@ -689,7 +687,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       anchorDatasetId TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
-      configJson TEXT,
+      selectionRulesJson TEXT,
       PRIMARY KEY (snapshotAssemblyId, datasetId, role)
     );
 
@@ -731,7 +729,6 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
       anchorResourceType TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
-      configJson TEXT,
       PRIMARY KEY (apiCompositionId, domainCode, resourceType, variant)
     );
   `)
@@ -899,14 +896,12 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt = excluded.updatedAt
     WHERE datasets.versionHash <> excluded.versionHash;
 
-    INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-      ('overture-hk-division', 'division'),
-      ('overture-hk-divisionArea', 'divisionArea'),
-      ('overture-hk-divisionBoundary', 'divisionBoundary'),
-      ('hkgov-had-hk-district', 'divisionArea'),
-      ('hkgov-landsd-hk-division', 'division'),
-      ('hkgov-dpo-hk-address', 'address')
-    ON CONFLICT(datasetId, resourceType) DO NOTHING;
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'overture-hk-division' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'overture-hk-divisionArea' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionBoundary') WHERE id = 'overture-hk-divisionBoundary' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionBoundary');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-had-hk-district' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'hkgov-landsd-hk-division' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = 'hkgov-dpo-hk-address' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');
 
     INSERT INTO apiVersions (id, code, familyType, version, status, publishedAt, versionHash, createdAt, updatedAt) VALUES
       (
@@ -982,7 +977,7 @@ export function seedFixtureCatalog(db: Database) {
         'api-release-set-data-hk-addresses-2026-06-17.0',
         'api-version-api-addresses-v0.1',
         'data-hk-addresses-2026-06-17.0',
-        'official',
+        'saanseoi',
         'sv-address-v1',
         'rs-address-merge-v1',
         'current',
@@ -1019,7 +1014,7 @@ export function seedFixtureCatalog(db: Database) {
     INSERT INTO apiComposition (
       id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
     ) VALUES
-      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-official', 1, 'address', 'official', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-saanseoi', 1, 'address', 'saanseoi', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'geographic', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', null, 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
@@ -1034,23 +1029,24 @@ export function seedFixtureCatalog(db: Database) {
       updatedAt = excluded.updatedAt;
 
     INSERT INTO apiCompositionMembers (
-      apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
+      apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority
     ) VALUES
-      ('api-composition-addresses-v1', 'official', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-addresses-v1', 'official', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10, null),
-      ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0, null),
-      ('api-composition-places-v1', 'default', 'address', 'default', 'supporting', 1, 'exact_ref', 'place', null, 10, null),
-      ('api-composition-places-v1', 'default', 'division', 'default', 'supporting', 1, 'exact_ref', 'place', null, 20, null)
+      ('api-composition-addresses-v1', 'saanseoi', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-addresses-v1', 'saanseoi', 'address', 'overture-places', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 5),
+      ('api-composition-addresses-v1', 'saanseoi', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10),
+      ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-places-v1', 'default', 'address', 'default', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'place', null, 10),
+      ('api-composition-places-v1', 'default', 'address', 'overture-places', 'supporting', 1, 'exact_ref', 'place', null, 15),
+      ('api-composition-places-v1', 'default', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 20)
     ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
       role = excluded.role,
       isRequired = excluded.isRequired,
       cohortMatchingMode = excluded.cohortMatchingMode,
       anchorResourceType = excluded.anchorResourceType,
       maxLagDays = excluded.maxLagDays,
-      priority = excluded.priority,
-      configJson = excluded.configJson;
+      priority = excluded.priority;
 
     INSERT INTO snapshotAssembly (
       id, code, resourceType, version, status, notes, versionHash, createdAt, updatedAt
@@ -1267,7 +1263,7 @@ type FixtureRelease = {
   datasetCode?: string
   source: string
   regionCode: string
-  type: ResourceType
+  resourceType: ResourceType
   theme?: string
   sourceVersion: string
   cohortKey: string
@@ -1288,14 +1284,14 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
   const publisherCode = publisherCodeForSource(release.source)
   const datasetCode =
     release.datasetCode ??
-    buildDatasetCode(release.regionCode, release.source, release.type)
+    buildDatasetCode(release.regionCode, release.source, release.resourceType)
   const releaseCode =
     release.releaseCode ??
     buildDatasetReleaseCode(
       release.regionCode,
       release.source,
       release.sourceVersion,
-      release.type,
+      release.resourceType,
     )
   const releaseId = release.releaseId ?? `release-${releaseCode}`
   const supersededByReleaseId = release.supersededByReleaseCode
@@ -1375,7 +1371,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
     releaseId,
     publisherCode,
     datasetCode,
-    release.type,
+    release.resourceType,
     releaseCode,
     release.sourceVersion,
     release.cohortKey,

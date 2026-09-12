@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "promotions": [
+    {
+      "id": "tsui-lam-pik-lam-house-estate-complex",
+      "estate": "TSUI LAM ESTATE",
+      "csu": "4364320280T20050430",
+      "buildingName": "PIK LAM HOUSE",
+      "coordinates": [114.24977, 22.32093],
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "assertions": [
+        {
+          "hash": "8fb187c6c20bb3c7ccbf1cc63cd5b36ec384db750ebfc1db6049792b5f5db09d",
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0"
+          ]
+        },
+        {
+          "hash": "813fcd29423e0c12412a6d8dab2680ec7070d67a8b946a9efa7af31a1b2fac7a",
+          "sourceVersions": ["2026-04-03.0", "2026-04-22.0"]
+        },
+        {
+          "hash": "423a778761aace73c82d3290334ae1bcbfb129780f2525733892bd3f3ed83e3c",
+          "sourceVersions": [
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ]
+        }
+      ],
+      "canonical": {
+        "en": {
+          "EngEstate": { "EstateName": "TSUI LAM ESTATE" },
+          "EngStreet": {
+            "BuildingNoFrom": "11",
+            "StreetName": "TSUI LAM ROAD",
+            "LocationName": "TSEUNG KWAN O"
+          },
+          "EngDistrict": "SAI KUNG DISTRICT",
+          "Region": "NT"
+        },
+        "zh": {
+          "Region": "新界",
+          "ChiDistrict": "西貢區",
+          "ChiStreet": {
+            "LocationName": "將軍澳",
+            "StreetName": "翠琳路",
+            "BuildingNoFrom": "11"
+          },
+          "ChiEstate": { "EstateName": "翠林邨" }
+        }
+      },
+      "decision": "Promote only the blockless PIK LAM HOUSE assertion to the Tsui Lam Estate complex at 11 TSUI LAM ROAD. Use the latest reviewed point throughout retained history, preserve the source assertion, and leave Block 1 independent and unchanged.",
+      "authority": "User decision, 2026-09-08"
+    }
+  ]
+}

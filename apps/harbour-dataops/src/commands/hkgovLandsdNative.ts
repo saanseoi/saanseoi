@@ -1,26 +1,36 @@
-import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, resolve } from 'node:path'
 
 import { and, desc, eq } from 'drizzle-orm'
 
 import { currentSchema, metaSchema } from '@repo/db'
 import type { HarbourReadableDb } from '@repo/core/db/types'
+import { decodeStoredGeoJsonGeometry } from '../../../harbour-cli/src/lib/pipeline/divisions/processLocalDivisionGeometrySqlUploadStatistics.ts'
 
 import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
-import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/localPipeline/nativeSourceSql.ts'
-import { readLandsdPlaceNameArchive } from '../../../harbour-cli/src/lib/sources/landsd/landsdPlaceName.ts'
+import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/pipeline/local/nativeSourceSql.ts'
+import {
+  landsdSettlementDivisionRows,
+  readLandsdPlaceNameArchive,
+} from '../../../harbour-cli/src/lib/sources/hkgov/landsd/landsdPlaceName.ts'
 import {
   normaliseRoadCentrelineFeatures,
   readLandsdRoadCentrelineArchive,
   requireResolvedRoadCentrelines,
   type RoadCentrelineDistrict,
   type RoadCentrelineStreet,
-} from '../../../harbour-cli/src/lib/sources/landsd/roadCentreline.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/landsd/roadCentreline.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
+import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/roadCentrelineReview.ts'
+import {
+  applyRoadReview,
+  loadRoadReview,
+  promptRoadReview,
+} from '../lib/roadCentrelineReview.ts'
 
 const PLACE_NAME_DATASET = 'ds-hk-hkgov-landsd-division'
 const ROAD_CENTRELINE_DATASET = 'ds-hk-hkgov-landsd-road-centreline'
@@ -28,7 +38,7 @@ const ROAD_CENTRELINE_DATASET = 'ds-hk-hkgov-landsd-road-centreline'
 /**
  * Imports the complete native gazetteer ledger. Settlement is deliberately the
  * only class exposed by this dataset's divisions projection; other native
- * assertions remain available for future places work.
+ * source records remain available for future places work.
  */
 export async function runHkgovLandsdPlaceNameIngestCommand(
   args: ParsedArgs,
@@ -40,13 +50,9 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
   assertArchiveHash(bytes, input.sha256)
   const features = await readLandsdPlaceNameArchive(bytes)
   const rows = features.map(feature => ({
-    district: optionalText(feature.properties.DISTRICT),
-    geoNameId: String(feature.id),
-    placeClass: requiredText(feature.properties.PLACE_CLASS, 'PLACE_CLASS'),
     placeNames: feature.placeNames,
-    placeType: requiredText(feature.properties.PLACE_TYPE, 'PLACE_TYPE'),
-    rawProperties: feature.properties,
-    sourceGeometry: feature.geometry,
+    properties: feature.properties,
+    sourceGeometry: feature.sourceGeometry,
     sourceRecordId: `LANDSD:PLACE_NAME:${feature.id}`,
     sources: [provenance(input, 'GEO_PLACE_NAME')],
   }))
@@ -56,7 +62,9 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
     archiveSha256: input.sha256,
     cohortKey: input.sourceVersion,
     datasetCode: PLACE_NAME_DATASET,
+    divisionRows: landsdSettlementDivisionRows(features),
     releaseNotesUrl: input.releaseNotesUrl,
+    recoverPublishedRelease: true,
     rowCount: rows.length,
     source: 'hkgov-landsd',
     sourceVersion: input.sourceVersion,
@@ -69,7 +77,7 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
       },
     ],
     theme: 'divisions',
-    type: 'division',
+    resourceType: 'division',
   })
 }
 
@@ -85,6 +93,7 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
   canonical: {
     districts?: RoadCentrelineDistrict[]
     streets?: RoadCentrelineStreet[]
+    snapshotIds?: { street: string; divisionArea: string }
   } = {},
 ) {
   const input = requireArchiveArguments(args, printUsage, ROAD_CENTRELINE_DATASET)
@@ -102,24 +111,78 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
     streets: resolvedCanonical.streets ?? [],
   })
   const summary = summariseRoadCentrelineMatching(archive.sourceFeatureCount, result)
-  if (args.options['dry-run'] === true) {
-    console.log(JSON.stringify(summary, null, 2))
+  const reviewContext = {
+    sourceArchiveSha256: input.sha256,
+    sourceVersion: input.sourceVersion,
+    canonicalSnapshotIds: resolvedCanonical.snapshotIds ?? null,
+  }
+  const decisionsPath = resolve(
+    'fixtures/meta/curations/road-centreline',
+    `${input.sha256}.json`,
+  )
+  const decisions = await loadRoadReview(decisionsPath, reviewContext)
+  const reviewPath = resolve('.cache/road-centreline-review', `${input.sha256}.json`)
+  await mkdir(dirname(reviewPath), { recursive: true })
+  await writeFile(
+    reviewPath,
+    `${JSON.stringify(
+      {
+        sourceVersion: input.sourceVersion,
+        sourceArchiveSha256: input.sha256,
+        sourceArchiveKey: input.key,
+        canonicalSnapshotIds: resolvedCanonical.snapshotIds ?? null,
+        summary,
+        groups: groupRoadCentrelineIssues(
+          result.issues,
+          resolvedCanonical.streets ?? [],
+        ),
+      },
+      null,
+      2,
+    )}\n`,
+  )
+  if (args.options.review === true) {
+    if (args.options.yes)
+      throw new Error(
+        '--yes cannot choose road-segment identities; run --review in an interactive terminal.',
+      )
+    await promptRoadReview(
+      groupRoadCentrelineIssues(result.issues, resolvedCanonical.streets ?? []),
+      resolvedCanonical.streets ?? [],
+      decisions,
+      decisionsPath,
+    )
+  }
+  applyRoadReview(result, resolvedCanonical.streets ?? [], decisions)
+  if (args.options['dry-run'] === true || args.options.review === true) {
+    console.log(
+      JSON.stringify(
+        {
+          ...summary,
+          remainingUnresolvedSegments: result.issues.length,
+          reviewPath,
+          decisionsPath,
+        },
+        null,
+        2,
+      ),
+    )
     return
   }
   // A source-only row is valid only when the publisher did not supply an
   // English label. Any named ambiguity is a curation gate, never a silent
   // partial street publication.
+  if (result.issues.length > 0) {
+    throw new Error(
+      `Road Centreline requires curation for ${result.issues.length} named segments. Rerun with --review for interactive review. Grouped review: ${reviewPath}`,
+    )
+  }
   requireResolvedRoadCentrelines(result)
   const rows = result.records.map(record => ({
-    nameEn: record.nameEn,
-    nameZhHant: record.nameZhHant,
-    objectId: record.objectId,
-    rawProperties: record.rawProperties,
+    properties: record.properties,
     sourceGeometry: record.sourceGeometry,
     sourceRecordId: record.sourceRecordId,
     sources: [provenance(input, archive.layerName)],
-    streetCode: record.streetCode,
-    streetType: record.streetType,
   }))
   await processNativeSourceSqlRelease(target, {
     archiveObjectKey: input.key,
@@ -140,7 +203,7 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
       },
     ],
     theme: 'streets',
-    type: 'street',
+    resourceType: 'street',
   })
 }
 
@@ -170,6 +233,7 @@ async function loadRoadCentrelineCanonical(
 ): Promise<{
   districts: RoadCentrelineDistrict[]
   streets: RoadCentrelineStreet[]
+  snapshotIds: { street: string; divisionArea: string }
 }> {
   const shardYear = /^\d{4}/.exec(sourceVersion)?.[0]
   if (!shardYear) {
@@ -184,11 +248,11 @@ async function loadRoadCentrelineCanonical(
     const metaDb = context.metaDb as unknown as HarbourReadableDb
     const [streetSnapshot, divisionSnapshot] = await Promise.all([
       latestPublishedSnapshot(metaDb, 'street'),
-      latestPublishedSnapshot(metaDb, 'division'),
+      latestPublishedSnapshot(metaDb, 'divisionArea', 'hkgov-had'),
     ])
     if (!streetSnapshot || !divisionSnapshot) {
       throw new Error(
-        'Road Centreline intake requires published canonical street and division snapshots.',
+        'Road Centreline intake requires published canonical street and HaD district-area snapshots.',
       )
     }
     const streetRows = await context.currentDb
@@ -238,31 +302,37 @@ async function loadRoadCentrelineCanonical(
     const districtRows = await context.currentDb
       .select({
         geometry: currentSchema.divisionAreas.geometry,
-        id: currentSchema.divisions.id,
+        id: currentSchema.divisionAreas.divisionId,
       })
-      .from(currentSchema.divisions)
-      .innerJoin(
-        currentSchema.divisionAreas,
-        and(
-          eq(
-            currentSchema.divisions.snapshotId,
-            currentSchema.divisionAreas.snapshotId,
-          ),
-          eq(currentSchema.divisions.id, currentSchema.divisionAreas.divisionId),
-        ),
-      )
+      .from(currentSchema.divisionAreas)
       .where(
         and(
-          eq(currentSchema.divisions.snapshotId, divisionSnapshot.id),
-          eq(currentSchema.divisions.level, 2),
-          eq(currentSchema.divisions.type, 'district'),
+          eq(currentSchema.divisionAreas.snapshotId, divisionSnapshot.id),
+          eq(currentSchema.divisionAreas.variant, 'hkgov-had'),
         ),
       )
       .all()
-    const districts = districtRows.flatMap(row =>
-      isGeoJsonGeometry(row.geometry) ? [{ geometry: row.geometry, id: row.id }] : [],
-    )
-    return { districts, streets }
+    const districts = districtRows.map(row => {
+      const geometry = decodeStoredGeoJsonGeometry(row.geometry)
+      if (geometry.type !== 'Polygon' && geometry.type !== 'MultiPolygon') {
+        throw new Error(`District ${row.id} has no polygonal geometry.`)
+      }
+      return { geometry, id: row.id }
+    })
+    const districtIds = new Set(districts.map(district => district.id))
+    if (
+      !districts.length ||
+      streets.some(street => street.districtIds.some(id => !districtIds.has(id)))
+    ) {
+      throw new Error(
+        'Published HaD district areas do not cover the canonical street district IDs.',
+      )
+    }
+    return {
+      districts,
+      streets,
+      snapshotIds: { street: streetSnapshot.id, divisionArea: divisionSnapshot.id },
+    }
   } finally {
     context.cleanup()
   }
@@ -270,7 +340,8 @@ async function loadRoadCentrelineCanonical(
 
 async function latestPublishedSnapshot(
   metaDb: HarbourReadableDb,
-  resourceType: 'division' | 'street',
+  resourceType: 'divisionArea' | 'street',
+  variant?: string,
 ) {
   return metaDb
     .select({ id: metaSchema.metaSnapshots.id })
@@ -287,6 +358,7 @@ async function latestPublishedSnapshot(
         eq(metaSchema.metaSnapshots.resourceType, resourceType),
         eq(metaSchema.metaSnapshots.status, 'published'),
         eq(metaSchema.metaSnapshotLineages.regionCode, 'hk'),
+        variant ? eq(metaSchema.metaSnapshotLineages.variant, variant) : undefined,
       ),
     )
     .orderBy(
@@ -295,12 +367,6 @@ async function latestPublishedSnapshot(
     )
     .limit(1)
     .get()
-}
-
-function isGeoJsonGeometry(
-  value: unknown,
-): value is RoadCentrelineDistrict['geometry'] {
-  return value !== null && typeof value === 'object' && 'type' in value
 }
 
 function requireArchiveArguments(
@@ -349,16 +415,4 @@ function provenance(
 
 function assertArchiveHash(bytes: Uint8Array, expected: string) {
   assertSourceArchiveHash(bytes, expected, 'Prepared CSDI archive')
-}
-
-function requiredText(value: unknown, field: string) {
-  const text = optionalText(value)
-  if (!text) throw new Error(`LandsD Place Name requires ${field}.`)
-  return text
-}
-
-function optionalText(value: unknown) {
-  if (typeof value === 'string' && value.trim()) return value.trim()
-  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
-  return null
 }

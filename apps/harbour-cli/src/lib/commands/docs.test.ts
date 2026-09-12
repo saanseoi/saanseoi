@@ -4,12 +4,50 @@ import { resolve } from 'node:path'
 
 import {
   createApiReleaseSetRevisionDraft,
+  initialApiReleaseSetNotesBody,
   parseMarkdownFixture,
   releaseVersionFromSourceVersion,
   renderMarkdownFixtureBody,
 } from './docs.ts'
 
 describe('docs markdown fixtures', () => {
+  test('provides publishable initial notes for an address release set', async () => {
+    const rendered = await renderMarkdownFixtureBody(
+      {
+        body: initialApiReleaseSetNotesBody('addresses'),
+        frontmatter: {},
+      },
+      {
+        apiFamily: 'addresses',
+        apiReleaseSet: 'data-hk-addresses-2025-03-21.0',
+        apiVersion: 'api-addresses-v0.1',
+        cohortKey: '2025-03-21.0',
+        domainCode: 'official',
+        regionCode: 'hk',
+        revision: '0',
+      },
+      [
+        {
+          datasetCode: 'ds-hk-hkgov-dpo-address',
+          datasetI18n: [{ locale: 'en', name: 'Addresses' }],
+          publisherCode: 'hkgov-dpo',
+          publisherI18n: [{ locale: 'en', name: 'Data Office' }],
+          releaseCode: 'dr-hk-hkgov-dpo-address-2025-03-21.0',
+          resourceType: 'address',
+          role: 'primary',
+          sourceVersion: '2025-03-21.0',
+          variant: 'default',
+        },
+      ],
+    )
+
+    expect(rendered).toContain('First 山水 | SaanSeoi Addresses API release set')
+    expect(rendered).toContain('### Primary · Address')
+    expect(rendered).toContain('# ZH-HANT')
+    expect(rendered).toContain('# ZH-HANS')
+    expect(rendered).not.toContain('{{apiReleaseSetSources:')
+  })
+
   test('copies the prior API release fixture and adds an English revision log', async () => {
     const apiReleaseSetCode = 'data-hk-divisions-2025-09-24.0-r1'
     const path = resolve(
@@ -242,6 +280,61 @@ Publishes revision r{{ revision }}.
     expect(rendered).not.toContain('{{apiKeyNote:')
   })
 
+  test('renders address notes, curation policy and quality issues without moving fixture headings', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: `## Notes and limitations
+
+{{addressNotesAndLimitations:en}}
+
+### Curation policy
+
+{{addressCurationPolicy:en}}
+
+### Known Quality Issues
+
+{{addressKnownQualityIssues:en}}
+
+## 備註與限制
+
+{{addressNotesAndLimitations:zh-Hant}}
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hant}}
+
+### 已知品質問題
+
+{{addressKnownQualityIssues:zh-Hant}}
+
+## 备注与限制
+
+{{addressNotesAndLimitations:zh-Hans}}
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hans}}
+
+### 已知质量问题
+
+{{addressKnownQualityIssues:zh-Hans}}
+`,
+      frontmatter: {},
+    })
+
+    expect(rendered).toContain('## Notes and limitations')
+    expect(rendered).toContain('### Curation policy')
+    expect(rendered).toContain('### Known Quality Issues')
+    expect(rendered).toContain('### 整理政策')
+    expect(rendered).toContain('### 已知品質問題')
+    expect(rendered).toContain('### 已知质量问题')
+    expect(rendered).toContain('MODEL HOUSING ESTATE')
+    expect(rendered).toContain('476.3 metres away')
+    expect(rendered).toContain('include=units')
+    expect(rendered).not.toContain('{{addressNotesAndLimitations:')
+    expect(rendered).not.toContain('{{addressCurationPolicy:')
+    expect(rendered).not.toContain('{{addressKnownQualityIssues:')
+  })
+
   test('renders experimental API warnings in every supported locale', async () => {
     const rendered = await renderMarkdownFixtureBody({
       body: `{{experimentalApiWarning:en}}
@@ -284,6 +377,48 @@ Publishes revision r{{ revision }}.
     expect(rendered).toContain('<black>v0.1</black> API 仍处于实验阶段')
     expect(rendered).not.toContain('{{experimentalApiWarning:')
   })
+
+  test('renders the Places experimental warning', async () => {
+    const rendered = await renderMarkdownFixtureBody({
+      body: `{{experimentalApiWarning:en}}
+
+{{experimentalApiWarning:zh-Hant}}
+
+{{experimentalApiWarning:zh-Hans}}
+`,
+      frontmatter: {
+        apiFamily: 'places',
+        apiVersion: 'api-places-v0.1',
+      },
+    })
+
+    expect(rendered).toContain('<black>v0.1</black> contract is experimental')
+    expect(rendered).toContain('<black>v0.1</black> 合約仍屬實驗性質')
+    expect(rendered).toContain('<black>v0.1</black> 合约仍处于实验阶段')
+    expect(rendered).not.toContain('{{experimentalApiWarning:')
+  })
+
+  for (const apiFamily of ['addresses', 'streets'] as const) {
+    test(`renders the ${apiFamily} experimental warning`, async () => {
+      const rendered = await renderMarkdownFixtureBody({
+        body: `{{experimentalApiWarning:en}}
+
+{{experimentalApiWarning:zh-Hant}}
+
+{{experimentalApiWarning:zh-Hans}}
+`,
+        frontmatter: {
+          apiFamily,
+          apiVersion: `api-${apiFamily}-v0.1`,
+        },
+      })
+
+      expect(rendered).toContain('<black>v0.1</black> contract is experimental')
+      expect(rendered).toContain('<black>v0.1</black> 合約仍屬實驗性質')
+      expect(rendered).toContain('<black>v0.1</black> 合约仍处于实验阶段')
+      expect(rendered).not.toContain('{{experimentalApiWarning:')
+    })
+  }
 
   test('renders API profile tables from the shared profile definitions', async () => {
     const rendered = await renderMarkdownFixtureBody({

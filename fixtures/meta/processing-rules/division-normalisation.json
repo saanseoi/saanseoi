@@ -1,0 +1,208 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise-divisions",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Create one SaanSeoi division from each publisher record, preserving its identity and source assertions while materialising category, class, level, localised names and correlated hierarchy paths.",
+  "inputs": ["source-divisions"],
+  "outputs": ["divisions"],
+  "parameters": {
+    "levelTokens": [
+      {
+        "token": "country",
+        "level": 0
+      },
+      {
+        "token": "sar",
+        "level": 0
+      },
+      {
+        "token": "dependency",
+        "level": 0
+      },
+      {
+        "token": "city",
+        "level": 1
+      },
+      {
+        "token": "state",
+        "level": 1
+      },
+      {
+        "token": "province",
+        "level": 1
+      },
+      {
+        "token": "district",
+        "level": 2
+      },
+      {
+        "token": "region",
+        "level": 2
+      },
+      {
+        "token": "subdistrict",
+        "level": 3
+      },
+      {
+        "token": "borough",
+        "level": 3
+      },
+      {
+        "token": "town",
+        "level": 3
+      },
+      {
+        "token": "macrohood",
+        "level": 4
+      },
+      {
+        "token": "neighbourhood",
+        "level": 5
+      },
+      {
+        "token": "neighborhood",
+        "level": 5
+      },
+      {
+        "token": "village",
+        "level": 5
+      },
+      {
+        "token": "microhood",
+        "level": 6
+      },
+      {
+        "token": "hamlet",
+        "level": 6
+      }
+    ],
+    "hongKongAreaNames": [
+      "hong kong island",
+      "香港島",
+      "kowloon",
+      "九龍",
+      "new territories",
+      "新界"
+    ],
+    "apiLocaleFallbacks": {
+      "en": [],
+      "zh-hant": ["zh-hk", "zh-mo", "zh-tw"],
+      "zh-hans": ["zh-cn", "zh-sg"]
+    },
+    "hongKongArea": {
+      "level": 1,
+      "class": "area"
+    },
+    "subtypeLevels": [
+      {
+        "token": "dependency",
+        "level": 0
+      },
+      {
+        "token": "region",
+        "level": 2
+      }
+    ],
+    "subtypeClasses": [
+      {
+        "token": "country",
+        "class": "country"
+      },
+      {
+        "token": "dependency",
+        "class": "sar"
+      },
+      {
+        "token": "region",
+        "class": "district"
+      }
+    ],
+    "localityClasses": [
+      {
+        "token": "city",
+        "level": 1,
+        "class": "city"
+      },
+      {
+        "token": "town",
+        "level": 3,
+        "class": "town"
+      },
+      {
+        "token": "village",
+        "level": 5,
+        "class": "village"
+      },
+      {
+        "token": "hamlet",
+        "level": 6,
+        "class": "hamlet"
+      }
+    ],
+    "hoodClasses": [
+      {
+        "tokens": ["macrohood"],
+        "class": "macrohood"
+      },
+      {
+        "tokens": ["neighborhood", "neighbourhood"],
+        "class": "neighbourhood"
+      },
+      {
+        "tokens": ["microhood"],
+        "class": "microhood"
+      }
+    ],
+    "hierarchySubtypes": [
+      {
+        "token": "dependency",
+        "level": 0,
+        "class": "sar"
+      },
+      {
+        "token": "region",
+        "level": 2,
+        "class": "district"
+      },
+      {
+        "token": "macrohood",
+        "level": 4,
+        "class": "macrohood"
+      },
+      {
+        "token": "neighborhood",
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      {
+        "token": "neighbourhood",
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      {
+        "token": "microhood",
+        "level": 6,
+        "class": "microhood"
+      }
+    ],
+    "fallback": {
+      "parentLevel": 1,
+      "rootLevel": 0,
+      "classesByLevel": [
+        "sar",
+        "area",
+        "district",
+        "town",
+        "macrohood",
+        "neighbourhood"
+      ],
+      "class": "microhood"
+    }
+  },
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/divisions/division.ts",
+    "symbol": "divisionNormalisationRule"
+  }
+}

@@ -1,3 +1,4 @@
+import { initialDatasets } from '../../../../db/src/registry/meta'
 import { afterEach, describe, expect, test } from 'bun:test'
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -25,6 +26,7 @@ import {
 import { planUpload, prepareUpload, registerUpload } from './uploadLocal'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { buildDeterministicReleaseId } from '../db/metaRegistry'
+import { resolveSourceRecordSchema } from '../../sourceRecordSchemas'
 
 import type { UploadInspection } from '../../types'
 
@@ -58,6 +60,24 @@ const fixtureInspectionWithAdminLevel: UploadInspection = {
     ...fixtureInspection.schema,
     { name: 'admin_level', type: 'int_32', nullable: true },
   ],
+}
+
+function placeInspection(sourceVersion: string): UploadInspection {
+  const schema = resolveSourceRecordSchema({
+    resourceType: 'place',
+    source: 'overture',
+    sourceVersion,
+  })
+  if (!schema) throw new Error(`Missing test Places schema for ${sourceVersion}.`)
+
+  return {
+    rowCount: 1,
+    schema: schema.fields,
+    distinctThemeValues: ['places'],
+    distinctTypeValues: ['place'],
+    distinctCountryValues: [],
+    distinctRegionValues: [],
+  }
 }
 
 const reorderedFixtureInspection: UploadInspection = {
@@ -201,8 +221,7 @@ function seedCenstatdDensityDataset(db: Database) {
       0
     );
 
-    INSERT INTO datasetResourceTypes (datasetId, resourceType) VALUES
-      ('hkgov-censtatd-hk-density', 'divisionStatistic');
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionStatistic') WHERE id = 'hkgov-censtatd-hk-density' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionStatistic');
   `)
 }
 
@@ -221,7 +240,7 @@ async function assertAdminLevelTransitionAllowed(
     regionCode: 'hk',
     cohortKey: '2026-01',
     theme: 'divisions',
-    type: resourceType,
+    resourceType: resourceType,
     sourceVersion: '2026-01-21.0',
     rawObjectKey: `hk/overture/2026-01-21.0/${resourceName}.parquet`,
     originalFileName: `${resourceName}.parquet`,
@@ -253,6 +272,20 @@ async function assertAdminLevelTransitionAllowed(
   })
 
   sqlite.close()
+}
+
+function seedPlaceDataset(db: Database) {
+  db.exec(`
+    INSERT INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency, theme,
+      sourceUrl, versionHash, createdAt, updatedAt
+    ) VALUES (
+      'overture-hk-place', 'publisher-overture', 'ds-hk-overture-place', 'hk',
+      'static', 'monthly', 'places', 'https://docs.overturemaps.org/',
+      'vh-dataset-overture-hk-place-v1', 0, 0
+    );
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'place') WHERE id = 'overture-hk-place' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'place');
+  `)
 }
 
 function insertFixtureIngestRun(
@@ -362,9 +395,9 @@ describe('upload', () => {
       sourceVersion: '2025-09-24.0',
     })
 
-    expect(planned.plan.type).toBe('address')
+    expect(planned.plan.resourceType).toBe('address')
     expect(planned.plan.theme).toBe('addresses')
-    expect(planned.plan.inferredFrom.type).toBe('filename')
+    expect(planned.plan.inferredFrom.resourceType).toBe('filename')
     expect(planned.plan.inferredFrom.theme).toBe('filename')
   })
 
@@ -413,7 +446,7 @@ describe('upload', () => {
       },
       source: 'hkgov-had',
       sourceVersion: '2022',
-      type: 'divisionArea',
+      resourceType: 'divisionArea',
     })
 
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-had-division-area-district')
@@ -442,15 +475,33 @@ describe('upload', () => {
       },
       source: 'hkgov-censtatd',
       sourceVersion: '2022',
-      type: 'divisionStatistic',
+      resourceType: 'divisionStatistic',
     })
 
     expect(planned.plan.datasetCode).toBe(
       'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
     )
     expect(planned.plan.releaseCode).toBe(
-      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022',
+      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022::divisionStatistic',
     )
+    const geometry = await prepareUpload({
+      cohortKey: '2022',
+      datasetCode: planned.plan.datasetCode,
+      filePath: fixtureFile,
+      inspection: {
+        ...fixtureInspection,
+        distinctThemeValues: ['divisions'],
+        distinctTypeValues: ['divisionArea'],
+      },
+      source: 'hkgov-censtatd',
+      sourceVersion: '2022',
+      theme: 'divisions',
+      resourceType: 'divisionArea',
+    })
+    expect(geometry.plan.releaseCode).toBe(
+      'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022::divisionArea',
+    )
+    expect(geometry.plan.datasetCode).toBe(planned.plan.datasetCode)
   })
 
   test('keeps the resource type in a Planning Department companion release code', async () => {
@@ -472,7 +523,7 @@ describe('upload', () => {
       },
       source: 'hkgov-pland-pu',
       sourceVersion: '2001',
-      type: 'divisionArea',
+      resourceType: 'divisionArea',
     })
 
     expect(planned.plan.datasetCode).toBe('ds-hk-hkgov-pland-division-pu')
@@ -505,6 +556,12 @@ describe('upload', () => {
 
     initDb(dbPath).close()
     const sqlite = new Database(dbPath)
+    const policy = initialDatasets.find(
+      dataset => dataset.code === 'ds-hk-overture-division',
+    )!.processingRules
+    sqlite
+      .query('UPDATE datasets SET processingRules = ? WHERE code = ?')
+      .run(JSON.stringify(policy), 'ds-hk-overture-division')
     const db = createLocalHarbourDb(sqlite)
 
     const result = await registerUpload(db, {
@@ -518,7 +575,7 @@ describe('upload', () => {
     sqlite.close()
 
     expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
-    expect(result.plan.type).toBe('division')
+    expect(result.plan.resourceType).toBe('division')
     expect(result.plan.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
 
@@ -538,6 +595,24 @@ describe('upload', () => {
         'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ?',
       )
       .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
+
+    const sourceMetadata = sqliteCheck
+      .query(`
+      SELECT s.rawObjectKey, s.processingRules AS sourceRules,
+        r.processingRules AS resourceRules, d.processingRules AS datasetRules
+      FROM releases r JOIN sourceReleases s ON s.id = r.sourceReleaseId
+      JOIN datasets d ON d.id = r.datasetId WHERE r.code = ?
+    `)
+      .get(result.plan.releaseCode) as {
+      rawObjectKey: string
+      sourceRules: string
+      resourceRules: string
+      datasetRules: string
+    }
+    expect(sourceMetadata.rawObjectKey).toBe(result.rawObjectKey!)
+    expect(sourceMetadata.datasetRules).not.toBeNull()
+    expect(sourceMetadata.sourceRules).toBe(sourceMetadata.datasetRules)
+    expect(sourceMetadata.resourceRules).toBe(sourceMetadata.datasetRules)
 
     sqliteCheck.close()
 
@@ -591,7 +666,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       originalFileName: 'division.parquet',
       rawObjectKey: fixtureFile,
@@ -676,7 +751,7 @@ describe('upload', () => {
     db.close()
 
     expect(planned.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
-    expect(planned.plan.type).toBe('division')
+    expect(planned.plan.resourceType).toBe('division')
     expect(planned.plan.fileName).toBe('division.parquet')
   })
 
@@ -766,6 +841,50 @@ describe('upload', () => {
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
   })
 
+  test('allows only the ALS publisher envelope addition without concealing other drift', async () => {
+    const tempDir = createTempDir()
+    const sqlite = initDb(join(tempDir, 'als-envelope.sqlite'))
+    const db = createLocalHarbourDb(sqlite)
+    const filePath = createAddressFixturePath(tempDir)
+    try {
+      await registerUpload(db, {
+        filePath,
+        cohortKey: '2026-06',
+        source: 'hkgov-dpo',
+        sourceVersion: '2026-06-04.0',
+        inspection: addressFixtureInspection,
+        rawObjectKey: 'hk/hkgov-dpo/2026-06-04.0/address.parquet',
+      })
+      sqlite.exec("UPDATE releases SET status = 'published'")
+      const added = { name: 'publisherSource', type: 'utf8', nullable: true }
+      const plan = (schema: UploadInspection['schema']) =>
+        planUpload(db, {
+          filePath,
+          cohortKey: '2026-06',
+          source: 'hkgov-dpo',
+          sourceVersion: '2026-06-05.0',
+          inspection: { ...addressFixtureInspection, schema },
+          resolveSchemaFingerprint: async () =>
+            createSchemaFingerprint(addressFixtureInspection),
+        })
+      await expect(
+        plan([...addressFixtureInspection.schema, added]),
+      ).resolves.toBeDefined()
+      await expect(
+        plan([...addressFixtureInspection.schema, { ...added, type: 'int64' }]),
+      ).rejects.toThrow('Schema drift')
+      await expect(
+        plan([
+          ...addressFixtureInspection.schema,
+          added,
+          { name: 'unexpected', type: 'utf8', nullable: true },
+        ]),
+      ).rejects.toThrow('Schema drift')
+    } finally {
+      sqlite.close()
+    }
+  })
+
   test('registers hkgov ALS address uploads', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-hkgov-address.sqlite')
@@ -820,7 +939,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division-old.parquet',
       originalFileName: 'division-old.parquet',
@@ -891,7 +1010,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division-old.parquet',
       originalFileName: 'division-old.parquet',
@@ -984,7 +1103,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1025,7 +1144,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-01',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-01-21.0',
       rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1063,6 +1182,85 @@ describe('upload', () => {
     await assertAdminLevelTransitionAllowed('divisionBoundary', 'division-boundary')
   })
 
+  test('allows the known additive Overture Places schema transitions', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createResourceFixturePath(tempDir, 'place')
+    const sqlite = initDb(dbPath)
+    seedPlaceDataset(sqlite)
+    const db = createLocalHarbourDb(sqlite)
+    const initialInspection = placeInspection('2025-09-24.0')
+    const intermediateInspection = placeInspection('2025-10-22.0')
+    const taxonomyInspection = placeInspection('2025-12-17.0')
+
+    insertFixtureRelease(sqlite, {
+      datasetCode: 'ds-hk-overture-place',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2025-09-24.0',
+      theme: 'places',
+      resourceType: 'place',
+      sourceVersion: '2025-09-24.0',
+      rawObjectKey: 'hk/overture/2025-09-24.0/place.parquet',
+      originalFileName: 'place.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-02T00:00:00.000Z',
+      createdAt: '2026-06-02T00:00:00.000Z',
+      updatedAt: '2026-06-02T00:00:00.000Z',
+    })
+
+    const firstPlan = await planUpload(db, {
+      filePath: fixtureFile,
+      cohortKey: '2025-10-22.0',
+      source: 'overture',
+      sourceVersion: '2025-10-22.0',
+      datasetCode: 'ds-hk-overture-place',
+      inspection: intermediateInspection,
+      resolveSchemaFingerprint: async () => createSchemaFingerprint(initialInspection),
+    })
+    expect(firstPlan).toMatchObject({
+      plan: {
+        datasetId: 'dr-hk-overture-place-2025-10-22.0',
+        supersedesDatasetId: 'dr-hk-overture-place-2025-09-24.0',
+      },
+    })
+
+    insertFixtureRelease(sqlite, {
+      datasetCode: 'ds-hk-overture-place',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2025-10-22.0',
+      theme: 'places',
+      resourceType: 'place',
+      sourceVersion: '2025-10-22.0',
+      rawObjectKey: 'hk/overture/2025-10-22.0/place.parquet',
+      originalFileName: 'place.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-03T00:00:00.000Z',
+      createdAt: '2026-06-03T00:00:00.000Z',
+      updatedAt: '2026-06-03T00:00:00.000Z',
+    })
+
+    const secondPlan = await planUpload(db, {
+      filePath: fixtureFile,
+      cohortKey: '2025-12-17.0',
+      source: 'overture',
+      sourceVersion: '2025-12-17.0',
+      datasetCode: 'ds-hk-overture-place',
+      inspection: taxonomyInspection,
+      resolveSchemaFingerprint: async () =>
+        createSchemaFingerprint(intermediateInspection),
+    })
+    expect(secondPlan).toMatchObject({
+      plan: {
+        datasetId: 'dr-hk-overture-place-2025-12-17.0',
+        supersedesDatasetId: 'dr-hk-overture-place-2025-10-22.0',
+      },
+    })
+
+    sqlite.close()
+  })
+
   test('allows the known C&SD density reference-period schema transition', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
@@ -1080,7 +1278,7 @@ describe('upload', () => {
       filePath: fixtureFile,
       inspection: censtatdDensityLegacyInspection,
       theme: 'stats',
-      type: 'divisionStatistic',
+      resourceType: 'divisionStatistic',
       sourceVersion: '2024',
       rawObjectKey: 'hk/hkgov-censtatd/2024/density.parquet',
     })
@@ -1094,7 +1292,7 @@ describe('upload', () => {
       source: 'hkgov-censtatd',
       sourceVersion: '2024',
       theme: 'stats',
-      type: 'divisionStatistic',
+      resourceType: 'divisionStatistic',
       allowExistingDatasetStatuses: ['published'],
       resolveSchemaFingerprint: async () =>
         createSchemaFingerprint(censtatdDensityLegacyInspection),
@@ -1104,7 +1302,7 @@ describe('upload', () => {
       plan: {
         datasetCode,
         releaseCode:
-          'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024',
+          'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2024::divisionStatistic',
       },
     })
 
@@ -1123,7 +1321,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-02',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-02-18.0',
       rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1165,7 +1363,7 @@ describe('upload', () => {
       regionCode: 'hk',
       cohortKey: '2026-01',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-01-21.0',
       rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1212,7 +1410,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1238,52 +1436,74 @@ Reconcile the schema before uploading this dataset.`)
     sqlite.close()
   })
 
-  test('continues a completed processing release only when explicitly requested', async () => {
-    const tempDir = createTempDir()
-    const dbPath = join(tempDir, 'harbour.sqlite')
-    const fixtureFile = createFixturePath(tempDir)
-    const sqlite = initDb(dbPath)
-    const db = createLocalHarbourDb(sqlite)
-    const { releaseId } = insertFixtureRelease(sqlite, {
-      source: 'overture',
-      regionCode: 'hk',
-      cohortKey: '2026-05',
-      theme: 'divisions',
-      type: 'division',
-      sourceVersion: '2026-05-20.0',
-      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-      originalFileName: 'division.parquet',
-      status: 'processing',
-      ingestedAt: '2026-06-02T00:00:00.000Z',
-      createdAt: '2026-06-02T00:00:00.000Z',
-      updatedAt: '2026-06-02T00:00:00.000Z',
-    })
-    insertFixtureIngestRun(sqlite, {
-      runId: 'completed-processing-run',
-      releaseId,
-      phase: 'processDataset',
-      status: 'completed',
-      startedAt: '2026-06-02T00:00:00.000Z',
-      finishedAt: '2026-06-02T00:01:00.000Z',
-    })
+  test.each(['completed', 'retained', 'retained-remote', 'mismatched'])(
+    'continues only completed processing or the recovered SQL owner: %s',
+    async recovery => {
+      const tempDir = createTempDir()
+      const dbPath = join(tempDir, 'harbour.sqlite')
+      const fixtureFile = createFixturePath(tempDir)
+      const sqlite = initDb(dbPath)
+      const db = createLocalHarbourDb(sqlite)
+      const { releaseId } = insertFixtureRelease(sqlite, {
+        source: 'overture',
+        regionCode: 'hk',
+        cohortKey: '2026-05',
+        theme: 'divisions',
+        resourceType: 'division',
+        sourceVersion: '2026-05-20.0',
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        originalFileName: 'division.parquet',
+        status: 'processing',
+        ingestedAt: '2026-06-02T00:00:00.000Z',
+        createdAt: '2026-06-02T00:00:00.000Z',
+        updatedAt: '2026-06-02T00:00:00.000Z',
+      })
+      if (recovery === 'completed')
+        insertFixtureIngestRun(sqlite, {
+          runId: 'completed-processing-run',
+          releaseId,
+          phase: 'processDataset',
+          status: 'completed',
+          startedAt: '2026-06-02T00:00:00.000Z',
+          finishedAt: '2026-06-02T00:01:00.000Z',
+        })
 
-    const result = await registerUpload(db, {
-      filePath: fixtureFile,
-      cohortKey: '2026-05',
-      source: 'overture',
-      sourceVersion: '2026-05-20.0',
-      inspection: fixtureInspection,
-      rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
-      resolveSchemaFingerprint: async () => createSchemaFingerprint(fixtureInspection),
-      resumeInterruptedProcessingRelease: true,
-    })
-    expect(result).toMatchObject({ releaseId })
+      const registration = registerUpload(db, {
+        filePath: fixtureFile,
+        cohortKey: '2026-05',
+        source: 'overture',
+        sourceVersion: '2026-05-20.0',
+        inspection: fixtureInspection,
+        rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
+        resolveSchemaFingerprint: async () =>
+          createSchemaFingerprint(fixtureInspection),
+        resumeInterruptedProcessingRelease: true,
+        reuseExistingRelease: recovery === 'retained-remote',
+        allowExistingDatasetStatuses:
+          recovery === 'retained-remote' ? ['staged', 'processing'] : undefined,
+        recoveredSqlDeliveryReleaseId:
+          recovery === 'retained'
+            ? releaseId
+            : recovery === 'mismatched'
+              ? 'other-release'
+              : undefined,
+      })
+      if (recovery === 'mismatched') {
+        await expect(registration).rejects.toThrow(
+          'the processing phase did not complete',
+        )
+        sqlite.close()
+        return
+      }
+      const result = await registration
+      expect(result).toMatchObject({ releaseId })
 
-    expect(
-      sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
-    ).toEqual({ status: 'staged' })
-    sqlite.close()
-  })
+      expect(
+        sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+      ).toEqual({ status: 'staged' })
+      sqlite.close()
+    },
+  )
 
   test('does not continue a processing release with an active ingest phase', async () => {
     const tempDir = createTempDir()
@@ -1296,7 +1516,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1330,6 +1550,9 @@ Reconcile the schema before uploading this dataset.`)
         inspection: fixtureInspection,
         rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
         resumeInterruptedProcessingRelease: true,
+        recoveredSqlDeliveryReleaseId: releaseId,
+        reuseExistingRelease: true,
+        allowExistingDatasetStatuses: ['staged', 'processing'],
       }),
     ).rejects.toThrow('phase importPlandSqlSource is still running')
 
@@ -1348,7 +1571,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1390,7 +1613,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-05',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1404,7 +1627,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-06',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-06-24.0',
       rawObjectKey: 'hk/overture/2026-06-24.0/division.parquet',
       originalFileName: 'division.parquet',
@@ -1419,7 +1642,7 @@ Reconcile the schema before uploading this dataset.`)
       regionCode: 'hk',
       cohortKey: '2026-07',
       theme: 'divisions',
-      type: 'division',
+      resourceType: 'division',
       sourceVersion: '2026-07-24.0',
       rawObjectKey: 'hk/overture/2026-07-24.0/division.parquet',
       originalFileName: 'division.parquet',

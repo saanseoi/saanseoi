@@ -197,9 +197,7 @@ export function formatSummary(
   return [
     formatField('target', formatTargetValue(target)),
     ...formatPlan(result),
-    ...(options.schemaURL
-      ? [formatField('schema', options.schemaURL)]
-      : []),
+    ...(options.schemaURL ? [formatField('schema', options.schemaURL)] : []),
   ]
 }
 

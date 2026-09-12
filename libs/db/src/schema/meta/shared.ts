@@ -1,5 +1,6 @@
 import {
   check,
+  customType,
   index,
   integer,
   real,
@@ -10,7 +11,7 @@ import {
 import { sql } from 'drizzle-orm'
 
 import { ingestRunStatuses } from '../../constants/schema'
-import { metaApiReleaseSets, metaSnapshots } from './api'
+import { metaApiReleaseSets } from './api'
 import { metaReleases } from './datasets'
 import { jsonText, timestamps } from '../shared'
 
@@ -38,11 +39,7 @@ export const stats = sqliteTable(
   'stats',
   {
     id: text('id').primaryKey(),
-    type: text('type').notNull(),
     releaseId: text('releaseId').references(() => metaReleases.id),
-    snapshotId: text('snapshotId').references(() => metaSnapshots.id, {
-      onDelete: 'cascade',
-    }),
     apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id, {
       onDelete: 'cascade',
     }),
@@ -56,10 +53,8 @@ export const stats = sqliteTable(
   },
   table => [
     index('stats_releaseId_idx').on(table.releaseId),
-    index('stats_snapshotId_idx').on(table.snapshotId),
     index('stats_apiReleaseSetId_idx').on(table.apiReleaseSetId),
     index('stats_dimension_idx').on(
-      table.type,
       table.dimension,
       table.metric,
       table.groupBy,
@@ -67,7 +62,7 @@ export const stats = sqliteTable(
     ),
     check(
       'stats_owner_chk',
-      sql`${table.releaseId} IS NOT NULL OR ${table.snapshotId} IS NOT NULL OR ${table.apiReleaseSetId} IS NOT NULL`,
+      sql`(${table.releaseId} IS NOT NULL) != (${table.apiReleaseSetId} IS NOT NULL)`,
     ),
   ],
 )
@@ -81,14 +76,54 @@ export const releaseProcessingActions = sqliteTable(
       .references(() => metaReleases.id, { onDelete: 'cascade' }),
     action: text('action').notNull(),
     mode: text('mode', { enum: ['automatic', 'manual'] }).notNull(),
-    summary: text('summary').notNull(),
+    generation: text('generation').notNull(),
+    decisionCount: integer('decisionCount').notNull(),
     affectedRecordCount: integer('affectedRecordCount').notNull(),
-    evidence: jsonText('evidence').notNull(),
     ...timestamps,
   },
   table => [
     index('releaseProcessingActions_releaseId_idx').on(table.releaseId),
     index('releaseProcessingActions_action_idx').on(table.action, table.mode),
+  ],
+)
+
+const auditBlob = customType<{ data: Uint8Array; driverData: Uint8Array }>({
+  dataType: () => 'blob',
+  toDriver: value => Uint8Array.from(value),
+  fromDriver: value => new Uint8Array(value),
+})
+
+// Chunks are staged before the summary generation is switched. Their lifetime is
+// release-owned, rather than tied to the currently visible summary rows.
+export const releaseProcessingActionChunks = sqliteTable(
+  'releaseProcessingActionChunks',
+  {
+    id: text('id').primaryKey(),
+    releaseId: text('releaseId')
+      .notNull()
+      .references(() => metaReleases.id, { onDelete: 'cascade' }),
+    actionId: text('actionId').notNull(),
+    generation: text('generation').notNull(),
+    firstOrdinal: integer('firstOrdinal').notNull(),
+    decisionCount: integer('decisionCount').notNull(),
+    part: integer('part').notNull(),
+    parts: integer('parts').notNull(),
+    encoding: text('encoding', { enum: ['gzip-json-v1'] }).notNull(),
+    checksum: text('checksum').notNull(),
+    payload: auditBlob('payload').notNull(),
+  },
+  table => [
+    index('releaseProcessingActionChunks_page_idx').on(
+      table.actionId,
+      table.generation,
+      table.firstOrdinal,
+      table.part,
+    ),
+    index('releaseProcessingActionChunks_release_idx').on(table.releaseId),
+    check(
+      'releaseProcessingActionChunks_payload_chk',
+      sql`length(${table.payload}) <= 32768`,
+    ),
   ],
 )
 

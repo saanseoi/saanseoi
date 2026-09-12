@@ -1,3 +1,4 @@
+import { env } from 'cloudflare:workers'
 import {
   and,
   createMetaDb,
@@ -82,7 +83,7 @@ async function getBasemapEntries(
 
 export async function getSitemapEntries(): Promise<SitemapEntry[]> {
   const event = getRequestEvent()
-  const binding = event.platform?.env.DB_META
+  const binding = env.DB_META
   if (!binding) throw new Error('D1 binding "DB_META" not found.')
   const db = createMetaDb(binding)
 

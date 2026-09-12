@@ -5,16 +5,13 @@ import QualityMetric from './releaseStatsQualityMetric.svelte'
 import Section from './releaseStatsSection.svelte'
 let { quality, labels }: { quality: QualityPresentation; labels: ReleaseStatsLabels } =
   $props()
-let placeholderCount = $derived(
-  quality.issues.length ? (4 - (quality.issues.length % 4)) % 4 : 0,
-)
+let placeholderCount = $derived(quality.issues.length % 2)
 </script>
-<Section
+<Section id="stats-quality-checks"
   ><div
     class="flex w-full items-center gap-1.5 border-b border-data-outline-variant/60 bg-data-surface-container-lowest px-5 py-5"
   >
     <h2
-      id="stats-quality-checks"
       class="font-body text-caption font-medium uppercase tracking-[0.08em] text-data-alert"
     >
       {labels.qualityChecks}
@@ -27,7 +24,7 @@ let placeholderCount = $derived(
     >
   </div>
   {#if quality.issues.length}
-    <div class="grid gap-px bg-data-outline-variant/60 sm:grid-cols-2 lg:grid-cols-4">
+    <div class="grid gap-px bg-data-outline-variant/60 sm:grid-cols-2">
       {#each quality.issues as metric}
         <QualityMetric {metric} />
       {/each}

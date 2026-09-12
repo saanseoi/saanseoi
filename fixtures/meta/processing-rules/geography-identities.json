@@ -1,0 +1,23 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "resolve-geography-identities",
+  "scope": "bulk",
+  "basis": "fixture",
+  "summary": "Use the identity bridge to match each publisher geography record to one SaanSeoi geography. Every publisher record must be unique and have a match.",
+  "inputs": ["identity-mappings"],
+  "outputs": ["canonical-geography-identities"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/identityCurations.ts",
+    "symbol": "identityCurationRule"
+  },
+  "review": {
+    "kind": "curation",
+    "guard": {
+      "id": "geography-identity-review",
+      "summary": "A source geography requires one reviewed canonical identity mapping.",
+      "consequence": "block-ingestion"
+    }
+  }
+}

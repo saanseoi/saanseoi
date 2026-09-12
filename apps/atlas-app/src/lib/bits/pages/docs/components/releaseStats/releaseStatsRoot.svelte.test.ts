@@ -38,7 +38,7 @@ test('exposes the churn explanation through an accessible tooltip trigger', asyn
     ],
   })
   await expect
-    .element(screen.getByRole('button', { name: 'Change summary' }))
+    .element(screen.getByRole('button', { name: 'Change Summary' }))
     .toBeVisible()
 })
 

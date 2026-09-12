@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "corrections": [
+    {
+      "id": "kwai-luen-luen-yan-csu-backfill",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2025-01-23.0",
+      "from": "3098724838T20110523",
+      "to": "3095624822T20110523",
+      "geoAddress": "3095624812T20110524",
+      "coordinates": [114.1253, 22.36244],
+      "enBuildingName": "LUEN YAN HOUSE",
+      "zhBuildingName": "聯欣樓",
+      "enEstateName": "KWAI LUEN ESTATE",
+      "zhEstateName": "葵聯邨",
+      "enStreetName": "KWAI LUEN ROAD",
+      "zhStreetName": "葵聯路",
+      "streetNumber": "80",
+      "blockNumber": "1",
+      "decision": "Backfill the February 2025 CSU correction while retaining the publisher CSU in raw source provenance. The bilingual building, block, address, GeoAddress and 769-unit inventory are unchanged.",
+      "authority": "User decision, 2026-09-07: Kwai Luen Estate — Luen Yan House — backfill the CSU."
+    }
+  ]
+}

@@ -1,5 +1,27 @@
 # Dataset pipeline
 
+## Snapshot assembly provenance
+
+Each ingestion records its effective source-selection recipe in `snapshotAssembly` and
+its dataset/role rules in `snapshotAssemblySources`. The recipe hash covers the resource
+type, recording version and sorted input rules; release IDs and cohort values belong to
+the run. Identical recipes can serve multiple snapshots. These records describe the
+selected inputs, rather than a catalogue of optional future inputs: `isRequired` means
+the input is needed to reproduce that effective selection.
+
+`snapshotAssemblyRuns` retains one evolving record per draft snapshot, including exact
+source releases, roles, selection rules, selection modes and source cohorts. Enrichment
+and lookup selection refresh the draft recipe and preserve specialised review and
+materialisation evidence. Places analysis can record a `planning` run before source
+selection; finalisation records `selected`. Missing source-selection rules fail
+ingestion. Published assembly records remain fixed, including when another release
+verifies an identical published geometry snapshot. That later association remains in
+`snapshotSources`.
+
+SQL delivery includes recipe and input rows before run rows, so a fresh target does not
+depend on pre-seeded assembly definitions. Assembly records describe sources producing
+one snapshot; API composition records describe snapshots belonging to a release set.
+
 This is the working guide for adding a source dataset to SaanSeoi. Follow the stages in
 order. A source is not complete merely because a local import works: its public
 metadata, repeatable intake, storage, release assembly and verification must agree.
@@ -28,7 +50,7 @@ path. It is not a generic importer.
 ## Statistics source/history replay
 
 Statistics datasets keep publisher delivery time separate from observation time. A
-remote processor applies raw assertions to the source shard selected by the release
+remote processor applies raw source records to the source shard selected by the release
 year, groups canonical records by `referencePeriodEndYear`, and replays each group to
 its history shard. Years before 2025 resolve to the `BEFORE` shard. The current shard
 holds the latest dataset-scoped measure and localised value dictionaries, and each
@@ -58,32 +80,47 @@ and publication progress.
 
 ## Local pipeline initialisation
 
-Initialise one API family and composition domain at a time. For a clean local Divisions
-and Statistics rebuild, use `./bin/saanseoi init:local`. It resets local databases, runs
-every Divisions initialiser followed by the official Statistics initialiser, and prints
-one final initialisation summary. Address initialisation is not yet part of this
-command.
+Initialise one API family and composition domain at a time. For a clean local Divisions,
+Addresses, Places and Statistics rebuild, use `./bin/saanseoi init:local`. It resets
+local databases, runs the initialisers in dependency order, and prints one final
+initialisation summary. Places run after the official Addresses initialiser because its
+address member is resolved from the latest compatible reference snapshot.
 
 ## Production pipeline initialisation
 
 For a clean production baseline, use `./bin/saanseoi init:production`. This
 destructively resets every production D1 database, reapplies its migrations and metadata
 registry, re-exports the production D1 cache, then runs the same Geographic Divisions,
-LandsD Divisions and official Statistics initialisers as `init:local`. Planning Unit,
-New Town and Addresses remain dedicated initialisers.
+LandsD Divisions, official Addresses, Overture Places and official Statistics
+initialisers as `init:local`.
 
 To reset local databases before a focused run, then use the command for the domain under
 review:
 
 ```sh
 bun run db:reset:local
-./bin/saanseoi init:divisions:geographic
-./bin/saanseoi init:divisions:hkgov-pland-pu
-./bin/saanseoi init:divisions:hkgov-pland-new-town
-./bin/saanseoi init:divisions:hkgov-landsd
-./bin/saanseoi init:streets:hkgov-landsd
-./bin/saanseoi init:addresses:official
+./bin/saanseoi init:divisions
+./bin/saanseoi init:streets
+./bin/saanseoi init:addresses
+./bin/saanseoi init:places
+./bin/saanseoi init:stats
 ```
+
+The focused LandsD Streets initialiser publishes the current gazetted register and its
+canonical street IDs. It does not enter historical Government Notice curation. The
+historical evidence stages remain explicit preparation for a later reviewed release
+revision:
+
+```sh
+bun run --silent dataops -- hkgov-landsd-streets:landsd-notices --target local
+bun run --silent dataops -- hkgov-landsd-streets:official-egazette --target local
+./bin/saanseoi update --target local \
+  --dataset ds-hk-hkgov-landsd-road-centreline --check-now --yes
+```
+
+The notice and e-Gazette stages may require reviewed lifecycle decisions before a
+revision can be assembled. Road Centreline is optional and matches source segments to
+the already-published LandsD street identities.
 
 The four focused division initialisers also accept a remote target. They process the
 same checked-in source cohorts in dependency order and publish to the selected Harbour
@@ -144,7 +181,7 @@ accept/reject/repair rules in the provider profile.
 
 Choose stable dataset, source and variant codes before processing data. `datasetCode`
 identifies the publisher product; `source` identifies the importer lineage; and
-`sourceVariant` identifies a provider assertion in an API composition. Do not merge
+`sourceVariant` identifies a provider source record in an API composition. Do not merge
 provider variants implicitly.
 
 Where an upstream identifier is not canonical, define a reviewed, versioned identifier
@@ -165,8 +202,8 @@ Create or update the applicable fixtures under `fixtures/meta/`:
   policy and release policy;
 - `releases/<dataset-code>/` for every published SaanSeoi release, including source
   version, release version, cohort, source schema version and localised release notes;
-- `identifierBridges/`, `curations/` and other source evidence fixtures when identity or
-  curated decisions require them;
+- `curations/identity/`, `curations/` and other source evidence fixtures when identity
+  or curated decisions require them;
 - `schemaVersions/`, `rulesetVersions/`, `apiCompositions/`, `apiFields/`,
   `apiEndpoints/` and `apiVersions/` when the source changes a public data or API
   contract.
@@ -178,18 +215,18 @@ fixture.
 
 ### Define audit processing rules
 
-Every source that normalises, maps, corrects or otherwise changes a publisher assertion
-must declare its audit rules before its processor is written.
+Every source that normalises, maps, corrects or otherwise changes a publisher source
+record must declare its audit rules before its processor is written.
 
 1. Add the complete rule definition to the applicable merge `rulesetVersions/` fixture.
    A rule has a stable `operationCode`, `type` and all three localised descriptions.
    `type: "bulk"` describes a deterministic operation applied to every matching row;
-   `type: "record"` describes an individual decision that is emitted as a
-   `releaseProcessingActions` row.
+   `type: "record"` describes an individual decision that is emitted as a logical
+   release audit decision.
 2. For a mapping, include the ordered `mappings` and any `condition`, source and target
-   field paths. If the mapping is maintained by a reviewed `identifierBridges` fixture,
-   reference the bridge join, authority, domain, cohort and output fields rather than
-   copying its mapping rows into the rule.
+   field paths. If the mapping is maintained by a reviewed `curations/identity/`
+   fixture, reference the curation lookup, authority, domain, cohort and output fields
+   rather than copying its mapping rows into the rule.
 3. In the dataset fixture, add `mergeRules` references to the ruleset version and the
    exact operation codes that apply to that dataset. A dataset only selects rules; it
    does not repeat their descriptions or mappings.
@@ -215,16 +252,16 @@ There are three distinct schema concerns:
 
 1. The publisher schema is documented in the provider profile and mapped by the
    source-intake adapter.
-2. The source-retention schema preserves the provider assertion and its provenance in
-   `libs/db/src/schema/source/`.
+2. The source-retention schema preserves the provider source record and its provenance
+   in `libs/db/src/schema/source/`.
 3. The canonical schema materialises the resource in `libs/db/src/schema/history/` and
    `libs/db/src/schema/current/`. Registry, release, snapshot and stats metadata lives
    in `libs/db/src/schema/meta/`.
 
 Reuse an existing canonical resource schema when the source is a variant of an existing
-resource. Add source-specific source tables for the original assertion, including the
-source record identifier, version hash, current/validity columns, source release and raw
-properties where needed. Add canonical current/history tables only when the logical
+resource. Add source-specific source tables for the original source record, including
+the source record identifier, version hash, current/validity columns, source release and
+raw properties where needed. Add canonical current/history tables only when the logical
 resource requires them. Export new tables from the corresponding schema `index.ts` and
 update the local processor, rollback support, cache profile and tests that depend on
 them.
@@ -284,7 +321,7 @@ to:
 ```sh
 saanseoi upload <file> --target local|preview|production \
   --source <source> --source-version <version> --cohort-key <cohort> \
-  --type <resource-type> --theme <theme> --release-notes-url <url>
+  --resource-type <resource-type> --theme <theme> --release-notes-url <url>
 ```
 
 `apps/harbour-cli/src/lib/commands/upload.ts` is the central dispatch point. A new
@@ -302,8 +339,11 @@ The retained publisher artefact is source evidence, not a processing intermediat
 `upload` retains a supplied ZIP archive or source Parquet as an immutable managed R2
 asset. A direct GML or GeoJSON input remains available to its local preparer, but its
 retained copy is losslessly wrapped in a ZIP; the asset manifest records the original
-filename, MIME type, byte length and SHA-256. Do not retain normalised rows, generated
-Parquet or generated SQL in R2.
+filename, MIME type, byte length and SHA-256. Generated Parquet, SQL and disposable
+normalisation intermediates remain local processing artefacts. Complete values selected
+as effects or evidence in a verified
+[processing provenance result](processing-provenance.md) are retained in R2 under the
+separate provenance namespace.
 
 ### Release presentation metadata
 
@@ -316,11 +356,12 @@ the registry and does not derive it from terminal output or release notes.
   quality, locale coverage, component completeness or geographic distribution. Use the
   release-level stats replacement helper so a re-run replaces the release's previous
   values atomically.
-- **Audit** reads detailed rows from `releaseProcessingActions`. Emit one row for each
-  auditable automated or manual processing decision, with an action name, mode, summary,
-  affected-record count and structured JSON evidence. The replacement helper also stores
-  aggregate processing metrics in `stats`; these support reporting, while the detailed
-  action rows and evidence support the Audit tab.
+- **Audit** reads action/mode summaries from `releaseProcessingActions` and paginated
+  evidence from `releaseProcessingActionChunks`. Emit one logical decision per auditable
+  automatic or manual operation, with its summary, affected-record count and structured
+  JSON evidence. The storage helper groups decisions, deduplicates summary text and
+  compresses independently readable chunks. It also stores aggregate processing metrics
+  in `stats`. Decision counts and affected-record counts remain separate.
 
 At source-release creation, the processor resolves the dataset's selected merge rules
 and freezes the complete ruleset revision, hash and definitions on the release. The
@@ -337,6 +378,21 @@ decisions should replace the release's action rows with an empty set, so a re-ru
 retain stale audit evidence. Action replacement is allowed only while the source release
 is staged or processing; published release actions and frozen rules are immutable. A
 reprocess or correction after publication must create a new source release.
+
+Audit chunks contain at most 256 decisions, 256 KiB of decoded JSON and 32 KiB of
+compressed bytes. A single oversized decision uses ordered, independently compressed
+byte fragments; UTF-8 decoding follows reassembly. Every fragment has a SHA-256
+checksum. Readers pin the summary generation and fetch only chunks overlapping the
+requested ordinal range. Complete reports iterate bounded pages.
+
+Replacement stages and verifies chunks before atomically replacing summaries and
+processing statistics. Identical content retains its generation without row writes.
+Published evidence is immutable. Inactive generations observed before replacement are
+collected in bounded batches; chunks are also removed by release purge and reset. SQL
+replay includes the chunk BLOBs as bounded hexadecimal literals before the summary
+commit. See
+[audit storage](../../libs/db/docs/schema/provenance-model.md#release-processing-actions)
+for the offline conversion workflow.
 
 The shared stages are `normalise`, `sql-source`, `sql-history`, `sql-current`, meta
 updates and publication. See [resource processing](resourceType/common.md) for the

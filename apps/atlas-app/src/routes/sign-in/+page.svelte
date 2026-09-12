@@ -8,7 +8,7 @@ import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import AuthGoogleOneTap from '#lib/bits/patterns/auth/authGoogleOneTap.svelte'
 import AuthSocialButtons from '#lib/bits/patterns/auth/authSocialButtons.svelte'
-import { getAuthRedirectPath } from '#lib/authRedirect.js'
+import { getAuthRedirectPath, getSignInHref, getSignUpHref } from '#lib/authRedirect.js'
 import { page } from '$app/state'
 
 let { data } = $props()
@@ -20,14 +20,35 @@ let pendingProvider = $state<SocialProvider | null>(null)
 let passkeyPending = $state(false)
 let showEmailForm = $state(false)
 const next = $derived(getAuthRedirectPath(page.url.searchParams.get('next'), page.url))
+const callbackError = $derived(
+  page.url.searchParams.has('error')
+    ? page.url.searchParams.has('verification')
+      ? m.auth_verification_error()
+      : m.auth_sign_in_error()
+    : null,
+)
 
 const signIn = async () => {
+  if (busy) return
   busy = true
   error = null
-  const result = await authClient.signIn.email({ email, password, callbackURL: next })
-  busy = false
-  if (result.error) error = result.error.message ?? m.auth_sign_in_error()
-  else window.location.assign(next)
+  try {
+    const result = await authClient.signIn.email({
+      email,
+      password,
+      callbackURL: `${getSignInHref(next)}&verification=1`,
+    })
+    if (result.error)
+      error =
+        result.error.code === 'EMAIL_NOT_VERIFIED'
+          ? m.auth_verify_email_message()
+          : (result.error.message ?? m.auth_sign_in_error())
+    else window.location.assign(next)
+  } catch {
+    error = m.auth_sign_in_error()
+  } finally {
+    busy = false
+  }
 }
 
 const socialSignIn = async (provider: SocialProvider) => {
@@ -36,7 +57,11 @@ const socialSignIn = async (provider: SocialProvider) => {
   error = null
   pendingProvider = provider
   try {
-    const result = await authClient.signIn.social({ provider, callbackURL: next })
+    const result = await authClient.signIn.social({
+      provider,
+      callbackURL: next,
+      errorCallbackURL: getSignInHref(next),
+    })
     if (!result.error) return
     error = result.error.message ?? m.auth_sign_in_error()
   } catch {
@@ -120,6 +145,7 @@ const passkeySignIn = async () => {
   </div>
   {#if showEmailForm}
     <form
+      aria-busy={busy}
       class="mt-7 space-y-4"
       onsubmit={event => { event.preventDefault(); signIn() }}
     >
@@ -127,6 +153,7 @@ const passkeySignIn = async () => {
         >{m.common_email()}
         <input
           bind:value={email}
+          autocomplete="email"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
           type="email"
@@ -135,6 +162,7 @@ const passkeySignIn = async () => {
         >{m.common_password()}
         <input
           bind:value={password}
+          autocomplete="current-password"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
           type="password"
@@ -142,22 +170,26 @@ const passkeySignIn = async () => {
       >
       <a
         class="block w-fit font-body text-body-sm text-secondary hover:underline"
-        href="/password/forgot"
+        href={`/password/forgot?next=${encodeURIComponent(next)}`}
         >{m.auth_forgot_password()}</a
       >
-      {#if error}
-        <p class="font-body text-body-sm text-destructive">{error}</p>
+      {#if error || callbackError}
+        <p class="font-body text-body-sm text-destructive" role="alert">
+          {error ?? callbackError}
+        </p>
       {/if}
       <Button disabled={busy} type="submit" variant="primary"
         >{busy ? m.auth_signing_in() : m.auth_sign_in_title()}</Button
       >
     </form>
-  {:else if error}
-    <p class="mt-4 font-body text-body-sm text-destructive">{error}</p>
+  {:else if error || callbackError}
+    <p class="mt-4 font-body text-body-sm text-destructive" role="alert">
+      {error ?? callbackError}
+    </p>
   {/if}
   <p class="mt-6 font-body text-body-md text-foreground-alt">
     {m.auth_new_to_saanseoi()}
-    <a class="text-secondary hover:underline" href="/sign-up"
+    <a class="text-secondary hover:underline" href={getSignUpHref(next)}
       >{m.auth_create_account()}</a
     >
   </p>

@@ -1,4 +1,6 @@
 <script lang="ts">
+import { untrack } from 'svelte'
+import ReleaseSamplesFieldLabel from './releaseSamplesFieldLabel.svelte'
 import {
   sampleValueTones,
   type GroupedSampleField,
@@ -13,6 +15,7 @@ type Props = {
 }
 
 let { depth = 0, field, sampleIds }: Props = $props()
+let expanded = $state(untrack(() => field.key !== 'geometry'))
 
 function getTone(sampleId: string) {
   const sampleIndex = sampleIds.indexOf(sampleId)
@@ -29,7 +32,11 @@ function getTone(sampleId: string) {
       class="min-w-0 font-mono text-label-md text-primary wrap-break-word"
       style:padding-left={`${depth * 1.25}rem`}
     >
-      {field.key}
+      <ReleaseSamplesFieldLabel
+        name={field.key}
+        hasChildren={field.children.length > 0}
+        bind:expanded
+      />
     </dt>
     <dd class="flex min-w-0 flex-wrap items-start gap-x-3 gap-y-3">
       {#each field.values as entry (entry.value)}
@@ -57,7 +64,7 @@ function getTone(sampleId: string) {
       {/each}
     </dd>
   </div>
-  {#if field.children.length}
+  {#if field.children.length && expanded}
     <dl class="bg-surface-container-low/60">
       {#each field.children as child (child.key)}
         <ReleaseSamplesGroupedField field={child} depth={depth + 1} {sampleIds} />

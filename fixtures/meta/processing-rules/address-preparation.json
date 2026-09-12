@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "prepare-als-addresses",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Read published English and Chinese addresses; resolve duplicate records and reviewed exceptions; locate each address within its district; and link floor and unit lists to it.",
+  "inputs": ["publisher-occurrences", "als-curations"],
+  "outputs": ["prepared-addresses"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts",
+    "symbol": "alsPreparationRule"
+  }
+}

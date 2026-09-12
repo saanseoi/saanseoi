@@ -1,0 +1,16 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise-division-boundary-geometry",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Keep each division’s published boundary and publisher record ID. Leave out parts outside Hong Kong while retaining reference boundaries.",
+  "inputs": ["source-geometry"],
+  "outputs": ["divisionBoundaries"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
+    "symbol": "divisionBoundaryGeometryRule"
+  },
+  "dependencyIds": ["exclude-division-geometry"]
+}

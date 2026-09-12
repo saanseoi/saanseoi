@@ -1,11 +1,29 @@
+import { pinLocalR2Mode } from '../storage/localR2Mode.ts'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { styleText } from 'node:util'
 
-import { note } from '@clack/prompts'
+import { note, outro } from '@clack/prompts'
+import { and, eq, inArray, metaSchema, type MetaDatabase } from '@repo/db'
+import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
+import { formatField, formatMutedValue } from '../cli/display.ts'
+import { formatUpdateGridRow } from './updateFormatting.ts'
+import { datasetName, loadDatasetFixtures } from '../sources/sourceUpdates.ts'
+import { withLocalMetaDb, withRemoteCachedMetaDb } from '../dbCache/localDbCache.ts'
 
 import { registerInterruptCleanup } from '../cli/interrupt.ts'
-import type { ParsedArgs } from '../cli/options.ts'
+import { resolveInitialisationCommand } from '../cli/initialisationCommands.ts'
+import {
+  finishInitialisationGuide,
+  initialisationIndent,
+} from '../cli/initialisationIndent.ts'
+import {
+  resolveUploadTarget,
+  resolveR2Target,
+  type ParsedArgs,
+  type UploadTarget,
+} from '../cli/options.ts'
 import {
   parseInitialisationSummaryEvents,
   recordInitialisationSummaryEvent,
@@ -14,63 +32,53 @@ import {
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../')
 
-const initialisationCommands = {
-  init: {
-    script: 'scripts/init/all.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:local': {
-    script: 'scripts/init/local.fish',
-    supportsContinue: false,
-    supportsTarget: false,
-  },
-  'init:production': {
-    script: 'scripts/init/production.fish',
-    supportsContinue: false,
-    supportsTarget: false,
-  },
-  'init:addresses:official': {
-    script: 'scripts/init/addresses-hkgov-dpo.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:stats:official': {
-    script: 'scripts/init/stats-hkgov-censtatd.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions:hkgov-pland-new-town': {
-    script: 'scripts/init/divisions-hkgov-pland-new-town.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions:hkgov-pland-pu': {
-    script: 'scripts/init/divisions-hkgov-pland-pu.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions:hkgov-landsd': {
-    script: 'scripts/init/divisions-hkgov-landsd.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:divisions:geographic': {
-    script: 'scripts/init/divisions-overture.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-  'init:streets:hkgov-landsd': {
-    script: 'scripts/init/streets-hkgov-landsd.fish',
-    supportsContinue: true,
-    supportsTarget: true,
-  },
-} as const
+export { resolveInitialisationCommand } from '../cli/initialisationCommands.ts'
+export type { InitialisationCommand } from '../cli/initialisationCommands.ts'
 
-export type InitialisationCommand = keyof typeof initialisationCommands
+/** Render skipped initialisation datasets through the standard source grid. */
+export async function formatInitialisationSkippedDatasets(
+  target: UploadTarget,
+  input: { datasetCodes: readonly string[]; releaseCodes: readonly string[] },
+) {
+  const datasetCodes = new Set(input.datasetCodes)
+  if (input.releaseCodes.length > 0) {
+    const readDatasetCodes = async (metaDb: MetaDatabase) => {
+      for (const codes of chunkArray(
+        [...new Set(input.releaseCodes)],
+        getMaxItemsPerInClause(1, 1),
+      )) {
+        const rows = await metaDb
+          .select({ datasetCode: metaSchema.metaDatasets.code })
+          .from(metaSchema.metaReleases)
+          .innerJoin(
+            metaSchema.metaDatasets,
+            eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+          )
+          .where(
+            and(
+              inArray(metaSchema.metaReleases.code, codes),
+              inArray(metaSchema.metaReleases.status, ['published', 'superseded']),
+            ),
+          )
+          .all()
+        for (const row of rows) datasetCodes.add(row.datasetCode)
+      }
+    }
+    if (target.remote) await withRemoteCachedMetaDb(target, readDatasetCodes)
+    else await withLocalMetaDb(readDatasetCodes)
+  }
 
-export function resolveInitialisationCommand(command: string) {
-  return initialisationCommands[command as InitialisationCommand]
+  const datasets = await loadDatasetFixtures(datasetCodes)
+  return datasets.map(dataset => {
+    const sourceVariant = `${dataset.publisherCode}-${datasetName(dataset)
+      .toLowerCase()
+      .replaceAll(/[^a-z0-9]+/g, '-')
+      .replaceAll(/^-|-$/g, '')}`
+    return `\u001b[36m◆\u001b[39m  ${formatUpdateGridRow(
+      { ...dataset, sourceVariant },
+      'SKIPPED: no updates',
+    )}`
+  })
 }
 
 type InitialisationSubprocess = {
@@ -112,21 +120,35 @@ export async function runInitialisationCommand(
   const command = args.command ? resolveInitialisationCommand(args.command) : undefined
   const supportsContinue = command?.supportsContinue ?? false
   const supportsTarget = command?.supportsTarget ?? false
-  const cacheArtefacts = args.options['cache-artefacts'] === true
+  const cacheArtefacts = args.options['no-cache-artefacts'] !== true
   const invalidOptions = Object.keys(args.options).filter(
     key =>
       !(key === 'continue' && supportsContinue) &&
       !(key === 'target' && supportsTarget) &&
-      key !== 'cache-artefacts',
+      key !== 'skip-curation-checks' &&
+      key !== 'no-cache-artefacts' &&
+      key !== 'r2',
   )
   const target = args.options.target
+
+  if (
+    args.command === 'init:minimal' &&
+    (target === undefined || args.options['skip-curation-checks'] !== undefined)
+  ) {
+    throw new Error(
+      '`init:minimal` requires an explicit --target and retains curation checks.',
+    )
+  }
 
   if (
     !command ||
     args.positionals.length > 0 ||
     invalidOptions.length > 0 ||
+    (args.options['skip-curation-checks'] !== undefined &&
+      args.options['skip-curation-checks'] !== true) ||
     (args.options.continue !== undefined && args.options.continue !== true) ||
-    (args.options['cache-artefacts'] !== undefined && !cacheArtefacts) ||
+    (args.options['no-cache-artefacts'] !== undefined &&
+      args.options['no-cache-artefacts'] !== true) ||
     (target !== undefined &&
       (typeof target !== 'string' ||
         !['local', 'preview', 'production'].includes(target)))
@@ -135,7 +157,8 @@ export async function runInitialisationCommand(
     const acceptedOptions = [
       ...(supportsTarget ? ['`--target local|preview|production`'] : []),
       ...(supportsContinue ? ['`--continue`'] : []),
-      '`--cache-artefacts`',
+      '`--no-cache-artefacts`',
+      '`--skip-curation-checks`',
     ]
     const suffix =
       acceptedOptions.length > 0
@@ -144,26 +167,71 @@ export async function runInitialisationCommand(
     throw new Error(`\`${args.command}\`${suffix}`)
   }
 
+  const targetLabel =
+    args.command === 'init:production'
+      ? 'production'
+      : typeof target === 'string'
+        ? target
+        : 'local'
+  const storageTarget = resolveR2Target(
+    resolveUploadTarget({ ...args, options: { ...args.options, target: targetLabel } }),
+  )
+  if (targetLabel === 'local') await pinLocalR2Mode(storageTarget)
+  note(
+    [
+      formatField('command', args.command ?? 'init'),
+      formatField('target', targetLabel),
+      formatField('R2', storageTarget),
+      formatField('artefact cache', cacheArtefacts ? 'retain' : 'discard after upload'),
+    ].join('\n'),
+    'INITIALISATION',
+  )
+  process.stdout.write(
+    initialisationIndent(
+      args.command ?? undefined,
+      process.env.SAANSEOI_INIT_GUIDES,
+    ) === 0
+      ? `${formatMutedValue('│')}\n`
+      : '\n',
+  )
+
   let summaryDirectory: string | undefined
   let summaryPath = process.env.SAANSEOI_INIT_SUMMARY_PATH
   if (!summaryPath) {
     summaryDirectory = await mkdtemp(join(tmpdir(), 'saanseoi-init-'))
     summaryPath = join(summaryDirectory, 'summary.jsonl')
   }
+  const eventsBefore = await readInitialisationSummaryEvents(summaryPath)
   const child = Bun.spawn({
     cmd: [
       'fish',
+      '--no-config',
       resolve(REPO_ROOT, command.script),
       ...(typeof target === 'string' ? ['--target', target] : []),
       ...(args.options.continue ? ['--continue'] : []),
-      ...(cacheArtefacts ? ['--cache-artefacts'] : []),
+      ...(args.options['skip-curation-checks'] ? ['--skip-curation-checks'] : []),
+      ...(!cacheArtefacts ? ['--no-cache-artefacts'] : []),
     ],
     cwd: REPO_ROOT,
     detached: true,
     env: {
       ...process.env,
+      SAANSEOI_R2_TARGET: storageTarget,
       SAANSEOI_CACHE_ARTEFACTS: cacheArtefacts ? '1' : '0',
       SAANSEOI_INIT_COMMAND: args.command ?? '',
+      SAANSEOI_INIT_RELEASE_COLUMN_WIDTH:
+        process.env.SAANSEOI_INIT_RELEASE_COLUMN_WIDTH ?? '100',
+      SAANSEOI_INIT_GUIDES: [
+        process.env.SAANSEOI_INIT_GUIDES,
+        String(
+          initialisationIndent(
+            args.command ?? undefined,
+            process.env.SAANSEOI_INIT_GUIDES,
+          ),
+        ),
+      ]
+        .filter(value => value !== undefined && value !== '')
+        .join(','),
       SAANSEOI_INIT_SUMMARY_PATH: summaryPath,
     },
     stdin: 'inherit',
@@ -179,7 +247,10 @@ export async function runInitialisationCommand(
   } finally {
     disposeChildInterrupt()
   }
-  if (exitCode !== 0) {
+  const childEvents = (await readInitialisationSummaryEvents(summaryPath)).slice(
+    eventsBefore.length,
+  )
+  if (exitCode !== 0 && !childEvents.some(event => event.type === 'error')) {
     await recordInitialisationSummaryEvent(
       {
         command: args.command ?? null,
@@ -206,6 +277,11 @@ export async function runInitialisationCommand(
   if (exitCode !== 0) {
     throw new Error(`Initialisation failed with exit code ${exitCode}.`)
   }
+
+  outro(
+    `${args.command} ${styleText('blue', 'complete')} ${formatMutedValue(`@ ${targetLabel}`)}`,
+  )
+  finishInitialisationGuide()
 }
 
 async function readInitialisationSummaryEvents(path: string) {

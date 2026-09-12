@@ -1,10 +1,10 @@
 import { describe, expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
+import { drizzle } from 'drizzle-orm/bun-sqlite'
 
-import {
-  getStatisticDetail,
-  getStatisticsGeographies,
-  listStatistics,
-} from './statistics'
+import { getStatisticDetail, listStatistics } from './statistics'
+import { getStatisticsGeographies } from './statisticsAggregates'
+import { statisticGeometryDependencies } from './statisticsGeometry'
 
 const statistic = {
   id: 'statistic-population-2021',
@@ -28,10 +28,17 @@ const statistic = {
       cohortKey: '2021',
     },
   },
-  dimensions: { sex: 'all' },
   values: {
     totalPopulation: '235953',
   },
+  fieldSources: {
+    totalPopulation: {
+      sourceReleaseId: 'release-statistics-2021',
+      sourceFeatureRef: 'population/2021/district/11',
+    },
+  },
+  fieldDefinitionHashes: { totalPopulation: 'population-field-version' },
+  versionHash: 'population-pack-version',
   createdAt: '2026-08-20T00:00:00.000Z',
   updatedAt: '2026-08-20T00:00:00.000Z',
 } as const
@@ -44,7 +51,6 @@ const majorHousingEstateStatistic = {
     'hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-major-housing-estates/2021/HousingEstate:1',
   divisionId: null,
   geography: { kind: 'housing-estate', code: 'estate-1' },
-  dimensions: { 'housing-estate': 'estate-1', sex: 'all' },
 } as const
 
 const newTownStatistic = {
@@ -63,7 +69,6 @@ const newTownStatistic = {
       cohortKey: '2021',
     },
   },
-  dimensions: { 'new-town': 'NT-1', sex: 'all' },
 } as const
 
 function releaseSelection(type: string, domainCode = 'geographic') {
@@ -74,7 +79,7 @@ function releaseSelection(type: string, domainCode = 'geographic') {
         apiCatalogRevision: 'catalog-hk-stats-v0.1-2026-08-20-r0',
         catalogPublishedAt: '2026-08-20T00:00:00.000Z',
         cohortKey: '2021',
-        domainCode: 'official',
+        domainCode: 'government',
         effectiveFrom: '2026-08-20T00:00:00.000Z',
         schemaVersion: 'sv-statistics-v1',
         rulesetVersion: 'rs-division-statistic-merge-v1',
@@ -128,6 +133,10 @@ function releaseSelection(type: string, domainCode = 'geographic') {
 
 function dependencies() {
   return {
+    isStatisticPublicationReady: async () => true,
+    resolveSnapshotReplayPlan: async (_db: unknown, snapshotId: string) => [
+      { snapshotId, parentSnapshotId: null, shards: [] },
+    ],
     resolveApiReleaseSetSnapshotsForRequest: async (
       _db: unknown,
       type: string,
@@ -162,6 +171,7 @@ function dependencies() {
       {
         datasetCode: statistic.datasetCode,
         fieldName: 'totalPopulation',
+        versionHash: 'population-field-version',
         measureCode: 'totalPopulation',
         sourceField: 'T_POP',
         dimensions: { sex: 'all' },
@@ -197,7 +207,6 @@ function dependencies() {
           type: 'district',
           geometry: null,
           bbox: null,
-          sourceKeys: null,
           wikidata: null,
           hierarchy: [],
           cartography: null,
@@ -208,6 +217,7 @@ function dependencies() {
         i18n: { en: { name: 'Central and Western District' } },
       },
     ],
+    getPublicationReadiness: async () => 'ready',
     listDivisionAreasCurrentByDivisionIds: async () => [
       {
         id: 'area-central-western-2021',
@@ -215,7 +225,6 @@ function dependencies() {
         divisionId: statistic.divisionId,
         bbox: [114.12, 22.26, 114.17, 22.3],
         geometry: { type: 'Polygon', coordinates: [] },
-        sourceKeys: null,
         sources: null,
         type: 'district',
         isLand: true,
@@ -225,11 +234,181 @@ function dependencies() {
   }
 }
 
+function geometryReplayFixture() {
+  const current = new Database(':memory:')
+  const history = new Database(':memory:')
+  const snapshotId = 'snapshot-areas-censtatd-2021'
+  const geometry = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [114.12, 22.26],
+        [114.17, 22.26],
+        [114.12, 22.26],
+      ],
+    ],
+  }
+  for (const sqlite of [current, history]) {
+    sqlite.exec(`CREATE TABLE divisionAreas (
+      snapshotId TEXT, id TEXT, variant TEXT, divisionId TEXT, bbox TEXT,
+      geometry TEXT, identifiers TEXT, sources TEXT, type TEXT,
+      isLand INTEGER, isTerritorial INTEGER, versionHash TEXT
+    )`)
+    sqlite
+      .query(
+        'INSERT INTO divisionAreas VALUES (?, ?, ?, ?, ?, ?, NULL, NULL, ?, 1, 0, ?)',
+      )
+      .run(
+        sqlite === current ? `scope:${snapshotId}` : 'mutable-later-snapshot',
+        'area-historical',
+        'hkgov-censtatd',
+        statistic.divisionId,
+        JSON.stringify([114.12, 22.26, 114.17, 22.3]),
+        JSON.stringify(geometry),
+        'district',
+        'historical-geometry-hash',
+      )
+  }
+  history.exec(`CREATE TABLE snapshotVersionChanges (
+    snapshotId TEXT, recordType TEXT, recordId TEXT, locale TEXT,
+    versionHash TEXT, operation TEXT, sourceReleaseId TEXT
+  )`)
+  history
+    .query('INSERT INTO snapshotVersionChanges VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .run(
+      snapshotId,
+      'divisionArea',
+      'area-historical',
+      '',
+      'historical-geometry-hash',
+      'upsert',
+      'source-2021',
+    )
+  current.exec(
+    `CREATE TABLE divisionAreaPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT)`,
+  )
+  current
+    .query('INSERT INTO divisionAreaPublicationState VALUES (?, ?, ?, ?, ?, ?)')
+    .run(
+      `scope:${snapshotId}`,
+      snapshotId,
+      'current',
+      'token',
+      '2026-01-01',
+      '2026-01-01',
+    )
+  const currentDb = drizzle({ client: current })
+  const historyDb = drizzle({ client: history })
+  const mocks = {
+    ...dependencies(),
+    ...statisticGeometryDependencies,
+    resolveSnapshotReplayPlan: async (_db: unknown, selectedId: string) => [
+      {
+        snapshotId: selectedId,
+        parentSnapshotId: null,
+        shards:
+          selectedId === snapshotId
+            ? [{ dataShardId: 'history-before', bindingName: 'DB_HISTORY_HK_BEFORE' }]
+            : [],
+      },
+    ],
+  }
+  return {
+    current,
+    history,
+    geometry,
+    mocks,
+    args: {
+      currentDb: currentDb as never,
+      historyDbs: [historyDb] as never,
+      historyDbsByBinding: { DB_HISTORY_HK_BEFORE: historyDb } as never,
+      metaDb: {} as never,
+      requestUrl: 'https://api.saanseoi.hk/stats/v0.1?cohort=2021&include=areas',
+      requestedVersionPath: 'stats/v0.1' as const,
+      requestedApiVersion: '0.1' as const,
+      resolvedApiVersion: 'api-stats-v0.1' as const,
+      query: { cohort: '2021', include: 'areas' },
+      dependencies: mocks as never,
+    },
+  }
+}
+
 describe('Statistics service', () => {
+  test('preserves old-cohort areas on list and detail reads after deleting their current materialisation', async () => {
+    const fixture = geometryReplayFixture()
+    try {
+      const before = await listStatistics(fixture.args)
+      fixture.current.exec(
+        'DELETE FROM divisionAreas; DELETE FROM divisionAreaPublicationState',
+      )
+      const after = await listStatistics(fixture.args)
+      const detail = await getStatisticDetail({ ...fixture.args, id: statistic.id })
+      expect(before.status).toBe(200)
+      expect(after.status).toBe(200)
+      expect(detail.status).toBe(200)
+      if (before.status !== 200 || after.status !== 200 || detail.status !== 200)
+        throw new Error('Expected historical Statistics responses.')
+      expect(after.body.included).toEqual(before.body.included)
+      expect(detail.body.included).toEqual(before.body.included)
+      expect(after.body.included).toMatchObject([
+        {
+          type: 'division-areas',
+          id: 'area-historical',
+          attributes: { geometry: fixture.geometry },
+        },
+      ])
+    } finally {
+      fixture.current.close()
+      fixture.history.close()
+    }
+  })
+
+  test('keeps sparse current geometry empty when requested divisions are absent', async () => {
+    const fixture = geometryReplayFixture()
+    fixture.current.exec("UPDATE divisionAreas SET divisionId = 'another-division'")
+    fixture.mocks.resolveSnapshotReplayPlan = async (_db, snapshotId) => {
+      if (snapshotId === 'snapshot-areas-censtatd-2021')
+        throw new Error('A materialised sparse snapshot must not replay geometry.')
+      return [{ snapshotId, parentSnapshotId: null, shards: [] }]
+    }
+    try {
+      const result = await listStatistics(fixture.args)
+      expect(result.status).toBe(200)
+      if (result.status !== 200) throw new Error('Expected sparse Statistics response.')
+      expect(result.body.included ?? []).toEqual([])
+    } finally {
+      fixture.current.close()
+      fixture.history.close()
+    }
+  })
+
+  test('does not return missing or mixed data when publication starts during a read', async () => {
+    const mocks = dependencies()
+    let checks = 0
+    mocks.isStatisticPublicationReady = async () => ++checks === 1
+    mocks.getStatisticRecord = async () => null as never
+    const result = await getStatisticDetail({
+      currentDb: {} as never,
+      historyDbs: [],
+      historyDbsByBinding: {} as never,
+      metaDb: {} as never,
+      requestUrl: 'https://api.saanseoi.hk/stats/v0.1/missing',
+      requestedVersionPath: 'stats/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-stats-v0.1',
+      id: 'missing',
+      query: {},
+      dependencies: mocks as never,
+    })
+    expect(result.status).toBe(503)
+    expect(checks).toBe(2)
+  })
+
   test('returns statistical values and separately requested division and area resources', async () => {
     const result = await listStatistics({
       currentDb: {} as never,
       historyDbs: [],
+      historyDbsByBinding: {} as never,
       metaDb: {} as never,
       requestUrl:
         'https://api.saanseoi.hk/stats/v0.1?include=divisions,areas&page[limit]=10',
@@ -335,7 +514,6 @@ describe('Statistics service', () => {
           divisionId: densityStatistic.divisionId,
           bbox: [114.12, 22.26, 114.17, 22.3],
           geometry: { type: 'Polygon', coordinates: [] },
-          sourceKeys: null,
           sources: null,
           type: 'district',
           isLand: true,
@@ -347,6 +525,7 @@ describe('Statistics service', () => {
     const result = await listStatistics({
       currentDb: {} as never,
       historyDbs: [],
+      historyDbsByBinding: {} as never,
       metaDb: {} as never,
       requestUrl: 'https://api.saanseoi.hk/stats/v0.1?include=areas',
       requestedVersionPath: 'stats/v0.1',
@@ -368,6 +547,7 @@ describe('Statistics service', () => {
     const result = await listStatistics({
       currentDb: {} as never,
       historyDbs: [],
+      historyDbsByBinding: {} as never,
       metaDb: {} as never,
       requestUrl:
         'https://api.saanseoi.hk/stats/v0.1?include=areas:hkgov-censtatd-landclipped',
@@ -392,54 +572,147 @@ describe('Statistics service', () => {
     })
   })
 
-  test('includes only field definitions used by the returned packed records', async () => {
-    const result = await listStatistics({
-      currentDb: {} as never,
-      historyDbs: [],
-      metaDb: {} as never,
-      requestUrl: 'https://api.saanseoi.hk/stats/v0.1?include=fields',
-      requestedVersionPath: 'stats/v0.1',
-      requestedApiVersion: '0.1',
-      resolvedApiVersion: 'api-stats-v0.1',
-      query: { include: 'fields', locales: 'en,zh-hant' },
-      dependencies: dependencies() as never,
-    })
+  test.each([undefined, 'fields'])(
+    'includes dimensions through used field definitions with include=%s',
+    async include => {
+      const result = await listStatistics({
+        currentDb: {} as never,
+        historyDbs: [],
+        historyDbsByBinding: {} as never,
+        metaDb: {} as never,
+        requestUrl: `https://api.saanseoi.hk/stats/v0.1${include ? `?include=${include}` : ''}`,
+        requestedVersionPath: 'stats/v0.1',
+        requestedApiVersion: '0.1',
+        resolvedApiVersion: 'api-stats-v0.1',
+        query: { include, locales: 'en,zh-hant' },
+        dependencies: dependencies() as never,
+      })
 
-    expect(result.status).toBe(200)
-    if (result.status !== 200) return
-    expect(result.body.included).toEqual([
-      {
-        type: 'statistic-fields',
-        id: `${statistic.datasetCode}:totalPopulation`,
-        attributes: {
-          datasetCode: statistic.datasetCode,
-          fieldName: 'totalPopulation',
-          measureCode: 'totalPopulation',
-          sourceField: 'T_POP',
-          dimensions: { sex: 'all' },
-          sourceNullOption: null,
-          statisticKind: 'count',
-          aggregation: 'total',
-          aggregationPercentile: null,
-          periodicity: null,
-          comparability: {
-            affectedReferencePeriods: ['2011', '2016'],
-            reason: 'economic-activity-status-classification-changed',
-            status: 'caution',
-          },
-          denominatorFieldName: null,
-          valueKind: 'numeric',
-          unitCode: 'person',
-          i18n: {
-            en: {
-              name: 'Total population',
-              description: null,
-              isTranslationVerified: true,
+      expect(result.status).toBe(200)
+      if (result.status !== 200) return
+      expect(
+        new URL(result.body.links.permalink ?? '').searchParams.get('include'),
+      ).toBe('fields')
+      expect(result.body.included).toEqual([
+        {
+          type: 'statistic-fields',
+          id: `${statistic.datasetCode}:totalPopulation:population-field-version`,
+          attributes: {
+            datasetCode: statistic.datasetCode,
+            fieldName: 'totalPopulation',
+            versionHash: 'population-field-version',
+            measureCode: 'totalPopulation',
+            sourceField: 'T_POP',
+            dimensions: { sex: 'all' },
+            sourceNullOption: null,
+            statisticKind: 'count',
+            aggregation: 'total',
+            aggregationPercentile: null,
+            periodicity: null,
+            comparability: {
+              affectedReferencePeriods: ['2011', '2016'],
+              reason: 'economic-activity-status-classification-changed',
+              status: 'caution',
+            },
+            denominatorFieldName: null,
+            valueKind: 'numeric',
+            unitCode: 'person',
+            i18n: {
+              en: {
+                name: 'Total population',
+                description: null,
+                isTranslationVerified: true,
+              },
             },
           },
         },
+      ])
+    },
+  )
+
+  test.each([
+    [undefined, ['statistic-fields']],
+    ['none', []],
+    ['divisions', ['divisions']],
+    ['fields,divisions', ['divisions', 'statistic-fields']],
+  ] as const)(
+    'detail resolves include=%s and pins it in its permalink',
+    async (include, types) => {
+      const result = await getStatisticDetail({
+        currentDb: {} as never,
+        historyDbs: [],
+        historyDbsByBinding: {} as never,
+        metaDb: {} as never,
+        requestUrl: `https://api.saanseoi.hk/stats/v0.1/${statistic.id}${include ? `?include=${include}` : ''}`,
+        requestedVersionPath: 'stats/v0.1',
+        requestedApiVersion: '0.1',
+        resolvedApiVersion: 'api-stats-v0.1',
+        id: statistic.id,
+        query: { include },
+        dependencies: dependencies() as never,
+      })
+      expect(result.status).toBe(200)
+      if (result.status !== 200) return
+      expect(result.body.included?.map(resource => resource.type) ?? []).toEqual([
+        ...types,
+      ])
+      expect(
+        new URL(result.body.links.permalink ?? '').searchParams.get('include'),
+      ).toBe((include ?? 'fields').split(',').sort().join(','))
+    },
+  )
+
+  test('shares each exact field definition once across packs while retaining different versions', async () => {
+    const mocks = dependencies()
+    const [original] = await mocks.listStatisticFieldDefinitions()
+    if (!original) throw new Error('Expected the field definition fixture.')
+    const revised = {
+      ...original,
+      versionHash: 'population-field-version-2',
+      dimensions: { sex: 'all', residency: 'usual' },
+    }
+    const revisedRecord = {
+      ...statistic,
+      id: 'another-geography',
+      fieldDefinitionHashes: { totalPopulation: revised.versionHash },
+    }
+    mocks.listStatisticRecords = async () => [
+      statistic,
+      revisedRecord as never,
+      { ...revisedRecord, id: 'third-geography' } as never,
+    ]
+    mocks.countStatisticRecords = async () => 3
+    mocks.listStatisticFieldDefinitions = async () => [
+      revised,
+      original,
+      revised,
+      { ...original, fieldName: 'unusedField' },
+    ]
+    const result = await listStatistics({
+      currentDb: {} as never,
+      historyDbs: [],
+      historyDbsByBinding: {} as never,
+      metaDb: {} as never,
+      requestUrl: 'https://api.saanseoi.hk/stats/v0.1',
+      requestedVersionPath: 'stats/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-stats-v0.1',
+      query: {},
+      dependencies: mocks as never,
+    })
+    expect(result.status).toBe(200)
+    if (result.status !== 200) return
+    expect(result.body.included).toMatchObject([
+      {
+        id: `${statistic.datasetCode}:totalPopulation:population-field-version`,
+        attributes: { dimensions: { sex: 'all' } },
+      },
+      {
+        id: `${statistic.datasetCode}:totalPopulation:population-field-version-2`,
+        attributes: { dimensions: { sex: 'all', residency: 'usual' } },
       },
     ])
+    expect(result.body.included).toHaveLength(2)
   })
 
   test('resolves New Town statistics through the Planning Department domain', async () => {
@@ -466,6 +739,7 @@ describe('Statistics service', () => {
     const result = await listStatistics({
       currentDb: {} as never,
       historyDbs: [],
+      historyDbsByBinding: {} as never,
       metaDb: {} as never,
       requestUrl:
         'https://api.saanseoi.hk/stats/v0.1?include=divisions,areas&page[limit]=10',
@@ -497,6 +771,7 @@ describe('Statistics service', () => {
     const result = await getStatisticDetail({
       currentDb: {} as never,
       historyDbs: [],
+      historyDbsByBinding: {} as never,
       metaDb: {} as never,
       requestUrl: 'https://api.saanseoi.hk/stats/v0.1/missing',
       requestedVersionPath: 'stats/v0.1',
@@ -540,6 +815,7 @@ describe('Statistics service', () => {
     const result = await listStatistics({
       currentDb: {} as never,
       historyDbs: [],
+      historyDbsByBinding: {} as never,
       metaDb: {} as never,
       requestUrl: 'https://api.saanseoi.hk/stats/v0.1?filter[referencePeriod]=2020',
       requestedVersionPath: 'stats/v0.1',
@@ -558,6 +834,15 @@ describe('Statistics service', () => {
     const mocks = dependencies()
     mocks.listStatisticRecordsForGeography = async () =>
       [statistic, majorHousingEstateStatistic] as never
+    const fieldDefinitions = await mocks.listStatisticFieldDefinitions()
+    mocks.listStatisticFieldDefinitions = async () =>
+      [
+        ...fieldDefinitions,
+        ...fieldDefinitions.map(field => ({
+          ...field,
+          datasetCode: majorHousingEstateStatistic.datasetCode,
+        })),
+      ] as never
 
     const ambiguous = await getStatisticsGeographies({
       currentDb: {} as never,

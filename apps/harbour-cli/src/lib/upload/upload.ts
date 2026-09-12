@@ -1,3 +1,4 @@
+import { dirname, resolve } from 'node:path'
 import type { ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
@@ -10,7 +11,20 @@ import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import { getAuthHeaders, resolveHarbourApiUrl } from '../api/api.ts'
 import { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
+import { resolveCurrentWriteContext } from '../dbCache/currentWriteContext.ts'
+import {
+  mapLocalTargetPaths,
+  resolveD1Targets,
+  resolveSharedRemoteDbCacheDir,
+} from '../dbCache/localDbCacheTargets.ts'
 import type { CliUploadOptions, UploadTarget } from '../cli/options.ts'
+import { resolveUploadCacheProfile } from '../pipeline/apiFamilyLifecycle.ts'
+import {
+  findPendingSqlDeliveryReleaseId,
+  readPendingSqlDelivery,
+} from '../pipeline/local/sqlDeliveryPending.ts'
+import { runSqlDeliveryCommand } from '../commands/sqlDelivery.ts'
+import { readDeliveryPlan } from '../pipeline/local/sqlDeliveryFiles.ts'
 
 type UploadPreviewResult = Awaited<ReturnType<typeof prepareUpload>>
 
@@ -37,7 +51,7 @@ export type ReconcileDraftReleaseSetsResponse = {
   publishedReleaseSetStatsTargets: Array<{
     apiReleaseSetId: string
     cohortKey: string
-    family: 'address' | 'division'
+    family: 'address' | 'division' | 'place' | 'statistics'
     releaseCode: string
     releaseId: string
     snapshotId: string
@@ -58,7 +72,17 @@ type DispatchUploadOptions = {
   resumeStagedRelease?: boolean
   /** Add another resource to the source release created by this intake. */
   reuseExistingRelease?: boolean
+  /** Allow an explicitly identified independent historical cohort. */
+  allowHistoricalCohort?: boolean
   resolveLocalDbContext?: typeof resolveLocalAddressDbContext
+  resolvePendingReleaseId?: typeof findPendingSqlDeliveryReleaseId
+  resolveWriteContext?: typeof resolveCurrentWriteContext
+}
+
+type UploadSqlRecoveryDependencies = {
+  resolveCacheDir: (target: UploadTarget) => Promise<string>
+  readPendingSqlDelivery: typeof readPendingSqlDelivery
+  runSqlDeliveryCommand: typeof runSqlDeliveryCommand
 }
 
 type ScheduleSnapshotCleanupOptions = {
@@ -104,6 +128,71 @@ export function buildBootstrapStatsReleaseSetsEndpoint(apiBaseUrl: string) {
 }
 
 /**
+ * Reconcile a retained delivery before the upload opens the planning mirror.
+ * The pending marker owns the cache for its release, so every retained plan is
+ * replayed through the normal checksum and receipt checks before a new release
+ * is allowed to continue.
+ */
+export async function resumePendingSqlDeliveryForUpload(
+  target: UploadTarget,
+  invocationCwd: string,
+  dependencies: Partial<UploadSqlRecoveryDependencies> = {},
+) {
+  const cacheDir = await (dependencies.resolveCacheDir ?? resolveUploadSqlCacheDir)(
+    target,
+  )
+  const pending = await (dependencies.readPendingSqlDelivery ?? readPendingSqlDelivery)(
+    cacheDir,
+  )
+  if (!pending) return false
+
+  const environment = !target.remote
+    ? 'local'
+    : target.environment === 'production'
+      ? 'production'
+      : 'preview'
+  // Check every retained phase before replaying any of them. A missing later
+  // phase must not leave recovery partially applied or discard cache ownership.
+  for (const directory of pending.directories) {
+    const plan = await readDeliveryPlan(directory)
+    if (!plan) {
+      throw new Error(
+        `SQL delivery for ${pending.releaseId} is missing its sealed plan at ${directory}. ` +
+          'The pending ownership marker has been retained. Restore the matching plan and payloads only if the databases have not been reset; otherwise reconcile the completed reset before retrying.',
+      )
+    }
+    if (
+      plan.context.releaseId !== pending.releaseId ||
+      resolve(plan.context.cacheDir) !== resolve(cacheDir) ||
+      plan.context.environment !== environment
+    ) {
+      throw new Error(
+        `Pending SQL delivery plan at ${directory} does not belong to release ${pending.releaseId}, cache ${cacheDir} and target ${environment}; refusing to replay it.`,
+      )
+    }
+  }
+
+  console.log(`Resuming retained SQL delivery for ${pending.releaseId}.`)
+  for (const directory of pending.directories) {
+    await (dependencies.runSqlDeliveryCommand ?? runSqlDeliveryCommand)(
+      { command: 'sql:resume', positionals: [], options: { plan: directory } },
+      target,
+      invocationCwd,
+    )
+  }
+  return true
+}
+
+async function resolveUploadSqlCacheDir(target: UploadTarget) {
+  if (target.remote) return resolveSharedRemoteDbCacheDir(target)
+
+  const localTargets = await resolveD1Targets('local')
+  const metaPath = mapLocalTargetPaths(localTargets).DB_META
+  if (!metaPath) throw new Error('Local SQL recovery requires the DB_META binding.')
+  return dirname(metaPath)
+}
+
+/**
  * Registers a release and returns a local-only pipeline key. The prepared
  * Parquet never crosses this boundary: local processors seed it directly into
  * their LocalPipelineBucket before loading the destination databases.
@@ -133,21 +222,16 @@ async function registerUploadLocally(
     previewResult.plan.sourceVersion,
   )
   const resolveDbContext = options.resolveLocalDbContext ?? resolveLocalAddressDbContext
+  const resumeSqlDeliveryReleaseId = await findMatchingPendingReleaseId(
+    previewResult.plan.releaseCode,
+  )
   const dbContext = await resolveDbContext(
     target,
     previewResult.plan.regionCode,
     shardYear,
     {
-      cacheTableProfile:
-        previewResult.plan.type === 'division'
-          ? 'division'
-          : previewResult.plan.type === 'divisionArea' ||
-              previewResult.plan.type === 'divisionBoundary'
-            ? previewResult.plan.source === 'hkgov-pland-pu' ||
-              previewResult.plan.source === 'hkgov-pland-new-town'
-              ? 'planningDivisionGeometry'
-              : 'divisionGeometry'
-            : 'address',
+      cacheTableProfile: resolveUploadCacheProfile(previewResult.plan),
+      resumeSqlDeliveryReleaseId,
     },
   )
 
@@ -160,28 +244,39 @@ async function registerUploadLocally(
           : ['staged', 'published']
         : ['staged']
       : options.resumeStagedRelease
-        ? ['staged']
+        ? options.reuseExistingRelease
+          ? ['staged', 'processing']
+          : ['staged']
         : options.reuseExistingRelease
           ? ['processing']
           : undefined
+    if (
+      resumeSqlDeliveryReleaseId &&
+      allowExistingDatasetStatuses &&
+      !allowExistingDatasetStatuses.includes('processing')
+    ) {
+      allowExistingDatasetStatuses.push('processing')
+    }
     const registered = await registerLocalUpload(metaDb, {
       ...registerOptions,
       allowExistingDatasetStatuses,
       cohortKey: previewResult.plan.cohortKey,
       filePath: previewResult.plan.fileName,
+      rawObjectKey: createRawObjectKey(previewResult.plan),
       inspection: previewResult.inspection,
       originalFileName: previewResult.plan.originalFileName,
       regionCode: previewResult.plan.regionCode,
       releaseNotesUrl: previewResult.plan.releaseNotesUrl,
       reuseExistingRelease: options.reuseExistingRelease,
       resumeInterruptedProcessingRelease: options.resumeStagedRelease,
+      recoveredSqlDeliveryReleaseId: resumeSqlDeliveryReleaseId,
       resolveSchemaFingerprint: createLocalSchemaFingerprintResolver(metaDb),
       shardYear,
       source: previewResult.plan.source,
       sourceVersion: previewResult.plan.sourceVersion,
       geometryStatus: previewResult.plan.geometryStatus,
       theme: previewResult.plan.theme,
-      type: previewResult.plan.type,
+      resourceType: previewResult.plan.resourceType,
     })
 
     if (!registered.datasetId || !registered.releaseId) {
@@ -200,11 +295,18 @@ async function registerUploadLocally(
       source: registered.plan.source,
       sourceVersion: registered.plan.sourceVersion,
       status: 'staged',
-      type: registered.plan.type,
+      resourceType: registered.plan.resourceType,
     }
   } finally {
     dbContext.cleanup()
   }
+}
+
+async function findMatchingPendingReleaseId(releaseCode: string) {
+  const localTargets = await resolveD1Targets('local')
+  const metaPath = mapLocalTargetPaths(localTargets).DB_META
+  if (!metaPath) throw new Error('Local SQL recovery requires the DB_META binding.')
+  return findPendingSqlDeliveryReleaseId(dirname(metaPath), releaseCode)
 }
 
 async function requestRemoteRegistration(
@@ -216,14 +318,31 @@ async function requestRemoteRegistration(
     previewResult.plan.cohortKey,
     previewResult.plan.sourceVersion,
   )
+  const retainedReleaseId = await (
+    options.resolvePendingReleaseId ?? findPendingSqlDeliveryReleaseId
+  )(resolveSharedRemoteDbCacheDir(target), previewResult.plan.releaseCode)
+  // Use exactly the writers' acknowledged baseline, before registration or
+  // source retention can leave any remote side effects. Never seed a profile here.
+  const context = await (options.resolveWriteContext ?? resolveCurrentWriteContext)(
+    target,
+    previewResult.plan.regionCode,
+    shardYear,
+    { resumeSqlDeliveryReleaseId: retainedReleaseId },
+  )
+  context.cleanup()
   const response = await fetch(
     buildRegisterUploadEndpoint(resolveHarbourApiUrl(target)),
     {
       body: JSON.stringify({
         fileName: previewResult.plan.fileName,
-        force: Boolean(options.force),
+        // Both flags together permit only staged/processing registration on
+        // Harbour. The sealed local plans must identify this exact release.
+        force: Boolean(options.force || retainedReleaseId),
+        allowHistoricalCohort: Boolean(options.allowHistoricalCohort),
         resumeStagedRelease: Boolean(options.resumeStagedRelease),
-        reuseExistingRelease: Boolean(options.reuseExistingRelease),
+        reuseExistingRelease: Boolean(
+          options.reuseExistingRelease || retainedReleaseId,
+        ),
         inspection: previewResult.inspection,
         plan: {
           cohortKey: previewResult.plan.cohortKey,
@@ -235,7 +354,7 @@ async function requestRemoteRegistration(
           sourceVersion: previewResult.plan.sourceVersion,
           geometryStatus: previewResult.plan.geometryStatus,
           theme: previewResult.plan.theme,
-          type: previewResult.plan.type,
+          resourceType: previewResult.plan.resourceType,
         },
       }),
       headers: { 'content-type': 'application/json', ...getAuthHeaders() },

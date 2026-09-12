@@ -1,286 +1,122 @@
 import {
   publishReleaseArtefacts,
   ensureDraftReleaseSetForRelease,
-  ensureIngestRunStarted,
-  getDatasetRecordByReleaseId,
   getCurrentReleaseForDatasetId,
-  listDraftReleaseSetPrimaryReleases,
-  listDraftReleaseSets,
   listSnapshotsForRelease,
   listOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey,
   listCurrentApiCompositionMembersForType,
-  listCurrentSnapshotCleanupCandidates,
-  listApiReleaseSetSnapshots,
-  resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey,
   resolveLatestReleaseSetForTypeDomainCohort,
-  resolvePublishedSnapshotForResourceTypeRegionCohortKey,
-  resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey,
   resolveReleaseSetForRelease,
-  resolveSnapshotForRelease,
-  updateLatestOpenIngestRun,
   updateDatasetStatus,
-  upsertIngestRunStatus,
-  waitForDatasetRecord,
+  publishSnapshot,
 } from '@repo/core/db/metaRegistry'
-import {
-  datasetVariantForSource,
-  publisherCodeForSource,
-  type HarbourJobMessage,
-  type RegionCode,
-  type ResourceType,
-} from '@repo/core'
-import type {
-  ApiReleaseSetMetadataDelta,
-  SnapshotMetadataDelta,
-} from '@repo/core/pipeline/harbourClient'
+import { datasetVariantForSource, type RegionCode, type ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
   eq,
-  inArray,
-  metaApiComposition,
   metaApiReleaseSets,
-  metaApiReleaseSetSnapshots,
-  metaApiVersions,
-  metaDatasets,
-  metaPublisherI18n,
-  metaPublishers,
-  metaReleases,
   metaSchema,
   metaSnapshotSources,
   metaSnapshots,
-  or,
-  type ApiFamilyType,
 } from '@repo/db'
+import {
+  ControlRequestError,
+  requireDataset,
+  runWithTransientControlRetry,
+} from './controlRequests.ts'
+import type { ControlResult, HarbourJobQueue, PublishRequest } from './controlTypes.ts'
+import {
+  releaseSetMemberKey,
+  resolveCarriedSnapshots,
+  resolveSupportingSnapshotsForMember,
+  resolveTransformMember,
+  waitForSnapshotsForRelease,
+} from './controlSnapshots.ts'
+import {
+  publishMetadataDelta,
+  requireReleaseSetPublicationMetadata,
+  resolveApiReleaseSetMetadataDelta,
+  resolvePublishedSnapshotMetadataDeltas,
+  resolvePublisherName,
+} from './controlMetadata.ts'
+import {
+  DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS,
+  scheduleCurrentSnapshotCleanup,
+} from './controlCleanup.ts'
 
-import type { ReleaseSetPublication } from './releaseDiscord'
-
-type StageRequest = {
-  releaseCode?: string
-  releaseId?: string
-  error?: string
-  phase: string
-  stats?: Record<string, unknown>
-}
-
-type PublishRequest = {
-  deferApiReleaseSet?: boolean
-  deferStatsReleaseSet?: boolean
-  deferSourcePublish?: boolean
-  releaseCode?: string
-  releaseId?: string
-  skipSnapshotCleanup?: boolean
-}
-
-type CleanupSnapshotsRequest = {
-  delaySeconds?: number
-  dryRun?: boolean
-  resourceType?: ResourceType
-  snapshotIds?: string[]
-}
-
-export type ReconcileDraftReleaseSetsRequest = {
-  apiFamily?: ApiFamilyType
-  regionCode?: RegionCode
-}
-
-export type BootstrapStatsReleaseSetsRequest = {
-  regionCode?: RegionCode
-}
-
-type ControlResult = {
-  apiCatalogRevisionCode?: string
-  apiCatalogRevisionId?: string
-  apiReleaseSetId?: string
-  apiReleaseSetCode?: string
-  apiReleaseSetStatus?: 'current' | 'draft'
-  /** Release-set publications that crossed draft -> current in this call. */
-  apiReleaseSetAnnouncements?: ReleaseSetPublication[]
-  apiReleaseSetPublications?: ReleaseSetPublication[]
-  datasetId: string
-  metadataDelta?: {
-    apiReleaseSets?: ApiReleaseSetMetadataDelta[]
-    releases: Array<{ id: string; status: 'published' }>
-    snapshots?: SnapshotMetadataDelta[]
+export async function assertPlaceAddressDependencies(
+  db: HarbourReadableDb,
+  snapshotId: string,
+  releaseId: string,
+) {
+  const runs = await db
+    .select()
+    .from(metaSchema.metaSnapshotAssemblyRuns)
+    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, snapshotId))
+    .all()
+  const summary = runs
+    .map(
+      run =>
+        run.selectionSummaryJson as {
+          supplementaryAddressSnapshotId?: string
+          addressReviewRequired?: number
+        } | null,
+    )
+    .find(value => value?.supplementaryAddressSnapshotId)
+  if (!summary?.supplementaryAddressSnapshotId || summary.addressReviewRequired !== 0) {
+    throw new ControlRequestError(
+      'Places publication requires completed supplementary Address analysis with no outstanding identity reviews.',
+    )
   }
-  releaseCode: string
-  releaseId: string
-  phase: string | null
-  snapshotId?: string
-  status: string
-}
-
-type CleanupSnapshotsResult = {
-  candidateCount: number
-  delaySeconds: number
-  dryRun: boolean
-  snapshotIds: string[]
-  status: 'queued' | 'skipped'
-}
-
-export type ReconcileDraftReleaseSetsResult = {
-  inspected: number
-  pendingReleaseSetCodes: string[]
-  /** Release-set publications that crossed draft -> current in this call. */
-  publishedReleaseSetAnnouncements: ReleaseSetPublication[]
-  publishedReleaseSetPublications: ReleaseSetPublication[]
-  publishedReleaseSetCodes: string[]
-  publishedReleaseSetStatsTargets: Array<{
-    apiReleaseSetId: string
-    cohortKey: string
-    family: 'address' | 'division'
-    releaseCode: string
-    releaseId: string
-    snapshotId: string
-  }>
-}
-
-export type BootstrapStatsReleaseSetsResult = {
-  createdReleaseSetCodes: string[]
-  inspectedSnapshots: number
-  skippedCohortKeys: string[]
-}
-
-export class ControlRequestError extends Error {}
-
-export type HarbourJobQueue = {
-  send(message: HarbourJobMessage, options?: QueueSendOptions): Promise<unknown>
-}
-
-const DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS = 30
-const PUBLISH_SNAPSHOT_WAIT_LIMIT = 20
-const PUBLISH_SNAPSHOT_WAIT_DELAY_MS = 250
-const TRANSIENT_CONTROL_RETRY_LIMIT = 4
-const TRANSIENT_CONTROL_RETRY_DELAY_MS = 50
-
-export async function handleStageRunning(
-  db: HarbourReadableDb & HarbourWritableDb,
-  request: StageRequest,
-): Promise<ControlResult> {
-  return runWithTransientControlRetry(async () => {
-    const dataset = await requireDataset(db, request)
-    const now = new Date().toISOString()
-
-    if (request.phase === 'processDataset') {
-      await updateDatasetStatus(db, dataset.releaseId, 'processing')
-    }
-
-    if (
-      request.phase === 'processDataset' ||
-      isAddressSqlGenerationProgressPhase(request.phase)
-    ) {
-      await upsertIngestRunStatus(
-        db,
-        dataset.releaseId,
-        request.phase,
-        'running',
-        now,
-        null,
-        request.stats ?? null,
-      )
-    } else {
-      await ensureIngestRunStarted(
-        db,
-        dataset.releaseId,
-        request.phase,
-        request.stats ?? null,
-        now,
-      )
-    }
-
-    return {
-      datasetId: dataset.releaseCode,
-      releaseCode: dataset.releaseCode,
-      releaseId: dataset.releaseId,
-      phase: request.phase,
-      status: 'running',
-    }
-  })
-}
-
-export async function handleStageCompleted(
-  db: HarbourReadableDb & HarbourWritableDb,
-  request: StageRequest,
-): Promise<ControlResult> {
-  return runWithTransientControlRetry(async () => {
-    const dataset = await requireDataset(db, request)
-    const now = new Date().toISOString()
-
-    const updatedExistingRun = await updateLatestOpenIngestRun(
-      db,
-      dataset.releaseId,
-      request.phase,
-      'completed',
-      now,
-      request.stats ?? null,
-    )
-
-    if (!updatedExistingRun) {
-      await upsertIngestRunStatus(
-        db,
-        dataset.releaseId,
-        request.phase,
-        'completed',
-        now,
-        now,
-        request.stats ?? null,
-      )
-    }
-
-    return {
-      datasetId: dataset.releaseCode,
-      releaseCode: dataset.releaseCode,
-      releaseId: dataset.releaseId,
-      phase: request.phase,
-      status: 'completed',
-    }
-  })
-}
-
-export async function handleStageFailed(
-  db: HarbourReadableDb & HarbourWritableDb,
-  request: StageRequest,
-): Promise<ControlResult> {
-  return runWithTransientControlRetry(async () => {
-    const dataset = await requireDataset(db, request)
-    const now = new Date().toISOString()
-    const errorJson = stringifyOptional({
-      message: request.error ?? 'Unknown processing error.',
+  const supplementary = await db
+    .select({
+      id: metaSnapshots.id,
+      sourceReleaseId: metaSnapshotSources.resourceReleaseId,
     })
-
-    await updateDatasetStatus(db, dataset.releaseId, 'failed')
-    const updatedExistingRun = await updateLatestOpenIngestRun(
-      db,
-      dataset.releaseId,
-      request.phase,
-      'error',
-      now,
-      request.stats ?? null,
-      errorJson,
+    .from(metaSnapshots)
+    .innerJoin(
+      metaSnapshotSources,
+      eq(metaSnapshotSources.snapshotId, metaSnapshots.id),
     )
-
-    if (!updatedExistingRun) {
-      await upsertIngestRunStatus(
-        db,
-        dataset.releaseId,
-        request.phase,
-        'error',
-        now,
-        now,
-        request.stats ?? null,
-        errorJson,
-      )
-    }
-
-    return {
-      datasetId: dataset.releaseCode,
-      releaseCode: dataset.releaseCode,
-      releaseId: dataset.releaseId,
-      phase: request.phase,
-      status: 'error',
-    }
-  })
+    .innerJoin(
+      metaSchema.metaSnapshotLineages,
+      eq(metaSchema.metaSnapshotLineages.id, metaSnapshots.snapshotLineageId),
+    )
+    .where(
+      and(
+        eq(metaSnapshots.id, summary.supplementaryAddressSnapshotId),
+        eq(metaSnapshots.status, 'published'),
+        eq(metaSnapshots.resourceType, 'address'),
+        eq(metaSchema.metaSnapshotLineages.variant, 'overture-places'),
+        eq(metaSnapshotSources.role, 'primary'),
+        eq(metaSnapshotSources.anchorReleaseId, releaseId),
+      ),
+    )
+    .get()
+  if (!supplementary)
+    throw new ControlRequestError(
+      'Places supplementary Address snapshot is missing or does not belong to this Place release.',
+    )
+  const sources = await db
+    .select()
+    .from(metaSnapshotSources)
+    .where(eq(metaSnapshotSources.snapshotId, snapshotId))
+    .all()
+  if (
+    !sources.some(
+      source =>
+        source.role === 'lookup' &&
+        source.resourceReleaseId === supplementary.sourceReleaseId &&
+        source.selectedByRule ===
+          'api-composition:places/overture:place/default->address/overture-places',
+    )
+  ) {
+    throw new ControlRequestError(
+      'Places supplementary Address dependency is not recorded.',
+    )
+  }
 }
 
 export async function handlePublishDataset(
@@ -299,7 +135,20 @@ export async function handlePublishDataset(
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
-    const datasetType = dataset.type as ResourceType
+    const datasetType = dataset.resourceType as ResourceType
+    const failedAudit = await db
+      .select({ status: metaSchema.releaseProvenance.attemptStatus })
+      .from(metaSchema.releaseProvenance)
+      .where(eq(metaSchema.releaseProvenance.releaseId, dataset.releaseId))
+      .get()
+    if (failedAudit?.status === 'failed')
+      throw new ControlRequestError(
+        'Publication is blocked by the failed processing audit attempt.',
+      )
+    if (!failedAudit || failedAudit.status !== 'completed')
+      throw new ControlRequestError(
+        'Release publication requires a verified retained processing result with a completed audit attempt.',
+      )
     const materialisedSnapshots = await listSnapshotsForRelease(
       db,
       dataset.releaseId,
@@ -401,6 +250,10 @@ export async function handlePublishDataset(
       )
     }
 
+    if (datasetType === 'place') {
+      await assertPlaceAddressDependencies(db, firstSnapshot.id, dataset.releaseId)
+    }
+
     if (request.deferStatsReleaseSet) {
       if (datasetType !== 'divisionStatistic') {
         throw new ControlRequestError(
@@ -409,11 +262,21 @@ export async function handlePublishDataset(
       }
       if (!request.deferSourcePublish) {
         await updateDatasetStatus(db, dataset.releaseId, 'published')
+        for (const snapshot of snapshots) {
+          if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
+        }
       }
       return {
         datasetId: dataset.releaseCode,
         metadataDelta: publishMetadataDelta(
           request.deferSourcePublish ? null : dataset.releaseId,
+          undefined,
+          request.deferSourcePublish
+            ? []
+            : await resolvePublishedSnapshotMetadataDeltas(
+                db,
+                snapshots.map(snapshot => snapshot.id),
+              ),
         ),
         phase: null,
         releaseCode: dataset.releaseCode,
@@ -547,7 +410,7 @@ export async function handlePublishDataset(
     let selectedApiCatalogRevision: Awaited<
       ReturnType<typeof publishReleaseArtefacts>
     > | null = null
-    let selectedReleaseSetStatus: 'current' | 'draft' = 'draft'
+    let selectedReleaseSetStatus: 'current' | 'draft' | 'archived' = 'draft'
     const apiReleaseSetPublications: NonNullable<
       ControlResult['apiReleaseSetPublications']
     > = []
@@ -577,15 +440,38 @@ export async function handlePublishDataset(
       )
       const requiredMembers = new Set(
         domainMembers
-          .filter(member => member.isRequired)
+          .filter(
+            member =>
+              member.isRequired &&
+              // Overture's supplementary Addresses are required once their
+              // first snapshot exists; Address history before that cohort is
+              // intentionally ALS-only.
+              member.variant !== 'overture-places',
+          )
           .map(member => releaseSetMemberKey(member.resourceType, member.variant)),
       )
       const satisfiedRequiredMembers = new Set<string>()
+      const explicitlyCarriedMemberKeys = new Set(
+        (request.carriedSnapshots ?? []).map(snapshot =>
+          releaseSetMemberKey(snapshot.resourceType, snapshot.variant ?? 'default'),
+        ),
+      )
 
       for (const member of domainMembers) {
         const memberKey = releaseSetMemberKey(member.resourceType, member.variant)
         if (member.resourceType === datasetType && member.variant === datasetVariant) {
           if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
+          continue
+        }
+
+        // Family processors may have selected an exact reference snapshot from
+        // the data they materialised. Preserve that choice instead of replacing
+        // it with an independently resolved cohort match.
+        if (explicitlyCarriedMemberKeys.has(memberKey)) {
+          if (member.isRequired) {
+            requiredMembers.add(memberKey)
+            satisfiedRequiredMembers.add(memberKey)
+          }
           continue
         }
 
@@ -597,7 +483,10 @@ export async function handlePublishDataset(
         )
 
         if (supportingSnapshots.length === 0) continue
-        if (member.isRequired) satisfiedRequiredMembers.add(memberKey)
+        if (member.isRequired) {
+          requiredMembers.add(memberKey)
+          satisfiedRequiredMembers.add(memberKey)
+        }
 
         for (const supportingSnapshot of supportingSnapshots) {
           carriedSnapshots.push({
@@ -606,6 +495,31 @@ export async function handlePublishDataset(
             variant: member.variant,
           })
         }
+      }
+
+      for (const carriedSnapshot of request.carriedSnapshots ?? []) {
+        const snapshot = await db
+          .select({
+            id: metaSnapshots.id,
+            resourceType: metaSnapshots.resourceType,
+            status: metaSnapshots.status,
+          })
+          .from(metaSnapshots)
+          .where(eq(metaSnapshots.id, carriedSnapshot.snapshotId))
+          .limit(1)
+          .get()
+        if (
+          snapshot?.status !== 'published' ||
+          snapshot.resourceType !== carriedSnapshot.resourceType
+        ) {
+          throw new ControlRequestError(
+            `Carried ${carriedSnapshot.resourceType} snapshot ${carriedSnapshot.snapshotId} is not a published matching snapshot.`,
+          )
+        }
+        carriedSnapshots.push({
+          ...carriedSnapshot,
+          variant: carriedSnapshot.variant ?? 'default',
+        })
       }
 
       const releaseSetIsComplete = [...requiredMembers].every(memberKey =>
@@ -635,7 +549,7 @@ export async function handlePublishDataset(
         releaseSetId: releaseSet.id,
         snapshotId: snapshot.id,
         snapshotVariant: datasetVariant,
-        type: datasetType,
+        resourceType: datasetType,
         // Each statistic reference period is independently publishable. Other
         // families may still wait for required companion snapshots.
         deferApiReleaseSet: !shouldPublishReleaseSet,
@@ -653,6 +567,7 @@ export async function handlePublishDataset(
           .where(eq(metaApiReleaseSets.id, releaseSet.id))
           .limit(1)
           .get()
+        selectedReleaseSetStatus = publishedReleaseSetStatus?.status ?? 'draft'
         const publishedReleaseSet = await requireReleaseSetPublicationMetadata(
           db,
           releaseSet.id,
@@ -728,825 +643,6 @@ export async function handlePublishDataset(
   })
 }
 
-function publishMetadataDelta(
-  releaseId: string | null,
-  apiReleaseSet?: ApiReleaseSetMetadataDelta,
-  snapshots?: SnapshotMetadataDelta[],
-) {
-  return {
-    ...(apiReleaseSet
-      ? {
-          apiReleaseSets: [apiReleaseSet],
-        }
-      : {}),
-    releases: releaseId ? [{ id: releaseId, status: 'published' as const }] : [],
-    ...(snapshots && snapshots.length > 0 ? { snapshots } : {}),
-  }
-}
-
-async function resolvePublishedSnapshotMetadataDeltas(
-  db: HarbourReadableDb,
-  snapshotIds: string[],
-): Promise<SnapshotMetadataDelta[]> {
-  if (snapshotIds.length === 0) return []
-
-  const snapshots = await db
-    .select({
-      id: metaSnapshots.id,
-      publishedAt: metaSnapshots.publishedAt,
-      status: metaSnapshots.status,
-      validFrom: metaSnapshots.validFrom,
-      validTo: metaSnapshots.validTo,
-    })
-    .from(metaSnapshots)
-    .where(inArray(metaSnapshots.id, snapshotIds))
-    .all()
-
-  if (snapshots.length !== snapshotIds.length) {
-    throw new ControlRequestError('Published snapshot metadata is incomplete.')
-  }
-
-  return snapshots.map(snapshot => {
-    if (
-      snapshot.status !== 'published' ||
-      !snapshot.publishedAt ||
-      !snapshot.validFrom ||
-      snapshot.validTo !== null
-    ) {
-      throw new ControlRequestError(
-        `Snapshot ${snapshot.id} was not published with a complete validity interval.`,
-      )
-    }
-
-    return {
-      id: snapshot.id,
-      status: 'published',
-      publishedAt: snapshot.publishedAt,
-      validFrom: snapshot.validFrom,
-      validTo: null,
-    }
-  })
-}
-
-async function resolveApiReleaseSetMetadataDelta(
-  db: HarbourReadableDb,
-  releaseSetId: string,
-): Promise<ApiReleaseSetMetadataDelta | undefined> {
-  const releaseSet = await db
-    .select({
-      id: metaApiReleaseSets.id,
-      apiVersionId: metaApiReleaseSets.apiVersionId,
-      apiCompositionId: metaApiReleaseSets.apiCompositionId,
-      code: metaApiReleaseSets.code,
-      regionCode: metaApiReleaseSets.regionCode,
-      domainCode: metaApiReleaseSets.domainCode,
-      cohortKey: metaApiReleaseSets.cohortKey,
-      revision: metaApiReleaseSets.revision,
-      effectiveFrom: metaApiReleaseSets.effectiveFrom,
-      effectiveTo: metaApiReleaseSets.effectiveTo,
-      supersedesApiReleaseSetId: metaApiReleaseSets.supersedesApiReleaseSetId,
-      schemaVersion: metaApiReleaseSets.schemaVersion,
-      rulesetVersion: metaApiReleaseSets.rulesetVersion,
-      status: metaApiReleaseSets.status,
-      publishedAt: metaApiReleaseSets.publishedAt,
-      validFrom: metaApiReleaseSets.validFrom,
-      validTo: metaApiReleaseSets.validTo,
-      notes: metaApiReleaseSets.notes,
-      guide: metaApiReleaseSets.guide,
-      versionHash: metaApiReleaseSets.versionHash,
-      createdAt: metaApiReleaseSets.createdAt,
-      updatedAt: metaApiReleaseSets.updatedAt,
-    })
-    .from(metaApiReleaseSets)
-    .where(eq(metaApiReleaseSets.id, releaseSetId))
-    .limit(1)
-    .get()
-
-  if (!releaseSet) return undefined
-  const status = releaseSet.status
-  if (status !== 'current' && status !== 'draft') {
-    throw new ControlRequestError(
-      `Cannot include archived API release set ${releaseSetId} in publish metadata delta.`,
-    )
-  }
-
-  return { ...releaseSet, status }
-}
-
-/**
- * Re-evaluates every selected draft set against its already-published source
- * snapshots. This makes a resumed backfill safe: no source release is
- * re-ingested and no source-release lifecycle state is changed.
- */
-export async function handleReconcileDraftReleaseSets(
-  db: HarbourReadableDb & HarbourWritableDb,
-  request: ReconcileDraftReleaseSetsRequest = {},
-): Promise<ReconcileDraftReleaseSetsResult> {
-  return runWithTransientControlRetry(async () => {
-    const [draftReleaseSets, primaryReleases, recoverableCurrentStatsTargets] =
-      await Promise.all([
-        listDraftReleaseSets(db, request),
-        listDraftReleaseSetPrimaryReleases(db, request),
-        listCurrentReleaseSetStatsTargets(db, request),
-      ])
-    const primaryReleaseByReleaseSetId = new Map(
-      primaryReleases.map(release => [release.apiReleaseSetId, release]),
-    )
-    const publishedReleaseSetCodes: string[] = []
-    const publishedReleaseSetAnnouncements: ReleaseSetPublication[] = []
-    const publishedReleaseSetPublications: ReleaseSetPublication[] = []
-    const pendingReleaseSetCodes: string[] = []
-    const publishedReleaseSetStatsTargets: ReconcileDraftReleaseSetsResult['publishedReleaseSetStatsTargets'] =
-      []
-
-    for (const releaseSet of draftReleaseSets) {
-      const primaryRelease = primaryReleaseByReleaseSetId.get(releaseSet.id)
-      if (!primaryRelease) {
-        pendingReleaseSetCodes.push(releaseSet.code)
-        continue
-      }
-
-      const result = await handlePublishDataset(
-        db,
-        { releaseId: primaryRelease.releaseId, skipSnapshotCleanup: true },
-        undefined,
-        { reconcileDraftReleaseSet: true, releaseSet },
-      )
-      if (
-        result.apiReleaseSetPublications?.some(
-          publication => publication.apiReleaseSetCode === releaseSet.code,
-        )
-      ) {
-        publishedReleaseSetCodes.push(releaseSet.code)
-        if (
-          result.apiReleaseSetId &&
-          result.snapshotId &&
-          releaseSet.cohortKey &&
-          (request.apiFamily === 'divisions' || request.apiFamily === 'addresses')
-        ) {
-          publishedReleaseSetStatsTargets.push({
-            apiReleaseSetId: result.apiReleaseSetId,
-            cohortKey: releaseSet.cohortKey,
-            family: request.apiFamily === 'addresses' ? 'address' : 'division',
-            releaseCode: result.releaseCode,
-            releaseId: result.releaseId,
-            snapshotId: result.snapshotId,
-          })
-        }
-        publishedReleaseSetAnnouncements.push(
-          ...(result.apiReleaseSetAnnouncements ?? []).filter(
-            publication => publication.apiReleaseSetCode === releaseSet.code,
-          ),
-        )
-        publishedReleaseSetPublications.push(
-          ...(result.apiReleaseSetPublications ?? []).filter(
-            publication => publication.apiReleaseSetCode === releaseSet.code,
-          ),
-        )
-      } else {
-        pendingReleaseSetCodes.push(releaseSet.code)
-      }
-    }
-
-    return {
-      inspected: draftReleaseSets.length,
-      pendingReleaseSetCodes,
-      publishedReleaseSetAnnouncements,
-      publishedReleaseSetPublications,
-      publishedReleaseSetCodes,
-      publishedReleaseSetStatsTargets: [
-        ...publishedReleaseSetStatsTargets,
-        ...recoverableCurrentStatsTargets,
-      ],
-    }
-  })
-}
-
-async function listCurrentReleaseSetStatsTargets(
-  db: HarbourReadableDb,
-  request: ReconcileDraftReleaseSetsRequest,
-) {
-  if (request.apiFamily !== 'addresses' && request.apiFamily !== 'divisions') {
-    return []
-  }
-
-  const rows = await db
-    .select({
-      apiReleaseSetId: metaApiReleaseSets.id,
-      cohortKey: metaApiReleaseSets.cohortKey,
-      releaseCode: metaReleases.code,
-      releaseId: metaReleases.id,
-      snapshotId: metaApiReleaseSetSnapshots.snapshotId,
-    })
-    .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
-    .innerJoin(
-      metaApiReleaseSetSnapshots,
-      and(
-        eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
-        eq(metaApiReleaseSetSnapshots.role, 'primary'),
-      ),
-    )
-    .innerJoin(
-      metaSnapshotSources,
-      and(
-        eq(metaSnapshotSources.snapshotId, metaApiReleaseSetSnapshots.snapshotId),
-        eq(metaSnapshotSources.role, 'primary'),
-      ),
-    )
-    .innerJoin(metaReleases, eq(metaSnapshotSources.sourceReleaseId, metaReleases.id))
-    .where(
-      and(
-        eq(metaApiReleaseSets.status, 'current'),
-        eq(
-          metaApiVersions.familyType,
-          request.apiFamily === 'addresses' ? 'addresses' : 'divisions',
-        ),
-        request.regionCode
-          ? eq(metaApiReleaseSets.regionCode, request.regionCode)
-          : undefined,
-        or(eq(metaReleases.status, 'published'), eq(metaReleases.status, 'superseded')),
-      ),
-    )
-    .orderBy(metaApiReleaseSets.cohortKey, metaApiReleaseSets.revision)
-    .all()
-
-  const seenReleaseSetIds = new Set<string>()
-  const targets: ReconcileDraftReleaseSetsResult['publishedReleaseSetStatsTargets'] = []
-  for (const row of rows) {
-    if (seenReleaseSetIds.has(row.apiReleaseSetId)) continue
-    seenReleaseSetIds.add(row.apiReleaseSetId)
-
-    const existingStats = await db
-      .select({ id: metaSchema.stats.id })
-      .from(metaSchema.stats)
-      .where(eq(metaSchema.stats.apiReleaseSetId, row.apiReleaseSetId))
-      .limit(1)
-      .get()
-    if (existingStats) continue
-    if (!row.cohortKey) continue
-
-    targets.push({
-      apiReleaseSetId: row.apiReleaseSetId,
-      cohortKey: row.cohortKey,
-      family: request.apiFamily === 'addresses' ? 'address' : 'division',
-      releaseCode: row.releaseCode,
-      releaseId: row.releaseId,
-      snapshotId: row.snapshotId,
-    })
-  }
-
-  return targets
-}
-
-/**
- * Creates the initial Statistics release set for every cohort that has prepared
- * source snapshots but no published release set yet. This is intentionally a
- * one-off launch operation: routine uploads continue to create later immutable
- * revisions for a cohort.
- */
-export async function handleBootstrapStatsReleaseSets(
-  db: HarbourReadableDb & HarbourWritableDb,
-  request: BootstrapStatsReleaseSetsRequest = {},
-): Promise<BootstrapStatsReleaseSetsResult> {
-  return runWithTransientControlRetry(async () => {
-    const regionCode = request.regionCode ?? 'hk'
-    const members = (
-      await listCurrentApiCompositionMembersForType(db, 'divisionStatistic')
-    ).filter(member => member.domainCode === 'official')
-    const memberVariants = new Set(members.map(member => member.variant))
-    // A Statistics source may publish DivisionArea artefacts as its primary
-    // resource while also materialising a linked divisionStatistic snapshot.
-    // Select the source family here; the snapshot lookup below remains the
-    // resource-type gate for the Statistics API release set.
-    const sourceReleases = await db
-      .select({ id: metaReleases.id })
-      .from(metaReleases)
-      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
-      .where(
-        and(
-          eq(metaDatasets.regionCode, regionCode),
-          eq(metaDatasets.theme, 'stats'),
-          eq(metaReleases.status, 'published'),
-        ),
-      )
-      .all()
-
-    const candidatesByCohort = new Map<
-      string,
-      Array<{
-        dataset: NonNullable<Awaited<ReturnType<typeof getDatasetRecordByReleaseId>>>
-        snapshotId: string
-        variant: string
-      }>
-    >()
-
-    for (const sourceRelease of sourceReleases) {
-      const dataset = await getDatasetRecordByReleaseId(db, sourceRelease.id)
-      if (!dataset) continue
-      const variant = datasetVariantForSource('divisionStatistic', dataset.source, {
-        cohortKey: dataset.cohortKey,
-        datasetCode: dataset.datasetCode,
-        sourceVariant: dataset.sourceVariant,
-        sourceVersion: dataset.sourceVersion,
-      })
-      if (!memberVariants.has(variant)) continue
-
-      const snapshots = await listSnapshotsForRelease(
-        db,
-        sourceRelease.id,
-        'divisionStatistic',
-        {
-          variant,
-        },
-      )
-      for (const snapshot of snapshots) {
-        if (snapshot.status === 'archived') continue
-        const candidates = candidatesByCohort.get(snapshot.cohortKey) ?? []
-        candidates.push({ dataset, snapshotId: snapshot.id, variant })
-        candidatesByCohort.set(snapshot.cohortKey, candidates)
-      }
-    }
-
-    const createdReleaseSetCodes: string[] = []
-    const skippedCohortKeys: string[] = []
-    let inspectedSnapshots = 0
-
-    for (const [cohortKey, candidates] of [...candidatesByCohort.entries()].sort(
-      ([left], [right]) => left.localeCompare(right),
-    )) {
-      inspectedSnapshots += candidates.length
-      const existing = await resolveLatestReleaseSetForTypeDomainCohort(
-        db,
-        'divisionStatistic',
-        'official',
-        regionCode,
-        cohortKey,
-      )
-      if (existing) {
-        skippedCohortKeys.push(cohortKey)
-        continue
-      }
-
-      const existingDraft = await db
-        .select({ code: metaApiReleaseSets.code })
-        .from(metaApiReleaseSets)
-        .innerJoin(
-          metaApiVersions,
-          eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
-        )
-        .where(
-          and(
-            eq(metaApiVersions.code, 'api-stats-v0.1'),
-            eq(metaApiReleaseSets.regionCode, regionCode),
-            eq(metaApiReleaseSets.domainCode, 'official'),
-            eq(metaApiReleaseSets.cohortKey, cohortKey),
-            eq(metaApiReleaseSets.status, 'draft'),
-          ),
-        )
-        .limit(1)
-        .get()
-      if (existingDraft && !existingDraft.code.endsWith('-r0')) {
-        skippedCohortKeys.push(cohortKey)
-        continue
-      }
-
-      const snapshotIdsByVariant = new Map<string, string>()
-      for (const candidate of candidates) {
-        const previousSnapshotId = snapshotIdsByVariant.get(candidate.variant)
-        if (previousSnapshotId && previousSnapshotId !== candidate.snapshotId) {
-          throw new ControlRequestError(
-            `Cannot bootstrap Statistics cohort ${cohortKey}: multiple snapshots are available for ${candidate.variant}.`,
-          )
-        }
-        snapshotIdsByVariant.set(candidate.variant, candidate.snapshotId)
-      }
-
-      const releaseSet = await ensureDraftReleaseSetForRelease(
-        db,
-        'divisionStatistic',
-        { cohortKey, regionCode },
-        { domainCode: 'official' },
-      )
-      const orderedCandidates = candidates
-        .slice()
-        .sort(
-          (left, right) =>
-            left.variant.localeCompare(right.variant) ||
-            left.snapshotId.localeCompare(right.snapshotId),
-        )
-      const finalCandidate = orderedCandidates.at(-1)
-      if (!finalCandidate) continue
-
-      for (const candidate of orderedCandidates) {
-        await publishReleaseArtefacts(db, {
-          carriedSnapshots: [],
-          currentRelease: null,
-          currentReleaseIsCorrected: false,
-          dataset: candidate.dataset,
-          publishedAt: new Date().toISOString(),
-          releaseSetId: releaseSet.id,
-          snapshotId: candidate.snapshotId,
-          type: 'divisionStatistic',
-          deferApiReleaseSet: true,
-        })
-      }
-
-      await publishReleaseArtefacts(db, {
-        carriedSnapshots: [],
-        currentRelease: null,
-        currentReleaseIsCorrected: false,
-        dataset: finalCandidate.dataset,
-        publishedAt: new Date().toISOString(),
-        releaseSetId: releaseSet.id,
-        snapshotId: finalCandidate.snapshotId,
-        type: 'divisionStatistic',
-      })
-      createdReleaseSetCodes.push(releaseSet.code)
-    }
-
-    return { createdReleaseSetCodes, inspectedSnapshots, skippedCohortKeys }
-  })
-}
-
-/**
- * Geometry transforms are materialised for efficient reads, but they do not
- * declare independent API-composition slots. A derived variant therefore
- * inherits the source variant's domain and release-set membership.
- */
-function resolveTransformMember(
-  compositionMembers: Awaited<
-    ReturnType<typeof listCurrentApiCompositionMembersForType>
-  >,
-  datasetType: ResourceType,
-  datasetVariant: string,
-) {
-  const sourceVariant = datasetVariant.match(
-    /^(hkgov-censtatd:(?:2016|2021)):simplified$/,
-  )?.[1]
-  if (!sourceVariant) return undefined
-
-  return compositionMembers.find(
-    member => member.resourceType === datasetType && member.variant === sourceVariant,
-  )
-}
-
-function releaseSetMemberKey(resourceType: ResourceType, variant: string) {
-  return `${resourceType}:${variant}`
-}
-
-async function resolveCarriedSnapshots(
-  db: HarbourReadableDb,
-  activeReleaseSet: Awaited<
-    ReturnType<typeof resolveLatestReleaseSetForTypeDomainCohort>
-  >,
-  datasetType: ResourceType,
-  datasetVariant: string,
-) {
-  if (!activeReleaseSet) return []
-
-  const activeSnapshots = await listApiReleaseSetSnapshots(db, activeReleaseSet.id)
-  return activeSnapshots.flatMap(activeSnapshot =>
-    activeSnapshot.snapshotResourceType === datasetType &&
-    activeSnapshot.variant === datasetVariant
-      ? []
-      : [
-          {
-            resourceType: activeSnapshot.snapshotResourceType,
-            snapshotId: activeSnapshot.snapshotId,
-            variant: activeSnapshot.variant,
-          },
-        ],
-  )
-}
-
-async function resolveSupportingSnapshotsForMember(
-  db: HarbourReadableDb,
-  member: Awaited<ReturnType<typeof listCurrentApiCompositionMembersForType>>[number],
-  regionCode: RegionCode,
-  cohortKey: string,
-) {
-  if (member.variant !== 'default') {
-    const datasetCode = member.variant.startsWith('ds-') ? member.variant : undefined
-    const source = member.variant.split(':')[0] ?? member.variant
-    const publisherCode = datasetCode ? undefined : publisherCodeForSource(source)
-    const snapshots =
-      await resolvePublishedSnapshotsForResourceTypeRegionAtOrBeforeCohortKey(
-        db,
-        member.resourceType,
-        regionCode,
-        cohortKey,
-        {
-          datasetCode,
-          publisherCode,
-          variant: member.variant,
-        },
-      )
-
-    if (member.cohortMatchingMode === 'latest_at_or_before_cohort_per_dataset') {
-      return snapshots
-    }
-
-    if (member.cohortMatchingMode === 'latest_at_or_before_or_earliest_after_cohort') {
-      if (snapshots.length > 0) return snapshots
-
-      const nextSnapshot =
-        await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
-          db,
-          member.resourceType,
-          regionCode,
-          cohortKey,
-          { datasetCode, publisherCode },
-        )
-      return nextSnapshot ? [nextSnapshot] : []
-    }
-
-    return snapshots.filter(snapshot => snapshot.cohortKey === cohortKey)
-  }
-
-  const snapshot = await resolvePublishedSnapshotForResourceTypeRegionCohortKey(
-    db,
-    member.resourceType,
-    regionCode,
-    cohortKey,
-  )
-  return snapshot ? [snapshot] : []
-}
-
-export async function handleScheduleSnapshotCleanup(
-  db: HarbourReadableDb,
-  cleanupQueue: HarbourJobQueue,
-  request: CleanupSnapshotsRequest,
-): Promise<CleanupSnapshotsResult> {
-  return scheduleCurrentSnapshotCleanup(db, cleanupQueue, request)
-}
-
-async function scheduleCurrentSnapshotCleanup(
-  db: HarbourReadableDb,
-  cleanupQueue: HarbourJobQueue,
-  request: CleanupSnapshotsRequest,
-): Promise<CleanupSnapshotsResult> {
-  const delaySeconds = Math.max(
-    0,
-    Math.floor(request.delaySeconds ?? DEFAULT_SNAPSHOT_CLEANUP_DELAY_SECONDS),
-  )
-  const candidates = await listCurrentSnapshotCleanupCandidates(db, {
-    resourceType: request.resourceType,
-    snapshotIds: request.snapshotIds,
-  })
-  const snapshotIds = candidates.map(candidate => candidate.snapshotId)
-
-  if (snapshotIds.length === 0 || request.dryRun) {
-    return {
-      candidateCount: snapshotIds.length,
-      delaySeconds,
-      dryRun: Boolean(request.dryRun),
-      snapshotIds,
-      status: 'skipped',
-    }
-  }
-
-  await cleanupQueue.send(
-    {
-      jobType: 'cleanupCurrentSnapshots',
-      requestedAt: new Date().toISOString(),
-      resourceType: request.resourceType,
-      snapshotIds,
-    },
-    {
-      delaySeconds,
-    },
-  )
-
-  return {
-    candidateCount: snapshotIds.length,
-    delaySeconds,
-    dryRun: false,
-    snapshotIds,
-    status: 'queued',
-  }
-}
-
-async function requireDataset(
-  db: HarbourReadableDb,
-  {
-    releaseCode,
-    releaseId,
-  }: {
-    releaseCode?: string
-    releaseId?: string
-  },
-) {
-  const dataset = await waitForDatasetRecord(db, {
-    releaseCode,
-    releaseId,
-  })
-
-  if (!dataset) {
-    throw new ControlRequestError(
-      `Release not found: ${releaseId ?? releaseCode ?? 'unknown'}`,
-    )
-  }
-
-  return dataset
-}
-
-async function resolvePublisherName(db: HarbourReadableDb, publisherCode: string) {
-  const publisher = await db
-    .select({ name: metaPublisherI18n.name })
-    .from(metaPublisherI18n)
-    .innerJoin(metaPublishers, eq(metaPublisherI18n.publisherId, metaPublishers.id))
-    .where(
-      and(eq(metaPublishers.code, publisherCode), eq(metaPublisherI18n.locale, 'en')),
-    )
-    .limit(1)
-    .get()
-
-  return publisher?.name ?? publisherCode
-}
-
-async function requireReleaseSetPublicationMetadata(
-  db: HarbourReadableDb,
-  releaseSetId: string,
-  fallback: {
-    apiFamily: string
-    cohortKey: string
-    domainCode: string
-    regionCode: string
-  },
-) {
-  const releaseSet = await db
-    .select({
-      apiFamily: metaApiVersions.familyType,
-      apiVersionId: metaApiReleaseSets.apiVersionId,
-      apiCompositionId: metaApiReleaseSets.apiCompositionId,
-      cohortKey: metaApiReleaseSets.cohortKey,
-      domainCode: metaApiReleaseSets.domainCode,
-      regionCode: metaApiReleaseSets.regionCode,
-      revision: metaApiReleaseSets.revision,
-    })
-    .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
-    .where(eq(metaApiReleaseSets.id, releaseSetId))
-    .limit(1)
-    .get()
-
-  if (!releaseSet) {
-    throw new ControlRequestError(
-      `Published API release set metadata not found: ${releaseSetId}`,
-    )
-  }
-
-  const composition = await db
-    .select({ i18n: metaApiComposition.i18n })
-    .from(metaApiComposition)
-    .where(
-      releaseSet.apiCompositionId
-        ? eq(metaApiComposition.id, releaseSet.apiCompositionId)
-        : and(
-            eq(metaApiComposition.apiVersionId, releaseSet.apiVersionId),
-            eq(metaApiComposition.status, 'current'),
-          ),
-    )
-    .limit(1)
-    .get()
-  const domainCode = releaseSet.domainCode ?? fallback.domainCode
-  const copy = getEnglishDomainCopy(composition?.i18n, domainCode)
-  return {
-    apiFamily: releaseSet.apiFamily ?? fallback.apiFamily,
-    cohortKey: releaseSet.cohortKey ?? fallback.cohortKey,
-    description: copy.description,
-    domainCode,
-    domainName: copy.name,
-    regionCode: releaseSet.regionCode ?? fallback.regionCode,
-    revision: releaseSet.revision,
-  }
-}
-
-function getEnglishDomainCopy(value: unknown, domainCode: string) {
-  const composition = parseCompositionI18n(value)
-  const translations =
-    composition && typeof composition === 'object'
-      ? (composition as Record<string, unknown>)[domainCode]
-      : undefined
-  const english = Array.isArray(translations)
-    ? translations.find(
-        translation =>
-          translation &&
-          typeof translation === 'object' &&
-          (translation as { locale?: unknown }).locale === 'en',
-      )
-    : undefined
-  const name =
-    english &&
-    typeof english === 'object' &&
-    typeof (english as { name?: unknown }).name === 'string'
-      ? (english as { name: string }).name
-      : domainCode
-  const description =
-    english &&
-    typeof english === 'object' &&
-    typeof (english as { description?: unknown }).description === 'string'
-      ? (english as { description: string }).description
-      : ''
-
-  return { description, name }
-}
-
-function parseCompositionI18n(value: unknown) {
-  if (typeof value !== 'string') return value
-
-  try {
-    const parsed = JSON.parse(value)
-    return parsed && typeof parsed === 'object'
-      ? (parsed as Record<string, unknown>)
-      : undefined
-  } catch {
-    return undefined
-  }
-}
-
-async function waitForSnapshotsForRelease(
-  db: HarbourReadableDb,
-  releaseId: string,
-  datasetType: ResourceType,
-  variant: string,
-) {
-  for (let attempt = 0; attempt <= PUBLISH_SNAPSHOT_WAIT_LIMIT; attempt += 1) {
-    const snapshots =
-      datasetType === 'divisionStatistic'
-        ? await listSnapshotsForRelease(db, releaseId, datasetType, { variant })
-        : await resolveSnapshotForRelease(db, releaseId, datasetType, {
-            variant,
-          }).then(snapshot => (snapshot ? [snapshot] : []))
-
-    if (snapshots.length > 0) {
-      return snapshots
-    }
-
-    if (attempt < PUBLISH_SNAPSHOT_WAIT_LIMIT) {
-      await sleep(PUBLISH_SNAPSHOT_WAIT_DELAY_MS)
-    }
-  }
-
-  return []
-}
-
-function stringifyOptional(value?: Record<string, unknown>) {
-  return value ? JSON.stringify(value) : null
-}
-
-function isAddressSqlGenerationProgressPhase(phase: string) {
-  return (
-    phase === 'normaliseAddressSql' ||
-    phase === 'generateAddressSqlSource' ||
-    phase === 'generateAddressSqlHistory' ||
-    phase === 'generateAddressSqlCurrent'
-  )
-}
-
-export function isTransientControlError(error: unknown) {
-  return collectErrorMessages(error).some(message =>
-    /sqlite_busy|database is locked|failed to parse body as json, got: error: internal error|d1_error: .*internal error/i.test(
-      message,
-    ),
-  )
-}
-
-async function runWithTransientControlRetry<T>(
-  operation: () => Promise<T>,
-  attempt = 0,
-): Promise<T> {
-  try {
-    return await operation()
-  } catch (error) {
-    if (!isTransientControlError(error) || attempt >= TRANSIENT_CONTROL_RETRY_LIMIT) {
-      throw error
-    }
-
-    await sleep(TRANSIENT_CONTROL_RETRY_DELAY_MS * (attempt + 1))
-    return runWithTransientControlRetry(operation, attempt + 1)
-  }
-}
-
-function collectErrorMessages(error: unknown) {
-  const messages: string[] = []
-  let current: unknown = error
-  let depth = 0
-
-  while (current instanceof Error && depth < 8) {
-    messages.push(current.message)
-    current = current.cause
-    depth += 1
-  }
-
-  return messages
-}
-
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
 function isCorrectedRelease(
   previousSourceVersion?: string,
   nextSourceVersion?: string,
@@ -1557,3 +653,26 @@ function isCorrectedRelease(
 
   return previousSourceVersion.split('.')[0] === nextSourceVersion.split('.')[0]
 }
+
+export type {
+  ReconcileDraftReleaseSetsRequest,
+  BootstrapStatsReleaseSetsRequest,
+  ReconcileDraftReleaseSetsResult,
+  BootstrapStatsReleaseSetsResult,
+  HarbourJobQueue,
+} from './controlTypes.ts'
+
+export { ControlRequestError, isTransientControlError } from './controlRequests.ts'
+
+export { handleScheduleSnapshotCleanup } from './controlCleanup.ts'
+
+export {
+  handleStageRunning,
+  handleStageCompleted,
+  handleStageFailed,
+} from './controlStages.ts'
+
+export {
+  handleReconcileDraftReleaseSets,
+  handleBootstrapStatsReleaseSets,
+} from './controlReconciliation.ts'

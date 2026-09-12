@@ -1,4 +1,5 @@
 {
+  "versionHash": "sha256:fad3c89d5bd05cec30d2ae44859dde9d1d48628dd4f0d889203d6db0673895d3",
   "units": [
     {
       "code": "category",
@@ -11,12 +12,12 @@
           "description": "A publisher-defined categorical value."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "類別",
           "description": "由發佈者定義的類別值。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "类别",
           "description": "由发布者定义的类别值。"
         }
@@ -33,12 +34,12 @@
           "description": "Amount in Hong Kong dollars."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "港元",
           "description": "以港元表示的金額。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "港元",
           "description": "以港元表示的金额。"
         }
@@ -55,12 +56,12 @@
           "description": "Duration measured in hours."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "小時",
           "description": "以小時計量的時間。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "小时",
           "description": "以小时计量的时间。"
         }
@@ -77,12 +78,12 @@
           "description": "Count of households."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "住戶",
           "description": "住戶數。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "住户",
           "description": "住户数。"
         }
@@ -99,12 +100,12 @@
           "description": "Count of living quarters."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "居住單位",
           "description": "居住單位數目。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "居住单位",
           "description": "居住单位数目。"
         }
@@ -122,12 +123,12 @@
         },
         {
           "description": "一個每1,000個分母單位的比率",
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "每千人"
         },
         {
           "description": "每1000单位分母的比率表示",
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "每千人"
         }
       ]
@@ -144,12 +145,12 @@
         },
         {
           "description": "以每100個分母單位表示的比例。",
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "百分比"
         },
         {
           "description": "以每100个分母单位表示的比例。",
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "百分比"
         }
       ]
@@ -165,12 +166,12 @@
           "description": "Count of people."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "人",
           "description": "人數。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "人",
           "description": "人数。"
         }
@@ -187,12 +188,12 @@
           "description": "Population density per square kilometre."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "每平方公里人數",
           "description": "以每平方公里人數表示的人口密度。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "每平方公里人数",
           "description": "以每平方公里人数表示的人口密度。"
         }
@@ -209,12 +210,12 @@
           "description": "Count of rooms."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "房間",
           "description": "房間數目。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "房间",
           "description": "房间数目。"
         }
@@ -231,12 +232,12 @@
           "description": "Area measured in square kilometres."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "平方公里",
           "description": "以平方公里計量的面積。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "平方公里",
           "description": "以平方公里计量的面积。"
         }
@@ -253,12 +254,12 @@
           "description": "Area measured in square metres."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "平方米",
           "description": "以平方米計量的面積。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "平方米",
           "description": "以平方米计量的面积。"
         }
@@ -275,12 +276,12 @@
           "description": "Count of subdivided units."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "分間單位",
           "description": "分間單位數目。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "分间单位",
           "description": "分间单位数目。"
         }
@@ -297,17 +298,16 @@
           "description": "Duration measured in years."
         },
         {
-          "locale": "zh-Hant",
+          "locale": "zh-hant",
           "name": "歲",
           "description": "以歲計量的時間。"
         },
         {
-          "locale": "zh-Hans",
+          "locale": "zh-hans",
           "name": "岁",
           "description": "以岁计量的时间。"
         }
       ]
     }
-  ],
-  "versionHash": "sha256:4e66928901c05611abd3b172064c5c81e4d1da79c717f941bbc2964e4a7c9a49"
+  ]
 }

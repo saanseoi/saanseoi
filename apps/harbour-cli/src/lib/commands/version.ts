@@ -163,7 +163,7 @@ export async function runVersionDoctorCommand() {
       errors.push(`${fixture.path}: versionHash does not match content`)
     }
     if (
-      fixture.path.includes('/identifierBridges/') &&
+      fixture.path.includes('/curations/identity/') &&
       typeof fixture.data.sourceReleaseCode === 'string' &&
       !fixture.data.sourceReleaseCode.startsWith('dr-')
     ) {

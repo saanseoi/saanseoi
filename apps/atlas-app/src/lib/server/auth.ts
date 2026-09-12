@@ -1,3 +1,4 @@
+import { env, waitUntil } from 'cloudflare:workers'
 import { betterAuth } from 'better-auth/minimal'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { oneTap } from 'better-auth/plugins'
@@ -24,12 +25,10 @@ const sendAuthEmail = (input: {
   text: string
   html: string
 }) => {
-  const event = getRequestEvent()
-  const platform = event.platform
-  const email = platform?.env.EMAIL
+  const email = env.EMAIL
 
   if (!email) throw new Error('Email binding "EMAIL" not found.')
-  platform.ctx.waitUntil(
+  waitUntil(
     email.send({
       to: input.to,
       from: { email: 'noreply@saanseoi.hk', name: 'SaanSeoi' },

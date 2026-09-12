@@ -1,7 +1,9 @@
 <script lang="ts">
-type Props = { label: string }
+import { formatReleaseNavLabel } from '../releaseNavLabel'
 
-let { label }: Props = $props()
+type Props = { emphasis?: string; label: string }
+
+let { emphasis, label }: Props = $props()
 
 type Segment = { value: string; code: boolean }
 
@@ -26,13 +28,29 @@ const parseInlineCode = (value: string): Segment[] => {
   return segments.length ? segments : [{ code: false, value }]
 }
 
-let segments = $derived(parseInlineCode(label))
+let displayLabel = $derived(formatReleaseNavLabel(label))
+let displayEmphasis = $derived(emphasis ? formatReleaseNavLabel(emphasis) : undefined)
+let emphasisedPrefix = $derived(
+  displayEmphasis && displayLabel.startsWith(displayEmphasis)
+    ? displayEmphasis
+    : undefined,
+)
+let segments = $derived(
+  parseInlineCode(
+    emphasisedPrefix ? displayLabel.slice(emphasisedPrefix.length) : displayLabel,
+  ),
+)
 </script>
 
-{#each segments as segment}
-  {#if segment.code}
-    <code class="font-mono text-[0.9em]">{segment.value}</code>
-  {:else}
-    {segment.value}
+<span class="min-w-0 -translate-y-px">
+  {#if emphasisedPrefix}
+    <strong class="font-semibold">{emphasisedPrefix}</strong>
   {/if}
-{/each}
+  {#each segments as segment}
+    {#if segment.code}
+      <code class="font-mono text-[0.9em]">{segment.value}</code>
+    {:else}
+      {segment.value}
+    {/if}
+  {/each}
+</span>

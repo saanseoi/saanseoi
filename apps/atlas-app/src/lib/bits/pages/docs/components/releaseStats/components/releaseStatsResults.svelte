@@ -4,6 +4,7 @@ import type {
   ReleaseStatsDistrictName,
   ReleaseStatsLabels,
 } from '../releaseStats.types'
+import PlacesProfile from '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsPlacesProfile.svelte'
 import ComponentCoverage from './releaseStatsComponentCoverageSection.svelte'
 import DivisionLinkage from './releaseStatsDivisionLinkageSection.svelte'
 import District from './releaseStatsDistrictSection.svelte'
@@ -16,6 +17,7 @@ import Overview from './releaseStatsOverviewSection.svelte'
 import Processing from './releaseStatsProcessingSection.svelte'
 import Quality from './releaseStatsQualitySection.svelte'
 import TypeDistribution from './releaseStatsTypeDistributionSection.svelte'
+import StatisticsProfile from './releaseStatsStatisticsProfile.svelte'
 let {
   presentation,
   labels,
@@ -31,6 +33,18 @@ let {
 <div class="grid gap-6">
   {#if presentation.overview}
     <Overview overview={presentation.overview} {labels} />
+  {/if}
+  {#if presentation.placeProfile}
+    <PlacesProfile profile={presentation.placeProfile} />
+  {/if}
+  {#if presentation.statisticsProfile}
+    <StatisticsProfile profile={presentation.statisticsProfile}>
+      {#snippet structural()}
+        {#each presentation.recordDistributions.filter(item => item.groupBy === 'structural') as distribution}
+          <TypeDistribution {distribution} {labels} />
+        {/each}
+      {/snippet}
+    </StatisticsProfile>
   {/if}
   {#if presentation.districtDistribution}
     <District districtDistribution={presentation.districtDistribution} {labels} />
@@ -56,7 +70,7 @@ let {
   {#if presentation.measures}
     <Measures measures={presentation.measures} />
   {/if}
-  {#each presentation.recordDistributions as distribution}
+  {#each presentation.recordDistributions.filter(item => !presentation.statisticsProfile || item.groupBy !== 'structural') as distribution}
     <TypeDistribution {distribution} {labels} />
   {/each}
   {#if presentation.processing}

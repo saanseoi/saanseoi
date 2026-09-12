@@ -48,7 +48,9 @@ let {
   data-release-nav-controls
   class="sticky top-0 z-50 -mx-6 grid w-[calc(100%+3rem)] bg-background/95 px-6 backdrop-blur-sm md:-mx-8 md:w-[calc(100%+4rem)] md:px-8 xl:top-[72px] xl:mx-0 xl:w-auto xl:grid-cols-[1fr_18rem] xl:gap-8 xl:px-0"
 >
-  <div class="flex min-w-0">
+  <div
+    class="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2 pb-2 sm:flex-nowrap sm:pb-0"
+  >
     <ReleaseNavTabs {activeTab} onSelect={onSelectTab} {tabs} />
     <ReleaseNavActions {actions} {analyticsSurface} />
   </div>

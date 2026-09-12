@@ -89,6 +89,7 @@ import {
   type Map as MapLibreMap,
   type LayerSpecification,
 } from 'maplibre-gl'
+import type { Map as LeafletMap } from 'leaflet'
 import type { StyleSpecification as MapboxStyleSpecification } from 'mapbox-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import 'leaflet/dist/leaflet.css'
@@ -110,6 +111,7 @@ type Props = {
   leafletTileUrl?: string
   mapboxAccessToken?: string
   mapboxStyleUrl?: string
+  onLeafletMapReady?: (map: LeafletMap) => void | Promise<void>
   onMapReady?: (map: MapLibreMap) => void | Promise<void>
   renderer: Renderer
   styleUrl?: string
@@ -128,6 +130,7 @@ let {
   leafletTileUrl,
   mapboxAccessToken,
   mapboxStyleUrl,
+  onLeafletMapReady,
   onMapReady,
   renderer,
   styleUrl,
@@ -239,6 +242,7 @@ onMount(() => {
           leaflet
             .tileLayer(leafletTileUrl, { attribution: leafletAttribution })
             .addTo(map)
+          void onLeafletMapReady?.(map)
         } else {
           if (!style)
             throw new Error(m.guide_mapping_preview_style_and_basemap_required())
@@ -246,6 +250,7 @@ onMount(() => {
           const maplibreMap = maplibreLayer.getMaplibreMap()
           maplibreMap.once('idle', () => {
             void onMapReady?.(maplibreMap)
+            void onLeafletMapReady?.(map)
           })
         }
         remove = () => map.remove()

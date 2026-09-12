@@ -3,37 +3,33 @@ import { describe, expect, test } from 'bun:test'
 import { planCenstatdResourceLifecycle } from './censtatdResourceLifecycle.ts'
 
 describe('combined C&SD resource lifecycle', () => {
-  test('keeps the shared release open until its final resource', () => {
+  test('completes each resource independently', () => {
     expect(
       planCenstatdResourceLifecycle(['divisionStatistic', 'division', 'divisionArea']),
     ).toEqual([
       {
-        deferSourcePublish: true,
+        deferSourcePublish: false,
         reuseExistingRelease: false,
         type: 'divisionStatistic',
       },
       {
-        deferSourcePublish: true,
-        reuseExistingRelease: true,
+        deferSourcePublish: false,
+        reuseExistingRelease: false,
         type: 'division',
       },
       {
         deferSourcePublish: false,
-        reuseExistingRelease: true,
+        reuseExistingRelease: false,
         type: 'divisionArea',
       },
     ])
   })
 
-  test('reuses an existing release when resuming only missing resources', () => {
-    expect(
-      planCenstatdResourceLifecycle(['divisionArea'], {
-        releaseAlreadyExists: true,
-      }),
-    ).toEqual([
+  test('does not reuse siblings when resuming missing resources', () => {
+    expect(planCenstatdResourceLifecycle(['divisionArea'])).toEqual([
       {
         deferSourcePublish: false,
-        reuseExistingRelease: true,
+        reuseExistingRelease: false,
         type: 'divisionArea',
       },
     ])

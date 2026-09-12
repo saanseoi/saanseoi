@@ -1,4 +1,4 @@
-import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import {
   canonicalStatsField,
@@ -10,10 +10,12 @@ import {
   timestamps,
 } from '../shared'
 
-/** Latest canonical view only; revision history remains in the history shard. */
+const definitionVersion = { versionHash: text('versionHash').notNull().default('') }
+
+/** Latest published values for every retained reference period. */
 export const statsRecords = sqliteTable(
   'statsRecords',
-  { ...canonicalStatsRecord, ...timestamps },
+  { ...canonicalStatsRecord, ...definitionVersion, ...timestamps },
   table => [
     primaryKey({ columns: [table.id] }),
     index('statsRecords_dataset_period_idx').on(
@@ -30,38 +32,52 @@ export const statsRecords = sqliteTable(
 
 export const statsFields = sqliteTable(
   'statsFields',
-  { ...canonicalStatsField, ...timestamps },
-  table => [primaryKey({ columns: [table.datasetCode, table.fieldName] })],
+  { ...canonicalStatsField, ...definitionVersion, ...timestamps },
+  table => [
+    primaryKey({ columns: [table.datasetCode, table.fieldName, table.versionHash] }),
+  ],
 )
 
 export const statsMeasures = sqliteTable(
   'statsMeasures',
-  { ...canonicalStatsMeasure, ...timestamps },
-  table => [primaryKey({ columns: [table.datasetCode, table.measureCode] })],
+  { ...canonicalStatsMeasure, ...definitionVersion, ...timestamps },
+  table => [
+    primaryKey({ columns: [table.datasetCode, table.measureCode, table.versionHash] }),
+  ],
 )
 
 export const statsMeasuresI18n = sqliteTable(
   'statsMeasuresI18n',
-  { ...canonicalStatsMeasureI18n, ...timestamps },
+  { ...canonicalStatsMeasureI18n, ...definitionVersion, ...timestamps },
   table => [
-    primaryKey({ columns: [table.datasetCode, table.measureCode, table.locale] }),
+    primaryKey({
+      columns: [table.datasetCode, table.measureCode, table.locale, table.versionHash],
+    }),
   ],
 )
 
 export const statsFieldsI18n = sqliteTable(
   'statsFieldsI18n',
-  { ...canonicalStatsFieldI18n, ...timestamps },
+  { ...canonicalStatsFieldI18n, ...definitionVersion, ...timestamps },
   table => [
-    primaryKey({ columns: [table.datasetCode, table.fieldName, table.locale] }),
+    primaryKey({
+      columns: [table.datasetCode, table.fieldName, table.locale, table.versionHash],
+    }),
   ],
 )
 
 export const statsValuesI18n = sqliteTable(
   'statsValuesI18n',
-  { ...canonicalStatsValueI18n, ...timestamps },
+  { ...canonicalStatsValueI18n, ...definitionVersion, ...timestamps },
   table => [
     primaryKey({
-      columns: [table.datasetCode, table.dimensionCode, table.valueCode, table.locale],
+      columns: [
+        table.datasetCode,
+        table.dimensionCode,
+        table.valueCode,
+        table.locale,
+        table.versionHash,
+      ],
     }),
   ],
 )

@@ -7,8 +7,8 @@ import type {
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
-import { prepareHkgovCenstatdDistrictUpload } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
-import { prepareHkgovCenstatdDistrictStatisticUpload } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdDistrictStatistics.ts'
+import { prepareHkgovCenstatdDistrictUpload } from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatd.ts'
+import { prepareHkgovCenstatdDistrictStatisticUpload } from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatdDistrictStatistics.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 import { planCenstatdResourceLifecycle } from '../lib/censtatdResourceLifecycle.ts'
 import { unzipSelected } from '../lib/zip.ts'
@@ -107,7 +107,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
           'source-archive-sha256': sourceArchiveSha256,
           'source-version': sourceVersion,
           theme: 'stats',
-          type: 'divisionStatistic',
+          'resource-type': 'divisionStatistic',
           // Unreviewed publisher measures must be curated interactively.
           yes: Boolean(args.options.yes),
         },
@@ -147,7 +147,7 @@ export async function runHkgovCenstatdDistrictStatisticIngestCommand(
           'source-archive-sha256': sourceArchiveSha256,
           'source-version': sourceVersion,
           theme: 'divisions',
-          type: 'divisionArea',
+          'resource-type': 'divisionArea',
           yes: true,
         },
       },

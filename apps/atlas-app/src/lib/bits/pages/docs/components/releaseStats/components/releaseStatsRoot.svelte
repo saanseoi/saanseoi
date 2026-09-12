@@ -15,6 +15,8 @@ import Panel from './releaseStatsPanel.svelte'
 import Results from './releaseStatsResults.svelte'
 
 type Props = {
+  resourceType?: string
+  isFirstRelease?: boolean
   stats?: ReleaseStat[]
   districtAreas?: ReleaseStatsDistrictArea[]
   districtNames?: ReleaseStatsDistrictName[]
@@ -25,6 +27,8 @@ type Props = {
   activeHeadingId?: string | null
 }
 let {
+  resourceType,
+  isFirstRelease = false,
   stats = [],
   districtAreas = [],
   districtNames,
@@ -36,6 +40,8 @@ let {
 }: Props = $props()
 let model = $derived(
   createReleaseStatsPresentation({
+    resourceType,
+    isFirstRelease,
     stats,
     districtAreas,
     districtNames: districtNames ?? [],

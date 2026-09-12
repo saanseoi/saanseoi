@@ -1,44 +1,76 @@
 import {
-  defaultApiLocalesByProfile,
-  parseRequestedApiLocales,
-  type ApiProfileName,
-  type RequestedApiLocaleSelection,
-} from '@repo/core/apiLocales'
+  getPublicationReadiness,
+  hasSupersedingPublication,
+  guardPublicationRead,
+  hasHistoricalSelectors,
+  PublicationReadUnavailableError,
+} from '../db/publicationState'
+import { resolveDataRegion, type ApiRegion } from '../schema/region'
+import type { ApiProfileName } from '@repo/core/apiLocales'
 import {
   resolveApiReleaseSetSnapshotsForRequest,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
 import { resolveSnapshotVersionState } from '@repo/core/pipeline/db/snapshotReplay.ts'
-
+import type { ResolvedSnapshotVersion } from '@repo/core/pipeline/db/snapshotReplay.ts'
+import {
+  hasCurrentDivisionGeometrySnapshot,
+  listReplayedDivisionAreasByDivisionIds,
+  listReplayedDivisionBoundariesByDivisionIds,
+} from '../db/divisionGeometryReplay'
 import {
   listReplayedDivisionRecords,
+  hasCurrentDivisionSnapshot,
+  listDivisionRecordsCurrent,
+  countDivisionsCurrent,
+  listDivisionRecordsCurrentByIds,
   listDivisionAreasCurrentByDivisionIds,
   listDivisionBoundariesCurrentByDivisionIds,
   type DivisionAreaRecord,
   type DivisionBoundaryRecord,
   type DivisionLocaleSelection,
   type DivisionRecord,
-  type DivisionSourceKeys,
 } from '../db/divisions'
-import {
-  buildApiVersionMetadata,
-  buildJsonApiDetailDocument,
-  buildJsonApiListDocument,
-  buildSnapshotNotReadyResponse,
-  resolveApiMetaLocales,
-  type ApiDocumentLocales,
-  type ApiVersionMetadata,
-  type SnapshotNotReadyResponse,
-} from '../lib/api'
 import { runWithD1ReadRetry } from '../lib/d1'
 import type { AppEnv } from '../types'
-import type { SourcesPayload } from '../schema'
 import {
   resolveApiReleaseSetAccessAttribution,
   resolveOptionalApiReleaseSetAccessAttribution,
   type AccessAttribution,
 } from './accessAnalytics'
+import {
+  buildDetailDocument,
+  storedDivisionHierarchyIdentifiers,
+  buildDivisionRouteState,
+  buildListDocument,
+  buildSnapshotNotReadyDivisionResponse,
+  buildVariantUnavailableResponse,
+  createDivisionResource,
+  createIncludedDivisionGeometryResource,
+  matchesDivisionFilters,
+  requestedAreaCohort,
+  requestedGeometryKinds,
+  requestedGeometryVariants,
+  requestedIncludes,
+  type ActiveDivisionSnapshot,
+  type DivisionDetailQuery,
+  type DivisionDetailResult,
+  type DivisionFilters,
+  type DivisionListQuery,
+  type DivisionListResult,
+  type DivisionRouteState,
+  type IncludedResourcePayload,
+} from './divisionsPresentation'
+
+export {
+  createIncludedDivisionGeometryResource,
+  createIncludedDivisionResource,
+  type DivisionDetailQuery,
+  type DivisionDetailResult,
+  type DivisionListQuery,
+  type DivisionListResult,
+} from './divisionsPresentation'
 
 export type RequestedDivisionVersion = 'divisions/v0' | 'divisions/v0.1'
 export type RequestedDivisionApiVersion = '0.1'
@@ -46,6 +78,12 @@ export type ResolvedDivisionApiVersion = 'api-divisions-v0.1'
 export type DivisionProfile = ApiProfileName
 
 export type DivisionServiceDependencies = {
+  hasSupersedingPublication: typeof hasSupersedingPublication
+  getPublicationReadiness: typeof getPublicationReadiness
+  hasCurrentDivisionSnapshot: typeof hasCurrentDivisionSnapshot
+  listDivisionRecordsCurrent: typeof listDivisionRecordsCurrent
+  countDivisionsCurrent: typeof countDivisionsCurrent
+  listDivisionRecordsCurrentByIds: typeof listDivisionRecordsCurrentByIds
   resolveApiReleaseSetSnapshotsForRequest: typeof resolveApiReleaseSetSnapshotsForRequest
   resolvePublishedSnapshotForResourceTypeRegionCohortKey: typeof resolvePublishedSnapshotForResourceTypeRegionCohortKey
   resolveSnapshotReplayPlan: typeof resolveSnapshotReplayPlan
@@ -53,9 +91,18 @@ export type DivisionServiceDependencies = {
   listReplayedDivisionRecords: typeof listReplayedDivisionRecords
   listDivisionAreasCurrentByDivisionIds: typeof listDivisionAreasCurrentByDivisionIds
   listDivisionBoundariesCurrentByDivisionIds: typeof listDivisionBoundariesCurrentByDivisionIds
+  hasCurrentDivisionGeometrySnapshot: typeof hasCurrentDivisionGeometrySnapshot
+  listReplayedDivisionAreasByDivisionIds: typeof listReplayedDivisionAreasByDivisionIds
+  listReplayedDivisionBoundariesByDivisionIds: typeof listReplayedDivisionBoundariesByDivisionIds
 }
 
 const defaultDivisionServiceDependencies: DivisionServiceDependencies = {
+  getPublicationReadiness,
+  hasSupersedingPublication,
+  hasCurrentDivisionSnapshot,
+  listDivisionRecordsCurrent,
+  countDivisionsCurrent,
+  listDivisionRecordsCurrentByIds,
   resolveApiReleaseSetSnapshotsForRequest,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveSnapshotReplayPlan,
@@ -63,761 +110,9 @@ const defaultDivisionServiceDependencies: DivisionServiceDependencies = {
   listReplayedDivisionRecords,
   listDivisionAreasCurrentByDivisionIds,
   listDivisionBoundariesCurrentByDivisionIds,
-}
-
-type JsonObject = Record<string, unknown>
-
-type DivisionPosition =
-  | [longitude: number, latitude: number]
-  | [longitude: number, latitude: number, elevation: number]
-
-type DivisionGeometry =
-  | { type: 'Point'; coordinates: DivisionPosition }
-  | { type: 'Polygon'; coordinates: DivisionPosition[][] }
-  | { type: 'MultiPolygon'; coordinates: DivisionPosition[][][] }
-
-function isDivisionPosition(value: unknown): value is DivisionPosition {
-  return (
-    Array.isArray(value) &&
-    (value.length === 2 || value.length === 3) &&
-    value.every(
-      coordinate => typeof coordinate === 'number' && Number.isFinite(coordinate),
-    )
-  )
-}
-
-function isDivisionPolygon(value: unknown): value is DivisionPosition[][] {
-  return (
-    Array.isArray(value) &&
-    value.length > 0 &&
-    value.every(
-      ring => Array.isArray(ring) && ring.length >= 4 && ring.every(isDivisionPosition),
-    )
-  )
-}
-
-function asDivisionGeometry(value: unknown): DivisionGeometry | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
-
-  const { coordinates, type } = value as Record<string, unknown>
-  if (type === 'Point' && isDivisionPosition(coordinates)) {
-    return { type, coordinates }
-  }
-  if (type === 'Polygon' && isDivisionPolygon(coordinates)) {
-    return { type, coordinates }
-  }
-  if (
-    type === 'MultiPolygon' &&
-    Array.isArray(coordinates) &&
-    coordinates.length > 0 &&
-    coordinates.every(isDivisionPolygon)
-  ) {
-    return { type, coordinates }
-  }
-
-  return null
-}
-
-type DivisionHierarchyResourceIdentifier = {
-  type: 'divisions'
-  id: string
-  meta?: {
-    name?: string
-    subType?: string
-  }
-}
-
-type DivisionResourcePayload = {
-  type: 'divisions'
-  id: string
-  attributes: {
-    level: number | null
-    type: string
-    divisionCode?: string
-    snapshotId?: string
-    geometry?: DivisionGeometry | null
-    bbox?: [number, number, number, number] | null
-    cartography?: JsonObject | null
-    wikidata?: string | null
-    createdAt?: string
-    updatedAt?: string
-    sources?: SourcesPayload | null
-    identifiers?: unknown
-    sourceKeys?: DivisionSourceKeys | null
-    variant?: string
-    i18n?: DivisionRecord['i18n']
-  }
-  relationships: {
-    hierarchy: {
-      data: DivisionHierarchyResourceIdentifier[]
-    }
-    areas?: { data: Array<{ type: 'division-areas'; id: string }> }
-    boundaries?: { data: Array<{ type: 'division-boundaries'; id: string }> }
-  }
-  links: {
-    self: string
-  }
-}
-
-type DivisionGeometryResourcePayload = {
-  type: 'division-areas' | 'division-boundaries'
-  id: string
-  attributes: {
-    divisionId?: string
-    leftDivisionId?: string
-    rightDivisionId?: string
-    geometry: JsonObject | null
-    bbox: [number, number, number, number] | null
-    type: string
-    isLand: boolean | null
-    isTerritorial: boolean | null
-    sources?: SourcesPayload | null
-    sourceKeys?: unknown
-    variant?: string
-  }
-}
-
-type IncludedResourcePayload = DivisionResourcePayload | DivisionGeometryResourcePayload
-
-type DivisionRouteState = {
-  requestedVersionPath: RequestedDivisionVersion
-  requestedApiVersion: RequestedDivisionApiVersion
-  requestedApiFamily: 'divisions'
-  resolvedApiVersion: ResolvedDivisionApiVersion
-  profile: DivisionProfile
-  localeSelection: DivisionLocaleSelection
-}
-
-type DivisionFilters = {
-  level?: number
-  divisionType?: string
-  parent?: string
-}
-
-type DivisionListDocument = {
-  jsonapi: {
-    version: '1.1'
-  }
-  links: Record<string, string>
-  data: DivisionResourcePayload[]
-  included?: IncludedResourcePayload[]
-  meta: ApiVersionMetadata & {
-    apiCatalogRevision: string
-    catalogPublishedAt: string
-    cohort: string
-    domain: string
-    profile: DivisionProfile
-    locales: ApiDocumentLocales
-    filters: DivisionFilters
-    page: {
-      limit: number
-      offset: number
-      total: number
-    }
-  }
-}
-
-type DivisionDetailDocument = {
-  jsonapi: {
-    version: '1.1'
-  }
-  links: {
-    permalink?: string
-    self: string
-  }
-  data: DivisionResourcePayload
-  included?: IncludedResourcePayload[]
-  meta: ApiVersionMetadata & {
-    apiCatalogRevision: string
-    catalogPublishedAt: string
-    cohort: string
-    domain: string
-    profile: DivisionProfile
-    locales: ApiDocumentLocales
-  }
-}
-
-type DivisionSnapshotNotReadyResponse = SnapshotNotReadyResponse<'division'>
-
-type NotFoundResponse = {
-  httpStatus: 404
-  error: 'not_found'
-  message: string
-}
-
-type VariantUnavailableResponse = {
-  httpStatus: 409
-  error: 'variant_unavailable'
-  message: string
-}
-
-type ActiveDivisionSnapshot = {
-  snapshotId: string
-  divisionSnapshotIds: string[]
-  apiReleaseSet: string
-  apiCatalogRevision: string
-  catalogPublishedAt: string
-  cohortKey: string
-  domainCode: string
-  effectiveFrom: string | null
-  schemaVersion: string
-  rulesetVersion: string
-  areaSnapshotId: string | null
-  boundarySnapshotId: string | null
-}
-
-export type DivisionListQuery = {
-  catalogRevision?: string
-  cohort?: string
-  domain?: string
-  effectiveAt?: string
-  knownAt?: string
-  releaseSet?: string
-  profile?: string
-  locales?: string
-  include?: string
-  transform?: string
-  'page[limit]'?: number
-  'page[offset]'?: number
-  'filter[level]'?: number
-  'filter[divisionType]'?: string
-  'filter[parent]'?: string
-}
-
-export type DivisionDetailQuery = {
-  catalogRevision?: string
-  cohort?: string
-  domain?: string
-  effectiveAt?: string
-  knownAt?: string
-  releaseSet?: string
-  profile?: string
-  locales?: string
-  include?: string
-  transform?: string
-}
-
-export type DivisionListResult =
-  | {
-      status: 200
-      body: DivisionListDocument
-    }
-  | {
-      status: 503
-      body: DivisionSnapshotNotReadyResponse
-    }
-  | {
-      status: 409
-      body: VariantUnavailableResponse
-    }
-
-export type DivisionDetailResult =
-  | {
-      status: 200
-      body: DivisionDetailDocument
-    }
-  | {
-      status: 404
-      body: NotFoundResponse
-    }
-  | {
-      status: 503
-      body: DivisionSnapshotNotReadyResponse
-    }
-  | {
-      status: 409
-      body: VariantUnavailableResponse
-    }
-
-function parseDivisionProfile(value?: string): DivisionProfile {
-  if (value === 'compact' || value === 'full' || value === 'map') {
-    return value
-  }
-
-  return 'default'
-}
-
-function buildDivisionRouteState(args: {
-  requestedVersionPath: RequestedDivisionVersion
-  requestedApiVersion: RequestedDivisionApiVersion
-  resolvedApiVersion: ResolvedDivisionApiVersion
-  profile?: string
-  locales?: string
-}) {
-  const profile = parseDivisionProfile(args.profile)
-  const localeSelectionDefaults: RequestedApiLocaleSelection =
-    profile === 'full'
-      ? {
-          mode: 'all',
-          locales: ['*'],
-        }
-      : {
-          mode: 'requested',
-          locales: defaultApiLocalesByProfile[profile],
-        }
-  const localeSelection = parseRequestedApiLocales(
-    args.locales,
-    localeSelectionDefaults,
-  )
-
-  return {
-    requestedVersionPath: args.requestedVersionPath,
-    requestedApiVersion: args.requestedApiVersion,
-    requestedApiFamily: 'divisions',
-    resolvedApiVersion: args.resolvedApiVersion,
-    profile,
-    localeSelection,
-  } satisfies DivisionRouteState
-}
-
-function isDefaultDivisionProfile(profile: DivisionProfile) {
-  return profile === 'default' || profile === 'map' || profile === 'full'
-}
-
-function isMapDivisionProfile(profile: DivisionProfile) {
-  return profile === 'map' || profile === 'full'
-}
-
-function projectDivisionI18n(
-  i18n: DivisionRecord['i18n'],
-  profile: DivisionProfile,
-): DivisionRecord['i18n'] | undefined {
-  const projectedEntries = Object.entries(i18n)
-    .map(([locale, value]) => {
-      const projectedValue =
-        profile === 'full'
-          ? {
-              name: value.name,
-              nameVariant: value.nameVariant ?? null,
-              nameAlts: value.nameAlts ?? null,
-              nameRules: value.nameRules ?? null,
-            }
-          : {
-              name: value.name,
-            }
-
-      return [locale, projectedValue] as const
-    })
-    .filter(([, value]) => Object.values(value).some(field => field !== undefined))
-
-  if (projectedEntries.length === 0) {
-    return undefined
-  }
-
-  return Object.fromEntries(projectedEntries)
-}
-
-function buildDivisionHierarchyRelationshipData(
-  divisionId: string,
-  hierarchy: unknown,
-): DivisionHierarchyResourceIdentifier[] {
-  if (!Array.isArray(hierarchy)) {
-    return []
-  }
-
-  const objectChain = hierarchy.flatMap(entry => {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-      return []
-    }
-
-    const record = entry as Record<string, unknown>
-    const id =
-      typeof record.division_id === 'string'
-        ? record.division_id
-        : typeof record.divisionId === 'string'
-          ? record.divisionId
-          : typeof record.id === 'string'
-            ? record.id
-            : null
-
-    const normalisedId = id?.trim()
-
-    if (!normalisedId) {
-      return []
-    }
-
-    const normalisedI18n =
-      record.i18n && typeof record.i18n === 'object' && !Array.isArray(record.i18n)
-        ? (record.i18n as Record<string, unknown>)
-        : null
-    const englishI18n =
-      normalisedI18n?.en &&
-      typeof normalisedI18n.en === 'object' &&
-      !Array.isArray(normalisedI18n.en)
-        ? (normalisedI18n.en as Record<string, unknown>)
-        : null
-    const zhHantI18n =
-      normalisedI18n?.['zh-hant'] &&
-      typeof normalisedI18n['zh-hant'] === 'object' &&
-      !Array.isArray(normalisedI18n['zh-hant'])
-        ? (normalisedI18n['zh-hant'] as Record<string, unknown>)
-        : null
-    const name =
-      typeof record.name === 'string'
-        ? record.name
-        : typeof englishI18n?.name === 'string'
-          ? englishI18n.name
-          : typeof zhHantI18n?.name === 'string'
-            ? zhHantI18n.name
-            : undefined
-    const rawSubType =
-      typeof record.subType === 'string'
-        ? record.subType
-        : typeof record.subtype === 'string'
-          ? record.subtype
-          : typeof record.type === 'string'
-            ? record.type
-            : null
-
-    return {
-      type: 'divisions' as const,
-      id: normalisedId,
-      meta:
-        name || rawSubType
-          ? {
-              ...(name ? { name } : {}),
-              ...(rawSubType ? { subType: rawSubType } : {}),
-            }
-          : undefined,
-    }
-  })
-
-  if (objectChain.length > 0) {
-    return objectChain.filter(entry => entry.id !== divisionId)
-  }
-
-  const candidateIdChains = hierarchy
-    .map(entry => {
-      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
-        return []
-      }
-
-      const ids = (entry as Record<string, unknown>).ids
-
-      return Array.isArray(ids)
-        ? ids.flatMap(value => {
-            if (typeof value !== 'string') {
-              return []
-            }
-
-            const id = value.trim()
-            return id ? [id] : []
-          })
-        : []
-    })
-    .filter(ids => ids.length > 0)
-
-  if (candidateIdChains.length === 0) {
-    return []
-  }
-
-  const ids = candidateIdChains.reduce((selected, current) =>
-    current.length > selected.length ? current : selected,
-  )
-
-  return ids
-    .filter(id => id !== divisionId)
-    .map(id => ({
-      type: 'divisions' as const,
-      id,
-    }))
-}
-
-function matchesDivisionFilters(record: DivisionRecord, filters: DivisionFilters) {
-  if (filters.level !== undefined && record.division.level !== filters.level)
-    return false
-  if (filters.divisionType && record.division.type !== filters.divisionType)
-    return false
-  if (!filters.parent) return true
-  const hierarchy = record.division.hierarchy
-  const parent = Array.isArray(hierarchy) ? hierarchy.at(-1) : null
-  return (
-    parent !== null &&
-    typeof parent === 'object' &&
-    (parent as Record<string, unknown>).division_id === filters.parent
-  )
-}
-
-function createDivisionResource(args: {
-  baseUrl: string
-  routeState: DivisionRouteState
-  record: DivisionRecord
-  areas?: DivisionAreaRecord[]
-  boundaries?: DivisionBoundaryRecord[]
-}): DivisionResourcePayload {
-  const { baseUrl, routeState, record } = args
-  const { division, i18n } = record
-  const attributes: DivisionResourcePayload['attributes'] = {
-    level: division.level,
-    type: division.type,
-    ...(division.divisionCode ? { divisionCode: division.divisionCode } : {}),
-  }
-
-  if (isDefaultDivisionProfile(routeState.profile)) {
-    attributes.wikidata = division.wikidata
-    attributes.createdAt = division.createdAt
-    attributes.updatedAt = division.updatedAt
-  }
-
-  if (isMapDivisionProfile(routeState.profile)) {
-    attributes.geometry = asDivisionGeometry(division.geometry)
-    attributes.bbox = (division.bbox as [number, number, number, number] | null) ?? null
-    attributes.cartography = (division.cartography as JsonObject | null) ?? null
-  }
-
-  if (routeState.profile === 'full') {
-    attributes.snapshotId = division.snapshotId
-    attributes.sources = (division.sources as SourcesPayload | null) ?? null
-    attributes.identifiers = division.identifiers
-    attributes.sourceKeys = division.sourceKeys
-  }
-
-  const projectedI18n = projectDivisionI18n(i18n, routeState.profile)
-
-  if (projectedI18n) {
-    attributes.i18n = projectedI18n
-  }
-
-  return {
-    type: 'divisions',
-    id: division.id,
-    attributes,
-    relationships: {
-      hierarchy: {
-        data: buildDivisionHierarchyRelationshipData(division.id, division.hierarchy),
-      },
-      ...(args.areas
-        ? {
-            areas: {
-              data: args.areas.map(area => ({
-                type: 'division-areas' as const,
-                id: area.id,
-              })),
-            },
-          }
-        : {}),
-      ...(args.boundaries
-        ? {
-            boundaries: {
-              data: args.boundaries.map(boundary => ({
-                type: 'division-boundaries' as const,
-                id: boundary.id,
-              })),
-            },
-          }
-        : {}),
-    },
-    links: {
-      self: `${baseUrl}/${routeState.requestedVersionPath}/${division.id}`,
-    },
-  }
-}
-
-/** Projects a Division resource for inclusion from another resource family. */
-export function createIncludedDivisionResource(args: {
-  baseUrl: string
-  requestedVersionPath: RequestedDivisionVersion
-  profile: DivisionProfile
-  localeSelection: RequestedApiLocaleSelection
-  record: DivisionRecord
-}) {
-  return createDivisionResource({
-    baseUrl: args.baseUrl,
-    routeState: {
-      requestedVersionPath: args.requestedVersionPath,
-      requestedApiVersion: '0.1',
-      requestedApiFamily: 'divisions',
-      resolvedApiVersion: 'api-divisions-v0.1',
-      profile: args.profile,
-      localeSelection: args.localeSelection,
-    },
-    record: args.record,
-  })
-}
-
-function buildListDocument(args: {
-  url: URL
-  routeState: DivisionRouteState
-  activeSnapshot: ActiveDivisionSnapshot
-  records: DivisionRecord[]
-  includedRecords: IncludedResourcePayload[]
-  areasByDivision: Map<string, DivisionAreaRecord[]>
-  boundariesByDivision: Map<string, DivisionBoundaryRecord[]>
-  limit: number
-  offset: number
-  total: number
-  filters: DivisionFilters
-}): DivisionListDocument {
-  const data = args.records.map(record =>
-    createDivisionResource({
-      baseUrl: args.url.origin,
-      routeState: args.routeState,
-      record,
-      areas: args.areasByDivision.get(record.division.id),
-      boundaries: args.boundariesByDivision.get(record.division.id),
-    }),
-  )
-
-  const included = args.includedRecords.length > 0 ? args.includedRecords : undefined
-
-  return buildJsonApiListDocument<
-    DivisionResourcePayload,
-    DivisionListDocument['meta'],
-    IncludedResourcePayload
-  >({
-    url: args.url,
-    limit: args.limit,
-    offset: args.offset,
-    total: args.total,
-    meta: {
-      ...buildApiVersionMetadata({
-        requestedApiVersion: args.routeState.requestedApiVersion,
-        requestedApiFamily: args.routeState.requestedApiFamily,
-        resolvedApiVersion: args.routeState.resolvedApiVersion,
-        apiReleaseSet: args.activeSnapshot.apiReleaseSet,
-        schemaVersion: args.activeSnapshot.schemaVersion,
-        rulesetVersion: args.activeSnapshot.rulesetVersion,
-        profile: args.routeState.profile,
-      }),
-      profile: args.routeState.profile,
-      apiCatalogRevision: args.activeSnapshot.apiCatalogRevision,
-      catalogPublishedAt: args.activeSnapshot.catalogPublishedAt,
-      cohort: args.activeSnapshot.cohortKey,
-      domain: args.activeSnapshot.domainCode,
-      locales: resolveApiMetaLocales(args.routeState.localeSelection),
-      filters: args.filters,
-      page: {
-        limit: args.limit,
-        offset: args.offset,
-        total: args.total,
-      },
-    },
-    data,
-    included,
-    permalink: buildDivisionPermalink({
-      url: args.url,
-      routeState: args.routeState,
-      activeSnapshot: args.activeSnapshot,
-      limit: args.limit,
-      offset: args.offset,
-    }),
-  })
-}
-
-function buildDetailDocument(args: {
-  url: URL
-  routeState: DivisionRouteState
-  activeSnapshot: ActiveDivisionSnapshot
-  record: DivisionRecord
-  includedRecords: IncludedResourcePayload[]
-  areasByDivision: Map<string, DivisionAreaRecord[]>
-  boundariesByDivision: Map<string, DivisionBoundaryRecord[]>
-}): DivisionDetailDocument {
-  const data = createDivisionResource({
-    baseUrl: args.url.origin,
-    routeState: args.routeState,
-    record: args.record,
-    areas: args.areasByDivision.get(args.record.division.id),
-    boundaries: args.boundariesByDivision.get(args.record.division.id),
-  })
-
-  const included = args.includedRecords.length > 0 ? args.includedRecords : undefined
-
-  return buildJsonApiDetailDocument<
-    DivisionResourcePayload,
-    DivisionDetailDocument['meta'],
-    IncludedResourcePayload
-  >({
-    url: args.url,
-    data,
-    included,
-    meta: {
-      ...buildApiVersionMetadata({
-        requestedApiVersion: args.routeState.requestedApiVersion,
-        requestedApiFamily: args.routeState.requestedApiFamily,
-        resolvedApiVersion: args.routeState.resolvedApiVersion,
-        apiReleaseSet: args.activeSnapshot.apiReleaseSet,
-        schemaVersion: args.activeSnapshot.schemaVersion,
-        rulesetVersion: args.activeSnapshot.rulesetVersion,
-        profile: args.routeState.profile,
-      }),
-      profile: args.routeState.profile,
-      apiCatalogRevision: args.activeSnapshot.apiCatalogRevision,
-      catalogPublishedAt: args.activeSnapshot.catalogPublishedAt,
-      cohort: args.activeSnapshot.cohortKey,
-      domain: args.activeSnapshot.domainCode,
-      locales: resolveApiMetaLocales(args.routeState.localeSelection),
-    },
-    permalink: buildDivisionPermalink({
-      url: args.url,
-      routeState: args.routeState,
-      activeSnapshot: args.activeSnapshot,
-    }),
-  })
-}
-
-function buildDivisionPermalink(args: {
-  activeSnapshot: ActiveDivisionSnapshot
-  limit?: number
-  offset?: number
-  routeState: DivisionRouteState
-  url: URL
-}) {
-  const permalink = new URL(args.url)
-  const exactVersionPath = `divisions/${args.routeState.resolvedApiVersion.replace(
-    /^api-divisions-/,
-    '',
-  )}`
-  permalink.pathname = permalink.pathname.replace(
-    /^\/divisions\/v0(?:\.\d+)?/,
-    `/${exactVersionPath}`,
-  )
-  permalink.searchParams.delete('effectiveAt')
-  permalink.searchParams.set('catalogRevision', args.activeSnapshot.apiCatalogRevision)
-  permalink.searchParams.set('knownAt', args.activeSnapshot.catalogPublishedAt)
-  permalink.searchParams.set('releaseSet', args.activeSnapshot.apiReleaseSet)
-  permalink.searchParams.set('cohort', args.activeSnapshot.cohortKey)
-  permalink.searchParams.set('domain', args.activeSnapshot.domainCode)
-  permalink.searchParams.set('profile', args.routeState.profile)
-  permalink.searchParams.set(
-    'locales',
-    args.routeState.localeSelection.mode === 'all'
-      ? '*'
-      : args.routeState.localeSelection.locales.join(','),
-  )
-
-  const includes = requestedIncludes(permalink.searchParams.get('include') ?? undefined)
-  const normalisedIncludes = [...includes].map(include => {
-    if (include === 'areas') {
-      return `areas:${
-        requestedGeometryVariants('areas', args.activeSnapshot.domainCode).area ??
-        args.activeSnapshot.domainCode
-      }`
-    }
-    if (include === 'boundaries') {
-      return `boundaries:${
-        requestedGeometryVariants('boundaries', args.activeSnapshot.domainCode)
-          .boundary ?? args.activeSnapshot.domainCode
-      }`
-    }
-    return include
-  })
-  permalink.searchParams.set(
-    'include',
-    normalisedIncludes.length > 0 ? normalisedIncludes.join(',') : 'none',
-  )
-  if (args.limit !== undefined) {
-    permalink.searchParams.set('page[limit]', String(args.limit))
-  }
-  if (args.offset !== undefined) {
-    permalink.searchParams.set('page[offset]', String(args.offset))
-  }
-  permalink.searchParams.sort()
-  return permalink.toString()
-}
-
-function buildSnapshotNotReadyDivisionResponse(): DivisionSnapshotNotReadyResponse {
-  return buildSnapshotNotReadyResponse('division')
+  hasCurrentDivisionGeometrySnapshot,
+  listReplayedDivisionAreasByDivisionIds,
+  listReplayedDivisionBoundariesByDivisionIds,
 }
 
 async function getActiveDivisionSnapshot(
@@ -826,7 +121,7 @@ async function getActiveDivisionSnapshot(
   variants: { area?: string; boundary?: string },
   selectors: Pick<
     DivisionListQuery,
-    'catalogRevision' | 'cohort' | 'effectiveAt' | 'knownAt' | 'releaseSet'
+    'region' | 'catalogRevision' | 'cohort' | 'effectiveAt' | 'knownAt' | 'releaseSet'
   >,
   resolveReleaseSet: DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'] = resolveApiReleaseSetSnapshotsForRequest,
 ): Promise<ActiveDivisionSnapshot | null> {
@@ -837,7 +132,7 @@ async function getActiveDivisionSnapshot(
       domainCode,
       effectiveAt: selectors.effectiveAt,
       knownAt: selectors.knownAt,
-      regionCode: 'hk',
+      regionCode: resolveDataRegion(selectors.region),
       releaseSet: selectors.releaseSet,
     }),
   )
@@ -889,19 +184,21 @@ async function getActiveDivisionSnapshot(
 }
 
 async function resolveRequestedAreaSnapshot(args: {
+  region?: ApiRegion
   metaDb: AppEnv['Variables']['metaDb']
   cohortKey: string | undefined
   variant: string | undefined
   resolvePublishedSnapshotForResourceTypeRegionCohortKey: DivisionServiceDependencies['resolvePublishedSnapshotForResourceTypeRegionCohortKey']
 }) {
-  if (!args.cohortKey || !args.variant) return null
+  const { cohortKey, variant } = args
+  if (!cohortKey || !variant) return null
   return runWithD1ReadRetry(() =>
     args.resolvePublishedSnapshotForResourceTypeRegionCohortKey(
       args.metaDb as never,
       'divisionArea',
-      'hk',
-      args.cohortKey!,
-      { variant: args.variant! },
+      resolveDataRegion(args.region),
+      cohortKey,
+      { variant },
     ),
   )
 }
@@ -934,100 +231,106 @@ async function replayDivisionSnapshot(args: {
   )
 }
 
-function requestedIncludes(value: string | undefined) {
-  return new Set(
-    (value ?? '')
-      .split(',')
-      .map(item => item.trim())
-      .filter(item => Boolean(item) && item !== 'none'),
-  )
-}
-
-function requestedGeometryVariants(
-  value: string | undefined,
-  domainCode: string,
-  transform?: string,
-) {
-  const includes = requestedIncludes(value)
-  const area = [...includes].find(item => item.startsWith('areas:'))
-  const boundary = [...includes].find(item => item.startsWith('boundaries:'))
-  const requestedArea = area?.slice('areas:'.length)
-  const areaVariant =
-    requestedArea?.split('@', 1)[0] ||
-    (domainCode === 'geographic' ? 'overture' : undefined)
-  return {
-    area:
-      transform &&
-      /^(?:hkgov-had|hkgov-censtatd(?:-landclipped)?|hkgov-censtatd-hma|hkgov-pland-pu|hkgov-pland-new-town)$/.test(
-        areaVariant ?? '',
-      )
-        ? `${areaVariant}:${transform}`
-        : areaVariant,
-    boundary:
-      boundary?.slice('boundaries:'.length) ||
-      (domainCode === 'geographic' ? 'overture' : undefined),
-  }
-}
-
-function requestedAreaCohort(value: string | undefined) {
-  const area = [...requestedIncludes(value)].find(item => item.startsWith('areas:'))
-  const separator = area?.indexOf('@') ?? -1
-  return separator >= 0 ? area?.slice(separator + 1) : undefined
-}
-
-function requestedGeometryKinds(value: string | undefined) {
-  const includes = requestedIncludes(value)
-  return {
-    area:
-      includes.has('areas') || [...includes].some(item => item.startsWith('areas:')),
-    boundary:
-      includes.has('boundaries') ||
-      [...includes].some(item => item.startsWith('boundaries:')),
-  }
-}
-
-function buildVariantUnavailableResponse(args: {
-  kind: 'areas' | 'boundaries'
-  variant: string
-  cohortKey?: string
-}): VariantUnavailableResponse {
-  const requested = `${args.kind}:${args.variant}${
-    args.cohortKey ? `@${args.cohortKey}` : ''
-  }`
-  return {
-    httpStatus: 409,
-    error: 'variant_unavailable',
-    message: args.cohortKey
-      ? `The requested ${requested} geometry cohort is not published.`
-      : `The requested ${requested} variant is not available in the active division release set.`,
-  }
-}
-
 async function loadDivisionGeometry(args: {
   currentDb: AppEnv['Variables']['currentDb']
+  metaDb: AppEnv['Variables']['metaDb']
+  historyDbsByBinding: AppEnv['Variables']['historyDbsByBinding']
   snapshot: ActiveDivisionSnapshot
   areaSnapshotId?: string | null
   divisionIds: string[]
   variants?: { area?: string; boundary?: string }
   includeArea?: boolean
   includeBoundary?: boolean
-  listDivisionAreasCurrentByDivisionIds: DivisionServiceDependencies['listDivisionAreasCurrentByDivisionIds']
-  listDivisionBoundariesCurrentByDivisionIds: DivisionServiceDependencies['listDivisionBoundariesCurrentByDivisionIds']
+  allowHistory: boolean
+  dependencies: DivisionServiceDependencies
 }) {
+  const dependencies = args.dependencies
+  async function readSnapshot<T>(
+    snapshotId: string,
+    kind: 'divisionArea' | 'divisionBoundary',
+    readCurrent: () => Promise<T[]>,
+    readHistory: (versions: Iterable<ResolvedSnapshotVersion>) => Promise<T[]>,
+  ) {
+    const token = await dependencies.getPublicationReadiness(args.currentDb, kind, [
+      snapshotId,
+    ])
+    if (token !== null) {
+      const rows = await guardPublicationRead(
+        args.currentDb,
+        kind,
+        [snapshotId],
+        token,
+        readCurrent,
+        dependencies.getPublicationReadiness,
+      )
+      if (rows === null)
+        throw new PublicationReadUnavailableError(
+          'Geometry publication changed during the read',
+        )
+      return rows
+    }
+    if (
+      !args.allowHistory &&
+      !(kind === 'divisionArea' && args.areaSnapshotId) &&
+      !(await dependencies.hasSupersedingPublication(
+        args.metaDb,
+        args.currentDb,
+        kind,
+        snapshotId,
+      ))
+    )
+      throw new PublicationReadUnavailableError('Geometry publication is not ready')
+    const plan = await dependencies.resolveSnapshotReplayPlan(
+      args.metaDb as never,
+      snapshotId,
+    )
+    const shards = new Map(
+      Object.entries(args.historyDbsByBinding).map(([bindingName, db]) => [
+        bindingName,
+        { bindingName, db: db as never },
+      ]),
+    )
+    const versions = await dependencies.resolveSnapshotVersionState(plan, shards, [
+      kind,
+    ])
+    return readHistory(versions.values())
+  }
+  const areaSnapshotId = args.areaSnapshotId ?? args.snapshot.areaSnapshotId
+  const boundarySnapshotId = args.snapshot.boundarySnapshotId
+  const areaLookup = { divisionIds: args.divisionIds, variant: args.variants?.area }
+  const boundaryLookup = {
+    divisionIds: args.divisionIds,
+    variant: args.variants?.boundary,
+  }
   const [areas, boundaries] = await Promise.all([
-    args.includeArea && (args.areaSnapshotId ?? args.snapshot.areaSnapshotId)
-      ? args.listDivisionAreasCurrentByDivisionIds(args.currentDb, {
-          snapshotId: args.areaSnapshotId ?? args.snapshot.areaSnapshotId!,
-          divisionIds: args.divisionIds,
-          variant: args.variants?.area,
-        })
+    args.includeArea && areaSnapshotId
+      ? readSnapshot(
+          areaSnapshotId,
+          'divisionArea',
+          () =>
+            dependencies.listDivisionAreasCurrentByDivisionIds(args.currentDb, {
+              snapshotId: areaSnapshotId,
+              ...areaLookup,
+            }),
+          versions =>
+            dependencies.listReplayedDivisionAreasByDivisionIds(versions, areaLookup),
+        )
       : [],
-    args.includeBoundary && args.snapshot.boundarySnapshotId
-      ? args.listDivisionBoundariesCurrentByDivisionIds(args.currentDb, {
-          snapshotId: args.snapshot.boundarySnapshotId,
-          divisionIds: args.divisionIds,
-          variant: args.variants?.boundary,
-        })
+    args.includeBoundary && boundarySnapshotId
+      ? readSnapshot(
+          boundarySnapshotId,
+          'divisionBoundary',
+          () =>
+            dependencies.listDivisionBoundariesCurrentByDivisionIds(args.currentDb, {
+              snapshotId: boundarySnapshotId,
+              ...boundaryLookup,
+            }),
+          versions =>
+            dependencies.listReplayedDivisionBoundariesByDivisionIds(
+              versions,
+              boundaryLookup,
+            ),
+        )
       : [],
   ])
   const areasByDivision = new Map<string, DivisionAreaRecord[]>()
@@ -1043,34 +346,6 @@ async function loadDivisionGeometry(args: {
     }
   }
   return { areas, boundaries, areasByDivision, boundariesByDivision }
-}
-
-export function createIncludedDivisionGeometryResource(args: {
-  record: DivisionAreaRecord | DivisionBoundaryRecord
-  kind: 'area' | 'boundary'
-}): DivisionGeometryResourcePayload {
-  const { record } = args
-  const isArea = args.kind === 'area'
-  return {
-    type: isArea ? 'division-areas' : 'division-boundaries',
-    id: record.id,
-    attributes: {
-      ...(isArea
-        ? { divisionId: (record as DivisionAreaRecord).divisionId }
-        : {
-            leftDivisionId: (record as DivisionBoundaryRecord).leftDivisionId,
-            rightDivisionId: (record as DivisionBoundaryRecord).rightDivisionId,
-          }),
-      geometry: (record.geometry as JsonObject | null) ?? null,
-      bbox: (record.bbox as [number, number, number, number] | null) ?? null,
-      type: record.type,
-      isLand: record.isLand,
-      isTerritorial: record.isTerritorial,
-      sources: (record.sources as SourcesPayload | null) ?? null,
-      sourceKeys: record.sourceKeys,
-      variant: record.variant,
-    },
-  }
 }
 
 async function loadIncludedHierarchyRecords(args: {
@@ -1089,9 +364,9 @@ async function loadIncludedHierarchyRecords(args: {
   const hierarchyIds = [
     ...new Set(
       args.records.flatMap(record =>
-        buildDivisionHierarchyRelationshipData(
+        storedDivisionHierarchyIdentifiers(
           record.division.id,
-          record.division.hierarchy,
+          record.division.hierarchies,
         ).map(hierarchy => hierarchy.id),
       ),
     ),
@@ -1101,6 +376,23 @@ async function loadIncludedHierarchyRecords(args: {
     const record = args.replayedRecordsById.get(id)
     return record ? [record] : []
   })
+}
+
+async function isHistoricalDivisionSelection(args: {
+  metaDb: AppEnv['Variables']['metaDb']
+  query: DivisionListQuery | DivisionDetailQuery
+  snapshot: ActiveDivisionSnapshot
+  dependencies: DivisionServiceDependencies
+}) {
+  if (!hasHistoricalSelectors(args.query)) return false
+  const latest = await getActiveDivisionSnapshot(
+    args.metaDb,
+    args.query.domain ?? 'geographic',
+    {},
+    { region: args.query.region },
+    args.dependencies.resolveApiReleaseSetSnapshotsForRequest,
+  )
+  return Boolean(latest && latest.apiReleaseSet !== args.snapshot.apiReleaseSet)
 }
 
 export async function listDivisions(args: {
@@ -1151,147 +443,226 @@ export async function listDivisions(args: {
     }
   }
   const scopedAreaSnapshot = await resolveRequestedAreaSnapshot({
+    region: args.query.region,
     metaDb: args.metaDb,
     cohortKey: areaCohort,
     variant: geometryVariants.area,
     resolvePublishedSnapshotForResourceTypeRegionCohortKey:
       dependencies.resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   })
-  const replayedRecords = await replayDivisionSnapshot({
-    snapshotId: activeDivisionSnapshot.snapshotId,
-    historyDbsByBinding: args.historyDbsByBinding,
-    metaDb: args.metaDb,
-    localeSelection: routeState.localeSelection,
-    resolveSnapshotReplayPlan: dependencies.resolveSnapshotReplayPlan,
-    resolveSnapshotVersionState: dependencies.resolveSnapshotVersionState,
-    listReplayedDivisionRecords: dependencies.listReplayedDivisionRecords,
+  const publicationToken = await dependencies.getPublicationReadiness(
+    args.currentDb,
+    'division',
+    activeDivisionSnapshot.divisionSnapshotIds,
+  )
+  const useCurrent = publicationToken !== null
+  const allowHistory = await isHistoricalDivisionSelection({
+    ...args,
+    snapshot: activeDivisionSnapshot,
+    dependencies,
   })
-  if (args.onResolved) {
-    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
-      resolveApiReleaseSetAccessAttribution(
-        args.metaDb.$client,
-        activeDivisionSnapshot.apiReleaseSet,
-      ),
-    )
-    if (accessAttribution) args.onResolved(accessAttribution)
-  }
-  if (requestedGeometry.area && areaCohort && !scopedAreaSnapshot) {
+  if (!useCurrent && !allowHistory)
     return {
-      status: 409,
-      body: buildVariantUnavailableResponse({
-        kind: 'areas',
-        variant: geometryVariants.area ?? domainCode,
-        cohortKey: areaCohort,
-      }),
+      status: 503,
+      publicationPending: true,
+      body: buildSnapshotNotReadyDivisionResponse(),
     }
-  }
-  if (requestedGeometry.area && !areaCohort && !activeDivisionSnapshot.areaSnapshotId) {
-    return {
-      status: 409,
-      body: buildVariantUnavailableResponse({
-        kind: 'areas',
-        variant: geometryVariants.area ?? domainCode,
-      }),
-    }
-  }
-  if (requestedGeometry.boundary && !activeDivisionSnapshot.boundarySnapshotId) {
-    return {
-      status: 409,
-      body: buildVariantUnavailableResponse({
-        kind: 'boundaries',
-        variant: geometryVariants.boundary ?? domainCode,
-      }),
-    }
-  }
+  return (
+    (await guardPublicationRead(
+      args.currentDb,
+      'division',
+      activeDivisionSnapshot.divisionSnapshotIds,
+      publicationToken,
+      async (): Promise<DivisionListResult> => {
+        const replayedRecords = useCurrent
+          ? []
+          : await replayDivisionSnapshot({
+              snapshotId: activeDivisionSnapshot.snapshotId,
+              historyDbsByBinding: args.historyDbsByBinding,
+              metaDb: args.metaDb,
+              localeSelection: routeState.localeSelection,
+              resolveSnapshotReplayPlan: dependencies.resolveSnapshotReplayPlan,
+              resolveSnapshotVersionState: dependencies.resolveSnapshotVersionState,
+              listReplayedDivisionRecords: dependencies.listReplayedDivisionRecords,
+            })
+        if (args.onResolved) {
+          const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(
+            () =>
+              resolveApiReleaseSetAccessAttribution(
+                args.metaDb.$client,
+                activeDivisionSnapshot.apiReleaseSet,
+              ),
+          )
+          if (accessAttribution) args.onResolved(accessAttribution)
+        }
+        if (requestedGeometry.area && areaCohort && !scopedAreaSnapshot) {
+          return {
+            status: 409,
+            body: buildVariantUnavailableResponse({
+              kind: 'areas',
+              variant: geometryVariants.area ?? domainCode,
+              cohortKey: areaCohort,
+            }),
+          }
+        }
+        if (
+          requestedGeometry.area &&
+          !areaCohort &&
+          !activeDivisionSnapshot.areaSnapshotId
+        ) {
+          return {
+            status: 409,
+            body: buildVariantUnavailableResponse({
+              kind: 'areas',
+              variant: geometryVariants.area ?? domainCode,
+            }),
+          }
+        }
+        if (requestedGeometry.boundary && !activeDivisionSnapshot.boundarySnapshotId) {
+          return {
+            status: 409,
+            body: buildVariantUnavailableResponse({
+              kind: 'boundaries',
+              variant: geometryVariants.boundary ?? domainCode,
+            }),
+          }
+        }
 
-  const filters = {
-    level: args.query['filter[level]'],
-    divisionType: args.query['filter[divisionType]'],
-    parent: args.query['filter[parent]'],
-  } satisfies DivisionFilters
-  const matchingRecords = replayedRecords
-    .filter(record => matchesDivisionFilters(record, filters))
-    .sort(
-      (left, right) =>
-        (left.division.level ?? -1) - (right.division.level ?? -1) ||
-        left.division.type.localeCompare(right.division.type) ||
-        left.division.id.localeCompare(right.division.id),
-    )
-  const total = matchingRecords.length
-  const records = matchingRecords.slice(offset, offset + limit)
-  const replayedRecordsById = new Map(
-    replayedRecords.map(record => [record.division.id, record]),
-  )
-
-  const includedRecords = await runWithD1ReadRetry(() =>
-    loadIncludedHierarchyRecords({
-      includeHierarchy: requestedIncludes(args.query.include).has('hierarchy'),
-      snapshotId: activeDivisionSnapshot.snapshotId,
-      snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
-      records,
-      replayedRecordsById,
-      routeState,
-    }),
-  )
-  const geometry = await runWithD1ReadRetry(() =>
-    loadDivisionGeometry({
-      currentDb: args.currentDb,
-      snapshot: activeDivisionSnapshot,
-      areaSnapshotId: scopedAreaSnapshot?.id,
-      divisionIds: records.map(record => record.division.id),
-      variants: geometryVariants,
-      includeArea: requestedGeometry.area,
-      includeBoundary: requestedGeometry.boundary,
-      listDivisionAreasCurrentByDivisionIds:
-        dependencies.listDivisionAreasCurrentByDivisionIds,
-      listDivisionBoundariesCurrentByDivisionIds:
-        dependencies.listDivisionBoundariesCurrentByDivisionIds,
-    }),
-  )
-  const includes = requestedIncludes(args.query.include)
-  const includeAreas =
-    includes.has('areas') || [...includes].some(item => item.startsWith('areas:'))
-  const includeBoundaries =
-    includes.has('boundaries') ||
-    [...includes].some(item => item.startsWith('boundaries:'))
-  const includedGeometry: IncludedResourcePayload[] = [
-    ...(includeAreas
-      ? geometry.areas.map(record =>
-          createIncludedDivisionGeometryResource({ record, kind: 'area' }),
+        const filters = {
+          level: args.query['filter[level]'],
+          divisionClass: args.query['filter[class]'],
+          category: args.query['filter[category]'],
+          parent: args.query['filter[parent]'],
+        } satisfies DivisionFilters
+        const matchingRecords = replayedRecords
+          .filter(record => matchesDivisionFilters(record, filters))
+          .sort(
+            (left, right) =>
+              (left.division.level ?? -1) - (right.division.level ?? -1) ||
+              left.division.class.localeCompare(right.division.class) ||
+              left.division.id.localeCompare(right.division.id),
+          )
+        const lookup = {
+          snapshotId: activeDivisionSnapshot.snapshotId,
+          limit,
+          offset,
+          level: filters.level,
+          class: filters.divisionClass,
+          category: filters.category,
+          parentId: filters.parent,
+          localeSelection: routeState.localeSelection,
+        }
+        const [records, total] = useCurrent
+          ? await runWithD1ReadRetry(() =>
+              Promise.all([
+                dependencies.listDivisionRecordsCurrent(args.currentDb, lookup),
+                dependencies.countDivisionsCurrent(args.currentDb, lookup),
+              ]),
+            )
+          : [matchingRecords.slice(offset, offset + limit), matchingRecords.length]
+        if (useCurrent && requestedIncludes(args.query.include).has('hierarchy')) {
+          const divisionIds = [
+            ...new Set(
+              records.flatMap(record =>
+                storedDivisionHierarchyIdentifiers(
+                  record.division.id,
+                  record.division.hierarchies,
+                ).map(parent => parent.id),
+              ),
+            ),
+          ]
+          replayedRecords.push(
+            ...(await runWithD1ReadRetry(() =>
+              dependencies.listDivisionRecordsCurrentByIds(args.currentDb, {
+                snapshotId: activeDivisionSnapshot.snapshotId,
+                snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
+                divisionIds,
+                localeSelection: routeState.localeSelection,
+              }),
+            )),
+          )
+        }
+        const replayedRecordsById = new Map(
+          replayedRecords.map(record => [record.division.id, record]),
         )
-      : []),
-    ...(includeBoundaries
-      ? geometry.boundaries.map(record =>
-          createIncludedDivisionGeometryResource({ record, kind: 'boundary' }),
-        )
-      : []),
-  ]
 
-  return {
-    status: 200,
-    body: buildListDocument({
-      url: new URL(args.requestUrl),
-      routeState,
-      activeSnapshot: activeDivisionSnapshot,
-      records,
-      includedRecords: [
-        ...includedRecords.map(record =>
-          createDivisionResource({
-            baseUrl: new URL(args.requestUrl).origin,
+        const includedRecords = await runWithD1ReadRetry(() =>
+          loadIncludedHierarchyRecords({
+            includeHierarchy: requestedIncludes(args.query.include).has('hierarchy'),
+            snapshotId: activeDivisionSnapshot.snapshotId,
+            snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
+            records,
+            replayedRecordsById,
             routeState,
-            record,
           }),
-        ),
-        ...includedGeometry,
-      ],
-      areasByDivision: geometry.areasByDivision,
-      boundariesByDivision: geometry.boundariesByDivision,
-      limit,
-      offset,
-      total,
-      filters,
-    }),
-  }
+        )
+        const geometry = await runWithD1ReadRetry(() =>
+          loadDivisionGeometry({
+            currentDb: args.currentDb,
+            metaDb: args.metaDb,
+            historyDbsByBinding: args.historyDbsByBinding,
+            snapshot: activeDivisionSnapshot,
+            areaSnapshotId: scopedAreaSnapshot?.id,
+            divisionIds: records.map(record => record.division.id),
+            variants: geometryVariants,
+            includeArea: requestedGeometry.area,
+            includeBoundary: requestedGeometry.boundary,
+            allowHistory,
+            dependencies,
+          }),
+        )
+        const includes = requestedIncludes(args.query.include)
+        const includeAreas =
+          includes.has('areas') || [...includes].some(item => item.startsWith('areas:'))
+        const includeBoundaries =
+          includes.has('boundaries') ||
+          [...includes].some(item => item.startsWith('boundaries:'))
+        const includedGeometry: IncludedResourcePayload[] = [
+          ...(includeAreas
+            ? geometry.areas.map(record =>
+                createIncludedDivisionGeometryResource({ record, kind: 'area' }),
+              )
+            : []),
+          ...(includeBoundaries
+            ? geometry.boundaries.map(record =>
+                createIncludedDivisionGeometryResource({ record, kind: 'boundary' }),
+              )
+            : []),
+        ]
+
+        return {
+          status: 200,
+          body: buildListDocument({
+            url: new URL(args.requestUrl),
+            routeState,
+            activeSnapshot: activeDivisionSnapshot,
+            records,
+            includedRecords: [
+              ...includedRecords.map(record =>
+                createDivisionResource({
+                  baseUrl: new URL(args.requestUrl).origin,
+                  routeState,
+                  record,
+                }),
+              ),
+              ...includedGeometry,
+            ],
+            areasByDivision: geometry.areasByDivision,
+            boundariesByDivision: geometry.boundariesByDivision,
+            limit,
+            offset,
+            total,
+            filters,
+          }),
+        }
+      },
+      dependencies.getPublicationReadiness,
+    )) ?? {
+      status: 503,
+      publicationPending: true,
+      body: buildSnapshotNotReadyDivisionResponse(),
+    }
+  )
 }
 
 export async function getDivisionDetail(args: {
@@ -1341,138 +712,202 @@ export async function getDivisionDetail(args: {
     }
   }
   const scopedAreaSnapshot = await resolveRequestedAreaSnapshot({
+    region: args.query.region,
     metaDb: args.metaDb,
     cohortKey: areaCohort,
     variant: geometryVariants.area,
     resolvePublishedSnapshotForResourceTypeRegionCohortKey:
       dependencies.resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   })
-  const replayedRecords = await replayDivisionSnapshot({
-    snapshotId: activeDivisionSnapshot.snapshotId,
-    historyDbsByBinding: args.historyDbsByBinding,
-    metaDb: args.metaDb,
-    localeSelection: routeState.localeSelection,
-    resolveSnapshotReplayPlan: dependencies.resolveSnapshotReplayPlan,
-    resolveSnapshotVersionState: dependencies.resolveSnapshotVersionState,
-    listReplayedDivisionRecords: dependencies.listReplayedDivisionRecords,
+  const publicationToken = await dependencies.getPublicationReadiness(
+    args.currentDb,
+    'division',
+    activeDivisionSnapshot.divisionSnapshotIds,
+  )
+  const useCurrent = publicationToken !== null
+  const allowHistory = await isHistoricalDivisionSelection({
+    ...args,
+    snapshot: activeDivisionSnapshot,
+    dependencies,
   })
-  if (args.onResolved) {
-    const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(() =>
-      resolveApiReleaseSetAccessAttribution(
-        args.metaDb.$client,
-        activeDivisionSnapshot.apiReleaseSet,
-      ),
-    )
-    if (accessAttribution) args.onResolved(accessAttribution)
-  }
-  if (requestedGeometry.area && areaCohort && !scopedAreaSnapshot) {
+  if (!useCurrent && !allowHistory)
     return {
-      status: 409,
-      body: buildVariantUnavailableResponse({
-        kind: 'areas',
-        variant: geometryVariants.area ?? domainCode,
-        cohortKey: areaCohort,
-      }),
+      status: 503,
+      publicationPending: true,
+      body: buildSnapshotNotReadyDivisionResponse(),
     }
-  }
-  if (requestedGeometry.area && !areaCohort && !activeDivisionSnapshot.areaSnapshotId) {
-    return {
-      status: 409,
-      body: buildVariantUnavailableResponse({
-        kind: 'areas',
-        variant: geometryVariants.area ?? domainCode,
-      }),
-    }
-  }
-  if (requestedGeometry.boundary && !activeDivisionSnapshot.boundarySnapshotId) {
-    return {
-      status: 409,
-      body: buildVariantUnavailableResponse({
-        kind: 'boundaries',
-        variant: geometryVariants.boundary ?? domainCode,
-      }),
-    }
-  }
+  return (
+    (await guardPublicationRead(
+      args.currentDb,
+      'division',
+      activeDivisionSnapshot.divisionSnapshotIds,
+      publicationToken,
+      async (): Promise<DivisionDetailResult> => {
+        const replayedRecords = useCurrent
+          ? await runWithD1ReadRetry(() =>
+              dependencies.listDivisionRecordsCurrentByIds(args.currentDb, {
+                snapshotId: activeDivisionSnapshot.snapshotId,
+                divisionIds: [args.id],
+                localeSelection: routeState.localeSelection,
+              }),
+            )
+          : await replayDivisionSnapshot({
+              snapshotId: activeDivisionSnapshot.snapshotId,
+              historyDbsByBinding: args.historyDbsByBinding,
+              metaDb: args.metaDb,
+              localeSelection: routeState.localeSelection,
+              resolveSnapshotReplayPlan: dependencies.resolveSnapshotReplayPlan,
+              resolveSnapshotVersionState: dependencies.resolveSnapshotVersionState,
+              listReplayedDivisionRecords: dependencies.listReplayedDivisionRecords,
+            })
+        if (args.onResolved) {
+          const accessAttribution = await resolveOptionalApiReleaseSetAccessAttribution(
+            () =>
+              resolveApiReleaseSetAccessAttribution(
+                args.metaDb.$client,
+                activeDivisionSnapshot.apiReleaseSet,
+              ),
+          )
+          if (accessAttribution) args.onResolved(accessAttribution)
+        }
+        if (requestedGeometry.area && areaCohort && !scopedAreaSnapshot) {
+          return {
+            status: 409,
+            body: buildVariantUnavailableResponse({
+              kind: 'areas',
+              variant: geometryVariants.area ?? domainCode,
+              cohortKey: areaCohort,
+            }),
+          }
+        }
+        if (
+          requestedGeometry.area &&
+          !areaCohort &&
+          !activeDivisionSnapshot.areaSnapshotId
+        ) {
+          return {
+            status: 409,
+            body: buildVariantUnavailableResponse({
+              kind: 'areas',
+              variant: geometryVariants.area ?? domainCode,
+            }),
+          }
+        }
+        if (requestedGeometry.boundary && !activeDivisionSnapshot.boundarySnapshotId) {
+          return {
+            status: 409,
+            body: buildVariantUnavailableResponse({
+              kind: 'boundaries',
+              variant: geometryVariants.boundary ?? domainCode,
+            }),
+          }
+        }
 
-  const record =
-    replayedRecords.find(candidate => candidate.division.id === args.id) ?? null
+        const record =
+          replayedRecords.find(candidate => candidate.division.id === args.id) ?? null
 
-  if (!record) {
-    return {
-      status: 404,
-      body: {
-        httpStatus: 404,
-        error: 'not_found',
-        message: `No division found for ${args.id}.`,
-      },
-    }
-  }
+        if (!record) {
+          return {
+            status: 404,
+            body: {
+              httpStatus: 404,
+              error: 'not_found',
+              message: `No division found for ${args.id}.`,
+            },
+          }
+        }
 
-  const includedRecords = await runWithD1ReadRetry(() =>
-    loadIncludedHierarchyRecords({
-      includeHierarchy: requestedIncludes(args.query.include).has('hierarchy'),
-      snapshotId: activeDivisionSnapshot.snapshotId,
-      snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
-      records: [record],
-      replayedRecordsById: new Map(
-        replayedRecords.map(candidate => [candidate.division.id, candidate]),
-      ),
-      routeState,
-    }),
-  )
-  const geometry = await runWithD1ReadRetry(() =>
-    loadDivisionGeometry({
-      currentDb: args.currentDb,
-      snapshot: activeDivisionSnapshot,
-      areaSnapshotId: scopedAreaSnapshot?.id,
-      divisionIds: [record.division.id],
-      variants: geometryVariants,
-      includeArea: requestedGeometry.area,
-      includeBoundary: requestedGeometry.boundary,
-      listDivisionAreasCurrentByDivisionIds:
-        dependencies.listDivisionAreasCurrentByDivisionIds,
-      listDivisionBoundariesCurrentByDivisionIds:
-        dependencies.listDivisionBoundariesCurrentByDivisionIds,
-    }),
-  )
-  const includes = requestedIncludes(args.query.include)
-  const includeAreas =
-    includes.has('areas') || [...includes].some(item => item.startsWith('areas:'))
-  const includeBoundaries =
-    includes.has('boundaries') ||
-    [...includes].some(item => item.startsWith('boundaries:'))
-  const includedGeometry: IncludedResourcePayload[] = [
-    ...(includeAreas
-      ? geometry.areas.map(item =>
-          createIncludedDivisionGeometryResource({ record: item, kind: 'area' }),
-        )
-      : []),
-    ...(includeBoundaries
-      ? geometry.boundaries.map(item =>
-          createIncludedDivisionGeometryResource({ record: item, kind: 'boundary' }),
-        )
-      : []),
-  ]
-
-  return {
-    status: 200,
-    body: buildDetailDocument({
-      url: new URL(args.requestUrl),
-      routeState,
-      activeSnapshot: activeDivisionSnapshot,
-      record,
-      includedRecords: [
-        ...includedRecords.map(item =>
-          createDivisionResource({
-            baseUrl: new URL(args.requestUrl).origin,
+        if (useCurrent && requestedIncludes(args.query.include).has('hierarchy')) {
+          replayedRecords.push(
+            ...(await runWithD1ReadRetry(() =>
+              dependencies.listDivisionRecordsCurrentByIds(args.currentDb, {
+                snapshotId: activeDivisionSnapshot.snapshotId,
+                snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
+                divisionIds: storedDivisionHierarchyIdentifiers(
+                  record.division.id,
+                  record.division.hierarchies,
+                ).map(parent => parent.id),
+                localeSelection: routeState.localeSelection,
+              }),
+            )),
+          )
+        }
+        const includedRecords = await runWithD1ReadRetry(() =>
+          loadIncludedHierarchyRecords({
+            includeHierarchy: requestedIncludes(args.query.include).has('hierarchy'),
+            snapshotId: activeDivisionSnapshot.snapshotId,
+            snapshotIds: activeDivisionSnapshot.divisionSnapshotIds,
+            records: [record],
+            replayedRecordsById: new Map(
+              replayedRecords.map(candidate => [candidate.division.id, candidate]),
+            ),
             routeState,
-            record: item,
           }),
-        ),
-        ...includedGeometry,
-      ],
-      areasByDivision: geometry.areasByDivision,
-      boundariesByDivision: geometry.boundariesByDivision,
-    }),
-  }
+        )
+        const geometry = await runWithD1ReadRetry(() =>
+          loadDivisionGeometry({
+            currentDb: args.currentDb,
+            metaDb: args.metaDb,
+            historyDbsByBinding: args.historyDbsByBinding,
+            snapshot: activeDivisionSnapshot,
+            areaSnapshotId: scopedAreaSnapshot?.id,
+            divisionIds: [record.division.id],
+            variants: geometryVariants,
+            includeArea: requestedGeometry.area,
+            includeBoundary: requestedGeometry.boundary,
+            allowHistory,
+            dependencies,
+          }),
+        )
+        const includes = requestedIncludes(args.query.include)
+        const includeAreas =
+          includes.has('areas') || [...includes].some(item => item.startsWith('areas:'))
+        const includeBoundaries =
+          includes.has('boundaries') ||
+          [...includes].some(item => item.startsWith('boundaries:'))
+        const includedGeometry: IncludedResourcePayload[] = [
+          ...(includeAreas
+            ? geometry.areas.map(item =>
+                createIncludedDivisionGeometryResource({ record: item, kind: 'area' }),
+              )
+            : []),
+          ...(includeBoundaries
+            ? geometry.boundaries.map(item =>
+                createIncludedDivisionGeometryResource({
+                  record: item,
+                  kind: 'boundary',
+                }),
+              )
+            : []),
+        ]
+
+        return {
+          status: 200,
+          body: buildDetailDocument({
+            url: new URL(args.requestUrl),
+            routeState,
+            activeSnapshot: activeDivisionSnapshot,
+            record,
+            includedRecords: [
+              ...includedRecords.map(item =>
+                createDivisionResource({
+                  baseUrl: new URL(args.requestUrl).origin,
+                  routeState,
+                  record: item,
+                }),
+              ),
+              ...includedGeometry,
+            ],
+            areasByDivision: geometry.areasByDivision,
+            boundariesByDivision: geometry.boundariesByDivision,
+          }),
+        }
+      },
+      dependencies.getPublicationReadiness,
+    )) ?? {
+      status: 503,
+      publicationPending: true,
+      body: buildSnapshotNotReadyDivisionResponse(),
+    }
+  )
 }

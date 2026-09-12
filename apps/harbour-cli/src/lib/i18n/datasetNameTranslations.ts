@@ -1,13 +1,19 @@
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { captureCurationDocuments } from '../curationDocuments'
 import { dirname, resolve } from 'node:path'
+import {
+  translationMap,
+  translationEntries,
+  type TranslationMapFixture,
+} from './datasetTranslationFixture'
 
 import {
   AZURE_TRANSLATION_MACHINE,
   AZURE_TRANSLATION_REGION,
   translateAzureTexts,
   type AzureTranslationLocale,
-} from '../sources/landsd/street/landsdStreetTranslation.ts'
+} from '../sources/hkgov/landsd/street/landsdStreetTranslation.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const DATASET_FIXTURE_ROOT = resolve(REPO_ROOT, 'fixtures/i18n/datasets')
@@ -46,7 +52,7 @@ export type DatasetTranslationResult = {
   localisations: DatasetTranslationLocalisation[]
 }
 
-type FixtureEntry = {
+export type FixtureEntry = {
   context: Record<string, string | null>
   contextHash: string
   field: 'name'
@@ -99,6 +105,7 @@ export async function resolveDatasetNameTranslationsBatch(input: {
   const fixturePath =
     input.fixturePath ?? datasetTranslationFixturePath(input.datasetCode)
   const fixture = await readFixture(fixturePath, input.datasetCode)
+  const entriesByKey = new Map(fixture.entries.map(entry => [lookupKey(entry), entry]))
   const recordsById = new Map(input.records.map(record => [record.recordId, record]))
   if (recordsById.size !== input.records.length) {
     throw new Error(`Duplicate record IDs in dataset i18n input: ${input.datasetCode}`)
@@ -135,13 +142,13 @@ export async function resolveDatasetNameTranslationsBatch(input: {
       if (!source) continue
 
       const sourceTextHash = hashText(source.name)
-      const cached = fixture.entries.find(
-        entry =>
-          entry.field === 'name' &&
-          entry.contextHash === contextHash &&
-          entry.sourceLocale === source.locale &&
-          entry.sourceTextHash === sourceTextHash &&
-          entry.targetLocale === targetLocale,
+      const cached = entriesByKey.get(
+        lookupKey({
+          contextHash,
+          sourceLocale: source.locale,
+          sourceTextHash,
+          targetLocale,
+        }),
       )
       const legacy = legacyEntries.find(
         entry =>
@@ -173,6 +180,10 @@ export async function resolveDatasetNameTranslationsBatch(input: {
 
       if (entry) {
         if (cached) {
+          if (JSON.stringify(cached.context) !== JSON.stringify(context)) {
+            cached.context = context
+            fixtureChanged = true
+          }
           const firstSeenRelease = [cached.firstSeenRelease, input.sourceRelease]
             .sort()
             .at(0)
@@ -284,17 +295,20 @@ export async function resolveDatasetNameTranslationsBatch(input: {
     await writeFixture(fixturePath, fixture)
   }
 
-  return new Map(
-    input.records.map(record => {
-      const applications = additionsByRecordId.get(record.recordId) ?? []
-      return [
-        record.recordId,
-        {
-          applications,
-          localisations: applications.map(({ locale, name }) => ({ locale, name })),
-        },
-      ] as const
-    }),
+  return captureCurationDocuments(
+    new Map(
+      input.records.map(record => {
+        const applications = additionsByRecordId.get(record.recordId) ?? []
+        return [
+          record.recordId,
+          {
+            applications,
+            localisations: applications.map(({ locale, name }) => ({ locale, name })),
+          },
+        ] as const
+      }),
+    ),
+    [{ type: 'division-translations', document: fixture }],
   )
 }
 
@@ -347,9 +361,35 @@ function dedupeEntries(entries: FixtureEntry[]) {
     ) {
       throw new Error(`Conflicting dataset i18n fixture entries for ${key}.`)
     }
+    if (existing) {
+      existing.recordIds = [
+        ...new Set([...(existing.recordIds ?? []), ...(entry.recordIds ?? [])]),
+      ].sort()
+      existing.firstSeenRelease = [
+        existing.firstSeenRelease,
+        entry.firstSeenRelease,
+      ].sort()[0]!
+      existing.lastSeenRelease = [existing.lastSeenRelease, entry.lastSeenRelease]
+        .sort()
+        .at(-1)!
+    }
     deduplicated.set(key, existing ?? entry)
   }
   return [...deduplicated.values()]
+}
+
+function lookupKey(
+  entry: Pick<
+    FixtureEntry,
+    'contextHash' | 'sourceLocale' | 'sourceTextHash' | 'targetLocale'
+  >,
+) {
+  return [
+    entry.contextHash,
+    entry.sourceLocale,
+    entry.sourceTextHash,
+    entry.targetLocale,
+  ].join('\u0000')
 }
 
 function sourceLocalisations(localisations: DatasetTranslationLocalisation[]) {
@@ -383,7 +423,14 @@ function normaliseContext(context: Record<string, string | null>) {
 }
 
 function hashContext(context: Record<string, string | null>) {
-  return hashText(JSON.stringify(context))
+  // Locale-tagged display names do not change translation identity.
+  return hashText(
+    JSON.stringify(
+      Object.fromEntries(
+        Object.entries(context).filter(([key]) => !key.startsWith('parentName.')),
+      ),
+    ),
+  )
 }
 
 async function readFixture(
@@ -391,19 +438,19 @@ async function readFixture(
   datasetCode: string,
 ): Promise<DatasetTranslationFixture> {
   try {
-    const parsed = JSON.parse(
-      await readFile(path, 'utf8'),
-    ) as Partial<DatasetTranslationFixture>
+    const parsed = JSON.parse(await readFile(path, 'utf8')) as TranslationMapFixture
     if (
-      parsed.version !== 1 ||
+      parsed.version !== 2 ||
       parsed.datasetCode !== datasetCode ||
-      !Array.isArray(parsed.entries)
+      !parsed.translations ||
+      !parsed.contexts ||
+      !parsed.usages
     ) {
       throw new Error(`Invalid dataset i18n fixture: ${path}`)
     }
     return {
       datasetCode,
-      entries: dedupeEntries(parsed.entries as FixtureEntry[]),
+      entries: dedupeEntries(translationEntries(parsed)),
       version: 1,
     }
   } catch (error) {
@@ -427,7 +474,11 @@ async function readLegacyEntries(path: string): Promise<LegacyFixtureEntry[]> {
 async function writeFixture(path: string, fixture: DatasetTranslationFixture) {
   await mkdir(dirname(path), { recursive: true })
   const temporaryPath = `${path}.${crypto.randomUUID()}.tmp`
-  await writeFile(temporaryPath, `${JSON.stringify(fixture, null, 2)}\n`, 'utf8')
+  await writeFile(
+    temporaryPath,
+    `${JSON.stringify(translationMap(fixture.datasetCode, fixture.entries), null, 2)}\n`,
+    'utf8',
+  )
   await rename(temporaryPath, path)
 }
 

@@ -1,14 +1,32 @@
 #!/usr/bin/env fish
 
 source (command dirname (status filename))/common.fish
-init_configure "saanseoi init:addresses:official" $argv
+init_configure "saanseoi init:addresses:saanseoi" $argv
 
 set -l continue_args
 if test "$saanseoi_init_continue" -eq 1
     set continue_args --continue
 end
 
+set -l initialisation_status (SAANSEOI_INIT_COMMAND= SAANSEOI_INIT_GUIDES= ./bin/saanseoi init:addresses:saanseoi:status --target $saanseoi_init_target 2>&1)
+set -l initialisation_status_code $status
+if test "$initialisation_status_code" -ne 0
+    string join \n -- $initialisation_status >&2
+    exit $initialisation_status_code
+end
+if test (string trim -- (string join \n -- $initialisation_status)) = complete
+    init_run_step ./bin/saanseoi init:skipped --target $saanseoi_init_target \
+        --dataset ds-hk-hkgov-dpo-address
+    exit 0
+end
+
+init_run_step ./bin/saanseoi init:addresses:saanseoi:begin --target $saanseoi_init_target $continue_args
+
 init_run_step bun run --silent dataops -- hkgov-dpo:ingest \
     "$saanseoi_init_repo/data/hkgov/dpo/ALS" \
-    --target $saanseoi_init_target --cohort-key 2025-12-17.0 $continue_args
-init_run_step ./bin/saanseoi docs:publish --target $saanseoi_init_target --scope all
+    --target $saanseoi_init_target --cohort-key 2024-07-25.0 \
+    --defer-api-release-set --continue $saanseoi_init_curation_args
+init_run_step ./bin/saanseoi release-sets:reconcile \
+    --target $saanseoi_init_target --api-family addresses --region hk
+init_publish_docs
+init_run_step ./bin/saanseoi init:addresses:saanseoi:complete --target $saanseoi_init_target

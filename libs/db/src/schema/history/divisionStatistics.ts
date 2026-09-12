@@ -5,7 +5,7 @@ import { historyStatisticVersioning } from './shared'
 
 /**
  * Published district statistic observations, resolved to SaanSeoi's canonical
- * district identity. Source-specific assertions remain in the source shard.
+ * district identity. Source-specific records remain in the source shard.
  */
 export const divisionStatistics = sqliteTable(
   'divisionStatistics',

@@ -23,7 +23,7 @@ let { main, card: aside, metrics = [], showBackground = false }: Props = $props(
   {/if}
   {#if metrics.length}
     <div class="lg:hidden">
-      <ReleaseHeaderMetrics metrics={metrics} />
+      <ReleaseHeaderMetrics {metrics} />
     </div>
   {/if}
 </div>

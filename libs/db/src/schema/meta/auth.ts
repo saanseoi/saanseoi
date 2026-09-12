@@ -95,7 +95,10 @@ export const account = sqliteTable(
   'account',
   {
     id: text('id').primaryKey(),
-    issuer: text('issuer').notNull(),
+    // Better Auth 1.7.3 no longer writes the temporary 1.7.0-1.7.2 issuer
+    // value. Retain backfilled issuers for existing identities but allow new
+    // accounts to be created by the current adapter.
+    issuer: text('issuer'),
     accountId: text('account_id').notNull(),
     providerId: text('provider_id').notNull(),
     userId: text('user_id')
@@ -114,7 +117,10 @@ export const account = sqliteTable(
       .notNull(),
   },
   table => [
-    uniqueIndex('account_issuer_accountId_uidx').on(table.issuer, table.accountId),
+    uniqueIndex('account_providerId_accountId_uidx').on(
+      table.providerId,
+      table.accountId,
+    ),
     index('account_userId_idx').on(table.userId),
   ],
 )
@@ -175,7 +181,7 @@ export const passkey = sqliteTable(
 )
 
 export const apiKey = sqliteTable(
-  'api_key',
+  'apiKey',
   {
     id: text('id').primaryKey(),
     userId: text('user_id')
@@ -214,7 +220,7 @@ export type ApiKeyOriginPolicyAction = (typeof apiKeyOriginPolicyActions)[number
  * when a public-key lease is refreshed at the edge.
  */
 export const apiKeyOriginPolicy = sqliteTable(
-  'api_key_origin_policy',
+  'apiKeyOriginPolicy',
   {
     apiKeyId: text('api_key_id')
       .notNull()
@@ -230,7 +236,7 @@ export const apiKeyOriginPolicy = sqliteTable(
 )
 
 export const apiKeyUsage = sqliteTable(
-  'api_key_usage',
+  'apiKeyUsage',
   {
     apiKeyId: text('api_key_id')
       .notNull()
@@ -244,3 +250,11 @@ export const apiKeyUsage = sqliteTable(
     primaryKey({ columns: [table.apiKeyId, table.window, table.windowStartedAt] }),
   ],
 )
+
+/** Atomic usage replay checkpoint; revision protects against overlapping jobs. */
+export const apiKeyUsageRollup = sqliteTable('apiKeyUsageRollup', {
+  id: text('id').primaryKey(),
+  datasets: text('datasets').notNull(),
+  revision: text('revision').notNull(),
+  completedThrough: betterAuthTimestamp('completed_through').notNull(),
+})

@@ -75,6 +75,16 @@ describe('registry code construction', () => {
     )
     expect(datasetVariantForSource('address', 'hkgov-dpo')).toBe('default')
     expect(
+      datasetVariantForSource('address', 'overture', {
+        datasetCode: 'ds-hk-overture-place',
+      }),
+    ).toBe('overture-places')
+    expect(
+      datasetVariantForSource('place', 'overture', {
+        datasetCode: 'ds-hk-overture-place',
+      }),
+    ).toBe('default')
+    expect(
       datasetVariantForSource('divisionStatistic', 'hkgov-censtatd', {
         datasetCode:
           'ds-hk-hkgov-censtatd-division-statistic-population-households-district',

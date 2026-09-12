@@ -16,7 +16,7 @@ type ReleaseNoteCache = {
 }
 
 function cacheKey(releaseCode: string) {
-  return releaseCode.trim().toLowerCase()
+  return releaseCode.split('::')[0]?.trim().toLowerCase() ?? ''
 }
 
 function isHttpUrl(value: string) {
@@ -92,7 +92,7 @@ async function readFixtureReleaseNotesUrl(plan: UploadPlan) {
     REPO_ROOT,
     'fixtures/meta/releases',
     plan.datasetCode,
-    `${plan.releaseCode}.md`,
+    `${plan.releaseCode.split('::')[0]}.md`,
   )
   const content = await readFile(fixturePath, 'utf8').catch(() => null)
   const url = content ? parseFixtureReleaseNotesUrl(content) : undefined
@@ -140,7 +140,7 @@ export async function resolveReleaseNotesUrl(
   }
 
   const result = await text({
-    message: `Upstream release notes for ${plan.sourceVersion} (${plan.type})`,
+    message: `Upstream release notes for ${plan.sourceVersion} (${plan.resourceType})`,
     placeholder: 'https://…',
     validate: value =>
       isHttpUrl(value?.trim() ?? '') ? undefined : 'Enter an absolute HTTP(S) URL.',

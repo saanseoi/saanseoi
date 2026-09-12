@@ -1,5 +1,138 @@
 # Census and Statistics Department division statistics
 
+Source-assertion replay preserves unchanged open versions without release-marker
+updates. Changed source hashes close explicitly; bounded same-release membership checks
+handle source omissions. Large source geometry is assembled only for incomplete or
+closed rows. Canonical Statistics revisions retain omitted values and geographies.
+
+Published rollback reconstructs each affected exact period from retained packed history,
+including its referenced immutable dictionaries. It leaves other periods and source
+assertions intact. The period's temporary `restoring` publication state prevents
+ordinary promotion from taking over an interrupted rollback; recovery resumes its sealed
+plan.
+
+Both native Statistics source tables store only the publisher version in
+`validFromRelease` and `validToRelease`, for example `2023-H2`. These boundaries use the
+complete `sourceVersion`; source dataset prefixes and resource-child suffixes belong to
+release metadata. Unchanged assertions retain their original opening version.
+
+[Minimal initialisation](../../minimal-initialisation.md) selects the earliest two
+distinct configured source versions before update discovery, retaining companion
+resources. Discovered updates are also capped at two versions per dataset.
+
+Native-source updates with geography require all declared resource children to be
+published or superseded for the same source version. This includes the Division and
+Division Area children of Housing Market Areas and Permanent Living Quarters, and the
+Division Area companions declared by district statistics sources. Missing children
+trigger intake from the cached publisher archive even when its content is unchanged. The
+Permanent Living Quarters initialisation guard checks all three qualified child codes.
+Statistics-only updates require only the Statistics child.
+
+The public source-record reader selects the dedicated district-density table, the
+retained district-area table for Subdivided Units, or the shared native statistics table
+for the other measure collections. It scopes shared-table records by source dataset and
+release validity. Source-shard assignments include every shard containing the release's
+assertions, independently of the shard holding canonical history. For `2023-H2`, source
+delivery and snapshot registration both select the source shard for `2023` (the
+before-2025 shard), retaining the full version as release provenance.
+
+Subdivided Units stores native district geometry as a Brotli BLOB in the retained
+district-area table. This preserves the complete publisher geometry below D1's 2 MB
+logical-row limit; the source-record reader decompresses it before returning GeoJSON.
+
+The `censtatd-source-assertion.json` rule validates prepared district assertions and
+retains publisher properties, native geometry and source references. The
+`censtatd-district-identity.json` rule consumes its authority, domain and target-cohort
+parameters to resolve reviewed district identities. Both have executable registrations
+and shared merge-ruleset references; the selected upload path retains their audit
+definitions and counts.
+
+Identity-bridge audit fixtures retain registered SaanSeoi division codes alongside
+canonical IDs. Existing audits remain unchanged; a code resolved from the current
+registry is identified as a current display lookup rather than retained evidence.
+
+`init:stats:government` restores Geographic Divisions first, including C&SD district and
+Permanent Living Quarters area-type geometry, and publishes the complete Divisions
+compositions before ingesting the remaining statistics datasets. Missing Divisions
+drafts are reconstructed from retained primary snapshots during reconciliation.
+
+Update readiness requires Statistics evidence from the `divisionStatistic` resource
+child. Its companion `division` and `divisionArea` children retain their own identities,
+phase records, audits and stats under the same source release. Resource codes append
+`::divisionStatistic`, `::division` or `::divisionArea` to the public source-release
+code. Each resource completes independently, in either order. The parent freezes the
+dataset's expected resource types when registered and publishes only after all expected
+children complete. Retrying a missing or failed child preserves completed siblings.
+Statistics API composition can remain deferred independently of Divisions API
+activation.
+
+Normalisation, population scaling, identity and field/localisation declarations are
+selected from `fixtures/meta/processing-rules/` and registered by their executors.
+Scaling derives its decimal exponent from the fixture's factor, without a separately
+maintained exponent. The `censtatd-packed-statistic-normalisation-v2` preparation
+identity includes these registered definitions.
+
+Both SQL upload paths retain and register
+[processing provenance](../../processing-provenance.md) before publication. Registered
+declarations explain population scaling, literal interpretation and geography/period
+packing using execution counts, without copying source or output values. Reviewed field,
+measure and identity fixtures and selected API-field declarations are frozen in R2.
+Explicitly recorded translations are individual curations; absent origin metadata means
+origin unrecorded, regardless of the verification flag.
+
+Every materialised reference period retains an assembly run pinned to its source
+release. Recipes and source rules accompany remote metadata replay under the
+[assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
+
+The D1 registration identifies the retained manifest and completed or failed attempt.
+Audit exposes guard outcomes and consequences, lazy fixture inspection and searchable
+individual pages. Failed blocking guards prevent publication.
+
+Local source and canonical SQL retain native delivery plans for both general and
+district Statistics imports. Publication clears local ownership only after their
+payloads have receipts; a failed replay keeps the owning release resumable.
+
+Source and canonical SQL builders run only when their delivery phase needs a new plan,
+for both local and remote targets. The plan binds the prepared source, dataset and
+release identities and a row-wise checksum of reviewed canonical preparation. Field
+review and bridge resolution remain mandatory; a changed result stops retained-plan
+reuse before SQL generation or replay.
+
+Source-row preparation is retained in a checksummed binary artefact keyed by the
+prepared-file identity, release, dataset, source version, expected row count and
+processing contract. Local and remote retries verify the file checksum and reuse decoded
+rows with frozen timestamps. Corrupt or mismatched artefacts stop processing; incomplete
+generation can retry. General source preparation normalises bounded Parquet batches
+without keeping an additional complete raw-row array. Canonical normalisation, bridge
+resolution and field review remain outside this source cache.
+
+Canonical field discovery and curated normalisation use separate content-addressed
+artefacts for cohorts larger than 18 rows, retaining sections as individually framed
+rows. The fixed 18-district cohort normalises directly without canonical cache writes.
+Cache identities include source properties and references, current Division mappings,
+area-companion templates, and reviewed field and measure metadata. Field review still
+runs on every attempt; changed metadata or mappings select fresh normalisation, and
+retained SQL validates the resulting canonical checksum before replay.
+
+The source cache serialises rows incrementally into 4 MiB chunks, with oversized rows
+isolated. The final manifest checksums chunk ordering and row counts. Recovery verifies
+each chunk before decoding it; an interrupted stream without a committed manifest can
+retry. Neither cache writing nor reading requires a cohort-sized serialisation buffer.
+
+Both district and general Statistics importers use
+[sealed delivery phases](../../sql-delivery.md) for source, canonical,
+release-statistics, processing-action and snapshot metadata SQL. Each phase combines
+adjacent same-database batches, records remote receipts and replays the exact retained
+payloads locally before publication.
+
+An interrupted canonical import can recover a live bookmark through a bounded lookup of
+its exact payload ETag. A matching remote receipt remains mandatory; recovery does not
+send a replacement upload or ingest request for an uncertain batch.
+
+Housing Market Area Division companions use bounded canonical Division statements. Large
+geometry text is assembled before insertion, without simplifying publisher geometry or
+changing immutable-version conflict rules.
+
 The following C&SD datasets are registered as Stats-family sources. They preserve
 publisher releases with their published geography cohort and measures. Each source
 release writes structural release-owned facts to `meta.stats` and materialises one
@@ -42,6 +175,13 @@ made available through the catalogue. The area layer has `PERIOD=2023`, while th
 district layer explicitly retains `YEAR=2023` and `QUARTER=3`; neither value is replaced
 with the archive slot.
 
+Statistics API field fixtures use these materialised reference periods as lineage
+anchors: `2023` for Permanent Living Quarters and `2023-Q3` for its district dataset.
+The Population and Household compilation contributes annual anchors from 2016
+through 2025. Bootstrap requires an exact canonical source-schema signature for each
+cohort, including the census and housing datasets that contribute to the same annual
+period.
+
 District Land Area, Population and Density is an exception: its `Density_2022.gml` and
 `Density_2024.gml` publisher packages differ, so they are retained as distinct `2022.0`
 and `2024.0` source releases rather than archive no-ops.
@@ -49,8 +189,8 @@ and `2024.0` source releases rather than archive no-ops.
 Its district geometry can seed the early C&SD companion, but it is not a competing
 canonical API-field relationship. When the Population and Household district source or
 Permanent Living Quarters is available for the same Geographic release set, the density
-source remains retained as redundant provenance while the canonical C&SD relationship is
-used for API-field selection.
+source remains available as redundant provenance while the canonical C&SD relationship
+is used for API-field selection.
 
 ## Remaining native statistics ingestion
 
@@ -69,22 +209,43 @@ manifest SHA-256, expands only GML members within explicit entry-count and uncom
 size limits, requires each configured member, and checks its publisher layer, required
 fields and feature count. Complete publisher properties, feature geometry and archive
 key/hash are stored in `hkgovCenstatdStatistics`. The canonical path retains those
-assertions, then writes one normalised `statsRecords` row for each publisher feature and
-reference period, with its dataset, source release, `<layer>:<feature>` identity,
-optional reviewed `divisionId`, geography cohort, dimension-value map, and complete
-measure-value map. Each packed value retains its exact source property name and literal,
-decimal value or categorical code, precision (when known), and status. Measure and
-localised-value dictionaries remain normalised and are stored in the current shard and
-in each touched reference-period history shard with the corresponding source-release
-version. Their history identity is scoped by source release as well as field and content
-version, so repeated metadata does not transfer an older release's association to a
-newer release. This keeps dictionary selection alongside the statistic records. The
-current shard contains the latest version of each feature and exact period across source
-compilations; the period's history shard retains superseded record revisions. A
-Population and Household compilation can therefore carry annual observations for
-2016–2025 without collapsing them to the compilation release period. Its raw assertions
-stay in the delivery-year source shard, while canonical history uses each row's period
-end year; periods before 2025 use `DB_HISTORY_HK_BEFORE`.
+source records, then prepares one `statsRecords` pack for each dataset, semantic
+geography and exact reference period. Its stable identity includes geography kind, code,
+class and namespace, excluding source-release/version and geometry-companion vintage.
+Building groups use their parent Housing Market Area as the namespace. Duplicate fields
+or conflicting geography metadata within one pack block ingestion.
+
+The flat `values` map contains every dimension-qualified field, using exact decimal
+strings or canonical categorical codes. Publisher property names and literals remain in
+source assertions; per-field `fieldSources` identifies the contributing source release
+and feature. Field definitions retain analytical dimensions and use immutable content
+hashes covering their meaning, localisations and linked measure definition. Both current
+and history keep the exact dictionary versions referenced by `fieldDefinitionHashes`.
+
+Canonical history stores complete packed states only for real changes. A partial
+revision replaces supplied fields and retains omitted fields and their provenance.
+Unchanged values and definitions retain their original field source. Unchanged reissues
+add no canonical record versions or per-record snapshot membership; source evidence and
+publication metadata still identify the reissue. Sparse `statsRecord` changes in
+`snapshotVersionChanges` and snapshot parent ancestry select each frozen publication.
+
+Deferred Statistics revisions inherit only from published snapshots backed by a
+completed processing audit and published resource release in the same lineage and exact
+reference period. A successful source-only publication certifies these snapshots without
+activating the Statistics API. Revisions retain omitted geographies as well as omitted
+fields. Bootstrap selects one completed descendant per dataset variant; competing
+branches require resolution before another upload or bootstrap can proceed. Catalogue
+selection anchors inheritance after public publication or rollback.
+
+Publication promotes changed packs into current; deferred or incomplete imports leave
+published current values available. New annual releases do not retire older periods or
+omitted geographies. The API serves current unless explicit revision selectors resolve
+to an older publication. Its list/detail resources and pagination use geography/period
+packs, while geography maps and time series retain their single-field value mappings.
+
+A Population and Household compilation can carry annual observations for 2016–2025. Raw
+records use the delivery-year source shard. Canonical history uses each row's
+reference-period end year, with periods before 2025 in `DB_HISTORY_HK_BEFORE`.
 
 The `2026-Q2` Population and Household package also contains the corresponding
 publisher-labelled District Council geometry for those annual periods. Its source
@@ -186,7 +347,9 @@ description. These include demographic categories such as sex, age group, marita
 status, educational attainment, economic activity and ethnicity; household, housing,
 income, tenure and occupancy categories; and study, work, transport, literacy and
 migration categories. A field can carry more than one dimension, for example a female,
-aged 15-and-over, never-married population field.
+aged 15-and-over, never-married population field. These slices are stored once in the
+versioned field dictionary. One geography/period pack contains all the corresponding
+fields; the 2021 building-group curation's 69 dimension combinations share one pack.
 
 The field map does not duplicate measurement semantics. Units, statistic kinds,
 aggregations and denominator fields remain their own reviewed metadata: a median or
@@ -208,7 +371,9 @@ geometry selected at the latest compatible cohort and linked to the Overture ide
 snapshot. HMA is its domain's primary canonical division input, paired with the required
 native `hkgov-censtatd-hma` geometry. It is non-hierarchical: C&SD does not assign it a
 Division level, so the generated Division record has no `level` value and an empty
-hierarchy.
+hierarchy. HMA Division identifiers retain only `hkgovCenstatd.code`. The
+`housing-market-area` classification is carried by `class` and the prepared
+`canonical_type`, independently of the source identifier.
 
 The Statistics launch-bootstrap mode passes `--defer-stats-release-set`, so it uses the
 Statistics-only branch unless the operator also passes `--include-geography`. This keeps
@@ -220,6 +385,13 @@ release set is published during that run. Where one C&SD source also publishes
 its linked `divisionStatistic` snapshots are independently selected for Statistics
 cohort bootstrap.
 
+The complete 2016 Statistics composition contains Population and Households and
+Subdivided Units. The complete 2021 composition also contains Housing Market Areas and
+Building Groups, Major Housing Estates and New Towns. Each member can supply the primary
+snapshot lineage for its cohort's API-field mapping. The mapping requires the exact
+reviewed source combination and publisher schema versions, independently of which member
+is selected first.
+
 ## Source-release statistics and geography audit
 
 Every C&SD statistics source release stores only structural release facts: validated
@@ -228,7 +400,11 @@ distributions by measure, reference period, status and numeric/categorical kind;
 unique-measure, unit, statistic-kind, and aggregation distributions; distinct
 reference-period count; and canonical dimension/value-definition counts. The processor
 never sums, averages or compares publisher values with different units.
-`records/count/count` remains the source-directory primary count.
+`records/count/count` is the source-directory primary count. The source catalogue's
+per-field observation counts come from this release's structural facts, so a reissue
+with no changed canonical packs still has its full asserted counts. Schema labels and
+meanings resolve from the associated snapshot ancestry and exact field-definition
+hashes; retained dictionary versions do not inflate counts.
 
 Reviewed canonical geography resolution is an Audit concern rather than a release-stat
 dimension. District releases record the approved C&SD-to-canonical district bridge as an
@@ -277,7 +453,7 @@ Divisions domains, not by assigning an arbitrary district parent.
 
 The native CSDI ZIP is the input. Each mapped archive contains one GML layer,
 `Density_2022` or `Density_2024`, with 18 District Council district features in
-EPSG:2326. The source shard retains C&SD's numeric `DC`, labels, publisher geometry and
+EPSG:2326. The source shard includes C&SD's numeric `DC`, labels, publisher geometry and
 complete property set without a canonical division value. The history processor resolves
 each `DC` through the reviewed C&SD numeric bridge and the matching reviewed HAD
 district code bridge. It writes the resulting canonical `divisionId` and SaanSeoi
@@ -290,32 +466,33 @@ versioned division merge ruleset. It is a versioned description of the determini
 bridge operation, while any record-specific exception remains a release processing
 action with its own evidence.
 
-Each source assertion retains its publisher labels directly as `districtEn` and
-`districtZhHant`; the source shard has no locale-keyed child table. Canonical/API
-localisation is materialised only when a consumer needs it.
+Source records retain the complete publisher attributes in `properties`, native
+geometry, identity, release history and provenance. Publisher labels, district codes,
+measure values and normalised reference periods are not duplicated as source columns.
+Canonical fields and API localisation belong to canonical history/current tables.
 
 `MYPOPN_LAND` is expressed in thousands by the publisher and is multiplied by 1,000
 during canonical ingestion, so `numericValue` is the actual number of people while
 `sourceValue` remains the original literal. `valuePrecision` records the greatest
 significant decimal count from the original value, and the normalisation is recorded as
 one release Audit bulk action with its factor and source/target units. `PERIOD`, land
-area (`LA`), and mid-year population density (`POPN_D`) are retained as statistic
-assertions. The archive quarter is never a dataset version: the fixture's
-`sourceVersion` creates `2022.0` and `2024.0`.
+area (`LA`), and mid-year population density (`POPN_D`) are retained as statistic source
+records. The archive quarter is never a dataset version: the fixture's `sourceVersion`
+creates `2022.0` and `2024.0`.
 
 The current CSDI simplified data specification is recorded in the dataset fixture as
 `schemaSpecificationURL`. The updater prepares and mirrors the publisher ZIP, then
 passes that local prepared ZIP, its managed-asset key and its SHA-256 to the importer.
 The importer verifies the local ZIP against that hash before parsing it; it never
-reloads the ZIP from object storage. The source assertion retains both archive
-references while the target-aware SQL processor uses its local target-database cache to
-generate and publish the release for local, preview or production. That processor
-materialises release facts and audited processing actions locally, then replays the
-exact stored current and history statistic rows to preview or production before
-publication. It mirrors the identifier bridges, C&SD density assertions, and
-division-statistics history required for this dataset; its console progress identifies
-the cache and processing stage currently in progress. Publish through `saanseoi update`,
-or invoke the importer with the already-prepared archive:
+reloads the ZIP from object storage. The source record includes both archive references
+while the target-aware SQL processor uses its local target-database cache to generate
+and publish the release for local, preview or production. That processor materialises
+release facts and audited processing actions locally, then replays the exact stored
+history versions and sparse snapshot changes to preview or production. Publication
+promotes changed selected packs into current. It mirrors the identifier bridges, C&SD
+density records, and division-statistics history required for this dataset; its console
+progress identifies the cache and processing stage currently in progress. Publish
+through `saanseoi update`, or invoke the importer with the already-prepared archive:
 
 ```sh
 bun run dataops -- hkgov-censtatd:district-land-area-population-density ./data/.../source.zip \
@@ -337,3 +514,133 @@ the reviewed `sourceField | fieldName | name | description` table for each suppo
 locale. Release notes therefore present exactly the curated offering names and inclusion
 criteria that the statistics processor publishes, without a second hand-maintained
 Markdown copy.
+
+## Resetting Statistics
+
+`saanseoi reset:stats` includes C&SD general statistics and district land-area,
+population and density assertions, together with their canonical Statistics data and
+release metadata, contributed Division geometry and its source assertions. It preserves
+unrelated geometry and source evidence assets. See the
+[Statistics family reset options](../../families/stats.md).
+
+## Reset and readiness
+
+`reset:stats` includes division and geometry contributions owned by C&SD Statistics
+datasets, including exact and simplified snapshots. It also retracts derived geographic
+snapshots, affected Divisions API release sets and catalogue revisions, preserving their
+other source inputs. Non-geographic consumers block deletion. Update readiness requires
+a published statistics release; a geometry release for the same source cohort does not
+satisfy that check.
+
+Rules that consume identity mappings retain the selected bridge fixtures alongside their
+execution counts. Audit cards can also display the same release’s retained geography
+bridge as shared evidence for those rules. Bridge tables show publisher identities and
+codes, SaanSeoi division codes and canonical identities; UUIDs use a middle ellipsis
+with the full identity available on hover.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`properties`.
+
+## API release statistics
+
+The Stats tab describes each frozen API release at its exact reference period. Counts
+resolve its Statistics snapshots through sparse parent ancestry, including unchanged
+reissues whose snapshots contain no new packs. Exact `fieldDefinitionHashes` select
+field definitions and labels. Supporting geometry and lookup sources do not contribute
+statistical records. Duplicate shard copies count once; conflicting versions, missing
+contributing datasets and missing field definitions stop calculation.
+
+Metrics include geographic packs, observations, referenced field-definition versions,
+dataset-qualified measures, datasets, reference periods, geography types, canonical
+division linkage, field coverage, published/suppressed/unavailable values,
+numeric/categorical values, statistical kinds, aggregations and units. Field-label
+coverage uses the distinct field definitions referenced in that cohort as its
+denominator; unverified labels remain explicit. Unlinked geography is a coverage fact,
+not an assertion that a match is incorrect. Publisher values remain strings and are
+never summed to produce these metrics.
+
+Primary-record churn compares the preceding release with the same API version, domain,
+region and period granularity. Packs match by dataset and geography kind, code, class
+and namespace. Changed packs have different field/value mappings, field-definition
+hashes, canonical division linkage or geometry companion domain/variant. Values are
+compared as literal strings, including suppression and unavailable markers. Exact
+reference periods and geometry companion cohorts are excluded from this cross-period
+comparison, as are source provenance and record-version metadata.
+
+Within each continuing geography, identical payloads match first, remaining pairs count
+as changed, and unmatched packs count as added or removed. Added, changed and unchanged
+sum to the selected release's count; removed, changed and unchanged sum to the preceding
+count. A first release counts every pack as added.
+
+Structural changes independently count added, removed and retained field, measure and
+geography identities against that same preceding release. They do not compare numerical
+values. The first comparable release has no structural change baseline.
+
+Publication and reconciliation calculate these presentation facts. To rebuild all local
+published releases without re-ingestion or changing snapshot membership:
+
+```fish
+bun apps/harbour-cli/src/cli.ts stats:backfill-statistics --target local --dry-run
+bun apps/harbour-cli/src/cli.ts stats:backfill-statistics --target local
+```
+
+Use `--release CODE[,CODE...]` to select API releases. The backfill prepares and
+validates every selected release before replacing any saved presentation statistics.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+## Geography classification
+
+Statistics record `geography.kind` classifies the source geography (for example,
+`district` or `housing-estate`). Aggregate-query geography `kind` selects the resource
+family (`division`, `buildingGroup` or `majorHousingEstate`). These are distinct
+vocabularies, not casing variants. Source geography `class` values such as `B` and `O`
+retain their separate publisher meaning.
+
+Release statistics use `metric` for measurement classification. Exactly one of
+`releaseId` and `apiReleaseSetId` identifies the owner. Processing-audit counts use
+`metric: processing` and are preserved when ordinary measurement statistics are
+replaced.
+
+## Retained property mapping
+
+Source persistence converts publisher property keys to camelCase and rejects collisions.
+Canonical preparation and curation use the original publisher keys; field provenance
+pairs each original path with the retained key. Population/household periods use `year`,
+area quarters use `PERIOD`, district quarters combine `YEAR` and `QUARTER`, and census
+products use release context. Registry dataset/release IDs and reviewed field metadata
+have explicit origins. Value-kind classification is derived from parsed observations.
+
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
+
+Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for example
+`buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
+properties. Original publisher paths and language dictionary identifiers retain their
+spelling; demographic measures about language are not locale-bearing labels.
+
+Source and canonical history SQL is applied to isolated local candidates and compiled
+into final keyed changes before delivery. Statistics retains its separate sparse
+publication promotion: dataset and exact reference period select packed geography
+records, older periods remain current, and partial revisions preserve omitted fields and
+geographies. This membership boundary is distinct from complete inventory replacement in
+Division and Place datasets.

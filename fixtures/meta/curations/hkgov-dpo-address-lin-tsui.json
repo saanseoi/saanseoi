@@ -1,0 +1,15 @@
+{
+  "id": "lin-tsui-house-canonical-backfill",
+  "revision": 1,
+  "authority": "User decision, 2026-09-07: retain the latest named Lin Tsui entry and CSU, backfill it, and remove the other canonical variants while preserving raw evidence.",
+  "sourceVersionFrom": "2024-07-25.0",
+  "transitionVersion": "2026-04-03.0",
+  "sourceVersionTo": "2026-08-19.0",
+  "from": "4238313561P20180516",
+  "to": "4238313558T20180523",
+  "coordinates": [114.2362, 22.26082],
+  "previousCoordinates": [114.23626, 22.26085],
+  "residualCoordinates": [114.2362, 22.26084],
+  "inventoryHash": "df48b1dbefbf6da1c60f61779f8b42082a9c3ac8843cec0459f4985c39a83c26",
+  "unitCount": 288
+}

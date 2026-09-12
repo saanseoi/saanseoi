@@ -1,0 +1,22 @@
+{
+  "kind": "division-area-geometry-restoration-patch",
+  "schemaVersion": 1,
+  "id": "overture_hong_kong_area_geometry_restored",
+  "reason": "Restore a missing Hong Kong area geometry from its district land geometries, including Lok Ma Chau Loop where applicable, and remove Shenzhen Bay Port.",
+  "method": "union-district-land-geometries-then-difference-exclusion-bbox",
+  "parameters": {
+    "newTerritoriesAdditionalDivisionId": "222b7818-970a-491d-98b6-b88d8c6f0161",
+    "exclusion": {
+      "coordinates": [
+        [
+          [113.935, 22.485],
+          [113.96, 22.485],
+          [113.96, 22.51],
+          [113.935, 22.51],
+          [113.935, 22.485]
+        ]
+      ],
+      "type": "Polygon"
+    }
+  }
+}

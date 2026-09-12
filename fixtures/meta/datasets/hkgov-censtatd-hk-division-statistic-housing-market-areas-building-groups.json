@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:d010f4325c848f052c9baa65b08ee43bd1cdaac1ae11c8323c2efcfee004b725",
+  "versionHash": "sha256:942c0708bef0c8a9bdb868cafca5a6f9fe49b9cdbb4789c2d61766e08c9da62c",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
   "regionCode": "hk",
   "releaseType": "static",
-  "releaseFrequency": "five-yearly",
+  "releaseFrequency": "census",
   "theme": "stats",
   "sourceVariant": "hkgov-censtatd-hma",
   "areaCompanionByReferencePeriod": {
@@ -58,7 +58,10 @@
       "rulesetVersion": "rs-division-statistic-merge-v1",
       "operationCodes": [
         "normalise_censtatd_statistic_source_assertion",
-        "curate_censtatd_measure_metadata"
+        "curate_censtatd_measure_metadata",
+        "provenance_statistic_normalisation",
+        "provenance_statistic_localisation",
+        "provenance_division_area_geometry"
       ]
     }
   ],
@@ -99,7 +102,17 @@
     {
       "locale": "en",
       "name": "Census: Housing Market Areas and Building Groups",
-      "description": "Planned C&SD source for Census statistics and geography for housing market areas and building groups."
+      "description": "C&SD source for Census statistics and geography for housing market areas and building groups."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "人口普查：房屋市場分區及樓宇組別",
+      "description": "政府統計處提供的房屋市場分區及樓宇組別人口普查統計和地理資料。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "人口普查：房屋市场分区及楼宇组别",
+      "description": "政府统计处提供的房屋市场分区及楼宇组别人口普查统计和地理资料。"
     }
   ]
 }

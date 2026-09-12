@@ -72,6 +72,21 @@ test('TelegramClient retries rate limits and transient non-JSON failures', async
   expect(delayMock).toHaveBeenNthCalledWith(2, 2000)
 })
 
+test('TelegramClient retries transport failures', async () => {
+  const fetchMock = mock()
+    .mockRejectedValueOnce(new Error('connection reset'))
+    .mockResolvedValueOnce(Response.json({ ok: true, result: { message_id: 42 } }))
+  const delayMock = mock(async () => undefined)
+  const client = new TelegramClient('token', {
+    delay: delayMock,
+    fetch: fetchMock as unknown as typeof fetch,
+  })
+
+  await expect(client.sendText('chat', 'hello')).resolves.toEqual([{ message_id: 42 }])
+  expect(fetchMock).toHaveBeenCalledTimes(2)
+  expect(delayMock).toHaveBeenCalledWith(1000)
+})
+
 test('DiscordClient retries rate limits and server failures', async () => {
   const fetchMock = mock()
     .mockResolvedValueOnce(Response.json({ retry_after: 0.25 }, { status: 429 }))
@@ -90,6 +105,24 @@ test('DiscordClient retries rate limits and server failures', async () => {
   expect(fetchMock).toHaveBeenCalledTimes(4)
   expect(delayMock).toHaveBeenNthCalledWith(1, 250)
   expect(delayMock).toHaveBeenNthCalledWith(2, 2000)
+})
+
+test('DiscordClient retries transport failures', async () => {
+  const fetchMock = mock()
+    .mockRejectedValueOnce(new Error('connection reset'))
+    .mockResolvedValueOnce(Response.json([{ id: 'channel', type: 0 }]))
+    .mockResolvedValueOnce(Response.json({ threads: [] }))
+  const delayMock = mock(async () => undefined)
+  const client = new DiscordClient('token', 'guild', {
+    delay: delayMock,
+    fetch: fetchMock as unknown as typeof fetch,
+  })
+
+  await expect(client.listMessageChannels()).resolves.toEqual([
+    { id: 'channel', type: 0 },
+  ])
+  expect(fetchMock).toHaveBeenCalledTimes(3)
+  expect(delayMock).toHaveBeenCalledWith(1000)
 })
 
 test('DiscordClient rejects other HTTP errors without retrying', async () => {

@@ -1,14 +1,12 @@
 {
-  "versionHash": "sha256:10f557ca89366d70f87c313f6f418761e2cbe4e7fcae82ff420dd57c83fa35e0",
+  "versionHash": "sha256:5d9759f44e0f4b6a4379de827027e425b4cd96015b304b2fc26d739cd6f372ce",
   "publisherCode": "hkgov-dpo",
   "code": "ds-hk-hkgov-dpo-address",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "addresses",
-  "resourceTypes": [
-    "address"
-  ],
+  "resourceTypes": ["address"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© HK SAR Government, Digital Policy Office, DATA.GOV.HK",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rcd_1629267205232_33603",
@@ -60,6 +58,17 @@
       "locale": "zh-hans",
       "name": "香港政府 ALS 地址",
       "description": "ALS 提供香港楼宇的格式化地址，包括私人及公共屋邨、商业及工业大厦、政府大楼及办公室、街市和购物中心，以及康乐和体育中心等公共设施。部分地址代表建筑群，例如学校或大学。ALS 大部分地址以二维格式提供，通常包括街道名称、门牌号码及大厦名称；包含单元及楼层号码等资料的三维格式化地址只适用于公共屋邨。详情请参阅 [数据字典](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN-v3.2.pdf)。"
+    }
+  ],
+  "sourceCrs": "EPSG:4326",
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-als-processing-v1",
+      "operationCodes": [
+        "prepare-als-addresses",
+        "normalise-als-addresses",
+        "curate-als-addresses"
+      ]
     }
   ]
 }

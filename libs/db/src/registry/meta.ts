@@ -2,7 +2,11 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
 import type { ResourceType } from '@repo/core'
-import { profileNames } from '../constants/schema'
+import {
+  type ruleDeclarationFromFixture,
+  resolveRuleFixtureCatalog,
+} from '@repo/core/provenance/ruleFixture'
+import { profileNames, resolverCodes } from '../constants/schema'
 import type {
   ApiFamilyType,
   ApiEndpointMethod,
@@ -37,7 +41,6 @@ export const metaRegistryRequiredTables = [
   'units',
   'unitsI18n',
   'datasets',
-  'datasetResourceTypes',
   'datasetI18n',
   'datasetTransforms',
   'apiVersions',
@@ -46,21 +49,11 @@ export const metaRegistryRequiredTables = [
   'apiEndpoints',
   'dataShards',
   'divisionCodes',
-  'identifierBridges',
 ] as const
 
 export const initialProfiles: ProfileName[] = [...profileNames]
 
-export const initialResolverCodes: ResolverCode[] = [
-  'direct_copy',
-  'join_lookup',
-  'lookup_fk',
-  'derive_bbox_from_geometry',
-  'prefer_hkgov_then_overture',
-  'prefer_overture_then_hkgov',
-  'merge_first_non_empty',
-  'normalise_whitespace',
-]
+export const initialResolverCodes: ResolverCode[] = [...resolverCodes]
 
 type Locale = 'en' | 'zh-hant' | 'zh-hans'
 
@@ -111,7 +104,7 @@ type DatasetFixture = {
   releaseType: DatasetReleaseType
   releaseFrequency: DatasetReleaseFrequency
   theme: DatasetTheme
-  subType?: string
+  kind?: string
   sourceVariant?: string
   sourceCrs?: string
   resourceTypes: ResourceType[]
@@ -171,7 +164,6 @@ type ApiCompositionMemberFixture = {
   role: string
   isRequired: boolean
   cohortMatchingMode: string
-  configJson?: string
   anchorResourceType?: ResourceType
   maxLagDays?: number
   priority: number
@@ -215,7 +207,9 @@ type DataShardFileFixture = {
 
 export type MergeProcessingRule = {
   operationCode: string
-  type: 'bulk' | 'record'
+  definition?: ReturnType<typeof ruleDeclarationFromFixture>
+  definitions?: Array<ReturnType<typeof ruleDeclarationFromFixture>>
+  kind: 'bulk' | 'record'
   sourceFieldPath?: string
   targetFieldPath?: string
   condition?: string
@@ -233,7 +227,9 @@ type MergeRulesetFixture = {
   strategy: 'merge'
   version: string
   notes?: string
-  mergeRules?: MergeProcessingRule[]
+  mergeRules?: Array<
+    MergeProcessingRule | { operationCode: string; ruleFixture: string | string[] }
+  >
 }
 
 export type DatasetMergeRuleReference = {
@@ -283,19 +279,13 @@ type InitialUnitI18nSeed = {
 type InitialDatasetSeed = VersionedFixture<
   Omit<
     DatasetFixture,
-    'i18n' | 'mergeRules' | 'resourceTypes' | 'subType' | 'sourceVariant' | 'transforms'
+    'i18n' | 'mergeRules' | 'kind' | 'sourceVariant' | 'transforms'
   > & {
-    subType: string | null
+    kind: string | null
     sourceVariant: string
     processingRules: ReleaseMergeRules | null
   }
 >
-
-type InitialDatasetResourceTypeSeed = {
-  datasetCode: string
-  publisherCode: string
-  resourceType: ResourceType
-}
 
 type InitialDatasetI18nSeed = {
   datasetCode: string
@@ -353,7 +343,6 @@ type InitialApiCompositionMemberSeed = {
   role: string
   isRequired: boolean
   cohortMatchingMode: string
-  configJson?: string
   anchorResourceType?: ResourceType
   maxLagDays?: number
   priority: number
@@ -392,7 +381,7 @@ export function validateDivisionCodeFixtures(
     if (!fixture.domainCode.trim())
       throw new Error('Division code fixture has no domainCode.')
     for (const assignment of fixture.assignments) {
-      if (!assignment.divisionCode.trim() || /\s/.test(assignment.divisionCode)) {
+      if (!/^[A-Z0-9]+(?:_[A-Z0-9]+)*$/.test(assignment.divisionCode)) {
         throw new Error(`Invalid Division code=${assignment.divisionCode}.`)
       }
       if (!assignment.canonicalId.trim()) {
@@ -453,7 +442,7 @@ function sqlString(value: string) {
   return `'${value.replaceAll("'", "''")}'`
 }
 
-function sqlNullable(value: string | undefined) {
+function sqlNullable(value: string | null | undefined) {
   return value == null ? 'NULL' : sqlString(value)
 }
 
@@ -475,27 +464,70 @@ function sqlTimestampMs(value: string) {
 const publisherFixtures = readFixtureDir<PublisherFixture>('dataPublishers')
 const unitFixtures = readFixtureDir<UnitFixture>('units')
 const datasetFixtures = readFixtureDir<DatasetFixture>('datasets')
-const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersions')
+const processingRuleDefinitions = resolveRuleFixtureCatalog(
+  Object.fromEntries(
+    readdirSync(join(fixturesDir.pathname, 'processing-rules'))
+      .filter(name => name.endsWith('.json'))
+      .map(name => [
+        name.slice(0, -5),
+        JSON.parse(
+          readFileSync(join(fixturesDir.pathname, 'processing-rules', name), 'utf8'),
+        ),
+      ]),
+  ),
+)
+
+/** Resolve references before hashing so policy edits change the consumed ruleset identity. */
+export function resolveMergeRulesetDefinitions(
+  fixture: MergeRulesetFixture,
+  definitions = processingRuleDefinitions,
+) {
+  const mergeRules = (fixture.mergeRules ?? []).map((rule): MergeProcessingRule => {
+    if (!('ruleFixture' in rule)) return rule
+    const names = Array.isArray(rule.ruleFixture)
+      ? rule.ruleFixture
+      : [rule.ruleFixture]
+    if (!names.length) throw new Error('Processing rule references must not be empty.')
+    const selected = names.map(name => {
+      const definition = definitions.get(name)
+      if (!definition) throw new Error(`Unknown processing rule fixture: ${name}.`)
+      return structuredClone(definition)
+    })
+    const first = selected[0]
+    if (!first) throw new Error('Processing rule references must not be empty.')
+    if (selected.some(definition => definition.scope !== first.scope)) {
+      throw new Error('One merge operation cannot combine bulk and individual rules.')
+    }
+    return {
+      operationCode: rule.operationCode,
+      kind: first.scope === 'bulk' ? 'bulk' : 'record',
+      sourceFieldPath: [
+        ...new Set(selected.flatMap(definition => definition.inputs)),
+      ].join(', '),
+      targetFieldPath: [
+        ...new Set(selected.flatMap(definition => definition.outputs)),
+      ].join(', '),
+      i18n: [
+        {
+          locale: 'en',
+          description: selected.map(definition => definition.summary).join(' '),
+        },
+      ],
+      ...(selected.length === 1 ? { definition: first } : { definitions: selected }),
+    }
+  })
+  const resolved = { ...fixture, mergeRules }
+  return { ...resolved, versionHash: computeVersionHash(resolved) }
+}
+
+const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersions').map(
+  fixture => resolveMergeRulesetDefinitions(fixture),
+)
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
 const divisionCodeFixtures = readFixtureDir<DivisionCodeFixture>('divisionCodes')
 validateDivisionCodeFixtures(divisionCodeFixtures)
-const identifierBridgeFixtures = readFixtureDir<{
-  resourceType: ResourceType
-  sourceDatasetCode: string
-  sourceReleaseCode: string
-  cohortKey: string
-  domain: string
-  authority: string
-  mappingMethod: string
-  reviewStatus: string
-  mappings: Array<{
-    externalId: string
-    externalCode?: string
-    canonicalId: string
-  }>
-}>('identifierBridges')
 
 export const initialPublishers: InitialPublisherSeed[] = publisherFixtures
   // Parent rows must be inserted before children because child links use a
@@ -544,8 +576,9 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   releaseType: fixture.releaseType,
   releaseFrequency: fixture.releaseFrequency,
   theme: fixture.theme,
-  subType: fixture.subType ?? null,
+  kind: fixture.kind ?? null,
   sourceVariant: fixture.sourceVariant ?? 'default',
+  resourceTypes: [...new Set(fixture.resourceTypes)],
   sourceCrs: fixture.sourceCrs,
   licenseCode: fixture.licenseCode,
   attribution: fixture.attribution,
@@ -594,15 +627,6 @@ export function resolveDatasetMergeRules(
     }),
   }
 }
-
-export const initialDatasetResourceTypes: InitialDatasetResourceTypeSeed[] =
-  datasetFixtures.flatMap(fixture =>
-    fixture.resourceTypes.map(resourceType => ({
-      datasetCode: fixture.code,
-      publisherCode: fixture.publisherCode,
-      resourceType,
-    })),
-  )
 
 export const initialDatasetI18n: InitialDatasetI18nSeed[] = datasetFixtures.flatMap(
   fixture =>
@@ -661,10 +685,6 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
       role: member.role,
       isRequired: member.isRequired,
       cohortMatchingMode: member.cohortMatchingMode,
-      configJson:
-        member.ingestDependencies && member.ingestDependencies.length > 0
-          ? JSON.stringify({ ingestDependencies: member.ingestDependencies })
-          : undefined,
       anchorResourceType: member.anchorResourceType,
       maxLagDays: member.maxLagDays,
       priority: member.priority,
@@ -675,23 +695,28 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
  * Canonical domain-code renames applied to published registry metadata.
  *
  * A domain identifies a lineage, so these are deliberately limited to cases
- * where the previous code was only a label for the same official lineage.
+ * where the previous code was only a label for the same lineage.
  */
 export const apiDomainCodeRenames = [
   {
     apiVersion: 'api-addresses-v0.1',
     from: 'default',
-    to: 'official',
+    to: 'saanseoi',
+  },
+  {
+    apiVersion: 'api-addresses-v0.1',
+    from: 'official',
+    to: 'saanseoi',
   },
   {
     apiVersion: 'api-stats-v0.1',
-    from: 'default',
-    to: 'official',
+    from: 'official',
+    to: 'government',
   },
   {
     apiVersion: 'api-streets-v0.1',
-    from: 'hkgov-landsd',
-    to: 'official',
+    from: 'official',
+    to: 'saanseoi',
   },
 ] as const
 
@@ -719,20 +744,6 @@ export const initialDataShards: InitialDataShardSeed[] = dataShardFixtures.flatM
       regionCode: shard.regionCode,
       year: shard.year,
     })),
-)
-
-export const initialIdentifierBridges = identifierBridgeFixtures.flatMap(fixture =>
-  fixture.mappings.map(mapping => ({
-    ...mapping,
-    resourceType: fixture.resourceType,
-    sourceDatasetCode: fixture.sourceDatasetCode,
-    sourceReleaseCode: fixture.sourceReleaseCode,
-    cohortKey: fixture.cohortKey,
-    domain: fixture.domain,
-    authority: fixture.authority,
-    mappingMethod: fixture.mappingMethod,
-    reviewStatus: fixture.reviewStatus,
-  })),
 )
 
 export const initialDivisionCodes = divisionCodeFixtures.flatMap(fixture =>
@@ -856,6 +867,16 @@ WHERE units.versionHash <> excluded.versionHash;`.trim(),
     )
   }
 
+  // Registry-owned translations use exactly the locale keys declared by their unit.
+  for (const unit of initialUnits) {
+    const locales = initialUnitsI18n
+      .filter(translation => translation.code === unit.code)
+      .map(translation => sqlString(translation.locale))
+    statements.push(
+      `DELETE FROM unitsI18n WHERE unitId = (SELECT id FROM units WHERE code = ${sqlString(unit.code)})${locales.length ? ` AND locale NOT IN (${locales.join(', ')})` : ''};`,
+    )
+  }
+
   for (const translation of initialUnitsI18n) {
     statements.push(
       `
@@ -876,40 +897,13 @@ ON CONFLICT(unitId, locale) DO UPDATE SET
     )
   }
 
-  for (const bridge of initialIdentifierBridges) {
-    statements.push(
-      `
-INSERT INTO identifierBridges (
-  resourceType, cohortKey, domain, authority, externalId, externalCode,
-  canonicalId, sourceDatasetCode, sourceReleaseCode,
-  mappingMethod, reviewStatus, createdAt, updatedAt
-) VALUES (
-  ${sqlString(bridge.resourceType)},
-  ${sqlString(bridge.cohortKey)},
-  ${sqlString(bridge.domain)},
-  ${sqlString(bridge.authority)},
-  ${sqlString(bridge.externalId)},
-  ${sqlNullable(bridge.externalCode)},
-  ${sqlString(bridge.canonicalId)},
-  ${sqlString(bridge.sourceDatasetCode)},
-  ${sqlString(bridge.sourceReleaseCode)},
-  ${sqlString(bridge.mappingMethod)},
-  ${sqlString(bridge.reviewStatus)},
-  ${nowSql},
-  ${nowSql}
-)
-ON CONFLICT(resourceType, cohortKey, domain, authority, externalId) DO UPDATE SET
-  externalCode = excluded.externalCode,
-  canonicalId = excluded.canonicalId,
-  sourceDatasetCode = excluded.sourceDatasetCode,
-  sourceReleaseCode = excluded.sourceReleaseCode,
-  mappingMethod = excluded.mappingMethod,
-  reviewStatus = excluded.reviewStatus,
-  updatedAt = excluded.updatedAt;`.trim(),
-    )
-  }
-
   for (const divisionCode of initialDivisionCodes) {
+    statements.push(
+      `DELETE FROM divisionCodes
+WHERE domainCode = ${sqlString(divisionCode.domainCode)}
+  AND canonicalId = ${sqlString(divisionCode.canonicalId)}
+  AND divisionCode <> ${sqlString(divisionCode.divisionCode)};`,
+    )
     statements.push(
       `
 INSERT INTO divisionCodes (
@@ -934,7 +928,7 @@ WHERE divisionCodes.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, subType, sourceVariant, sourceCrs, sourceUrl, schemaURL, licenseId, attribution, category, processingRules, versionHash, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, kind, sourceVariant, sourceCrs, sourceUrl, schemaURL, licenseId, attribution, category, resourceTypes, processingRules, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -942,8 +936,8 @@ INSERT INTO datasets (
   ${sqlString(dataset.regionCode)},
   ${sqlString(dataset.releaseType)},
   ${sqlString(dataset.releaseFrequency)},
-  ${sqlString(dataset.theme)},
-  ${sqlNullable(dataset.subType)},
+  ${sqlNullable(dataset.theme)},
+  ${sqlNullable(dataset.kind)},
   ${sqlString(dataset.sourceVariant)},
   ${sqlNullable(dataset.sourceCrs)},
   ${sqlNullable(dataset.sourceUrl)},
@@ -951,6 +945,7 @@ INSERT INTO datasets (
   (SELECT id FROM licenses WHERE code = ${sqlString(dataset.licenseCode)}),
   ${sqlNullable(dataset.attribution)},
   ${sqlNullable(dataset.category)},
+  ${sqlString(JSON.stringify(dataset.resourceTypes))},
   ${sqlNullable(
     dataset.processingRules ? JSON.stringify(dataset.processingRules) : undefined,
   )},
@@ -963,7 +958,7 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   releaseType = excluded.releaseType,
   releaseFrequency = excluded.releaseFrequency,
   theme = excluded.theme,
-  subType = excluded.subType,
+  kind = excluded.kind,
   sourceVariant = excluded.sourceVariant,
   sourceCrs = excluded.sourceCrs,
   sourceUrl = excluded.sourceUrl,
@@ -971,29 +966,12 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   licenseId = excluded.licenseId,
   attribution = excluded.attribution,
   category = excluded.category,
+  resourceTypes = excluded.resourceTypes,
   processingRules = excluded.processingRules,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE datasets.versionHash <> excluded.versionHash
    OR datasets.schemaURL IS NOT excluded.schemaURL;`.trim(),
-    )
-  }
-
-  for (const resource of initialDatasetResourceTypes) {
-    statements.push(
-      `
-INSERT INTO datasetResourceTypes (datasetId, resourceType)
-VALUES (
-  (
-    SELECT d.id
-    FROM datasets d
-    JOIN publishers p ON p.id = d.publisherId
-    WHERE p.code = ${sqlString(resource.publisherCode)}
-      AND d.code = ${sqlString(resource.datasetCode)}
-  ),
-  ${sqlString(resource.resourceType)}
-)
-ON CONFLICT(datasetId, resourceType) DO NOTHING;`.trim(),
     )
   }
 
@@ -1166,7 +1144,7 @@ WHERE apiCompositionId IN (
     statements.push(
       `
 INSERT INTO apiCompositionMembers (
-  apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority, configJson
+  apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority
 ) VALUES (
   (SELECT id FROM apiComposition WHERE code = ${sqlString(member.apiCompositionCode)}),
   ${sqlString(member.domainCode)},
@@ -1177,8 +1155,7 @@ INSERT INTO apiCompositionMembers (
   ${sqlString(member.cohortMatchingMode)},
   ${sqlNullable(member.anchorResourceType)},
   ${member.maxLagDays == null ? 'NULL' : member.maxLagDays},
-  ${member.priority},
-  ${sqlNullable(member.configJson)}
+  ${member.priority}
 )
 ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
   role = excluded.role,

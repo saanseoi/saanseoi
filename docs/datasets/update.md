@@ -38,7 +38,7 @@ buckets. For example:
 saanseoi update --dataset ds-hk-hkgov-hyd-street --target preview
 ```
 
-Every CSDI source object is retained as an immutable ZIP in R2. Publisher ZIPs are
+Every CSDI source object remains available as an immutable ZIP in R2. Publisher ZIPs are
 copied byte-for-byte; a non-ZIP delivery is losslessly wrapped in a ZIP. The paired
 manifest records the source URL, CSDI release slot, original filename and digest,
 archive digest, package contents, and—when native parsing succeeds—schema and semantic
@@ -61,11 +61,11 @@ including after redirects, and use time and compressed-size limits. ZIP metadata
 validated for safe member names, entry count, expanded size, per-entry size and
 compression ratio before publisher members are decompressed.
 
-Each retained source object is registered as a managed source asset and Atlas API serves
-its public download at `/v0/assets/{asset-id}`; there is no public R2 bucket listing.
-Archives and retained source Parquet are publisher evidence, while SaanSeoi's
-database-backed datasets are the product. Processing intermediates remain local-only and
-transient. Schema fingerprints are retained in release ingest metadata.
+Each source object is registered as a managed source asset and Atlas API serves its
+public download at `/v0/assets/{asset-id}`; there is no public R2 bucket listing.
+Archives and source Parquet are publisher evidence, while SaanSeoi's database-backed
+datasets are the product. Processing intermediates remain local-only and transient.
+Schema fingerprints are retained in release ingest metadata.
 
 Mirroring an archive does not itself publish a SaanSeoi dataset release. The source
 release policy is to compare native schema and semantic fingerprints in release order:
@@ -80,7 +80,7 @@ then `.2`, and so on).
 
 The C&SD District Land Area, Population and Density dataset has an additional local
 ingestion stage after its mapped archive is available. It prepares the native
-`Density_2022.gml` or `Density_2024.gml`, writes the raw publisher assertion to the
+`Density_2022.gml` or `Density_2024.gml`, writes the raw publisher source record to the
 source shard, and writes the canonical Division Statistics observation to the history
 shard. Its source version remains the `PERIOD` reference year; the CSDI archive quarter
 is provenance only. Run either explicit release with:
@@ -99,34 +99,32 @@ The update report collapses already-current CSDI archive slots into one row per 
 release. The updater still retains and checks state for every archive slot; a newly
 changed publisher object remains visible as an actionable update.
 
-The LandsD street-name backfill is staged maintainer-only DataOps work. Preserve and
-parse the baseline, LandsD notices from 22 January 2016 onward, and the official
-e-Gazette notices from 19 May 2000 through 21 January 2016 separately. Then assemble the
-three stages once into the immutable street snapshot:
+Publish the current LandsD gazetted street-name register before preparing historical
+evidence. The current command pins the baseline PDF and canonical identities in the
+checked-in registry, publishes the source release and snapshot, and is a no-op when that
+exact cohort is already published:
 
 ```bash
-bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production
-bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production
-bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production
-bun run dataops -- hkgov-landsd-streets:assemble --target local|preview|production
+bun run dataops -- hkgov-landsd-streets:current --target local|preview|production
 ```
 
-The stage artefacts and the final assembly must use the same target because their
-managed evidence-asset IDs are target-specific. The assembler is the only command that
-publishes a street release, snapshot revision, and cursor update. Later
-`saanseoi update --download` runs read the Government Notices table and write only
-notice rows not present in the saved source cursor, together with generated Markdown
-notes and local WebP plan conversions. `lastUpdated` in the dataset fixture is the
-checked-in bootstrap baseline; the live cursor belongs in the ignored update-state file.
+Historical backfill is maintainer-only staging for a later reviewed correction revision:
 
-For a remote target, the latest published LandsD source version is also a chronological
-high-water mark. A partial or stale local notice-ID cursor cannot enqueue notices at or
-before that release: the updater refreshes its cursor from the publisher pages and
-offers only later publication-date batches. When more than one later batch exists, each
-successful ingest becomes the comparison baseline for the next one; the confirmation
-prompt names its position in that sequence and the preceding target version. The target
-is authoritative, so a cursor advanced while updating another environment never hides a
-later batch from the selected target.
+```bash
+bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production
+bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production
+```
+
+Stage artefacts use separate directories per remote environment because managed
+evidence-asset IDs are target-specific. Historical source preparation does not publish
+or advance the current-release cursor. A future revision assembler must reuse the
+published canonical identity bridge and prove present-state parity before publication.
+`lastUpdated` in the dataset fixture is the checked-in bootstrap baseline; live update
+state belongs in the ignored update-state file.
+
+The LandsD updater publishes the pinned baseline cohort only. Historical notice dates
+are evidence dates, not current-register release versions, and do not enqueue automatic
+publications. Historical enrichment requires a separately reviewed revision.
 
 When `--target` is supplied, the updater first queries that SaanSeoi environment's
 `/v1/reports/releases` endpoint for each dataset. The returned latest release is used as

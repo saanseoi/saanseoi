@@ -1,5 +1,6 @@
 {
   "name": "@repo/core",
+  "type": "module",
   "version": "1.0.0",
   "private": true,
   "license": "MIT",
@@ -12,7 +13,17 @@
     "test:coverage": "bun test --coverage"
   },
   "exports": {
+    "./displayName": "./src/displayName.ts",
+    "./provenance/auditPageIndex": "./src/provenance/auditPageIndex.ts",
+    "./provenance/auditAlsDecisions": "./src/provenance/auditAlsDecisions.ts",
+    "./provenance/auditSearch": "./src/provenance/auditSearch.ts",
+    "./provenance/auditFixtureRows": "./src/provenance/auditFixtureRows.ts",
+    "./provenance/auditFixtureCatalogue": "./src/provenance/auditFixtureCatalogue.ts",
+    "./provenance": "./src/provenance/index.ts",
+    "./provenance/divisionCodes": "./src/provenance/divisionCodes.ts",
+    "./provenance/ruleFixture": "./src/provenance/ruleFixture.ts",
     ".": "./src/index.ts",
+    "./requireDefined": "./src/requireDefined.ts",
     "./codes": "./src/codes.ts",
     "./upload": "./src/lib/services/upload.ts",
     "./uploadLocal": "./src/lib/services/uploadLocal.ts",
@@ -22,23 +33,36 @@
     "./productUsage": "./src/productUsage.ts",
     "./sourceRecordSchemas": "./src/sourceRecordSchemas.ts",
     "./pipeline/*": "./src/pipeline/*",
+    "./pipeline/services": "./src/pipeline/services/index.ts",
+    "./pipeline/services/addresses": "./src/pipeline/services/addresses/index.ts",
+    "./pipeline/services/addresses/searchIndex": "./src/pipeline/services/addresses/searchIndex.ts",
+    "./pipeline/services/places/searchIndex": "./src/pipeline/services/places/searchIndex.ts",
+    "./pipeline/services/search/*": "./src/pipeline/services/search/*.ts",
+    "./pipeline/services/publicationState": "./src/pipeline/services/publicationState.ts",
+    "./pipeline/services/divisions": "./src/pipeline/services/divisions/index.ts",
+    "./pipeline/services/metrics": "./src/pipeline/services/metrics/index.ts",
+    "./pipeline/services/places": "./src/pipeline/services/places/index.ts",
+    "./pipeline/services/sources": "./src/pipeline/services/sources/index.ts",
+    "./pipeline/services/statistics": "./src/pipeline/services/statistics/index.ts",
+    "./pipeline/services/storage": "./src/pipeline/services/storage/index.ts",
     "./testing/localDb": "./src/testing/localDb.ts",
     "./parquetInspector": "./src/lib/parquetInspector.ts",
     "./parquetInspectorNode": "./src/lib/parquetInspectorNode.ts",
     "./db/types": "./src/lib/db/types.ts",
     "./db/metaRegistry": "./src/lib/db/metaRegistry.ts",
-    "./sourceAssets": "./src/lib/services/sourceAssets.ts"
+    "./sourceAssets": "./src/lib/services/sourceAssets.ts",
+    "./sourceAssetTransfer": "./src/lib/services/sourceAssetTransfer.ts"
   },
   "dependencies": {
     "@repo/db": "workspace:*",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
-    "hyparquet": "^1.29.2",
+    "hyparquet": "^1.30.1",
     "hyparquet-compressors": "^1.1.1"
   },
   "devDependencies": {
-    "@types/bun": "latest",
-    "bun-types": "^1.4.0",
+    "@types/bun": "1.4.2",
+    "bun-types": "^1.4.2",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   }
 }

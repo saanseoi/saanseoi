@@ -1,14 +1,12 @@
 {
-  "versionHash": "sha256:9befc05f34c1677556ac81a5eea57aa4feab7f24e2a4f13a02c0e35230cee3c0",
+  "versionHash": "sha256:4f72ed8cb9f72911c451aa52d1075209b0ed1672f59ce8a3e8bc31ae37ab71ba",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-area",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "monthly",
   "theme": "divisions",
-  "resourceTypes": [
-    "divisionArea"
-  ],
+  "resourceTypes": ["divisionArea"],
   "licenseCode": "ODbL",
   "attribution": "© OpenStreetMap contributors; Overture Maps Foundation",
   "sourceUrl": "https://docs.overturemaps.org/guides/divisions/",
@@ -33,9 +31,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "new-release"
-        ]
+        "discoveries": ["new-release"]
       }
     },
     "archives": {
@@ -52,10 +48,7 @@
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-merge-v1",
-      "operationCodes": [
-        "overture_division_geometry_cn_gd_excluded",
-        "overture_hong_kong_area_synthesised"
-      ]
+      "operationCodes": ["overture_division_geometry_cn_gd_excluded"]
     }
   ],
   "i18n": [
@@ -74,5 +67,6 @@
       "name": "Overture 区划范围 (香港)",
       "description": "区划范围是代表区划所涵盖陆地或海事范围的多边形。每个区划范围通过 ID 关联所属区划，并为该区划提供范围多边形。"
     }
-  ]
+  ],
+  "sourceCrs": "EPSG:4326"
 }

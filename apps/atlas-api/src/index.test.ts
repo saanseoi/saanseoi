@@ -57,7 +57,9 @@ function createMockDb(options: MockDbOptions = {}) {
               return { count: 0 } as T
             }
 
-            if (query.includes('FROM api_key')) {
+            if (query.includes('FROM apiKeyUsageRollup')) return null as T
+
+            if (query.includes('FROM apiKey')) {
               if (options.apiKey === null) return null as T
 
               return {
@@ -225,25 +227,234 @@ function streetRows(query: string): unknown[][] {
       versionHash,
     ])
 
+  if (query.includes('from "snapshotVersionChanges"')) {
+    return [
+      [
+        'street',
+        'landsd-street-notice-example',
+        '',
+        'street-version-1',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'street',
+        'landsd-street-notice-example',
+        '',
+        'street-version-2',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetI18n',
+        'landsd-street-notice-example',
+        'en',
+        'street-version-1',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetI18n',
+        'landsd-street-notice-example',
+        'zh-Hant',
+        'street-version-1',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetI18n',
+        'landsd-street-notice-example',
+        'en',
+        'street-version-2',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetI18n',
+        'landsd-street-notice-example',
+        'zh-Hant',
+        'street-version-2',
+        'upsert',
+        'release-1',
+      ],
+      [
+        'streetChangelog',
+        'street-changelog-version-1',
+        '',
+        'street-changelog-version-1',
+        'upsert',
+        'release-1',
+      ],
+    ]
+  }
+  if (query.includes('from "snapshots"')) return [['street-snapshot', null]]
+  if (query.includes('from "snapshotShardAssignments"')) {
+    return [['history-shard-1', 'DB_HISTORY_HK_2026']]
+  }
   if (query.includes('from "streetChangelog"')) {
+    if (query.includes('"versionHash"')) {
+      return [
+        [
+          'landsd-street-notice-example',
+          'landsd-street-notice-example',
+          'gazette',
+          0,
+          '2026-07-03',
+          null,
+          'history-shard-1',
+          'G.N. 4034',
+          assetLinks,
+          'street-changelog-version-1',
+          'release-1',
+          'street-snapshot',
+          1,
+          '2026-07-03T00:00:00.000Z',
+          '2026-07-03T00:00:00.000Z',
+        ],
+        [
+          'landsd-street-notice-example',
+          'landsd-street-notice-example-future',
+          'gazette',
+          0,
+          '2026-09-01',
+          null,
+          'history-shard-1',
+          'G.N. 9999',
+          assetLinks,
+          'street-changelog-version-3',
+          'release-2',
+          'future-street-snapshot',
+          1,
+          '2026-09-01T00:00:00.000Z',
+          '2026-09-01T00:00:00.000Z',
+        ],
+      ]
+    }
     return [changelog]
+  }
+  if (query.includes('from "streets"') && query.includes('"versionHash"')) {
+    const sources = JSON.stringify({ hkgovLandsd: { noticeRecordKeys: [] } })
+    return [
+      [
+        'landsd-street-notice-example',
+        1,
+        'active',
+        null,
+        districtIds,
+        '2026-07-03',
+        null,
+        '[]',
+        assetLinks,
+        sources,
+        'street-version-1',
+        'release-1',
+        'street-snapshot',
+        1,
+        '2026-07-03T00:00:00.000Z',
+        '2026-07-03T00:00:00.000Z',
+      ],
+      [
+        'landsd-street-notice-example',
+        2,
+        'deleted',
+        '2026-08-01',
+        districtIds,
+        '2026-08-01',
+        null,
+        '[]',
+        assetLinks,
+        sources,
+        'street-version-2',
+        'release-1',
+        'street-snapshot',
+        1,
+        '2026-08-01T00:00:00.000Z',
+        '2026-08-01T00:00:00.000Z',
+      ],
+      [
+        'landsd-street-notice-example',
+        3,
+        'active',
+        null,
+        districtIds,
+        '2026-09-01',
+        null,
+        '[]',
+        assetLinks,
+        sources,
+        'street-version-3',
+        'release-2',
+        'future-street-snapshot',
+        1,
+        '2026-09-01T00:00:00.000Z',
+        '2026-09-01T00:00:00.000Z',
+      ],
+    ]
+  }
+  if (query.includes('from "streetsI18n"') && query.includes('"versionHash"')) {
+    return [
+      ...localizations('street-version-1', null).map(row => [
+        'landsd-street-notice-example',
+        row[1],
+        row[2],
+        null,
+        null,
+        null,
+        null,
+        'central wan chai bypass',
+        row[0],
+        'street-version-1',
+        'release-1',
+        'street-snapshot',
+        1,
+        '2026-07-03T00:00:00.000Z',
+        '2026-07-03T00:00:00.000Z',
+      ]),
+      ...localizations('street-version-2', 'Deleted by Government Notice.').map(row => [
+        'landsd-street-notice-example',
+        row[1],
+        row[2],
+        null,
+        null,
+        null,
+        null,
+        'central wan chai bypass',
+        row[0],
+        'street-version-2',
+        'release-1',
+        'street-snapshot',
+        1,
+        '2026-08-01T00:00:00.000Z',
+        '2026-08-01T00:00:00.000Z',
+      ]),
+      ...localizations(
+        'street-version-3',
+        'Published after the selected snapshot.',
+      ).map(row => [
+        'landsd-street-notice-example',
+        row[1],
+        row[2],
+        null,
+        null,
+        null,
+        null,
+        'central wan chai bypass',
+        row[0],
+        'street-version-3',
+        'release-2',
+        'future-street-snapshot',
+        1,
+        '2026-09-01T00:00:00.000Z',
+        '2026-09-01T00:00:00.000Z',
+      ]),
+    ]
   }
   if (!query.includes('from "streets"') && !query.includes('from "streetsI18n"')) {
     return [['street-snapshot']]
   }
   if (query.includes('from "streets"') && query.includes('"snapshotId" = ?')) {
     return [
-      [
-        null,
-        districtIds,
-        'landsd-street-notice-example',
-        '2026-07-03',
-        JSON.stringify({
-          hkgovLandsd: { sourceEventIds: ['landsd-street-notice-example'] },
-        }),
-        'active',
-        1,
-      ],
+      [null, districtIds, 'landsd-street-notice-example', '2026-07-03', 'active', 1],
     ]
   }
   if (query.includes('from "streetsI18n"') && query.includes('"snapshotId" = ?')) {
@@ -374,6 +585,66 @@ function createAuthenticatedEnv(
 }
 
 describe('atlas-api', () => {
+  test('every data-family operation documents and validates the optional region filter', async () => {
+    const { env } = createEnv()
+    const paths = {}
+    for (const family of ['addresses', 'divisions', 'places', 'stats', 'streets']) {
+      const response = await app.fetch(
+        new Request(`http://localhost/openapi/${family}/v0.1`),
+        env,
+      )
+      expect(response.status).toBe(200)
+      Object.assign(paths, ((await response.json()) as { paths: object }).paths)
+    }
+    const document = { paths } as {
+      paths: Record<
+        string,
+        {
+          get?: {
+            parameters?: Array<{
+              name: string
+              in: string
+              required?: boolean
+              schema: { enum?: string[]; default?: string }
+            }>
+          }
+        }
+      >
+    }
+    let operations = 0
+    for (const [path, entry] of Object.entries(document.paths)) {
+      if (!/^\/(addresses|divisions|places|stats|streets)\//.test(path) || !entry.get)
+        continue
+      const parameter = entry.get.parameters?.find(
+        parameter => parameter.name === 'region',
+      )
+      expect(parameter, path).toMatchObject({
+        in: 'query',
+        required: false,
+        schema: { enum: ['hk', 'mo', 'gba'], default: 'hk' },
+      })
+      expect(path).not.toContain('{region}')
+      operations++
+    }
+    expect(operations).toBeGreaterThan(20)
+    for (const path of [
+      '/addresses/v0.1',
+      '/divisions/v0.1',
+      '/places/v0.1',
+      '/places/v0',
+      '/stats/v0.1',
+      '/streets/v0.1/changelog',
+      '/stats/v0.1/registry',
+      '/divisions/v0.1/source-releases',
+    ]) {
+      const invalid = await app.fetch(
+        apiRequest(`http://localhost${path}?region=invalid`),
+        env,
+      )
+      expect(invalid.status, path).toBe(422)
+    }
+  })
+
   test('dispatches both scheduled roll-ups with their matching cron', async () => {
     const originalFetch = globalThis.fetch
     const queries: string[] = []
@@ -417,8 +688,12 @@ describe('atlas-api', () => {
         { days: 2, rows: 0 },
       ])
       expect(queries).toHaveLength(2)
-      expect(queries[0]).toContain('SUM(_sample_interval * double1)')
-      expect(queries[1]).toContain("index1 = 'api.access'")
+      expect(queries).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('SUM(_sample_interval * double1)'),
+          expect.stringContaining("index1 = 'api.access'"),
+        ]),
+      )
     } finally {
       globalThis.fetch = originalFetch
     }
@@ -872,6 +1147,85 @@ describe('atlas-api', () => {
     })
   })
 
+  test('forwarded family aliases consume one rate-limit slot and usage event', async () => {
+    for (const family of ['places', 'streets']) {
+      const charges: string[] = []
+      const events: unknown[] = []
+      const { env } = createEnv({
+        AUTH_MODE: 'required',
+        API_RATE_LIMIT: {
+          limit: async ({ key }: { key: string }) => {
+            charges.push(key)
+            return { success: charges.length === 1 }
+          },
+        } as RateLimit,
+        API_USAGE: {
+          writeDataPoint: event => events.push(event),
+        } as AnalyticsEngineDataset,
+      })
+      const response = await app.fetch(
+        apiRequest(`http://localhost/${family}/v0/missing`),
+        env,
+      )
+      expect(response.status).not.toBe(429)
+      expect(charges).toEqual(['api-key-1'])
+      expect(events).toHaveLength(1)
+    }
+  })
+
+  test('protected responses cannot be reused by downstream caches', async () => {
+    const { env } = createEnv({ AUTH_MODE: 'required' })
+    for (const request of [
+      new Request('http://localhost/divisions/v0.1'),
+      apiRequest('http://localhost/divisions/v0.1'),
+      new Request('http://localhost/divisions/v0.1', {
+        headers: { origin: 'https://saanseoi.hk' },
+      }),
+    ]) {
+      const response = await app.fetch(request, env)
+      expect(response.headers.get('cache-control')).toBe('no-store')
+    }
+  })
+
+  test('an exhausted public-key lease is rejected before metering', async () => {
+    let charges = 0
+    const { env } = createEnv({
+      AUTH_MODE: 'required',
+      PUBLIC_KEY_LEASES: {
+        get: async () => ({
+          keyId: 'api-key-1',
+          status: 'exhausted',
+          nextCheckAt: Date.now() + 60_000,
+        }),
+      } as unknown as KVNamespace,
+      API_RATE_LIMIT: {
+        limit: async () => {
+          charges++
+          return { success: true }
+        },
+      } as RateLimit,
+    })
+    const response = await app.fetch(apiRequest('http://localhost/divisions/v0.1'), env)
+    expect(response.status).toBe(429)
+    expect(await response.json()).toMatchObject({ error: 'quota_exceeded' })
+    expect(charges).toBe(0)
+  })
+
+  test('URL-shaped Origin values do not qualify for the first-party exemption', async () => {
+    const { env } = createEnv({ AUTH_MODE: 'required' })
+    for (const origin of [
+      'https://saanseoi.hk/path',
+      'https://user@saanseoi.hk',
+      'https://saanseoi.hk?other',
+    ]) {
+      const response = await app.fetch(
+        new Request('http://localhost/divisions/v0.1', { headers: { origin } }),
+        env,
+      )
+      expect(response.status).toBe(401)
+    }
+  })
+
   test('GET /divisions/v0.1 returns 503 when public-key validation is unavailable', async () => {
     const { env } = createAuthenticatedEnv({
       PUBLIC_KEY_LEASES: {
@@ -1115,8 +1469,9 @@ describe('atlas-api', () => {
   test('Places endpoints reject unbounded limits', async () => {
     const { env } = createEnv()
     for (const path of [
-      '/places/v0/hk/by-cell/9/89283470cdbffff?limit=101',
-      '/places/v0/hk/search?q=sushi&limit=101',
+      '/places/v0?page[limit]=101',
+      '/places/v0/by-cell/9/89283470cdbffff?limit=101',
+      '/places/v0/search?q=sushi&limit=101',
     ]) {
       const res = await app.fetch(apiRequest(`http://localhost${path}`), env)
       expect(res.status).toBe(422)
@@ -1357,6 +1712,44 @@ describe('atlas-api', () => {
     })
   })
 
+  test('GET /addresses/v0.1/search validates matching-mode component requirements', async () => {
+    const { env } = createEnv()
+
+    const missingComponent = await app.fetch(
+      apiRequest('http://localhost/addresses/v0.1/search?q=Harbour&match=component'),
+      env,
+    )
+    const unexpectedComponent = await app.fetch(
+      apiRequest(
+        'http://localhost/addresses/v0.1/search?q=Harbour&match=prefix&component=street',
+      ),
+      env,
+    )
+
+    expect(missingComponent.status).toBe(422)
+    expect(unexpectedComponent.status).toBe(422)
+  })
+
+  test('GET /addresses/v0.1/search returns snapshot_not_ready before searching', async () => {
+    const { env } = createEnv()
+    const res = await app.fetch(
+      apiRequest('http://localhost/addresses/v0.1/search?q=Harbour&match=full-text'),
+      env,
+    )
+
+    expect(res.status).toBe(503)
+    const body = (await res.json()) as {
+      httpStatus: number
+      error: string
+      message: string
+    }
+    expect(body).toEqual({
+      httpStatus: 503,
+      error: 'snapshot_not_ready',
+      message: 'No active address snapshot is published.',
+    })
+  })
+
   test('GET /divisions/v0.1 returns 503 when atlas hits a transient D1 read failure', async () => {
     const productEvents: AnalyticsEngineDataPoint[] = []
     const { env } = createEnv(
@@ -1460,8 +1853,8 @@ describe('atlas-api', () => {
     expect(body.paths['/v0.1/meta/health']).toBeDefined()
     expect(body.paths['/v0.1/meta/d1-placement-probe']).toBeUndefined()
     expect(body.paths['/divisions/v0.1']).toBeUndefined()
-    expect(body.components?.schemas?.DivisionRelationships?.required).toContain(
-      'hierarchy',
+    expect(body.components?.schemas?.DivisionAttributes?.required).toContain(
+      'hierarchies',
     )
     expect(body.components?.schemas?.Id?.pattern).toBe('^\\S+$')
     expect(body.components?.schemas).toHaveProperty('OvertureSourceItem')
@@ -1502,6 +1895,10 @@ describe('atlas-api', () => {
       new Request('http://localhost/openapi/stats/v0.1'),
       env,
     )
+    const placesRes = await app.fetch(
+      new Request('http://localhost/openapi/places/v0.1'),
+      env,
+    )
     const divisionsCurrentRes = await app.fetch(
       new Request('http://localhost/openapi/divisions/v0'),
       env,
@@ -1521,6 +1918,12 @@ describe('atlas-api', () => {
       paths: Record<string, unknown>
       tags?: Array<{ name: string }>
       'x-tagGroups'?: Array<{ name: string; tags: string[] }>
+      components?: { schemas?: Record<string, unknown> }
+    }
+    const places = (await placesRes.json()) as {
+      paths: Record<string, unknown>
+      tags?: Array<{ name: string }>
+      components?: { schemas?: Record<string, unknown> }
     }
     const divisionsCurrent = (await divisionsCurrentRes.json()) as {
       paths: Record<string, unknown>
@@ -1537,10 +1940,155 @@ describe('atlas-api', () => {
 
     expect(addressesRes.status).toBe(200)
     expect(addresses.paths['/addresses/v0.1']).toBeDefined()
+    expect(addresses.paths['/addresses/v0.1/search']).toBeDefined()
     expect(addresses.paths['/divisions/v0.1']).toBeUndefined()
     expect(addresses.paths['/v0.1/api/families']).toBeUndefined()
     expect(addresses.components?.schemas).toHaveProperty('Address')
+    const address = addresses.components?.schemas?.Address as
+      | { properties?: Record<string, unknown> }
+      | undefined
+    expect(address?.properties?.meta).toBeUndefined()
+    const addressPointGeometry = addresses.components?.schemas?.AddressPointGeometry as
+      | {
+          description?: string
+          properties?: Record<
+            string,
+            { enum?: string[]; maxItems?: number; minItems?: number }
+          >
+        }
+      | undefined
+    expect(addressPointGeometry?.description).toBe(
+      'The address position as a WGS84 GeoJSON Point, when requested and available.',
+    )
+    expect(addressPointGeometry?.properties?.type?.enum).toEqual(['Point'])
+    expect(addressPointGeometry?.properties?.coordinates).toMatchObject({
+      minItems: 2,
+      maxItems: 3,
+    })
+    expect(addresses.components?.schemas).not.toHaveProperty('Geometry')
+    const addressAttributes = addresses.components?.schemas?.AddressAttributes as {
+      properties: Record<string, { enum?: string[]; description?: string }>
+    }
+    expect(addressAttributes.properties.granularity?.enum).toEqual([
+      'unknown',
+      'site',
+      'complex',
+      'phase',
+      'building',
+      'section',
+      'floor',
+      'unit',
+      'room',
+      'room_part',
+    ])
+    expect(addressAttributes.properties).not.toHaveProperty('granularityProvenance')
     expect(addresses.components?.schemas).not.toHaveProperty('Division')
+    const addressI18n = addresses.components?.schemas?.AddressI18n as
+      | { description?: string; 'x-recordKeyName'?: string }
+      | undefined
+    const addressI18nAttributes = addresses.components?.schemas
+      ?.AddressI18nAttributes as
+      | {
+          description?: string
+          properties?: Record<
+            string,
+            { description?: string; enum?: unknown[]; examples?: unknown[] }
+          >
+        }
+      | undefined
+    expect(addressI18n?.description).toBe(
+      'Localised address text and parsed components, keyed by requested locale.',
+    )
+    expect(addressI18n?.['x-recordKeyName']).toBe('en, zh-hant, …')
+    expect(addressI18nAttributes?.description).toBe(
+      'Address text and parsed components for one locale. Optional components are null when the source did not supply them.',
+    )
+    const addressI18nExamples = {
+      formattedAddress: [
+        "BLK A, PEARL COURT, 13 BELCHER'S STREET, CENTRAL & WESTERN DISTRICT, HK",
+        'TOWER 1, ISLAND CREST, 8 FIRST STREET, CENTRAL & WESTERN DISTRICT, HK',
+        'HOUSE 2, 35 BARKER ROAD, CENTRAL & WESTERN DISTRICT, HK',
+        "ON NING BUILDING, 427 KING'S ROAD, EASTERN DISTRICT, HK",
+      ],
+      buildingName: [
+        'FU TOR LOY SHOPPING CENTRE',
+        'ON NING BUILDING',
+        'GOLDEN MANSION',
+        'LUCKY BUILDING',
+        'WING WAH BUILDING',
+      ],
+      buildingNumberExpression: ['1', '8', '1A', '19B', '1000A'],
+      buildingNumberFrom: ['1', '6'],
+      buildingNumberTo: ['3', '6A'],
+      buildingNumberConnector: [null],
+      blockExpression: [
+        'BLK A',
+        'BLK B',
+        'TWR 1',
+        'HSE 2',
+        'APT D1',
+        'FLAT A',
+        'MANSION A',
+        'GARAGE A',
+        'COMMERCIAL CENTRE',
+        'TWR 1&2',
+      ],
+      blockType: [
+        'block',
+        'building',
+        'tower',
+        'house',
+        'villa',
+        'mansion',
+        'apartment',
+        'flat',
+        'unit',
+        'quarters',
+        'phase',
+        'stage',
+        'commercial',
+        'retail',
+        'parking',
+        'garage',
+        'other',
+      ],
+      blockRef: ['A', 'B', '1', 'D1', '1&2'],
+      blockTypeBeforeNumber: [true, null],
+      phaseExpression: [
+        'PHASE I',
+        'PHASE 2',
+        'PHASE IIIB',
+        'THE HIGHLAND',
+        'CHONG CHIEN COURT',
+        null,
+      ],
+      phaseName: ['PHASE', 'THE HIGHLAND', 'STAGE', null],
+      phaseRef: ['I', 'II', 'IIIB', '3', null],
+      estateName: [
+        'FAIRVIEW PARK',
+        'HONG LOK YUEN',
+        'PALM SPRINGS',
+        'DISCOVERY BAY',
+        'MARINA COVE',
+        'WHAMPOA ESTATE',
+      ],
+      streetName: [
+        'CASTLE PEAK ROAD',
+        "KING'S ROAD",
+        'NATHAN ROAD',
+        'CANTON ROAD',
+        "QUEEN'S ROAD WEST",
+        'LAI CHI KOK ROAD',
+      ],
+    }
+    for (const [field, example] of Object.entries(addressI18nExamples)) {
+      expect(addressI18nAttributes?.properties?.[field]?.description).toBeTruthy()
+      expect(addressI18nAttributes?.properties?.[field]?.examples).toEqual(example)
+    }
+    expect(addressI18nAttributes?.properties?.blockType?.enum).toEqual([
+      ...addressI18nExamples.blockType,
+      null,
+    ])
     expect(divisions.components?.schemas).toHaveProperty('Division')
     expect(divisions.components?.schemas).not.toHaveProperty('Address')
     const divisionAttributes = divisions.components?.schemas?.DivisionAttributes as
@@ -1552,7 +2100,7 @@ describe('atlas-api', () => {
       | { description?: string; 'x-recordKeyName'?: string }
       | undefined
     const divisionHierarchyIdentifier =
-      divisions.components?.schemas?.DivisionHierarchyIdentifier
+      divisions.components?.schemas?.DivisionHierarchyEntry
     const sources = divisions.components?.schemas?.Sources as
       | {
           'x-additionalPropertiesName'?: string
@@ -1571,8 +2119,23 @@ describe('atlas-api', () => {
           properties?: Record<string, { allOf?: Array<{ description?: string }> }>
         }
       | undefined
-    expect(divisionAttributes?.properties).toHaveProperty('sourceKeys')
+    expect(divisionAttributes?.properties).not.toHaveProperty('sourceKeys')
     expect(divisionAttributes?.properties).not.toHaveProperty('overture')
+    expect(divisionAttributes?.properties).toHaveProperty('wikidataId')
+    expect(divisionAttributes?.properties).not.toHaveProperty('wikidata')
+    const divisionsOpenApi = JSON.stringify(divisions)
+    expect(divisions.components?.schemas).not.toHaveProperty('Geometry')
+    expect(divisionsOpenApi).toContain('division-areas')
+    expect(divisionsOpenApi).toContain('division-boundaries')
+    expect(divisionsOpenApi).toContain('MultiPolygon')
+    expect(divisionsOpenApi).toContain('MultiLineString')
+    expect(divisionsOpenApi).not.toContain('GeometryCollection')
+    expect(divisionsOpenApi).not.toContain('MultiPoint')
+    expect(divisionAttributes?.properties?.wikidataId).toMatchObject({
+      examples: ['Q55621441', 'Q7820922', 'Q16923583', null],
+    })
+    expect(divisionsOpenApi).toContain('hkgov-censtatd-landclipped')
+    expect(divisionsOpenApi).toContain('hkgov-pland-new-town')
     expect(divisionResource?.properties).not.toHaveProperty('meta')
     expect(divisionAttributes?.description).toBe(
       'Canonical data for this resource, excluding its relationships.',
@@ -1584,15 +2147,15 @@ describe('atlas-api', () => {
       'Localised names and naming data, keyed by requested locale (for example `en` or `zh-Hant`).',
     )
     expect(divisionI18n?.['x-recordKeyName']).toBe('en, zh-hant, …')
-    expect(JSON.stringify(divisionHierarchyIdentifier)).toContain(
-      'Summary details for the ancestor division, provided with the resource linkage.',
-    )
-    expect(JSON.stringify(divisionHierarchyIdentifier)).toContain(
-      "The ancestor division's available display name.",
-    )
-    expect(JSON.stringify(divisionHierarchyIdentifier)).toContain(
-      "The ancestor division's source classification, such as `country`, `dependency` or `region`.",
-    )
+    expect(divisionHierarchyIdentifier).toMatchObject({
+      required: ['id', 'name', 'class'],
+      properties: {
+        name: {
+          description:
+            'Stored Traditional Chinese and English display name, with duplicate names omitted.',
+        },
+      },
+    })
     expect(sources?.properties?.overture?.description).toBe(
       'Attribution provided by Overture Maps. Each item identifies the source record for this property.',
     )
@@ -1619,10 +2182,218 @@ describe('atlas-api', () => {
       'An additional named link supplied by SaanSeoi. Its value depends on the link name.',
     )
 
+    expect(placesRes.status).toBe(200)
+    expect(places.paths['/places/v0.1']).toBeDefined()
+    expect(places.paths['/places/v0.1/{id}']).toBeDefined()
+    expect(places.paths['/places/v0.1/by-cell/{h3Level}/{h3Cell}']).toBeDefined()
+    expect(places.paths['/places/v0.1/search']).toBeDefined()
+    expect(places.paths['/divisions/v0.1']).toBeUndefined()
+    expect(places.tags?.map(tag => tag.name)).toEqual(['Places', 'Sources'])
+    expect(places.components?.schemas).toHaveProperty('Place')
+    expect(places.components?.schemas).toHaveProperty('PlacesListResponse')
+    expect(places.components?.schemas).toHaveProperty('PlaceCollectionResource')
+    expect(places.components?.schemas).toHaveProperty('PlaceGeometry')
+    expect(places.components?.schemas).toHaveProperty('PlaceTaxonomy')
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain('geometry')
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain('taxonomy')
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain(
+      'taxonomyPrimary',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain(
+      'taxonomyHierarchy',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain(
+      'taxonomyAlternates',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain('"lng"')
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain('"lat"')
+    expect(places.components?.schemas).not.toHaveProperty('PlaceAddress')
+    expect(places.components?.schemas).not.toHaveProperty('PlaceSourceKeys')
+    expect(places.components?.schemas).not.toHaveProperty('OverturePlaceSourceKeys')
+    expect(places.components?.schemas).toHaveProperty('PlaceI18n')
+    expect(JSON.stringify(places.components?.schemas?.PlaceI18n)).toContain(
+      'freeformAddress',
+    )
+    expect(places.components?.schemas).toHaveProperty('PlaceSource')
+    expect(places.components?.schemas).toHaveProperty('PlaceDivision')
+    expect(places.components?.schemas).toHaveProperty('PlaceCellResult')
+    expect(places.components?.schemas).toHaveProperty('PlaceSearchResult')
+    expect(places.components?.schemas).toHaveProperty('ConfidenceScore')
+    expect(places.components?.schemas).toHaveProperty('HttpUrl')
+    expect(places.components?.schemas).toHaveProperty('EmailStr')
+    expect(places.components?.schemas).toHaveProperty('PhoneNumber')
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      '#/components/schemas/ConfidenceScore',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      '#/components/schemas/HttpUrl',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      '#/components/schemas/EmailStr',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      '#/components/schemas/PhoneNumber',
+    )
+    expect(JSON.stringify(places.components?.schemas?.ConfidenceScore)).toContain(
+      'Confidence score between 0.0 and 1.0.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.HttpUrl)).toContain(
+      'A type that will accept any http or https URL.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.EmailStr)).toContain(
+      'Validate email addresses.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.PhoneNumber)).toContain(
+      'An international phone number.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      'The requested Place record.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain(
+      'The basic level category of a place.',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).not.toContain(
+      '"addresses":',
+    )
+    expect(JSON.stringify(places.components?.schemas?.Place)).toContain('sources')
+
+    type OpenApiField = {
+      description?: string
+      allOf?: Array<{ description?: string; examples?: unknown[] }>
+      enum?: unknown[]
+      examples?: unknown[]
+    }
+    type OpenApiObjectSchema = {
+      description?: string
+      properties?: Record<string, OpenApiField>
+    }
+    const placeSchemas = places.components?.schemas as
+      | Record<string, OpenApiObjectSchema>
+      | undefined
+    const expectPlaceFieldsDescribed = (schemaName: string, fields: string[]) => {
+      const properties = placeSchemas?.[schemaName]?.properties
+      for (const field of fields) {
+        const property = properties?.[field]
+        expect(
+          property?.description ??
+            property?.allOf?.find(item => item.description)?.description,
+        ).toBeTruthy()
+      }
+    }
+    expect(placeSchemas?.PlaceSource?.description).toBe(
+      'Information about the source data used to assemble the place feature.',
+    )
+    expectPlaceFieldsDescribed('PlaceSource', [
+      'property',
+      'dataset',
+      'license',
+      'record_id',
+      'update_time',
+      'confidence',
+      'provider',
+      'resource',
+      'version',
+      'between',
+    ])
+    expectPlaceFieldsDescribed('PlaceI18n', [
+      'snapshotId',
+      'placeId',
+      'locale',
+      'name',
+      'nameVariant',
+      'nameAlts',
+      'brandName',
+      'brandNameVariant',
+      'brandNameAlts',
+      'freeformAddress',
+      'provenance',
+    ])
+    expectPlaceFieldsDescribed('PlaceCollectionAttributes', [
+      'referenceName',
+      'basicCategory',
+      'operatingStatus',
+      'wikidataId',
+      'websites',
+      'socials',
+      'emails',
+      'phones',
+      'confidence',
+      'firstSeenMonth',
+      'lastSeenMonth',
+      'createdAt',
+      'updatedAt',
+      'snapshotId',
+      'releaseId',
+      'addressSnapshotId',
+      'address2dId',
+      'address3dId',
+      'sources',
+    ])
+    expect(placeSchemas?.PlaceCollectionI18nValue?.properties?.name?.examples).toEqual([
+      "Ebeneezer's Kebabs & Pizzeria",
+      '百佳超級市場',
+      null,
+    ])
+    expect(
+      placeSchemas?.PlaceCollectionI18nValue?.properties?.freeformAddress?.examples,
+    ).toEqual(['Shop 10, Ngong Ping 360, Lantau Island', '74 San Hing St', null])
+    expect(placeSchemas?.PlaceDivision?.properties?.level?.examples).toEqual([
+      0,
+      1,
+      2,
+      4,
+      6,
+      null,
+    ])
+    expect(placeSchemas?.PlaceDivision?.properties?.locale?.examples).toEqual([
+      'en',
+      'zh-hant',
+      'zh-hans',
+      null,
+    ])
+    for (const schemaName of [
+      'Place',
+      'PlaceI18n',
+      'PlaceSource',
+      'PlaceTaxonomy',
+      'PlaceCollectionTaxonomy',
+      'PlaceCollectionI18n',
+      'PlaceCollectionI18nValue',
+      'PlaceCollectionAttributes',
+      'PlaceCollectionResource',
+      'PlaceResponse',
+      'PlacesListResponse',
+    ]) {
+      expect(placeSchemas?.[schemaName]?.description).toBeTruthy()
+    }
+
     expect(statisticsRes.status).toBe(200)
     expect(statistics.paths['/stats/v0.1/registry']).toBeDefined()
     expect(statistics.paths['/stats/v0.1/registry/fields']).toBeDefined()
     expect(statistics.paths['/stats/v0.1/registry/search']).toBeDefined()
+    const statisticsRegistryPaths = Object.entries(statistics.paths).filter(([path]) =>
+      path.startsWith('/stats/v0.1/registry'),
+    )
+    expect(statisticsRegistryPaths.length).toBeGreaterThan(0)
+    for (const [, pathItem] of statisticsRegistryPaths) {
+      const parameters = (
+        pathItem as {
+          get?: {
+            parameters?: Array<{
+              in?: string
+              name?: string
+              description?: string
+            }>
+          }
+        }
+      ).get?.parameters
+      for (const parameter of parameters ?? []) {
+        if (parameter.in === 'query') {
+          expect(parameter.name).toBeTruthy()
+          expect(parameter.description).toBeTruthy()
+        }
+      }
+    }
     expect(statistics.paths['/divisions/v0.1']).toBeUndefined()
     expect(statistics.tags?.map(tag => tag.name)).toEqual([
       'Registry',
@@ -1630,6 +2401,104 @@ describe('atlas-api', () => {
       'Sources',
     ])
     expect(statistics['x-tagGroups']).toBeUndefined()
+    type StatisticField = OpenApiField & {
+      properties?: Record<string, OpenApiField>
+    }
+    type StatisticSchema = OpenApiObjectSchema & {
+      properties?: Record<string, StatisticField>
+    }
+    const statisticSchemas = statistics.components?.schemas as
+      | Record<string, StatisticSchema>
+      | undefined
+    const expectStatisticFieldsDescribed = (schemaName: string, fields: string[]) => {
+      const properties = statisticSchemas?.[schemaName]?.properties
+      for (const field of fields) {
+        const property = properties?.[field]
+        expect(
+          property?.description ??
+            property?.allOf?.find(item => item.description)?.description,
+        ).toBeTruthy()
+      }
+    }
+    expectStatisticFieldsDescribed('Statistic', [
+      'type',
+      'id',
+      'attributes',
+      'relationships',
+      'links',
+    ])
+    expectStatisticFieldsDescribed('StatisticField', ['type', 'id', 'attributes'])
+    const statisticAttributes = statisticSchemas?.Statistic?.properties?.attributes
+    const statisticId = statisticSchemas?.Statistic?.properties?.id
+    expect(
+      statisticId?.examples ??
+        statisticId?.allOf?.find(item => item.examples)?.examples,
+    ).toEqual([
+      'stats:2650b1e3a7fe8a269919d9b2e97e54304d0e3db607748f2c51e03ce1b2f0f5dd',
+      'stats:2e16ff6629a00669a571b4e514b3d6a9a6063b56964d6bec3981780dd4e219e4',
+    ])
+    expect(statisticAttributes?.properties?.datasetCode?.examples).toEqual([
+      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
+      'ds-hk-hkgov-censtatd-division-statistic-major-housing-estates',
+    ])
+    const statisticFieldAttributes =
+      statisticSchemas?.StatisticField?.properties?.attributes
+    expect(statisticFieldAttributes?.properties?.statisticKind?.enum).toEqual([
+      'count',
+      'quantity',
+      'proportion',
+      'ratio',
+      'rate',
+      'density',
+      'index',
+      'unreviewed',
+    ])
+    expect(statisticFieldAttributes?.properties?.aggregation?.enum).toEqual([
+      'none',
+      'total',
+      'mean',
+      'median',
+      'minimum',
+      'maximum',
+      'percentile',
+      'unreviewed',
+    ])
+    expect(statisticAttributes?.description).toBeTruthy()
+    for (const field of [
+      'datasetCode',
+      'referencePeriod',
+      'geography',
+      'fieldDefinitionHashes',
+      'fieldSources',
+      'values',
+      'comparability',
+      'sourceReleaseId',
+      'sourceFeatureRef',
+      'createdAt',
+      'updatedAt',
+    ]) {
+      expect(
+        statisticAttributes?.properties?.[field]?.description ??
+          statisticAttributes?.properties?.[field]?.allOf?.find(
+            item => item.description,
+          )?.description,
+      ).toBeTruthy()
+    }
+    expect(statisticSchemas?.Statistic?.description).toBeTruthy()
+    expect(statisticSchemas?.StatisticField?.description).toBeTruthy()
+    expect(
+      statisticSchemas?.StatisticsGeographiesResponse?.properties?.meta?.description,
+    ).toBeTruthy()
+    expect(
+      statisticSchemas?.StatisticsGeographiesResponse?.properties?.values?.description,
+    ).toBeTruthy()
+    expect(
+      statisticSchemas?.StatisticsSeriesResponse?.properties?.meta?.description,
+    ).toBeTruthy()
+    expect(
+      statisticSchemas?.StatisticsSeriesResponse?.properties?.valuesByReferencePeriod
+        ?.description,
+    ).toBeTruthy()
 
     expect(divisionsCurrentRes.status).toBe(200)
     expect(divisionsCurrent.paths['/divisions/v0']).toBeDefined()
@@ -1654,7 +2523,7 @@ describe('atlas-api', () => {
         string,
         {
           get?: {
-            parameters?: Array<{ description?: string }>
+            parameters?: Array<{ name?: string; description?: string }>
             responses?: Record<string, { description?: string }>
           }
         }
@@ -1679,6 +2548,18 @@ describe('atlas-api', () => {
                 enum?: Array<string | number | boolean | null>
                 maxItems?: number
                 minItems?: number
+                anyOf?: Array<{
+                  description?: string
+                  properties?: Record<
+                    string,
+                    {
+                      description?: string
+                      enum?: Array<string | number | boolean | null>
+                      maxItems?: number
+                      minItems?: number
+                    }
+                  >
+                }>
               }
             >
             anyOf?: Array<{
@@ -1700,7 +2581,7 @@ describe('atlas-api', () => {
         string,
         {
           get?: {
-            parameters?: Array<{ description?: string }>
+            parameters?: Array<{ name?: string; description?: string }>
             responses?: Record<string, { description?: string }>
           }
         }
@@ -1734,7 +2615,9 @@ describe('atlas-api', () => {
     ])
     expect(divisionsRes.status).toBe(200)
     expect(
-      divisions.paths?.['/divisions/v0.1']?.get?.parameters?.[0]?.description,
+      divisions.paths?.['/divisions/v0.1']?.get?.parameters?.find(
+        parameter => parameter.name === 'catalogRevision',
+      )?.description,
     ).toBe('不可變的 API 家族及區域目錄檢查點。')
     expect(
       divisions.tags?.find(tag => tag.name === 'Divisions')?.['x-displayName'],
@@ -1742,11 +2625,13 @@ describe('atlas-api', () => {
     expect(divisions.tags?.find(tag => tag.name === 'Sources')?.['x-displayName']).toBe(
       '來源',
     )
-    expect(divisions.components?.schemas?.DivisionGeometry?.description).toBe(
+    const geometry =
+      divisions.components?.schemas?.DivisionAttributes?.properties?.geometry
+    expect(geometry?.description).toBe(
       '分區的地理形狀。如有提供，會以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。',
     )
-    const pointGeometry = divisions.components?.schemas?.DivisionGeometry?.anyOf?.find(
-      schema => schema.properties?.type?.enum?.includes('Point'),
+    const pointGeometry = geometry?.anyOf?.find(schema =>
+      schema.properties?.type?.enum?.includes('Point'),
     )
     expect(pointGeometry?.properties?.coordinates?.description).toBe(
       'WGS 84 座標。其巢狀層級由幾何類型決定。',
@@ -1763,17 +2648,19 @@ describe('atlas-api', () => {
       '分區的地理形狀。如有提供，會以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。',
     )
     expect(
-      divisions.components?.schemas?.DivisionGeometry?.anyOf
+      geometry?.anyOf
         ?.map(schema => schema.properties?.type?.enum?.[0])
+        .filter(type => type !== undefined)
         .sort(),
     ).toEqual(['MultiPolygon', 'Point', 'Polygon'])
     expect(
-      divisions.components?.schemas?.DivisionGeometry?.anyOf?.find(schema =>
-        schema.properties?.type?.enum?.includes('Point'),
-      )?.description,
+      geometry?.anyOf?.find(schema => schema.properties?.type?.enum?.includes('Point'))
+        ?.description,
     ).toBe('單一座標位置；用於以一個位置而非區域表示的分區。')
     expect(
-      divisions.paths?.['/divisions/v0.1/sources']?.get?.parameters?.[0]?.description,
+      divisions.paths?.['/divisions/v0.1/sources']?.get?.parameters?.find(
+        parameter => parameter.name === 'sourceRelease',
+      )?.description,
     ).toBe('全域唯一的來源發布版本代碼。')
     expect(
       divisions.paths?.['/divisions/v0.1/sources']?.get?.responses?.['200']
@@ -1803,8 +2690,10 @@ describe('atlas-api', () => {
     expect(registry.paths['/v0.1/api/families']).toBeUndefined()
 
     expect(placesRes.status).toBe(200)
-    expect(places.paths['/places/v0/{region}/{id}']).toBeDefined()
-    expect(places.paths['/places/v0.1/{region}/{id}']).toBeUndefined()
+    expect(places.paths['/places/v0']).toBeDefined()
+    expect(places.paths['/places/v0/{id}']).toBeDefined()
+    expect(places.paths['/places/v0.1']).toBeUndefined()
+    expect(places.paths['/places/v0.1/{id}']).toBeUndefined()
 
     expect(streetsRes.status).toBe(200)
     expect(streets.paths['/streets/v0/{id}']).toBeDefined()
@@ -1834,6 +2723,27 @@ describe('atlas-api', () => {
 
     expect(res.status).toBe(422)
     expect(await res.json()).toMatchObject({ error: 'validation_error' })
+  })
+
+  test('Places exposes source discovery and validates JSON and NDJSON on both versions', async () => {
+    const { env } = createEnv()
+    const response = await app.fetch(
+      new Request('http://localhost/openapi/places/v0.1'),
+      env,
+    )
+    const document = (await response.json()) as { paths: Record<string, unknown> }
+    expect(document.paths['/places/v0.1/source-releases']).toBeDefined()
+    expect(document.paths['/places/v0.1/sources']).toBeDefined()
+    for (const version of ['v0', 'v0.1']) {
+      for (const format of ['json', 'ndjson']) {
+        const res = await app.fetch(
+          apiRequest(`http://localhost/places/${version}/sources?format=${format}`),
+          env,
+        )
+        expect(res.status).toBe(422)
+        expect(await res.json()).toMatchObject({ error: 'validation_error' })
+      }
+    }
   })
 
   test('GET /divisions/v0.1/sources validates NDJSON requests before streaming', async () => {

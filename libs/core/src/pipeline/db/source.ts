@@ -13,8 +13,8 @@ import {
   runWithWriteRetry,
 } from '../utils'
 
-const SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT = 18
-const SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT = 17
+const SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT = 11
+const SOURCE_HKGOV_ADDRESS2D_VERSION_COLUMN_COUNT = 11
 const SEEN_SOURCE_RECORD_ID_INSERT_COLUMN_COUNT = 1
 
 const tempSeenSourceRecordIds = sqliteTable('tempSeenSourceRecordIds', {
@@ -31,7 +31,7 @@ export function buildSourceDatasetId(message: DatasetProcessingMessage) {
   }
 
   const source = message.source === 'hkgov-dpo' ? 'hkgov' : message.source
-  return `${source}-${message.regionCode}-${message.type}`
+  return `${source}-${message.regionCode}-${message.resourceType}`
 }
 
 export type CurrentSourceRecord = {
@@ -41,7 +41,7 @@ export type CurrentSourceRecord = {
 }
 
 export type CurrentHkgovAlsAddress2dRecord = CurrentSourceRecord & {
-  rawProperties: Record<string, unknown> | null
+  properties: Record<string, unknown> | null
 }
 
 function excluded(column: string) {
@@ -126,7 +126,7 @@ export async function getCurrentSourceHkgovAlsAddress2dRecords(
     rows.push(
       ...((await db
         .select({
-          rawProperties: sourceSchema.sourceHkgovAlsAddresses2d.rawProperties,
+          properties: sourceSchema.sourceHkgovAlsAddresses2d.properties,
           sourcePayloadHash: sourceSchema.sourceHkgovAlsAddresses2d.versionHash,
           sourceRecordId: sourceSchema.sourceHkgovAlsAddresses2d.sourceRecordId,
         })
@@ -344,19 +344,6 @@ async function deleteMissingCurrentSourceRowsByReleaseId<
   }
 
   return closedRows
-}
-
-export async function advanceSourceOvertureDivisionRelease(
-  db: SourceDatabase,
-  sourceRecordIds: string[],
-  releaseId: string,
-) {
-  await advanceCurrentSourceRelease(
-    db,
-    sourceSchema.sourceOvertureDivisions,
-    sourceRecordIds,
-    releaseId,
-  )
 }
 
 export async function insertSourceOvertureDivisionVersions(
@@ -717,10 +704,10 @@ async function insertVersionRows<TTable>(
         ? statement.onConflictDoNothing()
         : statement.onConflictDoUpdate({
             target: target as never,
+            setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
             set: {
               isCurrent: true,
               releaseId: excluded('releaseId'),
-              validFromRelease: excluded('validFromRelease'),
               validToRelease: null,
               updatedAt: new Date().toISOString(),
             } as never,
@@ -729,52 +716,4 @@ async function insertVersionRows<TTable>(
   }
 
   await runStatementsInGroupsWithWriteRetry(db, statements)
-}
-
-async function advanceCurrentSourceRelease<
-  TTable extends {
-    isCurrent: unknown
-    releaseId: unknown
-    sourceRecordId: unknown
-    updatedAt: unknown
-  },
->(db: SourceDatabase, table: TTable, sourceRecordIds: string[], releaseId: string) {
-  if (sourceRecordIds.length === 0) {
-    return
-  }
-
-  const now = new Date().toISOString()
-  const statements = []
-
-  for (const chunk of chunkArray(sourceRecordIds, getMaxItemsPerInClause(1, 3))) {
-    statements.push(
-      db
-        .update(table as never)
-        .set({
-          releaseId,
-          updatedAt: now,
-        } as never)
-        .where(
-          and(
-            eq(table.isCurrent as never, true),
-            inArray(table.sourceRecordId as never, chunk),
-          ),
-        ),
-    )
-  }
-
-  await runStatementsInGroupsWithWriteRetry(db, statements)
-}
-
-export async function advanceSourceHkgovAlsAddress2dRelease(
-  db: SourceDatabase,
-  sourceRecordIds: string[],
-  releaseId: string,
-) {
-  await advanceCurrentSourceRelease(
-    db,
-    sourceSchema.sourceHkgovAlsAddresses2d,
-    sourceRecordIds,
-    releaseId,
-  )
 }

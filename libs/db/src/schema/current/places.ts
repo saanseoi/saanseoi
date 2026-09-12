@@ -10,8 +10,6 @@ import {
 import { sql } from 'drizzle-orm'
 
 import { canonicalPlace, canonicalPlaceI18n, timestamps } from '../shared'
-import { address2d, address3d } from './addresses'
-import { divisions } from './divisions'
 
 export const places = sqliteTable(
   'places',
@@ -24,19 +22,14 @@ export const places = sqliteTable(
     primaryKey({
       columns: [table.snapshotId, table.id],
     }),
-    foreignKey({
-      columns: [table.addressSnapshotId, table.address2dId],
-      foreignColumns: [address2d.snapshotId, address2d.id],
-      name: 'places_addressSnapshotId_address2dId_address2d_fk',
-    }),
-    foreignKey({
-      columns: [table.addressSnapshotId, table.address3dId],
-      foreignColumns: [address3d.snapshotId, address3d.id],
-      name: 'places_addressSnapshotId_address3dId_address3d_fk',
-    }),
+    // Logical Address references are validated against immutable history during preparation.
     check(
       'places_address_snapshot_required_chk',
       sql`${table.addressSnapshotId} IS NOT NULL OR (${table.address2dId} IS NULL AND ${table.address3dId} IS NULL)`,
+    ),
+    check(
+      'places_address3d_unit_reference_chk',
+      sql`(${table.address3dId} IS NULL AND ${table.address3dUnitId} IS NULL AND ${table.address3dMembership} IS NULL) OR (${table.address3dId} IS NOT NULL AND ${table.address3dUnitId} IS NOT NULL AND ${table.address3dMembership} IS NOT NULL AND ${table.address2dId} IS NOT NULL)`,
     ),
     index('places_releaseId_idx').on(table.releaseId),
     index('places_category_idx').on(table.snapshotId, table.basicCategory),
@@ -73,26 +66,23 @@ export const placesDivision = sqliteTable(
     placeId: text('placeId').notNull(),
     divisionSnapshotId: text('divisionSnapshotId').notNull(),
     divisionId: text('divisionId').notNull(),
+    /** Retained exact dependency; independent of mutable Division serving scopes. */
+    definition: text('definition', { mode: 'json' })
+      .$type<{
+        level: number | null
+        locales: { locale: string; name: string | null }[]
+      }>()
+      .notNull(),
   },
   table => [
     primaryKey({
-      columns: [
-        table.placeSnapshotId,
-        table.placeId,
-        table.divisionSnapshotId,
-        table.divisionId,
-      ],
+      columns: [table.placeSnapshotId, table.placeId, table.divisionId],
     }),
     foreignKey({
       columns: [table.placeSnapshotId, table.placeId],
       foreignColumns: [places.snapshotId, places.id],
       name: 'placesDivision_placeSnapshotId_placeId_places_fk',
     }).onDelete('cascade'),
-    foreignKey({
-      columns: [table.divisionSnapshotId, table.divisionId],
-      foreignColumns: [divisions.snapshotId, divisions.id],
-      name: 'placesDivision_divisionSnapshotId_divisionId_divisions_fk',
-    }),
     index('placesDivision_divisionId_idx').on(
       table.divisionSnapshotId,
       table.divisionId,
@@ -128,16 +118,15 @@ export const placesCells = sqliteTable(
   ],
 )
 
-/**
- * TypeScript query mapping for the FTS5 virtual table only. The actual
- * `CREATE VIRTUAL TABLE placesFts ... USING fts5` is maintained in
- * `libs/db/scripts/sql/rebuild-places-fts.sql`, not by Drizzle migrations.
- * `placesFtsMatch` and `searchPlacesFts` depend on that external rebuild
- * script, so migration tooling must not try to create a regular table for
- * `placesFts`.
- */
-export const placesFts = sqliteTable('placesFts', {
+/** Latest published snapshot selected for each stable Place search scope. */
+export const placeSearchScopes = sqliteTable('placeSearchScopes', {
+  scopeId: text('scopeId').primaryKey(),
   snapshotId: text('snapshotId').notNull(),
+})
+
+/** Query mapping only; publication creates this FTS5 virtual table. */
+export const placesFts = sqliteTable('placeSearchFts', {
+  scopeId: text('scopeId').notNull(),
   placeId: text('placeId').notNull(),
   locale: text('locale').notNull(),
   nameText: text('nameText'),

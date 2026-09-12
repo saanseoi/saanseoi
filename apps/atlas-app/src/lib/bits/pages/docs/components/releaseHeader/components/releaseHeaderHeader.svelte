@@ -41,7 +41,7 @@ let {
     </div>
     <div class="flex items-center gap-x-5 gap-y-2">
       {#if metrics.length}
-        <ReleaseHeaderMetrics metrics={metrics} class="hidden lg:flex" />
+        <ReleaseHeaderMetrics {metrics} class="hidden lg:flex" />
       {/if}
       <span
         class={`inline-flex items-center gap-2 border px-3 py-1 font-body text-label-sm font-semibold capitalize ${statusClass}`}

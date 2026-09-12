@@ -6,7 +6,12 @@ import { m } from '#lib/bits/internal/i18n.js'
 import ReleaseAuditControls from './releaseAuditControls.svelte'
 </script>
 
-<div class="grid gap-6" aria-busy="true" aria-label="Loading audit" role="status">
+<div
+  class="grid gap-6"
+  aria-busy="true"
+  aria-label={m.source_audit_loading()}
+  role="status"
+>
   <Tooltip.Provider delayDuration={200}>
     <ReleaseAuditControls
       filteredCount=""

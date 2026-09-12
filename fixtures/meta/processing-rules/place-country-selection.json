@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "select-place-countries",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Leave out places whose published address is in Mainland China or Macao. Keep places with no country code for review.",
+  "inputs": ["normalised-places"],
+  "outputs": ["included-places"],
+  "parameters": { "excludedCountries": ["CN", "MO"] },
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
+    "symbol": "placeCountryRule"
+  }
+}

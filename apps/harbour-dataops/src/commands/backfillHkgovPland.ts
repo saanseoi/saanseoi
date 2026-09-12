@@ -1,4 +1,5 @@
 import { createHash, createHmac, randomUUID } from 'node:crypto'
+import { selectInitialisationVersions } from '../../../harbour-cli/src/lib/cli/minimalInitialisation.ts'
 import { existsSync } from 'node:fs'
 import { mkdir, readFile, mkdtemp, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
@@ -6,13 +7,15 @@ import { tmpdir } from 'node:os'
 
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 
-import { prepareHkgovPlandTpuNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts'
-import { prepareHkgovPlandNewTownNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts'
+import { prepareHkgovPlandTpuNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/pland/hkgovPland.ts'
+import { prepareHkgovPlandNewTownNativeShpZip } from '../../../harbour-cli/src/lib/sources/hkgov/pland/hkgovPlandNewTown.ts'
 import type {
   ParsedArgs,
   UploadTarget,
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { runReconcileDraftReleaseSetsCommand } from '../../../harbour-cli/src/lib/commands/reconcile.ts'
+import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
 import { readRemoteCachedCompletedReleaseCodes } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { buildDatasetReleaseCode } from '@repo/core'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
@@ -36,6 +39,7 @@ type BackfillDependencies = {
   prepareHkgovPlandNewTownNativeShpZip?: typeof prepareHkgovPlandNewTownNativeShpZip
   prepareHkgovPlandTpuNativeShpZip?: typeof prepareHkgovPlandTpuNativeShpZip
   runUploadCommand?: typeof runUploadCommand
+  runReconcileDraftReleaseSetsCommand?: typeof runReconcileDraftReleaseSetsCommand
   getCompletedReleaseCodes?: (target: UploadTarget) => Promise<Set<string>>
   preparedArtefactCacheRoot?: string
 }
@@ -45,7 +49,7 @@ type PreparedArtefactManifest = {
   sourceArchiveSha256: string
   sourceVersion: string
   parserContractVersion: string
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
   outputByteLength: number
   outputSha256: string
 }
@@ -54,13 +58,13 @@ type NativePlandPrepare = (options: {
   inputFile: string
   outputFile: string
   sourceVersion: string
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
 }) => Promise<unknown>
 
 const PREPARED_ARTEFACT_CACHE_SCHEMA_VERSION = 1
 // Bump this when a Planning source adapter change can alter the generated
 // Parquet for the same native archive.
-const PLAND_NATIVE_PREPARATION_CONTRACT_VERSION = '1'
+const PLAND_NATIVE_PREPARATION_CONTRACT_VERSION = '4'
 
 const PLANNING_UNIT_RELEASES: BackfillRelease[] = [
   {
@@ -131,12 +135,24 @@ export async function runHkgovPlandBackfillCommand(
 ) {
   assertBackfillArguments(args, printUsage)
   const continueUpload = Boolean(args.options.continue)
-  const completedReleaseCodes = continueUpload
-    ? await (dependencies.getCompletedReleaseCodes ?? getCompletedReleaseCodes)(target)
-    : new Set<string>()
+  const completedReleaseCodes =
+    continueUpload || process.env.SAANSEOI_INIT_COMMAND
+      ? await (dependencies.getCompletedReleaseCodes ?? getCompletedReleaseCodes)(
+          target,
+        )
+      : new Set<string>()
   const invocationCwd = process.env.INIT_CWD ?? process.cwd()
-  const releases = kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES
+  const releases = selectInitialisationVersions(
+    kind === 'pu' ? PLANNING_UNIT_RELEASES : NEW_TOWN_RELEASES,
+    release => release.year,
+  )
   const source = kind === 'pu' ? 'hkgov-pland-pu' : 'hkgov-pland-new-town'
+  const datasetCode =
+    kind === 'pu'
+      ? 'ds-hk-hkgov-pland-division-pu'
+      : 'ds-hk-hkgov-pland-division-new-town'
+  let skippedReleaseCount = 0
+  let uploadedReleaseCount = 0
   const sourceArchiveRoot = resolve(REPO_ROOT, 'data/hkgov/csdi/archive')
   const preparedArtefactCacheRoot = resolve(
     dependencies.preparedArtefactCacheRoot ??
@@ -146,11 +162,13 @@ export async function runHkgovPlandBackfillCommand(
   for (const release of releases) {
     const types = (['division', 'divisionArea'] as const).filter(type => {
       const releaseCode = buildDatasetReleaseCode('hk', source, release.year, type)
+      if (completedReleaseCodes.has(releaseCode)) {
+        skippedReleaseCount += 1
+      }
       return !completedReleaseCodes.has(releaseCode)
     })
 
     if (types.length === 0) {
-      console.log(`Skipping completed ${source} ${release.year} backfill.`)
       continue
     }
 
@@ -183,7 +201,7 @@ export async function runHkgovPlandBackfillCommand(
           source,
           sourceArchiveSha256,
           sourceVersion: release.year,
-          type,
+          resourceType: type,
         }),
       )
     }
@@ -201,11 +219,36 @@ export async function runHkgovPlandBackfillCommand(
         release,
         source,
         target,
-        type,
+        resourceType: type,
+        deferApiReleaseSet: true,
         forceUpload: continueUpload,
         runUploadCommand: dependencies.runUploadCommand,
       })
+      uploadedReleaseCount += 1
     }
+  }
+
+  if (uploadedReleaseCount > 0) {
+    await (
+      dependencies.runReconcileDraftReleaseSetsCommand ??
+      runReconcileDraftReleaseSetsCommand
+    )(
+      {
+        command: 'release-sets:reconcile',
+        positionals: [],
+        options: { 'api-family': 'divisions', region: 'hk' },
+      },
+      target,
+      printUsage,
+    )
+  }
+
+  if (skippedReleaseCount === releases.length * 2) {
+    for (const line of await formatInitialisationSkippedDatasets(target, {
+      datasetCodes: [datasetCode],
+      releaseCodes: [],
+    }))
+      console.log(line)
   }
 }
 
@@ -217,7 +260,7 @@ async function prepareCachedArtefact(args: {
   source: string
   sourceArchiveSha256: string
   sourceVersion: string
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
 }) {
   const cacheDirectory = join(
     args.cacheRoot,
@@ -226,18 +269,18 @@ async function prepareCachedArtefact(args: {
     args.sourceArchiveSha256,
     args.sourceVersion,
   )
-  const outputFile = join(cacheDirectory, `${args.type}.parquet`)
-  const manifestFile = join(cacheDirectory, `${args.type}.manifest.json`)
+  const outputFile = join(cacheDirectory, `${args.resourceType}.parquet`)
+  const manifestFile = join(cacheDirectory, `${args.resourceType}.manifest.json`)
   const expectedManifest = {
     sourceArchiveSha256: args.sourceArchiveSha256,
     sourceVersion: args.sourceVersion,
     parserContractVersion: args.parserContractVersion,
-    type: args.type,
+    resourceType: args.resourceType,
   } as const
 
   if (await isValidPreparedArtefact(outputFile, manifestFile, expectedManifest)) {
     console.log(
-      `Reusing cached prepared ${args.source} ${args.sourceVersion} ${args.type} geometry.`,
+      `Reusing cached prepared ${args.source} ${args.sourceVersion} ${args.resourceType} geometry.`,
     )
     return outputFile
   }
@@ -245,11 +288,11 @@ async function prepareCachedArtefact(args: {
   await mkdir(cacheDirectory, { recursive: true })
   const temporaryOutputFile = join(
     cacheDirectory,
-    `.${args.type}-${randomUUID()}.parquet`,
+    `.${args.resourceType}-${randomUUID()}.parquet`,
   )
   const temporaryManifestFile = join(
     cacheDirectory,
-    `.${args.type}-${randomUUID()}.manifest.json`,
+    `.${args.resourceType}-${randomUUID()}.manifest.json`,
   )
 
   try {
@@ -257,7 +300,7 @@ async function prepareCachedArtefact(args: {
       inputFile: args.inputFile,
       outputFile: temporaryOutputFile,
       sourceVersion: args.sourceVersion,
-      type: args.type,
+      resourceType: args.resourceType,
     })
     const output = await readFile(temporaryOutputFile)
     const outputStats = await stat(temporaryOutputFile)
@@ -285,7 +328,7 @@ async function isValidPreparedArtefact(
   manifestFile: string,
   expected: Pick<
     PreparedArtefactManifest,
-    'sourceArchiveSha256' | 'sourceVersion' | 'parserContractVersion' | 'type'
+    'sourceArchiveSha256' | 'sourceVersion' | 'parserContractVersion' | 'resourceType'
   >,
 ) {
   try {
@@ -297,7 +340,7 @@ async function isValidPreparedArtefact(
       manifest.sourceArchiveSha256 !== expected.sourceArchiveSha256 ||
       manifest.sourceVersion !== expected.sourceVersion ||
       manifest.parserContractVersion !== expected.parserContractVersion ||
-      manifest.type !== expected.type ||
+      manifest.resourceType !== expected.resourceType ||
       typeof manifest.outputByteLength !== 'number' ||
       !isSha256(manifest.outputSha256)
     ) {
@@ -378,7 +421,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         inputFile: sourceArchivePath,
         outputFile: type === 'division' ? divisionFile : divisionAreaFile,
         sourceVersion,
-        type,
+        resourceType: type,
       })
     }
     const invocationCwd = process.env.INIT_CWD ?? process.cwd()
@@ -391,7 +434,8 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
         sourceArchiveKey,
         sourceArchiveSha256,
         target,
-        type,
+        resourceType: type,
+        deferApiReleaseSet: false,
         forceUpload: false,
         runUploadCommand: dependencies.runUploadCommand,
       })
@@ -409,7 +453,8 @@ async function uploadPreparedArtefact(args: {
   sourceArchiveKey?: string
   sourceArchiveSha256?: string
   target: UploadTarget
-  type: 'division' | 'divisionArea'
+  resourceType: 'division' | 'divisionArea'
+  deferApiReleaseSet: boolean
   forceUpload: boolean
   runUploadCommand?: typeof runUploadCommand
 }) {
@@ -437,21 +482,26 @@ async function uploadPreparedArtefact(args: {
         : {}),
       'source-version': args.release.year,
       theme: 'divisions',
-      type: args.type,
+      'resource-type': args.resourceType,
       yes: true,
     },
   }
   await (args.runUploadCommand ?? runUploadCommand)(uploadArgs, args.target, {
+    deferApiReleaseSet: args.deferApiReleaseSet,
     dryRun: false,
     forceUpload: args.forceUpload,
     invocationCwd: args.invocationCwd,
     printUsage: () => undefined,
+    // Division and area are separate materialisations of one Planning source
+    // release. An interrupted area pass must re-enter that companion release
+    // without admitting an unrelated processing dataset.
+    reuseExistingRelease: args.resourceType === 'divisionArea',
     skipConfirm: true,
     // A Planning Department division snapshot is the required referent for its
     // companion area release. Keep it materialised while this cohort's area is
     // uploaded; the area publication can then schedule ordinary cleanup.
-    skipSnapshotCleanup: args.type === 'division',
-    validateGeometry: args.type === 'divisionArea',
+    skipSnapshotCleanup: args.resourceType === 'division',
+    validateGeometry: args.resourceType === 'divisionArea',
   })
 }
 

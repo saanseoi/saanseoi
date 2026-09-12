@@ -108,8 +108,6 @@ function handleChange(event: Event) {
   opacity: 0;
 }
 
-.swap :checked ~ .swap-on,
-.swap :indeterminate ~ .swap-on,
 .swap-active .swap-on {
   opacity: 1;
   backface-visibility: visible;
@@ -117,6 +115,17 @@ function handleChange(event: Event) {
 
 .swap-rotate .swap-on {
   rotate: 45deg;
+}
+
+.swap-flip .swap-on {
+  backface-visibility: hidden;
+  transform: rotateY(180deg);
+}
+
+.swap :checked ~ .swap-on,
+.swap :indeterminate ~ .swap-on {
+  opacity: 1;
+  backface-visibility: visible;
 }
 
 .swap-rotate :checked ~ .swap-on,
@@ -134,11 +143,6 @@ function handleChange(event: Event) {
 .swap-flip {
   perspective: 20rem;
   transform-style: preserve-3d;
-}
-
-.swap-flip .swap-on {
-  backface-visibility: hidden;
-  transform: rotateY(180deg);
 }
 
 .swap-flip :checked ~ .swap-on,

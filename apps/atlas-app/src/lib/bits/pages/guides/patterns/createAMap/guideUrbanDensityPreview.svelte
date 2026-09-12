@@ -1,7 +1,9 @@
 <script lang="ts">
 import { m } from '#lib/bits/internal/i18n.js'
+import type { LayerSpecification, StyleSpecification } from 'maplibre-gl'
 
 import GuideMappingPreview from './guideMappingPreview.svelte'
+import { urbanDensityCensusDistricts } from './urbanDensityCensusDistricts.ts'
 import {
   calculateUrbanDensityMetrics,
   urbanDensityDivisionsResponse,
@@ -22,27 +24,68 @@ const darkAreaTitleClasses: Record<string, string> = {
 
 type Props = {
   appearance: 'light' | 'dark'
+  highlightAreas?: boolean
   label: string
   renderer: 'leaflet' | 'mapbox' | 'maplibre'
   styleUrl: string
   tilejsonUrl: string
 }
 
-let { appearance, label, renderer, styleUrl, tilejsonUrl }: Props = $props()
+let {
+  appearance,
+  highlightAreas = false,
+  label,
+  renderer,
+  styleUrl,
+  tilejsonUrl,
+}: Props = $props()
+
+const areaColour = (name: string) =>
+  name === 'Hong Kong Island' ? '#5b8ff9' : name === 'Kowloon' ? '#f6bd16' : '#5ad8a6'
+const areaDistrictSource = {
+  'census-districts': { type: 'geojson', data: urbanDensityCensusDistricts },
+} satisfies StyleSpecification['sources']
+const areaDistrictLayers: LayerSpecification[] = [
+  {
+    id: 'census-districts',
+    type: 'fill',
+    source: 'census-districts',
+    paint: {
+      'fill-color': [
+        'match',
+        ['get', 'area'],
+        'Hong Kong Island',
+        '#5b8ff9',
+        'Kowloon',
+        '#f6bd16',
+        '#5ad8a6',
+      ],
+      'fill-opacity': 0.45,
+    },
+  },
+  {
+    id: 'census-districts-outline',
+    type: 'line',
+    source: 'census-districts',
+    paint: { 'line-color': '#17253d', 'line-width': 1 },
+  },
+]
 </script>
 
 <div
   class="guide-map-preview relative h-full min-h-[16.9rem] overflow-hidden border border-[#596074] bg-[#10151a] font-body text-[#d6e4ff] shadow-inner"
 >
   <div class="size-full">
-    {#key `${renderer}:${styleUrl}:${tilejsonUrl}`}
+    {#key `${renderer}:${styleUrl}:${tilejsonUrl}:${highlightAreas}`}
       <GuideMappingPreview
         ariaLabel={label}
-        center={[114.165, 22.34]}
+        additionalLayers={highlightAreas ? areaDistrictLayers : []}
+        additionalSources={highlightAreas ? areaDistrictSource : {}}
+        center={[114.12, 22.28]}
         {renderer}
         {styleUrl}
         {tilejsonUrl}
-        zoom={11.5}
+        zoom={10.5}
       />
     {/key}
     <p
@@ -61,6 +104,7 @@ let { appearance, label, renderer, styleUrl, tilejsonUrl }: Props = $props()
       >
         <p
           class={`font-body text-xs sm:text-sm ${appearance === 'dark' ? darkAreaTitleClasses[metric.name] : 'text-[#10151a]'}`}
+          style:color={highlightAreas ? areaColour(metric.name) : undefined}
         >
           {metric.name}
         </p>

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:bc58695797b6bb7bacbffac3ab67050d309cc0583deea6c640320fe83b764f6d",
+  "versionHash": "sha256:3c7d139512d2fb6dbd94f9938b02d2039e027690bed46e24e761b43299ebc6e5",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -59,7 +59,10 @@
       "operationCodes": [
         "normalise_censtatd_statistic_source_assertion",
         "map_censtatd_district_code_to_canonical_division",
-        "curate_censtatd_measure_metadata"
+        "curate_censtatd_measure_metadata",
+        "provenance_statistic_normalisation",
+        "provenance_statistic_localisation",
+        "provenance_division_area_geometry"
       ]
     }
   ],
@@ -117,7 +120,17 @@
     {
       "locale": "en",
       "name": "Population and Household Statistics by District Council District",
-      "description": "Planned C&SD source for annual land-based, non-institutional population, household and socio-economic measures."
+      "description": "C&SD source for annual land-based, non-institutional population, household and socio-economic measures."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "按區議會分區劃分的人口及住戶統計",
+      "description": "政府統計處提供的陸上非住院人口、住戶及社會經濟指標的每年統計。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "按区议会分区划分的人口及住户统计",
+      "description": "政府统计处提供的陆上非住院人口、住户及社会经济指标的每年统计。"
     }
   ]
 }

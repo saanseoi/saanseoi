@@ -10,7 +10,7 @@ test('resolves glossary definitions in the requested locale', () => {
   const transclusion = getMarkdownTransclusion('saanseoi:zh-hant:definition/release/v1')
 
   expect(transclusion?.markdown).toContain('不可變已發布版本')
-  expect(transclusion?.type).toBe('definition')
+  expect(transclusion?.kind).toBe('definition')
 })
 
 test('resolves map-guide glossary definitions and notes', () => {
@@ -26,25 +26,24 @@ test('resolves map-guide glossary definitions and notes', () => {
 
   expect(api?.markdown).toContain('<i>software</i>')
   expect(basemap?.markdown).toContain('<i>bottom background layer</i>')
-  expect(basemap?.type).toBe('note')
+  expect(basemap?.kind).toBe('note')
   expect(vite?.markdown).toContain('bundles your project files')
-  expect(vite?.type).toBe('note')
+  expect(vite?.kind).toBe('note')
   expect(render?.markdown).toContain('turn geographic data')
   expect(mapStyle?.markdown).toContain('set of visual rules')
   expect(request?.markdown).toContain('message sent to a server')
   expect(authentication?.markdown).toContain('confirms <i>who</i>')
 })
 
-test('resolves division filter notes with Markdown list details', () => {
+test('resolves division taxonomy notes with Markdown table details', () => {
   const levels = getMarkdownTransclusion(
     'saanseoi:en:note/division-hierarchy-levels/v1',
   )
   const types = getMarkdownTransclusion('saanseoi:en:note/canonical-division-types/v1')
 
-  expect(levels?.markdown).toContain('- Level 1')
-  expect(levels?.markdown).toContain('Level 6')
-  expect(types?.markdown).toContain('- Root')
-  expect(types?.markdown).toMatch(/does not\s+accept an Overture subtype or class/)
+  expect(levels?.markdown).toContain('| hood           | microhood     | 6')
+  expect(types?.markdown).toContain('| administrative | sar')
+  expect(types?.markdown).toContain("publisher's `subtype` and `class`")
 })
 
 test('lists glossary definitions alphabetically without contextual notes', () => {

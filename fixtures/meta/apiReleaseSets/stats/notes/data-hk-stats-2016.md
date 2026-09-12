@@ -90,8 +90,6 @@ The following source releases contributed to this release set.
 
 以下來源發布為此發布集作出貢獻。
 
-## 組成來源發布
-
 {{apiReleaseSetSources:zh-Hant}}
 
 ## 備註與限制
@@ -131,8 +129,6 @@ The following source releases contributed to this release set.
 统计数据按其描述的期间组织。这表示即使已有较新的数值，较早的参考期仍然可用；较后发布的来源也可在适当时为过往期间加入数据。
 
 以下来源发布为此发布集作出贡献。
-
-## 组成来源发布
 
 {{apiReleaseSetSources:zh-Hans}}
 

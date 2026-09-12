@@ -16,6 +16,7 @@ export type SnapshotVersionRecordType =
   | 'placeI18n'
   | 'street'
   | 'streetI18n'
+  | 'streetChangelog'
 
 type SnapshotVersionChangeInput = {
   recordId: string
@@ -38,7 +39,9 @@ export async function recordSnapshotVersionChanges(
   if (args.changes.length === 0) return
 
   const now = new Date().toISOString()
-  const chunkSize = getMaxRowsPerInsert(SNAPSHOT_VERSION_CHANGE_COLUMN_COUNT)
+  // The conflict update also binds operation, source release and timestamp (and
+  // a null hash for deletions), in addition to every inserted row's columns.
+  const chunkSize = getMaxRowsPerInsert(SNAPSHOT_VERSION_CHANGE_COLUMN_COUNT, 4)
 
   for (const changes of chunkArray(args.changes, chunkSize)) {
     await db

@@ -1,4 +1,13 @@
-import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
+import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
+import { bodyLimit } from 'hono/body-limit'
+import {
+  SOURCE_ASSET_PART_SIZE,
+  SOURCE_ASSET_MAX_PARTS,
+} from '@repo/core/sourceAssetTransfer'
+import {
+  sourceAssetPartPreflightRoute,
+  sourceAssetPartUploadRoute,
+} from './sourceAssetParts'
 
 import { createPrimaryMetaRepoDb } from '../../lib/d1'
 import {
@@ -8,11 +17,13 @@ import {
 import {
   parseSourceAssetMetadata,
   linkManagedSourceAssetToRelease,
+  deleteManagedSourceAsset,
   preflightManagedSourceAsset,
   registerManagedSourceAsset,
 } from '../../lib/services/sourceAssets'
 import {
   ErrorResponseSchema,
+  DeletedManagedSourceAssetResponseSchema,
   LinkManagedSourceAssetRequestSchema,
   LinkManagedSourceAssetResponseSchema,
   LocalUploadRegistrationResponseSchema,
@@ -57,6 +68,34 @@ const managedSourceAssetRouteConfig = createRoute({
   method: 'post',
   path: '/v1/assets',
   tags: ['Source assets'],
+  middleware: [bodyLimit({ maxSize: 2 * 1024 * 1024 })],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: z.object({
+            fileName: z.string().min(1).max(512),
+            byteLength: z
+              .number()
+              .int()
+              .min(0)
+              .max(SOURCE_ASSET_PART_SIZE * SOURCE_ASSET_MAX_PARTS),
+            parts: z
+              .array(
+                z.object({
+                  sha256: z.string().regex(/^[a-f0-9]{64}$/),
+                  byteLength: z.number().int().min(0).max(SOURCE_ASSET_PART_SIZE),
+                }),
+              )
+              .min(1)
+              .max(SOURCE_ASSET_MAX_PARTS),
+            metadata: z.record(z.string(), z.unknown()),
+          }),
+        },
+      },
+    },
+  },
   responses: {
     200: {
       content: {
@@ -75,6 +114,7 @@ const managedSourceAssetPreflightRouteConfig = createRoute({
   method: 'post',
   path: '/v1/assets/preflight',
   tags: ['Source assets'],
+  middleware: [bodyLimit({ maxSize: 2 * 1024 * 1024 })],
   request: {
     body: {
       content: {
@@ -124,6 +164,24 @@ const linkManagedSourceAssetRouteConfig = createRoute({
   },
 })
 
+const deleteManagedSourceAssetRouteConfig = createRoute({
+  method: 'delete',
+  path: '/v1/assets/{assetId}',
+  tags: ['Source assets'],
+  responses: {
+    200: {
+      content: {
+        'application/json': { schema: DeletedManagedSourceAssetResponseSchema },
+      },
+      description: 'Remove an owned immutable source asset.',
+    },
+    400: {
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+      description: 'Source asset deletion failed.',
+    },
+  },
+})
+
 export const registerUploadRoute = defineOpenAPIRoute<
   typeof registerUploadRouteConfig,
   AppEnv
@@ -154,19 +212,13 @@ export const managedSourceAssetRoute = defineOpenAPIRoute<
   route: managedSourceAssetRouteConfig,
   handler: async c => {
     try {
-      const form = await c.req.formData()
-      const asset = form.get('asset')
-      if (!(asset instanceof File)) {
-        throw new Error('Source asset upload requires an `asset` file field.')
-      }
-      const metadata = parseSourceAssetMetadata(form.get('metadata'))
+      const request = c.req.valid('json')
+      const metadata = parseSourceAssetMetadata(JSON.stringify(request.metadata))
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const result = await registerManagedSourceAsset(
-        db,
-        c.env.R2_ASSETS,
-        asset,
+      const result = await registerManagedSourceAsset(db, c.env.R2_ASSETS, {
+        ...request,
         metadata,
-      )
+      })
       return c.json(
         {
           ...result,
@@ -238,9 +290,44 @@ export const linkManagedSourceAssetRoute = defineOpenAPIRoute<
   },
 })
 
+export const deleteManagedSourceAssetRoute = defineOpenAPIRoute<
+  typeof deleteManagedSourceAssetRouteConfig,
+  AppEnv
+>({
+  route: deleteManagedSourceAssetRouteConfig,
+  handler: async c => {
+    try {
+      const assetId = c.req.param('assetId')
+      const releaseId = c.req.query('releaseId')
+      if (!assetId || !releaseId) throw new Error('assetId and releaseId are required.')
+      const db = createPrimaryMetaRepoDb(c.env.DB_META)
+      const result = await deleteManagedSourceAsset(db, c.env.R2_ASSETS, {
+        assetId,
+        releaseId,
+      })
+      return c.json(
+        { ...result, assetUrl: `${c.env.ATLAS_BASE_URL}/v0/assets/${result.assetId}` },
+        200,
+      )
+    } catch (error) {
+      return c.json(
+        {
+          httpStatus: 400,
+          error: 'source_asset_delete_failed',
+          message: error instanceof Error ? error.message : String(error),
+        },
+        400,
+      )
+    }
+  },
+})
+
 export const uploadRoutes = [
+  sourceAssetPartPreflightRoute,
+  sourceAssetPartUploadRoute,
   registerUploadRoute,
   managedSourceAssetPreflightRoute,
   managedSourceAssetRoute,
   linkManagedSourceAssetRoute,
+  deleteManagedSourceAssetRoute,
 ] as const

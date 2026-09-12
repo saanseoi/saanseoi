@@ -1,4 +1,6 @@
 <script lang="ts">
+import { untrack } from 'svelte'
+import ReleaseSamplesFieldLabel from './releaseSamplesFieldLabel.svelte'
 import type { ReleaseSampleField } from '../releaseSamplesPresentation'
 import ReleaseSamplesNestedField from './releaseSamplesNestedField.svelte'
 
@@ -8,6 +10,7 @@ type Props = {
 }
 
 let { depth = 0, field }: Props = $props()
+let expanded = $state(untrack(() => field.key !== 'geometry'))
 </script>
 
 <div class="border-t border-outline-variant/55 first:border-t-0">
@@ -19,7 +22,11 @@ let { depth = 0, field }: Props = $props()
       class="min-w-0 font-mono text-label-md text-primary wrap-break-word"
       style:padding-left={`${depth * 1.25}rem`}
     >
-      {field.key}
+      <ReleaseSamplesFieldLabel
+        name={field.key}
+        hasChildren={Boolean(field.children?.length)}
+        bind:expanded
+      />
     </dt>
     <dd
       class="min-w-0 font-body text-body-md leading-6 text-foreground-alt wrap-break-word"
@@ -29,7 +36,7 @@ let { depth = 0, field }: Props = $props()
       {/if}
     </dd>
   </div>
-  {#if field.children?.length}
+  {#if field.children?.length && expanded}
     <dl class="bg-surface-container-low/60">
       {#each field.children as child (child.key)}
         <ReleaseSamplesNestedField field={child} depth={depth + 1} />

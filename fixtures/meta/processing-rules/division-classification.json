@@ -1,0 +1,18 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "apply-division-classification-patch",
+  "scope": "individual",
+  "basis": "fixture",
+  "summary": "Apply a reviewed type and level only to the division with the expected publisher record ID.",
+  "inputs": ["source-divisions", "division-classification-patches"],
+  "outputs": ["divisions.type", "divisions.level"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/divisions/divisionClassificationPatch.ts",
+    "symbol": "divisionClassificationRule"
+  },
+  "review": {
+    "kind": "patch"
+  }
+}

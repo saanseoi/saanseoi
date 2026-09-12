@@ -143,7 +143,7 @@ function toggleExpanded() {
     <div class="flex min-w-0 items-start gap-2">
       {#if hasChildren}
         <button
-          class="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-outline-variant/70 font-mono text-caption text-primary transition hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-secondary"
+          class="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-sm border border-outline-variant/70 font-mono text-caption leading-none text-primary transition hover:border-secondary hover:text-secondary focus-visible:outline-2 focus-visible:outline-secondary"
           type="button"
           aria-expanded={expanded}
           aria-label={`${expanded ? 'Collapse' : 'Expand'} ${name}`}
@@ -188,6 +188,11 @@ function toggleExpanded() {
             <span
               class="rounded-full bg-secondary-container px-2.5 py-1 font-body text-caption font-semibold text-on-secondary-container"
               >Required</span
+            >
+          {:else if depth > 0}
+            <span
+              class="rounded-full border border-outline-variant px-2.5 py-1 font-body text-caption text-foreground-alt"
+              >Optional</span
             >
           {/if}
           {#if nullable}

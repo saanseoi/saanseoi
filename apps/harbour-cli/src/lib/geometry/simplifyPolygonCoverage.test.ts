@@ -1,3 +1,4 @@
+import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { join } from 'node:path'
@@ -54,7 +55,9 @@ test('simplifies a shared coverage edge once for both polygons', async () => {
   const [left, right] = simplifiedGeometries
   expect(left).toBeDefined()
   expect(right).toBeDefined()
-  expect(sharedSegments(left!, right!).length).toBeGreaterThan(0)
+  expect(
+    sharedSegments(requireDefined(left), requireDefined(right)).length,
+  ).toBeGreaterThan(0)
 })
 
 test('caches a simplified GeoJSON coverage by its input and simplification contract', async () => {
@@ -111,7 +114,9 @@ function segmentKeys(geometry: GeoJsonGeometry) {
     throw new Error('Test geometry must be a Polygon.')
   }
   return geometry.coordinates.flatMap(ring =>
-    ring.slice(1).map((position, index) => segmentKey(ring[index]!, position)),
+    ring
+      .slice(1)
+      .map((position, index) => segmentKey(requireDefined(ring[index]), position)),
   )
 }
 

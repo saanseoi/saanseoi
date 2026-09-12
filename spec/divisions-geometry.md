@@ -34,8 +34,8 @@ Every source adapter documents and validates:
 - source CRS, transformation to the canonical API CRS, dimensionality and geometry union
   accepted by that provider;
 - null, empty, invalid-ring, self-intersecting, and out-of-extent policies;
-- source attributes retained verbatim in `rawProperties`, including source validity
-  periods and provenance timestamps;
+- source attributes retained verbatim in `properties`, including source validity periods
+  and provenance timestamps;
 - deterministic geographic filters and explicit allowlists for exceptional records;
 - feature counts and geometry-type distributions measured from the downloaded artefact.
 
@@ -49,24 +49,33 @@ Source tables follow the family’s source schema conventions (`sourceRecordId`,
 versioning, raw properties, provenance and source version). Canonical history/current
 tables use the same ordering and version-management fragments as `division`.
 
-An area row contains an `id`, `divisionId`, `bbox`, canonical geometry, `sourceKeys`,
+An area row contains an `id`, `divisionId`, `bbox`, canonical geometry, `identifiers`,
 source provenance, normalised `type` (`land`, `maritime`, or `mixed`), and
 land/territorial flags. A boundary row contains an `id`, ordered `leftDivisionId` and
-`rightDivisionId`, `bbox`, canonical geometry, `sourceKeys`, source provenance,
+`rightDivisionId`, `bbox`, canonical geometry, `identifiers`, source provenance,
 normalised `type`, and the same flags. Providers may add source-specific keys, but
 canonical columns must not be silently overloaded.
 
-`sourceKeys` is the compatibility bridge to source versions, classifications and
-external identifiers. Canonical divisions should expose reverse identifiers in their
-`identifiers` object when a provider bridge exists.
+Canonical area and boundary geometry omits the optional embedded GeoJSON `bbox`. The
+separate `bbox` column is calculated from the canonical coordinates. Source geometry
+retains any embedded bbox as part of its original evidence.
+
+`identifiers` contains genuine provider identifiers where a provider bridge exists.
+Source versions, classifications, and other source-only fields remain available through
+the source-record API under `properties`.
 
 ## Domains, identity and hierarchy
 
-Use a controlled functional domain such as `administrative`, `planning`, `electoral`, or
-`geographic`; retain each provider’s raw classification separately. A division has one
-primary domain per dataset and may have explicit secondary memberships. Domain and
-relationship context are properties of hierarchy edges, so default administrative
-traversal cannot accidentally include planning or electoral edges.
+Domains identify independently published geographic, planning or statistical datasets.
+Within the geographic domain, `category` groups administrative, locality and hood
+divisions; `class` supplies the specific classification and `level` its numeric rank.
+Source classifications remain separate publisher assertions.
+
+Ingestion stores correlated administrative, locality and full paths under `hierarchies`.
+Each path contains `{ id, name, class }` ancestors, excluding self. Full paths omit city
+ancestors but retain towns, villages and hamlets. Branches preserve their evidenced
+relationships, including divisions spanning districts or hoods. API reads use these
+stored paths and labels without rebuilding ancestry.
 
 `cohortKey` identifies the source period used for selection and identity. It is separate
 from publication timestamps and release ingestion metadata. If a source later exposes a
@@ -79,15 +88,19 @@ Geometry uploads must reference the exact cohort of the anchored division snapsh
 release set is publishable only when all family-required snapshots are present; optional
 provider variants may be added without replacing required members.
 
-Provider identifiers must be resolved through a versioned generic `identifierBridges`
-table/fixture keyed by resource type, authority, domain, cohort and external identifier.
-The bridge maps source IDs/codes to a generic `canonicalId`; it does not duplicate
-localised names, which remain source provenance or canonical resource data. Ambiguous or
-missing mappings block publication. Sparse pre-2025 periods may use explicit
-`SOURCE_BEFORE` and `HISTORY_BEFORE` shard assignments; `CURRENT` contains only the
-selected latest snapshot. For Hong Kong, these assignments are region-scoped through
-`DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE`; their shard metadata uses `regionCode`
-`hk` and no numeric `year`.
+Provider identifiers requiring reviewed reconciliation must resolve through versioned
+`curations/identity/` fixtures keyed by resource type, authority, domain, cohort and
+external identifier. These ingestion curations map source IDs/codes to a generic
+`canonicalId`; they do not duplicate localised names, which remain source provenance or
+canonical resource data. Ambiguous or missing mappings block publication. Sparse
+pre-2025 periods may use explicit `SOURCE_BEFORE` and `HISTORY_BEFORE` shard
+assignments; `CURRENT` contains only the selected latest snapshot. For Hong Kong, these
+assignments are region-scoped through `DB_SOURCE_HK_BEFORE` and `DB_HISTORY_HK_BEFORE`;
+their shard metadata uses `regionCode` `hk` and no numeric `year`.
+
+Public consumers use `/v0.1/identityBridge` to derive mappings from the identifiers
+retained by the selected API release set. Deterministic identity mappings do not need an
+enumerated fixture or a metadata bridge table.
 
 ## CSDI catalogue planning registry
 

@@ -1,0 +1,68 @@
+import { expect, test } from 'bun:test'
+import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'
+import { retainAlsHouses } from './hkgovAlsHouseRetentions'
+
+const fixture = loadHouseRetentionFixture()
+import type { HkgovAlsSourceFeature } from './hkgovAlsTypes'
+
+test('Tung Tau refuse point is retained across reviewed releases and until revoked with raw evidence', () => {
+  const rule = fixture.retentions.find(
+    r => r.id === 'tung-tau-ii-refuse-collection-point',
+  )!
+  expect(rule).toBeDefined()
+  for (const version of [...rule.sourceVersions, '2030-01-01.0']) {
+    const evidence = fixture.retentions
+      .filter(r => r.estate === rule.estate)
+      .flatMap(r => r.evidence2d.filter(e => e.sourceVersions.includes(version)))
+    const marker = structuredClone(rule.evidence2d[0]!.feature)
+    marker.properties.Address.PremisesAddress.BuildingCsuInformation.CsuId = 'unrelated'
+    marker.properties.Address.PremisesAddress.EngPremisesAddress.BuildingName =
+      'UNRELATED'
+    const source = [marker, ...evidence.map(e => structuredClone(e.feature))].map(
+      feature => ({ feature, sourceFile: 'test', featureIndexOneBased: 1 }),
+    ) as unknown as HkgovAlsSourceFeature[]
+    const original = structuredClone(source)
+    const provenance = retainAlsHouses(source, version)
+    for (const record of original) expect(source).toContainEqual(record)
+    if (evidence.length) {
+      expect(provenance.has(rule.csus[0]!)).toBe(false)
+      continue
+    }
+    expect(
+      source.filter(s =>
+        [rule.csus[0], '3790621798T20050430'].includes(
+          s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+            ?.CsuId ?? '',
+        ),
+      ),
+    ).toHaveLength(2)
+    const retained = source.find(
+      s =>
+        s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+          ?.CsuId === rule.csus[0],
+    )!.feature.properties!.Address!.PremisesAddress!
+    expect(retained.EngPremisesAddress?.BuildingName).toBe(
+      'TUNG TAU (II) ESTATE REFUSE COLLECTION POINT',
+    )
+    expect(retained.ChiPremisesAddress?.BuildingName).toBe('東頭（二）邨垃圾站')
+    expect(retained.EngPremisesAddress?.EngStreet?.BuildingNoFrom).toBe('183')
+    expect(provenance.has(rule.csus[0]!)).toBe(true)
+    const car = source.find(
+      s =>
+        s.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+          ?.CsuId === '3790621798T20050430',
+    )!
+    expect(
+      car.feature.properties?.Address?.PremisesAddress?.EngPremisesAddress
+        ?.BuildingName,
+    ).toBe('TUNG TAU (II) ESTATE MULTI-STOREY CAR PARK')
+  }
+  const changed = structuredClone(rule.evidence2d[0]!.feature)
+  changed.geometry.coordinates = [114, 22]
+  const returned = [
+    { feature: changed, sourceFile: 'test', featureIndexOneBased: 1 },
+  ] as HkgovAlsSourceFeature[]
+  const original = structuredClone(returned[0])
+  retainAlsHouses(returned, rule.sourceVersions[0]!)
+  expect(returned[0]).toEqual(original)
+})

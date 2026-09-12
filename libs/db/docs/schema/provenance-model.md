@@ -8,17 +8,53 @@ The versioned provenance path is:
 4. `snapshotSources`
 5. `apiFieldProvenance`
 
-Saanseoi tracks provenance at two levels.
+SaanSeoi tracks provenance at two levels.
 
-## Release Processing Actions
+## Retained Processing Audits
 
-Table: `releaseProcessingActions`
+Table: `releaseProvenance`
+
+Divisions, Statistics, Addresses and Places retain content-addressed `processing-audit`
+manifests in R2. D1 stores the manifest hash, byte length, individual action count and
+attempt status. Bulk transformations retain declarations and aggregate counts; reviewed
+decisions retain fixture references and selected context. Addresses and Places require
+registered provenance before publication, including the supplementary Address release
+produced by Places. See the
+[processing provenance contract](../../../../docs/datasets/processing-provenance.md).
+
+## Processing Action Storage
+
+Tables: `releaseProcessingActions`, `releaseProcessingActionChunks`
 
 This release-scoped audit trail records automatic normalisations and human-reviewed
-decisions made while ingesting a dataset. Each row has a stable action code, an
-`automatic` or `manual` mode, affected-record count, summary, and compact JSON evidence
-that identifies the canonical record and relevant source variants. Aggregate counts are
-also written to `stats` with `type` and `metric` set to `processing`.
+decisions made while ingesting a dataset. Each summary row represents one release,
+action code and `automatic` or `manual` mode, with a content generation, decision count
+and affected-record count. Evidence identifies the canonical record and relevant source
+variants in versioned, gzip-compressed JSON chunks. Summary strings are dictionary
+encoded; release metadata is inherited from the summary. Aggregate counts are also
+written to `stats` with `type` and `metric` set to `processing`.
+
+Chunks stop at 256 decisions, 256 KiB decoded bytes or 32 KiB compressed bytes.
+Oversized individual decisions use ordered fragments. Checksums cover decoded bytes;
+missing fragments or corruption fail the read instead of returning partial evidence. The
+`(actionId, generation, firstOrdinal, part)` index supports bounded audit pages. Full
+exports iterate pages; evidence is decoded in the application rather than searched with
+SQL JSON predicates. Publication checks use summary counts.
+
+The generated schema migration requires an empty action table. For a populated database,
+prepare a converted **offline copy** before restoring through the database snapshot
+workflow:
+
+```fish
+bun scripts/prepare-processing-action-migration.ts /path/to/offline-meta.sqlite /path/to/new-meta.sqlite
+```
+
+The command leaves the input file intact, applies the generated migration and compressed
+records together in a transaction on the copy, and preserves original decision IDs,
+timestamps, evidence, release status and statistics. It records the migration in an
+existing `d1_migrations` ledger. Do not apply the schema-only migration directly to a
+populated action table. Review the converted snapshot and its migration manifest before
+restoring it; the command performs no deployment or live database mutation.
 
 ## Snapshot-Level Provenance
 
@@ -49,14 +85,87 @@ Scope:
 - per API field
 - NOT per entity row
 
+Bundled mappings in `fixtures/meta/apiFields/` use the public resource field names and
+are named `{apiVersion}@{domainCode}-v{mappingVersion}.json`, using registered domain
+codes. `mappingVersion` versions our mapping independently of publisher schemas.
+Increment it when retained paths, inputs or transformation semantics materially change.
+Compatible upstream changes extend the reviewed coverage of the same mapping version.
+
+`publisherSchemaRanges` declares inclusive `min` and `max` versions for each dataset.
+Comparison is numeric by version component; unknown future versions are not implicitly
+accepted. `lineageAnchors` declares each snapshot once, without publisher schema
+versions. `sourceCompositions` declares the required `datasetCodes` and references
+applicable anchors through `anchorSnapshotVersions`. Selection requires a composition
+associated with the matching anchor and versions within the declared ranges. Exact
+selected publisher versions remain pinned on the published release. The nearest matching
+lineage anchor wins, with mapping version breaking equal-depth ties. Only selected
+datasets contribute to the published provenance. The resolved mapping has its own
+content hash. A fixture match does not imply that every mapped source contributes to
+every entity.
+
+Upload preflight checks the incoming dataset schema against these ranges before
+confirmation or dispatch, including dry runs and deferred publication. The check does
+not widen ranges or substitute for publication's complete composition, lineage and
+rule-pin validation. Uncovered API domains remain outside the preflight's scope.
+
+Each fixture declares `publisherFields` once per source dataset. Keys are paths in the
+public source record, such as `properties.hkgovCsuId`, `sourceRecordId` or `geometry`;
+values are original publisher paths. An array lists alternative publisher locations for
+a retained key. Selection and merge behaviour belongs exclusively to processing rules;
+this mapping does not duplicate their definitions. Arrays and dictionaries are mapped
+once at the parent, such as `properties.divisionIds` → `division_ids` and
+`properties.names.common` → `names.common`. Input lookup uses the most specific mapping
+and preserves descendant keys and numeric indices, so `[1]` and `.zh-hk` remain part of
+the resolved publisher path. Explicit descendant mappings are needed when a child name
+differs from the publisher spelling; they override the parent. Alternative publisher
+paths each receive the same descendant suffix.
+
+Single-resource fixtures declare `resourceType` once at the top level. Mixed fixtures
+use `resources`, each containing one `resourceType` and its `fields`. Authored fields do
+not repeat the resource type. The loader expands that scope into publication rows for
+identity and lookup. Fields use a resource-relative `apiField`, such as
+`attributes.identifiers.hkgovCsuId`. Each input consists of `origin` and `fieldPath`;
+source inputs must resolve in the contribution dataset's publisher mapping. Curation
+paths use camelCase context names defined in `libs/db/src/apiFieldCurationContexts.ts`,
+for example `divisionClassification` maps to the existing `division-classification`
+context identifier. Collection contexts remain collections; they do not imply one
+curation fixture. Dataset codes and publisher field names inside selectors preserve
+their spelling. Registry, curation and intermediate origins identify their own field
+paths. Constants carry `value`. The previous address snapshot ID is registry context;
+records read from that snapshot are a separate intermediate dependency.
+
+Publication stores the shared mapping once on `apiReleaseSets.publisherFields` and
+includes the fixture hash in contribution hashes. Resource type participates in
+provenance identity and uniqueness.
+
+Statistics period inputs are dataset-specific: `year`, `PERIOD`, `YEAR` and `QUARTER`,
+or release context. Value contributions identify individual publisher fields and their
+reviewed curation entries. Dimensions, labels and comparability are attributed to
+curation; parsed value kinds are intermediate normalisation results.
+
+A resolver is either a generic operation or an existing processing-rule ID. Publication
+resolves non-generic resolvers and supporting `processingRuleIds` exclusively against
+definitions captured by the selected resource releases. `resolverRules` pins the
+release, rule ID, ruleset version/hash and definition hash. A missing definition blocks
+publication; current dataset metadata cannot substitute for the captured release policy.
+
+Checks cover shared mappings and resource-relative locations, fixture hashes, selected
+source signatures, rule pins, duplicate contribution identities and public contract
+paths. Places resource attributes include registry timestamps and snapshot IDs;
+document-level pagination is separate.
+
 Stored fields:
 
 - `apiField`
-  - canonical contract field identifier such as `division.attributes.level`
+  - resource-relative contract path such as `attributes.level`
+- `resourceType`
+  - resource discriminator, stored separately from the field path
 - `sourceDatasetId`
   - upstream dataset that may contribute to the API field
-- `sourceFieldPath`
-  - source-side field path or logical input path consumed by the resolver
+- `inputs`
+  - ordered publisher, registry, curation, intermediate or constant inputs
+- `resolverRules`
+  - immutable processing-rule references captured for this publication
 - `resolverCode`
   - stable code for the transformation rule, direct copy, lookup, or derivation
 - `contributionType`
@@ -68,9 +177,9 @@ Stored fields:
 
 Why these fields are stored this way:
 
-- `sourceFieldPath`
-  - provenance must identify which upstream field or hint participates in the mapping,
-    including resolver-driven fields that are not copied directly
+- `inputs`
+  - source paths refer to the shared publisher mapping; other origins identify their own
+    field paths
 - `resolverCode`
   - provenance needs to explain whether the contract field is copied, merged, looked up,
     or derived by a named rule
@@ -106,7 +215,7 @@ Examples:
 
 - `division.attributes.level`
   - `subtype` and `class` are `resolver-input` rows for `map_division_level`
-- `division.attributes.divisionType`
+- `division.attributes.class`
   - `subtype` and `class` are `resolver-input` rows for `map_division_type`
 
 Do not use `merge-input` for those cases because the API field is not produced by "first
@@ -128,3 +237,25 @@ Examples:
   - canonical numeric division level is derived from Overture division hints
 - `map_division_type`
   - canonical division type label is derived from Overture division hints
+
+## Generic operations and retained storage
+
+`lookup_registry` assigns a value from the selected registry context; `constant_value`
+assigns a declared literal, including null. `wrap_publisher_sources` places attribution
+under its publisher key (`overture` for Overture). `merge_first_non_null` preserves
+empty arrays and strings, while `merge_first_non_empty` selects a non-empty candidate.
+`derive_release_month` extracts the year-month from a dated release version.
+`compose_identifier` concatenates the declared literal and identifier inputs in order.
+
+Retained source properties use collision-checked camelCase names. Locale-bearing labels
+end in `En`, `ZhHant` or `ZhHans` and appear last in `publisherFields`, ordered by base
+name and then locale. `sourceRecordId` and `geometry` appear first; other properties are
+alphabetical. Publisher values, nulls, array order and language dictionary keys remain
+intact. Publisher mapping values use the publisher spelling; source inputs use retained
+public paths. A change to retained naming requires rebuilding retained source assertions
+and their dependent materialisations; publishing a fixture alone does not rewrite them.
+
+The provenance schema migrations target an empty provenance table in a rebuilt
+pre-release database. They intentionally do not manufacture provenance from the removed
+ambiguous path strings. Existing populated databases require a planned rebuild before
+applying these migrations; immutable published releases are not rewritten in place.

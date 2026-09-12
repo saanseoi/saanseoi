@@ -185,32 +185,6 @@ let { children, class: className = '' }: Props = $props()
 }
 
 :global {
-  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature,
-  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature::after,
-  .newsletter-panel:not(.newsletter-panel-active) .newsletter-packet,
-  .newsletter-panel:not(.newsletter-panel-active) .newsletter-packet-fragment {
-    animation-play-state: paused;
-  }
-
-  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature-orange {
-    animation: none;
-    visibility: hidden;
-  }
-
-  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature-orange::before {
-    animation: none;
-  }
-
-  .newsletter-panel-active .newsletter-creature-orange {
-    visibility: visible;
-  }
-
-  .newsletter-panel-animation-disabled .newsletter-creature,
-  .newsletter-panel-animation-disabled .newsletter-packet,
-  .newsletter-panel-animation-disabled .newsletter-packet-fragment {
-    display: none;
-  }
-
   .newsletter-panel {
     /* GOD's route is paired with live packet launches on each jump. */
     --newsletter-orange-intro-duration: 14s;
@@ -501,6 +475,32 @@ let { children, class: className = '' }: Props = $props()
     background: color-mix(in srgb, var(--secondary) 78%, transparent);
     animation: newsletter-packet-fragment-derez 300ms ease-out var(--fragment-delay)
       both;
+  }
+
+  .newsletter-panel-active .newsletter-creature-orange {
+    visibility: visible;
+  }
+
+  .newsletter-panel-animation-disabled .newsletter-creature,
+  .newsletter-panel-animation-disabled .newsletter-packet,
+  .newsletter-panel-animation-disabled .newsletter-packet-fragment {
+    display: none;
+  }
+
+  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature,
+  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature::after,
+  .newsletter-panel:not(.newsletter-panel-active) .newsletter-packet,
+  .newsletter-panel:not(.newsletter-panel-active) .newsletter-packet-fragment {
+    animation-play-state: paused;
+  }
+
+  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature-orange {
+    animation: none;
+    visibility: hidden;
+  }
+
+  .newsletter-panel:not(.newsletter-panel-active) .newsletter-creature-orange::before {
+    animation: none;
   }
 
   /* Increase contrast and make the signal respond when the newsletter is explored in light mode. */

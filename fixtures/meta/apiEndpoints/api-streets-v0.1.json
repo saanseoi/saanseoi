@@ -1,0 +1,26 @@
+{
+  "versionHash": "sha256:4238cf8e1b0dddf4fadbfa0d2d627ecb331c0929a3e1e00cb5531a8ade8b3cc2",
+  "apiVersion": "api-streets-v0.1",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/streets/v0.1/{id}",
+      "operationId": "getHongKongStreetByIdV0"
+    },
+    {
+      "method": "GET",
+      "path": "/streets/v0.1/changelog",
+      "operationId": "replayHongKongStreetChangelogV0"
+    },
+    {
+      "method": "GET",
+      "path": "/streets/v0.1/{id}/versions",
+      "operationId": "listHongKongStreetVersionsV0"
+    },
+    {
+      "method": "GET",
+      "path": "/streets/v0.1/{id}/versions/{version}",
+      "operationId": "getHongKongStreetVersionV0"
+    }
+  ]
+}

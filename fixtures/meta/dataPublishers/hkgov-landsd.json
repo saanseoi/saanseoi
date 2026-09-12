@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:83c9b3a8fe10d88f2b5e3cc67268ef23e0eb11d138875dc67166adbf31126e74",
+  "versionHash": "sha256:4225ed7dc2e8118d76def465fcb033c54eceeb7386d2198bde2ecf54e72c92ac",
   "code": "hkgov-landsd",
   "parentCode": "hkgov",
   "url": "https://www.landsd.gov.hk/",
@@ -8,16 +8,19 @@
     {
       "locale": "en",
       "name": "Lands Department",
+      "nameShort": "LandsD",
       "description": "Responsible for land administration, surveying and mapping in Hong Kong."
     },
     {
       "locale": "zh-hant",
       "name": "地政總署",
+      "nameShort": "地政總署",
       "description": "負責香港土地行政、測繪及製圖工作的政府部門。"
     },
     {
       "locale": "zh-hans",
       "name": "地政总署",
+      "nameShort": "地政总署",
       "description": "负责香港土地行政、测绘及制图工作的政府部门。"
     }
   ]

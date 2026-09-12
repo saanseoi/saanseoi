@@ -6,24 +6,24 @@
   "status": "current",
   "domains": [
     {
-      "code": "official",
+      "code": "government",
       "isDefault": true,
       "i18n": [
         {
           "locale": "en",
-          "name": "Official",
+          "name": "Government",
           "descriptionShort": "C&SD statistics for Hong Kong divisions.",
           "description": "C&SD statistics for Hong Kong geographical divisions, covering population, housing, land area and other published measures."
         },
         {
           "locale": "zh-hant",
-          "name": "官方",
+          "name": "政府",
           "descriptionShort": "香港分區的政府統計處統計資料。",
           "description": "政府統計處就香港地理分區發布的統計資料，涵蓋人口、房屋、土地面積及其他已發布指標。"
         },
         {
           "locale": "zh-hans",
-          "name": "官方",
+          "name": "政府",
           "descriptionShort": "香港分区的政府统计处统计资料。",
           "description": "政府统计处就香港地理分区发布的统计资料，涵盖人口、房屋、土地面积及其他已发布指标。"
         }
@@ -96,5 +96,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:766076fa52f5a718b035fcc01427be217162034fb212b5d77f6632f560cd1706"
+  "versionHash": "sha256:0c3197c650e4875c8e6aa05328060cdb3111de762b77d4259553aefde1c22cb3"
 }

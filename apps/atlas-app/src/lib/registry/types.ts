@@ -74,7 +74,7 @@ export type ApiRelease = {
   bulkActions?: Array<{
     id: string
     operationCode: string
-    type: 'bulk'
+    kind: 'bulk'
     sourceFieldPath?: string
     targetFieldPath?: string
     condition?: string
@@ -92,7 +92,7 @@ export type ApiRelease = {
     role: 'primary' | 'supporting'
     resourceType: string
     sourceVersion: string
-    subType: string | null
+    kind: string | null
     variant: string
     sourceArchive?: {
       assetId: string
@@ -155,6 +155,12 @@ export type RegistryApi = {
 }
 
 export type SourceVersion = {
+  resources?: Array<{
+    id: string
+    resourceType: string
+    status: string
+    stats: NonNullable<SourceVersion['stats']>
+  }>
   id: string
   datasetId: string
   datasetCode: string
@@ -230,7 +236,7 @@ export type RegistrySource = {
   releaseType: string
   releaseFrequency: string
   theme: string
-  subType: string | null
+  kind: string | null
   sourceVariant: string
   resourceTypes: string[]
   sourceUrl?: string | null
@@ -268,7 +274,7 @@ export type ReleaseMergeRules = {
     rulesetVersionHash: string
     rules: Array<{
       operationCode: string
-      type: 'bulk' | 'record'
+      kind: 'bulk' | 'record'
       sourceFieldPath?: string
       targetFieldPath?: string
       condition?: string

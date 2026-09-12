@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "retentions": [
+    {
+      "id": "cheung-hong-commercial-centre-no-2",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-07-10.0",
+      "duplicateFrom": "2025-04-26.0",
+      "namedCsu": "2819523425T20050430",
+      "duplicateCsu": "2820723422P20060103",
+      "enEstate": "CHEUNG HONG ESTATE",
+      "zhEstate": "長康邨",
+      "namedRepresentations": [
+        {
+          "en": {
+            "BuildingName": "CHEUNG HONG ESTATE COMMERCIAL CENTRE NO.2",
+            "EngEstate": { "EstateName": "CHEUNG HONG ESTATE" },
+            "EngStreet": { "BuildingNoFrom": "12", "StreetName": "CHING HONG ROAD" },
+            "EngDistrict": "KWAI TSING DISTRICT",
+            "Region": "NT"
+          },
+          "zh": {
+            "Region": "新界",
+            "ChiDistrict": "葵青區",
+            "ChiStreet": { "StreetName": "青康路", "BuildingNoFrom": "12" },
+            "ChiEstate": { "EstateName": "長康邨" },
+            "BuildingName": "長康邨第二商場"
+          },
+          "coordinates": [114.09857, 22.3498]
+        },
+        {
+          "en": {
+            "BuildingName": "CHEUNG HONG COMMERCIAL CENTRE NO 2",
+            "EngStreet": { "BuildingNoFrom": "12", "StreetName": "CHING HONG ROAD" },
+            "EngDistrict": "KWAI TSING DISTRICT",
+            "Region": "NT"
+          },
+          "zh": {
+            "Region": "新界",
+            "ChiDistrict": "葵青區",
+            "ChiStreet": { "StreetName": "青康路", "BuildingNoFrom": "12" },
+            "BuildingName": "長康第二商場"
+          },
+          "coordinates": [114.09846, 22.34982]
+        }
+      ],
+      "duplicate": {
+        "en": {
+          "EngBlock": { "BlockDescriptor": "COMMERCIAL COMPLEX" },
+          "EngEstate": { "EstateName": "CHEUNG HONG ESTATE" },
+          "EngStreet": {
+            "BuildingNoFrom": "12",
+            "StreetName": "CHING HONG ROAD",
+            "LocationName": "TSING YI"
+          },
+          "EngDistrict": "KWAI TSING DISTRICT",
+          "Region": "NT"
+        },
+        "zh": {
+          "Region": "新界",
+          "ChiDistrict": "葵青區",
+          "ChiStreet": {
+            "LocationName": "青衣",
+            "StreetName": "青康路",
+            "BuildingNoFrom": "12"
+          },
+          "ChiEstate": { "EstateName": "長康邨" },
+          "ChiBlock": { "BlockDescriptor": "商場" }
+        },
+        "geoAddress": "2819523425T20050430",
+        "coordinates": [[114.09846, 22.34982], [114.0985, 22.34991]]
+      },
+      "authority": "User decision, 2026-09-07: restore the named one; the unnamed record is a duplicate and is not needed.",
+      "decision": "Retain the named Cheung Hong Commercial Centre No. 2 representation as the single derived premise, restoring it only for the bounded April–July 2026 absence. Suppress the unnamed cross-referenced publisher representation only while both are supplied. Respect the source removal of both records from July 22 onward; retain every raw assertion as provenance."
+    }
+  ]
+}

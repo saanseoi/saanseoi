@@ -5,8 +5,8 @@ import { join, resolve } from 'node:path'
 import { note, outro } from '@clack/prompts'
 
 import { formatField } from '../../../harbour-cli/src/lib/cli/display.ts'
-import { prepareHkgovPlandTpuParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPland.ts'
-import { prepareHkgovPlandNewTownParquet } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovPlandNewTown.ts'
+import { prepareHkgovPlandTpuParquet } from '../../../harbour-cli/src/lib/sources/hkgov/pland/hkgovPland.ts'
+import { prepareHkgovPlandNewTownParquet } from '../../../harbour-cli/src/lib/sources/hkgov/pland/hkgovPlandNewTown.ts'
 import type { ParsedArgs } from '../../../harbour-cli/src/lib/cli/options.ts'
 
 export async function runHkgovPlandPrepCommand(
@@ -48,13 +48,13 @@ export async function runHkgovPlandPrepCommand(
         inputFile: sourceFile,
         outputFile: divisionOutput,
         sourceVersion,
-        type: 'division',
+        resourceType: 'division',
       }),
       prepareHkgovPlandNewTownParquet({
         inputFile: sourceFile,
         outputFile: divisionAreaOutput,
         sourceVersion,
-        type: 'divisionArea',
+        resourceType: 'divisionArea',
       }),
     ])
     note(
@@ -83,13 +83,13 @@ export async function runHkgovPlandPrepCommand(
       inputFile: sourceFile,
       outputFile: divisionOutput,
       sourceVersion,
-      type: 'division',
+      resourceType: 'division',
     }),
     prepareHkgovPlandTpuParquet({
       inputFile: sourceFile,
       outputFile: divisionAreaOutput,
       sourceVersion,
-      type: 'divisionArea',
+      resourceType: 'divisionArea',
     }),
   ])
 

@@ -5,26 +5,41 @@ import { authClient } from '#lib/auth-client.js'
 import { page } from '$app/state'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { getAuthRedirectPath, getSignInHref } from '#lib/authRedirect.js'
 
+const next = $derived(getAuthRedirectPath(page.url.searchParams.get('next'), page.url))
 const token = $derived(page.url.searchParams.get('token'))
-const invalid = $derived(page.url.searchParams.has('error') || !token)
+let rejectedToken = $state(false)
+const invalid = $derived(page.url.searchParams.has('error') || !token || rejectedToken)
 let password = $state('')
 let confirmation = $state('')
 let error = $state<string | null>(null)
 let complete = $state(false)
+let busy = $state(false)
 
 const resetPassword = async () => {
+  if (busy || invalid || complete) return
   if (password !== confirmation) {
     error = m.auth_passwords_do_not_match()
     return
   }
 
-  const result = await authClient.resetPassword({
-    newPassword: password,
-    token: token ?? undefined,
-  })
-  if (result.error) error = result.error.message ?? m.auth_reset_error()
-  else complete = true
+  busy = true
+  error = null
+  try {
+    const result = await authClient.resetPassword({
+      newPassword: password,
+      token: token ?? undefined,
+    })
+    if (result.error) {
+      rejectedToken = result.error.code === 'INVALID_TOKEN'
+      error = result.error.message ?? m.auth_reset_error()
+    } else complete = true
+  } catch {
+    error = m.auth_reset_error()
+  } finally {
+    busy = false
+  }
 }
 </script>
 
@@ -44,21 +59,24 @@ const resetPassword = async () => {
     {m.auth_choose_new_password()}
   </h1>
   {#if invalid}
-    <p class="mt-5 font-body text-body-lg text-destructive">
+    <p role="alert" class="mt-5 font-body text-body-lg text-destructive">
       {m.auth_reset_link_invalid()}
-      <a class="text-secondary hover:underline" href="/password/forgot"
+      <a
+        class="text-secondary hover:underline"
+        href={`/password/forgot?next=${encodeURIComponent(next)}`}
         >{m.auth_request_new_link()}</a
       >.
     </p>
   {:else if complete}
-    <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+    <p role="status" class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
       {m.auth_password_reset_complete()}
-      <a class="text-secondary hover:underline" href="/sign-in"
+      <a class="text-secondary hover:underline" href={getSignInHref(next)}
         >{m.auth_sign_in_title()}</a
       >.
     </p>
   {:else}
     <form
+      aria-busy={busy}
       class="mt-8 space-y-4"
       onsubmit={event => { event.preventDefault(); resetPassword() }}
     >
@@ -66,6 +84,7 @@ const resetPassword = async () => {
         >{m.account_new_password()}
         <input
           bind:value={password}
+          autocomplete="new-password"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           minlength="8"
           required
@@ -76,6 +95,7 @@ const resetPassword = async () => {
         >{m.auth_confirm_new_password()}
         <input
           bind:value={confirmation}
+          autocomplete="new-password"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           minlength="8"
           required
@@ -83,9 +103,11 @@ const resetPassword = async () => {
         ></label
       >
       {#if error}
-        <p class="font-body text-body-sm text-destructive">{error}</p>
+        <p class="font-body text-body-sm text-destructive" role="alert">{error}</p>
       {/if}
-      <Button type="submit" variant="primary">{m.auth_reset_password()}</Button>
+      <Button disabled={busy} type="submit" variant="primary">
+        {busy ? m.auth_resetting() : m.auth_reset_password()}
+      </Button>
     </form>
   {/if}
 </Main>

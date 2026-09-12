@@ -336,6 +336,7 @@ onMount(() => {
     </div>
     <p
       bind:this={editorIconCallout}
+      data-guide-explainer-callout
       class="order-2 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
       <span
@@ -347,6 +348,7 @@ onMount(() => {
     </p>
     <p
       bind:this={pathCallout}
+      data-guide-explainer-callout
       class="order-3 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-4 xl:col-span-3 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
       <span
@@ -358,6 +360,7 @@ onMount(() => {
     </p>
     <p
       bind:this={commentsToggleCallout}
+      data-guide-explainer-callout
       class="order-4 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-7 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
       <span
@@ -369,6 +372,7 @@ onMount(() => {
     </p>
     <p
       bind:this={previewCallout}
+      data-guide-explainer-callout
       class="order-5 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
       <span
@@ -380,6 +384,7 @@ onMount(() => {
     </p>
     <p
       bind:this={copyCallout}
+      data-guide-explainer-callout
       class="order-6 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-11 xl:col-span-2 xl:row-start-1 xl:order-0 xl:self-end xl:border-l-0 xl:pl-0"
     >
       <span
@@ -391,6 +396,7 @@ onMount(() => {
     </p>
     <p
       bind:this={commentCallout}
+      data-guide-explainer-callout
       class="order-7 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-1 xl:col-span-4 xl:row-start-3 xl:order-0 xl:self-start xl:border-l-0 xl:pl-0"
     >
       <span
@@ -402,6 +408,7 @@ onMount(() => {
     </p>
     <p
       bind:this={codeCallout}
+      data-guide-explainer-callout
       class="order-8 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-5 xl:col-span-3 xl:row-start-3 xl:order-0 xl:self-start xl:w-[120%] xl:border-l-0 xl:pl-0"
     >
       <span
@@ -413,6 +420,7 @@ onMount(() => {
     </p>
     <p
       bind:this={dimmedCodeCallout}
+      data-guide-explainer-callout
       class="order-9 max-w-none border-l-2 border-secondary pl-3 font-body text-body-sm leading-6 text-foreground-alt xl:col-start-9 xl:col-span-4 xl:row-start-3 xl:order-0 xl:self-start xl:w-[87.5%] xl:border-l-0 xl:pl-0"
     >
       <span

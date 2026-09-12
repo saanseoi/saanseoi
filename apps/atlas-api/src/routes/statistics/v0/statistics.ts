@@ -1,3 +1,9 @@
+import { EmptyRegionCollectionSchema } from '../../../schema/region'
+import {
+  emptyRegionCollection,
+  regionNotFound,
+  isUnpublishedMacao,
+} from '../../../lib/region'
 import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import {
@@ -71,7 +77,11 @@ const listRoutes = ROUTE_VARIANTS.map(variant =>
     request: { query: StatisticsListQuerySchema },
     responses: {
       200: {
-        content: { 'application/json': { schema: StatisticsListResponseSchema } },
+        content: {
+          'application/json': {
+            schema: StatisticsListResponseSchema.or(EmptyRegionCollectionSchema),
+          },
+        },
         description: openApiText('openapi_statistics_list_response_description'),
       },
       409: {
@@ -137,7 +147,9 @@ const geographyRoutes = ROUTE_VARIANTS.map(variant =>
     responses: {
       200: {
         content: {
-          'application/json': { schema: StatisticsGeographiesResponseSchema },
+          'application/json': {
+            schema: StatisticsGeographiesResponseSchema.or(EmptyRegionCollectionSchema),
+          },
         },
         description: openApiText('openapi_statistics_geographies_response_description'),
       },
@@ -173,7 +185,11 @@ const seriesRoutes = ROUTE_VARIANTS.map(variant =>
     request: { query: StatisticsSeriesQuerySchema },
     responses: {
       200: {
-        content: { 'application/json': { schema: StatisticsSeriesResponseSchema } },
+        content: {
+          'application/json': {
+            schema: StatisticsSeriesResponseSchema.or(EmptyRegionCollectionSchema),
+          },
+        },
         description: openApiText('openapi_statistics_series_response_description'),
       },
       404: {
@@ -208,6 +224,8 @@ export const statisticRoutes = [
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body as never, 503)
         if (result.status === 404) return c.json(result.body as never, 404)
         if (result.status === 409) return c.json(result.body as never, 409)
@@ -225,6 +243,8 @@ export const statisticRoutes = [
           metaDb: c.var.metaDb,
           query: c.req.valid('query'),
         })
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body as never, 503)
         if (result.status === 404) return c.json(result.body as never, 404)
         if (result.status === 409) return c.json(result.body as never, 409)
@@ -240,6 +260,7 @@ export const statisticRoutes = [
         const result = await listStatistics({
           currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
+          historyDbsByBinding: c.var.historyDbsByBinding,
           metaDb: c.var.metaDb,
           requestUrl: c.req.url,
           requestedVersionPath: variant.requestedVersionPath,
@@ -248,6 +269,8 @@ export const statisticRoutes = [
           query: c.req.valid('query'),
         })
         if (result.status === 409) return c.json(result.body, 409)
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(emptyRegionCollection(c.req.url), 200)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body, 200)
       },
@@ -262,6 +285,7 @@ export const statisticRoutes = [
         const result = await getStatisticDetail({
           currentDb: c.var.currentDb,
           historyDbs: c.var.historyDbs,
+          historyDbsByBinding: c.var.historyDbsByBinding,
           metaDb: c.var.metaDb,
           requestUrl: c.req.url,
           requestedVersionPath: variant.requestedVersionPath,
@@ -272,6 +296,8 @@ export const statisticRoutes = [
         })
         if (result.status === 404) return c.json(result.body, 404)
         if (result.status === 409) return c.json(result.body, 409)
+        if (isUnpublishedMacao(c.req.valid('query').region, result))
+          return c.json(regionNotFound(), 404)
         if (result.status === 503) return c.json(result.body, 503)
         return c.json(result.body, 200)
       },

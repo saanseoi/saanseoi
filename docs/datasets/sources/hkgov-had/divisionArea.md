@@ -1,7 +1,53 @@
 # Home Affairs Department District Boundary area ingestion
 
+Canonical Area versions are immutable. Snapshot membership follows the selected parent's
+version journal and recorded history shards; complete releases remove only members of
+that parent. Exact and simplified scopes and other providers retain their versions
+independently. Reused record/hash content preserves its original provenance, and history
+`isCurrent` does not define membership. Current projection receipts and publication
+checks remain required for each selected scope.
+
+Source validity uses the owning release's version component in `validFromRelease` and
+`validToRelease`. Dataset prefixes and resource suffixes are omitted; `releaseId`
+retains the release association.
+
+Native source replay preserves open matching versions without rewriting release
+metadata. Complete replacement membership closes omissions and superseded hashes through
+indexed source-ID predicates.
+
+Geometry processing retains registered rule declarations, counts and selected identity
+curation fixtures in the [R2 audit](../../processing-provenance.md). D1 registers the
+manifest and attempt status. Audit provides lazy fixture inspection and guard outcomes;
+bulk rules contain no affected-record lists or copied geometry values.
+
+Source storage uses `null` when no provenance references are supplied. Publisher area
+identifiers and archive references are retained when available; internal source-record
+IDs are not manufactured as provenance.
+
+Local geometry materialisation uses WAL-safe SQLite planning copies and receipt-backed
+SQL replay. Sealed plans retain current, history and source mutations, including closed
+assertions, together with checksummed churn outputs. Recovery validates normalised
+inputs and reuses the plan before publication.
+
+Remote replay selects immutable canonical content through upsert journal keys and
+records removals as delete journals. Source assertions closed by the release receive
+updates matching exact versions and closure timestamps without retransmitting older
+source geometry.
+
+Ordinary geometry metadata upserts skip updates to identical rows while retaining
+ordered changes to lifecycle, provenance and statistics fields. The
+[SQL delivery contract](../../sql-delivery.md) describes the oversized-row exception.
+
+Parented area revisions follow the
+[geometry membership contract](../../families/divisions.md#publication-readiness):
+validated identical parent members inherit without payload or child journal writes;
+changes, removals and reappearances remain explicit. Parentless checkpoints retain full
+membership, and independently retained cohorts each receive their own current
+projection. Source assertions and audit delivery remain separate from canonical
+membership.
+
 This page records the provider-specific profile. The reusable source contract is in
-[`spec/divisions-geometry.md`](../../../spec/divisions-geometry.md).
+[`spec/divisions-geometry.md`](../../../../spec/divisions-geometry.md).
 
 ## Catalogue and service
 
@@ -25,20 +71,20 @@ Dataset package and does not use the CSDI GeoJSON file API as input.
 The `hkgov-had` District Boundary native package is read from the CSDI archive. Its File
 Geodatabase `DCD` layer is required to contain 18 Polygon district features with
 `AREA_ID`, `AREA_CODE`, and `AREA_TYPE`. The mirrored archive's managed key and SHA-256
-are retained in every source assertion's `sources` provenance and carried into canonical
-geometry provenance; the importer reads that local archive rather than the converted
-GeoJSON delivery. `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved
-through the versioned `identifierBridges` fixture/table for resource type `division`,
-authority `hkgov-had`, cohort `2022`, and the administrative domain. The source release
-is `dr-hk-hkgov-had-division-area-district-2022` with cohort key `2022` and source
-schema version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.
+are retained by release acquisition metadata and carried into canonical geometry
+provenance; the importer reads that local archive rather than the converted GeoJSON
+delivery. `AREA_ID` and `AREA_CODE` are provider identifiers. They are resolved through
+the versioned `curations/identity/` fixture for resource type `division`, authority
+`hkgov-had`, cohort `2022`, and the administrative domain. The source release is
+`dr-hk-hkgov-had-division-area-district-2022` with cohort key `2022` and source schema
+version `1.2`. Its dataset code is `ds-hk-hkgov-had-division-area-district`.
 
 The managed ZIP is linked after resource-release registration through the release's
 canonical source-release lineage, so its download remains available independently of the
 `divisionArea` materialisation that consumes it.
 
 The compatibility layer exposes these source fields under `hkgov`, with database
-capitalisation, in both source columns and canonical geometry `sourceKeys`:
+capitalisation, in both source columns and canonical geometry `identifiers`:
 
 | Source field         | Compatibility field     |
 | -------------------- | ----------------------- |
@@ -51,9 +97,11 @@ capitalisation, in both source columns and canonical geometry `sourceKeys`:
 The normalised `divisionArea` fields are the retained EPSG:4326 polygon, `divisionId`,
 `type = mixed`, and `isLand`/`isTerritorial = true`. `NAME_TC`, `NAME_EN`, `DATA_OWNER`,
 `BEGIN_LIFESPAN`, `END_LIFESPAN`, `SHAPE_Length`, and `SHAPE_Area` are dropped from
-projected fields. The source assertion retains the publisher's original attribute object
-in `rawProperties` and its native geometry in `sourceGeometry`; normalised delivery
-fields and the redundant GeoJSON feature wrapper are not persisted.
+projected fields. The source record includes the publisher's original attribute object
+in `properties` and its native geometry in `sourceGeometry`; normalised delivery fields
+and the redundant GeoJSON feature wrapper are not persisted. Publisher identifiers also
+remain only in `properties`: indexed source columns are reserved for record identity and
+release history, not canonical division lookup.
 
 Preflight rejects null or empty geometry, invalid rings, and self-intersections. It does
 not repair geometry. Feature counts, geometry-type counts, rejected rows, CRS, bridge
@@ -97,3 +145,59 @@ HAD district areas form a persistent geometry lineage. They may enrich an immuta
 Overture domain release using the configured at-or-before cohort rule. A later HAD
 backfill creates a new Overture domain-release revision and catalogue checkpoint rather
 than mutating the earlier publication.
+
+## Publisher source boundary
+
+Publisher values, acquisition references, original geometry and canonical resolutions
+follow the [source record storage contract](../../source-records.md). Field renaming and
+flattening preserve upstream values; corrections and resolved identities remain outside
+`properties`.
+
+## Publisher record envelope
+
+Follow the [source record contract](../../source-records.md). The response contains
+publisher attributes and source identity; internal resource types, variants and
+acquisition locators are excluded. Optional geometry preserves native coordinates and
+CRS, independently of canonical geometry processing.
+
+The FileGDB DCD reader retains native EPSG:2326 geometry separately from the projected
+canonical geometry, matching the two representations by publisher `AREA_ID`.
+
+## Artefact destination
+
+Fresh local initialisation supports `--target local --r2 production`: immutable source
+and provenance objects are retained in production R2, with registrations kept in local
+D1. Follow the
+[storage-target workflow](../../d1-bootstrap.md#ingest-locally-with-production-r2) when
+selecting or continuing this mode.
+
+## Registry metadata
+
+Dataset processing metadata declares the registered geography identity bridge. Releases
+retain the resolved policy at creation. Source geometry uses EPSG:4326.
+
+## Retained record identity
+
+`sourceRecordId` is the publisher `OBJECTID` rendered as a string. Intake requires a
+non-empty, unique ID for every district in the release. Canonical area IDs remain
+independent. Retained properties use names such as `objectId`, `csdiAdminAreaId`,
+`areaCode` and `shapeLength`; provenance retains the original publisher field paths.
+
+Source storage and public records use `properties` for retained attributes. API-field
+inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
+Processing-rule definitions remain in their registered fixtures and are pinned by the
+selected release.
+
+## Publication readiness
+
+HAD current area geometry uses one stable lineage/cohort scope. A new revision preserves
+unchanged geometry rows and timestamps, writes changed content and removes absent
+members within that scope. The local compiler transmits only final content differences.
+Exact canonical Division dependencies resolve from a completed receipt or immutable
+history, without restoring historical rows into serving current storage.
+
+Each delivery batch checks its scope token. Complete geometry validation records
+preparation; publication grants current readiness. Empty scopes require the same
+completion evidence. Retained cohorts and variants remain independently available, with
+older revisions replayed from history. See the
+[publication-state contract](../../publication-state-plan.md).

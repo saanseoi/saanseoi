@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test'
 
+import { inspectParquetFile } from '@repo/core/parquetInspectorNode'
 import type { UploadInspection, UploadPlan } from '@repo/core'
+import { resolve } from 'node:path'
 
 import { validateOvertureSchema } from './overture.ts'
 
@@ -72,7 +74,7 @@ function makePlan(sourceVersion: string): UploadPlan {
     releaseCode: `overture-hk-${sourceVersion}-division`,
     regionCode: 'hk',
     theme: 'divisions',
-    type: 'division',
+    resourceType: 'division',
     source: 'overture',
     cohortKey: '2026-05',
     sourceVersion,
@@ -84,7 +86,7 @@ function makePlan(sourceVersion: string): UploadPlan {
     schemaFingerprint: 'test-fingerprint',
     inferredFrom: {
       theme: 'path',
-      type: 'path',
+      resourceType: 'path',
       regionCode: 'path',
       cohortKey: 'flag',
       source: 'flag',
@@ -94,12 +96,27 @@ function makePlan(sourceVersion: string): UploadPlan {
   }
 }
 
+function makePlacePlan(sourceVersion: string): UploadPlan {
+  return {
+    ...makePlan(sourceVersion),
+    cohortKey: sourceVersion.slice(0, 7),
+    datasetCode: 'ds-hk-overture-place',
+    releaseCode: `overture-hk-${sourceVersion}-place`,
+    theme: 'places',
+    resourceType: 'place',
+    datasetId: `overture-hk-${sourceVersion}-place`,
+    filePath: '/tmp/place.parquet',
+    fileName: 'place.parquet',
+    originalFileName: 'place.parquet',
+  }
+}
+
 function makeDivisionAreaPlan(sourceVersion: string): UploadPlan {
   return {
     ...makePlan(sourceVersion),
     datasetCode: 'ds-hk-overture-division-area',
     releaseCode: `overture-hk-${sourceVersion}-divisionArea`,
-    type: 'divisionArea',
+    resourceType: 'divisionArea',
     datasetId: `overture-hk-${sourceVersion}-divisionArea`,
     filePath: '/tmp/division-area.parquet',
     fileName: 'division-area.parquet',
@@ -112,7 +129,7 @@ function makeDivisionBoundaryPlan(sourceVersion: string): UploadPlan {
     ...makePlan(sourceVersion),
     datasetCode: 'ds-hk-overture-division-boundary',
     releaseCode: `overture-hk-${sourceVersion}-divisionBoundary`,
-    type: 'divisionBoundary',
+    resourceType: 'divisionBoundary',
     datasetId: `overture-hk-${sourceVersion}-divisionBoundary`,
     filePath: '/tmp/division-boundary.parquet',
     fileName: 'division-boundary.parquet',
@@ -132,6 +149,42 @@ function makeInspection(schema: UploadInspection['schema']): UploadInspection {
 }
 
 describe('validateOvertureSchema', () => {
+  test('accepts the initial checked-in Overture Places fixture', async () => {
+    const fixturePath = resolve(
+      import.meta.dir,
+      '../../../../../data/overture/2025-09-24.0/divisions/China/Hong Kong/place.division.intersects.clipSmart.parquet',
+    )
+    const inspection = await inspectParquetFile(fixturePath)
+
+    const result = validateOvertureSchema(makePlacePlan('2025-09-24.0'), inspection)
+
+    expect(result.schema.id).toBe('overture-place-v2025-09-24.0')
+  })
+
+  test('accepts the intermediate checked-in Overture Places fixture', async () => {
+    const fixturePath = resolve(
+      import.meta.dir,
+      '../../../../../data/overture/2025-10-22.0/divisions/China/Hong Kong/place.division.intersects.clipSmart.parquet',
+    )
+    const inspection = await inspectParquetFile(fixturePath)
+
+    const result = validateOvertureSchema(makePlacePlan('2025-10-22.0'), inspection)
+
+    expect(result.schema.id).toBe('overture-place-v2025-10-22.0')
+  })
+
+  test('accepts the taxonomy Overture Places reference fixture', async () => {
+    const fixturePath = resolve(
+      import.meta.dir,
+      '../../../../../data/overture/2026-08-19.0/divisions/China/Hong Kong/place.division.intersects.clipSmart.parquet',
+    )
+    const inspection = await inspectParquetFile(fixturePath)
+
+    const result = validateOvertureSchema(makePlacePlan('2026-08-19.0'), inspection)
+
+    expect(result.schema.id).toBe('overture-place-v2025-12-17.0')
+  })
+
   test('accepts the pre-admin_level division schema before 2026-02-18.0', () => {
     const result = validateOvertureSchema(
       makePlan('2026-02-17.0'),
@@ -151,6 +204,15 @@ describe('validateOvertureSchema', () => {
     )
 
     expect(result.schema.id).toBe('overture-division-v2026-02-18.0')
+  })
+
+  test('accepts the pre-admin_level divisionArea schema before 2026-02-18.0', () => {
+    const result = validateOvertureSchema(
+      makeDivisionAreaPlan('2026-02-17.0'),
+      makeInspection(BASE_DIVISION_AREA_FIELDS),
+    )
+
+    expect(result.schema.id).toBe('overture-division-area-v2025-09-24.0')
   })
 
   test('accepts admin_level for divisionArea uploads from 2026-02-18.0 onward', () => {

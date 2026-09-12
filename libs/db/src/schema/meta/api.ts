@@ -1,3 +1,8 @@
+import type {
+  ApiFieldInput,
+  ApiFieldRulePin,
+  PublisherFields,
+} from '../../apiFieldInputs'
 import {
   foreignKey,
   index,
@@ -17,7 +22,6 @@ import {
   apiVersionStatuses,
   datasetTypes,
   provenanceContributionTypes,
-  resolverCodes,
   snapshotStatuses,
 } from '../../constants/schema'
 import { isoTimestamp, jsonText, primaryUuid, timestamps } from '../shared'
@@ -159,7 +163,7 @@ export const metaSnapshotSources = sqliteTable(
   {
     snapshotId: snapshotIdColumn('cascade'),
     datasetId: datasetIdColumn(),
-    sourceReleaseId: text('sourceReleaseId').notNull(),
+    resourceReleaseId: text('resourceReleaseId').notNull(),
     role: text('role', { enum: apiReleaseSetSourceRoles }).notNull(),
     selectedByRule: text('selectedByRule'),
     selectionMode: text('selectionMode'),
@@ -169,15 +173,15 @@ export const metaSnapshotSources = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.snapshotId, table.sourceReleaseId],
+      columns: [table.snapshotId, table.resourceReleaseId],
     }),
     foreignKey({
-      columns: [table.sourceReleaseId, table.datasetId],
+      columns: [table.resourceReleaseId, table.datasetId],
       foreignColumns: [metaReleases.id, metaReleases.datasetId],
-      name: 'snapshotSources_sourceReleaseId_datasetId_releases_id_datasetId_fk',
+      name: 'snapshotSources_resourceReleaseId_datasetId_releases_id_datasetId_fk',
     }).onDelete('restrict'),
     index('snapshotSources_datasetId_idx').on(table.datasetId),
-    index('snapshotSources_sourceReleaseId_idx').on(table.sourceReleaseId),
+    index('snapshotSources_resourceReleaseId_idx').on(table.resourceReleaseId),
   ],
 )
 
@@ -207,6 +211,7 @@ export const metaApiReleaseSets = sqliteTable(
     validTo: isoTimestamp('validTo'),
     notes: text('notes'),
     guide: text('guide'),
+    publisherFields: text('publisherFields', { mode: 'json' }).$type<PublisherFields>(),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -319,7 +324,7 @@ export const metaSnapshotAssemblySources = sqliteTable(
     }),
     maxLagDays: integer('maxLagDays'),
     priority: integer('priority').notNull().default(0),
-    configJson: jsonText('configJson'),
+    selectionRulesJson: jsonText('selectionRulesJson'),
   },
   table => [
     primaryKey({
@@ -383,7 +388,6 @@ export const metaApiCompositionMembers = sqliteTable(
     }),
     maxLagDays: integer('maxLagDays'),
     priority: integer('priority').notNull().default(0),
-    configJson: jsonText('configJson'),
   },
   table => [
     primaryKey({
@@ -467,12 +471,16 @@ export const metaApiFieldProvenance = sqliteTable(
     id: primaryUuid('id'),
     apiReleaseSetId: apiReleaseSetIdColumn(),
     apiField: text('apiField').notNull(),
+    resourceType: text('resourceType').notNull(),
     variant: text('variant'),
     sourceDatasetId: text('sourceDatasetId')
       .notNull()
       .references(() => metaDatasets.id, { onDelete: 'restrict' }),
-    sourceFieldPath: text('sourceFieldPath').notNull(),
-    resolverCode: text('resolverCode', { enum: resolverCodes }).notNull(),
+    inputs: text('inputs', { mode: 'json' }).$type<ApiFieldInput[]>().notNull(),
+    resolverRules: text('resolverRules', { mode: 'json' })
+      .$type<ApiFieldRulePin[]>()
+      .notNull(),
+    resolverCode: text('resolverCode').notNull(),
     contributionType: text('contributionType', {
       enum: provenanceContributionTypes,
     }).notNull(),
@@ -482,17 +490,19 @@ export const metaApiFieldProvenance = sqliteTable(
     ...timestamps,
   },
   table => [
-    uniqueIndex('apiFieldProvenance_release_field_source_unique_idx').on(
+    uniqueIndex('apiFieldProvenance_release_resource_field_inputs_unique_idx').on(
       table.apiReleaseSetId,
+      table.resourceType,
       table.apiField,
       table.variant,
       table.sourceDatasetId,
-      table.sourceFieldPath,
+      table.inputs,
       table.contributionType,
       table.priority,
     ),
     index('apiFieldProvenance_release_field_idx').on(
       table.apiReleaseSetId,
+      table.resourceType,
       table.apiField,
     ),
   ],

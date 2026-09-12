@@ -1,5 +1,6 @@
 import { m } from '@repo/i18n/messages'
 import {
+  createAMapSelectionQueryKeys,
   getCreateAMapOpeningPosition,
   type CreateAMapSelectionQuery,
 } from '#lib/guides/createAMapSelections.js'
@@ -11,6 +12,7 @@ import {
 } from './createAMapLlmPrerequisitesInstructions'
 import {
   createAMapRendererBasemapCode,
+  createAMapRendererStyleCode,
   getCreateAMapRendererReference,
   isCreateAMapRenderer,
 } from './snippets'
@@ -23,19 +25,48 @@ export type CreateAMapLlmPromptSection =
   | 'data'
   | 'publish'
 
+export type CreateAMapDataPromptStep =
+  | 'fetchStats'
+  | 'calculateDensity'
+  | 'addStatsToMap'
+  | 'findUnliveableLand'
+  | 'calculateLiveableArea'
+  | 'finaliseMap'
+
+export type CreateAMapDataPromptReference = {
+  code: string
+  language: 'bash' | 'css' | 'powershell' | 'text' | 'typescript'
+  path: string
+  title: string
+  type: 'CLI' | 'CSS' | 'TS'
+}
+
+export type CreateAMapDataPromptReferences = Partial<
+  Record<CreateAMapDataPromptStep, CreateAMapDataPromptReference[]>
+>
+
 export type CreateAMapLlmPromptState = {
+  aiAccess?: string
   agentTool?: string
   agentToolValue?: string
+  basemapApiKey?: string
   codeEditor?: string
   codeEditorValue?: string
   dataSource?: string
   dataSourceLabel?: string
+  dataFormat?: string
+  dataFormatLabel?: string
   hosting?: string
   hostingValue?: string
   mobileLibrary?: string
+  mobileLibraryValue?: string
   mobilePlatform?: string
   notebookLibrary?: string
+  notebookLibraryValue?: string
   notebookRuntime?: string
+  llm?: string
+  llmLabel?: string
+  llmMode?: string
   objective?: string
   objectiveLabel?: string
   operatingSystem?: string
@@ -53,7 +84,9 @@ export type CreateAMapLlmPromptState = {
   terminalExperienceValue?: string
   tilejsonUrl?: string
   vpnAccess?: string
+  vpnAccessValue?: string
   websitePlatform?: string
+  selectionQuery?: CreateAMapSelectionQuery
 }
 
 type PromptMode = 'agentic' | 'chat'
@@ -102,6 +135,10 @@ const sectionLabel = (section: CreateAMapLlmPromptSection) =>
     : section.charAt(0).toUpperCase() + section.slice(1)
 
 const createSectionCompletionInstruction = (section: CreateAMapLlmPromptSection) => {
+  if (section === 'prerequisites') {
+    return 'Once the user confirms that the default Vite page is visibly displayed, summarise the setup and stop. Do not make further changes or begin the “Render your map” section.'
+  }
+
   const nextSection = nextSectionBySection[section]
 
   return nextSection
@@ -112,12 +149,21 @@ const createSectionCompletionInstruction = (section: CreateAMapLlmPromptSection)
 const promptValue = (label: string, value?: string) =>
   value ? `- ${label}: ${value}` : undefined
 
+const missingProjectContextInstruction =
+  'If you have no context for the SaanSeoi project, stop immediately and tell me that I am likely in the wrong thread or should paste the project context again.'
+
 const createSelections = (state: CreateAMapLlmPromptState) =>
   [
-    promptValue('AI tool', state.agentTool),
+    promptValue('Involvement', state.llmMode),
+    promptValue('AI route', state.aiAccess),
+    promptValue('AI tool', state.aiAccess === 'agentic' ? state.agentTool : undefined),
+    promptValue(
+      'Chat AI service',
+      state.aiAccess === 'web' ? state.llmLabel : undefined,
+    ),
+    promptValue('Operating system', state.operatingSystem),
     promptValue('Objective', state.objectiveLabel),
     promptValue('Platform', state.platform),
-    promptValue('Operating system', state.operatingSystem),
     promptValue('Terminal experience', state.terminalExperience),
     promptValue('Code editor', state.codeEditor),
     promptValue('VPN access', state.vpnAccess),
@@ -128,6 +174,7 @@ const createSelections = (state: CreateAMapLlmPromptState) =>
     promptValue('Basemap coverage', state.regionLabel),
     promptValue('Style', state.styleLabel),
     promptValue('Data source', state.dataSourceLabel),
+    promptValue('Data format', state.dataFormatLabel),
     promptValue('Hosting', state.hosting),
     promptValue('Website platform', state.websitePlatform),
     promptValue('Mobile platform', state.mobilePlatform),
@@ -138,8 +185,6 @@ const createLocaleInstruction = (preferredLocale: string, subject: string) =>
   preferredLocale === 'en'
     ? undefined
     : `Respond in ${subject} preferred locale (${preferredLocale}) throughout the interaction, even when this prompt or the guide uses another language.`
-
-const optionalInstruction = (instruction?: string) => (instruction ? [instruction] : [])
 
 const promptDecision = (value?: string) => value ?? 'TBD'
 
@@ -211,9 +256,9 @@ export function createAMapProjectSetupPromptFragments(
       terminalExperience: 'all',
       text: m.llm_prompt_guide_create_a_map_project_setup_project_decisions({
         aiTool: promptDecision(state.agentTool),
+        operatingSystem: promptDecision(state.operatingSystem),
         objective: promptDecision(state.objectiveLabel),
         platform: promptDecision(state.platform),
-        operatingSystem: promptDecision(state.operatingSystem),
         terminalExperience: promptDecision(state.terminalExperience),
         codeEditor: promptDecision(state.codeEditor),
         vpnAccess: promptDecision(state.vpnAccess),
@@ -296,25 +341,186 @@ const createAMapProjectSetupPrompt = (
   return [...fragments.map(fragment => fragment.text)].join('\n\n')
 }
 
+const handbackDecisionKeys = [
+  ['objective', 'objective'],
+  ['operatingSystem', 'operatingSystem'],
+  ['terminalExperience', 'terminalExperience'],
+  ['codeEditor', 'codeEditor'],
+  ['aiAccess', 'aiAccess'],
+  ['vpnAccess', 'vpnAccess'],
+  ['agentTool', 'agentTool'],
+  ['llm', 'llm'],
+  ['hosting', 'hosting'],
+  ['websitePlatform', 'websitePlatform'],
+  ['mobileLibrary', 'mobileLibrary'],
+  ['mobilePlatform', 'mobilePlatform'],
+  ['notebookLibrary', 'notebookLibrary'],
+  ['notebookRuntime', 'notebookRuntime'],
+  ['renderer', 'renderer'],
+  ['region', 'region'],
+  ['style', 'style'],
+  ['dataSource', 'dataSource'],
+  ['dataFormat', 'dataFormat'],
+] as const satisfies ReadonlyArray<
+  readonly [keyof CreateAMapSelectionQuery, keyof typeof createAMapSelectionQueryKeys]
+>
+
+const createGuideHandbackSelection = (state: CreateAMapLlmPromptState) =>
+  state.selectionQuery ?? {
+    objective: state.objective as CreateAMapSelectionQuery['objective'],
+    operatingSystem:
+      state.operatingSystemValue as CreateAMapSelectionQuery['operatingSystem'],
+    terminalExperience:
+      state.terminalExperienceValue as CreateAMapSelectionQuery['terminalExperience'],
+    codeEditor: state.codeEditorValue as CreateAMapSelectionQuery['codeEditor'],
+    aiAccess: state.aiAccess as CreateAMapSelectionQuery['aiAccess'],
+    vpnAccess: state.vpnAccessValue as CreateAMapSelectionQuery['vpnAccess'],
+    agentTool: state.agentToolValue as CreateAMapSelectionQuery['agentTool'],
+    llm: state.llm as CreateAMapSelectionQuery['llm'],
+    hosting: state.hostingValue as CreateAMapSelectionQuery['hosting'],
+    websitePlatform:
+      state.websitePlatform as CreateAMapSelectionQuery['websitePlatform'],
+    mobileLibrary:
+      state.mobileLibraryValue as CreateAMapSelectionQuery['mobileLibrary'],
+    mobilePlatform: state.mobilePlatform as CreateAMapSelectionQuery['mobilePlatform'],
+    notebookLibrary:
+      state.notebookLibraryValue as CreateAMapSelectionQuery['notebookLibrary'],
+    notebookRuntime:
+      state.notebookRuntime as CreateAMapSelectionQuery['notebookRuntime'],
+    renderer: state.renderer as CreateAMapSelectionQuery['renderer'],
+    region: state.region as CreateAMapSelectionQuery['region'],
+    style: state.style as CreateAMapSelectionQuery['style'],
+    dataSource: state.dataSource as CreateAMapSelectionQuery['dataSource'],
+    dataFormat: state.dataFormat as CreateAMapSelectionQuery['dataFormat'],
+  }
+
+/** Create a guide URL that preserves the decisions known to the LLM. */
+export const createAMapGuideHandbackUrl = (
+  state: CreateAMapLlmPromptState,
+  guideUrl: string,
+) => {
+  const url = new URL(guideUrl)
+  const selection = createGuideHandbackSelection(state)
+
+  for (const [selectionKey, queryKey] of handbackDecisionKeys) {
+    const value = selection[selectionKey]
+    if (!value) continue
+    if (selectionKey === 'llm' && selection.aiAccess !== 'web') continue
+    if (selectionKey === 'agentTool' && selection.aiAccess !== 'agentic') continue
+    if (selectionKey === 'dataFormat' && selection.dataSource !== 'existing') continue
+    if (
+      ['hosting', 'websitePlatform'].includes(selectionKey) &&
+      !['web', 'web-embed'].includes(selection.objective ?? '')
+    ) {
+      continue
+    }
+    if (
+      ['mobileLibrary', 'mobilePlatform'].includes(selectionKey) &&
+      selection.objective !== 'mobile-embed'
+    ) {
+      continue
+    }
+    if (
+      ['notebookLibrary', 'notebookRuntime'].includes(selectionKey) &&
+      selection.objective !== 'notebook-embed'
+    ) {
+      continue
+    }
+    url.searchParams.set(createAMapSelectionQueryKeys[queryKey], value)
+  }
+
+  // Returning to the guide should preserve the choices without reopening handover.
+  url.searchParams.set(createAMapSelectionQueryKeys.llmMode, 'assisted')
+  return url.toString()
+}
+
+const createGuideDecisionQueryLines = (state: CreateAMapLlmPromptState) => {
+  const selection = createGuideHandbackSelection(state)
+
+  return handbackDecisionKeys.flatMap(([selectionKey, queryKey]) => {
+    const value = selection[selectionKey]
+    if (!value) return []
+    if (selectionKey === 'llm' && selection.aiAccess !== 'web') return []
+    if (selectionKey === 'agentTool' && selection.aiAccess !== 'agentic') return []
+    if (selectionKey === 'dataFormat' && selection.dataSource !== 'existing') return []
+
+    return [`- ${createAMapSelectionQueryKeys[queryKey]}=${value}`]
+  })
+}
+
 const createAMapFullHandoverPrompt = (
   state: CreateAMapLlmPromptState,
   guideUrl: string,
   instructionsUrl: string,
+  mode: PromptMode,
   completionInstruction: string,
-) =>
-  [
-    [
-      `I am following the “Making a digital map” guide at ${guideUrl}.`,
-      'I want you to take full ownership of implementing the SaanSeoi map project as detailed in that guide.',
-      `First read the LLM-friendly version at ${instructionsUrl}, then proceed to follow the guide from prerequisites through rendering, basemap, style, data and, where relevant, publishing.`,
-      completionInstruction,
-    ].join(' '),
-    ...optionalInstruction(createLocaleInstruction(state.preferredLocale, 'my')),
+) => {
+  const handoverAiAccess: CreateAMapSelectionQuery['aiAccess'] =
+    state.aiAccess === 'agentic' || state.aiAccess === 'web'
+      ? state.aiAccess
+      : mode === 'agentic'
+        ? 'agentic'
+        : 'web'
+  const handoverState: CreateAMapLlmPromptState = {
+    ...state,
+    aiAccess: handoverAiAccess,
+    selectionQuery: {
+      ...state.selectionQuery,
+      aiAccess: handoverAiAccess,
+    },
+  }
+
+  const modeInstruction =
+    mode === 'agentic'
+      ? 'If you are an agentic LLM, inspect and edit the project workspace, execute safe local commands, and verify browser-visible results. Do not ask me to choose an AI tool, VPN, terminal experience, or editor. Ask before paid actions, account-linked actions, deployment or other consequential external changes.'
+      : 'If you are a non-agentic LLM, do not ask me to choose a Chat AI service or VPN. Guide me through the work on my computer one safe action at a time. Ask only for the environment decisions needed to give accurate instructions; name the exact terminal, working directory, editor file, and whether I should create, replace or append content, then wait for my response before continuing.'
+
+  return [
+    '# Full handover: SaanSeoi Create a Map',
     '',
-    'The following entries are my supplied project decisions. Treat them as requirements: do not ask again about a listed decision, and use every applicable one when helping me.',
-    'Known project decisions:',
-    ...createSelections(state),
+    '## Purpose',
+    '',
+    '- Goal: take full ownership of implementing my SaanSeoi map project as detailed in the guide.',
+    '- Guide: “Making a digital map”',
+    `- Guide URL: ${guideUrl}`,
+    '- Mode: Light-touch pedagical. Focus on what motivates each step of the implementation and what it enables. Do not go into the technical aspects, beyond the explicit topics of each section.',
+    '',
+    '## How to work',
+    '',
+    `1. Read the LLM-friendly guide: ${instructionsUrl}`,
+    '2. Follow it from prerequisites through rendering, basemap, style, data and, where relevant, publishing and embedding.',
+    `3. ${modeInstruction}`,
+    "4. Although you are responsible for the implementation, I still need to know what you are doing and why you are doing it. Draw from each guide section's explanations to guide the user through your implementation steps.",
+    '',
+    '## Language',
+    '',
+    '- The LLM-friendly guide is written in English. Keep reading and applying it in English.',
+    `- The site-selected user locale is \`${state.preferredLocale}\`. Respond to me in this locale throughout the interaction, including explanations, questions and confirmations. Keep code, commands, URL parameters and technical literals unchanged.`,
+    '',
+    '## Completion',
+    '',
+    `- ${completionInstruction}`,
+    '- Ask the questions as they become relevant to your implementation in the guide. Do not ask all the possible questions up front.',
+    '',
+    '## Supplied project decisions',
+    '',
+    'Treat these entries as requirements. Do not ask again about a listed decision, and use every applicable one when helping me.',
+    '',
+    '### Decisions',
+    '',
+    ...createSelections(handoverState),
+    '',
+    '### Guide URL parameters',
+    '',
+    ...createGuideDecisionQueryLines(handoverState),
+    '',
+    '## Returning to the guide',
+    '',
+    'If I ask to continue in the guide, update the decision ledger first and give me a link with the known decision query parameters applied. Use `llm-mode=assisted` for that link so the handover dialog does not reopen.',
+    '',
+    `Current guide handback URL: ${createAMapGuideHandbackUrl(handoverState, guideUrl)}`,
   ].join('\n')
+}
 
 /** Full hand-over for a coding agent that can work directly in the project. */
 export function createAMapAgenticHandoverPrompt(
@@ -326,6 +532,7 @@ export function createAMapAgenticHandoverPrompt(
     state,
     guideUrl,
     instructionsUrl,
+    'agentic',
     'Resolve missing decisions by asking concise questions before continuing.',
   )
 }
@@ -340,6 +547,7 @@ export function createAMapChatHandoverPrompt(
     state,
     guideUrl,
     instructionsUrl,
+    'chat',
     'Resolve missing decisions by asking concise questions before continuing, and assist me in performing the required actions on my computer. Always confirm the steps have been completed by describing the expected result and asking me to report what happened if the result differs.',
   )
 }
@@ -359,14 +567,19 @@ const createSectionInstructions = (
   ],
   data: [
     state.dataSource === 'api'
-      ? 'Build the urban-density example as a reproducible data pipeline: keep source releases and reference years explicit, calculate urban land area and population density defensively, write derived outputs separately, and display both the urban-land overlay and metrics in the map.'
-      : 'Ask me for the schema, source and licence of my existing data before integrating it. Then add the smallest robust loading, validation and map-display path for that data.',
-    'Keep source data and derived data clearly separated. Do not assume unavailable fields or silently fabricate values.',
+      ? 'Use the configured public SaanSeoi API key to request the 2024 `populationMidYear` and `landArea` values from `/stats/v0.1/geographies`, then present the returned District data in a readable table for inspection. Keep source releases and reference years explicit, calculate defensively, and keep source data separate from derived data.'
+      : 'Ask me for the schema and source of my existing data before integrating it. Then add the smallest robust loading, validation and map-display path for that data.',
+    'Do not assume unavailable fields or silently fabricate values.',
   ],
   publish: [
     state.objective === 'mobile-embed'
       ? 'Prepare the selected mobile app for its platform’s build and release workflow. Keep secrets out of the app binary and explain each signing, store-account or release action that needs my involvement.'
-      : 'Prepare the project for the selected host. Configure `VITE_SAANSEOI_API_KEY` as a public build-time variable using that host’s environment-variable settings; it must be available to the browser build, but never committed. Build and validate a production artefact first, then stop before authentication, deployment, DNS, or any other external action that needs my account confirmation.',
+      : 'Use every displayed implementation reference in order: install the host CLI, authenticate with the host, create or link the host project, then deploy the built site and report the stable public URL. Configure `VITE_SAANSEOI_API_KEY` as a public build-time variable using the host’s settings; it must be available to the browser build, but never committed.',
+    'Before publishing, run a production build and smoke-test its output with a local preview. Confirm that the map, basemap, overlays, statistic cards, and assets work before sending the files to the host.',
+    'Explain any account confirmation or paid-plan choice before it happens, then guide the authentication and deployment rather than stopping at prepared local files. Clearly identify the stable public link that people can share, and help me open it in an incognito/private window to confirm it works without my account.',
+    state.hostingValue === 'github-pages'
+      ? 'For later changes, tell me to start a new project-context thread. If I use chat, I should attach `src/main.ts`, `src/land-analysis.worker.ts`, and `src/style.css`; after changes I must run `git add .`, commit, push, then run the displayed GitHub Pages build-and-publish command so the public site updates.'
+      : 'For later changes, tell me to start a new project-context thread. If I use chat, I should attach `src/main.ts`, `src/land-analysis.worker.ts`, and `src/style.css`; after changes I must run the displayed build-and-publish command for the selected host so the public site updates.',
     ...(state.objective === 'web-embed' && state.websitePlatform !== 'other'
       ? [
           'After a successful deployment, provide an accessible iframe integration for the selected website platform, using the real public URL and a meaningful title.',
@@ -374,6 +587,270 @@ const createSectionInstructions = (
       : []),
   ],
 })
+
+const dataStepDetails: Record<
+  CreateAMapDataPromptStep,
+  { heading: string; next?: string; instructions: string[] }
+> = {
+  fetchStats: {
+    heading: 'Data Section',
+    next: 'Calculate population density',
+    instructions: [
+      'Use the configured public SaanSeoi API key to request the 2024 `populationMidYear` and `landArea` values from `/stats/v0.1/geographies`.',
+      'Present the returned District data in a readable table so I can inspect exactly what the API returned.',
+      'Do not calculate Area-level density or add map overlays in this step; those belong to the following steps.',
+    ],
+  },
+  calculateDensity: {
+    heading: 'Calculate population density',
+    next: 'Put the stats on the map',
+    instructions: [
+      'Use the fetched District statistics and the divisions hierarchy to group the population and published land area by Area.',
+      'Calculate each Area’s population density defensively and keep the derived metrics separate from the source responses.',
+      'Do not add the metrics to the map yet; that is the next step.',
+    ],
+  },
+  addStatsToMap: {
+    heading: 'Put the stats on the map',
+    next: 'Identifying land without human habitats',
+    instructions: [
+      'Add the calculated Area metrics to the map as the three summary cards and the supporting controls and legend.',
+      'Use the CSS and TypeScript references shown in this card, and colour each Area label to match its District overlay colour.',
+      'Verify the cards and Area-coloured Districts in the running map before stopping.',
+    ],
+  },
+  findUnliveableLand: {
+    heading: 'Identifying land without human habitats',
+    next: 'Calculate liveable area',
+    instructions: [
+      'Use the SaanSeoi basemap land-use data to show which land will be excluded from the density denominator.',
+      'Keep this step focused on the exclusion highlighter. Do not begin the tile download, geometry Worker, or saved-result analysis yet.',
+    ],
+  },
+  calculateLiveableArea: {
+    heading: 'Calculate liveable area',
+    next: 'Finalise map',
+    instructions: [
+      'Start by explaining why this is a separate, one-time calculation: the map must turn land-use polygons from many z14 tiles into District-level exclusions, then save the expensive result so visitors do not repeat it.',
+      'Offer the prepared result before the calculation: instruct me to download `land-analysis.json.gz` from the guide and place it at `src/land-analysis.json.gz`. It lets the final map load the same analysed result without downloading tiles or running geometry work again.',
+      'If the file is not present, implement the complete browser analysis in this order: install the geospatial packages, create the geometry Worker, add the result styles, then make one consolidated `src/main.ts` edit that fetches tiles, tracks progress, analyses District exclusions, and offers the compressed download.',
+      'For chat, stop after I report that the downloaded file is at the required path and confirm that with me before moving to Finalise map. For an agent, inspect for the file; if it is elsewhere, move it to `src/land-analysis.json.gz`, and skip the calculation-only code when the cached result is available.',
+      'Use the existing project and configured public API key. Keep the analysis in the browser, explain what each file does for the user, and invite me to inspect the completed result and download action in the browser.',
+    ],
+  },
+  finaliseMap: {
+    heading: 'Finalise map',
+    instructions: [
+      'First confirm that `src/land-analysis.json.gz` exists. For an agent, find it and move it there if necessary; when it is available, skip all calculation-only code.',
+      'Make one consolidated `src/main.ts` modification that loads the cached result, aggregates each District’s excluded land by Area, calculates revised population density from remaining liveable land, and replaces the earlier basemap exclusion highlighter with the saved District layers, overlays, and statistic cards.',
+      'Verify the final overlays and all three statistic cards in the browser. Congratulate me on completing the guide; if my objective includes publishing, direct me to Publish the map, otherwise invite me to ask for any changes I would like to make to the map.',
+    ],
+  },
+}
+
+const promptCodeLanguage = (language: CreateAMapDataPromptReference['language']) =>
+  language === 'typescript' ? 'ts' : language
+
+const createChatReferenceInstruction = (reference: CreateAMapDataPromptReference) => {
+  if (reference.language === 'bash') {
+    return `In the terminal at \`${reference.path}\`, run this command and wait for it to finish before continuing.`
+  }
+
+  if (reference.language === 'text') {
+    return `In the terminal at \`${reference.path}\`, compare the result with this expected output before continuing.`
+  }
+
+  if (reference.path.endsWith('.worker.ts')) {
+    return `Create \`${reference.path}\` with this code, then save the file before continuing.`
+  }
+
+  return `Open \`${reference.path}\`, go to the end of its existing code, append this code, then save the file before continuing.`
+}
+
+const createDataStepReferences = (
+  mode: PromptMode,
+  references: CreateAMapDataPromptReference[],
+) => {
+  if (references.length === 0) return []
+
+  return [
+    '### Implementation references',
+    '',
+    mode === 'agentic'
+      ? 'Apply the following references to their named targets in the displayed order. They are the source of truth for this step; preserve the working project setup around them.'
+      : 'Work through the following references in the displayed order. Follow the target-specific instruction before each snippet; the references are the source of truth for this step.',
+    '',
+    ...references.flatMap(reference => [
+      `#### ${reference.title}`,
+      '',
+      `Target: \`${reference.path}\``,
+      '',
+      ...(mode === 'chat' ? [createChatReferenceInstruction(reference), ''] : []),
+      `\`\`\`${promptCodeLanguage(reference.language)}`,
+      reference.code,
+      '```',
+      '',
+    ]),
+  ]
+}
+
+const createExistingDataCompletionInstruction = (state: CreateAMapLlmPromptState) =>
+  state.objective === 'web' || state.objective === 'web-embed'
+    ? 'Once the data is visibly verified, summarise what changed and how you verified it. Then tell me: “The single next action is for you to continue with the “Publish the map” section of the guide. Read it until it provides you with a prompt to share with me again.”'
+    : 'Once the data is visibly verified, summarise what changed and how you verified it. Remain available for further map edits.'
+
+/** Progressive prompt for adding an existing GeoJSON file to the map project. */
+export const createAMapExistingDataPrompt = (
+  state: CreateAMapLlmPromptState,
+  mode: PromptMode,
+  references: CreateAMapDataPromptReference[] = [],
+) => {
+  const publicDirectory =
+    state.operatingSystemValue === 'windows'
+      ? 'C:\\Users\\YourName\\saanseoi-project\\public'
+      : '~/saanseoi-project/public'
+  const mainPath =
+    state.operatingSystemValue === 'windows' ? 'src\\main.ts' : 'src/main.ts'
+  const localeInstruction = createLocaleInstruction(state.preferredLocale, 'my')
+  const modeInstructions =
+    mode === 'agentic'
+      ? [
+          'Inspect the existing project before changing it.',
+          `Confirm that \`features.geojson\` is available. If it is elsewhere, move or copy it to \`${publicDirectory}/features.geojson\` while preserving its contents. If it is missing, stop and ask me to provide it; do not invent or silently rewrite data.`,
+          `Open \`${mainPath}\` and add the GeoJSON loading code in the appropriate place in the existing map setup. Preserve the working renderer, basemap and style, adapting only what is needed for the actual project.`,
+        ]
+      : [
+          'Guide me through one safe action at a time and wait for my answer before continuing.',
+          `Ask me to put \`features.geojson\` in the project’s \`public\` folder at \`${publicDirectory}\`, then ask me to confirm that the file is there. If I do not have the file, stop and ask me to provide it; do not invent or silently rewrite data.`,
+          `Tell me to open \`${mainPath}\`, go to the end of the existing map setup, append the GeoJSON loading code below, and save the file. Do not ask me to replace the working map setup.`,
+        ]
+
+  return [
+    '## Add GeoJSON to your map',
+    '',
+    'Continue the “Add your data” section of my SaanSeoi map project.',
+    '',
+    missingProjectContextInstruction,
+    ...(localeInstruction ? ['', localeInstruction] : []),
+    '',
+    '### Scope',
+    '',
+    'I am bringing my own data. The data-preparation step has produced a `features.geojson` file for this map.',
+    ...modeInstructions.map(instruction => `- ${instruction}`),
+    '- Keep this step focused on adding the existing GeoJSON data. Do not start publishing or make unrelated changes.',
+    '',
+    ...createDataStepReferences(mode, references),
+    '### Verify',
+    '',
+    'Open the running map in a browser and verify that the features appear in the right places. Click a marker and confirm that its name appears as expected. If the result differs, explain what to check and ask me to report what I see.',
+    '',
+    createExistingDataCompletionInstruction(state),
+  ].join('\n')
+}
+
+const urbanDensityWorkedExampleDecision =
+  'User has opted to follow a worked example where we will be building a population density map for Hong Kong.'
+
+export const createAMapDataStepPrompt = (
+  state: CreateAMapLlmPromptState,
+  step: CreateAMapDataPromptStep,
+  mode: PromptMode,
+  references: CreateAMapDataPromptReference[] = [],
+  includeProjectDecision = true,
+) => {
+  const details = dataStepDetails[step]
+  const localeInstruction = createLocaleInstruction(state.preferredLocale, 'my')
+  const nextInstruction = details.next
+    ? `Once this step is verified, summarise what changed and how you verified it. Then tell me: “The single next action is for you to continue with the “${details.next}” section of the guide. Read it until it provides you with a prompt to share with me again.”`
+    : state.objective === 'web' || state.objective === 'web-embed'
+      ? 'Once this final step is verified, summarise what changed and how you verified it. Congratulate me on completing the guide, then tell me: “The single next action is for you to continue with the “Publish the map” section of the guide. Read it until it provides you with a prompt to share with me again.” Remain available for any other map changes I would like to make.'
+      : 'Once this final step is verified, summarise what changed and how you verified it. Congratulate me on completing the guide and remain available for any other map changes I would like to make.'
+
+  return [
+    `## ${details.heading}`,
+    '',
+    `Continue the “${details.heading}” section of my SaanSeoi map project.`,
+    '',
+    missingProjectContextInstruction,
+    ...(localeInstruction ? ['', localeInstruction] : []),
+    ...(step === 'fetchStats' && includeProjectDecision
+      ? [
+          '',
+          '### Project decisions',
+          '',
+          `- Data source: ${urbanDensityWorkedExampleDecision}`,
+        ]
+      : []),
+    '',
+    '### Scope',
+
+    'This step:',
+    ...details.instructions.map(instruction => `- ${instruction}`),
+    '',
+    ...createDataStepReferences(mode, references),
+    nextInstruction,
+  ].join('\n')
+}
+
+export const createAMapAgenticDataStepPrompt = (
+  state: CreateAMapLlmPromptState,
+  step: CreateAMapDataPromptStep,
+  references?: CreateAMapDataPromptReference[],
+) => createAMapDataStepPrompt(state, step, 'agentic', references)
+
+export const createAMapChatDataStepPrompt = (
+  state: CreateAMapLlmPromptState,
+  step: CreateAMapDataPromptStep,
+  references?: CreateAMapDataPromptReference[],
+) => createAMapDataStepPrompt(state, step, 'chat', references)
+
+/** Progressive prompt for a reader who wants the LLM to shape a new GeoJSON dataset. */
+export const createAMapCustomDataPrompt = (
+  state: CreateAMapLlmPromptState,
+  mode: PromptMode,
+) => {
+  const region = state.regionLabel ?? 'selected SaanSeoi basemap coverage'
+  const assetSizeInstruction =
+    mode === 'agentic'
+      ? 'When the GeoJSON asset exists, inspect its actual size yourself, compare it with the applicable limit, and explain a safe alternative such as simplification, splitting, tiling, or hosted data before adding an oversized file.'
+      : 'Ask me for the GeoJSON asset’s actual size, compare it with the applicable limit, and explain a safe alternative such as simplification, splitting, tiling, or hosted data before adding an oversized file.'
+  const deploymentInstructions = state.hosting
+    ? [
+        '',
+        '### Prepare for selected hosting',
+        '',
+        `I selected ${state.hosting} for hosting. Look up its current static-asset size limits. ${assetSizeInstruction} Then build, smoke-test, and prepare the map for ${state.hosting} without exposing private credentials.`,
+      ]
+    : []
+  const completionInstruction = state.hosting
+    ? `Once the data layer is visibly verified, summarise what changed, how you verified it, and whether the project is ready to publish to ${state.hosting}. Remain available for further map edits.`
+    : 'Once the data layer is visibly verified, summarise what changed and how you verified it. Remain available for further map edits.'
+  const interaction =
+    mode === 'agentic'
+      ? 'Inspect the project first, then make the smallest appropriate changes once I have answered. Do not invent features, coordinates, or data values.'
+      : 'Guide me one small action at a time and wait for my answer before giving the next action. Tell me exactly which file or terminal command I should use.'
+
+  return [
+    '## Craft a custom map',
+    '',
+    'Continue the “Craft a custom map” section of my SaanSeoi map project.',
+    '',
+    missingProjectContextInstruction,
+    '',
+    '### First, understand the map I want to make',
+    '',
+    `Ask me what I want to show or help people do with the ${region} basemap. Establish the story, audience, locations or areas, geometry types, attributes, data source, and desired interaction before proposing any data. Tell me that I can answer any of these, and that you'll use that as a starting point to clarify the rest as we go along to refine the implementation.`,
+    '',
+    interaction,
+    '',
+    '### Create and add GeoJSON',
+    '',
+    'Help me obtain, create, or convert the agreed data to valid GeoJSON. Validate its coordinates and properties, place it in the project, and add it to the selected mapping library as a clear, accessible layer with any necessary legend, popup, or controls. Explain what each change does and verify it visibly in the running browser map.',
+    ...deploymentInstructions,
+    '',
+    completionInstruction,
+  ].join('\n')
+}
 
 const createStyleReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   if (!isCreateAMapRenderer(state.renderer) || !state.styleUrl || !state.tilejsonUrl) {
@@ -386,11 +863,45 @@ const createStyleReferenceInstructions = (state: CreateAMapLlmPromptState) => {
     `The selected renderer is ${reference.label}. Use its existing project setup and apply the selected style with the following renderer-specific changes:`,
     '',
     '```ts',
-    createAMapRendererBasemapCode(state.renderer, state.styleUrl, state.tilejsonUrl),
+    createAMapRendererStyleCode(state.renderer, state.styleUrl, state.tilejsonUrl),
     '```',
     '',
-    'Adapt the snippet to the project’s actual file structure, preserving the selected renderer and its existing setup. Do not expose or log the public key.',
+    'Adapt the snippet to the project’s actual file structure, preserving the selected renderer and its existing setup.',
   ]
+}
+
+const createAMapStylePrompt = (state: CreateAMapLlmPromptState) =>
+  [
+    '## Style Section',
+    '',
+    'Continue the “Pick your styles” section of my SaanSeoi map project.',
+    '',
+    missingProjectContextInstruction,
+    '',
+    ...(state.rendererLabel
+      ? [`- Selected mapping library: ${state.rendererLabel}`]
+      : []),
+    ...(state.styleLabel ? [`- Selected style: ${state.styleLabel}`] : []),
+    '',
+    '### Scope',
+    '',
+    ...createPromptInstructionLines(createSectionInstructions(state).style),
+    '',
+    createSectionCompletionInstruction('style'),
+  ].join('\n')
+
+const createPromptInstructionLines = (instructions: string[]) => {
+  let inCodeBlock = false
+
+  return instructions.flatMap(instruction =>
+    instruction.split('\n').map(line => {
+      const trimmedLine = line.trim()
+      const isFence = trimmedLine.startsWith('```')
+      const output = inCodeBlock || isFence || !trimmedLine ? line : `- ${line}`
+      if (isFence) inCodeBlock = !inCodeBlock
+      return output
+    }),
+  )
 }
 
 const createPromptRegion = (region?: string): CreateAMapSelectionQuery['region'] =>
@@ -410,6 +921,9 @@ const createRenderReferenceInstructions = (state: CreateAMapLlmPromptState) => {
   const library = state.rendererLabel ?? reference.label
 
   return [
+    ...(state.renderer === 'mapbox'
+      ? [m.llm_prompt_guide_create_a_map_render_mapbox_token()]
+      : []),
     m.llm_prompt_guide_create_a_map_render_setup({
       command: reference.installCommand,
       library,
@@ -421,9 +935,6 @@ const createRenderReferenceInstructions = (state: CreateAMapLlmPromptState) => {
     '```ts',
     reference.code,
     '```',
-    ...(state.renderer === 'mapbox'
-      ? [m.llm_prompt_guide_create_a_map_render_mapbox_token()]
-      : []),
     m.llm_prompt_guide_create_a_map_render_stylesheet_edit({ stylesheetPath }),
     '```css',
     reference.stylesheetCode,
@@ -454,25 +965,11 @@ export function createAMapRenderPromptFragments(
       }),
     },
     {
-      llmType: 'agent',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_project_setup_agent_mode(),
-    },
-    {
       llmType: 'chat',
       os: 'all',
       editor: 'all',
       terminalExperience: 'all',
       text: m.llm_prompt_guide_create_a_map_project_setup_chat_mode(),
-    },
-    {
-      llmType: 'agent',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_render_agent_actions(),
     },
     {
       llmType: 'chat',
@@ -482,7 +979,7 @@ export function createAMapRenderPromptFragments(
       text: m.llm_prompt_guide_create_a_map_render_chat_actions(),
     },
     {
-      llmType: 'all',
+      llmType: 'chat',
       os: 'all',
       editor: 'all',
       terminalExperience: 'all',
@@ -541,52 +1038,10 @@ export function createAMapBasemapPromptFragments(
       editor: 'all',
       terminalExperience: 'all',
       text: m.llm_prompt_guide_create_a_map_basemap_context({
-        coverage: state.regionLabel ?? 'TBD',
+        apiKey: state.basemapApiKey ?? 'TBD',
         library: state.rendererLabel ?? 'TBD',
         tilejsonUrl: state.tilejsonUrl ?? 'TBD',
       }),
-    },
-    {
-      llmType: 'agent',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_project_setup_agent_mode(),
-    },
-    {
-      llmType: 'chat',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_project_setup_chat_mode(),
-    },
-    {
-      llmType: 'agent',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_basemap_agent_actions(),
-    },
-    {
-      llmType: 'chat',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_basemap_chat_actions(),
-    },
-    {
-      llmType: 'all',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_project_setup_collaborative_assistance(),
-    },
-    {
-      llmType: 'all',
-      os: 'all',
-      editor: 'all',
-      terminalExperience: 'all',
-      text: m.llm_prompt_guide_create_a_map_basemap_api_key(),
     },
     {
       llmType: 'all',
@@ -623,6 +1078,7 @@ const createAMapProgressivePrompt = (
   state: CreateAMapLlmPromptState,
   section: CreateAMapLlmPromptSection,
   mode: PromptMode,
+  dataStepReferences?: CreateAMapDataPromptReferences,
 ) => {
   const isPrerequisites = section === 'prerequisites'
   const localeInstruction = createLocaleInstruction(state.preferredLocale, 'my')
@@ -646,18 +1102,40 @@ const createAMapProgressivePrompt = (
 
   if (section === 'basemap') {
     return [
+      '## Basemap Section',
+      '',
+      'Continue the “Add the SaanSeoi basemap” section of my SaanSeoi map project.',
+      '',
+      missingProjectContextInstruction,
+      '',
       createAMapBasemapPrompt(state, mode),
       ...(localeInstruction ? [localeInstruction] : []),
-      createSectionCompletionInstruction(section),
+      createSectionCompletionInstruction('basemap'),
     ]
       .filter(Boolean)
       .join('\n\n')
+  }
+
+  if (section === 'style') {
+    return createAMapStylePrompt(state)
+  }
+
+  if (section === 'data') {
+    return createAMapDataStepPrompt(
+      state,
+      'fetchStats',
+      mode,
+      dataStepReferences?.fetchStats,
+      false,
+    )
   }
 
   return [
     `## ${sectionLabel(section)} Section`,
     '',
     `Continue the “${sectionLabel(section)}” section of my SaanSeoi map project.`,
+    '',
+    missingProjectContextInstruction,
     '',
     ...createAMapLlmAssistanceModeInstructions(mode),
     ...(localeInstruction ? ['', localeInstruction] : []),
@@ -676,10 +1154,12 @@ const createAMapProgressivePrompt = (
 export const createAMapAgenticSectionPrompt = (
   state: CreateAMapLlmPromptState,
   section: CreateAMapLlmPromptSection,
-) => createAMapProgressivePrompt(state, section, 'agentic')
+  dataStepReferences?: CreateAMapDataPromptReferences,
+) => createAMapProgressivePrompt(state, section, 'agentic', dataStepReferences)
 
 /** Progressive hand-off for a web chat as the reader advances through the guide. */
 export const createAMapChatSectionPrompt = (
   state: CreateAMapLlmPromptState,
   section: CreateAMapLlmPromptSection,
-) => createAMapProgressivePrompt(state, section, 'chat')
+  dataStepReferences?: CreateAMapDataPromptReferences,
+) => createAMapProgressivePrompt(state, section, 'chat', dataStepReferences)

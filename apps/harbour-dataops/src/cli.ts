@@ -8,12 +8,14 @@ import {
 } from '../../harbour-cli/src/lib/cli/options.ts'
 import { terminalSafeText } from './lib/terminal.ts'
 import { installInterruptHandler } from '../../harbour-cli/src/lib/cli/interrupt.ts'
+import { installInitialisationIndent } from '../../harbour-cli/src/lib/cli/initialisationIndent.ts'
+import { disposeRemoteR2 } from '../../harbour-cli/src/lib/storage/remoteR2.ts'
 
 function printUsage() {
   console.log(`  Usage:
   bun run dataops -- hkgov-dpo:prepare <source-dir> [--target local|preview|production] --cohort-key DIVISION_COHORT [--source-version YYYY-MM-DD.NN] [--identity-history FILE] [--identity-decisions FILE] [--identity-drift-report FILE] [--db /path/to/local.sqlite]
-  bun run dataops -- hkgov-dpo:ingest <ALS-source-root> --target local|preview|production --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes]
-  bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes] [--continue]
+  bun run dataops -- hkgov-dpo:ingest <ALS-source-root> --target local|preview|production --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--defer-api-release-set] [--dry-run] [--yes] [--skip-curation-checks]
+  bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes] [--skip-curation-checks] [--continue]
   bun run dataops -- hkgov-pland:prepare <GeoJSON> [--kind tpu|new-town] [--source-version YYYY] [--out-dir PATH]
   bun run dataops -- geometry:simplify-coverage <input.json> --output PATH --tolerance-metres METRES
   bun run dataops -- hkgov-pland:backfill --kind pu|new-town --target local|preview|production [--continue]
@@ -24,7 +26,8 @@ function printUsage() {
   bun run dataops -- hkgov-had:district-area <source.zip> --target local|preview|production --source-version YYYY --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
   bun run dataops -- hkgov-hyd:street <source.zip> --target local|preview|production --dataset-code CODE --source-version YYYY-QN --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
   bun run dataops -- hkgov-landsd:place-name <source.zip> --target local|preview|production --source-version YYYY-QN --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
-  bun run dataops -- hkgov-landsd:road-centreline <source.zip> --target local|preview|production --source-version YYYY-QN --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256
+  bun run dataops -- hkgov-landsd:road-centreline <source.zip> --target local|preview|production --source-version YYYY-QN --release-notes-url URL --source-archive-key KEY --source-archive-sha256 SHA256 [--review] [--dry-run]
+  bun run dataops -- hkgov-landsd-streets:current --target local|preview|production [--staging-dir PATH]
   bun run dataops -- hkgov-landsd-streets:baseline --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-landsd-streets:landsd-notices --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
   bun run dataops -- hkgov-landsd-streets:official-egazette --target local|preview|production [--staging-dir PATH] [--out-dir PATH]
@@ -48,6 +51,7 @@ async function main() {
     resolve(import.meta.dir, '../../..')
   process.chdir(invocationCwd)
   const args = parseArgs(process.argv)
+  installInitialisationIndent(args.command ?? undefined)
   const target = resolveUploadTarget(args)
 
   if (!args.command || args.command === '--help' || args.options.help) {
@@ -166,6 +170,13 @@ async function main() {
       await runHkgovLandsdRoadCentrelineIngestCommand(args, target, printUsage)
       return
     }
+    case 'hkgov-landsd-streets:current': {
+      const { runLandsdStreetCurrentCommand } = await import(
+        './commands/ingestLandsdStreets.ts'
+      )
+      await runLandsdStreetCurrentCommand(args, target, printUsage)
+      return
+    }
     case 'hkgov-landsd-streets:baseline':
     case 'hkgov-landsd-streets:landsd-notices':
     case 'hkgov-landsd-streets:official-egazette': {
@@ -222,11 +233,13 @@ async function main() {
 const disposeInterruptHandler = installInterruptHandler()
 
 main()
+  .finally(disposeRemoteR2)
   .then(() => {
     disposeInterruptHandler()
   })
   .catch(error => {
     disposeInterruptHandler()
+    process.stderr.write('\n')
     cancel(terminalSafeText(error instanceof Error ? error.message : String(error)))
     process.exit(1)
   })

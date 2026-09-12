@@ -1,399 +1,58 @@
 {
-  "versionHash": "sha256:e3f988f9222e64e48980408937d2f49ebb66c927c577f808254765d14b92d24b",
+  "versionHash": "sha256:ee8936056103262cb212850db038c894e81bb71c7ede63f70ae653575812453b",
   "code": "rs-division-merge-v1",
   "resourceType": "division",
   "strategy": "merge",
   "version": "1",
-  "notes": "Includes the reviewed Hong Kong area-geometry derivation and Lok Ma Chau Loop classification correction in the division merge policy.",
+  "notes": "Materialises category, class, level and correlated administrative, locality and full hierarchy paths. Cities retain source identities; independent administrative areas and Kowloon city use district-union geometries. Hong Kong city is reconstructed only when absent. Retains reviewed identity, geometry and classification patch evidence.",
   "mergeRules": [
     {
       "operationCode": "derive_division_type_from_overture_taxonomy",
-      "type": "bulk",
-      "sourceFieldPath": "subtype, class, parent_division_id",
-      "targetFieldPath": "type",
-      "mappings": [
-        {
-          "from": "names contains a Hong Kong area name",
-          "to": "area"
-        },
-        {
-          "from": "subtype = country",
-          "to": "country"
-        },
-        {
-          "from": "subtype = dependency",
-          "to": "sar"
-        },
-        {
-          "from": "subtype = region",
-          "to": "district"
-        },
-        {
-          "from": "subtype = locality; class = city",
-          "to": "area"
-        },
-        {
-          "from": "subtype = locality; class = town",
-          "to": "town"
-        },
-        {
-          "from": "subtype = locality; class = village",
-          "to": "village"
-        },
-        {
-          "from": "subtype = locality; class = hamlet",
-          "to": "hamlet"
-        },
-        {
-          "from": "subtype or class = macrohood",
-          "to": "macrohood"
-        },
-        {
-          "from": "subtype or class = neighbourhood / neighborhood",
-          "to": "neighbourhood"
-        },
-        {
-          "from": "subtype or class = microhood",
-          "to": "microhood"
-        },
-        {
-          "from": "fallback derived level = 0 / 1 / 2 / 3 / 4 / 5 / 6+",
-          "to": "sar / area / district / town / macrohood / neighbourhood / microhood"
-        }
-      ],
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Derives the canonical division type from Overture taxonomy fields and parent context."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "根據 Overture 分類欄位及上層脈絡推導標準區劃類型。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "根据 Overture 分类字段及上级语境推导标准区划类型。"
-        }
-      ]
+      "ruleFixture": "division-normalisation"
     },
     {
       "operationCode": "derive_division_level_from_overture_taxonomy",
-      "type": "bulk",
-      "sourceFieldPath": "subtype, class, admin_level, parent_division_id",
-      "targetFieldPath": "level",
-      "mappings": [
-        {
-          "from": "names contains a Hong Kong area name",
-          "to": "1"
-        },
-        {
-          "from": "subtype = dependency",
-          "to": "0"
-        },
-        {
-          "from": "subtype = region",
-          "to": "2"
-        },
-        {
-          "from": "subtype = locality; class = city / town / village / hamlet",
-          "to": "1 / 3 / 5 / 6"
-        },
-        {
-          "from": "first matching token in subtype, class, admin_level: country | sar | dependency",
-          "to": "0"
-        },
-        {
-          "from": "first matching token in subtype, class, admin_level: city | state | province",
-          "to": "1"
-        },
-        {
-          "from": "first matching token in subtype, class, admin_level: district | region",
-          "to": "2"
-        },
-        {
-          "from": "first matching token in subtype, class, admin_level: subdistrict | borough | town",
-          "to": "3"
-        },
-        {
-          "from": "first matching token in subtype, class, admin_level: macrohood",
-          "to": "4"
-        },
-        {
-          "from": "first matching token in subtype, class, admin_level: neighbourhood | neighborhood | village",
-          "to": "5"
-        },
-        {
-          "from": "first matching token in subtype, class, admin_level: microhood | hamlet",
-          "to": "6"
-        },
-        {
-          "from": "no matching token; parent_division_id is present / absent",
-          "to": "1 / 0"
-        }
-      ],
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Derives the canonical hierarchy level from Overture taxonomy fields and parent context."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "根據 Overture 分類欄位及上層脈絡推導標準層級。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "根据 Overture 分类字段及上级语境推导标准层级。"
-        }
-      ]
+      "ruleFixture": "division-normalisation"
     },
     {
       "operationCode": "normalise_overture_division_hierarchy",
-      "type": "bulk",
-      "sourceFieldPath": "hierarchies",
-      "targetFieldPath": "hierarchy",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Normalises hierarchy entries not exclude themselves and China PRC."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "將 Overture 層級項目正規化為標準區劃歷史資料，並排除不會發布的外層參照項目。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "将 Overture 层级项目规范化为标准区划历史数据，并排除不会发布的外层参照项目。"
-        }
-      ]
+      "ruleFixture": "division-normalisation"
     },
     {
       "operationCode": "overture_division_hong_kong_area_hierarchy_assigned",
-      "type": "bulk",
-      "sourceFieldPath": "hierarchies, subtype, names",
-      "targetFieldPath": "hierarchy",
-      "condition": "A Hong Kong district, or a division with a Hong Kong district ancestor, is assigned to Hong Kong Island, Kowloon, or the New Territories.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Inserts the canonical Hong Kong area after Hong Kong SAR in the hierarchy, with one audit count for each assigned area."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "在層級中香港特別行政區之後加入標準香港地區，並按每個指派地區記錄一項審計計數。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "在层级中香港特别行政区之后加入标准香港地区，并按每个指派地区记录一项审计计数。"
-        }
-      ]
+      "ruleFixture": "division-normalisation"
     },
     {
       "operationCode": "overture_hong_kong_lok_ma_chau_loop_reclassified",
-      "type": "record",
-      "sourceFieldPath": "id, subtype, class, admin_level",
-      "targetFieldPath": "level, type, hierarchy",
-      "condition": "The Overture division ID is 222b7818-970a-491d-98b6-b88d8c6f0161 (Lok Ma Chau Loop), which Overture labels as a level-2 region but is not one of Hong Kong's 18 statutory districts.",
-      "mappings": [
-        {
-          "from": "id = 222b7818-970a-491d-98b6-b88d8c6f0161; subtype = region; admin_level = 2",
-          "to": "level = 4; type = macrohood"
-        }
-      ],
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Reclassifies Lok Ma Chau Loop as a macrohood and applies that canonical classification to hierarchy descendants while retaining the raw Overture taxonomy in provenance."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "將落馬洲河套地區重新分類為 macrohood，並將該標準分類套用於層級後代，同時在沿革中保留原始 Overture 分類法。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "将落马洲河套地区重新分类为 macrohood，并将该标准分类应用于层级后代，同时在沿革中保留原始 Overture 分类法。"
-        }
-      ]
+      "ruleFixture": "division-classification"
     },
     {
       "operationCode": "decode_wkb_geometry_to_geojson",
-      "type": "bulk",
-      "sourceFieldPath": "geometry",
-      "targetFieldPath": "geometry, bbox",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Decodes source WKB geometry to GeoJSON and calculates its canonical bounding box."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "將來源 WKB 幾何解碼為 GeoJSON，並計算標準邊界框。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "将来源 WKB 几何解码为 GeoJSON，并计算标准边界框。"
-        }
-      ]
+      "ruleFixture": "wkb-geometry"
     },
     {
       "operationCode": "map_censtatd_district_code_to_canonical_division",
-      "type": "bulk",
-      "sourceFieldPath": "district_code",
-      "targetFieldPath": "divisionId, districtCode",
-      "condition": "Resolves through the C&SD and HAD district identifier bridge for the release's canonical division snapshot.",
-      "mappings": [
-        {
-          "from": "district_code",
-          "to": "identifierBridges.externalCode where authority = hkgov-censtatd, domain = administrative, resourceType = division, cohortKey = 2021"
-        },
-        {
-          "from": "matching C&SD bridge canonicalId",
-          "to": "divisionId"
-        },
-        {
-          "from": "matching C&SD bridge canonicalId",
-          "to": "identifierBridges.externalCode where authority = hkgov-had, domain = administrative, resourceType = division, cohortKey = 2022 → districtCode"
-        }
-      ],
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Maps each C&SD district code to the canonical district code and division ID used by the history observation."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "將每個政府統計處地區代碼對應至歷史觀測資料使用的標準地區代碼及區劃 ID。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "将每个政府统计处地区代码映射至历史观测数据使用的标准地区代码及区划 ID。"
-        }
-      ]
+      "ruleFixture": "censtatd-district-identity"
     },
     {
       "operationCode": "overture_division_locale_inferred",
-      "type": "record",
-      "sourceFieldPath": "names",
-      "targetFieldPath": "i18n.*.locale",
-      "condition": "A source division name has no usable locale label and its locale is inferred from its text.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Records each division-name locale inferred from unlabeled Overture source text."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "記錄每個根據未標示 Overture 來源文字推斷的區劃名稱語言。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "记录每个根据未标示 Overture 源文本推断的区划名称语言。"
-        }
-      ]
+      "ruleFixture": "division-normalisation"
     },
     {
       "operationCode": "overture_division_api_locale_fallback_added",
-      "type": "record",
-      "sourceFieldPath": "names",
-      "targetFieldPath": "i18n.*",
-      "condition": "The canonical API locale is absent but an equivalent source-language variant is available as a fallback.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Records each API-facing division locale fallback added from an available source variant."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "記錄每個根據可用來源變體新增的 API 區劃名稱語言備援。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "记录每个根据可用源变体新增的 API 区划名称语言回退。"
-        }
-      ]
+      "ruleFixture": "division-normalisation"
     },
     {
       "operationCode": "overture_division_name_ai_translated",
-      "type": "record",
-      "sourceFieldPath": "names",
-      "targetFieldPath": "i18n.*.name",
-      "condition": "A required API name locale is added from a dataset-scoped AI translation fixture.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Records each AI-translated division name locale applied to the release."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "記錄套用至發行版本的每個 AI 翻譯區劃名稱語言地區。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "记录应用于发行版本的每个 AI 翻译区划名称语言区域。"
-        }
-      ]
+      "ruleFixture": "division-translation"
     },
     {
       "operationCode": "overture_division_name_human_translated",
-      "type": "record",
-      "sourceFieldPath": "names",
-      "targetFieldPath": "i18n.*.name",
-      "condition": "A required API name locale is added from a human translation in the dataset-scoped fixture.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Records each human-translated division name locale applied to the release."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "記錄套用至發行版本的每個人工翻譯區劃名稱語言地區。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "记录应用于发行版本的每个人工翻译区划名称语言区域。"
-        }
-      ]
+      "ruleFixture": "division-translation"
     },
     {
       "operationCode": "overture_division_geometry_cn_gd_excluded",
-      "type": "record",
-      "sourceFieldPath": "region",
-      "targetFieldPath": "geometry",
-      "condition": "The Overture geometry belongs to the Guangdong spillover region (`CN-GD`) rather than Hong Kong.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Records each Guangdong spillover geometry excluded from a Hong Kong Overture release."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "記錄每個從香港 Overture 發布版本中排除的廣東延伸幾何。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "记录每个从香港 Overture 发布版本中排除的广东延伸几何。"
-        }
-      ]
-    },
-    {
-      "operationCode": "overture_hong_kong_area_synthesised",
-      "type": "record",
-      "sourceFieldPath": "division_id, geometry",
-      "targetFieldPath": "divisionArea.geometry",
-      "condition": "Hong Kong Island, Kowloon, or the New Territories has a canonical Overture division identity but no source divisionArea geometry.",
-      "i18n": [
-        {
-          "locale": "en",
-          "description": "Records each Hong Kong level-1 area geometry derived by unioning its Overture district land geometries when Overture does not provide an area geometry."
-        },
-        {
-          "locale": "zh-hant",
-          "description": "記錄每個在 Overture 未提供範圍幾何時，透過合併其 Overture 地區陸地幾何而推導出的香港一級區域範圍。"
-        },
-        {
-          "locale": "zh-hans",
-          "description": "记录每个在 Overture 未提供范围几何时，通过合并其 Overture 地区陆地几何而推导出的香港一级区域范围。"
-        }
-      ]
+      "ruleFixture": ["division-area-geometry", "division-boundary-geometry"]
     }
   ]
 }

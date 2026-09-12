@@ -118,6 +118,23 @@ test('retains an Overture release Parquet as a managed source asset', async () =
   }
 })
 
+test('encodes compound materialisation release codes in source asset paths', () => {
+  expect(
+    buildSourceReleaseAssetObjectKey({
+      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-district',
+      fileName: 'division-area.gml.zip',
+      publisherCode: 'hkgov-censtatd',
+      releaseCode:
+        'dr-hk-hkgov-censtatd-division-statistic-district-2016::divisionArea',
+      sha256: 'a'.repeat(64),
+    }),
+  ).toBe(
+    'by-source/hk/hkgov-censtatd/ds-hk-hkgov-censtatd-division-statistic-district/' +
+      'dr-hk-hkgov-censtatd-division-statistic-district-2016__divisionArea/' +
+      `${'a'.repeat(64)}-division-area.gml.zip`,
+  )
+})
+
 test('retains a published source archive with its original filename and media type', async () => {
   const outputDir = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
   const archivePath = join(outputDir, 'published-boundaries.zip')
@@ -239,7 +256,7 @@ test('rejects a direct source asset that is neither ZIP nor Parquet', async () =
   }
 })
 
-test('reuses an already registered local source asset without writing it again', async () => {
+test('rechecks an already registered local source object without duplicating metadata', async () => {
   const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-asset-'))
   const bytes = new TextEncoder().encode('publisher evidence')
   const contentHash = hash(bytes)
@@ -249,15 +266,18 @@ test('reuses an already registered local source asset without writing it again',
     id: '11111111-1111-4111-8111-111111111111',
     assetKey: upload.metadata.assetKey,
   })
+  let checked = false
 
   try {
     await expect(
       registerLocalManagedSourceAsset(registry.db, upload, {
         putObject: async () => {
-          throw new Error('Existing asset should not be written again.')
+          checked = true
         },
       }),
     ).resolves.toBe('11111111-1111-4111-8111-111111111111')
+    expect(checked).toBe(true)
+    expect(registry.rows.size).toBe(1)
   } finally {
     await rm(root, { force: true, recursive: true })
   }
@@ -371,3 +391,42 @@ function createMemoryRegistry(initial?: {
 function hash(bytes: Uint8Array) {
   return createHash('sha256').update(bytes).digest('hex')
 }
+
+test('production R2 retains objects but registers IDs only in local metadata', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'source-assets-r2-'))
+  try {
+    const bytes = new TextEncoder().encode('evidence')
+    const upload = await writeUpload(root, bytes, hash(bytes))
+    const registry = createMemoryRegistry()
+    let remoteWrites = 0
+    let localWrites = 0
+    const options = {
+      withMetaDb: async <T>(work: (db: MetaDatabase) => T | Promise<T>) =>
+        work(registry.db),
+      putObject: async () => {
+        localWrites++
+      },
+      retainRemoteFile: async (environment: string, key: string, path: string) => {
+        expect(environment).toBe('production')
+        expect(key).toBe(upload.metadata.assetKey)
+        expect(new Uint8Array(await readFile(path))).toEqual(bytes)
+        remoteWrites++
+      },
+    }
+    const target = {
+      environment: 'dev' as const,
+      remote: false,
+      r2: 'production' as const,
+    }
+    const result = await uploadManagedSourceAsset(target, upload, options)
+    const replay = await uploadManagedSourceAsset(target, upload, options)
+    expect(result.url).toBe(`https://api.saanseoi.hk/v0/assets/${result.assetId}`)
+    expect(replay.assetId).toBe(result.assetId)
+    expect(registry.rows.size).toBe(1)
+    expect(localWrites).toBe(2)
+    // Re-check R2 even when registration is already present locally.
+    expect(remoteWrites).toBe(2)
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})

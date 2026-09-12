@@ -8,10 +8,22 @@ import {
   ingestLandsdStreetSource,
   assignLandsdStreetBaselineIds,
   landsdStreetBaselineCandidatesFromRecords,
-  reconcileLandsdStreetBaselineRecords,
   type LandsdStreetRecord,
-} from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetIngest.ts'
-import { publishLandsdStreetReleasePayloads } from '../../../harbour-cli/src/lib/sources/landsd/street/landsdStreetPublish.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetIngest.ts'
+import {
+  createLandsdStreetBaselineRegistry,
+  loadLandsdStreetBaselineRegistry,
+  mergeLandsdStreetBaselineCandidates,
+  sameLandsdStreetBaselineRegistry,
+  validateLandsdStreetCurrentRelease,
+  writeLandsdStreetBaselineRegistry,
+} from '../../../harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetBaselineRegistry.ts'
+import { DEFAULT_BASELINE_REGISTRY_PATH } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetIngestConfig.ts'
+import { publishLandsdStreetReleasePayloads } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetPublish.ts'
+import {
+  fetchTargetVersions,
+  requirePublishedTargetVersion,
+} from '../../../harbour-cli/src/lib/commands/updateTargets.ts'
 import {
   loadDatasetFixtures,
   recordUpdateState,
@@ -53,8 +65,8 @@ export async function runLandsdStreetStageCommand(
     printUsage()
     throw new Error(`${commandForStage(stage)} does not accept positional arguments.`)
   }
-  const stagingDir = resolveStageDirectory(args, stage)
-  const stagingRoot = resolveStagingRoot(args)
+  const stagingDir = resolveStageDirectory(args, stage, target)
+  const stagingRoot = resolveStagingRoot(args, target)
   const progress = createProgress('LandsD streets')
 
   try {
@@ -113,9 +125,124 @@ export async function runLandsdStreetStageCommand(
   }
 }
 
-export async function runLandsdStreetAssembleCommand(
+export async function runLandsdStreetCurrentCommand(
   args: ParsedArgs,
   target: UploadTarget,
+  printUsage: () => void,
+) {
+  if (args.positionals.length > 0) {
+    printUsage()
+    throw new Error(
+      'hkgov-landsd-streets:current does not accept positional arguments.',
+    )
+  }
+  const stagingRoot = resolveStagingRoot(args, target)
+  const stagingDir = join(stagingRoot, 'baseline')
+  const progress = createProgress('LandsD streets')
+
+  try {
+    const [registry, existingBaseline] = await Promise.all([
+      loadLandsdStreetBaselineRegistry(DEFAULT_BASELINE_REGISTRY_PATH),
+      readOptionalStage(stagingDir, 'baseline', target),
+    ])
+    const baselineCandidates = mergeLandsdStreetBaselineCandidates(
+      registry,
+      landsdStreetBaselineCandidatesFromRecords(existingBaseline?.records ?? []),
+    )
+    const result = await ingestLandsdStreetSource({
+      baselineCandidates,
+      baselineCohort: registry
+        ? {
+            sha256: registry.baselineSha256,
+            sourceVersion: registry.sourceVersion,
+          }
+        : undefined,
+      includeBaseline: true,
+      includeLandsdNotices: false,
+      outputDir: stagingDir,
+      promptForCuration: false,
+      target,
+      writeFixtures: false,
+      onProgress: event => progress.show(event.message, event.waitingForInput ?? false),
+    })
+    const ingested = requireSingleRelease(result.releases)
+    const records = assignLandsdStreetBaselineIds(ingested.records)
+    const baselineSha256 = requireBaselineSha256(records)
+    const nextRegistry = createLandsdStreetBaselineRegistry({
+      baselineSha256,
+      records,
+      sourceVersion: ingested.sourceVersion,
+    })
+    const registryChanged = !sameLandsdStreetBaselineRegistry(registry, nextRegistry)
+    if (target.remote && registryChanged) {
+      throw new Error(
+        `The LandsD baseline differs from ${DEFAULT_BASELINE_REGISTRY_PATH}. Run hkgov-landsd-streets:current against local first, review and commit the identity registry, then publish the same cohort remotely.`,
+      )
+    }
+    if (registryChanged) {
+      await writeLandsdStreetBaselineRegistry(
+        DEFAULT_BASELINE_REGISTRY_PATH,
+        nextRegistry,
+      )
+    }
+    validateLandsdStreetCurrentRelease({
+      records,
+      registry: nextRegistry,
+      sourceVersion: ingested.sourceVersion,
+    })
+    const release = await createLandsdStreetReleasePayload({
+      outputDir: stagingDir,
+      records,
+      sourceVersion: ingested.sourceVersion,
+      writeFixture: true,
+    })
+    await writeStage(stagingDir, {
+      records,
+      sourceCursor: [],
+      stage: 'baseline',
+      target,
+      version: 1,
+    })
+
+    const dataset = await requireStreetDatasetFixture()
+    progress.show('Checking published street-name releases on the target')
+    const targetVersions = await fetchTargetVersions(target, dataset)
+    const alreadyPublished = targetVersions.get(dataset.code) === release.sourceVersion
+    if (!alreadyPublished) {
+      progress.show(`Publishing current street-name release ${release.sourceVersion}`)
+      await publishLandsdStreetReleasePayloads(target, [release], {
+        invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
+        onProgress: ({ current, sourceVersion: version, total }) =>
+          progress.show(`Publishing release ${current + 1}/${total} (${version})`),
+      })
+      progress.show('Verifying the published street-name release on the target')
+      requirePublishedTargetVersion(
+        { sourceKey: dataset.code, version: release.sourceVersion },
+        await fetchTargetVersions(target, dataset),
+      )
+    }
+    await recordStreetSourceCursor(target, [], release.sourceVersion)
+    progress.stop(
+      alreadyPublished
+        ? 'Current street-name release is already published'
+        : 'Current street-name release published',
+    )
+    log.success(
+      `${alreadyPublished ? 'Verified' : 'Published'} ${records.length} current LandsD street name(s) as ${release.sourceVersion}.`,
+    )
+    if (registryChanged) {
+      log.info(`Wrote canonical identity registry ${DEFAULT_BASELINE_REGISTRY_PATH}.`)
+    }
+    outro('Current LandsD street names are available; history remains a later revision')
+  } catch (error) {
+    progress.error(error)
+    throw error
+  }
+}
+
+export async function runLandsdStreetAssembleCommand(
+  args: ParsedArgs,
+  _target: UploadTarget,
   printUsage: () => void,
 ) {
   if (args.positionals.length > 0) {
@@ -124,50 +251,9 @@ export async function runLandsdStreetAssembleCommand(
       'hkgov-landsd-streets:assemble does not accept positional arguments.',
     )
   }
-  const stagingRoot = resolveStagingRoot(args)
-  const outputDir =
-    typeof args.options['out-dir'] === 'string'
-      ? resolve(args.options['out-dir'])
-      : join(REPO_ROOT, 'data/hkgov/landsd/street/assembly')
-  const progress = createProgress('LandsD streets')
-  try {
-    progress.show('Loading staged baseline and Government Notice records')
-    const stages = await Promise.all(
-      (['baseline', 'landsd-notices', 'official-egazette'] as const).map(stage =>
-        readStage(join(stagingRoot, stage), stage, target),
-      ),
-    )
-    const records = reconcileLandsdStreetBaselineRecords(
-      stages.flatMap(stage => stage.records),
-    )
-    assertUniqueRecordKeys(records)
-    const sourceVersion = latestNoticeSourceVersion(records)
-    progress.show(`Writing assembled street release ${sourceVersion}`)
-    const release = await createLandsdStreetReleasePayload({
-      outputDir,
-      records,
-      sourceVersion,
-      writeFixture: true,
-    })
-    await publishLandsdStreetReleasePayloads(target, [release], {
-      invocationCwd: process.env.SAANSEOI_INVOCATION_CWD ?? process.cwd(),
-      onProgress: ({ current, sourceVersion: version, total }) =>
-        progress.show(`Publishing release ${current + 1}/${total} (${version})`),
-    })
-    await recordStreetSourceCursor(
-      target,
-      stages.flatMap(stage => stage.sourceCursor),
-      sourceVersion,
-    )
-    progress.stop('LandsD street assembly and publication complete')
-    log.success(
-      `Published ${records.length} staged street record(s) as ${release.sourceVersion}.`,
-    )
-    outro('LandsD street snapshot revision published')
-  } catch (error) {
-    progress.error(error)
-    throw error
-  }
+  throw new Error(
+    'Historical Streets assembly is intentionally unavailable. Current names are published with hkgov-landsd-streets:current; historical evidence needs a reviewed correction-revision assembler that proves present-state identity parity.',
+  )
 }
 
 function stageOptions(stage: StreetStage) {
@@ -193,16 +279,24 @@ function stageOptions(stage: StreetStage) {
   }
 }
 
-function resolveStageDirectory(args: ParsedArgs, stage: StreetStage) {
+function resolveStageDirectory(
+  args: ParsedArgs,
+  stage: StreetStage,
+  target?: UploadTarget,
+) {
   if (typeof args.options['out-dir'] === 'string')
     return resolve(args.options['out-dir'])
-  return join(resolveStagingRoot(args), stage)
+  return join(resolveStagingRoot(args, target), stage)
 }
 
-function resolveStagingRoot(args: ParsedArgs) {
+function resolveStagingRoot(args: ParsedArgs, target?: UploadTarget) {
   return typeof args.options['staging-dir'] === 'string'
     ? resolve(args.options['staging-dir'])
-    : join(REPO_ROOT, 'data/hkgov/landsd/street/staging')
+    : join(
+        REPO_ROOT,
+        'data/hkgov/landsd/street/staging',
+        target?.remote ? target.environment : '',
+      )
 }
 
 function commandForStage(stage: StreetStage) {
@@ -240,7 +334,7 @@ function stageCompletionMessage(stage: StreetStage) {
     case 'landsd-notices':
       return 'LandsD notices staged against the baseline IDs; continue with the e-Gazette notice stage.'
     case 'official-egazette':
-      return 'Historical e-Gazette notices staged; run hkgov-landsd-streets:assemble to publish.'
+      return 'Historical e-Gazette notices staged for a later reviewed release revision.'
   }
 }
 
@@ -317,32 +411,9 @@ async function readRequiredBaselineStage(stagingRoot: string, target: UploadTarg
       error.message.includes('ENOENT')
     )
       throw new Error(
-        'LandsD notice stages require a staged baseline with canonical street IDs. Run hkgov-landsd-streets:baseline first.',
+        'LandsD notice stages require a published current baseline with canonical street IDs. Run hkgov-landsd-streets:current first.',
       )
     throw error
-  }
-}
-
-function latestNoticeSourceVersion(records: LandsdStreetRecord[]) {
-  const date = records
-    .map(record => record.gazetteDate)
-    .filter((value): value is string => Boolean(value))
-    .sort()
-    .at(-1)
-  if (!date)
-    throw new Error('The assembled street release has no Government Notice date.')
-  return `${date}.0`
-}
-
-function assertUniqueRecordKeys(records: LandsdStreetRecord[]) {
-  const seen = new Set<string>()
-  for (const record of records) {
-    if (seen.has(record.recordKey)) {
-      throw new Error(
-        `Staged street records duplicate immutable source record ${record.recordKey}. Check the 22 January 2016 cutoff.`,
-      )
-    }
-    seen.add(record.recordKey)
   }
 }
 
@@ -351,8 +422,7 @@ async function recordStreetSourceCursor(
   sourceCursor: string[],
   sourceVersion: string,
 ) {
-  const dataset = (await loadDatasetFixtures(new Set([LANDSD_STREET_DATASET_CODE])))[0]
-  if (!dataset) throw new Error(`Missing fixture ${LANDSD_STREET_DATASET_CODE}.`)
+  const dataset = await requireStreetDatasetFixture()
   const state = await readUpdateState()
   recordUpdateState(state, dataset.code, {
     checkedAt: new Date().toISOString(),
@@ -365,6 +435,39 @@ async function recordStreetSourceCursor(
     versionKey: sourceVersion,
   })
   await writeUpdateState(state)
+}
+
+async function requireStreetDatasetFixture() {
+  const dataset = (await loadDatasetFixtures(new Set([LANDSD_STREET_DATASET_CODE])))[0]
+  if (!dataset) throw new Error(`Missing fixture ${LANDSD_STREET_DATASET_CODE}.`)
+  return dataset
+}
+
+function requireSingleRelease(
+  releases: Awaited<ReturnType<typeof ingestLandsdStreetSource>>['releases'],
+) {
+  if (releases.length !== 1 || !releases[0]) {
+    throw new Error(
+      `Current LandsD baseline ingestion must produce one release; produced ${releases.length}.`,
+    )
+  }
+  return releases[0]
+}
+
+function requireBaselineSha256(records: LandsdStreetRecord[]) {
+  const hashes = new Set(
+    records.flatMap(record =>
+      record.evidenceAssets
+        .filter(asset => asset.role === 'sourcePdf')
+        .map(asset => asset.contentHash),
+    ),
+  )
+  if (hashes.size !== 1) {
+    throw new Error(
+      `Current LandsD baseline must reference exactly one source PDF hash; found ${hashes.size}.`,
+    )
+  }
+  return [...hashes][0] as string
 }
 
 function createProgress(label: string) {

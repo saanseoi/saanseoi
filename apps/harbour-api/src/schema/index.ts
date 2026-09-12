@@ -200,7 +200,7 @@ export const UploadResponseSchema = z
         examples: ['2025-09-24.0', '2026-01-20.0'],
       }),
     status: StatusSchema,
-    type: z.string().openapi({
+    resourceType: z.string().openapi({
       description: 'Theme type of the dataset (e.g., division, address)',
       examples: ['division', 'address', 'place'],
     }),
@@ -232,6 +232,14 @@ export const RegisterUploadRequestSchema = z
         description: 'Allow replacing a release that is still staged.',
         examples: [true],
       }),
+    allowHistoricalCohort: z
+      .boolean()
+      .optional()
+      .openapi({
+        description:
+          'Allow an explicitly identified independent historical cohort without superseding the latest source release.',
+        examples: [true],
+      }),
     resumeStagedRelease: z
       .boolean()
       .optional()
@@ -259,7 +267,7 @@ export const RegisterUploadRequestSchema = z
       sourceVersion: z.string().optional(),
       geometryStatus: z.enum(['authoritative', 'fallback']).optional(),
       theme: z.string().optional(),
-      type: z.string().optional(),
+      resourceType: z.string().optional(),
     }),
   })
   .openapi('HarbourRegisterUploadRequest')
@@ -277,7 +285,7 @@ export const LocalUploadRegistrationResponseSchema = z
     source: SourceSchema,
     status: StatusSchema,
     sourceVersion: z.string(),
-    type: z.string(),
+    resourceType: z.string(),
     rowCount: z.number(),
   })
   .openapi('HarbourLocalUploadRegistrationResponse')
@@ -289,6 +297,14 @@ export const ManagedSourceAssetResponseSchema = z
     status: z.enum(['existing', 'uploaded']),
   })
   .openapi('HarbourManagedSourceAssetResponse')
+
+export const DeletedManagedSourceAssetResponseSchema = z
+  .object({
+    assetId: z.string().uuid(),
+    assetUrl: z.string().url(),
+    status: z.literal('deleted'),
+  })
+  .openapi('HarbourDeletedManagedSourceAssetResponse')
 
 export const ManagedSourceAssetPreflightRequestSchema = z
   .object({
@@ -340,6 +356,15 @@ export const ControlStageRequestSchema = z
 
 export const PublishDatasetRequestSchema = z
   .object({
+    carriedSnapshots: z
+      .array(
+        z.object({
+          resourceType: ResourceTypeSchema,
+          snapshotId: z.string().min(1),
+          variant: z.string().min(1).optional(),
+        }),
+      )
+      .optional(),
     deferApiReleaseSet: z.boolean().optional(),
     deferStatsReleaseSet: z.boolean().optional(),
     deferSourcePublish: z.boolean().optional(),
@@ -393,7 +418,7 @@ export const ReconcileDraftReleaseSetsResponseSchema = z
       z.object({
         apiReleaseSetId: z.string().uuid(),
         cohortKey: z.string(),
-        family: z.enum(['address', 'division']),
+        family: z.enum(['address', 'division', 'place', 'statistics']),
         releaseCode: ReleaseCodeSchema,
         releaseId: ReleaseIdSchema,
         snapshotId: z.string().uuid(),
@@ -435,7 +460,7 @@ export const ControlResponseSchema = z
     apiCatalogRevisionId: z.string().uuid().optional(),
     apiReleaseSetId: z.string().uuid().optional(),
     apiReleaseSetCode: z.string().optional(),
-    apiReleaseSetStatus: z.enum(['current', 'draft']).optional(),
+    apiReleaseSetStatus: z.enum(['current', 'draft', 'archived']).optional(),
     apiReleaseSetPublications: z.array(ReleaseSetPublicationSchema).optional(),
     metadataDelta: z
       .object({
@@ -450,7 +475,7 @@ export const ControlResponseSchema = z
               domainCode: z.string(),
               cohortKey: z.string().nullable(),
               revision: z.number(),
-              status: z.enum(['current', 'draft']),
+              status: z.enum(['current', 'draft', 'archived']),
               effectiveFrom: z.string().nullable(),
               effectiveTo: z.string().nullable(),
               supersedesApiReleaseSetId: z.string().nullable(),
@@ -503,7 +528,7 @@ export const ReportQuerySchema = z
     releaseCode: ReleaseCodeSchema.optional(),
     releaseId: ReleaseIdSchema.optional(),
     source: SourceSchema.optional(),
-    type: DatasetTypeQuerySchema.optional(),
+    resourceType: DatasetTypeQuerySchema.optional(),
   })
   .openapi('HarbourReportQuery')
 
@@ -512,7 +537,7 @@ export const StatsReportQuerySchema = z
     limit: z.coerce.number().int().min(1).max(100).default(1),
     releaseId: ReleaseIdSchema.optional(),
     source: SourceSchema.optional(),
-    type: DatasetTypeQuerySchema.optional(),
+    resourceType: DatasetTypeQuerySchema.optional(),
   })
   .openapi('HarbourStatsReportQuery')
 
@@ -539,7 +564,7 @@ export const IngestRunReportRowSchema = z
     startedAt: z.string(),
     stats: z.unknown().nullable(),
     status: z.string(),
-    type: z.string(),
+    resourceType: z.string(),
   })
   .openapi('HarbourIngestRunReportRow')
 
@@ -562,7 +587,7 @@ export const StatReportRowSchema = z
     releaseCode: ReleaseCodeSchema,
     releaseId: ReleaseIdSchema,
     source: SourceSchema,
-    type: z.string(),
+    resourceType: z.string(),
     updatedAt: z.string(),
     value: z.number(),
   })
@@ -587,7 +612,7 @@ export const ProcessingActionReportRowSchema = z
     releaseId: ReleaseIdSchema,
     source: SourceSchema,
     summary: z.string(),
-    type: z.string(),
+    resourceType: z.string(),
     updatedAt: z.string(),
   })
   .openapi('HarbourProcessingActionReportRow')
@@ -617,7 +642,7 @@ export const ReleaseReportRowSchema = z
     sourceVersion: z.string(),
     status: z.string(),
     supersededByReleaseId: ReleaseIdSchema.nullable(),
-    type: z.string(),
+    resourceType: z.string(),
     updatedAt: z.string(),
   })
   .openapi('HarbourReleaseReportRow')

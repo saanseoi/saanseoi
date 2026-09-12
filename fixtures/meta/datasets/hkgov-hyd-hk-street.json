@@ -1,14 +1,12 @@
 {
-  "versionHash": "sha256:35f7e9be59dfd62080e99b0050acfafbc89e45d5442cb13e1b1c4189fdb065c8",
+  "versionHash": "sha256:fada54ef39d5d848a0fe4a175e3129c7d98a1b51ddb5cf959d904676cced1d65",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-street",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "quarterly",
   "theme": "streets",
-  "resourceTypes": [
-    "street"
-  ],
+  "resourceTypes": ["street"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Highways Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=hyd_rcd_1632211119955_31211",
@@ -33,9 +31,7 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": [
-          "new-release"
-        ],
+        "discoveries": ["new-release"],
         "includeInitialDownload": true
       }
     },
@@ -49,6 +45,12 @@
     "scheme": "quarterly",
     "correctionSuffixSource": "generated"
   },
+  "releases": [
+    {
+      "sourceVersion": "2026-Q2",
+      "sourceUrl": "https://static.csdi.gov.hk/csdi-webpage/download/common/7c3ee70e341a9a338aac7f8081916413af041bed1a3a61a5008eede345301cfa?a=1"
+    }
+  ],
   "sourceLayer": "SNP",
   "category": "transportation",
   "i18n": [
@@ -67,5 +69,6 @@
       "name": "路政署街名牌",
       "description": "由路政署维修保养的街名牌点位置。ROAD_NAME 属性提供官方街道名称证据；点位并非街道中心线。"
     }
-  ]
+  ],
+  "sourceCrs": "EPSG:2326"
 }

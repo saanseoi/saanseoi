@@ -45,8 +45,9 @@ onMount(async () => {
   <div
     class="absolute inset-0 flex items-center justify-center bg-[#10151a]/55 p-4 sm:p-8"
   >
-    <dialog
-      open
+    <div
+      role="dialog"
+      aria-modal="true"
       class="m-0 flex max-h-full w-full max-w-130 flex-col overflow-hidden border border-white/20 bg-[#171c25] p-5 font-body text-white shadow-2xl sm:p-7"
       aria-labelledby="liveable-result-preview-title"
     >
@@ -72,6 +73,6 @@ onMount(async () => {
           {m.guide_data_urban_density_liveable_result_preview_loading()}
         </p>
       {/if}
-    </dialog>
+    </div>
   </div>
 </div>

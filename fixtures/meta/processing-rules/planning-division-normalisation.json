@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "normalise-planning-divisions",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Materialise prepared Planning divisions with their derived canonical IDs, localised names, parent relationships and processed geometry.",
+  "inputs": ["prepared-planning-divisions"],
+  "outputs": ["divisions"],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation.ts",
+    "symbol": "planningDivisionRule"
+  }
+}

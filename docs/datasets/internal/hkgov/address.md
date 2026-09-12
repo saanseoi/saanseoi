@@ -7,30 +7,53 @@ Related docs:
 
 - [Address resource type](../../resourceType/address.md)
 - [Resource type common processing](../../resourceType/common.md)
+- [Reviewed Address2D component corrections](../../sources/hkgov-dpo/address.md)
 
 ## Dataset role
 
 - Dataset metadata uses `publisherCode: hkgov-dpo` and `code: ds-hk-hkgov-dpo-address`.
-- ALS is the sole source for Hong Kong address records. Address IDs are derived from
-  stable ALS premise identities because GERS does not issue address identifiers.
+- ALS supplies the authoritative Hong Kong address records. ALS Address IDs are derived
+  from stable premise identities because GERS does not issue address identifiers.
+  Accepted Overture Places supplementary records retain their own identities and
+  provenance.
 - Each ALS release uses its own source version as its address/API cohort. The selected
   Overture division snapshot is recorded and reported as an out-of-cohort processing
   dependency. The addresses composition, rather than the ALS source dataset, declares
   that lookup requirement and its selection rule.
-- The addresses API has one composition domain, `official`; its release codes therefore
+- The addresses API has one composition domain, `saanseoi`; its release codes therefore
   do not include a domain suffix.
-- The CLI reads all 2D district GeoJSON files in one ALS release. It skips the separate
-  `als_addresses_3d_*` file.
+- The CLI reads all 2D district GeoJSON files and the separate `als_addresses_3d_*`
+  inventory in one ALS release. Grouped collections are prepared in a streaming sidecar
+  sealed to the Parquet SHA-256 and source version. Missing, incomplete or mismatched
+  preparations stop import before publication.
+
+## Grouped Address3D preparation
+
+The preparer pairs bilingual floor/unit tokens, preserves full expressions and retains
+every source occurrence, including empty inventories. Empty features create no
+residential collection. Nonempty features require an exact bilingual premise match;
+shared identifiers do not authorise merging different owners. Reviewed hierarchy rules
+are guarded by release bounds, source identifiers, components and expected row counts.
+Derived parents retain curation provenance and are excluded from publisher 2D rows.
+
+The Harbour CLI writes collection JSON through bound D1 statements before publication,
+including history journals and release-scoped `hkgovAlsAddresses3d` source rows. The
+queued SQL-stage path rejects ALS because it does not carry the bound collection
+sidecar. A conservative per-row UTF-8 budget is checked during preparation; SQL text and
+bound-parameter budgets are checked separately during execution.
+
+See [hierarchy evidence and pending review](../../sources/hkgov-dpo/address3d-review.md)
+for the supported release bounds and known ingestion blockers.
 
 The automatic updater queries the DATA.GOV.HK historical file-version endpoint for the
 official `ALS-GeoJSON.zip` resource. It treats the newest publisher timestamp as the new
 release and earlier available timestamps as download-only archive packages. On a
 confirmed new local release it downloads the exact ZIP, unpacks it into its timestamped
-ALS source directory, then invokes `hkgov-dpo:backfill-local` for the existing identity
-review and upload workflow. Archive-package downloads never upload by themselves. The
-query ends on the previous UTC day because the archive API does not accept the current
-day. A successful response whose body is truncated or otherwise invalid JSON is retried
-before the DPO check is reported as an error.
+ALS source directory, then invokes `hkgov-dpo:ingest` for the existing identity review
+and upload workflow. Archive-package downloads never upload by themselves. The query
+ends on the previous UTC day because the archive API does not accept the current day. A
+successful response whose body is truncated or otherwise invalid JSON is retried before
+the DPO check is reported as an error.
 
 The updater applies a ten-minute and 2 GiB compressed-download limit, validates ZIP
 member names, counts, expanded sizes and compression ratios before extraction, and
@@ -41,6 +64,12 @@ When an addresses update is selected, the updater reads the composition dependen
 graph, adds the required Overture division provider when necessary, and processes it
 first. The address snapshot then records the exact division source release selected for
 canonicalisation as a lookup input.
+
+Current-address materialisation carries that resolved Division snapshot ID through the
+clone and delta-apply stages, then performs a final whole-snapshot alignment. It must
+not independently select a newer published Division snapshot while applying an ALS
+release: doing so would leave one address snapshot with mixed Division references and
+make it unsafe for Places to use.
 
 ALS directory names carry an upstream delivery time (`YYYYMMDD-HHMM`), but address
 release versions use `YYYY-MM-DD.N`: the first release for a date is `.0`, and further
@@ -100,13 +129,14 @@ variants are printed separately from exact feature duplicates.
 
 At upload, each automatic consolidation and each reviewed identity-drift decision is
 stored against the release in the meta database. The `stats` table records aggregate
-counts under the `processing` metric; `releaseProcessingActions` stores one compact JSON
-evidence object per affected group or record, including the selected canonical ALS
-record and ignored source variants where applicable. Inspect both through:
+counts under the `processing` metric; `releaseProcessingActions` stores action/mode
+summaries, while `releaseProcessingActionChunks` retains compressed JSON evidence per
+affected group or record, including the selected canonical ALS record and ignored source
+variants where applicable. Reports decode the complete evidence. Inspect both through:
 
 ```bash
-saanseoi reports:stats --source hkgov-dpo --type address
-saanseoi reports:processing-actions --source hkgov-dpo --type address
+saanseoi reports:stats --source hkgov-dpo --resource-type address
+saanseoi reports:processing-actions --source hkgov-dpo --resource-type address
 ```
 
 The source release also persists presentation stats after consolidation: address count
@@ -117,6 +147,20 @@ separate coverage measures: village-addressed premises do not imply that a stree
 was supplied. The district counts are keyed by canonical division ID so Atlas can join
 them to the selected HAD district-area geometry without relying on display names.
 
+Division linkage quality is also recorded under the release `quality` metric. The
+`unmatched_area_count` and `unmatched_district_count` rows identify ALS premises whose
+English or Traditional Chinese labels did not resolve in the selected Overture snapshot.
+`ambiguous_area_count` and `ambiguous_district_count` identify labels that matched
+multiple canonical IDs; those links are left null rather than guessed. The preflight
+review prints every affected premise with its source file, feature number, label, and
+match status. API release-set stats derive the unmatched counts from null canonical
+links when source-level diagnostics are not available.
+
+The ALS adapter currently links only country, area, and district. Although the canonical
+address schema supports town, macrohood, neighbourhood, village, hamlet, and microhood
+references, ALS does not currently provide those divisions as canonical links. A village
+or location name in the formatted address is an address component, not a division link.
+
 At an annual history-shard boundary, lifecycle churn is compared with the current
 records from earlier shards as well as the new shard. The first release of a year
 therefore reports changes from the prior release rather than treating the whole source
@@ -126,14 +170,14 @@ Lifecycle churn excludes release-specific provenance and ingestion bookkeeping,
 including the release cohort, input file path and position, resolved identity metadata,
 and selected division snapshot. Those values remain stored for audit, but a new delivery
 does not count as a changed address solely because it has a new release context. The
-source assertion hash still includes the publisher address representation, coordinates,
+source record hash still includes the publisher address representation, coordinates,
 identifiers, and projected address fields, so an actual ALS record change creates a new
 version.
 
-The source assertion keeps the original bilingual ALS properties unchanged in
-`rawProperties`. Its paired `addressEn` and `addressZhHant` fields record the
-reproducible address-component projection for that exact evidence; only canonical
-address snapshots materialise locale-keyed rows.
+The source record includes the original bilingual ALS properties unchanged in
+`properties`, alongside source identity, release history and provenance. Extracted
+identifiers, coordinate projections and bilingual address components are materialised
+only in canonical address snapshots.
 
 ## Stable ALS premise ID
 
@@ -200,9 +244,11 @@ members only when an explicit connector establishes a range.
 
 ## ALS-to-ALS drift review
 
-For historical ingestion, the command persists an ignored local identity history at
-`.local/hkgov-dpo/als-identity-history.json` and human decisions at
-`.local/hkgov-dpo/als-identity-decisions.json`.
+For historical ingestion, the command reads and persists the human identity decisions in
+the version-controlled
+[`hkgov-dpo-address.json`](../../../../fixtures/meta/curations/hkgov-dpo-address.json)
+curation fixture by default. The identity history is a derived local replay index at
+`.local/hkgov-dpo/als-identity-history.json` and remains ignored.
 
 Before its first prompt, historical ingestion performs a local, no-write preflight and
 prints the total remaining identity-drift choices across every selected release.
@@ -219,13 +265,53 @@ with the dropped field and its prior value; other identity changes remain subjec
 review.
 
 If the only changed component is that ALS has withdrawn a previously populated building
-name, the importer automatically retains the existing ID. Building-name additions and
-replacements still require review.
+name, the importer automatically retains the existing ID when that name does not
+identify a qualified site part. Dropping a qualified `BLOCK`, `TOWER`, `HOUSE`, `VILLA`,
+`HALL`, or equivalent numbered/positional site part produces a new ID unless the part is
+transferred into structured block fields or the estate name. Building-name additions and
+replacements still require review unless they match one of the automatic site-part or
+descriptive-detail rules below.
 
 The importer also retains the existing ID when an identical name is reassigned between
 the building-name and estate-name fields, with every other premise component unchanged.
 A premise with a structured block descriptor and number is automatically treated as a
 different address from an otherwise unqualified premise.
+
+The same distinction applies when ALS adds an unstructured trailing site-part qualifier
+to a building name: a numeric, alphabetic, alphanumeric, or Roman-numeral qualifier; a
+cardinal or intercardinal direction; or `HIGH`, `LOW`, `CENTER`, `CENTRE`, or `MIDDLE`
+with a recognised site-part descriptor identifies a part of the previously whole
+building or estate and receives a new ID. This includes `BLOCK`, `TOWER`, `VILLA`,
+`HOUSE`, `HSE`, and `PORTION`. This rule takes precedence over older retention decisions
+recorded before the distinction was automated. Other building-name changes still require
+review.
+
+The site-part rule also covers `STAGE`, `WING`, `SECTION`, `HALL`, `PORTION`, and
+written block numbers such as `ONE` and `TWO`. Compound tower-wing specifications such
+as `TOWER 1 - L WING` and `TOWER 1 - R WING` are treated as material site parts. A first
+phase or stage (`I`, `1`, or `A`), including a range beginning with that member, is
+treated as additional specification and retains the ID when it is the complete added
+qualifier; a later range such as `PHASE II/III` receives a new ID. A first-phase/stage
+qualifier combined with an otherwise unclassified facility detail remains manual.
+Separate `3A` and `3B` premises receive new IDs, while one aggregate `3A/3B` description
+retains its ID. Adding a recognised location, `CENTRAL`, a branch or campus description,
+or a legal name suffix such as `LIMITED` retains the ID when the street address is
+unchanged. Sponsorship wording remains a manual decision. A `BLOCK`, `TOWER`, `HOUSE`,
+`HALL`, `SECTION`, `STAGE`, `WING`, `PHASE`, or `PORTION` without a sequence or
+positional member is not by itself a site-part decision; it remains manual unless it is
+a recognised descriptive addition. Written block or building numbers are converted to
+the family's established Roman-numeral style in the same scoped way as Arabic numbers.
+
+Identity history is evaluated as a release chain. When several earlier releases share a
+continuity anchor, the latest earlier release is the canonical predecessor for the next
+unambiguous change, so a reviewed `keep-existing-id` decision carries the same canonical
+ID through successive renames. If the latest earlier release contains multiple
+identities for that anchor, the importer refuses to choose between them and does not
+automatically link the new record to either identity.
+
+When a later release repeats an identity key that was previously retained under another
+canonical ID, the importer reuses that canonical ID from identity history without asking
+for the same decision again.
 
 Interactive imports show the old and new relevant details and require one choice:
 
@@ -235,24 +321,25 @@ Interactive imports show the old and new relevant details and require one choice
 With `--yes`, the command does not guess: it stops before that release's database write
 and writes `.local/hkgov-dpo/identity-drift/{source-version}.json` for review. It prints
 the exact interactive command for that source version; after its decisions are saved, a
-later `update --yes` can continue non-interactively. A changed CSU/GeoAddress,
-route/name or number, district, coordinate movement, or several possible historic
-candidates does not automatically link records.
+later `update --yes` can continue non-interactively. Because the decisions file is
+checked in, review and commit any changes to it together with the ingestion result. A
+changed CSU/GeoAddress, route/name or number, district, coordinate movement, or several
+possible historic candidates does not automatically link records.
 
 ## Commands
 
 The local database must first contain a published Hong Kong division snapshot in its
 current tables. This is a division dependency, not an Overture-address dependency. After
-the normal local reset, use the current published `2025-12-17.0` division cohort.
+the normal local reset, use the current published `2026-08-19.0` division cohort.
 
 Prepare one release (no database mutation):
 
 ```bash
 bun run dataops -- hkgov-dpo:prepare \
   data/hkgov/dpo/ALS/20260710-1054-ALS-GeoJSON \
-  --target local --cohort-key 2025-12-17.0 \
+  --target local --cohort-key 2026-08-19.0 \
   --identity-history .local/hkgov-dpo/als-identity-history.json \
-  --identity-decisions .local/hkgov-dpo/als-identity-decisions.json \
+  --identity-decisions fixtures/meta/curations/hkgov-dpo-address.json \
   --identity-drift-report .local/hkgov-dpo/identity-drift/2026-07-10.0.json
 ```
 
@@ -260,22 +347,29 @@ Ingest all ALS release directories in chronological order into local D1:
 
 ```bash
 bun run dataops -- hkgov-dpo:backfill-local \
-  data/hkgov/dpo/ALS --target local --cohort-key 2025-12-17.0
+  data/hkgov/dpo/ALS --target local --cohort-key 2024-07-25.0
 ```
 
-For this command, `--cohort-key` establishes the default start year (January 2025 here);
+For this command, `--cohort-key` establishes the default start year (January 2024 here);
 it is **not** applied to every address release. Each ALS release uses its source version
-as its address cohort, while selecting the latest published same-year Overture division
-cohort at or before that version, falling back to that year's first published cohort.
-This is required because address and division uploads are sharded by year. Use
-`--from-source-version YYYY-MM-DD.NNNN` to choose a later start. Unknown future drift
-remains interactive.
+as its address cohort, while selecting the exact Overture division cohort, then the most
+recent published cohort, or the soonest published cohort when no earlier cohort exists.
+Use `--from-source-version YYYY-MM-DD.NNNN` to choose a later start. Unknown future
+drift remains interactive.
 
 It resumes safely after a successful local release: source versions with a published
 local HKGov ALS release are skipped rather than uploaded again. Pass `--force` to
 reprocess and replace those local releases when processing-action evidence changes. The
 persisted ALS identity history is not used as a skip marker, so resetting the local
 database correctly re-ingests every release.
+
+`hkgov-dpo:backfill-local` is the explicit exception for a missing older ALS release. It
+registers that release as an independent historical address cohort, so it does not
+supersede the newer active source release or replace the current Addresses API cohort.
+It treats later superseded ALS releases as already complete, so a run beginning before a
+gap processes the missing release rather than reprocessing the rest of the series. The
+normal `hkgov-dpo:ingest` command remains chronological and continues to reject an older
+source version.
 
 Use `--dry-run` to validate each prepared parquet and its upload plan without database
 mutation. Use `--yes` only after reviewing any generated drift reports. The command
@@ -288,6 +382,46 @@ The prepared parquet includes stable `id` and `canonicalId`, `identityAlias`,
 `identityBuildingId`, `identityKey`, `identityMatchMethod`, the selected division IDs,
 geometry, provenance, `GeoAddress`, `hkgovCsuId`, both source-language premise payloads,
 formatted English and Traditional Chinese addresses, and easting/northing.
+
+The canonical component fields are projections of the bilingual ALS premise object; they
+are not additional publisher fields. The English and Traditional Chinese projections use
+the corresponding ALS branch, with the same fallback rules used for the formatted
+address:
+
+- `EngBlock.BlockDescriptor`/`ChiBlock.BlockDescriptor` and `EngBlock.BlockNo`/
+  `ChiBlock.BlockNo` provide `blockType` and the textual `blockRef`. `blockExpression`
+  uses canonical English aliases (`BLK`, `BLDG`, `TWR`, `HSE`, and `APT`) for their
+  recognised source variants; other descriptors remain explicit. Traditional Chinese
+  expressions place `blockRef` before the descriptor. This ordering supplies
+  `blockTypeBeforeNumber`. `blockRef` is deliberately textual: values such as `A`, `C`,
+  `10`, or `II` are not coerced to numbers. The original descriptor remains in the
+  retained ALS premise object.
+- `EngStreet.BuildingNoFrom`/`BuildingNoTo` and their Chinese counterparts provide the
+  street building-number endpoints. For village premises the equivalent
+  `EngVillage`/`ChiVillage` endpoints are used. These endpoints form
+  `buildingNumberExpression`.
+- `EngPhase.PhaseName`/`PhaseNo` and `ChiPhase.PhaseName`/`PhaseNo` provide `phaseName`
+  and `phaseRef`. The parser keeps `PhaseNo` as text, including Roman and alphanumeric
+  references. When a phase name ends with the same standalone Arabic or Roman reference,
+  that suffix is removed from `phaseName` so it is not repeated in `phaseExpression`;
+  for example, `PHASE 2` becomes `phaseName: PHASE`, `phaseRef: 2`, and
+  `phaseExpression: PHASE 2`. Roman references inferred from a name use the same
+  unambiguous-suffix guard as premise numbers: single-letter Roman values are not
+  inferred without an explicit `PhaseNo`. An explicit `PhaseNo: C` is still preserved as
+  `phaseRef: C` and removed from `PHASE C`. Before projection, an English phase with an
+  unambiguous trailing Roman reference is rendered in Arabic only when the same estate
+  and phase series has numeric evidence: `PHASE 1` makes `PHASE II` become `PHASE 2`.
+  Each such correction is recorded as an automatic `als_phase_roman_numeral_normalised`
+  processing action with the original value, normalised value, and numeric peer
+  reference.
+- `buildingNumberConnector` remains `null` because ALS supplies no range connector. A
+  hyphen in a formatted English range is presentation syntax, not evidence of an
+  interior numeric range.
+- `bbox` is derived from the retained point geometry; it is not copied from ALS.
+
+The unchanged bilingual ALS premise JSON remains in `properties`. These projections,
+including the expression fields, are therefore reproducible from that raw evidence and
+are listed as derived or resolver-input fields in API provenance.
 
 The local SQL pipeline uses the prepared `id` and `canonicalId`, trusts the resolved
 division fields, parses geometry/provenance JSON, and writes English and/or Traditional

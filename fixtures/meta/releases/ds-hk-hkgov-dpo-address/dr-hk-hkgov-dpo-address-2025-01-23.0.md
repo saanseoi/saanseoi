@@ -6,6 +6,7 @@ release: "dr-hk-hkgov-dpo-address-2025-01-23.0"
 regionCode: "hk"
 source: "hkgov-dpo"
 sourceVersion: "2025-01-23.0"
+publisherReleaseDate: "2025-01-23"
 releaseVersion: "2025-01-23.0"
 sourceSchemaVersion: "3.2"
 type: "address"
@@ -17,9 +18,9 @@ releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=dpo_rc
 
 ## Changelog
 
-- Initial 山水 | SaanSeoi release
 - <orange>Upstream</orange> Digital Policy Office Address Lookup Service (ALS)
-  two-dimensional district GeoJSON delivery dated <black>2025-01-23</black>
+  two-dimensional district GeoJSON delivery dated
+  <black>{{publisherReleaseDate}}</black>
 
 ## Compatibility
 
@@ -38,7 +39,7 @@ Fields that retain the ALS value directly:
 - `geometry` - [Geometry](/docs#models/Geometry) - the delivery point geometry
 - `CsuId` - retained as <black>identifiers.hkgovCsuId</black> when supplied
 - `GeoAddress` - retained as source evidence and an ALS identity anchor
-- `Easting` and `Northing` - retained in the source record as HK1980 Grid coordinates
+- `Easting` and `Northing` - included in the source record as HK1980 Grid coordinates
 
 ### Enriched Fields
 
@@ -74,8 +75,12 @@ Fields reorganised for storage, lookup, or API response shaping:
   <black>buildingNumberConnector</black> is null for this release.
 - `EngBlock`/`ChiBlock` - normalised to <black>blockExpression</black>, canonical
   <black>blockType</black>, <black>blockRef</black>, and
-  <black>blockTypeBeforeNumber</black>. ALS <black>BlockNo</black> is not assumed to be
-  numeric: it may be a label such as <black>A</black> or <black>EAST</black>.
+  <black>blockTypeBeforeNumber</black>. Recognised English descriptor variants use
+  <black>BLK</black>, <black>BLDG</black>, <black>TWR</black>, <black>HSE</black>, or
+  <black>APT</black>; Traditional Chinese puts the reference before its descriptor. ALS
+  <black>BlockNo</black> is not assumed to be numeric: it may be a label such as
+  <black>A</black> or <black>EAST</black>. The original descriptor remains in the
+  retained premise object.
 - `EngPhase`/`ChiPhase` - normalised to <black>phaseExpression</black>,
   <black>phaseName</black>, and <black>phaseRef</black>; phase names and references
   remain distinct.
@@ -117,19 +122,28 @@ Fields which are not exposed as part of the two-dimensional
   consolidated during release preparation, with source evidence and decisions retained
   in processing records
 
+## Limitations
+
+### Curation policy
+
+{{addressCurationPolicy:en}}
+
+### Known Quality Issues
+
+{{addressKnownQualityIssues:en}}
+
 # ZH-HANT
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 初始版本
-- <orange>上游</orange> 數字政策辦公室地址查詢服務（ALS）於 <black>2025-01-23</black>
-  交付的二維地區 GeoJSON 資料
+- <orange>上游</orange> 數字政策辦公室地址查詢服務（ALS）於
+  <black>{{publisherReleaseDate}}</black> 交付的二維地區 GeoJSON 資料
 
 ## 兼容性
 
 SaanSeoi 的 [Address](/docs#models/Address) 匯入 ALS 二維樓宇地址。來源模型為
 [ALS 資料字典](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf)
-所述的中英文結構化 <black>PremisesAddress</black>。相對於 ALS delivery
+所述的英文及繁體中文結構化 <black>PremisesAddress</black>。相對於 ALS delivery
 schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨立的公共租住房屋三維資料不屬於此二維資源。
 
 ### 直接保留欄位
@@ -172,8 +186,11 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
   <black>buildingNumberConnector</black> 為 null。
 - `EngBlock`/`ChiBlock` - 正規化為 <black>blockExpression</black>、canonical
   <black>blockType</black>、<black>blockRef</black> 及
-  <black>blockTypeBeforeNumber</black>。ALS 的 <black>BlockNo</black>
-  不假定為數字，亦可為 <black>A</black> 或 <black>EAST</black> 等標籤。
+  <black>blockTypeBeforeNumber</black>。已識別的英文類型變體使用
+  <black>BLK</black>、<black>BLDG</black>、<black>TWR</black>、<black>HSE</black> 或
+  <black>APT</black>；繁體中文會把參考值放在類型之前。ALS 的 <black>BlockNo</black>
+  不假定為數字，亦可為 <black>A</black> 或 <black>EAST</black>
+  等標籤。原始類型保留於已保存的樓宇物件。
 - `EngPhase`/`ChiPhase` - 正規化為 <black>phaseExpression</black>、
   <black>phaseName</black> 及 <black>phaseRef</black>；期名稱及期數參考保持區分。
 - canonical 門牌 lookup row 不按 locale 區分。來源端點使用
@@ -207,19 +224,28 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離。獨�
 - 完全重複的 GeoJSON feature 及經審核的等價 premise representation - 在 release
   preparation 期間合併，來源證據及決定則保留於 processing record
 
+## 限制
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hant}}
+
+### 已知品質問題
+
+{{addressKnownQualityIssues:zh-Hant}}
+
 # ZH-HANS
 
 ## 更新记录
 
-- 山水 | SaanSeoi 初始版本
-- <orange>上游</orange> 数字政策办公室地址查询服务（ALS）于 <black>2025-01-23</black>
-  交付的二维地区 GeoJSON 数据
+- <orange>上游</orange> 数字政策办公室地址查询服务（ALS）于
+  <black>{{publisherReleaseDate}}</black> 交付的二维地区 GeoJSON 数据
 
 ## 兼容性
 
 SaanSeoi 的 [Address](/docs#models/Address) 导入 ALS 二维楼宇地址。来源模型为
 [ALS 数据字典](https://www.als.gov.hk/docs/Data_Dictionary_for_ALS_EN.pdf)
-所述的中英文结构化 <black>PremisesAddress</black>。相对于 ALS delivery
+所述的英文及繁体中文结构化 <black>PremisesAddress</black>。相对于 ALS delivery
 schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独立的公共租赁房屋三维数据不属于此二维资源。
 
 ### 直接保留字段
@@ -262,8 +288,11 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独�
   <black>buildingNumberConnector</black> 为 null。
 - `EngBlock`/`ChiBlock` - 规范化为 <black>blockExpression</black>、canonical
   <black>blockType</black>、<black>blockRef</black> 及
-  <black>blockTypeBeforeNumber</black>。ALS 的 <black>BlockNo</black>
-  不假定为数字，亦可为 <black>A</black> 或 <black>EAST</black> 等标签。
+  <black>blockTypeBeforeNumber</black>。已识别的英文类型变体使用
+  <black>BLK</black>、<black>BLDG</black>、<black>TWR</black>、<black>HSE</black> 或
+  <black>APT</black>；繁体中文会把参考值放在类型之前。ALS 的 <black>BlockNo</black>
+  不假定为数字，亦可为 <black>A</black> 或 <black>EAST</black>
+  等标签。原始类型保留于已保存的楼宇对象。
 - `EngPhase`/`ChiPhase` - 规范化为 <black>phaseExpression</black>、
   <black>phaseName</black> 及 <black>phaseRef</black>；期名称及期数参考保持区分。
 - canonical 门牌 lookup row 不按 locale 区分。来源端点使用
@@ -296,3 +325,13 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离。独�
   response，而非交付的 premise
 - 完全重复的 GeoJSON feature 及经审核的等价 premise representation - 在 release
   preparation 期间合并，源证据及决定则保留于 processing record
+
+## 限制
+
+### 整理政策
+
+{{addressCurationPolicy:zh-Hans}}
+
+### 已知质量问题
+
+{{addressKnownQualityIssues:zh-Hans}}

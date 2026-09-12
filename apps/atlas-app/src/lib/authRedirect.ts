@@ -11,9 +11,23 @@ export function getAuthRedirectPath(
   try {
     const target = new URL(candidate, currentUrl.origin)
     if (target.origin !== currentUrl.origin) return fallback
+    if (
+      /^\/(?:sign-in|sign-up|password(?:\/.*)?|api\/auth(?:\/.*)?)\/?$/.test(
+        target.pathname,
+      )
+    )
+      return fallback
 
     return `${target.pathname}${target.search}${target.hash}`
   } catch {
     return fallback
   }
+}
+
+export function getSignInHref(redirectPath: string) {
+  return `/sign-in?next=${encodeURIComponent(redirectPath)}`
+}
+
+export function getSignUpHref(redirectPath: string) {
+  return `/sign-up?continue=${encodeURIComponent(redirectPath)}`
 }

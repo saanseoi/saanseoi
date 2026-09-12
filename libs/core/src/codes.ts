@@ -140,8 +140,23 @@ export function buildDatasetReleaseCode(
  * alphanumeric components.
  */
 export function isDatasetReleaseCode(value: string) {
+  const [sourceCode, resourceType, extra] = value.split('::')
+  if (
+    extra !== undefined ||
+    (resourceType !== undefined &&
+      ![
+        'address',
+        'place',
+        'division',
+        'divisionArea',
+        'divisionBoundary',
+        'divisionStatistic',
+        'street',
+      ].includes(resourceType))
+  )
+    return false
   return /^dr-[a-z0-9]+(?:-[a-z0-9]+)*(?:-[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)*)$/.test(
-    value,
+    sourceCode ?? '',
   )
 }
 
@@ -158,6 +173,16 @@ export function datasetVariantForSource(
 ) {
   if (resourceType === 'divisionStatistic') {
     return options.datasetCode ?? 'default'
+  }
+
+  // One Places publisher dataset contributes two resource outputs. Its Address
+  // capability must not satisfy dependencies on the canonical ALS member.
+  if (
+    resourceType === 'address' &&
+    source === 'overture' &&
+    options.datasetCode?.endsWith('-overture-place')
+  ) {
+    return 'overture-places'
   }
 
   if (

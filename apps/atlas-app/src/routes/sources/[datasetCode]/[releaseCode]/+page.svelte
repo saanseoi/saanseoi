@@ -34,15 +34,17 @@ import type {
   ReleaseNavVersion,
 } from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
 import {
-  getDistrictCoverageMapData,
   getRegistryAccessMetricsData,
   getSourceReleaseAuditActionPage,
   getSourceReleaseAuditData,
 } from '#lib/registry/meta.remote.js'
+import { getDistrictCoverageMapData } from '#lib/registry/district.remote.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
+import SourceReleaseLoadError from './sourceReleaseLoadError.svelte'
 import SourceRecordSamples from './sourceRecordSamples.svelte'
 import SourceRecordSchema from './sourceRecordSchema.svelte'
+import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import {
   getSourceReleaseContentQuery,
   preloadSourceReleaseContent,
@@ -154,6 +156,8 @@ let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
 let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
+let auditResourceTypes = $state<string[]>([])
+let selectedAuditResourceType = $state('')
 let showNoteDiff = $state(page.url.searchParams.get('view') === 'diff')
 $effect(() => {
   showNoteDiff = page.url.searchParams.get('view') === 'diff'
@@ -162,11 +166,19 @@ let showBulkActions = $state(false)
 let bulkActions = $derived(
   version?.processingRules?.rulesets
     .flatMap(ruleset => ruleset.rules)
-    .filter(rule => rule.type === 'bulk') ?? [],
+    .filter(rule => rule.kind === 'bulk') ?? [],
 )
 let sourceRecordFamily = $derived(getSourceRecordFamily(source?.resourceTypes ?? []))
+let hasAuditFamily = $derived(
+  source?.resourceTypes.some(type =>
+    ['division', 'divisionArea', 'divisionBoundary', 'divisionStatistic'].includes(
+      type,
+    ),
+  ) ?? false,
+)
 let sourceRecordsAvailable = $state<boolean | null>(null)
 let sourceSampleRequest = $state(0)
+let sourceSampleInclude = $state('')
 let sourceSampleTarget = $state<string | null>(null)
 $effect(() => {
   const target = sourceRecordFamily ? `${sourceRecordFamily}:${version?.code}` : null
@@ -248,6 +260,14 @@ $effect(() => {
 })
 
 let statsPresentation = $derived(buildSourceReleaseStatsPresentation(locale))
+let selectedResourceId = $state('')
+let resources = $derived(version?.resources ?? [])
+let selectedResource = $derived(
+  resources.find(resource => resource.id === selectedResourceId) ?? resources[0],
+)
+$effect(() => {
+  if (selectedResource) selectedResourceId = selectedResource.id
+})
 let hasContent = $derived.by(() => {
   if (isContentLoading) return true
   if (activeTab === 'notes') {
@@ -255,12 +275,15 @@ let hasContent = $derived.by(() => {
       ? noteDiff.changes.length > 0
       : notesPresentation.markdown.trim().length > 0
   }
-  if (activeTab === 'stats') return Boolean(version?.stats?.length)
+  if (activeTab === 'stats')
+    return Boolean(selectedResource?.stats.length ?? version?.stats?.length)
   if (activeTab === 'schema' || activeTab === 'samples')
     return Boolean(sourceRecordFamily)
   if (activeTab === 'audit') {
     return Boolean(
-      (version?.processingActionCount ?? version?.processingActions?.length ?? 0) > 0 ||
+      hasAuditFamily ||
+        (version?.processingActionCount ?? version?.processingActions?.length ?? 0) >
+          0 ||
         bulkActions.length,
     )
   }
@@ -360,6 +383,7 @@ let tabs = $derived<ReleaseNavTab[]>([
     : []),
   { id: 'stats', label: m.source_tab_stats() },
   ...((activeTab === 'audit' && isContentLoading) ||
+  hasAuditFamily ||
   (version?.processingActionCount ?? version?.processingActions?.length ?? 0) > 0 ||
   bulkActions.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
@@ -380,6 +404,7 @@ $effect(() => {
   const unavailable =
     ((activeTab === 'schema' || activeTab === 'samples') && !sourceRecordFamily) ||
     (activeTab === 'audit' &&
+      !hasAuditFamily &&
       !isContentLoading &&
       (version?.processingActionCount ?? version?.processingActions?.length ?? 0) ===
         0 &&
@@ -389,91 +414,115 @@ $effect(() => {
 })
 
 let actions = $derived<ReleaseNavAction[]>(
-  activeTab === 'notes' && versions[1]
+  activeTab === 'stats' && resources.length > 1
     ? [
         {
-          icon: 'proicons:diff',
-          id: 'diff',
-          label: m.source_diff_since_last_release(),
-          onSelect: () => setShowNoteDiff(!showNoteDiff),
-          pressed: showNoteDiff,
+          id: 'stats-resource',
+          label: m.source_resource_type(),
+          value: selectedResourceId,
+          options: resources.map(resource => ({
+            value: resource.id,
+            label: resourceLabel(resource.resourceType),
+          })),
+          onValueChange: value => {
+            selectedResourceId = value
+          },
         },
       ]
-    : activeTab === 'releases'
+    : activeTab === 'notes' && versions[1]
       ? [
           {
-            icon: 'proicons:info',
-            id: 'releases-info',
-            infoDescription: m.source_tab_released_as_description(),
-            label: m.source_tab_released_as_info(),
+            icon: 'proicons:diff',
+            id: 'diff',
+            label: m.source_diff_since_last_release(),
+            onSelect: () => setShowNoteDiff(!showNoteDiff),
+            pressed: showNoteDiff,
           },
         ]
-      : activeTab === 'assembly'
+      : activeTab === 'releases'
         ? [
             {
               icon: 'proicons:info',
-              id: 'assembly-info',
-              infoDescription: m.source_tab_assembly_description(),
-              label: m.source_tab_assembly_info(),
+              id: 'releases-info',
+              infoDescription: m.source_tab_released_as_description(),
+              label: m.source_tab_released_as_info(),
             },
           ]
-        : activeTab === 'samples' &&
-            sourceRecordFamily &&
-            sourceRecordsAvailable !== false
+        : activeTab === 'assembly'
           ? [
               {
-                icon: 'ion:reload-outline',
-                id: 'more-samples',
-                label: m.source_show_more(),
-                onSelect: () => {
-                  sourceSampleRequest += 1
-                  trackClientProductUsage({
-                    event: 'client.sample_control',
-                    surface: 'source_release',
-                    entityType: 'action',
-                    entityId: version?.code ?? params.releaseCode,
-                  })
-                },
+                icon: 'proicons:info',
+                id: 'assembly-info',
+                infoDescription: m.source_tab_assembly_description(),
+                label: m.source_tab_assembly_info(),
               },
             ]
-          : activeTab === 'audit'
+          : activeTab === 'samples' &&
+              sourceRecordFamily &&
+              sourceRecordsAvailable !== false
             ? [
-                ...(bulkActions.length
-                  ? [
-                      {
-                        icon: 'ion:layers-outline',
-                        id: 'bulk',
-                        label: m.source_bulk_actions(),
-                        onSelect: () => {
-                          showBulkActions = !showBulkActions
-                          trackClientProductUsage({
-                            event: 'client.audit_control',
-                            surface: 'source_release',
-                            entityType: 'action',
-                            entityId: showBulkActions ? 'open_bulk' : 'close_bulk',
-                          })
-                        },
-                        pressed: showBulkActions,
-                      },
-                    ]
-                  : []),
-                sourceArchiveUrl
-                  ? {
-                      download: true,
-                      href: sourceArchiveUrl,
-                      icon: 'ion:download-outline',
-                      id: 'download',
-                      label: m.source_download_archive(),
-                      analyticsSurface: 'source_release',
-                    }
-                  : {
-                      disabled: true,
-                      icon: 'ion:download-outline',
-                      id: 'download',
-                      label: m.source_download_archive(),
-                    },
+                {
+                  id: 'include',
+                  label: m.source_samples_include(),
+                  value: sourceSampleInclude,
+                  options: [
+                    { value: '', label: m.source_samples_include_none() },
+                    { value: 'geometry', label: 'geometry' },
+                  ],
+                  onValueChange: value => {
+                    sourceSampleInclude = value
+                  },
+                },
+                {
+                  icon: 'ion:reload-outline',
+                  id: 'more-samples',
+                  label: m.source_show_more(),
+                  onSelect: () => {
+                    sourceSampleRequest += 1
+                    trackClientProductUsage({
+                      event: 'client.sample_control',
+                      surface: 'source_release',
+                      entityType: 'action',
+                      entityId: version?.code ?? params.releaseCode,
+                    })
+                  },
+                },
               ]
-            : [],
+            : activeTab === 'audit'
+              ? [
+                  sourceArchiveUrl
+                    ? {
+                        download: true,
+                        href: sourceArchiveUrl,
+                        icon: 'ion:download-outline',
+                        id: 'download',
+                        label: m.source_download_archive(),
+                        analyticsSurface: 'source_release',
+                      }
+                    : {
+                        disabled: true,
+                        icon: 'ion:download-outline',
+                        id: 'download',
+                        label: m.source_download_archive(),
+                      },
+                  ...(auditResourceTypes.length > 1
+                    ? [
+                        {
+                          id: 'audit-resource',
+                          label: m.source_resource_type(),
+                          value: selectedAuditResourceType,
+                          options: auditResourceTypes.map(resourceType => ({
+                            value: resourceType,
+                            label: resourceLabel(resourceType),
+                          })),
+                          onValueChange: (value: string) => {
+                            selectedAuditResourceType = value
+                          },
+                        },
+                      ]
+                    : []),
+                ]
+              : [],
 )
 let sourceReleaseLinksPresentation = $derived(
   buildSourceReleaseLinksPresentation(version?.releaseAs),
@@ -523,25 +572,22 @@ $effect(() => {
       bind:activeTab
     >
       {#if isContentLoading && contentResource.showSkeleton}
-        <ReleaseNav.ContentSkeleton
-          tab={activeTab}
-          diff={showNoteDiff}
-          linksVariant={activeTab === 'assembly' ? 'assembly' : 'releases'}
-        />
-      {:else if releaseQueryError}
-        <section
-          class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
-          role="alert"
+        <div
+          data-release-nav-loading-layer
+          transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}
         >
-          <p>{m.source_release_load_error()}</p>
-          <button
-            class="mt-3 font-semibold underline underline-offset-4"
-            onclick={() => void refreshRelease()}
-            type="button"
-          >
-            {m.source_retry()}
-          </button>
-        </section>
+          <ReleaseNav.ContentSkeleton
+            tab={activeTab}
+            diff={showNoteDiff}
+            linksVariant={activeTab === 'assembly' ? 'assembly' : 'releases'}
+          />
+        </div>
+      {:else if releaseQueryError}
+        <SourceReleaseLoadError
+          message={m.source_release_load_error()}
+          onRetry={refreshRelease}
+          retryLabel={m.source_retry()}
+        />
       {:else}
         <div
           class="h-full min-h-0"
@@ -572,8 +618,9 @@ $effect(() => {
             </div>
           {:else if activeTab === 'stats'}
             <ReleaseStats.Root
-              measures={content?.measures ?? []}
-              stats={version.stats}
+              isFirstRelease={!previousVersion}
+              resourceType={selectedResource?.resourceType ?? source.resourceTypes[0]}
+              stats={selectedResource?.stats ?? version.stats}
               {districtAreas}
               {locale}
               presentation={statsPresentation}
@@ -582,6 +629,9 @@ $effect(() => {
             />
           {:else if activeTab === 'schema' && sourceRecordFamily}
             <SourceRecordSchema
+              measures={content?.measures ?? []}
+              family={sourceRecordFamily}
+              sourceReleaseCode={version.code}
               resourceType={source.resourceTypes[0] ?? ''}
               source={source.publisherCode}
               sourceSchemaUrl={source.schemaURL}
@@ -589,8 +639,9 @@ $effect(() => {
               sourceVersion={version.sourceVersion}
             />
           {:else if activeTab === 'samples' && sourceRecordFamily}
-            {#key `${sourceRecordFamily}:${version.code}`}
+            {#key `${sourceRecordFamily}:${version.code}:${sourceSampleInclude}`}
               <SourceRecordSamples
+                includeGeometry={sourceSampleInclude === 'geometry'}
                 family={sourceRecordFamily}
                 onAvailabilityChange={available => (sourceRecordsAvailable = available)}
                 request={sourceSampleRequest}
@@ -598,17 +649,31 @@ $effect(() => {
               />
             {/key}
           {:else if activeTab === 'audit'}
-            <ReleaseAudit.Root
-              analyticsSurface="source_release"
-              actions={version.processingActions}
-              actionSections={auditData?.sections}
-              {bulkActions}
-              {locale}
-              {showBulkActions}
-              onLoadMoreSection={loadMoreAuditSection}
+            <ReleaseAudit.Audit
+              selectedResourceType={selectedAuditResourceType}
+              onResourceTypesChange={resourceTypes => {
+                auditResourceTypes = resourceTypes
+                if (!resourceTypes.includes(selectedAuditResourceType)) {
+                  selectedAuditResourceType = resourceTypes[0] ?? ''
+                }
+              }}
               bind:headings={auditHeadings}
               bind:activeHeadingId={activeAuditHeadingId}
-            />
+              datasetCode={params.datasetCode}
+              releaseCode={params.releaseCode}
+            >
+              <ReleaseAudit.Root
+                analyticsSurface="source_release"
+                actions={version.processingActions}
+                actionSections={auditData?.sections}
+                {bulkActions}
+                {locale}
+                {showBulkActions}
+                onLoadMoreSection={loadMoreAuditSection}
+                bind:headings={auditHeadings}
+                bind:activeHeadingId={activeAuditHeadingId}
+              />
+            </ReleaseAudit.Audit>
           {:else if activeTab === 'releases'}
             <ReleaseLinks.Root>
               <ReleaseLinks.Provenance
@@ -632,19 +697,11 @@ $effect(() => {
       {/if}
     </ReleaseNav.Root>
   {:else if releaseQueryError}
-    <section
-      class="rounded-md border border-error/30 bg-error-container px-5 py-4 font-body text-body-md text-on-error-container"
-      role="alert"
-    >
-      <p>{m.source_release_load_error()}</p>
-      <button
-        class="mt-3 font-semibold underline underline-offset-4"
-        onclick={() => void refreshRelease()}
-        type="button"
-      >
-        {m.source_retry()}
-      </button>
-    </section>
+    <SourceReleaseLoadError
+      message={m.source_release_load_error()}
+      onRetry={refreshRelease}
+      retryLabel={m.source_retry()}
+    />
   {:else}
     <SourceReleasePageSkeleton />
   {/if}

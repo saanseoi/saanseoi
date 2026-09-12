@@ -1,12 +1,26 @@
+import {
+  buildStatisticsApiStats,
+  listStatisticsStatsReleases,
+} from './statisticsApiReleaseSetStats'
+import { listApiReleaseSetSnapshots } from '@repo/core/db/metaRegistry'
 import { createHash } from 'node:crypto'
+import {
+  buildDivisionApiStats,
+  type DivisionHistoryTarget,
+} from './divisionApiReleaseSetStats'
+import { buildAddressApiReleaseSetChurn } from './addressApiReleaseSetStats'
 
 import {
   buildAddressApiReleaseSetStatsRows,
-  buildDivisionApiReleaseSetStatsRows,
   createLocaleStatsAccumulator,
+  type AddressDivisionQualityCounts,
   type StatsLocaleGroup,
-} from '@repo/core/pipeline/services/stats'
-import { resolveDistrictId } from '@repo/core/pipeline/services/division'
+} from '@repo/core/pipeline/services/metrics/releaseStats'
+import {
+  buildPlaceLocalisationStatistics,
+  type PlaceLocaleConflict,
+  type PlaceI18nRecord,
+} from '@repo/core/pipeline/services/places/place'
 import { replaceApiReleaseSetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -16,7 +30,7 @@ import { and, currentSchema, eq, sql } from '@repo/db'
 import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 import type { AnyColumn } from 'drizzle-orm'
 
-import type { LocalUploadProgress } from '../upload/localUploadProgress.ts'
+import type { OperationProgress } from '../cli/operationProgress.ts'
 import {
   appendPhaseDetails,
   colorRed,
@@ -24,7 +38,7 @@ import {
   formatCompletedPhaseLabel,
   formatDurationMs,
   formatRunningPhaseLabel,
-} from '../localPipeline/progressFormatting.ts'
+} from '../pipeline/local/progressFormatting.ts'
 
 type D1ExecBinding = {
   exec?(sql: string): Promise<unknown>
@@ -50,14 +64,16 @@ export type ApiReleaseSetStatsTarget = {
 
 type CalculateApiReleaseSetStatsOptions = {
   currentDb: HarbourReadableDb
-  family: 'address' | 'division'
+  historyTargets?: DivisionHistoryTarget[]
+  family: 'address' | 'division' | 'place' | 'statistics'
   harbourClient: HarbourClient
   importOptions: ApiReleaseSetStatsImportOptions
   metaDb: HarbourReadableDb & HarbourWritableDb
-  progress: LocalUploadProgress
+  progress: OperationProgress
   releaseCode?: string
   releaseId: string
   target: ApiReleaseSetStatsTarget
+  addressQuality?: AddressDivisionQualityCounts
 }
 
 type GroupCountRow = {
@@ -73,6 +89,48 @@ export function resolveApiReleaseSetStatsTarget(
   return {
     apiReleaseSetId: publishResult?.apiReleaseSetId,
     snapshotId: publishResult?.snapshotId,
+  }
+}
+
+/** A source snapshot may publish before the required API companion snapshots. */
+export function isApiReleaseSetStatsReady(
+  result: PublishDatasetResult | void | null | undefined,
+) {
+  return Boolean(
+    result?.apiReleaseSetId &&
+      result.snapshotId &&
+      result.apiReleaseSetStatus !== 'draft',
+  )
+}
+
+/** A compilation upload can publish several reference periods at once. */
+export async function calculateAndStorePublishedStatisticsStats(
+  options: Omit<CalculateApiReleaseSetStatsOptions, 'family' | 'target'>,
+  published: PublishDatasetResult | void,
+) {
+  if (!published) return
+  const codes = new Set(
+    published.apiReleaseSetPublications?.map(row => row.apiReleaseSetCode) ?? [],
+  )
+  if (isApiReleaseSetStatsReady(published) && published.apiReleaseSetCode)
+    codes.add(published.apiReleaseSetCode)
+  const releases = (await listStatisticsStatsReleases(options.metaDb)).filter(
+    row =>
+      codes.has(row.code) ||
+      (isApiReleaseSetStatsReady(published) && row.id === published.apiReleaseSetId),
+  )
+  for (const release of releases) {
+    const snapshots = (
+      await listApiReleaseSetSnapshots(options.metaDb, release.id)
+    ).filter(row => row.snapshotResourceType === 'divisionStatistic')
+    const snapshot =
+      snapshots.find(row => row.snapshotId === published.snapshotId) ?? snapshots[0]
+    if (!snapshot) throw new Error(`No Statistics snapshot for ${release.code}`)
+    await calculateAndStoreApiReleaseSetStats({
+      ...options,
+      family: 'statistics',
+      target: { apiReleaseSetId: release.id, snapshotId: snapshot.snapshotId },
+    })
   }
 }
 
@@ -109,9 +167,37 @@ export async function calculateAndStoreApiReleaseSetStats(
 
   try {
     const rows =
-      options.family === 'address'
-        ? await buildAddressApiReleaseSetStatsForSnapshot(options.currentDb, snapshotId)
-        : await buildDivisionStatsRows(options.currentDb, snapshotId)
+      options.family === 'statistics'
+        ? await buildStatisticsApiStats(
+            options.metaDb,
+            options.historyTargets ?? [],
+            apiReleaseSetId,
+          )
+        : options.family === 'address'
+          ? await (async () => {
+              const churn = await buildAddressApiReleaseSetChurn(
+                options.metaDb,
+                options.historyTargets ?? [],
+                apiReleaseSetId,
+              )
+              return buildAddressApiReleaseSetStatsForSnapshot(
+                options.currentDb,
+                snapshotId,
+                options.addressQuality,
+                churn,
+              )
+            })()
+          : options.family === 'division'
+            ? await buildDivisionApiStats(
+                options.metaDb,
+                options.historyTargets ?? [],
+                apiReleaseSetId,
+              )
+            : await buildPlaceStatsRows(
+                options.currentDb,
+                snapshotId,
+                await readPlaceLocaleConflicts(options.metaDb, options.releaseId),
+              )
 
     options.progress.update(1, {
       label: formatRunningPhaseLabel(colorTeal('Calculate'), colorRed('stats'), 1, 2),
@@ -184,6 +270,8 @@ export async function calculateAndStoreApiReleaseSetStats(
 export async function buildAddressApiReleaseSetStatsForSnapshot(
   db: HarbourReadableDb,
   snapshotId: string,
+  quality?: AddressDivisionQualityCounts,
+  churn?: Parameters<typeof buildAddressApiReleaseSetStatsRows>[0]['churn'],
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
   const [
     address2dCount,
@@ -195,6 +283,8 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
     areaLinkedCount,
     componentCounts,
     byDistrict,
+    unmatchedAreaCount,
+    unmatchedDistrictCount,
   ] = await Promise.all([
     countRows(
       db,
@@ -252,20 +342,51 @@ export async function buildAddressApiReleaseSetStatsForSnapshot(
       snapshotId,
       currentSchema.address2d.districtId,
     ),
+    countWhere(
+      db,
+      currentSchema.address2d,
+      and(
+        eq(currentSchema.address2d.snapshotId, snapshotId),
+        sql`${currentSchema.address2d.areaId} IS NULL`,
+      ),
+    ),
+    countWhere(
+      db,
+      currentSchema.address2d,
+      and(
+        eq(currentSchema.address2d.snapshotId, snapshotId),
+        sql`${currentSchema.address2d.districtId} IS NULL`,
+      ),
+    ),
   ])
   const localeStats = await buildAddressLocaleStats(db, snapshotId, address2dCount)
+  const unitStats = await db
+    .select({
+      count: sql<number>`COALESCE(SUM(${currentSchema.address3d.unitCount}), 0)`,
+    })
+    .from(currentSchema.address3d)
+    .where(eq(currentSchema.address3d.snapshotId, snapshotId))
+    .get()
 
   return buildAddressApiReleaseSetStatsRows({
     address2dCount,
     address2dI18nCount,
     address3dCount,
     address3dI18nCount,
+    address3dUnitCount: Number(unitStats?.count ?? 0),
     areaLinkedCount,
     byDistrict,
     componentCounts,
+    churn,
     districtLinkedCount,
     localeStats,
     missingStreetCount: Math.max(0, address2dCount - streetLinkedCount),
+    quality: quality ?? {
+      ambiguous_area_count: 0,
+      ambiguous_district_count: 0,
+      unmatched_area_count: unmatchedAreaCount,
+      unmatched_district_count: unmatchedDistrictCount,
+    },
     streetLinkedCount,
   })
 }
@@ -304,72 +425,313 @@ function countDistinctAddressComponent(column: unknown) {
   return sql<number>`count(distinct case when ${column} is not null then ${currentSchema.address2dI18n.addressId} end)`
 }
 
-async function buildDivisionStatsRows(
+async function buildPlaceStatsRows(
   db: HarbourReadableDb,
   snapshotId: string,
+  localeConflictsByPlace: Map<string, PlaceLocaleConflict[]> = new Map(),
 ): Promise<ApiReleaseSetScopedStatsRow[]> {
-  const [
-    divisionCount,
-    divisionI18nCount,
-    byDivisionType,
-    byLevel,
-    divisionRows,
-    localeStats,
-  ] = await Promise.all([
-    countRows(
-      db,
-      currentSchema.divisions,
-      currentSchema.divisions.snapshotId,
-      snapshotId,
-    ),
-    countRows(
-      db,
-      currentSchema.divisionsI18n,
-      currentSchema.divisionsI18n.snapshotId,
-      snapshotId,
-    ),
-    countGrouped(
-      db,
-      currentSchema.divisions,
-      currentSchema.divisions.snapshotId,
-      snapshotId,
-      currentSchema.divisions.type,
-    ),
-    countGrouped(
-      db,
-      currentSchema.divisions,
-      currentSchema.divisions.snapshotId,
-      snapshotId,
-      currentSchema.divisions.level,
-    ),
-    db
-      .select({
-        hierarchy: currentSchema.divisions.hierarchy,
-        id: currentSchema.divisions.id,
-        type: currentSchema.divisions.type,
-      })
-      .from(currentSchema.divisions)
-      .where(eq(currentSchema.divisions.snapshotId, snapshotId))
-      .all(),
-    buildDivisionLocaleStats(db, snapshotId),
-  ])
+  const [placeRows, i18nRows, addressLinkedCount, divisionLinkCount, localeCounts] =
+    await Promise.all([
+      db
+        .select({ id: currentSchema.places.id })
+        .from(currentSchema.places)
+        .where(eq(currentSchema.places.snapshotId, snapshotId))
+        .all(),
+      db
+        .select()
+        .from(currentSchema.placesI18n)
+        .where(eq(currentSchema.placesI18n.snapshotId, snapshotId))
+        .all(),
+      countWhere(
+        db,
+        currentSchema.places,
+        and(
+          eq(currentSchema.places.snapshotId, snapshotId),
+          sql`${currentSchema.places.address2dId} IS NOT NULL OR ${currentSchema.places.address3dId} IS NOT NULL`,
+        ),
+      ),
+      countRows(
+        db,
+        currentSchema.placesDivision,
+        currentSchema.placesDivision.placeSnapshotId,
+        snapshotId,
+      ),
+      countGrouped(
+        db,
+        currentSchema.placesI18n,
+        currentSchema.placesI18n.snapshotId,
+        snapshotId,
+        currentSchema.placesI18n.locale,
+      ),
+    ])
 
-  const byDistrict = new Map<string, number>()
-  for (const division of divisionRows) {
-    const districtId = resolveDistrictId(division)
-    if (districtId) byDistrict.set(districtId, (byDistrict.get(districtId) ?? 0) + 1)
+  const timestamp = new Date().toISOString()
+  const typedPlaceRows = placeRows as Array<{ id: string }>
+  const typedI18nRows = i18nRows as Array<{
+    placeId: string
+    locale: string
+    name: string | null
+    nameAlts: string | null
+    nameVariant: unknown
+    brandName: string | null
+    brandNameAlts: string | null
+    brandNameVariant: unknown
+    freeformAddress: string | null
+    provenance: unknown
+  }>
+  const placeCount = typedPlaceRows.length
+  const i18nCount = typedI18nRows.length
+  const i18nByPlace = new Map<string, typeof typedI18nRows>()
+  for (const row of typedI18nRows) {
+    const rows = i18nByPlace.get(row.placeId) ?? []
+    rows.push(row)
+    i18nByPlace.set(row.placeId, rows)
   }
+  const localisationStats = buildPlaceLocalisationStatistics(
+    typedPlaceRows.map(place => ({
+      id: place.id,
+      localeConflicts: localeConflictsByPlace.get(place.id) ?? [],
+      i18n: (i18nByPlace.get(place.id) ?? []).map(row => ({
+        locale: row.locale,
+        name: row.name,
+        nameAlts: row.nameAlts,
+        nameVariant: row.nameVariant as string[] | null,
+        brandName: row.brandName,
+        brandNameAlts: row.brandNameAlts,
+        brandNameVariant: row.brandNameVariant as string[] | null,
+        freeformAddress: row.freeformAddress,
+        provenance: (row.provenance ?? {
+          isMachineTranslated: [],
+          isHumanVerified: [],
+          isLocaleInferred: false,
+        }) as PlaceI18nRecord['provenance'],
+      })),
+    })),
+  )
+  const localisedPlaceCount = typedPlaceRows.filter(
+    place => (i18nByPlace.get(place.id)?.length ?? 0) > 0,
+  ).length
+  const rows: ApiReleaseSetScopedStatsRow[] = [
+    placeStatsRow('records', 'count', 'count', placeCount, timestamp),
+    placeStatsRow(
+      'localised_records',
+      'count',
+      'count',
+      localisedPlaceCount,
+      timestamp,
+    ),
+    placeStatsRow('localised_rows', 'count', 'count', i18nCount, timestamp),
+    placeStatsRow('address_links', 'count', 'count', addressLinkedCount, timestamp),
+    placeStatsRow('division_links', 'count', 'count', divisionLinkCount, timestamp),
+  ]
+  for (const [locale, count] of localeCounts) {
+    rows.push(
+      placeStatsRow('localised_records', 'count', 'count', count, timestamp, {
+        groupBy: 'locale',
+        groupValue: locale,
+      }),
+    )
+  }
+  for (const [fieldLocale, stats] of localisationStats.fields) {
+    const [field, locale] = fieldLocale.split('\u0000')
+    const groupValue = `${field}:${locale}`
+    rows.push(
+      placeStatsRow(
+        'localisation_value_count',
+        'count',
+        'count',
+        stats.valueCount,
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.valueCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_provided_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.providedCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_inferred_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.inferredCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_ai_translated_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.aiTranslatedCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_human_translated_coverage',
+        'coverage',
+        'percentage',
+        percentage(stats.humanTranslatedCount, placeCount),
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_conflict_count',
+        'count',
+        'count',
+        stats.conflictCount,
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+      placeStatsRow(
+        'localisation_missing_value_count',
+        'count',
+        'count',
+        stats.missingCount,
+        timestamp,
+        {
+          groupBy: 'field_locale',
+          groupValue,
+        },
+      ),
+    )
+  }
+  rows.push(
+    placeStatsRow(
+      'reference_name_count',
+      'count',
+      'count',
+      localisationStats.referenceNameCount,
+      timestamp,
+    ),
+    placeStatsRow(
+      'reference_name_coverage',
+      'coverage',
+      'percentage',
+      percentage(localisationStats.referenceNameCount, placeCount),
+      timestamp,
+    ),
+    placeStatsRow(
+      'bilingual_reference_name_count',
+      'count',
+      'count',
+      localisationStats.bilingualReferenceNameCount,
+      timestamp,
+    ),
+    placeStatsRow(
+      'bilingual_reference_name_coverage',
+      'coverage',
+      'percentage',
+      percentage(localisationStats.bilingualReferenceNameCount, placeCount),
+      timestamp,
+    ),
+  )
+  return rows
+}
 
-  localeStats.total = divisionCount
+async function readPlaceLocaleConflicts(metaDb: HarbourReadableDb, releaseId: string) {
+  const rows = await readReleaseAuditDecisions(
+    metaDb,
+    [releaseId],
+    'overture_place_locale_conflict',
+  )
+  const conflictsByPlace = new Map<string, PlaceLocaleConflict[]>()
+  for (const row of rows) {
+    const evidence = row.evidence
+    if (!evidence || typeof evidence !== 'object') continue
+    const value = evidence as Record<string, unknown>
+    const placeId = typeof value.placeId === 'string' ? value.placeId : null
+    const field =
+      value.field === 'brandName'
+        ? 'brand'
+        : value.field === 'name' || value.field === 'freeformAddress'
+          ? value.field
+          : null
+    const script =
+      value.script === 'han' ||
+      value.script === 'latin' ||
+      value.script === 'mixed' ||
+      value.script === 'other'
+        ? value.script
+        : null
+    if (
+      !placeId ||
+      !field ||
+      typeof value.resolvedLocale !== 'string' ||
+      !script ||
+      value.conflict !== true ||
+      typeof value.sourceText !== 'string'
+    )
+      continue
+    const conflict: PlaceLocaleConflict = {
+      field,
+      sourceLocale: typeof value.sourceLocale === 'string' ? value.sourceLocale : null,
+      resolvedLocale: value.resolvedLocale,
+      script,
+      conflict: true,
+      reason: typeof value.reason === 'string' ? value.reason : null,
+      sourceText: value.sourceText,
+    }
+    const existing = conflictsByPlace.get(placeId) ?? []
+    existing.push(conflict)
+    conflictsByPlace.set(placeId, existing)
+  }
+  return conflictsByPlace
+}
 
-  return buildDivisionApiReleaseSetStatsRows({
-    byDistrict,
-    byDivisionType,
-    byLevel,
-    divisionCount,
-    divisionI18nCount,
-    localeStats,
-  })
+function percentage(value: number, total: number) {
+  return total === 0 ? 0 : Number(((value / total) * 100).toFixed(2))
+}
+
+function placeStatsRow(
+  dimension: string,
+  metric: string,
+  metricUnit: string,
+  value: number,
+  timestamp: string,
+  grouping?: { groupBy: string; groupValue: string },
+): ApiReleaseSetScopedStatsRow {
+  return {
+    createdAt: timestamp,
+    dimension,
+    groupBy: grouping?.groupBy ?? null,
+    groupValue: grouping?.groupValue ?? null,
+    metric,
+    metricUnit,
+
+    updatedAt: timestamp,
+    value,
+  }
 }
 
 async function buildAddressLocaleStats(
@@ -401,75 +763,6 @@ async function buildAddressLocaleStats(
     stats.count.set(group, count)
     stats.providedCoverage.set(group, count)
   }
-
-  return stats
-}
-
-async function buildDivisionLocaleStats(db: HarbourReadableDb, snapshotId: string) {
-  const stats = createLocaleStatsAccumulator()
-  const [coverageRows, provenanceRows, altRows] = await Promise.all([
-    db
-      .select({
-        count: sql<number>`count(distinct ${currentSchema.divisionsI18n.divisionId})`,
-        groupValue: currentSchema.divisionsI18n.locale,
-      })
-      .from(currentSchema.divisionsI18n)
-      .where(
-        and(
-          eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-          sql`${currentSchema.divisionsI18n.name} IS NOT NULL`,
-        ),
-      )
-      .groupBy(currentSchema.divisionsI18n.locale)
-      .all(),
-    db
-      .select({
-        count: sql<number>`count(distinct ${currentSchema.divisionsI18n.divisionId})`,
-        groupValue: currentSchema.divisionsI18n.locale,
-        provenance: sql<string>`coalesce(${currentSchema.divisionsI18n.nameProvenance}, case when ${currentSchema.divisionsI18n.isLocaleInferred} then 'inferred' else 'provided' end)`,
-      })
-      .from(currentSchema.divisionsI18n)
-      .where(
-        and(
-          eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-          sql`${currentSchema.divisionsI18n.name} IS NOT NULL`,
-        ),
-      )
-      .groupBy(
-        currentSchema.divisionsI18n.locale,
-        currentSchema.divisionsI18n.nameProvenance,
-        currentSchema.divisionsI18n.isLocaleInferred,
-      )
-      .all(),
-    db
-      .select({
-        count: sql<number>`count(distinct ${currentSchema.divisionsI18n.divisionId})`,
-        groupValue: currentSchema.divisionsI18n.locale,
-      })
-      .from(currentSchema.divisionsI18n)
-      .where(
-        and(
-          eq(currentSchema.divisionsI18n.snapshotId, snapshotId),
-          sql`${currentSchema.divisionsI18n.nameAlts} IS NOT NULL`,
-        ),
-      )
-      .groupBy(currentSchema.divisionsI18n.locale)
-      .all(),
-  ])
-
-  applyLocaleCountRows(stats.count, coverageRows)
-  for (const row of provenanceRows) {
-    const map =
-      row.provenance === 'inferred'
-        ? stats.inferredCoverage
-        : row.provenance === 'ai-translated'
-          ? stats.aiTranslatedCoverage
-          : row.provenance === 'human-translated'
-            ? stats.humanTranslatedCoverage
-            : stats.providedCoverage
-    applyLocaleCountRows(map, [row])
-  }
-  applyLocaleCountRows(stats.altCoverage, altRows)
 
   return stats
 }
@@ -557,11 +850,9 @@ function buildStatsSql(apiReleaseSetId: string, rows: ApiReleaseSetScopedStatsRo
     `DELETE FROM stats WHERE apiReleaseSetId = ${sqlLiteral(apiReleaseSetId)};`,
     ...rows.map(row =>
       [
-        'INSERT INTO stats (id, type, releaseId, snapshotId, apiReleaseSetId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt) VALUES (',
+        'INSERT INTO stats (id, releaseId, apiReleaseSetId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt) VALUES (',
         [
           crypto.randomUUID(),
-          row.type,
-          null,
           null,
           apiReleaseSetId,
           row.dimension,
@@ -579,19 +870,6 @@ function buildStatsSql(apiReleaseSetId: string, rows: ApiReleaseSetScopedStatsRo
       ].join(''),
     ),
   ].join('\n')
-}
-
-function applyLocaleCountRows(
-  target: Map<StatsLocaleGroup, number>,
-  rows: GroupCountRow[],
-) {
-  for (const row of rows) {
-    const group = toStatsLocaleGroup(String(row.groupValue))
-
-    if (group) {
-      target.set(group, Number(row.count ?? 0))
-    }
-  }
 }
 
 function toStatsLocaleGroup(locale: string): StatsLocaleGroup | null {
@@ -629,3 +907,4 @@ function sqlLiteral(value: boolean | number | string | null | undefined) {
 
   return `'${value.replaceAll("'", "''")}'`
 }
+import { readReleaseAuditDecisions } from '@repo/core/pipeline/db/processingActionStorage'

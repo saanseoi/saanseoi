@@ -1,18 +1,15 @@
 {
-  "versionHash": "sha256:aa1a5eff190c289bb3f355bae943026960253f56663aae0e09fc94ae2e15140b",
+  "versionHash": "sha256:7c23c73b699d943482ccf172029743fe054b7857363897c2d8156c5b08b2c238",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",
   "theme": "divisions",
-  "subType": "new-town",
+  "kind": "new-town",
   "sourceVariant": "hkgov-pland-new-town",
   "sourceCrs": "EPSG:4326",
-  "resourceTypes": [
-    "division",
-    "divisionArea"
-  ],
+  "resourceTypes": ["division", "divisionArea"],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Planning Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865",
@@ -68,6 +65,64 @@
       "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=pland_rcd_1634023103904_16865"
     }
   ],
+  "transforms": [
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2006",
+      "outputVariant": "hkgov-pland-new-town:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2011",
+      "outputVariant": "hkgov-pland-new-town:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2016",
+      "outputVariant": "hkgov-pland-new-town:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    },
+    {
+      "code": "simplified",
+      "resourceType": "divisionArea",
+      "sourceVersion": "2021",
+      "outputVariant": "hkgov-pland-new-town:simplified",
+      "derivation": {
+        "method": "topology-preserving-simplification",
+        "inputGeometryProjection": "EPSG:4326",
+        "workingProjection": "wgs84-interface-local-equirectangular",
+        "sharedBoundaryPolicy": "geos-coverage-simplification",
+        "toleranceMetres": 10,
+        "preservesPublisherGeometry": true
+      }
+    }
+  ],
   "category": "boundaries",
   "i18n": [
     {
@@ -84,6 +139,16 @@
       "locale": "zh-hans",
       "name": "新市镇规划分区（香港）",
       "description": "由规划署发布的香港新市镇规划分区资料。"
+    }
+  ],
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-division-hkgov-pland-new-town-merge-v1",
+      "operationCodes": [
+        "resolve-geography-identities",
+        "normalise-planning-divisions",
+        "provenance_division_area_geometry"
+      ]
     }
   ]
 }

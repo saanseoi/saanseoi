@@ -3,6 +3,11 @@
 source (command dirname (status filename))/common.fish
 init_configure "saanseoi init:divisions:geographic" $argv
 
+# A statistics reset can retract compositions while retaining Overture sources.
+# Recreate their draft sets before C&SD companions select their target cohorts.
+init_run_step ./bin/saanseoi release-sets:reconcile \
+    --target $saanseoi_init_target --api-family divisions --region hk
+
 set -l root "$saanseoi_init_repo/data/overture"
 set -l releases \
     2025-09-24.0 \
@@ -17,6 +22,9 @@ set -l releases \
     2026-06-17.0 \
     2026-07-22.0 \
     2026-08-19.0
+if test "$SAANSEOI_INIT_MINIMAL" = 1
+    set releases $releases[1..2]
+end
 set -l had_uploaded 0
 set -l defer_release_set_args --defer-api-release-set
 
@@ -72,42 +80,44 @@ for year in 2016 2021
 
     # A standard C&SD upload also publishes its simplified display-geometry
     # companion. Do not explicitly upload --transform simplified again.
-    init_run_upload "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-$year" "$file" \
+    set -l historical_cohort_args
+    if test "$year" = 2016
+        set historical_cohort_args --allow-historical-cohort
+    end
+    init_run_upload "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-$year::divisionArea" "$file" \
         --dataset-code ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district \
         --source hkgov-censtatd --source-version $year \
         --type divisionArea --theme divisions --region hk --cohort-key $year \
-        --yes $defer_release_set_args
+        --yes $historical_cohort_args $defer_release_set_args
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
 
 # The Permanent Living Quarters C&SD source derives the required hkgov-censtatd-area geometry
 # after the Overture canonical divisions are available. It must precede draft
 # release-set reconciliation so the first initialisation run can publish them.
-set -l censtatd_area_archive \
-    "$saanseoi_init_repo/data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/81e2fd2c5aaeadaaf1c651a4b6d42f37f5cd7812fce2437303fa5054d978aa4a-source.zip"
-set -l censtatd_area_manifest "$censtatd_area_archive.manifest.json"
-if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest"
-    # A cache miss is recoverable: force the CSDI archive updater to retrieve
-    # and prepare the publisher ZIP, but defer ingestion until the normal
-    # update pass below. The dataops replay mirrors the prepared archive to the
-    # selected target before attempting to link its derived source releases.
-    init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
-        --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
-        --download --force-download --no-upload --yes
-end
-if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest"
-    echo "C&SD Permanent Living Quarters input file not found: $censtatd_area_archive" >&2
-    exit 1
-end
-# Materialise the Statistics snapshot before the geometry-only companion. The
-# latter registers the same source release, so waiting for the later
-# Stats-only initialiser would make the statistics intake appear current and
-# leave this cohort without an API snapshot.
 set -l censtatd_area_release_code \
     dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2
-if test "$saanseoi_init_continue" -eq 1; and init_is_completed_release "$censtatd_area_release_code"
-    echo "Skipping completed release $censtatd_area_release_code."
-else
+if not init_is_completed_release "$censtatd_area_release_code::divisionStatistic"; or not init_is_completed_release "$censtatd_area_release_code::divisionArea"
+    set -l censtatd_area_archive \
+        "$saanseoi_init_repo/data/hkgov/csdi/archive/censtatd_rcd_1635933883228_46491/2023-Q4/81e2fd2c5aaeadaaf1c651a4b6d42f37f5cd7812fce2437303fa5054d978aa4a-source.zip"
+    set -l censtatd_area_manifest "$censtatd_area_archive.manifest.json"
+    if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest"
+        # A cache miss is recoverable: force the CSDI archive updater to retrieve
+        # and prepare the publisher ZIP, but defer ingestion until the normal
+        # update pass below. The dataops replay mirrors the prepared archive to the
+        # selected target before attempting to link its derived source releases.
+        init_run_step ./bin/saanseoi update --target $saanseoi_init_target \
+            --dataset ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
+            --download --force-download --no-upload --yes
+    end
+    if not test -f "$censtatd_area_archive"; or not test -f "$censtatd_area_manifest"
+        echo "C&SD Permanent Living Quarters input file not found: $censtatd_area_archive" >&2
+        exit 1
+    end
+    # Materialise the Statistics snapshot before the geometry-only companion. The
+    # latter registers the same source release, so waiting for the later
+    # Stats-only initialiser would make the statistics intake appear current and
+    # leave this cohort without an API snapshot.
     init_run_step bun run --silent dataops -- hkgov-censtatd:statistics \
         "$censtatd_area_archive" --target $saanseoi_init_target \
         --dataset-code ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters \
@@ -117,6 +127,10 @@ else
         --source-archive-sha256 f481982c28e83faf0c470e3093146b146921e10739c6c455fe8d08cd31841070 \
         --defer-stats-release-set --include-geography --defer-api-release-set --yes
     set -g saanseoi_init_docs_pending 1
+else
+    for resource_type in divisionStatistic divisionArea
+        init_skip_completed_release "$censtatd_area_release_code::$resource_type"
+    end
 end
 
 # A resumed initialiser may skip C&SD releases that are already published.

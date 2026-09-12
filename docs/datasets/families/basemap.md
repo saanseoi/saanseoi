@@ -4,6 +4,29 @@ SaanSeoi's regional PMTiles archives are a generated base-geography family, sepa
 from the API resource families. Their input and publication process is documented in
 [basemap tiles](../../tiles.md).
 
+Source-archive metadata hashes OSM files as a stream, without retaining the complete
+archive in memory. Size, file identity and modification metadata are checked across the
+read; a detected change stops archiving.
+
+Remote object reads use temporary files and replace local artefacts only after a
+successful download. Only an explicit missing-object response permits an absent
+catalogue or source; authentication, transport and empty-diagnostic failures stop the
+workflow without discarding retained files.
+
+Generated archives have checksummed local build checkpoints. The build identity covers
+the regional source PBF, clip and coastline file digests, region, image and repository
+provenance. Matching completed builds reuse their archive and original provenance.
+Inputs are checked again after generation. Builds write a temporary archive and replace
+the destination only after success; `--force` explicitly rebuilds. Missing checkpoints,
+changed inputs or changed archive bytes stop implicit reuse. Source/coastline
+preparation and remote publication remain separate stages.
+
+Catalogue completion has a separate durable intent. After the regional release is
+recorded, retries can finish interrupted global catalogue writes without replaying
+artefact uploads. Exact regional-entry and latest-selection checks prevent stale
+completion intents from selecting another release. Publication is serialised within the
+workspace; deployment operations require a single publishing workspace.
+
 ## Schema contract
 
 The vector-layer schema is versioned as `protomaps-v2.N`: it starts from Protomaps

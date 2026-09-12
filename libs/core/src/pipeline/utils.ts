@@ -2,9 +2,6 @@ const SQLITE_BUSY_RETRY_LIMIT = 3
 const SQLITE_BUSY_RETRY_DELAY_MS = 250
 const D1_MAX_SQL_VARIABLES = 99
 const D1_WRITE_STATEMENT_BATCH_SIZE = 50
-const CHINESE_CHARACTER_RE = /\p{Script=Han}/u
-const LATIN_ALPHA_RE = /[A-Za-z]/
-const EN_INFERRED_NAME_RE = /^[A-Za-z0-9\s'".,&()\-/]+$/
 const LOCALE_TAG_RE = /^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i
 
 /**
@@ -228,59 +225,7 @@ export function normaliseLocale(value?: string | null) {
   return trimmed
 }
 
-export type InferredLocaleValue = {
-  locale: 'en' | 'zh-hans' | 'zh-hant'
-  value: string
-}
-
-/**
- * Infers locale-bearing name parts from unlabeled source text.
- */
-export function inferLocale(value: unknown): InferredLocaleValue[] {
-  const normalisedValue = asNonEmptyString(value)
-
-  if (!normalisedValue) {
-    return []
-  }
-
-  const hasChinese = CHINESE_CHARACTER_RE.test(normalisedValue)
-  const hasLatin = LATIN_ALPHA_RE.test(normalisedValue)
-
-  if (hasChinese && !hasLatin) {
-    return [{ locale: 'zh-hant', value: normalisedValue }]
-  }
-
-  if (!hasChinese && EN_INFERRED_NAME_RE.test(normalisedValue)) {
-    return [{ locale: 'en', value: normalisedValue }]
-  }
-
-  if (hasChinese && hasLatin) {
-    const match = normalisedValue.match(/^(\S+)\s+(.+)$/u)
-
-    if (match) {
-      const left = match[1]
-      const right = match[2]
-
-      if (!left || !right) {
-        return []
-      }
-
-      const hasChineseLeft = CHINESE_CHARACTER_RE.test(left)
-      const hasLatinLeft = LATIN_ALPHA_RE.test(left)
-      const hasChineseRight = CHINESE_CHARACTER_RE.test(right)
-      const hasLatinRight = LATIN_ALPHA_RE.test(right)
-
-      if (hasChineseLeft && !hasLatinLeft && !hasChineseRight && hasLatinRight) {
-        return [
-          { locale: 'zh-hant', value: left },
-          { locale: 'en', value: right },
-        ]
-      }
-    }
-  }
-
-  return []
-}
+export { inferLocale, type InferredLocaleValue } from './localeInference'
 
 /**
  * Returns a trimmed string or null when the input is empty or not a string.

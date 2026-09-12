@@ -2,7 +2,7 @@ import { index, integer, text } from 'drizzle-orm/sqlite-core'
 import { jsonText, timestamps } from '../shared'
 
 /**
- * A publisher or ingestion reference supporting a source assertion.
+ * A publisher or ingestion reference supporting a source record.
  *
  * `dataset` is the shared minimum. Source-specific keys preserve publisher
  * attribution and immutable ingestion evidence without a schema migration.
@@ -12,11 +12,13 @@ export type SourceReference = {
   [key: string]: unknown
 }
 
-export const sourceReferences = () => jsonText<SourceReference[]>('sources').notNull()
+/** Null when no publisher or ingestion evidence is supplied; never a self-reference. */
+export const sourceReferences = () => jsonText<SourceReference[]>('sources')
 
 export const sourceVersioning = {
   versionHash: text('versionHash').notNull(),
   releaseId: text('releaseId').notNull(),
+  // Version components within the owning source dataset, never full release codes.
   validFromRelease: text('validFromRelease').notNull(),
   validToRelease: text('validToRelease'),
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
@@ -31,72 +33,38 @@ export function sourceVersionedRecordColumns() {
   }
 }
 
-/** A versioned publisher assertion with required source provenance. */
+/** A versioned publisher source record with optional source provenance. */
 export function sourceVersionedAssertionColumns() {
-  return {
-    ...sourceVersionedRecordColumns(),
-    sources: sourceReferences(),
-  }
-}
-
-/**
- * Columns shared by an immutable publisher-source assertion. Use this for
- * tabular publisher records; source geometry is deliberately optional.
- */
-export function sourceAssertionColumns() {
   return {
     sourceRecordId: text('sourceRecordId').notNull(),
     sources: sourceReferences(),
-    rawProperties: jsonText('rawProperties'),
-    version: integer('version'),
     ...sourceVersioning,
   }
 }
 
-/** Adds the required native geometry to a versioned source assertion. */
+/**
+ * Columns shared by an immutable publisher-source record. Use this for
+ * tabular publisher records; source geometry is deliberately optional.
+ * Publisher attributes, including publisher record versions, belong in properties, without parallel extracted or
+ * canonical columns. Additional columns represent source identity, provenance,
+ * native relationships or separately retained evidence, not canonical projections.
+ */
+export function sourceAssertionColumns() {
+  return {
+    sourceRecordId: text('sourceRecordId').notNull(),
+    sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
+    properties: jsonText('properties'),
+    ...sourceVersioning,
+  }
+}
+
+/** Adds the required native geometry to a versioned source record. */
 export function sourceSpatialAssertionColumns() {
   return {
     ...sourceAssertionColumns(),
     sourceGeometry: jsonText('sourceGeometry').notNull(),
   }
 }
-
-/**
- * Immutable source-release branch membership. Unlike legacy source tables,
- * this does not infer a linear validity range: release revisions are retained
- * as separate branches and selected explicitly by snapshot composition.
- */
-export const sourceReleaseRevisioning = {
-  versionHash: text('versionHash').notNull(),
-  releaseId: text('releaseId').notNull(),
-  ...timestamps,
-}
-
-/** A source child row retained independently for every release revision. */
-export function sourceReleaseRevisionRecordColumns() {
-  return {
-    sourceRecordId: text('sourceRecordId').notNull(),
-    ...sourceReleaseRevisioning,
-  }
-}
-
-/** A release-revision source assertion with required source provenance. */
-export function sourceReleaseRevisionAssertionColumns() {
-  return {
-    ...sourceReleaseRevisionRecordColumns(),
-    sources: sourceReferences(),
-  }
-}
-
-export const sourceReleaseRevisionIndexes = <
-  TTable extends { releaseId: unknown; sourceRecordId: unknown },
->(
-  table: TTable,
-  prefix: string,
-) => [
-  index(`${prefix}_releaseId_idx`).on(table.releaseId as never),
-  index(`${prefix}_sourceRecordId_idx`).on(table.sourceRecordId as never),
-]
 
 export const sourceVersionIndexes = <
   TTable extends {
@@ -121,3 +89,16 @@ export const sourceVersionIndexes = <
     table.validToRelease as never,
   ),
 ]
+
+/** Streets retains its separate source provenance contract. */
+export function streetSourceAssertionColumns() {
+  const { sourceLocator: _locator, ...columns } = sourceAssertionColumns()
+  return { ...columns, sources: sourceReferences() }
+}
+
+export function streetSourceSpatialAssertionColumns() {
+  return {
+    ...streetSourceAssertionColumns(),
+    sourceGeometry: jsonText('sourceGeometry').notNull(),
+  }
+}

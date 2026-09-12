@@ -325,7 +325,7 @@ test('rejects overlapping dataset and API-family selectors', async () => {
   ).rejects.toThrow('either --dataset or --api-family')
 })
 
-test('left-aligns publisher/resource columns and right-aligns versions for a 120-column terminal', () => {
+test('aligns publisher, resource, status and versions within a 120-column terminal', () => {
   const line = formatCheckLine(
     {
       code: 'ds-hk-hkgov-censtatd-division-area-district',
@@ -340,10 +340,10 @@ test('left-aligns publisher/resource columns and right-aligns versions for a 120
     '2026-03-05.0',
   )
 
-  expect(line).toContain('CenstatD   ∷ DivisionArea     ∷ District')
-  expect(line).not.toContain('NEW')
-  expect(line).toEndWith(' v2026-06-05.0 ←  v2026-03-05.0')
-  expect(line).toHaveLength(120)
+  expect(line).toContain('CenstatD   DivisionArea      District')
+  expect(line).toContain('NEW')
+  expect(line).toEndWith(' v2026-06-05.0 ← v2026-03-05.0')
+  expect(line.length).toBeLessThanOrEqual(120)
 })
 
 test('shows a matching source and local version once', () => {
@@ -360,7 +360,7 @@ test('shows a matching source and local version once', () => {
     '2021',
     '2021.0',
   )
-  expect(line).toEndWith('SAME         v2021.0')
+  expect(line).toEndWith('SAME                      v2021.0')
   expect(line).not.toContain('=')
   expect(line).not.toContain('vlatest')
 })
@@ -485,7 +485,7 @@ test('reports each completed download with its dataset and release context', () 
   expect(line).toContain('(1s, 559KB)')
 })
 
-test('renders every configured release while showing the dataset label once', () => {
+test('renders every configured release in aligned dataset rows', () => {
   const dataset = {
     code: 'ds-hk-hkgov-censtatd-division-area-district',
     publisherCode: 'hkgov-censtatd',
@@ -518,13 +518,13 @@ test('renders every configured release while showing the dataset label once', ()
   )
 
   const [first = '', second = ''] = line.split('\n')
-  expect(first).toContain('CenstatD   ∷ DivisionArea     ∷ District')
-  expect(first).toEndWith('no updates         v2021.0')
-  expect(second).toEndWith('no updates         v2016.0')
-  expect(second).toStartWith('│ ')
+  expect(first).toContain('CenstatD   DivisionArea      District')
+  expect(first).toEndWith('no updates                v2021.0')
+  expect(second).toEndWith('no updates                v2016.0')
+  expect(second).toStartWith('CenstatD')
   expect(line).not.toContain('=')
-  expect(first).toHaveLength(120)
-  expect(second).toHaveLength(123)
+  expect(first.length).toBeLessThanOrEqual(120)
+  expect(second.length).toBeLessThanOrEqual(120)
 })
 
 test('labels a discovered source with no target release as missing', () => {
@@ -544,7 +544,7 @@ test('labels a discovered source with no target release as missing', () => {
   )
 
   expect(line).toContain('MISSING')
-  expect(line).toEndWith('v2026-Q2.0               —')
+  expect(line).toEndWith('v2026-Q2.0')
 })
 
 test('shows the matching target version for a CSDI archive release', () => {
@@ -571,7 +571,7 @@ test('shows the matching target version for a CSDI archive release', () => {
     new Map([['2021', '2021.0']]),
   )
 
-  expect(line).toEndWith('no updates         v2021.0')
+  expect(line).toEndWith('no updates                v2021.0')
 })
 
 test('shows an ingested archive release as current in the completion summary', () => {
@@ -642,8 +642,8 @@ test('shows both published C&SD district-statistic source releases as current', 
     ]),
   )
 
-  expect(line).toContain('no updates         v2022.0')
-  expect(line).toContain('no updates         v2024.0')
+  expect(line).toContain('no updates                v2022.0')
+  expect(line).toContain('no updates                v2024.0')
 })
 
 test('uses the dataset target version for an unversioned CSDI archive', () => {
@@ -669,7 +669,7 @@ test('uses the dataset target version for an unversioned CSDI archive', () => {
     new Map([[dataset.code, '2026-07-22.0']]),
   )
 
-  expect(line).toEndWith('no updates               —   v2026-07-22.0')
+  expect(line).toEndWith('no updates                v2026-07-22.0')
 })
 
 test('keeps each incremental release paired with its preceding target version', () => {
@@ -703,8 +703,8 @@ test('keeps each incremental release paired with its preceding target version', 
   )
 
   const [first = '', second = ''] = line.split('\n')
-  expect(first).toEndWith(' v2026-07-03.0 ←  v2026-06-17.0')
-  expect(second).toEndWith(' v2026-07-17.0 ←  v2026-07-03.0')
+  expect(first).toEndWith(' v2026-07-03.0 ← v2026-06-17.0')
+  expect(second).toEndWith(' v2026-07-17.0 ← v2026-07-03.0')
 })
 
 test('labels LandsD ingestion as a chronological step instead of a generic download', () => {
@@ -775,7 +775,7 @@ test('treats a partial target report as authoritative for every release cohort',
     publisherCode: 'example',
     regionCode: 'hk',
     theme: 'places',
-    type: 'place',
+    resourceType: 'place',
     versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     releases: [
       { sourceVersion: '2021', sourceUrl: 'https://example.test/2021' },
@@ -802,7 +802,7 @@ test('treats a failed target release as a missing cohort that must be retried', 
     publisherCode: 'example',
     regionCode: 'hk',
     theme: 'places',
-    type: 'place',
+    resourceType: 'place',
     versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     releases: [{ sourceVersion: '2021', sourceUrl: 'https://example.test/2021' }],
   } satisfies DatasetFixture
@@ -817,6 +817,77 @@ test('treats a failed target release as a missing cohort that must be retried', 
   )
 })
 
+test('geometry publication cannot hide a missing statistics release', () => {
+  const dataset = {
+    code: 'ds-example',
+    publisherCode: 'example',
+    regionCode: 'hk',
+    theme: 'stats',
+    resourceTypes: ['divisionStatistic', 'divisionArea'],
+    versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
+    releases: [{ sourceVersion: '2021', sourceUrl: 'https://example.test/2021' }],
+  } satisfies DatasetFixture
+  const geometry = { sourceVersion: '2021', status: 'published', type: 'divisionArea' }
+  expect(targetVersionsFromReport(dataset, [geometry]).get('2021')).toBeNull()
+  expect(
+    targetVersionsFromReport(dataset, [
+      { ...geometry, hasStatisticsSnapshot: true },
+    ]).get('2021'),
+  ).toBe('2021')
+  expect(
+    targetVersionsFromReport(dataset, [
+      geometry,
+      { ...geometry, resourceType: 'divisionStatistic' },
+    ]).get('2021'),
+  ).toBe('2021')
+})
+
+test('statistics with requested geography requires every declared resource in the same cohort', () => {
+  const dataset = {
+    code: 'ds-example',
+    publisherCode: 'example',
+    regionCode: 'hk',
+    theme: 'stats',
+    resourceTypes: ['divisionStatistic', 'division', 'divisionArea'],
+    versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
+    releases: [{ sourceVersion: '2021', sourceUrl: 'https://example.test/2021' }],
+  } satisfies DatasetFixture
+  const stats = {
+    sourceVersion: '2021',
+    status: 'published',
+    resourceType: 'divisionStatistic',
+  }
+  const division = { ...stats, resourceType: 'division' }
+  const area = { ...stats, resourceType: 'divisionArea' }
+  expect(targetVersionsFromReport(dataset, [stats], true).get('2021')).toBeNull()
+  expect(targetVersionsFromReport(dataset, [stats, area], true).get('2021')).toBeNull()
+  expect(
+    targetVersionsFromReport(
+      dataset,
+      [stats, division, { ...area, sourceVersion: '2024' }],
+      true,
+    ).get('2021'),
+  ).toBeNull()
+  expect(
+    targetVersionsFromReport(
+      dataset,
+      [stats, division, { ...area, status: 'failed' }],
+      true,
+    ).get('2021'),
+  ).toBeNull()
+  expect(
+    targetVersionsFromReport(dataset, [stats, division, area], true).get('2021'),
+  ).toBe('2021')
+  expect(
+    targetVersionsFromReport(
+      dataset,
+      [stats, division, { ...area, status: 'superseded' }],
+      true,
+    ).get('2021'),
+  ).toBe('2021')
+  expect(targetVersionsFromReport(dataset, [stats], false).get('2021')).toBe('2021')
+})
+
 test('wraps update errors to the guided output width, including long URLs', () => {
   const lines = wrapUpdateMessage(
     'Download failed',
@@ -825,4 +896,24 @@ test('wraps update errors to the guided output width, including long URLs', () =
 
   expect(lines.every(line => line.length <= 117)).toBe(true)
   expect(lines.join('\n')).toContain('Download failed:')
+})
+test('metadata review remains pending when declined or non-interactive', async () => {
+  const { resolveMetadataReview, shouldRecordUpdateStateAfterProcessing } =
+    await import('./update.ts')
+  let prompts = 0
+  const declined = await resolveMetadataReview(false, async () => {
+    prompts++
+    return false
+  })
+  const unattended = await resolveMetadataReview(true, async () => {
+    prompts++
+    return true
+  })
+  expect(prompts).toBe(1)
+  expect(declined).toBe('review-required')
+  expect(unattended).toBe('review-required')
+  expect(shouldRecordUpdateStateAfterProcessing({ status: 'review' }, declined)).toBe(
+    false,
+  )
+  expect(await resolveMetadataReview(false, async () => true)).toBe('reviewed')
 })

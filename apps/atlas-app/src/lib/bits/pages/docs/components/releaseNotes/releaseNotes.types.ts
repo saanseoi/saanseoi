@@ -1,7 +1,7 @@
 import type { MarkdownHeading } from '#lib/registry/markdown.js'
 
 export type ReleaseNotesTransclusion = {
-  type: 'definition' | 'note'
+  kind: 'definition' | 'note'
   title: string
   version: string
   markdown: string

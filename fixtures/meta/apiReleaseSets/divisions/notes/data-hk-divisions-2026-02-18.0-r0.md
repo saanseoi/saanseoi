@@ -51,7 +51,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - <orange>上游</orange> Overture 更新 OSM 資料並新增
   `admin_level`。SaanSeoi 會在可用時將其保留為 `overture.admin_level`
-  相容性資料；來源發布會把該值回填至每個 Divisions 發布。
+  相容性資料；我們已在推出前將該值回填至 API 提供的每個 Divisions 發布。
 
 ## 修訂紀錄
 
@@ -60,17 +60,15 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 發布範圍
 
 此不可變的 [release set](saanseoi:zh-hant:definition/release-set/v1) 在
-{{regionName:zh-Hant}}發布 cohort <black>{{ cohortKey }}</black> 的
-<black>{{ domainCode }}</black>
+{{regionName:zh-Hant}}發布 [cohort](saanseoi:zh-hant:definition/cohort/v1)
+<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hant:definition/domain/v1)。以下來源發布組成此 release set。
-
-## 組成來源發布
 
 {{apiReleaseSetSources:zh-Hant}}
 
 ## 備註與限制
 
-- 請參閱[發布範圍表](#release-scope)連結的來源發布附註，以了解各發布者特有的資料品質及相容性決定。
+- 請參閱[發布範圍表](#source-heading-release-scope)連結的來源發布附註，以了解各發布者特有的資料品質及相容性決定。
 - 不同發布者的面及邊界是分開的選項。它們存在於此發布中，不代表可互換，亦不會合併其幾何。
 - 政府統計處面配套描述 2016 年及 2021 年的人口普查地理範圍。請將每個配套用於相應的人口普查 cohort，而非視作持續有效的行政邊界。
 - Overture <black>boundary</black> 配套只適用於地區級區劃。
@@ -83,7 +81,7 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 
 - <orange>上游</orange> Overture 更新 OSM 数据并新增
   `admin_level`。SaanSeoi 会在可用时将其保留为 `overture.admin_level`
-  兼容性资料；来源发布会将该值回填至每个 Divisions 发布。
+  兼容性资料；我们已在推出前将该值回填至 API 提供的每个 Divisions 发布。
 
 ## 修订记录
 
@@ -92,17 +90,15 @@ This immutable [release set](saanseoi:en:definition/release-set/v1) publishes th
 ## 发布范围
 
 此不可变的 [release set](saanseoi:zh-hans:definition/release-set/v1) 在
-{{regionName:zh-Hans}}发布 cohort <black>{{ cohortKey }}</black> 的
-<black>{{ domainCode }}</black>
+{{regionName:zh-Hans}}发布 [cohort](saanseoi:zh-hans:definition/cohort/v1)
+<black>{{ cohortKey }}</black> 的 <black>{{ domainCode }}</black>
 [domain](saanseoi:zh-hans:definition/domain/v1)。以下来源发布组成此 release set。
-
-## 组成来源发布
 
 {{apiReleaseSetSources:zh-Hans}}
 
 ## 备注与限制
 
-- 请参阅[发布范围表](#release-scope)链接的来源发布说明，以了解各发布者特有的数据质量及兼容性决定。
+- 请参阅[发布范围表](#source-heading-release-scope)链接的来源发布说明，以了解各发布者特有的数据质量及兼容性决定。
 - 不同发布者的面及边界是分开的选项。它们存在于此发布中，不代表可互换，也不会合并其几何。
 - 政府统计处面配套描述 2016 年及 2021 年的人口普查地理范围。请将每个配套用于相应的人口普查 cohort，而非视作持续有效的行政边界。
 - Overture <black>boundary</black> 配套只适用于地区级区划。

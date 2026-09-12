@@ -28,8 +28,9 @@ publisher's <black>{{ sourceVersion }}</black> Census cohort.
 
 ## Compatibility
 
-SaanSeoi retains C&SD's publisher assertions and presents reviewed values as canonical
-statistics. It does not expose the publisher property schema as the statistics API.
+SaanSeoi retains C&SD's publisher source records and presents reviewed values as
+canonical statistics. It does not expose the publisher property schema as the statistics
+API.
 
 ### Directly Retained Fields
 
@@ -39,7 +40,7 @@ record value:
 - <black>sourceField</black> - the C&SD property name
 - <black>sourceValue</black> - its unmodified literal
 
-The source assertion also retains the complete publisher property set, geometry, archive
+The source record also includes the complete publisher property set, geometry, archive
 identity, and feature identity. The canonical series identity qualifies that feature as
 <black>&lt;layer&gt;:&lt;feature&gt;</black>. These provenance values do not become
 canonical <black>fieldName</black>s or API selection fields.
@@ -61,12 +62,12 @@ reviewed in this release's curation manifest.
 
 ### Geography treatment
 
-Both publisher layers are retained as statistics assertions. The reviewed
-<black>HMA_21C</black> code supplies deterministic Housing Market Area identities and is
-separately published as the <black>hkgov-censtatd-hma</black> Division and Division Area
-geometry. <black>BG_21C</black> Building Group points remain source history and
-statistics dimensions: they are not promoted to a Divisions geometry or assigned an
-arbitrary canonical division as they don't have polygonal geometry.
+Both publisher layers are statistics source records. The reviewed <black>HMA_21C</black>
+code supplies deterministic Housing Market Area identities and is separately published
+as the <black>hkgov-censtatd-hma</black> Division and Division Area geometry.
+<black>BG_21C</black> Building Group points remain source history and statistics
+dimensions: they are not promoted to a Divisions geometry or assigned an arbitrary
+canonical division as they don't have polygonal geometry.
 
 ### Measure offerings
 

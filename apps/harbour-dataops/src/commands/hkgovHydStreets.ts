@@ -12,11 +12,11 @@ import {
   readHkgovHydStreetArchive,
   readHkgovTdPedestrianStreetArchive,
   type HkgovHydStreetArchiveKind,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovHyd.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/hyd/hkgovHyd.ts'
 import {
   processNativeSourceSqlRelease,
   type NativeSourceRow,
-} from '../../../harbour-cli/src/lib/localPipeline/nativeSourceSql.ts'
+} from '../../../harbour-cli/src/lib/pipeline/local/nativeSourceSql.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 
 const DATASETS = {
@@ -78,20 +78,14 @@ export async function runHkgovHydStreetArchiveIngestCommand(
     for (const layer of HKGOV_TD_PEDESTRIAN_STREET_LAYERS) {
       const kind = pedestrianKind(layer)
       for (const feature of layers[layer].features) {
-        const objectId = requiredInteger(feature.properties.OBJECTID, 'OBJECTID')
+        const objectId = requiredInteger(feature.properties.objectId, 'objectId')
         const sourceRecordId = `TD:PEDESTRIAN:${kind}:${objectId}`
         baseRows.push({
           kind,
-          objectId,
-          descriptionEn: feature.properties.EN_Description ?? null,
-          descriptionZhHans: feature.properties.SC_Description ?? null,
-          descriptionZhHant: feature.properties.TC_Description ?? null,
-          rawProperties: feature.properties,
+          properties: feature.properties,
           sourceGeometry: feature.geometry === null ? 'null' : feature.geometry,
           sourceRecordId,
           sources: [{ ...provenance, layerName: layer }],
-          startTime: feature.properties.Start_Time ?? null,
-          endTime: feature.properties.End_Time ?? null,
         })
       }
     }
@@ -119,7 +113,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
         },
       ],
       theme: 'streets',
-      type: 'street',
+      resourceType: 'street',
     })
     return
   }
@@ -134,25 +128,12 @@ export async function runHkgovHydStreetArchiveIngestCommand(
       const properties = feature.properties
       const sourceRecordId = await hydSourceRecordId(profile.kind, feature)
       const common = {
-        rawProperties: properties,
+        properties,
         sourceGeometry: feature.geometry,
         sourceRecordId,
         sources: [{ ...provenance, layerName: hydLayer(profile.kind) }],
       }
-      if (profile.kind === 'streetNamePlate') {
-        return {
-          ...common,
-          level: requiredInteger(properties.LVL, 'LVL'),
-          roadName: optionalText(properties.ROAD_NAME),
-          snpId: requiredText(properties.SNP_ID, 'SNP_ID'),
-        }
-      }
-      return {
-        ...common,
-        level: requiredInteger(properties.LVL, 'LVL'),
-        sectionBetween: optionalText(properties.SECT_BTWN),
-        streetName: optionalText(properties.ST_ENGNM),
-      }
+      return common
     }),
   )
   await processNativeSourceSqlRelease(target, {
@@ -174,7 +155,7 @@ export async function runHkgovHydStreetArchiveIngestCommand(
       },
     ],
     theme: 'streets',
-    type: 'street',
+    resourceType: 'street',
   })
 }
 
@@ -193,7 +174,7 @@ async function hydSourceRecordId(
   feature: { geometry: unknown; properties: Record<string, unknown> },
 ) {
   if (kind === 'streetNamePlate') {
-    return `HYD:SNP:${requiredText(feature.properties.SNP_ID, 'SNP_ID')}`
+    return `HYD:SNP:${requiredText(feature.properties.snpId, 'snpId')}`
   }
   // These two publisher schemas do not expose a feature identifier. The
   // fingerprint gives a deterministic release assertion identity instead of
@@ -216,10 +197,6 @@ function assertArchiveHash(bytes: Uint8Array, expected: string) {
 function requiredText(value: unknown, field: string) {
   if (typeof value !== 'string' || !value.trim()) throw new Error(`Missing ${field}.`)
   return value.trim()
-}
-
-function optionalText(value: unknown) {
-  return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
 function requiredInteger(value: unknown, field: string) {

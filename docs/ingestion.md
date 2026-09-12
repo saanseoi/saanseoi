@@ -24,10 +24,27 @@ publisher evidence
 
 Each API family may have different parsing and canonicalisation, but it must expose the
 same phase boundaries and feedback. Use the shared progress helpers in
-`apps/harbour-cli/src/lib/localPipeline/orchestrator.ts` for bounded work, report real
+`apps/harbour-cli/src/lib/pipeline/local/orchestrator.ts` for bounded work, report real
 units where they are known, and fail the active phase before propagating an error.
 Source-specific processors should describe _what_ is happening; the shared helper owns
 timing, count formatting, clamping and completion behaviour.
+
+## API-field compatibility preflight
+
+The upload command checks the inspected dataset's publisher schema against the API
+domain's reviewed `publisherSchemaRanges` before confirmation, source-asset upload or
+canonical processing. Dry runs, non-interactive uploads and deferred publication use the
+same check. Domains without API-field fixtures, including Streets, remain outside this
+check's scope.
+
+An unsupported schema stops the upload and lists the dataset, detected schema and
+reviewed mapping ranges. Review the publisher changes: extend the range on the same
+mapping version when retained paths, inputs and transformations remain compatible;
+otherwise create a new mapping version. The command never widens ranges automatically.
+
+This source-level preflight does not select the final release composition or validate
+its lineage. Publication independently checks the complete selected source signature,
+lineage and pinned processing rules.
 
 ## 1. Define the source and release before processing it
 
@@ -35,7 +52,7 @@ Decide the durable identities first:
 
 - `datasetCode` identifies the publisher dataset;
 - `source` identifies the importer lineage;
-- `sourceVariant` distinguishes provider assertions in a composition;
+- `sourceVariant` distinguishes provider source records in a composition;
 - `sourceVersion` is the publisher or reference version;
 - `cohortKey` controls compatible snapshot and release-set assembly; and
 - the SaanSeoi release version follows the dataset's checked-in `versionPolicy`.
@@ -50,7 +67,7 @@ Create or update the following files as applicable:
 | Provider facts and parsing decisions           | `docs/datasets/sources/<provider>/*.md`                                         |
 | Family membership and release-set rules        | `docs/datasets/families/<family>.md`                                            |
 | Resource contract                              | `docs/datasets/resourceType/<resource>.md` and, when normative, `spec/`         |
-| Canonical identity or curation                 | `fixtures/meta/identifierBridges/`, `fixtures/meta/curations/`                  |
+| Canonical identity or curation                 | `fixtures/meta/curations/`                                                      |
 | Normalisation and audit rules                  | `fixtures/meta/rulesetVersions/` plus the dataset's `mergeRules`                |
 | Public composition or schema                   | `fixtures/meta/apiCompositions/`, `apiFields/`, `apiEndpoints/`, `apiVersions/` |
 
@@ -90,6 +107,13 @@ The usual implementation files are:
 Source-specific preparation must finish before the central upload dispatcher selects a
 processor. It must not write source, history, current or metadata tables directly.
 
+Remote registration for every resource family opens the same acknowledged full mirror
+used by current-write planning. The mirror must contain every configured source and
+history shard, match the selected environment and database identities, and retain its
+prepared generation. A family table profile, scoped cache or missing shard fails before
+registration. Upload never rebuilds that baseline implicitly. Resume retained SQL
+delivery first; seed or rebuild the full mirror explicitly when required.
+
 ## 3. Retain the source evidence and register the upload
 
 For automated discovery, wire the dataset into
@@ -113,7 +137,7 @@ Direct upload uses the same path:
 ```sh
 ./bin/saanseoi upload <prepared-file> --target local \
   --source <source> --source-version <version> --cohort-key <cohort> \
-  --type <resource-type> --theme <family> --release-notes-url <url>
+  --resource-type <resource-type> --theme <family> --release-notes-url <url>
 ```
 
 `apps/harbour-cli/src/lib/commands/upload.ts` must recognise the source/resource pair,
@@ -121,15 +145,50 @@ perform preflight, register or resume the staged release, seed the raw object an
 one processing strategy. The request to Harbour creates the source release; it does not
 make that release published.
 
-## 4. Write the source assertion
+Publisher source files are hashed through bounded reads. Remote retention uses 8 MiB
+chunks, each verified against its SHA-256 before R2 acknowledges it. Chunk receipts live
+in the selected bucket under a scope derived from the immutable asset key. Repeating an
+upload checks those receipts and sends only missing chunks. Changed files, keys or
+destinations cannot reuse another transfer's receipts.
+
+Harbour checks the ordered chunks against the full-file SHA-256 before assembling the
+destination object. It then registers asset metadata and removes completed staging
+chunks. A lost completion response or failed metadata write is recovered by verifying
+the persisted object on retry. A declared hash in object metadata alone is insufficient
+proof. Interrupted staging chunks remain available for recovery; do not remove them
+while an upload may resume.
+
+The transfer contract accepts up to 10,000 chunks (80,000 MiB per ZIP or Parquet). The
+Worker reserves 40,000 subrequests and 300 seconds of CPU for verification and assembly;
+these bounds are not a measured throughput guarantee. Loose GML and GeoJSON are packaged
+with streaming ZIP compression and a content-verified local cache; files of 4 GiB or
+more must arrive as ZIP or Parquet. Local D1 with remote R2 uses the same verification
+through its R2-only proxy and keeps metadata writes local. Local R2 uses the same
+contract against its persisted local bucket. Reusing an existing metadata row still
+verifies the object and restores missing bytes before returning the asset ID.
+
+The private HTTP contract is `GET`/`PUT /v1/assets/parts/{scope}/{hash}` for chunk
+receipts and raw chunk bytes, followed by JSON `POST /v1/assets` containing the file
+metadata, size and ordered chunk hashes. CLI and Harbour API releases must support the
+same contract. Transient requests retry within a bounded attempt count; a later command
+invocation resumes from the retained receipts.
+
+## 4. Write the source record
 
 The local processor belongs under the relevant resource directory in
-`apps/harbour-cli/src/lib/`, for example `divisionSql/`, `streetSql/`, `statisticsSql/`
-or `localPipeline/`. Keep the top-level processor linear and move only genuinely reused
-mechanics into shared helpers.
+`apps/harbour-cli/src/lib/pipeline/`: `addresses/`, `divisions/`, `places/`,
+`statistics/` or `streets/`. Shared local execution and SQL delivery mechanics belong in
+`pipeline/local/`; shared lifecycle helpers live directly in `pipeline/`. Keep the
+top-level processor linear and move only reused mechanics into shared helpers.
 
-The first database mutation retains the publisher assertion in the source shard. A new
-source shape normally requires:
+Publisher-specific readers and preparation belong in
+`apps/harbour-cli/src/lib/sources/`. Hong Kong government sources are grouped by
+department under `sources/hkgov/`: `dpo/` (ALS), `censtatd/`, `had/`, `hyd/`, `landsd/`
+and `pland/`. Shared archive, asset and source-update utilities live directly in
+`sources/`. Keep tests beside their modules.
+
+The first database mutation retains the publisher source record in the source shard. A
+new source shape normally requires:
 
 - tables and indexes in `libs/db/src/schema/source/` and its `index.ts`;
 - a generated source migration;
@@ -148,8 +207,8 @@ Never select production shard metadata merely because a target is remote.
 
 ## 5. Canonicalise into history and current
 
-Canonicalisation turns the retained assertion into the public resource model. Keep it as
-pure transformation code in `libs/core/src/pipeline/services/` where practical; the CLI
+Canonicalisation turns the source record into the public resource model. Keep it as pure
+transformation code in `libs/core/src/pipeline/services/` where practical; the CLI
 processor coordinates it and writes the resulting SQL.
 
 The expected order is:

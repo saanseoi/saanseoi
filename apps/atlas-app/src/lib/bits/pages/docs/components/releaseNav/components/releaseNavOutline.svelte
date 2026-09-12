@@ -4,12 +4,13 @@ import { scrollToReleaseNavAnchor } from '../releaseNavScroll'
 import ReleaseNavInlineLabel from './releaseNavInlineLabel.svelte'
 
 type OutlineNode = ReleaseNavOutlineItem & { children: OutlineNode[] }
+type StemState = 'inactive' | 'active' | 'active-end'
 type Props = {
   activeId: string | null
   ariaLabel: string
   items: ReleaseNavOutlineItem[]
   mobile?: boolean
-  onSelect?: () => void
+  onSelect?: (id: string) => void
   panel?: HTMLElement
 }
 
@@ -31,48 +32,70 @@ const buildTree = (items: ReleaseNavOutlineItem[]) => {
 }
 
 let tree = $derived(buildTree(items))
-const indent = (depth: number) => `${0.5 + Math.max(0, depth - 2) * 0.5}rem`
+
+const containsActive = (node: OutlineNode): boolean =>
+  node.id === activeId || node.children.some(containsActive)
 </script>
 
-<nav
-  class={mobile ? 'px-3 py-3' : 'px-2 pb-4 pt-3 text-primary'}
-  aria-label={ariaLabel}
->
-  {#snippet item(node: OutlineNode, isLast: boolean)}
-    {@const depth = node.depth ?? 2}
-    <div
-      class:ml-4={!mobile && depth === 3}
-      class:ml-6={mobile ? depth >= 3 : depth >= 4}
-      class="relative"
-    >
-      {#if depth >= 3}
+<nav class={mobile ? 'px-3 py-2' : 'px-2 py-3 text-primary'} aria-label={ariaLabel}>
+  {#snippet item(
+    node: OutlineNode,
+    nested: boolean,
+    isLast: boolean,
+    stem: StemState = 'inactive',
+  )}
+    {@const active = activeId === node.id}
+    <li class:ml-2={nested} class:pl-3={nested} class="relative">
+      {#if nested}
         <span
-          class={`pointer-events-none absolute top-0 left-0 border-l border-outline-variant ${isLast ? mobile ? 'h-[18px]' : 'h-1/2' : 'bottom-0'}`}
+          data-release-nav-stem={stem}
+          class={`pointer-events-none absolute -top-1 left-0 z-1 w-px ${stem === 'inactive' ? 'bg-outline-variant/80' : 'bg-secondary'} ${isLast || stem === 'active-end' ? (mobile ? 'h-6.25' : 'h-4.75') : '-bottom-1'}`}
+          aria-hidden="true"
+        ></span>
+        {#if stem === 'active-end' && !isLast}
+          <span
+            data-release-nav-stem-continuation
+            class={`pointer-events-none absolute -bottom-1 left-0 z-1 w-px bg-outline-variant/80 ${mobile ? 'top-5' : 'top-3.5'}`}
+            aria-hidden="true"
+          ></span>
+        {/if}
+        <span
+          class={`pointer-events-none absolute left-0 w-3 border-t ${containsActive(node) ? 'border-secondary' : 'border-outline-variant/80'} ${mobile ? 'top-5' : 'top-3.5'}`}
           aria-hidden="true"
         ></span>
       {/if}
       <a
-        class={`relative z-10 block rounded-md font-body leading-5 transition hover:bg-black/5 dark:hover:bg-white/10 ${mobile ? 'px-2 py-2 text-label-md' : 'py-1.5 text-label-sm'} ${activeId === node.id ? 'bg-secondary-container font-semibold text-foreground-alt dark:text-[#edf2ee]! hover:text-secondary!' : 'text-foreground-alt'}`}
-        class:px-2={!mobile && depth === 2}
-        class:pl-3={!mobile && depth !== 2}
-        class:pr-2={!mobile && depth !== 2}
-        class:ml-[12px]={!mobile && depth >= 3}
-        class:mr-2={!mobile && depth >= 3}
-        style:padding-left={mobile ? indent(depth) : undefined}
+        class={`relative z-10 flex items-center rounded-md px-2 font-body leading-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-secondary ${mobile ? 'min-h-10 py-1.5 text-label-md' : 'min-h-7 py-1 text-label-sm'} ${active ? 'bg-secondary-container text-foreground-alt dark:text-[#edf2ee]!' : 'text-foreground-alt hover:bg-black/5 hover:text-primary dark:hover:bg-white/10'}`}
         href={node.href ?? `#${node.id}`}
         onclick={event => {
-          scrollToReleaseNavAnchor({ event, id: node.id, items, mobile, panel })
-          onSelect?.()
+          void scrollToReleaseNavAnchor({ event, id: node.id, items, mobile, panel })
+          if (event.defaultPrevented) onSelect?.(node.id)
         }}
-        aria-current={activeId === node.id ? 'location' : undefined}
-        ><ReleaseNavInlineLabel label={node.label} /></a
+        aria-current={active ? 'location' : undefined}
+        ><ReleaseNavInlineLabel emphasis={node.emphasis} label={node.label} /></a
       >
-      {#each node.children as child, index}
-        {@render item(child, index === node.children.length - 1)}
-      {/each}
-    </div>
+      {#if node.children.length}
+        {@const activeChildIndex = node.children.findIndex(containsActive)}
+        <ol class="space-y-1 pt-1">
+          {#each node.children as child, index}
+            {@render item(
+              child,
+              true,
+              index === node.children.length - 1,
+              index < activeChildIndex
+                ? 'active'
+                : index === activeChildIndex
+                  ? 'active-end'
+                  : 'inactive',
+            )}
+          {/each}
+        </ol>
+      {/if}
+    </li>
   {/snippet}
-  {#each tree as node, index}
-    {@render item(node, index === tree.length - 1)}
-  {/each}
+  <ol class="space-y-1">
+    {#each tree as node, index}
+      {@render item(node, false, index === tree.length - 1)}
+    {/each}
+  </ol>
 </nav>

@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:7a249627a13ad7f3f68a5099af2c824c24a9f5d8692c200b7828393e2af89703",
+  "versionHash": "sha256:b5aca8106e4950239319f08150b4fa0c746a9099f5df721857ff2cb7fcff28c2",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "regionCode": "hk",
   "releaseType": "static",
-  "releaseFrequency": "five-yearly",
+  "releaseFrequency": "census",
   "theme": "stats",
   "sourceVariant": "hkgov-censtatd-landclipped",
   "areaCompanionByReferencePeriod": {
@@ -65,7 +65,10 @@
       "operationCodes": [
         "normalise_censtatd_statistic_source_assertion",
         "map_censtatd_district_code_to_canonical_division",
-        "curate_censtatd_measure_metadata"
+        "curate_censtatd_measure_metadata",
+        "provenance_statistic_normalisation",
+        "provenance_statistic_localisation",
+        "provenance_division_area_geometry"
       ]
     }
   ],
@@ -161,7 +164,17 @@
     {
       "locale": "en",
       "name": "Census Subdivided Units by District Council District",
-      "description": "Planned C&SD source for subdivided-unit population statistics by District Council district. The 2016 By-census and 2021 Census releases each retain their exact statistical-geography cohort."
+      "description": "C&SD source for subdivided-unit population statistics by District Council district. The 2016 By-census and 2021 Census releases each retain their exact statistical-geography cohort."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "人口普查：按區議會分區劃分的分間樓宇單位",
+      "description": "政府統計處提供的按區議會分區劃分的分間樓宇單位人口統計。2016年中期人口統計及2021年人口普查版本各自保留所採用的統計地理界線版本。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "人口普查：按区议会分区划分的分间楼宇单位",
+      "description": "政府统计处提供的按区议会分区划分的分间楼宇单位人口统计。2016年中期人口统计及2021年人口普查版本各自保留所采用的统计地理界线版本。"
     }
   ]
 }

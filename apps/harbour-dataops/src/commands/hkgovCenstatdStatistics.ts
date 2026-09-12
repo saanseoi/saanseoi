@@ -11,15 +11,20 @@ import {
   prepareHkgovCenstatdStatisticGeographyUploads,
   prepareHkgovCenstatdStatisticUpload,
   type CenstatdStatisticDatasetCode,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdStatistics.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatdStatistics.ts'
 import {
   hkgovCenstatdDistrictLayerName,
   prepareHkgovCenstatdDistrictUpload,
-} from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatd.ts'
-import { parseHkgovCenstatdDistrictGml } from '../../../harbour-cli/src/lib/sources/hkgov/hkgovCenstatdGml.ts'
+} from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatd.ts'
+import { parseHkgovCenstatdDistrictGml } from '../../../harbour-cli/src/lib/sources/hkgov/censtatd/hkgovCenstatdGml.ts'
 import { ensurePreparedCsdiSourceArchive } from '../../../harbour-cli/src/lib/sources/sourceArchives.ts'
-import { loadDatasetFixtures } from '../../../harbour-cli/src/lib/sources/sourceUpdates.ts'
+import {
+  datasetName,
+  loadDatasetFixtures,
+} from '../../../harbour-cli/src/lib/sources/sourceUpdates.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
+import { formatInitialisationSkippedDatasets } from '../../../harbour-cli/src/lib/commands/init.ts'
+import { formatUpdateGridRow } from '../../../harbour-cli/src/lib/commands/updateFormatting.ts'
 import {
   fetchReleaseReport,
   type ReleaseReportRow,
@@ -34,17 +39,43 @@ import { unzipSelected } from '../lib/zip.ts'
 type StatisticResourceType = 'division' | 'divisionArea' | 'divisionStatistic'
 
 export function pendingCenstatdStatisticResourceTypes(
-  rows: readonly Pick<ReleaseReportRow, 'sourceVersion' | 'status' | 'type'>[],
+  rows: readonly Pick<ReleaseReportRow, 'sourceVersion' | 'status' | 'resourceType'>[],
   sourceVersion: string,
   expectedTypes: readonly StatisticResourceType[],
 ) {
   const publishedTypes = new Set(
     rows
       .filter(row => row.sourceVersion === sourceVersion && row.status === 'published')
-      .map(row => row.type),
+      .map(row => row.resourceType),
   )
 
   return expectedTypes.filter(type => !publishedTypes.has(type))
+}
+
+export async function formatCompletedCenstatdStatisticReleases(
+  target: UploadTarget,
+  datasetCode: string,
+) {
+  return formatInitialisationSkippedDatasets(target, {
+    datasetCodes: [datasetCode],
+    releaseCodes: [],
+  })
+}
+
+export async function formatSkippedCenstatdResource(
+  datasetCode: string,
+  resourceType: StatisticResourceType,
+) {
+  const [dataset] = await loadDatasetFixtures(new Set([datasetCode]))
+  if (!dataset) return null
+  const sourceVariant = `${dataset.publisherCode}-${datasetName(dataset)
+    .toLowerCase()
+    .replaceAll(/[^a-z0-9]+/g, '-')
+    .replaceAll(/^-|-$/g, '')}`
+  return `\u001b[36m◆\u001b[39m  ${formatUpdateGridRow(
+    { ...dataset, resourceTypes: [resourceType], sourceVariant },
+    'SKIPPED: no updates',
+  )}`
 }
 
 export async function runHkgovCenstatdStatisticsIngestCommand(
@@ -228,20 +259,17 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
         ? (['divisionArea'] as const)
         : []),
     ])
-    const resourceLifecycle = planCenstatdResourceLifecycle(
-      [
-        ...(!geographyOnly && pendingTypes.includes('divisionStatistic')
-          ? (['divisionStatistic'] as const)
-          : []),
-        ...pendingGeographyResources,
-      ],
-      { releaseAlreadyExists: pendingTypes.length < requestedTypes.length },
-    )
+    const resourceLifecycle = planCenstatdResourceLifecycle([
+      ...(!geographyOnly && pendingTypes.includes('divisionStatistic')
+        ? (['divisionStatistic'] as const)
+        : []),
+      ...pendingGeographyResources,
+    ])
     let resourceLifecycleIndex = 0
-    const nextResourceLifecycle = (type: CenstatdCombinedResourceType) => {
+    const nextResourceLifecycle = (resourceType: CenstatdCombinedResourceType) => {
       const step = resourceLifecycle[resourceLifecycleIndex]
-      if (!step || step.type !== type) {
-        throw new Error(`C&SD resource lifecycle is out of order at ${type}.`)
+      if (!step || step.type !== resourceType) {
+        throw new Error(`C&SD resource lifecycle is out of order at ${resourceType}.`)
       }
       resourceLifecycleIndex += 1
       return step
@@ -249,15 +277,19 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
 
     if (pendingTypes.length === 0) {
       console.log(
-        `Skipping ${datasetCode} ${sourceVersion}: every requested resource is already published. Use --force-upload for a deliberate reprocess.`,
+        (await formatCompletedCenstatdStatisticReleases(target, datasetCode)).join(
+          '\n',
+        ),
       )
       return
     }
 
     if (!geographyOnly && !pendingTypes.includes('divisionStatistic')) {
-      console.log(
-        `Skipping published Statistics resource for ${datasetCode} ${sourceVersion}.`,
+      const skipped = await formatSkippedCenstatdResource(
+        datasetCode,
+        'divisionStatistic',
       )
+      if (skipped) console.log(skipped)
     } else if (!geographyOnly) {
       const lifecycle = nextResourceLifecycle('divisionStatistic')
       const parquetPath = join(workDir, 'hkgov-censtatd-statistics.parquet')
@@ -284,7 +316,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
             'source-version': sourceVersion,
             'geometry-status': referencePeriods?.geometryStatus ?? 'authoritative',
             theme: 'stats',
-            type: 'divisionStatistic',
+            'resource-type': 'divisionStatistic',
             // Preserve the caller's explicit automation choice. New publisher
             // measures must be reviewed interactively before their canonical
             // metadata is admitted, so this command cannot force --yes.
@@ -325,9 +357,8 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           : []),
       ] as const) {
         if (!pendingTypes.includes(type)) {
-          console.log(
-            `Skipping published ${type} resource for ${datasetCode} ${sourceVersion}.`,
-          )
+          const skipped = await formatSkippedCenstatdResource(datasetCode, type)
+          if (skipped) console.log(skipped)
           continue
         }
         const lifecycle = nextResourceLifecycle(type)
@@ -346,7 +377,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
               'source-version': sourceVersion,
               'geometry-status': referencePeriods?.geometryStatus ?? 'authoritative',
               theme: 'divisions',
-              type,
+              'resource-type': type,
               yes: true,
             },
           },

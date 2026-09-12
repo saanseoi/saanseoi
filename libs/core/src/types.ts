@@ -31,8 +31,8 @@ export type DatasetRecord = {
   cohortKey: string
   geometryStatus: GeometryStatus
   theme: string
-  type: string
-  subType: string | null
+  resourceType: string
+  kind: string | null
   sourceVariant: string
   source: string
   sourceVersion: string
@@ -82,7 +82,7 @@ export type UploadPlan = {
   cohortKey: string
   shardYear?: string
   theme: ResourceTheme
-  type: ResourceType
+  resourceType: ResourceType
   source: string
   sourceVersion: string
   /**
@@ -98,7 +98,7 @@ export type UploadPlan = {
   schemaFingerprint: string
   inferredFrom: {
     theme: 'path' | 'filename' | 'parquet' | 'flag'
-    type: 'path' | 'filename' | 'parquet' | 'flag'
+    resourceType: 'path' | 'filename' | 'parquet' | 'flag'
     regionCode: 'path' | 'parquet' | 'flag'
     cohortKey: 'path' | 'filename' | 'flag' | 'sourceVersion'
     source: 'flag' | 'path' | 'filename'
@@ -115,7 +115,7 @@ export type RegisterUploadOptions = {
   regionCode?: string
   cohortKey?: string
   theme?: string
-  type?: string
+  resourceType?: string
   source?: string
   sourceVersion?: string
   geometryStatus?: GeometryStatus
@@ -130,6 +130,8 @@ export type RegisterUploadOptions = {
   reuseExistingRelease?: boolean
   /** Allows an explicit retry after processing was interrupted with no active phase. */
   resumeInterruptedProcessingRelease?: boolean
+  /** CLI-only ownership proof after checksum/receipt recovery of this exact release. */
+  recoveredSqlDeliveryReleaseId?: string
   /** Allows an independent historical cohort to be registered after a newer cohort. */
   allowHistoricalCohort?: boolean
 }
@@ -163,7 +165,7 @@ export type DatasetProcessingMessage = {
   source: string
   sourceVersion: string
   theme: ResourceTheme
-  type: ResourceType
+  resourceType: ResourceType
   skipSnapshotCleanup?: boolean
   preplannedAddressChunks?: boolean
   rowStart?: number
@@ -191,6 +193,8 @@ export type DatasetProcessingMessage = {
   resolvedArtefactKey?: string
   addressSqlArtefactKeys?: string[]
   addressSqlPublishAfterCleanup?: boolean
+  /** Stable lineage key used only by the current serving projection. */
+  addressCurrentScopeId?: string
   addressStats?: {
     deletedRows: number
     insertedVersions: number

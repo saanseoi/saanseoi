@@ -4,19 +4,32 @@ import { Main } from '#lib/bits/primitives/main/index.js'
 import { authClient } from '#lib/auth-client.js'
 import { m } from '#lib/bits/internal/i18n.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
+import { page } from '$app/state'
+import { getAuthRedirectPath, getSignInHref } from '#lib/authRedirect.js'
+
+const next = $derived(getAuthRedirectPath(page.url.searchParams.get('next'), page.url))
 
 let email = $state('')
 let submitted = $state(false)
 let busy = $state(false)
+let error = $state<string | null>(null)
 
 const requestReset = async () => {
+  if (busy) return
   busy = true
-  await authClient.requestPasswordReset({
-    email,
-    redirectTo: `${window.location.origin}/password/reset`,
-  })
-  busy = false
-  submitted = true
+  error = null
+  try {
+    const result = await authClient.requestPasswordReset({
+      email,
+      redirectTo: `${window.location.origin}/password/reset?next=${encodeURIComponent(next)}`,
+    })
+    if (result.error) error = result.error.message ?? m.auth_reset_error()
+    else submitted = true
+  } catch {
+    error = m.auth_reset_error()
+  } finally {
+    busy = false
+  }
 }
 </script>
 
@@ -32,7 +45,7 @@ const requestReset = async () => {
     {m.auth_reset_title()}
   </h1>
   {#if submitted}
-    <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
+    <p role="status" class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
       {m.auth_reset_sent()}
     </p>
   {:else}
@@ -40,6 +53,7 @@ const requestReset = async () => {
       {m.auth_reset_description()}
     </p>
     <form
+      aria-busy={busy}
       class="mt-8 space-y-4"
       onsubmit={event => { event.preventDefault(); requestReset() }}
     >
@@ -47,18 +61,22 @@ const requestReset = async () => {
         >{m.common_email()}
         <input
           bind:value={email}
+          autocomplete="email"
           class="mt-2 min-h-12 w-full border border-border-input bg-background-alt px-4 font-body font-normal"
           required
           type="email"
         ></label
       >
+      {#if error}
+        <p class="font-body text-body-sm text-destructive" role="alert">{error}</p>
+      {/if}
       <Button disabled={busy} type="submit" variant="primary"
         >{busy ? m.auth_sending() : m.auth_send_reset_link()}</Button
       >
     </form>
   {/if}
   <p class="mt-6 font-body text-body-md text-foreground-alt">
-    <a class="text-secondary hover:underline" href="/sign-in"
+    <a class="text-secondary hover:underline" href={getSignInHref(next)}
       >{m.auth_back_to_sign_in()}</a
     >
   </p>

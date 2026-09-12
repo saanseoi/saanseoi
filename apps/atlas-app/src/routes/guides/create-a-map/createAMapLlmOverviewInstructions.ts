@@ -1,11 +1,14 @@
 const instructions = `
 # SaanSeoi: "Create a Map" guide for LLMs
 
-Read this file before taking ownership of a SaanSeoi map project. It is the canonical
-brief for a full hand-over; there will be no further user prompt provided based on the
-guide, so you are responsible for completing this guide on the user's behalf and only
-ask them for input when direction is unclear, or if you are an AI without agentic
-abilities, to instruct the user to perform actions on their computer.
+I am following the SaanSeoi Create a Map guide and would like your help to build my map
+project. Please read this file before helping me. Treat it as the canonical brief for my
+full hand-over: follow the guide in order, ask me only when a decision or action needs my
+input, and guide me through any work I must do on my own computer.
+
+The guide itself is written in English. The handover prompt supplies the locale selected
+on the SaanSeoi site; interact with the user in that locale while keeping code, commands,
+URL parameters and technical literals unchanged.
 `
 
 export const createAMapLlmOverviewInstructions = () => instructions
@@ -13,33 +16,58 @@ export const createAMapLlmOverviewInstructions = () => instructions
 const workingAgreement = `
 ## Working agreement
 
-- The guide builds the project in this order: prerequisites, rendering, basemap, style,
-  data, then publishing only when the chosen objective requires it.
+- Build my project in this order: prerequisites; rendering; basemap; style; data
+  (fetch District statistics, calculate population density, put the statistics on the
+  map, identify land without human habitats, calculate liveable area, and finalise the
+  map); then publishing and embedding only when my chosen objective requires them.
 - Ask concise questions for missing decisions. Do not guess credentials, deployment
   targets, or platform configuration.
-- Keep the language simple and explain technical concepts as the user is following a
-tutorial.
-`
+- Use simple language and explain mapping concepts as I follow the guide. Avoid going into technical detail unless it is required to clarify the implementation.`
+
+const chatWorkingAgreement = `
+- If I report being stuck after editing code, ask me to paste the files you asked me to
+  create or change so that you can check them.
+- After code that changes the browser result, invite me to look at it, explain what I
+  should see, and ask me to confirm it.`
 
 const agenticWorkingAgreement = `
 - Inspect the existing workspace before proposing or making changes. Preserve unrelated
   work. If the project is not the clean basis expected by the guide, say so.
-- When creating the new app, use the current workspace root only if it is not the
-  user's home directory and it contains no non-hidden items. Otherwise create a new
-  \`saanseoi-project\` subdirectory. Preserve any hidden files and directories.
+- When creating the new app, use the current workspace root only if it is not the user's home
+  directory and contains no non-hidden items. Otherwise create a new
+  \`saanseoi-project\` subdirectory. Preserve hidden files and directories.
 - Adapt to the actual project and its conventions. Do not create a parallel project or
-  use the guide’s code snippets verbatim; implement the equivalent solution for the
-  workspace you find.
+  use the guide’s snippets verbatim; implement their equivalent for the workspace you
+  find.
+- After a browser-visible code change, ask me to inspect it, explain what I should see,
+  and ask me to confirm it.
+- Inspect the operating system and shell. Follow the OS commands for the system you are
+  on and ignore the commands for other operating systems.
 - Stop for confirmation before any paid action, credential entry, deployment, or
   account-linked operation.
 - An HTTP 200 response does not visually verify the app. Browser verification succeeds
   only when a browser visibly loads the Vite page. If browser access is unavailable,
-  stop and ask the user to open the reported URL and tell you what they see.
-`
+  stop and ask me to open the reported URL and tell you what I see.`
 
+/**
+ * Return the common agreement, optionally followed by the agreement for a
+ * collaborative assistance mode. The canonical `llms.txt` hand-over calls this
+ * without a mode so that mode-specific guidance stays under its mode heading.
+ */
 export const createAMapLlmWorkingAgreementInstructions = (mode?: 'agentic' | 'chat') =>
-  mode === 'agentic'
-    ? [workingAgreement, agenticWorkingAgreement]
-        .map(section => section.trim())
-        .join('\n')
-    : workingAgreement.trim()
+  [
+    workingAgreement,
+    ...(mode === 'agentic'
+      ? [agenticWorkingAgreement]
+      : mode === 'chat'
+        ? [chatWorkingAgreement]
+        : []),
+  ]
+    .map(section => section.trim())
+    .join('\n')
+
+export const createAMapLlmChatWorkingAgreementInstructions = () =>
+  chatWorkingAgreement.trim()
+
+export const createAMapLlmAgenticWorkingAgreementInstructions = () =>
+  agenticWorkingAgreement.trim()

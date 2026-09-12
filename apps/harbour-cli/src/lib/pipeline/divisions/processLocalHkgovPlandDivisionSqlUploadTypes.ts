@@ -1,0 +1,62 @@
+import type { RegionCode } from '@repo/core'
+
+export type UploadResult = {
+  datasetCode?: string
+  datasetId?: string
+  rawObjectKey?: string
+  releaseCode?: string
+  releaseId?: string
+}
+
+export type HkgovPlandDivisionUploadPlan = {
+  cohortKey: string
+  regionCode: RegionCode
+  releaseCode: string
+  rowCount: number
+  source: 'hkgov-pland-pu' | 'hkgov-pland-new-town'
+  sourceVersion: string
+  theme: 'divisions'
+  resourceType: 'division'
+}
+
+export type PreparedDivision = {
+  base: {
+    bbox: unknown
+    cartography: null
+    divisionCode: string | null
+    geometry: unknown
+    hierarchies: import('@repo/db').DivisionHierarchies
+    id: string
+    identifiers: unknown
+    level: number
+    sources: Record<string, unknown>
+    class: string
+    category: import('@repo/db').DivisionCategory | null
+    wikidata: null
+  }
+  cells: Array<{
+    ppuCode: string
+    properties: unknown
+    sourceRecordId: string
+    sourceGeometry: unknown
+    spuCode: string
+    subunitCode: string
+    tpuCode: string
+    wasGeometryRepaired: boolean
+  }>
+  i18n: Array<{ locale: string; name: string }>
+  newTown: null | {
+    nameEn: string
+    nameZhHans: string
+    nameZhHant: string
+    properties: unknown
+    sourceGeometry: unknown
+    sourceRecordId: string
+    wasGeometryRepaired: boolean
+  }
+  raw: Record<string, unknown>
+  sourceCellIds: unknown
+  versionHash: string
+}
+
+export type CompressedPlanningDivisionGeometry = ReadonlyMap<string, Uint8Array>

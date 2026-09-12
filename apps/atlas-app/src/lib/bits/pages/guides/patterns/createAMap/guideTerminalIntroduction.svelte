@@ -319,6 +319,17 @@ const terminalLearningResource = $derived(
   margin: 0;
   white-space: nowrap;
 }
+.terminal-introduction__troubleshooting-flow span {
+  display: grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  place-items: center;
+  border: 1px solid var(--color-secondary);
+  color: var(--color-secondary);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
 .mini-terminal p span {
   color: var(--color-secondary);
 }
@@ -483,17 +494,6 @@ const terminalLearningResource = $derived(
   grid-template-columns: auto 1fr;
   gap: 0.8rem;
   align-items: start;
-}
-.terminal-introduction__troubleshooting-flow span {
-  display: grid;
-  width: 1.65rem;
-  height: 1.65rem;
-  place-items: center;
-  border: 1px solid var(--color-secondary);
-  color: var(--color-secondary);
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 700;
 }
 .terminal-introduction__troubleshooting-flow p {
   margin: 0;

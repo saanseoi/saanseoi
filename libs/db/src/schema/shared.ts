@@ -1,5 +1,8 @@
 import { sql } from 'drizzle-orm'
 import { customType, integer, real, text } from 'drizzle-orm/sqlite-core'
+import type { DivisionHierarchies } from '../divisionTaxonomy'
+import { addressGranularities } from '../addressGranularity'
+import type { Address3dUnit, Address3dUnitI18n } from '../address3d'
 
 export const streetEvidenceAssetRoles = [
   'gazettePlan',
@@ -138,7 +141,7 @@ export const timestamps = {
 
 export const sourceProvenance = {
   sources: jsonText('sources'),
-  rawProperties: jsonText('rawProperties'),
+  properties: jsonText('properties'),
   version: integer('version'),
 }
 
@@ -154,10 +157,12 @@ export const canonicalDivision = {
   identifiers: jsonText('identifiers'),
   /** Canonical hierarchy level; absent for non-hierarchical geographies. */
   level: integer('level'),
-  type: text('type').notNull(),
-  sourceKeys: jsonText('sourceKeys'),
+  category: text('category', { enum: ['administrative', 'locality', 'hood'] }),
+  class: text('class').notNull(),
   wikidata: text('wikidata'),
-  hierarchy: jsonText('hierarchy'),
+  hierarchies: text('hierarchies', { mode: 'json' })
+    .$type<DivisionHierarchies>()
+    .notNull(),
   cartography: jsonText('cartography'),
   sources: jsonText('sources'),
   ...geoBbox,
@@ -168,7 +173,7 @@ export const canonicalDivisionGeometry = {
   variant: text('variant').notNull().default('overture'),
   bbox: jsonText('bbox'),
   geometry: jsonTextOrBinary('geometry'),
-  sourceKeys: jsonText('sourceKeys'),
+  identifiers: jsonText('identifiers'),
   sources: jsonText('sources'),
   type: text('type').notNull(),
   isLand: integer('isLand', { mode: 'boolean' }),
@@ -190,7 +195,7 @@ export const canonicalDivisionI18n = {
 
 /**
  * A district-level observation exposed by the Division Statistics API. The
- * source layer keeps the publisher's complete raw assertion and labels.
+ * source layer includes the publisher's complete raw source record and labels.
  */
 export const canonicalDivisionStatistic = {
   id: text('id').notNull(),
@@ -200,11 +205,12 @@ export const canonicalDivisionStatistic = {
   landAreaSqKm: real('landAreaSqKm').notNull(),
   midYearPopulation: integer('midYearPopulation').notNull(),
   midYearPopulationDensityPerSqKm: integer('midYearPopulationDensityPerSqKm').notNull(),
-  sourceKeys: jsonText('sourceKeys').notNull(),
   sources: jsonText('sources').notNull(),
 }
 
 export type CanonicalStatsGeography = {
+  /** Disambiguates publisher geography codes that are only unique within a parent. */
+  namespace?: string
   /**
    * Reviewed geometry companion for `include=areas` and `include=divisions`.
    *
@@ -223,6 +229,11 @@ export type CanonicalStatsGeography = {
   class?: string
 }
 
+export type CanonicalStatsFieldSource = {
+  sourceReleaseId: string
+  sourceFeatureRef: string
+}
+
 /** Canonical structured period fields shared by source and API statistic rows. */
 export const statisticsReferencePeriod = {
   referencePeriodCode: text('referencePeriodCode').notNull(),
@@ -232,7 +243,7 @@ export const statisticsReferencePeriod = {
   referencePeriodEndYear: text('referencePeriodEndYear').notNull(),
 }
 
-/** Shared feature-level context and packed values for a statistic record. */
+/** One dataset, exact period and semantic geography, shared by current and history. */
 export const canonicalStatsRecord = {
   id: text('id').notNull(),
   datasetCode: text('datasetCode').notNull(),
@@ -242,10 +253,16 @@ export const canonicalStatsRecord = {
   /** Present only after a reviewed bridge to a canonical division exists. */
   divisionId: text('divisionId'),
   ...statisticsReferencePeriod,
-  /** Reviewed feature-level geography; source variants remain distinguished by `sourceFeatureRef`. */
+  /** Reviewed geography identity and its explicitly selected geometry companion. */
   geography: jsonText<CanonicalStatsGeography>('geography').notNull(),
-  /** Curated analytical dimensions, keyed by dimension code. */
-  dimensions: jsonText<Record<string, string>>('dimensions').notNull(),
+  /** Provenance of the last real change to each retained field. */
+  fieldSources: jsonText<Record<string, CanonicalStatsFieldSource>>('fieldSources')
+    .notNull()
+    .default({}),
+  /** Immutable field definitions, including dimensions and localised metadata. */
+  fieldDefinitionHashes: jsonText<Record<string, string>>('fieldDefinitionHashes')
+    .notNull()
+    .default({}),
   /** Publisher literals keyed by the stable reviewed field name. */
   values: jsonText<Record<string, string>>('values').notNull(),
 }
@@ -315,6 +332,8 @@ export const canonicalStatsMeasure = {
 
 export const canonicalStatsField = {
   ...canonicalStatsMeasure,
+  /** Immutable measure metadata paired with this field definition. */
+  measureVersionHash: text('measureVersionHash').notNull().default(''),
   fieldName: text('fieldName').notNull(),
   sourceField: text('sourceField').notNull(),
   /** Curated analytical dimensions associated with this source field. */
@@ -376,6 +395,10 @@ export const canonicalStatsValueI18n = {
 
 export const canonicalAddress2d = {
   id: text('id').notNull(),
+  parentAddressId: text('parentAddressId'),
+  granularity: text('granularity', { enum: addressGranularities })
+    .notNull()
+    .default('unknown'),
   streetId: text('streetId'),
   hamletId: text('hamletId'),
   microhoodId: text('microhoodId'),
@@ -411,30 +434,7 @@ export const addressBlockTypes = [
   'other',
 ] as const
 
-export const addressUnitTypes = [
-  'flat',
-  'room',
-  'shop',
-  'suite',
-  'unit',
-  'stall',
-  'kiosk',
-  'office',
-  'other',
-] as const
-
-export const addressFloorTypes = [
-  'floor',
-  'ground_floor',
-  'upper_ground_floor',
-  'lower_ground_floor',
-  'basement',
-  'mezzanine',
-  'concourse',
-  'podium',
-  'roof',
-  'other',
-] as const
+export type AddressBlockType = (typeof addressBlockTypes)[number]
 
 export const canonicalAddress2dI18n = {
   addressId: text('addressId').notNull(),
@@ -481,33 +481,32 @@ export const canonicalAddress2dBuildingNumberLookup = {
 export const canonicalAddress3dI18n = {
   address3dId: text('address3dId').notNull(),
   locale: text('locale').notNull(),
-  formattedAddressPart: text('formattedAddressPart').notNull(),
-  accessHint: text('accessHint'),
-  unitPortion: text('unitPortion'),
-  unitExpression: text('unitExpression'),
-  unitRef: text('unitRef'),
-  unitType: text('unitType', { enum: addressUnitTypes }),
-  floorExpression: text('floorExpression'),
-  floorRef: text('floorRef'),
-  floorType: text('floorType', { enum: addressFloorTypes }),
+  units: jsonText<Record<string, Address3dUnitI18n>>('units').notNull(),
 }
 
-export const canonicalAddress3dUnitRefLookup = {
-  address3dId: text('address3dId').notNull(),
-  unitRef: text('unitRef').notNull(),
-  numericStem: text('numericStem'),
-  evidence: text('evidence', { enum: addressReferenceLookupEvidences }).notNull(),
-  derivation: text('derivation', {
-    enum: addressReferenceLookupDerivations,
-  }),
+export const canonicalAddress3d = {
+  id: text('id').notNull(),
+  address2dId: text('address2dId').notNull(),
+  units: jsonText<Address3dUnit[]>('units').notNull(),
+  unitCount: integer('unitCount').notNull(),
+  contentHash: text('contentHash').notNull(),
+  /** Explicitly reviewed children whose unit membership remains unresolved. */
+  unresolvedSectionIds: jsonText<string[]>('unresolvedSectionIds').notNull(),
+  sources: jsonText('sources'),
 }
 
 export const canonicalPlace = {
   id: text('id').notNull(),
   releaseId: text('releaseId').notNull(),
+  /** Content identity of the referenced Address, selected unit and their localisations. */
+  addressDependencyHash: text('addressDependencyHash'),
   addressSnapshotId: text('addressSnapshotId'),
   address2dId: text('address2dId'),
   address3dId: text('address3dId'),
+  address3dUnitId: text('address3dUnitId'),
+  address3dMembership: text('address3dMembership', {
+    enum: ['established', 'unresolved'],
+  }),
   lng: real('lng').notNull(),
   lat: real('lat').notNull(),
   bbox: jsonText('bbox'),
@@ -516,29 +515,43 @@ export const canonicalPlace = {
   taxonomyPrimary: text('taxonomyPrimary'),
   taxonomyHierarchy: jsonText('taxonomyHierarchy'),
   taxonomyAlternates: jsonText('taxonomyAlternates'),
-  brandWikidata: text('brandWikidata'),
+  wikidataId: text('wikidataId'),
   websites: jsonText('websites'),
   socials: jsonText('socials'),
   emails: jsonText('emails'),
   phones: jsonText('phones'),
   addresses: jsonText('addresses'),
   confidence: real('confidence'),
-  sourceKeys: jsonText('sourceKeys'),
   sources: jsonText('sources'),
   firstSeenMonth: text('firstSeenMonth').notNull(),
   lastSeenMonth: text('lastSeenMonth').notNull(),
 }
 
 export const canonicalPlaceI18n = {
+  /** Exact dependency text and revision evidence resolved during local preparation. */
+  searchDependencyText: jsonText<{
+    addressSnapshotId: string | null
+    addressText: string
+    divisionText: string
+    streetText: string
+  }>('searchDependencyText'),
   placeId: text('placeId').notNull(),
   locale: text('locale').notNull(),
   name: text('name'),
   nameVariant: jsonText('nameVariant'),
   nameAlts: text('nameAlts'),
-  isLocaleInferred: integer('isLocaleInferred', { mode: 'boolean' }).notNull(),
   brandName: text('brandName'),
   brandNameVariant: jsonText('brandNameVariant'),
   brandNameAlts: text('brandNameAlts'),
+  freeformAddress: text('freeformAddress'),
+  accessHint: text('accessHint'),
+  provenance: jsonText<PlaceI18nProvenance>('provenance'),
+}
+
+export type PlaceI18nProvenance = {
+  isMachineTranslated: Array<'name' | 'brand' | 'freeformAddress'>
+  isHumanVerified: Array<'name' | 'brand' | 'freeformAddress'>
+  isLocaleInferred: boolean
 }
 
 export const canonicalStreet = {
@@ -559,7 +572,8 @@ export const canonicalStreet = {
   noticeRefs: jsonText<string[]>('noticeRefs'),
   /** Government Notice PDFs and plans that establish the current street state. */
   evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets'),
-  sourceKeys: jsonText('sourceKeys'),
+  /** Source-record references that establish the current street state. */
+  sources: jsonText('sources'),
 }
 
 export const canonicalStreetI18n = {

@@ -27,7 +27,10 @@ let {
 }: Props = $props()
 </script>
 
-<div class={`border-l-2 border-secondary pl-4 ${className}`}>
+<div
+  data-guide-instruction-callout
+  class={`border-l-2 border-secondary pl-4 ${className}`}
+>
   {#if stepNumber && stepLabel}
     <GuideCalloutEyebrow>
       <GuideStepLabel number={stepNumber} label={stepLabel} />
