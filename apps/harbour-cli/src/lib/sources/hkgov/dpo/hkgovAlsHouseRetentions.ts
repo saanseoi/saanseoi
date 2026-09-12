@@ -103,7 +103,7 @@ function retain(rule: Rule, version: string, kind: '2d' | '3d') {
   }
 }
 
-/** Coalesce reviewed empty aliases only after checking complete bilingual source assertions. */
+/** Fill missing named houses without replacing publisher records or unnamed aliases. */
 export function retainAlsHouses(features: HkgovAlsSourceFeature[], version: string) {
   const provenance = new Map<string, unknown>()
   for (const { rule, curation } of active(version)) {

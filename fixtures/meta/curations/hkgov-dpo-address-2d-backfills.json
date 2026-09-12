@@ -555,11 +555,6 @@
       "estate": "TSUI LAM ESTATE",
       "csu": "4364320280T20050430",
       "blockRef": "1",
-      "sourceRename": {
-        "sourceVersionFrom": "2026-08-19.0",
-        "enBuildingName": "PIK LAM HOUSE (BLK 1)",
-        "zhBuildingName": "碧林樓(1座)"
-      },
       "sourceVersions": ["2026-08-19.0"],
       "application": {
         "state": "active",
@@ -571,7 +566,7 @@
       "sourceFile": "als_addresses_(sai_kung_district).geojson",
       "featureIndexOneBased": 6174,
       "authority": "User decision, 2026-09-09: forward-fill the missing Pik Lam House numbered parent and maintain until revoked.",
-      "decision": "Retain the numbered Block 1 parent from 22 July 2026 at its publisher point, independently of the blockless estate-complex assertion sharing its CSU. Preserve the exact reviewed August bilingual rename as source provenance and carry the parent forward through future omissions. Keep the supplied 3D inventory attached to this building. An identical returning publisher assertion takes precedence; other changed or duplicate numbered assertions require review.",
+      "decision": "Forward-fill the missing numbered Block 1 parent from 22 July 2026 at its publisher point, independently of the blockless estate-complex assertion sharing its CSU. Any returning numbered publisher premise takes precedence, including renamed or changed assertions. Preserve returned records unchanged and leave duplicates and ownership conflicts to normal validation. Apply only during omissions until revoked.",
       "feature": {
         "type": "Feature",
         "geometry": {

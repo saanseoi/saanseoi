@@ -46,7 +46,7 @@ function matches(rule: Rule, f: HkgovAlsSourceFeature['feature'] | Als3dFeature)
   )
 }
 
-/** Reconcile only the reviewed centres; preserve each original assertion and its point. */
+/** Restore omitted centres; returning publisher premises bypass the fallback. */
 export function retainAlsCommercialPremises(
   features: HkgovAlsSourceFeature[],
   version: string,
