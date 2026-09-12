@@ -47,9 +47,25 @@ function fixture() {
     databases.set(binding, db)
   }
   const current = getDatabase(databases, 'current')
+  const historyQueries: Array<{ params: number; plan: string[] }> = []
   const historyTargets = ['old', 'new'].map(bindingName => ({
     bindingName,
-    db: drizzle({ client: getDatabase(databases, bindingName) }),
+    db: drizzle({
+      client: getDatabase(databases, bindingName),
+      logger: {
+        logQuery(query, params) {
+          if (!/from "places(?:I18n)?"/.test(query) || !query.includes('versionHash'))
+            return
+          historyQueries.push({
+            params: params.length,
+            plan: getDatabase(databases, bindingName)
+              .query(`EXPLAIN QUERY PLAN ${query}`)
+              .all(...(params as never[]))
+              .map(row => (row as { detail: string }).detail),
+          })
+        },
+      },
+    }),
   })) as unknown as Parameters<typeof loadCurrentPlaceHistory>[0]
   const sourceTargets = ['source', 'source-next'].map(bindingName => ({
     bindingName,
@@ -112,6 +128,7 @@ function fixture() {
     databases,
     current,
     historyTargets,
+    historyQueries,
     shards,
     plan,
     run,
@@ -469,6 +486,30 @@ test('Places refuses a serving predecessor whose selected history content is mis
       }),
     ).rejects.toThrow('Missing exact Place predecessor content')
     expect(f.current.query('SELECT total_changes() AS n').get()).toEqual(before)
+  } finally {
+    f.close()
+  }
+})
+
+test('Place replay batches exact indexed identities even when many places share content hashes', async () => {
+  const f = fixture()
+  try {
+    const template = await place()
+    const rows = Array.from({ length: 105 }, (_, index) => ({
+      ...structuredClone(template),
+      place: { ...structuredClone(template.place), id: `place-${index}` },
+    }))
+    await f.run(rows)
+    const repeated = await f.run(rows)
+    expect(repeated.changes).toEqual([])
+    expect(f.historyQueries.length).toBeGreaterThan(4)
+    for (const query of f.historyQueries) {
+      expect(query.params).toBeLessThanOrEqual(99)
+      expect(
+        query.plan.some(detail => /SEARCH places(?:I18n)? USING INDEX/.test(detail)),
+      ).toBe(true)
+      expect(query.plan.some(detail => /^SCAN places/.test(detail))).toBe(false)
+    }
   } finally {
     f.close()
   }

@@ -32,12 +32,15 @@ export function postponeNetParentDeletions(input: {
         return { child, parent, relation }
       }),
     )
+    // The encoded row key is not indexed on baseline tables. Keep each baseline
+    // scan outside the indexed journal lookup: SQLite otherwise scans every parent
+    // again for every deletion, which is quadratic for release-sized retirements.
     db.transaction(() => {
       for (const { child, parent, relation } of relations) {
         db.query(`INSERT OR IGNORE INTO net_journal.lateDeletes(binding,tableName,rowKey)
           SELECT ?,?,${netRowKey(parent, 'p')}
           FROM net_baseline.${q(parent.policy.name)} p
-          JOIN net_journal.mutations m ON m.binding=? AND m.tableName=? AND m.kind='delete' AND m.rowKey=${netRowKey(parent, 'p')}
+          CROSS JOIN net_journal.mutations m ON m.binding=? AND m.tableName=? AND m.kind='delete' AND m.rowKey=${netRowKey(parent, 'p')}
           WHERE EXISTS (
             SELECT 1 FROM net_baseline.${q(child.policy.name)} b
             JOIN main.${q(child.policy.name)} c ON ${netKeyMatch(child, 'b', 'c')}
@@ -54,10 +57,10 @@ export function postponeNetParentDeletions(input: {
             .query(`INSERT OR IGNORE INTO net_journal.lateDeletes(binding,tableName,rowKey)
             SELECT ?,?,${netRowKey(parent, 'p')}
             FROM net_baseline.${q(parent.policy.name)} p
-            JOIN net_journal.mutations m ON m.binding=? AND m.tableName=? AND m.kind='delete' AND m.rowKey=${netRowKey(parent, 'p')}
+            CROSS JOIN net_journal.mutations m ON m.binding=? AND m.tableName=? AND m.kind='delete' AND m.rowKey=${netRowKey(parent, 'p')}
             WHERE EXISTS (
               SELECT 1 FROM net_baseline.${q(child.policy.name)} b
-              JOIN net_journal.lateDeletes d ON d.binding=? AND d.tableName=? AND d.rowKey=${netRowKey(child, 'b')}
+              CROSS JOIN net_journal.lateDeletes d ON d.binding=? AND d.tableName=? AND d.rowKey=${netRowKey(child, 'b')}
               WHERE ${relation}
             )`)
             .run(

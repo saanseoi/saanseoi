@@ -1,3 +1,4 @@
+import { cachedAlsPreparation } from '../lib/alsPreparationCache.ts'
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { selectInitialisationVersions } from '../../../harbour-cli/src/lib/cli/minimalInitialisation.ts'
@@ -204,13 +205,6 @@ export async function runHkgovAlsIngestCommand(
       `No ALS release directories found in ${resolve(sourceRoot)} on or after ${firstSourceVersion}.`,
     )
   }
-  for (const divisionCohortKey of new Set(
-    sourceReleases.map(release => release.divisionCohortKey),
-  )) {
-    await progressPhase(`Prepare ALS division snapshot ${divisionCohortKey}`, () =>
-      materialiseDivisionSnapshotForAddressRelease(target, divisionCohortKey),
-    )
-  }
   const completedSourceVersions = await progressPhase(
     'Read completed ALS releases',
     () =>
@@ -223,6 +217,17 @@ export async function runHkgovAlsIngestCommand(
         }),
       ),
   )
+  for (const divisionCohortKey of new Set(
+    selectPendingAlsSourceReleases(
+      sourceReleases,
+      completedSourceVersions,
+      Boolean(args.options.force),
+    ).map(release => release.divisionCohortKey),
+  )) {
+    await progressPhase(`Prepare ALS division snapshot ${divisionCohortKey}`, () =>
+      materialiseDivisionSnapshotForAddressRelease(target, divisionCohortKey),
+    )
+  }
   log.info(
     'Ingest ALS releases chronologically; retain unresolved cases as unreviewed per release.',
   )
@@ -245,7 +250,7 @@ export async function runHkgovAlsIngestCommand(
       '.local/hkgov-dpo/prepared',
       `hkgov-hk-${sourceVersion}-address.parquet`,
     )
-    const result = await prepareHkgovAlsRelease({
+    const preparationInput = {
       args,
       addressCohortKey,
       divisionCohortKey,
@@ -255,7 +260,11 @@ export async function runHkgovAlsIngestCommand(
       sourceDir,
       sourceVersion,
       target,
-    })
+    }
+    const result = await cachedAlsPreparation(preparationInput, () =>
+      prepareHkgovAlsRelease(preparationInput),
+    )
+
     await recordAlsIngestionReview(
       sourceVersion,
       result,
