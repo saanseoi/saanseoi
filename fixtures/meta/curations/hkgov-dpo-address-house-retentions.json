@@ -3413,8 +3413,7 @@
           ]
         }
       ],
-      "authority": "User decision, 2026-09-12: forward-fill Ban Tip House, Kai Wang House and Kai Chun House only when the house is absent from a release, until revoked. Skip the patch whenever the publisher house returns; preserve returned publisher assertions without identity overrides.",
-      "onlyWhenMissing": true
+      "authority": "User decision, 2026-09-12: forward-fill Ban Tip House, Kai Wang House and Kai Chun House only when the house is absent from a release, until revoked. Skip the patch whenever the publisher house returns; preserve returned publisher assertions without identity overrides."
     },
     {
       "id": "kai-chuen-court-kai-wang-house",
@@ -3667,8 +3666,7 @@
           ]
         }
       ],
-      "authority": "User decision, 2026-09-12: forward-fill Ban Tip House, Kai Wang House and Kai Chun House only when the house is absent from a release, until revoked. Skip the patch whenever the publisher house returns; preserve returned publisher assertions without identity overrides.",
-      "onlyWhenMissing": true
+      "authority": "User decision, 2026-09-12: forward-fill Ban Tip House, Kai Wang House and Kai Chun House only when the house is absent from a release, until revoked. Skip the patch whenever the publisher house returns; preserve returned publisher assertions without identity overrides."
     },
     {
       "id": "kai-chuen-court-kai-chun-house",
@@ -3921,8 +3919,7 @@
           ]
         }
       ],
-      "authority": "User decision, 2026-09-12: forward-fill Ban Tip House, Kai Wang House and Kai Chun House only when the house is absent from a release, until revoked. Skip the patch whenever the publisher house returns; preserve returned publisher assertions without identity overrides.",
-      "onlyWhenMissing": true
+      "authority": "User decision, 2026-09-12: forward-fill Ban Tip House, Kai Wang House and Kai Chun House only when the house is absent from a release, until revoked. Skip the patch whenever the publisher house returns; preserve returned publisher assertions without identity overrides."
     }
   ]
 }
