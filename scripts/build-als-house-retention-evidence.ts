@@ -54,11 +54,11 @@ for (const rule of policy.retentions) {
 await mkdir('.local/hkgov-dpo/curations', { recursive: true })
 await writeFile(
   outputPath,
-  [
+  `${[
     JSON.stringify({ version: 1 }),
     ...Object.entries(retentions).map(([id, evidence]) =>
       JSON.stringify({ id, evidence }),
     ),
-  ].join('\n') + '\n',
+  ].join('\n')}\n`,
 )
 console.info(`Wrote ${outputPath}.`)

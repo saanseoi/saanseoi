@@ -553,7 +553,7 @@ WHERE isCurrent = 1
   })
 }
 
-function buildDeleteCurrentI18nStatements(snapshotId: string, divisionIds: string[]) {
+function _buildDeleteCurrentI18nStatements(snapshotId: string, divisionIds: string[]) {
   return chunkArray(divisionIds, getMaxItemsPerInClause(1, 1)).map(chunk =>
     `
 DELETE FROM divisionsI18n

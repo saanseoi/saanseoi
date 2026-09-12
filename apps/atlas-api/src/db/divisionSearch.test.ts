@@ -251,7 +251,7 @@ test('ancestor ordering causes no writes; changed ancestor text refreshes the af
       'utf8',
     )
     expect(repair.trim()).toBe(
-      (buildSearchContentSql(divisionSearchIndex).join(';\n\n') + ';').trim(),
+      `${buildSearchContentSql(divisionSearchIndex).join(';\n\n')};`.trim(),
     )
   } finally {
     f.sqlite.close()
@@ -268,7 +268,7 @@ test('codes remain searchable without localised names and bound scope lists do n
       ['code', 'und'],
     ])
     const scopes = Array.from({ length: 120 }, (_, i) => ({
-      scopeId: 'hk:geographic:lineage' + i,
+      scopeId: `hk:geographic:lineage${i}`,
       snapshotId: 'latest',
     }))
     f.sync(scopes)

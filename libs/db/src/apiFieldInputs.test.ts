@@ -130,7 +130,7 @@ test('curation paths use named camelCase contexts while preserving registered id
     fieldPath: 'coordinates',
   })
   const selector = '[datasetCode=ds-hk-example].fields[sourceField=age_1]'
-  expect(resolveApiFieldCurationInput('statisticFields' + selector)).toEqual({
+  expect(resolveApiFieldCurationInput(`statisticFields${selector}`)).toEqual({
     contextId: 'statistic-fields',
     fieldPath: selector,
   })

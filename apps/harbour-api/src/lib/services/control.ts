@@ -145,7 +145,7 @@ export async function handlePublishDataset(
       throw new ControlRequestError(
         'Publication is blocked by the failed processing audit attempt.',
       )
-    if (!failedAudit || failedAudit.status !== 'completed')
+    if (failedAudit?.status !== 'completed')
       throw new ControlRequestError(
         'Release publication requires a verified retained processing result with a completed audit attempt.',
       )

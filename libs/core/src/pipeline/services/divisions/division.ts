@@ -1079,7 +1079,7 @@ export function collectOvertureHongKongDivisionSourceAssumptionViolations(
   return violations
 }
 
-function getTopLevelHierarchyCount(value: unknown) {
+function _getTopLevelHierarchyCount(value: unknown) {
   return Array.isArray(value) ? value.length : 0
 }
 
@@ -2215,7 +2215,7 @@ function isHongKongArea(row: Record<string, unknown>) {
   )
 }
 
-function collectDivisionNameCandidates(names: Record<string, unknown>) {
+function _collectDivisionNameCandidates(names: Record<string, unknown>) {
   const candidates = new Set<string>()
 
   const pushValue = (value: unknown) => {

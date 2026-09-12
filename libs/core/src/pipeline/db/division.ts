@@ -28,7 +28,6 @@ import {
   createHash,
   getMaxItemsPerInClause,
   getMaxRowsPerInsert,
-  runStatementBatchWithWriteRetry,
   runStatementsInGroupsWithWriteRetry,
 } from '../utils'
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'

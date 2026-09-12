@@ -59,7 +59,7 @@ export async function searchDivisions(
           `SELECT rowid FROM (${fields
             .map(
               field =>
-                `SELECT rowid FROM divisionSearchFts WHERE ${field} LIKE ${bind('%' + term + '%')}`,
+                `SELECT rowid FROM divisionSearchFts WHERE ${field} LIKE ${bind(`%${term}%`)}`,
             )
             .join(' UNION ')})`,
       )
@@ -68,15 +68,13 @@ export async function searchDivisions(
       .map(
         term =>
           '(' +
-          ownFields
-            .map(field => `f.${field} LIKE ${bind('%' + term + '%')}`)
-            .join(' OR ') +
+          ownFields.map(field => `f.${field} LIKE ${bind(`%${term}%`)}`).join(' OR ') +
           ')',
       )
       .join(' AND ')
     const exact = terms.join(' ')
     const rank = `CASE WHEN f.codeText = ${bind(query.q.normalize('NFKC').trim())} COLLATE NOCASE OR f.nameText = ${bind(exact)} COLLATE NOCASE THEN 0
-      WHEN f.nameText LIKE ${bind(exact + '%')} THEN 1 ELSE 2 END`
+      WHEN f.nameText LIKE ${bind(`${exact}%`)} THEN 1 ELSE 2 END`
     const locale = query.locale ? `AND f.locale = ${bind(query.locale)}` : ''
     const limit = bind(query.limit)
     const result = await db

@@ -70,7 +70,7 @@ export function resolveRollbackSelection(meta: Database, releaseId: string) {
       [string]
     >('SELECT id,code,resourceType,status,datasetId FROM releases WHERE id=?')
     .get(releaseId)
-  if (!release || release.status !== 'published')
+  if (release?.status !== 'published')
     throw new Error('Rollback requires a published source release.')
   const candidates = meta
     .query<ReleaseSet, [string]>(

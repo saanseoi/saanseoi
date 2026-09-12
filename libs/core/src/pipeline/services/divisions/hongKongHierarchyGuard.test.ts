@@ -1,4 +1,3 @@
-import { materialiseDivisionHierarchies } from './divisionHierarchies'
 import { expect, test } from 'bun:test'
 import {
   checkHongKongHierarchy,

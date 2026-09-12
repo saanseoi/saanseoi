@@ -1,7 +1,7 @@
 import { readDivisionSnapshot } from '../pipeline/divisions/readDivisionSnapshot.ts'
 import { Database } from 'bun:sqlite'
 
-import { and, currentSchema, desc, eq, historySchema, metaSchema, sql } from '@repo/db'
+import { and, desc, eq, historySchema, metaSchema, sql } from '@repo/db'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { replaceReleaseStatsDimension } from '@repo/core/pipeline/db/stats'

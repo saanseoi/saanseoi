@@ -42,7 +42,7 @@ describe('API field provenance contract paths', () => {
       .filter(f => f.apiVersion === 'api-places-v0.1')
       .flatMap(f => f.fields.map(field => field.apiField))
     const covered = (path: string) =>
-      fields.some(field => field === path || field.startsWith(path + '.'))
+      fields.some(field => field === path || field.startsWith(`${path}.`))
     expect(attributes?.properties).toBeDefined()
     for (const field of Object.keys(attributes?.properties ?? {})) {
       expect(covered(`attributes.${field}`), field).toBe(true)

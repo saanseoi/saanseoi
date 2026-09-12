@@ -26,8 +26,7 @@ export async function resumeRollbackDelivery(
 ) {
   const terminal = plan.outputs?.terminal as RollbackTerminal | undefined
   if (
-    !terminal ||
-    terminal.operation !== 'rollback' ||
+    terminal?.operation !== 'rollback' ||
     terminal.releaseId !== plan.context.releaseId
   )
     throw new Error('Invalid sealed rollback completion contract.')

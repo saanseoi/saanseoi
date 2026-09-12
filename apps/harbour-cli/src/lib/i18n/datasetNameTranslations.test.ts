@@ -225,7 +225,7 @@ describe('dataset name translations', () => {
 
   test('rejects conflicting translations with the same dataset identity key', async () => {
     const root = await mkdtemp(join(tmpdir(), 'saanseoi-dataset-i18n-'))
-    const fixturePath = join(root, 'fixture.json')
+    const _fixturePath = join(root, 'fixture.json')
     const context = { parentDivisionId: 'parent-1', parentName: 'Hong Kong Island' }
     const shared = {
       context,
