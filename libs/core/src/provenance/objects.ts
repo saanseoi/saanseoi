@@ -117,6 +117,24 @@ export async function readObject(
   return value
 }
 
+/** Bound concurrent reads and verify bytes before acknowledging reusable objects. */
+export async function findRetainedObjects(store: ProvenanceStore, refs: ObjectRef[]) {
+  const found: ObjectRef[] = []
+  for (let start = 0; start < refs.length; start += 4) {
+    const batch = await Promise.all(
+      refs.slice(start, start + 4).map(async ref => {
+        validateRef(ref)
+        const object = await store.get(objectKey(ref.hash))
+        if (!object) return null
+        await readObject({ ...store, get: async () => object }, ref)
+        return ref
+      }),
+    )
+    found.push(...batch.filter((ref): ref is ObjectRef => ref !== null))
+  }
+  return found
+}
+
 /** Existing content is verified; retries never replace an object with different bytes. */
 export async function retainObject(
   store: ProvenanceStore,

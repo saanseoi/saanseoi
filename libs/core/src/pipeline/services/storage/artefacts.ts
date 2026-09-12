@@ -7,6 +7,9 @@ type ArtefactObjectBody = {
 }
 
 export type PipelineArtefactBucket = {
+  /** A local chunk may keep transient JSON in memory until its SQL is retained. */
+  getJsonArtefact?<T>(key: string): Promise<T>
+  putJsonArtefact?<T>(key: string, value: T): Promise<void>
   get(key: string): Promise<ArtefactObjectBody | null>
   put?(
     key: string,
@@ -54,6 +57,7 @@ export async function writeJsonArtefact<T>(
   key: string,
   value: T,
 ) {
+  if (bucket.putJsonArtefact) return bucket.putJsonArtefact(key, value)
   const body = JSON.stringify(value)
 
   if (bucket.put) {
@@ -90,6 +94,7 @@ export async function readJsonArtefact<T>(
   bucket: PipelineArtefactBucket,
   key: string,
 ): Promise<T> {
+  if (bucket.getJsonArtefact) return bucket.getJsonArtefact<T>(key)
   if (!bucket.put && localArtefacts.has(key)) {
     return JSON.parse(localArtefacts.get(key) ?? 'null') as T
   }

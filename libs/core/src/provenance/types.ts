@@ -85,6 +85,8 @@ export type ProcessingManifest = {
 }
 
 export type ProvenanceStore = {
+  /** Verified destination contents; absence means that transfer must retain the object. */
+  hasObjects?(refs: ObjectRef[]): Promise<ObjectRef[]>
   get(key: string): Promise<{ arrayBuffer(): Promise<ArrayBuffer> } | null>
   put(key: string, value: ArrayBuffer): Promise<unknown>
 }

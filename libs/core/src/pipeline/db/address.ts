@@ -637,14 +637,20 @@ async function loadReplayedAddressBaseRows(
     if (!db) continue
 
     const found = new Set<string>()
-    for (const hashes of chunkArray(
-      shardVersions.map(version => version.versionHash),
-      getMaxItemsPerInClause(1),
-    )) {
+    for (const batch of chunkArray(shardVersions, getMaxItemsPerInClause(2))) {
       const candidates = (await db
         .select(selectCurrentAddressVersionFields())
         .from(historySchema.address2d)
-        .where(inArray(historySchema.address2d.versionHash, hashes))
+        .where(
+          or(
+            ...batch.map(version =>
+              and(
+                eq(historySchema.address2d.id, version.recordId),
+                eq(historySchema.address2d.versionHash, version.versionHash),
+              ),
+            ),
+          ),
+        )
         .all()) as CurrentAddressVersionLookupRow[]
       for (const row of candidates) {
         const key = `${row.id}\u0000${row.versionHash}`
@@ -680,10 +686,7 @@ async function loadReplayedAddressI18nRows(
     if (!db) continue
 
     const found = new Set<string>()
-    for (const hashes of chunkArray(
-      shardVersions.map(version => version.versionHash),
-      getMaxItemsPerInClause(1),
-    )) {
+    for (const batch of chunkArray(shardVersions, getMaxItemsPerInClause(3))) {
       const candidates = await db
         .select({
           addressId: historySchema.address2dI18n.addressId,
@@ -707,7 +710,17 @@ async function loadReplayedAddressI18nRows(
           versionHash: historySchema.address2dI18n.versionHash,
         })
         .from(historySchema.address2dI18n)
-        .where(inArray(historySchema.address2dI18n.versionHash, hashes))
+        .where(
+          or(
+            ...batch.map(version =>
+              and(
+                eq(historySchema.address2dI18n.addressId, version.recordId),
+                eq(historySchema.address2dI18n.versionHash, version.versionHash),
+                eq(historySchema.address2dI18n.locale, version.locale),
+              ),
+            ),
+          ),
+        )
         .all()
       for (const candidate of candidates) {
         const key = `${candidate.addressId}\u0000${candidate.locale}\u0000${candidate.versionHash}`
