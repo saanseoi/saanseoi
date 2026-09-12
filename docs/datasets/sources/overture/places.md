@@ -607,3 +607,11 @@ Source storage and public records use `properties` for retained attributes. API-
 inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
 Processing-rule definitions remain in their registered fixtures and are pinned by the
 selected release.
+
+### Deferred address review
+
+Unresolved Place Address cases are retained as unreviewed during ingestion. The place
+remains available with a null address link; candidate evidence and the original reason
+are retained in the release review artefact and provenance. Ingestion does not select an
+identity or record a curation decision. Reviewed links and approved supplementary
+addresses continue to apply. Later review can resolve these cases in revised releases.
