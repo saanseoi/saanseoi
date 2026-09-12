@@ -1,3 +1,5 @@
+import houseStreetIdentities from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-house-street-identities.json'
+import premiseRenames from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-premise-renames.json'
 import fixture0 from '../../../../../../../fixtures/meta/curations/address-granularity.json'
 import fixture1 from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-2d-backfills.json'
 import fixture2 from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-backfills.json'
@@ -35,6 +37,11 @@ import fixture33 from '../../../../../../../fixtures/meta/curations/hkgov-dpo-ad
 
 /** These are the same imported documents used by the ALS processors. */
 export const alsAuditFixtures = [
+  {
+    type: 'hkgov-dpo-address-house-street-identities',
+    document: houseStreetIdentities,
+  },
+  { type: 'hkgov-dpo-address-premise-renames', document: premiseRenames },
   { type: 'address-granularity', document: fixture0 },
   { type: 'hkgov-dpo-address-2d-backfills', document: fixture1 },
   { type: 'hkgov-dpo-address-3d-backfills', document: fixture2 },

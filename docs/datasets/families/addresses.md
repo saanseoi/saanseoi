@@ -798,3 +798,26 @@ Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for exa
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
 properties. Original publisher paths and language dictionary identifiers retain their
 spelling; demographic measures about language are not locale-bearing labels.
+
+Ho Sin Hang Building (何善衡樓), Lingnan University, has omission-only 2D retention from
+25 July 2024 until revoked. Its reviewed named building and point are restored only when
+absent; returning named publisher premises bypass the fallback. The unnamed CAMPUS
+assertion sharing its CSU remains separate. No unit inventory is inferred.
+
+The reviewed unnamed CAMPUS assertion is the Lingnan University (嶺南大學) complex. Its
+canonical address omits the CAMPUS block label while retaining the raw bilingual source
+assertion and publisher point. Ho Sin Hang Building remains a separate building even
+where the two assertions share a CSU.
+
+Dash Living on Prat (一尚酒店香港尖沙咀店), 21–23 Prat Avenue, uses its reviewed 2023
+rename throughout retained ALS releases. The two named publisher CSUs share one
+canonical hotel identity; the unnamed street address remains separate. Raw Butterfly on
+Prat and Dash Living on Prat assertions remain in provenance. This is an explicit name
+correction, not an omission-only retention.
+
+The reviewed Redhill Peninsula House 20 identity has house/block number 20 and building
+street address 20 Palm Drive (棕櫚徑20號). Its parent complex is The Redhill Peninsula
+(紅山半島), at 18 Pak Pat Shan Road. These are separate address fields and levels; this
+explicit mapping does not equate house numbers with street numbers generally. Raw
+release addresses and house coordinates are preserved. The derived complex uses the
+dated estate-address assertion point and does not inherit the house CSU.

@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "dash-living-on-prat",
+      "authority": "User decision, 2026-09-12: hotel renamed in 2023; use Dash Living on Prat and 一尚酒店香港尖沙咀店 throughout the retained dataset.",
+      "csus": ["3606917731T20050430", "3607017731P20060311"],
+      "sourceNames": ["BUTTERFLY ON PRAT", "DASH LIVING ON PRAT"],
+      "enName": "DASH LIVING ON PRAT",
+      "zhName": "一尚酒店香港尖沙咀店",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": ["304aa4b6eaf690d6901bd0441113f6bf1e1162e68341c0a46988117069f77eb0"]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": ["304aa4b6eaf690d6901bd0441113f6bf1e1162e68341c0a46988117069f77eb0"]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": ["304aa4b6eaf690d6901bd0441113f6bf1e1162e68341c0a46988117069f77eb0"]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": ["304aa4b6eaf690d6901bd0441113f6bf1e1162e68341c0a46988117069f77eb0"]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": ["b205530d1bebf0db9dcede0a68e64f387b293320502652eda72414657646d11e"]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": ["6bac7e318afe9bb1b45e6fdd8f03234b14e69b3e1e5d0c3f3a4ebf0de1cea9d9"]
+        }
+      ]
+    }
+  ]
+}

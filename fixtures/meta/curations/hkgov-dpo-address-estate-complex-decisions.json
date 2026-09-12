@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "authority": "User decisions, 2026-09-08: Shun Lee estate at 15 Lee On Road and separate Phase II centre at 6 Shun King Street; enrich Sun Tin Wai estate identity if no other entry exists.",
+  "authority": "User decisions, 2026-09-08: Shun Lee estate at 15 Lee On Road and separate Phase II centre at 6 Shun King Street; enrich Sun Tin Wai estate identity if no other entry exists. User decision, 2026-09-12: classify the unnamed Lingnan University CAMPUS assertion as the Lingnan University complex, separate from Ho Sin Hang Building.",
   "rules": [
     {
       "id": "shun-lee-estate",
@@ -534,6 +534,173 @@
         "sourceVersion": "2024-09-03.0",
         "sourceFile": "als_addresses_(sha_tin_district).geojson",
         "featureIndexOneBased": 4569
+      }
+    },
+    {
+      "id": "lingnan-university-campus",
+      "estate": "LINGNAN UNIVERSITY",
+      "csu": "1638830000T20050430",
+      "district": "tuen_mun",
+      "action": "complex",
+      "reconstruct": false,
+      "sourceBlock": "CAMPUS",
+      "assertions": [
+        {
+          "version": "2024-07-31.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": ["a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": ["7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": ["7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": ["7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": ["7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": ["7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": ["7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": ["7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [113.9829, 22.41083]
+          },
+          "properties": {
+            "Northing": 830181,
+            "Easting": 816296,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "1638830000T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "屯門區",
+                  "ChiStreet": {
+                    "LocationName": "屯門 嶺南段",
+                    "StreetName": "青山公路",
+                    "BuildingNoFrom": "8"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "嶺南大學"
+                  },
+                  "ChiBlock": {
+                    "BlockNo": "CAMPUS"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngBlock": {
+                    "BlockNo": "CAMPUS"
+                  },
+                  "EngEstate": {
+                    "EstateName": "LINGNAN UNIVERSITY"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "8",
+                    "StreetName": "CASTLE PEAK ROAD",
+                    "LocationName": "LINGNAN, TUEN MUN"
+                  },
+                  "EngDistrict": "TUEN MUN DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "1629530171T20050430"
+              }
+            }
+          }
+        }
       }
     }
   ]
