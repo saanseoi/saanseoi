@@ -821,3 +821,15 @@ street address 20 Palm Drive (棕櫚徑20號). Its parent complex is The Redhill
 explicit mapping does not equate house numbers with street numbers generally. Raw
 release addresses and house coordinates are preserved. The derived complex uses the
 dated estate-address assertion point and does not inherit the house CSU.
+
+The approved Redhill mapping includes Palm Drive houses 10, 14, 18, 20 and 22, and Cedar
+Drive houses 80, 86, 92, 94, 96, 102, 106, 108, 112, 126, 128, 148, 152 and 176. Each
+mapping has independent dated ALS evidence.
+
+The retained `redhill-peninsula-centaline-evidence.json` records the four Centaline
+building tables with source URLs and response hashes: Site A (Phase IV) has 10 towers
+and 248 units; B has 58 houses, C has 42, and D has 146. The totals are 256 buildings
+and 494 residential units. Building labels, occupation-permit years, publisher
+coordinates, floor-plan links and dated sale/rent counts remain supplementary source
+evidence. These counts do not supply individual flat identities, and coordinate
+candidates require review before canonical matching.
