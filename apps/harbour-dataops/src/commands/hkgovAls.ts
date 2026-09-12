@@ -24,11 +24,6 @@ import {
   prepareHkgovAlsAddressParquet,
   type HkgovAlsDivisionQuality,
 } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts'
-import {
-  serialiseHkgovAlsEstateCurationFixture,
-  updateHkgovAlsEstateCurationApplication,
-  type HkgovAlsEstateCurationFixture,
-} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsCurationLifecycle.ts'
 import { resolveLocalAddressDbContext } from '../../../harbour-cli/src/lib/dbCache/localDbCache.ts'
 import { runUploadCommand } from '../../../harbour-cli/src/lib/commands/upload.ts'
 import { runReconcileDraftReleaseSetsCommand } from '../../../harbour-cli/src/lib/commands/reconcile.ts'
@@ -50,14 +45,8 @@ import type {
 } from '../../../harbour-cli/src/lib/cli/options.ts'
 import { terminalSafeText } from '../lib/terminal.ts'
 import { progressPhase } from '../lib/progressPhase.ts'
-import { isolatedAlsReview } from '../lib/isolatedAlsReview.ts'
 import { deliverDivisionPrerequisite } from '../lib/deliverDivisionPrerequisite.ts'
-import {
-  readAlsMembership,
-  reviewAlsDeletions,
-  ALS_DELETION_REPORT_DIRECTORY,
-  type AlsMembership,
-} from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDeletionPreflight'
+import { resolveTargetName } from '../../../harbour-cli/src/lib/pipeline/addresses/processLocalAddressSqlUploadImport.ts'
 
 const HKGOV_ALS_CATALOGUE_URL = 'https://data.gov.hk/en-data/dataset/hk-dpo-als_01-als'
 const REPO_ROOT = resolve(import.meta.dir, '../../../..')
@@ -135,7 +124,9 @@ export async function runHkgovAlsPrepCommand(
       'CONSOLIDATION',
     )
   }
-  const driftReportFile = stringOption(args, 'identity-drift-report')
+  const driftReportFile =
+    stringOption(args, 'identity-drift-report') ??
+    resolveInvocationPath('.local/hkgov-dpo/identity-drift', `${sourceVersion}.json`)
   if (result.driftCandidates.length > 0 && driftReportFile) {
     await writeDriftReport(driftReportFile, sourceVersion, result.driftCandidates)
   }
@@ -160,11 +151,6 @@ export async function runHkgovAlsPrepCommand(
     ].join('\n'),
     'PREP RESULT',
   )
-  if (result.driftCandidates.length > 0) {
-    throw new Error(
-      'ALS identity drift needs an explicit decision before this release can be ingested.',
-    )
-  }
 }
 
 /**
@@ -196,7 +182,7 @@ export async function runHkgovAlsIngestCommand(
     ? resolveInvocationPath(decisionsOption)
     : DEFAULT_DECISIONS_FILE
   let history = await readHistory(historyFile)
-  let decisions = await readDecisions(decisionsFile)
+  const decisions = await readDecisions(decisionsFile)
   const firstSourceVersion = normaliseAlsSourceVersion(
     stringOption(args, 'from-source-version') ?? `${cohortKey.slice(0, 4)}-01-01.0`,
   )
@@ -237,49 +223,9 @@ export async function runHkgovAlsIngestCommand(
         }),
       ),
   )
-  const pendingSourceReleases = selectPendingAlsSourceReleases(
-    sourceReleases,
-    completedSourceVersions,
-    Boolean(args.options.force),
+  log.info(
+    'Ingest ALS releases chronologically; retain unresolved cases as unreviewed per release.',
   )
-  if (pendingSourceReleases.length === 0) {
-    log.info('Skipping all-release curation preflight; every ALS release is complete.')
-  } else {
-    log.info(
-      `Check identities, curations and division linkage across ${pendingSourceReleases.length} pending ALS releases before ingestion`,
-    )
-    const review = await reviewHkgovAlsIngest({
-      args,
-      decisions,
-      history,
-      // Include completed predecessors: pending-only review loses the first delta
-      // on --continue. Checkpointed source preparation keeps this bounded.
-      sourceReleases,
-      target,
-    })
-    await reviewHkgovAlsCurationApplications(
-      review.curationApplications,
-      Boolean(args.options.yes),
-    )
-    log.message('\u001B[36mALS Preflight Checks\u001B[39m')
-    note(
-      [
-        formatField('releases', String(sourceReleases.length)),
-        formatField(
-          'divisionCohorts',
-          [...new Set(sourceReleases.map(release => release.divisionCohortKey))].join(
-            ', ',
-          ),
-        ),
-        formatField('identityDriftChoicesRequired', String(review.driftCandidates)),
-        formatField(
-          'unverifiedCurationApplications',
-          String(review.curationApplications.length),
-        ),
-      ].join('\n'),
-      'DATASETS',
-    )
-  }
 
   let renderedCompletedSkip = false
   for (const {
@@ -299,7 +245,7 @@ export async function runHkgovAlsIngestCommand(
       '.local/hkgov-dpo/prepared',
       `hkgov-hk-${sourceVersion}-address.parquet`,
     )
-    let result = await prepareHkgovAlsRelease({
+    const result = await prepareHkgovAlsRelease({
       args,
       addressCohortKey,
       divisionCohortKey,
@@ -310,45 +256,12 @@ export async function runHkgovAlsIngestCommand(
       sourceVersion,
       target,
     })
-    if (result.driftCandidates.length > 0) {
-      const reportFile = resolveInvocationPath(
-        '.local/hkgov-dpo/identity-drift',
-        `${sourceVersion}.json`,
-      )
-      await writeDriftReport(reportFile, sourceVersion, result.driftCandidates)
-      if (args.options.yes && args.options['skip-curation-checks'] !== true) {
-        throw new Error(
-          [
-            'ALS identity drift requires interactive review; --yes cannot choose premise identities.',
-            `Wrote ${reportFile}.`,
-            'Review this release with:',
-            formatAlsReviewCommand({
-              cohortKey: addressCohortKey,
-              sourceVersion,
-              target,
-            }),
-            'After the decisions are saved, rerun the update with --yes.',
-          ].join('\n'),
-        )
-      }
-      decisions = await promptForDriftDecisions(
-        decisions,
-        result.driftCandidates,
-        nextDecisions => writeJson(decisionsFile, nextDecisions),
-        args.options['skip-curation-checks'] === true,
-      )
-      result = await prepareHkgovAlsRelease({
-        args,
-        addressCohortKey,
-        divisionCohortKey,
-        decisions,
-        history,
-        outputFile,
-        sourceDir,
-        sourceVersion,
-        target,
-      })
-    }
+    await recordAlsIngestionReview(
+      sourceVersion,
+      result,
+      undefined,
+      resolveTargetName(target),
+    )
 
     if (result.sourceDuplicateFeatureGroups.length > 0) {
       note(
@@ -424,20 +337,6 @@ export async function formatCompletedAlsRelease(target: UploadTarget) {
     datasetCodes: ['ds-hk-hkgov-dpo-address'],
     releaseCodes: [],
   })
-}
-
-function formatAlsReviewCommand(input: {
-  cohortKey: string
-  sourceVersion: string
-  target: UploadTarget
-}) {
-  return [
-    'bun run dataops -- hkgov-dpo:ingest',
-    'data/hkgov/dpo/ALS',
-    `--target ${input.target.environment === 'dev' ? 'local' : input.target.environment}`,
-    `--cohort-key ${input.cohortKey}`,
-    `--from-source-version ${input.sourceVersion}`,
-  ].join(' ')
 }
 
 /** Keep the legacy command deliberately local; updater intake uses :ingest. */
@@ -881,160 +780,48 @@ function* chunk<T>(rows: T[], size: number) {
   }
 }
 
-async function reviewHkgovAlsIngest(args: {
-  args: ParsedArgs
-  decisions: HkgovAlsIdentityDecisions
-  history: HkgovAlsIdentityHistory
-  sourceReleases: AlsSourceRelease[]
-  target: UploadTarget
-}) {
-  let reviewed = 0
-  let history = args.history
-  let previousMembership: AlsMembership | null = null
-  const driftCandidates = new Set<string>()
-  const curationApplications = new Map<
-    string,
-    {
-      fixture: HkgovAlsEstateCurationFixture
-      ids: Set<string>
-      sourceVersion: string
-    }
-  >()
-  for (const {
-    addressCohortKey,
-    divisionCohortKey,
-    sourceDir,
-    sourceVersion,
-  } of args.sourceReleases) {
-    const result = await progressPhase(
-      `Review ALS release ${reviewed + 1}/${args.sourceReleases.length}: ${sourceVersion}`,
-      () =>
-        isolatedAlsReview({
-          args: args.args,
-          addressCohortKey,
-          divisionCohortKey,
-          decisions: args.decisions,
-          history,
-          outputFile: join(tmpdir(), `hkgov-als-review-${sourceVersion}.parquet`),
-          sourceDir,
-          sourceVersion,
-          target: args.target,
-          writeOutput: false,
-        }),
-    )
-    reviewed += 1
-    const membership = await readAlsMembership(
-      result.membership.path,
-      result.membership.sha256,
-    )
-    await reviewAlsDeletions({
-      previous: previousMembership,
-      current: membership,
-      reportFile: join(ALS_DELETION_REPORT_DIRECTORY, `${sourceVersion}.json`),
-    })
-    previousMembership = membership
-    if (result.divisionQuality.issues.length > 0) {
-      note(
-        formatAlsDivisionQualitySummary(sourceVersion, result.divisionQuality),
-        'ALS DIVISION LINKAGE ISSUES',
-      )
-    }
-    for (const candidate of result.driftCandidates) {
-      const key = `${candidate.previous.identityKey}\u0000${candidate.current.identityKey}`
-      driftCandidates.add(key)
-    }
-    for (const application of result.curationApplications) {
-      if (application.verification !== 'unverified') continue
-      const key = `${application.fixture}\u0000${sourceVersion}`
-      const group = curationApplications.get(key) ?? {
-        fixture: application.fixture,
-        ids: new Set<string>(),
-        sourceVersion,
-      }
-      group.ids.add(application.id)
-      curationApplications.set(key, group)
-    }
-    history = mergeHkgovAlsIdentityHistory(history, result.identityRecords)
-    // The output-free all-release preflight holds large parsed ALS objects briefly;
-    // release them before reviewing the next 600 MB+ 3D payload.
-    if (typeof Bun.gc === 'function') Bun.gc(true)
-  }
-  return {
-    curationApplications: [...curationApplications.values()].map(group => ({
-      ...group,
-      ids: [...group.ids].sort(),
-    })),
-    driftCandidates: driftCandidates.size,
-  }
-}
-
-export async function reviewHkgovAlsCurationApplications(
-  applications: Array<{
-    fixture: HkgovAlsEstateCurationFixture
-    ids: string[]
-    sourceVersion: string
-  }>,
-  nonInteractive: boolean,
-  skipCurationChecks = false,
+export async function recordAlsIngestionReview(
+  sourceVersion: string,
+  result: Pick<
+    Awaited<ReturnType<typeof prepareHkgovAlsRelease>>,
+    'driftCandidates' | 'curationApplications' | 'divisionQuality'
+  >,
+  reviewRoot = resolveInvocationPath('.local/hkgov-dpo'),
+  targetName = 'local',
 ) {
-  for (const application of applications) {
-    const label = `${application.ids.length} ${application.ids.length === 1 ? 'correction' : 'corrections'} on ${application.sourceVersion}`
-    if (skipCurationChecks) {
-      log.message(
-        `Accepted ${label} with --skip-curation-checks (unverified provenance).`,
-      )
-      continue
-    }
-    if (nonInteractive) {
-      throw new Error(
-        [
-          `ALS ${label} remain active but are newer than their last verification.`,
-          'Run without --yes to verify, keep them provisional, or revoke them.',
-        ].join('\n'),
-      )
-    }
+  const identityDriftReport = resolve(
+    reviewRoot,
+    'identity-drift',
+    `${sourceVersion}.json`,
+  )
+  await writeDriftReport(identityDriftReport, sourceVersion, result.driftCandidates)
+  const curationApplications = result.curationApplications.filter(
+    application => application.verification === 'unverified',
+  )
+  await writeJson(resolve(reviewRoot, 'review-backlog', `${sourceVersion}.json`), {
+    sourceVersion,
+    reviewStatus: 'unreviewed',
+    ingestionDisposition: 'continue',
+    curationApplications,
+    divisionIssues: result.divisionQuality.issues,
+    deletionReport: resolve(
+      REPO_ROOT,
+      '.local/harbour-sql/releases',
+      targetName,
+      `dr-hk-hkgov-dpo-address-${sourceVersion}`,
+      'address-deletions.json',
+    ),
+    identityDriftReport,
+  })
+  if (result.driftCandidates.length || curationApplications.length)
+    log.message(
+      `Retained unreviewed ALS cases for ${sourceVersion}: ${result.driftCandidates.length} identity changes, ${curationApplications.length} curation applications.`,
+    )
+  if (result.divisionQuality.issues.length)
     note(
-      [
-        `Fixture: ${application.fixture}`,
-        `Decision IDs: ${application.ids.join(', ')}`,
-        `Source version: ${application.sourceVersion}`,
-      ].join('\n'),
-      'UNVERIFIED ALS CURATION',
+      formatAlsDivisionQualitySummary(sourceVersion, result.divisionQuality),
+      'ALS DIVISION LINKAGE ISSUES',
     )
-    const resolution = await select({
-      message: `How should ${label} be handled?`,
-      showInstructions: false,
-      options: [
-        {
-          label: 'Verify and continue',
-          value: 'verify',
-          hint: 'Records this source version as reviewed and keeps applying the corrections.',
-        },
-        {
-          label: 'Continue provisionally',
-          value: 'provisional',
-          hint: 'Applies them to this release with unverified provenance.',
-        },
-        {
-          label: 'Revoke correction',
-          value: 'revoke',
-          hint: 'Stops future application; historical releases remain unchanged.',
-        },
-      ],
-    })
-    if (isCancel(resolution)) throw new Error('ALS curation review cancelled.')
-    if (resolution === 'provisional') continue
-    updateHkgovAlsEstateCurationApplication(application.fixture, {
-      ...(resolution === 'revoke' ? { state: 'revoked' as const } : {}),
-      ...(resolution === 'verify'
-        ? { lastVerifiedSourceVersion: application.sourceVersion }
-        : {}),
-    })
-    await writeFile(
-      resolve(REPO_ROOT, 'fixtures/meta/curations', application.fixture),
-      serialiseHkgovAlsEstateCurationFixture(application.fixture),
-    )
-  }
 }
 
 export async function promptForDriftDecisions(
@@ -1046,20 +833,9 @@ export async function promptForDriftDecisions(
   const next = [...decisions.decisions]
   if (skipCurationChecks) {
     log.message(
-      `Accepted ${candidates.length} ALS identity changes with generated IDs (--skip-curation-checks).`,
+      `Deferred ${candidates.length} ALS identity changes without recording reviewed decisions.`,
     )
-    return {
-      authority: 'hkgov-dpo' as const,
-      decisions: [
-        ...next,
-        ...candidates.map(candidate => ({
-          currentIdentityKey: candidate.current.identityKey,
-          previousIdentityKey: candidate.previous.identityKey,
-          resolution: 'new-id' as const,
-        })),
-      ],
-      version: 1 as const,
-    }
+    return decisions
   }
   note(
     `Review ${candidates.length} premise ${candidates.length === 1 ? 'change' : 'changes'} and choose whether each should retain its existing ID.`,
@@ -1361,6 +1137,8 @@ async function writeDriftReport(
   await writeJson(resolveInvocationPath(filePath), {
     authority: 'hkgov-dpo',
     candidates,
+    reviewStatus: 'unreviewed',
+    ingestionDisposition: 'continue',
     generatedAt: new Date().toISOString(),
     sourceVersion,
     version: 1,

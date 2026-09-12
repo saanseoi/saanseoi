@@ -1,3 +1,5 @@
+import universityHill from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-university-hill-retentions.json'
+import reviewedContinuity from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-reviewed-continuity-decisions.json'
 import reviewedPremiseRetentions from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-reviewed-premise-retentions.json'
 import buildingOverrides from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-building-overrides.json'
 import blockDetailBackfills from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-block-detail-backfills.json'
@@ -55,6 +57,11 @@ export const alsAuditFixtures = [
     type: 'hkgov-dpo-address-identity-component-backfills',
     document: identityComponentBackfills,
   },
+  {
+    type: 'hkgov-dpo-address-reviewed-continuity-decisions',
+    document: reviewedContinuity,
+  },
+  { type: 'hkgov-dpo-address-university-hill-retentions', document: universityHill },
   { type: 'hkgov-dpo-address-premise-renames', document: premiseRenames },
   { type: 'address-granularity', document: fixture0 },
   { type: 'hkgov-dpo-address-2d-backfills', document: fixture1 },

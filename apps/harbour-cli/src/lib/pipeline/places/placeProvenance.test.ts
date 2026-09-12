@@ -49,9 +49,10 @@ test.each([false, true])(
           addressId: null,
           ...(deferred
             ? {
-                trialDeferral: {
+                reviewDeferral: {
+                  reviewStatus: 'unreviewed',
                   originalReason: 'decision_target_not_reproducible',
-                  authority: 'Explicit trial instruction',
+                  authority: 'Deferred ingestion review',
                 },
               }
             : {}),
@@ -63,9 +64,10 @@ test.each([false, true])(
           addressId: null,
           ...(deferred
             ? {
-                trialDeferral: {
+                reviewDeferral: {
+                  reviewStatus: 'unreviewed',
                   originalReason: 'multiple_close_matches',
-                  authority: 'Explicit trial instruction',
+                  authority: 'Deferred ingestion review',
                 },
               }
             : {}),

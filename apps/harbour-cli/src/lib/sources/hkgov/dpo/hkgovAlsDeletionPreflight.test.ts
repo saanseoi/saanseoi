@@ -178,7 +178,10 @@ test('complex retirement reports affected descendants and requires exact digest 
         reportFile,
         approvalsFile,
       }),
-    ).rejects.toThrow('--yes and --skip-curation-checks cannot approve')
+    ).resolves.toMatchObject({
+      reviewStatus: 'unreviewed',
+      ingestionDisposition: 'continue',
+    })
     expect((await Bun.file(reportFile).json()).digest).toBe(report.digest)
     await Bun.write(approvalsFile, JSON.stringify(approved))
     await expect(
@@ -188,7 +191,7 @@ test('complex retirement reports affected descendants and requires exact digest 
         reportFile,
         approvalsFile,
       }),
-    ).resolves.toMatchObject({ digest: report.digest })
+    ).resolves.toMatchObject({ digest: report.digest, reviewStatus: 'reviewed' })
     after.addresses = [address('elsewhere')]
     await expect(
       reviewAlsDeletions({
@@ -197,7 +200,7 @@ test('complex retirement reports affected descendants and requires exact digest 
         reportFile,
         approvalsFile,
       }),
-    ).rejects.toThrow('require review')
+    ).resolves.toMatchObject({ reviewStatus: 'unreviewed' })
   } finally {
     await rm(dir, { recursive: true, force: true })
   }

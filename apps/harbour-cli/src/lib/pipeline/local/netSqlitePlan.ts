@@ -1,5 +1,5 @@
 import { Database } from 'bun:sqlite'
-import { copyFile, mkdtemp, rm } from 'node:fs/promises'
+import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { journalNetTable } from './netSqlitePlanDiff.ts'
@@ -58,6 +58,8 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
     batches: 0,
     bytes: 0,
   }
+  let phase = 'initialise journal'
+  let failed = false
   try {
     journal.exec(`PRAGMA temp_store=FILE;
       CREATE TABLE mutations(seq INTEGER PRIMARY KEY, binding TEXT NOT NULL, groupKey TEXT NOT NULL, sortOrder INTEGER NOT NULL, statement TEXT NOT NULL, tableName TEXT NOT NULL, kind TEXT NOT NULL, rowKey TEXT NOT NULL);
@@ -67,6 +69,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       CREATE TABLE payloads(seq INTEGER PRIMARY KEY, binding TEXT NOT NULL, contents TEXT NOT NULL);`)
     const entries = Object.entries(input.targets)
     for (const [index, [binding, target]] of entries.entries()) {
+      phase = `copy ${binding}`
       const baseline = join(directory, `${index}.baseline.sqlite`)
       const source = new Database(target.path, { readonly: true, create: false })
       try {
@@ -82,12 +85,14 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       db.exec('PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;')
       tables[binding] = orderNetTables(readNetTables(db, target.tables))
     }
+    phase = 'generate candidate databases'
     const result = await input.generate(candidates)
     const insert = journal.query(
       'INSERT INTO mutations(binding,groupKey,sortOrder,statement,tableName,kind,rowKey) VALUES(?,?,?,?,?,?,?)',
     )
     let sequence = 0
     for (const [binding] of entries) {
+      phase = `diff ${binding}`
       const candidate = candidates[binding]
       const baseline = baselines[binding]
       const ordered = tables[binding]
@@ -146,6 +151,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
           )
       }
       for (const table of ordered) {
+        phase = `normalise ${binding}.${table.policy.name}`
         assertNetSchema(db, table)
         if (!input.bootstrap) normaliseNetIgnoredColumns(db, table)
       }
@@ -154,6 +160,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       summary.tables[binding] = counts
       journal.transaction(() => {
         for (const [rank, table] of ordered.entries()) {
+          phase = `journal ${binding}.${table.policy.name}`
           counts[table.policy.name] = journalNetTable({
             db,
             table,
@@ -181,9 +188,12 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
           })
         }
       })()
+      phase = `order dependencies ${binding}`
       if (!input.bootstrap)
         postponeNetParentDeletions({ db, journalPath, binding, tables: ordered })
+      phase = `batch payloads ${binding}`
       journalPayloads(journal, binding, { maxStatements, maxPayloadBytes }, summary)
+      phase = `replay ${binding}`
       const replayPath = join(
         directory,
         `${entries.findIndex(([name]) => name === binding)}.replay.sqlite`,
@@ -226,6 +236,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
         replay.close()
       }
     }
+    phase = 'emit delivery batches'
     for (const row of journal
       .query<{ binding: string; contents: string }, []>(
         'SELECT binding,contents FROM payloads ORDER BY seq',
@@ -240,11 +251,31 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       )
     }
     return { result, summary }
+  } catch (error) {
+    failed = true
+    if (process.env.SAANSEOI_KEEP_FAILED_NET_PLAN === '1')
+      await writeFile(
+        join(directory, 'failure.json'),
+        JSON.stringify(
+          {
+            phase,
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : null,
+          },
+          null,
+          2,
+        ),
+      )
+    throw new Error(
+      `Net SQL planning failed during ${phase}: ${error instanceof Error ? error.message : String(error)}${process.env.SAANSEOI_KEEP_FAILED_NET_PLAN === '1' ? `; retained ${directory}` : ''}`,
+      { cause: error },
+    )
   } finally {
     for (const client of exactClients) client.close()
     for (const candidate of Object.values(candidates)) candidate.db.close()
     journal.close()
-    await rm(directory, { recursive: true, force: true })
+    if (!failed || process.env.SAANSEOI_KEEP_FAILED_NET_PLAN !== '1')
+      await rm(directory, { recursive: true, force: true })
   }
 }
 

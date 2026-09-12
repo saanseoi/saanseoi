@@ -1,3 +1,4 @@
+import continuity from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-reviewed-continuity-decisions.json'
 import { captureAlsPublisherSources } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { buildAlsMembership } from './hkgovAlsMembership'
 import { expect, test } from 'bun:test'
@@ -24,8 +25,16 @@ const maps = {
   ambiguousDistrictZh: new Set<string>(),
   snapshotId: 'test',
 }
-function prepare(features: HkgovAlsSourceFeature[], version: string) {
-  const applications = retainReviewedAlsPremises(features, version)
+const decisions = fixture.rules as unknown as NonNullable<
+  Parameters<typeof retainReviewedAlsPremises>[2]
+>
+const allRules = [...fixture.rules, ...continuity.rules]
+function prepare(
+  features: HkgovAlsSourceFeature[],
+  version: string,
+  selected = decisions,
+) {
+  const applications = retainReviewedAlsPremises(features, version, selected)
   const rows = features.map(f =>
     normaliseHkgovAlsFeature(
       f.feature,
@@ -49,7 +58,7 @@ function prepare(features: HkgovAlsSourceFeature[], version: string) {
   finishReviewedAlsPremiseRetentions(distinct)
   return distinct
 }
-const targets = new Set(fixture.rules.flatMap(r => r.csus))
+const targets = new Set(allRules.flatMap(r => r.csus))
 
 test('all 30 releases preserve identities, restore omissions and separate Tin Wang complex from its houses', async () => {
   let count = 0
@@ -58,7 +67,7 @@ test('all 30 releases preserve identities, restore omissions and separate Tin Wa
     .sort()) {
     const version = `${dir.slice(0, 4)}-${dir.slice(4, 6)}-${dir.slice(6, 8)}.0`
     const features: HkgovAlsSourceFeature[] = []
-    for (const sourceFile of new Set(fixture.rules.map(r => r.sourceFile))) {
+    for (const sourceFile of new Set(allRules.map(r => r.sourceFile))) {
       const data = await Bun.file(`data/hkgov/dpo/ALS/${dir}/${sourceFile}`).json()
       for (const [i, feature] of data.features.entries()) {
         if (
@@ -70,13 +79,19 @@ test('all 30 releases preserve identities, restore omissions and separate Tin Wa
       }
     }
     const raw = JSON.stringify(features)
-    const rows = prepare(structuredClone(features), version)
+    const rows = prepare(
+      structuredClone(features),
+      version,
+      allRules as unknown as typeof decisions,
+    )
     expect(JSON.stringify(features)).toBe(raw)
-    expect(rows.length).toBe(35)
-    expect(new Set(rows.map(r => r.id)).size).toBe(35)
-    for (const rule of fixture.rules)
+    expect(rows.length).toBe(40)
+    expect(new Set(rows.map(r => r.id)).size).toBe(40)
+    for (const rule of allRules)
       expect(rows.some(r => r.id === rule.canonicalId)).toBeTrue()
-    const complex = rows.find(r => r.curatedGranularity === 'complex')!
+    const complex = rows.find(
+      r => r.curatedGranularity === 'complex' && r.enEstateName === 'TIN WANG COURT',
+    )!
     expect(complex.enEstateName).toBe('TIN WANG COURT')
     expect(complex.enBuildingName).toBeNull()
     const houses = rows.filter(r => r.parentAddressId === complex.id)
@@ -87,18 +102,32 @@ test('all 30 releases preserve identities, restore omissions and separate Tin Wa
     const el = rows.filter(r => r.enEstateName === 'EL FUTURO')
     expect(el.length).toBe(24)
     expect(el.filter(r => r.enBuildingName?.startsWith('HOUSE ')).length).toBe(22)
-    expect(el.find(r => r.enBuildingName === 'TOWER 1')?.zhHantBuildingName).toBe(
-      '第１座',
-    )
-    expect(el.find(r => r.enBuildingName === 'TOWER 2')?.zhHantBuildingName).toBe(
-      '第２座',
-    )
+    expect(el.find(r => r.enBuildingName === 'TOWER 1')?.zhHantBuildingName).toBe('座1')
+    expect(el.find(r => r.enBuildingName === 'TOWER 2')?.zhHantBuildingName).toBe('座2')
     expect(
       rows.find(r => r.enBuildingName === 'THE HARMONIE')?.zhHantBuildingName,
     ).toBe('映築')
     const victoria = rows.filter(r => r.enEstateName?.startsWith('VICTORIA '))
     expect(victoria.map(r => r.enBlockNumber).sort()).toEqual(['A', 'B'])
     expect(victoria.every(r => r.enBuildingName === null)).toBeTrue()
+    expect(
+      rows.find(r => r.id === 'ss-368ef116-ff81-5a5a-9d72-c97dd7f5b47b')
+        ?.enFormattedAddress,
+    ).toContain('28 KWAI WING ROAD')
+    expect(
+      rows.find(r => r.id === 'ss-8e5a2ce8-0f7b-52c9-93c0-0a62f289c416')
+        ?.enBuildingName,
+    ).toBe('WOFOO JOSEPH LEE STUDENT ACTIVITY CENTRE')
+    expect(
+      rows.find(r => r.id === 'ss-5339b729-833f-5598-a7c1-244d04f9535f')
+        ?.curatedGranularity,
+    ).toBe('complex')
+    expect(
+      rows.find(r => r.id === 'ss-2f1e0c99-1cb1-57f4-91fa-cbd61e251e39')?.enBlockNumber,
+    ).toBe('1')
+    expect(
+      rows.find(r => r.id === 'ss-c7823e0e-6b7b-5a64-a9b8-8ad19aa96bef')?.enBlockNumber,
+    ).toBe('2')
     count++
   }
   expect(count).toBe(30)
@@ -134,13 +163,13 @@ test('future releases retain known evidence as unverified; revocation stops new 
 test('rejects changed evidence and ambiguous matches without modifying the publisher', () => {
   const f = oneSoho()
   f.feature.geometry!.coordinates = [114.5, 22.5]
-  expect(() => retainReviewedAlsPremises([f], '2026-09-30.0')).toThrow(
+  expect(() => retainReviewedAlsPremises([f], '2026-09-30.0', decisions)).toThrow(
     'source evidence changed',
   )
   expect(() =>
-    retainReviewedAlsPremises([oneSoho(), oneSoho()], '2026-09-30.0'),
+    retainReviewedAlsPremises([oneSoho(), oneSoho()], '2026-09-30.0', decisions),
   ).toThrow('ambiguous premise evidence')
-  expect(retainReviewedAlsPremises([], '2026-09-30.0').size).toBe(0)
+  expect(retainReviewedAlsPremises([], '2026-09-30.0', decisions).size).toBe(0)
 })
 
 test('replays a future omission within its own district', () => {
@@ -148,7 +177,7 @@ test('replays a future omission within its own district', () => {
   f.feature.properties!.Address!.PremisesAddress!.BuildingCsuInformation!.CsuId =
     'unrelated'
   const features = [f]
-  const applications = retainReviewedAlsPremises(features, '2026-09-30.0')
+  const applications = retainReviewedAlsPremises(features, '2026-09-30.0', decisions)
   expect(applications.size).toBe(1)
   expect(features.length).toBe(2)
   expect(features[1]!.sourceFile).toBe(
