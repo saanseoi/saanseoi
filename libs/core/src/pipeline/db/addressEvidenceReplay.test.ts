@@ -12,6 +12,7 @@ import type { ReplayShard, ResolvedSnapshotVersion } from './snapshotReplay'
 function fixture() {
   const databases = [new Database(':memory:'), new Database(':memory:')]
   const parameters: number[] = []
+  const queryPlans: string[] = []
   const migrations = loadMigrationSql(
     resolve(import.meta.dir, '../../../../db/migrations'),
     ['history'],
@@ -24,7 +25,19 @@ function fixture() {
       bindingName,
       db: drizzle({
         client: db,
-        logger: { logQuery: (_sql, params) => parameters.push(params.length) },
+        logger: {
+          logQuery: (sql, params) => {
+            parameters.push(params.length)
+            if (/from "address2d(?:I18n|Evidence)?"/.test(sql)) {
+              queryPlans.push(
+                ...db
+                  .query(`EXPLAIN QUERY PLAN ${sql}`)
+                  .all(...(params as never[]))
+                  .map(row => (row as { detail: string }).detail),
+              )
+            }
+          },
+        },
       }) as never,
     })
   }
@@ -78,6 +91,7 @@ function fixture() {
     databases,
     shards,
     parameters,
+    queryPlans,
     journal,
     evidence,
     replay,
@@ -192,6 +206,46 @@ test('evidence reads bound query parameters when a page selects many versions', 
     expect((await loadReplayedAddressEvidence(versions)).size).toBe(205)
     expect(data.parameters.length).toBeGreaterThan(1)
     expect(Math.max(...data.parameters)).toBeLessThanOrEqual(100)
+  } finally {
+    data.close()
+  }
+})
+
+test('address replay uses indexed exact identities within D1 limits across batches', async () => {
+  const data = fixture()
+  try {
+    const db = requireDefined(data.databases[0])
+    for (let index = 0; index < 205; index++) {
+      const id = `address-${index}`
+      db.query(
+        `INSERT INTO address2d (id,versionHash,sourceReleaseId,snapshotId,isCurrent) VALUES(?, 'shared-base', 'release-batch', 'batch', 1)`,
+      ).run(id)
+      for (const locale of ['en', 'zh-Hant']) {
+        db.query(
+          `INSERT INTO address2dI18n (addressId,locale,formattedAddress,versionHash,sourceReleaseId,snapshotId,isCurrent) VALUES(?,?,?, 'shared-locale', 'release-batch', 'batch', 1)`,
+        ).run(id, locale, `${id}-${locale}`)
+        db.query(
+          `INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('batch','address2dI18n',?,?,'shared-locale','upsert','release-batch')`,
+        ).run(id, locale)
+      }
+      db.query(
+        `INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId) VALUES('batch','address2d',?,'','shared-base','upsert','release-batch')`,
+      ).run(id)
+    }
+    const result = await data.replay('batch')
+    expect(result.size).toBe(205)
+    for (const [id, row] of result) {
+      expect(row.localisedRows).toHaveLength(2)
+      expect(row.localisedRows.map(value => value.formattedAddress).sort()).toEqual([
+        `${id}-en`,
+        `${id}-zh-Hant`,
+      ])
+    }
+    expect(Math.max(...data.parameters)).toBeLessThanOrEqual(100)
+    expect(data.queryPlans.some(detail => detail.includes('SEARCH address2d'))).toBe(
+      true,
+    )
+    expect(data.queryPlans.filter(detail => /SCAN address2d/.test(detail))).toEqual([])
   } finally {
     data.close()
   }

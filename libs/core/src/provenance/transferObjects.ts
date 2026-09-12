@@ -18,6 +18,12 @@ export async function transferObjects(
     unique.set(ref.hash, ref)
   }
   const pending = [...unique.values()]
+  const existing = new Set<string>()
+  for (const ref of (await destination.hasObjects?.(pending)) ?? []) {
+    if (unique.get(ref.hash)?.byteLength !== ref.byteLength)
+      throw new Error('Destination acknowledged an unexpected provenance object.')
+    existing.add(ref.hash)
+  }
   let next = 0
   let failed = false
   let failure: unknown
@@ -26,7 +32,9 @@ export async function transferObjects(
       while (!failed && next < pending.length) {
         const ref = pending[next++]!
         try {
-          const copied = await retainObject(destination, await readObject(source, ref))
+          const value = await readObject(source, ref)
+          if (existing.has(ref.hash)) continue
+          const copied = await retainObject(destination, value)
           if (copied.hash !== ref.hash || copied.byteLength !== ref.byteLength)
             throw new Error('Transferred provenance reference mismatch.')
         } catch (error) {

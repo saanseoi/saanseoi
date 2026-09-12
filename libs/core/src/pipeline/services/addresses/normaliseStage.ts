@@ -50,7 +50,10 @@ export async function normaliseAddressChunkStage(
   for await (const batch of readParquetObjectsInBatches(file, ADDRESS_BATCH_SIZE, {
     rowStart,
     rowEnd: requestedRowEnd,
-    readRowWindowSize: ADDRESS_PARQUET_READ_ROW_WINDOW_SIZE,
+    readRowWindowSize:
+      message.processingMode === 'sql'
+        ? chunkSize
+        : ADDRESS_PARQUET_READ_ROW_WINDOW_SIZE,
     onMetadata(metadata) {
       totalRows = metadata.rowCount
       logStructuredInfo({
