@@ -398,7 +398,6 @@ export async function reviewAlsDeletions(input: {
 }) {
   const report = buildAlsDeletionReport(input.previous, input.current)
   await mkdir(dirname(input.reportFile), { recursive: true })
-  await writeFile(input.reportFile, JSON.stringify(report, null, 2))
   const approvalsFile = input.approvalsFile ?? ALS_DELETION_REVIEWS_FILE
   const approvals = await readFile(approvalsFile, 'utf8')
     .then(JSON.parse)
@@ -406,17 +405,17 @@ export async function reviewAlsDeletions(input: {
       if (error.code === 'ENOENT') return null
       throw error
     })
-  if (report.requiresReview && !hasAlsDeletionReview(report, approvals))
-    throw new Error(
-      [
-        `ALS deletions require review for ${report.sourceVersion}.`,
-        `Review JSON: ${input.reportFile}`,
-        `Digest: ${report.digest}`,
-        `After reviewing or correcting curations, record the exact digest, previousSourceVersion, sourceVersion, reason and reviewedAt in ${approvalsFile} ({"schemaVersion":1,"reviews":[...]}).`,
-        '--yes and --skip-curation-checks cannot approve deletions.',
-      ].join('\n'),
-    )
-  return report
+  const reviewedReport = {
+    ...report,
+    reviewStatus: report.requiresReview
+      ? hasAlsDeletionReview(report, approvals)
+        ? 'reviewed'
+        : 'unreviewed'
+      : 'not_required',
+    ingestionDisposition: 'continue',
+  }
+  await writeFile(input.reportFile, JSON.stringify(reviewedReport, null, 2))
+  return reviewedReport
 }
 
 async function fileHash(path: string) {

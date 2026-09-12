@@ -1,4 +1,6 @@
-import { readFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { mkdtemp, rm, readFile } from 'node:fs/promises'
 
 import { describe, expect, test } from 'bun:test'
 
@@ -14,23 +16,39 @@ import {
   selectAlsDivisionCohort,
   selectPendingAlsSourceReleases,
   shouldIncludeSupersededAlsSourceVersions,
-  reviewHkgovAlsCurationApplications,
+  recordAlsIngestionReview,
   promptForDriftDecisions,
 } from './hkgovAls.ts'
 
 describe('skip curation checks', () => {
-  test('accepts unverified corrections even in non-interactive mode', async () => {
-    const applications: Parameters<typeof reviewHkgovAlsCurationApplications>[0] = [
-      {
-        fixture: 'hkgov-dpo-address-estate-components.json',
-        ids: ['test'],
-        sourceVersion: '2026-08-01.0',
-      },
-    ]
-    await expect(
-      reviewHkgovAlsCurationApplications(applications, true),
-    ).rejects.toThrow('last verification')
-    await reviewHkgovAlsCurationApplications(applications, true, true)
+  test('persists unreviewed per-release evidence without changing curation verification', async () => {
+    const root = await mkdtemp(join(tmpdir(), 'als-deferred-review-'))
+    const result = {
+      driftCandidates: [],
+      curationApplications: [
+        { fixture: 'example.json', id: 'pending', verification: 'unverified' },
+        { fixture: 'example.json', id: 'approved', verification: 'verified' },
+      ],
+      divisionQuality: { issues: [] },
+    } as unknown as Parameters<typeof recordAlsIngestionReview>[1]
+    try {
+      await recordAlsIngestionReview('2026-08-01.0', result, root)
+      const report = JSON.parse(
+        await readFile(join(root, 'review-backlog/2026-08-01.0.json'), 'utf8'),
+      )
+      expect(report).toMatchObject({
+        reviewStatus: 'unreviewed',
+        ingestionDisposition: 'continue',
+        curationApplications: [{ id: 'pending', verification: 'unverified' }],
+      })
+      expect(report.curationApplications).toHaveLength(1)
+      expect(
+        JSON.parse(await readFile(report.identityDriftReport, 'utf8')),
+      ).toMatchObject({ reviewStatus: 'unreviewed', candidates: [] })
+      expect(result.curationApplications[0]?.verification).toBe('unverified')
+    } finally {
+      await rm(root, { recursive: true, force: true })
+    }
   })
 
   test('accepts drift with new IDs without persisting reviewed decisions', async () => {
@@ -46,13 +64,7 @@ describe('skip curation checks', () => {
       },
       true,
     )
-    expect(result.decisions).toEqual([
-      {
-        currentIdentityKey: 'current',
-        previousIdentityKey: 'previous',
-        resolution: 'new-id',
-      },
-    ])
+    expect(result.decisions).toEqual([])
     expect(persisted).toBe(false)
   })
 })

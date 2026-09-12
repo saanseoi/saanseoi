@@ -159,11 +159,13 @@ export function coalesceAddressHistory(input: {
             .iterate(input.scopeId)) {
             let retained = false
             for (const [binding, db] of baselines) {
+              // An early break finalises Bun's cached iterator. Exhaust this exact
+              // address/number lookup before reusing its prepared statement.
               for (const candidate of db
                 .query<Row, Array<string | number | null>>(
                   'SELECT * FROM address2dBuildingNumberLookup WHERE addressId=? AND buildingNumber=? ORDER BY createdAt,versionHash',
                 )
-                .iterate(row.addressId!, row.buildingNumber!)) {
+                .all(row.addressId!, row.buildingNumber!)) {
                 if (semantic(candidate) !== semantic(row)) continue
                 insert.run(
                   identity(candidate, policy.identity),

@@ -1,3 +1,5 @@
+import universityHill from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-university-hill-retentions.json'
+import continuity from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-reviewed-continuity-decisions.json'
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-reviewed-premise-retentions.json'
 import { als3dHash } from './hkgovAls3d'
@@ -25,6 +27,7 @@ type Rule = {
   retain: boolean
   role?: string
   parentRule?: string
+  publisherTower?: { estate: string; name: string; section: string; number: string }
   application: HkgovAlsCurationApplication
   assertions: { version: string; hashes: string[] }[]
   evidence: { sourceVersion: string; feature: HkgovAlsFeature }
@@ -33,11 +36,19 @@ type Rule = {
     enName?: string | null
     zhName?: string | null
     blockNumber?: string | null
-    granularity?: 'complex' | 'building'
+    granularity?: 'complex' | 'building' | 'unknown'
+    enEstate?: string | null
+    zhEstate?: string | null
+    clearPhase?: boolean
+    preserveStructure?: boolean
     coordinates?: number[]
   }
 }
-const rules = fixture.rules as unknown as Rule[]
+const rules = [
+  ...fixture.rules,
+  ...continuity.rules,
+  ...universityHill.rules,
+] as unknown as Rule[]
 const curationFile = 'hkgov-dpo-address-reviewed-premise-retentions.json'
 const locator = (file: string, index: number) => `${file}:${index}`
 const hash = (feature: HkgovAlsFeature) =>
@@ -69,9 +80,20 @@ export function retainReviewedAlsPremises(
         !rule.csus.includes(p?.BuildingCsuInformation?.CsuId ?? '')
       )
         return false
+      if (rule.publisherTower) {
+        const e = p?.EngPremisesAddress,
+          t = rule.publisherTower
+        return (
+          e?.EngEstate?.EstateName === t.estate &&
+          (e.BuildingName === t.name ||
+            (e.BuildingName === t.section && String(e.EngBlock?.BlockNo) === t.number))
+        )
+      }
       const named = Boolean(
         p?.EngPremisesAddress?.BuildingName || p?.ChiPremisesAddress?.BuildingName,
       )
+      if (rule.role === 'unblocked')
+        return !p?.EngPremisesAddress?.EngBlock && !p?.ChiPremisesAddress?.ChiBlock
       return !rule.role || (rule.role === 'complex' ? !named : named)
     })
     assert(matches.length <= 1, `${rule.id}: ambiguous premise evidence`)
@@ -157,9 +179,27 @@ export function applyReviewedAlsPremiseRetentions(
         delete zh.ChiBlock
       }
     }
+    if ('enEstate' in patch) {
+      row.enEstateName = patch.enEstate ?? null
+      if (patch.enEstate) en.EngEstate = { EstateName: patch.enEstate }
+      else delete en.EngEstate
+    }
+    if ('zhEstate' in patch) {
+      row.zhHantEstateName = patch.zhEstate ?? null
+      if (patch.zhEstate) zh.ChiEstate = { EstateName: patch.zhEstate }
+      else delete zh.ChiEstate
+    }
+    if (patch.clearPhase) {
+      row.enPhaseName = row.zhHantPhaseName = null
+      row.enPhaseRef = row.zhHantPhaseRef = null
+      if (en.EngEstate) delete en.EngEstate.EngPhase
+      if (zh.ChiEstate) delete zh.ChiEstate.ChiPhase
+    }
     row.enFormattedAddress = formatEnPremisesAddress(en)
     row.zhHantFormattedAddress = formatZhPremisesAddress(zh)
-    row.curatedGranularity = patch.granularity ?? 'building'
+    if (!patch.preserveStructure)
+      row.curatedGranularity =
+        patch.granularity === 'unknown' ? undefined : (patch.granularity ?? 'building')
     row.identityAlias = row.id
     row.id = row.canonicalId = row.identityBuildingId = rule.canonicalId
     row.identityKey =
