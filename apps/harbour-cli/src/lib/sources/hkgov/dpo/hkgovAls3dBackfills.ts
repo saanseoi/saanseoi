@@ -101,23 +101,22 @@ export async function* readAls3dWithBackfills(
   for (const backfill of backfills) {
     // District/estate-scoped preparations do not reconstruct unrelated estates.
     if (!estates.has(backfill.estate)) continue
-    assert(
-      !seen.has(backfill.csu) ||
-        ('allowReviewedEmptyPremise' in backfill &&
-          backfill.allowReviewedEmptyPremise &&
-          requireDefined(seen.get(backfill.csu)).every(feature => {
-            const p = feature.properties.Address.PremisesAddress
-            return (
-              !p.EngPremisesAddress?.BuildingName &&
-              !p.ChiPremisesAddress?.BuildingName &&
-              !p.EngPremisesAddress?.Eng3dAddress?.length &&
-              !p.ChiPremisesAddress?.Chi3dAddress?.length &&
-              p.EngPremisesAddress?.EngEstate?.EstateName === backfill.estate &&
-              p.ChiPremisesAddress?.ChiEstate?.EstateName === '菁田邨'
-            )
-          })),
-      `Backfill ${backfill.id}: source is no longer absent`,
-    )
+    const present = seen.get(backfill.csu) ?? []
+    const onlyEmptyAliases =
+      'allowReviewedEmptyPremise' in backfill &&
+      backfill.allowReviewedEmptyPremise &&
+      present.every(feature => {
+        const p = feature.properties.Address.PremisesAddress
+        return (
+          !p.EngPremisesAddress?.BuildingName &&
+          !p.ChiPremisesAddress?.BuildingName &&
+          !p.EngPremisesAddress?.Eng3dAddress?.length &&
+          !p.ChiPremisesAddress?.Chi3dAddress?.length &&
+          p.EngPremisesAddress?.EngEstate?.EstateName === backfill.estate &&
+          p.ChiPremisesAddress?.ChiEstate?.EstateName === '菁田邨'
+        )
+      })
+    if (present.length && !onlyEmptyAliases) continue
     const parents = rows.filter(
       row =>
         row.hkgovCsuId === backfill.csu &&

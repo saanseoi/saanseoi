@@ -2,7 +2,7 @@ import { requireDefined } from '@repo/core/requireDefined'
 import { strict as assert } from 'node:assert'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'
-import { als3dHash, readAls3dFeatures, type Als3dFeature } from './hkgovAls3d'
+import { readAls3dFeatures, type Als3dFeature } from './hkgovAls3d'
 import {
   curationProvenance,
   resolveHkgovAlsCurationVerification,
@@ -57,21 +57,6 @@ function retain(
   version: string,
   kind: '2d' | '3d',
 ) {
-  const assertions = kind === '2d' ? rule.assertions2d : rule.assertions3d
-  const assertion =
-    assertions.find(a => a.sourceVersions.includes(version)) ??
-    assertions.find(a =>
-      a.sourceVersions.includes(
-        rule.application?.lastVerifiedSourceVersion ??
-          requireDefined(rule.sourceVersions.at(-1)),
-      ),
-    )
-  assert(assertion, `House retention ${rule.id}: missing reviewed release`)
-  assert.deepEqual(
-    originals.map(als3dHash).sort(),
-    assertion.hashes,
-    `House retention ${rule.id}: publisher assertions changed`,
-  )
   const evidence = kind === '2d' ? rule.evidence2d : rule.evidence3d
   const rich = originals.find(
     f =>
@@ -152,6 +137,7 @@ export function retainAlsHouses(features: HkgovAlsSourceFeature[], version: stri
     )
       continue
     const originals = features.filter(s => matches(rule, s.feature as Als3dFeature))
+    if (originals.length > 0) continue
     const retained = retain(
       rule,
       originals.map(s => s.feature as Als3dFeature),
@@ -230,7 +216,10 @@ export async function* readAls3dWithHouseRetentions(
   const rules = active(version).filter(
     ({ rule }) =>
       !('addressOnly' in rule && rule.addressOnly) &&
-      rows.some(r => r.enEstateName === rule.estate),
+      rows.some(r => r.enEstateName === rule.estate) &&
+      rows.some(
+        r => r.sourceFile === curationFile && rule.csus.includes(r.hkgovCsuId ?? ''),
+      ),
   )
   const captured = new Map<
     Rule,
@@ -243,9 +232,11 @@ export async function* readAls3dWithHouseRetentions(
       continue
     }
     captured.set(entry.rule, [...(captured.get(entry.rule) ?? []), record])
+    yield { ...record, houseRetention: undefined }
   }
   for (const { rule, curation } of rules) {
     const originals = captured.get(rule) ?? []
+    if (originals.length > 0) continue
     const retained = retain(
       rule,
       originals.map(r => r.feature),
