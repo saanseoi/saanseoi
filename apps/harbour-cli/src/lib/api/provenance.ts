@@ -4,6 +4,7 @@ import {
   hashBytes,
   serialise,
   transferProcessingResult,
+  objectKey,
   type ObjectRef,
   type ProvenanceStore,
 } from '@repo/core/provenance'
@@ -131,6 +132,48 @@ async function registerProvenanceResult(
   throw lastError
 }
 
+async function checkProvenanceObjects(
+  baseUrl: string,
+  headers: Record<string, string>,
+  objects: ObjectRef[],
+): Promise<ObjectRef[]> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetch(`${baseUrl}/v1/provenance/objects/check`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ objects }),
+        signal: AbortSignal.timeout(PROVENANCE_REQUEST_TIMEOUT_MS),
+      })
+      const result = (await readProvenanceResponse(response)) as {
+        objects?: ObjectRef[]
+      }
+      if (
+        !Array.isArray(result.objects) ||
+        result.objects.some(
+          ref =>
+            !ref ||
+            !objects.some(
+              expected =>
+                expected.hash === ref.hash && expected.byteLength === ref.byteLength,
+            ),
+        )
+      )
+        throw new Error('Invalid provenance object acknowledgement.')
+      return result.objects
+    } catch (error) {
+      if (
+        attempt === PROVENANCE_UPLOAD_RETRY_LIMIT ||
+        !isRetryableProvenanceUploadError(error)
+      )
+        throw error
+      await new Promise(resolve =>
+        setTimeout(resolve, PROVENANCE_UPLOAD_RETRY_DELAY_MS * 2 ** attempt),
+      )
+    }
+  }
+}
+
 /** Upload retained results, never regenerate decisions during delivery/retry. */
 export async function deliverProcessingResult(
   target: UploadTarget,
@@ -165,6 +208,31 @@ export async function deliverProcessingResult(
   // retainObject verifies readback, so provide a bounded cache of acknowledged uploads.
   const acknowledged = new Map<string, ArrayBuffer>()
   const remote: ProvenanceStore = {
+    async hasObjects(refs) {
+      const existing: ObjectRef[] = []
+      for (let start = 0; start < refs.length; start += 64) {
+        const objects = refs.slice(start, start + 64)
+        const retained = await checkProvenanceObjects(baseUrl, headers, objects)
+        // Local metadata and a separately selected R2 destination have distinct
+        // ownership. Confirm the second destination even when the API has bytes.
+        const r2 = resolveR2Target(target)
+        if (!target.remote && r2 !== 'local') {
+          for (const ref of retained) {
+            const key = objectKey(ref.hash)
+            const object = await source.get(key)
+            if (!object) throw new Error(`Missing provenance object: ${ref.hash}`)
+            await (options.retainRemoteObject ?? retainRemoteR2Object)(
+              r2,
+              key,
+              new Uint8Array(await object.arrayBuffer()),
+              { contentType: 'application/json' },
+            )
+          }
+        }
+        existing.push(...retained)
+      }
+      return existing
+    },
     async get(key) {
       const bytes = acknowledged.get(key)
       acknowledged.delete(key)

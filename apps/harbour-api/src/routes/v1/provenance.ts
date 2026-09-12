@@ -15,6 +15,7 @@ import {
   type Digest,
   validateAuditManifest,
   readAuditPage,
+  findRetainedObjects,
 } from '@repo/core/provenance'
 import { createPrimaryMetaRepoDb } from '../../lib/d1'
 import type { AppEnv } from '../../types'
@@ -40,6 +41,38 @@ const put = createRoute({
   tags: ['Provenance'],
   request: { params: z.object({ hash: digest }) },
   responses,
+})
+const check = createRoute({
+  method: 'post',
+  path: '/v1/provenance/objects/check',
+  tags: ['Provenance'],
+  request: {
+    body: {
+      required: true,
+      content: {
+        'application/json': {
+          schema: z.object({ objects: z.array(ref).max(64) }),
+        },
+      },
+    },
+  },
+  responses,
+})
+const checkRoute = defineOpenAPIRoute<typeof check, AppEnv>({
+  route: check,
+  handler: async c => {
+    try {
+      const objects = c.req
+        .valid('json')
+        .objects.map(value => ({ ...value, hash: value.hash as Digest }))
+      return c.json(
+        { objects: await findRetainedObjects(c.env.R2_ASSETS, objects) },
+        200,
+      )
+    } catch (e) {
+      return c.json({ error: e instanceof Error ? e.message : String(e) }, 400)
+    }
+  },
 })
 const commit = createRoute({
   method: 'post',
@@ -254,6 +287,7 @@ const schemaRoute = defineOpenAPIRoute<typeof schemaConfig, AppEnv>({
     c.json(provenanceSchema as unknown as Record<string, unknown>, 200),
 })
 export const provenanceRoutes = [
+  checkRoute,
   putRoute,
   commitRoute,
   getRoute,

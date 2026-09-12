@@ -81,6 +81,7 @@ import {
 } from '../local/progressFormatting.ts'
 import { OperationProgress } from '../../cli/operationProgress.ts'
 import { LocalPipelineBucket } from '../local/localBucket.ts'
+import { LocalChunkBucket } from '../local/localChunkBucket.ts'
 import {
   prepareReleaseSqlDelivery,
   executeReleaseSqlDelivery,
@@ -465,24 +466,24 @@ export async function processLocalAddressSqlUpload(
               }) satisfies AddressPipelineMessage,
           )
 
-          const normalisedMessages = await runLocalGenerationPhase(
+          const currentMessages = await runLocalGenerationPhase(
             progress,
             harbourClient,
             {
               completionLabel: formatCompletedPhaseLabel(
-                colorTeal('Normalise'),
+                colorTeal('Prepare SQL'),
                 colorTeal('records'),
                 previewPlan.rowCount,
               ),
               label: formatRunningPhaseLabel(
-                colorTeal('Normalise'),
+                colorTeal('Prepare SQL'),
                 colorTeal('records'),
                 0,
                 previewPlan.rowCount,
               ),
               labelForProgress(current: number) {
                 return formatRunningPhaseLabel(
-                  colorTeal('Normalise'),
+                  colorTeal('Prepare SQL'),
                   colorTeal('records'),
                   current,
                   previewPlan.rowCount,
@@ -498,136 +499,47 @@ export async function processLocalAddressSqlUpload(
             },
             chunkMessages,
             GENERATION_CONCURRENCY,
-            message =>
-              normaliseAddressSqlChunkStage(
-                dbContext.metaDb,
-                dbContext.currentDb,
-                bucket,
-                message,
-              ),
-          )
-          const sourceMessages = await runLocalGenerationPhase(
-            progress,
-            harbourClient,
-            {
-              completionLabel: formatCompletedPhaseLabel(
-                colorTeal('Generate SQL'),
-                colorRed('source'),
-                previewPlan.rowCount,
-              ),
-              label: formatRunningPhaseLabel(
-                colorTeal('Generate SQL'),
-                colorRed('source'),
-                0,
-                previewPlan.rowCount,
-              ),
-              labelForProgress(current: number) {
-                return formatRunningPhaseLabel(
-                  colorTeal('Generate SQL'),
-                  colorRed('source'),
-                  current,
-                  previewPlan.rowCount,
+            async message => {
+              // Keep only the active chunks in memory. SQL remains durable and is
+              // sealed before any delivery; retries regenerate unsealed chunks.
+              const chunkBucket = new LocalChunkBucket(releaseRoot)
+              try {
+                const normalised = await normaliseAddressSqlChunkStage(
+                  dbContext.metaDb,
+                  dbContext.currentDb,
+                  chunkBucket,
+                  message,
                 )
-              },
-              phase: 'generateAddressSqlSource',
-              releaseCode,
-              releaseId,
-              totalUnits: previewPlan.rowCount,
-              unitsForMessage(message) {
-                return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
-              },
-            },
-            normalisedMessages,
-            GENERATION_CONCURRENCY,
-            message =>
-              writeAddressSourceSqlChunkStage(dbContext.sourceDb, bucket, message),
-          )
-          const historyMessages = await runLocalGenerationPhase(
-            progress,
-            harbourClient,
-            {
-              completionLabel: formatCompletedPhaseLabel(
-                colorTeal('Generate SQL'),
-                colorRed('history'),
-                previewPlan.rowCount,
-              ),
-              label: formatRunningPhaseLabel(
-                colorTeal('Generate SQL'),
-                colorRed('history'),
-                0,
-                previewPlan.rowCount,
-              ),
-              labelForProgress(current: number) {
-                return formatRunningPhaseLabel(
-                  colorTeal('Generate SQL'),
-                  colorRed('history'),
-                  current,
-                  previewPlan.rowCount,
+                // The combined publisher ledger is the sole source writer when
+                // Address3D is prepared. Do not generate SQL that it discards.
+                const source = prepared3d
+                  ? normalised
+                  : await writeAddressSourceSqlChunkStage(
+                      dbContext.sourceDb,
+                      chunkBucket,
+                      normalised,
+                    )
+                const history = await writeAddressHistorySqlChunkStage(
+                  dbContext.metaDb,
+                  dbContext.historyDb,
+                  chunkBucket,
+                  source,
+                  {
+                    previousHistoryDbs: dbContext.historyTargets
+                      .filter(targetContext => targetContext.db !== dbContext.historyDb)
+                      .map(targetContext => targetContext.db as HistoryDatabase),
+                  },
                 )
-              },
-              phase: 'generateAddressSqlHistory',
-              releaseCode,
-              releaseId,
-              totalUnits: previewPlan.rowCount,
-              unitsForMessage(message) {
-                return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
-              },
-            },
-            sourceMessages,
-            GENERATION_CONCURRENCY,
-            message =>
-              writeAddressHistorySqlChunkStage(
-                dbContext.metaDb,
-                dbContext.historyDb,
-                bucket,
-                message,
-                {
-                  previousHistoryDbs: dbContext.historyTargets
-                    .filter(targetContext => targetContext.db !== dbContext.historyDb)
-                    .map(targetContext => targetContext.db as HistoryDatabase),
-                },
-              ),
-          )
-          const currentMessages = await runLocalGenerationPhase(
-            progress,
-            harbourClient,
-            {
-              completionLabel: formatCompletedPhaseLabel(
-                colorTeal('Generate SQL'),
-                colorRed('current'),
-                previewPlan.rowCount,
-              ),
-              label: formatRunningPhaseLabel(
-                colorTeal('Generate SQL'),
-                colorRed('current'),
-                0,
-                previewPlan.rowCount,
-              ),
-              labelForProgress(current: number) {
-                return formatRunningPhaseLabel(
-                  colorTeal('Generate SQL'),
-                  colorRed('current'),
-                  current,
-                  previewPlan.rowCount,
+                return await writeAddressCurrentSqlChunkStage(
+                  dbContext.metaDb,
+                  dbContext.currentDb,
+                  chunkBucket,
+                  history,
                 )
-              },
-              phase: 'generateAddressSqlCurrent',
-              releaseCode,
-              releaseId,
-              totalUnits: previewPlan.rowCount,
-              unitsForMessage(message) {
-                return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
-              },
+              } finally {
+                chunkBucket.clear()
+              }
             },
-            historyMessages,
-            GENERATION_CONCURRENCY,
-            message =>
-              writeAddressCurrentSqlChunkStage(
-                dbContext.metaDb,
-                dbContext.currentDb,
-                bucket,
-                message,
-              ),
           )
 
           const finalMessage = buildFinalImportMessage(

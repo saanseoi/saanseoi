@@ -1,5 +1,6 @@
 import { Database } from 'bun:sqlite'
 import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { constants } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { journalNetTable } from './netSqlitePlanDiff.ts'
@@ -11,6 +12,7 @@ import {
   normaliseNetIgnoredColumns,
   orderNetTables,
   readNetTables,
+  netTablesDiffer,
 } from './netSqlitePlanSchema.ts'
 import {
   quoteNetIdentifier as q,
@@ -79,7 +81,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       }
       baselines[binding] = baseline
       const path = join(directory, `${index}.candidate.sqlite`)
-      await copyFile(baseline, path)
+      await copyFile(baseline, path, constants.COPYFILE_FICLONE)
       const db = new Database(path, { readwrite: true, create: false })
       candidates[binding] = { db, path }
       db.exec('PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;')
@@ -136,15 +138,21 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
         // An explicit policy is required even when an unrelated table's writes
         // would otherwise be silently omitted from the delivered final state.
         const columns = db
-          .query<{ name: string }, []>(`PRAGMA main.table_info(${q(name)})`)
-          .all()
-          .map(column => `${q(column.name)} COLLATE BINARY`)
-          .join(',')
-        const changed = db
-          .query(
-            `SELECT 1 FROM (SELECT ${columns} FROM main.${q(name)} EXCEPT SELECT ${columns} FROM net_baseline.${q(name)}) UNION ALL SELECT 1 FROM (SELECT ${columns} FROM net_baseline.${q(name)} EXCEPT SELECT ${columns} FROM main.${q(name)}) LIMIT 1`,
+          .query<{ name: string; pk: number; notnull: number }, []>(
+            `PRAGMA main.table_info(${q(name)})`,
           )
-          .get()
+          .all()
+        const key = columns
+          .filter(column => column.pk)
+          .sort((a, b) => Number(a.pk) - Number(b.pk))
+        const changed = netTablesDiffer(
+          db,
+          name,
+          columns.map(column => column.name),
+          key.every(column => column.notnull) ? key.map(column => column.name) : [],
+          'main',
+          'net_baseline',
+        )
         if (changed)
           throw new Error(
             `Net-plan preparation changed an unowned table: ${binding}.${name}`,
@@ -193,12 +201,21 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
         postponeNetParentDeletions({ db, journalPath, binding, tables: ordered })
       phase = `batch payloads ${binding}`
       journalPayloads(journal, binding, { maxStatements, maxPayloadBytes }, summary)
+      // An exhaustive zero-delta comparison already proves replay equality. Keep
+      // its schema/ownership/FK checks, but do not copy and replay an unchanged shard.
+      if (
+        !input.bootstrap &&
+        !Object.values(counts).some(
+          table => table.inserted || table.updated || table.deleted,
+        )
+      )
+        continue
       phase = `replay ${binding}`
       const replayPath = join(
         directory,
         `${entries.findIndex(([name]) => name === binding)}.replay.sqlite`,
       )
-      await copyFile(baseline, replayPath)
+      await copyFile(baseline, replayPath, constants.COPYFILE_FICLONE)
       const replay = new Database(replayPath, {
         readwrite: true,
         create: false,

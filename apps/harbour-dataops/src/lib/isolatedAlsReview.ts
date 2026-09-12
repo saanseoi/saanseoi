@@ -21,9 +21,13 @@ export type ReviewResult = Pick<
 const root = resolve(import.meta.dir, '../../../..')
 
 // Stream large source files: fingerprinting must not allocate another GeoJSON copy.
-export async function fingerprintTree(path: string): Promise<string> {
+export async function fingerprintTree(
+  path: string,
+  exclude: (file: string) => boolean = () => false,
+): Promise<string> {
   const hash = createHash('sha256')
   async function visit(file: string) {
+    if (exclude(file)) return
     const info = await stat(file).catch(error => {
       if (error.code === 'ENOENT') return null
       throw error
@@ -71,10 +75,10 @@ export function divisionLookupFingerprint(lookup: DivisionLookupMaps) {
   }
 }
 
-export async function divisionLookupDependency(input: Input) {
+export async function divisionLookupDependency(input: Input, includeRemote = false) {
   // Remote targets do not reuse preflight checkpoints, so never make an extra
   // remote lookup merely to construct a cache key.
-  if (input.target.remote) return null
+  if (input.target.remote && !includeRemote) return null
 
   const dbPath =
     typeof input.args.options.db === 'string'
