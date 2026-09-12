@@ -5,13 +5,11 @@ import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 
-import * as ReleaseAudit from '#lib/bits/pages/docs/components/releaseAudit/index.js'
 import * as ReleaseDiff from '#lib/bits/pages/docs/components/releaseDiff/index.js'
 import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
 import * as ReleaseLinks from '#lib/bits/pages/docs/components/releaseLinks/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
-import * as ReleaseStats from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
 
@@ -60,6 +58,32 @@ import {
 
 let { params, data } = $props()
 let activeTab = $state<SourceReleaseTab>(getSourceReleaseTabFromUrl(page.url))
+// Keep closed Stats and Audit tabs, including their map code, off the Notes path.
+let statsRoot = $derived(
+  activeTab === 'stats'
+    ? import(
+        '#lib/bits/pages/docs/components/releaseStats/components/releaseStatsRoot.svelte'
+      )
+    : undefined,
+)
+let auditComponents = $derived(
+  activeTab === 'audit'
+    ? Promise.all([
+        import(
+          '#lib/bits/pages/docs/components/releaseAudit/components/auditRoot.svelte'
+        ),
+        import(
+          '#lib/bits/pages/docs/components/releaseAudit/components/releaseAuditRoot.svelte'
+        ),
+      ])
+    : undefined,
+)
+// Start selected-tab downloads alongside the content query. The await blocks
+// render import failures once the content is ready, so handle early rejections.
+$effect(() => {
+  void statsRoot?.catch(() => {})
+  void auditComponents?.catch(() => {})
+})
 let locale = $derived(getCurrentLocale())
 // The server load seeds direct and client navigations synchronously. Keep its
 // last-ready value while the content query refreshes. A component-level
@@ -617,16 +641,29 @@ $effect(() => {
               {/if}
             </div>
           {:else if activeTab === 'stats'}
-            <ReleaseStats.Root
-              isFirstRelease={!previousVersion}
-              resourceType={selectedResource?.resourceType ?? source.resourceTypes[0]}
-              stats={selectedResource?.stats ?? version.stats}
-              {districtAreas}
-              {locale}
-              presentation={statsPresentation}
-              bind:headings={statsHeadings}
-              bind:activeHeadingId={activeStatsHeadingId}
-            />
+            {#if statsRoot}
+              {#await statsRoot}
+                <ReleaseNav.ContentSkeleton tab="stats" />
+              {:then module}
+                {@const ReleaseStatsRoot = module.default}
+                <ReleaseStatsRoot
+                  isFirstRelease={!previousVersion}
+                  resourceType={selectedResource?.resourceType ?? source.resourceTypes[0]}
+                  stats={selectedResource?.stats ?? version.stats}
+                  {districtAreas}
+                  {locale}
+                  presentation={statsPresentation}
+                  bind:headings={statsHeadings}
+                  bind:activeHeadingId={activeStatsHeadingId}
+                />
+              {:catch}
+                <SourceReleaseLoadError
+                  message={m.source_release_load_error()}
+                  onRetry={() => window.location.reload()}
+                  retryLabel={m.source_retry()}
+                />
+              {/await}
+            {/if}
           {:else if activeTab === 'schema' && sourceRecordFamily}
             <SourceRecordSchema
               measures={content?.measures ?? []}
@@ -649,31 +686,45 @@ $effect(() => {
               />
             {/key}
           {:else if activeTab === 'audit'}
-            <ReleaseAudit.Audit
-              selectedResourceType={selectedAuditResourceType}
-              onResourceTypesChange={resourceTypes => {
-                auditResourceTypes = resourceTypes
-                if (!resourceTypes.includes(selectedAuditResourceType)) {
-                  selectedAuditResourceType = resourceTypes[0] ?? ''
-                }
-              }}
-              bind:headings={auditHeadings}
-              bind:activeHeadingId={activeAuditHeadingId}
-              datasetCode={params.datasetCode}
-              releaseCode={params.releaseCode}
-            >
-              <ReleaseAudit.Root
-                analyticsSurface="source_release"
-                actions={version.processingActions}
-                actionSections={auditData?.sections}
-                {bulkActions}
-                {locale}
-                {showBulkActions}
-                onLoadMoreSection={loadMoreAuditSection}
-                bind:headings={auditHeadings}
-                bind:activeHeadingId={activeAuditHeadingId}
-              />
-            </ReleaseAudit.Audit>
+            {#if auditComponents}
+              {#await auditComponents}
+                <ReleaseNav.ContentSkeleton tab="audit" />
+              {:then modules}
+                {@const Audit = modules[0].default}
+                {@const ReleaseAuditRoot = modules[1].default}
+                <Audit
+                  selectedResourceType={selectedAuditResourceType}
+                  onResourceTypesChange={resourceTypes => {
+                    auditResourceTypes = resourceTypes
+                    if (!resourceTypes.includes(selectedAuditResourceType)) {
+                      selectedAuditResourceType = resourceTypes[0] ?? ''
+                    }
+                  }}
+                  bind:headings={auditHeadings}
+                  bind:activeHeadingId={activeAuditHeadingId}
+                  datasetCode={params.datasetCode}
+                  releaseCode={params.releaseCode}
+                >
+                  <ReleaseAuditRoot
+                    analyticsSurface="source_release"
+                    actions={version.processingActions}
+                    actionSections={auditData?.sections}
+                    {bulkActions}
+                    {locale}
+                    {showBulkActions}
+                    onLoadMoreSection={loadMoreAuditSection}
+                    bind:headings={auditHeadings}
+                    bind:activeHeadingId={activeAuditHeadingId}
+                  />
+                </Audit>
+              {:catch}
+                <SourceReleaseLoadError
+                  message={m.source_release_load_error()}
+                  onRetry={() => window.location.reload()}
+                  retryLabel={m.source_retry()}
+                />
+              {/await}
+            {/if}
           {:else if activeTab === 'releases'}
             <ReleaseLinks.Root>
               <ReleaseLinks.Provenance

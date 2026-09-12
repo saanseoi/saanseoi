@@ -152,155 +152,167 @@ export async function captureResolvedAddressDelivery(input: {
     // Reserve one statement and payload space for each transaction's ownership guard.
     limits: { maxStatements: 63, maxPayloadBytes: 4 * 1024 * 1024 - 4096 },
     append: publication.append,
-    generate: async candidates => {
-      const current = candidates.DB_CURRENT?.db
-      if (!current) throw new Error('Address planning requires DB_CURRENT.')
-      previous = current
-        .query<AddressPublicationReceipt, [string]>(
-          'SELECT * FROM addressPublicationState WHERE scopeId = ?',
-        )
-        .get(input.scopeId)
-      const bindingFor = (destination: {
-        databaseId: string | null
-        binding?: { bindingName?: string }
-      }) => {
-        const named = destination.binding?.bindingName
-        if (named && candidates[named]) return named
-        const match = Object.entries(input.context.state.bindings).find(
-          ([, value]) =>
-            value.databaseId && value.databaseId === destination.databaseId,
-        )?.[0]
-        if (!match || !candidates[match])
-          throw new Error('Address SQL resolved an unknown local planning target.')
-        return match
-      }
-      await importAddressSqlArtefacts(
-        noopClient,
-        input.metaDb,
-        input.bucket,
-        input.message,
-        {
-          ...input.options,
-          isLocal: true,
-          accountId: undefined,
-          apiToken: undefined,
-          captureSql: async (destination, bytes) => {
-            // The complete publisher ledger includes suppressed and curated rows;
-            // it is the sole ALS source writer across all retained source shards.
-            if (input.address3d && destination.name === 'source') return
-            if (destination.name === 'meta') {
-              metaPayloads.push(bytes)
-              return
-            }
-            const candidate = candidates[bindingFor(destination)]!.db
-            candidate
-              .transaction(() =>
-                executeNativeSqlStatements(candidate, new TextDecoder().decode(bytes)),
-              )
-              .immediate()
-          },
-        },
-      )
-      if (input.address3d) {
-        const localBinding = (original: { bindingName?: string } | undefined) => {
-          const name = original?.bindingName
-          if (!name || !candidates[name])
-            throw new Error('Address3D planning requires named local shard bindings.')
-          return createLocalExecBinding(candidates[name]!.db, name)
+    generate: async candidates =>
+      withAddressCandidateTransactions(candidates, async () => {
+        const current = candidates.DB_CURRENT?.db
+        if (!current) throw new Error('Address planning requires DB_CURRENT.')
+        previous = current
+          .query<AddressPublicationReceipt, [string]>(
+            'SELECT * FROM addressPublicationState WHERE scopeId = ?',
+          )
+          .get(input.scopeId)
+        const bindingFor = (destination: {
+          databaseId: string | null
+          binding?: { bindingName?: string }
+        }) => {
+          const named = destination.binding?.bindingName
+          if (named && candidates[named]) return named
+          const match = Object.entries(input.context.state.bindings).find(
+            ([, value]) =>
+              value.databaseId && value.databaseId === destination.databaseId,
+          )?.[0]
+          if (!match || !candidates[match])
+            throw new Error('Address SQL resolved an unknown local planning target.')
+          return match
         }
-        await importAddress3dCollections({
-          ...input.address3d,
-          expectedDigest: input.address3d.digest,
-          snapshotId: input.snapshotId,
-          currentSnapshotId: input.scopeId,
-          releaseId: input.message.releaseId ?? input.message.datasetId,
-          timestamp: input.message.processingRunStartedAt,
-          historyShards: Object.entries(candidates)
-            .filter(([name]) => name.startsWith('DB_HISTORY_'))
-            .map(([bindingName, candidate]) => ({
-              bindingName,
-              execute: async (statements: Array<{ sql: string; params: unknown[] }>) =>
-                candidate.db.transaction(() =>
-                  statements.flatMap(
-                    statement =>
-                      candidate.db
-                        .query(statement.sql)
-                        .all(
-                          ...(statement.params as Array<string | number | null>),
-                        ) as Record<string, unknown>[],
-                  ),
-                )(),
-            })),
-          sourceShards: Object.entries(candidates)
-            .filter(([name]) => name.startsWith('DB_SOURCE_'))
-            .map(([bindingName, candidate]) => ({
-              bindingName,
-              execute: async (statements: Array<{ sql: string; params: unknown[] }>) =>
-                candidate.db.transaction(() =>
-                  statements.flatMap(
-                    statement =>
-                      candidate.db
-                        .query(statement.sql)
-                        .all(
-                          ...(statement.params as Array<string | number | null>),
-                        ) as Record<string, unknown>[],
-                  ),
-                )(),
-            })),
-          execute: await createAddress3dExecutor(input.metaDb, input.message, {
+        await importAddressSqlArtefacts(
+          noopClient,
+          input.metaDb,
+          input.bucket,
+          input.message,
+          {
             ...input.options,
             isLocal: true,
             accountId: undefined,
             apiToken: undefined,
-            captureSql: undefined,
-            captureQueries: undefined,
-            currentBinding: localBinding(input.context.currentBinding),
-            historyBinding: localBinding(input.context.historyBinding),
-            sourceBinding: localBinding(input.context.sourceBinding),
-          }),
+            captureSql: async (destination, bytes) => {
+              // The complete publisher ledger includes suppressed and curated rows;
+              // it is the sole ALS source writer across all retained source shards.
+              if (input.address3d && destination.name === 'source') return
+              if (destination.name === 'meta') {
+                metaPayloads.push(bytes)
+                return
+              }
+              const candidate = candidates[bindingFor(destination)]!.db
+              candidate
+                .transaction(() =>
+                  executeNativeSqlStatements(
+                    candidate,
+                    new TextDecoder().decode(bytes),
+                  ),
+                )
+                .immediate()
+            },
+          },
+        )
+        if (input.address3d) {
+          const address3d = input.address3d
+          const localBinding = (original: { bindingName?: string } | undefined) => {
+            const name = original?.bindingName
+            if (!name || !candidates[name])
+              throw new Error('Address3D planning requires named local shard bindings.')
+            return createLocalExecBinding(candidates[name]!.db, name)
+          }
+          await importAddress3dCollections({
+            ...address3d,
+            expectedDigest: address3d.digest,
+            snapshotId: input.snapshotId,
+            currentSnapshotId: input.scopeId,
+            releaseId: input.message.releaseId ?? input.message.datasetId,
+            timestamp: input.message.processingRunStartedAt,
+            historyShards: Object.entries(candidates)
+              .filter(([name]) => name.startsWith('DB_HISTORY_'))
+              .map(([bindingName, candidate]) => ({
+                bindingName,
+                execute: async (
+                  statements: Array<{ sql: string; params: unknown[] }>,
+                ) =>
+                  candidate.db.transaction(() =>
+                    statements.flatMap(
+                      statement =>
+                        candidate.db
+                          .query(statement.sql)
+                          .all(
+                            ...(statement.params as Array<string | number | null>),
+                          ) as Record<string, unknown>[],
+                    ),
+                  )(),
+              })),
+            sourceShards: Object.entries(candidates)
+              .filter(([name]) => name.startsWith('DB_SOURCE_'))
+              .map(([bindingName, candidate]) => ({
+                bindingName,
+                execute: async (
+                  statements: Array<{ sql: string; params: unknown[] }>,
+                ) =>
+                  candidate.db.transaction(() =>
+                    statements.flatMap(
+                      statement =>
+                        candidate.db
+                          .query(statement.sql)
+                          .all(
+                            ...(statement.params as Array<string | number | null>),
+                          ) as Record<string, unknown>[],
+                    ),
+                  )(),
+              })),
+            execute: await createAddress3dExecutor(input.metaDb, input.message, {
+              ...input.options,
+              isLocal: true,
+              accountId: undefined,
+              apiToken: undefined,
+              captureSql: undefined,
+              captureQueries: undefined,
+              currentBinding: localBinding(input.context.currentBinding),
+              historyBinding: localBinding(input.context.historyBinding),
+              sourceBinding: localBinding(input.context.sourceBinding),
+            }),
+          })
+        }
+        applyResolvedAddressRetirements(candidates, input)
+        const historyBinding = input.context.historyBinding?.bindingName
+        if (!historyBinding)
+          throw new Error('Address planning requires a selected history shard.')
+        coalesceAddressHistory({
+          candidates,
+          files,
+          historyBinding,
+          prior: input.priorVersions,
+          snapshotId: input.snapshotId,
+          scopeId: input.scopeId,
+          now: input.message.processingRunStartedAt ?? new Date().toISOString(),
         })
-      }
-      applyResolvedAddressRetirements(candidates, input)
-      const historyBinding = input.context.historyBinding?.bindingName
-      if (!historyBinding)
-        throw new Error('Address planning requires a selected history shard.')
-      coalesceAddressHistory({
-        candidates,
-        files,
-        historyBinding,
-        prior: input.priorVersions,
-        snapshotId: input.snapshotId,
-        scopeId: input.scopeId,
-        now: input.message.processingRunStartedAt ?? new Date().toISOString(),
-      })
-      closeResolvedAddressHistory({
-        candidates,
-        historyBinding,
-        prior: input.priorVersions,
-        snapshotId: input.snapshotId,
-        scopeId: input.scopeId,
-        releaseId: input.message.releaseId ?? input.message.datasetId,
-        now: input.message.processingRunStartedAt ?? new Date().toISOString(),
-      })
-      if (input.membership)
-        coalesceAddressSourceResolutions({
+        closeResolvedAddressHistory({
           candidates,
           historyBinding,
-          membership: input.membership,
-          parentPlan: input.parentReplayPlan,
+          prior: input.priorVersions,
           snapshotId: input.snapshotId,
+          scopeId: input.scopeId,
           releaseId: input.message.releaseId ?? input.message.datasetId,
+          now: input.message.processingRunStartedAt ?? new Date().toISOString(),
         })
-      validateResolvedAddressProjection(
-        current,
-        input.scopeId,
-        input.expectedAddressCount,
-      )
-      if (input.membership)
-        assertAddressProjectionMembership(current, input.scopeId, input.membership)
-      validationSql = buildDeliveredAddressValidationSql(current, input.scopeId)
-      return { addressCount: input.expectedAddressCount, snapshotId: input.snapshotId }
-    },
+        if (input.membership)
+          coalesceAddressSourceResolutions({
+            candidates,
+            historyBinding,
+            membership: input.membership,
+            parentPlan: input.parentReplayPlan,
+            snapshotId: input.snapshotId,
+            releaseId: input.message.releaseId ?? input.message.datasetId,
+          })
+        validateResolvedAddressProjection(
+          current,
+          input.scopeId,
+          input.expectedAddressCount,
+        )
+        if (input.membership)
+          assertAddressProjectionMembership(current, input.scopeId, input.membership)
+        validationSql = buildDeliveredAddressValidationSql(current, input.scopeId)
+        return {
+          addressCount: input.expectedAddressCount,
+          snapshotId: input.snapshotId,
+        }
+      }),
   })
   await publication.complete()
   // Metadata registration follows every data target. Lifecycle status/publication
@@ -318,7 +330,7 @@ export async function captureResolvedAddressDelivery(input: {
   return { ...result.result, mutationSummary: result.summary }
 }
 
-function applyResolvedAddressRetirements(
+export function applyResolvedAddressRetirements(
   candidates: Record<string, { db: Database }>,
   input: Pick<
     Parameters<typeof captureResolvedAddressDelivery>[0],
@@ -337,29 +349,35 @@ function applyResolvedAddressRetirements(
   // Journal all locales found on the selected predecessor across retained shards.
   const now = input.message.processingRunStartedAt ?? new Date().toISOString()
   const releaseId = input.message.releaseId ?? input.message.datasetId
-  for (const [name, { db }] of Object.entries(candidates)) {
-    if (!name.startsWith('DB_HISTORY_') || name === historyName) continue
-    for (const id of input.retiredAddressIds) {
-      const locales = db
-        .query<{ locale: string }, [string]>(
-          'SELECT DISTINCT locale FROM address2dI18n WHERE addressId=? AND isCurrent=1',
-        )
-        .all(id)
-      for (const { locale } of locales)
-        history
-          .query(`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt)
+  // Candidate copies are discarded on failure; batch the retirement writes on
+  // each shard instead of synchronising every individual historical row.
+  history.transaction(() => {
+    for (const [name, { db }] of Object.entries(candidates)) {
+      if (!name.startsWith('DB_HISTORY_') || name === historyName) continue
+      db.transaction(() => {
+        for (const id of input.retiredAddressIds) {
+          const locales = db
+            .query<{ locale: string }, [string]>(
+              'SELECT DISTINCT locale FROM address2dI18n WHERE addressId=? AND isCurrent=1',
+            )
+            .all(id)
+          for (const { locale } of locales)
+            history
+              .query(`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt)
           VALUES(?,'address2dI18n',?,?,NULL,'delete',?,?,?) ON CONFLICT(snapshotId,recordType,recordId,locale) DO NOTHING`)
-          .run(input.snapshotId, id, locale, releaseId, now, now)
-      for (const [table, key] of [
-        ['address2d', 'id'],
-        ['address2dI18n', 'addressId'],
-        ['address2dBuildingNumberLookup', 'addressId'],
-      ])
-        db.query(
-          `UPDATE ${table} SET isCurrent=0,updatedAt=? WHERE ${key}=? AND isCurrent=1`,
-        ).run(now, id)
+              .run(input.snapshotId, id, locale, releaseId, now, now)
+          for (const [table, key] of [
+            ['address2d', 'id'],
+            ['address2dI18n', 'addressId'],
+            ['address2dBuildingNumberLookup', 'addressId'],
+          ])
+            db.query(
+              `UPDATE ${table} SET isCurrent=0,updatedAt=? WHERE ${key}=? AND isCurrent=1`,
+            ).run(now, id)
+        }
+      })()
     }
-  }
+  })()
   for (const file of files) {
     const db = file.target === 'current' ? candidates.DB_CURRENT!.db : history
     db.transaction(() => executeNativeSqlStatements(db, file.sql))()
@@ -415,8 +433,8 @@ export function validateResolvedAddressProjection(
           TRIM(COALESCE(json_extract(translation.value,'$.formattedAddressPart'),
             COALESCE(json_extract(translation.value,'$.floorExpression'),'') ||
             COALESCE(json_extract(translation.value,'$.unitExpression'),''))) = '') OR EXISTS
-        (SELECT 1 FROM json_each(a.units) unit WHERE NOT EXISTS
-          (SELECT 1 FROM json_each(i.units) translation WHERE translation.key=json_extract(unit.value,'$.id')))))) LIMIT 1`)
+        (SELECT json_extract(unit.value,'$.id') FROM json_each(a.units) unit
+         EXCEPT SELECT translation.key FROM json_each(i.units) translation)))) LIMIT 1`)
     .get(scopeId)
   if (missing3dOwner)
     throw new Error(
@@ -499,4 +517,22 @@ function validateAddressBuildingNumberLookups(db: Database, scopeId: string) {
   flush()
   if (!actual.next().done)
     throw new Error('Address projection has unexpected building-number lookups.')
+}
+
+/** Only disposable candidate copies participate; delivery is sealed afterwards. */
+export async function withAddressCandidateTransactions<T>(
+  candidates: Record<string, { db: Database }>,
+  operation: () => Promise<T>,
+): Promise<T> {
+  const databases = Object.values(candidates).map(candidate => candidate.db)
+  if (databases.some(db => db.inTransaction))
+    throw new Error('Address candidate already has an open transaction.')
+  try {
+    for (const db of databases) db.exec('BEGIN')
+    const result = await operation()
+    for (const db of databases) db.exec('COMMIT')
+    return result
+  } finally {
+    for (const db of databases) if (db.inTransaction) db.exec('ROLLBACK')
+  }
 }

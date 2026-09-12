@@ -241,3 +241,31 @@ test('native replay rejects reset identities and changed configured paths before
     await rm(root, { recursive: true, force: true })
   }
 })
+
+test('preparation reads an existing database identity while an unrelated writer holds a reserved lock', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'native-identity-read-'))
+  const path = join(root, 'meta.sqlite')
+  const writer = new Database(path)
+  try {
+    writer.exec(
+      "CREATE TABLE progress(n); INSERT INTO progress VALUES(0); CREATE TABLE harbourSqlDeliveryReceipts(planId TEXT,batchIndex INTEGER,sha256 TEXT,PRIMARY KEY(planId,batchIndex)); INSERT INTO harbourSqlDeliveryReceipts VALUES('native-database-identity',-1,'identity'); BEGIN IMMEDIATE; UPDATE progress SET n=1",
+    )
+    const plan = await prepareNativeSqlDelivery({
+      directory: join(root, 'plan'),
+      ownershipDirectory: root,
+      releaseId: 'release',
+      phase: 'data',
+      inputs: {},
+      files: { DB_META: path },
+      generate: async () => {},
+    })
+    expect(plan.context.inputs.nativeTargets).toEqual({
+      DB_META: { path, identity: 'identity' },
+    })
+    expect(writer.query('SELECT n FROM progress').get()).toEqual({ n: 1 })
+  } finally {
+    if (writer.inTransaction) writer.exec('ROLLBACK')
+    writer.close()
+    await rm(root, { recursive: true, force: true })
+  }
+})
