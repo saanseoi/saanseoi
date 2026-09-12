@@ -32,8 +32,8 @@ export function resolvePublisherFieldPaths(
     .filter(
       path =>
         fieldPath === path ||
-        fieldPath.startsWith(path + '.') ||
-        fieldPath.startsWith(path + '['),
+        fieldPath.startsWith(`${path}.`) ||
+        fieldPath.startsWith(`${path}[`),
     )
     .sort((a, b) => b.length - a.length)[0]
   if (!parent) throw new Error(`Unmapped source input: ${fieldPath}`)

@@ -303,7 +303,7 @@ test('does not cross an archived catalogue branch after a rollback', async () =>
     const first = await f.snapshot('first')
     await handlePublishDataset(f.db, { releaseId: 'first', deferStatsReleaseSet: true })
     await handleBootstrapStatsReleaseSets(f.db)
-    const second = await f.snapshot('second')
+    const _second = await f.snapshot('second')
     await handlePublishDataset(f.db, { releaseId: 'second' })
     const third = await f.snapshot('third')
     await handlePublishDataset(f.db, { releaseId: 'third', deferStatsReleaseSet: true })

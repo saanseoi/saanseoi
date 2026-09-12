@@ -11,8 +11,7 @@ type ClassificationSource = Pick<DatasetProcessingMessage, 'source' | 'sourceVer
 export function validateDivisionClassificationFixture(value: unknown) {
   const f = value as typeof fixture
   if (
-    !f ||
-    f.schemaVersion !== 1 ||
+    f?.schemaVersion !== 1 ||
     f.kind !== 'division-classification-patches' ||
     !Array.isArray(f.entries)
   )

@@ -27,7 +27,7 @@ const divisionGeometryVariants = [
   'hkgov-pland-pu',
   'overture',
 ] as const
-const DivisionResourceIdentifierSchema = z
+const _DivisionResourceIdentifierSchema = z
   .object({
     type: z.literal('divisions'),
     id: IdSchema,

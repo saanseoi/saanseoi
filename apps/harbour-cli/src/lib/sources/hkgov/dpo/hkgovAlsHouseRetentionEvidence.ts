@@ -83,11 +83,11 @@ export function writeHouseRetentionEvidenceCache(value: CachedEvidence) {
   mkdirSync(resolve(cachePath, '..'), { recursive: true })
   writeFileSync(
     cachePath,
-    [
+    `${[
       JSON.stringify({ version: value.version }),
       ...Object.entries(value.retentions).map(([id, evidence]) =>
         JSON.stringify({ id, evidence }),
       ),
-    ].join('\n') + '\n',
+    ].join('\n')}\n`,
   )
 }

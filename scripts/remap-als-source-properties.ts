@@ -22,7 +22,7 @@ const db = new Database(
   path,
   values['apply-local'] ? { readwrite: true } : { readonly: true },
 )
-const quote = (value: string) => "'" + value.replaceAll("'", "''") + "'"
+const quote = (value: string) => `'${value.replaceAll("'", "''")}'`
 const updates: { sql: string; rollback: string }[] = []
 const counts: Record<string, number> = {}
 try {
@@ -53,7 +53,7 @@ try {
   }
   writeFileSync(values.output, updates.map(row => row.sql).join('\n'), { flag: 'wx' })
   writeFileSync(
-    values.output + '.rollback.sql',
+    `${values.output}.rollback.sql`,
     updates.map(row => row.rollback).join('\n'),
     { flag: 'wx' },
   )

@@ -11,7 +11,7 @@ export async function reusePlanningCanonicalProvenance(
   const unchangedBaseIds = new Set<string>()
   for (const record of records) {
     const before = byId.get(record.base.id)
-    if (!before || !before.geometry || typeof before.versionHash !== 'string') continue
+    if (!before?.geometry || typeof before.versionHash !== 'string') continue
     const fields = Object.keys(record.base)
     const comparable = (row: Record<string, unknown>) =>
       Object.fromEntries(

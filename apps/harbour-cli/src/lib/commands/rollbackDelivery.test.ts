@@ -282,7 +282,7 @@ test('sealed rollback reconciles lost local progress from receipts without repea
     ).toEqual(before)
     expect(await completeSqlDeliveryRelease(f.root, 'release')).toBe(true)
     const text = await readFile(join(directory, '0.json'), 'utf8')
-    await writeFile(join(directory, '0.json'), text + ' ')
+    await writeFile(join(directory, '0.json'), `${text} `)
     await expect(runNativeSqlDelivery(directory, { files: f.files })).rejects.toThrow(
       'changed',
     )
