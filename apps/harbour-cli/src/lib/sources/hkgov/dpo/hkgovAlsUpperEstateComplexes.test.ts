@@ -35,7 +35,7 @@ test('upper estate addresses persist across all releases without consuming house
     .filter(r => /^\d{8}-.*ALS-GeoJSON$/.test(r))
     .sort()) {
     const version = `${release.slice(0, 4)}-${release.slice(4, 6)}-${release.slice(6, 8)}.0`
-    for (const rule of fixture.rules) {
+    for (const rule of fixture.rules.filter(r => !r.deriveWithoutSourcePremise)) {
       const features = (
         await Bun.file(
           `data/hkgov/dpo/ALS/${release}/als_addresses_(${rule.district}_district).geojson`,

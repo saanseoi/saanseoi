@@ -621,6 +621,97 @@
           }
         }
       }
+    },
+    {
+      "id": "lingnan-ho-sin-hang-building-until-revoked",
+      "estate": "LINGNAN UNIVERSITY",
+      "csu": "1638830000T20050430",
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": {
+        "state": "active",
+        "mode": "until-revoked",
+        "sourceVersionFrom": "2024-07-25.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "evidenceSourceVersion": "2024-07-25.0",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "featureIndexOneBased": 1152,
+      "authority": "User decision, 2026-09-12: retain Ho Sin Hang Building on omissions until revoked.",
+      "decision": "Reconstruct only the missing named building at its original point. Preserve the separate unnamed campus assertion; returning named publisher premises bypass retention.",
+      "feature": {
+        "type": "Feature",
+        "geometry": {
+          "type": "Point",
+          "coordinates": [113.98363, 22.40928]
+        },
+        "properties": {
+          "Northing": 830010,
+          "Easting": 816370,
+          "Address": {
+            "PremisesAddress": {
+              "BuildingCsuInformation": {
+                "CsuId": "1638830000T20050430"
+              },
+              "ChiPremisesAddress": {
+                "Region": "新界",
+                "ChiDistrict": "屯門區",
+                "ChiStreet": {
+                  "StreetName": "青山公路　－　嶺南段",
+                  "BuildingNoFrom": "8"
+                },
+                "ChiEstate": {
+                  "EstateName": "嶺南大學"
+                },
+                "BuildingName": "何善衡樓"
+              },
+              "EngPremisesAddress": {
+                "BuildingName": "HO SIN HANG BUILDING",
+                "EngEstate": {
+                  "EstateName": "LINGNAN UNIVERSITY"
+                },
+                "EngStreet": {
+                  "BuildingNoFrom": "8",
+                  "StreetName": "CASTLE PEAK ROAD - LINGNAN"
+                },
+                "EngDistrict": "TUEN MUN DISTRICT",
+                "Region": "NT"
+              },
+              "GeoAddress": "1638830000T20050430"
+            }
+          }
+        }
+      }
     }
   ]
 }

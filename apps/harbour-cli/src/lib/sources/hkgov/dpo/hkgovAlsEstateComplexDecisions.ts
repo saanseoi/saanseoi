@@ -59,7 +59,16 @@ export function applyReviewedEstateComplexes(
   for (const rule of fixture.rules) {
     const expected = rule.assertions.find(a => a.version === version)
     if (!expected || !rows.some(r => r.enEstateName === rule.estate)) continue
-    const candidates = rows.filter(r => r.hkgovCsuId === rule.csu)
+    const sourceBlock = 'sourceBlock' in rule ? rule.sourceBlock : undefined
+    const candidates = rows.filter(
+      r =>
+        r.hkgovCsuId === rule.csu &&
+        (!sourceBlock ||
+          (!r.enBuildingName &&
+            !r.zhHantBuildingName &&
+            r.enEstateName === rule.estate &&
+            r.enBlockNumber === sourceBlock)),
+    )
     if (rule.reconstruct && !candidates.some(row => row.sourceFile === curationFile))
       continue
     assert.equal(candidates.length, 1, `${rule.id}: unique premise required`)
@@ -95,6 +104,12 @@ export function applyReviewedEstateComplexes(
       row.enBuildingName = row.zhHantBuildingName = null
       delete en.BuildingName
       delete zh.BuildingName
+      if (sourceBlock) {
+        delete en.EngBlock
+        delete zh.ChiBlock
+        row.enBlockNumber = row.zhHantBlockNumber = null
+        row.enBlockDescriptor = row.zhHantBlockDescriptor = null
+      }
       row.curatedGranularity = 'complex'
     } else {
       row.enBuildingName = en.BuildingName = 'SHUN LEE COMMERCIAL CENTRE (PHASE II)'

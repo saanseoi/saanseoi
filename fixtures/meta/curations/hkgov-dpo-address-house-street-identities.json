@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "redhill-house-20-palm-drive",
+      "csu": "4134310230T20050430",
+      "authority": "User decision, 2026-09-12: Redhill Peninsula House 20 is 20 Palm Drive. House number and street number are distinct fields; the complex is at 18 Pak Pat Shan Road.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "20",
+      "streetNumber": "20",
+      "enStreet": "PALM DRIVE",
+      "zhStreet": "棕櫚徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": ["d341da21c31548e748801dc0c3bf7ec12b9accd064e5d2f99a28a4b876e648de"]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": ["d341da21c31548e748801dc0c3bf7ec12b9accd064e5d2f99a28a4b876e648de"]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": ["d341da21c31548e748801dc0c3bf7ec12b9accd064e5d2f99a28a4b876e648de"]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": ["d341da21c31548e748801dc0c3bf7ec12b9accd064e5d2f99a28a4b876e648de"]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": ["99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": ["b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": ["b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": ["b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": ["b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": ["b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": ["b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": ["b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"]
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,8 @@
+import {
+  applyReviewedHouseStreetIdentities,
+  linkReviewedHouseStreetParents,
+} from './hkgovAlsHouseStreetIdentities'
+import { applyReviewedPremiseRenames } from './hkgovAlsPremiseRenames'
 import { globSync } from 'node:fs'
 import {
   captureAlsPublisherSources,
@@ -223,7 +228,9 @@ async function prepareHkgovAlsAddressParquetInternal(
   )
   labelAls2dBackfillRows(rows)
   applyReviewedSchoolReconciliations(rows, options.sourceVersion)
+  applyReviewedHouseStreetIdentities(rows, options.sourceVersion)
   applyReviewedStreetEstateComplexes(rows, options.sourceVersion)
+  linkReviewedHouseStreetParents(rows, options.sourceVersion)
   suppressReviewedYueWanPremise(rows, options.sourceVersion)
   applyReviewedComplexPromotions(rows, options.sourceVersion)
   labelAlsCommercialRetentions(rows, retainedCommercialPremises)
@@ -233,6 +240,7 @@ async function prepareHkgovAlsAddressParquetInternal(
   applyApprovedIssueBatch(rows, options.sourceVersion, options.skipCurationChecks)
   applyAlsPremiseConsolidations(rows, options.sourceVersion)
   retainNamedPremises(rows, options.sourceVersion)
+  applyReviewedPremiseRenames(rows, options.sourceVersion)
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,
