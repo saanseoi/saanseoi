@@ -4,13 +4,13 @@
 
 ### EN
 
-Ingestion materialises `hierarchies.administrative`, `hierarchies.locality` and
-`hierarchies.full` as arrays of paths. Each entry is `{ id, name, class }`; paths
-exclude the division itself and the country referent. Administrative paths contain SAR →
-area → district. Locality paths contain the nearest locality and up to three hood
-ancestors; a hood need not belong to a locality. Full paths combine the correlated
-administrative and locality ancestry, omitting the locality only when its class is
-`city`.
+Ingestion materialises `hierarchies.administrative`, `hierarchies.locality`,
+`hierarchies.landform` and `hierarchies.full` as arrays of paths. Each entry is
+`{ id, name, class }`; paths exclude the division itself and the country referent.
+Administrative paths contain SAR → area → district. Locality paths contain the nearest
+locality and up to three hood ancestors; a hood need not belong to a locality. Full
+paths combine the correlated administrative, landform and locality ancestry, suppressing
+cities and explicitly equivalent landform labels.
 
 Multiple district or hood branches remain separate paths. Ingestion does not form a
 Cartesian product of unrelated branches. The SAR → area → district guard validates each

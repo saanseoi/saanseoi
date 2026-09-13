@@ -1022,3 +1022,11 @@ preparation rolls back open transactions and emits no delivery.
 
 Preparation-cache code fingerprints exclude test files; runtime code and all source,
 curation and division dependencies still invalidate reuse when their contents change.
+
+## Island association
+
+Preparation retains a direct canonical `landformId` when exact village/location-name and
+district evidence resolves to one individual island in the selected division snapshot.
+Ambiguous evidence stays unlinked. The derived association and its lookup snapshot are
+recorded separately from the retained ALS publisher assertion and do not change the
+supplied formatted address.
