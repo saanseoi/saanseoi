@@ -6,8 +6,8 @@
 
 SaanSeoi stores division `category`, `class` and `level` independently of the
 publisher's `subtype` and `class`. `filter[class]` selects a canonical class;
-`filter[category]` selects administrative, locality or hood divisions. A level alone
-does not identify a class.
+`filter[category]` selects administrative, locality, hood or landform divisions. A level
+alone does not identify a class.
 
 | category       | class         | level |
 | -------------- | ------------- | ----- |
@@ -21,6 +21,9 @@ does not identify a class.
 | hood           | macrohood     | 4     |
 | hood           | neighbourhood | 5     |
 | hood           | microhood     | 6     |
+| landform       | major_island  | null  |
+| landform       | minor_island  | null  |
+| landform       | island_group  | null  |
 
 The country referent is a separate administrative level-0 anchor. Planning and
 statistical classes have no geographic category (`null`). Cities retain their source
@@ -50,6 +53,9 @@ SaanSeoi 區劃使用 `category`、`class` 及 `level`，與來源的 `subtype` 
 | hood           | macrohood     | 4     |
 | hood           | neighbourhood | 5     |
 | hood           | microhood     | 6     |
+| landform       | major_island  | null  |
+| landform       | minor_island  | null  |
+| landform       | island_group  | null  |
 
 國家參照點是獨立的行政 level-0 記錄。規劃及統計類別的地理 category 為
 `null`。城市保留來源 UUID；行政大區使用獨立識別碼，即使兩者幾何相同。落馬洲河套地區是經審核的 level-4
@@ -73,6 +79,9 @@ SaanSeoi 区划使用 `category`、`class` 及 `level`，与来源的 `subtype` 
 | hood           | macrohood     | 4     |
 | hood           | neighbourhood | 5     |
 | hood           | microhood     | 6     |
+| landform       | major_island  | null  |
+| landform       | minor_island  | null  |
+| landform       | island_group  | null  |
 
 国家参照点是独立的行政 level-0 记录。规划及统计类别的地理 category 为
 `null`。城市保留来源 UUID；行政大区使用独立标识码，即使两者几何相同。落马洲河套地区是经审核的 level-4
