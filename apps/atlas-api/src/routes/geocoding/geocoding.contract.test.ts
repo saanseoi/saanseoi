@@ -250,12 +250,24 @@ async function fixture() {
 test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catalogue', async () => {
   const f = await fixture()
   try {
+    expect((await f.request('/divisions/v1/geocode?lat=22&lng=114', true)).status).toBe(
+      401,
+    )
     expect(
-      (await f.request('/api/v1/divisions/geocode?lat=22&lng=114', true)).status,
+      (await f.request('/divisions/v1/changes?fromApiReleaseSet=example', true)).status,
     ).toBe(401)
-    expect((await f.request('/api/v1/addresses/geocode?lat=22')).status).toBe(422)
+    expect(
+      (await f.request('/divisions/v1/changes/definitions/example', true)).status,
+    ).toBe(401)
+    for (const oldPath of [
+      '/api/v1/divisions/geocode',
+      '/api/v1/addresses/geocode',
+      '/api/v1/divisions/changes',
+    ])
+      expect((await f.request(oldPath)).status).toBe(404)
+    expect((await f.request('/addresses/v1/geocode?lat=22')).status).toBe(422)
     const old = await f.request(
-      '/api/v1/addresses/geocode?address=Old&apiReleaseSet=addresses-2025-01-01.0&include=divisions',
+      '/addresses/v1/geocode?address=Old&apiReleaseSet=addresses-2025-01-01.0&include=divisions',
     )
     expect(old.status).toBe(200)
     expect(await old.json()).toMatchObject({
@@ -265,7 +277,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
         divisionRelease: { apiReleaseSet: 'divisions-2025-01-01.0' },
       },
     })
-    const latest = await f.request('/api/v1/addresses/geocode?lat=22&lng=114')
+    const latest = await f.request('/addresses/v1/geocode?lat=22&lng=114')
     expect(latest.status).toBe(200)
     expect(await latest.json()).toMatchObject({
       data: [
@@ -277,7 +289,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
       meta: { release: { apiReleaseSet: 'addresses-2026-08-19.0' } },
     })
     const divisions = await f.request(
-      '/api/v1/divisions/geocode?placename=Old&apiReleaseSet=divisions-2025-01-01.0',
+      '/divisions/v1/geocode?placename=Old&apiReleaseSet=divisions-2025-01-01.0',
     )
     expect(divisions.status).toBe(200)
     expect(await divisions.json()).toMatchObject({
@@ -285,7 +297,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
     })
     const docs = await f.request('/openapi/addresses/v1')
     expect(Object.keys(((await docs.json()) as { paths: object }).paths)).toEqual([
-      '/api/v1/addresses/geocode',
+      '/addresses/v1/geocode',
     ])
     for (const family of ['addresses', 'divisions']) {
       for (const version of ['v0.1', 'v1']) {
@@ -294,20 +306,20 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
           paths: Record<string, { get?: { tags?: string[] } }>
           tags: { name: string }[]
         }
-        expect(document.paths[`/api/v1/${family}/geocode`]?.get?.tags).toEqual([
+        expect(document.paths[`/${family}/v1/geocode`]?.get?.tags).toEqual([
           'Geocoding',
         ])
         expect(document.tags.some(tag => tag.name === 'Geocoding')).toBe(true)
         expect(
           document.paths[
-            `/api/v1/${family === 'addresses' ? 'divisions' : 'addresses'}/geocode`
+            `/${family === 'addresses' ? 'divisions' : 'addresses'}/v1/geocode`
           ],
         ).toBeUndefined()
       }
     }
     f.retireOldAddress()
     const historical = await f.request(
-      '/api/v1/addresses/geocode?address=Historic&apiReleaseSet=addresses-2025-01-01.0&include=divisions',
+      '/addresses/v1/geocode?address=Historic&apiReleaseSet=addresses-2025-01-01.0&include=divisions',
     )
     expect(historical.status).toBe(200)
     expect(await historical.json()).toMatchObject({
@@ -322,7 +334,7 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
     expect(
       (
         await f.request(
-          '/api/v1/addresses/geocode?lat=22&lng=114&apiReleaseSet=addresses-2025-01-01.0',
+          '/addresses/v1/geocode?lat=22&lng=114&apiReleaseSet=addresses-2025-01-01.0',
         )
       ).status,
     ).toBe(503)
