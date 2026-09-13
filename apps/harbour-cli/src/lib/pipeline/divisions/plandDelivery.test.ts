@@ -82,7 +82,7 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
             ],
           ],
         },
-        hierarchies: { administrative: [], locality: [], full: [] },
+        hierarchies: { administrative: [], locality: [], landform: [], full: [] },
         identifiers: {},
         level: 1,
         sources: {},

@@ -12,6 +12,7 @@ import type {
 export const SUPPLEMENTARY_ADDRESS_VARIANT = 'overture-places'
 export const ADDRESS_DIVISION_FIELDS = [
   'countryId',
+  'landformId',
   'areaId',
   'districtId',
   'townId',
@@ -24,6 +25,7 @@ export const ADDRESS_DIVISION_FIELDS = [
 type Address = typeof currentSchema.address2d.$inferSelect
 type AddressDivisionReference = Pick<
   Address,
+  | 'landformId'
   | 'areaId'
   | 'countryId'
   | 'districtId'

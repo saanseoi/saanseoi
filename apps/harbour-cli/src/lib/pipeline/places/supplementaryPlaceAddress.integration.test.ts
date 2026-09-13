@@ -192,7 +192,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
         id: 'hk',
         class: 'country',
         category: 'administrative',
-        hierarchies: { administrative: [], locality: [], full: [] },
+        hierarchies: { administrative: [], locality: [], landform: [], full: [] },
       })
       .run()
     currentDb
