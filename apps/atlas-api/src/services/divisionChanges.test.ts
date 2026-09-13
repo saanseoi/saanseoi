@@ -352,3 +352,28 @@ test('fromApiReleaseSet is required and old spellings/invalid limits are rejecte
   ])
     expect(DivisionChangesQuerySchema.safeParse(query).success).toBe(false)
 })
+
+test('before/after links retrieve exact definitions and reject content drift rather than returning replacements', async () => {
+  const before = { records: [division('gone')], areas: [area('gone')] }
+  const f = fixture(before, { records: [], areas: [] })
+  const body = successful(await f.run())
+  const expected = body.data[0]!.before!
+  const url = new URL(expected.record)
+  const args = {
+    ...({} as GeocodingDatabases),
+    id: 'gone',
+    requestUrl: url.toString(),
+    apiReleaseSet: url.searchParams.get('apiReleaseSet')!,
+    definitionHash: url.searchParams.get('definitionHash')!,
+    dependencies: f.dependencies,
+  }
+  expect(await getDivisionChangeDefinition(args)).toEqual({
+    status: 200,
+    body: expected,
+  })
+  before.areas[0] = area('gone', 0, 30)
+  expect(await getDivisionChangeDefinition(args)).toMatchObject({
+    status: 503,
+    body: { error: 'definition_unavailable' },
+  })
+})
