@@ -70,6 +70,11 @@ const openApiConfig = {
   },
   tags: [
     {
+      name: 'Geocoding',
+      description:
+        'Forward and reverse geocoding with explicit release identities and resolution evidence.',
+    },
+    {
       name: 'API Families',
       description: openApiText('openapi_api_families_description'),
       'x-displayName': openApiText('openapi_label_api_families'),
@@ -749,22 +754,26 @@ function getOpenApiDocument(
         return false
       }
       const pathTags = tagsForPathItem(pathItem)
+      const isGeocodingPath = pathTags.includes('Geocoding')
       const isStatisticsRegistryPath =
         path.startsWith('/stats/') && pathTags.includes('Registry')
       const isApiFamilyPath =
-        pathTags.some(tag => apiFamilyTags.has(tag)) || isStatisticsRegistryPath
+        pathTags.some(tag => apiFamilyTags.has(tag)) ||
+        isStatisticsRegistryPath ||
+        isGeocodingPath
       const isFamilySourcePath =
         pathTags.includes('Sources') &&
         apiProducts.some(family => path.startsWith(`/${family}/`))
       return product === 'registry'
         ? !isApiFamilyPath && !isFamilySourcePath
-        : (pathTags.includes(apiProductTags[product]) ||
-            (product === 'stats' && isStatisticsRegistryPath) ||
-            (isFamilySourcePath && path.startsWith(`/${product}/`))) &&
-            (!productVersion ||
-              (productVersion === 'v1' && path.startsWith(`/api/v1/${product}/`)) ||
-              path === `/${product}/${documentPathVersion}` ||
-              path.startsWith(`/${product}/${documentPathVersion}/`))
+        : (isGeocodingPath && path.startsWith(`/api/v1/${product}/`)) ||
+            ((pathTags.includes(apiProductTags[product]) ||
+              (product === 'stats' && isStatisticsRegistryPath) ||
+              (isFamilySourcePath && path.startsWith(`/${product}/`))) &&
+              (!productVersion ||
+                (productVersion === 'v1' && path.startsWith(`/api/v1/${product}/`)) ||
+                path === `/${product}/${documentPathVersion}` ||
+                path.startsWith(`/${product}/${documentPathVersion}/`)))
     },
   )
   const visibleTags = new Set(
