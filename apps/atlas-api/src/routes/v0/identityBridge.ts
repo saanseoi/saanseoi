@@ -38,7 +38,7 @@ const route = createRoute({
   path: '/v0.1/identityBridge',
   operationId: 'listIdentityBridge',
   tags: ['API Releases'],
-  summary: 'Look up canonical identifiers within an API release set',
+  summary: 'Look Up Canonical Identifiers',
   description:
     'Distinct identifier-to-resource mappings from the selected release records. Identifiers can map to multiple resources. Planning subunits use TPU-subunit composite values. Keep all selectors unchanged while following nextCursor.',
   request: { query: IdentityBridgeQuerySchema },

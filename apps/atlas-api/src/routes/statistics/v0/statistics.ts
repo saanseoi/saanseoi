@@ -73,6 +73,7 @@ const listRoutes = ROUTE_VARIANTS.map(variant =>
     method: 'get',
     path: variant.listPath,
     operationId: variant.listOperationId,
+    summary: 'List Statistics',
     tags: ['Statistics'],
     request: { query: StatisticsListQuerySchema },
     responses: {
@@ -106,6 +107,7 @@ const detailRoutes = ROUTE_VARIANTS.map(variant =>
     method: 'get',
     path: variant.detailPath,
     operationId: variant.detailOperationId,
+    summary: 'Get Statistic',
     tags: ['Statistics'],
     request: {
       params: StatisticDetailParamsSchema,
@@ -142,6 +144,7 @@ const geographyRoutes = ROUTE_VARIANTS.map(variant =>
     method: 'get',
     path: variant.geographiesPath,
     operationId: `${variant.listOperationId}Geographies`,
+    summary: 'List Statistic Geographies',
     tags: ['Statistics'],
     request: { query: StatisticsGeographiesQuerySchema },
     responses: {
@@ -181,6 +184,7 @@ const seriesRoutes = ROUTE_VARIANTS.map(variant =>
     method: 'get',
     path: variant.seriesPath,
     operationId: `${variant.listOperationId}Series`,
+    summary: 'Get Statistic Series',
     tags: ['Statistics'],
     request: { query: StatisticsSeriesQuerySchema },
     responses: {

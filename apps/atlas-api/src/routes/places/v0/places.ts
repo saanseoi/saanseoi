@@ -195,6 +195,7 @@ const placeListRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     method: 'get',
     path: routeVariant.listPath,
     operationId: routeVariant.listOperationId,
+    summary: 'List Places',
     tags: ['Places'],
     request: {
       query: PlacesListQuerySchema,
@@ -222,6 +223,7 @@ const placeDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     method: 'get',
     path: routeVariant.detailPath,
     operationId: routeVariant.detailOperationId,
+    summary: 'Get Place',
     tags: ['Places'],
     request: {
       params: PlaceParamsSchema,
@@ -250,6 +252,7 @@ const placesByCellRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     method: 'get',
     path: routeVariant.byCellPath,
     operationId: routeVariant.byCellOperationId,
+    summary: 'List Places by Cell',
     tags: ['Places'],
     request: {
       params: PlacesByCellParamsSchema,
@@ -278,6 +281,7 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     method: 'get',
     path: routeVariant.searchPath,
     operationId: routeVariant.searchOperationId,
+    summary: 'Search Places',
     tags: ['Places'],
     request: {
       query: SearchQuerySchema,

@@ -31,6 +31,7 @@ const streetDetailRoute = createRoute({
   method: 'get',
   path: '/streets/v0.1/{id}',
   operationId: 'getHongKongStreetByIdV0',
+  summary: 'Get Street',
   tags: ['Streets'],
   request: { query: RegionQuerySchema, params: StreetDetailParamsSchema },
   responses: {
@@ -56,6 +57,7 @@ const streetChangelogRoute = createRoute({
   method: 'get',
   path: '/streets/v0.1/changelog',
   operationId: 'replayHongKongStreetChangelogV0',
+  summary: 'List Street Changes',
   request: { query: RegionQuerySchema },
   tags: ['Streets'],
   responses: {
@@ -81,6 +83,7 @@ const streetVersionsRoute = createRoute({
   method: 'get',
   path: '/streets/v0.1/{id}/versions',
   operationId: 'listHongKongStreetVersionsV0',
+  summary: 'List Street Versions',
   tags: ['Streets'],
   request: { query: RegionQuerySchema, params: StreetDetailParamsSchema },
   responses: {
@@ -106,6 +109,7 @@ const streetVersionRoute = createRoute({
   method: 'get',
   path: '/streets/v0.1/{id}/versions/{version}',
   operationId: 'getHongKongStreetVersionV0',
+  summary: 'Get Street Version',
   tags: ['Streets'],
   request: { query: RegionQuerySchema, params: StreetVersionParamsSchema },
   responses: {

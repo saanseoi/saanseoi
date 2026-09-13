@@ -30,6 +30,7 @@ async function persistNewsletterState(operation: Promise<void>, errorPrefix: str
 const healthRouteConfig = createRoute({
   method: 'get',
   path: '/v0.1/meta/health',
+  summary: 'Get API Health',
   tags: ['Meta'],
   responses: {
     200: {

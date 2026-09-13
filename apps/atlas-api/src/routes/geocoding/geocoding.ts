@@ -7,8 +7,9 @@ import type { AppEnv } from '../../types'
 export const geocodingRoutes = (['divisions', 'addresses'] as const).map(family => {
   const route = createRoute({
     method: 'get',
-    path: `/api/v1/${family}/geocode`,
+    path: `/${family}/v1/geocode`,
     operationId: `${family}GeocodeV1`,
+    summary: family === 'divisions' ? 'Geocode Division' : 'Geocode Address',
     tags: ['Geocoding'],
     description:
       'Ranked forward or reverse geocoding in WGS84. Supply exactly one of lat/lng, address, or placename. Division containment uses geographic stub polygons, including polygon boundaries. Unresolved branches remain ambiguous. Reverse addresses are exact locations or nearest points within maxDistance metres.',

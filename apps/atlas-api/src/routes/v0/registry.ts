@@ -52,6 +52,7 @@ function parseJsonResponse<TSchema extends z.ZodType>(schema: TSchema, value: un
 
 type RegistryResource = {
   publicName: string
+  singularLabel: string
   responseLabelKey: Parameters<typeof openApiText>[0]
   tag: string
   listOperationId: string
@@ -63,6 +64,7 @@ type RegistryResource = {
 const REGISTRY_RESOURCES = [
   {
     publicName: 'families',
+    singularLabel: 'API Family',
     responseLabelKey: 'openapi_registry_resource_families',
     tag: 'API Families',
     listOperationId: 'listRegistryApis',
@@ -72,6 +74,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'releases',
+    singularLabel: 'API Release',
     responseLabelKey: 'openapi_registry_resource_releases',
     tag: 'API Releases',
     listOperationId: 'listRegistryReleases',
@@ -81,6 +84,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'fields',
+    singularLabel: 'API Field',
     responseLabelKey: 'openapi_registry_resource_fields',
     tag: 'API Fields',
     listOperationId: 'listRegistryApiFields',
@@ -90,6 +94,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'endpoints',
+    singularLabel: 'API Endpoint',
     responseLabelKey: 'openapi_registry_resource_endpoints',
     tag: 'API Endpoints',
     listOperationId: 'listRegistryEndpoints',
@@ -99,6 +104,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'sources',
+    singularLabel: 'Source',
     responseLabelKey: 'openapi_registry_resource_sources',
     tag: 'Sources',
     listOperationId: 'listRegistrySources',
@@ -108,6 +114,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'sourceVersions',
+    singularLabel: 'Source Version',
     responseLabelKey: 'openapi_registry_resource_source_versions',
     tag: 'Source Versions',
     listOperationId: 'listRegistrySourceVersions',
@@ -117,6 +124,7 @@ const REGISTRY_RESOURCES = [
   },
   {
     publicName: 'sourcePublishers',
+    singularLabel: 'Source Publisher',
     responseLabelKey: 'openapi_registry_resource_source_publishers',
     tag: 'Source Publishers',
     listOperationId: 'listRegistrySourcePublishers',
@@ -131,6 +139,7 @@ function createRegistryListRoute(resource: RegistryResource) {
     method: 'get',
     path: `/v0.1/api/${resource.publicName}`,
     operationId: resource.listOperationId,
+    summary: `List ${resource.tag}`,
     tags: [resource.tag],
     request: {
       query: RegistryListQuerySchema,
@@ -156,6 +165,7 @@ function createRegistryDetailRoute(resource: RegistryResource) {
     method: 'get',
     path: `/v0.1/api/${resource.publicName}/{id}`,
     operationId: resource.detailOperationId,
+    summary: `Get ${resource.singularLabel}`,
     tags: [resource.tag],
     request: {
       params: RegistryDetailParamsSchema,

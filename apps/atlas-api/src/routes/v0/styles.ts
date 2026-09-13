@@ -13,6 +13,7 @@ const styleRouteConfig = createRoute({
   method: 'get',
   path: '/v0.1/styles/{style}/{version}',
   operationId: 'downloadMapStyle',
+  summary: 'Get Map Style',
   tags: ['Map styles'],
   request: { params: StyleParamsSchema },
   responses: {

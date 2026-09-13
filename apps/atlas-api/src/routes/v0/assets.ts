@@ -18,6 +18,7 @@ const managedAssetRouteConfig = createRoute({
   method: 'get',
   path: '/v0.1/assets/{assetId}',
   operationId: 'downloadManagedAsset',
+  summary: 'Download Asset',
   tags: ['Source assets'],
   request: { params: AssetParamsSchema },
   responses: {

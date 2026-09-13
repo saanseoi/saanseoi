@@ -184,6 +184,7 @@ function registryRoute(path: string, operationId: string) {
     method: 'get',
     path,
     operationId,
+    summary: 'Get Statistics Registry',
     tags: ['Registry'],
     request: { query: RegistryQuerySchema },
     responses: {
@@ -202,11 +203,17 @@ function registryRoute(path: string, operationId: string) {
   })
 }
 
-function collectionRoute(path: string, operationId: string, description: string) {
+function collectionRoute(
+  path: string,
+  operationId: string,
+  description: string,
+  summary: string,
+) {
   return createRoute({
     method: 'get',
     path,
     operationId,
+    summary,
     tags: ['Registry'],
     request: { query: RegistryQuerySchema },
     responses: {
@@ -230,6 +237,7 @@ function searchRoute(path: string, operationId: string) {
     method: 'get',
     path,
     operationId,
+    summary: 'Search Statistics Registry',
     tags: ['Registry'],
     request: { query: SearchQuerySchema },
     responses: {
@@ -248,11 +256,17 @@ function searchRoute(path: string, operationId: string) {
   })
 }
 
-function fieldDetailRoute(path: string, operationId: string, description: string) {
+function fieldDetailRoute(
+  path: string,
+  operationId: string,
+  description: string,
+  summary: string,
+) {
   return createRoute({
     method: 'get',
     path,
     operationId,
+    summary,
     tags: ['Registry'],
     request: { params: RegistryFieldParamsSchema, query: RegistryQuerySchema },
     responses: {
@@ -280,6 +294,7 @@ function measureDetailRoute(path: string, operationId: string, description: stri
     method: 'get',
     path,
     operationId,
+    summary: 'Get Statistic Measure',
     tags: ['Registry'],
     request: { params: RegistryMeasureParamsSchema, query: RegistryQuerySchema },
     responses: {
@@ -310,6 +325,7 @@ const fieldRoutes = variants.map(variant =>
     `${variant.path}/fields`,
     `listStatisticsRegistryFields${variant.suffix}`,
     openApiText('openapi_statistics_registry_fields_list_description'),
+    'List Statistic Fields',
   ),
 )
 const measureRoutes = variants.map(variant =>
@@ -317,6 +333,7 @@ const measureRoutes = variants.map(variant =>
     `${variant.path}/measures`,
     `listStatisticsRegistryMeasures${variant.suffix}`,
     openApiText('openapi_statistics_registry_measures_list_description'),
+    'List Statistic Measures',
   ),
 )
 const measureDetailRoutes = variants.map(variant =>
@@ -331,6 +348,7 @@ const datasetRoutes = variants.map(variant =>
     `${variant.path}/datasets`,
     `listStatisticsRegistryDatasets${variant.suffix}`,
     'List published Statistics datasets and their discovery counts.',
+    'List Statistic Datasets',
   ),
 )
 const dimensionRoutes = variants.map(variant =>
@@ -338,6 +356,7 @@ const dimensionRoutes = variants.map(variant =>
     `${variant.path}/dimensions`,
     `listStatisticsRegistryDimensions${variant.suffix}`,
     'List dimensions and values available in the selected Statistics registry.',
+    'List Statistic Dimensions',
   ),
 )
 const searchRoutes = variants.map(variant =>
@@ -348,6 +367,7 @@ const fieldDetailRoutes = variants.map(variant =>
     `${variant.path}/fields/{datasetCode}/{fieldName}`,
     `getStatisticsRegistryField${variant.suffix}`,
     'Get one published, dimension-qualified statistic field.',
+    'Get Statistic Field',
   ),
 )
 const availabilityRoutes = variants.map(variant =>
@@ -355,6 +375,7 @@ const availabilityRoutes = variants.map(variant =>
     `${variant.path}/fields/{datasetCode}/{fieldName}/availability`,
     `getStatisticsRegistryFieldAvailability${variant.suffix}`,
     'Get reference-period and geography coverage for one published statistic field.',
+    'Get Statistic Field Availability',
   ),
 )
 
