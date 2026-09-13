@@ -3266,6 +3266,8 @@ export async function ensureDraftSnapshotForRelease(
      * companion family. Their source releases remain distinct snapshot sources.
      */
     reuseSnapshotLineageForVariant?: boolean
+    /** A complete snapshot whose replay never inherits a predecessor. */
+    rootSnapshot?: boolean
     regionCode: string
     sourceReleaseId: string
     variant?: string
@@ -3310,7 +3312,12 @@ export async function ensureDraftSnapshotForRelease(
     .get()
 
   if (snapshotForSourceRelease) {
-    await assertAcceptedDraftSnapshotParent(db, snapshotForSourceRelease)
+    if (args.rootSnapshot) {
+      if (snapshotForSourceRelease.parentSnapshotId !== null)
+        throw new Error('Root snapshot draft unexpectedly has a predecessor.')
+    } else {
+      await assertAcceptedDraftSnapshotParent(db, snapshotForSourceRelease)
+    }
     await preserveOrPromoteGeometryStatus(snapshotForSourceRelease.id)
     return snapshotForSourceRelease
   }
@@ -3344,7 +3351,12 @@ export async function ensureDraftSnapshotForRelease(
       .limit(1)
       .get()
     if (sharedDraft) {
-      await assertAcceptedDraftSnapshotParent(db, sharedDraft)
+      if (args.rootSnapshot) {
+        if (sharedDraft.parentSnapshotId !== null)
+          throw new Error('Root snapshot draft unexpectedly has a predecessor.')
+      } else {
+        await assertAcceptedDraftSnapshotParent(db, sharedDraft)
+      }
       await preserveOrPromoteGeometryStatus(sharedDraft.id)
       return sharedDraft
     }
@@ -3468,7 +3480,7 @@ export async function ensureDraftSnapshotForRelease(
     cohortKey: args.cohortKey,
     identityMode,
   })
-  const parentSnapshotId = effectiveParent?.id ?? null
+  const parentSnapshotId = args.rootSnapshot ? null : (effectiveParent?.id ?? null)
 
   if (latestForCohort?.status === 'draft' && resourceType !== 'divisionStatistic') {
     if (latestForCohort.parentSnapshotId !== parentSnapshotId)

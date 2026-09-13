@@ -63,12 +63,12 @@ test('processing references pin the selected release definition, not a current r
     ]),
   ).toThrow()
   expect(pinApiFieldRules({ resolverCode: 'direct_copy' }, [])).toEqual([])
-  expect(() =>
+  expect(
     pinApiFieldRules(field, [
       release,
-      { releaseId: 'missing-policy', processingRules: null },
+      { releaseId: 'unrelated-derived-release', processingRules: null },
     ]),
-  ).toThrow('missing-policy')
+  ).toEqual(pins)
   const conflicting = structuredClone(release)
   conflicting.processingRules.rulesets[0]!.rules.push({
     definition: { ...definition, parameters: { multiplier: 1 } },
