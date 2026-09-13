@@ -180,7 +180,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         id: 'hk',
         class: 'country',
         category: 'administrative',
-        hierarchies: { administrative: [], locality: [], full: [] },
+        hierarchies: { administrative: [], locality: [], landform: [], full: [] },
       })
       .run()
     currentDb

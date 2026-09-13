@@ -120,6 +120,7 @@ type AddressResourcePayload = {
   }
   relationships: {
     country: { data: { type: 'divisions'; id: string } | null }
+    landform: { data: { type: 'divisions'; id: string } | null }
     area: { data: { type: 'divisions'; id: string } | null }
     district: { data: { type: 'divisions'; id: string } | null }
     town: { data: { type: 'divisions'; id: string } | null }
@@ -149,6 +150,7 @@ type AddressRouteState = {
 type AddressFilters = {
   dataset?: string
   country?: string
+  landform?: string
   area?: string
   district?: string
   town?: string
@@ -364,6 +366,7 @@ export type AddressListQuery = {
   'page[after]'?: string
   'filter[country]'?: string
   'filter[dataset]'?: string
+  'filter[landform]'?: string
   'filter[area]'?: string
   'filter[district]'?: string
   include?: 'hierarchy'
@@ -381,6 +384,7 @@ export type AddressDetailQuery = Omit<
   | 'page[offset]'
   | 'filter[country]'
   | 'filter[dataset]'
+  | 'filter[landform]'
   | 'filter[area]'
   | 'filter[district]'
   | 'include'
@@ -485,6 +489,7 @@ function divisionRelationship(id: string | null) {
 function addressHierarchyIds(address: AddressRecord['address']) {
   return [
     address.countryId,
+    address.landformId,
     address.areaId,
     address.districtId,
     address.townId,
@@ -554,6 +559,7 @@ function createAddressResource(args: {
     attributes,
     relationships: {
       country: { data: divisionRelationship(address.countryId) },
+      landform: { data: divisionRelationship(address.landformId) },
       area: { data: divisionRelationship(address.areaId) },
       district: { data: divisionRelationship(address.districtId) },
       town: { data: divisionRelationship(address.townId) },
@@ -756,6 +762,9 @@ export async function listAddresses(args: {
     ...(args.query['filter[country]']
       ? { country: args.query['filter[country]'] }
       : {}),
+    ...(args.query['filter[landform]']
+      ? { landform: args.query['filter[landform]'] }
+      : {}),
     ...(args.query['filter[area]'] ? { area: args.query['filter[area]'] } : {}),
     ...(args.query['filter[district]']
       ? { district: args.query['filter[district]'] }
@@ -782,6 +791,7 @@ export async function listAddresses(args: {
           snapshotIds: activeSnapshot.snapshotIds,
           after: args.query['page[after]'],
           countryId: filters.country,
+          landformId: filters.landform,
           areaId: filters.area,
           districtId: filters.district,
           localeSelection: routeState.localeSelection,
@@ -921,6 +931,9 @@ export async function searchAddresses(args: {
     ...(args.query['filter[country]']
       ? { country: args.query['filter[country]'] }
       : {}),
+    ...(args.query['filter[landform]']
+      ? { landform: args.query['filter[landform]'] }
+      : {}),
     ...(args.query['filter[area]'] ? { area: args.query['filter[area]'] } : {}),
     ...(args.query['filter[district]']
       ? { district: args.query['filter[district]'] }
@@ -950,6 +963,7 @@ export async function searchAddresses(args: {
               searchAddressIdsCurrent(args.currentDb, {
                 snapshotIds: activeSnapshot.snapshotIds,
                 countryId: filters.country,
+                landformId: filters.landform,
                 areaId: filters.area,
                 districtId: filters.district,
                 component: args.query.component,
@@ -981,6 +995,7 @@ export async function searchAddresses(args: {
               snapshotIds: activeSnapshot.snapshotIds,
               addressIds: search.addressIds,
               countryId: filters.country,
+              landformId: filters.landform,
               areaId: filters.area,
               districtId: filters.district,
               localeSelection: routeState.localeSelection,
