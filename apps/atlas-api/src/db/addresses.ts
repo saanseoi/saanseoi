@@ -46,6 +46,7 @@ export type AddressRecord = {
     parentAddressId: string | null
     granularity: typeof address2d.$inferSelect.granularity
     countryId: string | null
+    landformId: string | null
     areaId: string | null
     districtId: string | null
     townId: string | null
@@ -72,6 +73,7 @@ type AddressListLookup = {
   offset?: number
   after?: string
   countryId?: string
+  landformId?: string
   areaId?: string
   districtId?: string
   localeSelection: RequestedApiLocaleSelection
@@ -104,7 +106,7 @@ const ADDRESS_FTS_TOKEN_ALIASES = new Map<string, readonly string[]>(
 
 type AddressSearchLookup = Pick<
   AddressListLookup,
-  'snapshotIds' | 'countryId' | 'areaId' | 'districtId'
+  'snapshotIds' | 'countryId' | 'areaId' | 'landformId' | 'districtId'
 > & {
   component?: AddressSearchComponent
   limit: number
@@ -124,6 +126,7 @@ type AddressRow = {
   parentAddressId: string | null
   granularity: typeof address2d.$inferSelect.granularity
   countryId: string | null
+  landformId: string | null
   areaId: string | null
   districtId: string | null
   townId: string | null
@@ -226,6 +229,7 @@ function mapAddressRow(row: AddressRow): AddressRecord {
       parentAddressId: row.parentAddressId,
       granularity: row.granularity,
       countryId: row.countryId,
+      landformId: row.landformId,
       areaId: row.areaId,
       districtId: row.districtId,
       townId: row.townId,
@@ -244,7 +248,7 @@ function mapAddressRow(row: AddressRow): AddressRecord {
 function buildAddressConditions(
   lookup: Pick<
     AddressListLookup,
-    'snapshotIds' | 'countryId' | 'areaId' | 'districtId'
+    'snapshotIds' | 'countryId' | 'areaId' | 'landformId' | 'districtId'
   >,
 ) {
   return [
@@ -252,6 +256,7 @@ function buildAddressConditions(
     // IN parameter list. An empty selection deliberately matches no rows.
     sql`${address2d.snapshotId} in (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds)})))`,
     lookup.countryId ? eq(address2d.countryId, lookup.countryId) : undefined,
+    lookup.landformId ? eq(address2d.landformId, lookup.landformId) : undefined,
     lookup.areaId ? eq(address2d.areaId, lookup.areaId) : undefined,
     lookup.districtId ? eq(address2d.districtId, lookup.districtId) : undefined,
   ].filter(condition => condition !== undefined)
@@ -277,6 +282,7 @@ export async function getAddressRecordCurrent(
       parentAddressId: address2d.parentAddressId,
       granularity: address2d.granularity,
       countryId: address2d.countryId,
+      landformId: address2d.landformId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
       townId: address2d.townId,
@@ -331,6 +337,7 @@ export async function listAddressRecordsCurrent(
       parentAddressId: address2d.parentAddressId,
       granularity: address2d.granularity,
       countryId: address2d.countryId,
+      landformId: address2d.landformId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
       townId: address2d.townId,
@@ -389,6 +396,7 @@ export async function listAddressRecordsCurrentByIds(
       parentAddressId: address2d.parentAddressId,
       granularity: address2d.granularity,
       countryId: address2d.countryId,
+      landformId: address2d.landformId,
       areaId: address2d.areaId,
       districtId: address2d.districtId,
       townId: address2d.townId,

@@ -55,6 +55,7 @@ function addressDivisionIds(address: AddressRecord['address'] | undefined) {
   if (!address) return []
   return [
     address.countryId,
+    address.landformId,
     address.areaId,
     address.districtId,
     address.townId,

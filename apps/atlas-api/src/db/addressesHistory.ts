@@ -112,6 +112,7 @@ export async function listReplayedAddressRecords(args: {
         parentAddressId: version.base.parentAddressId,
         granularity: version.base.granularity,
         countryId: version.base.countryId,
+        landformId: version.base.landformId,
         areaId: version.base.areaId,
         districtId: version.base.districtId,
         townId: version.base.townId,
@@ -141,6 +142,7 @@ export async function listReplayedAddressPage(
     offset: number
     after?: string
     countryId?: string
+    landformId?: string
     areaId?: string
     districtId?: string
     search?: Parameters<typeof searchReplayedAddressRecords>[1]
@@ -202,6 +204,7 @@ export async function listReplayedAddressPage(
       : records) {
       if (
         (args.countryId && address.countryId !== args.countryId) ||
+        (args.landformId && address.landformId !== args.landformId) ||
         (args.areaId && address.areaId !== args.areaId) ||
         (args.districtId && address.districtId !== args.districtId)
       )
