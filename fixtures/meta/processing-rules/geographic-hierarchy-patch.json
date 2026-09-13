@@ -1,0 +1,13 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "apply-geographic-hierarchy-patch",
+  "scope": "individual",
+  "basis": "fixture",
+  "summary": "Apply cohort-scoped geographic review ancestry while retaining polygon evidence and provisional decisions.",
+  "inputs": ["canonical-divisions", "geographic-hierarchy-patch"],
+  "outputs": ["divisions.hierarchies"],
+  "parameters": {},
+  "implementation": { "path": "libs/core/src/pipeline/services/divisions/geographicHierarchyPatch.ts", "symbol": "geographicHierarchyPatchRule" },
+  "review": { "kind": "patch" }
+}
