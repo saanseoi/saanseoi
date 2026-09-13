@@ -119,7 +119,7 @@ export const urbanDensityDivisionsResponse: DivisionsResponse = {
         level: 0,
         class: 'sar',
         category: 'administrative',
-        hierarchies: { administrative: [], locality: [], full: [] },
+        hierarchies: { administrative: [], locality: [], landform: [], full: [] },
         i18n: { en: { name: 'Hong Kong' } },
       },
     },
