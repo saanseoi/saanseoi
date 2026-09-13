@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+The [versioned geocoding contract](../../geocoding.md) returns canonical structured
+addresses, explicit point-match distances, and optional division membership composed
+through an exact shared division snapshot.
+
 Address SQL preparation processes bounded chunks through normalisation, history and
 current generation. Intermediate JSON stays in memory for the active chunks; generated
 SQL and sealed delivery files remain durable. Combined Address2D/Address3D preparation
@@ -1007,7 +1011,7 @@ curation and division dependencies still invalidate reuse when their contents ch
 
 Address2D retains a nullable `landformId` in current and history storage, scoped to its
 selected division snapshot. The API exposes the `landform` relationship and
-`filter[landform]`; hierarchy includes load the linked division. Supplementary addresses
+`filter[division]`; hierarchy includes load the linked division. Supplementary addresses
 inherit this reference from their selected official base.
 
 ALS preparation can establish an association from an exact locality or island name
@@ -1015,3 +1019,8 @@ within its matched district when every evidenced path identifies the same indivi
 island. Conflicting names or ancestry remain unlinked. Association evidence is retained
 separately from the publisher payload. The link does not require an island label in the
 publisher's formatted address; supplied formatted address text is retained.
+
+`filter[division]` matches any recorded country, area, district, town, hood, village,
+hamlet or landform Division ID in list and search requests, including historical reads.
+`relationships.landform` remains the explicit island association. Filtering uses
+recorded relationships rather than point-in-polygon inference.

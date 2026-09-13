@@ -1,5 +1,9 @@
 # Divisions dataset family
 
+The [versioned geocoding contract](../../geocoding.md) uses only geographic `stub`
+polygons for containment and preserves separate administrative and landform identities.
+It reports missing coverage and unresolved hierarchy branches explicitly.
+
 Published rollback reconstructs exact base, locale, area and boundary predecessors from
 retained journals and their owning history shards. It preserves unrelated domains and
 cohorts, validates dependent current families, and seals only actual serving-row
