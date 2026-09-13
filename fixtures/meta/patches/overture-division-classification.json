@@ -6,10 +6,39 @@
       "id": "overture_hong_kong_lok_ma_chau_loop_reclassified",
       "source": "overture",
       "divisionId": "222b7818-970a-491d-98b6-b88d8c6f0161",
-      "names": ["Lok Ma Chau Loop", "落馬洲河套地區"],
-      "expected": { "adminLevel": 2, "class": null, "subtype": "region" },
-      "replacement": { "level": 4, "class": "macrohood" },
+      "names": [
+        "Lok Ma Chau Loop",
+        "落馬洲河套地區"
+      ],
+      "expected": {
+        "adminLevel": 2,
+        "class": null,
+        "subtype": "region"
+      },
+      "replacement": {
+        "level": 4,
+        "class": "macrohood"
+      },
       "reason": "Lok Ma Chau Loop is a local area within Hong Kong, not a peer of the district-level regions. Retain the publisher classification in source storage and use the reviewed local-area classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_lantau_reclassified",
+      "source": "overture",
+      "divisionId": "3707878f-080b-42cf-aecf-89fef56a066a",
+      "names": [
+        "Lantau",
+        "大嶼山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "locality"
+      },
+      "replacement": {
+        "level": null,
+        "class": "major_island"
+      },
+      "reason": "Lantau is a physical island, not an administrative Area. Preserve its publisher identity, source assertions and area geometry; retain it in landform ancestry and exclude it from administrative ancestry."
     }
   ]
 }
