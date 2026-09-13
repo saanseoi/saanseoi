@@ -143,6 +143,9 @@ metadata identifies the native EPSG:2326 geometry.
 The retained `2026-06-10.0` source includes 156 Topographic `Island` points and four
 `Islands` group points, each with official English and Traditional Chinese names. These
 are available outside the settlement projection as candidate naming evidence for
-SaanSeoi Islands. See the
-[island inventory review](../../internal/island-inventory-review.md) for coverage,
-geometry inputs and the proposed release process.
+SaanSeoi Islands. The island projection combines this evidence with named island and
+islet features from the Hong Kong basemap, then applies the reviewed policy in
+`fixtures/meta/curations/saanseoi-island-review.json`. Gazetteer membership belongs in
+the resulting source evidence rather than in a separate `hkgov-landsd` island domain.
+See the [island inventory review](../../internal/island-inventory-review.md) for
+coverage, geometry inputs and the release gate.

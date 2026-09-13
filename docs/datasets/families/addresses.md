@@ -799,7 +799,10 @@ source GeoJSON geometry uses EPSG:4326.
 ALS publisher leaf paths are paired with retained camelCase keys. Address identity,
 geometry, components, granularity and parent relationships include preparation and
 reviewed curation inputs. Supplementary Place addresses reference the captured
-`resolve-place-addresses` rule and the retained address decisions.
+`resolve-place-addresses` rule and the retained address decisions. The supplementary
+snapshot's exact Place release anchor participates in field-rule pinning alongside the
+derived Address release, so the immutable normalisation and resolution definitions that
+generated those rows remain available during deferred release-set publication.
 
 Source storage and public records use `properties` for retained attributes. API-field
 inputs reference this path through the shared dataset-scoped `publisherFields` mapping.

@@ -129,6 +129,13 @@ default; `--defer-stats-release-set` makes it Statistics-only unless
 companions without the Statistics resource. Divisions release-set publication is a
 separate concern and is deferred with `--defer-api-release-set`.
 
+Some annual-statistics archives publish several reference-year district layers in one
+publisher release. The intake registers that release once and materialises each year as
+a separate cohort under the same `divisionArea` resource release. Publisher assertions
+therefore remain in the source-version shard, while each cohort's geometry history uses
+its reference-year shard. Publication is deferred until the last cohort so every exact
+and simplified snapshot becomes available atomically.
+
 ## Source contract
 
 Each release contains exactly 18 Polygon/MultiPolygon features. Required properties are:

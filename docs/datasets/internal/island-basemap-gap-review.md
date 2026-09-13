@@ -1,0 +1,121 @@
+# Basemap-only island-name gap
+
+The 2026-09-01 Hong Kong basemap comparison produced 253 unique named `place=island`,
+`place=islet` and `place=archipelago` name strings. 142 matched the reviewed LandsD
+names or aliases; these are the 111 names without an exact LandsD match. They are review
+candidates and source evidence, not gazetteer approvals.
+
+The geometry reviewer inventory retains the source tags, Wikidata values where present,
+and alternate geometries for these names.
+
+- 四排尾
+- Ap Chau Mei Pak Tun Pai
+- Ap Chau Pak Tun Pai
+- Ap Lo Chun
+- Ap Tau Pai
+- Bun Sha Pui
+- Cha Yue Pai
+- Cham Keng Chau
+- Cham Pai
+- Chau Tsai Kok
+- Che Lei Pai
+- Chu Shek
+- Chuk U Pai
+- Comber Rock
+- Cross-Connection Chamber
+- Fan Tap Pai
+- Fat Tau Chau
+- 火燒排 Fo Siu Pai
+- Fury Rocks
+- Ha Sha Chau
+- Ha So Pai
+- Heung Lo Tun
+- High Island
+- Hin Chau
+- Hin Pai
+- Ho Tsai Pai
+- Hok Tsai Chau
+- Hung Ngam Pai
+- Hung Pai
+- Kai Pei Ngam
+- Kak Shan Chau
+- Kam Chung Ngam
+- Kau Tau Shek
+- Kei Yan Shek
+- Kok Tai Pai
+- Kowloon Rock
+- Kwo Mun Shek
+- Kwun Tsoi Pai
+- La Ka Chau
+- Lai Chi Pai
+- Lak Lei Mei
+- Lan Pai
+- Lan Shek Pai
+- Lan Shuen Pai
+- Lan Tau Pai
+- Lo Fu Tiu Pai
+- Lo Pai
+- Loaf Rock
+- Lung Ngan Hok
+- Lung Ngan Yuen Pai
+- Lung Shan Pai
+- Lung Shuen Pai
+- Ma Tsai Pai
+- Man Tau Pai
+- Mat Chau Pai
+- Mei Pai
+- Muk Yu Chau
+- Ngam Hau Shek
+- Ngan Chau Ngam Pai
+- Ngan Chau Tan Pai
+- Ngau Tau
+- North Rock
+- P17
+- P18
+- P19
+- P20
+- Pak Pai
+- Po Yue Pai
+- Pun Shan Shek
+- Sai Pai
+- Sam Long Pai
+- Sam Mun Tsai Chau
+- Sha Pai
+- Sham Shai Pai
+- Shek Lam Chau
+- Sheung Pai
+- Sheung Sha Chau
+- Shui Cham Tsui Pai
+- Siu Ko Pai
+- Siu Ma Kong
+- Siu Po Pin
+- Siu Yuen Chau
+- Ta Long Pai
+- Ta Ma Kong
+- Ta Shek Shan
+- Tai Ko Pai
+- Tai Long Pai
+- Tai Yuen Chau
+- Tiu Chung
+- Tiu Chung Pai
+- Tong Hau Pai
+- Tsim Shek Pai
+- Tsui Pai
+- Tuk Chau
+- Tuk Shek
+- Tung Kok Pai
+- Tung Ping Chau
+- Ung Kong Group
+- Waglan Pai
+- Wai Kap Pai
+- Wai Kap Shek
+- Wang Pai
+- Wong Fa Pai
+- Wu Lo Chau
+- Wu Long Tau
+- Wu Pai
+- Wu Ying Pai
+- Yam Tong Ha
+- Yat Lup Mei
+- Yi Long Pai
+- Yim Tin Pai

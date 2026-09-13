@@ -66,6 +66,12 @@ children complete. Retrying a missing or failed child preserves completed siblin
 Statistics API composition can remain deferred independently of Divisions API
 activation.
 
+When one geometry child contains several reference-year cohorts, those cohorts share the
+one resource release. The release keeps the publisher cohort and stays processing
+through all annual materialisations; each snapshot retains its own cohort and history
+shard. The final annual pass publishes every exact and simplified snapshot attached to
+that child.
+
 Normalisation, population scaling, identity and field/localisation declarations are
 selected from `fixtures/meta/processing-rules/` and registered by their executors.
 Scaling derives its decimal exponent from the fixture's factor, without a separately

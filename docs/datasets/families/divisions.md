@@ -75,6 +75,16 @@ are Hong Kong Island, Kowloon and New Territories. Source assertions remain unch
 See the [internal geographic review workflow](../internal/geographic-review.md) for
 cohort-scoped ancestry decisions and local area drawing.
 
+Named islands are curated as geographic landforms. The LandsD Place Name release is
+retained as source evidence alongside the basemap extraction; it is not used as a second
+island identity namespace. Gazetteer membership is recorded in structured
+`sourceProperties.gazetteer` evidence, while provider IDs remain in `identifiers` and
+source assertions. The local curation processor emits the review artefact at
+`.local/harbour/islands/curated-review.json`, sorted by area, with English, Traditional
+Chinese and alias names. Explicit exclusions and island groups are omitted from the
+island output, and Overture Hong Kong division uploads stop when a new basemap name or
+new geometry for a previously no-geometry candidate needs review.
+
 ## API release statistics
 
 Division API release statistics replay immutable snapshot membership across assigned
@@ -309,6 +319,13 @@ intake unless `--include-geography` is also supplied; `--geography-only` process
 geography companions without Statistics. This Statistics-resource choice is independent
 of Divisions release-set publication, which is controlled by `--defer-api-release-set`
 and may be reconciled separately.
+
+A publisher archive can contain geometry for several reference years. In that case the
+registered source and resource release keep the publisher cohort, while each geometry
+snapshot keeps its own reference-year cohort. Source assertions are written to the
+publisher-year source shard; immutable geometry history is written to the snapshot-year
+history shard. The resource release remains processing until its final reference year,
+when all attached exact and simplified snapshots are published together.
 
 Registry codes use lowercase kebab-case even though programmatic resource-type enums use
 camelCase. For example, `divisionArea` is encoded as `division-area` and
@@ -774,3 +791,11 @@ its delivery is incomplete, including an incomplete empty projection. Ready curr
 reads retain public logical IDs. Pinned older geometry revisions replay from history
 once a ready replacement owns their scope. Search, guarded cleanup and reset/reingest
 follow the [publication-state contract](../publication-state-plan.md).
+
+## Geographic definition changes
+
+`GET /divisions/v1/changes` compares release-pinned effective definitions by stable
+division ID. It reports additions, deletions, changed fields, membership impact and
+transitive descendant dependencies, with content-addressed before/after definition and
+geometry links. See the [division changes contract](../../division-changes.md) for
+pagination, retention, authoritative geometry coverage and error semantics.
