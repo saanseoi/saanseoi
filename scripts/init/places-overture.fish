@@ -60,7 +60,7 @@ for release in $releases
     init_run_step init_run_upload "dr-hk-overture-place-$release" "$file" \
         --dataset-code ds-hk-overture-place \
         --source overture --source-version $release \
-        --type place --theme places --region hk --cohort-key $release \
+        --resource-type place --theme places --region hk --cohort-key $release \
         --yes --skip-cleanup --defer-api-release-set
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
