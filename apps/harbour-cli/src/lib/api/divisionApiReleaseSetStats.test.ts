@@ -16,7 +16,7 @@ const division = (id: string, extra = {}) =>
     id,
     class: 'district',
     category: 'administrative',
-    hierarchies: { administrative: [], locality: [], full: [] },
+    hierarchies: { administrative: [], locality: [], landform: [], full: [] },
     level: 2,
     ...extra,
   }) as unknown as DivisionStatsSnapshot['divisions'][number]
