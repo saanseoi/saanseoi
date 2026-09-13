@@ -1,6 +1,6 @@
 import { getPublicationReadiness, publicationLogicalSnapshot } from './publicationState'
 import type { AddressBlockType, CurrentDatabase } from '@repo/db'
-import { addressBlockTypes, and, asc, eq, ne, sql } from '@repo/db'
+import { addressBlockTypes, and, asc, eq, ne, or, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
 import type { Address3dCoverage } from '@repo/db/address3d'
 import type { RequestedApiLocaleSelection } from '@repo/core'
@@ -73,7 +73,7 @@ type AddressListLookup = {
   offset?: number
   after?: string
   countryId?: string
-  landformId?: string
+  divisionId?: string
   areaId?: string
   districtId?: string
   localeSelection: RequestedApiLocaleSelection
@@ -106,7 +106,7 @@ const ADDRESS_FTS_TOKEN_ALIASES = new Map<string, readonly string[]>(
 
 type AddressSearchLookup = Pick<
   AddressListLookup,
-  'snapshotIds' | 'countryId' | 'areaId' | 'landformId' | 'districtId'
+  'snapshotIds' | 'countryId' | 'areaId' | 'divisionId' | 'districtId'
 > & {
   component?: AddressSearchComponent
   limit: number
@@ -248,7 +248,7 @@ function mapAddressRow(row: AddressRow): AddressRecord {
 function buildAddressConditions(
   lookup: Pick<
     AddressListLookup,
-    'snapshotIds' | 'countryId' | 'areaId' | 'landformId' | 'districtId'
+    'snapshotIds' | 'countryId' | 'areaId' | 'divisionId' | 'districtId'
   >,
 ) {
   return [
@@ -256,7 +256,20 @@ function buildAddressConditions(
     // IN parameter list. An empty selection deliberately matches no rows.
     sql`${address2d.snapshotId} in (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds)})))`,
     lookup.countryId ? eq(address2d.countryId, lookup.countryId) : undefined,
-    lookup.landformId ? eq(address2d.landformId, lookup.landformId) : undefined,
+    lookup.divisionId
+      ? or(
+          eq(address2d.countryId, lookup.divisionId),
+          eq(address2d.areaId, lookup.divisionId),
+          eq(address2d.districtId, lookup.divisionId),
+          eq(address2d.townId, lookup.divisionId),
+          eq(address2d.macrohoodId, lookup.divisionId),
+          eq(address2d.neighbourhoodId, lookup.divisionId),
+          eq(address2d.villageId, lookup.divisionId),
+          eq(address2d.microhoodId, lookup.divisionId),
+          eq(address2d.hamletId, lookup.divisionId),
+          eq(address2d.landformId, lookup.divisionId),
+        )
+      : undefined,
     lookup.areaId ? eq(address2d.areaId, lookup.areaId) : undefined,
     lookup.districtId ? eq(address2d.districtId, lookup.districtId) : undefined,
   ].filter(condition => condition !== undefined)

@@ -142,7 +142,7 @@ export async function listReplayedAddressPage(
     offset: number
     after?: string
     countryId?: string
-    landformId?: string
+    divisionId?: string
     areaId?: string
     districtId?: string
     search?: Parameters<typeof searchReplayedAddressRecords>[1]
@@ -204,7 +204,19 @@ export async function listReplayedAddressPage(
       : records) {
       if (
         (args.countryId && address.countryId !== args.countryId) ||
-        (args.landformId && address.landformId !== args.landformId) ||
+        (args.divisionId &&
+          ![
+            address.countryId,
+            address.areaId,
+            address.districtId,
+            address.townId,
+            address.macrohoodId,
+            address.neighbourhoodId,
+            address.villageId,
+            address.microhoodId,
+            address.hamletId,
+            address.landformId,
+          ].includes(args.divisionId)) ||
         (args.areaId && address.areaId !== args.areaId) ||
         (args.districtId && address.districtId !== args.districtId)
       )

@@ -22,6 +22,17 @@ test('search joins stable document scopes to the promoted snapshot and rejects a
       INSERT INTO address2d VALUES('scope:old','a','hk',NULL,NULL),('scope:new','a','hk',NULL,NULL);
       INSERT INTO address2dI18n(snapshotId,addressId,locale,formattedAddress) VALUES
         ('scope:old','a','en','Harbour Road'),('scope:new','a','en','Harbour Road');`)
+    for (const field of [
+      'landformId',
+      'townId',
+      'macrohoodId',
+      'neighbourhoodId',
+      'villageId',
+      'microhoodId',
+      'hamletId',
+    ])
+      sqlite.exec(`ALTER TABLE address2d ADD COLUMN ${field} TEXT`)
+    sqlite.exec("UPDATE address2d SET landformId='island', townId='town'")
     const db = drizzle({ client: sqlite }) as never
     const search = (snapshot: string) =>
       searchAddressIdsCurrent(db, {
@@ -37,6 +48,17 @@ test('search joins stable document scopes to the promoted snapshot and rejects a
           sqlite.exec(sql)
       })()
       expect(await search(snapshotId)).toEqual({ addressIds: ['a'], total: 1 })
+      for (const divisionId of ['hk', 'island', 'town', 'unlinked']) {
+        const result = await searchAddressIdsCurrent(db, {
+          snapshotIds: [snapshotId],
+          mode: 'full-text',
+          query: 'Harbour',
+          limit: 10,
+          offset: 0,
+          divisionId,
+        })
+        expect(result.addressIds).toEqual(divisionId === 'unlinked' ? [] : ['a'])
+      }
     }
     await expect(search('old')).rejects.toThrow('FTS index is not initialised')
   } finally {
