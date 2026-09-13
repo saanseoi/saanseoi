@@ -1,10 +1,10 @@
 # Division and address geocoding
 
-`GET /api/v1/divisions/geocode` returns division membership.
-`GET /api/v1/addresses/geocode` returns canonical structured addresses. Both use the
-public API key, origin, quota and rate-limit rules of the other SaanSeoi data APIs. The
-response contains `data` and `meta`; unavailable publications return `503`, and invalid
-input returns the standard `422` validation document.
+`GET /divisions/v1/geocode` returns division membership. `GET /addresses/v1/geocode`
+returns canonical structured addresses. Both use the public API key, origin, quota and
+rate-limit rules of the other SaanSeoi data APIs. The response contains `data` and
+`meta`; unavailable publications return `503`, and invalid input returns the standard
+`422` validation document.
 
 ## Input
 
@@ -35,10 +35,10 @@ Optional parameters:
 Examples:
 
 ```text
-/api/v1/divisions/geocode?lat=22.285&lng=114.158&geometry=stub
-/api/v1/divisions/geocode?placename=Lamma&locales=en,zh-hant
-/api/v1/addresses/geocode?address=Queen%27s%20Road&include=divisions
-/api/v1/addresses/geocode?lat=22.285&lng=114.158&maxDistance=500
+/divisions/v1/geocode?lat=22.285&lng=114.158&geometry=stub
+/divisions/v1/geocode?placename=Lamma&locales=en,zh-hant
+/addresses/v1/geocode?address=Queen%27s%20Road&include=divisions
+/addresses/v1/geocode?lat=22.285&lng=114.158&maxDistance=500
 ```
 
 ## Release identity
