@@ -367,7 +367,9 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
             command: 'upload',
             positionals: [filePath],
             options: {
-              'cohort-key': geography.cohortKey,
+              // Registration retains the publisher/resource release cohort.
+              // The annual cohort is passed separately to snapshot materialisation.
+              'cohort-key': sourceVersion,
               'dataset-code': datasetCode,
               region: 'hk',
               'release-notes-url': releaseNotesUrl,
@@ -389,6 +391,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
             dryRun: false,
             forceUpload: true,
             invocationCwd: resolve(import.meta.dir, '../../../..'),
+            materialisationCohortKey: geography.cohortKey,
             printUsage: () => undefined,
             reuseExistingRelease: lifecycle.reuseExistingRelease,
             skipConfirm: true,

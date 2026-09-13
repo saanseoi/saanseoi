@@ -34,4 +34,36 @@ describe('combined C&SD resource lifecycle', () => {
       },
     ])
   })
+
+  test('keeps one repeated resource release open across snapshot cohorts', () => {
+    expect(
+      planCenstatdResourceLifecycle([
+        'divisionStatistic',
+        'divisionArea',
+        'divisionArea',
+        'divisionArea',
+      ]),
+    ).toEqual([
+      {
+        deferSourcePublish: false,
+        reuseExistingRelease: false,
+        type: 'divisionStatistic',
+      },
+      {
+        deferSourcePublish: true,
+        reuseExistingRelease: false,
+        type: 'divisionArea',
+      },
+      {
+        deferSourcePublish: true,
+        reuseExistingRelease: true,
+        type: 'divisionArea',
+      },
+      {
+        deferSourcePublish: false,
+        reuseExistingRelease: true,
+        type: 'divisionArea',
+      },
+    ])
+  })
 })
