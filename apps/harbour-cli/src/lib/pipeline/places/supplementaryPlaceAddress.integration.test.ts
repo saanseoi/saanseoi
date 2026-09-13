@@ -61,6 +61,9 @@ test('published supplementary retry recovers revocations from immutable history'
         [first, second].map((db, index) => ({
           db: drizzle({ client: db, schema: historySchema }),
           bindingName: `DB_HISTORY_${index}`,
+          databaseId: null,
+          databaseName: `history-${index}`,
+          year: String(2025 + index),
         })),
         'published-snapshot',
       ),
