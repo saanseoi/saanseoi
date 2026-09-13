@@ -1,0 +1,1254 @@
+{
+  "sourceRelease": "2026-06-10.0",
+  "coastlineRelease": "2026-09-01",
+  "entries": [
+    {
+      "id": "LANDSD:PLACE_NAME:1030",
+      "name": "Ma Shi Chau",
+      "areaKm2": 801.5785671916827,
+      "decision": "rejected",
+      "note": "Tied island which can be obtained after removing 'Mun Lau Keng'",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:838",
+      "name": "Lantau Island",
+      "areaKm2": 149.28906278656532,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:539",
+      "name": "Hong Kong Island",
+      "areaKm2": 78.64951481340248,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:141",
+      "name": "Chek Lap Kok",
+      "areaKm2": 21.104888126052845,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:829",
+      "name": "Lamma Island",
+      "areaKm2": 13.92958980530268,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2446",
+      "name": "Tsing Yi",
+      "areaKm2": 10.682075012837855,
+      "decision": "rejected",
+      "note": "There is inconsistent treatment or piers and jetties, which should not become part of the island",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:662",
+      "name": "Kau Sai Chau",
+      "areaKm2": 6.411640561012925,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1525",
+      "name": "Po Toi",
+      "areaKm2": 3.684190743183206,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:146",
+      "name": "Cheung Chau",
+      "areaKm2": 2.4727780261245105,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:291",
+      "name": "Crooked Island",
+      "areaKm2": 2.445153966798689,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2524",
+      "name": "Tung Lung Chau",
+      "areaKm2": 2.422425385415029,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:310",
+      "name": "Double Island",
+      "areaKm2": 2.24692696552537,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:478",
+      "name": "Hei Ling Chau",
+      "areaKm2": 1.9517563102769306,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:575",
+      "name": "Jin Island",
+      "areaKm2": 1.8309605677692407,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:403",
+      "name": "Grass Island",
+      "areaKm2": 1.709895230929446,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:28",
+      "name": "Ap Lei Chau",
+      "areaKm2": 1.4095389800058082,
+      "decision": "rejected",
+      "note": "Its tied island, \"Ap Lei Pai Teng\" is included.",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:30",
+      "name": "Ap Lei Pai",
+      "areaKm2": 1.4095389800058082,
+      "decision": "rejected",
+      "note": "This is a tied island, \"Ap Lei Chau\" should be excluded",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1487",
+      "name": "Ping Chau",
+      "areaKm2": 1.1976115107621401,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:53",
+      "name": "Beaufort Island",
+      "areaKm2": 1.1888668540603093,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2054",
+      "name": "Tai A Chau",
+      "areaKm2": 1.18624163139051,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1805",
+      "name": "Shek Kwu Chau",
+      "areaKm2": 1.1725134949596963,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1780",
+      "name": "Sharp Island",
+      "areaKm2": 1.0319000676394074,
+      "decision": "rejected",
+      "note": "Exclude the Tombolo that connects it to Kiu Tau Teng. And there are some additional piers included in the island shape that probably should be",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:703",
+      "name": "Kiu Tau",
+      "areaKm2": 1.0319000676394074,
+      "decision": "rejected",
+      "note": "It's connected to \"Sharp Island\" though the Tombolo, and shouldn't be,",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1476",
+      "name": "Peng Chau",
+      "areaKm2": 0.9965841207957675,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1043",
+      "name": "Ma Wan",
+      "areaKm2": 0.9843740306196155,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:287",
+      "name": "Crescent Island",
+      "areaKm2": 0.9531449822646317,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:47",
+      "name": "Basalt Island",
+      "areaKm2": 0.8118984793442837,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1956",
+      "name": "Siu A Chau",
+      "areaKm2": 0.7201587303396255,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:64",
+      "name": "Bluff Island",
+      "areaKm2": 0.6788180217404745,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2386",
+      "name": "Town Island",
+      "areaKm2": 0.6430771746260505,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1866",
+      "name": "Shelter Island",
+      "areaKm2": 0.5661964733900365,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2033",
+      "name": "Sunshine Island",
+      "areaKm2": 0.5439134681422205,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2210",
+      "name": "Tai Tau Chau",
+      "areaKm2": 0.5415558303187972,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2028",
+      "name": "Sung Kong",
+      "areaKm2": 0.4787933203319481,
+      "decision": "rejected",
+      "note": "it's connected to a tied island and shouldn't be",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1541",
+      "name": "Port Island",
+      "areaKm2": 0.46611705161044864,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:985",
+      "name": "Lung Kwu Chau",
+      "areaKm2": 0.38752996384174937,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2820",
+      "name": "Yim Tin Tsai",
+      "areaKm2": 0.3045450019759174,
+      "decision": "rejected",
+      "note": "Some piers are included, and probably shouldn't be.",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1335",
+      "name": "North Ninepin Island",
+      "areaKm2": 0.24765631572819502,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1110",
+      "name": "Middle Island",
+      "areaKm2": 0.23628234100740506,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:677",
+      "name": "Kau Yi Chau",
+      "areaKm2": 0.22967163531499157,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2008",
+      "name": "South Ninepin Island",
+      "areaKm2": 0.21345704417291936,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2059",
+      "name": "Tai Chau",
+      "areaKm2": 0.21345704417291936,
+      "decision": "rejected",
+      "note": "the island is slightly to the south west, the marker is in the wrong place",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2614",
+      "name": "Wang Chau",
+      "areaKm2": 0.20377878119888715,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2791",
+      "name": "Yeung Chau",
+      "areaKm2": 0.16461178205187013,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1573",
+      "name": "Round Island",
+      "areaKm2": 0.1420125100505684,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:405",
+      "name": "Green Island",
+      "areaKm2": 0.12663475659938647,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:5070",
+      "name": "West Brother",
+      "areaKm2": 0.1253863949280664,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1688",
+      "name": "Sha Chau",
+      "areaKm2": 0.12455076533927079,
+      "decision": "rejected",
+      "note": "The pier should maybe excluded",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:5061",
+      "name": "East Brother",
+      "areaKm2": 0.11085692348708212,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2017",
+      "name": "Steep Island",
+      "areaKm2": 0.09586601762909785,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2743",
+      "name": "Wong Yi Chau",
+      "areaKm2": 0.09377426376380678,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:959",
+      "name": "Luk Chau",
+      "areaKm2": 0.08298996564682154,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2793",
+      "name": "Yeung Chau",
+      "areaKm2": 0.07747606662014243,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1471",
+      "name": "Peaked Hill",
+      "areaKm2": 0.07556695843410503,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:48",
+      "name": "Bay Islet",
+      "areaKm2": 0.07013675677746709,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:780",
+      "name": "Kwun Cham Wan",
+      "areaKm2": 0.06478441035875213,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:346",
+      "name": "Flat Island",
+      "areaKm2": 0.0610386617183716,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2792",
+      "name": "Yeung Chau",
+      "areaKm2": 0.05911114553490787,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1010",
+      "name": "Ma Chau",
+      "areaKm2": 0.056849175073652294,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2211",
+      "name": "Tai Tau Chau",
+      "areaKm2": 0.056042479620603,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:365",
+      "name": "Fu Wong Chau",
+      "areaKm2": 0.055944586684170176,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:181",
+      "name": "Cheung Shek Tsui",
+      "areaKm2": 0.05349408300060974,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2584",
+      "name": "Waglan Island",
+      "areaKm2": 0.05108034387148447,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1970",
+      "name": "Siu Kau Yi Chau",
+      "areaKm2": 0.04901006435748597,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:159",
+      "name": "Cheung Muk Tau",
+      "areaKm2": 0.04784016300220406,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1572",
+      "name": "Round Island",
+      "areaKm2": 0.044444234542307795,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:4831",
+      "name": "Ap Chau",
+      "areaKm2": 0.04403548987901921,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2291",
+      "name": "Tau Lo Chau",
+      "areaKm2": 0.03971914449253635,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:379",
+      "name": "Fun Chau",
+      "areaKm2": 0.03947089164080075,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1240",
+      "name": "Ng Fan Chau",
+      "areaKm2": 0.035776136746490654,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1414",
+      "name": "Pak Sha Chau",
+      "areaKm2": 0.03545160435095482,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:98",
+      "name": "Centre Island",
+      "areaKm2": 0.03458042223718855,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:112",
+      "name": "Cham Tau Chau",
+      "areaKm2": 0.03296879882418923,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2060",
+      "name": "Tai Chau Mei",
+      "areaKm2": 0.031897606102853894,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1472",
+      "name": "Pearl Island",
+      "areaKm2": 0.029935072544088004,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:185",
+      "name": "Cheung Sok",
+      "areaKm2": 0.029660378610987536,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1084",
+      "name": "Mat Chau",
+      "areaKm2": 0.028703562280167533,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2280",
+      "name": "Tang Lung Chau",
+      "areaKm2": 0.028478458557377948,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2841",
+      "name": "Yuen Chau",
+      "areaKm2": 0.02815617751784448,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2057",
+      "name": "Tai Chau",
+      "areaKm2": 0.02693572278913809,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2106",
+      "name": "Tai Lei",
+      "areaKm2": 0.026149515979492055,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2723",
+      "name": "Wong Nai Chau",
+      "areaKm2": 0.02583775230445416,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:285",
+      "name": "Conic Island",
+      "areaKm2": 0.02170285828154038,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2717",
+      "name": "Wong Mau Chau",
+      "areaKm2": 0.020795514505213795,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2505",
+      "name": "Tuen Tau Chau",
+      "areaKm2": 0.020738411400513256,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2747",
+      "name": "Wu Chau",
+      "areaKm2": 0.019745568250145836,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1522",
+      "name": "Po Pin Chau",
+      "areaKm2": 0.01905803848996991,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2388",
+      "name": "Trio Island",
+      "areaKm2": 0.018970343785472216,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:584",
+      "name": "Kai Chau",
+      "areaKm2": 0.01879568850906985,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2776",
+      "name": "Yau Lung Kok",
+      "areaKm2": 0.016271171848492232,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:889",
+      "name": "Little Green Island",
+      "areaKm2": 0.015114981870288553,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1060",
+      "name": "Magazine Island",
+      "areaKm2": 0.015091323790830979,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2498",
+      "name": "Tuen Chau Tsai",
+      "areaKm2": 0.014919842669156904,
+      "decision": "rejected",
+      "note": "This should be merged with \"East Ninepin Island 東果洲\" as they are aliases.",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:315",
+      "name": "East Ninepin Island",
+      "areaKm2": 0.014919842669156904,
+      "decision": "rejected",
+      "note": "This should be merged with the other name in this area as they are aliases.",
+      "ai": true
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1121",
+      "name": "Mo Chau",
+      "areaKm2": 0.014313971776730789,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2220",
+      "name": "Tai Tsan Chau",
+      "areaKm2": 0.014247816335742595,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1485",
+      "name": "Pin Chau",
+      "areaKm2": 0.014133453947295085,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2529",
+      "name": "Tung Sam Chau",
+      "areaKm2": 0.013973613812920404,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2847",
+      "name": "Yuen Kong Chau",
+      "areaKm2": 0.013038945707354315,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2418",
+      "name": "Tsim Chau",
+      "areaKm2": 0.012929001672644633,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1495",
+      "name": "Ping Min Chau",
+      "areaKm2": 0.012125709433747717,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:659",
+      "name": "Kau Pei Chau",
+      "areaKm2": 0.012108680591884505,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:894",
+      "name": "Lo Chau",
+      "areaKm2": 0.012057458783728856,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:99",
+      "name": "Cha Kwo Chau",
+      "areaKm2": 0.011941989392848686,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1131",
+      "name": "Mong Chau Tsai",
+      "areaKm2": 0.011754527787217405,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:754",
+      "name": "Kung Chau",
+      "areaKm2": 0.010917153955475135,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:206",
+      "name": "Ching Chau",
+      "areaKm2": 0.010372117474287748,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:5001",
+      "name": "Tsing Chau",
+      "areaKm2": 0.010363739038673783,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1581",
+      "name": "Sai Ap Chau",
+      "areaKm2": 0.00996106130602039,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1",
+      "name": "A Chau",
+      "areaKm2": 0.009839546969816896,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2846",
+      "name": "Yuen Kong Chau",
+      "areaKm2": 0.009316623870315264,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2746",
+      "name": "Wu Chau",
+      "areaKm2": 0.008764143330109306,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2058",
+      "name": "Tai Chau",
+      "areaKm2": 0.00849131430591643,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:128",
+      "name": "Chau Tsai",
+      "areaKm2": 0.008368554392946913,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1911",
+      "name": "Shue Long Chau",
+      "areaKm2": 0.008341698723440816,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1557",
+      "name": "Pyramid Rock",
+      "areaKm2": 0.008285662550614215,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1830",
+      "name": "Shek Ngau Chau",
+      "areaKm2": 0.008269520679557376,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2290",
+      "name": "Tau Chau",
+      "areaKm2": 0.008089282838928251,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:532",
+      "name": "Hok Tsai Pai",
+      "areaKm2": 0.00767666601640702,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2139",
+      "name": "Tai Nim Chau",
+      "areaKm2": 0.007494622456927784,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2680",
+      "name": "Wo Sheung Chau",
+      "areaKm2": 0.00737258965555788,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:732",
+      "name": "Kong Tau Pai",
+      "areaKm2": 0.007174150572738145,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1623",
+      "name": "Sam Pui Chau",
+      "areaKm2": 0.007092531581393443,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:895",
+      "name": "Lo Chau Pak Pai",
+      "areaKm2": 0.006637293827953283,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1187",
+      "name": "Nam Fung Chau",
+      "areaKm2": 0.006262055519294692,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1794",
+      "name": "Shek Chau",
+      "areaKm2": 0.006060192697085469,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:897",
+      "name": "Lo Chi Pai",
+      "areaKm2": 0.005766297041450161,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2152",
+      "name": "Tai Pai",
+      "areaKm2": 0.005621945912424824,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2724",
+      "name": "Wong Nai Chau Tsai",
+      "areaKm2": 0.005550882374092936,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1309",
+      "name": "Ngau Tau Pai",
+      "areaKm2": 0.005490039184304245,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:714",
+      "name": "Ko Pai",
+      "areaKm2": 0.0053339812482659475,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1582",
+      "name": "Sai Chau Mei",
+      "areaKm2": 0.0051233855525609105,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:841",
+      "name": "Lap Sap Chau",
+      "areaKm2": 0.00449289818599273,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1978",
+      "name": "Siu Nim Chau",
+      "areaKm2": 0.004428756541269832,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:784",
+      "name": "Kwun Tsai",
+      "areaKm2": 0.004327157005280627,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1301",
+      "name": "Ngau Shi Pui",
+      "areaKm2": 0.004076419172486872,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:191",
+      "name": "Cheung Tsui Chau",
+      "areaKm2": 0.004000098470916972,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2809",
+      "name": "Yi Pai",
+      "areaKm2": 0.003618022580771707,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1254",
+      "name": "Nga Ying Pai",
+      "areaKm2": 0.0035840959771691705,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2490",
+      "name": "Tsz Kan Chau",
+      "areaKm2": 0.003517189132905565,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1988",
+      "name": "Siu Tsan Chau",
+      "areaKm2": 0.003470123485263437,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2767",
+      "name": "Yan Chau",
+      "areaKm2": 0.002827667591137462,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:4943",
+      "name": "Pak Chau",
+      "areaKm2": 0.0026413204774281477,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2604",
+      "name": "Wan Hau Chau",
+      "areaKm2": 0.00252745447798504,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2722",
+      "name": "Wong Nai Chau",
+      "areaKm2": 0.0022489899382899746,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1269",
+      "name": "Ngan Chau",
+      "areaKm2": 0.0021890359335331885,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:812",
+      "name": "Lak Lei Tsai",
+      "areaKm2": 0.0018949535617558285,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:74",
+      "name": "Bun Bei Chau",
+      "areaKm2": 0.0018727077074726295,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1756",
+      "name": "Shan Leng Kok",
+      "areaKm2": 0.0017766263900720514,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:4990",
+      "name": "Tang Chau",
+      "areaKm2": 0.0016883384808363006,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1793",
+      "name": "Shek Chau",
+      "areaKm2": 0.0016688185401033551,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:117",
+      "name": "Chap Mo Chau",
+      "areaKm2": 0.0016505344260353595,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1377",
+      "name": "Pak Ka Chau",
+      "areaKm2": 0.0015410018905534235,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:2721",
+      "name": "Wong Nai Chau",
+      "areaKm2": 0.001404327857542783,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1252",
+      "name": "Nga Ying Chau",
+      "areaKm2": 0.0011397170276939868,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "LANDSD:PLACE_NAME:1617",
+      "name": "Sam Pai",
+      "areaKm2": 0.0010241331793146092,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    }
+  ]
+}
