@@ -90,6 +90,7 @@ function sourceReleasesRouteConfig(
     method: 'get',
     path: `/${family}/${version}/source-releases`,
     operationId: `list${label}SourceReleases${version === 'v0' ? 'V0' : 'V01'}`,
+    summary: `List ${label} Source Releases`,
     tags: ['Sources'],
     request: {
       query: SourceReleasesQuerySchema,
@@ -120,6 +121,7 @@ function sourceRecordsRouteConfig(
     method: 'get',
     path: `/${family}/${version}/sources`,
     operationId: `list${label}SourceRecords${version === 'v0' ? 'V0' : 'V01'}`,
+    summary: `List ${label} Source Records`,
     tags: ['Sources'],
     request: {
       query: SourceRecordsQuerySchema,
@@ -175,6 +177,7 @@ function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number
       method: 'get',
       path: `/${familyDefinition.family}/${version}/source-schema`,
       operationId: `get${familyDefinition.label}SourceSchema${version === 'v0' ? 'V0' : 'V01'}`,
+      summary: `Get ${familyDefinition.label} Source Schema`,
       tags: ['Sources'],
       request: {
         query: SourceRecordsQuerySchema.pick({ sourceRelease: true, region: true }),

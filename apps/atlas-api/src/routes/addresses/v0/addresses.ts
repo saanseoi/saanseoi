@@ -71,6 +71,7 @@ const listRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     method: 'get',
     path: routeVariant.listPath,
     operationId: routeVariant.listOperationId,
+    summary: 'List Addresses',
     tags: ['Addresses'],
     request: { query: AddressesListQuerySchema },
     responses: {
@@ -98,6 +99,7 @@ const detailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     method: 'get',
     path: routeVariant.detailPath,
     operationId: routeVariant.detailOperationId,
+    summary: 'Get Address',
     tags: ['Addresses'],
     request: {
       params: AddressDetailParamsSchema,
@@ -128,6 +130,7 @@ const searchRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     method: 'get',
     path: routeVariant.searchPath,
     operationId: routeVariant.searchOperationId,
+    summary: 'Search Addresses',
     tags: ['Addresses'],
     request: { query: AddressSearchQuerySchema },
     responses: {
@@ -158,6 +161,7 @@ export const addressRoutes = [
       method: 'get',
       path: `${routeVariant.detailPath}/units`,
       operationId: `${routeVariant.detailOperationId}Units`,
+      summary: 'List Address Units',
       tags: ['Addresses'],
       request: { params: AddressDetailParamsSchema, query: AddressDetailQuerySchema },
       responses: {

@@ -18,7 +18,7 @@ export const divisionSearchRoutes = ['v0', 'v0.1'].map(version => {
     path: `/divisions/${version}/search`,
     operationId: version === 'v0' ? 'searchDivisionsV0' : 'searchDivisionsV01',
     tags: ['Divisions'],
-    summary: 'Search the latest published divisions',
+    summary: 'Search Divisions',
     description:
       'Search all domains unless domain is specified. Matches names, aliases and division codes using case-insensitive partial text, including Chinese substrings. Set ancestors=true to include stored ancestor names. Results prefer direct matches and contain one result per division and domain. Historical selectors are not supported.',
     request: { query: DivisionSearchQuerySchema },

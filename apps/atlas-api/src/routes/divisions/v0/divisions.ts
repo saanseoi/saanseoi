@@ -62,6 +62,7 @@ const divisionListRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     method: 'get',
     path: routeVariant.listPath,
     operationId: routeVariant.listOperationId,
+    summary: 'List Divisions',
     tags: ['Divisions'],
     request: {
       query: DivisionsListQuerySchema,
@@ -101,6 +102,7 @@ const divisionDetailRouteConfigs = ROUTE_VARIANTS.map(routeVariant =>
     method: 'get',
     path: routeVariant.detailPath,
     operationId: routeVariant.detailOperationId,
+    summary: 'Get Division',
     tags: ['Divisions'],
     request: {
       params: DivisionDetailParamsSchema,
