@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, stat, utimes } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { prepareNativeSqlDelivery, runNativeSqlDelivery } from './nativeSqlDelivery.ts'
@@ -190,7 +190,10 @@ test('native SQL receipts resume committed payloads without network credentials 
     await prepare()
     expect(generated).toBe(1)
     await runNativeSqlDelivery(directory, { files })
+    const progressPath = join(directory, 'progress.json')
+    await utimes(progressPath, 1, 1)
     await runNativeSqlDelivery(directory, { files })
+    expect((await stat(progressPath)).mtimeMs).toBe(1000)
     expect(db.query('SELECT n FROM counter').get()).toEqual({ n: 111 })
     expect(await completeSqlDeliveryRelease(root, 'release')).toBe(true)
     db.exec('DELETE FROM harbourSqlDeliveryReceipts WHERE batchIndex=0')

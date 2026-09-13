@@ -198,6 +198,7 @@ export async function runNativeSqlDelivery(
           directory,
         )
         let completed = 0
+        let unflushedProgress = 0
         for (const batch of plan.batches) {
           const bytes = await readFile(join(directory, batch.file))
           if (sha256(bytes) !== batch.sha256)
@@ -207,7 +208,10 @@ export async function runNativeSqlDelivery(
           const db = new Database(target.path, { readwrite: true, create: false })
           const started = Date.now()
           try {
-            db.exec('PRAGMA foreign_keys = ON')
+            // Wrangler and the owning workflow can briefly hold the local D1 file
+            // while recovery verifies an already-delivered plan. Wait for that
+            // transaction instead of failing an otherwise resumable delivery.
+            db.exec('PRAGMA busy_timeout = 30000; PRAGMA foreign_keys = ON')
             db.transaction(() => {
               const identity = db.query(IDENTITY_QUERY).get() as {
                 sha256: string
@@ -240,16 +244,33 @@ export async function runNativeSqlDelivery(
           } finally {
             db.close()
           }
-          progress.local[batch.index] ??= {
-            completedAt: new Date().toISOString(),
-            durationMs: Date.now() - started,
+          if (!progress.local[batch.index]) {
+            progress.local[batch.index] = {
+              completedAt: new Date().toISOString(),
+              durationMs: Date.now() - started,
+            }
+            unflushedProgress++
+            // The SQLite receipt is the authoritative atomic acknowledgement.
+            // Persist progress in bounded checkpoints instead of forcing two
+            // filesystem syncs after every small SQL payload. If interrupted,
+            // replay discovers the committed receipt and rebuilds this journal.
+            if (unflushedProgress >= 256) {
+              await writeDeliveryFile(
+                directory,
+                'progress.json',
+                JSON.stringify(progress, null, 2),
+              )
+              unflushedProgress = 0
+            }
           }
+          await options.onProgress?.(++completed, plan.batches.length)
+        }
+        if (unflushedProgress) {
           await writeDeliveryFile(
             directory,
             'progress.json',
             JSON.stringify(progress, null, 2),
           )
-          await options.onProgress?.(++completed, plan.batches.length)
         }
         return { completed, total: plan.batches.length }
       },

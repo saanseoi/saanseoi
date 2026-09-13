@@ -22,10 +22,14 @@ end
 
 init_run_step ./bin/saanseoi init:addresses:saanseoi:begin --target $saanseoi_init_target $continue_args
 
+set -l preparation_cache_args
+if test "$saanseoi_init_cache_artefacts" -eq 0
+    set preparation_cache_args --no-cache-artefacts
+end
 init_run_step bun run --silent dataops -- hkgov-dpo:ingest \
     "$saanseoi_init_repo/data/hkgov/dpo/ALS" \
     --target $saanseoi_init_target --cohort-key 2024-07-25.0 \
-    --defer-api-release-set --continue $saanseoi_init_curation_args
+    --defer-api-release-set --continue $saanseoi_init_curation_args $preparation_cache_args
 init_run_step ./bin/saanseoi release-sets:reconcile \
     --target $saanseoi_init_target --api-family addresses --region hk
 init_publish_docs

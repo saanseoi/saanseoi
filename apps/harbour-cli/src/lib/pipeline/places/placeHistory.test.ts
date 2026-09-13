@@ -18,6 +18,7 @@ import {
   loadCurrentPlaceHistory,
   loadCurrentPlaceSources,
 } from './processLocalPlaceSqlUploadRows.ts'
+import { reusePlaceLocaleDependencies } from './placeHistory.ts'
 import type {
   BuildPlaceSqlInput,
   EnrichedPlace,
@@ -162,6 +163,33 @@ async function place(): Promise<EnrichedPlace> {
     }),
   }
 }
+
+test('locale dependency reuse retains only complete evidence for the same link state', () => {
+  const linked = {
+    addressSnapshotId: 'address-b',
+    addressText: 'Same address',
+    divisionText: '',
+    streetText: 'Same street',
+  }
+  const historical = { ...linked, addressSnapshotId: 'address-a' }
+  expect(reusePlaceLocaleDependencies(linked, historical)).toBe(historical)
+  expect(
+    reusePlaceLocaleDependencies(linked, {
+      addressText: linked.addressText,
+      divisionText: linked.divisionText,
+      streetText: linked.streetText,
+    }),
+  ).toBe(linked)
+
+  const unlinked = {
+    addressSnapshotId: null,
+    addressText: '',
+    divisionText: '',
+    streetText: '',
+  }
+  expect(reusePlaceLocaleDependencies(unlinked, historical)).toBe(unlinked)
+  expect(reusePlaceLocaleDependencies(undefined, historical)).toBeNull()
+})
 
 test('Places inherit independent base, locales and source resolutions across years and close each owning shard', async () => {
   const f = fixture()
