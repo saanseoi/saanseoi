@@ -216,6 +216,7 @@ export async function buildResolvedAddressChunkArtefact(
                 entities: resolvedEntities({
                   address2d: addressId,
                   district: base.districtId,
+                  landform: base.landformId,
                   area: base.areaId,
                   country: base.countryId,
                   parentAddress: base.parentAddressId,
