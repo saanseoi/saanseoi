@@ -71,3 +71,23 @@ The variant is intentionally absent from public dataset/source registrations, pu
 variant enumerations, OpenAPI examples and default geometry selection. It is an explicit
 review overlay, not an authoritative published geometry source. No source catalogue
 entry or provider attribution is invented for hand-drawn geometry.
+
+## Cross-domain geometry and building suggestions
+
+The local review map offers a searchable catalogue of retained area geometry with source
+domain and cohort labels. Ma On Shan has separate new-town geometry for 2006, 2011 and
+2016; the 2021 source provides a combined Sha Tin–Ma On Shan area. Copying a preview
+assigns it to the selected geographic division while retaining its source division, area
+identity, domain and cohort. It does not modify the source dataset.
+
+The built-up extent preview uses OSM building polygons from the retained
+`guangdong-2026-09-01.osm.pbf`, filtered to the Hong Kong review bounds. It starts at
+the nearest building centre within 500 metres and grows through centres within the
+configured gap, bounded by a radius around the division point. A buffer closing
+operation creates an outline with a five-metre margin. Both gap and radius are in
+metres. The preview records its seed, parameters, source date and method version.
+
+This estimates connected building coverage, not the named settlement extent. It may
+cross roads or water and omit undeveloped land, large separated buildings or missing OSM
+footprints. Expansion above 5,000 buildings is rejected. Review and explicitly copy the
+preview before it becomes a stub; published data is unaffected.
