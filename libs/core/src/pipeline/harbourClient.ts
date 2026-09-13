@@ -70,6 +70,8 @@ export type HarbourClient = {
         snapshotId: string
         variant?: string
       }>
+      /** Rebuild a published Overture Geographic snapshot and its API revision. */
+      rebuildPublishedSnapshot?: boolean
       /** Publish source data and snapshots while keeping the API release set draft. */
       deferApiReleaseSet?: boolean
       /** Publish source data and snapshots, but leave Statistics cohorts for a launch bootstrap. */

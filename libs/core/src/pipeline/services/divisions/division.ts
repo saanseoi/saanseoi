@@ -220,6 +220,8 @@ type DivisionNormaliseOptions = {
   hierarchyGuard?: import('../../../provenance').AuditGuard
   /** A reviewed replacement will validate this identity's final hierarchy. */
   deferHierarchyGuard?: boolean
+  /** Supplemental landform rows do not participate in administrative patching. */
+  skipGeographicHierarchyPatch?: boolean
   branchCounts?: BranchCounts
   hierarchyLookup?: DivisionHierarchyLookup
   source?: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'> &
@@ -1240,12 +1242,14 @@ function normaliseDivisionRowInternal(
       createdAt: now,
       divisionCode: null,
       geometry: normalisedGeometry,
-      hierarchies: geographicHierarchyPatchRule.execute({
-        id,
-        class: type,
-        hierarchies: hierarchyWithHongKongArea.hierarchy,
-        source: options.source,
-      }),
+      hierarchies: options.skipGeographicHierarchyPatch
+        ? hierarchyWithHongKongArea.hierarchy
+        : geographicHierarchyPatchRule.execute({
+            id,
+            class: type,
+            hierarchies: hierarchyWithHongKongArea.hierarchy,
+            source: options.source,
+          }),
       id,
       identifiers: row.identifiers ?? null,
       level,
