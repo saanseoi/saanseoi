@@ -1,3 +1,7 @@
+import {
+  geographicDivisionClassification,
+  type GeographicDivisionClass,
+} from '@repo/db'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/division-classification.json'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import fixture from '../../../../../../fixtures/meta/patches/overture-division-classification.json'
@@ -27,11 +31,12 @@ export function validateDivisionClassificationFixture(value: unknown) {
       !e.names.length ||
       !e.names.every(n => typeof n === 'string' && n.length) ||
       !e.reason ||
-      !Number.isInteger(e.expected?.adminLevel) ||
+      !(e.expected?.adminLevel === null || Number.isInteger(e.expected?.adminLevel)) ||
       !(e.expected.class === null || typeof e.expected.class === 'string') ||
       !e.expected.subtype ||
-      e.replacement?.class !== 'macrohood' ||
-      e.replacement.level !== 4
+      !geographicDivisionClassification(e.replacement?.class) ||
+      e.replacement.level !==
+        geographicDivisionClassification(e.replacement.class)?.level
     )
       throw new Error('Invalid division classification patch entry.')
     ids.add(e.divisionId)
@@ -51,7 +56,10 @@ function applyClassification({
 }) {
   const entry = divisionClassificationFixture.entries.find(e => e.divisionId === row.id)
   if (!entry) return null
-  const adminLevel = Number(row.admin_level ?? row.adminLevel)
+  const rawAdminLevel = Object.hasOwn(row, 'admin_level')
+    ? row.admin_level
+    : row.adminLevel
+  const adminLevel = rawAdminLevel == null ? null : Number(rawAdminLevel)
   const schema =
     source && resolveSourceRecordSchema({ ...source, resourceType: 'division' })
   const adminLevelAbsentFromSchema =
@@ -85,7 +93,7 @@ function applyClassification({
     )
   return {
     level: entry.replacement.level,
-    class: entry.replacement.class as 'macrohood',
+    class: entry.replacement.class as GeographicDivisionClass,
   }
 }
 

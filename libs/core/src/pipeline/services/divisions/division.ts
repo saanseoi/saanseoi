@@ -205,7 +205,8 @@ type DivisionHierarchyI18n = {
 
 type DivisionHierarchyLookupEntry = {
   i18n: DivisionHierarchyI18n
-  level: number
+  level: number | null
+  displayEquivalentDivisionId?: string
   class: string
 }
 
@@ -1177,14 +1178,15 @@ function normaliseDivisionRowInternal(
       }))
   const level = landsdPlaceName
     ? 5
-    : (overtureHongKongDivisionClassificationCorrection?.level ??
-      resolveDivisionLevel({
-        row,
-        otClass,
-        otSubtype,
-        parentDivisionId,
-        branchCounts: options.branchCounts,
-      }))
+    : overtureHongKongDivisionClassificationCorrection
+      ? overtureHongKongDivisionClassificationCorrection.level
+      : resolveDivisionLevel({
+          row,
+          otClass,
+          otSubtype,
+          parentDivisionId,
+          branchCounts: options.branchCounts,
+        })
   const i18n = normaliseDivisionI18n(id, row.names, options.branchCounts)
   const normalisedHierarchies = normaliseDivisionHierarchies(
     row.hierarchies,
@@ -1261,7 +1263,8 @@ type OvertureHongKongAreaHierarchyAssignment = Pick<
 type NormalisedHierarchyEntry = {
   division_id: string
   i18n: DivisionHierarchyI18n
-  level: number
+  level: number | null
+  displayEquivalentDivisionId?: string
   class: string
 }
 
@@ -2015,14 +2018,16 @@ export async function buildDivisionHierarchyLookup(
       const classification = applyDivisionClassificationPatch(row, source)
       lookup.set(id, {
         i18n,
-        level:
-          classification?.level ??
-          resolveDivisionLevel({
-            row,
-            otClass,
-            otSubtype,
-            parentDivisionId,
-          }),
+        displayEquivalentDivisionId:
+          asNonEmptyString(row.displayEquivalentDivisionId) ?? undefined,
+        level: classification
+          ? classification.level
+          : resolveDivisionLevel({
+              row,
+              otClass,
+              otSubtype,
+              parentDivisionId,
+            }),
         class:
           classification?.class ??
           resolveDivisionClass({
@@ -2108,7 +2113,10 @@ function normaliseDivisionHierarchies(
           i18n:
             lookupEntry?.i18n ??
             buildHierarchyI18nFromName(hierarchyDivisionId, record.name),
-          level: lookupEntry?.level ?? resolveHierarchyDivisionLevel(rawSubtype),
+          level: lookupEntry
+            ? lookupEntry.level
+            : resolveHierarchyDivisionLevel(rawSubtype),
+          displayEquivalentDivisionId: lookupEntry?.displayEquivalentDivisionId,
           class: lookupEntry?.class ?? resolveHierarchyDivisionType(rawSubtype),
         },
       ]
@@ -2165,7 +2173,9 @@ function divisionTaxonomyHints(input: DivisionTaxonomyInput) {
   }
 }
 
-function resolveDivisionLevel(input: DivisionTaxonomyInput): number {
+function resolveDivisionLevel(input: DivisionTaxonomyInput): number | null {
+  if (geographicDivisionClassification(input.otClass ?? '')?.category === 'landform')
+    return null
   return divisionLevel(
     divisionNormalisationRule.declaration.parameters,
     divisionTaxonomyHints(input),
@@ -2175,6 +2185,8 @@ function resolveDivisionLevel(input: DivisionTaxonomyInput): number {
 }
 
 function resolveDivisionClass(input: DivisionTaxonomyInput): string {
+  if (geographicDivisionClassification(input.otClass ?? '')?.category === 'landform')
+    return input.otClass!
   return divisionClass(
     divisionNormalisationRule.declaration.parameters,
     divisionTaxonomyHints(input),

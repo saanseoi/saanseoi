@@ -9,6 +9,7 @@ import { buildDisplayName } from '../../../displayName'
 export type ClassifiedAncestor = {
   division_id: string
   class: string
+  displayEquivalentDivisionId?: string
   i18n?: { 'zh-hant'?: { name?: string | null }; en?: { name?: string | null } }
 }
 
@@ -34,6 +35,13 @@ export function materialiseDivisionHierarchies(
     const category = (entry: DivisionHierarchyEntry) =>
       geographicDivisionClassification(entry.class)?.category
     const administrative = entries.filter(entry => category(entry) === 'administrative')
+    const landforms = entries.filter(entry => category(entry) === 'landform')
+    const displayedLandforms = landforms.filter(entry => {
+      const equivalent = ancestors.find(
+        ancestor => ancestor.division_id === entry.id,
+      )?.displayEquivalentDivisionId
+      return !equivalent || !administrative.some(ancestor => ancestor.id === equivalent)
+    })
     const locality = entries.findLast(entry => category(entry) === 'locality')
     const hoods = entries.filter(entry => category(entry) === 'hood')
     const localPath = [...(locality ? [locality] : []), ...hoods]
@@ -42,8 +50,10 @@ export function materialiseDivisionHierarchies(
     const other = entries.filter(entry => !category(entry))
     appendUniquePath(result.administrative, administrative)
     appendUniquePath(result.locality, localPath)
+    appendUniquePath(result.landform, landforms)
     appendUniquePath(result.full, [
       ...administrative,
+      ...displayedLandforms,
       ...localPath.filter(entry => entry.class !== 'city'),
       ...other,
     ])

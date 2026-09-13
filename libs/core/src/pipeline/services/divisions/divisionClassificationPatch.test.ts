@@ -69,3 +69,35 @@ test('the registered scaling operation preserves precision beyond thousandths', 
   expect(populationThousandsRule.execute('+243.3')).toBe('243300')
   expect(Object.isFrozen(populationThousandsRule.declaration.parameters)).toBe(true)
 })
+
+test('Lantau patch preserves its identity and clears its level without source mutation', () => {
+  const row = {
+    id: '3707878f-080b-42cf-aecf-89fef56a066a',
+    subtype: 'locality',
+    class: null,
+    admin_level: null,
+  }
+  const original = structuredClone(row)
+  expect(
+    normaliseDivisionRow(row, {
+      source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+    }).base,
+  ).toMatchObject({
+    id: row.id,
+    category: 'landform',
+    class: 'major_island',
+    level: null,
+  })
+  expect(row).toEqual(original)
+  expect(() => applyDivisionClassificationPatch({ ...row, subtype: 'region' })).toThrow(
+    'guard mismatch',
+  )
+  expect(() => applyDivisionClassificationPatch({ ...row, admin_level: 1 })).toThrow(
+    'guard mismatch',
+  )
+  for (const cls of ['major_island', 'minor_island', 'islet', 'island_group']) {
+    expect(
+      normaliseDivisionRow({ id: 'physical-feature', class: cls, level: 4 }).base,
+    ).toMatchObject({ category: 'landform', class: cls, level: null })
+  }
+})

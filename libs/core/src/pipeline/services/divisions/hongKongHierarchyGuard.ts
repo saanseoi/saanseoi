@@ -8,7 +8,7 @@ import {
 type Entry = {
   division_id: string
   class: string
-  level: number
+  level: number | null
   i18n: { en?: { name: string } }
 }
 
@@ -30,7 +30,7 @@ export function checkHongKongHierarchy(
     country?: unknown
     id: string
     class: string
-    level: number
+    level: number | null
     name?: string
     hierarchy: unknown
   },

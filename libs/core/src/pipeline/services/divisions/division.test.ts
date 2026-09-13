@@ -372,7 +372,7 @@ describe('normaliseDivisionRow i18n', () => {
 
     expect(normalised).toMatchObject({
       base: {
-        hierarchies: { administrative: [], locality: [], full: [] },
+        hierarchies: { administrative: [], locality: [], landform: [], full: [] },
         level: null,
         class: 'housing-market-area',
       },
@@ -533,6 +533,7 @@ describe('normaliseDivisionRow hierarchy', () => {
     )
 
     expect(normalised.base.hierarchies).toEqual({
+      landform: [],
       administrative: [],
       locality: [
         [
@@ -618,6 +619,7 @@ describe('normaliseDivisionRow hierarchy', () => {
     )
 
     expect(normalised.base.hierarchies).toEqual({
+      landform: [],
       administrative: [
         [
           {
@@ -700,6 +702,7 @@ describe('normaliseDivisionRow hierarchy', () => {
     )
 
     expect(normalised.base.hierarchies).toEqual({
+      landform: [],
       administrative: [],
       locality: [[{ id: 'division-locality', class: 'town', name: '某處 Somewhere' }]],
       full: [[{ id: 'division-locality', class: 'town', name: '某處 Somewhere' }]],

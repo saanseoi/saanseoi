@@ -67,8 +67,53 @@ test('supports a hood without a locality and rejects duplicate ancestors', () =>
     materialiseDivisionHierarchies('self', [[entry('a', 'town'), entry('a', 'town')]]),
   ).toThrow('duplicate')
   expect(materialiseDivisionHierarchies('self', [])).toEqual({
+    landform: [],
     administrative: [],
     locality: [],
     full: [],
   })
+})
+
+test('merges unlevelled islands after administrative ancestry and before settlements', () => {
+  const result = materialiseDivisionHierarchies('address-locality', [
+    [
+      entry('sar', 'sar'),
+      entry('nt', 'area'),
+      entry('islands', 'district'),
+      entry('lantau', 'major_island'),
+      entry('tung-chung', 'town'),
+    ],
+  ])
+  expect(ids(result.administrative)).toEqual([['sar', 'nt', 'islands']])
+  expect(ids(result.landform)).toEqual([['lantau']])
+  expect(ids(result.full)).toEqual([['sar', 'nt', 'islands', 'lantau', 'tung-chung']])
+})
+
+test('retains island-group ancestry and suppresses only explicit administrative equivalents', () => {
+  const island = {
+    ...entry('hk-island-landform', 'major_island'),
+    displayEquivalentDivisionId: 'hk-area',
+  }
+  const result = materialiseDivisionHierarchies('sheung-wan', [
+    [
+      entry('sar', 'sar'),
+      entry('hk-area', 'area'),
+      island,
+      entry('central-western', 'district'),
+      entry('hk-city', 'city'),
+    ],
+  ])
+  expect(ids(result.landform)).toEqual([['hk-island-landform']])
+  expect(ids(result.full)).toEqual([['sar', 'hk-area', 'central-western']])
+  expect(ids(materialiseDivisionHierarchies('self', [[island]]).full)).toEqual([
+    ['hk-island-landform'],
+  ])
+  const group = materialiseDivisionHierarchies('self', [
+    [
+      entry('district', 'district'),
+      entry('ninepin', 'island_group'),
+      entry('north-ninepin', 'minor_island'),
+    ],
+  ])
+  expect(ids(group.landform)).toEqual([['ninepin', 'north-ninepin']])
 })
