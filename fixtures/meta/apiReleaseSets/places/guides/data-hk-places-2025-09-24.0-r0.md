@@ -160,7 +160,8 @@ Filters narrow the list before it is split into pages. Use
 <black>filter[basicCategory]</black> for a basic category,
 <black>filter[taxonomyPrimary]</black> for a primary taxonomy,
 <black>filter[operatingStatus]</black> for an operating status, and
-<black>filter[division]</black> for a canonical Division ID:
+<black>filter[division]</black> for a canonical Division ID, including an island linked
+through the Place's address:
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/?
@@ -350,7 +351,8 @@ ID 是資源識別碼，請從 Divisions API 取得。
 篩選會先於分頁套用。使用 <black>filter[basicCategory]</black> 篩選基本類別、
 <black>filter[taxonomyPrimary]</black>
 篩選主要 taxonomy、<black>filter[operatingStatus]</black>
-篩選營運狀態，以及使用 canonical Division ID 的 <black>filter[division]</black>：
+篩選營運狀態，以及使用 canonical Division ID 的
+<black>filter[division]</black>，包括透過 Place 地址連結的島嶼：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/?
@@ -538,7 +540,8 @@ ID 是资源标识码，请从 Divisions API 获取。
 筛选会先于分页套用。使用 <black>filter[basicCategory]</black> 筛选基本类别、
 <black>filter[taxonomyPrimary]</black>
 筛选主要 taxonomy、<black>filter[operatingStatus]</black>
-筛选营业状态，以及使用 canonical Division ID 的 <black>filter[division]</black>：
+筛选营业状态，以及使用 canonical Division ID 的
+<black>filter[division]</black>，包括通过 Place 地址关联的岛屿：
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}/?

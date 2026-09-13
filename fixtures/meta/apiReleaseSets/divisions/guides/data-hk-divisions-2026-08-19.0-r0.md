@@ -250,7 +250,7 @@ occupies are separate Division identities, even when both are named the same, e.
 
 Use <black>filter[category]=landform</black> to list landforms, or
 <black>filter[class]=major_island</black> to select one class. Omit
-<black>filter[level]</black> when selecting landfor ms:
+<black>filter[level]</black> when selecting landforms:
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
@@ -530,26 +530,35 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 <black>include=none</black>。它不會改變
 <black>relationships.hierarchy</black>；只會略過將其識別碼展開為資源。
 
-## 地形
+## 島嶼關係
 
 地形獨立於行政及聚落層級，描述實體地理。 <black>attributes.category</black> 為
 <black>landform</black>， <black>attributes.class</black> 為
 <black>major_island</black>、 <black>minor_island</black> 或
 <black>island_group</black>， <black>attributes.level</black> 為
-<black>null</black>。請勿為地形指定整數或小數層級。城鎮與所在島嶼使用不同的 Division
-ID，即使兩者均名為青衣。
+<black>null</black>。城鎮與所在島嶼使用不同的Division
+ID，即使兩者同名，例如<i>青衣</i>。
 
 使用 <black>filter[category]=landform</black> 列出地形，或使用
-<black>filter[class]=major_island</black> 篩選類別；請省略
-<black>filter[level]</black>。加入 <black>include=hierarchy</black> 可展開相關區劃資源。
+<black>filter[class]=major_island</black> 選取一個類別。選取地形時，請省略
+<black>filter[level]</black>：
 
-<black>attributes.hierarchies.landform</black> 提供地形上層路徑，與
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 filter[category]=landform&
+                 include=hierarchy
+```
+
+<black>attributes.hierarchies.landform</black> 包含地形上層路徑，與
 <black>administrative</black> 及 <black>locality</black>
-分開。各路徑由大至小排列，不包含區劃本身。<black>full</black>
-合併供顯示的關係並略去 city。如有明確記錄的對應行政區劃，<black>full</black>
+分開。目前只收錄<i>島嶼</i>，而只有<i>果洲群島</i>、<i>蒲台群島</i>、<i>索罟群島</i>及<i>大小磨刀</i>作為個別島嶼的上層。路徑由大至小排列，不包含區劃本身。
+<black>full</black>
+路徑合併這些關係以供顯示，並略去 city。如有明確記錄的對應行政區劃，<black>full</black>
 可略去重複的地形名稱，同時保留地形關聯。請勿按數字層級排序來建立顯示路徑。
 
-地形關聯與多邊形覆蓋互相獨立；已知島嶼關聯不保證有面幾何資料，實際資料取決於所選版本。空的地形路徑表示未記錄地形上層，並不表示位於大陸。行政區劃可跨越多個地形。
+關聯與多邊形覆蓋互相獨立：已知島嶼關聯不保證有面幾何資料。可用資料取決於所選版本。空的地形路徑表示未記錄地形上層，並不能確立位於大陸。行政區劃可跨越多個實體地形。
 
 ## 加入語言（`I18n`）
 
@@ -801,26 +810,35 @@ cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort
 <black>include=none</black>。它不会改变
 <black>relationships.hierarchy</black>；只会略过将其标识符展开为资源。
 
-## 地形
+## 岛屿关系
 
 地形独立于行政及聚落层级，描述实体地理。 <black>attributes.category</black> 为
 <black>landform</black>， <black>attributes.class</black> 为
 <black>major_island</black>、 <black>minor_island</black> 或
 <black>island_group</black>， <black>attributes.level</black> 为
-<black>null</black>。请勿为地形指定整数或小数层级。城镇与所在岛屿使用不同的 Division
-ID，即使两者均名为青衣。
+<black>null</black>。城镇与所在岛屿使用不同的 Division
+ID，即使两者同名，例如<i>青衣</i>。
 
 使用 <black>filter[category]=landform</black> 列出地形，或使用
-<black>filter[class]=major_island</black> 筛选类别；请省略
-<black>filter[level]</black>。添加 <black>include=hierarchy</black> 可展开相关区划资源。
+<black>filter[class]=major_island</black> 选取一个类别。选取地形时，请省略
+<black>filter[level]</black>：
 
-<black>attributes.hierarchies.landform</black> 提供地形上层路径，与
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 filter[category]=landform&
+                 include=hierarchy
+```
+
+<black>attributes.hierarchies.landform</black> 包含地形上层路径，与
 <black>administrative</black> 及 <black>locality</black>
-分开。各路径由大至小排列，不包含区划本身。<black>full</black>
-合并供显示的关系并略去 city。如有明确记录的对应行政区划，<black>full</black>
+分开。目前只收录<i>岛屿</i>，而只有<i>果洲群岛</i>、<i>蒲台群岛</i>、<i>索罟群岛</i>及<i>大小磨刀</i>作为个别岛屿的上层。路径由大至小排列，不包含区划本身。
+<black>full</black>
+路径合并这些关系以供显示，并略去 city。如有明确记录的对应行政区划，<black>full</black>
 可略去重复的地形名称，同时保留地形关联。请勿按数字层级排序来建立显示路径。
 
-地形关联与多边形覆盖互相独立；已知岛屿关联不保证有面几何数据，实际数据取决于所选版本。空的地形路径表示未记录地形上层，并不表示位于大陆。行政区划可跨越多个地形。
+关联与多边形覆盖互相独立：已知岛屿关联不保证有面几何资料。可用资料取决于所选版本。空的地形路径表示未记录地形上层，并不能确立位于大陆。行政区划可跨越多个实体地形。
 
 ## 添加语言（`I18n`）
 
