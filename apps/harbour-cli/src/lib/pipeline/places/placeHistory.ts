@@ -57,11 +57,11 @@ export function placeLocaleHash(
   })
 }
 
-export function reusePlaceLocaleDependencies<T extends Record<string, unknown>>(
-  candidate: T | undefined,
-  previous: T | null | undefined,
-) {
-  const contents = (value: T | null | undefined) => {
+export function reusePlaceLocaleDependencies<
+  Candidate extends Record<string, unknown>,
+  Previous extends Record<string, unknown>,
+>(candidate: Candidate | undefined, previous: Previous | null | undefined) {
+  const contents = (value: Record<string, unknown> | null | undefined) => {
     const { addressSnapshotId: _snapshot, ...text } = (value ?? {}) as Record<
       string,
       unknown
@@ -69,7 +69,7 @@ export function reusePlaceLocaleDependencies<T extends Record<string, unknown>>(
     return canonicalPlaceJson(text)
   }
   if (!candidate) return null
-  const isLinked = (value: T) => value.addressSnapshotId != null
+  const isLinked = (value: Record<string, unknown>) => value.addressSnapshotId != null
   return previous &&
     isLinked(candidate) === isLinked(previous) &&
     contents(candidate) === contents(previous)
