@@ -8,7 +8,8 @@ import {
 import type { DivisionHierarchies } from '@repo/db'
 import type { HierarchyPatch } from './geographicReview'
 
-const patch = fixture as HierarchyPatch
+export const geographicHierarchyFixture = fixture as HierarchyPatch
+const patch = geographicHierarchyFixture
 const entries = new Map(patch.entries.map(entry => [entry.divisionId, entry]))
 if (
   patch.schemaVersion !== 1 ||
@@ -61,3 +62,36 @@ export const geographicHierarchyPatchRule = registerRule(
     return structuredClone(entry.hierarchies)
   },
 )
+
+export function buildGeographicHierarchyProcessingActions(
+  id: string,
+  source: { source: string; regionCode?: string; sourceVersion?: string },
+  names: string[] = [],
+): import('../../db/processingActions').ReleaseProcessingAction[] {
+  if (
+    source.source !== 'overture' ||
+    source.regionCode !== patch.region ||
+    source.sourceVersion !== patch.cohort
+  )
+    return []
+  const decision = entries.get(id)
+  if (!decision || decision.status === 'unresolved') return []
+  return [
+    {
+      action: geographicHierarchyPatchRule.declaration.id,
+      affectedRecordCount: 1,
+      mode: 'automatic',
+      summary: `Applied ${decision.status} geographic ancestry for ${names[0] ?? id}.`,
+      evidence: {
+        divisionId: id,
+        names,
+        cohort: patch.cohort,
+        status: decision.status,
+        fixturePointer: `/entries/${patch.entries.indexOf(decision)}`,
+        parentIds: decision.parentIds,
+        competingParentIds: decision.competingParentIds,
+        geometryEvidence: decision.evidence,
+      },
+    },
+  ]
+}

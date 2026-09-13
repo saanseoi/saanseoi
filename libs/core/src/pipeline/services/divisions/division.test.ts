@@ -773,7 +773,11 @@ describe('normaliseDivisionRow hierarchy', () => {
 
 describe('buildOvertureHongKongDivisionClassificationProcessingActions', () => {
   test('records the Lok Ma Chau Loop correction in the release audit trail', () => {
-    expect(buildOvertureHongKongDivisionClassificationProcessingActions(1)).toEqual([
+    expect(
+      buildOvertureHongKongDivisionClassificationProcessingActions(
+        '222b7818-970a-491d-98b6-b88d8c6f0161',
+      ),
+    ).toEqual([
       expect.objectContaining({
         action: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
         affectedRecordCount: 1,
@@ -785,7 +789,12 @@ describe('buildOvertureHongKongDivisionClassificationProcessingActions', () => {
         mode: 'automatic',
       }),
     ])
-    expect(buildOvertureHongKongDivisionClassificationProcessingActions(0)).toEqual([])
+    expect(
+      buildOvertureHongKongDivisionClassificationProcessingActions(
+        '222b7818-970a-491d-98b6-b88d8c6f0161',
+        0,
+      ),
+    ).toEqual([])
   })
 })
 

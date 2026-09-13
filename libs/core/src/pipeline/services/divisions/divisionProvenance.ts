@@ -1,4 +1,8 @@
 import {
+  geographicHierarchyFixture,
+  geographicHierarchyPatchRule,
+} from './geographicHierarchyPatch'
+import {
   overtureHongKongCityRestorationDeclaration,
   overtureHongKongCityRestorationFixture,
 } from './overtureHongKongCityRestoration'
@@ -117,6 +121,10 @@ export async function retainDivisionProvenance(
   const bulk: BulkAudit[] = []
   const normalisation = input.normalisation ?? divisionNormalisationRule.declaration
   const patchDefinitions: Record<string, PatchDefinition> = {
+    [geographicHierarchyPatchRule.declaration.id]: {
+      declaration: geographicHierarchyPatchRule.declaration,
+      fixture: geographicHierarchyFixture,
+    },
     [kowloonRestorationFixture.id]: {
       declaration: kowloonRestorationDeclaration,
       fixture: kowloonRestorationFixture,
@@ -140,6 +148,10 @@ export async function retainDivisionProvenance(
     input.actionDeclarations ?? {},
     patchDefinitions,
   )
+  const retainedPatchFixtures = new Map<
+    string,
+    Awaited<ReturnType<typeof retainFixturePartitions>>
+  >()
   for (const action of input.actions) {
     const kind = actionKind(action.action)
     if (kind !== 'bulk' || action.action === normalisation.id) continue
@@ -219,11 +231,28 @@ export async function retainDivisionProvenance(
             ? evidence.reason
             : (patch.reason ?? action.summary),
         definition: await retainDeclaration(patch.declaration),
-        fixture: {
-          object: await retainObject(store, patch.fixture),
-          pointer:
-            typeof evidence.fixturePointer === 'string' ? evidence.fixturePointer : '',
-        },
+        fixture: await (async () => {
+          let parts = retainedPatchFixtures.get(action.action)
+          if (!parts) {
+            parts = await retainFixturePartitions(store, patch.fixture, 'entries')
+            retainedPatchFixtures.set(action.action, parts)
+          }
+          const pointer =
+            typeof evidence.fixturePointer === 'string' ? evidence.fixturePointer : ''
+          if (parts.length === 1) return { object: parts[0]!.object, pointer }
+          const match = /^\/entries\/(\d+)(.*)$/.exec(pointer)
+          if (!match) throw new Error('Partitioned patch requires an entry pointer.')
+          const ordinal = Number(match[1])
+          const part = requireDefined(
+            parts.find(
+              p => ordinal >= p.firstOrdinal && ordinal < p.firstOrdinal + p.count,
+            ),
+          )
+          return {
+            object: part.object,
+            pointer: `/entries/${ordinal - part.firstOrdinal}${match[2]}`,
+          }
+        })(),
         record: {
           id: recordId,
           names: names.length ? names : (patch.names ?? [recordId]),

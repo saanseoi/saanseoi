@@ -1,4 +1,7 @@
-import { geographicHierarchyPatchRule } from './geographicHierarchyPatch'
+import {
+  geographicHierarchyPatchRule,
+  buildGeographicHierarchyProcessingActions,
+} from './geographicHierarchyPatch'
 import {
   beginSnapshotPublication,
   completeSnapshotPublication,
@@ -236,9 +239,6 @@ const OVERTURE_HK_DIVISION_PREFLIGHT_COLUMNS = [
   'hierarchies',
 ]
 const PRIMARY_SOURCE_OWNER_KEY = 'source-current'
-
-const OVERTURE_HONG_KONG_LOK_MA_CHAU_LOOP_DIVISION_ID =
-  '222b7818-970a-491d-98b6-b88d8c6f0161'
 
 type DivisionCodeAssignment = {
   canonicalId: string
@@ -481,7 +481,6 @@ export async function processDivisionDataset(
   const statsAccumulator = createLocaleStatsAccumulator()
   const districtCounts = new Map<string, number>()
   const hongKongAreaHierarchyAssignmentCounts = new Map<string, number>()
-  let overtureHongKongDivisionClassificationCorrectionCount = 0
   const processingActions: ReleaseProcessingAction[] = []
   const branchCounts = createDivisionBranchCounts()
   const hierarchyGuard = createHongKongHierarchyGuard()
@@ -586,8 +585,19 @@ export async function processDivisionDataset(
         hierarchyGuard,
       })
       if (normalised.overtureHongKongDivisionClassificationCorrection) {
-        overtureHongKongDivisionClassificationCorrectionCount += 1
+        processingActions.push(
+          ...buildOvertureHongKongDivisionClassificationProcessingActions(
+            normalised.base.id,
+          ),
+        )
       }
+      processingActions.push(
+        ...buildGeographicHierarchyProcessingActions(
+          normalised.base.id,
+          message,
+          normalised.i18n.flatMap(row => (row.name ? [row.name] : [])),
+        ),
+      )
       if (normalised.overtureHongKongAreaHierarchyAssignment) {
         const { code } = normalised.overtureHongKongAreaHierarchyAssignment
         hongKongAreaHierarchyAssignmentCounts.set(
@@ -881,9 +891,6 @@ export async function processDivisionDataset(
     ]),
   )
   processingActions.push(
-    ...buildOvertureHongKongDivisionClassificationProcessingActions(
-      overtureHongKongDivisionClassificationCorrectionCount,
-    ),
     ...buildOvertureHongKongAreaHierarchyProcessingActions(
       hongKongAreaHierarchyAssignmentCounts,
     ),
@@ -1426,24 +1433,27 @@ export function buildOvertureHongKongAreaHierarchyProcessingActions(
 }
 
 export function buildOvertureHongKongDivisionClassificationProcessingActions(
-  affectedRecordCount: number,
+  divisionId: string,
+  affectedRecordCount = 1,
 ): ReleaseProcessingAction[] {
   if (affectedRecordCount === 0) return []
-
+  const entry = divisionClassificationFixture.entries.find(
+    entry => entry.divisionId === divisionId,
+  )
+  if (!entry) throw new Error(`Missing classification patch for ${divisionId}.`)
   return [
     {
-      action: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
+      action: entry.id,
       affectedRecordCount,
+      mode: 'automatic',
+      summary: entry.reason,
       evidence: {
-        canonical: divisionClassificationFixture.entries[0]!.replacement,
-        divisionId: OVERTURE_HONG_KONG_LOK_MA_CHAU_LOOP_DIVISION_ID,
+        canonical: entry.replacement,
+        divisionId,
+        source: entry.expected,
         hierarchy:
           'The canonical hierarchy lookup applies the same correction to descendants.',
-        source: divisionClassificationFixture.entries[0]!.expected,
       },
-      mode: 'automatic',
-      summary:
-        'Reclassified Lok Ma Chau Loop from Overture’s level-2 region to a level-4 macrohood.',
     },
   ]
 }
