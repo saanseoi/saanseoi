@@ -19,18 +19,23 @@ Geographic divisions expose `category`, `class` and `level`. Administrative clas
 `village` (5) and `hamlet` (6); hoods are `macrohood` (4), `neighbourhood` (5) and
 `microhood` (6). The separate country anchor remains administrative. Planning and
 statistical domains retain their domain-specific classes with no geographic category.
-Levels can be shared and skipped; a hood does not require a city parent.
+Landforms use `major_island`, `minor_island` and `island_group`, all with `level: null`.
+The major/minor island distinction uses a reviewed 10 km² threshold. Classification
+alone does not establish containment. Levels can be shared and skipped; a hood does not
+require a city parent.
 
-Ingestion stores `hierarchies.administrative`, `hierarchies.locality` and
-`hierarchies.full` as arrays of ancestor paths. Every entry is `{ id, name, class }`.
-Paths run broadest to narrowest and exclude the division itself. Locality paths retain
-the nearest locality and its hood ancestry; full paths combine administrative ancestry
-with that locality/hood path, omitting only a city. Paths preserve source correlations:
-multiple districts or hoods do not create a Cartesian product of invented paths. `name`
-is Traditional Chinese followed by English, trimmed and deduplicated, or the one
-available name; absent names are null. The API returns these stored paths without
-ancestor lookups or locale-dependent label construction. Optional `include=hierarchy`
-loads the distinct ancestor resources, including cities, in `included`.
+Ingestion stores `hierarchies.administrative`, `hierarchies.locality`,
+`hierarchies.landform` and `hierarchies.full` as arrays of ancestor paths. Every entry
+is `{ id, name, class }`. Paths run broadest to narrowest and exclude the division
+itself. Locality paths retain the nearest locality and its hood ancestry; full paths
+combine administrative ancestry with landform and locality/hood paths. Cities and
+explicitly equivalent landform labels are suppressed from the full display path while
+their separate associations remain. Paths preserve source correlations: multiple
+districts or hoods do not create a Cartesian product of invented paths. `name` is
+Traditional Chinese followed by English, trimmed and deduplicated, or the one available
+name; absent names are null. The API returns these stored paths without ancestor lookups
+or locale-dependent label construction. Optional `include=hierarchy` loads the distinct
+ancestor resources, including cities, in `included`.
 
 Hong Kong Island, Kowloon and New Territories administrative areas have deterministic
 SaanSeoi UUIDs and district-union geometry. Kowloon city retains its source UUID
@@ -59,6 +64,12 @@ and Lok Ma Chau Loop, then removes the configured Shenzhen Bay Port exclusion.
 
 [Minimal initialisation](../minimal-initialisation.md) selects two Overture and Planning
 versions while retaining the configured companion geometry prerequisites.
+
+Lantau retains its source identity and area geometry as `landform / major_island`. A
+guarded fixture excludes it from administrative ancestry. The three administrative Areas
+are Hong Kong Island, Kowloon and New Territories. Source assertions remain unchanged.
+See the [internal geographic review workflow](../internal/geographic-review.md) for
+cohort-scoped ancestry decisions and local area drawing.
 
 ## API release statistics
 
