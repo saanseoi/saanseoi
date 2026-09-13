@@ -50,7 +50,7 @@ const base = (id = 'a'): DivisionBaseRecord => ({
   class: 'district',
   category: 'administrative',
   level: 2,
-  hierarchies: { full: [], administrative: [], locality: [] },
+  hierarchies: { full: [], administrative: [], locality: [], landform: [] },
   geometry: { type: 'Point', coordinates: [114.1, 22.3] },
   bbox: [114.1, 22.3, 114.1, 22.3],
   identifiers: { publisher: id },
