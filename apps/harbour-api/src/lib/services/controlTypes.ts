@@ -21,6 +21,8 @@ export type PublishRequest = {
     snapshotId: string
     variant?: string
   }>
+  /** Rebuild a published Overture Geographic snapshot and its API revision. */
+  rebuildPublishedSnapshot?: boolean
   deferApiReleaseSet?: boolean
   deferStatsReleaseSet?: boolean
   deferSourcePublish?: boolean

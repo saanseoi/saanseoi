@@ -341,6 +341,101 @@ test('revokes the superseded dataset only for corrected same-release publishes',
   })
 })
 
+test('rebuilds a published Geographic snapshot into a new API release-set revision', async () => {
+  const tempDir = createTempDir()
+  const dbPath = join(tempDir, 'harbour-publish-rebuild.sqlite')
+  const sqlite = initDb(dbPath)
+  const db = createLocalHarbourDb(sqlite)
+  const releaseId = 'release-dr-hk-overture-division-2026-02-18.0'
+  const firstSnapshotId = 'snapshot-release-dr-hk-overture-division-2026-02-18.0'
+  const rebuiltSnapshotId = `${firstSnapshotId}-r1`
+
+  insertFixtureRelease(sqlite, {
+    releaseId,
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey: '2026-02',
+    resourceType: 'division',
+    sourceVersion: '2026-02-18.0',
+    rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
+    originalFileName: 'division.parquet',
+    status: 'staged',
+    ingestedAt: '2026-06-05T00:00:00.000Z',
+    createdAt: '2026-06-05T00:00:00.000Z',
+    updatedAt: '2026-06-05T00:00:00.000Z',
+  })
+  seedSnapshot(sqlite, {
+    code: 'ss-hk-division-2026-02-18.0',
+    releaseId,
+    snapshotId: firstSnapshotId,
+    status: 'draft',
+    timestamp: 1762300800000,
+  })
+  seedCompleteDivisionSourceSignature(sqlite, {
+    snapshotId: firstSnapshotId,
+    sourceVersion: '2026-02-18.0',
+    overtureSchemaVersion: '1.16.0',
+  })
+
+  const firstPublication = await handlePublishDataset(db, { releaseId })
+
+  seedSnapshot(sqlite, {
+    code: 'ss-hk-division-2026-02-18.0-r1',
+    releaseId,
+    snapshotId: rebuiltSnapshotId,
+    status: 'draft',
+    timestamp: 1762300860000,
+  })
+  sqlite
+    .query('UPDATE snapshots SET parentSnapshotId = ? WHERE id = ?')
+    .run(firstSnapshotId, rebuiltSnapshotId)
+  sqlite
+    .query(
+      `INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role)
+       SELECT ?, datasetId, resourceReleaseId, role
+       FROM snapshotSources
+       WHERE snapshotId = ? AND role = 'supporting'`,
+    )
+    .run(rebuiltSnapshotId, firstSnapshotId)
+
+  const rebuiltPublication = await handlePublishDataset(db, {
+    rebuildPublishedSnapshot: true,
+    releaseId,
+  })
+
+  const snapshotRows = sqlite
+    .query(
+      'SELECT id, status, parentSnapshotId FROM snapshots WHERE id IN (?, ?) ORDER BY id',
+    )
+    .all(firstSnapshotId, rebuiltSnapshotId) as Array<{
+    id: string
+    status: string
+    parentSnapshotId: string | null
+  }>
+
+  sqlite.close()
+
+  expect(rebuiltPublication).toMatchObject({
+    apiReleaseSetStatus: 'current',
+    datasetId: 'dr-hk-overture-division-2026-02-18.0',
+    releaseId,
+    snapshotId: rebuiltSnapshotId,
+    status: 'current',
+  })
+  expect(rebuiltPublication.apiReleaseSetCode).toBeDefined()
+  expect(rebuiltPublication.apiReleaseSetCode).not.toBe(
+    firstPublication.apiReleaseSetCode,
+  )
+  expect(snapshotRows).toEqual([
+    { id: firstSnapshotId, status: 'published', parentSnapshotId: null },
+    {
+      id: rebuiltSnapshotId,
+      status: 'published',
+      parentSnapshotId: firstSnapshotId,
+    },
+  ])
+})
+
 test('marks the superseded dataset historic for same-cohort releases with different source dates', async () => {
   const tempDir = createTempDir()
   const dbPath = join(tempDir, 'harbour-publish-same-cohort.sqlite')

@@ -120,6 +120,7 @@ export async function processLocalDivisionSqlUpload(
     deferApiReleaseSet?: boolean
     deferSourcePublish?: boolean
     reuseExistingRelease?: boolean
+    rebuildPublishedSnapshot?: boolean
     skipSnapshotCleanup?: boolean
     /** Canonical input decoded directly from the registered native archive. */
     nativeRows?: Record<string, unknown>[]
@@ -341,7 +342,10 @@ export async function processLocalDivisionSqlUpload(
       dbContext.metaDb as never,
       initialMessage,
       environment,
-      { rebuildPublishedSnapshot: options.reuseExistingRelease },
+      {
+        rebuildPublishedSnapshot:
+          options.rebuildPublishedSnapshot ?? options.reuseExistingRelease,
+      },
     )
     if (!target.remote) {
       progress.update(8, {
@@ -892,9 +896,11 @@ export async function processLocalDivisionSqlUpload(
           releaseId,
           releaseCode,
           {
-            deferApiReleaseSet: options.deferApiReleaseSet,
+            deferApiReleaseSet:
+              options.deferApiReleaseSet && !options.rebuildPublishedSnapshot,
             deferSourcePublish: options.deferSourcePublish,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
+            rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
           },
         )
         published = true

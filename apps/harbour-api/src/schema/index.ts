@@ -365,6 +365,7 @@ export const PublishDatasetRequestSchema = z
         }),
       )
       .optional(),
+    rebuildPublishedSnapshot: z.boolean().optional(),
     deferApiReleaseSet: z.boolean().optional(),
     deferStatsReleaseSet: z.boolean().optional(),
     deferSourcePublish: z.boolean().optional(),

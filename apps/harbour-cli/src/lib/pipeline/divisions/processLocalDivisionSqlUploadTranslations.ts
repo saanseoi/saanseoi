@@ -15,6 +15,16 @@ import {
 import { DIVISION_BATCH_SIZE } from './processLocalDivisionSqlUploadConfig.ts'
 import { resolveParentDivisionIdFromHierarchy } from './processLocalDivisionSqlUploadPreparation.ts'
 
+function isCuratedIslandRow(row: Record<string, unknown>) {
+  const identifiers = row.identifiers
+  return Boolean(
+    identifiers &&
+      typeof identifiers === 'object' &&
+      !Array.isArray(identifiers) &&
+      'saanseoiIsland' in identifiers,
+  )
+}
+
 export async function resolveDivisionNameTranslations(
   file: Parameters<typeof buildDivisionHierarchyLookup>[0],
   message: DatasetProcessingMessage,
@@ -47,6 +57,7 @@ export async function resolveDivisionNameTranslations(
         hierarchyLookup,
         source: message,
         deferHierarchyGuard: replacedDivisionIds.has(String(row.id)),
+        skipGeographicHierarchyPatch: isCuratedIslandRow(row),
       })
       const parentDivisionId = resolveParentDivisionIdFromHierarchy(
         normalised.base.hierarchies,

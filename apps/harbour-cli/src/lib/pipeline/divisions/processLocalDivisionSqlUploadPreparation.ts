@@ -65,6 +65,16 @@ import {
 } from './processLocalDivisionSqlUploadTranslations.ts'
 import { DIVISION_BATCH_SIZE } from './processLocalDivisionSqlUploadConfig.ts'
 
+function isCuratedIslandRow(row: Record<string, unknown>) {
+  const identifiers = row.identifiers
+  return Boolean(
+    identifiers &&
+      typeof identifiers === 'object' &&
+      !Array.isArray(identifiers) &&
+      'saanseoiIsland' in identifiers,
+  )
+}
+
 export async function assertDivisionCurrentSnapshotComplete(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
   currentRows: Map<string, DivisionVersionSnapshot>,
@@ -239,6 +249,7 @@ export async function buildDivisionSqlState(
         source: message,
         branchCounts,
         hierarchyGuard,
+        skipGeographicHierarchyPatch: isCuratedIslandRow(raw),
       })
       if (normalised.overtureHongKongDivisionClassificationCorrection)
         processingActions.push(

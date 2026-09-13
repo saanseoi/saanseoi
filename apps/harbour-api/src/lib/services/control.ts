@@ -178,6 +178,10 @@ export async function handlePublishDataset(
       )
     }
     const domainCode = datasetMember.domainCode
+    const rebuildPublishedSnapshot =
+      request.rebuildPublishedSnapshot === true &&
+      datasetType === 'division' &&
+      dataset.source === 'overture'
     // Only the Geographic domain attaches separately selectable C&SD geometry to
     // Overture cohorts. Publisher-defined C&SD domains (such as Housing Market
     // Areas) publish their own canonical division and divisionArea release set.
@@ -209,7 +213,9 @@ export async function handlePublishDataset(
     // Census cohorts are independently selectable required inputs. Publishing
     // a later one must not supersede the earlier source release.
     const currentRelease =
-      isCenstatdGeographicGeometry || options.reconcileDraftReleaseSet
+      isCenstatdGeographicGeometry ||
+      options.reconcileDraftReleaseSet ||
+      rebuildPublishedSnapshot
         ? null
         : await getCurrentReleaseForDatasetId(
             db,
@@ -217,17 +223,18 @@ export async function handlePublishDataset(
             datasetType,
             dataset.releaseId,
           )
-    const existingReleaseSet = isCenstatdGeographicGeometry
-      ? null
-      : datasetType === 'divisionStatistic'
-        ? (options.releaseSet ?? null)
-        : (options.releaseSet ??
-          (await resolveReleaseSetForRelease(
-            db,
-            dataset.releaseId,
-            datasetType,
-            domainCode,
-          )))
+    const existingReleaseSet =
+      isCenstatdGeographicGeometry || rebuildPublishedSnapshot
+        ? null
+        : datasetType === 'divisionStatistic'
+          ? (options.releaseSet ?? null)
+          : (options.releaseSet ??
+            (await resolveReleaseSetForRelease(
+              db,
+              dataset.releaseId,
+              datasetType,
+              domainCode,
+            )))
     const draftReleaseSets =
       datasetVariant === 'hkgov-had'
         ? await listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
@@ -340,50 +347,61 @@ export async function handlePublishDataset(
         { domainCode },
       )
     }
-    const releaseSets = isCenstatdGeographicGeometry
-      ? await (async () => {
-          const releaseSets: Array<
-            NonNullable<Awaited<ReturnType<typeof ensureDraftReleaseSetForRelease>>>
-          > = []
-          // Create each revision in the same chronological order in which it
-          // is published, so the registry's publication ordering is stable.
-          for (const cohortKey of censtatdReleaseSetCohorts) {
-            const releaseSet = await ensureDeferredDraftReleaseSet(cohortKey)
-            if (releaseSet) releaseSets.push(releaseSet)
-          }
-          return releaseSets
-        })()
-      : datasetType === 'divisionStatistic'
+    const releaseSets = rebuildPublishedSnapshot
+      ? [
+          await ensureDraftReleaseSetForRelease(
+            db,
+            datasetType,
+            { cohortKey: dataset.cohortKey, regionCode: dataset.regionCode },
+            { domainCode },
+          ),
+        ]
+      : isCenstatdGeographicGeometry
         ? await (async () => {
-            if (options.releaseSet) return [options.releaseSet]
-            const sets = []
-            for (const snapshot of snapshots) {
-              sets.push(
-                await ensureDraftReleaseSetForRelease(
-                  db,
-                  datasetType,
-                  { cohortKey: snapshot.cohortKey, regionCode: dataset.regionCode },
-                  { domainCode },
-                ),
-              )
+            const releaseSets: Array<
+              NonNullable<Awaited<ReturnType<typeof ensureDraftReleaseSetForRelease>>>
+            > = []
+            // Create each revision in the same chronological order in which it
+            // is published, so the registry's publication ordering is stable.
+            for (const cohortKey of censtatdReleaseSetCohorts) {
+              const releaseSet = await ensureDeferredDraftReleaseSet(cohortKey)
+              if (releaseSet) releaseSets.push(releaseSet)
             }
-            return sets
+            return releaseSets
           })()
-        : draftReleaseSets.length > 0
-          ? draftReleaseSets
-          : await (async () => {
-              if (existingReleaseSet) {
-                if (
-                  request.deferApiReleaseSet &&
-                  existingReleaseSet.status !== 'draft'
-                ) {
-                  return []
-                }
-                return [existingReleaseSet]
+        : datasetType === 'divisionStatistic'
+          ? await (async () => {
+              if (options.releaseSet) return [options.releaseSet]
+              const sets = []
+              for (const snapshot of snapshots) {
+                sets.push(
+                  await ensureDraftReleaseSetForRelease(
+                    db,
+                    datasetType,
+                    { cohortKey: snapshot.cohortKey, regionCode: dataset.regionCode },
+                    { domainCode },
+                  ),
+                )
               }
-              const releaseSet = await ensureDeferredDraftReleaseSet(dataset.cohortKey)
-              return releaseSet ? [releaseSet] : []
+              return sets
             })()
+          : draftReleaseSets.length > 0
+            ? draftReleaseSets
+            : await (async () => {
+                if (existingReleaseSet) {
+                  if (
+                    request.deferApiReleaseSet &&
+                    existingReleaseSet.status !== 'draft'
+                  ) {
+                    return []
+                  }
+                  return [existingReleaseSet]
+                }
+                const releaseSet = await ensureDeferredDraftReleaseSet(
+                  dataset.cohortKey,
+                )
+                return releaseSet ? [releaseSet] : []
+              })()
     if (releaseSets.length === 0) {
       if (!request.deferSourcePublish) {
         await updateDatasetStatus(db, dataset.releaseId, 'published')

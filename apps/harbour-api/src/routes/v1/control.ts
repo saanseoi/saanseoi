@@ -329,8 +329,11 @@ export const publishDatasetRoute = defineOpenAPIRoute<
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
       const result = await handlePublishDataset(db, request, c.env.DATASET_QUEUE)
+      const deferred =
+        (request.deferApiReleaseSet && !request.rebuildPublishedSnapshot) ||
+        request.deferSourcePublish
       await finalisePublishedResources(db, c.env.DB_CURRENT, {
-        deferred: request.deferApiReleaseSet || request.deferSourcePublish,
+        deferred,
         publishedFamilies: (result.apiReleaseSetPublications ?? []).map(
           publication => publication.apiFamily,
         ),
@@ -342,7 +345,7 @@ export const publishDatasetRoute = defineOpenAPIRoute<
         ),
       })
       await finalisePublishedSearch(db, c.env.DB_CURRENT, {
-        deferred: request.deferApiReleaseSet || request.deferSourcePublish,
+        deferred,
         publishedFamilies: (result.apiReleaseSetPublications ?? []).map(
           publication => publication.apiFamily,
         ),
