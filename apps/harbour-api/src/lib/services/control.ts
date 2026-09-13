@@ -262,7 +262,7 @@ export async function handlePublishDataset(
       }
       if (!request.deferSourcePublish) {
         await updateDatasetStatus(db, dataset.releaseId, 'published')
-        for (const snapshot of snapshots) {
+        for (const snapshot of materialisedSnapshots) {
           if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
         }
       }
@@ -275,7 +275,7 @@ export async function handlePublishDataset(
             ? []
             : await resolvePublishedSnapshotMetadataDeltas(
                 db,
-                snapshots.map(snapshot => snapshot.id),
+                materialisedSnapshots.map(snapshot => snapshot.id),
               ),
         ),
         phase: null,
@@ -292,11 +292,21 @@ export async function handlePublishDataset(
     if (isFallbackCenstatdGeographicGeometry) {
       if (!request.deferSourcePublish) {
         await updateDatasetStatus(db, dataset.releaseId, 'published')
+        for (const snapshot of materialisedSnapshots) {
+          if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
+        }
       }
       return {
         datasetId: dataset.releaseCode,
         metadataDelta: publishMetadataDelta(
           request.deferSourcePublish ? null : dataset.releaseId,
+          undefined,
+          request.deferSourcePublish
+            ? []
+            : await resolvePublishedSnapshotMetadataDeltas(
+                db,
+                materialisedSnapshots.map(snapshot => snapshot.id),
+              ),
         ),
         phase: null,
         releaseCode: dataset.releaseCode,

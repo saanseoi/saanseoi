@@ -13,6 +13,7 @@ import {
   handlePublishDataset,
   handleStageFailed,
   initDb,
+  seedCompletedAudits,
 } from './controlFixtures.fixtures.ts'
 
 test('publishes a dataset snapshot without finalising a shared source release', async () => {
@@ -171,6 +172,83 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       .get(result.apiReleaseSetId),
   ).toEqual({ cohortKey: '2022' })
   expect(release.status).toBe('processing')
+  sqlite.close()
+})
+
+test('publishes every annual snapshot attached to fallback C&SD geometry', async () => {
+  const tempDir = createTempDir()
+  const sqlite = initDb(join(tempDir, 'harbour-control-fallback-geometry.sqlite'))
+  const db = createLocalHarbourDb(sqlite)
+  const datasetId = 'dataset-censtatd-annual-district'
+  const datasetCode =
+    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  const releaseId = 'release-censtatd-annual-district-2026-q2-area'
+  sqlite.exec(`
+    INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt)
+    VALUES ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher-fallback', 1761264000000, 1761264000000);
+    INSERT INTO datasets (
+      id, publisherId, code, regionCode, releaseType, releaseFrequency,
+      theme, sourceVariant, versionHash, createdAt, updatedAt
+    ) VALUES (
+      '${datasetId}', 'publisher-hkgov-censtatd', '${datasetCode}', 'hk',
+      'static', 'yearly', 'divisions', 'official-statistics',
+      'vh-dataset-fallback', 1761264000000, 1761264000000
+    );
+    UPDATE datasets
+    SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea')
+    WHERE id = '${datasetId}'
+      AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+    INSERT OR IGNORE INTO apiCompositionMembers (
+      apiCompositionId, domainCode, resourceType, variant, role, isRequired,
+      cohortMatchingMode, priority
+    ) VALUES (
+      'api-composition-divisions-v1', 'geographic', 'divisionArea',
+      'hkgov-censtatd', 'geometry', 0, 'latest_at_or_before_cohort_per_dataset', 90
+    );
+    INSERT INTO sourceReleases (id, datasetId, code, sourceVersion, cohortKey, status)
+    VALUES (
+      '${releaseId}', '${datasetId}', 'sr-censtatd-annual-district-2026-q2',
+      '2026-Q2', '2026-Q2', 'processing'
+    );
+    INSERT INTO releases (
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
+      geometryStatus, rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+    ) VALUES (
+      '${releaseId}', '${releaseId}', '${datasetId}', 'divisionArea',
+      'dr-hk-hkgov-censtatd-annual-district-2026-q2-area', '2026-Q2', '2026-Q2',
+      'fallback', 'hk/hkgov-censtatd/2026-Q2/area.parquet', 'area.parquet',
+      'processing', '2026-09-13T00:00:00.000Z', '2026-09-13T00:00:00.000Z',
+      '2026-09-13T00:00:00.000Z'
+    );
+  `)
+  const snapshotIds: string[] = []
+  for (const cohortKey of ['2016', '2017']) {
+    for (const variant of ['hkgov-censtatd', 'hkgov-censtatd:simplified']) {
+      const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionArea', {
+        cohortKey,
+        datasetCode,
+        datasetId,
+        regionCode: 'hk',
+        sourceReleaseId: releaseId,
+        variant,
+      })
+      await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary')
+      snapshotIds.push(snapshot.id)
+    }
+  }
+  seedCompletedAudits(sqlite)
+
+  const result = await handlePublishDataset(db, { releaseId })
+
+  expect(
+    sqlite
+      .query('SELECT id, status FROM snapshots WHERE id IN (?, ?, ?, ?) ORDER BY id')
+      .all(...snapshotIds),
+  ).toEqual([...snapshotIds].sort().map(id => ({ id, status: 'published' })))
+  expect(
+    (result.metadataDelta?.snapshots ?? []).map(snapshot => snapshot.id).sort(),
+  ).toEqual([...snapshotIds].sort())
+  expect(result).toMatchObject({ status: 'published', releaseId })
   sqlite.close()
 })
 
