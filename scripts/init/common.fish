@@ -172,7 +172,32 @@ end
 function init_skip_completed_release
     set -l release_code $argv[1]
     if init_is_completed_release "$release_code"
+        if test "$saanseoi_init_target" = local; and init_release_needs_island_reprocessing "$release_code"
+            return 1
+        end
         set -a saanseoi_init_skipped_release_codes "$release_code"
+        return 0
+    end
+    return 1
+end
+
+function init_release_needs_island_reprocessing
+    set -l release_code $argv[1]
+    if not string match -qr '^dr-hk-overture-division-[0-9]{4}-[0-9]{2}-[0-9]{2}\.0$' -- "$release_code"
+        return 1
+    end
+
+    set -l marker "$saanseoi_init_repo/.local/harbour/islands/materialised/$release_code"
+    if not test -f "$marker"
+        return 0
+    end
+
+    set -l fixture "$saanseoi_init_repo/fixtures/meta/curations/saanseoi-island-review.json"
+    set -l inventory "$saanseoi_init_repo/apps/basemap-viewer/src/local-review/islands/inventory.json"
+    if test -f "$fixture"; and test "$fixture" -nt "$marker"
+        return 0
+    end
+    if test -f "$inventory"; and test "$inventory" -nt "$marker"
         return 0
     end
     return 1
@@ -191,8 +216,14 @@ function init_run_upload
     set -e argv[1]
     set -g saanseoi_init_last_upload_processed 0
 
+    set -l reprocess_args
     if init_skip_completed_release "$release_code"
         return 0
+    end
+    if test "$saanseoi_init_target" = local; and init_is_completed_release "$release_code"
+        if string match -qr '^dr-hk-overture-division-[0-9]{4}-[0-9]{2}-[0-9]{2}\.0$' -- "$release_code"
+            set reprocess_args --force
+        end
     end
 
     set -l retry_args
@@ -207,7 +238,7 @@ function init_run_upload
         set cache_artefact_args --cacheArtefacts
     end
     SAANSEOI_INIT_RELEASE_CODE=$release_code ./bin/saanseoi upload \
-        --target $saanseoi_init_target $argv $retry_args $cache_artefact_args
+        --target $saanseoi_init_target $argv $reprocess_args $retry_args $cache_artefact_args
     set -l upload_status $status
     if test $upload_status -ne 0
         set -g saanseoi_init_upload_failures 1
@@ -215,6 +246,10 @@ function init_run_upload
         init_fail $upload_status
     end
     set -g saanseoi_init_last_upload_processed 1
+    if test "$saanseoi_init_target" = local; and string match -qr '^dr-hk-overture-division-[0-9]{4}-[0-9]{2}-[0-9]{2}\.0$' -- "$release_code"
+        mkdir -p "$saanseoi_init_repo/.local/harbour/islands/materialised"
+        touch "$saanseoi_init_repo/.local/harbour/islands/materialised/$release_code"
+    end
 end
 
 function init_publish_docs_if_processed
