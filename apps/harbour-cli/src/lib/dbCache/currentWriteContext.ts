@@ -50,6 +50,7 @@ export async function resolveCurrentWriteContext(
   options: {
     resumeSqlDeliveryReleaseId?: string
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
+    sourceShardYear?: string
   } = {},
 ) {
   const open = () =>

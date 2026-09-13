@@ -10,6 +10,7 @@ import {
   applyPublishMetadataDeltaToRemoteCache,
   resolveCachePruneOperation,
   resolveCacheTablesForBinding,
+  resolvePrimaryShardBindingNames,
   resolveShardBindingName,
 } from './localDbCache.ts'
 import {
@@ -52,6 +53,13 @@ test('uses the annual D1 shard for a dated release version', () => {
   expect(resolveShardBindingName('source', 'HK', '2024-12-31.0')).toBe(
     'DB_SOURCE_HK_BEFORE',
   )
+})
+
+test('selects independent primary history and source shards', () => {
+  expect(resolvePrimaryShardBindingNames('HK', '2016', '2026-Q2')).toEqual({
+    historyBindingName: 'DB_HISTORY_HK_BEFORE',
+    sourceBindingName: 'DB_SOURCE_HK_2026',
+  })
 })
 
 test('mirrors only rows retained by annual shard cache pruning', () => {

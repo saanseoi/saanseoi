@@ -142,25 +142,36 @@ export async function resolveGeometryPreparationContext(
     releaseId: string
     resourceType: string
     preparedSha256: string
+    sourceShardYear?: string
     onProgress?: (event: LocalDbCacheProgressEvent) => Promise<void> | void
   },
 ) {
   const baseline = await resolveCurrentWriteContext(target, regionCode, shardYear, {
     resumeSqlDeliveryReleaseId: options.releaseId,
     onProgress: options.onProgress,
+    sourceShardYear: options.sourceShardYear,
   })
   if (!target.remote) return baseline
   try {
+    const historyYear = shardYear.slice(0, 4)
+    const sourceYear = (options.sourceShardYear ?? shardYear).slice(0, 4)
+    const phaseSuffix = historyYear !== sourceYear ? `-${historyYear}` : ''
     const prepared = await prepareGeometryMirror({
       context: baseline,
       releaseId: options.releaseId,
-      phase: `geometry-preparation-${options.resourceType.toLowerCase()}`,
-      inputs: { regionCode, shardYear, preparedSha256: options.preparedSha256 },
+      phase: `geometry-preparation-${options.resourceType.toLowerCase()}${phaseSuffix}`,
+      inputs: {
+        regionCode,
+        shardYear,
+        sourceShardYear: options.sourceShardYear ?? shardYear,
+        preparedSha256: options.preparedSha256,
+      },
     })
     return await resolveLocalAddressDbContext(target, regionCode, shardYear, {
       resumeSqlDeliveryReleaseId: options.releaseId,
       includeAllHistoryShardYears: true,
       includeAllSourceShardYears: true,
+      sourceShardYear: options.sourceShardYear,
       requireExistingRemoteCache: true,
       // The disposable context is already validated. Its explicit path is not
       // accepted by the public shared-baseline acquisition helper.

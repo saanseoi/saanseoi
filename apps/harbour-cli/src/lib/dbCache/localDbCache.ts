@@ -50,6 +50,25 @@ import { assertCachedDatabaseHasExpectedTables } from './localDbCacheProfiles.ts
 import { assertSqlDeliveryPlanningAllowed } from '../pipeline/local/sqlDeliveryPending.ts'
 import { executeNativeSqlStatements } from '../pipeline/local/nativeSqlStatements.ts'
 
+export function resolvePrimaryShardBindingNames(
+  regionCodeToken: string,
+  historyShardYear: string,
+  sourceShardYear = historyShardYear,
+) {
+  return {
+    historyBindingName: resolveShardBindingName(
+      'history',
+      regionCodeToken,
+      historyShardYear,
+    ),
+    sourceBindingName: resolveShardBindingName(
+      'source',
+      regionCodeToken,
+      sourceShardYear,
+    ),
+  }
+}
+
 export async function resolveLocalAddressDbContext(
   target: UploadTarget,
   regionCode: string,
@@ -61,6 +80,8 @@ export async function resolveLocalAddressDbContext(
     includeAllHistoryShardYears?: boolean
     includeAllSourceShardYears?: boolean
     includePreviousShardYears?: boolean
+    /** Open source assertions from their publisher release year when it differs. */
+    sourceShardYear?: string
     requireExistingRemoteCache?: boolean
     refreshRemoteCache?: boolean
     refreshRemoteTables?: boolean
@@ -70,17 +91,16 @@ export async function resolveLocalAddressDbContext(
   const targetName = resolveTargetName(target)
   const targetRecords = await resolveD1Targets(targetName)
   const regionCodeToken = regionCode.trim().toUpperCase()
-  const annualShardYear = resolveAnnualShardYear(shardYear)
-  const shardYearNumber = Number.parseInt(annualShardYear, 10)
-  const historyBindingName = resolveShardBindingName(
-    'history',
-    regionCodeToken,
-    annualShardYear,
+  const annualHistoryShardYear = resolveAnnualShardYear(shardYear)
+  const annualSourceShardYear = resolveAnnualShardYear(
+    options.sourceShardYear ?? shardYear,
   )
-  const sourceBindingName = resolveShardBindingName(
-    'source',
+  const historyShardYearNumber = Number.parseInt(annualHistoryShardYear, 10)
+  const sourceShardYearNumber = Number.parseInt(annualSourceShardYear, 10)
+  const { historyBindingName, sourceBindingName } = resolvePrimaryShardBindingNames(
     regionCodeToken,
-    annualShardYear,
+    annualHistoryShardYear,
+    annualSourceShardYear,
   )
   const requiredBindingNames = [
     'DB_META',
@@ -135,11 +155,11 @@ export async function resolveLocalAddressDbContext(
 
     return (
       (historyYear !== null &&
-        Number.isInteger(shardYearNumber) &&
-        historyYear < shardYearNumber) ||
+        Number.isInteger(historyShardYearNumber) &&
+        historyYear < historyShardYearNumber) ||
       (sourceYear !== null &&
-        Number.isInteger(shardYearNumber) &&
-        sourceYear < shardYearNumber)
+        Number.isInteger(sourceShardYearNumber) &&
+        sourceYear < sourceShardYearNumber)
     )
   })
   const requiredTargetRecordsByBindingName = new Map(
@@ -186,7 +206,7 @@ export async function resolveLocalAddressDbContext(
     requiredTargetRecordsByBindingName,
     dbPaths,
     regionCodeToken,
-    annualShardYear,
+    annualHistoryShardYear,
     history,
     options.includeAllHistoryShardYears,
   )
@@ -194,7 +214,7 @@ export async function resolveLocalAddressDbContext(
     requiredTargetRecordsByBindingName,
     dbPaths,
     regionCodeToken,
-    annualShardYear,
+    annualSourceShardYear,
     source,
     options.includeAllSourceShardYears,
   )
