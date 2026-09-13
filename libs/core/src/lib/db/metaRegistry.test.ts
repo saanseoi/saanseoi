@@ -1763,6 +1763,25 @@ describe('ensureDraftSnapshotForRelease', () => {
     sqlite.close()
   })
 
+  test('reuses an interrupted root snapshot without adopting the selected predecessor', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    const args = {
+      cohortKey: '2026-04-15.0',
+      datasetCode: 'ds-hk-overture-place',
+      datasetId: 'dataset-overture-place',
+      regionCode: 'hk',
+      sourceReleaseId: 'release-2026-04-15',
+      variant: 'overture-places',
+      rootSnapshot: true,
+    }
+    const first = await ensureDraftSnapshotForRelease(db as never, 'address', args)
+    expect(first.parentSnapshotId).toBeNull()
+
+    const retry = await ensureDraftSnapshotForRelease(db as never, 'address', args)
+    expect(retry).toMatchObject({ id: first.id, parentSnapshotId: null, revision: 0 })
+    sqlite.close()
+  })
+
   test('does not parent a new cohort in a cohort-scoped lineage', async () => {
     const { db, sqlite } = createDraftSnapshotDb()
     const args = {
