@@ -87,7 +87,7 @@ for year in 2016 2021
     init_run_upload "dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-$year::divisionArea" "$file" \
         --dataset-code ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district \
         --source hkgov-censtatd --source-version $year \
-        --type divisionArea --theme divisions --region hk --cohort-key $year \
+        --resource-type divisionArea --theme divisions --region hk --cohort-key $year \
         --yes $historical_cohort_args $defer_release_set_args
     init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
