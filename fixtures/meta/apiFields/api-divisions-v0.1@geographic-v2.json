@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a267191795b4f2910d797750e3cba39afc32be109a759cfb790070e0ad04f161",
+  "versionHash": "sha256:8ef90f2f4354d9596867b3d5ff8666e238b1acab6bf5bc1919f6f9040b52abd7",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 2,
@@ -11,6 +11,10 @@
       "max": "1.0"
     },
     "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district": {
       "min": "1.0",
       "max": "1.0"
     },
@@ -92,6 +96,27 @@
       "datasetCodes": [
         "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
         "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-2026-02-18.0",
+        "ss-hk-division-2026-02-18.1",
+        "ss-hk-division-2026-03-18.0",
+        "ss-hk-division-2026-04-15.0",
+        "ss-hk-division-2026-05-20.0",
+        "ss-hk-division-2026-06-17.0",
+        "ss-hk-division-2026-06-24.0",
+        "ss-hk-division-2026-07-22.0",
+        "ss-hk-division-2026-08-19.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
         "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
         "ds-hk-hkgov-had-division-area-district",
         "ds-hk-overture-division",
