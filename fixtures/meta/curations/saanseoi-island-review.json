@@ -1,18 +1,373 @@
 {
   "sourceRelease": "2026-06-10.0",
+  "basemapRelease": "refresh-hk-2026-09-01",
   "coastlineRelease": "2026-09-01",
+  "geometryPolicyVersion": 1,
+  "curationPolicy": {
+    "version": 1,
+    "actions": [
+      {
+        "id": "LANDSD:PLACE_NAME:1030",
+        "action": "geometry-correction",
+        "operation": "use-named-basemap-geometry",
+        "reason": "Remove Mun Lau Keng before emitting the island geometry."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:2446",
+        "action": "geometry-correction",
+        "operation": "use-named-basemap-geometry",
+        "reason": "Remove piers and jetties from the island geometry."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:28",
+        "action": "geometry-correction",
+        "operation": "use-named-basemap-geometry",
+        "reason": "Retain Ap Lei Chau as its own named island polygon."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:30",
+        "action": "geometry-correction",
+        "operation": "use-named-basemap-geometry",
+        "reason": "Retain Ap Lei Pai as its own named island polygon and keep Ap Lei Pai Teng as an alias."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:1780",
+        "action": "geometry-correction",
+        "operation": "use-named-basemap-geometry",
+        "reason": "Remove the Kiu Tau tombolo and attached piers."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:703",
+        "action": "geometry-correction",
+        "operation": "retain-kiu-tau-polygons",
+        "reason": "Remove Sharp Island and the tombolo, retaining only the Kiu Tau polygon.",
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                114.2873017,
+                22.364063
+              ],
+              [
+                114.2873157,
+                22.3639952
+              ],
+              [
+                114.2873354,
+                22.3639725
+              ],
+              [
+                114.2873377,
+                22.3639286
+              ],
+              [
+                114.2873757,
+                22.3638929
+              ],
+              [
+                114.2873462,
+                22.3638052
+              ],
+              [
+                114.2873561,
+                22.363727
+              ],
+              [
+                114.2872562,
+                22.3636719
+              ],
+              [
+                114.2872243,
+                22.3636283
+              ],
+              [
+                114.2871647,
+                22.3636278
+              ],
+              [
+                114.2871104,
+                22.3636016
+              ],
+              [
+                114.287074,
+                22.3634669
+              ],
+              [
+                114.2871447,
+                22.3633763
+              ],
+              [
+                114.2871367,
+                22.3632925
+              ],
+              [
+                114.2872294,
+                22.3631875
+              ],
+              [
+                114.2872674,
+                22.3629332
+              ],
+              [
+                114.2871987,
+                22.3628811
+              ],
+              [
+                114.2871841,
+                22.3628044
+              ],
+              [
+                114.2871785,
+                22.3627298
+              ],
+              [
+                114.2871643,
+                22.3626394
+              ],
+              [
+                114.2870804,
+                22.3625695
+              ],
+              [
+                114.2870907,
+                22.3624565
+              ],
+              [
+                114.2870055,
+                22.3623129
+              ],
+              [
+                114.2868914,
+                22.3622596
+              ],
+              [
+                114.2868093,
+                22.362263
+              ],
+              [
+                114.2866689,
+                22.3624134
+              ],
+              [
+                114.2866491,
+                22.3624823
+              ],
+              [
+                114.2860362,
+                22.362977
+              ],
+              [
+                114.285908,
+                22.3630142
+              ],
+              [
+                114.2858781,
+                22.3630949
+              ],
+              [
+                114.285915,
+                22.3631773
+              ],
+              [
+                114.2861437,
+                22.363458
+              ],
+              [
+                114.2862823,
+                22.3635481
+              ],
+              [
+                114.2863572,
+                22.363656
+              ],
+              [
+                114.2864333,
+                22.3636974
+              ],
+              [
+                114.2864828,
+                22.3638083
+              ],
+              [
+                114.2865378,
+                22.3639839
+              ],
+              [
+                114.2866292,
+                22.3641199
+              ],
+              [
+                114.2866932,
+                22.3642405
+              ],
+              [
+                114.286753,
+                22.3643198
+              ],
+              [
+                114.2868548,
+                22.3644025
+              ],
+              [
+                114.2869024,
+                22.3644103
+              ],
+              [
+                114.2870292,
+                22.3643894
+              ],
+              [
+                114.2870633,
+                22.3643643
+              ],
+              [
+                114.2873025,
+                22.3644423
+              ],
+              [
+                114.2873017,
+                22.364063
+              ]
+            ]
+          ]
+        }
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:2028",
+        "action": "geometry-correction",
+        "operation": "use-named-basemap-geometry",
+        "reason": "Remove the tied neighbouring island from the geometry."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:2820",
+        "action": "geometry-correction",
+        "operation": "use-named-basemap-geometry",
+        "reason": "Remove piers from the island geometry."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:2059",
+        "action": "geometry-correction",
+        "operation": "use-named-basemap-geometry",
+        "maxDistanceMetres": 500,
+        "reason": "Use the actual island geometry south-west of the publisher point."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:1688",
+        "action": "geometry-correction",
+        "operation": "use-named-basemap-geometry",
+        "reason": "Remove the pier from the island geometry."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:2498",
+        "action": "merge",
+        "reason": "Alias of East Ninepin Island."
+      },
+      {
+        "id": "LANDSD:PLACE_NAME:315",
+        "action": "merge",
+        "reason": "Canonical identity for the East Ninepin Island aliases."
+      },
+      {
+        "id": "BASEMAP:ISLAND:266c51869482fb83",
+        "action": "exclude",
+        "reason": "Cham Keng Chau is not an island."
+      },
+      {
+        "id": "BASEMAP:ISLAND:1ebcc96ecac43477",
+        "action": "exclude",
+        "reason": "Comber Rock is a rock, and rocks are excluded from the island collection."
+      },
+      {
+        "id": "BASEMAP:ISLAND:0fa46f8d1b2566d8",
+        "action": "exclude",
+        "reason": "Cross-Connection Chamber is infrastructure, not an island."
+      },
+      {
+        "id": "BASEMAP:ISLAND:6abefd0f6d7c510c",
+        "action": "exclude",
+        "reason": "High Island is deferred pending a later former-island landform decision."
+      },
+      {
+        "id": "BASEMAP:ISLAND:b38ed58be971ac84",
+        "action": "no-geometry",
+        "reviewRequired": false,
+        "reason": "North Rock has only a point geometry."
+      },
+      {
+        "id": "BASEMAP:ISLAND:105f9853bcaf06ec",
+        "action": "exclude",
+        "reason": "P17 is infrastructure."
+      },
+      {
+        "id": "BASEMAP:ISLAND:f58f9349cec93ac8",
+        "action": "exclude",
+        "reason": "P18 is infrastructure."
+      },
+      {
+        "id": "BASEMAP:ISLAND:a331387e771578fb",
+        "action": "exclude",
+        "reason": "P19 is infrastructure."
+      },
+      {
+        "id": "BASEMAP:ISLAND:c1e2cf4aaa4b3565",
+        "action": "exclude",
+        "reason": "P20 is infrastructure."
+      },
+      {
+        "id": "BASEMAP:ISLAND:5801d1bf0ecae739",
+        "action": "merge",
+        "reason": "Alias of the LandsD Ping Chau identity."
+      },
+      {
+        "id": "BASEMAP:ISLAND:00e285208161a7e1",
+        "action": "reclassify",
+        "class": "island_group",
+        "reason": "Ung Kong Group is a group label, not an island."
+      },
+      {
+        "id": "BASEMAP:ISLAND:20b1ab86f2fddb31",
+        "action": "no-geometry",
+        "reviewRequired": false,
+        "reason": "Yim Tin Pai has only a point geometry."
+      }
+    ],
+    "aliasGroups": [
+      {
+        "canonicalId": "LANDSD:PLACE_NAME:315",
+        "aliasIds": [
+          "LANDSD:PLACE_NAME:2498"
+        ],
+        "reason": "Tuen Chau Tsai and East Ninepin Island are aliases for one physical island."
+      },
+      {
+        "canonicalId": "LANDSD:PLACE_NAME:1487",
+        "aliasIds": [
+          "BASEMAP:ISLAND:5801d1bf0ecae739"
+        ],
+        "reason": "Tung Ping Chau is the basemap name for the Ping Chau identity."
+      }
+    ]
+  },
   "entries": [
     {
       "id": "LANDSD:PLACE_NAME:1030",
       "name": "Ma Shi Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 801.5785671916827,
       "decision": "rejected",
       "note": "Tied island which can be obtained after removing 'Mun Lau Keng'",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "remove-tied-land"
     },
     {
       "id": "LANDSD:PLACE_NAME:838",
       "name": "Lantau Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 149.28906278656532,
       "decision": "accepted",
       "note": "",
@@ -21,6 +376,9 @@
     {
       "id": "LANDSD:PLACE_NAME:539",
       "name": "Hong Kong Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 78.64951481340248,
       "decision": "accepted",
       "note": "",
@@ -29,6 +387,9 @@
     {
       "id": "LANDSD:PLACE_NAME:141",
       "name": "Chek Lap Kok",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 21.104888126052845,
       "decision": "accepted",
       "note": "",
@@ -37,6 +398,9 @@
     {
       "id": "LANDSD:PLACE_NAME:829",
       "name": "Lamma Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 13.92958980530268,
       "decision": "accepted",
       "note": "",
@@ -45,14 +409,21 @@
     {
       "id": "LANDSD:PLACE_NAME:2446",
       "name": "Tsing Yi",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 10.682075012837855,
       "decision": "rejected",
       "note": "There is inconsistent treatment or piers and jetties, which should not become part of the island",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "remove-man-made-attachments"
     },
     {
       "id": "LANDSD:PLACE_NAME:662",
       "name": "Kau Sai Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 6.411640561012925,
       "decision": "accepted",
       "note": "",
@@ -61,6 +432,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1525",
       "name": "Po Toi",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 3.684190743183206,
       "decision": "accepted",
       "note": "",
@@ -69,6 +443,9 @@
     {
       "id": "LANDSD:PLACE_NAME:146",
       "name": "Cheung Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 2.4727780261245105,
       "decision": "accepted",
       "note": "",
@@ -77,6 +454,9 @@
     {
       "id": "LANDSD:PLACE_NAME:291",
       "name": "Crooked Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 2.445153966798689,
       "decision": "accepted",
       "note": "",
@@ -85,6 +465,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2524",
       "name": "Tung Lung Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 2.422425385415029,
       "decision": "accepted",
       "note": "",
@@ -93,6 +476,9 @@
     {
       "id": "LANDSD:PLACE_NAME:310",
       "name": "Double Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 2.24692696552537,
       "decision": "accepted",
       "note": "",
@@ -101,6 +487,9 @@
     {
       "id": "LANDSD:PLACE_NAME:478",
       "name": "Hei Ling Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.9517563102769306,
       "decision": "accepted",
       "note": "",
@@ -109,6 +498,9 @@
     {
       "id": "LANDSD:PLACE_NAME:575",
       "name": "Jin Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.8309605677692407,
       "decision": "accepted",
       "note": "",
@@ -117,6 +509,9 @@
     {
       "id": "LANDSD:PLACE_NAME:403",
       "name": "Grass Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.709895230929446,
       "decision": "accepted",
       "note": "",
@@ -125,22 +520,36 @@
     {
       "id": "LANDSD:PLACE_NAME:28",
       "name": "Ap Lei Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.4095389800058082,
       "decision": "rejected",
       "note": "Its tied island, \"Ap Lei Pai Teng\" is included.",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "separate-tied-islands"
     },
     {
       "id": "LANDSD:PLACE_NAME:30",
       "name": "Ap Lei Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.4095389800058082,
       "decision": "rejected",
       "note": "This is a tied island, \"Ap Lei Chau\" should be excluded",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "separate-tied-islands",
+      "alternativesEn": [
+        "Ap Lei Pai Teng"
+      ]
     },
     {
       "id": "LANDSD:PLACE_NAME:1487",
       "name": "Ping Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.1976115107621401,
       "decision": "accepted",
       "note": "",
@@ -149,6 +558,9 @@
     {
       "id": "LANDSD:PLACE_NAME:53",
       "name": "Beaufort Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.1888668540603093,
       "decision": "accepted",
       "note": "",
@@ -157,6 +569,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2054",
       "name": "Tai A Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.18624163139051,
       "decision": "accepted",
       "note": "",
@@ -165,6 +580,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1805",
       "name": "Shek Kwu Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.1725134949596963,
       "decision": "accepted",
       "note": "",
@@ -173,22 +591,33 @@
     {
       "id": "LANDSD:PLACE_NAME:1780",
       "name": "Sharp Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.0319000676394074,
       "decision": "rejected",
       "note": "Exclude the Tombolo that connects it to Kiu Tau Teng. And there are some additional piers included in the island shape that probably should be",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "remove-tombolo-and-man-made-attachments"
     },
     {
       "id": "LANDSD:PLACE_NAME:703",
       "name": "Kiu Tau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 1.0319000676394074,
       "decision": "rejected",
       "note": "It's connected to \"Sharp Island\" though the Tombolo, and shouldn't be,",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "remove-tombolo-and-man-made-attachments"
     },
     {
       "id": "LANDSD:PLACE_NAME:1476",
       "name": "Peng Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.9965841207957675,
       "decision": "accepted",
       "note": "",
@@ -197,6 +626,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1043",
       "name": "Ma Wan",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.9843740306196155,
       "decision": "accepted",
       "note": "",
@@ -205,6 +637,9 @@
     {
       "id": "LANDSD:PLACE_NAME:287",
       "name": "Crescent Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.9531449822646317,
       "decision": "accepted",
       "note": "",
@@ -213,6 +648,9 @@
     {
       "id": "LANDSD:PLACE_NAME:47",
       "name": "Basalt Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.8118984793442837,
       "decision": "accepted",
       "note": "",
@@ -221,6 +659,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1956",
       "name": "Siu A Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.7201587303396255,
       "decision": "accepted",
       "note": "",
@@ -229,6 +670,9 @@
     {
       "id": "LANDSD:PLACE_NAME:64",
       "name": "Bluff Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.6788180217404745,
       "decision": "accepted",
       "note": "",
@@ -237,6 +681,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2386",
       "name": "Town Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.6430771746260505,
       "decision": "accepted",
       "note": "",
@@ -245,6 +692,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1866",
       "name": "Shelter Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.5661964733900365,
       "decision": "accepted",
       "note": "",
@@ -253,6 +703,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2033",
       "name": "Sunshine Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.5439134681422205,
       "decision": "accepted",
       "note": "",
@@ -261,6 +714,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2210",
       "name": "Tai Tau Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.5415558303187972,
       "decision": "accepted",
       "note": "",
@@ -269,14 +725,21 @@
     {
       "id": "LANDSD:PLACE_NAME:2028",
       "name": "Sung Kong",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.4787933203319481,
       "decision": "rejected",
       "note": "it's connected to a tied island and shouldn't be",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "remove-tied-land"
     },
     {
       "id": "LANDSD:PLACE_NAME:1541",
       "name": "Port Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.46611705161044864,
       "decision": "accepted",
       "note": "",
@@ -285,6 +748,9 @@
     {
       "id": "LANDSD:PLACE_NAME:985",
       "name": "Lung Kwu Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.38752996384174937,
       "decision": "accepted",
       "note": "",
@@ -293,14 +759,21 @@
     {
       "id": "LANDSD:PLACE_NAME:2820",
       "name": "Yim Tin Tsai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.3045450019759174,
       "decision": "rejected",
       "note": "Some piers are included, and probably shouldn't be.",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "remove-man-made-attachments"
     },
     {
       "id": "LANDSD:PLACE_NAME:1335",
       "name": "North Ninepin Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.24765631572819502,
       "decision": "accepted",
       "note": "",
@@ -309,6 +782,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1110",
       "name": "Middle Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.23628234100740506,
       "decision": "accepted",
       "note": "",
@@ -317,6 +793,9 @@
     {
       "id": "LANDSD:PLACE_NAME:677",
       "name": "Kau Yi Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.22967163531499157,
       "decision": "accepted",
       "note": "",
@@ -325,6 +804,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2008",
       "name": "South Ninepin Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.21345704417291936,
       "decision": "accepted",
       "note": "",
@@ -333,14 +815,21 @@
     {
       "id": "LANDSD:PLACE_NAME:2059",
       "name": "Tai Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.21345704417291936,
       "decision": "rejected",
       "note": "the island is slightly to the south west, the marker is in the wrong place",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "re-anchor-to-island"
     },
     {
       "id": "LANDSD:PLACE_NAME:2614",
       "name": "Wang Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.20377878119888715,
       "decision": "accepted",
       "note": "",
@@ -349,6 +838,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2791",
       "name": "Yeung Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.16461178205187013,
       "decision": "accepted",
       "note": "",
@@ -357,6 +849,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1573",
       "name": "Round Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.1420125100505684,
       "decision": "accepted",
       "note": "",
@@ -365,6 +860,9 @@
     {
       "id": "LANDSD:PLACE_NAME:405",
       "name": "Green Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.12663475659938647,
       "decision": "accepted",
       "note": "",
@@ -373,6 +871,9 @@
     {
       "id": "LANDSD:PLACE_NAME:5070",
       "name": "West Brother",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.1253863949280664,
       "decision": "accepted",
       "note": "",
@@ -381,14 +882,21 @@
     {
       "id": "LANDSD:PLACE_NAME:1688",
       "name": "Sha Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.12455076533927079,
       "decision": "rejected",
       "note": "The pier should maybe excluded",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "remove-man-made-attachments"
     },
     {
       "id": "LANDSD:PLACE_NAME:5061",
       "name": "East Brother",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.11085692348708212,
       "decision": "accepted",
       "note": "",
@@ -397,6 +905,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2017",
       "name": "Steep Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.09586601762909785,
       "decision": "accepted",
       "note": "",
@@ -405,6 +916,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2743",
       "name": "Wong Yi Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.09377426376380678,
       "decision": "accepted",
       "note": "",
@@ -413,6 +927,9 @@
     {
       "id": "LANDSD:PLACE_NAME:959",
       "name": "Luk Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.08298996564682154,
       "decision": "accepted",
       "note": "",
@@ -421,6 +938,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2793",
       "name": "Yeung Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.07747606662014243,
       "decision": "accepted",
       "note": "",
@@ -429,6 +949,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1471",
       "name": "Peaked Hill",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.07556695843410503,
       "decision": "accepted",
       "note": "",
@@ -437,6 +960,9 @@
     {
       "id": "LANDSD:PLACE_NAME:48",
       "name": "Bay Islet",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.07013675677746709,
       "decision": "accepted",
       "note": "",
@@ -445,6 +971,9 @@
     {
       "id": "LANDSD:PLACE_NAME:780",
       "name": "Kwun Cham Wan",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.06478441035875213,
       "decision": "accepted",
       "note": "",
@@ -453,6 +982,9 @@
     {
       "id": "LANDSD:PLACE_NAME:346",
       "name": "Flat Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0610386617183716,
       "decision": "accepted",
       "note": "",
@@ -461,6 +993,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2792",
       "name": "Yeung Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.05911114553490787,
       "decision": "accepted",
       "note": "",
@@ -469,6 +1004,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1010",
       "name": "Ma Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.056849175073652294,
       "decision": "accepted",
       "note": "",
@@ -477,6 +1015,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2211",
       "name": "Tai Tau Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.056042479620603,
       "decision": "accepted",
       "note": "",
@@ -485,6 +1026,9 @@
     {
       "id": "LANDSD:PLACE_NAME:365",
       "name": "Fu Wong Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.055944586684170176,
       "decision": "accepted",
       "note": "",
@@ -493,6 +1037,9 @@
     {
       "id": "LANDSD:PLACE_NAME:181",
       "name": "Cheung Shek Tsui",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.05349408300060974,
       "decision": "accepted",
       "note": "",
@@ -501,6 +1048,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2584",
       "name": "Waglan Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.05108034387148447,
       "decision": "accepted",
       "note": "",
@@ -509,6 +1059,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1970",
       "name": "Siu Kau Yi Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.04901006435748597,
       "decision": "accepted",
       "note": "",
@@ -517,6 +1070,9 @@
     {
       "id": "LANDSD:PLACE_NAME:159",
       "name": "Cheung Muk Tau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.04784016300220406,
       "decision": "accepted",
       "note": "",
@@ -525,6 +1081,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1572",
       "name": "Round Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.044444234542307795,
       "decision": "accepted",
       "note": "",
@@ -533,6 +1092,9 @@
     {
       "id": "LANDSD:PLACE_NAME:4831",
       "name": "Ap Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.04403548987901921,
       "decision": "accepted",
       "note": "",
@@ -541,6 +1103,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2291",
       "name": "Tau Lo Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.03971914449253635,
       "decision": "accepted",
       "note": "",
@@ -549,6 +1114,9 @@
     {
       "id": "LANDSD:PLACE_NAME:379",
       "name": "Fun Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.03947089164080075,
       "decision": "accepted",
       "note": "",
@@ -557,6 +1125,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1240",
       "name": "Ng Fan Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.035776136746490654,
       "decision": "accepted",
       "note": "",
@@ -565,6 +1136,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1414",
       "name": "Pak Sha Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.03545160435095482,
       "decision": "accepted",
       "note": "",
@@ -573,6 +1147,9 @@
     {
       "id": "LANDSD:PLACE_NAME:98",
       "name": "Centre Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.03458042223718855,
       "decision": "accepted",
       "note": "",
@@ -581,6 +1158,9 @@
     {
       "id": "LANDSD:PLACE_NAME:112",
       "name": "Cham Tau Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.03296879882418923,
       "decision": "accepted",
       "note": "",
@@ -589,6 +1169,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2060",
       "name": "Tai Chau Mei",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.031897606102853894,
       "decision": "accepted",
       "note": "",
@@ -597,6 +1180,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1472",
       "name": "Pearl Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.029935072544088004,
       "decision": "accepted",
       "note": "",
@@ -605,6 +1191,9 @@
     {
       "id": "LANDSD:PLACE_NAME:185",
       "name": "Cheung Sok",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.029660378610987536,
       "decision": "accepted",
       "note": "",
@@ -613,6 +1202,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1084",
       "name": "Mat Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.028703562280167533,
       "decision": "accepted",
       "note": "",
@@ -621,6 +1213,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2280",
       "name": "Tang Lung Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.028478458557377948,
       "decision": "accepted",
       "note": "",
@@ -629,6 +1224,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2841",
       "name": "Yuen Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.02815617751784448,
       "decision": "accepted",
       "note": "",
@@ -637,6 +1235,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2057",
       "name": "Tai Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.02693572278913809,
       "decision": "accepted",
       "note": "",
@@ -645,6 +1246,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2106",
       "name": "Tai Lei",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.026149515979492055,
       "decision": "accepted",
       "note": "",
@@ -653,6 +1257,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2723",
       "name": "Wong Nai Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.02583775230445416,
       "decision": "accepted",
       "note": "",
@@ -661,6 +1268,9 @@
     {
       "id": "LANDSD:PLACE_NAME:285",
       "name": "Conic Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.02170285828154038,
       "decision": "accepted",
       "note": "",
@@ -669,6 +1279,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2717",
       "name": "Wong Mau Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.020795514505213795,
       "decision": "accepted",
       "note": "",
@@ -677,6 +1290,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2505",
       "name": "Tuen Tau Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.020738411400513256,
       "decision": "accepted",
       "note": "",
@@ -685,6 +1301,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2747",
       "name": "Wu Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.019745568250145836,
       "decision": "accepted",
       "note": "",
@@ -693,6 +1312,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1522",
       "name": "Po Pin Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.01905803848996991,
       "decision": "accepted",
       "note": "",
@@ -701,6 +1323,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2388",
       "name": "Trio Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.018970343785472216,
       "decision": "accepted",
       "note": "",
@@ -709,6 +1334,9 @@
     {
       "id": "LANDSD:PLACE_NAME:584",
       "name": "Kai Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.01879568850906985,
       "decision": "accepted",
       "note": "",
@@ -717,6 +1345,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2776",
       "name": "Yau Lung Kok",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.016271171848492232,
       "decision": "accepted",
       "note": "",
@@ -725,6 +1356,9 @@
     {
       "id": "LANDSD:PLACE_NAME:889",
       "name": "Little Green Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.015114981870288553,
       "decision": "accepted",
       "note": "",
@@ -733,6 +1367,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1060",
       "name": "Magazine Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.015091323790830979,
       "decision": "accepted",
       "note": "",
@@ -741,22 +1378,33 @@
     {
       "id": "LANDSD:PLACE_NAME:2498",
       "name": "Tuen Chau Tsai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.014919842669156904,
       "decision": "rejected",
       "note": "This should be merged with \"East Ninepin Island 東果洲\" as they are aliases.",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "merge-alias"
     },
     {
       "id": "LANDSD:PLACE_NAME:315",
       "name": "East Ninepin Island",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.014919842669156904,
       "decision": "rejected",
       "note": "This should be merged with the other name in this area as they are aliases.",
-      "ai": true
+      "ai": true,
+      "rejectionCode": "merge-alias"
     },
     {
       "id": "LANDSD:PLACE_NAME:1121",
       "name": "Mo Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.014313971776730789,
       "decision": "accepted",
       "note": "",
@@ -765,6 +1413,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2220",
       "name": "Tai Tsan Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.014247816335742595,
       "decision": "accepted",
       "note": "",
@@ -773,6 +1424,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1485",
       "name": "Pin Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.014133453947295085,
       "decision": "accepted",
       "note": "",
@@ -781,6 +1435,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2529",
       "name": "Tung Sam Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.013973613812920404,
       "decision": "accepted",
       "note": "",
@@ -789,6 +1446,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2847",
       "name": "Yuen Kong Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.013038945707354315,
       "decision": "accepted",
       "note": "",
@@ -797,6 +1457,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2418",
       "name": "Tsim Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.012929001672644633,
       "decision": "accepted",
       "note": "",
@@ -805,6 +1468,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1495",
       "name": "Ping Min Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.012125709433747717,
       "decision": "accepted",
       "note": "",
@@ -813,6 +1479,9 @@
     {
       "id": "LANDSD:PLACE_NAME:659",
       "name": "Kau Pei Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.012108680591884505,
       "decision": "accepted",
       "note": "",
@@ -821,6 +1490,9 @@
     {
       "id": "LANDSD:PLACE_NAME:894",
       "name": "Lo Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.012057458783728856,
       "decision": "accepted",
       "note": "",
@@ -829,6 +1501,9 @@
     {
       "id": "LANDSD:PLACE_NAME:99",
       "name": "Cha Kwo Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.011941989392848686,
       "decision": "accepted",
       "note": "",
@@ -837,6 +1512,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1131",
       "name": "Mong Chau Tsai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.011754527787217405,
       "decision": "accepted",
       "note": "",
@@ -845,6 +1523,9 @@
     {
       "id": "LANDSD:PLACE_NAME:754",
       "name": "Kung Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.010917153955475135,
       "decision": "accepted",
       "note": "",
@@ -853,6 +1534,9 @@
     {
       "id": "LANDSD:PLACE_NAME:206",
       "name": "Ching Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.010372117474287748,
       "decision": "accepted",
       "note": "",
@@ -861,6 +1545,9 @@
     {
       "id": "LANDSD:PLACE_NAME:5001",
       "name": "Tsing Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.010363739038673783,
       "decision": "accepted",
       "note": "",
@@ -869,6 +1556,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1581",
       "name": "Sai Ap Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.00996106130602039,
       "decision": "accepted",
       "note": "",
@@ -877,6 +1567,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1",
       "name": "A Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.009839546969816896,
       "decision": "accepted",
       "note": "",
@@ -885,6 +1578,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2846",
       "name": "Yuen Kong Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.009316623870315264,
       "decision": "accepted",
       "note": "",
@@ -893,6 +1589,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2746",
       "name": "Wu Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.008764143330109306,
       "decision": "accepted",
       "note": "",
@@ -901,6 +1600,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2058",
       "name": "Tai Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.00849131430591643,
       "decision": "accepted",
       "note": "",
@@ -909,6 +1611,9 @@
     {
       "id": "LANDSD:PLACE_NAME:128",
       "name": "Chau Tsai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.008368554392946913,
       "decision": "accepted",
       "note": "",
@@ -917,6 +1622,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1911",
       "name": "Shue Long Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.008341698723440816,
       "decision": "accepted",
       "note": "",
@@ -925,6 +1633,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1557",
       "name": "Pyramid Rock",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.008285662550614215,
       "decision": "accepted",
       "note": "",
@@ -933,6 +1644,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1830",
       "name": "Shek Ngau Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.008269520679557376,
       "decision": "accepted",
       "note": "",
@@ -941,6 +1655,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2290",
       "name": "Tau Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.008089282838928251,
       "decision": "accepted",
       "note": "",
@@ -949,6 +1666,9 @@
     {
       "id": "LANDSD:PLACE_NAME:532",
       "name": "Hok Tsai Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.00767666601640702,
       "decision": "accepted",
       "note": "",
@@ -957,6 +1677,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2139",
       "name": "Tai Nim Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.007494622456927784,
       "decision": "accepted",
       "note": "",
@@ -965,6 +1688,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2680",
       "name": "Wo Sheung Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.00737258965555788,
       "decision": "accepted",
       "note": "",
@@ -973,6 +1699,9 @@
     {
       "id": "LANDSD:PLACE_NAME:732",
       "name": "Kong Tau Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.007174150572738145,
       "decision": "accepted",
       "note": "",
@@ -981,6 +1710,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1623",
       "name": "Sam Pui Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.007092531581393443,
       "decision": "accepted",
       "note": "",
@@ -989,6 +1721,9 @@
     {
       "id": "LANDSD:PLACE_NAME:895",
       "name": "Lo Chau Pak Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.006637293827953283,
       "decision": "accepted",
       "note": "",
@@ -997,6 +1732,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1187",
       "name": "Nam Fung Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.006262055519294692,
       "decision": "accepted",
       "note": "",
@@ -1005,6 +1743,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1794",
       "name": "Shek Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.006060192697085469,
       "decision": "accepted",
       "note": "",
@@ -1013,6 +1754,9 @@
     {
       "id": "LANDSD:PLACE_NAME:897",
       "name": "Lo Chi Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.005766297041450161,
       "decision": "accepted",
       "note": "",
@@ -1021,6 +1765,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2152",
       "name": "Tai Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.005621945912424824,
       "decision": "accepted",
       "note": "",
@@ -1029,6 +1776,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2724",
       "name": "Wong Nai Chau Tsai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.005550882374092936,
       "decision": "accepted",
       "note": "",
@@ -1037,6 +1787,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1309",
       "name": "Ngau Tau Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.005490039184304245,
       "decision": "accepted",
       "note": "",
@@ -1045,6 +1798,9 @@
     {
       "id": "LANDSD:PLACE_NAME:714",
       "name": "Ko Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0053339812482659475,
       "decision": "accepted",
       "note": "",
@@ -1053,6 +1809,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1582",
       "name": "Sai Chau Mei",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0051233855525609105,
       "decision": "accepted",
       "note": "",
@@ -1061,6 +1820,9 @@
     {
       "id": "LANDSD:PLACE_NAME:841",
       "name": "Lap Sap Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.00449289818599273,
       "decision": "accepted",
       "note": "",
@@ -1069,6 +1831,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1978",
       "name": "Siu Nim Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.004428756541269832,
       "decision": "accepted",
       "note": "",
@@ -1077,6 +1842,9 @@
     {
       "id": "LANDSD:PLACE_NAME:784",
       "name": "Kwun Tsai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.004327157005280627,
       "decision": "accepted",
       "note": "",
@@ -1085,6 +1853,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1301",
       "name": "Ngau Shi Pui",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.004076419172486872,
       "decision": "accepted",
       "note": "",
@@ -1093,6 +1864,9 @@
     {
       "id": "LANDSD:PLACE_NAME:191",
       "name": "Cheung Tsui Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.004000098470916972,
       "decision": "accepted",
       "note": "",
@@ -1101,6 +1875,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2809",
       "name": "Yi Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.003618022580771707,
       "decision": "accepted",
       "note": "",
@@ -1109,6 +1886,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1254",
       "name": "Nga Ying Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0035840959771691705,
       "decision": "accepted",
       "note": "",
@@ -1117,6 +1897,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2490",
       "name": "Tsz Kan Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.003517189132905565,
       "decision": "accepted",
       "note": "",
@@ -1125,6 +1908,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1988",
       "name": "Siu Tsan Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.003470123485263437,
       "decision": "accepted",
       "note": "",
@@ -1133,6 +1919,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2767",
       "name": "Yan Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.002827667591137462,
       "decision": "accepted",
       "note": "",
@@ -1141,6 +1930,9 @@
     {
       "id": "LANDSD:PLACE_NAME:4943",
       "name": "Pak Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0026413204774281477,
       "decision": "accepted",
       "note": "",
@@ -1149,6 +1941,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2604",
       "name": "Wan Hau Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.00252745447798504,
       "decision": "accepted",
       "note": "",
@@ -1157,6 +1952,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2722",
       "name": "Wong Nai Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0022489899382899746,
       "decision": "accepted",
       "note": "",
@@ -1165,6 +1963,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1269",
       "name": "Ngan Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0021890359335331885,
       "decision": "accepted",
       "note": "",
@@ -1173,6 +1974,9 @@
     {
       "id": "LANDSD:PLACE_NAME:812",
       "name": "Lak Lei Tsai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0018949535617558285,
       "decision": "accepted",
       "note": "",
@@ -1181,6 +1985,9 @@
     {
       "id": "LANDSD:PLACE_NAME:74",
       "name": "Bun Bei Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0018727077074726295,
       "decision": "accepted",
       "note": "",
@@ -1189,6 +1996,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1756",
       "name": "Shan Leng Kok",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0017766263900720514,
       "decision": "accepted",
       "note": "",
@@ -1197,6 +2007,9 @@
     {
       "id": "LANDSD:PLACE_NAME:4990",
       "name": "Tang Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0016883384808363006,
       "decision": "accepted",
       "note": "",
@@ -1205,6 +2018,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1793",
       "name": "Shek Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0016688185401033551,
       "decision": "accepted",
       "note": "",
@@ -1213,6 +2029,9 @@
     {
       "id": "LANDSD:PLACE_NAME:117",
       "name": "Chap Mo Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0016505344260353595,
       "decision": "accepted",
       "note": "",
@@ -1221,6 +2040,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1377",
       "name": "Pak Ka Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0015410018905534235,
       "decision": "accepted",
       "note": "",
@@ -1229,6 +2051,9 @@
     {
       "id": "LANDSD:PLACE_NAME:2721",
       "name": "Wong Nai Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.001404327857542783,
       "decision": "accepted",
       "note": "",
@@ -1237,6 +2062,9 @@
     {
       "id": "LANDSD:PLACE_NAME:1252",
       "name": "Nga Ying Chau",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0011397170276939868,
       "decision": "accepted",
       "note": "",
@@ -1245,10 +2073,1250 @@
     {
       "id": "LANDSD:PLACE_NAME:1617",
       "name": "Sam Pai",
+      "coverage": "landsd-gazetteer",
+      "source": "LandsD Place Name",
+      "sourceRelease": "2026-06-10.0",
       "areaKm2": 0.0010241331793146092,
       "decision": "accepted",
       "note": "",
       "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:20237d751b5fe16d",
+      "name": "Sai Pai Mei",
+      "zh": "四排尾",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0017558513381660255,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:2184f76344048930",
+      "name": "Ap Chau Mei Pak Tun Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0005184193925928249,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:f049f18abc9347a4",
+      "name": "Ap Chau Pak Tun Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0002042269728196085,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:8bcc700f291ec812",
+      "name": "Ap Lo Chun",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.001983005511879142,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:d981e3683830f964",
+      "name": "Ap Tau Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.001511706034036192,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:0482b742dc55f0be",
+      "name": "Bun Sha Pui",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0016496192660979659,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:0473f4e6e4420f93",
+      "name": "Cha Yue Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0002060908613651612,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:266c51869482fb83",
+      "name": "Cham Keng Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0,
+      "decision": "rejected",
+      "note": "This isn't really an island, explicitly exclude it",
+      "ai": true,
+      "rejectionCode": "exclude-non-island"
+    },
+    {
+      "id": "BASEMAP:ISLAND:62a7002014ba2920",
+      "name": "Cham Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0010378412755406726,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:cf4485574ed89765",
+      "name": "Chau Tsai Kok",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0013816241621531988,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:fb9ff210df92fe19",
+      "name": "Che Lei Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.004039735879876211,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:dfb378b75fa8808a",
+      "name": "Chu Shek",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 4.805504102222482e-05,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:aece9df47a133025",
+      "name": "Chuk U Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00020325012387147808,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:1ebcc96ecac43477",
+      "name": "Comber Rock",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 4.222420338190828e-05,
+      "decision": "rejected",
+      "note": "wrong geometry, too small",
+      "ai": true,
+      "rejectionCode": "manual-review"
+    },
+    {
+      "id": "BASEMAP:ISLAND:0fa46f8d1b2566d8",
+      "name": "Cross-Connection Chamber",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00013811145992955628,
+      "decision": "rejected",
+      "note": "not an island",
+      "ai": true,
+      "rejectionCode": "exclude-infrastructure"
+    },
+    {
+      "id": "BASEMAP:ISLAND:c6c713010832fb0e",
+      "name": "Fan Tap Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0014858109584487311,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:738e9dafee99a81d",
+      "name": "Fat Tau Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0033647780566348155,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:fa764e4e02ddebb7",
+      "name": "Fo Siu Pai",
+      "zh": "火燒排",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00038908589893393034,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:fd0eba77795c12b6",
+      "name": "Fury Rocks",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.005376712207273046,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:c774c6c0e3f47c87",
+      "name": "Ha Sha Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.011480491115963973,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:da1e2b659506e87c",
+      "name": "Ha So Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0011294190918129518,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:4ab493bce2736c8c",
+      "name": "Heung Lo Tun",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0019737750047233125,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:6abefd0f6d7c510c",
+      "name": "High Island",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 7.531828445972439,
+      "decision": "rejected",
+      "note": "this is.... no longer an island! but uhm does it make sense to have landform with a 'former-island' type? we have a couple of those in Hong Kong - Kellett Island, Stonecutters island... but maybe that's not ideal is we are treating landform as island group > island hierarchy.. then we would have \n\nisland group > island > former island hierarchy... should we?",
+      "ai": true,
+      "rejectionCode": "manual-review"
+    },
+    {
+      "id": "BASEMAP:ISLAND:00830a02f702fa35",
+      "name": "Hin Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.014868803161161142,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:62ecbebf541d1f47",
+      "name": "Hin Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 1.880755896696455e-05,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:9533f346c854caba",
+      "name": "Ho Tsai Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0002727580035880681,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:c90503aaaf585437",
+      "name": "Hok Tsai Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00771360881605805,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:d9a88cb5a5272794",
+      "name": "Hung Ngam Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00015957198952123205,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:e391387b61ddbf14",
+      "name": "Hung Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.003017140628711724,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:f9c343718d114d67",
+      "name": "Kai Pei Ngam",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0017376560083232546,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:6596a8cb2af66d86",
+      "name": "Kak Shan Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0007636698694855949,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:ad777e9a7bc9fd4c",
+      "name": "Kam Chung Ngam",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.005764556474388339,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:edff47e42599dee2",
+      "name": "Kau Tau Shek",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0004921372147819997,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:647f69f6720112e4",
+      "name": "Kei Yan Shek",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.000596164894740252,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:a116157fd4614530",
+      "name": "Kok Tai Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0047775213851586115,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:628223e9e52ddc8f",
+      "name": "Kowloon Rock",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.000101337074928356,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:2528a7c5bc8f9f58",
+      "name": "Kwo Mun Shek",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00025927423486286384,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:31a1a4010c323342",
+      "name": "Kwun Tsoi Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0005427133930443243,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:3b8d89b088b1a4cf",
+      "name": "La Ka Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0003575755189831141,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:123c946e0fbf0d63",
+      "name": "Lai Chi Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00019080911565713153,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:540edf91fb6d7eee",
+      "name": "Lak Lei Mei",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.004313838970639055,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:7dfdfcfa2642a07c",
+      "name": "Lan Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0022557627983123486,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:73c3aabb1e5a97d1",
+      "name": "Lan Shek Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0023739142282979755,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:6a7f2cfddb6b2820",
+      "name": "Lan Shuen Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0006572689720345871,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:a7a3242c81d99ea0",
+      "name": "Lan Tau Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.002855534238391121,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:cb5b39f8ac7a36af",
+      "name": "Lo Fu Tiu Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0006611481780386739,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:10442758da3b1aab",
+      "name": "Lo Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0018957601747047433,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:f0ed038d2b28d45b",
+      "name": "Loaf Rock",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0003304643243025921,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:838578751bc789fc",
+      "name": "Lung Ngan Hok",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00014552912247322151,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:913a30a23b401cb9",
+      "name": "Lung Ngan Yuen Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0017851849756650277,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:aa61bfc2a7d2f649",
+      "name": "Lung Shan Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0006856211064122856,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:720204a6e44bd417",
+      "name": "Lung Shuen Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.000625956552976303,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:807c7ad5d23f47b6",
+      "name": "Ma Tsai Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.005409610526793678,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:a328f5dcd0d7c9ef",
+      "name": "Man Tau Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0003994731403194796,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:c4a7d31c577d6eba",
+      "name": "Mat Chau Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0008952865516485566,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:abbd28a673d3ce22",
+      "name": "Mei Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0009080322234303808,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:67558cc8ef99801c",
+      "name": "Muk Yu Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00021438616687789933,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:bf66579a96e81628",
+      "name": "Ngam Hau Shek",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0024525280803289968,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:4023918cedb5df13",
+      "name": "Ngan Chau Ngam Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00035157706039745136,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:cf1571897e53b5d1",
+      "name": "Ngan Chau Tan Pai",
+      "zh": "銀洲岩排",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 1.4975369734698099e-05,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:023de0f1c3958780",
+      "name": "Ngau Tau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00044419469813668873,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:b38ed58be971ac84",
+      "name": "North Rock",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0,
+      "decision": "rejected",
+      "note": "no geometry",
+      "ai": true,
+      "rejectionCode": "no-geometry"
+    },
+    {
+      "id": "BASEMAP:ISLAND:105f9853bcaf06ec",
+      "name": "P17",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0009005961056089073,
+      "decision": "rejected",
+      "note": "Skip infrstructure",
+      "ai": true,
+      "rejectionCode": "exclude-infrastructure"
+    },
+    {
+      "id": "BASEMAP:ISLAND:f58f9349cec93ac8",
+      "name": "P18",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0010429275622192383,
+      "decision": "rejected",
+      "note": "Skip infrstructure",
+      "ai": true,
+      "rejectionCode": "exclude-infrastructure"
+    },
+    {
+      "id": "BASEMAP:ISLAND:a331387e771578fb",
+      "name": "P19",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.001098872102191276,
+      "decision": "rejected",
+      "note": "Skip infrstructure",
+      "ai": true,
+      "rejectionCode": "exclude-infrastructure"
+    },
+    {
+      "id": "BASEMAP:ISLAND:c1e2cf4aaa4b3565",
+      "name": "P20",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0010765891515962694,
+      "decision": "rejected",
+      "note": "Skip infrstructure",
+      "ai": true,
+      "rejectionCode": "exclude-infrastructure"
+    },
+    {
+      "id": "BASEMAP:ISLAND:79a60b2219e5e75a",
+      "name": "Pak Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0008118971837560987,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:9615449ed5470d40",
+      "name": "Po Yue Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.002673435811003546,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:aa800a8975a3e656",
+      "name": "Pun Shan Shek",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0011845304450378482,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:67a55c3dbab8fdfa",
+      "name": "Sai Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0003261524702014991,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:271ec2f0ae5d21ee",
+      "name": "Sam Long Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00048378165491032434,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:2ed440da8351ed23",
+      "name": "Sam Mun Tsai Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0010470934884353929,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:d696bd7c060bfc61",
+      "name": "Sha Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00029780860391883746,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:e590a9baac61880b",
+      "name": "Sham Shai Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 9.226885758564729e-06,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:2fb759254a798a32",
+      "name": "Shek Lam Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0018474385543692303,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:ff5661201f0d40fb",
+      "name": "Sheung Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0003409681033136737,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:6a9eb18cda366d75",
+      "name": "Sheung Sha Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.056990700649040646,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:6e010bc28e67ff58",
+      "name": "Shui Cham Tsui Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.004072000213150823,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:cf27eadac7abc115",
+      "name": "Si Pai Wei",
+      "zh": "小高排",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0024114062864270367,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:09b30189d55a1639",
+      "name": "Siu Ma Kong",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.000692874762185867,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:bf52e9930823bef8",
+      "name": "Siu Po Pin",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0008762572342620674,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:93ef24d84e3e82f9",
+      "name": "Siu Yuen Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0021541843606549095,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:01d8548ad55eea7d",
+      "name": "Ta Long Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.003572233073169745,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:665f11986449d4bb",
+      "name": "Ta Ma Kong",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.008128296016504838,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:817f8615405774b5",
+      "name": "Ta Shek Shan",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.002396984084058823,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:b15a27d0015f3287",
+      "name": "Tai Ko Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.005359743678740858,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:28dd343243ff41f6",
+      "name": "Tai Long Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0019330516704420073,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:a8610f19ed16eab3",
+      "name": "Tai Yuen Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.003323570554507141,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:48b88d2045f74f1a",
+      "name": "Tiu Chung",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0023830718539453654,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:b251a5f98b917b30",
+      "name": "Tiu Chung Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.002831885286965786,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:a0ab43fa8853be04",
+      "name": "Tong Hau Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0002001565945206428,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:a2830036f4cd6eda",
+      "name": "Tsim Shek Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0010818101631209275,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:40e4a344d3c42018",
+      "name": "Tsui Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0017713929159078787,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:4961859eb9930b72",
+      "name": "Tuk Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.001690671108648704,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:799222c687aab0ef",
+      "name": "Tuk Shek",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 7.304239925094407e-05,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:0644c89b7369b848",
+      "name": "Tung Kok Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.004616611744104518,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:5801d1bf0ecae739",
+      "name": "Tung Ping Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 1.2033152413837185,
+      "decision": "rejected",
+      "note": "the geometry is correct-- but perhaps this needs to be merged with an island of the same name, and deduped",
+      "ai": true,
+      "rejectionCode": "merge-alias"
+    },
+    {
+      "id": "BASEMAP:ISLAND:00e285208161a7e1",
+      "name": "Ung Kong Group",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 9.915269843594468,
+      "decision": "rejected",
+      "note": "this should be identified as an island group instead of an island",
+      "ai": true,
+      "rejectionCode": "reclassify-island-group"
+    },
+    {
+      "id": "BASEMAP:ISLAND:90874740b7b8ec21",
+      "name": "Waglan Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0018888972665591212,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:97ac9b4a88ecce01",
+      "name": "Wai Kap Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0002525795614779649,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:aaa88278490ce71a",
+      "name": "Wai Kap Shek",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00012429387401801078,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:387b9080e374c7c7",
+      "name": "Wang Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 6.492075811061634e-05,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:571cbc66ad3c3394",
+      "name": "Wong Fa Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0002446419944804877,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:6e3b6205b8075581",
+      "name": "Wu Lo Chau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0038443818160994094,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:1a3811298dc106d5",
+      "name": "Wu Long Tau",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.035800854728992505,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:6e58ebad7e79c28e",
+      "name": "Wu Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0013158090332373962,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:59f1e40b02736693",
+      "name": "Wu Ying Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.00203731311833217,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:3c4d8ba62ba652e4",
+      "name": "Yam Tong Ha",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0011770879688180545,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:3ff8cc8e60e749c1",
+      "name": "Yat Lup Mei",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0011178564746945141,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:5fb63a453f056d6a",
+      "name": "Yi Long Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0.0004865825956993478,
+      "decision": "accepted",
+      "note": "",
+      "ai": false
+    },
+    {
+      "id": "BASEMAP:ISLAND:20b1ab86f2fddb31",
+      "name": "Yim Tin Pai",
+      "coverage": "basemap-only",
+      "source": "OpenStreetMap",
+      "sourceRelease": "refresh-hk-2026-09-01",
+      "areaKm2": 0,
+      "decision": "rejected",
+      "note": "no geometry",
+      "ai": true,
+      "rejectionCode": "no-geometry"
     }
   ]
 }

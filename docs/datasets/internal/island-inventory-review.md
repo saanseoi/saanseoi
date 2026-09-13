@@ -69,7 +69,12 @@ formalises the rejected examples: remove man-made attachments; separate separate
 landforms and tombolo-connected land; re-anchor a displaced source point; and merge
 aliases into one physical identity while retaining source assertions. Rejection codes
 are retained beside the human-readable review notes so later geometry extraction can
-apply the same correction consistently.
+apply the same correction consistently. Ap Lei Chau and Ap Lei Pai use their separate
+named basemap polygons, with `Ap Lei Pai Teng` retained as an English alternative. Tai
+Chau selects the single polygonal basemap candidate within 500 metres of its LandsD
+point. Kiu Tau uses a reviewed coastline cut that retains its polygon and removes Sharp
+Island and the tombolo; rocks and deferred former-island landforms remain explicit
+exclusions.
 
 A dataops release command must retain input versions and hashes, extraction parameters,
 identity decisions, reviewed overrides and exception reports. Select the latest
@@ -77,14 +82,13 @@ available Islands release at or before the Overture cohort date, and pin the exa
 selected release in the consuming manifest. Preserve source reference dates and actual
 publication dates. Missing eligible historical inputs must remain explicit.
 
-The current local run emits 250 polygonal island identities, including six geometry
-corrections selected from named basemap polygons and the Ping Chau and East Ninepin
-alias merges. The review table is written to `.local/harbour/islands/curated-review.md`,
-with machine-readable evidence in `.local/harbour/islands/curated-review.json`. The
-upload gate remains closed while Ap Lei Chau, Ap Lei Pai, Kiu Tau, Tai Chau, Comber Rock
-and High Island await manual decisions.
+The current local run emits 254 polygonal island identities, including the resolved
+geometry corrections and the Ping Chau and East Ninepin alias merges. The review table
+is written to `.local/harbour/islands/curated-review.md`, with machine-readable evidence
+in `.local/harbour/islands/curated-review.json`. The upload gate is ready: there are no
+pending curation decisions, uncurated names or newly gained geometry for a previously
+no-geometry candidate.
 
 Reingestion will populate address landform associations and Place division projections;
 no backfill of published records is planned. The curation processor and upload gate are
-implemented; the remaining work is to resolve the six manual geometry and landform
-decisions before the first island-bearing Geographic release.
+implemented for the first island-bearing Geographic release.
