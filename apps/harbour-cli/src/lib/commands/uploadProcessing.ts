@@ -268,6 +268,7 @@ export async function processPreparedUpload({
       {
         deferApiReleaseSet: options.deferApiReleaseSet,
         deferSourcePublish: options.deferSourcePublish,
+        rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
         reuseExistingRelease: options.reuseExistingRelease,
         skipSnapshotCleanup: options.skipSnapshotCleanup,
         supplementalRows: supplementalDivisionRows,

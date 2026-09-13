@@ -64,6 +64,8 @@ export async function runUploadCommand(
     allowReprocessPublished?: boolean
     /** Add another materialisation to an already registered source release. */
     reuseExistingRelease?: boolean
+    /** Rebuild a published snapshot while preserving the source release identity. */
+    rebuildPublishedSnapshot?: boolean
     /** Snapshot cohort carried inside a broader publisher release. */
     materialisationCohortKey?: string
     /** Allows a native importer to register an independent older cohort. */
@@ -93,6 +95,12 @@ export async function runUploadCommand(
   const mutedBar = '\u001B[90m│\u001B[39m'
   const cacheArtefacts = shouldCacheArtefacts(args.options)
   const resumeStagedRelease = args.options.continue === true
+  const rebuildPublishedSnapshot =
+    options.rebuildPublishedSnapshot ??
+    (resumeStagedRelease ||
+      options.forceUpload ||
+      options.allowReprocessPublished ||
+      options.reuseExistingRelease)
 
   if (args.options.continue !== undefined && !resumeStagedRelease) {
     throw new Error('`upload --continue` does not take a value.')
@@ -427,7 +435,7 @@ ${mutedBar}  `)
         preparedUploadFile,
         target,
         uploadResult,
-        options,
+        options: { ...options, rebuildPublishedSnapshot },
         revisionDraft,
         divisionGeometryTransform,
         cacheArtefacts,
