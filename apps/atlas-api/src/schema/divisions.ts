@@ -102,11 +102,12 @@ export const DivisionHierarchiesSchema = z
   .object({
     administrative: z.array(z.array(DivisionHierarchyEntrySchema)),
     locality: z.array(z.array(DivisionHierarchyEntrySchema)),
+    landform: z.array(z.array(DivisionHierarchyEntrySchema)),
     full: z.array(z.array(DivisionHierarchyEntrySchema)),
   })
   .openapi('DivisionHierarchies', {
     description:
-      'Stored broadest-to-narrowest ancestor paths, excluding the division itself. Full paths omit cities only. Each path preserves evidenced branching.',
+      'Stored broadest-to-narrowest ancestor paths, excluding the division itself. Full paths merge administrative, landform and locality ancestry, suppressing cities and explicitly equivalent landform labels. Each path preserves evidenced branching.',
   })
 
 const DivisionPositionSchema = z
@@ -222,7 +223,7 @@ const DivisionAttributesSchema = z
         description: openApiText('openapi_divisions_level_field_description'),
       }),
     class: z.string().openapi({ description: 'Canonical division class.' }),
-    category: z.enum(['administrative', 'locality', 'hood']).nullable(),
+    category: z.enum(['administrative', 'locality', 'hood', 'landform']).nullable(),
     hierarchies: DivisionHierarchiesSchema,
     divisionCode: z
       .string()
@@ -450,7 +451,7 @@ const DivisionDocumentMetaSchema = z
       .object({
         level: z.number().int().optional(),
         class: z.string().optional(),
-        category: z.enum(['administrative', 'locality', 'hood']).optional(),
+        category: z.enum(['administrative', 'locality', 'hood', 'landform']).optional(),
         parent: z.string().optional(),
       })
       .optional(),
@@ -535,7 +536,9 @@ export const DivisionsListQuerySchema = z
     'page[offset]': z.coerce.number().int().min(0).optional(),
     'filter[level]': z.coerce.number().int().min(0).optional(),
     'filter[class]': z.string().optional(),
-    'filter[category]': z.enum(['administrative', 'locality', 'hood']).optional(),
+    'filter[category]': z
+      .enum(['administrative', 'locality', 'hood', 'landform'])
+      .optional(),
     'filter[parent]': z.string().optional(),
   })
   .openapi('DivisionsListQuery')

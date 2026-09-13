@@ -331,6 +331,7 @@ const AddressUnitsRelationshipSchema = z
 const AddressRelationshipsSchema = z
   .object({
     country: AddressDivisionRelationshipSchema,
+    landform: AddressDivisionRelationshipSchema,
     area: AddressDivisionRelationshipSchema,
     district: AddressDivisionRelationshipSchema,
     town: AddressDivisionRelationshipSchema,
@@ -372,6 +373,7 @@ const AddressDocumentMetaSchema = z
       .object({
         dataset: z.string().optional(),
         country: z.string().optional(),
+        landform: z.string().optional(),
         area: z.string().optional(),
         district: z.string().optional(),
       })
@@ -444,6 +446,7 @@ export const AddressesListQuerySchema = AddressSelectionQuerySchema.extend({
   'page[limit]': z.coerce.number().int().min(1).max(1000).optional(),
   'page[offset]': z.coerce.number().int().min(0).optional(),
   'filter[country]': IdSchema.optional(),
+  'filter[landform]': IdSchema.optional(),
   'filter[area]': IdSchema.optional(),
   'filter[district]': IdSchema.optional(),
   include: z.literal('hierarchy').optional(),
@@ -474,6 +477,7 @@ export const AddressSearchQuerySchema = AddressSelectionQuerySchema.extend({
   'page[limit]': z.coerce.number().int().min(1).max(50).optional(),
   'page[offset]': z.coerce.number().int().min(0).max(1000).optional(),
   'filter[country]': IdSchema.optional(),
+  'filter[landform]': IdSchema.optional(),
   'filter[area]': IdSchema.optional(),
   'filter[district]': IdSchema.optional(),
   include: z.enum(['hierarchy']).optional(),
