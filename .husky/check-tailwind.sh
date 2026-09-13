@@ -8,7 +8,8 @@ set -eu
 
 ZERO_OID=0000000000000000000000000000000000000000
 REPO_ROOT=$(git rev-parse --show-toplevel)
-CHECK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/saanseoi-tailwind.XXXXXX")
+GIT_COMMON_DIR=$(git rev-parse --path-format=absolute --git-common-dir)
+CHECK_DIR=$(mktemp -d "${TMPDIR:-$GIT_COMMON_DIR}/saanseoi-tailwind.XXXXXX")
 CHECK_OIDS="$CHECK_DIR/local-oids"
 CURRENT_WORKTREE=
 PUSH_RECORDS=0
@@ -64,9 +65,12 @@ do
     continue
   fi
 
-  # A new remote ref has no reliable local base to compare against. Check it
-  # conservatively; ordinary updates use the exact pushed range below.
+  # A new remote ref has no reliable local base to compare against. A remote
+  # commit may also be advertised before it exists in this local object
+  # database. Check either case conservatively without asking diff to resolve
+  # an unavailable object.
   if [ "$remote_oid" = "$ZERO_OID" ] || \
+    ! git cat-file -e "$remote_oid^{commit}" 2>/dev/null || \
     ! git diff --quiet "$remote_oid" "$local_oid" -- apps/atlas-app package.json bun.lock; then
     if ! grep -Fqx "$local_oid" "$CHECK_OIDS"; then
       printf '%s\n' "$local_oid" >> "$CHECK_OIDS"

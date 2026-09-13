@@ -341,6 +341,7 @@ export async function processLocalDivisionSqlUpload(
       dbContext.metaDb as never,
       initialMessage,
       environment,
+      { rebuildPublishedSnapshot: options.reuseExistingRelease },
     )
     if (!target.remote) {
       progress.update(8, {

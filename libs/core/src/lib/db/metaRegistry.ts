@@ -3268,6 +3268,12 @@ export async function ensureDraftSnapshotForRelease(
     reuseSnapshotLineageForVariant?: boolean
     /** A complete snapshot whose replay never inherits a predecessor. */
     rootSnapshot?: boolean
+    /**
+     * Reprocess a source release whose latest snapshot is already published.
+     * The source release may be attached to a new revision, but a published
+     * snapshot itself remains immutable.
+     */
+    rebuildPublishedSnapshot?: boolean
     regionCode: string
     sourceReleaseId: string
     variant?: string
@@ -3311,7 +3317,10 @@ export async function ensureDraftSnapshotForRelease(
     .limit(1)
     .get()
 
-  if (snapshotForSourceRelease) {
+  if (
+    snapshotForSourceRelease &&
+    !(args.rebuildPublishedSnapshot && snapshotForSourceRelease.status === 'published')
+  ) {
     if (args.rootSnapshot) {
       if (snapshotForSourceRelease.parentSnapshotId !== null)
         throw new Error('Root snapshot draft unexpectedly has a predecessor.')

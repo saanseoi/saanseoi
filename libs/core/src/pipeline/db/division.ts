@@ -326,6 +326,7 @@ export async function prepareDivisionVersionInsertContext(
   metaDb: HarbourReadableDb & HarbourWritableDb,
   message: DatasetProcessingMessage,
   environment: 'preview' | 'production',
+  options: { rebuildPublishedSnapshot?: boolean } = {},
 ): Promise<DivisionVersionInsertContext> {
   const dataset = message.releaseId?.trim()
     ? await waitForDatasetRecord(metaDb, {
@@ -354,6 +355,7 @@ export async function prepareDivisionVersionInsertContext(
       sourceVersion: dataset.sourceVersion,
     }),
     identityMode: identityModeForSource(dataset.source),
+    rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
   })
 
   const year = message.sourceVersion.slice(0, 4)

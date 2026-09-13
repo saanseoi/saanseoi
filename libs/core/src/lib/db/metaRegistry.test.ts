@@ -1765,6 +1765,38 @@ describe('ensureDraftSnapshotForRelease', () => {
     sqlite.close()
   })
 
+  test('creates a new revision when reprocessing a source attached to a published snapshot', async () => {
+    const { db, sqlite } = createDraftSnapshotDb()
+    const args = {
+      cohortKey: '2025-09-24.0',
+      datasetCode: 'ds-hk-overture-division',
+      datasetId: 'dataset-overture-division',
+      regionCode: 'hk',
+      sourceReleaseId: 'release-2025-09-24',
+      variant: 'overture',
+    }
+    const first = await ensureDraftSnapshotForRelease(db as never, 'division', args)
+    sqlite
+      .query(
+        'INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+      )
+      .run(first.id, args.datasetId, args.sourceReleaseId)
+    sqlite.query("UPDATE snapshots SET status = 'published' WHERE id = ?").run(first.id)
+
+    const revision = await ensureDraftSnapshotForRelease(db as never, 'division', {
+      ...args,
+      rebuildPublishedSnapshot: true,
+    })
+
+    expect(revision).toMatchObject({
+      code: 'ss-hk-division-2025-09-24.0-r1',
+      parentSnapshotId: first.id,
+      status: 'draft',
+    })
+    expect(revision.id).not.toBe(first.id)
+    sqlite.close()
+  })
+
   test('reuses an interrupted root snapshot without adopting the selected predecessor', async () => {
     const { db, sqlite } = createDraftSnapshotDb()
     const args = {
