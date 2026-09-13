@@ -86,6 +86,25 @@ describe('harbour control client', () => {
     expect(calls).toBe(2)
   })
 
+  test.each([null, 'Network connection lost.'])(
+    'retries local stage proxy failures with non-JSON body %s',
+    async body => {
+      let calls = 0
+      process.env.HARBOUR_API_KEY = 'test-api-key'
+      globalThis.fetch = (async () => {
+        calls += 1
+        return calls === 1
+          ? new Response(body, { status: 500 })
+          : Response.json({ status: 'running' })
+      }) as unknown as typeof fetch
+      const client = createHarbourControlClient({ environment: 'dev', remote: false })
+      await expect(
+        client.stageRunning('release-id', 'calculateApiReleaseSetStats'),
+      ).resolves.toBeUndefined()
+      expect(calls).toBe(2)
+    },
+  )
+
   test('caps local stage retries after repeated proxy connection loss', async () => {
     let calls = 0
 
@@ -137,6 +156,27 @@ describe('harbour control client', () => {
       'http://localhost:8788/v1/control/publishDataset',
       'http://localhost:8788/v1/control/publishDataset',
     ])
+  })
+
+  test('retries a local source-deferred publish after proxy connection loss', async () => {
+    let calls = 0
+
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    globalThis.fetch = (async () => {
+      calls += 1
+      return calls === 1
+        ? Response.json({ error: 'Network connection lost.' }, { status: 500 })
+        : Response.json({ releaseId: 'release-id', status: 'published' })
+    }) as unknown as typeof fetch
+
+    const client = createHarbourControlClient({ environment: 'dev', remote: false })
+
+    await expect(
+      client.publishDataset('release-id', undefined, {
+        deferSourcePublish: true,
+      }),
+    ).resolves.toMatchObject({ releaseId: 'release-id', status: 'published' })
+    expect(calls).toBe(2)
   })
 
   test('does not retry a remote publish after a proxy-shaped response', async () => {

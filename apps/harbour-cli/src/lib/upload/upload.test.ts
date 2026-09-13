@@ -6,6 +6,7 @@ import { join } from 'node:path'
 
 import {
   dispatchUpload as dispatchUploadActual,
+  reconcileDraftReleaseSets,
   resumePendingSqlDeliveryForUpload,
   scheduleSnapshotCleanup,
 } from './upload.ts'
@@ -111,6 +112,105 @@ afterEach(() => {
 })
 
 describe('upload helpers', () => {
+  test.each([
+    ['an empty body', ''],
+    ['a non-JSON body', 'Proxy connection failed'],
+    [
+      'a lost-connection response',
+      JSON.stringify({ error: 'Network connection lost.' }),
+    ],
+  ])('retries local release-set reconciliation after %s', async (_label, body) => {
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    const delays: number[] = []
+    let calls = 0
+
+    const result = await reconcileDraftReleaseSets(
+      { environment: 'dev', remote: false },
+      { apiFamily: 'stats', regionCode: 'hk' },
+      {
+        fetchImpl: async (_input, init) => {
+          calls += 1
+          expect(JSON.parse(String(init?.body))).toEqual({
+            apiFamily: 'stats',
+            regionCode: 'hk',
+          })
+          return calls === 1
+            ? new Response(body, { status: 500 })
+            : Response.json({
+                inspected: 1,
+                pendingReleaseSetCodes: [],
+                publishedReleaseSetCodes: [],
+                publishedReleaseSetStatsTargets: [],
+              })
+        },
+        sleep: async delayMs => {
+          delays.push(delayMs)
+        },
+      },
+    )
+
+    expect(result.inspected).toBe(1)
+    expect(calls).toBe(2)
+    expect(delays).toEqual([250])
+  })
+
+  test.each([
+    ['a structured local failure', { environment: 'dev', remote: false } as const],
+    [
+      'a remote proxy-shaped failure',
+      { environment: 'preview', remote: true } as const,
+    ],
+  ])('does not retry %s', async (_label, reconciliationTarget) => {
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    let calls = 0
+    const body = reconciliationTarget.remote
+      ? { error: 'Network connection lost.' }
+      : { message: 'Validation failed.' }
+
+    await expect(
+      reconcileDraftReleaseSets(
+        reconciliationTarget,
+        {},
+        {
+          fetchImpl: async () => {
+            calls += 1
+            return Response.json(body, { status: 500 })
+          },
+          sleep: async () => {},
+        },
+      ),
+    ).rejects.toThrow(
+      reconciliationTarget.remote
+        ? 'Harbour reconcileDraftReleaseSets failed with status 500.'
+        : 'Validation failed.',
+    )
+    expect(calls).toBe(1)
+  })
+
+  test('caps local release-set reconciliation retries', async () => {
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    const delays: number[] = []
+    let calls = 0
+
+    await expect(
+      reconcileDraftReleaseSets(
+        { environment: 'dev', remote: false },
+        {},
+        {
+          fetchImpl: async () => {
+            calls += 1
+            return Response.json({ error: 'Network connection lost.' }, { status: 500 })
+          },
+          sleep: async delayMs => {
+            delays.push(delayMs)
+          },
+        },
+      ),
+    ).rejects.toThrow('Harbour reconcileDraftReleaseSets failed with status 500.')
+    expect(calls).toBe(4)
+    expect(delays).toEqual([250, 1_000, 3_000])
+  })
+
   test('automatically resumes every retained SQL plan before upload planning', async () => {
     const root = await mkdtemp(join(tmpdir(), 'upload-sql-recovery-'))
     const calls: string[] = []
