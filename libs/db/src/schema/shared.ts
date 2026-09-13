@@ -157,7 +157,9 @@ export const canonicalDivision = {
   identifiers: jsonText('identifiers'),
   /** Canonical hierarchy level; absent for non-hierarchical geographies. */
   level: integer('level'),
-  category: text('category', { enum: ['administrative', 'locality', 'hood'] }),
+  category: text('category', {
+    enum: ['administrative', 'locality', 'hood', 'landform'],
+  }),
   class: text('class').notNull(),
   wikidata: text('wikidata'),
   hierarchies: text('hierarchies', { mode: 'json' })
@@ -407,6 +409,7 @@ export const canonicalAddress2d = {
   macrohoodId: text('macrohoodId'),
   townId: text('townId'),
   districtId: text('districtId'),
+  landformId: text('landformId'),
   areaId: text('areaId'),
   countryId: text('countryId'),
   identifiers: jsonText('identifiers'),

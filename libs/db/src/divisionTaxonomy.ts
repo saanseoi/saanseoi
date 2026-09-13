@@ -1,5 +1,8 @@
 /** Geographic classification is independent of source vocabulary and parentage. */
 export const divisionTaxonomy = {
+  major_island: { category: 'landform', level: null },
+  minor_island: { category: 'landform', level: null },
+  island_group: { category: 'landform', level: null },
   country: { category: 'administrative', level: 0 },
   sar: { category: 'administrative', level: 0 },
   area: { category: 'administrative', level: 1 },
@@ -14,7 +17,7 @@ export const divisionTaxonomy = {
 } as const
 
 export type GeographicDivisionClass = keyof typeof divisionTaxonomy
-export type DivisionCategory = 'administrative' | 'locality' | 'hood'
+export type DivisionCategory = 'administrative' | 'locality' | 'hood' | 'landform'
 
 export function geographicDivisionClassification(value: string) {
   return Object.hasOwn(divisionTaxonomy, value)
@@ -32,9 +35,10 @@ export type DivisionHierarchyEntry = {
 export type DivisionHierarchies = {
   administrative: DivisionHierarchyEntry[][]
   locality: DivisionHierarchyEntry[][]
+  landform: DivisionHierarchyEntry[][]
   full: DivisionHierarchyEntry[][]
 }
 
 export function emptyDivisionHierarchies(): DivisionHierarchies {
-  return { administrative: [], locality: [], full: [] }
+  return { administrative: [], locality: [], landform: [], full: [] }
 }

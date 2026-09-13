@@ -47,6 +47,11 @@ export const address2d = sqliteTable(
       name: 'address2d_divisionSnapshotId_countryId_divisions_fk',
     }),
     foreignKey({
+      columns: [table.divisionSnapshotId, table.landformId],
+      foreignColumns: [divisions.snapshotId, divisions.id],
+      name: 'address2d_divisionSnapshotId_landformId_divisions_fk',
+    }),
+    foreignKey({
       columns: [table.divisionSnapshotId, table.areaId],
       foreignColumns: [divisions.snapshotId, divisions.id],
       name: 'address2d_divisionSnapshotId_areaId_divisions_fk',
@@ -95,6 +100,7 @@ export const address2d = sqliteTable(
       'address2d_street_reference_consistency_chk',
       sql`(${table.streetSnapshotId} IS NULL) = (${table.streetId} IS NULL)`,
     ),
+    index('address2d_landformId_idx').on(table.snapshotId, table.landformId),
     index('address2d_streetId_idx').on(table.streetId),
     index('address2d_parentAddressId_idx').on(table.snapshotId, table.parentAddressId),
     index('address2d_division_idx').on(
