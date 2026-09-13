@@ -1,3 +1,4 @@
+import { resolveAddressLandform } from './hkgovAlsLandforms'
 import { resolveAlsCsuCorrection } from './hkgovAlsCsuCorrections'
 import { resolveLinTsui } from './hkgovAlsLinTsui'
 import {
@@ -195,6 +196,17 @@ export function normaliseHkgovAlsFeature(
   })
   const areaId = areaMatch.id
   const districtId = districtMatch.id
+  const landformNames = [
+    { locale: 'en', name: enVillage.VillageName },
+    { locale: 'en', name: enVillage.LocationName },
+    { locale: 'zh-hant', name: zhVillage.VillageName },
+    { locale: 'zh-hant', name: zhVillage.LocationName },
+  ]
+  const landformId = resolveAddressLandform(
+    divisionMaps.landforms,
+    districtId,
+    landformNames,
+  )
   const coordinates =
     effectiveGeometry?.type === 'Point' && Array.isArray(effectiveGeometry.coordinates)
       ? effectiveGeometry.coordinates
@@ -256,6 +268,18 @@ export function normaliseHkgovAlsFeature(
       ...(csuCorrection.decision
         ? { hkgovAlsCsuCorrection: csuCorrection.decision }
         : {}),
+      ...(landformId
+        ? {
+            landformAssociation: {
+              landformId,
+              divisionSnapshotId: divisionMaps.snapshotId,
+              method: 'exact-locality-name-and-district',
+              names: landformNames.filter(
+                entry => typeof entry.name === 'string' && entry.name.trim(),
+              ),
+            },
+          }
+        : {}),
       hkgovAls: {
         geoAddress,
         hkgovCsuId: asOptionalString(premises.BuildingCsuInformation?.CsuId),
@@ -286,6 +310,7 @@ export function normaliseHkgovAlsFeature(
     identifiers: csuId ? stringifyJson({ hkgovCsuId: csuId }) : null,
     sources,
     divisionSnapshotId: divisionMaps.snapshotId,
+    landformId,
     areaId,
     areaMatchStatus: areaMatch.status,
     districtId,

@@ -33,6 +33,7 @@ export type PrepareHkgovAlsOptions = {
 }
 
 export type DivisionLookupMaps = {
+  landforms?: import('./hkgovAlsLandforms').LandformLookup
   areaByEn: Map<string, string>
   areaByZh: Map<string, string>
   ambiguousAreaEn: Set<string>
@@ -169,6 +170,7 @@ export type PreparedHkgovAlsRow = {
   identifiers: string | null
   sources: string
   divisionSnapshotId: string
+  landformId?: string | null
   areaId: string | null
   areaMatchStatus: HkgovAlsDivisionMatchStatus
   districtId: string | null

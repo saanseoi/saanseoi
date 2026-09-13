@@ -1,3 +1,5 @@
+import { addLandformLookup, type LandformLookup } from './hkgovAlsLandforms'
+import type { DivisionHierarchies } from '@repo/db'
 import { dirname, join, resolve } from 'node:path'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
 import { and, desc, eq, isNotNull, ne } from 'drizzle-orm'
@@ -69,6 +71,7 @@ export async function loadDivisionLookupMaps(options: {
         level: currentSchema.divisions.level,
         category: currentSchema.divisions.category,
         class: currentSchema.divisions.class,
+        hierarchies: currentSchema.divisions.hierarchies,
         locale: currentSchema.divisionsI18n.locale,
         name: currentSchema.divisionsI18n.name,
       })
@@ -106,6 +109,7 @@ export async function loadDivisionLookupMaps(options: {
           level: historySchema.divisions.level,
           category: historySchema.divisions.category,
           class: historySchema.divisions.class,
+          hierarchies: historySchema.divisions.hierarchies,
           locale: historySchema.divisionsI18n.locale,
           name: historySchema.divisionsI18n.name,
         })
@@ -190,7 +194,7 @@ function loadDivisionLookupRowsFromSqlite(explicitDbPath: string, snapshotId: st
     return sqlite
       .query(
         `
-          SELECT p.snapshotId, d.id, d.level, d.class, di.locale, di.name
+          SELECT p.snapshotId, d.id, d.level, d.class, d.hierarchies, di.locale, di.name
           FROM divisions d
           JOIN divisionPublicationState p ON p.scopeId = d.snapshotId
           JOIN divisionsI18n di
@@ -224,7 +228,7 @@ async function loadDivisionLookupRowsFromWrangler(
     '--json',
     '--command',
     `
-      SELECT p.snapshotId, d.id, d.level, d.class, di.locale, di.name
+      SELECT p.snapshotId, d.id, d.level, d.class, d.hierarchies, di.locale, di.name
       FROM divisions d
       JOIN divisionPublicationState p ON p.scopeId = d.snapshotId
       JOIN divisionsI18n di
@@ -407,9 +411,11 @@ type DivisionLookupRow = {
   locale: string
   name: string | null
   class: string
+  hierarchies?: DivisionHierarchies | string
 }
 
 function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookupMaps {
+  const landforms: LandformLookup = new Map()
   const areaByEn = new Map<string, string>()
   const areaByZh = new Map<string, string>()
   const ambiguousAreaEn = new Set<string>()
@@ -426,6 +432,7 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
   }
 
   for (const row of rows) {
+    addLandformLookup(landforms, row)
     if (!row.name) {
       continue
     }
@@ -480,6 +487,7 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
   }
 
   return {
+    landforms,
     areaByEn,
     areaByZh,
     ambiguousAreaEn,
