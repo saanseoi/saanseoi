@@ -25,6 +25,7 @@ set -l releases \
 if test "$SAANSEOI_INIT_MINIMAL" = 1
     set releases $releases[1..2]
 end
+set -g saanseoi_init_island_reprocess_release "dr-hk-overture-division-$releases[-1]"
 set -l had_uploaded 0
 set -l defer_release_set_args --defer-api-release-set
 

@@ -57,6 +57,7 @@ set -g saanseoi_init_release_column_width 0
 set -g saanseoi_init_docs_pending 0
 set -g saanseoi_init_upload_failures 0
 set -g saanseoi_init_skipped_release_codes
+set -g saanseoi_init_island_materialisation_version 3
 
 function init_configure
     set -l usage $argv[1]
@@ -186,9 +187,16 @@ function init_release_needs_island_reprocessing
     if not string match -qr '^dr-hk-overture-division-[0-9]{4}-[0-9]{2}-[0-9]{2}\.0$' -- "$release_code"
         return 1
     end
+    if set -q saanseoi_init_island_reprocess_release; and test "$release_code" != "$saanseoi_init_island_reprocess_release"
+        return 1
+    end
 
     set -l marker "$saanseoi_init_repo/.local/harbour/islands/materialised/$release_code"
     if not test -f "$marker"
+        return 0
+    end
+    set -l marker_version (string trim -- (cat "$marker" 2>/dev/null))
+    if test "$marker_version" != "saanseoi-island-materialisation-v$saanseoi_init_island_materialisation_version"
         return 0
     end
 
@@ -248,7 +256,7 @@ function init_run_upload
     set -g saanseoi_init_last_upload_processed 1
     if test "$saanseoi_init_target" = local; and string match -qr '^dr-hk-overture-division-[0-9]{4}-[0-9]{2}-[0-9]{2}\.0$' -- "$release_code"
         mkdir -p "$saanseoi_init_repo/.local/harbour/islands/materialised"
-        touch "$saanseoi_init_repo/.local/harbour/islands/materialised/$release_code"
+        echo "saanseoi-island-materialisation-v$saanseoi_init_island_materialisation_version" > "$saanseoi_init_repo/.local/harbour/islands/materialised/$release_code"
     end
 end
 

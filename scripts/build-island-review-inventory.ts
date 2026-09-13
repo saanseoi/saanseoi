@@ -217,20 +217,35 @@ const pointFor = (geometry: Geometry) => {
 
 const geometryAreaKm2 = (geometry: Geometry) => {
   if (!['Polygon', 'MultiPolygon'].includes(geometry.type)) return 0
-  const coordinates: number[][] = []
-  walkCoordinates(geometry.coordinates, coordinates)
-  if (coordinates.length < 3) return 0
+  const coordinates =
+    geometry.type === 'Polygon' ? [geometry.coordinates] : geometry.coordinates
+  if (!Array.isArray(coordinates)) return 0
+  const latitudeCoordinates: number[][] = []
+  walkCoordinates(geometry.coordinates, latitudeCoordinates)
+  if (latitudeCoordinates.length < 3) return 0
   const latitude =
-    coordinates.reduce((sum, [, value]) => sum + value, 0) / coordinates.length
+    latitudeCoordinates.reduce((sum, [, value]) => sum + value, 0) /
+    latitudeCoordinates.length
   const longitudeScale = 111.32 * Math.cos((latitude * Math.PI) / 180)
   const latitudeScale = 111.32
-  let area = 0
-  for (let index = 0; index < coordinates.length; index += 1) {
-    const [x1, y1] = coordinates[index]!
-    const [x2, y2] = coordinates[(index + 1) % coordinates.length]!
-    area += x1 * y2 - x2 * y1
-  }
-  return Math.abs(area / 2) * longitudeScale * latitudeScale
+  const degreeArea = coordinates.reduce<number>((total, polygon) => {
+    if (!Array.isArray(polygon)) return total
+    return (
+      total +
+      polygon.reduce<number>((polygonTotal, ring, ringIndex) => {
+        const ringCoordinates: number[][] = []
+        walkCoordinates(ring, ringCoordinates)
+        let twiceArea = 0
+        for (let index = 0; index < ringCoordinates.length; index += 1) {
+          const [x1, y1] = ringCoordinates[index]!
+          const [x2, y2] = ringCoordinates[(index + 1) % ringCoordinates.length]!
+          twiceArea += x1 * y2 - x2 * y1
+        }
+        return polygonTotal + ((ringIndex === 0 ? 1 : -1) * Math.abs(twiceArea)) / 2
+      }, 0)
+    )
+  }, 0)
+  return Math.abs(degreeArea) * longitudeScale * latitudeScale
 }
 
 const geometryRank = (geometry: Geometry) =>
