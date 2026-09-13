@@ -16,6 +16,7 @@ import {
   recoverFailedPlacesIngestRuns,
   resumePlacesManifest,
 } from './resetPlaces.ts'
+import type { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 
 function createPlacesResetCurrentDb() {
   const sqlite = new SQLiteDatabase(':memory:')
@@ -416,7 +417,12 @@ describe('Overture Places initialisation ownership', () => {
           events.push('resolve owner')
           return 'places-release'
         },
-        resolveContext: (async (_target, _regionCode, _shardYear, options) => {
+        resolveContext: (async (
+          _target: Parameters<typeof resolveLocalAddressDbContext>[0],
+          _regionCode: Parameters<typeof resolveLocalAddressDbContext>[1],
+          _shardYear: Parameters<typeof resolveLocalAddressDbContext>[2],
+          options: NonNullable<Parameters<typeof resolveLocalAddressDbContext>[3]>,
+        ) => {
           events.push(`open as ${options.resumeSqlDeliveryReleaseId}`)
           return { cleanup() {}, metaDb: db }
         }) as never,
