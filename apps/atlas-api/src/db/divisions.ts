@@ -1,4 +1,5 @@
 import {
+  PublicationReadUnavailableError,
   getPublicationReadiness,
   publicationScopeCondition,
   publicationLogicalSnapshot,
@@ -458,8 +459,13 @@ export async function listReplayedDivisionRecords(
         for (const row of rows) {
           if (expected.has(`${row.id}\u0000${row.versionHash}`)) {
             rowsById.set(row.id, row)
+            expected.delete(`${row.id}\u0000${row.versionHash}`)
           }
         }
+        if (expected.size)
+          throw new PublicationReadUnavailableError(
+            'Selected division history versions are unavailable.',
+          )
       },
     ),
   )
@@ -509,7 +515,12 @@ export async function listReplayedDivisionRecords(
           nameRules: row.nameRules,
         }
         i18nByDivisionId.set(row.divisionId, values)
+        expected.delete(`${row.divisionId}\u0000${row.locale}\u0000${row.versionHash}`)
       }
+      if (expected.size)
+        throw new PublicationReadUnavailableError(
+          'Selected division name history versions are unavailable.',
+        )
     }),
   )
 
