@@ -3317,6 +3317,11 @@ export async function ensureDraftSnapshotForRelease(
     .limit(1)
     .get()
 
+  const publishedSourceSnapshotForRebuild =
+    args.rebuildPublishedSnapshot && snapshotForSourceRelease?.status === 'published'
+      ? snapshotForSourceRelease
+      : null
+
   if (
     snapshotForSourceRelease &&
     !(args.rebuildPublishedSnapshot && snapshotForSourceRelease.status === 'published')
@@ -3484,11 +3489,13 @@ export async function ensureDraftSnapshotForRelease(
     .limit(1)
     .get()
 
-  const effectiveParent = await resolveAcceptedSnapshotParent(db, {
-    lineageId,
-    cohortKey: args.cohortKey,
-    identityMode,
-  })
+  const effectiveParent = publishedSourceSnapshotForRebuild
+    ? publishedSourceSnapshotForRebuild
+    : await resolveAcceptedSnapshotParent(db, {
+        lineageId,
+        cohortKey: args.cohortKey,
+        identityMode,
+      })
   const parentSnapshotId = args.rootSnapshot ? null : (effectiveParent?.id ?? null)
 
   if (latestForCohort?.status === 'draft' && resourceType !== 'divisionStatistic') {
