@@ -629,3 +629,8 @@ remains available with a null address link; candidate evidence and the original 
 are retained in the release review artefact and provenance. Ingestion does not select an
 identity or record a curation decision. Reviewed links and approved supplementary
 addresses continue to apply. Later review can resolve these cases in revised releases.
+
+The current Place division projection includes the linked address's `landformId`,
+alongside its administrative and locality references. `filter[division]` therefore
+accepts an island Division ID. Historical reads derive the same association from the
+selected address history; coverage depends on the recorded address association.

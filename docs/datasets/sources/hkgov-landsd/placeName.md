@@ -137,3 +137,12 @@ selecting or continuing this mode.
 Dataset processing metadata declares the registered settlement selection and geography
 identity bridge. Releases retain the resolved policy at creation. Dataset source CRS
 metadata identifies the native EPSG:2326 geometry.
+
+## Island inventory
+
+The retained `2026-06-10.0` source includes 156 Topographic `Island` points and four
+`Islands` group points, each with official English and Traditional Chinese names. These
+are available outside the settlement projection as candidate naming evidence for
+SaanSeoi Islands. See the
+[island inventory review](../../internal/island-inventory-review.md) for coverage,
+geometry inputs and the proposed release process.
