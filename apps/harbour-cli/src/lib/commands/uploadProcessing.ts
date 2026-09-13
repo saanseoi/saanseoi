@@ -24,6 +24,15 @@ import {
   withReleaseSetCohort,
 } from './uploadReadiness.ts'
 
+export function withMaterialisationCohort<T extends { cohortKey: string }>(
+  plan: T,
+  materialisationCohortKey?: string,
+): T {
+  return materialisationCohortKey
+    ? { ...plan, cohortKey: materialisationCohortKey }
+    : plan
+}
+
 export function resolveUploadProcessingStrategy(
   previewResult: Awaited<ReturnType<typeof prepareUpload>>,
 ) {
@@ -120,6 +129,7 @@ export async function processPreparedUpload({
   revisionDraft,
   divisionGeometryTransform,
   cacheArtefacts,
+  supplementalDivisionRows,
 }: {
   cacheArtefacts: boolean
   processingStrategy: ReturnType<typeof resolveUploadProcessingStrategy>
@@ -130,6 +140,7 @@ export async function processPreparedUpload({
   options: Parameters<typeof runUploadCommand>[2]
   revisionDraft: () => Parameters<typeof logApiReleaseSetPublication>[1]
   divisionGeometryTransform: 'simplified' | undefined
+  supplementalDivisionRows?: Record<string, unknown>[]
 }) {
   if (processingStrategy.mode === 'local-address-sql') {
     if (
@@ -259,6 +270,7 @@ export async function processPreparedUpload({
         deferSourcePublish: options.deferSourcePublish,
         reuseExistingRelease: options.reuseExistingRelease,
         skipSnapshotCleanup: options.skipSnapshotCleanup,
+        supplementalRows: supplementalDivisionRows,
       },
     )
 
@@ -380,18 +392,22 @@ export async function processPreparedUpload({
         previewResult.plan.source === 'hkgov-censtatd' ||
         previewResult.plan.source === 'hkgov-pland-pu' ||
         previewResult.plan.source === 'hkgov-pland-new-town')
+    const geometryPlan = withMaterialisationCohort(
+      previewResult.plan,
+      options.materialisationCohortKey,
+    )
 
     const processingResult = await processLocalDivisionGeometrySqlUpload(
       target,
       {
-        cohortKey: previewResult.plan.cohortKey,
-        datasetCode: previewResult.plan.datasetCode,
-        regionCode: previewResult.plan.regionCode,
-        releaseCode: previewResult.plan.releaseCode,
-        rowCount: previewResult.plan.rowCount,
+        cohortKey: geometryPlan.cohortKey,
+        datasetCode: geometryPlan.datasetCode,
+        regionCode: geometryPlan.regionCode,
+        releaseCode: geometryPlan.releaseCode,
+        rowCount: geometryPlan.rowCount,
         source: previewResult.plan.source,
-        sourceVersion: previewResult.plan.sourceVersion,
-        geometryStatus: previewResult.plan.geometryStatus,
+        sourceVersion: geometryPlan.sourceVersion,
+        geometryStatus: geometryPlan.geometryStatus,
         transform: divisionGeometryTransform,
         theme: 'divisions',
         resourceType: previewResult.plan.resourceType,
@@ -403,6 +419,7 @@ export async function processPreparedUpload({
         deferApiReleaseSet: options.deferApiReleaseSet,
         deferSourcePublish: options.deferSourcePublish,
         deferPublish: shouldDeriveHkgovSimplifiedGeometry,
+        releaseCohortKey: previewResult.plan.cohortKey,
         reuseExistingRelease: options.reuseExistingRelease,
         skipSnapshotCleanup: options.skipSnapshotCleanup,
         validateGeometry: options.validateGeometry,
@@ -419,14 +436,14 @@ export async function processPreparedUpload({
       companionProcessingResult = await processLocalDivisionGeometrySqlUpload(
         target,
         {
-          cohortKey: previewResult.plan.cohortKey,
-          datasetCode: previewResult.plan.datasetCode,
-          regionCode: previewResult.plan.regionCode,
-          releaseCode: previewResult.plan.releaseCode,
-          rowCount: previewResult.plan.rowCount,
+          cohortKey: geometryPlan.cohortKey,
+          datasetCode: geometryPlan.datasetCode,
+          regionCode: geometryPlan.regionCode,
+          releaseCode: geometryPlan.releaseCode,
+          rowCount: geometryPlan.rowCount,
           source: previewResult.plan.source,
-          sourceVersion: previewResult.plan.sourceVersion,
-          geometryStatus: previewResult.plan.geometryStatus,
+          sourceVersion: geometryPlan.sourceVersion,
+          geometryStatus: geometryPlan.geometryStatus,
           transform: 'simplified',
           theme: 'divisions',
           resourceType: 'divisionArea',

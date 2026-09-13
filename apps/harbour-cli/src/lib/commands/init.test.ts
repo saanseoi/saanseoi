@@ -634,6 +634,9 @@ test('a failed upload stops the coordinator before another release can claim SQL
       function init_skip_completed_release
         return 1
       end
+      function init_is_completed_release
+        return 1
+      end
       init_run_upload dr-failing input.parquet
       echo incorrectly-continued
     `,

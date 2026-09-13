@@ -41,6 +41,7 @@ import type {
 import { fetchTargetVersions, requirePublishedTargetVersion } from './updateTargets.ts'
 import { UpdateRow, clearResolvedPrompt, logPhaseHeading } from './updateDisplay.ts'
 import { processUpdate } from './updateProcessing.ts'
+import { runIslandCurationReview } from '../pipeline/islands/islandCuration.ts'
 
 export async function runUpdateCommand(
   args: ParsedArgs,
@@ -99,6 +100,22 @@ export async function runUpdateCommand(
     includeDependencies ? await loadCurrentCompositionIngestDependencies() : [],
     includeDependencies,
   )
+
+  // Keep the island evidence artefact current whenever either contributing
+  // source is part of an update run. The upload command applies the blocking
+  // decision after the source has been prepared, so --yes cannot bypass it.
+  if (
+    selectedDatasets.some(
+      dataset =>
+        dataset.code === 'ds-hk-overture-division' ||
+        dataset.code === 'ds-hk-hkgov-landsd-division',
+    )
+  ) {
+    const islandReview = await runIslandCurationReview()
+    log.message(
+      `Island curation: ${islandReview.islands.length} geometry-ready island(s), ${islandReview.pending.length} pending review decision(s), ${islandReview.uncuratedBasemap.length} uncurated basemap name(s), ${islandReview.uncuratedLandsd.length} uncurated LandsD name(s).`,
+    )
+  }
 
   const nestedInitialisation = Boolean(process.env.SAANSEOI_INIT_COMMAND)
   if (!nestedInitialisation) {

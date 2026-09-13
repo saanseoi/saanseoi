@@ -44,12 +44,15 @@ import {
 import {
   processPreparedUpload,
   resolveUploadProcessingStrategy,
+  withMaterialisationCohort,
 } from './uploadProcessing.ts'
 import {
   assertAddressUploadPrerequisites,
   assertDivisionGeometryUploadPrerequisites,
+  assertIslandCurationUploadPrerequisites,
 } from './uploadReadiness.ts'
 import { formatSuccessfulReleaseMessage } from './uploadDisplay.ts'
+import { curatedIslandToDivisionRow } from '../pipeline/islands/islandCuration.ts'
 
 export async function runUploadCommand(
   args: ParsedArgs,
@@ -61,6 +64,8 @@ export async function runUploadCommand(
     allowReprocessPublished?: boolean
     /** Add another materialisation to an already registered source release. */
     reuseExistingRelease?: boolean
+    /** Snapshot cohort carried inside a broader publisher release. */
+    materialisationCohortKey?: string
     /** Allows a native importer to register an independent older cohort. */
     allowHistoricalCohort?: boolean
     invocationCwd: string
@@ -276,6 +281,13 @@ ${mutedBar}  `)
     const schemaVersionId = resolveSchemaVersionId(previewResult)
     const processingStrategy = resolveUploadProcessingStrategy(previewResult)
 
+    const islandCuration = await assertIslandCurationUploadPrerequisites(
+      previewResult.plan,
+    )
+    const supplementalDivisionRows = islandCuration?.islands.map(
+      curatedIslandToDivisionRow,
+    )
+
     if (!options.dryRun) {
       await resumePendingSqlDeliveryForUpload(target, options.invocationCwd)
     }
@@ -297,7 +309,13 @@ ${mutedBar}  `)
             divisionCohortKey: options.divisionCohortKey,
           })
         } else {
-          await assertDivisionGeometryUploadPrerequisites(target, previewResult.plan)
+          await assertDivisionGeometryUploadPrerequisites(
+            target,
+            withMaterialisationCohort(
+              previewResult.plan,
+              options.materialisationCohortKey,
+            ),
+          )
         }
         prerequisiteProgress.complete(
           appendPhaseDetails(
@@ -413,6 +431,7 @@ ${mutedBar}  `)
         revisionDraft,
         divisionGeometryTransform,
         cacheArtefacts,
+        supplementalDivisionRows,
       })
       await discardSuccessfulReleaseArtefacts(
         cacheArtefacts,

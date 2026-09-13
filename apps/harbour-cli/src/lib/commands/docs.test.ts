@@ -98,6 +98,36 @@ describe('docs markdown fixtures', () => {
       expect(fixture.indexOf('## Revision log')).toBeLessThan(
         fixture.indexOf('# ZH-HANT'),
       )
+      const guideFixture = parseMarkdownFixture(await readFile(guidePath, 'utf8'))
+      expect(guideFixture.frontmatter.timeTravelEffectiveAt).toBe(
+        '2025-10-01T00:00:00.000Z',
+      )
+      expect(guideFixture.frontmatter.timeTravelKnownAt).toBe(
+        '2026-08-24T04:00:46.011Z',
+      )
+      expect(guideFixture.frontmatter.timeTravelCatalogRevision).toBe(
+        'catalog-hk-divisions-v0.1-2026-08-24.11',
+      )
+      expect(
+        await renderMarkdownFixtureBody(
+          guideFixture,
+          {},
+          [
+            {
+              datasetCode: 'ds-hk-overture-division-area',
+              datasetI18n: [{ locale: 'en', name: 'Division areas' }],
+              publisherCode: 'overture',
+              publisherI18n: [{ locale: 'en', name: 'Overture Maps Foundation' }],
+              releaseCode: 'dr-hk-overture-division-area-2025-09-24.0',
+              resourceType: 'divisionArea',
+              role: 'supporting',
+              sourceVersion: '2025-09-24.0',
+              variant: 'overture',
+            },
+          ],
+          guidePath,
+        ),
+      ).toContain('catalogRevision=catalog-hk-divisions-v0.1-2026-08-24.11&')
     } finally {
       await rm(path, { force: true })
       await rm(guidePath, { force: true })

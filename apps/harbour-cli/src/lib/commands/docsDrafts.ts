@@ -107,10 +107,17 @@ export async function createApiReleaseSetRevisionDraft(
     parsedCode.apiFamily,
     previousCode,
   )
+  const guideFrontmatter = {
+    ...(previousGuideFixture?.frontmatter ?? previousFrontmatter),
+    apiReleaseSet: input.apiReleaseSetCode,
+    revision: String(parsedCode.sequence),
+    createdAt: now,
+    updatedAt: now,
+  }
   await mkdir(dirname(guidePath), { recursive: true })
   await writeFile(
     guidePath,
-    serialiseMarkdownFixture(frontmatter, previousGuideFixture?.body ?? ''),
+    serialiseMarkdownFixture(guideFrontmatter, previousGuideFixture?.body ?? ''),
     'utf8',
   )
 

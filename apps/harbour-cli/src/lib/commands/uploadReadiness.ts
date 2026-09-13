@@ -21,6 +21,11 @@ import {
   resolveD1Targets,
 } from '../dbCache/localDbCacheTargets.ts'
 import { findPendingSqlDeliveryReleaseId } from '../pipeline/local/sqlDeliveryPending.ts'
+import {
+  assertIslandCurationReady,
+  isOvertureHongKongDivisionPlan,
+  runIslandCurationReview,
+} from '../pipeline/islands/islandCuration.ts'
 
 function resolveShardYear(cohortKey: string, sourceVersion: string) {
   const cohortYear = cohortKey.slice(0, 4)
@@ -122,6 +127,16 @@ export async function assertAddressUploadPrerequisites(
 export type DivisionGeometryPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
 
 export type AddressPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
+
+/** Keep reviewed island evidence in the Geographic divisions upload gate. */
+export async function assertIslandCurationUploadPrerequisites(
+  plan: DivisionGeometryPlan,
+) {
+  if (!isOvertureHongKongDivisionPlan(plan)) return null
+  const result = await runIslandCurationReview()
+  assertIslandCurationReady(result)
+  return result
+}
 
 type AddressReleaseSetReadiness = {
   divisionCohortKey: string | null
