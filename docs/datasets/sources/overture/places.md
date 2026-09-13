@@ -1,5 +1,10 @@
 # Overture Places
 
+Historical Address and Division dependencies are rebuilt in a disposable SQLite
+transaction. Missing content rolls back rows and readiness receipts together, so a retry
+cannot reuse a partial dependency view. Serving and history databases remain read-only
+during this preparation.
+
 Historical preparation selects exact Place and dependency component keys in bounded
 indexed queries. Local candidates retain the selected predecessor's membership and
 owning shards. Shared SQL replay checks compare rows through their primary keys, and
@@ -262,9 +267,9 @@ source provenance and, where justified, division IDs.
 Places and supplementary Address releases register separate `processing-audit` manifests
 before publication. The manifests retain matching policies, selected accepted entries
 and individual reviewed decisions with fixture pointers. Unresolved identities retain a
-failed blocking guard before the review stop. SQL metadata delivery does not write
-processing-action evidence tables. Failed registration leaves a local retained graph for
-exact delivery retry.
+review record and null link without creating an identity decision. SQL metadata delivery
+does not write processing-action evidence tables. Failed registration leaves a local
+retained graph for exact delivery retry.
 
 ### Matching and carry-forward order
 
@@ -292,8 +297,8 @@ deterministic replacement policy or an explicit curation decision.
 
 The English-language Clack review defers source addresses containing Chinese characters,
 including mixed-language source values. These items remain unresolved in the review
-artefact and continue to block publication; skipping them records no identity decision
-or retirement. The review reports how many such items it deferred.
+artefact with a null link; deferral records no identity decision or retirement and does
+not block ingestion. The review reports how many such items it deferred.
 
 Automatic Address selection, including exact-text, canonical-component and supplementary
 matches, requires known coordinates within 50 metres and a lead of at least 20 points
@@ -309,8 +314,8 @@ conflicts. Inspect a candidate to see labelled, colour-coded components: cyan bu
 magenta estate, yellow block/phase, green number and blue street. Confirm an ALS
 selection or explicitly leave the Place unlinked and supply a reason. Skip retains an
 unresolved item; save and exit preserves every confirmed decision. Continue
-initialisation to apply saved decisions. Non-interactive runs retain the review-file
-stop; `--yes` never chooses an identity.
+initialisation to apply saved decisions. Non-interactive runs retain unresolved evidence
+and a null link; `--yes` never chooses an identity.
 
 Free-text component recognition excludes bare numeric or single-letter references and
 country-only labels (`HONG KONG`, `HK`, `香港`). These values remain in canonical source
@@ -336,11 +341,11 @@ records but cannot supply premise evidence or contradictions. Qualified names su
    Citygate/20 Tat Tung Road as evidenced context, while retaining Overture rather than
    ALS provenance.
 3. **Review candidate.** A candidate which independently clears the automatic score but
-   is tied, insufficiently separated, or carries contradictory component evidence must
-   stop for review; `--yes` may not choose an identity. Multiple source localisations
-   and identity drift also require review. The review artefact must show the previous
-   accepted link, when present, so a reviewer can keep, retire, or replace it
-   explicitly.
+   is tied, insufficiently separated, or carries contradictory component evidence is
+   deferred with a null link; `--yes` may not choose an identity. Multiple source
+   localisations and identity drift also require review. The review artefact must show
+   the previous accepted link, when present, so a reviewer can later keep, retire, or
+   replace it explicitly in a revised release.
 4. **No usable match.** A result below the automatic threshold, including no candidate
    at all, is recorded as delayed and ignored for current Address matching. Weak name
    fragments and locality-shaped tokens are not actionable identity choices. Do not
@@ -446,9 +451,8 @@ Every analysis writes `overture-place-address-review.json` inside the target's
 selected ALS snapshot, parsed source evidence, candidate score breakdowns, distances,
 previous link and disposition for review-required rows only. The source parse is stored
 once per result rather than repeated inside every candidate. Accepted entries are saved
-only when the cohort has no unresolved review, so a review stop leaves both the
-checked-in policy and generated ledger unchanged. Record reviewed aliases or decisions
-in the fixture and retry the same upload; `--yes` cannot bypass review. A decision
+independently of unresolved rows. Record reviewed aliases or decisions in the fixture
+and issue a revised release; `--yes` leaves unreviewed rows unresolved. A decision
 records `placeId`, `fingerprint`, `sourceRelease`, `previousAddressId`, `resolution`,
 `addressId` and a non-empty `reason`. `link_existing` links an ALS address;
 `create_supplementary` creates and links the address described by `address.values`;
@@ -487,8 +491,10 @@ references.
 
 Address history and `snapshotVersionChanges` reproduce each snapshot independently. An
 existing published supplementary snapshot must reproduce its recorded materialisation;
-an incompatible fixture edit requires a source-release revision. The initializer does
-not discover or upload the supplementary dataset separately.
+an incompatible fixture edit requires a source-release revision. Published retries
+recover withdrawal IDs from immutable version changes and update the generated entry
+ledger only after the materialisation hash matches. The initializer does not discover or
+upload the supplementary dataset separately.
 
 Places with `CN` or `MO` address country codes are excluded from the Hong Kong
 projection. Places with a missing country code remain included. Both cases are recorded
@@ -611,7 +617,10 @@ copies of publisher objects.
 Source storage and public records use `properties` for retained attributes. API-field
 inputs reference this path through the shared dataset-scoped `publisherFields` mapping.
 Processing-rule definitions remain in their registered fixtures and are pinned by the
-selected release.
+selected releases that actually captured each referenced rule. A supporting
+supplementary Address release can share the Places dataset code without claiming the
+Place normalisation rules; missing rules and conflicting captured definitions still stop
+API release-set publication.
 
 ### Deferred address review
 

@@ -205,6 +205,11 @@ Reviewed ALS complex promotions retain residential 3D inventories on their expli
 building owner. Duplicate source assertions must agree on inventory and retain both
 source references.
 
+The Tsui Lam promoted inventory selects its unique numbered owner by CSU, estate and
+block number. Publisher building-name detail such as `PIK LAM HOUSE (BLK 1)` remains
+unchanged and does not prevent inventory attachment; missing or ambiguous owners stop
+preparation.
+
 Source tables retain complete raw payloads with identity, release history and
 provenance. Extracted identifiers, coordinate projections and bilingual address
 components belong to canonical history/current snapshots, not duplicated source columns.

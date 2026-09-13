@@ -169,6 +169,11 @@ to retained Block 1. Both publisher assertions contribute source references to o
 430-unit inventory; conflicting inventories stop preparation. The promoted estate
 complex does not own those residential units.
 
+The Tsui Lam promoted inventory selects its unique numbered owner by CSU, estate and
+block number. Publisher building-name detail such as `PIK LAM HOUSE (BLK 1)` remains
+unchanged and does not prevent inventory attachment; missing or ambiguous owners stop
+preparation.
+
 Pik Lam House's numbered Block 1 parent is forward-filled from the exact 22 July 2026
 Address2D assertion only when that numbered premise is absent. A returning numbered
 source, including `PIK LAM HOUSE (BLK 1)` / `碧林樓(1座)`, bypasses the fallback with

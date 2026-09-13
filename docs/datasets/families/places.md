@@ -1,5 +1,10 @@
 # Places dataset family
 
+Historical Address and Division dependencies are rebuilt in a disposable SQLite
+transaction. Missing content rolls back rows and readiness receipts together, so a retry
+cannot reuse a partial dependency view. Serving and history databases remain read-only
+during this preparation.
+
 Place predecessor and historical Address/Division dependency hydration query exact
 record, version and locale keys through composite indexes. Query batches respect the
 shared parameter budget; identical hashes on different records do not widen selection.
@@ -55,10 +60,10 @@ and finalisation share a draft run, preserving review and materialisation hashes
 Processing audits retain registered normalisation, country-selection and Address
 analysis declarations, aggregate counts, matching policies and reviewed identity
 decisions in R2. Places and supplementary Addresses register separate manifests before
-publication. Unresolved Address reviews retain a failed guard, and publication also
-requires the completed supplementary snapshot dependency. Completed audit delivery
-retries reuse retained objects. See the
-[processing provenance contract](../processing-provenance.md).
+publication. Unresolved Address reviews retain their evidence with a null Place link;
+they do not select an identity or block ingestion. Publication requires the completed
+supplementary snapshot dependency. Completed audit delivery retries reuse retained
+objects. See the [processing provenance contract](../processing-provenance.md).
 
 Enrichment staging writes complete JSONL rows and syncs the temporary output before
 replacement. Failed enrichment preserves the completed output, and interrupted or
@@ -323,6 +328,12 @@ artefacts, provenance, materialisation order, and publication stops are specifie
 Decision lookup is indexed by Place ID, address fingerprint and source release. The
 index retains first-match precedence and refreshes when review appends decisions or
 replaces the ledger. Scoring and acceptance thresholds follow the declared policy.
+
+API field provenance pins a processing rule only to selected releases that captured that
+rule. This keeps the Place normalisation definition attached to the Place release when
+its supporting supplementary Address release shares the same dataset code but captures a
+different processing rule. Every referenced rule must still be present in at least one
+selected release, and conflicting captured definitions stop publication.
 
 Interactive review opens candidates and **New Address** in the same English component
 editor, including building number start and end, with **Save**, **Save & Override
