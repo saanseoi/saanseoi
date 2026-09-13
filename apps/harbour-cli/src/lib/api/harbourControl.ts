@@ -19,6 +19,7 @@ type PublishPayload = {
     snapshotId: string
     variant?: string
   }>
+  rebuildPublishedSnapshot?: boolean
   deferApiReleaseSet?: boolean
   deferStatsReleaseSet?: boolean
   deferSourcePublish?: boolean
@@ -50,6 +51,7 @@ export function createHarbourControlClient(target: UploadTarget) {
           variant?: string
         }>
         deferApiReleaseSet?: boolean
+        rebuildPublishedSnapshot?: boolean
         deferStatsReleaseSet?: boolean
         deferSourcePublish?: boolean
         skipSnapshotCleanup?: boolean
@@ -64,6 +66,9 @@ export function createHarbourControlClient(target: UploadTarget) {
           releaseId,
           ...(publishOptions.carriedSnapshots
             ? { carriedSnapshots: publishOptions.carriedSnapshots }
+            : {}),
+          ...(publishOptions.rebuildPublishedSnapshot
+            ? { rebuildPublishedSnapshot: true }
             : {}),
           ...(publishOptions.deferApiReleaseSet ? { deferApiReleaseSet: true } : {}),
           ...(publishOptions.deferStatsReleaseSet
