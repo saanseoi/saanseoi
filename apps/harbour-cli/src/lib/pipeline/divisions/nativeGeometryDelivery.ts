@@ -13,17 +13,33 @@ import { readDeliveryPlan } from '../local/sqlDeliveryFiles.ts'
 
 type Churn = Awaited<ReturnType<typeof writeGeometryRows>>['churn']
 
+export function nativeGeometryDeliveryPhase(
+  type: Parameters<typeof writeGeometryRows>[1],
+  transform?: 'simplified',
+  cohortKey?: string,
+  sourceVersion?: string,
+) {
+  const base = `native-geometry-${type.toLowerCase()}-${transform ?? 'exact'}`
+  const snapshotYear = cohortKey?.slice(0, 4)
+  const sourceYear = sourceVersion?.slice(0, 4)
+  return snapshotYear && sourceYear && snapshotYear !== sourceYear
+    ? `${base}-${snapshotYear}`
+    : base
+}
+
 export async function readNativeGeometryVersion(
   context: Parameters<typeof writeGeometryRows>[0],
   releaseId: string,
   type: Parameters<typeof writeGeometryRows>[1],
   transform?: 'simplified',
+  cohortKey?: string,
+  sourceVersion?: string,
 ) {
   const plan = await readDeliveryPlan(
     sqlDeliveryPhaseDirectory({
       context,
       releaseId,
-      phase: `native-geometry-${type.toLowerCase()}-${transform ?? 'exact'}`,
+      phase: nativeGeometryDeliveryPhase(type, transform, cohortKey, sourceVersion),
       inputs: {},
     }),
   )
@@ -93,7 +109,12 @@ export async function writeGeometryRowsDurably(
   hash.update('publisher-assertions\n')
   for (const row of publisherRows ?? rows)
     hash.update(JSON.stringify(row.source)).update('\n')
-  const phase = `native-geometry-${type.toLowerCase()}-${version.transform ?? 'exact'}`
+  const phase = nativeGeometryDeliveryPhase(
+    type,
+    version.transform,
+    version.cohortKey,
+    version.sourceVersion,
+  )
   const input = {
     context,
     releaseId: version.releaseId,

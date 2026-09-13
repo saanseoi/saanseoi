@@ -13,9 +13,22 @@ import { sqlDeliveryPhaseDirectory } from '../local/sqlDeliveryPhase.ts'
 import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
 import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.ts'
 import {
+  nativeGeometryDeliveryPhase,
   readNativeGeometryVersion,
   writeGeometryRowsDurably,
 } from './nativeGeometryDelivery.ts'
+
+test('uses cohort-specific delivery phases for annual snapshots in one release', () => {
+  expect(
+    nativeGeometryDeliveryPhase('divisionArea', undefined, '2016', '2026-Q2'),
+  ).toBe('native-geometry-divisionarea-exact-2016')
+  expect(
+    nativeGeometryDeliveryPhase('divisionArea', 'simplified', '2025', '2026-Q2'),
+  ).toBe('native-geometry-divisionarea-simplified-2025')
+  expect(
+    nativeGeometryDeliveryPhase('divisionArea', undefined, '2026', '2026-Q2'),
+  ).toBe('native-geometry-divisionarea-exact')
+})
 
 for (const target of ['local', 'preview'] as const)
   test(`${target} geometry planning resumes membership changes and source closures without mutating retained geometry`, async () => {

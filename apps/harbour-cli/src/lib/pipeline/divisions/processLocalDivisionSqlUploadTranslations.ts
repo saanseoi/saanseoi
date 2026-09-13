@@ -21,6 +21,7 @@ export async function resolveDivisionNameTranslations(
   hierarchyLookup: Awaited<ReturnType<typeof buildDivisionHierarchyLookup>>,
   sourceRelease: string,
   allowGeneration: boolean,
+  supplementalRows: Record<string, unknown>[] = [],
 ) {
   // Supplemental division rows are emitted after source rows so they can replace an
   // identically keyed Overture point with its corrective area record. Resolve one
@@ -39,6 +40,7 @@ export async function resolveDivisionNameTranslations(
     file,
     message,
     DIVISION_BATCH_SIZE,
+    supplementalRows,
   )) {
     for (const row of rows) {
       const normalised = normaliseDivisionRow(row, {

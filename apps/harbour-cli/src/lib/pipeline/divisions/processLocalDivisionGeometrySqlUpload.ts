@@ -129,6 +129,8 @@ export async function processLocalDivisionGeometrySqlUpload(
     reuseRunningRelease?: boolean
     /** Add a resource prepared by an earlier command to the same source release. */
     reuseExistingRelease?: boolean
+    /** Publisher/resource cohort retained on the registered source release. */
+    releaseCohortKey?: string
     /** Reuse ID-independent exact rows when materialising a derived variant. */
     normalisedInput?: readonly NonNullable<NormalisedGeometry>[]
     cacheArtefacts?: boolean
@@ -141,7 +143,13 @@ export async function processLocalDivisionGeometrySqlUpload(
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const rawObjectKey = requireString(uploadResult.rawObjectKey, 'rawObjectKey')
-  const shardYear = previewPlan.sourceVersion.slice(0, 4)
+  const historyShardYear = previewPlan.cohortKey.slice(0, 4)
+  const sourceShardYear = previewPlan.sourceVersion.slice(0, 4)
+  if (!/^\d{4}$/.test(historyShardYear) || !/^\d{4}$/.test(sourceShardYear)) {
+    throw new Error(
+      `Could not resolve geometry shard years from cohortKey=${previewPlan.cohortKey} and sourceVersion=${previewPlan.sourceVersion}.`,
+    )
+  }
   const releaseRoot = `${LOCAL_RELEASE_ROOT}/${target.remote ? 'remote' : 'local'}/${releaseCode}`
   const progress = new OperationProgress()
   const setupStartedAt = Date.now()
@@ -161,11 +169,12 @@ export async function processLocalDivisionGeometrySqlUpload(
     dbContext = await resolveGeometryPreparationContext(
       target,
       previewPlan.regionCode,
-      shardYear,
+      historyShardYear,
       {
         releaseId,
         resourceType: previewPlan.resourceType,
         preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
+        sourceShardYear,
         onProgress(event) {
           reusedDbCache ||= event.action === 'reuse-cache'
           updateDbCacheProgress(progress, event)
@@ -211,7 +220,10 @@ export async function processLocalDivisionGeometrySqlUpload(
       await syncStagedReleaseIntoLocalMetaCache(
         dbContext.metaDb,
         { datasetCode, rawObjectKey, releaseCode, releaseId },
-        previewPlan,
+        {
+          ...previewPlan,
+          cohortKey: options.releaseCohortKey ?? previewPlan.cohortKey,
+        },
         {
           reuseExistingRelease: options.reuseExistingRelease,
           retainedDeliveryCacheDir: target.remote
@@ -281,19 +293,19 @@ export async function processLocalDivisionGeometrySqlUpload(
         'history',
         resolvePipelineEnvironment(target),
         previewPlan.regionCode,
-        shardYear,
+        historyShardYear,
       ),
       resolveShardForTypeRegionYear(
         metaDb,
         'source',
         resolvePipelineEnvironment(target),
         previewPlan.regionCode,
-        shardYear,
+        sourceShardYear,
       ),
     ])
     if (!historyShard || !sourceShard) {
       throw new Error(
-        `Shard mapping not found for ${previewPlan.regionCode}/${shardYear}.`,
+        `Shard mapping not found for ${previewPlan.regionCode} history=${historyShardYear} source=${sourceShardYear}.`,
       )
     }
     await Promise.all([
@@ -508,6 +520,8 @@ export async function processLocalDivisionGeometrySqlUpload(
       releaseId,
       previewPlan.resourceType,
       previewPlan.transform,
+      previewPlan.cohortKey,
+      previewPlan.sourceVersion,
     )
     const retainedSnapshot = retainedVersion
       ? await metaDb
@@ -760,9 +774,10 @@ export async function processLocalDivisionGeometrySqlUpload(
       const deliveryContext = await resolveCurrentWriteContext(
         target,
         previewPlan.regionCode,
-        shardYear,
+        historyShardYear,
         {
           resumeSqlDeliveryReleaseId: releaseId,
+          sourceShardYear,
         },
       )
       try {

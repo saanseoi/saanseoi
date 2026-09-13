@@ -149,6 +149,7 @@ export async function buildDivisionSqlState(
   reportProgress: (current: number) => Promise<void>,
   sourceDatabases: readonly HarbourReadableDb[] = [],
   nativeRows?: Record<string, unknown>[],
+  supplementalRows: Record<string, unknown>[] = [],
 ) {
   const traceDivisionIds = resolveDivisionTraceIds()
   const previousRows = new Map(currentRows)
@@ -182,6 +183,7 @@ export async function buildDivisionSqlState(
     hierarchyLookup,
     sourceRelease,
     allowTranslationGeneration,
+    supplementalRows,
   )
 
   for (const [id, translated] of translationsByDivisionId) {
@@ -222,7 +224,12 @@ export async function buildDivisionSqlState(
     replacedDivisionIds,
     rows: batch,
     processingActions: fixtureActions,
-  } of readDivisionRowsWithFixtures(file, message, DIVISION_BATCH_SIZE)) {
+  } of readDivisionRowsWithFixtures(
+    file,
+    message,
+    DIVISION_BATCH_SIZE,
+    supplementalRows,
+  )) {
     processingActions.push(...fixtureActions)
     for (const row of batch) {
       const raw = row as Record<string, unknown>

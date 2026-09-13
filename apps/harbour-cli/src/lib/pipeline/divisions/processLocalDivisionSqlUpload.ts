@@ -123,6 +123,8 @@ export async function processLocalDivisionSqlUpload(
     skipSnapshotCleanup?: boolean
     /** Canonical input decoded directly from the registered native archive. */
     nativeRows?: Record<string, unknown>[]
+    /** Reviewed rows added to the Overture Geographic canonical snapshot. */
+    supplementalRows?: Record<string, unknown>[]
   } = {},
 ) {
   const releaseId = requireString(uploadResult.releaseId, 'releaseId')
@@ -366,6 +368,10 @@ export async function processLocalDivisionSqlUpload(
         inputs: {
           preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
           snapshotId: versionInsertContext.snapshotId,
+          // Reviewed Geographic rows are an input to the captured SQL plan.
+          // Include their content in the cache key so a curation change cannot
+          // reuse a source-only delivery for an already registered release.
+          supplementalRowsHash: await createHash(options.supplementalRows ?? []),
           ...(options.nativeRows
             ? { nativeRowsHash: await createHash(options.nativeRows) }
             : {}),
@@ -481,6 +487,7 @@ export async function processLocalDivisionSqlUpload(
               },
               dbContext.sourceTargets.map(target => target.db as never),
               options.nativeRows,
+              options.supplementalRows,
             ),
         )
         await harbourClient.stageCompleted(
