@@ -21,6 +21,13 @@ export type DivisionChangesDependencies = {
   loadDefinitions: typeof loadGeocodingDivisions
 }
 type Definitions = Awaited<ReturnType<typeof loadGeocodingDivisions>>
+function unavailableHistory(error: unknown): error is Error {
+  return (
+    error instanceof PublicationReadUnavailableError ||
+    (error instanceof Error &&
+      /^Snapshot (?:not found:|parent cycle detected at)/.test(error.message))
+  )
+}
 const membershipFields = new Set<DivisionChangedField>([
   'membershipGeometry',
   'hierarchies',
@@ -182,7 +189,7 @@ function reference(
   const definition = map.get(id)
   if (!definition) return null
   const record = new URL(
-    `/api/v1/divisions/changes/definitions/${encodeURIComponent(id)}`,
+    `/divisions/v1/changes/definitions/${encodeURIComponent(id)}`,
     origin,
   )
   record.searchParams.set('apiReleaseSet', release.id)
@@ -194,6 +201,7 @@ function reference(
     apiReleaseSet: release.code,
     definitionHash: definition.hash,
     record: record.toString(),
+    geometry: membershipGeometry.length ? `${record}#/membershipGeometry` : null,
     attributes,
     membershipGeometry,
   }
@@ -237,7 +245,7 @@ export async function getDivisionChangeDefinition(
         status: error.status,
         body: { error: error.code, message: error.message },
       }
-    if (error instanceof PublicationReadUnavailableError)
+    if (unavailableHistory(error))
       return {
         status: 503 as const,
         body: { error: 'release_set_unavailable', message: error.message },
@@ -325,6 +333,16 @@ export async function listDivisionChanges(
     const beforeDescendants = descendantLookup(beforeData)
     const afterDescendants = descendantLookup(afterData)
     const origin = new URL(args.requestUrl).origin
+    const responseReference = (
+      id: string,
+      map: DefinitionMap,
+      release: GeocodingRelease,
+    ) => {
+      const full = reference(id, map, release, origin)
+      if (!full || args.query.include === 'geometry') return full
+      const { membershipGeometry, ...summary } = full
+      return summary
+    }
     const data = await Promise.all(
       selected.map(async divisionId => {
         const oldDefinition = before.get(divisionId)
@@ -365,8 +383,8 @@ export async function listDivisionChanges(
           type,
           changedFields,
           canAffectGeocodingMembership,
-          before: reference(divisionId, before, from, origin),
-          after: reference(divisionId, after, to, origin),
+          before: responseReference(divisionId, before, from),
+          after: responseReference(divisionId, after, to),
           affectedDescendantIds: {
             before: canAffectGeocodingMembership ? beforeDescendants(divisionId) : [],
             after: canAffectGeocodingMembership ? afterDescendants(divisionId) : [],
@@ -384,11 +402,12 @@ export async function listDivisionChanges(
       })
     const nextCursor = remaining.length > limit ? makeCursor(selected.at(-1)!) : null
     const link = (value: string) => {
-      const url = new URL('/api/v1/divisions/changes', origin)
+      const url = new URL('/divisions/v1/changes', origin)
       url.searchParams.set('fromApiReleaseSet', from.id)
       url.searchParams.set('toApiReleaseSet', to.id)
       url.searchParams.set('page[limit]', String(limit))
       url.searchParams.set('page[cursor]', value)
+      if (args.query.include) url.searchParams.set('include', args.query.include)
       return url.toString()
     }
     const coverage = (map: DefinitionMap) => ({
@@ -425,7 +444,7 @@ export async function listDivisionChanges(
         status: error.status,
         body: { error: error.code, message: error.message },
       }
-    if (error instanceof PublicationReadUnavailableError)
+    if (unavailableHistory(error))
       return {
         status: 503,
         body: { error: 'release_set_unavailable', message: error.message },

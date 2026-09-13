@@ -218,4 +218,18 @@ describe('division geocoding evidence', () => {
     )
     expect(result.status).toBe('incomplete')
   })
+  test('partial stored hierarchies do not crash resolution', () => {
+    const village = division('village', 'locality', { full: [[entry('root')]] })
+    village.division.hierarchies = {
+      full: [[entry('root')]],
+    } as typeof village.division.hierarchies
+
+    const result = createDivisionResolver(
+      [division('root'), village],
+      [area('root'), area('village')],
+    ).resolve([1, 1])
+
+    expect(result.path).toEqual(['root', 'village'])
+    expect(result.status).toBe('resolved')
+  })
 })

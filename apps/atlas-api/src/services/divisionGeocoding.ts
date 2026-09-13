@@ -1,6 +1,10 @@
 import type { Polygon, MultiPolygon } from 'geojson'
 import type { DivisionRecord, DivisionAreaRecord } from '../db/divisions'
-import { geographicDivisionClassification } from '@repo/db'
+import {
+  geographicDivisionClassification,
+  type DivisionHierarchies,
+  type DivisionHierarchyEntry,
+} from '@repo/db'
 import {
   containsReviewPoint,
   reviewAreaBounds,
@@ -47,15 +51,37 @@ export function distanceMetres(a: Coordinate, b: Coordinate) {
   return 6371008.8 * 2 * Math.asin(Math.sqrt(Math.min(1, h)))
 }
 
+function normaliseHierarchies(value: unknown): DivisionHierarchies {
+  const source =
+    value && typeof value === 'object'
+      ? (value as Partial<Record<keyof DivisionHierarchies, unknown>>)
+      : {}
+  const paths = (key: keyof DivisionHierarchies): DivisionHierarchyEntry[][] =>
+    Array.isArray(source[key]) ? (source[key] as DivisionHierarchyEntry[][]) : []
+
+  return {
+    administrative: paths('administrative'),
+    locality: paths('locality'),
+    landform: paths('landform'),
+    full: paths('full'),
+  }
+}
+
 /** One request owns this index; no mutable release-dependent process cache. */
 export function createDivisionResolver(
   records: DivisionRecord[],
   areas: DivisionAreaRecord[],
 ) {
   const byId = new Map(records.map(record => [record.division.id, record]))
+  const hierarchiesById = new Map(
+    records.map(record => [
+      record.division.id,
+      normaliseHierarchies(record.division.hierarchies),
+    ]),
+  )
   const referencedClasses = new Map<string, Set<string>>()
   for (const record of records)
-    for (const paths of Object.values(record.division.hierarchies))
+    for (const paths of Object.values(hierarchiesById.get(record.division.id)!))
       for (const path of paths)
         for (const entry of path) {
           const classes = referencedClasses.get(entry.id) ?? new Set<string>()
@@ -118,7 +144,7 @@ export function createDivisionResolver(
       if (!covered.has(id)) missing.add(id)
       if (excluded(id)) return []
       const next = new Set([...visiting, id])
-      const hierarchy = record.division.hierarchies
+      const hierarchy = hierarchiesById.get(id)!
       const branches = hierarchy.full.length
         ? hierarchy.full.map(path => path.map(entry => entry.id))
         : [[]]
@@ -214,11 +240,9 @@ export function createDivisionResolver(
       const branches = expand(id)
       if (!branches.length) unresolved.add(id)
       for (const path of branches) paths.set(JSON.stringify(path), path)
-      const landforms = byId
+      const landforms = hierarchiesById
         .get(id)!
-        .division.hierarchies.landform.filter(path =>
-          path.every(entry => !excluded(entry.id)),
-        )
+        .landform.filter(path => path.every(entry => !excluded(entry.id)))
       if (landforms.length > 1) unresolved.add(id)
       for (const landformPath of landforms) {
         const last = landformPath.at(-1)

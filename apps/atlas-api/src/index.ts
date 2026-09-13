@@ -244,7 +244,8 @@ function scalarSourcesForProduct(product: ApiProduct | 'registry') {
 }
 
 const apiRoutePaths = [
-  '/api/v1/*',
+  '/divisions/v1/*',
+  '/addresses/v1/*',
   '/v0.1/*',
   ...apiProducts.flatMap(product => [`/${product}/v0/*`, `/${product}/v0.1/*`]),
 ] as const
@@ -755,6 +756,8 @@ function getOpenApiDocument(
       }
       const pathTags = tagsForPathItem(pathItem)
       const isGeocodingPath = pathTags.includes('Geocoding')
+      const isDivisionChangesPath =
+        path === '/divisions/v1/changes' || path.startsWith('/divisions/v1/changes/')
       const isStatisticsRegistryPath =
         path.startsWith('/stats/') && pathTags.includes('Registry')
       const isApiFamilyPath =
@@ -766,12 +769,13 @@ function getOpenApiDocument(
         apiProducts.some(family => path.startsWith(`/${family}/`))
       return product === 'registry'
         ? !isApiFamilyPath && !isFamilySourcePath
-        : (isGeocodingPath && path.startsWith(`/api/v1/${product}/`)) ||
+        : ((isGeocodingPath || isDivisionChangesPath) &&
+            path.startsWith(`/${product}/v1/`)) ||
             ((pathTags.includes(apiProductTags[product]) ||
               (product === 'stats' && isStatisticsRegistryPath) ||
               (isFamilySourcePath && path.startsWith(`/${product}/`))) &&
               (!productVersion ||
-                (productVersion === 'v1' && path.startsWith(`/api/v1/${product}/`)) ||
+                (productVersion === 'v1' && path.startsWith(`/${product}/v1/`)) ||
                 path === `/${product}/${documentPathVersion}` ||
                 path.startsWith(`/${product}/${documentPathVersion}/`)))
     },

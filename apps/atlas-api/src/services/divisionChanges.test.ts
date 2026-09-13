@@ -49,8 +49,12 @@ function fixture(before: Definitions, after: Definitions) {
   ) {
     return listDivisionChanges({
       ...({} as GeocodingDatabases),
-      requestUrl: 'https://api.example/api/v1/divisions/changes?access_token=secret',
-      query: DivisionChangesQuerySchema.parse({ fromApiReleaseSet: 'old', ...query }),
+      requestUrl: 'https://api.example/divisions/v1/changes?access_token=secret',
+      query: DivisionChangesQuerySchema.parse({
+        fromApiReleaseSet: 'old',
+        include: 'geometry',
+        ...query,
+      }),
       dependencies: { ...dependencies, ...overrides },
     })
   }
@@ -367,7 +371,7 @@ test('before/after links retrieve exact definitions and reject content drift rat
     definitionHash: url.searchParams.get('definitionHash')!,
     dependencies: f.dependencies,
   }
-  expect(await getDivisionChangeDefinition(args)).toEqual({
+  expect((await getDivisionChangeDefinition(args)) as unknown).toEqual({
     status: 200,
     body: expected,
   })
@@ -376,4 +380,15 @@ test('before/after links retrieve exact definitions and reject content drift rat
     status: 503,
     body: { error: 'definition_unavailable' },
   })
+})
+
+test('default feed omits polygons and supplies immutable geometry links', async () => {
+  const f = fixture(
+    { records: [], areas: [] },
+    { records: [division('a')], areas: [area('a')] },
+  )
+  const body = successful(await f.run({ include: undefined }))
+  expect(body.data[0]!.after!.membershipGeometry).toBeUndefined()
+  expect(body.data[0]!.after!.geometry).toContain('definitionHash=')
+  expect(body.data[0]!.after!.attributes.names).toEqual({ en: { name: 'a' } })
 })
