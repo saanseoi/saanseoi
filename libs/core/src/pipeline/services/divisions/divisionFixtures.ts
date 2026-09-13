@@ -25,6 +25,7 @@ type DivisionRowBatch = {
  */
 export function getSupplementalDivisionFixtureRows(
   message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'resourceType'>,
+  supplementalRows: readonly DivisionFixtureRow[] = [],
 ): DivisionFixtureRow[] {
   if (
     message.source !== 'overture' ||
@@ -34,13 +35,17 @@ export function getSupplementalDivisionFixtureRows(
     return []
   }
 
-  return [structuredClone(prcCountryAnchor) as DivisionFixtureRow]
+  return [
+    ...supplementalRows.map(row => structuredClone(row)),
+    structuredClone(prcCountryAnchor) as DivisionFixtureRow,
+  ]
 }
 
 export async function* readDivisionRowsWithFixtures(
   file: DivisionInput,
   message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'resourceType'>,
   batchSize: number,
+  supplementalRows: readonly DivisionFixtureRow[] = [],
 ): AsyncGenerator<DivisionRowBatch> {
   const sourceRows: DivisionFixtureRow[] = []
   for await (const rows of readDivisionInputBatches(file, batchSize)) {
@@ -48,7 +53,7 @@ export async function* readDivisionRowsWithFixtures(
   }
 
   const rows = [
-    ...getSupplementalDivisionFixtureRows(message),
+    ...getSupplementalDivisionFixtureRows(message, supplementalRows),
     ...missingOvertureHongKongAreaRows(message, sourceRows),
     ...missingOvertureHongKongCityRows(message, sourceRows),
   ]

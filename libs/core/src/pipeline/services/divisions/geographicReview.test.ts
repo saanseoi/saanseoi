@@ -123,3 +123,17 @@ test('invalid imports do not pass validation and missing geometry remains explic
     ),
   ).toBe(true)
 })
+
+test('detailed source rings retain all vertices and still reject crossings', () => {
+  const feature = square('district', 1)
+  const ring = Array.from({ length: 12000 }, (_, i) => {
+    const angle = (i * 2 * Math.PI) / 12000
+    return [114 + Math.cos(angle) * 0.1, 22 + Math.sin(angle) * 0.1]
+  })
+  ring.push([...ring[0]!])
+  feature.geometry = { type: 'Polygon', coordinates: [ring] }
+  expect(() => validateStubAreas(stubs([feature]), inventory)).not.toThrow()
+  expect(ring).toHaveLength(12001)
+  ;[ring[100], ring[6100]] = [ring[6100]!, ring[100]!]
+  expect(() => validateStubAreas(stubs([feature]), inventory)).toThrow('intersects')
+})

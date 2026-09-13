@@ -173,10 +173,6 @@ export function validateStubAreas(
     for (const rings of polygons) {
       if (!Array.isArray(rings) || !rings.length) throw new Error('Empty polygon.')
       for (const ring of rings) {
-        if (Array.isArray(ring) && ring.length > 2001)
-          throw new Error(
-            'Stub rings support at most 2,000 vertices; simplify this geometry before import.',
-          )
         if (
           !Array.isArray(ring) ||
           ring.length < 4 ||
@@ -194,12 +190,35 @@ export function validateStubAreas(
           throw new Error('Polygon rings must be closed.')
         if (new Set(ring.slice(0, -1).map(p => p.join(','))).size !== ring.length - 1)
           throw new Error('Polygon vertices must be distinct.')
-        for (let i = 0; i < ring.length - 1; i++)
-          for (let j = i + 2; j < ring.length - 1; j++) {
-            if (i === 0 && j === ring.length - 2) continue
-            if (segmentsIntersect(ring[i]!, ring[i + 1]!, ring[j]!, ring[j + 1]!))
+        // Sweep edge bounding boxes along longitude before exact intersection tests.
+        // Detailed coastline rings need no arbitrary vertex cap.
+        const edges = ring
+          .slice(0, -1)
+          .map((a, i) => {
+            const b = ring[i + 1]!
+            return {
+              i,
+              a,
+              b,
+              minX: Math.min(a[0]!, b[0]!),
+              maxX: Math.max(a[0]!, b[0]!),
+              minY: Math.min(a[1]!, b[1]!),
+              maxY: Math.max(a[1]!, b[1]!),
+            }
+          })
+          .sort((a, b) => a.minX - b.minX)
+        for (let i = 0; i < edges.length; i++) {
+          const a = edges[i]!
+          for (let j = i + 1; j < edges.length; j++) {
+            const b = edges[j]!
+            if (b.minX > a.maxX) break
+            const distance = Math.abs(a.i - b.i)
+            if (distance === 1 || distance === edges.length - 1) continue
+            if (b.minY > a.maxY || b.maxY < a.minY) continue
+            if (segmentsIntersect(a.a, a.b, b.a, b.b))
               throw new Error('Polygon ring intersects itself.')
           }
+        }
       }
     }
     if (areaSize(feature.geometry) <= 0)

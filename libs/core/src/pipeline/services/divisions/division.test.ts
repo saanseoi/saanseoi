@@ -223,6 +223,12 @@ describe('getSupplementalDivisionFixtureRows', () => {
         expect.objectContaining({ locale: 'zh-hant', name: '中國' }),
       ]),
     })
+    expect(
+      getSupplementalDivisionFixtureRows(
+        { source: 'overture', resourceType: 'division', regionCode: 'hk' },
+        [{ id: 'island', class: 'minor_island' }],
+      ),
+    ).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'island' })]))
   })
 
   test('does not add the anchor to unrelated snapshots', () => {
