@@ -165,14 +165,15 @@ automatically mean mainland. This direct relationship is independent of the addr
 administrative and locality relationships. A town such as <i>Discovery Bay</i> and its
 island, <i>Lantau</i>, have distinct Division identities.
 
-Use <black>filter[landform]</black> with the landform's canonical Division ID to filter
-list or search results. This matches recorded address associations; it does not perform
+Use <black>filter[division]</black> to match any recorded administrative, locality, hood
+or landform association. Supply the landform's canonical Division ID to filter list or
+search results. This matches recorded address associations; it does not perform
 point-in-polygon inference or guarantee every address on that island is linked.
 
 ```url
 /{{apiFamily}}/{{ apiVersionPath }}?
                  releaseSet={{ apiReleaseSet }}&
-                 filter[landform]={landformDivisionId}&
+                 filter[division]={landformDivisionId}&
                  include=hierarchy
 ```
 
@@ -336,26 +337,27 @@ The API returns a number of error codes. Here is how to recover from each one:
 ID、發布者識別碼及來源證據，請使用 <black>profile=full</black>。
 <black>attributes.granularity</black> 說明記錄識別的範圍，並非品質評分。
 
-## 地形關係
+## 島嶼關係
 
 <black>relationships.landform.data</black> 以 <black>{ type: "divisions", id: "…"
-}</black> 表示地址的實體地形關聯；未記錄關聯時為
-<black>null</black>。Null 表示未知或未指定，並不表示位於大陸。此直接關係獨立於行政及聚落關係。愉景灣等城鎮與所在的大嶼山使用不同的 Division
+}</black> 表示地址所關聯的實體地形；未記錄關聯時為
+<black>null</black>。實際上，此關係用於識別地址位於哪個島嶼。Null 表示未知或未指定，並不自動表示位於大陸。此直接關係獨立於地址的行政及聚落關係。城鎮（例如<i>愉景灣</i>）與所在島嶼（<i>大嶼山</i>）使用不同的 Division
 ID。
 
-在清單或搜尋請求中，使用 <black>filter[landform]={landformDivisionId}</black>
-按地形的規範 Division
-ID 篩選。篩選只比對已記錄的地址關聯，不會即時計算點是否位於多邊形內，亦不保證島上所有地址均已連結。加入
-<black>include=hierarchy</black> 可在 <black>included</black> 取得相關區劃，包括地形。
+使用 <black>filter[division]</black>，以地形的規範 Division
+ID 篩選清單或搜尋結果。此篩選只比對已記錄的地址關聯，不會推斷點是否位於多邊形內，亦不保證島上每個地址均已連結。
 
-地形的 category 為 <black>landform</black>，class 為 <black>major_island</black>、
-<black>minor_island</black> 或
-<black>island_group</black>，level 為 null。關聯覆蓋取決於所選版本，不要求有多邊形覆蓋。
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 releaseSet={{ apiReleaseSet }}&
+                 filter[division]={landformDivisionId}&
+                 include=hierarchy
+```
 
-關聯不代表 <black>formattedAddress</black>
-必須包含地形名稱；來源發布者提供的地址文字會保留。自訂顯示可使用 Division 層級的
-<black>full</black>
-路徑；如明確記錄了對應行政區劃，路徑可略去重複的地形名稱。請勿自動附加島名：如 Area 已顯示香港島，便應只出現一次。
+<black>include=hierarchy</black> 會將已連結的 Division 資源（包括地形）加入
+<black>included</black>。地形的 category 為 <black>landform</black>，class 為
+<black>major_island</black>、<black>minor_island</black> 或
+<black>island_group</black>，level 為 null。
 
 ## 加入語言（`I18n`）
 
@@ -536,26 +538,27 @@ API 會傳回多種錯誤代碼。可按以下方法處理：
 ID、发布者标识符及源证据，请使用 <black>profile=full</black>。
 <black>attributes.granularity</black> 说明记录识别的范围，并非质量评分。
 
-## 地形关系
+## 岛屿关系
 
 <black>relationships.landform.data</black> 以 <black>{ type: "divisions", id: "…"
-}</black> 表示地址的实体地形关联；未记录关联时为
-<black>null</black>。Null 表示未知或未指定，并不表示位于大陆。此直接关系独立于行政及聚落关系。愉景湾等城镇与所在的大屿山使用不同的 Division
+}</black> 表示地址所关联的实体地形；未记录关联时为
+<black>null</black>。实际上，此关系用于识别地址位于哪个岛屿。Null 表示未知或未指定，并不自动表示位于大陆。此直接关系独立于地址的行政及聚落关系。城镇（例如<i>愉景湾</i>）与所在岛屿（<i>大屿山</i>）使用不同的 Division
 ID。
 
-在列表或搜索请求中，使用 <black>filter[landform]={landformDivisionId}</black>
-按地形的规范 Division
-ID 筛选。筛选只匹配已记录的地址关联，不会即时计算点是否位于多边形内，也不保证岛上所有地址均已链接。添加
-<black>include=hierarchy</black> 可在 <black>included</black> 获取相关区划，包括地形。
+使用 <black>filter[division]</black>，以地形的规范 Division
+ID 筛选清单或搜索结果。此筛选只比对已记录的地址关联，不会推断点是否位于多边形内，亦不保证岛上每个地址均已链接。
 
-地形的 category 为 <black>landform</black>，class 为 <black>major_island</black>、
-<black>minor_island</black> 或
-<black>island_group</black>，level 为 null。关联覆盖取决于所选版本，不要求有多边形覆盖。
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 releaseSet={{ apiReleaseSet }}&
+                 filter[division]={landformDivisionId}&
+                 include=hierarchy
+```
 
-关联不代表 <black>formattedAddress</black>
-必须包含地形名称；来源发布者提供的地址文字会保留。自定义显示可使用 Division 层级的
-<black>full</black>
-路径；如明确记录了对应行政区划，路径可略去重复的地形名称。请勿自动附加岛名：如 Area 已显示香港岛，便应只出现一次。
+<black>include=hierarchy</black> 会将已链接的 Division 资源（包括地形）加入
+<black>included</black>。地形的 category 为 <black>landform</black>，class 为
+<black>major_island</black>、<black>minor_island</black> 或
+<black>island_group</black>，level 为 null。
 
 ## 添加语言（`I18n`）
 

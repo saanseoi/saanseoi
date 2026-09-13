@@ -155,6 +155,33 @@ need the Division hierarchy. Unit inclusion is available only on one Address det
 request; list and search requests accept <black>include=hierarchy</black> only, avoiding
 a page that expands into every unit of many buildings.
 
+## Island Relationships
+
+<black>relationships.landform.data</black> identifies the physical landform associated
+with an address as <black>{ type: "divisions", id: "…" }</black>, or is
+<black>null</black> when no association is recorded. Practically, this is used to
+identify which island an address is on. Null means unknown or unassigned; it does not
+automatically mean mainland. This direct relationship is independent of the address's
+administrative and locality relationships. A town such as <i>Discovery Bay</i> and its
+island, <i>Lantau</i>, have distinct Division identities.
+
+Use <black>filter[division]</black> to match any recorded administrative, locality, hood
+or landform association. Supply the landform's canonical Division ID to filter list or
+search results. This matches recorded address associations; it does not perform
+point-in-polygon inference or guarantee every address on that island is linked.
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 releaseSet={{ apiReleaseSet }}&
+                 filter[division]={landformDivisionId}&
+                 include=hierarchy
+```
+
+<black>include=hierarchy</black> adds the linked Division resources, including the
+landform, to <black>included</black>. Landforms use category <black>landform</black>,
+class <black>major_island</black>, <black>minor_island</black>, or
+<black>island_group</black>, and a null level.
+
 ## Adding Languages (`I18n`)
 
 {{localeSelectionSection:en}}
@@ -309,6 +336,28 @@ The API returns a number of error codes. Here is how to recover from each one:
 或 <black>profile=full</black> 時提供。如需不可變的snapshot
 ID、發布者識別碼及來源證據，請使用 <black>profile=full</black>。
 <black>attributes.granularity</black> 說明記錄識別的範圍，並非品質評分。
+
+## 島嶼關係
+
+<black>relationships.landform.data</black> 以 <black>{ type: "divisions", id: "…"
+}</black> 表示地址所關聯的實體地形；未記錄關聯時為
+<black>null</black>。實際上，此關係用於識別地址位於哪個島嶼。Null 表示未知或未指定，並不自動表示位於大陸。此直接關係獨立於地址的行政及聚落關係。城鎮（例如<i>愉景灣</i>）與所在島嶼（<i>大嶼山</i>）使用不同的 Division
+ID。
+
+使用 <black>filter[division]</black>，以地形的規範 Division
+ID 篩選清單或搜尋結果。此篩選只比對已記錄的地址關聯，不會推斷點是否位於多邊形內，亦不保證島上每個地址均已連結。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 releaseSet={{ apiReleaseSet }}&
+                 filter[division]={landformDivisionId}&
+                 include=hierarchy
+```
+
+<black>include=hierarchy</black> 會將已連結的 Division 資源（包括地形）加入
+<black>included</black>。地形的 category 為 <black>landform</black>，class 為
+<black>major_island</black>、<black>minor_island</black> 或
+<black>island_group</black>，level 為 null。
 
 ## 加入語言（`I18n`）
 
@@ -488,6 +537,28 @@ API 會傳回多種錯誤代碼。可按以下方法處理：
 或 <black>profile=full</black> 时提供。如需不可变的snapshot
 ID、发布者标识符及源证据，请使用 <black>profile=full</black>。
 <black>attributes.granularity</black> 说明记录识别的范围，并非质量评分。
+
+## 岛屿关系
+
+<black>relationships.landform.data</black> 以 <black>{ type: "divisions", id: "…"
+}</black> 表示地址所关联的实体地形；未记录关联时为
+<black>null</black>。实际上，此关系用于识别地址位于哪个岛屿。Null 表示未知或未指定，并不自动表示位于大陆。此直接关系独立于地址的行政及聚落关系。城镇（例如<i>愉景湾</i>）与所在岛屿（<i>大屿山</i>）使用不同的 Division
+ID。
+
+使用 <black>filter[division]</black>，以地形的规范 Division
+ID 筛选清单或搜索结果。此筛选只比对已记录的地址关联，不会推断点是否位于多边形内，亦不保证岛上每个地址均已链接。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 releaseSet={{ apiReleaseSet }}&
+                 filter[division]={landformDivisionId}&
+                 include=hierarchy
+```
+
+<black>include=hierarchy</black> 会将已链接的 Division 资源（包括地形）加入
+<black>included</black>。地形的 category 为 <black>landform</black>，class 为
+<black>major_island</black>、<black>minor_island</black> 或
+<black>island_group</black>，level 为 null。
 
 ## 添加语言（`I18n`）
 
