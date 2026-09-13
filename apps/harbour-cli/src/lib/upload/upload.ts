@@ -251,7 +251,7 @@ async function registerUploadLocally(
       ? options.allowReprocessPublished
         ? options.reuseExistingRelease
           ? ['staged', 'processing']
-          : ['staged', 'published']
+          : ['staged', 'published', 'superseded']
         : ['staged']
       : options.resumeStagedRelease
         ? options.reuseExistingRelease
