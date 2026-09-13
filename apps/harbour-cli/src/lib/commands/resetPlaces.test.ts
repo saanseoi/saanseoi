@@ -13,8 +13,10 @@ import {
   failRunningPlacesIngestRuns,
   failPlacesManifest,
   hasCompletedOverturePlacesBaseline,
+  recoverFailedPlacesIngestRuns,
   resumePlacesManifest,
 } from './resetPlaces.ts'
+import type { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
 
 function createPlacesResetCurrentDb() {
   const sqlite = new SQLiteDatabase(':memory:')
@@ -384,6 +386,53 @@ describe('Overture Places initialisation ownership', () => {
       sqlite.query('SELECT status FROM ingestRuns WHERE runId = ?').get('newer'),
     ).toEqual({ status: 'running' })
 
+    sqlite.close()
+  })
+
+  test('opens interrupted recovery as the retained SQL owner before failing its stale phase', async () => {
+    const { db, sqlite } = createPlacesOwnershipDb()
+    sqlite.exec(`
+      INSERT INTO ingestRuns (
+        runId, releaseId, phase, status, startedAt, createdAt, updatedAt
+      ) VALUES (
+        'abandoned', 'places-release', 'processDataset', 'running',
+        '2026-09-06T00:00:00.000Z', '2026-09-06T00:00:00.000Z',
+        '2026-09-06T00:01:00.000Z'
+      );
+    `)
+    const events: string[] = []
+
+    await recoverFailedPlacesIngestRuns(
+      { environment: 'dev', remote: false },
+      {
+        createdAt: '2026-09-06T00:00:00.000Z',
+        failedAt: '2026-09-06T00:02:00.000Z',
+        runId: 'init-run',
+        status: 'failed',
+        target: 'local',
+        version: 1,
+      },
+      {
+        resolveSqlDeliveryOwner: async () => {
+          events.push('resolve owner')
+          return 'places-release'
+        },
+        resolveContext: (async (
+          _target: Parameters<typeof resolveLocalAddressDbContext>[0],
+          _regionCode: Parameters<typeof resolveLocalAddressDbContext>[1],
+          _shardYear: Parameters<typeof resolveLocalAddressDbContext>[2],
+          options: NonNullable<Parameters<typeof resolveLocalAddressDbContext>[3]>,
+        ) => {
+          events.push(`open as ${options.resumeSqlDeliveryReleaseId}`)
+          return { cleanup() {}, metaDb: db }
+        }) as never,
+      },
+    )
+
+    expect(events).toEqual(['resolve owner', 'open as places-release'])
+    expect(
+      sqlite.query('SELECT status FROM ingestRuns WHERE runId = ?').get('abandoned'),
+    ).toEqual({ status: 'error' })
     sqlite.close()
   })
 

@@ -5,7 +5,10 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-complex-promotions.json'
-import { applyReviewedComplexPromotions } from './hkgovAlsComplexPromotions'
+import {
+  applyReviewedComplexPromotions,
+  reviewedComplexInventoryParents,
+} from './hkgovAlsComplexPromotions'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
 import type { DivisionLookupMaps, HkgovAlsFeature } from './hkgovAlsTypes'
 
@@ -117,45 +120,65 @@ test('fails closed when Pik Lam blockless source evidence changes', async () => 
   )
 })
 
-test('promoted complex preserves both Pik Lam 3D sources under Block 1', async () => {
-  const version = '2024-07-25.0'
-  const rows = await rowsFor(version)
-  applyReviewedComplexPromotions(rows, version)
-  const owner = requireDefined(rows.find(row => row.enBlockNumber === '1'))
-  const raw = await Bun.file(
-    `data/hkgov/dpo/ALS/${directories[version]}/als_addresses_3d_(public_rental_housing).geojson`,
-  ).json()
-  const features = raw.features.filter(
-    (f: any) =>
-      f.properties.Address.PremisesAddress.BuildingCsuInformation.CsuId === rule.csu,
-  )
-  expect(features).toHaveLength(2)
-  const dir = await mkdtemp(join(tmpdir(), 'pik-lam-inventory-'))
-  try {
-    await writeFile(
-      join(dir, 'als_addresses_3d_test.geojson'),
-      JSON.stringify({ type: 'FeatureCollection', features }, null, 2),
+test.each(['2024-07-25.0', '2026-08-19.0'])(
+  'promoted complex preserves both Pik Lam 3D sources under Block 1 in %s',
+  async version => {
+    const rows = await rowsFor(version)
+    applyReviewedComplexPromotions(rows, version)
+    const owner = requireDefined(rows.find(row => row.enBlockNumber === '1'))
+    const raw = await Bun.file(
+      `data/hkgov/dpo/ALS/${directories[version]}/als_addresses_3d_(public_rental_housing).geojson`,
+    ).json()
+    const features = raw.features.filter(
+      (f: any) =>
+        f.properties.Address.PremisesAddress.BuildingCsuInformation.CsuId === rule.csu,
     )
-    for (const skipCurationChecks of [false, true]) {
-      const outputFile = join(dir, 'prepared')
-      expect(
-        await prepareAls3dCollections({
-          sourceDir: dir,
-          sourceVersion: version,
-          outputFile,
-          rows,
-          skipCurationChecks,
-        }),
-      ).toEqual({ collectionCount: 1, unitCount: 430, sourceCount: 2 })
-      const records = (await Bun.file(`${outputFile}.address3d.jsonl`).text())
-        .trim()
-        .split('\n')
-        .map(line => JSON.parse(line))
-      const collection = records.find(r => r.kind === 'collection')
-      expect(collection.address2dId).toBe(owner.id)
-      expect(collection.sourceRecordIds).toHaveLength(2)
+    expect(features).toHaveLength(2)
+    const dir = await mkdtemp(join(tmpdir(), 'pik-lam-inventory-'))
+    try {
+      await writeFile(
+        join(dir, 'als_addresses_3d_test.geojson'),
+        JSON.stringify({ type: 'FeatureCollection', features }, null, 2),
+      )
+      for (const skipCurationChecks of [false, true]) {
+        const outputFile = join(dir, 'prepared')
+        expect(
+          await prepareAls3dCollections({
+            sourceDir: dir,
+            sourceVersion: version,
+            outputFile,
+            rows,
+            skipCurationChecks,
+          }),
+        ).toEqual({ collectionCount: 1, unitCount: 430, sourceCount: 2 })
+        const records = (await Bun.file(`${outputFile}.address3d.jsonl`).text())
+          .trim()
+          .split('\n')
+          .map(line => JSON.parse(line))
+        const collection = records.find(r => r.kind === 'collection')
+        expect(collection.address2dId).toBe(owner.id)
+        expect(collection.sourceRecordIds).toHaveLength(2)
+      }
+    } finally {
+      await rm(dir, { recursive: true, force: true })
     }
-  } finally {
-    await rm(dir, { recursive: true, force: true })
+  },
+)
+
+test('inventory ownership requires a unique matching CSU, estate and numbered block', async () => {
+  const rows = await rowsFor('2026-08-19.0')
+  applyReviewedComplexPromotions(rows, '2026-08-19.0')
+  const owner = requireDefined(rows.find(row => row.enBlockNumber === '1'))
+  expect(reviewedComplexInventoryParents(rows)[0]?.owner).toBe(owner)
+  for (const field of ['hkgovCsuId', 'enEstateName', 'enBlockNumber'] as const) {
+    const changed = rows.map(row =>
+      row === owner ? { ...row, [field]: 'different' } : row,
+    )
+    expect(() => reviewedComplexInventoryParents(changed)).toThrow(
+      'inventory owner changed',
+    )
   }
+  expect(() => reviewedComplexInventoryParents([...rows, { ...owner }])).toThrow(
+    'inventory owner changed',
+  )
 })

@@ -12,6 +12,13 @@ afterEach(() => {
   else process.env.HARBOUR_API_KEY = originalApiKey
 })
 
+function absentObjectChecks(handler: typeof fetch): typeof fetch {
+  return (async (input, init) =>
+    String(input).endsWith('/objects/check')
+      ? Response.json({ objects: [] })
+      : handler(input, init)) as typeof fetch
+}
+
 function memoryStore(): ProvenanceStore {
   const objects = new Map<string, ArrayBuffer>()
   return {
@@ -40,7 +47,7 @@ test('retries a transient provenance object upload', async () => {
   process.env.HARBOUR_API_KEY = 'test-api-key'
   let objectUploads = 0
   const progress: string[] = []
-  globalThis.fetch = (async (input, init) => {
+  globalThis.fetch = absentObjectChecks((async (input, init) => {
     expect(init?.signal).toBeInstanceOf(AbortSignal)
     if (String(input).includes('/objects/')) {
       objectUploads += 1
@@ -53,7 +60,7 @@ test('retries a transient provenance object upload', async () => {
     }
     expect(init?.method).toBe('POST')
     return Response.json({ manifestHash: ref.hash })
-  }) as typeof fetch
+  }) as typeof fetch)
 
   await expect(
     deliverProcessingResult(
@@ -74,10 +81,10 @@ test('does not retry a non-transient provenance object upload', async () => {
   const { store, ref } = await processingResult()
   process.env.HARBOUR_API_KEY = 'test-api-key'
   let objectUploads = 0
-  globalThis.fetch = (async input => {
+  globalThis.fetch = absentObjectChecks((async input => {
     if (String(input).includes('/objects/')) objectUploads += 1
     return Response.json({ error: 'Object digest mismatch.' }, { status: 400 })
-  }) as typeof fetch
+  }) as typeof fetch)
 
   await expect(
     deliverProcessingResult({ environment: 'dev', remote: false }, store, ref),
@@ -89,7 +96,7 @@ test('retries a transient provenance registration', async () => {
   const { store, ref } = await processingResult()
   process.env.HARBOUR_API_KEY = 'test-api-key'
   let registrations = 0
-  globalThis.fetch = (async input => {
+  globalThis.fetch = absentObjectChecks((async input => {
     if (String(input).includes('/objects/'))
       return Response.json({ hash: ref.hash, byteLength: ref.byteLength })
     registrations += 1
@@ -99,7 +106,7 @@ test('retries a transient provenance registration', async () => {
           { status: 400 },
         )
       : Response.json({ manifestHash: ref.hash })
-  }) as typeof fetch
+  }) as typeof fetch)
 
   await expect(
     deliverProcessingResult({ environment: 'dev', remote: false }, store, ref),
@@ -113,7 +120,7 @@ for (const endpoint of ['objects', 'releases']) {
       const { store, ref } = await processingResult()
       process.env.HARBOUR_API_KEY = 'test-api-key'
       let attempts = 0
-      globalThis.fetch = (async input => {
+      globalThis.fetch = absentObjectChecks((async input => {
         if (String(input).includes(`/${endpoint}/`)) {
           attempts += 1
           if (attempts === 1) {
@@ -131,7 +138,7 @@ for (const endpoint of ['objects', 'releases']) {
         return String(input).includes('/objects/')
           ? Response.json({ hash: ref.hash, byteLength: ref.byteLength })
           : Response.json({ manifestHash: ref.hash })
-      }) as typeof fetch
+      }) as typeof fetch)
       await expect(
         deliverProcessingResult({ environment: 'dev', remote: false }, store, ref),
       ).resolves.toBeUndefined()
@@ -144,10 +151,12 @@ test('preserves a non-JSON terminal HTTP error without retrying', async () => {
   const { store, ref } = await processingResult()
   process.env.HARBOUR_API_KEY = 'test-api-key'
   let attempts = 0
-  globalThis.fetch = (async (_input: Parameters<typeof fetch>[0]) => {
+  globalThis.fetch = absentObjectChecks((async (
+    _input: Parameters<typeof fetch>[0],
+  ) => {
     attempts += 1
     return new Response('Unauthorised', { status: 401 })
-  }) as typeof fetch
+  }) as typeof fetch)
   await expect(
     deliverProcessingResult({ environment: 'dev', remote: false }, store, ref),
   ).rejects.toThrow('HTTP 401')
@@ -159,7 +168,10 @@ test('local ingestion uploads provenance to production R2 and registers only loc
   const requests: string[] = []
   const objects: string[] = []
   const counts: number[] = []
-  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+  globalThis.fetch = absentObjectChecks((async (
+    input: string | URL | Request,
+    init?: RequestInit,
+  ) => {
     const url = String(input)
     requests.push(url)
     if (url.includes('/objects/'))
@@ -168,7 +180,7 @@ test('local ingestion uploads provenance to production R2 and registers only loc
         byteLength: init?.body instanceof ArrayBuffer ? init.body.byteLength : 0,
       })
     return Response.json({ manifestHash: ref.hash })
-  }) as typeof fetch
+  }) as typeof fetch)
   await deliverProcessingResult(
     { remote: false, environment: 'dev', r2: 'production' },
     store,
@@ -189,4 +201,56 @@ test('local ingestion uploads provenance to production R2 and registers only loc
   ])
   expect(requests.every(url => url.startsWith('http://localhost:8788/'))).toBe(true)
   expect(requests.at(-1)).toContain('/v1/provenance/releases/release')
+})
+
+test('verified destination objects skip uploads, including on a transient check retry', async () => {
+  const { store, ref } = await processingResult()
+  process.env.HARBOUR_API_KEY = 'test-api-key'
+  let checks = 0
+  let uploads = 0
+  let registrations = 0
+  globalThis.fetch = (async (input, init) => {
+    if (String(input).endsWith('/objects/check')) {
+      checks++
+      if (checks === 1) return Response.json({ error: 'try again' }, { status: 503 })
+      return Response.json({ objects: JSON.parse(String(init?.body)).objects })
+    }
+    if (init?.method === 'PUT') uploads++
+    else registrations++
+    return Response.json({ manifestHash: ref.hash })
+  }) as typeof fetch
+  await deliverProcessingResult({ environment: 'dev', remote: false }, store, ref)
+  expect(checks).toBe(2)
+  expect(uploads).toBe(0)
+  expect(registrations).toBe(1)
+})
+
+test('destination checks cannot acknowledge different bytes or skip independent R2 retention', async () => {
+  const { store, ref } = await processingResult()
+  process.env.HARBOUR_API_KEY = 'test-api-key'
+  let wrongLength = true
+  const retained: string[] = []
+  globalThis.fetch = (async input =>
+    String(input).endsWith('/objects/check')
+      ? Response.json({
+          objects: [{ ...ref, byteLength: ref.byteLength + Number(wrongLength) }],
+        })
+      : Response.json({ manifestHash: ref.hash })) as typeof fetch
+  const deliver = () =>
+    deliverProcessingResult(
+      { environment: 'dev', remote: false, r2: 'production' },
+      store,
+      ref,
+      undefined,
+      {
+        retainRemoteObject: async (_r2, key) => {
+          retained.push(key)
+        },
+      },
+    )
+  await expect(deliver()).rejects.toThrow('Invalid provenance object acknowledgement')
+  expect(retained).toHaveLength(0)
+  wrongLength = false
+  await deliver()
+  expect(retained).toHaveLength(1)
 })

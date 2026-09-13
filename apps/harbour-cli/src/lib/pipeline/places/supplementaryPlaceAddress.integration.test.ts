@@ -28,6 +28,51 @@ import {
 } from '@repo/core/pipeline/db/snapshotReplay'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import { addressFingerprint } from './supplementaryPlaceAddress.ts'
+import { collectPublishedSupplementaryRevocations } from './processLocalPlaceSqlUploadSupplementary.ts'
+
+test('published supplementary retry recovers revocations from immutable history', async () => {
+  const first = new Database(':memory:')
+  const second = new Database(':memory:')
+  try {
+    for (const db of [first, second])
+      db.exec(
+        loadMigrationSql(
+          resolve(import.meta.dir, '../../../../../../libs/db/migrations'),
+          ['history'],
+        ).replaceAll('--> statement-breakpoint', ''),
+      )
+    first.exec(`
+      INSERT INTO snapshotVersionChanges
+        (snapshotId,recordType,recordId,locale,versionHash,operation)
+      VALUES
+        ('published-snapshot','address2d','opa-stale-a','',NULL,'delete'),
+        ('published-snapshot','address2d','opa-current','', 'hash','upsert'),
+        ('other-snapshot','address2d','opa-other','',NULL,'delete');
+    `)
+    second.exec(`
+      INSERT INTO snapshotVersionChanges
+        (snapshotId,recordType,recordId,locale,versionHash,operation)
+      VALUES
+        ('published-snapshot','address2d','opa-stale-b','',NULL,'delete'),
+        ('published-snapshot','address2dI18n','opa-locale','en',NULL,'delete');
+    `)
+    expect(
+      await collectPublishedSupplementaryRevocations(
+        [first, second].map((db, index) => ({
+          db: drizzle({ client: db, schema: historySchema }),
+          bindingName: `DB_HISTORY_${index}`,
+          databaseId: null,
+          databaseName: `history-${index}`,
+          year: String(2025 + index),
+        })),
+        'published-snapshot',
+      ),
+    ).toEqual(['opa-stale-a', 'opa-stale-b'])
+  } finally {
+    first.close()
+    second.close()
+  }
+})
 
 test('supplementary editions reuse cross-year components, replay immutable provenance, and withdraw empty membership', async () => {
   const root = await mkdtemp(resolve(tmpdir(), 'place-address-integration-'))
@@ -760,7 +805,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
         ...input,
         places: [changed, additionalAccepted],
       }),
-    ).rejects.toThrow('require explicit curation')
+    ).rejects.toThrow('Published supplementary snapshot differs from curation')
     expect(await readFile(curationPath, 'utf8')).toBe(curationBeforeReview)
     expect(await readFile(entryLedgerPath, 'utf8')).toBe(entriesBeforeReview)
     const review = JSON.parse(
@@ -768,7 +813,10 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     )
     expect(review.reviewRequired).toBe(1)
     expect(review.results).toHaveLength(1)
-    expect(review.results[0].tier).toBe('review')
+    expect(review.results[0]).toMatchObject({
+      tier: 'delayed',
+      reviewDeferral: { reviewStatus: 'unreviewed' },
+    })
     expect(review.results[0].previous.addressId).toBe(first.addresses[0]?.current.id)
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
 

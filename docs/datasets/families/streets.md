@@ -180,3 +180,10 @@ Source and canonical Street versions close in their owning shards, including at 
 boundaries. The incoming history shard records the snapshot journal. Each logical Street
 version retains its complete locales for historical timeline reconstruction; unchanged
 reissues do not create another logical version.
+
+### Deferred matching review
+
+Road Centreline ingestion retains unmatched and ambiguous named segments as unreviewed
+in `.cache/road-centreline-review/`. Publisher source rows and native geometry are
+ingested without guessing a canonical street identity. Existing reviewed matches remain
+effective. Later review can inform revised releases.

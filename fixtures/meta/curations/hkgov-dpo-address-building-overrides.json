@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "kawada-plaza-ii",
+      "csu": "3278439581T20200914",
+      "canonicalId": "ss-53c300ec-ba05-5643-8097-56f88d919887",
+      "enName": "KAWADA PLAZA II",
+      "zhName": "川田工貿廣場2期",
+      "authority": "User decision, 2026-09-12: retain Kawada Plaza II as a building at 5 Lok Yip Road, overriding the On Lok Tsuen complex representation; preserve raw source and coordinates",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hash": "7e909ad4b79876531237ece214fd0c40373843aee3f38034fc492783c3719181"
+        },
+        {
+          "version": "2024-07-31.0",
+          "hash": "94e85835a6859cdf9e1efebcba9c1f37b5c14613842a0e033aeab377e9e2053a"
+        },
+        {
+          "version": "2024-08-21.0",
+          "hash": "7e909ad4b79876531237ece214fd0c40373843aee3f38034fc492783c3719181"
+        },
+        {
+          "version": "2024-08-25.0",
+          "hash": "94e85835a6859cdf9e1efebcba9c1f37b5c14613842a0e033aeab377e9e2053a"
+        },
+        {
+          "version": "2024-08-28.0",
+          "hash": "7e909ad4b79876531237ece214fd0c40373843aee3f38034fc492783c3719181"
+        },
+        {
+          "version": "2024-09-01.0",
+          "hash": "94e85835a6859cdf9e1efebcba9c1f37b5c14613842a0e033aeab377e9e2053a"
+        },
+        {
+          "version": "2024-09-02.0",
+          "hash": "7e909ad4b79876531237ece214fd0c40373843aee3f38034fc492783c3719181"
+        },
+        {
+          "version": "2024-09-03.0",
+          "hash": "94e85835a6859cdf9e1efebcba9c1f37b5c14613842a0e033aeab377e9e2053a"
+        },
+        {
+          "version": "2024-10-18.0",
+          "hash": "94e85835a6859cdf9e1efebcba9c1f37b5c14613842a0e033aeab377e9e2053a"
+        },
+        {
+          "version": "2024-11-13.0",
+          "hash": "94e85835a6859cdf9e1efebcba9c1f37b5c14613842a0e033aeab377e9e2053a"
+        },
+        {
+          "version": "2024-12-12.0",
+          "hash": "94e85835a6859cdf9e1efebcba9c1f37b5c14613842a0e033aeab377e9e2053a"
+        },
+        {
+          "version": "2025-01-23.0",
+          "hash": "94e85835a6859cdf9e1efebcba9c1f37b5c14613842a0e033aeab377e9e2053a"
+        },
+        {
+          "version": "2025-02-25.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2025-03-21.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2025-04-26.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2025-05-22.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2025-06-20.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2025-08-13.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2025-08-28.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2025-09-03.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2025-11-04.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2025-12-16.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2026-02-04.0",
+          "hash": "81010e4e9f2b74cff0858d16db22528b9f8cac460e45dd654cb9d4b15022f471"
+        },
+        {
+          "version": "2026-04-03.0",
+          "hash": "4c508b16ff885aebcadfbe1c23226a83da8a810183bd54c5351bfe9d0b1cd280"
+        },
+        {
+          "version": "2026-04-22.0",
+          "hash": "f9414e9cb737c3b87c72bcea18d6cb95602d357031fd5ad970a63514b824cb0b"
+        },
+        {
+          "version": "2026-04-25.0",
+          "hash": "f9414e9cb737c3b87c72bcea18d6cb95602d357031fd5ad970a63514b824cb0b"
+        },
+        {
+          "version": "2026-07-08.0",
+          "hash": "f9414e9cb737c3b87c72bcea18d6cb95602d357031fd5ad970a63514b824cb0b"
+        },
+        {
+          "version": "2026-07-10.0",
+          "hash": "f9414e9cb737c3b87c72bcea18d6cb95602d357031fd5ad970a63514b824cb0b"
+        },
+        {
+          "version": "2026-07-22.0",
+          "hash": "f9414e9cb737c3b87c72bcea18d6cb95602d357031fd5ad970a63514b824cb0b"
+        },
+        {
+          "version": "2026-08-19.0",
+          "hash": "94bf05cfd31a8616b972ff231c0d2e2cbec2af54f8816ae0316a804be6b40052"
+        }
+      ]
+    }
+  ]
+}

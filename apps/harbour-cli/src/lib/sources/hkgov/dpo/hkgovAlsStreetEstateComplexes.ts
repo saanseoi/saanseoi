@@ -17,7 +17,10 @@ import {
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 const sourceFile = 'hkgov-dpo-address-street-estate-complexes.json'
 const namespace = '71c00c8c-f7ea-562a-8754-2d26a9a2eccd'
-type Rule = (typeof fixture.rules)[number] & {
+type Rule = Omit<(typeof fixture.rules)[number], 'coordinates' | 'application'> & {
+  coordinates: number[] | null
+  application: (typeof fixture.rules)[number]['application']
+  deriveWithoutSourcePremise?: boolean
   sourceCsu?: string
   retainSourcePremise?: boolean
   streetOverride?: { en: string; zh: string; number: string } | null
@@ -72,10 +75,13 @@ export function applyReviewedStreetEstateComplexes(
   for (const { rule, curation } of active(version)) {
     const curationFile =
       rule.curationFile ??
-      (rule.sourceCsu ? 'hkgov-dpo-address-upper-estate-complexes.json' : sourceFile)
+      (rule.sourceCsu || rule.deriveWithoutSourcePremise
+        ? 'hkgov-dpo-address-upper-estate-complexes.json'
+        : sourceFile)
     const estateRows = rows.filter(r => r.enEstateName === rule.estate)
     if (!estateRows.length) continue
     const aliases = estateRows.filter(r => {
+      if (rule.deriveWithoutSourcePremise) return false
       if (rule.sourceCsu) return r.hkgovCsuId === rule.sourceCsu
       const p = raw(r)
       return (

@@ -1,5 +1,7 @@
 import { Database } from 'bun:sqlite'
-import { copyFile, mkdtemp, rm } from 'node:fs/promises'
+import { backup, DatabaseSync } from 'node:sqlite'
+import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { constants } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { journalNetTable } from './netSqlitePlanDiff.ts'
@@ -11,6 +13,7 @@ import {
   normaliseNetIgnoredColumns,
   orderNetTables,
   readNetTables,
+  netTablesDiffer,
 } from './netSqlitePlanSchema.ts'
 import {
   quoteNetIdentifier as q,
@@ -58,8 +61,12 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
     batches: 0,
     bytes: 0,
   }
+  let phase = 'initialise journal'
+  let failed = false
   try {
-    journal.exec(`PRAGMA temp_store=FILE;
+    // Every file in this directory is disposable until the sealed delivery is
+    // emitted. Avoid device-wide durability barriers while building candidates.
+    journal.exec(`PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF; PRAGMA temp_store=FILE;
       CREATE TABLE mutations(seq INTEGER PRIMARY KEY, binding TEXT NOT NULL, groupKey TEXT NOT NULL, sortOrder INTEGER NOT NULL, statement TEXT NOT NULL, tableName TEXT NOT NULL, kind TEXT NOT NULL, rowKey TEXT NOT NULL);
       CREATE INDEX mutations_group ON mutations(binding,groupKey,sortOrder,seq);
       CREATE INDEX mutations_row ON mutations(binding,tableName,kind,rowKey);
@@ -67,27 +74,35 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       CREATE TABLE payloads(seq INTEGER PRIMARY KEY, binding TEXT NOT NULL, contents TEXT NOT NULL);`)
     const entries = Object.entries(input.targets)
     for (const [index, [binding, target]] of entries.entries()) {
+      phase = `copy ${binding}`
       const baseline = join(directory, `${index}.baseline.sqlite`)
-      const source = new Database(target.path, { readonly: true, create: false })
+      const source = new DatabaseSync(target.path, { readOnly: true })
       try {
-        source.query('VACUUM INTO ?').run(baseline)
+        // SQLite's online backup reads a transactionally consistent view,
+        // including committed WAL pages, without materialising a multi-gigabyte
+        // database image in the JavaScript heap.
+        await backup(source, baseline)
       } finally {
         source.close()
       }
       baselines[binding] = baseline
       const path = join(directory, `${index}.candidate.sqlite`)
-      await copyFile(baseline, path)
+      await copyFile(baseline, path, constants.COPYFILE_FICLONE)
       const db = new Database(path, { readwrite: true, create: false })
       candidates[binding] = { db, path }
-      db.exec('PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;')
+      db.exec(
+        'PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF; PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;',
+      )
       tables[binding] = orderNetTables(readNetTables(db, target.tables))
     }
+    phase = 'generate candidate databases'
     const result = await input.generate(candidates)
     const insert = journal.query(
       'INSERT INTO mutations(binding,groupKey,sortOrder,statement,tableName,kind,rowKey) VALUES(?,?,?,?,?,?,?)',
     )
     let sequence = 0
     for (const [binding] of entries) {
+      phase = `diff ${binding}`
       const candidate = candidates[binding]
       const baseline = baselines[binding]
       const ordered = tables[binding]
@@ -131,21 +146,28 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
         // An explicit policy is required even when an unrelated table's writes
         // would otherwise be silently omitted from the delivered final state.
         const columns = db
-          .query<{ name: string }, []>(`PRAGMA main.table_info(${q(name)})`)
-          .all()
-          .map(column => `${q(column.name)} COLLATE BINARY`)
-          .join(',')
-        const changed = db
-          .query(
-            `SELECT 1 FROM (SELECT ${columns} FROM main.${q(name)} EXCEPT SELECT ${columns} FROM net_baseline.${q(name)}) UNION ALL SELECT 1 FROM (SELECT ${columns} FROM net_baseline.${q(name)} EXCEPT SELECT ${columns} FROM main.${q(name)}) LIMIT 1`,
+          .query<{ name: string; pk: number; notnull: number }, []>(
+            `PRAGMA main.table_info(${q(name)})`,
           )
-          .get()
+          .all()
+        const key = columns
+          .filter(column => column.pk)
+          .sort((a, b) => Number(a.pk) - Number(b.pk))
+        const changed = netTablesDiffer(
+          db,
+          name,
+          columns.map(column => column.name),
+          key.every(column => column.notnull) ? key.map(column => column.name) : [],
+          'main',
+          'net_baseline',
+        )
         if (changed)
           throw new Error(
             `Net-plan preparation changed an unowned table: ${binding}.${name}`,
           )
       }
       for (const table of ordered) {
+        phase = `normalise ${binding}.${table.policy.name}`
         assertNetSchema(db, table)
         if (!input.bootstrap) normaliseNetIgnoredColumns(db, table)
       }
@@ -154,6 +176,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       summary.tables[binding] = counts
       journal.transaction(() => {
         for (const [rank, table] of ordered.entries()) {
+          phase = `journal ${binding}.${table.policy.name}`
           counts[table.policy.name] = journalNetTable({
             db,
             table,
@@ -181,20 +204,35 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
           })
         }
       })()
+      phase = `order dependencies ${binding}`
       if (!input.bootstrap)
         postponeNetParentDeletions({ db, journalPath, binding, tables: ordered })
+      phase = `batch payloads ${binding}`
       journalPayloads(journal, binding, { maxStatements, maxPayloadBytes }, summary)
+      // An exhaustive zero-delta comparison already proves replay equality. Keep
+      // its schema/ownership/FK checks, but do not copy and replay an unchanged shard.
+      if (
+        !input.bootstrap &&
+        !Object.values(counts).some(
+          table => table.inserted || table.updated || table.deleted,
+        )
+      )
+        continue
+      phase = `replay ${binding}`
       const replayPath = join(
         directory,
         `${entries.findIndex(([name]) => name === binding)}.replay.sqlite`,
       )
-      await copyFile(baseline, replayPath)
+      await copyFile(baseline, replayPath, constants.COPYFILE_FICLONE)
       const replay = new Database(replayPath, {
         readwrite: true,
         create: false,
         safeIntegers: true,
       })
       try {
+        // Replay copies are disposable and are rebuilt after interruption. Keep
+        // each payload's transaction/FK boundary without durable journal flushes.
+        replay.exec('PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF;')
         if (input.bootstrap) {
           replay.exec('PRAGMA foreign_keys=OFF')
           replay.transaction(() => {
@@ -226,6 +264,7 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
         replay.close()
       }
     }
+    phase = 'emit delivery batches'
     for (const row of journal
       .query<{ binding: string; contents: string }, []>(
         'SELECT binding,contents FROM payloads ORDER BY seq',
@@ -240,11 +279,31 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       )
     }
     return { result, summary }
+  } catch (error) {
+    failed = true
+    if (process.env.SAANSEOI_KEEP_FAILED_NET_PLAN === '1')
+      await writeFile(
+        join(directory, 'failure.json'),
+        JSON.stringify(
+          {
+            phase,
+            message: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : null,
+          },
+          null,
+          2,
+        ),
+      )
+    throw new Error(
+      `Net SQL planning failed during ${phase}: ${error instanceof Error ? error.message : String(error)}${process.env.SAANSEOI_KEEP_FAILED_NET_PLAN === '1' ? `; retained ${directory}` : ''}`,
+      { cause: error },
+    )
   } finally {
     for (const client of exactClients) client.close()
     for (const candidate of Object.values(candidates)) candidate.db.close()
     journal.close()
-    await rm(directory, { recursive: true, force: true })
+    if (!failed || process.env.SAANSEOI_KEEP_FAILED_NET_PLAN !== '1')
+      await rm(directory, { recursive: true, force: true })
   }
 }
 

@@ -32,8 +32,8 @@ export function resolvePublisherFieldPaths(
     .filter(
       path =>
         fieldPath === path ||
-        fieldPath.startsWith(path + '.') ||
-        fieldPath.startsWith(path + '['),
+        fieldPath.startsWith(`${path}.`) ||
+        fieldPath.startsWith(`${path}[`),
     )
     .sort((a, b) => b.length - a.length)[0]
   if (!parent) throw new Error(`Unmapped source input: ${fieldPath}`)
@@ -140,11 +140,10 @@ export function pinApiFieldRules(
       const matches = [...pins.values()].filter(
         pin => pin.ruleId === id && pin.releaseId === release.releaseId,
       )
-      if (!matches.length)
-        throw new Error(
-          `API field rule ${id} is absent from release ${release.releaseId}`,
-        )
-      if (new Set(matches.map(pin => pin.definitionHash)).size !== 1)
+      if (
+        matches.length > 0 &&
+        new Set(matches.map(pin => pin.definitionHash)).size !== 1
+      )
         throw new Error(`Conflicting captured definitions for API field rule ${id}`)
     }
   }

@@ -1,4 +1,4 @@
-import { inArray } from 'drizzle-orm'
+import { and, eq, or } from 'drizzle-orm'
 import { historySchema } from '@repo/db'
 import { chunkArray, getMaxItemsPerInClause } from '../utils'
 import {
@@ -19,10 +19,7 @@ export async function loadReplayedAddressEvidence(versions: ResolvedSnapshotVers
     const db = selected[0]?.shard.db
     if (!db) throw new Error(`Missing Address evidence shard ${bindingName}.`)
     const found = new Set<string>()
-    for (const hashes of chunkArray(
-      [...new Set(selected.map(version => version.versionHash))],
-      getMaxItemsPerInClause(1),
-    )) {
+    for (const batch of chunkArray(selected, getMaxItemsPerInClause(2))) {
       const rows = await db
         .select({
           addressId: historySchema.address2dEvidence.addressId,
@@ -30,7 +27,16 @@ export async function loadReplayedAddressEvidence(versions: ResolvedSnapshotVers
           sources: historySchema.address2dEvidence.sources,
         })
         .from(historySchema.address2dEvidence)
-        .where(inArray(historySchema.address2dEvidence.versionHash, hashes))
+        .where(
+          or(
+            ...batch.map(version =>
+              and(
+                eq(historySchema.address2dEvidence.addressId, version.recordId),
+                eq(historySchema.address2dEvidence.versionHash, version.versionHash),
+              ),
+            ),
+          ),
+        )
         .all()
       for (const row of rows) {
         const key = `${row.addressId}\0${row.versionHash}`

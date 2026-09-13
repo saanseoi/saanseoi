@@ -1,0 +1,3885 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "redhill-house-20-palm-drive",
+      "csu": "4134310230T20050430",
+      "authority": "User decision, 2026-09-12: Redhill Peninsula House 20 is 20 Palm Drive. House number and street number are distinct fields; the complex is at 18 Pak Pat Shan Road.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "20",
+      "streetNumber": "20",
+      "enStreet": "PALM DRIVE",
+      "zhStreet": "棕櫚徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "d341da21c31548e748801dc0c3bf7ec12b9accd064e5d2f99a28a4b876e648de"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "d341da21c31548e748801dc0c3bf7ec12b9accd064e5d2f99a28a4b876e648de"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "d341da21c31548e748801dc0c3bf7ec12b9accd064e5d2f99a28a4b876e648de"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "d341da21c31548e748801dc0c3bf7ec12b9accd064e5d2f99a28a4b876e648de"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "99e6c1f8f2997d251c7e20383d58366ecce6e593b4e5ec37972e0fa599359ee8"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "b4aead3b14474cf89931307923d64ded5bc222418c85676575cb1a0bef53d90b"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-108-cedar-drive",
+      "csu": "4163410424T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "108",
+      "streetNumber": "108",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "858b28b68c20732f00fcd0ec53b202087a72c72d4695a8e5b85925a19646d9b6"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "858b28b68c20732f00fcd0ec53b202087a72c72d4695a8e5b85925a19646d9b6"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "858b28b68c20732f00fcd0ec53b202087a72c72d4695a8e5b85925a19646d9b6"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "858b28b68c20732f00fcd0ec53b202087a72c72d4695a8e5b85925a19646d9b6"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "d99273146534c2f8ed79c149ad19b1afe7634ae9f189e926312e33a576152440"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "e188b6d79afac1cb3e14da8c474553db7668bb14ef48974b363b78d7eb9444f4"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "e188b6d79afac1cb3e14da8c474553db7668bb14ef48974b363b78d7eb9444f4"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "e188b6d79afac1cb3e14da8c474553db7668bb14ef48974b363b78d7eb9444f4"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "e188b6d79afac1cb3e14da8c474553db7668bb14ef48974b363b78d7eb9444f4"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "e188b6d79afac1cb3e14da8c474553db7668bb14ef48974b363b78d7eb9444f4"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "e188b6d79afac1cb3e14da8c474553db7668bb14ef48974b363b78d7eb9444f4"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "e188b6d79afac1cb3e14da8c474553db7668bb14ef48974b363b78d7eb9444f4"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-92-cedar-drive",
+      "csu": "4166510343T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "92",
+      "streetNumber": "92",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "3a1681171e9adf6168ecfe8613745c1d1b0b8f346cff37f899a4728699398022"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "3a1681171e9adf6168ecfe8613745c1d1b0b8f346cff37f899a4728699398022"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "3a1681171e9adf6168ecfe8613745c1d1b0b8f346cff37f899a4728699398022"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "3a1681171e9adf6168ecfe8613745c1d1b0b8f346cff37f899a4728699398022"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "6ec9bb22aa24d33d656f40b49bf73dc9082e52c477b17a5d97aa06341e7d90bb"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "b4a4d53dd74555eb04fb84d44cb3c70200b93a58db8c4c52fe1b409f8b9e816e"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "b4a4d53dd74555eb04fb84d44cb3c70200b93a58db8c4c52fe1b409f8b9e816e"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "b4a4d53dd74555eb04fb84d44cb3c70200b93a58db8c4c52fe1b409f8b9e816e"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "b4a4d53dd74555eb04fb84d44cb3c70200b93a58db8c4c52fe1b409f8b9e816e"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "b4a4d53dd74555eb04fb84d44cb3c70200b93a58db8c4c52fe1b409f8b9e816e"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "b4a4d53dd74555eb04fb84d44cb3c70200b93a58db8c4c52fe1b409f8b9e816e"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "b4a4d53dd74555eb04fb84d44cb3c70200b93a58db8c4c52fe1b409f8b9e816e"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-18-palm-drive",
+      "csu": "4133110238T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "18",
+      "streetNumber": "18",
+      "enStreet": "PALM DRIVE",
+      "zhStreet": "棕櫚徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "d673dfa665752035dbefc1965e83eec92ed1df348e57cf27f100d66229676d08"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "d673dfa665752035dbefc1965e83eec92ed1df348e57cf27f100d66229676d08"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "d673dfa665752035dbefc1965e83eec92ed1df348e57cf27f100d66229676d08"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "d673dfa665752035dbefc1965e83eec92ed1df348e57cf27f100d66229676d08"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "118ab8f9d16bcaf1f6daeb7f592fe421bc3ca335170b605b1b8e069e4116ff41"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "915b1526b85ce0137eafc6326b7a24ec9e5611588fbd9574ccc857c36901172d"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "915b1526b85ce0137eafc6326b7a24ec9e5611588fbd9574ccc857c36901172d"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "915b1526b85ce0137eafc6326b7a24ec9e5611588fbd9574ccc857c36901172d"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "915b1526b85ce0137eafc6326b7a24ec9e5611588fbd9574ccc857c36901172d"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "915b1526b85ce0137eafc6326b7a24ec9e5611588fbd9574ccc857c36901172d"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "915b1526b85ce0137eafc6326b7a24ec9e5611588fbd9574ccc857c36901172d"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "915b1526b85ce0137eafc6326b7a24ec9e5611588fbd9574ccc857c36901172d"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-128-cedar-drive",
+      "csu": "4163910516T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "128",
+      "streetNumber": "128",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "008431f0b18772cd7f9cd055dfacd1d73c94c632f75dd918f27575e58f85e689"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "008431f0b18772cd7f9cd055dfacd1d73c94c632f75dd918f27575e58f85e689"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "008431f0b18772cd7f9cd055dfacd1d73c94c632f75dd918f27575e58f85e689"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "008431f0b18772cd7f9cd055dfacd1d73c94c632f75dd918f27575e58f85e689"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "598e011994fee7526248a82a1e21423ea40a9d7c64159b5d95dac9161d785a62"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "207ef7612db2d0a7b3926a045d75959a472d074dca2e768d08bb6ca9c4864a8c"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "207ef7612db2d0a7b3926a045d75959a472d074dca2e768d08bb6ca9c4864a8c"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "207ef7612db2d0a7b3926a045d75959a472d074dca2e768d08bb6ca9c4864a8c"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "207ef7612db2d0a7b3926a045d75959a472d074dca2e768d08bb6ca9c4864a8c"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "207ef7612db2d0a7b3926a045d75959a472d074dca2e768d08bb6ca9c4864a8c"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "207ef7612db2d0a7b3926a045d75959a472d074dca2e768d08bb6ca9c4864a8c"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "207ef7612db2d0a7b3926a045d75959a472d074dca2e768d08bb6ca9c4864a8c"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-152-cedar-drive",
+      "csu": "4160010649T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "152",
+      "streetNumber": "152",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "aa5665c708d6a000d44a22330b1c9737cea7c6e52e56b7338936a6a7f60b9f8a"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "aa5665c708d6a000d44a22330b1c9737cea7c6e52e56b7338936a6a7f60b9f8a"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "aa5665c708d6a000d44a22330b1c9737cea7c6e52e56b7338936a6a7f60b9f8a"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "aa5665c708d6a000d44a22330b1c9737cea7c6e52e56b7338936a6a7f60b9f8a"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "a8cb38c8c53c4a5ece162a78614503df3abacfe97851c4195d5d3f911082c994"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "49f3cd57a37eb95f1dfcf38497529cd63b3c4af4093bbbe8a6ddc75e5e4763d0"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "49f3cd57a37eb95f1dfcf38497529cd63b3c4af4093bbbe8a6ddc75e5e4763d0"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "49f3cd57a37eb95f1dfcf38497529cd63b3c4af4093bbbe8a6ddc75e5e4763d0"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "49f3cd57a37eb95f1dfcf38497529cd63b3c4af4093bbbe8a6ddc75e5e4763d0"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "49f3cd57a37eb95f1dfcf38497529cd63b3c4af4093bbbe8a6ddc75e5e4763d0"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "49f3cd57a37eb95f1dfcf38497529cd63b3c4af4093bbbe8a6ddc75e5e4763d0"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "49f3cd57a37eb95f1dfcf38497529cd63b3c4af4093bbbe8a6ddc75e5e4763d0"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-102-cedar-drive",
+      "csu": "4164610384T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "102",
+      "streetNumber": "102",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "fd6666753848c6317b3a87d76b609fa2a281d6244732344086790ad9db423afc"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "fd6666753848c6317b3a87d76b609fa2a281d6244732344086790ad9db423afc"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "fd6666753848c6317b3a87d76b609fa2a281d6244732344086790ad9db423afc"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "fd6666753848c6317b3a87d76b609fa2a281d6244732344086790ad9db423afc"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "3d6d43a7af11613cb3e268c2a9128197f4bd0a3067bee707eb02a62a71c234a1"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "647bb417a1df06fb9f6d4bd2bb2d705a3c29e40955c39aaae8803baa77799104"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "647bb417a1df06fb9f6d4bd2bb2d705a3c29e40955c39aaae8803baa77799104"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "647bb417a1df06fb9f6d4bd2bb2d705a3c29e40955c39aaae8803baa77799104"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "647bb417a1df06fb9f6d4bd2bb2d705a3c29e40955c39aaae8803baa77799104"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "647bb417a1df06fb9f6d4bd2bb2d705a3c29e40955c39aaae8803baa77799104"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "647bb417a1df06fb9f6d4bd2bb2d705a3c29e40955c39aaae8803baa77799104"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "647bb417a1df06fb9f6d4bd2bb2d705a3c29e40955c39aaae8803baa77799104"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-112-cedar-drive",
+      "csu": "4164010444T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "112",
+      "streetNumber": "112",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "1dd394beacdb18674f7a603628b47d36889a93672ea68aaecb24a3a5a1a9d497"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "1dd394beacdb18674f7a603628b47d36889a93672ea68aaecb24a3a5a1a9d497"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "1dd394beacdb18674f7a603628b47d36889a93672ea68aaecb24a3a5a1a9d497"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "1dd394beacdb18674f7a603628b47d36889a93672ea68aaecb24a3a5a1a9d497"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "52707fcf9cbd7e0ef78d45b43c84b76bac876b0ec9e33246a1b29478878cb497"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "5df3cf89362315b32fb564b439f3948b5d90876c055d4cf0a80df077e7bc9edb"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "5df3cf89362315b32fb564b439f3948b5d90876c055d4cf0a80df077e7bc9edb"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "5df3cf89362315b32fb564b439f3948b5d90876c055d4cf0a80df077e7bc9edb"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "5df3cf89362315b32fb564b439f3948b5d90876c055d4cf0a80df077e7bc9edb"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "5df3cf89362315b32fb564b439f3948b5d90876c055d4cf0a80df077e7bc9edb"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "5df3cf89362315b32fb564b439f3948b5d90876c055d4cf0a80df077e7bc9edb"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "5df3cf89362315b32fb564b439f3948b5d90876c055d4cf0a80df077e7bc9edb"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-94-cedar-drive",
+      "csu": "4166510350T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "94",
+      "streetNumber": "94",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "7cc7e95afe464d0d4d187d99841cadc8644d2aa210d79f993ab20681271ef786"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "7cc7e95afe464d0d4d187d99841cadc8644d2aa210d79f993ab20681271ef786"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "7cc7e95afe464d0d4d187d99841cadc8644d2aa210d79f993ab20681271ef786"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "7cc7e95afe464d0d4d187d99841cadc8644d2aa210d79f993ab20681271ef786"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "8a70db6b14617332c6072024b6db947469915e01668b64ff1c8ba0f68ee327e8"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "3256879210b4b0fe1f45a6519be9dd08940fcdaf1c0a18ace4174df79ff03c92"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "3256879210b4b0fe1f45a6519be9dd08940fcdaf1c0a18ace4174df79ff03c92"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "3256879210b4b0fe1f45a6519be9dd08940fcdaf1c0a18ace4174df79ff03c92"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "3256879210b4b0fe1f45a6519be9dd08940fcdaf1c0a18ace4174df79ff03c92"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "3256879210b4b0fe1f45a6519be9dd08940fcdaf1c0a18ace4174df79ff03c92"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "3256879210b4b0fe1f45a6519be9dd08940fcdaf1c0a18ace4174df79ff03c92"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "3256879210b4b0fe1f45a6519be9dd08940fcdaf1c0a18ace4174df79ff03c92"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-126-cedar-drive",
+      "csu": "4164610508T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "126",
+      "streetNumber": "126",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "485902290fdab5457449917b3cf2825114b3ffafd550b67860de9b5b82fdf3e3"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "485902290fdab5457449917b3cf2825114b3ffafd550b67860de9b5b82fdf3e3"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "485902290fdab5457449917b3cf2825114b3ffafd550b67860de9b5b82fdf3e3"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "485902290fdab5457449917b3cf2825114b3ffafd550b67860de9b5b82fdf3e3"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "31c4521b68ace9c5c35e6826c7706a4bda957e29d4143b8d9d62ad3521ac8b39"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "ea0f250d50d480e11d9d3eb96a6f5723adda28f0657b0cfb25baaf02021b8922"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "ea0f250d50d480e11d9d3eb96a6f5723adda28f0657b0cfb25baaf02021b8922"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "ea0f250d50d480e11d9d3eb96a6f5723adda28f0657b0cfb25baaf02021b8922"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "ea0f250d50d480e11d9d3eb96a6f5723adda28f0657b0cfb25baaf02021b8922"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "ea0f250d50d480e11d9d3eb96a6f5723adda28f0657b0cfb25baaf02021b8922"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "ea0f250d50d480e11d9d3eb96a6f5723adda28f0657b0cfb25baaf02021b8922"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "ea0f250d50d480e11d9d3eb96a6f5723adda28f0657b0cfb25baaf02021b8922"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-22-palm-drive",
+      "csu": "4134810227T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "22",
+      "streetNumber": "22",
+      "enStreet": "PALM DRIVE",
+      "zhStreet": "棕櫚徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "418cc6b3d20459f471141b12a6b545b11926f570cf8e6b2fc510512e4aa86575"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "418cc6b3d20459f471141b12a6b545b11926f570cf8e6b2fc510512e4aa86575"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "418cc6b3d20459f471141b12a6b545b11926f570cf8e6b2fc510512e4aa86575"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "418cc6b3d20459f471141b12a6b545b11926f570cf8e6b2fc510512e4aa86575"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "20104a02bbc9db3d39d19c765ff9c320c6f92909165d4ada88e573d24c715cc9"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "5ed573d82d641cf541e1e48ebdaa2ff4278665d1ef9aee6aed7f0589823392dc"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "5ed573d82d641cf541e1e48ebdaa2ff4278665d1ef9aee6aed7f0589823392dc"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "5ed573d82d641cf541e1e48ebdaa2ff4278665d1ef9aee6aed7f0589823392dc"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "5ed573d82d641cf541e1e48ebdaa2ff4278665d1ef9aee6aed7f0589823392dc"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "5ed573d82d641cf541e1e48ebdaa2ff4278665d1ef9aee6aed7f0589823392dc"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "5ed573d82d641cf541e1e48ebdaa2ff4278665d1ef9aee6aed7f0589823392dc"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "5ed573d82d641cf541e1e48ebdaa2ff4278665d1ef9aee6aed7f0589823392dc"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-80-cedar-drive",
+      "csu": "4165510286T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "80",
+      "streetNumber": "80",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "98ffc20c763b59749403c692800f70665545985f64b9b196a5a411be4e0fe50c"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "98ffc20c763b59749403c692800f70665545985f64b9b196a5a411be4e0fe50c"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "98ffc20c763b59749403c692800f70665545985f64b9b196a5a411be4e0fe50c"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "98ffc20c763b59749403c692800f70665545985f64b9b196a5a411be4e0fe50c"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "219047e9324717bf57ad46339024ce7602aa5c7b8dfe6e5df70cc07c9f0c54f9"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "7aa800dd9a8dc3a2dc634218c2f0a426abdf770c7e6532a76106388a6305fdcb"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "7aa800dd9a8dc3a2dc634218c2f0a426abdf770c7e6532a76106388a6305fdcb"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "7aa800dd9a8dc3a2dc634218c2f0a426abdf770c7e6532a76106388a6305fdcb"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "7aa800dd9a8dc3a2dc634218c2f0a426abdf770c7e6532a76106388a6305fdcb"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "7aa800dd9a8dc3a2dc634218c2f0a426abdf770c7e6532a76106388a6305fdcb"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "7aa800dd9a8dc3a2dc634218c2f0a426abdf770c7e6532a76106388a6305fdcb"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "7aa800dd9a8dc3a2dc634218c2f0a426abdf770c7e6532a76106388a6305fdcb"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-176-cedar-drive",
+      "csu": "4155810769T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "176",
+      "streetNumber": "176",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "366f825a696bdadbf5506418540d2d4b3f02d2bb6e849802c635e3585f8bbd56"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "366f825a696bdadbf5506418540d2d4b3f02d2bb6e849802c635e3585f8bbd56"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "366f825a696bdadbf5506418540d2d4b3f02d2bb6e849802c635e3585f8bbd56"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "366f825a696bdadbf5506418540d2d4b3f02d2bb6e849802c635e3585f8bbd56"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "893bf24e303dce5b0b5e8f7f83c27d9bd1c5163d041a6bbb77deb96a9028b432"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "416997e7be011fe8eeb4a528a317bb0d49d1189c03ee8b96edd68cb4e405ea4e"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "416997e7be011fe8eeb4a528a317bb0d49d1189c03ee8b96edd68cb4e405ea4e"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "416997e7be011fe8eeb4a528a317bb0d49d1189c03ee8b96edd68cb4e405ea4e"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "416997e7be011fe8eeb4a528a317bb0d49d1189c03ee8b96edd68cb4e405ea4e"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "416997e7be011fe8eeb4a528a317bb0d49d1189c03ee8b96edd68cb4e405ea4e"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "416997e7be011fe8eeb4a528a317bb0d49d1189c03ee8b96edd68cb4e405ea4e"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "416997e7be011fe8eeb4a528a317bb0d49d1189c03ee8b96edd68cb4e405ea4e"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-86-cedar-drive",
+      "csu": "4166110310T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "86",
+      "streetNumber": "86",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "f113856146d966c232192ba36534f660c738f715d5e2f6217c01d5ccc1456342"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "f113856146d966c232192ba36534f660c738f715d5e2f6217c01d5ccc1456342"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "f113856146d966c232192ba36534f660c738f715d5e2f6217c01d5ccc1456342"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "f113856146d966c232192ba36534f660c738f715d5e2f6217c01d5ccc1456342"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "bd06b7a9a69bc6a0bb3aa5b3f0812fe700dab94f74e8fead4c10816486c7bdaa"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "bcbb3d64bdb5fae9140739295e69e786cec5e6ee94f13eceadb43f52b502fe7f"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "bcbb3d64bdb5fae9140739295e69e786cec5e6ee94f13eceadb43f52b502fe7f"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "bcbb3d64bdb5fae9140739295e69e786cec5e6ee94f13eceadb43f52b502fe7f"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "bcbb3d64bdb5fae9140739295e69e786cec5e6ee94f13eceadb43f52b502fe7f"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "bcbb3d64bdb5fae9140739295e69e786cec5e6ee94f13eceadb43f52b502fe7f"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "bcbb3d64bdb5fae9140739295e69e786cec5e6ee94f13eceadb43f52b502fe7f"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "bcbb3d64bdb5fae9140739295e69e786cec5e6ee94f13eceadb43f52b502fe7f"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-14-palm-drive",
+      "csu": "4131510253T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "14",
+      "streetNumber": "14",
+      "enStreet": "PALM DRIVE",
+      "zhStreet": "棕櫚徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "9b935207d7cd554ec56869ba6117581acbecf7f5576bd3c2e36f41e3206bf065"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "9b935207d7cd554ec56869ba6117581acbecf7f5576bd3c2e36f41e3206bf065"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "9b935207d7cd554ec56869ba6117581acbecf7f5576bd3c2e36f41e3206bf065"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "9b935207d7cd554ec56869ba6117581acbecf7f5576bd3c2e36f41e3206bf065"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "e4ff83186165c511947549f93ca3c83d3197c1dd0f807a737aa34b161d7e7ea8"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "dc0ff67d471684be45bdeb3f5d3ff9d74a0d0ca682843b25c43528f2e1de9999"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "dc0ff67d471684be45bdeb3f5d3ff9d74a0d0ca682843b25c43528f2e1de9999"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "dc0ff67d471684be45bdeb3f5d3ff9d74a0d0ca682843b25c43528f2e1de9999"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "dc0ff67d471684be45bdeb3f5d3ff9d74a0d0ca682843b25c43528f2e1de9999"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "dc0ff67d471684be45bdeb3f5d3ff9d74a0d0ca682843b25c43528f2e1de9999"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "dc0ff67d471684be45bdeb3f5d3ff9d74a0d0ca682843b25c43528f2e1de9999"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "dc0ff67d471684be45bdeb3f5d3ff9d74a0d0ca682843b25c43528f2e1de9999"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-96-cedar-drive",
+      "csu": "4165810362T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "96",
+      "streetNumber": "96",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "d9be91eb6438c69164980453313c9555703b87dbe996578c058d98e627fd194b"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "d9be91eb6438c69164980453313c9555703b87dbe996578c058d98e627fd194b"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "d9be91eb6438c69164980453313c9555703b87dbe996578c058d98e627fd194b"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "d9be91eb6438c69164980453313c9555703b87dbe996578c058d98e627fd194b"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "4d35d2790a0243d14c24b4435798cd55a7d37a537f755e0d0fea395c3e15d38b"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "b44b240a44094bbf0f570132e6e3f77ae849256420fb22fbbdd60e09d16a73b3"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "b44b240a44094bbf0f570132e6e3f77ae849256420fb22fbbdd60e09d16a73b3"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "b44b240a44094bbf0f570132e6e3f77ae849256420fb22fbbdd60e09d16a73b3"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "b44b240a44094bbf0f570132e6e3f77ae849256420fb22fbbdd60e09d16a73b3"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "b44b240a44094bbf0f570132e6e3f77ae849256420fb22fbbdd60e09d16a73b3"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "b44b240a44094bbf0f570132e6e3f77ae849256420fb22fbbdd60e09d16a73b3"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "b44b240a44094bbf0f570132e6e3f77ae849256420fb22fbbdd60e09d16a73b3"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-148-cedar-drive",
+      "csu": "4160410629T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "148",
+      "streetNumber": "148",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "ef716b0ef82364317eaf82673ce4fabd0e6f50d6b7bb0841dda32e9b7d2196c2"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "ef716b0ef82364317eaf82673ce4fabd0e6f50d6b7bb0841dda32e9b7d2196c2"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "ef716b0ef82364317eaf82673ce4fabd0e6f50d6b7bb0841dda32e9b7d2196c2"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "ef716b0ef82364317eaf82673ce4fabd0e6f50d6b7bb0841dda32e9b7d2196c2"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "825b34441e49f90c174b6f9571d6f21bfc9441bf30e66b0ca5f083f1c57271ed"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "01e6d4f4959464736cc2922bd5de749a6c0066edb51180491d8e53c567152a7d"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "01e6d4f4959464736cc2922bd5de749a6c0066edb51180491d8e53c567152a7d"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "01e6d4f4959464736cc2922bd5de749a6c0066edb51180491d8e53c567152a7d"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "01e6d4f4959464736cc2922bd5de749a6c0066edb51180491d8e53c567152a7d"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "01e6d4f4959464736cc2922bd5de749a6c0066edb51180491d8e53c567152a7d"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "01e6d4f4959464736cc2922bd5de749a6c0066edb51180491d8e53c567152a7d"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "01e6d4f4959464736cc2922bd5de749a6c0066edb51180491d8e53c567152a7d"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-10-palm-drive",
+      "csu": "4130210270T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "10",
+      "streetNumber": "10",
+      "enStreet": "PALM DRIVE",
+      "zhStreet": "棕櫚徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "7490c645513b78721c86f4e91798ef8711f78ed8efd6c0453d6f93ce63abe374"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "7490c645513b78721c86f4e91798ef8711f78ed8efd6c0453d6f93ce63abe374"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "7490c645513b78721c86f4e91798ef8711f78ed8efd6c0453d6f93ce63abe374"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "7490c645513b78721c86f4e91798ef8711f78ed8efd6c0453d6f93ce63abe374"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "dbaa6c38231c67cf15c97906e640a086dd11a2e0b5d5e818b301adb27e611f26"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "531b8e6b61433b37274867813122615599e6101d64498ab99cef7e76a76390ce"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "531b8e6b61433b37274867813122615599e6101d64498ab99cef7e76a76390ce"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "531b8e6b61433b37274867813122615599e6101d64498ab99cef7e76a76390ce"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "531b8e6b61433b37274867813122615599e6101d64498ab99cef7e76a76390ce"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "531b8e6b61433b37274867813122615599e6101d64498ab99cef7e76a76390ce"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "531b8e6b61433b37274867813122615599e6101d64498ab99cef7e76a76390ce"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "531b8e6b61433b37274867813122615599e6101d64498ab99cef7e76a76390ce"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-106-cedar-drive",
+      "csu": "4163610401T20050430",
+      "authority": "User decision, 2026-09-12: approve the 18 individually reviewed Redhill house and Palm/Cedar Drive address mappings, keeping house numbers and street numbers distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "106",
+      "streetNumber": "106",
+      "enStreet": "CEDAR DRIVE",
+      "zhStreet": "松柏徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "48308a9beb1835c14bb70fb4abca4ae82a373b163db30a5e745f5b0a2baa751e"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "48308a9beb1835c14bb70fb4abca4ae82a373b163db30a5e745f5b0a2baa751e"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "48308a9beb1835c14bb70fb4abca4ae82a373b163db30a5e745f5b0a2baa751e"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "48308a9beb1835c14bb70fb4abca4ae82a373b163db30a5e745f5b0a2baa751e"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "daec82c6830e12516c68262cb007c880bd63d8b77cc5a03837ea61e3b706d4ff"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "34935c84e1a42bc1fbea16c434b4f015d35460279f0b2755a3a7a7a7543d1363"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "34935c84e1a42bc1fbea16c434b4f015d35460279f0b2755a3a7a7a7543d1363"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "34935c84e1a42bc1fbea16c434b4f015d35460279f0b2755a3a7a7a7543d1363"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "34935c84e1a42bc1fbea16c434b4f015d35460279f0b2755a3a7a7a7543d1363"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "34935c84e1a42bc1fbea16c434b4f015d35460279f0b2755a3a7a7a7543d1363"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "34935c84e1a42bc1fbea16c434b4f015d35460279f0b2755a3a7a7a7543d1363"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "34935c84e1a42bc1fbea16c434b4f015d35460279f0b2755a3a7a7a7543d1363"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "redhill-house-24-palm-drive",
+      "csu": "4151310224T20050430",
+      "authority": "User map review, 2026-09-12: ALS House 24 and its publisher point identify 24 Palm Drive, not 24 Cedar Drive. Keep the two buildings distinct.",
+      "estate": "THE REDHILL PENINSULA",
+      "zhEstate": "紅山半島",
+      "houseNumber": "24",
+      "streetNumber": "24",
+      "enStreet": "PALM DRIVE",
+      "zhStreet": "棕櫚徑",
+      "parentRuleId": "redhill-peninsula-street-complex",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "2599d315d067fb5a030e0642792e83d67901c2155227279f12a8b5f1d93b8079"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "384f7a5a8dbb3743db232bf789424aa679fedee50f87a32507774fcbef912180"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "384f7a5a8dbb3743db232bf789424aa679fedee50f87a32507774fcbef912180"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "384f7a5a8dbb3743db232bf789424aa679fedee50f87a32507774fcbef912180"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "384f7a5a8dbb3743db232bf789424aa679fedee50f87a32507774fcbef912180"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "384f7a5a8dbb3743db232bf789424aa679fedee50f87a32507774fcbef912180"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "384f7a5a8dbb3743db232bf789424aa679fedee50f87a32507774fcbef912180"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "384f7a5a8dbb3743db232bf789424aa679fedee50f87a32507774fcbef912180"
+          ]
+        }
+      ]
+    }
+  ]
+}

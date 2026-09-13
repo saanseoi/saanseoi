@@ -1,0 +1,547 @@
+{
+  "version": 1,
+  "decisions": [
+    {
+      "id": "bay-view-villa-redeveloped",
+      "sourceVersionFrom": "2024-07-31.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-09-12: Bay View Villa has been redeveloped; allow Houses 1, 2, 3 and 8 to retire.",
+      "previousAddresses": [
+        {
+          "id": "ss-217c46b8-12f1-5792-9fed-e73692b632f7",
+          "level": "building",
+          "parentId": null,
+          "en": "HOUSE 3, BAY VIEW VILLA, 39 SOUTH BAY ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "屋3傲南．海岸39南灣道南區香港",
+          "coordinates": [
+            114.1988,
+            22.23155
+          ],
+          "sourceIds": [
+            "4e7c20e8-8f76-5430-81a2-22e3f6dcb2cd"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-22102844-5fc9-5999-aa1c-5e7ac49ca5ef",
+          "level": "building",
+          "parentId": null,
+          "en": "HOUSE 8, BAY VIEW VILLA, 39 SOUTH BAY ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "屋8傲南．海岸39南灣道南區香港",
+          "coordinates": [
+            114.1988,
+            22.23155
+          ],
+          "sourceIds": [
+            "d7f56d77-9a9b-532b-9c04-701c5fad1630"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-59083baf-5557-53dd-8cd5-58545e795f33",
+          "level": "building",
+          "parentId": null,
+          "en": "HOUSE 1, BAY VIEW VILLA, 39 SOUTH BAY ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "屋1傲南．海岸39南灣道南區香港",
+          "coordinates": [
+            114.1988,
+            22.23155
+          ],
+          "sourceIds": [
+            "4d4e32fc-70aa-5711-a2be-504ddd1b4747"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-c5f7de56-7445-57e3-91c2-6c13cb2dbc40",
+          "level": "building",
+          "parentId": null,
+          "en": "HOUSE 2, BAY VIEW VILLA, 39 SOUTH BAY ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "屋2傲南．海岸39南灣道南區香港",
+          "coordinates": [
+            114.1988,
+            22.23155
+          ],
+          "sourceIds": [
+            "a760f053-d964-50b3-b710-470be63cb983"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "reviewed-kowloon-city-and-hennessy-redevelopments",
+      "sourceVersionFrom": "2024-07-31.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-09-12: 470 Hennessy Road and all Kowloon City entries in the current review have been redeveloped, including Kam Fai, Kam Po and Ta Lung House. Allow these exact reviewed records to retire.",
+      "previousAddresses": [
+        {
+          "id": "ss-7cbcb07b-e1d4-5654-b0ce-6f969fc20263",
+          "level": "building",
+          "parentId": null,
+          "en": "KAM CHEUNG BUILDING, 470 HENNESSY ROAD, WAN CHAI DISTRICT, HK",
+          "zhHant": "錦祥樓470軒尼詩道灣仔區香港",
+          "coordinates": [
+            114.18229,
+            22.27956
+          ],
+          "sourceIds": [
+            "0f7d5494-7ac8-576d-a692-4a4da9def3ef"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-bf0cbc60-9e82-5ccd-8c8e-08eeddb69c99",
+          "level": "building",
+          "parentId": null,
+          "en": "KAM FAI COMMERCIAL BUILDING, 31-35 SA PO ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "錦輝商業大廈3135沙浦道九龍城區九龍",
+          "coordinates": [
+            114.19252,
+            22.3294
+          ],
+          "sourceIds": [
+            "e7b4a3f1-aa6e-543c-8af4-42221eed2b65"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-52deb9df-c39e-50f1-a527-dadf55f6ccf9",
+          "level": "building",
+          "parentId": null,
+          "en": "KAM PO BUILDING, 61 SA PO ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "金寶大廈61沙浦道九龍城區九龍",
+          "coordinates": [
+            114.19256,
+            22.32998
+          ],
+          "sourceIds": [
+            "209e03df-5c6c-5b4a-a43b-02fd6117edaa"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-785ca0b2-f9dc-5ba5-a89f-f86944764c9f",
+          "level": "building",
+          "parentId": null,
+          "en": "KAM PO BUILDING, 59 SA PO ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "金寶大廈59沙浦道九龍城區九龍",
+          "coordinates": [
+            114.19256,
+            22.32993
+          ],
+          "sourceIds": [
+            "591fc7ef-53a1-568b-ab5a-c8d24b4002c6"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-adf06621-f446-5599-ac70-9a0d86eaeaf9",
+          "level": "building",
+          "parentId": null,
+          "en": "KAM PO BUILDING, 59-61 SA PO ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "金寶大廈5961沙浦道九龍城區九龍",
+          "coordinates": [
+            114.19256,
+            22.32998
+          ],
+          "sourceIds": [
+            "c23457bb-d636-5397-a6b8-bca691867e43"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-3c349bc8-d93d-52b9-8502-a765e5ee8fef",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 76 LOK SHAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓76落山道九龍城區九龍",
+          "coordinates": [
+            114.18941,
+            22.31645
+          ],
+          "sourceIds": [
+            "9300922e-18eb-5b10-9e6d-876beaea87bf"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-3c74e344-0784-52b3-a5a3-852c7d0cecdc",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 74 TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓74土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18933,
+            22.31626
+          ],
+          "sourceIds": [
+            "c1613d0f-7f4d-538f-bef4-87267235d091"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-425ad234-cd37-5310-a601-baef196ca356",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 72B TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓72B土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18925,
+            22.31635
+          ],
+          "sourceIds": [
+            "20eba790-6003-5cf6-961a-ef8502a82113"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-433e23e7-1118-53c2-9252-78fb8aec4941",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 72A TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓72A土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18921,
+            22.31637
+          ],
+          "sourceIds": [
+            "c9695bab-3f3b-5e94-aa24-351a1488d52e"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-486b01e7-19dc-57e4-8dde-cf0ddd2de209",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 74B TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓74B土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18939,
+            22.31633
+          ],
+          "sourceIds": [
+            "09351d6e-92e2-5701-afb7-e3aa23508205"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-55430fe6-a041-5808-823d-73fcae282a66",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 72 LOK SHAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓72落山道九龍城區九龍",
+          "coordinates": [
+            114.18934,
+            22.31651
+          ],
+          "sourceIds": [
+            "b17d4113-1895-5e8c-be6b-df3aaf4382ae"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-737952c1-719d-54da-b1f8-29c29b5f69f7",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 72C TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓72C土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18929,
+            22.31632
+          ],
+          "sourceIds": [
+            "3f78ad3b-68aa-5862-be4a-c16fe872abfb"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-7e0cf450-3f0d-5baf-8ff9-ccc82903cb36",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 76A TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓76A土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18945,
+            22.31639
+          ],
+          "sourceIds": [
+            "48400c58-282c-527e-898f-2d1c9fcf0492"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-86a4f282-88e6-5019-9041-689d79937fcd",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 72 TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓72土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18928,
+            22.31624
+          ],
+          "sourceIds": [
+            "f7753939-3b60-571a-8a2d-029b9247dcda"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-8a7a671c-60b8-5758-8f0d-c0ecc8ee49f1",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 76 TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓76土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18942,
+            22.31636
+          ],
+          "sourceIds": [
+            "9e33a77a-d689-5a67-8c21-b7d7a073871e"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-9db19a15-4b77-5bcd-a514-0b5161a39584",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 76B TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓76B土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18949,
+            22.31642
+          ],
+          "sourceIds": [
+            "f1eacab3-d9fc-58ca-92c5-75af819210fd"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-a4c9e8b9-e847-56ae-913d-cf04e86bc1de",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 74 LOK SHAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓74落山道九龍城區九龍",
+          "coordinates": [
+            114.18937,
+            22.31649
+          ],
+          "sourceIds": [
+            "7ea655b4-7d31-5857-9eb4-ded3561b2716"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-b519ce8c-2461-598d-8c58-388054857cf4",
+          "level": "building",
+          "parentId": null,
+          "en": "TA LUNG HOUSE, 74A TO KWA WAN ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "大龍樓74A土瓜灣道九龍城區九龍",
+          "coordinates": [
+            114.18936,
+            22.3163
+          ],
+          "sourceIds": [
+            "dc130d5d-d13c-53ea-aa44-764f657a31ad"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "hankow-apartments-redeveloped",
+      "sourceVersionFrom": "2024-07-31.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-09-12: Hankow Apartments redeveloped. Approve retirement of both reviewed CSU generations.",
+      "previousAddresses": [
+        {
+          "id": "ss-26c50bd0-a806-5226-a60b-26afd9d179ec",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 43 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈43漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "186e8ac0-c545-5d28-8099-919a4d3e27ea"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-33ed24e0-c156-51d5-b8b3-92df695076ab",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 47A-49 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈47A49漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "983a669f-0850-54d7-854f-541979a2faba"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-582a2d21-f3e8-539a-97d5-ea6e397e23d4",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 49A HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈49A漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "33ab2a3a-6053-5bf6-92fe-9156041032cc"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-5aa0e2b3-392f-50ac-831b-4145f9486cfa",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 47 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈47漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "abe4cb59-1a26-5ea5-a991-6578cd39c38d"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-ac4791b8-e755-5c48-9e13-07439b4368d7",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 45 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈45漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17084,
+            22.29773
+          ],
+          "sourceIds": [
+            "8c28e183-6d3e-5241-ab7c-29bdf33cba14"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-2b227e6c-14eb-5b8e-baf2-59fdbbf41b40",
+          "level": "building",
+          "parentId": null,
+          "en": "HANKOW APARTMENTS, 45 HANKOW ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "漢口大廈45漢口道油尖旺區九龍",
+          "coordinates": [
+            114.17065,
+            22.29772
+          ],
+          "sourceIds": [
+            "2f45f722-f1b2-53b5-bf59-8ec17a270319"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "reviewed-villa-mansion-kindergarten-removals",
+      "sourceVersionFrom": "2024-07-31.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-09-12: accept removal of Ming Yiu Villa, Nam Tak Mansion and Sheng Kung Hiu Kindergarten.",
+      "previousAddresses": [
+        {
+          "id": "ss-d0709bd1-7f30-5d20-a013-0deca13ab233",
+          "level": "building",
+          "parentId": null,
+          "en": "MING YIU VILLA, 30, MA LIU SHUI SAN TSUEN, FANLING, NORTH DISTRICT, NT",
+          "zhHant": "MING YIU VILLA30馬料水新村粉嶺北區新界",
+          "coordinates": [
+            114.15521,
+            22.50642
+          ],
+          "sourceIds": [
+            "c6d3cc34-4799-52cd-b703-7d7c285503ae"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-575e7f6b-0d5e-5c4f-b560-33554d2134a1",
+          "level": "building",
+          "parentId": null,
+          "en": "NAM TAK MANSION, 37 SAN SHI STREET, SOUTHERN DISTRICT, HK",
+          "zhHant": "南德大樓37新市街南區香港",
+          "coordinates": [
+            114.15721,
+            22.24424
+          ],
+          "sourceIds": [
+            "f87c587f-f8a3-5c80-800c-f7511c2bf8a6"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-71f2ee48-13e2-552f-9764-11eb1f258178",
+          "level": "building",
+          "parentId": null,
+          "en": "NAM TAK MANSION, 37-39 SAN SHI STREET, SOUTHERN DISTRICT, HK",
+          "zhHant": "南德大樓3739新市街南區香港",
+          "coordinates": [
+            114.15721,
+            22.24424
+          ],
+          "sourceIds": [
+            "81a5fe3b-1739-5801-96a4-a48283a2ca35"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-f9773e3b-a17d-5e2d-9410-298e5e2500c4",
+          "level": "building",
+          "parentId": null,
+          "en": "NAM TAK MANSION, 39 SAN SHI STREET, SOUTHERN DISTRICT, HK",
+          "zhHant": "南德大樓39新市街南區香港",
+          "coordinates": [
+            114.15721,
+            22.24424
+          ],
+          "sourceIds": [
+            "9acfa4af-7548-54bd-a620-cfa69fbcc6ac"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-ac67ed13-fec2-5fd8-99df-4afa25e05d18",
+          "level": "building",
+          "parentId": null,
+          "en": "SHENG KUNG HIU KINDERGARTEN, CLEMENTI ROAD, WAN CHAI DISTRICT, HK",
+          "zhHant": "聖公會幼稚園金文泰道灣仔區香港",
+          "coordinates": [
+            114.19603,
+            22.27049
+          ],
+          "sourceIds": [
+            "6d993627-4890-5bd2-a506-fe9a4d89bc80"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-dee3bb6f-ae13-566f-9022-be5546b0bf9e",
+          "level": "building",
+          "parentId": null,
+          "en": "MING YIU VILLA, 30, MA LIU SHUI SAN TSUEN, FANLING, NORTH DISTRICT, NT",
+          "zhHant": "MING YIU VILLA30馬料水新村粉嶺北區新界",
+          "coordinates": [
+            114.15522,
+            22.50622
+          ],
+          "sourceIds": [
+            "a904001d-e2c3-5eac-a7ab-0f096c23fdcc"
+          ],
+          "curations": []
+        }
+      ]
+    }
+  ]
+}

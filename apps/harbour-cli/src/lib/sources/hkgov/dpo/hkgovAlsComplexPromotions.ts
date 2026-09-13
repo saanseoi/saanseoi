@@ -27,7 +27,6 @@ export function reviewedComplexInventoryParents(rows: PreparedHkgovAlsRow[]) {
       row =>
         row.hkgovCsuId === rule.csu &&
         row.enEstateName === rule.estate &&
-        row.enBuildingName === rule.buildingName &&
         row.enBlockNumber === '1',
     )
     assert(

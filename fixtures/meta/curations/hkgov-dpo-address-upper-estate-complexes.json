@@ -454,6 +454,173 @@
         }
       ],
       "authority": "User decision, 2026-09-08: retain distinct street-bearing estate complex until revoked. Preserve source assertion and house inventories; Upper Wong Tai Sin uses approved 8 Wong Tai Sin Road."
+    },
+    {
+      "id": "redhill-peninsula-street-complex",
+      "estate": "THE REDHILL PENINSULA",
+      "district": "southern",
+      "retainSourcePremise": true,
+      "coordinates": null,
+      "untilRevoked": false,
+      "sourceVersions": [
+        "2024-07-25.0",
+        "2024-07-31.0",
+        "2024-08-21.0",
+        "2024-08-25.0",
+        "2024-08-28.0",
+        "2024-09-01.0",
+        "2024-09-02.0",
+        "2024-09-03.0",
+        "2024-10-18.0",
+        "2024-11-13.0",
+        "2024-12-12.0",
+        "2025-01-23.0",
+        "2025-02-25.0",
+        "2025-03-21.0",
+        "2025-04-26.0",
+        "2025-05-22.0",
+        "2025-06-20.0",
+        "2025-08-13.0",
+        "2025-08-28.0",
+        "2025-09-03.0",
+        "2025-11-04.0",
+        "2025-12-16.0",
+        "2026-02-04.0",
+        "2026-04-03.0",
+        "2026-04-22.0",
+        "2026-04-25.0",
+        "2026-07-08.0",
+        "2026-07-10.0",
+        "2026-07-22.0",
+        "2026-08-19.0"
+      ],
+      "application": null,
+      "assertions": [
+        {
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0",
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ],
+          "hashes": []
+        }
+      ],
+      "evidence": [
+        {
+          "sourceVersions": [
+            "2024-07-25.0",
+            "2024-07-31.0",
+            "2024-08-21.0",
+            "2024-08-25.0",
+            "2024-08-28.0",
+            "2024-09-01.0",
+            "2024-09-02.0",
+            "2024-09-03.0",
+            "2024-10-18.0",
+            "2024-11-13.0",
+            "2024-12-12.0",
+            "2025-01-23.0",
+            "2025-02-25.0",
+            "2025-03-21.0",
+            "2025-04-26.0",
+            "2025-05-22.0",
+            "2025-06-20.0",
+            "2025-08-13.0",
+            "2025-08-28.0",
+            "2025-09-03.0",
+            "2025-11-04.0",
+            "2025-12-16.0",
+            "2026-02-04.0",
+            "2026-04-03.0",
+            "2026-04-22.0",
+            "2026-04-25.0",
+            "2026-07-08.0",
+            "2026-07-10.0",
+            "2026-07-22.0",
+            "2026-08-19.0"
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [114.22608, 22.23072]
+            },
+            "properties": {
+              "Northing": 810225,
+              "Easting": 841341,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4134310230T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "南區",
+                    "ChiStreet": {
+                      "StreetName": "白筆山道",
+                      "BuildingNoFrom": "18"
+                    },
+                    "ChiEstate": {
+                      "EstateName": "紅山半島"
+                    },
+                    "ChiBlock": {
+                      "BlockNo": "20",
+                      "BlockDescriptor": "洋房"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngBlock": {
+                      "BlockDescriptor": "HOUSE",
+                      "BlockNo": "20",
+                      "BlockDescriptorPrecedenceIndicator": "Y"
+                    },
+                    "EngEstate": {
+                      "EstateName": "THE REDHILL PENINSULA"
+                    },
+                    "EngStreet": {
+                      "BuildingNoFrom": "18",
+                      "StreetName": "PAK PAT SHAN ROAD"
+                    },
+                    "EngDistrict": "SOUTHERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4134310230T20050430"
+                }
+              }
+            }
+          },
+          "hash": "d341da21c31548e748801dc0c3bf7ec12b9accd064e5d2f99a28a4b876e648de"
+        }
+      ],
+      "authority": "User decision, 2026-09-12: Redhill Peninsula House 20 is 20 Palm Drive. House number and street number are distinct fields; the complex is at 18 Pak Pat Shan Road.",
+      "deriveWithoutSourcePremise": true
     }
   ]
 }

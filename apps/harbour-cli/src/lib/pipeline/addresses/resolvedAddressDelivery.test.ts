@@ -428,6 +428,21 @@ test('combined Address planning seals only final changes and rejects incomplete 
       `UPDATE address3dI18n SET units='{"unit":{"floorExpression":"1/F","unitExpression":"A"}}'`,
     )
     expect(() => validateResolvedAddressProjection(current, 'scope', 1)).not.toThrow()
+    const unitIds = Array.from({ length: 1000 }, (_, index) => `unit-${index}`)
+    const translations = Object.fromEntries(
+      unitIds.toReversed().map(id => [id, { formattedAddressPart: id }]),
+    )
+    current
+      .query('UPDATE address3d SET unitCount=?,units=?')
+      .run(unitIds.length, JSON.stringify(unitIds.map(id => ({ id }))))
+    current.query('UPDATE address3dI18n SET units=?').run(JSON.stringify(translations))
+    expect(() => validateResolvedAddressProjection(current, 'scope', 1)).not.toThrow()
+    delete translations['unit-500']
+    translations['wrong-unit'] = { formattedAddressPart: 'Wrong unit' }
+    current.query('UPDATE address3dI18n SET units=?').run(JSON.stringify(translations))
+    expect(() => validateResolvedAddressProjection(current, 'scope', 1)).toThrow(
+      'incomplete Address3D',
+    )
     current.exec("UPDATE address2dI18n SET formattedAddress='   '")
     expect(() => validateResolvedAddressProjection(current, 'scope', 1)).toThrow(
       'without localised values',

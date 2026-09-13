@@ -1,7 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "globalDependencies": ["**/.env.*"],
-  "globalEnv": ["SAANSEOI_LOCAL_D1_MIGRATIONS_READY"],
+  "globalEnv": [
+    "SAANSEOI_LOCAL_D1_MIGRATIONS_READY",
+    "CLOUDFLARE_ACCOUNT_ID",
+    "CLOUDFLARE_API_TOKEN"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

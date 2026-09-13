@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, rm, stat, utimes } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { prepareNativeSqlDelivery, runNativeSqlDelivery } from './nativeSqlDelivery.ts'
@@ -190,7 +190,10 @@ test('native SQL receipts resume committed payloads without network credentials 
     await prepare()
     expect(generated).toBe(1)
     await runNativeSqlDelivery(directory, { files })
+    const progressPath = join(directory, 'progress.json')
+    await utimes(progressPath, 1, 1)
     await runNativeSqlDelivery(directory, { files })
+    expect((await stat(progressPath)).mtimeMs).toBe(1000)
     expect(db.query('SELECT n FROM counter').get()).toEqual({ n: 111 })
     expect(await completeSqlDeliveryRelease(root, 'release')).toBe(true)
     db.exec('DELETE FROM harbourSqlDeliveryReceipts WHERE batchIndex=0')
@@ -238,6 +241,34 @@ test('native replay rejects reset identities and changed configured paths before
     expect(db.query('SELECT n FROM counter').get()).toEqual({ n: 0 })
   } finally {
     db.close()
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('preparation reads an existing database identity while an unrelated writer holds a reserved lock', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'native-identity-read-'))
+  const path = join(root, 'meta.sqlite')
+  const writer = new Database(path)
+  try {
+    writer.exec(
+      "CREATE TABLE progress(n); INSERT INTO progress VALUES(0); CREATE TABLE harbourSqlDeliveryReceipts(planId TEXT,batchIndex INTEGER,sha256 TEXT,PRIMARY KEY(planId,batchIndex)); INSERT INTO harbourSqlDeliveryReceipts VALUES('native-database-identity',-1,'identity'); BEGIN IMMEDIATE; UPDATE progress SET n=1",
+    )
+    const plan = await prepareNativeSqlDelivery({
+      directory: join(root, 'plan'),
+      ownershipDirectory: root,
+      releaseId: 'release',
+      phase: 'data',
+      inputs: {},
+      files: { DB_META: path },
+      generate: async () => {},
+    })
+    expect(plan.context.inputs.nativeTargets).toEqual({
+      DB_META: { path, identity: 'identity' },
+    })
+    expect(writer.query('SELECT n FROM progress').get()).toEqual({ n: 1 })
+  } finally {
+    if (writer.inTransaction) writer.exec('ROLLBACK')
+    writer.close()
     await rm(root, { recursive: true, force: true })
   }
 })

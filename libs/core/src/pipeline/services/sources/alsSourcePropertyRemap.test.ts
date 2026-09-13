@@ -70,7 +70,7 @@ test('offline ALS rename SQL is guarded and exactly reversible', async () => {
       versionHash: 'hash',
       properties: '{"streetLocationNameEn":" Original "}',
     })
-    db.exec(await readFile(output + '.rollback.sql', 'utf8'))
+    db.exec(await readFile(`${output}.rollback.sql`, 'utf8'))
     expect(db.query('SELECT properties FROM hkgovAlsAddresses2d').get()).toEqual({
       properties: original,
     })

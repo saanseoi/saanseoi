@@ -774,7 +774,7 @@ describe('Divisions API responses through the Worker route', () => {
           })(),
       }
       const request = (path: string) =>
-        app.fetch(new Request('http://localhost' + path), f.env)
+        app.fetch(new Request(`http://localhost${path}`), f.env)
       await finalisePublishedSearch(db, current, {
         deferred: true,
         publishedFamilies: ['divisions'],
@@ -787,7 +787,7 @@ describe('Divisions API responses through the Worker route', () => {
       expect((await request('/divisions/v0/search?q=Eastern')).status).toBe(503)
       await finalisePublishedSearch(db, current, { publishedFamilies: ['divisions'] })
       for (const version of ['v0', 'v0.1']) {
-        const response = await request('/divisions/' + version + '/search?q=Eastern')
+        const response = await request(`/divisions/${version}/search?q=Eastern`)
         expect(response.status).toBe(200)
         const body = (await response.json()) as {
           results: { domain: string; divisionId: string; match: string }[]
@@ -795,12 +795,12 @@ describe('Divisions API responses through the Worker route', () => {
         expect(new Set(body.results.map(r => r.domain)).size).toBe(3)
         expect(body.results.every(r => r.match === 'self')).toBe(true)
         const ancestors = await request(
-          '/divisions/' + version + '/search?q=Eastern&ancestors=true',
+          `/divisions/${version}/search?q=Eastern&ancestors=true`,
         )
         const expanded = (await ancestors.json()) as typeof body
         expect(expanded.results.some(r => r.match === 'ancestor')).toBe(true)
         const filtered = await request(
-          '/divisions/' + version + '/search?q=Eastern&domain=hkgov-pland-pu',
+          `/divisions/${version}/search?q=Eastern&domain=hkgov-pland-pu`,
         )
         expect(
           ((await filtered.json()) as typeof body).results.map(r => r.domain),

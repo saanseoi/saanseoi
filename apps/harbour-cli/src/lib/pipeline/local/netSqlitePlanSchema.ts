@@ -161,7 +161,11 @@ export function assertNetForeignKeys(db: Database) {
     )
 }
 
-export function netKeyMatch(table: NetTable, left: string, right: string) {
+export function netKeyMatch(
+  table: Pick<NetTable, 'primaryKey'>,
+  left: string,
+  right: string,
+) {
   return table.primaryKey
     .map(
       column =>
@@ -206,18 +210,42 @@ export function normaliseNetIgnoredColumns(db: Database, table: NetTable) {
 
 export function assertNetReplayEqualsCandidate(db: Database, tables: NetTable[]) {
   for (const table of tables) {
-    const columns = table.columns.map(column => `${q(column)} COLLATE BINARY`).join(',')
-    for (const [left, right] of [
-      ['main', 'net_candidate'],
-      ['net_candidate', 'main'],
-    ])
-      if (
-        db
-          .query(
-            `SELECT 1 FROM (SELECT ${columns} FROM ${left}.${q(table.policy.name)} EXCEPT SELECT ${columns} FROM ${right}.${q(table.policy.name)}) LIMIT 1`,
-          )
-          .get()
+    if (
+      netTablesDiffer(
+        db,
+        table.policy.name,
+        table.columns,
+        table.primaryKey,
+        'main',
+        'net_candidate',
       )
-        throw new Error(`Net-plan replay differs from candidate: ${table.policy.name}`)
+    )
+      throw new Error(`Net-plan replay differs from candidate: ${table.policy.name}`)
   }
+}
+
+/** Indexed exact comparison avoids materialising entire wide tables for EXCEPT. */
+export function netTablesDiffer(
+  db: Database,
+  name: string,
+  columns: string[],
+  primaryKey: string[],
+  left: string,
+  right: string,
+) {
+  if (!primaryKey.length) {
+    const fields = columns.map(column => `${q(column)} COLLATE BINARY`).join(',')
+    return !!db
+      .query(`SELECT 1 FROM (SELECT ${fields} FROM ${q(left)}.${q(name)} EXCEPT SELECT ${fields} FROM ${q(right)}.${q(name)})
+      UNION ALL SELECT 1 FROM (SELECT ${fields} FROM ${q(right)}.${q(name)} EXCEPT SELECT ${fields} FROM ${q(left)}.${q(name)}) LIMIT 1`)
+      .get()
+  }
+  const match = netKeyMatch({ primaryKey }, 'a', 'b')
+  return !!db
+    .query(`SELECT 1 FROM ${q(left)}.${q(name)} a
+    LEFT JOIN ${q(right)}.${q(name)} b ON ${match}
+    WHERE b.${q(primaryKey[0]!)} IS NULL OR (${netDifference(columns, 'a', 'b')})
+    UNION ALL SELECT 1 FROM ${q(right)}.${q(name)} b
+    WHERE NOT EXISTS (SELECT 1 FROM ${q(left)}.${q(name)} a WHERE ${match}) LIMIT 1`)
+    .get()
 }

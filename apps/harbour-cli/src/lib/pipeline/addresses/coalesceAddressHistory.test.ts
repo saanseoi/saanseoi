@@ -14,6 +14,7 @@ const nextBinding = 'DB_HISTORY_HK_2026'
 
 async function fixture(
   run: (input: Parameters<typeof coalesceAddressHistory>[0]) => void | Promise<void>,
+  multipleLookups = false,
 ) {
   const directory = await mkdtemp(join(tmpdir(), 'address-components-'))
   const opened: Database[] = []
@@ -44,6 +45,14 @@ async function fixture(
         db.exec(`
         INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,granularity,isCurrent) VALUES('other','other-version','other-snapshot','other-release','building',1);
         INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES('a','returning','en','Second','retained-release','retained-snapshot',0,'retained-created','retained-closed');`)
+      if (multipleLookups && binding === 'DB_CURRENT')
+        db.exec(
+          "INSERT INTO address2dBuildingNumberLookup(snapshotId,addressId,buildingNumber,numericStem,evidence,derivation) VALUES('scope','a','2',2,'source_endpoint','single')",
+        )
+      if (multipleLookups && binding === oldBinding)
+        db.exec(
+          "INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,snapshotId,sourceReleaseId,buildingNumber,numericStem,evidence,derivation,isCurrent) VALUES('a','v1','one','r1','2',2,'source_endpoint','single',1)",
+        )
       db.close()
       const candidate = join(directory, `${binding}-candidate.sqlite`)
       await copyFile(path, candidate)
@@ -315,4 +324,21 @@ test('Address coalescing rejects missing selected content without substituting a
       `Missing selected Address component address2d/a in ${oldBinding}`,
     )
   })
+})
+
+test('multiple retained building numbers can reuse the exact history lookup after its first match', async () => {
+  await fixture(input => {
+    stage(input)
+    coalesceAddressHistory(input)
+    expect(
+      input.candidates[oldBinding]!.db.query(
+        'SELECT count(*) AS n FROM address2dBuildingNumberLookup',
+      ).get(),
+    ).toEqual({ n: 2 })
+    expect(
+      input.candidates[nextBinding]!.db.query(
+        'SELECT count(*) AS n FROM address2dBuildingNumberLookup',
+      ).get(),
+    ).toEqual({ n: 0 })
+  }, true)
 })

@@ -1,4 +1,4 @@
-import { emptyDivisionHierarchies, type DivisionHierarchies } from '@repo/db'
+import type { DivisionHierarchies } from '@repo/db'
 import { divisionHierarchyEntries } from '@repo/core/pipeline/services/divisions/divisionHierarchies.ts'
 import type { ApiRegion } from '../schema/region'
 import {

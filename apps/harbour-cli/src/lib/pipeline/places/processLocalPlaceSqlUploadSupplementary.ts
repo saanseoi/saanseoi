@@ -9,11 +9,7 @@ import {
   stat,
   unlink,
 } from 'node:fs/promises'
-import { reviewPlaceAddressCurations } from './placeAddressCurationUi.ts'
-import {
-  deferPlaceAddressTrialReview,
-  permitsPlaceAddressTrialDeferral,
-} from './placeAddressTrialDeferral'
+import { deferPlaceAddressReview } from './placeAddressReviewDeferral'
 import { dirname, resolve } from 'node:path'
 import {
   ensureDraftSnapshotForRelease,
@@ -386,11 +382,6 @@ async function prepareSupplementaryAddressesLocked(
   const resolutionTempPath = temporaryPath(resolutionPath)
   const resolutionOutput = await open(resolutionTempPath, 'w')
   const supplementaryResolutions: StagedAddressResolution[] = []
-  const deferTrialReviews = permitsPlaceAddressTrialDeferral(
-    process.env.SAANSEOI_TRIAL_DEFER_PLACE_ADDRESS_REVIEWS,
-    input.targets.environment,
-    input.plan.sourceVersion,
-  )
   const resolutionCounts = new Map<AddressResolution['tier'], number>()
   const observedPlaceIds = new Set<string>()
   let analysedRows = 0
@@ -421,9 +412,8 @@ async function prepareSupplementaryAddressesLocked(
               }
             : null,
         )
-        const stagedResolution = deferPlaceAddressTrialReview(
+        const stagedResolution = deferPlaceAddressReview(
           compactAddressResolution(resolution),
-          deferTrialReviews,
         )
         await resolutionOutput.write(`${JSON.stringify(stagedResolution)}\n`)
         resolutionCounts.set(
@@ -476,30 +466,10 @@ async function prepareSupplementaryAddressesLocked(
     throw new Error('Place Address defaults changed during analysis; retry.')
   if ((await readOptionalFile(entryLedgerPath)) !== entryLedgerText)
     throw new Error('Generated Place Address entries changed during analysis; retry.')
-  if (reviewCount && deferTrialReviews)
+  if (reviewCount)
     input.onStage?.(
-      `Deferred ${reviewCount} trial Address reviews; links remain null; evidence retained at ${reviewPath}`,
+      `Deferred ${reviewCount} unreviewed Address cases; links remain null; evidence retained at ${reviewPath}`,
     )
-  if (reviewCount && !deferTrialReviews) {
-    const saved = await reviewPlaceAddressCurations({
-      rows: readStagedJsonLines<StagedAddressResolution>(resolutionPath),
-      definitions,
-      geometry,
-      curationPath,
-      ...(curationDecisionsPath ? { curationDecisionsPath } : {}),
-      sourceRelease: input.plan.sourceVersion,
-      total: reviewCount,
-    })
-    await input.retainAudit(input.releaseId, input.plan.datasetCode, {
-      fixture,
-      resolutionPath,
-      sourceVersion: input.plan.sourceVersion,
-      supplementaryCount: 0,
-    })
-    throw new Error(
-      `${reviewCount} Place Address identities require explicit curation; ${saved} decisions saved. Continue the initialisation to apply saved decisions. Review ${reviewPath}; --yes cannot select identities.`,
-    )
-  }
   // A Places release is complete. Once a generated Address's Place no longer
   // appears after it was first seen, retain the entry but close its lifecycle.
   for (const entry of fixture.entries) {
@@ -510,11 +480,6 @@ async function prepareSupplementaryAddressesLocked(
     )
       entry.revokedAt = input.plan.sourceVersion
   }
-  await writeSupplementaryEntryLedger(entryLedgerPath, {
-    ...entryLedger,
-    entries: fixture.entries,
-  })
-
   input.onStage?.('materialise supplementary Addresses')
   const parentDataset = (await db
     .select()
@@ -584,11 +549,21 @@ async function prepareSupplementaryAddressesLocked(
     datasetId,
     sourceReleaseId: releaseId,
     regionCode: input.plan.regionCode,
+    rootSnapshot: true,
     variant: SUPPLEMENTARY_ADDRESS_VARIANT,
   })
   const currentScopeId = snapshot.snapshotLineageId
   if (!currentScopeId)
     throw new Error(`Supplementary Address snapshot ${snapshot.id} has no lineage.`)
+  const nextEntryLedger = {
+    ...entryLedger,
+    entries: fixture.entries,
+  }
+  // Draft retries need generated identities and lifecycle closures persisted
+  // before SQL planning. A published immutable snapshot must pass its assembly
+  // guard before it may update the shared ledger.
+  if (snapshot.status !== 'published')
+    await writeSupplementaryEntryLedger(entryLedgerPath, nextEntryLedger)
   const addresses = await buildSupplementaryAddressRows({
     resolutions: supplementaryResolutions,
     officialAddresses: officialById,
@@ -667,6 +642,12 @@ async function prepareSupplementaryAddressesLocked(
   const revokedAddressIds = [
     ...new Set([
       ...[...activeAddressIds].filter(id => !materialisedAddressIds.has(id)),
+      ...(snapshot.status === 'published'
+        ? await collectPublishedSupplementaryRevocations(
+            input.context.historyTargets,
+            snapshot.id,
+          )
+        : []),
       ...fixture.entries
         .filter(
           entry =>
@@ -710,6 +691,7 @@ async function prepareSupplementaryAddressesLocked(
       )
     }
     await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
+    await writeSupplementaryEntryLedger(entryLedgerPath, nextEntryLedger)
     await input.retainAudit(releaseId, datasetCode, {
       materialisationHash,
       fixture,
@@ -719,12 +701,6 @@ async function prepareSupplementaryAddressesLocked(
     })
   } else {
     // Each supplementary snapshot is a complete map, including an empty accepted set.
-    // Replay must not inherit withdrawn addresses from a previous cohort.
-    await db
-      .update(metaSchema.metaSnapshots)
-      .set({ parentSnapshotId: null })
-      .where(eq(metaSchema.metaSnapshots.id, snapshot.id))
-      .run()
     await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary', {
       anchorReleaseId: input.releaseId,
       selectedByRule: 'overture-place-address-curation',
@@ -757,7 +733,7 @@ async function prepareSupplementaryAddressesLocked(
         }),
         addressSnapshotId: input.snapshots.addressSnapshotId,
         reviewRequired: 0,
-        trialReviewsDeferred: deferTrialReviews ? reviewCount : 0,
+        unreviewedAddressCases: reviewCount,
         rowCount: addresses.length,
       },
     })
@@ -893,6 +869,28 @@ async function prepareSupplementaryAddressesLocked(
   }
 }
 
+export async function collectPublishedSupplementaryRevocations(
+  targets: LocalAddressDbContext['historyTargets'],
+  snapshotId: string,
+) {
+  const ids = new Set<string>()
+  for (const target of targets) {
+    const rows = await (target.db as HarbourReadableDb)
+      .select({ recordId: historySchema.snapshotVersionChanges.recordId })
+      .from(historySchema.snapshotVersionChanges)
+      .where(
+        and(
+          eq(historySchema.snapshotVersionChanges.snapshotId, snapshotId),
+          eq(historySchema.snapshotVersionChanges.recordType, 'address2d'),
+          eq(historySchema.snapshotVersionChanges.operation, 'delete'),
+        ),
+      )
+      .all()
+    for (const row of rows) ids.add(row.recordId)
+  }
+  return [...ids].sort()
+}
+
 function mergeSupplementaryDecisions(
   defaults: ReturnType<typeof parseSupplementaryDecisionJsonLines>,
   curated: ReturnType<typeof parseSupplementaryDecisionJsonLines>,
@@ -946,7 +944,7 @@ async function writeSupplementaryReviewArtefact(input: {
       for await (const resolution of readStagedJsonLines<StagedAddressResolution>(
         input.resolutionPath,
       )) {
-        if (resolution.tier !== 'review' && !resolution.trialDeferral) continue
+        if (resolution.tier !== 'review' && !resolution.reviewDeferral) continue
         await output.write(`${first ? '\n' : ',\n'}    ${JSON.stringify(resolution)}`)
         first = false
       }

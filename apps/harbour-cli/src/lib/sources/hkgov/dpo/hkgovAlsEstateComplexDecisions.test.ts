@@ -163,3 +163,67 @@ test('returning estate premises bypass the fallback even with changed source det
   reconstructReviewedEstateComplexes(clean, '2024-07-25.0')
   expect(clean).toEqual(changedOriginal)
 })
+
+test('Lingnan campus is a complex separate from the retained named building across all releases', async () => {
+  const { buildAls2dBackfillFeatures } = await import('./hkgovAls2dBackfills')
+  let complexes = 0
+  for (const release of (await readdir(root))
+    .filter(r => /^\d{8}-.*ALS-GeoJSON$/.test(r))
+    .sort()) {
+    const version = `${release.slice(0, 4)}-${release.slice(4, 6)}-${release.slice(6, 8)}.0`
+    const sourceFile = 'als_addresses_(tuen_mun_district).geojson'
+    const raw = (await Bun.file(`${root}/${release}/${sourceFile}`).json()).features
+    const source: HkgovAlsSourceFeature[] = raw.flatMap(
+      (feature: HkgovAlsSourceFeature['feature'], i: number) =>
+        feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation?.CsuId ===
+        '1638830000T20050430'
+          ? [{ feature, sourceFile, featureIndexOneBased: i + 1 }]
+          : [],
+    )
+    const all = [
+      ...source,
+      ...buildAls2dBackfillFeatures(source, version).filter(
+        f =>
+          f.feature.properties?.Address?.PremisesAddress?.BuildingCsuInformation
+            ?.CsuId === '1638830000T20050430',
+      ),
+    ]
+    const rows = all.map(s =>
+      normaliseHkgovAlsFeature(
+        s.feature,
+        s.sourceFile,
+        s.featureIndexOneBased,
+        'test',
+        version,
+        maps,
+        true,
+        new Map(),
+        new Map(),
+        new Map(),
+      ),
+    )
+    applyReviewedEstateComplexes(rows, version)
+    const building = rows.find(r => r.enBuildingName === 'HO SIN HANG BUILDING')!
+    expect(building).toBeDefined()
+    expect(building.curatedGranularity).not.toBe('complex')
+    const campus = rows.find(r => r.hierarchyCuration === 'lingnan-university-campus')
+    if (
+      source.some(
+        s =>
+          s.feature.properties?.Address?.PremisesAddress?.EngPremisesAddress?.EngBlock
+            ?.BlockNo === 'CAMPUS',
+      )
+    ) {
+      complexes++
+      expect(campus!.curatedGranularity).toBe('complex')
+      expect(campus!.enEstateName).toBe('LINGNAN UNIVERSITY')
+      expect(campus!.enBlockNumber).toBeNull()
+      expect(campus!.enFormattedAddress).not.toContain('CAMPUS')
+      expect(JSON.parse(campus!.engPremisesAddressJson!).EngBlock.BlockNo).toBe(
+        'CAMPUS',
+      )
+      expect(campus!.id).not.toBe(building.id)
+    } else expect(campus).toBeUndefined()
+  }
+  expect(complexes).toBe(26)
+})

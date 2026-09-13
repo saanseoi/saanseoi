@@ -1,3 +1,16 @@
+import {
+  retainReviewedAlsPremises,
+  applyReviewedAlsPremiseRetentions,
+  finishReviewedAlsPremiseRetentions,
+} from './hkgovAlsReviewedPremiseRetentions'
+import { applyReviewedBuildingOverrides } from './hkgovAlsBuildingOverrides'
+import { applyReviewedBlockDetailBackfills } from './hkgovAlsBlockDetailBackfills'
+import { applyReviewedIdentityComponentBackfills } from './hkgovAlsIdentityComponentBackfills'
+import {
+  applyReviewedHouseStreetIdentities,
+  linkReviewedHouseStreetParents,
+} from './hkgovAlsHouseStreetIdentities'
+import { applyReviewedPremiseRenames } from './hkgovAlsPremiseRenames'
 import { globSync } from 'node:fs'
 import {
   captureAlsPublisherSources,
@@ -154,6 +167,10 @@ async function prepareHkgovAlsAddressParquetInternal(
     sourceFeatures,
     options.sourceVersion,
   )
+  const reviewedPremiseRetentions = retainReviewedAlsPremises(
+    sourceFeatures,
+    options.sourceVersion,
+  )
   const auditGuards = createAlsAuditGuards()
   const retainedCommercialPremises = retainAlsCommercialPremises(
     sourceFeatures,
@@ -221,9 +238,12 @@ async function prepareHkgovAlsAddressParquetInternal(
       numericPhaseFamilies,
     ),
   )
+  applyReviewedBlockDetailBackfills(rows, options.sourceVersion)
   labelAls2dBackfillRows(rows)
   applyReviewedSchoolReconciliations(rows, options.sourceVersion)
+  applyReviewedHouseStreetIdentities(rows, options.sourceVersion)
   applyReviewedStreetEstateComplexes(rows, options.sourceVersion)
+  linkReviewedHouseStreetParents(rows, options.sourceVersion)
   suppressReviewedYueWanPremise(rows, options.sourceVersion)
   applyReviewedComplexPromotions(rows, options.sourceVersion)
   labelAlsCommercialRetentions(rows, retainedCommercialPremises)
@@ -233,6 +253,10 @@ async function prepareHkgovAlsAddressParquetInternal(
   applyApprovedIssueBatch(rows, options.sourceVersion, options.skipCurationChecks)
   applyAlsPremiseConsolidations(rows, options.sourceVersion)
   retainNamedPremises(rows, options.sourceVersion)
+  applyReviewedPremiseRenames(rows, options.sourceVersion)
+  applyReviewedBuildingOverrides(rows, options.sourceVersion)
+  applyReviewedIdentityComponentBackfills(rows, options.sourceVersion)
+  applyReviewedAlsPremiseRetentions(rows, reviewedPremiseRetentions)
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,
@@ -306,6 +330,14 @@ async function prepareHkgovAlsAddressParquetInternal(
   applyAlsLocalities(rows, options.sourceVersion)
   const estateComponents = restoreAlsEstateComponents(rows, options.sourceVersion)
   const estateGaps = restoreAlsEstateGaps(rows, options.sourceVersion, true)
+  for (const row of rows) {
+    if (row.identityMatchMethod !== 'reviewed-estate-gap-continuity') continue
+    const record = resolvedIdentityRecords.find(r => r.identityKey === row.identityKey)
+    if (record) {
+      record.id = row.id
+      record.summary = row.identitySummary
+    }
+  }
   applyAlsNestedPremises(rows, options.sourceVersion)
   suppressAlsUnnamedPremises(rows, options.sourceVersion)
   const coordinateChanges = backfillAlsCoordinates(
@@ -315,6 +347,7 @@ async function prepareHkgovAlsAddressParquetInternal(
   )
   backfillOiHei(rows, options.sourceVersion, options.skipCurationChecks)
   assertUniquePreparedRowIds(rows)
+  finishReviewedAlsPremiseRetentions(rows)
   auditGuards.passed('unique-identities', rows.length)
   auditGuards.passed('coordinate-source', coordinateChanges.backfilled)
   auditGuards.passed(

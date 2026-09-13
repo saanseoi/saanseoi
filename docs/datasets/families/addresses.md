@@ -1,5 +1,12 @@
 # Addresses dataset family
 
+Address SQL preparation processes bounded chunks through normalisation, history and
+current generation. Intermediate JSON stays in memory for the active chunks; generated
+SQL and sealed delivery files remain durable. Combined Address2D/Address3D preparation
+uses the complete publisher ledger as its sole source writer. The normaliser reads one
+Parquet window per SQL chunk. Historical comparison loads exact address, version and
+locale keys in parameter-bounded batches using the existing composite indexes.
+
 ALS prepared uploads retain publisher provenance in the nullable UTF-8 `publisherSource`
 envelope. Schema validation permits adding this envelope only when every other field
 retains its name, type and nullability. Native null and JSON null both denote an absent
@@ -148,14 +155,10 @@ not the last-written release ID, determines omissions. Reappearance of a closed
 assertion requires a write. Canonical component and source-resolution journals record
 only the changes needed to reconstruct each snapshot.
 
-ALS chronological preflight prepares each release in a separate child process.
-Successful results are atomically cached under `.local/hkgov-dpo/preflight-cache`,
-including identity records, drift candidates, curation applications and division
-quality. Reuse requires matching source contents, processing code, curation fixtures,
-arguments, incoming identity history and the selected division lookup. The local lookup
-uses configured metadata, current and history database bindings. Failed children do not
-create checkpoints. Cache hits still participate in chronological identity and curation
-review; they do not represent completed ingestion.
+ALS ingestion prepares each pending release once, records its unreviewed cases, and
+uploads it before advancing chronologically. Delivery validates checksums and compares
+membership with the acknowledged predecessor. Review evidence does not indicate that an
+upload has completed.
 
 ALS preparation and preflight fingerprints replay the selected division snapshot's
 immutable history across its assigned shards. Parent membership, changed translations
@@ -201,6 +204,11 @@ raw source evidence or added to the residential total.
 Reviewed ALS complex promotions retain residential 3D inventories on their explicit
 building owner. Duplicate source assertions must agree on inventory and retain both
 source references.
+
+The Tsui Lam promoted inventory selects its unique numbered owner by CSU, estate and
+block number. Publisher building-name detail such as `PIK LAM HOUSE (BLK 1)` remains
+unchanged and does not prevent inventory attachment; missing or ambiguous owners stop
+preparation.
 
 Source tables retain complete raw payloads with identity, release history and
 provenance. Extracted identifiers, coordinate projections and bilingual address
@@ -798,3 +806,199 @@ Retained locale-bearing labels use `En`, `ZhHant` and `ZhHans` suffixes, for exa
 `buildingNameEn` and `dcZhHant`. Publisher mappings place these labels after other
 properties. Original publisher paths and language dictionary identifiers retain their
 spelling; demographic measures about language are not locale-bearing labels.
+
+Ho Sin Hang Building (何善衡樓), Lingnan University, has omission-only 2D retention from
+25 July 2024 until revoked. Its reviewed named building and point are restored only when
+absent; returning named publisher premises bypass the fallback. The unnamed CAMPUS
+assertion sharing its CSU remains separate. No unit inventory is inferred.
+
+The reviewed unnamed CAMPUS assertion is the Lingnan University (嶺南大學) complex. Its
+canonical address omits the CAMPUS block label while retaining the raw bilingual source
+assertion and publisher point. Ho Sin Hang Building remains a separate building even
+where the two assertions share a CSU.
+
+Dash Living on Prat (一尚酒店香港尖沙咀店), 21–23 Prat Avenue, uses its reviewed 2023
+rename throughout retained ALS releases. The two named publisher CSUs share one
+canonical hotel identity; the unnamed street address remains separate. Raw Butterfly on
+Prat and Dash Living on Prat assertions remain in provenance. This is an explicit name
+correction, not an omission-only retention.
+
+China Resources Logistics East Asia Industrial Building (華潤物流東亞工業大廈), 2 Ho Tin
+Street, uses the reviewed name across the 30 retained releases. Its original canonical
+building ID is retained. Release-specific hashes guard the bilingual publisher assertion
+and geometry; raw East Asia names and publisher coordinates remain in provenance. This
+approved rename does not authorise retirement or imply omission retention.
+
+The reviewed Redhill Peninsula House 20 identity has house/block number 20 and building
+street address 20 Palm Drive (棕櫚徑20號). Its parent complex is The Redhill Peninsula
+(紅山半島), at 18 Pak Pat Shan Road. These are separate address fields and levels; this
+explicit mapping does not equate house numbers with street numbers generally. Raw
+release addresses and house coordinates are preserved. The derived complex uses the
+dated estate-address assertion point and does not inherit the house CSU.
+
+The approved Redhill mapping includes Palm Drive houses 10, 14, 18, 20 and 22, and Cedar
+Drive houses 80, 86, 92, 94, 96, 102, 106, 108, 112, 126, 128, 148, 152 and 176. Each
+mapping has independent dated ALS evidence.
+
+The retained `redhill-peninsula-centaline-evidence.json` records the four Centaline
+building tables with source URLs and response hashes: Site A (Phase IV) has 10 towers
+and 248 units; B has 58 houses, C has 42, and D has 146. The totals are 256 buildings
+and 494 residential units. Building labels, occupation-permit years, publisher
+coordinates, floor-plan links and dated sale/rent counts remain supplementary source
+evidence. These counts do not supply individual flat identities, and coordinate
+candidates require review before canonical matching.
+
+The two House 24 addresses are distinct: ALS CSU `4151310224T20050430` identifies 24
+Palm Drive and retains its publisher coordinates. The reviewed Centaline point
+`[114.226669, 22.230345]` identifies 24 Cedar Drive; it is not a replacement point for
+the Palm Drive ALS record. The supplementary evidence records this explicit separation
+and the approved Cedar Drive point.
+
+Bay View Villa at 39 South Bay Road is reviewed as redeveloped. Houses 1, 2, 3 and 8 may
+retire on publisher omissions within the retained release range. The scoped retirement
+fixture matches the exact prior address evidence and permits no descendant loss. Reports
+retain these four removals as reviewed; unrelated retirements, changed evidence and
+deletion spikes still require review.
+
+Ban Tip House at 11 Chung Nga Road retains one reviewed canonical identity across the 30
+retained releases. Its BLK 1 / 座1 component is backfilled only in the four releases
+that omit it; publisher-present block detail is preserved. Exact release hashes guard
+the source assertion and geometry. Raw bilingual names and coordinates are preserved.
+This component completion is separate from the approved omission-only house retention.
+
+Golden Wheel Plaza (金輪天地), 68 Electric Road, retains the named complex identity when
+its three reviewed bilingual estate-name omissions are restored. The identity decision
+is scoped to those restorations and preserves the raw unnamed source assertions.
+
+The reviewed redevelopment retirements cover Kam Cheung Building at 470 Hennessy Road,
+Kam Fai Commercial Building, the three Kam Po Building addresses, and the 13 Ta Lung
+House entries: 18 exact canonical records. Approval is scoped to their retained
+membership evidence; unrelated removals and dependent inventories remain gated.
+
+Kawada Plaza II (川田工貿廣場2期), 5 Lok Yip Road, retains its building identity across
+the 30 retained releases. Its reviewed building representation overrides the On Lok
+Tsuen complex assertion while preserving raw bilingual source evidence and coordinates.
+
+Shun Ting Terraced Home uses the canonical bilingual identity Transitional Housing -
+Shun Ting Terraced Home (過渡性房屋 - 順庭居) across retained releases. The name
+backfill preserves the unnamed ALS payloads and their source coordinates. Tai Hang Fire
+Dragon Heritage Centre (大坑火龍文化館) similarly retains its earlier building name.
+
+Ta Lung House is covered by the reviewed redevelopment retirements. Union Square is
+forward-filled as a complex when its estate component is omitted; its component is not
+treated as a phase. Bougainvilea Gardens is represented as the estate
+`BOUGAINVILEA GARDENS` with numbered blocks 1–4, including the reviewed Block 2
+component, without adding a building name. Raw ALS names and coordinates remain in
+source provenance.
+
+The reviewed premise-retention fixture preserves the baseline El Futuro tower and house
+IDs and bilingual names. Its 22 houses use individually matched Centaline points from
+<https://hk.centanet.com/estate/en/El-Futuro/2-DBAPWPPEPA>, retrieved on 12 September
+2026; the fixture retains Centaline building codes, coordinates and floor-plan links.
+Existing ALS house records are patched without duplicating buildings. Tower names
+`TOWER 1` / `第１座` and `TOWER 2` / `第２座` remain available when ALS supplies only
+numbered block components. Raw ALS premises and geometry remain source evidence.
+
+One Soho and The Harmonie retain their reviewed building names on existing unnamed
+address records. Kai Chuen Court backfills Kai Chi, Kai Tao and Kai Wu from their first
+retained evidence on 3 September 2024 to the July baseline, alongside the existing Kai
+Wang and Kai Chun retention decisions. These address-only reconstructions do not create
+historical flat inventories.
+
+Tin Wang Court retains a complex and three separate building children from the baseline:
+Wang King House / 宏景閣 (A) at `[114.187272, 22.344419]`, Wang Yuen House / 宏遠閣 (B)
+at `[114.186855, 22.344509]`, and Wang Mei House / 宏美閣 (C) at
+`[114.186602, 22.344148]`. Named Wang Yuen and unnamed complex assertions are
+distinguished even when ALS reuses the complex CSU for the house. The complex is
+restored on omission; church and car-park records remain independent premises.
+
+Victoria Garden uses blocks A and B throughout, including releases with I/II source
+labels. Releases named Victoria Coast keep that publisher estate name and the same
+reviewed building identities; this decision does not override estate names.
+
+These premise rules are active until revoked. Historical release assertions guard the
+full bilingual premise and point, including expected presence or omission. Future
+applications accept only recognised source evidence and are labelled unverified; changed
+assertions fail for review. Revocation stops future application while retaining
+scheduled historical repairs. Restoration is scoped to the input district, and retained
+source evidence is not represented as a current publisher assertion.
+
+Hankow Apartments is reviewed as redeveloped. Retirement approval covers the five
+baseline addresses and the later 45 Hankow Road identity, bounded to retained releases
+and matched against exact membership evidence. It permits no descendant inventory loss.
+
+The reviewed continuity decisions preserve the original ID for 28 Kwai Wing Road while
+removing the obsolete cooked-food-market name, and for Lingnan University's renamed
+Wofoo Joseph Lee Student Activity Centre (和富李宗德學生活動中心). Union Square remains
+a complex with its reviewed ID, separate from the car-park assertion sharing its CSU.
+Kai Wang and Kai Chun carry blocks 1 and 2. El Futuro uses the newer Chinese tower
+labels座1 and 座2. These explicit component decisions preserve raw publisher evidence.
+Ming Yiu Villa, the three Nam Tak Mansion addresses and Sheng Kung Hiu Kindergarten have
+exact-record retirement approval. Hankow Apartments has redevelopment approval.
+
+Proposed identity policy: assign a persistent ID using source reference, structured
+route and number, and distinct block, phase or unit components. Use the building name
+only when it is required to separate otherwise indistinguishable premises across
+retained history. Once assigned, preserve the ID through name omissions, renames and
+classification changes. A release-local uniqueness check alone is insufficient: an
+omitted neighbour must not change the surviving record's identity. This general policy
+remains a proposal; reviewed continuity rules currently resolve the approved cases.
+
+University Hill retains its ten reviewed Marina and Scenic towers on omissions from 31
+July 2024 until revoked. Returning publisher towers bypass replay, including separate
+section-name and tower-number fields and changed CSUs. Marina Towers 1 and 2 remain
+distinct even when they share a CSU. Exact release evidence guards each tower; returned
+source attributes and coordinates are preserved. Centaline Phases 2A and 2B corroborate
+the inventory, without replacing the publisher points. No earlier existence is inferred.
+
+### Deferred ingestion review
+
+Ingestion retains unresolved curation cases as **unreviewed** and continues without
+asking for identity or retirement decisions. Existing approved corrections remain
+active. ALS deletion reports retain their evidence and exact approval digest; stale
+approvals do not mark a new report reviewed. Identity drift uses the generated current
+IDs without recording an approved identity decision. Active corrections beyond their
+verification date retain unverified provenance.
+
+ALS prepares and ingests one release at a time in chronological order. Upload checks
+compare membership with the acknowledged predecessor. ALS stores per-release evidence in
+`.local/hkgov-dpo/review-backlog/`, with linked deletion and identity-drift reports.
+Dataset issues can be reviewed after ingestion and resolved in revised releases.
+File-integrity, parent-reference and ID-collision checks still apply.
+
+Historical Address releases retain their exact published Division selection in
+provenance and history. Current Address foreign keys use that Division lineage's
+persistent scope, validated against its complete publication receipt. A newer Division
+projection does not invalidate the older selection; missing receipts and lineage
+mismatches remain ingestion errors.
+
+Address metadata replay writes release statistics using `dimension`, `metric`, and
+`metricUnit`, while retaining processing statistics owned by their separate stage.
+
+Building-number history compares the retained versions for each exact address and number
+before selecting matching baseline content. Multiple lookups can reuse the same prepared
+query safely within one release.
+
+Address3D validation compares canonical unit IDs and localisation keys as sets. Counts
+and content checks remain mandatory; a missing key fails validation even when an
+unrelated extra translation keeps the total count unchanged.
+
+Retirement dependency planning scans baseline parents before indexed deletion lookups.
+Surviving children and deferred descendant deletions retain their dependency ordering
+without repeating a full parent-table scan for each retirement.
+
+Historical Address replay selects each immutable version by record ID and content hash,
+plus locale for translated rows. Bounded queries use the existing composite identity
+indexes and remain within D1 parameter limits. SQL planning uses the configured
+`TMPDIR`; full local history copies require sufficient temporary disk space.
+
+Retirement preparation batches historical row updates and locale tombstones in
+transactions on isolated candidate shards. A failed preparation discards those copies
+before any delivery is emitted.
+
+Combined publisher-ledger reconciliation runs inside transactions on disposable source,
+history and current candidates. Per-record batches use nested savepoints; failed
+preparation rolls back open transactions and emits no delivery.
+
+Preparation-cache code fingerprints exclude test files; runtime code and all source,
+curation and division dependencies still invalidate reuse when their contents change.

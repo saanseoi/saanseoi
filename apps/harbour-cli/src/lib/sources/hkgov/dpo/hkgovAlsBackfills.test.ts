@@ -68,7 +68,7 @@ function normalise(
 }
 test('reconstructs only dated named parents and preserves unnamed CSU assertions', () => {
   const first = buildAls2dBackfillFeatures([], '2024-07-25.0')
-  expect(first).toHaveLength(4)
+  expect(first).toHaveLength(5)
   expect(buildAls2dBackfillFeatures([], '2024-07-24.0')).toHaveLength(0)
   expect(
     buildAls2dBackfillFeatures([], '2025-06-20.0').filter(
@@ -90,7 +90,7 @@ test('reconstructs only dated named parents and preserves unnamed CSU assertions
     ).ChiPremisesAddress,
   ).BuildingName
   const before = JSON.stringify(blank)
-  expect(buildAls2dBackfillFeatures([blank], '2024-07-25.0')).toHaveLength(4)
+  expect(buildAls2dBackfillFeatures([blank], '2024-07-25.0')).toHaveLength(5)
   expect(JSON.stringify(blank)).toBe(before)
   const rows = first.map(s => normalise(s.feature, s.sourceFile, '2024-07-25.0'))
   labelAls2dBackfillRows(rows)

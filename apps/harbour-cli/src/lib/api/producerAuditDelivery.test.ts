@@ -24,12 +24,29 @@ test('a failed registration retries the completed retained graph without rerunni
   let failRegistration = true
   let generated = 0
   const hashes: string[] = []
+  const objects = new Map<string, number>()
+  let uploads = 0
   globalThis.fetch = (async (url, init) => {
-    if (String(url).includes('/objects/'))
+    if (String(url).endsWith('/objects/check')) {
+      const refs = JSON.parse(String(init?.body)).objects as Array<{
+        hash: string
+        byteLength: number
+      }>
+      return Response.json({
+        objects: refs.filter(ref => objects.get(ref.hash) === ref.byteLength),
+      })
+    }
+    if (String(url).includes('/objects/')) {
+      uploads++
+      objects.set(
+        String(url).split('/').at(-1)!,
+        (requireDefined(init?.body) as ArrayBuffer).byteLength,
+      )
       return Response.json({
         hash: String(url).split('/').at(-1),
         byteLength: (requireDefined(init?.body) as ArrayBuffer).byteLength,
       })
+    }
     const ref = JSON.parse(String(init?.body))
     hashes.push(ref.hash)
     return failRegistration
@@ -53,8 +70,10 @@ test('a failed registration retries the completed retained graph without rerunni
     },
   }
   await expect(deliverProducerAudit(input)).rejects.toThrow('registration unavailable')
+  const firstUploads = uploads
   failRegistration = false
   await deliverProducerAudit(input)
+  expect(uploads).toBe(firstUploads)
   expect(generated).toBe(1)
   expect(new Set(hashes).size).toBe(1)
   await expect(

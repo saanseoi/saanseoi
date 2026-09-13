@@ -1,4 +1,5 @@
-import { currentSchema, historySchema, eq, sql } from '@repo/db'
+import { currentSchema, historySchema, eq, and, or } from '@repo/db'
+import { getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type { SnapshotReplayStep } from '@repo/core/db/metaRegistry'
 import {
@@ -47,8 +48,9 @@ export async function loadCurrentPlaceHistory(
         version => version.recordType === (localised ? 'placeI18n' : 'place'),
       )
       const table = localised ? historySchema.placesI18n : historySchema.places
-      for (let start = 0; start < expected.length; start += 100) {
-        const batch = expected.slice(start, start + 100)
+      const batchSize = getMaxItemsPerInClause(localised ? 3 : 2)
+      for (let start = 0; start < expected.length; start += batchSize) {
+        const batch = expected.slice(start, start + batchSize)
         const identities = new Set(
           batch.map(version =>
             JSON.stringify([version.recordId, version.locale, version.versionHash]),
@@ -59,7 +61,20 @@ export async function loadCurrentPlaceHistory(
           .select()
           .from(table)
           .where(
-            sql`${table.versionHash} in (select value from json_each(${JSON.stringify(batch.map(version => version.versionHash))}))`,
+            or(
+              ...batch.map(version =>
+                localised
+                  ? and(
+                      eq(historySchema.placesI18n.placeId, version.recordId),
+                      eq(historySchema.placesI18n.versionHash, version.versionHash),
+                      eq(historySchema.placesI18n.locale, version.locale),
+                    )
+                  : and(
+                      eq(historySchema.places.id, version.recordId),
+                      eq(historySchema.places.versionHash, version.versionHash),
+                    ),
+              ),
+            ),
           )
           .all()
         for (const row of rows) {

@@ -1,5 +1,17 @@
 # Places dataset family
 
+Historical Address and Division dependencies are rebuilt in a disposable SQLite
+transaction. Missing content rolls back rows and readiness receipts together, so a retry
+cannot reuse a partial dependency view. Serving and history databases remain read-only
+during this preparation.
+
+Place predecessor and historical Address/Division dependency hydration query exact
+record, version and locale keys through composite indexes. Query batches respect the
+shared parameter budget; identical hashes on different records do not widen selection.
+Places also uses the shared indexed SQL comparison and verified provenance-object reuse
+described in [SQL delivery](../sql-delivery.md) and
+[processing provenance](../processing-provenance.md).
+
 [Minimal initialisation](../minimal-initialisation.md) selects the first two configured
 Overture versions and uses a separate completion manifest.
 
@@ -48,10 +60,10 @@ and finalisation share a draft run, preserving review and materialisation hashes
 Processing audits retain registered normalisation, country-selection and Address
 analysis declarations, aggregate counts, matching policies and reviewed identity
 decisions in R2. Places and supplementary Addresses register separate manifests before
-publication. Unresolved Address reviews retain a failed guard, and publication also
-requires the completed supplementary snapshot dependency. Completed audit delivery
-retries reuse retained objects. See the
-[processing provenance contract](../processing-provenance.md).
+publication. Unresolved Address reviews retain their evidence with a null Place link;
+they do not select an identity or block ingestion. Publication requires the completed
+supplementary snapshot dependency. Completed audit delivery retries reuse retained
+objects. See the [processing provenance contract](../processing-provenance.md).
 
 Enrichment staging writes complete JSONL rows and syncs the temporary output before
 replacement. Failed enrichment preserves the completed output, and interrupted or
@@ -317,6 +329,12 @@ Decision lookup is indexed by Place ID, address fingerprint and source release. 
 index retains first-match precedence and refreshes when review appends decisions or
 replaces the ledger. Scoring and acceptance thresholds follow the declared policy.
 
+API field provenance pins a processing rule only to selected releases that captured that
+rule. This keeps the Place normalisation definition attached to the Place release when
+its supporting supplementary Address release shares the same dataset code but captures a
+different processing rule. Every referenced rule must still be present in at least one
+selected release, and conflicting captured definitions stop publication.
+
 Interactive review opens candidates and **New Address** in the same English component
 editor, including building number start and end, with **Save**, **Save & Override
 Lat/Lng**, and **Back**. The override is available only for an existing ALS candidate
@@ -384,17 +402,6 @@ profile 依次加入一般地点资料、点几何和审核／来源字段。H3 
 Place 属性；地图查询请使用 `by-cell`。
 
 ## Publisher source boundary
-
-### Release-scoped trial Address deferral
-
-An explicitly authorised trial may set `SAANSEOI_TRIAL_DEFER_PLACE_ADDRESS_REVIEWS` to
-comma-separated exact `environment:sourceVersion` values. Only otherwise review-required
-Place links are deferred: their Address IDs remain null, source values and review
-evidence are retained, and no durable curation decision is created or applied for those
-rows. The processing audit retains the deferred observations separately from applied
-decisions. Ordinary imports and `--yes` retain the review gate. Published trial releases
-are immutable; fuller ALS coverage requires a subsequent release or revision, not an
-in-place relink.
 
 Publisher values, acquisition references, original geometry and canonical resolutions
 follow the [source record storage contract](../source-records.md). Field renaming and
@@ -465,3 +472,11 @@ ready before publication finalises Place search. An interrupted scope remains
 unavailable, and a valid empty snapshot still requires completion evidence. Search
 reuses unchanged documents across publication advances. Reads, cleanup and
 reset/reingest follow the [publication-state contract](../publication-state-plan.md).
+
+### Deferred address review
+
+Unresolved Place Address cases are retained as unreviewed during ingestion. The place
+remains available with a null address link; candidate evidence and the original reason
+are retained in the release review artefact and provenance. Ingestion does not select an
+identity or record a curation decision. Reviewed links and approved supplementary
+addresses continue to apply. Later review can resolve these cases in revised releases.

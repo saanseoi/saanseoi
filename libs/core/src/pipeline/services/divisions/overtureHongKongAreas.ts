@@ -1,7 +1,6 @@
 import { buildDeterministicUuidV5 } from '@repo/db'
 
 import type { DatasetProcessingMessage } from '../../../types'
-import { kowloonRestorationFixture } from './kowloonRestoration'
 
 const CANONICAL_DIVISION_ID_NAMESPACE = '68cfb529-cbcb-58c9-bdf1-ff9c8e5b9c7c'
 export const OVERTURE_HONG_KONG_SAR_DIVISION_ID = 'b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d'
@@ -191,7 +190,7 @@ export function missingOvertureHongKongAreaRows(
     })
 }
 
-function hasOvertureAreaGeometry(value: unknown) {
+function _hasOvertureAreaGeometry(value: unknown) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const type = (value as Record<string, unknown>).type
   return type === 'Polygon' || type === 'MultiPolygon'

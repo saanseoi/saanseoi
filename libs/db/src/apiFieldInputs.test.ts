@@ -63,12 +63,12 @@ test('processing references pin the selected release definition, not a current r
     ]),
   ).toThrow()
   expect(pinApiFieldRules({ resolverCode: 'direct_copy' }, [])).toEqual([])
-  expect(() =>
+  expect(
     pinApiFieldRules(field, [
       release,
-      { releaseId: 'missing-policy', processingRules: null },
+      { releaseId: 'unrelated-derived-release', processingRules: null },
     ]),
-  ).toThrow('missing-policy')
+  ).toEqual(pins)
   const conflicting = structuredClone(release)
   conflicting.processingRules.rulesets[0]!.rules.push({
     definition: { ...definition, parameters: { multiplier: 1 } },
@@ -130,7 +130,7 @@ test('curation paths use named camelCase contexts while preserving registered id
     fieldPath: 'coordinates',
   })
   const selector = '[datasetCode=ds-hk-example].fields[sourceField=age_1]'
-  expect(resolveApiFieldCurationInput('statisticFields' + selector)).toEqual({
+  expect(resolveApiFieldCurationInput(`statisticFields${selector}`)).toEqual({
     contextId: 'statistic-fields',
     fieldPath: selector,
   })

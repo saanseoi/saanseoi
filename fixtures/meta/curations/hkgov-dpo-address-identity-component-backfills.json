@@ -1,0 +1,841 @@
+{
+  "version": 1,
+  "authority": "User decisions, 2026-09-12: restore reviewed identity components while preserving raw ALS assertions, coordinates and source names.",
+  "rules": [
+    {
+      "id": "shun-ting-terraced-home",
+      "csu": "3303221884T20230524",
+      "granularity": "building",
+      "enName": "Transitional Housing - Shun Ting Terraced Home",
+      "zhName": "過渡性房屋 - 順庭居",
+      "enEstate": null,
+      "zhEstate": null,
+      "authority": "User decision, 2026-09-12: reviewed shun ting terraced home; preserve raw ALS assertions and use the reviewed canonical component throughout applicable releases.",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hash": "e5246bf35d209885ae8cbf07fc8c58f6e1494a427b1dad1e832a8ea80ccb2038"
+        },
+        {
+          "version": "2024-07-31.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2024-08-21.0",
+          "hash": "e5246bf35d209885ae8cbf07fc8c58f6e1494a427b1dad1e832a8ea80ccb2038"
+        },
+        {
+          "version": "2024-08-25.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2024-08-28.0",
+          "hash": "e5246bf35d209885ae8cbf07fc8c58f6e1494a427b1dad1e832a8ea80ccb2038"
+        },
+        {
+          "version": "2024-09-01.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2024-09-02.0",
+          "hash": "e5246bf35d209885ae8cbf07fc8c58f6e1494a427b1dad1e832a8ea80ccb2038"
+        },
+        {
+          "version": "2024-09-03.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2024-10-18.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2024-11-13.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2024-12-12.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-01-23.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-02-25.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-03-21.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-04-26.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-05-22.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-06-20.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-08-13.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-08-28.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-09-03.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-11-04.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2025-12-16.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2026-02-04.0",
+          "hash": "58e33ae8c6835776668796682cd6170e2711cfff8cca61ba0b05547913e780f1"
+        },
+        {
+          "version": "2026-04-03.0",
+          "hash": "6d9810144a8005832632f0c06234ca53f022e1e7a00f56bf8c4408ad3796b287"
+        },
+        {
+          "version": "2026-04-22.0",
+          "hash": "6d9810144a8005832632f0c06234ca53f022e1e7a00f56bf8c4408ad3796b287"
+        },
+        {
+          "version": "2026-04-25.0",
+          "hash": "6d9810144a8005832632f0c06234ca53f022e1e7a00f56bf8c4408ad3796b287"
+        },
+        {
+          "version": "2026-07-08.0",
+          "hash": "6d9810144a8005832632f0c06234ca53f022e1e7a00f56bf8c4408ad3796b287"
+        },
+        {
+          "version": "2026-07-10.0",
+          "hash": "6d9810144a8005832632f0c06234ca53f022e1e7a00f56bf8c4408ad3796b287"
+        },
+        {
+          "version": "2026-07-22.0",
+          "hash": "6d9810144a8005832632f0c06234ca53f022e1e7a00f56bf8c4408ad3796b287"
+        },
+        {
+          "version": "2026-08-19.0",
+          "hash": "6d9810144a8005832632f0c06234ca53f022e1e7a00f56bf8c4408ad3796b287"
+        }
+      ],
+      "canonicalId": "ss-b84b64bb-6c6c-55af-8761-53f4945bb017"
+    },
+    {
+      "id": "tai-hang-fire-dragon-heritage-centre",
+      "csu": "3778515545T20050430",
+      "granularity": "building",
+      "enName": "TAI HANG FIRE DRAGON HERITAGE CENTRE",
+      "zhName": "大坑火龍文化館",
+      "enEstate": null,
+      "zhEstate": null,
+      "authority": "User decision, 2026-09-12: reviewed tai hang fire dragon heritage centre; preserve raw ALS assertions and use the reviewed canonical component throughout applicable releases.",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hash": "96ea4923a52946b0e087919617b0f0bb74f61e2ea7610c400bcf2582d47c093c"
+        },
+        {
+          "version": "2024-07-31.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2024-08-21.0",
+          "hash": "96ea4923a52946b0e087919617b0f0bb74f61e2ea7610c400bcf2582d47c093c"
+        },
+        {
+          "version": "2024-08-25.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2024-08-28.0",
+          "hash": "96ea4923a52946b0e087919617b0f0bb74f61e2ea7610c400bcf2582d47c093c"
+        },
+        {
+          "version": "2024-09-01.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2024-09-02.0",
+          "hash": "96ea4923a52946b0e087919617b0f0bb74f61e2ea7610c400bcf2582d47c093c"
+        },
+        {
+          "version": "2024-09-03.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2024-10-18.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2024-11-13.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2024-12-12.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-01-23.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-02-25.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-03-21.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-04-26.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-05-22.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-06-20.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-08-13.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-08-28.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-09-03.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-11-04.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2025-12-16.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2026-02-04.0",
+          "hash": "a7cfc6e8b6480842a5f484135d41e5a1f2b0017442f71559126cee3b30c4b805"
+        },
+        {
+          "version": "2026-04-03.0",
+          "hash": "7bf5475c746304503ebb44d16775e170766e66fa68c5faadab1028db472819aa"
+        },
+        {
+          "version": "2026-04-22.0",
+          "hash": "7bf5475c746304503ebb44d16775e170766e66fa68c5faadab1028db472819aa"
+        },
+        {
+          "version": "2026-04-25.0",
+          "hash": "7bf5475c746304503ebb44d16775e170766e66fa68c5faadab1028db472819aa"
+        },
+        {
+          "version": "2026-07-08.0",
+          "hash": "7bf5475c746304503ebb44d16775e170766e66fa68c5faadab1028db472819aa"
+        },
+        {
+          "version": "2026-07-10.0",
+          "hash": "7bf5475c746304503ebb44d16775e170766e66fa68c5faadab1028db472819aa"
+        },
+        {
+          "version": "2026-07-22.0",
+          "hash": "7bf5475c746304503ebb44d16775e170766e66fa68c5faadab1028db472819aa"
+        },
+        {
+          "version": "2026-08-19.0",
+          "hash": "7bf5475c746304503ebb44d16775e170766e66fa68c5faadab1028db472819aa"
+        }
+      ],
+      "canonicalId": "ss-05265fec-1612-59f6-8925-e32a047dd396"
+    },
+    {
+      "id": "union-square-complex",
+      "csu": "3458318302T20090317",
+      "granularity": "complex",
+      "enName": null,
+      "zhName": null,
+      "enEstate": "UNION SQUARE",
+      "zhEstate": "UNION SQUARE",
+      "authority": "User decision, 2026-09-12: reviewed union square complex; preserve raw ALS assertions and use the reviewed canonical component throughout applicable releases.",
+      "assertions": [
+        {
+          "version": "2026-04-03.0",
+          "hash": "47131b587348722f2f7748afdf1eb2bdca44b2c2ebaf3041b0c7fb905e67ba42"
+        },
+        {
+          "version": "2026-04-22.0",
+          "hash": "47131b587348722f2f7748afdf1eb2bdca44b2c2ebaf3041b0c7fb905e67ba42"
+        },
+        {
+          "version": "2026-04-25.0",
+          "hash": "47131b587348722f2f7748afdf1eb2bdca44b2c2ebaf3041b0c7fb905e67ba42"
+        },
+        {
+          "version": "2026-07-08.0",
+          "hash": "47131b587348722f2f7748afdf1eb2bdca44b2c2ebaf3041b0c7fb905e67ba42"
+        },
+        {
+          "version": "2026-07-10.0",
+          "hash": "47131b587348722f2f7748afdf1eb2bdca44b2c2ebaf3041b0c7fb905e67ba42"
+        },
+        {
+          "version": "2026-07-22.0",
+          "hash": "c44d9daa6ae0237ba468047ca4c048f3e7b032c978f6a740938fb8c9f7bc0343"
+        },
+        {
+          "version": "2026-08-19.0",
+          "hash": "c44d9daa6ae0237ba468047ca4c048f3e7b032c978f6a740938fb8c9f7bc0343"
+        }
+      ],
+      "canonicalId": "ss-7afde22b-3cdb-5509-9f11-d38b57cfb84b"
+    },
+    {
+      "id": "bougainvilea-gardens-block-1",
+      "csu": "4582321076T20050430",
+      "granularity": "building",
+      "enEstate": "BOUGAINVILEA GARDENS",
+      "zhEstate": "BOUGAINVILEA GARDENS",
+      "blockNumber": "1",
+      "authority": "User decision, 2026-09-12: treat BOUGAINVILEA GARDENS as the estate, retain Block 1, and do not add a building name. Preserve raw ALS assertions and coordinates.",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hash": "28a5a79f786517ab1c33f8c4167eb526d08207248e881a9e271dcb0b20fec357"
+        },
+        {
+          "version": "2024-07-31.0",
+          "hash": "09dd88b9ade42d10ce58f812820414f9d036e370799b1581ca23215f9e76e1e5"
+        },
+        {
+          "version": "2024-08-21.0",
+          "hash": "28a5a79f786517ab1c33f8c4167eb526d08207248e881a9e271dcb0b20fec357"
+        },
+        {
+          "version": "2024-08-25.0",
+          "hash": "09dd88b9ade42d10ce58f812820414f9d036e370799b1581ca23215f9e76e1e5"
+        },
+        {
+          "version": "2024-08-28.0",
+          "hash": "28a5a79f786517ab1c33f8c4167eb526d08207248e881a9e271dcb0b20fec357"
+        },
+        {
+          "version": "2024-09-01.0",
+          "hash": "09dd88b9ade42d10ce58f812820414f9d036e370799b1581ca23215f9e76e1e5"
+        },
+        {
+          "version": "2024-09-02.0",
+          "hash": "28a5a79f786517ab1c33f8c4167eb526d08207248e881a9e271dcb0b20fec357"
+        },
+        {
+          "version": "2024-09-03.0",
+          "hash": "09dd88b9ade42d10ce58f812820414f9d036e370799b1581ca23215f9e76e1e5"
+        },
+        {
+          "version": "2024-10-18.0",
+          "hash": "09dd88b9ade42d10ce58f812820414f9d036e370799b1581ca23215f9e76e1e5"
+        },
+        {
+          "version": "2024-11-13.0",
+          "hash": "09dd88b9ade42d10ce58f812820414f9d036e370799b1581ca23215f9e76e1e5"
+        },
+        {
+          "version": "2024-12-12.0",
+          "hash": "09dd88b9ade42d10ce58f812820414f9d036e370799b1581ca23215f9e76e1e5"
+        },
+        {
+          "version": "2025-01-23.0",
+          "hash": "09dd88b9ade42d10ce58f812820414f9d036e370799b1581ca23215f9e76e1e5"
+        },
+        {
+          "version": "2025-02-25.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2025-03-21.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2025-04-26.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2025-05-22.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2025-06-20.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2025-08-13.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2025-08-28.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2025-09-03.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2025-11-04.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2025-12-16.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2026-02-04.0",
+          "hash": "a3b143485bd0a8f40cc00f2e7eba89c8ff8a39434d48f297cf6c6d7d5eec0141"
+        },
+        {
+          "version": "2026-04-03.0",
+          "hash": "cbd5437c9235766acc4bbd8c23394e1d24fbfb7c5f8ed3b88b3b422c02f1bdd4"
+        },
+        {
+          "version": "2026-04-22.0",
+          "hash": "cbd5437c9235766acc4bbd8c23394e1d24fbfb7c5f8ed3b88b3b422c02f1bdd4"
+        },
+        {
+          "version": "2026-04-25.0",
+          "hash": "cbd5437c9235766acc4bbd8c23394e1d24fbfb7c5f8ed3b88b3b422c02f1bdd4"
+        },
+        {
+          "version": "2026-07-08.0",
+          "hash": "cbd5437c9235766acc4bbd8c23394e1d24fbfb7c5f8ed3b88b3b422c02f1bdd4"
+        },
+        {
+          "version": "2026-07-10.0",
+          "hash": "cbd5437c9235766acc4bbd8c23394e1d24fbfb7c5f8ed3b88b3b422c02f1bdd4"
+        },
+        {
+          "version": "2026-07-22.0",
+          "hash": "cbd5437c9235766acc4bbd8c23394e1d24fbfb7c5f8ed3b88b3b422c02f1bdd4"
+        },
+        {
+          "version": "2026-08-19.0",
+          "hash": "cbd5437c9235766acc4bbd8c23394e1d24fbfb7c5f8ed3b88b3b422c02f1bdd4"
+        }
+      ],
+      "canonicalId": "ss-a5c1ec2c-df57-5d02-89d3-5195a41fec6e"
+    },
+    {
+      "id": "bougainvilea-gardens-block-2",
+      "csu": "4580821079T20050430",
+      "granularity": "building",
+      "enEstate": "BOUGAINVILEA GARDENS",
+      "zhEstate": "BOUGAINVILEA GARDENS",
+      "blockNumber": "2",
+      "authority": "User decision, 2026-09-12: treat BOUGAINVILEA GARDENS as the estate, retain Block 2, and do not add a building name. Preserve raw ALS assertions and coordinates.",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        },
+        {
+          "version": "2024-07-31.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        },
+        {
+          "version": "2024-08-21.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        },
+        {
+          "version": "2024-08-25.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        },
+        {
+          "version": "2024-08-28.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        },
+        {
+          "version": "2024-09-01.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        },
+        {
+          "version": "2024-09-02.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        },
+        {
+          "version": "2024-09-03.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        },
+        {
+          "version": "2024-10-18.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2024-11-13.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2024-12-12.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-01-23.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-02-25.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-03-21.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-04-26.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-05-22.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-06-20.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-08-13.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-08-28.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-09-03.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-11-04.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2025-12-16.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2026-02-04.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2026-04-03.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2026-04-22.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2026-04-25.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2026-07-08.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2026-07-10.0",
+          "hash": "4f710fd039f0471c7ba1ce10fb04d2cf710c96adebcd65aacd3a71d60d53d4da"
+        },
+        {
+          "version": "2026-07-22.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        },
+        {
+          "version": "2026-08-19.0",
+          "hash": "2f451a072322c8fff361e4a5702a7157d664a4136e6d4f3b894b83ac5010b2b9"
+        }
+      ],
+      "canonicalId": "ss-329456fa-cd59-5d47-9519-dc89e571ca7e"
+    },
+    {
+      "id": "bougainvilea-gardens-block-3",
+      "csu": "4579421082T20050430",
+      "granularity": "building",
+      "enEstate": "BOUGAINVILEA GARDENS",
+      "zhEstate": "BOUGAINVILEA GARDENS",
+      "blockNumber": "3",
+      "authority": "User decision, 2026-09-12: treat BOUGAINVILEA GARDENS as the estate, retain Block 3, and do not add a building name. Preserve raw ALS assertions and coordinates.",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hash": "eb2b5dbb783e2b37fd99207418e24942061f8dcfb015638c6b1ed7962a2799d6"
+        },
+        {
+          "version": "2024-07-31.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2024-08-21.0",
+          "hash": "eb2b5dbb783e2b37fd99207418e24942061f8dcfb015638c6b1ed7962a2799d6"
+        },
+        {
+          "version": "2024-08-25.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2024-08-28.0",
+          "hash": "eb2b5dbb783e2b37fd99207418e24942061f8dcfb015638c6b1ed7962a2799d6"
+        },
+        {
+          "version": "2024-09-01.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2024-09-02.0",
+          "hash": "eb2b5dbb783e2b37fd99207418e24942061f8dcfb015638c6b1ed7962a2799d6"
+        },
+        {
+          "version": "2024-09-03.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2024-10-18.0",
+          "hash": "d2d4bea0974c7baee07b2db79b00ff1480f78c90bd2f087a75d1008fbe01ff3e"
+        },
+        {
+          "version": "2024-11-13.0",
+          "hash": "d2d4bea0974c7baee07b2db79b00ff1480f78c90bd2f087a75d1008fbe01ff3e"
+        },
+        {
+          "version": "2024-12-12.0",
+          "hash": "d2d4bea0974c7baee07b2db79b00ff1480f78c90bd2f087a75d1008fbe01ff3e"
+        },
+        {
+          "version": "2025-01-23.0",
+          "hash": "d2d4bea0974c7baee07b2db79b00ff1480f78c90bd2f087a75d1008fbe01ff3e"
+        },
+        {
+          "version": "2025-02-25.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2025-03-21.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2025-04-26.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2025-05-22.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2025-06-20.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2025-08-13.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2025-08-28.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2025-09-03.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2025-11-04.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2025-12-16.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2026-02-04.0",
+          "hash": "9e24f31f20d61d148d235298921e0e41604b5156c25624a71c6c2c9400a7d274"
+        },
+        {
+          "version": "2026-04-03.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2026-04-22.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2026-04-25.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2026-07-08.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2026-07-10.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2026-07-22.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        },
+        {
+          "version": "2026-08-19.0",
+          "hash": "9787851709c8b6b8439a58617e09fce8f03953aee7e4ffc30b49906e341a4bdc"
+        }
+      ],
+      "canonicalId": "ss-0fedad16-b5b9-502c-a9db-db4ac4e46c6f"
+    },
+    {
+      "id": "bougainvilea-gardens-block-4",
+      "csu": "4578121087T20050430",
+      "granularity": "building",
+      "enEstate": "BOUGAINVILEA GARDENS",
+      "zhEstate": "BOUGAINVILEA GARDENS",
+      "blockNumber": "4",
+      "authority": "User decision, 2026-09-12: treat BOUGAINVILEA GARDENS as the estate, retain Block 4, and do not add a building name. Preserve raw ALS assertions and coordinates.",
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hash": "f17081a9031fba0392f1ce197e7aa220e19d07614745ae3b67ffc14d1a94313f"
+        },
+        {
+          "version": "2024-07-31.0",
+          "hash": "c89292e2518a2552fc6bb62fc6e412cca75d970bc364b03f8fca34c25a3b006e"
+        },
+        {
+          "version": "2024-08-21.0",
+          "hash": "f17081a9031fba0392f1ce197e7aa220e19d07614745ae3b67ffc14d1a94313f"
+        },
+        {
+          "version": "2024-08-25.0",
+          "hash": "c89292e2518a2552fc6bb62fc6e412cca75d970bc364b03f8fca34c25a3b006e"
+        },
+        {
+          "version": "2024-08-28.0",
+          "hash": "f17081a9031fba0392f1ce197e7aa220e19d07614745ae3b67ffc14d1a94313f"
+        },
+        {
+          "version": "2024-09-01.0",
+          "hash": "c89292e2518a2552fc6bb62fc6e412cca75d970bc364b03f8fca34c25a3b006e"
+        },
+        {
+          "version": "2024-09-02.0",
+          "hash": "f17081a9031fba0392f1ce197e7aa220e19d07614745ae3b67ffc14d1a94313f"
+        },
+        {
+          "version": "2024-09-03.0",
+          "hash": "c89292e2518a2552fc6bb62fc6e412cca75d970bc364b03f8fca34c25a3b006e"
+        },
+        {
+          "version": "2024-10-18.0",
+          "hash": "c89292e2518a2552fc6bb62fc6e412cca75d970bc364b03f8fca34c25a3b006e"
+        },
+        {
+          "version": "2024-11-13.0",
+          "hash": "c89292e2518a2552fc6bb62fc6e412cca75d970bc364b03f8fca34c25a3b006e"
+        },
+        {
+          "version": "2024-12-12.0",
+          "hash": "c89292e2518a2552fc6bb62fc6e412cca75d970bc364b03f8fca34c25a3b006e"
+        },
+        {
+          "version": "2025-01-23.0",
+          "hash": "c89292e2518a2552fc6bb62fc6e412cca75d970bc364b03f8fca34c25a3b006e"
+        },
+        {
+          "version": "2025-02-25.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2025-03-21.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2025-04-26.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2025-05-22.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2025-06-20.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2025-08-13.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2025-08-28.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2025-09-03.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2025-11-04.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2025-12-16.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2026-02-04.0",
+          "hash": "d252a36bca046564440115b497f285260bee9b1543809ab7c704a2a998b22274"
+        },
+        {
+          "version": "2026-04-03.0",
+          "hash": "3d7f0a7d0443d50092d67bdf86f53a9b76e0a52e7e365c5d46c2a8075f428019"
+        },
+        {
+          "version": "2026-04-22.0",
+          "hash": "3d7f0a7d0443d50092d67bdf86f53a9b76e0a52e7e365c5d46c2a8075f428019"
+        },
+        {
+          "version": "2026-04-25.0",
+          "hash": "3d7f0a7d0443d50092d67bdf86f53a9b76e0a52e7e365c5d46c2a8075f428019"
+        },
+        {
+          "version": "2026-07-08.0",
+          "hash": "3d7f0a7d0443d50092d67bdf86f53a9b76e0a52e7e365c5d46c2a8075f428019"
+        },
+        {
+          "version": "2026-07-10.0",
+          "hash": "3d7f0a7d0443d50092d67bdf86f53a9b76e0a52e7e365c5d46c2a8075f428019"
+        },
+        {
+          "version": "2026-07-22.0",
+          "hash": "3bd243959703729ac1d622a09a58af4c3ef53e0db029c4430b9b26f6933342db"
+        },
+        {
+          "version": "2026-08-19.0",
+          "hash": "3bd243959703729ac1d622a09a58af4c3ef53e0db029c4430b9b26f6933342db"
+        }
+      ],
+      "canonicalId": "ss-579ece8b-2178-515d-894f-30335b333025"
+    }
+  ]
+}

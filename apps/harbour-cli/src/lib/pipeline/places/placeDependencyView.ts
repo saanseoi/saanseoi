@@ -13,11 +13,14 @@ import {
 import {
   currentSchema,
   historySchema,
-  sql,
+  eq,
+  and,
+  or,
   getTableColumns,
   getTableName,
 } from '@repo/db'
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core'
+import { getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
 import { readAddressDivisionSnapshotId } from './placeSnapshotDependencies.ts'
 
 const tables = {
@@ -98,23 +101,30 @@ export class PlaceDependencyView {
 
   async prepare(addressSnapshotId: string) {
     if (this.snapshots.has(addressSnapshotId)) return this.db
-    const divisionSnapshotId = await readAddressDivisionSnapshotId(
-      this.metaDb,
-      addressSnapshotId,
-    )
-    if (!this.snapshots.has(divisionSnapshotId)) {
-      await this.hydrate(divisionSnapshotId, ['division', 'divisionI18n'])
-      this.receipt('divisionPublicationState', divisionSnapshotId)
+    this.sqlite.exec('BEGIN')
+    try {
+      const divisionSnapshotId = await readAddressDivisionSnapshotId(
+        this.metaDb,
+        addressSnapshotId,
+      )
+      if (!this.snapshots.has(divisionSnapshotId)) {
+        await this.hydrate(divisionSnapshotId, ['division', 'divisionI18n'])
+        this.receipt('divisionPublicationState', divisionSnapshotId)
+      }
+      await this.hydrate(
+        addressSnapshotId,
+        ['address2d', 'address2dI18n', 'address3d', 'address3dI18n'],
+        divisionSnapshotId,
+      )
+      this.receipt('addressPublicationState', addressSnapshotId)
+      this.sqlite.exec('COMMIT')
       this.snapshots.add(divisionSnapshotId)
+      this.snapshots.add(addressSnapshotId)
+      return this.db
+    } catch (error) {
+      if (this.sqlite.inTransaction) this.sqlite.exec('ROLLBACK')
+      throw error
     }
-    await this.hydrate(
-      addressSnapshotId,
-      ['address2d', 'address2dI18n', 'address3d', 'address3dI18n'],
-      divisionSnapshotId,
-    )
-    this.receipt('addressPublicationState', addressSnapshotId)
-    this.snapshots.add(addressSnapshotId)
-    return this.db
   }
 
   private receipt(
@@ -164,9 +174,12 @@ export class PlaceDependencyView {
         groups.set(version.shard.bindingName, group)
       }
       const table = historySchema[name]
+      const columns = getTableColumns(table as SQLiteTable)
+      const localised = type.endsWith('I18n')
+      const batchSize = getMaxItemsPerInClause(localised ? 3 : 2)
       for (const versions of groups.values()) {
-        for (let start = 0; start < versions.length; start += 100) {
-          const selected = versions.slice(start, start + 100)
+        for (let start = 0; start < versions.length; start += batchSize) {
+          const selected = versions.slice(start, start + batchSize)
           const first = selected[0]
           if (!first) continue
           const expected = new Set(
@@ -178,7 +191,15 @@ export class PlaceDependencyView {
             .select()
             .from(table)
             .where(
-              sql`${table.versionHash} in (select value from json_each(${JSON.stringify(selected.map(version => version.versionHash))}))`,
+              or(
+                ...selected.map(version =>
+                  and(
+                    eq(columns[id]!, version.recordId),
+                    eq(table.versionHash, version.versionHash),
+                    ...(localised ? [eq(columns.locale!, version.locale)] : []),
+                  ),
+                ),
+              ),
             )
             .all()
           const found = new Set<string>()

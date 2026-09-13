@@ -333,9 +333,6 @@ test('exact historical Place dependencies replay independent locale shards and s
       preparedAt: 'now',
       status: 'current',
     })
-    const beforeChanges = [meta, before, after, current].map(db =>
-      db.query('SELECT total_changes() AS n').get(),
-    )
     view = await PlaceDependencyView.create({
       metaDb: createLocalHarbourDb(meta),
       historyTargets: [
@@ -343,12 +340,24 @@ test('exact historical Place dependencies replay independent locale shards and s
         { bindingName: 'DB_HISTORY_HK_2025', db: createLocalHarbourDb(after) },
       ],
     })
+    const missingContent = after.query('SELECT * FROM address2dI18n').all() as Record<
+      string,
+      unknown
+    >[]
+    after.exec('DELETE FROM address2dI18n')
+    await expect(view.prepare('a1')).rejects.toThrow('Dependency replay is missing')
+    expect(await view.db.select().from(currentSchema.address2d).all()).toEqual([])
+    expect(await view.db.select().from(currentSchema.divisions).all()).toEqual([])
+    for (const row of missingContent) insert(after, 'address2dI18n', row)
+    const changesBeforeRetry = [meta, before, after, current].map(db =>
+      db.query('SELECT total_changes() AS n').get(),
+    )
     await view.prepare('a1')
     expect(
       [meta, before, after, current].map(db =>
         db.query('SELECT total_changes() AS n').get(),
       ),
-    ).toEqual(beforeChanges)
+    ).toEqual(changesBeforeRetry)
     const resolve = createPlaceSearchDependencies(view.db)
     const input = {
       addressSnapshotId: 'a1',

@@ -20,7 +20,6 @@ import {
 import {
   normaliseRoadCentrelineFeatures,
   readLandsdRoadCentrelineArchive,
-  requireResolvedRoadCentrelines,
   type RoadCentrelineDistrict,
   type RoadCentrelineStreet,
 } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/roadCentreline.ts'
@@ -121,6 +120,7 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
     `${input.sha256}.json`,
   )
   const decisions = await loadRoadReview(decisionsPath, reviewContext)
+  applyRoadReview(result, resolvedCanonical.streets ?? [], decisions)
   const reviewPath = resolve('.cache/road-centreline-review', `${input.sha256}.json`)
   await mkdir(dirname(reviewPath), { recursive: true })
   await writeFile(
@@ -132,6 +132,8 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
         sourceArchiveKey: input.key,
         canonicalSnapshotIds: resolvedCanonical.snapshotIds ?? null,
         summary,
+        reviewStatus: result.issues.length ? 'unreviewed' : 'not_required',
+        ingestionDisposition: 'continue',
         groups: groupRoadCentrelineIssues(
           result.issues,
           resolvedCanonical.streets ?? [],
@@ -152,8 +154,8 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
       decisions,
       decisionsPath,
     )
+    applyRoadReview(result, resolvedCanonical.streets ?? [], decisions)
   }
-  applyRoadReview(result, resolvedCanonical.streets ?? [], decisions)
   if (args.options['dry-run'] === true || args.options.review === true) {
     console.log(
       JSON.stringify(
@@ -169,15 +171,10 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
     )
     return
   }
-  // A source-only row is valid only when the publisher did not supply an
-  // English label. Any named ambiguity is a curation gate, never a silent
-  // partial street publication.
-  if (result.issues.length > 0) {
-    throw new Error(
-      `Road Centreline requires curation for ${result.issues.length} named segments. Rerun with --review for interactive review. Grouped review: ${reviewPath}`,
+  if (result.issues.length > 0)
+    console.log(
+      `Retained ${result.issues.length} unreviewed Road Centreline matches at ${reviewPath}; publisher rows will be ingested without inferred street links.`,
     )
-  }
-  requireResolvedRoadCentrelines(result)
   const rows = result.records.map(record => ({
     properties: record.properties,
     sourceGeometry: record.sourceGeometry,
