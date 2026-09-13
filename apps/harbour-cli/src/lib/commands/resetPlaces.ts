@@ -26,6 +26,11 @@ import {
   withLocalMetaDb,
 } from '../dbCache/localDbCache.ts'
 import {
+  mapLocalTargetPaths,
+  resolveD1Targets,
+  resolveSharedRemoteDbCacheDir,
+} from '../dbCache/localDbCacheTargets.ts'
+import {
   executeResetSqlArtefacts,
   type ResetSqlArtefact,
   validateResetArguments,
@@ -34,6 +39,7 @@ import { deleteManagedSourceAsset } from '../sources/sourceAssets.ts'
 import { supplementaryEntryLedgerPath } from '../pipeline/places/processLocalPlaceSqlUploadConfig.ts'
 import { createHarbourControlClient } from '../api/harbourControl.ts'
 import { SUPPLEMENTARY_ADDRESS_VARIANT } from '../pipeline/places/supplementaryPlaceAddressRows.ts'
+import { readPendingSqlDelivery } from '../pipeline/local/sqlDeliveryPending.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const MANIFEST_ROOT = resolve(REPO_ROOT, '.local/overture-places/init-runs')
@@ -251,18 +257,35 @@ export function failPlacesManifest(
   return { ...manifest, failedAt, status: 'failed' }
 }
 
-async function recoverFailedPlacesIngestRuns(
+export async function recoverFailedPlacesIngestRuns(
   target: UploadTarget,
   manifest: PlacesInitManifest,
+  dependencies: {
+    resolveContext?: typeof resolveLocalAddressDbContext
+    resolveSqlDeliveryOwner?: typeof resolvePlacesRecoverySqlDeliveryOwner
+  } = {},
 ) {
   if (!manifest.failedAt)
     throw new Error('Failed Overture Places manifest is missing failedAt.')
-  const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
-    cacheTableProfile: 'places',
-    includeAllHistoryShardYears: true,
-    includeAllSourceShardYears: true,
-    requireExistingRemoteCache: target.remote,
-  })
+  // Resolve retained ownership before opening the planning mirror. An
+  // interrupted Places processor leaves both its ingest phase and SQL plans
+  // active; recovery must identify that exact owner so the cache assertion can
+  // distinguish it from a competing release.
+  const pendingReleaseId = await (
+    dependencies.resolveSqlDeliveryOwner ?? resolvePlacesRecoverySqlDeliveryOwner
+  )(target)
+  const context = await (dependencies.resolveContext ?? resolveLocalAddressDbContext)(
+    target,
+    'hk',
+    '2025',
+    {
+      cacheTableProfile: 'places',
+      includeAllHistoryShardYears: true,
+      includeAllSourceShardYears: true,
+      requireExistingRemoteCache: target.remote,
+      resumeSqlDeliveryReleaseId: pendingReleaseId,
+    },
+  )
   try {
     const remoteClient = target.remote ? createHarbourControlClient(target) : null
     await failRunningPlacesIngestRuns(
@@ -279,10 +302,23 @@ async function recoverFailedPlacesIngestRuns(
             )
           }
         : undefined,
+      pendingReleaseId,
     )
   } finally {
     context.cleanup()
   }
+}
+
+export async function resolvePlacesRecoverySqlDeliveryOwner(target: UploadTarget) {
+  let cacheDir: string
+  if (target.remote) {
+    cacheDir = resolveSharedRemoteDbCacheDir(target)
+  } else {
+    const metaPath = mapLocalTargetPaths(await resolveD1Targets('local')).DB_META
+    if (!metaPath) throw new Error('Places recovery requires the DB_META binding.')
+    cacheDir = dirname(metaPath)
+  }
+  return (await readPendingSqlDelivery(cacheDir))?.releaseId
 }
 
 export async function failRunningPlacesIngestRuns(
@@ -293,7 +329,17 @@ export async function failRunningPlacesIngestRuns(
     releaseCode: string
     releaseId: string
   }) => Promise<void>,
+  recoveryReleaseId?: string,
 ) {
+  const conditions = [
+    eq(metaSchema.metaDatasets.code, DATASET_CODE),
+    eq(metaSchema.ingestRuns.status, 'running'),
+    lte(metaSchema.ingestRuns.startedAt, failedAt),
+    lte(metaSchema.ingestRuns.updatedAt, failedAt),
+  ]
+  if (recoveryReleaseId) {
+    conditions.push(eq(metaSchema.ingestRuns.releaseId, recoveryReleaseId))
+  }
   const runs = await db
     .select({
       phase: metaSchema.ingestRuns.phase,
@@ -309,14 +355,7 @@ export async function failRunningPlacesIngestRuns(
       metaSchema.metaDatasets,
       eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
     )
-    .where(
-      and(
-        eq(metaSchema.metaDatasets.code, DATASET_CODE),
-        eq(metaSchema.ingestRuns.status, 'running'),
-        lte(metaSchema.ingestRuns.startedAt, failedAt),
-        lte(metaSchema.ingestRuns.updatedAt, failedAt),
-      ),
-    )
+    .where(and(...conditions))
     .all()
   for (const run of runs) {
     await failRemote?.(run)

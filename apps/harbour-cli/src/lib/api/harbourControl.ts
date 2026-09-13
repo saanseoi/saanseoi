@@ -73,12 +73,14 @@ export function createHarbourControlClient(target: UploadTarget) {
           ...(publishOptions.skipSnapshotCleanup ? { skipSnapshotCleanup: true } : {}),
         },
         {
-          // Deferred Statistics publication only flips the source release to
-          // published, so repeating it after Wrangler loses its proxy
-          // connection is idempotent. Other publication paths may create API
-          // release-set revisions and must retain the normal no-retry policy.
+          // These deferred publication paths cannot create an API release-set
+          // revision, so repeating them after Wrangler loses its proxy
+          // connection is idempotent. Other publication paths retain the
+          // normal no-retry policy.
           retryLocalDeferredPublishFailure:
-            !target.remote && publishOptions.deferStatsReleaseSet === true,
+            !target.remote &&
+            (publishOptions.deferStatsReleaseSet === true ||
+              publishOptions.deferSourcePublish === true),
         },
       )
     },
@@ -165,7 +167,9 @@ async function postControl<TResponse = Record<string, unknown>>(
     const retryProxyConnection =
       options.retryLocalProxyConnectionFailure &&
       response.status === 500 &&
-      lastError.includes('Network connection lost')
+      // Wrangler can return an empty or non-JSON 500 when its proxy drops.
+      // Stage updates are idempotent; structured application failures are not retried.
+      (body === null || lastError.includes('Network connection lost'))
 
     if (retryDeferredPublish || retryProxyConnection) {
       await Bun.sleep(LOCAL_PROXY_RETRY_DELAYS_MS[attempt] ?? 0)

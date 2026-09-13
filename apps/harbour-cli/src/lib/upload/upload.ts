@@ -92,6 +92,16 @@ type ScheduleSnapshotCleanupOptions = {
   snapshotIds?: string[]
 }
 
+const LOCAL_RECONCILIATION_PROXY_RETRY_DELAYS_MS = [250, 1_000, 3_000]
+
+type ReconcileDraftReleaseSetsDependencies = {
+  fetchImpl?: (
+    input: Parameters<typeof fetch>[0],
+    init?: Parameters<typeof fetch>[1],
+  ) => Promise<Response>
+  sleep?: (delayMs: number) => Promise<void>
+}
+
 function resolveShardYear(cohortKey: string, sourceVersion: string) {
   const snapshotYear = cohortKey.slice(0, 4)
   const sourceYear = sourceVersion.slice(0, 4)
@@ -443,23 +453,59 @@ export async function reconcileDraftReleaseSets(
     apiFamily?: 'addresses' | 'divisions' | 'places' | 'stats' | 'streets'
     regionCode?: 'hk' | 'mo'
   } = {},
+  dependencies: ReconcileDraftReleaseSetsDependencies = {},
 ) {
-  const response = await fetch(
-    buildReconcileDraftReleaseSetsEndpoint(resolveHarbourApiUrl(target)),
-    {
+  const fetchImpl = dependencies.fetchImpl ?? fetch
+  const sleep = dependencies.sleep ?? Bun.sleep
+  const endpoint = buildReconcileDraftReleaseSetsEndpoint(resolveHarbourApiUrl(target))
+
+  for (
+    let attempt = 0;
+    attempt <= LOCAL_RECONCILIATION_PROXY_RETRY_DELAYS_MS.length;
+    attempt += 1
+  ) {
+    const response = await fetchImpl(endpoint, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
         ...getAuthHeaders(),
       },
       body: JSON.stringify(options),
-    },
-  )
+    })
 
-  return parseJsonResponse<ReconcileDraftReleaseSetsResponse>(
-    response,
-    'Harbour reconcileDraftReleaseSets',
-  )
+    if (
+      !target.remote &&
+      response.status === 500 &&
+      attempt < LOCAL_RECONCILIATION_PROXY_RETRY_DELAYS_MS.length &&
+      (await isLocalProxyConnectionFailure(response))
+    ) {
+      await sleep(LOCAL_RECONCILIATION_PROXY_RETRY_DELAYS_MS[attempt] ?? 0)
+      continue
+    }
+
+    return parseJsonResponse<ReconcileDraftReleaseSetsResponse>(
+      response,
+      'Harbour reconcileDraftReleaseSets',
+    )
+  }
+
+  throw new Error('Harbour reconcileDraftReleaseSets failed after proxy recovery.')
+}
+
+async function isLocalProxyConnectionFailure(response: Response) {
+  const body = await response
+    .clone()
+    .text()
+    .catch(() => '')
+  if (!body.trim()) return true
+
+  try {
+    JSON.parse(body)
+  } catch {
+    return true
+  }
+
+  return body.includes('Network connection lost')
 }
 
 export async function bootstrapStatsReleaseSets(
