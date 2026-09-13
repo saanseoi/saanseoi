@@ -101,23 +101,30 @@ export class PlaceDependencyView {
 
   async prepare(addressSnapshotId: string) {
     if (this.snapshots.has(addressSnapshotId)) return this.db
-    const divisionSnapshotId = await readAddressDivisionSnapshotId(
-      this.metaDb,
-      addressSnapshotId,
-    )
-    if (!this.snapshots.has(divisionSnapshotId)) {
-      await this.hydrate(divisionSnapshotId, ['division', 'divisionI18n'])
-      this.receipt('divisionPublicationState', divisionSnapshotId)
+    this.sqlite.exec('BEGIN')
+    try {
+      const divisionSnapshotId = await readAddressDivisionSnapshotId(
+        this.metaDb,
+        addressSnapshotId,
+      )
+      if (!this.snapshots.has(divisionSnapshotId)) {
+        await this.hydrate(divisionSnapshotId, ['division', 'divisionI18n'])
+        this.receipt('divisionPublicationState', divisionSnapshotId)
+      }
+      await this.hydrate(
+        addressSnapshotId,
+        ['address2d', 'address2dI18n', 'address3d', 'address3dI18n'],
+        divisionSnapshotId,
+      )
+      this.receipt('addressPublicationState', addressSnapshotId)
+      this.sqlite.exec('COMMIT')
       this.snapshots.add(divisionSnapshotId)
+      this.snapshots.add(addressSnapshotId)
+      return this.db
+    } catch (error) {
+      if (this.sqlite.inTransaction) this.sqlite.exec('ROLLBACK')
+      throw error
     }
-    await this.hydrate(
-      addressSnapshotId,
-      ['address2d', 'address2dI18n', 'address3d', 'address3dI18n'],
-      divisionSnapshotId,
-    )
-    this.receipt('addressPublicationState', addressSnapshotId)
-    this.snapshots.add(addressSnapshotId)
-    return this.db
   }
 
   private receipt(

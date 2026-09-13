@@ -41,11 +41,12 @@ export async function deliveryFileSha256(path: string) {
   return hash.digest('hex')
 }
 
-/** Atomic replacement, with both the file and directory entry flushed before returning. */
+/** Atomic replacement. The file is always flushed; callers may defer the directory flush. */
 export async function writeDeliveryFile(
   directory: string,
   name: string,
   contents: string | Uint8Array,
+  options: { syncParent?: boolean } = {},
 ) {
   await mkdir(directory, { recursive: true })
   const temporary = join(directory, `.${name}.${randomUUID()}.tmp`)
@@ -58,11 +59,13 @@ export async function writeDeliveryFile(
       await file.close()
     }
     await rename(temporary, join(directory, name))
-    const parent = await open(directory, 'r')
-    try {
-      await parent.sync()
-    } finally {
-      await parent.close()
+    if (options.syncParent !== false) {
+      const parent = await open(directory, 'r')
+      try {
+        await parent.sync()
+      } finally {
+        await parent.close()
+      }
     }
   } finally {
     await rm(temporary, { force: true })
@@ -157,7 +160,10 @@ export async function prepareSqlDelivery(
           if (kind === 'bound') readBoundDeliveryStatements(sql)
           const index = batches.length
           const file = `${index}.${kind === 'sql' ? 'sql' : 'json'}`
-          await writeDeliveryFile(directory, file, sql)
+          // Each payload is durable before publication. Its directory entry is
+          // flushed by the final plan write, which is the only marker that makes
+          // the complete batch set eligible for replay.
+          await writeDeliveryFile(directory, file, sql, { syncParent: false })
           batches.push({
             index,
             kind,

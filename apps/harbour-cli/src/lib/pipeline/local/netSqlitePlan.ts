@@ -1,4 +1,5 @@
 import { Database } from 'bun:sqlite'
+import { backup, DatabaseSync } from 'node:sqlite'
 import { copyFile, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { constants } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -63,7 +64,9 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
   let phase = 'initialise journal'
   let failed = false
   try {
-    journal.exec(`PRAGMA temp_store=FILE;
+    // Every file in this directory is disposable until the sealed delivery is
+    // emitted. Avoid device-wide durability barriers while building candidates.
+    journal.exec(`PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF; PRAGMA temp_store=FILE;
       CREATE TABLE mutations(seq INTEGER PRIMARY KEY, binding TEXT NOT NULL, groupKey TEXT NOT NULL, sortOrder INTEGER NOT NULL, statement TEXT NOT NULL, tableName TEXT NOT NULL, kind TEXT NOT NULL, rowKey TEXT NOT NULL);
       CREATE INDEX mutations_group ON mutations(binding,groupKey,sortOrder,seq);
       CREATE INDEX mutations_row ON mutations(binding,tableName,kind,rowKey);
@@ -73,9 +76,12 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
     for (const [index, [binding, target]] of entries.entries()) {
       phase = `copy ${binding}`
       const baseline = join(directory, `${index}.baseline.sqlite`)
-      const source = new Database(target.path, { readonly: true, create: false })
+      const source = new DatabaseSync(target.path, { readOnly: true })
       try {
-        source.query('VACUUM INTO ?').run(baseline)
+        // SQLite's online backup reads a transactionally consistent view,
+        // including committed WAL pages, without materialising a multi-gigabyte
+        // database image in the JavaScript heap.
+        await backup(source, baseline)
       } finally {
         source.close()
       }
@@ -84,7 +90,9 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       await copyFile(baseline, path, constants.COPYFILE_FICLONE)
       const db = new Database(path, { readwrite: true, create: false })
       candidates[binding] = { db, path }
-      db.exec('PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;')
+      db.exec(
+        'PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF; PRAGMA foreign_keys=ON; PRAGMA temp_store=FILE;',
+      )
       tables[binding] = orderNetTables(readNetTables(db, target.tables))
     }
     phase = 'generate candidate databases'
@@ -222,6 +230,9 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
         safeIntegers: true,
       })
       try {
+        // Replay copies are disposable and are rebuilt after interruption. Keep
+        // each payload's transaction/FK boundary without durable journal flushes.
+        replay.exec('PRAGMA journal_mode=MEMORY; PRAGMA synchronous=OFF;')
         if (input.bootstrap) {
           replay.exec('PRAGMA foreign_keys=OFF')
           replay.transaction(() => {

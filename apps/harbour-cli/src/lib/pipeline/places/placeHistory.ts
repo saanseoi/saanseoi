@@ -68,7 +68,11 @@ export function reusePlaceLocaleDependencies<T extends Record<string, unknown>>(
     >
     return canonicalPlaceJson(text)
   }
-  return previous && contents(candidate) === contents(previous)
+  if (!candidate) return null
+  const isLinked = (value: T) => value.addressSnapshotId != null
+  return previous &&
+    isLinked(candidate) === isLinked(previous) &&
+    contents(candidate) === contents(previous)
     ? previous
-    : (candidate ?? null)
+    : candidate
 }

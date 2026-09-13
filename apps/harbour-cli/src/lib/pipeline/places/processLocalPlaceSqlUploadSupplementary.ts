@@ -480,11 +480,6 @@ async function prepareSupplementaryAddressesLocked(
     )
       entry.revokedAt = input.plan.sourceVersion
   }
-  await writeSupplementaryEntryLedger(entryLedgerPath, {
-    ...entryLedger,
-    entries: fixture.entries,
-  })
-
   input.onStage?.('materialise supplementary Addresses')
   const parentDataset = (await db
     .select()
@@ -554,11 +549,21 @@ async function prepareSupplementaryAddressesLocked(
     datasetId,
     sourceReleaseId: releaseId,
     regionCode: input.plan.regionCode,
+    rootSnapshot: true,
     variant: SUPPLEMENTARY_ADDRESS_VARIANT,
   })
   const currentScopeId = snapshot.snapshotLineageId
   if (!currentScopeId)
     throw new Error(`Supplementary Address snapshot ${snapshot.id} has no lineage.`)
+  const nextEntryLedger = {
+    ...entryLedger,
+    entries: fixture.entries,
+  }
+  // Draft retries need generated identities and lifecycle closures persisted
+  // before SQL planning. A published immutable snapshot must pass its assembly
+  // guard before it may update the shared ledger.
+  if (snapshot.status !== 'published')
+    await writeSupplementaryEntryLedger(entryLedgerPath, nextEntryLedger)
   const addresses = await buildSupplementaryAddressRows({
     resolutions: supplementaryResolutions,
     officialAddresses: officialById,
@@ -637,6 +642,12 @@ async function prepareSupplementaryAddressesLocked(
   const revokedAddressIds = [
     ...new Set([
       ...[...activeAddressIds].filter(id => !materialisedAddressIds.has(id)),
+      ...(snapshot.status === 'published'
+        ? await collectPublishedSupplementaryRevocations(
+            input.context.historyTargets,
+            snapshot.id,
+          )
+        : []),
       ...fixture.entries
         .filter(
           entry =>
@@ -680,6 +691,7 @@ async function prepareSupplementaryAddressesLocked(
       )
     }
     await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
+    await writeSupplementaryEntryLedger(entryLedgerPath, nextEntryLedger)
     await input.retainAudit(releaseId, datasetCode, {
       materialisationHash,
       fixture,
@@ -689,12 +701,6 @@ async function prepareSupplementaryAddressesLocked(
     })
   } else {
     // Each supplementary snapshot is a complete map, including an empty accepted set.
-    // Replay must not inherit withdrawn addresses from a previous cohort.
-    await db
-      .update(metaSchema.metaSnapshots)
-      .set({ parentSnapshotId: null })
-      .where(eq(metaSchema.metaSnapshots.id, snapshot.id))
-      .run()
     await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary', {
       anchorReleaseId: input.releaseId,
       selectedByRule: 'overture-place-address-curation',
@@ -861,6 +867,28 @@ async function prepareSupplementaryAddressesLocked(
     snapshotId: snapshot.id,
     addresses,
   }
+}
+
+export async function collectPublishedSupplementaryRevocations(
+  targets: LocalAddressDbContext['historyTargets'],
+  snapshotId: string,
+) {
+  const ids = new Set<string>()
+  for (const target of targets) {
+    const rows = await (target.db as HarbourReadableDb)
+      .select({ recordId: historySchema.snapshotVersionChanges.recordId })
+      .from(historySchema.snapshotVersionChanges)
+      .where(
+        and(
+          eq(historySchema.snapshotVersionChanges.snapshotId, snapshotId),
+          eq(historySchema.snapshotVersionChanges.recordType, 'address2d'),
+          eq(historySchema.snapshotVersionChanges.operation, 'delete'),
+        ),
+      )
+      .all()
+    for (const row of rows) ids.add(row.recordId)
+  }
+  return [...ids].sort()
 }
 
 function mergeSupplementaryDecisions(
