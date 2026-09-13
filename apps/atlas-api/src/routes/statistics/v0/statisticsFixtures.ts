@@ -797,7 +797,7 @@ function seedCurrentDivision(sqlite: Database) {
     sqlite,
     `INSERT INTO divisions (
       snapshotId, id, divisionCode, level, class, createdAt, updatedAt
-    , hierarchies) VALUES (?, ?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"full":[]}')`,
+    , hierarchies) VALUES (?, ?, ?, ?, ?, ?, ?, '{"administrative":[],"locality":[],"landform":[],"full":[]}')`,
     [
       'scope:snapshot-divisions',
       'division-central-western',
