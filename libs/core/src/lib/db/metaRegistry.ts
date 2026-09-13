@@ -4728,11 +4728,12 @@ export async function publishReleaseArtefacts(
   const primarySnapshotLineageVersions = primarySnapshot
     ? await resolveSnapshotLineageVersions(db, primarySnapshot.id)
     : await resolveSnapshotLineageVersions(db, snapshot.id)
-  const sourceSchemaRows = await queryInBatches(
+  const selectedSourceSchemaRows = await queryInBatches(
     releaseSetSnapshotIds,
     async ids =>
       await db
         .select({
+          anchorReleaseId: metaSnapshotSources.anchorReleaseId,
           datasetCode: metaDatasets.code,
           source: metaPublishers.code,
           releaseId: metaReleases.id,
@@ -4758,6 +4759,45 @@ export async function publishReleaseArtefacts(
         )
         .all(),
   )
+  // A derived snapshot can retain its processing rules on the exact release that
+  // anchored its materialisation. Include that immutable release when resolving API
+  // field rule pins; the derived resource release can legitimately contain no copy of
+  // the anchor's rules.
+  const anchorReleaseIds = [
+    ...new Set(
+      selectedSourceSchemaRows.flatMap(row =>
+        row.anchorReleaseId ? [row.anchorReleaseId] : [],
+      ),
+    ),
+  ]
+  const anchorSourceSchemaRows = anchorReleaseIds.length
+    ? await queryInBatches(
+        anchorReleaseIds,
+        async ids =>
+          await db
+            .select({
+              datasetCode: metaDatasets.code,
+              source: metaPublishers.code,
+              releaseId: metaReleases.id,
+              processingRules: metaReleases.processingRules,
+              sourceSchemaVersion: metaReleases.sourceSchemaVersion,
+              sourceVersion: metaReleases.sourceVersion,
+            })
+            .from(metaReleases)
+            .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+            .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+            .where(inArray(metaReleases.id, ids))
+            .all(),
+      )
+    : []
+  const sourceSchemaRows = [
+    ...new Map(
+      [...selectedSourceSchemaRows, ...anchorSourceSchemaRows].map(row => [
+        row.releaseId,
+        row,
+      ]),
+    ).values(),
+  ]
   const sourceReleaseId = await resolveSourceReleaseId(db, args.dataset.releaseId)
   const sourceReleaseSnapshotIds = [
     ...new Set(

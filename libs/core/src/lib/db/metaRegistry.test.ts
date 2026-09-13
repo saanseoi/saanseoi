@@ -1117,6 +1117,7 @@ id TEXT PRIMARY KEY,
     CREATE TABLE releases (
       id TEXT PRIMARY KEY,
       sourceReleaseId TEXT,
+      datasetId TEXT,
       sourceVersion TEXT,
       sourceSchemaVersion TEXT,
       processingRules TEXT,
@@ -1143,6 +1144,7 @@ id TEXT PRIMARY KEY,
       snapshotId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
       resourceReleaseId TEXT NOT NULL,
+      anchorReleaseId TEXT,
       role TEXT NOT NULL DEFAULT 'primary'
     );
 
@@ -3224,6 +3226,120 @@ id TEXT PRIMARY KEY,
 })
 
 describe('publishReleaseArtefacts', () => {
+  test('pins derived Address field rules from the exact Place release anchor', async () => {
+    const { sqlite, db } = createPublishReleaseArtefactsDb()
+
+    sqlite.exec(`
+      INSERT INTO publishers (id, code) VALUES
+        ('publisher-overture', 'overture'),
+        ('publisher-dpo', 'hkgov-dpo');
+
+      INSERT INTO datasets (id, publisherId, code) VALUES
+        ('dataset-address', 'publisher-dpo', 'ds-hk-hkgov-dpo-address'),
+        ('dataset-division', 'publisher-overture', 'ds-hk-overture-division'),
+        ('dataset-place', 'publisher-overture', 'ds-hk-overture-place');
+
+      INSERT INTO apiVersions (id, code, familyType) VALUES
+        ('api-addresses', 'api-addresses-v0.1', 'addresses');
+
+      INSERT INTO snapshots (
+        id, resourceType, code, cohortKey, status, publishedAt, validFrom, validTo, updatedAt
+      ) VALUES
+        ('snapshot-address', 'address', 'ss-hk-address-2025-09-03.0', '2025-09-24.0', 'draft', null, null, null, 1760000000000),
+        ('snapshot-place-address', 'address', 'ss-hk-address-2025-09-24.0--overture-places', '2025-09-24.0', 'published', 1760000000000, 1760000000000, null, 1760000000000),
+        ('snapshot-division', 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1760000000000, 1760000000000, null, 1760000000000);
+
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, code, regionCode, domainCode, cohortKey,
+        schemaVersion, rulesetVersion, status, publishedAt, validFrom, validTo, updatedAt
+      ) VALUES (
+        'release-set-addresses', 'api-addresses', 'data-hk-addresses-2025-09-24.0',
+        'hk', 'saanseoi', '2025-09-24.0', 'sv-address-v1',
+        'rs-address-merge-v1', 'draft', null, null, null, 1760000000000
+      );
+
+      INSERT INTO sourceReleases (id, status, updatedAt) VALUES
+        ('source-release-address', 'staged', 1760000000000);
+      UPDATE sourceReleases
+      SET expectedResourceTypes = '["address"]'
+      WHERE id = 'source-release-address';
+
+      INSERT INTO releases (
+        id, sourceReleaseId, datasetId, sourceVersion, sourceSchemaVersion,
+        processingRules, resourceType, status, updatedAt
+      ) VALUES
+        ('release-address', 'source-release-address', 'dataset-address', '2025-09-03.0', '3.2', null, 'address', 'staged', 1760000000000),
+        ('release-division', 'source-release-division', 'dataset-division', '2025-09-24.0', '1.12.0', null, 'division', 'published', 1760000000000),
+        ('release-place-address', 'source-release-place', 'dataset-place', '2025-09-24.0', '1.12.0', '{}', 'address', 'published', 1760000000000),
+        ('release-place-anchor', 'source-release-place', 'dataset-place', '2025-09-24.0', '1.12.0', null, 'place', 'published', 1760000000000);
+
+      INSERT INTO snapshotSources (
+        snapshotId, datasetId, resourceReleaseId, anchorReleaseId, role
+      ) VALUES
+        ('snapshot-address', 'dataset-address', 'release-address', null, 'primary'),
+        ('snapshot-place-address', 'dataset-place', 'release-place-address', 'release-place-anchor', 'primary'),
+        ('snapshot-division', 'dataset-division', 'release-division', null, 'primary');
+
+      INSERT INTO apiReleaseSetSnapshots (
+        apiReleaseSetId, snapshotId, variant, role, isRequired,
+        cohortMatchingMode, anchorSnapshotId, createdAt
+      ) VALUES
+        ('release-set-addresses', 'snapshot-address', 'default', 'primary', 1, 'exact_ref', null, 1760000000000),
+        ('release-set-addresses', 'snapshot-place-address', 'overture-places', 'supporting', 1, 'exact_ref', 'snapshot-address', 1760000000000),
+        ('release-set-addresses', 'snapshot-division', 'overture', 'supporting', 1, 'exact_ref', null, 1760000000000);
+    `)
+
+    for (const [datasetCode, releaseId] of [
+      ['ds-hk-hkgov-dpo-address', 'release-address'],
+      ['ds-hk-overture-division', 'release-division'],
+      ['ds-hk-overture-place', 'release-place-anchor'],
+    ] as const) {
+      const processingRules = initialDatasets.find(
+        dataset => dataset.code === datasetCode,
+      )?.processingRules
+      if (!processingRules) throw new Error(`Missing rules for ${datasetCode}.`)
+      sqlite
+        .query('UPDATE releases SET processingRules = ? WHERE id = ?')
+        .run(JSON.stringify(processingRules), releaseId)
+    }
+
+    await publishReleaseArtefacts(db, {
+      carriedSnapshots: [],
+      currentRelease: null,
+      currentReleaseIsCorrected: false,
+      dataset: {
+        datasetId: 'dataset-address',
+        releaseCode: 'release-address',
+        releaseId: 'release-address',
+        source: 'hkgov-dpo',
+      },
+      publishedAt: '2026-09-13T00:00:00.000Z',
+      releaseSetId: 'release-set-addresses',
+      snapshotId: 'snapshot-address',
+      resourceType: 'address',
+    })
+
+    const rows = sqlite
+      .query(
+        `SELECT resolverRules
+         FROM apiFieldProvenance
+         WHERE apiReleaseSetId = ? AND sourceDatasetId = ?`,
+      )
+      .all('release-set-addresses', 'dataset-place') as Array<{
+      resolverRules: string
+    }>
+    expect(rows.length).toBeGreaterThan(0)
+    expect(
+      rows.every(row =>
+        (JSON.parse(row.resolverRules) as Array<{ releaseId: string }>).every(
+          rule => rule.releaseId === 'release-place-anchor',
+        ),
+      ),
+    ).toBe(true)
+
+    sqlite.close()
+  })
+
   test('replaces an existing release-set snapshot for the same resource type and variant', async () => {
     const { sqlite, db } = createPublishReleaseArtefactsDb()
 
