@@ -160,3 +160,46 @@ test('bulk geometry rules require explicit counts before retaining audit objects
     })
   }
 })
+
+test('retains Lantau classification and cohort hierarchy decisions as distinct auditable patches', async () => {
+  const { buildGeographicHierarchyProcessingActions } = await import(
+    '@repo/core/pipeline/services/divisions/geographicHierarchyPatch.ts'
+  )
+  const { buildOvertureHongKongDivisionClassificationProcessingActions } = await import(
+    '@repo/core/pipeline/services/divisions/division.ts'
+  )
+  const objects = new Map<string, ArrayBuffer>()
+  const store: ProvenanceStore = {
+    async get(key) {
+      const value = objects.get(key)
+      return value ? { arrayBuffer: async () => value } : null
+    },
+    async put(key, value) {
+      objects.set(key, value)
+    },
+  }
+  const source = { source: 'overture', regionCode: 'hk', sourceVersion: '2026-08-19.0' }
+  const lantau = '3707878f-080b-42cf-aecf-89fef56a066a'
+  const actions = [
+    ...buildOvertureHongKongDivisionClassificationProcessingActions(lantau),
+    ...buildGeographicHierarchyProcessingActions(lantau, source, ['Lantau']),
+    ...buildGeographicHierarchyProcessingActions(
+      'b68a6a67-e7cc-4731-a36d-29f3b70e73dd',
+      source,
+      ['Tung Chung'],
+    ),
+  ]
+  expect(actions[0]!.action).toBe('overture_hong_kong_lantau_reclassified')
+  const retained = await retainDivisionProvenance(store, {
+    releaseId: 'review',
+    datasetCode: 'divisions',
+    inputCount: 2,
+    outputCount: 2,
+    actions,
+  })
+  expect(retained.manifest.applicationCount).toBe(3)
+  const page = await readAuditPage(store, retained.manifest, '', 0, 50, {
+    category: 'patches',
+  })
+  expect(page.rows).toHaveLength(3)
+})

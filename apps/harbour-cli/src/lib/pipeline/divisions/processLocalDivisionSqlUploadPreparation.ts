@@ -1,3 +1,4 @@
+import { buildGeographicHierarchyProcessingActions } from '@repo/core/pipeline/services/divisions/geographicHierarchyPatch.ts'
 import { assertPublishedSnapshotMaterialised } from '@repo/core/pipeline/services/publication/execute.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { landsdPlaceNameResolutions } from '@repo/core/pipeline/db/landsdPlaceNameSources'
@@ -234,8 +235,17 @@ export async function buildDivisionSqlState(
       })
       if (normalised.overtureHongKongDivisionClassificationCorrection)
         processingActions.push(
-          ...buildOvertureHongKongDivisionClassificationProcessingActions(1),
+          ...buildOvertureHongKongDivisionClassificationProcessingActions(
+            normalised.base.id,
+          ),
         )
+      processingActions.push(
+        ...buildGeographicHierarchyProcessingActions(
+          normalised.base.id,
+          message,
+          normalised.i18n.flatMap(row => (row.name ? [row.name] : [])),
+        ),
+      )
       if (normalised.overtureHongKongAreaHierarchyAssignment) {
         const { code } = normalised.overtureHongKongAreaHierarchyAssignment
         hongKongAreaHierarchyAssignmentCounts.set(
