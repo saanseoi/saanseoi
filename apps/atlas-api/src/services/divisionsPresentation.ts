@@ -150,6 +150,7 @@ type DivisionGeometryResourceAttributes = {
     | 'hkgov-had'
     | 'hkgov-pland-new-town'
     | 'hkgov-pland-pu'
+    | 'stub'
     | 'overture'
 }
 

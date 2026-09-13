@@ -120,6 +120,7 @@ export type DivisionLocaleSelection = RequestedApiLocaleSelection
 
 export type DivisionGeometryType = 'land' | 'maritime' | 'mixed'
 export type DivisionGeometryVariant =
+  | 'stub'
   | 'hkgov-censtatd'
   | 'hkgov-censtatd-landclipped'
   | 'hkgov-had'

@@ -848,3 +848,29 @@ test('an explicitly older Division release continues to replay immutable history
   ).toBe(200)
   expect(replay).toHaveBeenCalledTimes(1)
 })
+
+test('explicit stub requests use only the matching geographic review cohort and never query provider storage', async () => {
+  const previousCalls = listDivisionAreasCurrentByDivisionIdsMock.mock.calls.length
+  const request = (cohortKey: string, include: string) =>
+    listDivisions({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl: `http://localhost/divisions/v0.1?include=${include}`,
+      requestedVersionPath: 'divisions/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { include },
+      dependencies: {
+        ...divisionServiceDependencies,
+        resolveApiReleaseSetSnapshotsForRequest: (async () => ({
+          ...resolvedReleaseSet,
+          releaseSet: { ...resolvedReleaseSet.releaseSet, cohortKey },
+        })) as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
+      },
+    })
+  expect((await request('2026-08-19.0', 'areas:stub')).status).toBe(200)
+  expect(listDivisionAreasCurrentByDivisionIdsMock).toHaveBeenCalledTimes(previousCalls)
+  expect((await request('2026-06-17.0', 'areas:stub')).status).toBe(409)
+  expect((await request('2026-08-19.0', 'areas')).status).toBe(409)
+})
