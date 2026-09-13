@@ -238,6 +238,42 @@ Use <black>include=none</black> when you do not need any related resources in
 <black>included</black>. It leaves <black>relationships.hierarchy</black> unchanged;
 only the expansion of its identifiers into resources is omitted.
 
+## Island Relationships
+
+Landforms describe physical geography independently of administrative and locality
+levels. Their <black>attributes.category</black> is <black>landform</black>, their
+<black>attributes.class</black> is <black>major_island</black>,
+<black>minor_island</black>, or <black>island_group</black>, and
+<black>attributes.level</black> is <black>null</black>. A town and the island it
+occupies are separate Division identities, even when both are named the same, e.g.
+<i>Tsing Yi</i>.
+
+Use <black>filter[category]=landform</black> to list landforms, or
+<black>filter[class]=major_island</black> to select one class. Omit
+<black>filter[level]</black> when selecting landfor ms:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 filter[category]=landform&
+                 include=hierarchy
+```
+
+<black>attributes.hierarchies.landform</black> contains landform ancestor paths,
+separately from <black>administrative</black> and <black>locality</black>. Although,
+currently, we only have <i>islands</i>, and only "Ninepin Group" as an ancestor of
+individual islands. Paths run from broadest to narrowest and exclude the division
+itself. The <black>full</black> paths combine these relationships for display and omit
+cities. An explicitly recorded administrative equivalent can suppress a duplicate
+landform label in <black>full</black> while retaining the landform association. Do not
+construct display paths by sorting levels.
+
+Associations and polygon coverage are independent: a known island relationship does not
+guarantee an area polygon. Availability depends on the selected release. An empty
+landform path means no recorded landform ancestor; it does not establish mainland
+membership. Administrative divisions may span multiple physical features.
+
 ## Adding Languages (`I18n`)
 
 {{localeSelectionSection:en}}
@@ -247,8 +283,8 @@ only the expansion of its identifiers into resources is omitted.
 {{paginationSection:en}}
 
 Filters narrow the list before it is split into pages. Use `filter[level]` for a
-[hierarchy level](saanseoi:en:note/division-hierarchy-levels/v1), `filter[divisionType]`
-for a canonical [division type](saanseoi:en:note/canonical-division-types/v1), and
+[hierarchy level](saanseoi:en:note/division-hierarchy-levels/v1), `filter[class]` for a
+canonical [division type](saanseoi:en:note/canonical-division-types/v1), and
 `filter[parent]` for the direct children of one division. Its value is the parent
 Division's <black>id</black>. For example, this lists level-3 towns whose parent is Sha
 Tin District:
@@ -258,7 +294,7 @@ Tin District:
                  domain={{ domainCode }}&
                  cohort={{ cohortKey }}&
                  filter[level]=3&
-                 filter[divisionType]=town&
+                 filter[class]=town&
                  filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
 ```
 
@@ -494,6 +530,27 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 <black>include=none</black>。它不會改變
 <black>relationships.hierarchy</black>；只會略過將其識別碼展開為資源。
 
+## 地形
+
+地形獨立於行政及聚落層級，描述實體地理。 <black>attributes.category</black> 為
+<black>landform</black>， <black>attributes.class</black> 為
+<black>major_island</black>、 <black>minor_island</black> 或
+<black>island_group</black>， <black>attributes.level</black> 為
+<black>null</black>。請勿為地形指定整數或小數層級。城鎮與所在島嶼使用不同的 Division
+ID，即使兩者均名為青衣。
+
+使用 <black>filter[category]=landform</black> 列出地形，或使用
+<black>filter[class]=major_island</black> 篩選類別；請省略
+<black>filter[level]</black>。加入 <black>include=hierarchy</black> 可展開相關區劃資源。
+
+<black>attributes.hierarchies.landform</black> 提供地形上層路徑，與
+<black>administrative</black> 及 <black>locality</black>
+分開。各路徑由大至小排列，不包含區劃本身。<black>full</black>
+合併供顯示的關係並略去 city。如有明確記錄的對應行政區劃，<black>full</black>
+可略去重複的地形名稱，同時保留地形關聯。請勿按數字層級排序來建立顯示路徑。
+
+地形關聯與多邊形覆蓋互相獨立；已知島嶼關聯不保證有面幾何資料，實際資料取決於所選版本。空的地形路徑表示未記錄地形上層，並不表示位於大陸。行政區劃可跨越多個地形。
+
 ## 加入語言（`I18n`）
 
 {{localeSelectionSection:zh-Hant}}
@@ -503,8 +560,7 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
 {{paginationSection:zh-Hant}}
 
 篩選會先縮小清單，再分頁。使用 `filter[level]`
-篩選[層級](saanseoi:zh-hant:note/division-hierarchy-levels/v1)，使用
-`filter[divisionType]`
+篩選[層級](saanseoi:zh-hant:note/division-hierarchy-levels/v1)，使用 `filter[class]`
 篩選標準[區劃類型](saanseoi:zh-hant:note/canonical-division-types/v1)，以及使用
 `filter[parent]` 篩選某一區劃的直接下層區劃。其值為父區劃的
 <black>id</black>。例如，下列要求傳回父區劃為沙田區的第 3 級城鎮：
@@ -514,7 +570,7 @@ Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是�
                  domain={{ domainCode }}&
                  cohort={{ cohortKey }}&
                  filter[level]=3&
-                 filter[divisionType]=town&
+                 filter[class]=town&
                  filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
 ```
 
@@ -745,6 +801,27 @@ cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort
 <black>include=none</black>。它不会改变
 <black>relationships.hierarchy</black>；只会略过将其标识符展开为资源。
 
+## 地形
+
+地形独立于行政及聚落层级，描述实体地理。 <black>attributes.category</black> 为
+<black>landform</black>， <black>attributes.class</black> 为
+<black>major_island</black>、 <black>minor_island</black> 或
+<black>island_group</black>， <black>attributes.level</black> 为
+<black>null</black>。请勿为地形指定整数或小数层级。城镇与所在岛屿使用不同的 Division
+ID，即使两者均名为青衣。
+
+使用 <black>filter[category]=landform</black> 列出地形，或使用
+<black>filter[class]=major_island</black> 筛选类别；请省略
+<black>filter[level]</black>。添加 <black>include=hierarchy</black> 可展开相关区划资源。
+
+<black>attributes.hierarchies.landform</black> 提供地形上层路径，与
+<black>administrative</black> 及 <black>locality</black>
+分开。各路径由大至小排列，不包含区划本身。<black>full</black>
+合并供显示的关系并略去 city。如有明确记录的对应行政区划，<black>full</black>
+可略去重复的地形名称，同时保留地形关联。请勿按数字层级排序来建立显示路径。
+
+地形关联与多边形覆盖互相独立；已知岛屿关联不保证有面几何数据，实际数据取决于所选版本。空的地形路径表示未记录地形上层，并不表示位于大陆。行政区划可跨越多个地形。
+
 ## 添加语言（`I18n`）
 
 {{localeSelectionSection:zh-Hans}}
@@ -754,8 +831,7 @@ cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort
 {{paginationSection:zh-Hans}}
 
 筛选会先缩小列表，再分页。使用 `filter[level]`
-筛选[层级](saanseoi:zh-hans:note/division-hierarchy-levels/v1)，使用
-`filter[divisionType]`
+筛选[层级](saanseoi:zh-hans:note/division-hierarchy-levels/v1)，使用 `filter[class]`
 筛选规范[区划类型](saanseoi:zh-hans:note/canonical-division-types/v1)，以及使用
 `filter[parent]` 筛选某一区划的直接下层区划。其值为父区划的
 <black>id</black>。例如，下列请求返回父区划为沙田区的第 3 级城镇：
@@ -765,7 +841,7 @@ cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort
                  domain={{ domainCode }}&
                  cohort={{ cohortKey }}&
                  filter[level]=3&
-                 filter[divisionType]=town&
+                 filter[class]=town&
                  filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
 ```
 
