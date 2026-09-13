@@ -1,5 +1,15 @@
 # Resumable SQL delivery
 
+Disposable SQL replay copies use an in-memory rollback journal without durability
+flushes. Each payload retains its own transaction and foreign-key checks, and the
+complete result must match the candidate before delivery. Replay copies are rebuilt
+after interruption; these settings never apply to delivery targets.
+
+Native recovery verifies every retained payload and database receipt. Already recorded
+batches leave the progress file unchanged; newly confirmed batches persist their
+checkpoint before reporting progress. Local replay waits for short-lived SQLite locks
+held by the local Workers runtime before applying or confirming a batch.
+
 Final-state validation compares tables through their complete indexed primary keys, with
 binary comparison of values. Unkeyed or nullable-key unowned tables retain exact set
 comparison. Exhaustive zero-delta results skip the redundant replay copy for that shard
@@ -148,6 +158,11 @@ are checksummed in the sealed plan. Resume verifies normalised inputs and reuses
 outputs without rerunning the geometry writer. Publication follows successful replay;
 deferred publication retains release ownership. Remote geometry materialisation retains
 its separate mirror workflow.
+
+Local deferred source publication retries an empty or proxy-connection `500` from the
+Workers runtime. This path can only publish the source release and cannot create an API
+release-set revision, so repeating the request is idempotent. Structured application
+failures and publication paths that can create revisions are not retried.
 
 Remote geometry plans include version-qualified closure updates for historical rows
 named by the snapshot change journal and source rows closed by the release code. These
