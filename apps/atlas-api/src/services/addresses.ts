@@ -150,7 +150,7 @@ type AddressRouteState = {
 type AddressFilters = {
   dataset?: string
   country?: string
-  landform?: string
+  division?: string
   area?: string
   district?: string
   town?: string
@@ -366,7 +366,7 @@ export type AddressListQuery = {
   'page[after]'?: string
   'filter[country]'?: string
   'filter[dataset]'?: string
-  'filter[landform]'?: string
+  'filter[division]'?: string
   'filter[area]'?: string
   'filter[district]'?: string
   include?: 'hierarchy'
@@ -384,7 +384,7 @@ export type AddressDetailQuery = Omit<
   | 'page[offset]'
   | 'filter[country]'
   | 'filter[dataset]'
-  | 'filter[landform]'
+  | 'filter[division]'
   | 'filter[area]'
   | 'filter[district]'
   | 'include'
@@ -762,8 +762,8 @@ export async function listAddresses(args: {
     ...(args.query['filter[country]']
       ? { country: args.query['filter[country]'] }
       : {}),
-    ...(args.query['filter[landform]']
-      ? { landform: args.query['filter[landform]'] }
+    ...(args.query['filter[division]']
+      ? { division: args.query['filter[division]'] }
       : {}),
     ...(args.query['filter[area]'] ? { area: args.query['filter[area]'] } : {}),
     ...(args.query['filter[district]']
@@ -791,7 +791,7 @@ export async function listAddresses(args: {
           snapshotIds: activeSnapshot.snapshotIds,
           after: args.query['page[after]'],
           countryId: filters.country,
-          landformId: filters.landform,
+          divisionId: filters.division,
           areaId: filters.area,
           districtId: filters.district,
           localeSelection: routeState.localeSelection,
@@ -931,8 +931,8 @@ export async function searchAddresses(args: {
     ...(args.query['filter[country]']
       ? { country: args.query['filter[country]'] }
       : {}),
-    ...(args.query['filter[landform]']
-      ? { landform: args.query['filter[landform]'] }
+    ...(args.query['filter[division]']
+      ? { division: args.query['filter[division]'] }
       : {}),
     ...(args.query['filter[area]'] ? { area: args.query['filter[area]'] } : {}),
     ...(args.query['filter[district]']
@@ -963,7 +963,7 @@ export async function searchAddresses(args: {
               searchAddressIdsCurrent(args.currentDb, {
                 snapshotIds: activeSnapshot.snapshotIds,
                 countryId: filters.country,
-                landformId: filters.landform,
+                divisionId: filters.division,
                 areaId: filters.area,
                 districtId: filters.district,
                 component: args.query.component,
@@ -995,7 +995,7 @@ export async function searchAddresses(args: {
               snapshotIds: activeSnapshot.snapshotIds,
               addressIds: search.addressIds,
               countryId: filters.country,
-              landformId: filters.landform,
+              divisionId: filters.division,
               areaId: filters.area,
               districtId: filters.district,
               localeSelection: routeState.localeSelection,

@@ -26,7 +26,12 @@ export { PublicKeyLeaseCoordinator } from './publicKeyLeaseCoordinator'
 import { metaRoutes } from './routes/v0/meta'
 import { probeRoutes } from './routes/v0/probe'
 import { divisionRoutes } from './routes/divisions/v0/divisions'
+import {
+  divisionChangesRoute,
+  divisionChangeDefinitionRoute,
+} from './routes/divisions/changes'
 import { addressRoutes } from './routes/addresses/v0/addresses'
+import { geocodingRoutes } from './routes/geocoding/geocoding'
 import { placeRoutes } from './routes/places/v0/places'
 import { registryRoutes } from './routes/v0/registry'
 import { identityBridgeRoutes } from './routes/v0/identityBridge'
@@ -221,7 +226,11 @@ function scalarSourcesForProduct(product: ApiProduct | 'registry') {
     }))
   }
 
-  return (['v0', 'v0.1'] as const).map((version, index) => ({
+  return (
+    product === 'addresses' || product === 'divisions'
+      ? (['v0', 'v0.1', 'v1'] as const)
+      : (['v0', 'v0.1'] as const)
+  ).map((version, index) => ({
     title: `${apiProductTags[product]} ${version}`,
     slug: `${product}-${version}`,
     url: `/openapi/${product}/${version}`,
@@ -230,6 +239,7 @@ function scalarSourcesForProduct(product: ApiProduct | 'registry') {
 }
 
 const apiRoutePaths = [
+  '/api/v1/*',
   '/v0.1/*',
   ...apiProducts.flatMap(product => [`/${product}/v0/*`, `/${product}/v0.1/*`]),
 ] as const
@@ -703,7 +713,10 @@ app.openapiRoutes([
   ...identityBridgeRoutes,
   ...sourceRoutes,
   ...divisionRoutes,
+  divisionChangesRoute,
+  divisionChangeDefinitionRoute,
   ...addressRoutes,
+  ...geocodingRoutes,
   ...placeRoutes,
   ...managedAssetRoutes,
   ...styleRoutes,
@@ -715,7 +728,7 @@ app.openapiRoutes([
 function getOpenApiDocument(
   baseUrl: string,
   product: ApiProduct | 'registry' = 'registry',
-  productVersion?: 'v0' | 'v0.1',
+  productVersion?: 'v0' | 'v0.1' | 'v1',
   locale: OpenApiLocale = 'en',
 ) {
   const document = app.getOpenAPI31Document({
@@ -749,6 +762,7 @@ function getOpenApiDocument(
             (product === 'stats' && isStatisticsRegistryPath) ||
             (isFamilySourcePath && path.startsWith(`/${product}/`))) &&
             (!productVersion ||
+              (productVersion === 'v1' && path.startsWith(`/api/v1/${product}/`)) ||
               path === `/${product}/${documentPathVersion}` ||
               path.startsWith(`/${product}/${documentPathVersion}/`))
     },
@@ -833,7 +847,7 @@ function openApiLocale(c: Context<AppEnv>) {
 function openApiDocumentResponse(
   c: Context<AppEnv>,
   product: ApiProduct | 'registry' = 'registry',
-  version?: 'v0' | 'v0.1',
+  version?: 'v0' | 'v0.1' | 'v1',
 ) {
   c.header('vary', 'accept-language')
   return c.json(
@@ -848,7 +862,9 @@ for (const version of ['v0', 'v0.1'] as const) {
   )
 }
 for (const product of apiProducts) {
-  for (const version of ['v0', 'v0.1'] as const) {
+  for (const version of product === 'addresses' || product === 'divisions'
+    ? (['v0', 'v0.1', 'v1'] as const)
+    : (['v0', 'v0.1'] as const)) {
     app.get(`/openapi/${product}/${version}`, c =>
       openApiDocumentResponse(c, product, version),
     )
