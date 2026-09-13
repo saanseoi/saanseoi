@@ -1,3 +1,4 @@
+import { geographicHierarchyPatchRule } from './geographicHierarchyPatch'
 import {
   beginSnapshotPublication,
   completeSnapshotPublication,
@@ -1232,7 +1233,12 @@ function normaliseDivisionRowInternal(
       createdAt: now,
       divisionCode: null,
       geometry: normalisedGeometry,
-      hierarchies: hierarchyWithHongKongArea.hierarchy,
+      hierarchies: geographicHierarchyPatchRule.execute({
+        id,
+        class: type,
+        hierarchies: hierarchyWithHongKongArea.hierarchy,
+        source: options.source,
+      }),
       id,
       identifiers: row.identifiers ?? null,
       level,

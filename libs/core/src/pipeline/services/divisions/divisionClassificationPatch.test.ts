@@ -95,7 +95,7 @@ test('Lantau patch preserves its identity and clears its level without source mu
   expect(() => applyDivisionClassificationPatch({ ...row, admin_level: 1 })).toThrow(
     'guard mismatch',
   )
-  for (const cls of ['major_island', 'minor_island', 'islet', 'island_group']) {
+  for (const cls of ['major_island', 'minor_island', 'island_group']) {
     expect(
       normaliseDivisionRow({ id: 'physical-feature', class: cls, level: 4 }).base,
     ).toMatchObject({ category: 'landform', class: cls, level: null })

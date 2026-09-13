@@ -1,4 +1,7 @@
-import type { DivisionHierarchies, DivisionHierarchyEntry } from '@repo/db'
+import type {
+  DivisionHierarchies,
+  DivisionHierarchyEntry,
+} from '../../../../../db/src/divisionTaxonomy'
 import type {
   Feature,
   FeatureCollection,
@@ -170,6 +173,10 @@ export function validateStubAreas(
     for (const rings of polygons) {
       if (!Array.isArray(rings) || !rings.length) throw new Error('Empty polygon.')
       for (const ring of rings) {
+        if (Array.isArray(ring) && ring.length > 2001)
+          throw new Error(
+            'Stub rings support at most 2,000 vertices; simplify this geometry before import.',
+          )
         if (
           !Array.isArray(ring) ||
           ring.length < 4 ||
@@ -262,9 +269,26 @@ export function deriveHierarchyPatch(
     )
       continue
     const old = byDivision.get(feature.properties.divisionId)
-    if (!old || priority(feature.properties.variant) < priority(old.properties.variant))
-      byDivision.set(feature.properties.divisionId, feature)
+    const preference = old
+      ? priority(feature.properties.variant) - priority(old.properties.variant) ||
+        feature.properties.variant.localeCompare(old.properties.variant, 'en')
+      : -1
+    if (!old || preference < 0) byDivision.set(feature.properties.divisionId, feature)
+    else if (preference === 0) {
+      const polygons = (area: ReviewArea) =>
+        area.geometry.type === 'Polygon'
+          ? [area.geometry.coordinates]
+          : area.geometry.coordinates
+      byDivision.set(feature.properties.divisionId, {
+        ...old,
+        geometry: {
+          type: 'MultiPolygon',
+          coordinates: [...polygons(old), ...polygons(feature)],
+        },
+      })
+    }
   }
+
   const candidates = [...byDivision.values()].map(feature => ({
     feature,
     division: divisions.get(feature.properties.divisionId)!,
@@ -272,25 +296,30 @@ export function deriveHierarchyPatch(
     size: areaSize(feature.geometry),
   }))
   const entries = inventory.divisions.map(child => {
-    const found = child.point
-      ? candidates
-          .filter(candidate => {
-            const [x, y] = child.point!
-            const [w, s, e, n] = candidate.bounds
-            return (
-              eligibleParent(child, candidate.division) &&
-              x! >= w &&
-              x! <= e &&
-              y! >= s &&
-              y! <= n &&
-              containsReviewPoint(child.point!, candidate.feature.geometry)
+    const inferFromPoint =
+      (child.category === 'locality' || child.category === 'hood') &&
+      child.level !== null &&
+      child.level >= 3
+    const found =
+      child.point && inferFromPoint
+        ? candidates
+            .filter(candidate => {
+              const [x, y] = child.point!
+              const [w, s, e, n] = candidate.bounds
+              return (
+                eligibleParent(child, candidate.division) &&
+                x! >= w &&
+                x! <= e &&
+                y! >= s &&
+                y! <= n &&
+                containsReviewPoint(child.point!, candidate.feature.geometry)
+              )
+            })
+            .sort(
+              (a, b) =>
+                a.size - b.size || a.division.id.localeCompare(b.division.id, 'en'),
             )
-          })
-          .sort(
-            (a, b) =>
-              a.size - b.size || a.division.id.localeCompare(b.division.id, 'en'),
-          )
-      : []
+        : []
     const groups = new Map<string, typeof found>()
     for (const candidate of found) {
       const d = candidate.division
@@ -352,16 +381,14 @@ export function deriveHierarchyPatch(
         .filter(path => path.length)
     }
     const complete =
+      inferFromPoint &&
       Boolean(child.point) &&
-      (child.class === 'country' ||
-        child.class === 'sar' ||
-        selected.some(c => c.division.class === 'district')) &&
-      (child.category === 'administrative' ||
-        child.category === 'landform' ||
-        child.level === 1 ||
-        child.level === 3 ||
+      selected.some(c => c.division.class === 'district') &&
+      (child.level === 3 ||
         selected.some(
-          c => c.division.category === 'locality' || c.division.category === 'hood',
+          c =>
+            (c.division.category === 'locality' || c.division.category === 'hood') &&
+            c.division.level === child.level! - 1,
         ))
     return {
       divisionId: child.id,

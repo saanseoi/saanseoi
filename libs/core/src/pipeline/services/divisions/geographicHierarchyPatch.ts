@@ -1,0 +1,63 @@
+import fixture from '../../../../../../fixtures/divisions/hk/geographic-hierarchy-patch.json'
+import declaration from '../../../../../../fixtures/meta/processing-rules/geographic-hierarchy-patch.json'
+import {
+  registerRule,
+  ruleDeclarationFromFixture,
+  ProcessingGuardError,
+} from '../../../provenance'
+import type { DivisionHierarchies } from '@repo/db'
+import type { HierarchyPatch } from './geographicReview'
+
+const patch = fixture as HierarchyPatch
+const entries = new Map(patch.entries.map(entry => [entry.divisionId, entry]))
+if (
+  patch.schemaVersion !== 1 ||
+  patch.kind !== 'geographic-hierarchy-patch' ||
+  patch.domain !== 'geographic' ||
+  entries.size !== patch.entries.length
+)
+  throw new Error('Invalid geographic hierarchy patch.')
+for (const entry of patch.entries) {
+  for (const paths of Object.values(entry.hierarchies))
+    for (const path of paths) {
+      if (
+        new Set(path.map(parent => parent.id)).size !== path.length ||
+        path.some(parent => parent.id === entry.divisionId || !entries.has(parent.id))
+      )
+        throw new Error(`Invalid geographic hierarchy path for ${entry.divisionId}.`)
+    }
+}
+
+export const geographicHierarchyPatchRule = registerRule(
+  ruleDeclarationFromFixture(declaration),
+  (input: {
+    id: string
+    class: string
+    hierarchies: DivisionHierarchies
+    source?: { source: string; regionCode?: string; sourceVersion?: string }
+  }) => {
+    if (
+      input.source?.source !== 'overture' ||
+      input.source.regionCode !== patch.region ||
+      input.source.sourceVersion !== patch.cohort
+    )
+      return input.hierarchies
+    const entry = entries.get(input.id)
+    if (!entry || entry.status === 'unresolved' || entry.expectedClass !== input.class)
+      throw new ProcessingGuardError(
+        'Geographic hierarchy fixture does not match the selected division.',
+        [
+          {
+            id: 'geographic-hierarchy-patch',
+            summary: 'Require the reviewed cohort and canonical identity/class.',
+            consequence: 'block-ingestion',
+            status: 'failed',
+            checked: 1,
+            failed: 1,
+            reason: `Review ${input.id} before applying the geographic hierarchy patch.`,
+          },
+        ],
+      )
+    return structuredClone(entry.hierarchies)
+  },
+)
