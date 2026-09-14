@@ -66,10 +66,12 @@ only its recorded properties and geometry; an absent relationship table contribu
 `placeNames` entries. Recovery retains the archive hash as provenance and does not
 recalculate canonical divisions or replace the registered source asset.
 
-The parent feature attributes are retained only in `properties`, alongside native
-geometry and the source identity, provenance and release history. `placeNames` retains
-the separate `PLACE_NAME` relationship, which is absent from the parent properties.
-Canonical names and classifications belong to the divisions projection.
+The source `properties` object retains the parent feature attributes and the joined
+`PLACE_NAME` relationship in `properties.placeNames`. Each entry contains `nameEn`,
+`nameZhHant` and the publisher's `status`. Native geometry, source identity, provenance
+and release history use the shared source envelope. The complete properties object and
+native geometry determine the source version hash. Canonical names and classifications
+belong to the divisions projection.
 
 `hkgov-landsd:place-name` reads the locally mirrored FileGDB ZIP directly. It verifies
 the updater-supplied archive key and SHA-256, joins `GEO_PLACE_NAME` to `PLACE_NAME`,

@@ -38,10 +38,11 @@ including leading zeroes, whitespace, explicit nulls and arrays. Formatted addre
 corrected names, canonical identifiers, matching keys and inferred geography are not
 publisher attributes. Do not retain both flattened attributes and a second nested copy.
 
-Source-specific siblings may preserve native relationships such as LandsD `placeNames`
-or collection identity such as the C&SD census cohort. Materialised geometry repairs and
-transforms are explicitly named derivative evidence; they are not substituted for
-`sourceGeometry`. C&SD's native geometry retains its existing compressed representation.
+Native relationships belong inside `properties`, including LandsD
+`properties.placeNames`. Source-specific siblings may preserve collection identity such
+as the C&SD census cohort. Materialised geometry repairs and transforms are explicitly
+named derivative evidence; they are not substituted for `sourceGeometry`. C&SD's native
+geometry retains its existing compressed representation.
 
 Overture's publisher `id` and `geometry` map to source identity and native geometry.
 Publisher-authored `sources` remains inside `properties`, including its property
@@ -55,7 +56,7 @@ source content hashes.
 ## Public record envelope
 
 Addresses, Divisions, Places and Statistics return `sourceRecordId`, `properties` and
-optional `geometry`. LandsD also retains its distinct native `placeNames` relationship.
+optional `geometry`. LandsD includes its joined labels in `properties.placeNames`.
 `properties` exposes the stored object under the same name. The shared source endpoint
 also uses `properties` for Streets. The response pin identifies the dataset and source
 release. Resource types and variants describe contributions and canonical outputs, not

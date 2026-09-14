@@ -85,7 +85,6 @@ function toSourceSample(value: unknown) {
       : {}),
     properties: record.properties,
     geometry: record.geometry,
-    placeNames: record.placeNames,
   }
 }
 

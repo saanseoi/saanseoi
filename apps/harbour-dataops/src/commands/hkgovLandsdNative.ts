@@ -49,8 +49,7 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
   assertArchiveHash(bytes, input.sha256)
   const features = await readLandsdPlaceNameArchive(bytes)
   const rows = features.map(feature => ({
-    placeNames: feature.placeNames,
-    properties: feature.properties,
+    properties: { ...feature.properties, placeNames: feature.placeNames },
     sourceGeometry: feature.sourceGeometry,
     sourceRecordId: `LANDSD:PLACE_NAME:${feature.id}`,
     sources: [provenance(input, 'GEO_PLACE_NAME')],

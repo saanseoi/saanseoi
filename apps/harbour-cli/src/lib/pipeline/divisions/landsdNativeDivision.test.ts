@@ -65,9 +65,8 @@ test('native LandsD settlements deliver canonical rows, source resolutions and a
           replaceCurrentRows: true,
           rows: features.map(feature => ({
             sourceRecordId: `LANDSD:PLACE_NAME:${feature.id}`,
-            properties: feature.properties,
+            properties: { ...feature.properties, placeNames: feature.placeNames },
             sourceGeometry: feature.sourceGeometry,
-            placeNames: feature.placeNames,
             sources: [{ dataset: 'hkgov-landsd' }],
           })),
         },
@@ -133,6 +132,18 @@ test('native LandsD settlements deliver canonical rows, source resolutions and a
     expect(
       source.query('SELECT count(*) AS count FROM hkgovLandsdPlaceNames').get(),
     ).toEqual({ count: 2706 })
+    const retained = source
+      .query<{ properties: string }, []>(
+        'SELECT properties FROM hkgovLandsdPlaceNames LIMIT 1',
+      )
+      .get()
+    expect(JSON.parse(retained!.properties).placeNames.length).toBeGreaterThan(0)
+    expect(
+      source
+        .query<{ name: string }, []>('PRAGMA table_info(hkgovLandsdPlaceNames)')
+        .all()
+        .map(column => column.name),
+    ).not.toContain('placeNames')
     expect(
       current.query('SELECT status, preparedAt FROM divisionPublicationState').get(),
     ).toEqual({

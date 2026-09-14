@@ -9,12 +9,6 @@ import {
   sourceVersionedRecordColumns,
 } from './shared'
 
-export type LandsdPlaceName = {
-  nameEn: string | null
-  nameZhHant: string | null
-  status: 'Alias' | 'Official'
-}
-
 export const landsdStreetNoticeApplicationMethods = ['automatic', 'manual'] as const
 export type LandsdStreetNoticeApplicationMethod =
   (typeof landsdStreetNoticeApplicationMethods)[number]
@@ -46,8 +40,6 @@ export const sourceHkgovLandsdPlaceNames = sqliteTable(
   'hkgovLandsdPlaceNames',
   {
     ...sourceSpatialAssertionColumns(),
-    /** Native relationship rows absent from the parent feature properties. */
-    placeNames: jsonText<LandsdPlaceName[]>('placeNames').notNull(),
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),

@@ -35,7 +35,6 @@ type SourceReleaseWithShard = SourceReleaseRow & {
 
 type SourceRecordRow = {
   sources?: string | null
-  placeNames?: string | null
   properties: string | null
   sourceGeometry?: unknown
   sourceRecordId: string
@@ -43,7 +42,6 @@ type SourceRecordRow = {
 }
 
 export type SourceRecord = {
-  placeNames?: Record<string, unknown>[] | null
   geometry?: unknown
   properties: Record<string, unknown> | null
   resourceType?: string
@@ -279,7 +277,7 @@ async function readShardSourceRecordPage(args: {
     : ''
   const statement = args.sourceDb
     .prepare(
-      `SELECT sourceRecordId, versionHash, properties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
+      `SELECT sourceRecordId, versionHash, properties, ${geometrySelection}
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
@@ -341,7 +339,7 @@ async function readUuidPivotSourceRecordPage(args: {
   const readRange = async (operator: '>=' | '<', limit: number) => {
     const statement = args.sourceDb
       .prepare(
-        `SELECT sourceRecordId, versionHash, properties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
+        `SELECT sourceRecordId, versionHash, properties, ${geometrySelection}
          FROM ${args.entry.tableName}
          WHERE validFromRelease <= ?
            AND (validToRelease IS NULL OR validToRelease > ?)
@@ -379,7 +377,7 @@ async function readRandomOrderedSourceRecordPage(args: {
       : 'NULL AS sourceGeometry'
   const statement = args.sourceDb
     .prepare(
-      `SELECT sourceRecordId, versionHash, properties, ${args.entry.nativeNamesColumn ?? 'NULL'} AS placeNames, ${geometrySelection}
+      `SELECT sourceRecordId, versionHash, properties, ${geometrySelection}
        FROM ${args.entry.tableName}
        WHERE validFromRelease <= ?
          AND (validToRelease IS NULL OR validToRelease > ?)
@@ -430,9 +428,6 @@ function toSourceRecord(
       : {}),
   }
 
-  if (entry.nativeNamesColumn)
-    record.placeNames = parseObjectArray(row.placeNames, 'placeNames')
-
   if (
     includeGeometry &&
     row.sourceGeometry !== null &&
@@ -442,21 +437,6 @@ function toSourceRecord(
   }
 
   return record
-}
-
-function parseObjectArray(
-  value: string | null | undefined,
-  field: string,
-): Record<string, unknown>[] | null {
-  const parsed = value == null ? null : JSON.parse(value)
-  if (
-    parsed !== null &&
-    (!Array.isArray(parsed) ||
-      parsed.some(item => !item || typeof item !== 'object' || Array.isArray(item)))
-  ) {
-    throw new Error(`Source record ${field} must be an array of objects or null.`)
-  }
-  return parsed
 }
 
 async function resolveRecordsRequest(args: {

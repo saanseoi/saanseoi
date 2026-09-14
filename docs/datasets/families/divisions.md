@@ -455,7 +455,8 @@ domain because its settlement points are an alternative primary division collect
 an Overture geometry companion. Only `PLACE_CLASS=Settlement` records belong in that
 division domain. Its Hydrographic and Topographic records remain source data for a
 future government place-name projection; they should not be forced into the divisions
-taxonomy.
+taxonomy. Source records retain the joined official and alias labels in
+`properties.placeNames`, alongside the publisher classification attributes.
 
 The LandsD selection Bulk Rule retains counts for all native inputs, selected
 settlements and exclusions by publisher class, including missing or unexpected classes.

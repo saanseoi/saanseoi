@@ -5,7 +5,6 @@ export type SourceRecordCatalogueEntry = {
   scopeByDataset?: boolean
   geometryColumn?: 'sourceGeometry'
   geometryEncoding?: 'brotli-json'
-  nativeNamesColumn?: 'placeNames'
   randomSampleStrategy?: 'uuid-pivot'
   randomSamplePrefix?: string
   tableName: string
@@ -17,7 +16,6 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
     tableName: 'hkgovHadDivisionAreas',
   },
   'ds-hk-hkgov-landsd-division': {
-    nativeNamesColumn: 'placeNames',
     geometryColumn: 'sourceGeometry',
     tableName: 'hkgovLandsdPlaceNames',
   },

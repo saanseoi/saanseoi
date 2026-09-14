@@ -64,14 +64,12 @@ export function publisherSourceHashInput(row: {
 export function nativeSourcePayloadHashInput(row: {
   properties: unknown
   sourceGeometry?: unknown
-  placeNames?: unknown
 }) {
   return {
     ...publisherSourceHashInput({
       properties: retainSourceProperties(row.properties),
       sourceGeometry: row.sourceGeometry,
     }),
-    ...(row.placeNames === undefined ? {} : { placeNames: row.placeNames }),
   }
 }
 

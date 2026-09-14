@@ -24,7 +24,6 @@ const SourceRecordSchema = z
   .object({
     sourceRecordId: z.string(),
     properties: z.object({}).loose().nullable(),
-    placeNames: z.array(z.object({}).loose()).nullable().optional(),
     geometry: z.unknown().optional(),
   })
   .openapi('SourceRecord')

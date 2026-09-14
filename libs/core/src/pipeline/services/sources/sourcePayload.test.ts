@@ -11,10 +11,9 @@ test('native source fingerprints remain stable when the payload field is named p
   const source = {
     properties: { NAME: ' Original ', count: 0, country: null },
     sourceGeometry: { type: 'Point', coordinates: [114, 22] },
-    placeNames: [{ NAME_EN: ' Original ' }],
   }
   expect(await createHash(nativeSourcePayloadHashInput(source))).toBe(
-    '06a040564707402655026b698d739a999c07f79f0a8a44700c5bbca11be6cbf9',
+    'bf55e6786835ea9852ecc4337f90ecaca57370ec19d90f78400fdd79e6c54969',
   )
   expect(
     await createHash(nativeSourcePayloadHashInput({ properties: source.properties })),
@@ -166,4 +165,26 @@ test('compact acquisition locators reject conflicting source occurrences', () =>
   expect(() =>
     sourceLocatorFromReferences([{ sourceFile: 'a' }, { sourceFile: 'b' }]),
   ).toThrow('Conflicting source locator')
+})
+
+test('native source versions include joined place names in properties', async () => {
+  const properties = {
+    geoNameId: '1022',
+    placeNames: [{ nameEn: 'Original', nameZhHant: '原名', status: 'Official' }],
+  }
+  const original = await createHash(nativeSourcePayloadHashInput({ properties }))
+  expect(nativeSourcePayloadHashInput({ properties })).toEqual({
+    rawProperties: properties,
+    sourceGeometry: null,
+  })
+  expect(
+    await createHash(
+      nativeSourcePayloadHashInput({
+        properties: {
+          ...properties,
+          placeNames: [{ ...properties.placeNames[0], nameEn: 'Changed' }],
+        },
+      }),
+    ),
+  ).not.toBe(original)
 })
