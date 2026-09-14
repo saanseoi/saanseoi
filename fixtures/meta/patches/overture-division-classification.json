@@ -96,6 +96,140 @@
         "class": "neighbourhood"
       },
       "reason": "Sai Ying Pun is a neighbourhood within Sai Wan. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_tai_hang_reclassified",
+      "source": "overture",
+      "divisionId": "fc40613a-be4e-408f-9414-deae675850a7",
+      "names": [
+        "Tai Hang",
+        "大坑"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Tai Hang is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_tin_hau_reclassified",
+      "source": "overture",
+      "divisionId": "65a273eb-ce61-40db-ba4c-2f2f7fe496e0",
+      "names": [
+        "Tin Hau",
+        "天后"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Tin Hau is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_fortress_hill_reclassified",
+      "source": "overture",
+      "divisionId": "e5322b23-24d0-46d7-affb-cae30cc883a8",
+      "names": [
+        "Fortress Hill",
+        "炮台山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Fortress Hill is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_chai_wan_district_renamed",
+      "source": "overture",
+      "divisionId": "34eee784-7afc-41ec-aced-9f84eb92adec",
+      "names": [
+        "Chai Wan District",
+        "柴灣區"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 4,
+        "class": "macrohood",
+        "nameEn": "Chai Wan"
+      },
+      "reason": "Use Chai Wan as the canonical English name for 柴灣區 while retaining the publisher name in source storage."
+    },
+    {
+      "id": "overture_hong_kong_chai_wan_reclassified",
+      "source": "overture",
+      "divisionId": "5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac",
+      "names": [
+        "Chai Wan",
+        "柴灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Chai Wan is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_siu_sai_wan_reclassified",
+      "source": "overture",
+      "divisionId": "a60dba0a-41e2-4c84-ae70-05f647bd0e3a",
+      "names": [
+        "Siu Sai Wan",
+        "小西灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Siu Sai Wan is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_admiralty_reclassified",
+      "source": "overture",
+      "divisionId": "4edbae57-59b3-4757-8e2c-526d48fd1d44",
+      "names": [
+        "Admiralty",
+        "金鐘"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Admiralty is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
     }
   ]
 }

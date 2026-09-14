@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "kind": "division-exclusion-patches",
+  "entries": [
+    {
+      "id": "overture_hong_kong_central_district_excluded",
+      "source": "overture",
+      "divisionId": "f9321bdb-1e1e-49e6-89c8-662f988b29a3",
+      "names": ["Central District", "中區"],
+      "expected": { "adminLevel": null, "class": null, "subtype": "macrohood" },
+      "reason": "Central District duplicates the official Central and Western District administrative coverage and is excluded from the canonical Hong Kong division hierarchy. Preserve the publisher source assertion."
+    }
+  ]
+}
