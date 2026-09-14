@@ -281,6 +281,8 @@ export function deriveHierarchyPatch(
           : 3
   const byDivision = new Map<string, ReviewArea>()
   for (const feature of [...reference, ...stubs.features]) {
+    if (feature.geometry.type !== 'Polygon' && feature.geometry.type !== 'MultiPolygon')
+      continue
     if (!divisions.has(feature.properties.divisionId)) continue
     if (
       stubIds.has(feature.properties.divisionId) &&

@@ -101,3 +101,29 @@ test('Lantau patch preserves its identity and clears its level without source mu
     ).toMatchObject({ category: 'landform', class: cls, level: null })
   }
 })
+
+test('Central and Western neighbourhood patches apply only to their reviewed Overture records', () => {
+  const rows = [
+    ['b56a6e1a-8519-4147-8dd4-342addf54c92', 'Kennedy Town'],
+    ['183013ef-20f3-417d-8881-16c1e9a9f7e2', 'Shek Tong Tsui'],
+    ['0058e21e-a916-4762-8da1-ba6694204a35', 'Sai Ying Pun'],
+  ] as const
+
+  for (const [id] of rows) {
+    expect(
+      normaliseDivisionRow(
+        { id, subtype: 'macrohood', class: null, admin_level: null },
+        { source: { source: 'overture', sourceVersion: '2026-08-19.0' } },
+      ).base,
+    ).toMatchObject({ id, category: 'hood', class: 'neighbourhood', level: 5 })
+  }
+
+  expect(() =>
+    applyDivisionClassificationPatch({
+      id: rows[0][0],
+      subtype: 'macrohood',
+      class: 'macrohood',
+      admin_level: null,
+    }),
+  ).toThrow('guard mismatch')
+})

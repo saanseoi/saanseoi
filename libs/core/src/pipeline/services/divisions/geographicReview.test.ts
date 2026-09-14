@@ -124,6 +124,22 @@ test('invalid imports do not pass validation and missing geometry remains explic
   ).toBe(true)
 })
 
+test('ignores a non-polygon reference feature at runtime', () => {
+  const pointReference = {
+    type: 'Feature',
+    properties: { divisionId: 'district', variant: 'point-only' },
+    geometry: { type: 'Point', coordinates: [2, 2] },
+  } as unknown as ReviewArea
+
+  expect(
+    deriveHierarchyPatch(inventory, [pointReference], stubs([]), false),
+  ).toMatchObject({
+    entries: expect.arrayContaining([
+      expect.objectContaining({ divisionId: 'child', status: 'unresolved' }),
+    ]),
+  })
+})
+
 test('detailed source rings retain all vertices and still reject crossings', () => {
   const feature = square('district', 1)
   const ring = Array.from({ length: 12000 }, (_, i) => {
