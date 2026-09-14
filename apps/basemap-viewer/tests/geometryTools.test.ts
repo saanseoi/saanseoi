@@ -406,6 +406,80 @@ describe('town stub geometry cleanup', () => {
     expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(4)
   })
 
+  it('keeps the ordered vertices along a street boundary while simplifying L4', () => {
+    const inventory: ReviewInventory = {
+      schemaVersion: 1,
+      region: 'hk',
+      domain: 'geographic',
+      cohort: 'test',
+      releaseSet: 'test',
+      divisions: [division('hood', 4)],
+    }
+    const result = cleanStubGeometriesForLevel(
+      {
+        type: 'FeatureCollection',
+        schemaVersion: 1,
+        region: 'hk',
+        domain: 'geographic',
+        cohort: 'test',
+        variant: 'stub',
+        features: [
+          stub('hood', {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [0.00001, 0],
+                [1, 0],
+                [1, 1],
+                [0.00001, 1],
+                [0.00001, 0.75],
+                [0.00001, 0.5],
+                [0.00001, 0.25],
+                [0.00001, 0],
+              ],
+            ],
+          }),
+        ],
+      },
+      inventory,
+      {
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', properties: {}, geometry: rectangle(0, 1) }],
+      },
+      4,
+      {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [0, -1],
+                [0, 2],
+              ],
+            },
+          },
+        ],
+      },
+    )
+    const geometry = result.stubs.features[0]!.geometry
+    const ring =
+      geometry.type === 'Polygon'
+        ? geometry.coordinates[0]!
+        : geometry.coordinates[0]![0]!
+    expect(
+      ring.some(
+        position =>
+          Math.abs(position[0]! - 0) < 1e-12 && Math.abs(position[1]! - 0.5) < 1e-12,
+      ),
+    ).toBe(true)
+    expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
+      LEVEL_4_GEOMETRY_CLEANUP_VERSION,
+    )
+  })
+
   it('repartitions a level when a new stub is added after cleanup', () => {
     const inventory: ReviewInventory = {
       schemaVersion: 1,
