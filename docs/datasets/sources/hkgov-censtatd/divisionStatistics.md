@@ -1,5 +1,10 @@
 # Census and Statistics Department division statistics
 
+Record-content hashes exclude observation timestamps and publisher version labels,
+including nested attribution metadata. Effective dates, statistical periods and content
+dependency hashes remain significant. Retained source payloads preserve the original
+metadata. File checksums and processing-cache identities retain their complete inputs.
+
 Source-assertion replay preserves unchanged open versions without release-marker
 updates. Changed source hashes close explicitly; bounded same-release membership checks
 handle source omissions. Large source geometry is assembled only for incomplete or

@@ -1,5 +1,10 @@
 # Planning Department TPU and subunit areas
 
+Record-content hashes exclude observation timestamps and publisher version labels,
+including nested attribution metadata. Effective dates, statistical periods and content
+dependency hashes remain significant. Retained source payloads preserve the original
+metadata. File checksums and processing-cache identities retain their complete inputs.
+
 Planning Cell and New Town source validity stores the source version in
 `validFromRelease` and `validToRelease`, for example `2001` and `2006`. Native source
 inserts and closures use the selected release's `sourceVersion`; full dataset release

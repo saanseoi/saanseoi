@@ -1,5 +1,10 @@
 # Overture division geometry ingestion
 
+Record-content hashes exclude observation timestamps and publisher version labels,
+including nested attribution metadata. Effective dates, statistical periods and content
+dependency hashes remain significant. Retained source payloads preserve the original
+metadata. File checksums and processing-cache identities retain their complete inputs.
+
 Unchanged open source versions remain untouched across releases. Complete publisher
 membership closes omissions independently of the assertion release ID. Snapshot
 materialisation and release-specific provenance remain separate from source validity.

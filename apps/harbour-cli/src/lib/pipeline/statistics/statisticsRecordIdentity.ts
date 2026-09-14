@@ -1,3 +1,4 @@
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { createHash } from 'node:crypto'
 import { stableJsonStringify } from '@repo/core/pipeline/utils'
 
@@ -19,7 +20,7 @@ const assertionColumns = new Set([
 
 /** Canonical content hashes do not depend on object insertion order. */
 export function hashStatisticContent(value: unknown) {
-  const serialised = stableJsonStringify(value)
+  const serialised = stableJsonStringify(recordContent(value))
   if (typeof serialised !== 'string')
     throw new Error('Invalid canonical statistic content.')
   return createHash('sha256').update(serialised).digest('hex')

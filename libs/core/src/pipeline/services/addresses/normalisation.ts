@@ -1,3 +1,4 @@
+import { recordContent } from '../sources/recordContent'
 import { readAlsPublisherSource } from '../sources/alsSourcePayload'
 import { publisherSourceHashInput } from '../sources/sourcePayload'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
@@ -270,7 +271,7 @@ export function buildAddressBaseHashInput(
     geometry: base.geometry,
     identifiers: base.identifiers,
     bbox: base.bbox,
-    sources: excludeReleaseProvenance(base.sources),
+    sources: recordContent(excludeReleaseProvenance(base.sources)),
   } satisfies Omit<
     AddressRow,
     'createdAt' | 'updatedAt' | 'snapshotId' | 'divisionSnapshotId' | 'streetSnapshotId'

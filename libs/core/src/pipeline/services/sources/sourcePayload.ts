@@ -1,3 +1,4 @@
+import { recordContent } from './recordContent'
 import { retainSourceProperties } from './retainedProperties'
 /**
  * Separate publisher attributes from fields represented once by the source
@@ -43,7 +44,7 @@ export function overtureSourcePayload(row: Record<string, unknown>) {
  */
 export function sourceRecordHashInput(row: Record<string, unknown>) {
   return Object.fromEntries(
-    Object.entries(row).map(([key, value]) => [
+    Object.entries(recordContent(row)).map(([key, value]) => [
       key === 'properties' ? 'rawProperties' : key,
       value,
     ]),

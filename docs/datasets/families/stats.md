@@ -1,5 +1,9 @@
 # Statistics dataset family
 
+Record-content hashes exclude observation timestamps and publisher version labels.
+Statistical periods, effective dates and content dependency hashes remain significant.
+Retained publisher payloads preserve their original metadata.
+
 Statistics source replay closes changed hashes and same-release omissions explicitly.
 Conflict updates leave open matching versions untouched, including their original
 release and validity. Large geometry reconstruction is limited to incomplete or closed

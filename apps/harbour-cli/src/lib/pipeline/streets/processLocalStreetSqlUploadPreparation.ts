@@ -240,7 +240,6 @@ export async function addMaterialisedStreetHash(
       gazetteDate: street.gazetteDate,
       sources: street.sources,
       status: street.status,
-      version: street.version,
     }),
   }
 }

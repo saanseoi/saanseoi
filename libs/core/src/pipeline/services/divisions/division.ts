@@ -1,3 +1,4 @@
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import {
   geographicHierarchyPatchRule,
   buildGeographicHierarchyProcessingActions,
@@ -635,7 +636,7 @@ export async function processDivisionDataset(
       if (sourceDb && message.source === 'overture' && !isSupplemental) {
         seenPublisherIds.add(normalised.base.id)
         const releaseId = buildSourceReleaseId(message)
-        const sourcePayloadHash = await createHash(row)
+        const sourcePayloadHash = await createHash(recordContent(row))
         sourceResolutionRows.push({
           snapshotId: versionInsertContext.snapshotId,
           sourceReleaseId: releaseId,
@@ -1574,7 +1575,7 @@ export function buildDivisionBaseHashInput(
     id: base.id,
     identifiers: base.identifiers ?? null,
     level: base.level ?? null,
-    sources: withoutDivisionPublicationVersion(base.sources),
+    sources: recordContent(withoutDivisionPublicationVersion(base.sources)),
     class: base.class,
     category: base.category ?? null,
     wikidata: base.wikidata ?? null,

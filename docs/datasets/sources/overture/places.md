@@ -45,7 +45,11 @@ original `sourceGeometry`, private acquisition locators and version/release trac
 alongside it. Each publisher value is retained once. Normalised names, coordinates,
 categories, brand, contacts and addresses are projected only into canonical
 history/current tables. The publisher's integer record version is retained only in
-`properties.version`; `versionHash` identifies the stored payload.
+`properties.version`; `versionHash` identifies publisher content excluding attribution
+observation timestamps (`sources[].updateTime` and `sources[].update_time`). Publisher
+record and attribution versions are excluded too. Confidence and other content metadata
+participate in the hash. Timestamps remain in the retained payload, but timestamp-only
+refreshes do not create or update a source version.
 
 Places SQL delivery reads current `overturePlaces` IDs and publisher hashes from every
 prepared source shard. Unchanged records remain untouched in their owning shard. New,

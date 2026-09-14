@@ -1,3 +1,4 @@
+import { recordContent } from '../sources/recordContent'
 import { retainSourceProperties } from '../sources/retainedProperties'
 import {
   overtureSourcePayload,
@@ -305,8 +306,8 @@ export function buildDivisionGeometryHashInput(
   row: NormalisedDivisionArea['canonical'] | NormalisedDivisionBoundary['canonical'],
 ) {
   return {
-    ...row,
-    sources: row.sources ?? null,
+    ...recordContent(row),
+    sources: recordContent(row.sources ?? null),
     createdAt: undefined,
     snapshotId: undefined,
     updatedAt: undefined,

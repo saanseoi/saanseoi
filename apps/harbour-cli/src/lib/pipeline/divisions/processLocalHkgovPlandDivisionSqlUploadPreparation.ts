@@ -1,3 +1,4 @@
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { emptyDivisionHierarchies } from '@repo/db'
 import { materialiseDivisionHierarchies } from '@repo/core/pipeline/services/divisions/divisionHierarchies'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/planning-division-normalisation.json'
@@ -141,7 +142,7 @@ async function readPreparedDivisionsInternal(
         ...record,
         base,
         versionHash: await createHash({
-          base,
+          base: recordContent(base),
           i18n: record.i18n.toSorted((a, b) => a.locale.localeCompare(b.locale)),
         }),
       }
@@ -177,7 +178,7 @@ async function normalisePreparedDivision(
     category: null,
     wikidata: null,
   }
-  const versionHash = await createHash(base)
+  const versionHash = await createHash(recordContent(base))
   const cells =
     level === 'subunit' ? normalisePlanningCells(sourceProperties.sourceFeatures) : []
   const newTown = level === 'newtown' ? normaliseNewTown(sourceProperties, i18n) : null

@@ -37,7 +37,7 @@ import {
 } from '@repo/core/pipeline/services/places/place'
 import type { StagedAddressResolution } from './supplementaryPlaceAddress.ts'
 import type { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.ts'
-import { createHash } from '@repo/core/pipeline/utils'
+import { hashPlaceSource } from './placeSourceHash.ts'
 import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
 import { currentSchema, metaSchema } from '@repo/db'
 import { and, eq, sql } from 'drizzle-orm'
@@ -492,7 +492,7 @@ export async function stageEnrichedPlaces(
                   effectiveLat,
                   ...unitReference,
                 }),
-                sourcePayloadHash: await createHash(place.raw),
+                sourcePayloadHash: await hashPlaceSource(place.raw),
               }
               return result
             })

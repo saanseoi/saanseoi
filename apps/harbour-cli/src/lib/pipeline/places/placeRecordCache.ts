@@ -85,6 +85,7 @@ export function placeComputationContract() {
       .map(name => resolve(import.meta.dir, name)),
     ...[
       'libs/core/src/pipeline/services/places/place.ts',
+      'libs/core/src/pipeline/services/sources/recordContent.ts',
       'libs/core/src/pipeline/utils.ts',
       'libs/db/src/address3d.ts',
       'bun.lock',

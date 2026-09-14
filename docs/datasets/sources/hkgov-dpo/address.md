@@ -1,5 +1,10 @@
 # HKGov DPO ALS addresses
 
+Record-content hashes exclude observation timestamps and publisher version labels,
+including nested attribution metadata. Effective dates, statistical periods and content
+dependency hashes remain significant. Retained source payloads preserve the original
+metadata. File checksums and processing-cache identities retain their complete inputs.
+
 ALS ingestion reuses complete prepared releases only when source contents, processing
 code, fixtures, runtime, identity history, decisions and the exact selected Division
 lookup match. Every prepared Parquet, Address3D, seal, membership and audit file is

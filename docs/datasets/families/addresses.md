@@ -1,5 +1,10 @@
 # Addresses dataset family
 
+Record-content hashes exclude observation timestamps and publisher version labels,
+including nested attribution metadata. Effective dates, statistical periods and content
+dependency hashes remain significant. Retained source payloads preserve the original
+metadata. File checksums and processing-cache identities retain their complete inputs.
+
 The [versioned geocoding contract](../../geocoding.md) returns canonical structured
 addresses, explicit point-match distances, and optional division membership composed
 through an exact shared division snapshot.

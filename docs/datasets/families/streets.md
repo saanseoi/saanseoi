@@ -1,5 +1,8 @@
 # Streets API family
 
+Canonical Street content hashes exclude the lifecycle version counter. Gazette dates,
+effective dates and deletion dates remain significant lifecycle content.
+
 Native source SQL preserves unchanged open assertions, including large payloads.
 Replacement membership is compared in disjoint indexed ID ranges; several assertions for
 one publisher ID remain current when all are present in the incoming release.

@@ -1,5 +1,8 @@
 # LandsD street names
 
+Canonical Street content hashes exclude the lifecycle version counter. Gazette dates,
+effective dates and deletion dates remain significant lifecycle content.
+
 Street snapshot ingestion records the exact staged release and its assembly rule under
 the [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
 

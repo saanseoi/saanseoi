@@ -1,3 +1,4 @@
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
@@ -261,7 +262,7 @@ export function collectionStatements(
     })),
     ...(processingSources ?? []),
   ]
-  const versionHash = als3dHash({ ...base, sources })
+  const versionHash = als3dHash(recordContent({ ...base, sources }))
   const history = {
     ...base,
     sources,

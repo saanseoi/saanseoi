@@ -1,5 +1,10 @@
 # Divisions dataset family
 
+Record-content hashes exclude observation timestamps and publisher version labels,
+including nested attribution metadata. Effective dates, statistical periods and content
+dependency hashes remain significant. Retained source payloads preserve the original
+metadata. File checksums and processing-cache identities retain their complete inputs.
+
 The [versioned geocoding contract](../../geocoding.md) uses only geographic `stub`
 polygons for containment and preserves separate administrative and landform identities.
 It reports missing coverage and unresolved hierarchy branches explicitly.

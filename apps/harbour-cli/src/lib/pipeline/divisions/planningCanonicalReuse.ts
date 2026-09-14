@@ -1,3 +1,4 @@
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { createHash } from '@repo/core/pipeline/utils'
 import type { PreparedDivision } from './processLocalHkgovPlandDivisionSqlUploadTypes'
 import { decodeStoredGeoJsonGeometry } from './processLocalDivisionGeometrySqlUploadStatistics'
@@ -20,7 +21,7 @@ export async function reusePlanningCanonicalProvenance(
           field === 'geometry'
             ? decodeStoredGeoJsonGeometry(row[field])
             : field === 'sources'
-              ? withoutPublicationVersion(row[field])
+              ? recordContent(withoutPublicationVersion(row[field]))
               : (row[field] ?? null),
         ]),
       )
@@ -32,7 +33,7 @@ export async function reusePlanningCanonicalProvenance(
     record.base.sources = before.sources as PreparedDivision['base']['sources']
     unchangedBaseIds.add(record.base.id)
     record.versionHash = await createHash({
-      base: record.base,
+      base: recordContent(record.base),
       i18n: record.i18n.toSorted((a, b) => a.locale.localeCompare(b.locale)),
     })
   }

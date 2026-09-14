@@ -1,3 +1,4 @@
+import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { buildGeographicHierarchyProcessingActions } from '@repo/core/pipeline/services/divisions/geographicHierarchyPatch.ts'
 import { assertPublishedSnapshotMaterialised } from '@repo/core/pipeline/services/publication/execute.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
@@ -322,7 +323,7 @@ export async function buildDivisionSqlState(
         base: buildDivisionBaseHashInput(normalised.base),
         i18n: storedCanonicalI18n,
       })
-      const sourcePayloadHash = await createHash(raw)
+      const sourcePayloadHash = await createHash(recordContent(raw))
       const current = currentRows.get(normalised.base.id)
       const currentChanged = current?.churnHash !== churnHash
       const baseChanged = current?.versionHash !== versionHash

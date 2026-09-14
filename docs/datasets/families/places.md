@@ -32,6 +32,12 @@ history/current tables; source tables do not duplicate those fields. Publisher r
 versions remain in `properties.version`; source history uses content hashes and release
 validity.
 
+Place source hashes exclude attribution observation timestamps (`sources[].updateTime`
+and `sources[].update_time`). Publisher record and attribution versions are excluded
+too. Confidence and other content metadata remain hash-significant. Stored payloads
+retain the timestamps from the observation that created the version; timestamp-only
+refreshes do not replace that payload.
+
 SQL uploads compare incoming publisher hashes with current source assertions in the
 prepared local mirrors. New and changed assertions carry full payloads; unchanged
 assertions remain untouched, preserving their original release, validity and timestamps.
