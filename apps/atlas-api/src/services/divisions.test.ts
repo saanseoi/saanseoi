@@ -7,6 +7,7 @@ import {
   listDivisions,
   type DivisionServiceDependencies,
 } from './divisions'
+import { requestedGeometryVariants } from './divisionsPresentation'
 
 const activeSnapshot = {
   snapshotId: 'snapshot-hk-division',
@@ -360,6 +361,7 @@ describe('division services', () => {
 
   test('accepts the configured domains and C&SD area alternatives', () => {
     for (const query of [
+      { domain: 'geographic', include: 'areas:saanseoi' },
       { domain: 'geographic', include: 'areas:hkgov-censtatd' },
       { domain: 'geographic', include: 'areas:hkgov-censtatd-landclipped' },
       {
@@ -381,6 +383,17 @@ describe('division services', () => {
         include: 'areas:hkgov-censtatd:2021',
       }).success,
     ).toBe(false)
+  })
+
+  test('defaults geographic areas to the SaanSeoi assembly', () => {
+    expect(requestedGeometryVariants('areas', 'geographic')).toEqual({
+      area: 'saanseoi',
+      boundary: 'overture',
+    })
+    expect(requestedGeometryVariants('areas:overture', 'geographic')).toEqual({
+      area: 'overture',
+      boundary: 'overture',
+    })
   })
 
   test('keeps current division identities while selecting an explicit area cohort', async () => {

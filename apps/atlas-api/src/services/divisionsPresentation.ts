@@ -152,6 +152,7 @@ type DivisionGeometryResourceAttributes = {
     | 'hkgov-pland-pu'
     | 'stub'
     | 'overture'
+    | 'saanseoi'
 }
 
 type DivisionGeometryResourcePayload =
@@ -735,7 +736,7 @@ export function requestedGeometryVariants(
   const requestedArea = area?.slice('areas:'.length)
   const areaVariant =
     requestedArea?.split('@', 1)[0] ||
-    (domainCode === 'geographic' ? 'overture' : undefined)
+    (domainCode === 'geographic' ? 'saanseoi' : undefined)
   return {
     area:
       transform &&
