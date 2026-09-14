@@ -2484,6 +2484,14 @@ type ApiFieldProvenanceGroup = {
   versionHash: string
 }
 
+type ApiFieldProvenanceGroupRow = {
+  apiField: string
+  isDeleted: boolean
+  resourceType: string
+  variant: string
+  versionHash: string
+}
+
 function apiFieldProvenanceGroupKey(
   resourceType: string,
   apiField: string,
@@ -2566,11 +2574,11 @@ async function resolveEffectiveApiFieldProvenanceGroups(
       throw new Error(`API release set not found: ${candidateReleaseSetId}`)
     }
 
-    const groups = await db
+    const groups = (await db
       .select()
       .from(metaApiFieldProvenanceGroups)
       .where(eq(metaApiFieldProvenanceGroups.apiReleaseSetId, releaseSet.id))
-      .all()
+      .all()) as ApiFieldProvenanceGroupRow[]
 
     if (groups.length) {
       for (const group of groups) {
