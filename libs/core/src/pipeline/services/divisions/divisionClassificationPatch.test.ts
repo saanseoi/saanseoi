@@ -161,3 +161,20 @@ test('Hong Kong neighbourhood and name patches apply only to their reviewed Over
     ).i18n.find(row => row.locale === 'en'),
   ).toMatchObject({ name: 'Chai Wan' })
 })
+
+test('Ngong Ping patch demotes only the reviewed Overture town to a village', () => {
+  const row = {
+    id: 'b14eba1a-b366-461d-a3ce-1d4c878fb997',
+    subtype: 'locality',
+    class: 'town',
+    admin_level: null,
+  }
+  expect(
+    normaliseDivisionRow(row, {
+      source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+    }).base,
+  ).toMatchObject({ id: row.id, category: 'locality', class: 'village', level: 5 })
+  expect(() => applyDivisionClassificationPatch({ ...row, class: 'village' })).toThrow(
+    'guard mismatch',
+  )
+})

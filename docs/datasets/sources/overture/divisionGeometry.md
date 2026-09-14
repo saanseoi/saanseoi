@@ -348,3 +348,13 @@ change alone does not replace canonical source provenance. Identical source
 interpretations inherit through snapshot ancestry; changed interpretations and source
 omissions remain explicit. This component optimisation applies to canonical Divisions;
 area and boundary source-resolution assertions retain their geometry lifecycle.
+
+## Local review derivatives
+
+Division-area topology repair uses unsimplified source geometry and retains source
+identity. The review derivative follows the
+[local polygon topology repair contract](../../families/divisions.md#local-polygon-topology-repair):
+shared graph construction, authoritative land clipping and conservative 5-metre
+centreline snapping. Simplification requires a separate later action and retains the
+unsimplified input. A simplified review export is not an authoritative source for
+boundary reconstruction.

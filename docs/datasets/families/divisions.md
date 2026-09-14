@@ -812,3 +812,40 @@ division ID. It reports additions, deletions, changed fields, membership impact 
 transitive descendant dependencies, with content-addressed before/after definition and
 geometry links. See the [division changes contract](../../division-changes.md) for
 pagination, retention, authoritative geometry coverage and error semantics.
+
+## Local polygon topology repair
+
+The division-area review map cleans a complete level from unsimplified inputs. It nodes
+source and authoritative land boundaries together, polygonises the shared graph and
+assigns overlap faces in division-ID order. It preserves exact source coordinates and
+collinear nodes, except where clipping, noding or an accepted street snap changes a
+boundary. Only exact consecutive duplicates and ring closures are normalised; invalid
+self-intersections stop cleanup with diagnostics.
+
+The coverage target defaults to the union of source polygons intersected with
+`hongkong-2026-09-01.coastline-land.geojson`. Existing gaps therefore remain intentional
+unless a separate intended coverage polygon is supplied to the repair function.
+Unassigned faces in an explicit target are reported for ownership review. Cleanup does
+not infer missing coverage from proximity.
+
+Street snapping operates on shared internal chains with fixed junctions and exterior
+endpoints. A chain can follow one straight centreline segment when its endpoints already
+lie on that segment, all projections retain strict order and every displacement is
+conservatively bounded by 5 metres. Coastline nodes remain fixed. Ambiguous, curved or
+non-matching chains remain unchanged. Final validation checks rings, duplicate edges,
+exact shared nodes, interior overlaps, land containment and an empty symmetric
+difference against the coverage target. A snap that fails validation is discarded before
+validating the unsnapped repair.
+
+The browser stores a complete pre-operation backup before cleanup and retains it across
+reloads. Inputs marked as simplified are rebuilt from a unique retained `sourceAreaId`
+match in the reference catalogue. Missing identities and conflicting source shapes
+require an original drawing or verified backup; cleanup cannot reconstruct lost nodes.
+Failure diagnostics identify the division, operation and available coordinates, with map
+markers at those coordinates.
+
+Simplification is an explicit later operation on shared internal chains, with its own
+tolerance and retained unsimplified geometry. It validates unchanged coverage and shared
+topology before saving. Cleanup restores that retained geometry before rebuilding;
+edited simplified results require source recovery to avoid discarding edits. Neither
+operation publishes fixtures automatically.
