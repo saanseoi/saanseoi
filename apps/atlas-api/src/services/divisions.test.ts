@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test'
 
 import type { DivisionRecord } from '../db/divisions'
+import { SourcesSchema } from '../schema/common'
 import { DivisionsListQuerySchema } from '../schema/divisions'
 import {
   getDivisionDetail,
@@ -394,6 +395,29 @@ describe('division services', () => {
       area: 'overture',
       boundary: 'overture',
     })
+  })
+
+  test('accepts source membership with a contribution role', () => {
+    expect(
+      SourcesSchema.safeParse({
+        overture: [
+          {
+            dataset: 'overture',
+            record_id: '3707878f-080b-42cf-aecf-89fef56a066a',
+            release: '2026-08-19.0',
+            contributions: ['identity', 'membership'],
+          },
+        ],
+        hkgovLandsd: [
+          {
+            dataset: 'hkgov-landsd',
+            record_id: 'LANDSD:PLACE_NAME:838',
+            release: '2026-06-10.0',
+            contributions: ['official-name', 'alias'],
+          },
+        ],
+      }).success,
+    ).toBe(true)
   })
 
   test('keeps current division identities while selecting an explicit area cohort', async () => {

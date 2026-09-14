@@ -183,10 +183,13 @@ export const PhoneNumberSchema = z
 
 export const OvertureSourceItemSchema = z
   .object({
-    property: z.string(),
+    /** Overture publisher attribution may not name a property for direct membership. */
+    property: z.string().optional(),
     dataset: z.string().min(1),
     license: z.string().nullable().optional(),
     record_id: z.string().nullable().optional(),
+    release: z.string().nullable().optional(),
+    contributions: z.array(z.string().min(1)).min(1).optional(),
     update_time: z.string().nullable().optional(),
     confidence: z.number().min(0).max(1).nullable().optional(),
     between: z.tuple([z.number(), z.number()]).nullable().optional(),
@@ -197,7 +200,12 @@ export const OvertureSourceItemSchema = z
   })
 
 export const OtherSourceTypeItemSchema = z
-  .object({})
+  .object({
+    dataset: z.string().min(1).optional(),
+    record_id: z.string().nullable().optional(),
+    release: z.string().nullable().optional(),
+    contributions: z.array(z.string().min(1)).min(1).optional(),
+  })
   .loose()
   .openapi('OtherSourceTypeItem', {
     description: openApiText('openapi_other_source_item_description'),
