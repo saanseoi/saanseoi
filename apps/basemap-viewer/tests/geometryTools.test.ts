@@ -6,6 +6,7 @@ import type { Polygon, Position } from 'geojson'
 import {
   cleanStubGeometriesForLevel,
   cleanTownStubGeometries,
+  GeometryCleanupError,
   LEVEL_4_GEOMETRY_CLEANUP_VERSION,
   TOWN_GEOMETRY_CLEANUP_ROAD_SNAP_METRES,
   TOWN_GEOMETRY_CLEANUP_VERSION,
@@ -53,6 +54,22 @@ const stub = (id: string, geometry: Polygon) => ({
 const positions = (geometry: Polygon): Position[] => geometry.coordinates.flat(1)
 
 describe('town stub geometry cleanup', () => {
+  it('extracts failing nodes from a JTS non-noded intersection', () => {
+    const error = new GeometryCleanupError(
+      4,
+      'hood-id',
+      new Error(
+        'found non-noded intersection between LINESTRING ( 114.14466037509735 22.29048444613767, 114.1446605412932 22.290484440832827 ) and LINESTRING ( 114.14466037509735 22.29048444613767, 114.1446605412932 22.290484440832827 ) [ (114.14466037509735, 22.29048444613767, NaN) ]',
+      ),
+    )
+
+    expect(error.divisionId).toBe('hood-id')
+    expect(error.coordinates).toEqual([
+      [114.14466037509735, 22.29048444613767],
+      [114.1446605412932, 22.290484440832827],
+    ])
+  })
+
   it('clips water, closes a small seam, partitions overlap, and preserves other levels', () => {
     const inventory: ReviewInventory = {
       schemaVersion: 1,
