@@ -230,7 +230,7 @@ function normalisePreparedHkgovAddressRow(
       villageId: null,
       neighbourhoodId: null,
       macrohoodId: null,
-      townId: null,
+      townId: asNonEmptyString(row.townId),
       districtId,
       landformId: asNonEmptyString(row.landformId),
       areaId: asNonEmptyString(row.areaId),

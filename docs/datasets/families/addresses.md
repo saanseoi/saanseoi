@@ -1030,3 +1030,15 @@ publisher's formatted address; supplied formatted address text is retained.
 hamlet or landform Division ID in list and search requests, including historical reads.
 `relationships.landform` remains the explicit island association. Filtering uses
 recorded relationships rather than point-in-polygon inference.
+
+## Town associations
+
+ALS preparation resolves `townId` from exact English or Traditional Chinese town names
+in structured street/village `LocationName` or `VillageName` fields. Names are matched
+against town divisions in the selected division snapshot, with case and whitespace
+normalisation and matching district ancestry. Missing district ancestry, duplicate town
+names within a district and conflicting recognised town names remain unlinked. Street
+names, building names and formatted-address substrings do not establish town membership.
+Derived `townAssociation` evidence retains the input names, method and division snapshot
+separately from the publisher payload. Prepared files carry `townId` into Address2D
+storage and version hashing.

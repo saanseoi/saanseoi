@@ -1,3 +1,4 @@
+import { addTownLookup, type TownLookup } from './hkgovAlsTowns'
 import { addLandformLookup, type LandformLookup } from './hkgovAlsLandforms'
 import type { DivisionHierarchies } from '@repo/db'
 import { dirname, join, resolve } from 'node:path'
@@ -415,6 +416,7 @@ type DivisionLookupRow = {
 }
 
 function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookupMaps {
+  const towns: TownLookup = new Map()
   const landforms: LandformLookup = new Map()
   const areaByEn = new Map<string, string>()
   const areaByZh = new Map<string, string>()
@@ -432,6 +434,7 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
   }
 
   for (const row of rows) {
+    addTownLookup(towns, row)
     addLandformLookup(landforms, row)
     if (!row.name) {
       continue
@@ -487,6 +490,7 @@ function buildDivisionLookupMaps(rows: Array<DivisionLookupRow>): DivisionLookup
   }
 
   return {
+    towns,
     landforms,
     areaByEn,
     areaByZh,

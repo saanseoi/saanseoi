@@ -448,6 +448,10 @@ async function prepareHkgovAlsAddressParquetInternal(
           false,
         ),
         stringColumn(
+          'townId',
+          rows.map(row => row.townId ?? null),
+        ),
+        stringColumn(
           'landformId',
           rows.map(row => row.landformId ?? null),
         ),

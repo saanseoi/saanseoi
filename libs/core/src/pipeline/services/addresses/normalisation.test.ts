@@ -323,3 +323,19 @@ test('reads phase fields from retained ALS JSON when older prepared rows lack co
     },
   ])
 })
+
+test('retains prepared town membership and versions town reassignment', () => {
+  const prepared = {
+    canonicalId: 'address-1',
+    id: 'address-1',
+    divisionSnapshotId: 'division-1',
+    enFormattedAddress: 'Example',
+    townId: 'town-a',
+  }
+  const first = normaliseAddressRowForPipeline(prepared)
+  const second = normaliseAddressRowForPipeline({ ...prepared, townId: 'town-b' })
+  expect(first.base.townId).toBe('town-a')
+  expect(buildAddressBaseHashInput(first.base)).not.toEqual(
+    buildAddressBaseHashInput(second.base),
+  )
+})

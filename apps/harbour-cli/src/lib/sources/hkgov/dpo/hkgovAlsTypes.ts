@@ -33,6 +33,7 @@ export type PrepareHkgovAlsOptions = {
 }
 
 export type DivisionLookupMaps = {
+  towns?: import('./hkgovAlsTowns').TownLookup
   landforms?: import('./hkgovAlsLandforms').LandformLookup
   areaByEn: Map<string, string>
   areaByZh: Map<string, string>
@@ -121,11 +122,13 @@ export type HkgovLocalisedPremisesAddress = {
     BuildingNoFrom?: string | number | null
     BuildingNoTo?: string | number | null
     StreetName?: string | null
+    LocationName?: string | null
   } | null
   EngStreet?: {
     BuildingNoFrom?: string | number | null
     BuildingNoTo?: string | number | null
     StreetName?: string | null
+    LocationName?: string | null
   } | null
   ChiVillage?: {
     BuildingNoFrom?: string | number | null
@@ -170,6 +173,7 @@ export type PreparedHkgovAlsRow = {
   identifiers: string | null
   sources: string
   divisionSnapshotId: string
+  townId?: string | null
   landformId?: string | null
   areaId: string | null
   areaMatchStatus: HkgovAlsDivisionMatchStatus
