@@ -161,7 +161,7 @@ describe('town stub geometry cleanup', () => {
       expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
         level === 4
           ? LEVEL_4_GEOMETRY_CLEANUP_VERSION
-          : 'level-5-land-coverage-road-snap-v4',
+          : 'level-5-land-coverage-road-snap-v5',
       )
       expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(level)
     }
@@ -277,6 +277,56 @@ describe('town stub geometry cleanup', () => {
     expect(result.stubs.features[0]?.properties.geometryCleanupRoadSnapMetres).toBe(
       TOWN_GEOMETRY_CLEANUP_ROAD_SNAP_METRES,
     )
+  })
+
+  it('leaves a boundary unchanged when the nearest street is beyond five metres', () => {
+    const inventory: ReviewInventory = {
+      schemaVersion: 1,
+      region: 'hk',
+      domain: 'geographic',
+      cohort: 'test',
+      releaseSet: 'test',
+      divisions: [division('town', 3)],
+    }
+    const result = cleanStubGeometriesForLevel(
+      {
+        type: 'FeatureCollection',
+        schemaVersion: 1,
+        region: 'hk',
+        domain: 'geographic',
+        cohort: 'test',
+        variant: 'stub',
+        features: [stub('town', rectangle(0.5001, 1))],
+      },
+      inventory,
+      {
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', properties: {}, geometry: rectangle(0, 2) }],
+      },
+      3,
+      {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [0.5, -1],
+                [0.5, 2],
+              ],
+            },
+          },
+        ],
+      },
+    )
+    const geometry = result.stubs.features[0]!.geometry
+    const coordinates =
+      geometry.type === 'Polygon'
+        ? geometry.coordinates.flat(1)
+        : geometry.coordinates.flat(2)
+    expect(Math.min(...coordinates.map(point => point[0]!))).toBeCloseTo(0.5001, 7)
   })
 
   it('repartitions a level when a new stub is added after cleanup', () => {

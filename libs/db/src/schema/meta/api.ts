@@ -507,3 +507,36 @@ export const metaApiFieldProvenance = sqliteTable(
     ),
   ],
 )
+
+/**
+ * A release-set writes a group only when that field's complete provenance
+ * changes. Unlisted groups inherit from `supersedesApiReleaseSetId`.
+ */
+export const metaApiFieldProvenanceGroups = sqliteTable(
+  'apiFieldProvenanceGroups',
+  {
+    apiReleaseSetId: apiReleaseSetIdColumn(),
+    resourceType: text('resourceType').notNull(),
+    apiField: text('apiField').notNull(),
+    variant: text('variant').notNull().default('default'),
+    isDeleted: integer('isDeleted', { mode: 'boolean' }).notNull().default(false),
+    versionHash: text('versionHash').notNull(),
+    createdAt: timestamps.createdAt,
+  },
+  table => [
+    primaryKey({
+      columns: [
+        table.apiReleaseSetId,
+        table.resourceType,
+        table.apiField,
+        table.variant,
+      ],
+    }),
+    index('apiFieldProvenanceGroups_release_idx').on(table.apiReleaseSetId),
+    index('apiFieldProvenanceGroups_field_idx').on(
+      table.resourceType,
+      table.apiField,
+      table.variant,
+    ),
+  ],
+)

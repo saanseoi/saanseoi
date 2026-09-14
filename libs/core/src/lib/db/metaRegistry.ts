@@ -66,6 +66,7 @@ const {
   metaApiCatalogRevisions,
   metaApiEndpoints,
   metaApiFieldProvenance,
+  metaApiFieldProvenanceGroups,
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
   metaApiVersions,
@@ -2455,6 +2456,196 @@ export function buildDeterministicApiFieldProvenanceId(args: {
   )
 }
 
+type ApiFieldProvenanceRow = {
+  apiField: string
+  apiReleaseSetId: string
+  confidence: number | null
+  contributionType: string
+  createdAt: string
+  id: string
+  inputs: ApiFieldInput[]
+  priority: number
+  resolverCode: string
+  resolverRules: unknown
+  resourceType: string
+  sourceDatasetId: string
+  updatedAt: string
+  variant: string | null
+  versionHash: string
+}
+
+type ApiFieldProvenanceGroup = {
+  apiField: string
+  isDeleted: boolean
+  resourceType: string
+  rows: ApiFieldProvenanceRow[]
+  sourceReleaseSetId: string
+  variant: string
+  versionHash: string
+}
+
+function apiFieldProvenanceGroupKey(
+  resourceType: string,
+  apiField: string,
+  variant: string | null | undefined,
+) {
+  return `${resourceType}:${apiField}:${variant ?? 'default'}`
+}
+
+function apiFieldProvenanceGroupVersionHash(
+  rows: readonly ApiFieldProvenanceRow[],
+  fixtureVersionHash: string | null,
+) {
+  return computeVersionHash({
+    fixtureVersionHash,
+    rows: rows
+      .map(row => ({
+        apiField: row.apiField,
+        confidence: row.confidence,
+        contributionType: row.contributionType,
+        inputs: row.inputs,
+        priority: row.priority,
+        resolverCode: row.resolverCode,
+        resolverRules: row.resolverRules,
+        resourceType: row.resourceType,
+        sourceDatasetId: row.sourceDatasetId,
+        variant: row.variant,
+      }))
+      .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right))),
+  })
+}
+
+function groupApiFieldProvenanceRows(
+  rows: readonly ApiFieldProvenanceRow[],
+  fixtureVersionHash: string | null,
+) {
+  const groupedRows = new Map<string, ApiFieldProvenanceRow[]>()
+
+  for (const row of rows) {
+    const key = apiFieldProvenanceGroupKey(row.resourceType, row.apiField, row.variant)
+    const current = groupedRows.get(key)
+    if (current) current.push(row)
+    else groupedRows.set(key, [row])
+  }
+
+  return new Map(
+    [...groupedRows].map(([key, groupRows]) => [
+      key,
+      {
+        apiField: groupRows[0]!.apiField,
+        isDeleted: false,
+        resourceType: groupRows[0]!.resourceType,
+        rows: groupRows,
+        sourceReleaseSetId: groupRows[0]!.apiReleaseSetId,
+        variant: groupRows[0]!.variant ?? 'default',
+        versionHash: apiFieldProvenanceGroupVersionHash(groupRows, fixtureVersionHash),
+      } satisfies ApiFieldProvenanceGroup,
+    ]),
+  )
+}
+
+/** Resolve field groups through the immutable API release-set predecessor chain. */
+async function resolveEffectiveApiFieldProvenanceGroups(
+  db: HarbourReadableDb,
+  releaseSetId: string | null,
+) {
+  const resolved = new Map<string, ApiFieldProvenanceGroup>()
+  let candidateReleaseSetId = releaseSetId
+
+  while (candidateReleaseSetId) {
+    const releaseSet = await db
+      .select({
+        id: metaApiReleaseSets.id,
+        supersedesApiReleaseSetId: metaApiReleaseSets.supersedesApiReleaseSetId,
+      })
+      .from(metaApiReleaseSets)
+      .where(eq(metaApiReleaseSets.id, candidateReleaseSetId))
+      .limit(1)
+      .get()
+    if (!releaseSet) {
+      throw new Error(`API release set not found: ${candidateReleaseSetId}`)
+    }
+
+    const groups = await db
+      .select()
+      .from(metaApiFieldProvenanceGroups)
+      .where(eq(metaApiFieldProvenanceGroups.apiReleaseSetId, releaseSet.id))
+      .all()
+
+    if (groups.length) {
+      for (const group of groups) {
+        const key = apiFieldProvenanceGroupKey(
+          group.resourceType,
+          group.apiField,
+          group.variant,
+        )
+        if (resolved.has(key)) continue
+        resolved.set(key, {
+          apiField: group.apiField,
+          isDeleted: group.isDeleted,
+          resourceType: group.resourceType,
+          rows: [],
+          sourceReleaseSetId: releaseSet.id,
+          variant: group.variant,
+          versionHash: group.versionHash,
+        })
+      }
+    } else {
+      // Existing release sets predate field groups. Their rows form a complete
+      // baseline; the next publication writes only changed groups.
+      const rows = (await db
+        .select()
+        .from(metaApiFieldProvenance)
+        .where(eq(metaApiFieldProvenance.apiReleaseSetId, releaseSet.id))
+        .all()) as ApiFieldProvenanceRow[]
+      for (const [key, group] of groupApiFieldProvenanceRows(rows, null)) {
+        if (!resolved.has(key)) resolved.set(key, group)
+      }
+    }
+
+    candidateReleaseSetId = releaseSet.supersedesApiReleaseSetId
+  }
+
+  return resolved
+}
+
+/** Materialise the effective field rows without duplicating inherited groups. */
+export async function listApiFieldProvenanceForReleaseSet(
+  db: HarbourReadableDb,
+  releaseSetId: string,
+) {
+  const groups = await resolveEffectiveApiFieldProvenanceGroups(db, releaseSetId)
+  const rows: ApiFieldProvenanceRow[] = []
+
+  for (const group of groups.values()) {
+    if (group.isDeleted) continue
+    rows.push(
+      ...((await db
+        .select()
+        .from(metaApiFieldProvenance)
+        .where(
+          and(
+            eq(metaApiFieldProvenance.apiReleaseSetId, group.sourceReleaseSetId),
+            eq(metaApiFieldProvenance.resourceType, group.resourceType),
+            eq(metaApiFieldProvenance.apiField, group.apiField),
+            group.variant === 'default'
+              ? isNull(metaApiFieldProvenance.variant)
+              : eq(metaApiFieldProvenance.variant, group.variant),
+          ),
+        )
+        .all()) as ApiFieldProvenanceRow[]),
+    )
+  }
+
+  return rows.sort(
+    (left, right) =>
+      left.resourceType.localeCompare(right.resourceType) ||
+      left.apiField.localeCompare(right.apiField) ||
+      (left.variant ?? '').localeCompare(right.variant ?? '') ||
+      left.id.localeCompare(right.id),
+  )
+}
+
 export async function resetFailedDataset(
   db: HarbourWritableDb & HarbourReadableDb,
   plan: UploadPlan,
@@ -4501,6 +4692,7 @@ export async function publishReleaseArtefacts(
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       status: metaApiReleaseSets.status,
+      supersedesApiReleaseSetId: metaApiReleaseSets.supersedesApiReleaseSetId,
     })
     .from(metaApiReleaseSets)
     .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
@@ -4962,6 +5154,28 @@ export async function publishReleaseArtefacts(
       })()
     : []
 
+  const apiFieldProvenanceGroups = groupApiFieldProvenanceRows(
+    apiFieldProvenanceRows,
+    resolvedApiFieldFixture?.versionHash ?? null,
+  )
+  const inheritedApiFieldProvenanceGroups = deferApiReleaseSet
+    ? new Map<string, ApiFieldProvenanceGroup>()
+    : await resolveEffectiveApiFieldProvenanceGroups(
+        db,
+        releaseSet.supersedesApiReleaseSetId,
+      )
+  const changedApiFieldProvenanceGroups = [...apiFieldProvenanceGroups].filter(
+    ([key, group]) => {
+      const inherited = inheritedApiFieldProvenanceGroups.get(key)
+      return (
+        !inherited || inherited.isDeleted || inherited.versionHash !== group.versionHash
+      )
+    },
+  )
+  const deletedApiFieldProvenanceGroups = [
+    ...inheritedApiFieldProvenanceGroups.entries(),
+  ].filter(([key, group]) => !group.isDeleted && !apiFieldProvenanceGroups.has(key))
+
   await runAtomicWriteStatements(db as AtomicWritableDb, tx => {
     const statements: WriteStatement[] = chunkArray(
       sourceReleaseSnapshotIds,
@@ -5051,6 +5265,9 @@ export async function publishReleaseArtefacts(
         tx
           .delete(metaApiFieldProvenance)
           .where(eq(metaApiFieldProvenance.apiReleaseSetId, args.releaseSetId)),
+        tx
+          .delete(metaApiFieldProvenanceGroups)
+          .where(eq(metaApiFieldProvenanceGroups.apiReleaseSetId, args.releaseSetId)),
       )
 
       if (!shouldActivateReleaseSet) {
@@ -5132,8 +5349,35 @@ export async function publishReleaseArtefacts(
     }
 
     if (!deferApiReleaseSet) {
-      for (const row of apiFieldProvenanceRows) {
-        statements.push(tx.insert(metaApiFieldProvenance).values(row))
+      for (const [, group] of changedApiFieldProvenanceGroups) {
+        statements.push(
+          tx.insert(metaApiFieldProvenanceGroups).values({
+            apiReleaseSetId: args.releaseSetId,
+            resourceType: group.resourceType,
+            apiField: group.apiField,
+            variant: group.variant,
+            isDeleted: false,
+            versionHash: group.versionHash,
+            createdAt: publishedAt,
+          }),
+        )
+        for (const row of group.rows) {
+          statements.push(tx.insert(metaApiFieldProvenance).values(row))
+        }
+      }
+
+      for (const [, group] of deletedApiFieldProvenanceGroups) {
+        statements.push(
+          tx.insert(metaApiFieldProvenanceGroups).values({
+            apiReleaseSetId: args.releaseSetId,
+            resourceType: group.resourceType,
+            apiField: group.apiField,
+            variant: group.variant,
+            isDeleted: true,
+            versionHash: group.versionHash,
+            createdAt: publishedAt,
+          }),
+        )
       }
     }
 

@@ -17,11 +17,14 @@ these remain distinct from drawn stubs.
 1. Search for a division or filter for missing areas at levels 0–5. Landforms have no
    numeric level. Select a division, then choose **Draw area**.
 2. Click vertices on the map. Lower-level points inside the draft are highlighted.
-   Double-click or choose **Finish** to close it. Vertices can be dragged; **Undo
-   vertex** removes the latest vertex. **Cancel** discards the current edit.
+   Choose **Finish** to close it. Vertices can be dragged; **Undo vertex** removes the
+   latest vertex. **Cancel** discards the current edit.
 3. Use **Edit stub** to adjust the first exterior ring, or **Add polygon part** for a
    disconnected area. Imported holes and other parts are retained during editing. Stubs
    use valid closed polygon rings with at most 2,000 distinct vertices per ring.
+   **Adjoin boundary** copies the shortest boundary path between two selected nodes from
+   a nearby polygon. **Adjoin street** replaces the nearest active-ring path with the
+   shortest connected route through the local street-centreline graph.
 4. Choose **Derive hierarchy** to inspect point membership and competing parents.
    Level-6 divisions are points only: draw level-5 parents instead. A point in multiple
    same-tier polygons receives the smallest containing polygon; division ID breaks ties.
@@ -46,6 +49,10 @@ when no centreline is within five metres, and the coastline clip is applied afte
 so coastline geometry takes precedence. Other levels are preserved. **Undo last
 cleanup** restores the previous browser-storage state; download the cleaned fixture
 after review.
+
+The review page loads local OSM highway centrelines from the Hong Kong extract dated
+2026-07-29. The source is kept as an ignored local-review asset because it is only
+needed for interactive cleanup.
 
 ## Derivation and application
 

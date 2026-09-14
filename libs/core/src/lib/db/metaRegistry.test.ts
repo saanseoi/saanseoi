@@ -16,6 +16,7 @@ import {
   getLatestNewerDatasetRelease,
   getLatestDatasetForRegionSourceDatasetType,
   insertDataset,
+  listApiFieldProvenanceForReleaseSet,
   listRegistryApiReleaseProcessingActions,
   listRegistryApiReleaseProcessingActionSections,
   listRegistrySourceReleaseProcessingActions,
@@ -1176,6 +1177,17 @@ id TEXT PRIMARY KEY,
       versionHash TEXT NOT NULL,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
+    );
+
+    CREATE TABLE apiFieldProvenanceGroups (
+      apiReleaseSetId TEXT NOT NULL,
+      resourceType TEXT NOT NULL,
+      apiField TEXT NOT NULL,
+      variant TEXT NOT NULL DEFAULT 'default',
+      isDeleted INTEGER NOT NULL DEFAULT 0,
+      versionHash TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      PRIMARY KEY (apiReleaseSetId, resourceType, apiField, variant)
     );
 
     CREATE TABLE publishedDataJournal (
@@ -3598,6 +3610,71 @@ describe('publishReleaseArtefacts', () => {
         statusTo: 'published',
       },
     ])
+
+    sqlite.exec(`
+      INSERT INTO apiReleaseSets (
+        id, apiVersionId, regionCode, domainCode, cohortKey, revision,
+        supersedesApiReleaseSetId, schemaVersion, rulesetVersion, status,
+        publishedAt, validFrom, validTo, updatedAt
+      ) VALUES (
+        'release-set-2',
+        'api-version-1',
+        'hk',
+        'geographic',
+        '2026-06-17.0',
+        1,
+        'release-set-1',
+        'sv-division-v1',
+        'rs-division-merge-v1',
+        'draft',
+        null,
+        null,
+        null,
+        1760000000000
+      );
+    `)
+
+    await publishReleaseArtefacts(db, {
+      carriedSnapshots: [],
+      currentRelease: null,
+      currentReleaseIsCorrected: false,
+      dataset: {
+        datasetId: 'dataset-1',
+        releaseCode: 'release-code-1',
+        releaseId: 'release-1',
+        source: 'overture',
+      },
+      publishedAt: '2026-06-30T00:00:00.000Z',
+      publishApiCatalogRevision: false,
+      releaseSetId: 'release-set-2',
+      snapshotId: 'snapshot-new',
+      resourceType: 'division',
+      updateDatasetRelease: false,
+    })
+
+    expect(
+      sqlite
+        .query(
+          'SELECT COUNT(*) AS count FROM apiFieldProvenance WHERE apiReleaseSetId = ?',
+        )
+        .get('release-set-2'),
+    ).toEqual({ count: 0 })
+    expect(
+      sqlite
+        .query(
+          'SELECT COUNT(*) AS count FROM apiFieldProvenanceGroups WHERE apiReleaseSetId = ?',
+        )
+        .get('release-set-2'),
+    ).toEqual({ count: 0 })
+    expect(
+      sortProvenanceRows(
+        (await listApiFieldProvenanceForReleaseSet(db, 'release-set-2')).map(row => ({
+          apiField: row.apiField,
+          resourceType: row.resourceType,
+          inputs: JSON.stringify(row.inputs),
+        })),
+      ),
+    ).toEqual(sortProvenanceRows(provenanceRows))
   })
 
   test('does not treat a lookup dependency as a conflicting release-set source schema', async () => {
