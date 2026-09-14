@@ -39,6 +39,63 @@
         "class": "major_island"
       },
       "reason": "Lantau is a physical island, not an administrative Area. Preserve its publisher identity, source assertions and area geometry; retain it in landform ancestry and exclude it from administrative ancestry."
+    },
+    {
+      "id": "overture_hong_kong_kennedy_town_reclassified",
+      "source": "overture",
+      "divisionId": "b56a6e1a-8519-4147-8dd4-342addf54c92",
+      "names": [
+        "Kennedy Town",
+        "堅尼地城"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Kennedy Town is a neighbourhood within Sai Wan. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_shek_tong_tsui_reclassified",
+      "source": "overture",
+      "divisionId": "183013ef-20f3-417d-8881-16c1e9a9f7e2",
+      "names": [
+        "Shek Tong Tsui",
+        "石塘咀"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Shek Tong Tsui is a neighbourhood within Sai Wan. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_sai_ying_pun_reclassified",
+      "source": "overture",
+      "divisionId": "0058e21e-a916-4762-8da1-ba6694204a35",
+      "names": [
+        "Sai Ying Pun",
+        "西營盤"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Sai Ying Pun is a neighbourhood within Sai Wan. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
     }
   ]
 }

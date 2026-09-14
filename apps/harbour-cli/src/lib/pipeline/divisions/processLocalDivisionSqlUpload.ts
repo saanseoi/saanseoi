@@ -1,5 +1,6 @@
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { createHash } from '@repo/core/pipeline/utils'
+import { divisionClassificationFixture } from '@repo/core/pipeline/services/divisions'
 import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
 import {
@@ -109,6 +110,7 @@ import {
   buildDivisionSourceSqlFile,
 } from './processLocalDivisionSqlUploadRows.ts'
 import { buildDivisionMetaSqlFile } from './processLocalDivisionSqlUploadMetadata.ts'
+import { resolveDivisionDeliveryPhase } from './divisionDeliveryPhase.ts'
 
 export async function processLocalDivisionSqlUpload(
   target: UploadTarget,
@@ -362,25 +364,31 @@ export async function processLocalDivisionSqlUpload(
       publicationToken: releaseId,
       timestamp: processingRunStartedAt,
     }
+    const deliveryInputs = {
+      classificationFixtureHash: await createHash(divisionClassificationFixture),
+      preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
+      snapshotId: versionInsertContext.snapshotId,
+      // Reviewed Geographic rows are an input to the captured SQL plan.
+      // Include their content in the cache key so a curation change cannot
+      // reuse a source-only delivery for an already registered release.
+      supplementalRowsHash: await createHash(options.supplementalRows ?? []),
+      ...(options.nativeRows
+        ? { nativeRowsHash: await createHash(options.nativeRows) }
+        : {}),
+    }
+    const deliveryPhase = await resolveDivisionDeliveryPhase({
+      ...deliveryInputs,
+      rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
+    })
     const deliveryOutputs = await deliverSqlPhase(
       {
         context: dbContext,
         releaseId,
-        phase: 'division-data',
+        phase: deliveryPhase,
         resolvedFamily: 'division',
         publicationTables: ['divisionPublicationState'],
         nativeLocal: true,
-        inputs: {
-          preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
-          snapshotId: versionInsertContext.snapshotId,
-          // Reviewed Geographic rows are an input to the captured SQL plan.
-          // Include their content in the cache key so a curation change cannot
-          // reuse a source-only delivery for an already registered release.
-          supplementalRowsHash: await createHash(options.supplementalRows ?? []),
-          ...(options.nativeRows
-            ? { nativeRowsHash: await createHash(options.nativeRows) }
-            : {}),
-        },
+        inputs: deliveryInputs,
         captureOutputs: () => ({ sqlArtefactCount, ...completionCounts }),
         validateOutputs: readDivisionDeliveryOutputs,
         onProgress: (completed, total) =>
