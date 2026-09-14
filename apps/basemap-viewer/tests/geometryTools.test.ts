@@ -70,7 +70,7 @@ describe('town stub geometry cleanup', () => {
     ])
   })
 
-  it('clips water, closes a small seam, partitions overlap, and preserves other levels', () => {
+  it('clips water, partitions overlap, and preserves other levels', () => {
     const inventory: ReviewInventory = {
       schemaVersion: 1,
       region: 'hk',
@@ -176,15 +176,13 @@ describe('town stub geometry cleanup', () => {
       expect(result.levelCount).toBe(1)
       expect(result.changedCount).toBe(1)
       expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
-        level === 4
-          ? LEVEL_4_GEOMETRY_CLEANUP_VERSION
-          : 'level-5-land-coverage-road-snap-v8',
+        level === 4 ? LEVEL_4_GEOMETRY_CLEANUP_VERSION : TOWN_GEOMETRY_CLEANUP_VERSION,
       )
       expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(level)
     }
   })
 
-  it('keeps L4 corners to one miter point instead of round-join arcs', () => {
+  it('preserves every L4 collinear node', () => {
     const inventory: ReviewInventory = {
       schemaVersion: 1,
       region: 'hk',
@@ -234,16 +232,16 @@ describe('town stub geometry cleanup', () => {
       result.stubs.features[0]!.geometry.type === 'Polygon'
         ? result.stubs.features[0]!.geometry.coordinates[0]!
         : result.stubs.features[0]!.geometry.coordinates[0]![0]!
-    expect(ring).toHaveLength(5)
+    expect(ring).toHaveLength(12)
     expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
       LEVEL_4_GEOMETRY_CLEANUP_VERSION,
     )
     expect(
       result.stubs.features[0]?.properties.geometryCleanupCoastlineDetailMetres,
-    ).toBe(3)
+    ).toBe(0)
   })
 
-  it('snaps nearby boundary vertices to a street centreline before the land clip', () => {
+  it('preserves an exterior boundary when a street snap would change coverage', () => {
     const inventory: ReviewInventory = {
       schemaVersion: 1,
       region: 'hk',
@@ -290,7 +288,7 @@ describe('town stub geometry cleanup', () => {
       geometry.type === 'Polygon'
         ? geometry.coordinates.flat(1)
         : geometry.coordinates.flat(2)
-    expect(Math.min(...coordinates.map(point => point[0]!))).toBeCloseTo(0.5, 7)
+    expect(Math.min(...coordinates.map(point => point[0]!))).toBeCloseTo(0.50003, 7)
     expect(result.stubs.features[0]?.properties.geometryCleanupRoadSnapMetres).toBe(
       TOWN_GEOMETRY_CLEANUP_ROAD_SNAP_METRES,
     )
@@ -346,7 +344,7 @@ describe('town stub geometry cleanup', () => {
     expect(Math.min(...coordinates.map(point => point[0]!))).toBeCloseTo(0.5001, 7)
   })
 
-  it('removes sub-centimetre road-snap segments before L4 overlays', () => {
+  it('retains sub-centimetre source segments', () => {
     const inventory: ReviewInventory = {
       schemaVersion: 1,
       region: 'hk',
@@ -406,7 +404,7 @@ describe('town stub geometry cleanup', () => {
     expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(4)
   })
 
-  it('keeps the ordered vertices along a street boundary while simplifying L4', () => {
+  it('keeps every ordered exterior vertex near a street', () => {
     const inventory: ReviewInventory = {
       schemaVersion: 1,
       region: 'hk',
@@ -472,7 +470,8 @@ describe('town stub geometry cleanup', () => {
     expect(
       ring.some(
         position =>
-          Math.abs(position[0]! - 0) < 1e-12 && Math.abs(position[1]! - 0.5) < 1e-12,
+          Math.abs(position[0]! - 0.00001) < 1e-12 &&
+          Math.abs(position[1]! - 0.5) < 1e-12,
       ),
     ).toBe(true)
     expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
@@ -529,6 +528,6 @@ describe('town stub geometry cleanup', () => {
         expect(overlap).toBeLessThan(1e-12)
       }
     }
-    expect(second.changedCount).toBe(3)
+    expect(second.changedCount).toBe(2)
   })
 })

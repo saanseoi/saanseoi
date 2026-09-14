@@ -23,7 +23,7 @@ const rectangle = (west: number, east: number): Polygon => ({
 })
 
 describe('town cleanup reruns', () => {
-  it('does not reprocess a town already cleaned by the current version', () => {
+  it('validates current-version geometry instead of trusting a marker', () => {
     const inventory: ReviewInventory = {
       schemaVersion: 1,
       region: 'hk',
@@ -68,11 +68,11 @@ describe('town cleanup reruns', () => {
       ],
     }
 
-    const result = cleanTownStubGeometries(stubs, inventory, {
-      type: 'FeatureCollection',
-      features: [],
-    })
-
-    expect(result).toEqual({ stubs, townCount: 1, changedCount: 0 })
+    expect(() =>
+      cleanTownStubGeometries(stubs, inventory, {
+        type: 'FeatureCollection',
+        features: [],
+      }),
+    ).toThrow('Coastline land data is empty')
   })
 })
