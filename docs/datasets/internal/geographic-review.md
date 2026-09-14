@@ -35,13 +35,14 @@ cohort and identity, replaces matching drawn divisions and retains other saved d
 Download fixtures to keep a durable copy outside browser storage. Reference polygons are
 never overwritten.
 
-The **Clean town stubs** action applies only to saved level-3 town stubs. It clips each
-town to the retained `hongkong-2026-09-01.coastline-land.geojson` layer, simplifies the
-coastline to medium 20-metre detail, closes seams up to five metres, and assigns the
-combined footprint in stable division-ID order so town polygons do not overlap. The
-coastline clip is applied before the final output is written, and area, district and
-landform stubs are preserved. **Undo town clean-up** restores the previous
-browser-storage state; download the cleaned fixture after review.
+The **Geometry cleanup** controls apply to saved level-3, level-4 and level-5 stubs.
+Each selected level is clipped to the retained
+`hongkong-2026-09-01.coastline-land.geojson` layer, simplifies the coastline to medium
+20-metre detail, closes seams up to five metres, and assigns the combined footprint in
+stable division-ID order so adjoining polygons do not overlap. The coastline clip is
+applied before the final output is written, and other levels are preserved. **Undo last
+cleanup** restores the previous browser-storage state; download the cleaned fixture
+after review.
 
 ## Derivation and application
 

@@ -69,21 +69,26 @@ and Lok Ma Chau Loop, then removes the configured Shenzhen Bay Port exclusion.
 [Minimal initialisation](../minimal-initialisation.md) selects two Overture and Planning
 versions while retaining the configured companion geometry prerequisites.
 
-Lantau retains its source identity and area geometry as `landform / major_island`. A
-guarded fixture excludes it from administrative ancestry. The three administrative Areas
-are Hong Kong Island, Kowloon and New Territories. Source assertions remain unchanged.
-See the [internal geographic review workflow](../internal/geographic-review.md) for
+Lantau retains its Overture Division identity as `landform / major_island`, while its
+SaanSeoi area uses the reviewed Protomaps island polygon. A guarded fixture excludes it
+from administrative ancestry. The three administrative Areas are Hong Kong Island,
+Kowloon and New Territories. Source assertions remain unchanged. See the
+[internal geographic review workflow](../internal/geographic-review.md) for
 cohort-scoped ancestry decisions and local area drawing.
 
-Named islands are curated as geographic landforms. The LandsD Place Name release is
-retained as source evidence alongside the basemap extraction; it is not used as a second
-island identity namespace. Gazetteer membership is recorded in structured
-`sourceProperties.gazetteer` evidence, while provider IDs remain in `identifiers` and
-source assertions. The local curation processor emits the review artefact at
+Named islands are curated as geographic landforms in a separate SaanSeoi assembly. The
+native Overture Division source remains independently selectable. Where a reviewed
+crosswalk exists, the assembled division retains the Overture ID; otherwise the assembly
+uses a stable SaanSeoi fallback ID. LandsD Place Name records provide official names and
+aliases, while `protomapsIslandFeatures` retains the selected native polygon. The
+assembly never unions Overture and island polygons. Each canonical record exposes its
+provider membership and contribution role in `sources`: Overture `identity` and
+`membership`, LandsD `official-name` and `alias`, Protomaps `geometry`, and SaanSeoi
+`geometry-selection`. The local curation processor emits the review artefact at
 `.local/harbour/islands/curated-review.json`, sorted by area, with English, Traditional
 Chinese and alias names. Explicit exclusions and island groups are omitted from the
-island output, and Overture Hong Kong division uploads stop when a new basemap name or
-new geometry for a previously no-geometry candidate needs review.
+island output, and the SaanSeoi assembly stops when a new basemap name or new geometry
+for a previously no-geometry candidate needs review.
 
 ## API release statistics
 
@@ -295,11 +300,13 @@ context. Remote receipts confirm each retained payload before the identical SQL 
 the shared mirror; publication follows delivery.
 
 The Divisions API family combines canonical divisions with geometry companions. Geometry
-variants are source-specific records and are not merged. The family currently requires
-canonical `division`, Overture `divisionArea`, Overture `divisionBoundary`, and the
-latest published HAD and C&SD district-area snapshots at or before the set cohort. The
-boundary requirement remains exact-cohort Overture. This keeps the two authoritative
-district-area sources in every Overture release without selecting future data.
+variants are source-specific records and are not merged. Geographic `include=areas`
+selects the assembled `saanseoi` variant by default; `include=areas:overture` selects
+the native Overture geometry. The family currently requires canonical `division`,
+Overture `divisionArea`, Overture `divisionBoundary`, and the latest published HAD and
+C&SD district-area snapshots at or before the set cohort. The boundary requirement
+remains exact-cohort Overture. This keeps the two authoritative district-area sources in
+every Overture release without selecting future data.
 
 When Divisions release-set publication is deferred, every nested source upload retains
 that deferral. It may publish its source release and snapshot, but it cannot create an
@@ -345,8 +352,8 @@ Home Affairs Department profiles are kept in the provider source folders:
 - [`Planning Department TPU and subunit areas`](../sources/hkgov-pland/divisionArea.md)
 - [`LandsD place names`](../sources/hkgov-landsd/placeName.md)
 
-The default `geographic` domain retains Overture as its primary provider variant, rather
-than using the provider name as the domain identity. If Overture omits Hong Kong Island,
+The default `geographic` domain retains SaanSeoi as its assembled provider variant, with
+Overture available as an explicit native variant. If Overture omits Hong Kong Island,
 Kowloon, or the New Territories, ingestion restores their level-1 `area` identities from
 the configured district members. Every one of those recognised areas receives an
 individual Overture `divisionArea` geometry patch when Overture omits its own area
