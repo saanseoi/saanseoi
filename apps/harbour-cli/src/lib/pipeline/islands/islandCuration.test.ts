@@ -2,6 +2,8 @@ import { expect, test } from 'bun:test'
 import {
   assertIslandCurationReady,
   curateIslands,
+  curatedIslandToSaanSeoiDivisionAreaRow,
+  curatedIslandToSaanSeoiDivisionRow,
   type IslandInventoryEntry,
   type IslandReviewFixture,
 } from './islandCuration.ts'
@@ -65,6 +67,72 @@ test('emits accepted islands and merges aliases with source evidence', () => {
   expect(result.islands[0]?.names.alternativesEn).toEqual(['Tung Ping Chau'])
   expect(result.islands[0]?.sourceProperties.gazetteer.landsdPlaceName).toBe(true)
   expect(result.islands[0]?.sources).toHaveLength(2)
+})
+
+test('retains a reviewed Overture identity while selecting Protomaps geometry', () => {
+  const lantau = entry('LANDSD:PLACE_NAME:838', 'Lantau Island', {
+    overtureDivisionId: '3707878f-080b-42cf-aecf-89fef56a066a',
+    overtureRelease: '2026-08-19.0',
+    protomapsFeatureId: 'protomaps:island:lantau',
+  })
+  const result = curateIslands([lantau], {
+    curationPolicy: { version: 1, actions: [], aliasGroups: [] },
+    entries: [{ ...lantau, decision: 'accepted' }],
+  })
+  const island = result.islands[0]!
+  expect(island.selection).toEqual({
+    overtureDivisionId: '3707878f-080b-42cf-aecf-89fef56a066a',
+    overtureRelease: '2026-08-19.0',
+    protomapsFeatureId: 'protomaps:island:lantau',
+    protomapsRelease: null,
+    landsdPlaceNameIds: ['LANDSD:PLACE_NAME:838'],
+  })
+  const row = curatedIslandToSaanSeoiDivisionRow(island)
+  expect(row.id).toBe('3707878f-080b-42cf-aecf-89fef56a066a')
+  expect(row.sources).toEqual({
+    overture: [
+      {
+        dataset: 'overture',
+        record_id: '3707878f-080b-42cf-aecf-89fef56a066a',
+        release: '2026-08-19.0',
+        contributions: ['identity', 'membership'],
+      },
+    ],
+    hkgovLandsd: [
+      {
+        dataset: 'hkgov-landsd',
+        record_id: 'LANDSD:PLACE_NAME:838',
+        release: '2026-06-10.0',
+        contributions: ['official-name', 'alias'],
+      },
+    ],
+    protomaps: [
+      {
+        dataset: 'protomaps',
+        record_id: 'protomaps:island:lantau',
+        release: null,
+        contributions: ['geometry'],
+      },
+    ],
+    saanseoi: [
+      {
+        dataset: 'saanseoi-island-curation',
+        record_id: 'LANDSD:PLACE_NAME:838',
+        contributions: ['geometry-selection'],
+        policy_version: 1,
+      },
+    ],
+  })
+  expect(curatedIslandToSaanSeoiDivisionAreaRow(island)).toMatchObject({
+    id: '3707878f-080b-42cf-aecf-89fef56a066a:saanseoi',
+    divisionId: '3707878f-080b-42cf-aecf-89fef56a066a',
+    variant: 'saanseoi',
+    geometry: lantau.geometry,
+    type: 'land',
+    isLand: true,
+    isTerritorial: false,
+    sources: row.sources,
+  })
 })
 
 test('blocks an uncurated basemap name and geometry gained by a no-geometry candidate', () => {

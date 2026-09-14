@@ -20,6 +20,12 @@ export type IslandInventoryEntry = {
   sourceRelease?: string
   sourceTags?: Record<string, unknown>
   identifiers?: string[]
+  /** Reviewed crosswalk to the Overture division whose identity is retained. */
+  overtureDivisionId?: string
+  /** Overture source version that supplied the retained identity. */
+  overtureRelease?: string
+  /** Stable native feature ID in the selected Protomaps baseline. */
+  protomapsFeatureId?: string
   geometryOptions?: Array<{
     label?: string
     geometry: IslandGeometry
@@ -94,6 +100,13 @@ export type CuratedIsland = {
   class: 'island'
   identifiers: string[]
   sources: IslandSourceEvidence[]
+  selection: {
+    overtureDivisionId: string | null
+    overtureRelease: string | null
+    protomapsFeatureId: string
+    protomapsRelease: string | null
+    landsdPlaceNameIds: string[]
+  }
   sourceProperties: {
     gazetteer: {
       landsdPlaceName: boolean
@@ -290,6 +303,24 @@ export function curateIslands(
         ...aliases.flatMap(alias => alias.identifiers ?? []),
       ]),
       sources,
+      selection: {
+        overtureDivisionId:
+          sourceEntries.find(source => source.overtureDivisionId)?.overtureDivisionId ??
+          null,
+        overtureRelease:
+          sourceEntries.find(source => source.overtureRelease)?.overtureRelease ?? null,
+        protomapsFeatureId:
+          sourceEntries.find(source => source.protomapsFeatureId)?.protomapsFeatureId ??
+          `${entry.id}:selected-geometry`,
+        protomapsRelease:
+          review.basemapRelease ??
+          sourceEntries.find(source => source.coverage === 'basemap-only')
+            ?.sourceRelease ??
+          null,
+        landsdPlaceNameIds: sourceEntries
+          .filter(source => source.coverage === 'landsd-gazetteer')
+          .map(source => source.id),
+      },
       sourceProperties: {
         gazetteer: {
           landsdPlaceName: sourceEntries.some(
@@ -358,8 +389,12 @@ export function formatIslandReviewTable(result: IslandCurationResult) {
     .join('\n')
 }
 
-/** Convert reviewed island evidence into a supplemental Geographic division row. */
-export function curatedIslandToDivisionRow(
+/**
+ * Build a SaanSeoi assembly row. This deliberately does not represent an
+ * Overture source record: the selected Overture ID is retained when there is
+ * one, while the island geometry remains the selected Protomaps assertion.
+ */
+export function curatedIslandToSaanSeoiDivisionRow(
   island: CuratedIsland,
 ): Record<string, unknown> {
   const names = [
@@ -370,7 +405,9 @@ export function curatedIslandToDivisionRow(
   ]
 
   return {
-    id: buildDeterministicUuidV5(CURATED_ISLAND_DIVISION_NAMESPACE, island.id),
+    id:
+      island.selection.overtureDivisionId ??
+      buildDeterministicUuidV5(CURATED_ISLAND_DIVISION_NAMESPACE, island.id),
     country: 'HK',
     theme: 'divisions',
     type: 'division',
@@ -387,14 +424,75 @@ export function curatedIslandToDivisionRow(
         curation: island.sourceProperties.curation,
       },
     },
-    sources: island.sources.map(source => ({
-      dataset: source.source,
-      version: source.sourceRelease ?? null,
-      record_id: source.featureId,
-      coverage: source.coverage,
-    })),
+    sources: {
+      ...(island.selection.overtureDivisionId
+        ? {
+            overture: [
+              {
+                dataset: 'overture',
+                record_id: island.selection.overtureDivisionId,
+                release: island.selection.overtureRelease,
+                contributions: ['identity', 'membership'],
+              },
+            ],
+          }
+        : {}),
+      ...(island.selection.landsdPlaceNameIds.length
+        ? {
+            hkgovLandsd: island.selection.landsdPlaceNameIds.map(record_id => ({
+              dataset: 'hkgov-landsd',
+              record_id,
+              release: island.sourceProperties.gazetteer.sourceRelease,
+              contributions: ['official-name', 'alias'],
+            })),
+          }
+        : {}),
+      protomaps: [
+        {
+          dataset: 'protomaps',
+          record_id: island.selection.protomapsFeatureId,
+          release: island.selection.protomapsRelease,
+          contributions: ['geometry'],
+        },
+      ],
+      saanseoi: [
+        {
+          dataset: 'saanseoi-island-curation',
+          record_id: island.id,
+          contributions: ['geometry-selection'],
+          policy_version: island.sourceProperties.curation.policyVersion,
+        },
+      ],
+    },
   }
 }
+
+/** Build the selected SaanSeoi DivisionArea companion for an island assembly row. */
+export function curatedIslandToSaanSeoiDivisionAreaRow(
+  island: CuratedIsland,
+): Record<string, unknown> {
+  const division = curatedIslandToSaanSeoiDivisionRow(island)
+  const divisionId = division.id as string
+  return {
+    id: `${divisionId}:saanseoi`,
+    divisionId,
+    variant: 'saanseoi',
+    geometry: island.geometry,
+    type: 'land',
+    isLand: true,
+    isTerritorial: false,
+    identifiers: {
+      saanseoiIsland: {
+        sourceId: island.id,
+        selectedProtomapsFeatureId: island.selection.protomapsFeatureId,
+      },
+    },
+    sources: division.sources,
+  }
+}
+
+/** @deprecated SaanSeoi island rows must be assembled outside native uploads. */
+export const curatedIslandToDivisionRow = curatedIslandToSaanSeoiDivisionRow
 
 export async function writeIslandCurationReview(
   result: IslandCurationResult,
