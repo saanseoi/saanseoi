@@ -833,9 +833,9 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
       "version": "1.1",
     },
     "links": {
-      "first": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "first": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%3Aoverture%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
       "permalink": "http://localhost/divisions/v0.1?catalogRevision=catalog-hk-divisions-v0.1-2026-08-14-r0&cohort=2025-09-24.0&domain=geographic&include=areas%3Aoverture%2Cboundaries%3Aoverture&knownAt=2026-08-14T00%3A00%3A00.000Z&locales=en%2Czh-hant&page%5Blimit%5D=25&page%5Boffset%5D=0&profile=default&releaseSet=data-hk-divisions-2025-09-24.0",
-      "self": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
+      "self": "http://localhost/divisions/v0.1?releaseSet=data-hk-divisions-2025-09-24.0&include=areas%3Aoverture%2Cboundaries&page%5Blimit%5D=25&page%5Boffset%5D=0",
     },
     "meta": {
       "apiCatalogRevision": "catalog-hk-divisions-v0.1-2026-08-14-r0",
@@ -1584,8 +1584,8 @@ exports[`Divisions API responses through the Worker route invalid request throug
   "response": {
     "details": [
       {
-        "code": "invalid_format",
-        "message": "Invalid string: must match pattern /^(none|(hierarchy|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?)(,(hierarchy|areas(?::(overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?))*)$/",
+        "code": "custom",
+        "message": "Invalid input",
         "path": "include",
       },
     ],

@@ -738,7 +738,7 @@ const requestCases = [
   },
   {
     name: 'areas and boundaries through app.fetch',
-    path: `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&include=areas,boundaries`,
+    path: `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&include=areas:overture,boundaries`,
   },
   {
     name: 'detail and hierarchy through app.fetch',
