@@ -52,7 +52,6 @@ import {
   assertIslandCurationUploadPrerequisites,
 } from './uploadReadiness.ts'
 import { formatSuccessfulReleaseMessage } from './uploadDisplay.ts'
-import { curatedIslandToDivisionRow } from '../pipeline/islands/islandCuration.ts'
 
 export async function runUploadCommand(
   args: ParsedArgs,
@@ -289,12 +288,9 @@ ${mutedBar}  `)
     const schemaVersionId = resolveSchemaVersionId(previewResult)
     const processingStrategy = resolveUploadProcessingStrategy(previewResult)
 
-    const islandCuration = await assertIslandCurationUploadPrerequisites(
-      previewResult.plan,
-    )
-    const supplementalDivisionRows = islandCuration?.islands.map(
-      curatedIslandToDivisionRow,
-    )
+    // The island review is a gate for the separate SaanSeoi assembly. Native
+    // Overture uploads retain only their publisher records.
+    await assertIslandCurationUploadPrerequisites(previewResult.plan)
 
     if (!options.dryRun) {
       await resumePendingSqlDeliveryForUpload(target, options.invocationCwd)
@@ -439,7 +435,6 @@ ${mutedBar}  `)
         revisionDraft,
         divisionGeometryTransform,
         cacheArtefacts,
-        supplementalDivisionRows,
       })
       await discardSuccessfulReleaseArtefacts(
         cacheArtefacts,

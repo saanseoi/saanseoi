@@ -129,7 +129,6 @@ export async function processPreparedUpload({
   revisionDraft,
   divisionGeometryTransform,
   cacheArtefacts,
-  supplementalDivisionRows,
 }: {
   cacheArtefacts: boolean
   processingStrategy: ReturnType<typeof resolveUploadProcessingStrategy>
@@ -140,7 +139,6 @@ export async function processPreparedUpload({
   options: Parameters<typeof runUploadCommand>[2]
   revisionDraft: () => Parameters<typeof logApiReleaseSetPublication>[1]
   divisionGeometryTransform: 'simplified' | undefined
-  supplementalDivisionRows?: Record<string, unknown>[]
 }) {
   if (processingStrategy.mode === 'local-address-sql') {
     if (
@@ -271,7 +269,6 @@ export async function processPreparedUpload({
         rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
         reuseExistingRelease: options.reuseExistingRelease,
         skipSnapshotCleanup: options.skipSnapshotCleanup,
-        supplementalRows: supplementalDivisionRows,
       },
     )
 
