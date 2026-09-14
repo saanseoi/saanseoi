@@ -210,19 +210,18 @@ describe('unsimplified topology repair', () => {
       expect((error as GeometryCleanupError).coordinates.length).toBeGreaterThan(0)
     }
   })
-  it('rejects old simplified output with division identity and affected coordinates', () => {
+  it('validates an older processed polygon using its saved shape as a preserved baseline', () => {
     const input = stubs(box(0, 1))
     input.features[0]!.properties.geometryCleanup = 'old-simplifier'
-    try {
-      run(input)
-      throw Error('expected failure')
-    } catch (error) {
-      const e = error as GeometryCleanupError
-      expect(e.divisionId).toBe('a')
-      expect(e.divisionName).toBe('Polygon a')
-      expect(e.coordinates).toContainEqual([0, 0])
-      expect(e.message).toContain('Unsimplified source required')
-    }
+    const before = structuredClone(input)
+    const result = run(input).stubs.features[0]!
+    expect(result.geometry).toEqual(run(stubs(box(0, 1))).stubs.features[0]!.geometry)
+    expect(result.properties.geometryWorkingBaseline).toMatchObject({
+      geometry: input.features[0]!.geometry,
+      processing: { geometryCleanup: 'old-simplifier' },
+    })
+    expect(result.properties.geometryOriginalDrawing).toBeUndefined()
+    expect(input).toEqual(before)
   })
   it('reports the actual self-intersection and leaves source unchanged', () => {
     const input = stubs(
@@ -278,7 +277,7 @@ describe('separate later simplification', () => {
     expect(points(restored, 1)).toContainEqual([1, 0.5])
     expect(restored.features[0]!.properties.geometrySimplification).toBeUndefined()
   })
-  it('refuses edited simplified output rather than discarding edits or treating it as raw source', async () => {
+  it('preserves edits to simplified output as the new working baseline', async () => {
     const { simplifyCleanedGeometries } = await import(
       '../src/local-review/division-areas/simplificationTools'
     )
@@ -290,68 +289,38 @@ describe('separate later simplification', () => {
     )
     const g = simplified.features[0]!.geometry as Polygon
     g.coordinates[0]![1]![0]! += 0.00001
-    expect(() => run(simplified)).toThrow('Unsimplified source required')
+    const result = run(simplified).stubs.features[0]!
+    expect(result.properties.geometryWorkingBaseline).toMatchObject({ geometry: g })
+    expect(result.properties.geometrySimplification).toBeUndefined()
   })
 })
 
-describe('retained source recovery', () => {
-  it('uses an exact source-area identity and preserves the original backup object', async () => {
+describe('saved drawing baseline', () => {
+  it('uses the current drawing even if a publisher source has a different shape', async () => {
     const { restoreUnsimplifiedCleanupSources } = await import(
       '../src/local-review/division-areas/cleanupSources'
     )
     const input = stubs(box(0, 1))
     input.features[0]!.properties.geometryCleanup = 'old-simplifier'
     input.features[0]!.properties.sourceAreaId = 'source-a'
-    const raw = polygon([
-      [0, 0],
-      [1, 0],
-      [1, 0.5],
-      [1, 1],
-      [0, 1],
-      [0, 0],
-    ])
-    const result = restoreUnsimplifiedCleanupSources(
-      input,
-      inventory,
+    for (const sources of [
+      [],
       [
         {
-          type: 'Feature',
+          type: 'Feature' as const,
           id: 'source-a',
-          geometry: raw,
-          properties: { divisionId: 'publisher-a', variant: 'publisher' },
+          geometry: box(0, 2),
+          properties: { divisionId: 'a', variant: 'publisher' },
         },
       ],
-      4,
-    )
-    expect(result.features[0]!.geometry).toEqual(raw)
-    expect(result.features[0]!.properties.divisionId).toBe('a')
+    ]) {
+      const prepared = restoreUnsimplifiedCleanupSources(input, inventory, sources, 4)
+      expect(prepared.features[0]!.geometry).toEqual(input.features[0]!.geometry)
+      expect(run(prepared).stubs.features[0]!.geometry).toEqual(
+        run(stubs(box(0, 1))).stubs.features[0]!.geometry,
+      )
+    }
     expect(input.features[0]!.properties.geometryCleanup).toBe('old-simplifier')
-    expect(points(run(result).stubs)).toContainEqual([1, 0.5])
-  })
-  it('rejects missing or conflicting source geometry instead of matching a name', async () => {
-    const { restoreUnsimplifiedCleanupSources } = await import(
-      '../src/local-review/division-areas/cleanupSources'
-    )
-    const input = stubs(box(0, 1))
-    input.features[0]!.properties.geometryCleanup = 'old-simplifier'
-    input.features[0]!.properties.sourceAreaId = 'source-a'
-    const source = (geometry: Polygon) => ({
-      type: 'Feature' as const,
-      id: 'source-a',
-      geometry,
-      properties: { divisionId: 'a', variant: 'publisher' },
-    })
-    expect(() => restoreUnsimplifiedCleanupSources(input, inventory, [], 4)).toThrow(
-      'no unique retained source-area match',
-    )
-    expect(() =>
-      restoreUnsimplifiedCleanupSources(
-        input,
-        inventory,
-        [source(box(0, 1)), source(box(0, 2))],
-        4,
-      ),
-    ).toThrow('no unique retained source-area match')
   })
 })
 
@@ -385,5 +354,106 @@ describe('hand-drawn originals', () => {
     expect(
       run(recovered).stubs.features[0]!.properties.geometryOriginalDrawing,
     ).toEqual(input.features[0]!.geometry)
+  })
+})
+
+describe('curved street snapping', () => {
+  it('adds road bend nodes to both sides of a two-node shared boundary', () => {
+    const result = run(stubs(box(0, 1), box(1, 2)), {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [1, 0],
+              [1.00002, 0.25],
+              [0.99998, 0.75],
+              [1, 1],
+            ],
+          },
+        },
+      ],
+    }).stubs
+    for (const index of [0, 1]) {
+      expect(points(result, index)).toContainEqual([1.00002, 0.25])
+      expect(points(result, index)).toContainEqual([0.99998, 0.75])
+    }
+  })
+  it('rejects an intervening road detour outside the tolerance', () => {
+    const result = run(stubs(box(0, 1), box(1, 2)), {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [1, 0],
+              [1.001, 0.5],
+              [1, 1],
+            ],
+          },
+        },
+      ],
+    }).stubs
+    expect(points(result)).not.toContainEqual([1.001, 0.5])
+  })
+})
+
+describe('selected cleanup', () => {
+  it('leaves unselected polygons and their metadata untouched', () => {
+    const input = stubs(box(0, 1), box(1, 2))
+    input.features[1]!.properties.geometryCleanup = 'old-simplifier'
+    const before = structuredClone(input)
+    const result = cleanStubGeometriesForLevel(
+      input,
+      inventory,
+      land(),
+      4,
+      undefined,
+      undefined,
+      new Set(['a']),
+    )
+    expect(result.levelCount).toBe(1)
+    expect(result.stubs.features[1]).toEqual(before.features[1])
+    expect(input).toEqual(before)
+    expect(result.snappedCount).toBe(0)
+    expect(result.addedNodeCount).toBe(0)
+    const empty = cleanStubGeometriesForLevel(
+      input,
+      inventory,
+      land(),
+      4,
+      undefined,
+      undefined,
+      new Set(),
+    )
+    expect(empty.stubs).toEqual(before)
+    expect(empty.levelCount).toBe(0)
+  })
+  it('reports added nodes only when street snapping inserts them', () => {
+    const result = run(stubs(box(0, 1), box(1, 2)), {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: {},
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [1, 0],
+              [1.00002, 0.5],
+              [1, 1],
+            ],
+          },
+        },
+      ],
+    })
+    expect(result.snappedCount).toBe(2)
+    expect(result.addedNodeCount).toBe(2)
   })
 })
