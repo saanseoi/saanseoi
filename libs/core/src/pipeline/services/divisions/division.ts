@@ -54,6 +54,7 @@ import {
   applyDivisionClassificationPatch,
   divisionClassificationFixture,
 } from './divisionClassificationPatch'
+import { applyDivisionExclusionPatch } from './divisionExclusionPatch'
 import type { ApiLocale } from '../../../lib/apiLocales'
 import {
   resolveLatestPublishedSnapshotForResourceTypeRegion,
@@ -579,6 +580,7 @@ export async function processDivisionDataset(
     const unchangedSourceIds = new Set<string>()
 
     for (const row of batch) {
+      const exclusion = applyDivisionExclusionPatch(row, message)
       const normalised = normaliseDivisionRow(row, {
         deferHierarchyGuard: replacedDivisionIds.has(String(row.id)),
         hierarchyLookup,
@@ -662,6 +664,17 @@ export async function processDivisionDataset(
           sourceUnchangedRows += 1
           unchangedSourceIds.add(normalised.base.id)
         }
+      }
+
+      if (exclusion) {
+        processingActions.push({
+          action: exclusion.id,
+          affectedRecordCount: 1,
+          evidence: { divisionId: normalised.base.id, sourceNames: row.names },
+          mode: 'manual',
+          summary: 'Excluded reviewed Overture division from canonical records.',
+        })
+        continue
       }
 
       // A reviewed fixture supplies the final canonical row for this identity.
@@ -1198,6 +1211,20 @@ function normaliseDivisionRowInternal(
           branchCounts: options.branchCounts,
         })
   const i18n = normaliseDivisionI18n(id, row.names, options.branchCounts)
+  if (overtureHongKongDivisionClassificationCorrection?.nameEn) {
+    const english = i18n.find(entry => entry.locale === 'en')
+    if (english) english.name = overtureHongKongDivisionClassificationCorrection.nameEn
+    else
+      i18n.push({
+        divisionId: id,
+        locale: 'en',
+        name: overtureHongKongDivisionClassificationCorrection.nameEn,
+        nameAlts: null,
+        nameRules: null,
+        nameVariant: null,
+        isLocaleInferred: false,
+      })
+  }
   const normalisedHierarchies = normaliseDivisionHierarchies(
     row.hierarchies,
     id,
@@ -1242,14 +1269,16 @@ function normaliseDivisionRowInternal(
       createdAt: now,
       divisionCode: null,
       geometry: normalisedGeometry,
-      hierarchies: options.skipGeographicHierarchyPatch
-        ? hierarchyWithHongKongArea.hierarchy
-        : geographicHierarchyPatchRule.execute({
-            id,
-            class: type,
-            hierarchies: hierarchyWithHongKongArea.hierarchy,
-            source: options.source,
-          }),
+      hierarchies:
+        options.skipGeographicHierarchyPatch ||
+        applyDivisionExclusionPatch(row, options.source)
+          ? hierarchyWithHongKongArea.hierarchy
+          : geographicHierarchyPatchRule.execute({
+              id,
+              class: type,
+              hierarchies: hierarchyWithHongKongArea.hierarchy,
+              source: options.source,
+            }),
       id,
       identifiers: row.identifiers ?? null,
       level,
@@ -2018,6 +2047,8 @@ export async function buildDivisionHierarchyLookup(
           },
         ])
       }
+
+      if (applyDivisionExclusionPatch(row, source)) continue
 
       const otSubtype = asNonEmptyString(row.subtype)
       const otClass = asNonEmptyString(row.class)

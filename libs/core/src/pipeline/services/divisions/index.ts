@@ -1,6 +1,7 @@
 /** Division processing, hierarchy and geometry services. */
 export * from './division'
 export * from './divisionClassificationPatch'
+export * from './divisionExclusionPatch'
 export * from './divisionFixtures'
 export * from './divisionGeometry'
 export * from './divisionHierarchies'

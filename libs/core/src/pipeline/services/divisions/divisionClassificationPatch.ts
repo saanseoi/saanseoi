@@ -36,7 +36,9 @@ export function validateDivisionClassificationFixture(value: unknown) {
       !e.expected.subtype ||
       !geographicDivisionClassification(e.replacement?.class) ||
       e.replacement.level !==
-        geographicDivisionClassification(e.replacement.class)?.level
+        geographicDivisionClassification(e.replacement.class)?.level ||
+      (e.replacement.nameEn != null &&
+        (typeof e.replacement.nameEn !== 'string' || !e.replacement.nameEn.trim()))
     )
       throw new Error('Invalid division classification patch entry.')
     ids.add(e.divisionId)
@@ -94,6 +96,7 @@ function applyClassification({
   return {
     level: entry.replacement.level,
     class: entry.replacement.class as GeographicDivisionClass,
+    ...(entry.replacement.nameEn ? { nameEn: entry.replacement.nameEn } : {}),
   }
 }
 

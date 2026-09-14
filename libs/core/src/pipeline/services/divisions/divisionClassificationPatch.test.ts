@@ -127,3 +127,36 @@ test('Central and Western neighbourhood patches apply only to their reviewed Ove
     }),
   ).toThrow('guard mismatch')
 })
+
+test('Hong Kong neighbourhood and name patches apply only to their reviewed Overture records', () => {
+  const rows = [
+    ['fc40613a-be4e-408f-9414-deae675850a7', 'macrohood'],
+    ['65a273eb-ce61-40db-ba4c-2f2f7fe496e0', 'microhood'],
+    ['e5322b23-24d0-46d7-affb-cae30cc883a8', 'microhood'],
+    ['5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac', 'macrohood'],
+    ['a60dba0a-41e2-4c84-ae70-05f647bd0e3a', 'macrohood'],
+  ] as const
+  for (const [id, subtype] of rows) {
+    expect(
+      normaliseDivisionRow(
+        { id, subtype, class: null, admin_level: null },
+        { source: { source: 'overture', sourceVersion: '2026-08-19.0' } },
+      ).base,
+    ).toMatchObject({ id, category: 'hood', class: 'neighbourhood', level: 5 })
+  }
+  expect(
+    normaliseDivisionRow(
+      {
+        id: '34eee784-7afc-41ec-aced-9f84eb92adec',
+        subtype: 'macrohood',
+        class: null,
+        admin_level: null,
+        names: {
+          primary: '柴灣區 Chai Wan District',
+          common: { en: 'Chai Wan District' },
+        },
+      },
+      { source: { source: 'overture', sourceVersion: '2026-08-19.0' } },
+    ).i18n.find(row => row.locale === 'en'),
+  ).toMatchObject({ name: 'Chai Wan' })
+})
