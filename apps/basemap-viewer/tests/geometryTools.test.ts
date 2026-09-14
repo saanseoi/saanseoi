@@ -161,7 +161,7 @@ describe('town stub geometry cleanup', () => {
       expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
         level === 4
           ? LEVEL_4_GEOMETRY_CLEANUP_VERSION
-          : 'level-5-land-coverage-road-snap-v5',
+          : 'level-5-land-coverage-road-snap-v7',
       )
       expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(level)
     }
@@ -327,6 +327,66 @@ describe('town stub geometry cleanup', () => {
         ? geometry.coordinates.flat(1)
         : geometry.coordinates.flat(2)
     expect(Math.min(...coordinates.map(point => point[0]!))).toBeCloseTo(0.5001, 7)
+  })
+
+  it('removes sub-centimetre road-snap segments before L4 overlays', () => {
+    const inventory: ReviewInventory = {
+      schemaVersion: 1,
+      region: 'hk',
+      domain: 'geographic',
+      cohort: 'test',
+      releaseSet: 'test',
+      divisions: [division('hood', 4)],
+    }
+    const result = cleanStubGeometriesForLevel(
+      {
+        type: 'FeatureCollection',
+        schemaVersion: 1,
+        region: 'hk',
+        domain: 'geographic',
+        cohort: 'test',
+        variant: 'stub',
+        features: [
+          stub('hood', {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [0.50003, 0],
+                [0.5000301, 0.00000001],
+                [1, 0],
+                [1, 1],
+                [0.50003, 1],
+                [0.50003, 0],
+              ],
+            ],
+          }),
+        ],
+      },
+      inventory,
+      {
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', properties: {}, geometry: rectangle(0, 2) }],
+      },
+      4,
+      {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [0.5, -1],
+                [0.5, 2],
+              ],
+            },
+          },
+        ],
+      },
+    )
+    expect(result.levelCount).toBe(1)
+    expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(4)
   })
 
   it('repartitions a level when a new stub is added after cleanup', () => {

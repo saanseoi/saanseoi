@@ -6,6 +6,10 @@ each row retains the source feature ID, acquisition locator, native properties, 
 polygon, release and validity history. It has no canonical division ID or selection
 state.
 
+The source is registered as `ds-hk-protomaps-island-feature` with the `protomaps`
+variant and `divisionArea` resource type. Its retained local baseline is `2026-09-01.0`,
+from the Hong Kong `refresh-hk-2026-09-01` map release.
+
 The island review fixture chooses a Protomaps feature only after review. That choice is
 stored with the assembled SaanSeoi snapshot and recorded in the canonical record as a
 `geometry` contribution. It does not alter the retained Overture Division or LandsD

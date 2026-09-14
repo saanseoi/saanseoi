@@ -1,0 +1,26 @@
+{
+  "versionHash": "sha256:e27b689a5c4438747e3bb78c180ceceb2f0988e6a11846780346c7cf1a354b3a",
+  "code": "protomaps",
+  "url": "https://protomaps.com/",
+  "contactUrl": "https://protomaps.com/legal",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Protomaps",
+      "nameShort": "Protomaps",
+      "description": "Open-source tools and map services for building and serving vector maps."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "Protomaps",
+      "nameShort": "Protomaps",
+      "description": "用於建立及提供向量地圖的開源工具和地圖服務。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "Protomaps",
+      "nameShort": "Protomaps",
+      "description": "用于建立和提供矢量地图的开源工具和地图服务。"
+    }
+  ]
+}
