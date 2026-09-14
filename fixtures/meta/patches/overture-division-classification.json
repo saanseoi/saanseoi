@@ -230,6 +230,25 @@
         "class": "neighbourhood"
       },
       "reason": "Admiralty is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_ngong_ping_reclassified",
+      "source": "overture",
+      "divisionId": "b14eba1a-b366-461d-a3ce-1d4c878fb997",
+      "names": [
+        "Ngong Ping",
+        "昂坪"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": "town",
+        "subtype": "locality"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "village"
+      },
+      "reason": "Ngong Ping is a Hong Kong village. Preserve the publisher classification in source storage and use the reviewed village classification in canonical records and hierarchy lookup."
     }
   ]
 }
