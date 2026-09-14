@@ -3,7 +3,10 @@ import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
 import type { Polygon, Position } from 'geojson'
-import { cleanTownStubGeometries } from '../src/local-review/division-areas/geometryTools'
+import {
+  cleanStubGeometriesForLevel,
+  cleanTownStubGeometries,
+} from '../src/local-review/division-areas/geometryTools'
 import type {
   ReviewDivision,
   ReviewInventory,
@@ -120,5 +123,94 @@ describe('town stub geometry cleanup', () => {
         feature => feature.properties.divisionId === 'district',
       ),
     ).toEqual(unchanged)
+  })
+
+  it('uses the same land cleanup for levels 4 and 5', () => {
+    for (const level of [4, 5] as const) {
+      const id = `level-${level}`
+      const inventory: ReviewInventory = {
+        schemaVersion: 1,
+        region: 'hk',
+        domain: 'geographic',
+        cohort: 'test',
+        releaseSet: 'test',
+        divisions: [division(id, level)],
+      }
+      const result = cleanStubGeometriesForLevel(
+        {
+          type: 'FeatureCollection',
+          schemaVersion: 1,
+          region: 'hk',
+          domain: 'geographic',
+          cohort: 'test',
+          variant: 'stub',
+          features: [stub(id, rectangle(-0.1, 1.1))],
+        },
+        inventory,
+        {
+          type: 'FeatureCollection',
+          features: [{ type: 'Feature', properties: {}, geometry: rectangle(0, 1) }],
+        },
+        level,
+      )
+      expect(result.levelCount).toBe(1)
+      expect(result.changedCount).toBe(1)
+      expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
+        `level-${level}-land-coverage-medium-v2`,
+      )
+      expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(level)
+    }
+  })
+
+  it('repartitions a level when a new stub is added after cleanup', () => {
+    const inventory: ReviewInventory = {
+      schemaVersion: 1,
+      region: 'hk',
+      domain: 'geographic',
+      cohort: 'test',
+      releaseSet: 'test',
+      divisions: [division('town-a', 3), division('town-b', 3), division('town-c', 3)],
+    }
+    const land = {
+      type: 'FeatureCollection' as const,
+      features: [
+        { type: 'Feature' as const, properties: {}, geometry: rectangle(0, 3) },
+      ],
+    }
+    const first = cleanTownStubGeometries(
+      {
+        type: 'FeatureCollection',
+        schemaVersion: 1,
+        region: 'hk',
+        domain: 'geographic',
+        cohort: 'test',
+        variant: 'stub',
+        features: [stub('town-a', rectangle(0, 1)), stub('town-b', rectangle(1, 2))],
+      },
+      inventory,
+      land,
+    )
+    const second = cleanTownStubGeometries(
+      {
+        ...first.stubs,
+        features: [...first.stubs.features, stub('town-c', rectangle(1.5, 2.5))],
+      },
+      inventory,
+      land,
+    )
+    const reader = new GeoJSONReader(new GeometryFactory())
+    const cleaned = second.stubs.features
+    for (let left = 0; left < cleaned.length; left += 1) {
+      for (let right = left + 1; right < cleaned.length; right += 1) {
+        const overlap = (
+          OverlayOp.intersection(
+            reader.read(JSON.stringify(cleaned[left]!.geometry)),
+            reader.read(JSON.stringify(cleaned[right]!.geometry)),
+          ) as Shape
+        ).getArea()
+        expect(overlap).toBeLessThan(1e-12)
+      }
+    }
+    expect(second.changedCount).toBe(3)
   })
 })
