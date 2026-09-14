@@ -1,15 +1,16 @@
 {
-  "versionHash": "sha256:b498b306038da33694ff25f352a4e86a7d94887f8c20c1f01068be9385f20715",
+  "versionHash": "sha256:978e8746c43ef2bc9ca57981ba771aa2437507f59275edcab1bdb8b1d40765ac",
   "publisherCode": "protomaps",
-  "code": "ds-hk-protomaps-island-feature",
+  "code": "ds-hk-protomaps-island",
   "regionCode": "hk",
-  "releaseType": "static",
-  "releaseFrequency": "as-needed",
+  "releaseType": "snapshot",
+  "releaseFrequency": "monthly",
   "theme": "divisions",
   "kind": "island",
   "sourceVariant": "protomaps",
   "sourceCrs": "EPSG:4326",
   "resourceTypes": [
+    "division",
     "divisionArea"
   ],
   "licenseCode": "ODbL",
@@ -66,6 +67,16 @@
       "locale": "zh-hans",
       "name": "岛屿要素",
       "description": "从 SaanSeoi 选定的香港 Protomaps 底图版本提取并经审核的岛屿多边形。它们是 SaanSeoi 地理组装所用的来源几何断言。"
+    }
+  ],
+  "mergeRules": [
+    {
+      "rulesetVersion": "rs-protomaps-island-assembly-v1",
+      "operationCodes": [
+        "select_reviewed_protomaps_island_features",
+        "materialise_saanseoi_island_divisions",
+        "materialise_saanseoi_island_division_areas"
+      ]
     }
   ]
 }

@@ -21,6 +21,15 @@ export type ResourceTheme = (typeof resourceThemes)[number]
 export type ResourceType = (typeof resourceTypes)[number]
 export type RegionCode = 'hk' | 'mo'
 
+export const geometryResourceTypes = ['divisionArea', 'divisionBoundary'] as const
+export type GeometryResourceType = (typeof geometryResourceTypes)[number]
+
+export function isGeometryResourceType(
+  resourceType: ResourceType,
+): resourceType is GeometryResourceType {
+  return geometryResourceTypes.includes(resourceType as GeometryResourceType)
+}
+
 export type DatasetRecord = {
   id: string
   datasetId: string
@@ -29,7 +38,7 @@ export type DatasetRecord = {
   releaseCode: string
   regionCode: string
   cohortKey: string
-  geometryStatus: GeometryStatus
+  geometryStatus: GeometryStatus | null
   theme: string
   resourceType: string
   kind: string | null
@@ -86,8 +95,8 @@ export type UploadPlan = {
   source: string
   sourceVersion: string
   /**
-   * The authority of a geometry materialisation. Omitted for non-geometry
-   * resources and for ordinary authoritative geometry.
+   * The authority of a division-area or division-boundary materialisation.
+   * Only valid for division-area and division-boundary uploads.
    */
   geometryStatus?: GeometryStatus
   filePath: string

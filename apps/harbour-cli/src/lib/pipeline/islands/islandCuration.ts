@@ -163,6 +163,10 @@ export async function loadIslandReviewInputs(options?: {
   return { inventory, review }
 }
 
+/**
+ * `select_reviewed_protomaps_island_features`: retain only curation-approved
+ * Protomaps geometry selections and block unknown names or geometry changes.
+ */
 export function curateIslands(
   inventory: readonly IslandInventoryEntry[],
   review: IslandReviewFixture,
@@ -390,7 +394,7 @@ export function formatIslandReviewTable(result: IslandCurationResult) {
 }
 
 /**
- * Build a SaanSeoi assembly row. This deliberately does not represent an
+ * `materialise_saanseoi_island_divisions`: build a SaanSeoi assembly row. This deliberately does not represent an
  * Overture source record: the selected Overture ID is retained when there is
  * one, while the island geometry remains the selected Protomaps assertion.
  */
@@ -467,7 +471,10 @@ export function curatedIslandToSaanSeoiDivisionRow(
   }
 }
 
-/** Build the selected SaanSeoi DivisionArea companion for an island assembly row. */
+/**
+ * `materialise_saanseoi_island_division_areas`: build the selected SaanSeoi
+ * DivisionArea companion for an island assembly row.
+ */
 export function curatedIslandToSaanSeoiDivisionAreaRow(
   island: CuratedIsland,
 ): Record<string, unknown> {

@@ -50,6 +50,7 @@ import type {
   ResourceType,
   UploadPlan,
 } from '../../types'
+import { isGeometryResourceType } from '../../types'
 import type { HarbourReadableDb, HarbourWritableDb } from './types'
 import type {
   ApiFamilyType,
@@ -2341,7 +2342,6 @@ export async function insertDataset(
       sourceSchemaVersion,
       publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
-      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2371,7 +2371,9 @@ export async function insertDataset(
       processingRules: dataset.processingRules,
       publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
-      geometryStatus: plan.geometryStatus ?? 'authoritative',
+      geometryStatus: isGeometryResourceType(plan.resourceType)
+        ? (plan.geometryStatus ?? 'authoritative')
+        : null,
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2688,7 +2690,9 @@ export async function resetFailedDataset(
       processingRules: dataset.processingRules,
       publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
-      geometryStatus: plan.geometryStatus ?? 'authoritative',
+      geometryStatus: isGeometryResourceType(plan.resourceType)
+        ? (plan.geometryStatus ?? 'authoritative')
+        : null,
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -2709,7 +2713,6 @@ export async function resetFailedDataset(
       processingRules: dataset.processingRules,
       publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
-      geometryStatus: plan.geometryStatus ?? 'authoritative',
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
@@ -3479,9 +3482,12 @@ export async function ensureDraftSnapshotForRelease(
   },
 ) {
   const variant = args.variant ?? 'default'
-  const geometryStatus = args.geometryStatus ?? 'authoritative'
+  const geometryStatus = isGeometryResourceType(resourceType)
+    ? (args.geometryStatus ?? 'authoritative')
+    : null
   const preserveOrPromoteGeometryStatus = async (snapshotId: string) => {
-    if (geometryStatus !== 'authoritative') return
+    if (geometryStatus !== 'authoritative' || !isGeometryResourceType(resourceType))
+      return
     await db
       .update(metaSnapshots)
       .set({ geometryStatus: 'authoritative', updatedAt: toIsoTimestamp() })

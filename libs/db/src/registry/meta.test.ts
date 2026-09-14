@@ -406,12 +406,35 @@ describe('fixture version hashes', () => {
   test('registers the reviewed Protomaps island geometry source separately from Overture', () => {
     expect(initialDatasets).toContainEqual(
       expect.objectContaining({
-        code: 'ds-hk-protomaps-island-feature',
+        code: 'ds-hk-protomaps-island',
         publisherCode: 'protomaps',
         theme: 'divisions',
         kind: 'island',
         sourceVariant: 'protomaps',
-        resourceTypes: ['divisionArea'],
+        releaseType: 'snapshot',
+        releaseFrequency: 'monthly',
+        resourceTypes: ['division', 'divisionArea'],
+        processingRules: expect.objectContaining({
+          rulesets: [
+            expect.objectContaining({
+              rulesetVersion: 'rs-protomaps-island-assembly-v1',
+              rules: expect.arrayContaining([
+                expect.objectContaining({
+                  operationCode: 'select_reviewed_protomaps_island_features',
+                  kind: 'record',
+                }),
+                expect.objectContaining({
+                  operationCode: 'materialise_saanseoi_island_divisions',
+                  kind: 'bulk',
+                }),
+                expect.objectContaining({
+                  operationCode: 'materialise_saanseoi_island_division_areas',
+                  kind: 'bulk',
+                }),
+              ]),
+            }),
+          ],
+        }),
       }),
     )
   })

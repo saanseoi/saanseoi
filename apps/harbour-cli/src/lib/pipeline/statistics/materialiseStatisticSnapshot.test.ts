@@ -92,6 +92,9 @@ test.each(['2026-Q2', '2023-H2'])(
     })
 
     expect(snapshots.map(snapshot => snapshot.cohortKey)).toEqual(['2016', '2024/25'])
+    expect(sqlite.query('SELECT DISTINCT geometryStatus FROM snapshots').all()).toEqual(
+      [{ geometryStatus: null }],
+    )
     expect(sqlite.query('SELECT * FROM snapshotAssembly').all()).toHaveLength(1)
     expect(sqlite.query('SELECT * FROM snapshotAssemblySources').all()).toHaveLength(1)
     expect(

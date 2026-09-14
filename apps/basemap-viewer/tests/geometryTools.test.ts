@@ -161,7 +161,7 @@ describe('town stub geometry cleanup', () => {
       expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
         level === 4
           ? LEVEL_4_GEOMETRY_CLEANUP_VERSION
-          : 'level-5-land-coverage-road-snap-v7',
+          : 'level-5-land-coverage-road-snap-v8',
       )
       expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(level)
     }

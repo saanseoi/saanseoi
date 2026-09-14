@@ -550,7 +550,7 @@ function createSnapshotLookupDb() {
       id TEXT PRIMARY KEY,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
-      geometryStatus TEXT NOT NULL DEFAULT 'authoritative',
+      geometryStatus TEXT,
       status TEXT NOT NULL,
       publishedAt INTEGER,
       createdAt INTEGER NOT NULL

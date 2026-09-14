@@ -18,6 +18,7 @@ import {
 import {
   resourceTypes,
   resourceThemes,
+  isGeometryResourceType,
   type DatasetRecord,
   type UploadInspection,
   type PreparedUploadResult,
@@ -739,6 +740,11 @@ function resolveUploadPlan(
     explicitDatasetCode && explicitDatasetCode !== canonicalDatasetCode
       ? `${buildDatasetReleaseCodeForDataset(datasetCode, resolvedSourceVersion)}::${type}`
       : buildDatasetReleaseCode(regionCode, source, resolvedSourceVersion, type)
+  if (options.geometryStatus && !isGeometryResourceType(type)) {
+    throw new Error(
+      `geometryStatus only applies to divisionArea or divisionBoundary uploads, not ${type}.`,
+    )
+  }
   const plan: UploadPlan = {
     datasetId: releaseCode,
     datasetCode,
@@ -750,7 +756,7 @@ function resolveUploadPlan(
     resourceType: type,
     source,
     sourceVersion: resolvedSourceVersion,
-    geometryStatus: options.geometryStatus,
+    geometryStatus: isGeometryResourceType(type) ? options.geometryStatus : undefined,
     filePath: options.filePath,
     fileName,
     originalFileName,

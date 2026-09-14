@@ -258,10 +258,12 @@ publisher-labelled District Council geometry for those annual periods. Its sourc
 version is delivery provenance, not a geometry cohort: intake splits the `DC_GHS` layer
 by its `year` property before preparing each 18-area companion. The source-release
 fixture declares that reference-period field, companion behaviour, and
-`geometryStatus: fallback`. Those materialisations remain available to the matching
-Statistics cohorts, but do not enter the Geographic Divisions release-set fan-out and
-cannot displace an authoritative C&SD geometry snapshot for the same variant/cohort. It
-never attempts to prepare a nonexistent `2026` district cohort.
+`geometryStatus: fallback`. That status belongs only to the derived `divisionArea`
+resources and snapshots: the `divisionStatistic` resource has no geometry status. Those
+materialisations remain available to the matching Statistics cohorts, but do not enter
+the Geographic Divisions release-set fan-out and cannot displace an authoritative C&SD
+geometry snapshot for the same variant/cohort. It never attempts to prepare a
+nonexistent `2026` district cohort.
 
 Before canonical rows are replayed, every publisher measure requires a reviewed entry in
 `fixtures/meta/curations/hkgov-censtatd-statistics/`. One manifest per dataset sets a

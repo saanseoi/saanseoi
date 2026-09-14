@@ -1309,6 +1309,48 @@ describe('upload', () => {
     sqlite.close()
   })
 
+  test('keeps geometry status off a statistics release', async () => {
+    const tempDir = createTempDir()
+    const sqlite = initDb(join(tempDir, 'harbour.sqlite'))
+    const db = createLocalHarbourDb(sqlite)
+    const datasetCode =
+      'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district'
+    seedCenstatdDensityDataset(sqlite)
+
+    await registerUpload(db, {
+      cohortKey: '2024',
+      datasetCode,
+      filePath: createFixturePath(tempDir),
+      inspection: censtatdDensityLegacyInspection,
+      regionCode: 'hk',
+      resourceType: 'divisionStatistic',
+      source: 'hkgov-censtatd',
+      sourceVersion: '2024',
+      theme: 'stats',
+    })
+
+    expect(sqlite.query('SELECT geometryStatus FROM releases').get()).toEqual({
+      geometryStatus: null,
+    })
+
+    await expect(
+      planUpload(db, {
+        cohortKey: '2024',
+        datasetCode,
+        filePath: createFixturePath(tempDir),
+        geometryStatus: 'fallback',
+        inspection: censtatdDensityLegacyInspection,
+        regionCode: 'hk',
+        resourceType: 'divisionStatistic',
+        source: 'hkgov-censtatd',
+        sourceVersion: '2024',
+        theme: 'stats',
+      }),
+    ).rejects.toThrow('geometryStatus only applies to divisionArea or divisionBoundary')
+
+    sqlite.close()
+  })
+
   test('allows schema-compatible uploads when parquet field order changes', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')
