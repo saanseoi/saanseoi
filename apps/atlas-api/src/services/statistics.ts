@@ -574,7 +574,11 @@ async function loadIncludedResources(args: {
     )
     included.push(
       ...areas.map(record =>
-        createIncludedDivisionGeometryResource({ record, kind: 'area' }),
+        createIncludedDivisionGeometryResource({
+          record,
+          kind: 'area',
+          profile: args.routeState.profile,
+        }),
       ),
     )
   }

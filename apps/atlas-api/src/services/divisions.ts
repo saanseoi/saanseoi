@@ -633,12 +633,20 @@ export async function listDivisions(args: {
         const includedGeometry: IncludedResourcePayload[] = [
           ...(includeAreas
             ? geometry.areas.map(record =>
-                createIncludedDivisionGeometryResource({ record, kind: 'area' }),
+                createIncludedDivisionGeometryResource({
+                  record,
+                  kind: 'area',
+                  profile: routeState.profile,
+                }),
               )
             : []),
           ...(includeBoundaries
             ? geometry.boundaries.map(record =>
-                createIncludedDivisionGeometryResource({ record, kind: 'boundary' }),
+                createIncludedDivisionGeometryResource({
+                  record,
+                  kind: 'boundary',
+                  profile: routeState.profile,
+                }),
               )
             : []),
         ]
@@ -881,7 +889,11 @@ export async function getDivisionDetail(args: {
         const includedGeometry: IncludedResourcePayload[] = [
           ...(includeAreas
             ? geometry.areas.map(item =>
-                createIncludedDivisionGeometryResource({ record: item, kind: 'area' }),
+                createIncludedDivisionGeometryResource({
+                  record: item,
+                  kind: 'area',
+                  profile: routeState.profile,
+                }),
               )
             : []),
           ...(includeBoundaries
@@ -889,6 +901,7 @@ export async function getDivisionDetail(args: {
                 createIncludedDivisionGeometryResource({
                   record: item,
                   kind: 'boundary',
+                  profile: routeState.profile,
                 }),
               )
             : []),

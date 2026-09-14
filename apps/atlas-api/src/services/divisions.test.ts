@@ -8,7 +8,34 @@ import {
   listDivisions,
   type DivisionServiceDependencies,
 } from './divisions'
-import { requestedGeometryVariants } from './divisionsPresentation'
+import {
+  createIncludedDivisionGeometryResource,
+  requestedGeometryVariants,
+} from './divisionsPresentation'
+
+test('included geometry exposes source evidence only in full responses', () => {
+  for (const kind of ['area', 'boundary'] as const) {
+    const record = {
+      id: 'geometry',
+      divisionId: 'division',
+      bbox: null,
+      geometry: null,
+      type: 'land',
+      isLand: true,
+      isTerritorial: false,
+      variant: 'overture',
+      identifiers: { publisher: 'original-id' },
+      sources: { overture: [{ dataset: 'publisher', recordId: 'original-id' }] },
+    } as Parameters<typeof createIncludedDivisionGeometryResource>[0]['record']
+    for (const profile of ['compact', 'default', 'map', 'full'] as const) {
+      const resource = createIncludedDivisionGeometryResource({ record, kind, profile })
+      expect(Object.hasOwn(resource.attributes, 'sources')).toBe(profile === 'full')
+      if (profile === 'full')
+        expect(record.sources).toEqual(resource.attributes.sources)
+      expect(resource.attributes.identifiers).toEqual(record.identifiers)
+    }
+  }
+})
 
 const activeSnapshot = {
   snapshotId: 'snapshot-hk-division',

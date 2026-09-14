@@ -788,13 +788,16 @@ export function buildVariantUnavailableResponse(args: {
 export function createIncludedDivisionGeometryResource(args: {
   record: DivisionAreaRecord | DivisionBoundaryRecord
   kind: 'area' | 'boundary'
+  profile: DivisionProfile
 }): DivisionGeometryResourcePayload {
   const attributes = (record: DivisionAreaRecord | DivisionBoundaryRecord) => ({
     bbox: (record.bbox as BBox | null) ?? null,
     type: record.type,
     isLand: record.isLand,
     isTerritorial: record.isTerritorial,
-    sources: (record.sources as SourcesPayload | null) ?? null,
+    ...(args.profile === 'full'
+      ? { sources: (record.sources as SourcesPayload | null) ?? null }
+      : {}),
     identifiers: record.identifiers,
     variant: record.variant,
   })
