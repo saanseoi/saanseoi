@@ -173,7 +173,7 @@ const markdownReferences: Record<string, MarkdownReferenceSource> = {
     source: overtureDivisionTypeLevelMapping,
   },
   'overture-division-hierarchy-normalisation': {
-    title: 'division hierarchy normalisation',
+    title: 'Division hierarchy materialisation',
     displayTitleKey: 'reference_division_hierarchy_normalisation',
     source: overtureDivisionHierarchy,
   },

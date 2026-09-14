@@ -39,9 +39,13 @@ test('resolves division taxonomy notes with Markdown table details', () => {
   const levels = getMarkdownTransclusion(
     'saanseoi:en:note/division-hierarchy-levels/v1',
   )
+  const hierarchy = getMarkdownTransclusion(
+    'saanseoi:en:note/overture-division-hierarchy-normalization/v1',
+  )
   const types = getMarkdownTransclusion('saanseoi:en:note/canonical-division-types/v1')
 
   expect(levels?.markdown).toContain('| hood           | microhood     | 6')
+  expect(hierarchy?.markdown).toContain('`hierarchies.landform`')
   expect(types?.markdown).toContain('| administrative | sar')
   expect(types?.markdown).toContain("publisher's `subtype` and `class`")
 })
