@@ -304,13 +304,6 @@ export function normaliseHkgovAlsFeature(
         hkgovCsuId: asOptionalString(premises.BuildingCsuInformation?.CsuId),
         cohortKey,
         sourceFile,
-        premiseNormalisation: {
-          en: enStructure.normalisation,
-          enBuildingNameRomanNumeral: enBuildingNameRomanNumeralNormalisation != null,
-          enBlockNumberRomanNumeral: enBlockNumberRomanNumeralNormalisation != null,
-          enPhaseRomanNumeral: enPhaseRomanNumeralNormalisation != null,
-          zhHant: zhStructure.normalisation,
-        },
       },
     }) ?? '{}'
 
@@ -328,6 +321,14 @@ export function normaliseHkgovAlsFeature(
     geometry: stringifyJson(effectiveGeometry ?? null),
     identifiers: csuId ? stringifyJson({ hkgovCsuId: csuId }) : null,
     sources,
+    premiseNormalisation: {
+      ...(enStructure.normalisation !== 'none'
+        ? { en: enStructure.normalisation }
+        : {}),
+      ...(zhStructure.normalisation !== 'none'
+        ? { zhHant: zhStructure.normalisation }
+        : {}),
+    },
     divisionSnapshotId: divisionMaps.snapshotId,
     townId,
     landformId,

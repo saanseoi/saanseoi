@@ -263,6 +263,22 @@ export function buildHkgovAlsProcessingActions(input: {
   }
 
   for (const row of input.resolvedRows) {
+    const normalisation = row.premiseNormalisation
+    if (!normalisation || Object.keys(normalisation).length === 0) continue
+    actions.push({
+      action: 'als_premise_structure_normalised',
+      affectedRecordCount: 1,
+      evidence: {
+        canonicalRecord: summariseHkgovAlsProcessingRow(row),
+        normalisation,
+      },
+      mode: 'automatic' as const,
+      summary:
+        'Normalised ALS premise components from the retained publisher representation.',
+    })
+  }
+
+  for (const row of input.resolvedRows) {
     const blockNumber = row.enBlockNumberRomanNumeralNormalisation
     if (!blockNumber) continue
     actions.push({

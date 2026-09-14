@@ -467,7 +467,7 @@ describe('supplementary Place Address policy', () => {
     geometry.set(citygate.addressId, { lng: 113.941, lat: 22.29 })
     geometry.set('other', { lng: 114.041, lat: 22.29 })
     const result = analyse(observation('Citygate Outlets, Tat Tung Road'), null)
-    expect(result.addressId).toStartWith('opa-')
+    expect(result.addressId).toStartWith('ss-opa-')
     expect(
       result.candidates.find(row => row.addressId === citygate.addressId)?.breakdown,
     ).toMatchObject({ geometry: 25 })

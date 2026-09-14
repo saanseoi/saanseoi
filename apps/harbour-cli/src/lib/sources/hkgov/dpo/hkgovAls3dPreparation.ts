@@ -1,7 +1,7 @@
 import { createWriteStream, globSync } from 'node:fs'
 import { once } from 'node:events'
 import { basename, resolve } from 'node:path'
-import { buildDeterministicUuidV5 } from '@repo/db'
+import { buildDeterministicUuidV5, address3dCollectionId } from '@repo/db'
 import {
   als3dSourcePayload,
   type AlsPublisherSource,
@@ -35,7 +35,6 @@ import {
   type Als3dLocale,
 } from './hkgovAls3d'
 
-const COLLECTION_NAMESPACE = '72a46f2d-4110-5ce2-b94b-1ed9320ab83e'
 const SOURCE_NAMESPACE = 'b1bfe2bf-c40f-5f0b-945f-a390bdd72d03'
 export type PreparedAls3dRecord =
   | (AlsPublisherSource & { kind: 'source2d' })
@@ -435,7 +434,7 @@ export async function prepareAls3dCollections(options: {
       if (existing) continue
       const record: PreparedAls3dRecord = {
         kind: 'collection',
-        id: buildDeterministicUuidV5(COLLECTION_NAMESPACE, address2dId),
+        id: address3dCollectionId(address2dId),
         address2dId,
         unresolvedSectionIds: mapping?.unresolvedSectionIds ?? [],
         sourceRecordIds: [...new Set(ownerSources.get(address2dId))].sort(),

@@ -1,4 +1,4 @@
-import { buildDeterministicUuidV5 } from '@repo/db'
+import { buildDeterministicUuidV5, canonicalAddressId } from '@repo/db'
 
 const ALS_ADDRESS_ID_NAMESPACE = 'ac5f6d22-6c45-5b61-8f56-5f31fc39cd5d'
 
@@ -90,7 +90,9 @@ export function buildHkgovAlsPremiseIdentity(
 }
 
 export function buildHkgovAlsProvisionalId(identityKey: string) {
-  return `ss-${buildDeterministicUuidV5(ALS_ADDRESS_ID_NAMESPACE, identityKey)}`
+  return canonicalAddressId(
+    buildDeterministicUuidV5(ALS_ADDRESS_ID_NAMESPACE, identityKey),
+  )
 }
 
 function joinIdentityParts(values: Array<string | null>) {

@@ -65,6 +65,7 @@ test('Luen Yan CSU backfill keeps one identity and collection while preserving p
   expect(oldRow.id).toBe(newRow.id)
   expect(oldRow.hkgovCsuId).toBe('3095624822T20110523')
   expect(JSON.parse(oldRow.sources).hkgovAls.hkgovCsuId).toBe('3098724838T20110523')
+  expect(JSON.parse(oldRow.sources).hkgovAls).not.toHaveProperty('premiseNormalisation')
   expect(resolveAlsCsuCorrection(raw, '2025-02-25.0').decision).toBeNull()
   const drift = structuredClone(raw)
   requireDefined(drift.geometry).coordinates = [114, 22]

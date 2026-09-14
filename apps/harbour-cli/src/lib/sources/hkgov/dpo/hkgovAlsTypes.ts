@@ -219,6 +219,8 @@ export type PreparedHkgovAlsRow = {
   enDistrict: string | null
   enEstateName: string | null
   enBuildingName: string | null
+  /** Preparation-only evidence, retained in the release processing audit. */
+  premiseNormalisation?: Partial<Record<'en' | 'zhHant', string>>
   enBuildingNameRomanNumeralNormalisation: {
     from: string
     to: string

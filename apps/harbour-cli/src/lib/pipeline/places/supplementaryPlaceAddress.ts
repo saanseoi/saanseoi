@@ -1,5 +1,6 @@
 import { recordCacheKey, type PlaceRecordCache } from './placeRecordCache.ts'
 import { createHash } from 'node:crypto'
+import { canonicalAddressId } from '@repo/db'
 import {
   createPlaceAddressMatcher,
   normaliseAddressText,
@@ -197,7 +198,7 @@ export function supplementaryIdentity(values: SupplementaryValues[]) {
       }))
       .sort((a, b) => a.locale.localeCompare(b.locale)),
   )
-  return { identityKey: key, addressId: `opa-${digest(key)}` }
+  return { identityKey: key, addressId: canonicalAddressId(`opa-${digest(key)}`) }
 }
 
 export function emptySupplementaryEntryLedger(): SupplementaryEntryLedger {

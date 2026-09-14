@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert'
-import { buildDeterministicUuidV5 } from '@repo/db'
+import { buildDeterministicUuidV5, canonicalAddressId } from '@repo/db'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-identity-component-backfills.json'
 import { als3dHash } from './hkgovAls3d'
 import {
@@ -77,7 +77,9 @@ export function applyReviewedIdentityComponentBackfills(
     row.id =
       row.canonicalId =
       row.identityBuildingId =
-        rule.canonicalId ?? `ss-${buildDeterministicUuidV5(namespace, rule.id)}`
+        canonicalAddressId(
+          rule.canonicalId ?? buildDeterministicUuidV5(namespace, rule.id),
+        )
     row.identityKey =
       row.identityContinuityKey = `reviewed-identity-component-backfill:${rule.id}`
     row.identityMatchMethod = 'reviewed-identity-component-backfill'

@@ -172,6 +172,31 @@ describe('dedupeHkgovAlsSourceFeatures', () => {
 })
 
 describe('buildHkgovAlsProcessingActions', () => {
+  test('retains premise structure decisions in the audit and skips unchanged premises', () => {
+    const row = {
+      canonicalId: 'example',
+      sourceFile: 'example.geojson',
+      sourceFeatureIndexOneBased: 1,
+      premiseNormalisation: { en: 'building-name-to-block' },
+    } as unknown as Parameters<
+      typeof buildHkgovAlsProcessingActions
+    >[0]['resolvedRows'][number]
+    const actions = buildHkgovAlsProcessingActions({
+      decisions: { authority: 'hkgov-dpo', decisions: [], version: 1 },
+      identityEquivalentFeatureGroups: [],
+      sourceDuplicateFeatureGroups: [],
+      resolvedRows: [row, { ...row, premiseNormalisation: {} }],
+    })
+    expect(
+      actions.filter(action => action.action === 'als_premise_structure_normalised'),
+    ).toEqual([
+      expect.objectContaining({
+        affectedRecordCount: 1,
+        evidence: expect.objectContaining({ normalisation: row.premiseNormalisation }),
+      }),
+    ])
+  })
+
   test('records each Roman-numeral building-name normalisation', () => {
     const row = {
       canonicalId: 'ss-example',
