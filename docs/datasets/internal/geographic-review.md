@@ -36,11 +36,12 @@ Download fixtures to keep a durable copy outside browser storage. Reference poly
 never overwritten.
 
 The **Clean town stubs** action applies only to saved level-3 town stubs. It clips each
-town to the retained `hongkong-2026-09-01.coastline-land.geojson` layer, closes seams up
-to five metres, and assigns the combined footprint in stable division-ID order so town
-polygons do not overlap. The coastline clip is applied before the final output is
-written, and area, district and landform stubs are preserved. **Undo town clean-up**
-restores the previous browser-storage state; download the cleaned fixture after review.
+town to the retained `hongkong-2026-09-01.coastline-land.geojson` layer, simplifies the
+coastline to medium 20-metre detail, closes seams up to five metres, and assigns the
+combined footprint in stable division-ID order so town polygons do not overlap. The
+coastline clip is applied before the final output is written, and area, district and
+landform stubs are preserved. **Undo town clean-up** restores the previous
+browser-storage state; download the cleaned fixture after review.
 
 ## Derivation and application
 

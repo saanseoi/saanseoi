@@ -114,7 +114,7 @@ describe('town stub geometry cleanup', () => {
         point => point[0]! >= -1e-8 && point[0]! <= 2 + 1e-8,
       ),
     ).toBe(true)
-    expect(a.properties.geometryCleanup).toBe('town-land-coverage-v1')
+    expect(a.properties.geometryCleanup).toBe('town-land-coverage-medium-v2')
     expect(
       result.stubs.features.find(
         feature => feature.properties.divisionId === 'district',
