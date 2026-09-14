@@ -44,6 +44,7 @@ DROP TABLE IF EXISTS `hkgovLandsdPlaceNameI18n`;
 DROP TABLE IF EXISTS `hkgovLandsdPlaceNames`;
 DROP TABLE IF EXISTS `overturePlaceI18n`;
 DROP TABLE IF EXISTS `overturePlaces`;
+DROP TABLE IF EXISTS `protomapsIslandFeatures`;
 DROP TABLE IF EXISTS `overtureDivisionI18n`;
 DROP TABLE IF EXISTS `overtureDivisionBoundaries`;
 DROP TABLE IF EXISTS `overtureDivisionAreas`;

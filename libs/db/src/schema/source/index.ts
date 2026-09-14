@@ -1,6 +1,7 @@
 export * from './shared'
 export * from './overture'
 export * from './overture.types'
+export * from './protomaps'
 export * from './hkgovDpo'
 export * from './hkgovLandsd'
 export * from './hkgovHyd'
