@@ -1,6 +1,9 @@
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { createHash } from '@repo/core/pipeline/utils'
-import { divisionClassificationFixture } from '@repo/core/pipeline/services/divisions'
+import {
+  divisionClassificationFixture,
+  divisionExclusionFixture,
+} from '@repo/core/pipeline/services/divisions'
 import { splitSqlStatements } from '@repo/core/pipeline/services/addresses/sqlImportStages'
 import { getPreparedPublication } from '@repo/core/pipeline/services/publication/execute.ts'
 import {
@@ -365,7 +368,10 @@ export async function processLocalDivisionSqlUpload(
       timestamp: processingRunStartedAt,
     }
     const deliveryInputs = {
-      classificationFixtureHash: await createHash(divisionClassificationFixture),
+      classificationFixtureHash: await createHash({
+        classification: divisionClassificationFixture,
+        exclusions: divisionExclusionFixture,
+      }),
       preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
       snapshotId: versionInsertContext.snapshotId,
       // Reviewed Geographic rows are an input to the captured SQL plan.
@@ -599,6 +605,10 @@ export async function processLocalDivisionSqlUpload(
               splitSqlStatements(file.sql),
             )
         }
+        // Keep the transition in the same current artefact as its guarded writes.
+        // Resolved planning excludes receipt rows from the net diff and emits the
+        // equivalent begin/complete envelopes around the sealed mutations.
+        currentFile.sql = `${buildBeginPublicationSql(publication)}\n${currentFile.sql}`
 
         const provenanceRetainStartedAt = Date.now()
         progress.beginPhase(
@@ -792,11 +802,6 @@ export async function processLocalDivisionSqlUpload(
               }
             },
             async () => {
-              await executeSqlText(
-                importTargets.current,
-                buildBeginPublicationSql(publication),
-                importOptions,
-              )
               const currentInitKey = manifest.currentInitKey
 
               if (currentInitKey) {

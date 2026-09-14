@@ -38,6 +38,7 @@ import {
   resolveDistrictId,
 } from '@repo/core/pipeline/services/divisions/division'
 import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisions/divisionFixtures'
+import { applyDivisionExclusionPatch } from '@repo/core/pipeline/services/divisions/divisionExclusionPatch'
 import {
   buildChurnCounts,
   buildChurnStatsRows,
@@ -243,6 +244,7 @@ export async function buildDivisionSqlState(
     processingActions.push(...fixtureActions)
     for (const row of batch) {
       const raw = row as Record<string, unknown>
+      const exclusion = applyDivisionExclusionPatch(raw, message)
       const normalised = normaliseDivisionRow(raw, {
         deferHierarchyGuard: replacedDivisionIds.has(String(raw.id)),
         hierarchyLookup,
@@ -251,20 +253,21 @@ export async function buildDivisionSqlState(
         hierarchyGuard,
         skipGeographicHierarchyPatch: isCuratedIslandRow(raw),
       })
-      if (normalised.overtureHongKongDivisionClassificationCorrection)
+      if (!exclusion && normalised.overtureHongKongDivisionClassificationCorrection)
         processingActions.push(
           ...buildOvertureHongKongDivisionClassificationProcessingActions(
             normalised.base.id,
           ),
         )
-      processingActions.push(
-        ...buildGeographicHierarchyProcessingActions(
-          normalised.base.id,
-          message,
-          normalised.i18n.flatMap(row => (row.name ? [row.name] : [])),
-        ),
-      )
-      if (normalised.overtureHongKongAreaHierarchyAssignment) {
+      if (!exclusion)
+        processingActions.push(
+          ...buildGeographicHierarchyProcessingActions(
+            normalised.base.id,
+            message,
+            normalised.i18n.flatMap(row => (row.name ? [row.name] : [])),
+          ),
+        )
+      if (!exclusion && normalised.overtureHongKongAreaHierarchyAssignment) {
         const { code } = normalised.overtureHongKongAreaHierarchyAssignment
         hongKongAreaHierarchyAssignmentCounts.set(
           code,
@@ -279,20 +282,22 @@ export async function buildDivisionSqlState(
         })
       }
       const resolvedI18n = translationsByDivisionId.get(normalised.base.id)
-      if (!resolvedI18n) {
+      if (!exclusion && !resolvedI18n) {
         throw new Error(
           `Missing source-release i18n result for ${sourceRelease}/${normalised.base.id}.`,
         )
       }
-      const canonicalI18n = buildCanonicalDivisionApiI18n(
-        mergeDivisionI18nTranslations(
-          normalised.i18n,
-          resolvedI18n.localisations,
-          resolvedI18n.applications,
-        ),
-        branchCounts,
-      )
-      if (message.source === 'overture') {
+      const canonicalI18n = exclusion
+        ? buildCanonicalDivisionApiI18n(normalised.i18n, branchCounts)
+        : buildCanonicalDivisionApiI18n(
+            mergeDivisionI18nTranslations(
+              normalised.i18n,
+              resolvedI18n!.localisations,
+              resolvedI18n!.applications,
+            ),
+            branchCounts,
+          )
+      if (!exclusion && message.source === 'overture') {
         processingActions.push(
           ...buildOvertureDivisionLocaleProcessingActions({
             canonicalI18n,
@@ -302,14 +307,15 @@ export async function buildDivisionSqlState(
           }),
         )
       }
-      processingActions.push(
-        ...buildDivisionTranslationProcessingActions({
-          division: normalised.base,
-          rawNames: normalised.i18n.map(row => row.name),
-          translations: resolvedI18n.applications,
-          parents: divisionAuditParents(normalised.base.hierarchies),
-        }),
-      )
+      if (!exclusion)
+        processingActions.push(
+          ...buildDivisionTranslationProcessingActions({
+            division: normalised.base,
+            rawNames: normalised.i18n.map(row => row.name),
+            translations: resolvedI18n!.applications,
+            parents: divisionAuditParents(normalised.base.hierarchies),
+          }),
+        )
       const storedCanonicalI18n = normaliseDivisionI18nForStorage(canonicalI18n)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
       const churnHash = await createHash({
@@ -339,6 +345,38 @@ export async function buildDivisionSqlState(
       const currentSource = currentSourceRows.get(normalised.base.id) ?? null
       const sourceChanged =
         !isSupplemental && currentSource?.sourcePayloadHash !== sourcePayloadHash
+
+      if (sourceChanged) {
+        sourceChangedRows += 1
+      } else if (currentSource && !isSupplemental) {
+        sourceUnchangedRows += 1
+      }
+
+      if (exclusion) {
+        processingActions.push({
+          action: exclusion.id,
+          affectedRecordCount: 1,
+          evidence: { divisionId: normalised.base.id, sourceNames: raw.names },
+          mode: 'manual',
+          summary: 'Excluded reviewed Overture division from canonical records.',
+        })
+        records.push({
+          base: normalised.base,
+          baseChanged: false,
+          canonicalI18n: storedCanonicalI18n,
+          currentChanged: false,
+          currentExists: Boolean(current),
+          id: normalised.base.id,
+          i18nVersionHash,
+          isSupplemental,
+          omitCanonical: true,
+          raw,
+          sourceChanged,
+          sourcePayloadHash,
+          versionHash,
+        })
+        continue
+      }
 
       processedRows += 1
       localisedRows += storedCanonicalI18n.length
@@ -379,12 +417,6 @@ export async function buildDivisionSqlState(
         sourceCurrentExists: Boolean(currentSource),
         sourceVersion: message.sourceVersion,
       })
-
-      if (sourceChanged) {
-        sourceChangedRows += 1
-      } else if (currentSource && !isSupplemental) {
-        sourceUnchangedRows += 1
-      }
 
       if (!currentChanged) {
         unchangedRows += 1

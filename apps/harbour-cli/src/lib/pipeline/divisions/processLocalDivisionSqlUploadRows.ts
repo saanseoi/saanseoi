@@ -142,6 +142,7 @@ export async function buildDivisionHistorySqlFile(
   const changedExistingIds: string[] = []
   await processDivisionRecordBatches(state.records, reportProgress, batch => {
     for (const record of batch) {
+      if (record.omitCanonical) continue
       if (message.source === 'overture' && !record.isSupplemental)
         resolutionStatements.push(
           sourceResolutionSql({
@@ -362,7 +363,7 @@ export async function buildDivisionCurrentSqlFile(
   const removedI18nStatements: string[] = []
   await processDivisionRecordBatches(state.records, reportProgress, batch => {
     for (const record of batch) {
-      if (!record.currentChanged) {
+      if (record.omitCanonical || !record.currentChanged) {
         continue
       }
 

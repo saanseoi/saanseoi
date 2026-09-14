@@ -34,6 +34,8 @@ export type DivisionPreparedRecord = {
   id: string
   i18nVersionHash: string
   isSupplemental?: boolean
+  /** Retain the publisher assertion without creating canonical division records. */
+  omitCanonical?: boolean
   sourceResolution?: NewSourceResolution
   raw: Record<string, unknown>
   sourceChanged: boolean

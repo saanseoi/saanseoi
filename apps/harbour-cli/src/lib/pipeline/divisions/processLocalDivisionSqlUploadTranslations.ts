@@ -8,6 +8,7 @@ import {
   normaliseDivisionRow,
 } from '@repo/core/pipeline/services/divisions/division'
 import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisions/divisionFixtures'
+import { applyDivisionExclusionPatch } from '@repo/core/pipeline/services/divisions/divisionExclusionPatch'
 import {
   resolveDatasetNameTranslationsBatch,
   type DatasetTranslationApplication,
@@ -53,6 +54,7 @@ export async function resolveDivisionNameTranslations(
     supplementalRows,
   )) {
     for (const row of rows) {
+      if (applyDivisionExclusionPatch(row, message)) continue
       const normalised = normaliseDivisionRow(row, {
         hierarchyLookup,
         source: message,

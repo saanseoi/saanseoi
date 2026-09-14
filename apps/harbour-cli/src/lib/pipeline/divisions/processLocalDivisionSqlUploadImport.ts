@@ -156,7 +156,9 @@ export function buildExtraHistorySqlOperations(
   importTargets: Awaited<ReturnType<typeof resolveDivisionImportTargets>>,
 ) {
   const changedExistingIds = state.records
-    .filter(record => record.currentChanged && record.currentExists)
+    .filter(
+      record => !record.omitCanonical && record.currentChanged && record.currentExists,
+    )
     .map(record => record.id)
   const missingIds = [...state.currentRows.keys()].filter(id => !state.seenIds.has(id))
   const changedIdsByOwner = groupIdsByOwnerShard(
