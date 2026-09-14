@@ -124,8 +124,9 @@ Current selection keys are:
 - `sourceSchemas`
 - `lineageAnchors` (snapshot version plus exact source-schema signature)
 
-These fixtures are resolved at API release publication time to populate
-`apiFieldProvenance`.
+These fixtures are resolved at API release publication time. Changed complete field
+groups are written to `apiFieldProvenanceGroups` and their member rows to
+`apiFieldProvenance`; unchanged groups inherit through the release-set predecessor.
 
 ## Historical membership
 

@@ -402,6 +402,19 @@ describe('fixture version hashes', () => {
       }),
     )
   })
+
+  test('registers the reviewed Protomaps island geometry source separately from Overture', () => {
+    expect(initialDatasets).toContainEqual(
+      expect.objectContaining({
+        code: 'ds-hk-protomaps-island-feature',
+        publisherCode: 'protomaps',
+        theme: 'divisions',
+        kind: 'island',
+        sourceVariant: 'protomaps',
+        resourceTypes: ['divisionArea'],
+      }),
+    )
+  })
 })
 
 describe('resolveInitialDataShardsForEnvironment', () => {

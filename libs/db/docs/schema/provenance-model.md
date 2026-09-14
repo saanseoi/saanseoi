@@ -6,7 +6,8 @@ The versioned provenance path is:
 2. `apiReleaseSetSnapshots`
 3. `snapshots`
 4. `snapshotSources`
-5. `apiFieldProvenance`
+5. `apiFieldProvenanceGroups`
+6. `apiFieldProvenance`
 
 SaanSeoi tracks provenance at two levels.
 
@@ -69,8 +70,9 @@ This answers:
 
 ## API Field-Level Provenance
 
-Table:
+Tables:
 
+- `apiFieldProvenanceGroups`
 - `apiFieldProvenance`
 
 This answers:
@@ -79,11 +81,11 @@ This answers:
 - what resolver logic was used
 - what precedence order applied
 
-Scope:
-
-- per published API release set
-- per API field
-- NOT per entity row
+Scope is per API field, never per entity row. A release set stores a group only when
+that field's complete provenance changes; omitted groups inherit through the immutable
+`supersedesApiReleaseSetId` chain. A group tombstone removes an inherited field. Its
+member rows retain the exact selected source-release rule pins, so replay of an older
+API release remains exact without copying unchanged payloads.
 
 Bundled mappings in `fixtures/meta/apiFields/` use the public resource field names and
 are named `{apiVersion}@{domainCode}-v{mappingVersion}.json`, using registered domain

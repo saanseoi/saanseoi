@@ -200,6 +200,7 @@ function buildPurgeSourceSql(input: DraftReleasePurgeInput, plan: RollbackPlan) 
 function buildPurgeMetaSql(input: DraftReleasePurgeInput) {
   return joinStatements([
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
+    `DELETE FROM apiFieldProvenanceGroups WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM publishedDataJournal WHERE releaseId = ${literal(input.releaseId)} OR relatedReleaseId = ${literal(input.releaseId)};`,
     `DELETE FROM stats WHERE releaseId = ${literal(input.releaseId)} OR apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,

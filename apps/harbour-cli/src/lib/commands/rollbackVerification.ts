@@ -201,6 +201,7 @@ async function countMetaRollbackRows(
 ) {
   const [
     provenanceRows,
+    provenanceGroupRows,
     releaseSetSnapshotRows,
     journalRows,
     statsRows,
@@ -220,6 +221,14 @@ async function countMetaRollbackRows(
       db,
       metaSchema.metaApiFieldProvenance,
       eq(metaSchema.metaApiFieldProvenance.apiReleaseSetId, input.apiReleaseSetId),
+    ),
+    countRows(
+      db,
+      metaSchema.metaApiFieldProvenanceGroups,
+      eq(
+        metaSchema.metaApiFieldProvenanceGroups.apiReleaseSetId,
+        input.apiReleaseSetId,
+      ),
     ),
     countRows(
       db,
@@ -308,6 +317,7 @@ async function countMetaRollbackRows(
 
   return (
     provenanceRows +
+    provenanceGroupRows +
     releaseSetSnapshotRows +
     journalRows +
     statsRows +
@@ -448,6 +458,7 @@ export async function verifyPurgeResult(
     statsRows,
     journalRows,
     provenanceRows,
+    provenanceGroupRows,
     snapshotSourceRows,
     ingestRunRows,
     processingActionRows,
@@ -488,6 +499,14 @@ export async function verifyPurgeResult(
     ),
     countRows(
       dbContext.metaDb,
+      metaSchema.metaApiFieldProvenanceGroups,
+      eq(
+        metaSchema.metaApiFieldProvenanceGroups.apiReleaseSetId,
+        input.apiReleaseSetId,
+      ),
+    ),
+    countRows(
+      dbContext.metaDb,
       metaSchema.metaSnapshotSources,
       sql`${metaSchema.metaSnapshotSources.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSources.resourceReleaseId} = ${input.releaseId}`,
     ),
@@ -517,6 +536,7 @@ export async function verifyPurgeResult(
     statsRows +
     journalRows +
     provenanceRows +
+    provenanceGroupRows +
     snapshotSourceRows +
     ingestRunRows +
     processingActionRows +

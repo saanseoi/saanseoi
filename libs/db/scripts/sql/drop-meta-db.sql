@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS `harbourSqlDeliveryReceipts`;
 DROP TABLE IF EXISTS `releaseProvenance`;
 
 DROP TABLE IF EXISTS `apiFieldProvenance`;
+DROP TABLE IF EXISTS `apiFieldProvenanceGroups`;
 DROP TABLE IF EXISTS `apiEndpointDatasets`;
 DROP TABLE IF EXISTS `apiReleaseSetSnapshots`;
 DROP TABLE IF EXISTS `apiReleaseSetSources`;

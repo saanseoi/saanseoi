@@ -57,6 +57,7 @@ Tables:
 - `apiEndpoints`
 - `apiReleaseSets`
 - `apiReleaseSetSnapshots`
+- `apiFieldProvenanceGroups`
 - `apiFieldProvenance`
 
 Key points:
@@ -67,8 +68,10 @@ Key points:
   - stores the API contract family such as `divisions` or `addresses`
 - `apiReleaseSets.code`
   - `data-{region}-{family}-{cohort}-{revision}--{domain}`
+- `apiFieldProvenanceGroups`
+  - stores changed field provenance groups for one published API release set
 - `apiFieldProvenance`
-  - stores field-level sourcing for one published API release set
+  - stores the member contributions of a changed group
   - `resolverCode` names the actual transformation rule
   - `contributionType` distinguishes direct source rows from `resolver-input` rows
 

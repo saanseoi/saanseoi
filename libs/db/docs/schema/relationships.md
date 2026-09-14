@@ -31,8 +31,10 @@
 - `rulesetVersion`
 - -> links to selected canonical snapshots through
 - `apiReleaseSetSnapshots`
-- -> field provenance for that published release lives in
-- `apiFieldProvenance`
+- -> changed field provenance groups live in
+- `apiFieldProvenanceGroups`
+  - -> their member contributions live in
+  - `apiFieldProvenance`
 
 - `apiReleaseSetSnapshots`
 - -> joins

@@ -53,6 +53,7 @@ DROP TABLE IF EXISTS `stagingAddresses2d`;
 DROP TABLE IF EXISTS `stagingAddresses2dI18n`;
 DROP TABLE IF EXISTS `stagingAddresses2dChanged`;
 DROP TABLE IF EXISTS `apiFieldProvenance`;
+DROP TABLE IF EXISTS `apiFieldProvenanceGroups`;
 DROP TABLE IF EXISTS `apiEndpointDatasets`;
 DROP TABLE IF EXISTS `apiReleaseSetSnapshots`;
 DROP TABLE IF EXISTS `apiReleaseSetSources`;
