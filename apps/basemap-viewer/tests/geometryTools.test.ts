@@ -6,6 +6,9 @@ import type { Polygon, Position } from 'geojson'
 import {
   cleanStubGeometriesForLevel,
   cleanTownStubGeometries,
+  LEVEL_4_GEOMETRY_CLEANUP_VERSION,
+  TOWN_GEOMETRY_CLEANUP_ROAD_SNAP_METRES,
+  TOWN_GEOMETRY_CLEANUP_VERSION,
 } from '../src/local-review/division-areas/geometryTools'
 import type {
   ReviewDivision,
@@ -117,7 +120,7 @@ describe('town stub geometry cleanup', () => {
         point => point[0]! >= -1e-8 && point[0]! <= 2 + 1e-8,
       ),
     ).toBe(true)
-    expect(a.properties.geometryCleanup).toBe('town-land-coverage-medium-v2')
+    expect(a.properties.geometryCleanup).toBe(TOWN_GEOMETRY_CLEANUP_VERSION)
     expect(
       result.stubs.features.find(
         feature => feature.properties.divisionId === 'district',
@@ -156,10 +159,124 @@ describe('town stub geometry cleanup', () => {
       expect(result.levelCount).toBe(1)
       expect(result.changedCount).toBe(1)
       expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
-        `level-${level}-land-coverage-medium-v2`,
+        level === 4
+          ? LEVEL_4_GEOMETRY_CLEANUP_VERSION
+          : 'level-5-land-coverage-road-snap-v4',
       )
       expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(level)
     }
+  })
+
+  it('keeps L4 corners to one miter point instead of round-join arcs', () => {
+    const inventory: ReviewInventory = {
+      schemaVersion: 1,
+      region: 'hk',
+      domain: 'geographic',
+      cohort: 'test',
+      releaseSet: 'test',
+      divisions: [division('hood', 4)],
+    }
+    const result = cleanStubGeometriesForLevel(
+      {
+        type: 'FeatureCollection',
+        schemaVersion: 1,
+        region: 'hk',
+        domain: 'geographic',
+        cohort: 'test',
+        variant: 'stub',
+        features: [
+          stub('hood', {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [0, 0],
+                [1, 0],
+                [1, 0.2],
+                [1, 0.4],
+                [1, 0.6],
+                [1, 1],
+                [0, 1],
+                [0, 0.8],
+                [0, 0.6],
+                [0, 0.4],
+                [0, 0.2],
+                [0, 0],
+              ],
+            ],
+          }),
+        ],
+      },
+      inventory,
+      {
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', properties: {}, geometry: rectangle(0, 1) }],
+      },
+      4,
+    )
+    const ring =
+      result.stubs.features[0]!.geometry.type === 'Polygon'
+        ? result.stubs.features[0]!.geometry.coordinates[0]!
+        : result.stubs.features[0]!.geometry.coordinates[0]![0]!
+    expect(ring).toHaveLength(5)
+    expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
+      LEVEL_4_GEOMETRY_CLEANUP_VERSION,
+    )
+    expect(
+      result.stubs.features[0]?.properties.geometryCleanupCoastlineDetailMetres,
+    ).toBe(3)
+  })
+
+  it('snaps nearby boundary vertices to a street centreline before the land clip', () => {
+    const inventory: ReviewInventory = {
+      schemaVersion: 1,
+      region: 'hk',
+      domain: 'geographic',
+      cohort: 'test',
+      releaseSet: 'test',
+      divisions: [division('town', 3)],
+    }
+    const result = cleanStubGeometriesForLevel(
+      {
+        type: 'FeatureCollection',
+        schemaVersion: 1,
+        region: 'hk',
+        domain: 'geographic',
+        cohort: 'test',
+        variant: 'stub',
+        features: [stub('town', rectangle(0.50003, 1))],
+      },
+      inventory,
+      {
+        type: 'FeatureCollection',
+        features: [{ type: 'Feature', properties: {}, geometry: rectangle(0, 2) }],
+      },
+      3,
+      {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [0.5, -1],
+                [0.5, 2],
+              ],
+            },
+          },
+        ],
+      },
+    )
+    const geometry = result.stubs.features[0]!.geometry
+    const coordinates =
+      geometry.type === 'Polygon'
+        ? geometry.coordinates.flat(1)
+        : geometry.coordinates.flat(2)
+    expect(Math.min(...coordinates.map(point => point[0]!))).toBeCloseTo(0.5, 7)
+    expect(result.stubs.features[0]?.properties.geometryCleanupRoadSnapMetres).toBe(
+      TOWN_GEOMETRY_CLEANUP_ROAD_SNAP_METRES,
+    )
   })
 
   it('repartitions a level when a new stub is added after cleanup', () => {

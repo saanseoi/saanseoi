@@ -37,10 +37,13 @@ never overwritten.
 
 The **Geometry cleanup** controls apply to saved level-3, level-4 and level-5 stubs.
 Each selected level is clipped to the retained
-`hongkong-2026-09-01.coastline-land.geojson` layer, simplifies the coastline to medium
-20-metre detail, closes seams up to five metres, and assigns the combined footprint in
-stable division-ID order so adjoining polygons do not overlap. The coastline clip is
-applied before the final output is written, and other levels are preserved. **Undo last
+`hongkong-2026-09-01.coastline-land.geojson` layer, simplifies the coastline to
+five-metre detail (three metres for L4), snaps existing boundary vertices to local
+street centrelines within five metres, closes seams up to five metres, and assigns the
+combined footprint in stable division-ID order so adjoining polygons do not overlap. L4
+corners use a single miter point rather than round-join arcs. Street snapping is ignored
+when no centreline is within five metres, and the coastline clip is applied afterwards
+so coastline geometry takes precedence. Other levels are preserved. **Undo last
 cleanup** restores the previous browser-storage state; download the cleaned fixture
 after review.
 

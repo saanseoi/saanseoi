@@ -135,6 +135,7 @@ test('Hong Kong neighbourhood and name patches apply only to their reviewed Over
     ['e5322b23-24d0-46d7-affb-cae30cc883a8', 'microhood'],
     ['5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac', 'macrohood'],
     ['a60dba0a-41e2-4c84-ae70-05f647bd0e3a', 'macrohood'],
+    ['4edbae57-59b3-4757-8e2c-526d48fd1d44', 'macrohood'],
   ] as const
   for (const [id, subtype] of rows) {
     expect(
