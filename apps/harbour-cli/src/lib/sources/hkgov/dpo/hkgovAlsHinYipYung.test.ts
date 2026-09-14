@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import { requireDefined } from '@repo/core/requireDefined'
-import { alsSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
+import { als3dSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { mkdtemp, writeFile, rm, readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { loadHouseRetentionFixture } from './hkgovAlsHouseRetentionEvidence.ts'
@@ -168,7 +168,7 @@ test('future Yip Wong retains four collections until revoked with unverified pro
     const publisherRows = retained.filter(row => row.kind === 'source')
     expect(publisherRows).toHaveLength(1)
     expect(publisherRows[0].properties).toEqual(
-      alsSourcePayload(requireDefined(wo.evidence3d.at(-1)).feature).properties,
+      als3dSourcePayload(requireDefined(wo.evidence3d.at(-1)).feature).properties,
     )
     expect(publisherRows[0].sources).not.toEqual(
       expect.arrayContaining([

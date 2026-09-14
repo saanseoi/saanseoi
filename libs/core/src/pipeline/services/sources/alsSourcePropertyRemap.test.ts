@@ -3,7 +3,11 @@ import { Database } from 'bun:sqlite'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
-import { alsSourcePayload, remapAlsSourceProperties } from './alsSourcePayload'
+import {
+  als3dSourcePayload,
+  alsSourcePayload,
+  remapAlsSourceProperties,
+} from './alsSourcePayload'
 
 test('retained ALS remapping preserves values and rejects collisions', () => {
   expect(
@@ -25,6 +29,63 @@ test('retained ALS remapping preserves values and rejects collisions', () => {
   expect(() => alsSourcePayload({ properties: { 'a-b': 1, 'a/b': 2 } })).toThrow(
     'Duplicate',
   )
+})
+
+test('3D ALS storage retains compact inventory rows without 2D premises fields', () => {
+  const result = als3dSourcePayload({
+    geometry: { type: 'Point', coordinates: [114, 22] },
+    properties: {
+      Easting: 829367,
+      Northing: 823036,
+      Address: {
+        PremisesAddress: {
+          GeoAddress: '2936923057T20050430',
+          BuildingCsuInformation: { CsuId: '2936923057T20050430' },
+          EngPremisesAddress: {
+            Region: 'NT',
+            BuildingName: 'CHING TAO HOUSE',
+            Eng3dAddress: [
+              {
+                EngFloor: { FloorNum: 13, FloorDescription: '13/F' },
+                EngUnit: { UnitNo: '1332', UnitDescriptor: 'FLAT' },
+              },
+            ],
+          },
+          ChiPremisesAddress: {
+            Region: '新界',
+            BuildingName: '青桃樓',
+            Chi3dAddress: [
+              {
+                ChiFloor: { FloorNum: 1, FloorDescription: '1樓' },
+                ChiUnit: { UnitNo: '105', UnitDescriptor: '室' },
+              },
+            ],
+          },
+        },
+      },
+    },
+  })
+  expect(result).toEqual({
+    properties: {
+      address3dEn: [
+        {
+          floorNum: 13,
+          floorDescription: '13/F',
+          unitNo: '1332',
+          unitDescriptor: 'FLAT',
+        },
+      ],
+      address3dZhHant: [
+        {
+          floorNum: 1,
+          floorDescription: '1樓',
+          unitNo: '105',
+          unitDescriptor: '室',
+        },
+      ],
+    },
+    sourceGeometry: { type: 'Point', coordinates: [114, 22] },
+  })
 })
 
 test('offline ALS rename SQL is guarded and exactly reversible', async () => {

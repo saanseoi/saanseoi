@@ -1,4 +1,4 @@
-import { alsSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
+import { als3dSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { existsSync } from 'node:fs'
@@ -188,7 +188,7 @@ test.skipIf(!existsSync(rawPath))(
           .map(line => JSON.parse(line))
         const sources = records.filter(record => record.kind === 'source')
         expect(sources.map(record => record.properties)).toEqual(
-          features.map(feature => alsSourcePayload(feature).properties),
+          features.map(feature => als3dSourcePayload(feature).properties),
         )
         expect(
           sources.filter(record =>

@@ -98,21 +98,20 @@ export function membershipSource(
 ): AlsMembershipSource {
   const raw = record.properties ?? {}
   const units = new Set<string>()
-  for (const [name, prefix] of [
-    ['address3dEn', 'Eng'],
-    ['address3dZhHant', 'Chi'],
+  for (const [name, english] of [
+    ['address3dEn', true],
+    ['address3dZhHant', false],
   ] as const) {
     const rows = raw[name]
     if (!Array.isArray(rows)) continue
     for (const row of rows) {
-      const floor = row?.[`${prefix}Floor`]
-      const described = String(floor?.FloorDescription ?? '').match(
-        prefix === 'Eng' ? /^(.+)\/F$/ : /^(.+)樓$/,
+      const described = String(row?.floorDescription ?? '').match(
+        english ? /^(.+)\/F$/ : /^(.+)樓$/,
       )?.[1]
       units.add(
         JSON.stringify([
-          String(floor?.FloorNum ?? described ?? '').trim(),
-          String(row?.[`${prefix}Unit`]?.UnitNo ?? '').trim(),
+          String(row?.floorNum ?? described ?? '').trim(),
+          String(row?.unitNo ?? '').trim(),
         ]),
       )
     }

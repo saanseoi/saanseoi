@@ -138,6 +138,70 @@ export function alsSourcePayload(feature: {
   }
 }
 
+export type Als3dSourceUnit = {
+  floorNum?: number | string | null
+  floorDescription?: string | null
+  unitNo?: number | string | null
+  unitDescriptor?: string | null
+}
+
+export type Als3dSourceProperties = {
+  address3dEn?: Als3dSourceUnit[] | null
+  address3dZhHant?: Als3dSourceUnit[] | null
+}
+
+const record = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null
+
+function compactAls3dUnits(value: unknown, prefix: 'Chi' | 'Eng') {
+  if (!Array.isArray(value)) return structuredClone(value)
+  return value.map(row => {
+    const source = record(row) ?? {}
+    const floor = record(source[`${prefix}Floor`]) ?? {}
+    const unit = record(source[`${prefix}Unit`]) ?? {}
+    return {
+      ...(Object.hasOwn(floor, 'FloorNum') ? { floorNum: floor.FloorNum } : {}),
+      ...(Object.hasOwn(floor, 'FloorDescription')
+        ? { floorDescription: floor.FloorDescription }
+        : {}),
+      ...(Object.hasOwn(unit, 'UnitNo') ? { unitNo: unit.UnitNo } : {}),
+      ...(Object.hasOwn(unit, 'UnitDescriptor')
+        ? { unitDescriptor: unit.UnitDescriptor }
+        : {}),
+    }
+  })
+}
+
+/**
+ * The 3D delivery contributes only its unit inventory. Its matching 2D source
+ * record retains the shared premises fields and publisher identifiers.
+ */
+export function als3dSourcePayload(feature: {
+  properties?: unknown
+  geometry?: unknown
+}) {
+  const properties = record(feature.properties)
+  const address = record(properties?.Address)
+  const premises = record(address?.PremisesAddress)
+  const en = record(premises?.EngPremisesAddress)
+  const zhHant = record(premises?.ChiPremisesAddress)
+  const output: Als3dSourceProperties = {}
+  if (en && Object.hasOwn(en, 'Eng3dAddress'))
+    output.address3dEn = compactAls3dUnits(en.Eng3dAddress, 'Eng') as
+      | Als3dSourceUnit[]
+      | null
+  if (zhHant && Object.hasOwn(zhHant, 'Chi3dAddress'))
+    output.address3dZhHant = compactAls3dUnits(zhHant.Chi3dAddress, 'Chi') as
+      | Als3dSourceUnit[]
+      | null
+  return {
+    properties: output,
+    sourceGeometry: structuredClone(feature.geometry ?? null),
+  }
+}
+
 export type AlsPublisherSource = ReturnType<typeof alsSourcePayload> & {
   sourceRecordId: string
   versionHash: string

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createHash } from 'node:crypto'
 import {
-  alsSourcePayload,
+  als3dSourcePayload,
   captureAlsPublisherSources,
 } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import {
@@ -291,7 +291,7 @@ test('final dangling parents, owner references and shared unit identities hard f
 })
 
 test('raw unit tokens use captured publisher payload before inventory corrections', () => {
-  const raw = alsSourcePayload({
+  const raw = als3dSourcePayload({
     properties: {
       Address: {
         PremisesAddress: {

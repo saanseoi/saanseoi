@@ -1,4 +1,4 @@
-import { alsSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
+import { als3dSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
@@ -92,8 +92,8 @@ test('Lin Tsui materialises one enduring 288-unit owner and retains both raw ass
         .map(line => JSON.parse(line))
       expect(records.filter(r => r.kind === 'source').map(r => r.properties)).toEqual(
         inventory.map(
-          (feature: Parameters<typeof alsSourcePayload>[0]) =>
-            alsSourcePayload(feature).properties,
+          (feature: Parameters<typeof als3dSourcePayload>[0]) =>
+            als3dSourcePayload(feature).properties,
         ),
       )
     } finally {

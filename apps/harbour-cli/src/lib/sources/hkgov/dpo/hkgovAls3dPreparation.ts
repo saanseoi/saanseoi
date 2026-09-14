@@ -3,7 +3,7 @@ import { once } from 'node:events'
 import { basename, resolve } from 'node:path'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import {
-  alsSourcePayload,
+  als3dSourcePayload,
   type AlsPublisherSource,
 } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
@@ -265,11 +265,12 @@ export async function prepareAls3dCollections(options: {
           SOURCE_NAMESPACE,
           JSON.stringify([rawKey, occurrence]),
         )
+        const payload = als3dSourcePayload(original.feature)
         const source = {
           kind: 'source' as const,
           sourceRecordId,
-          versionHash: als3dHash(original.feature),
-          ...alsSourcePayload(original.feature),
+          versionHash: als3dHash(payload),
+          ...payload,
           sources: [
             {
               dataset: 'hkgov-dpo-als-3d',

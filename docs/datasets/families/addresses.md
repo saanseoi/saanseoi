@@ -771,8 +771,11 @@ and optional native geometry. Resource types, variants and internal acquisition 
 are not publisher-record fields. Geometry retains the source coordinates and CRS;
 canonical geometry is available through the family’s canonical API.
 
-ALS source field mappings include nested estate phases, street location names and
-bilingual 3D arrays. Source schemas report fields present in every retained row as
+ALS Address2D source field mappings include nested estate phases and street location
+names. Address3D source properties contain only `address3dEn` and `address3dZhHant`;
+their flat rows use `floorNum`, `floorDescription`, `unitNo` and `unitDescriptor`. The
+array key supplies the locale, while the matching Address2D source record retains the
+shared premises fields. Source schemas report fields present in every retained row as
 required; optional presence and explicit nullability are separate properties.
 
 ## Local D1 with production artefacts

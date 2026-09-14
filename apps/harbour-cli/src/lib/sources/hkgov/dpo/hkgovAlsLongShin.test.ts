@@ -1,5 +1,5 @@
 import { requireDefined } from '@repo/core/requireDefined'
-import { alsSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
+import { als3dSourcePayload } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -123,7 +123,7 @@ test('Long Shin estate range does not duplicate house collections; every raw sou
         .split('\n')
         .map(s => JSON.parse(s))
       expect(records.filter(r => r.kind === 'source').map(r => r.properties)).toEqual(
-        source.map(feature => alsSourcePayload(feature).properties),
+        source.map(feature => als3dSourcePayload(feature).properties),
       )
       for (const c of records.filter(r => r.kind === 'collection')) {
         expect(c.address2dId).not.toBe(complex.id)

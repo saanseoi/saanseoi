@@ -181,13 +181,18 @@ its publisher point and bilingual premises unchanged. The blockless assertion sh
 that CSU remains separate. Future omissions beyond 19 August 2026 carry unverified
 curation provenance until reviewed.
 
-ALS Address2D and Address3D source tables retain original publisher attributes in
-`properties`, using documented flat field names. Original geometry is retained in
+ALS Address2D source records retain the complete publisher premises assertion in
+`properties`, using documented flat field names. Address3D source records retain only
+the bilingual unit inventories that the 3D delivery adds: `address3dEn` and
+`address3dZhHant`. Each array row has `floorNum`, `floorDescription`, `unitNo` and
+`unitDescriptor`; the enclosing array supplies the locale. The corresponding Address2D
+source record retains CSU IDs, coordinate attributes and premises components, avoiding
+their repetition for every 3D occurrence. Original 3D geometry remains in
 `sourceGeometry`, with source identity, release tracking and compact acquisition
-references alongside it. Publisher CSU IDs, coordinate attributes and bilingual
-components remain literal source values; canonical history/current tables own normalised
-and corrected projections. Internal entity references and processing decisions belong to
-snapshot-scoped `sourceResolutions`.
+references alongside it. Canonical history/current tables own normalised and corrected
+projections. Internal entity references and processing decisions belong to
+snapshot-scoped `sourceResolutions`. Existing source versions remain immutable and are
+not backfilled into this compact representation.
 
 The sealed source ledger includes every uploaded 2D and 3D occurrence, including records
 combined or replaced by house retention. Inventories reconstructed from historical

@@ -7,7 +7,8 @@ import type { Address3dUnit, Address3dUnitI18n } from '@repo/db/address3d'
 const UNIT_NAMESPACE = '02d7be43-4f84-50b1-8eee-1945163ff10a'
 export const ADDRESS3D_ROW_BYTE_BUDGET = 1_000_000
 
-type SourceUnit = {
+/** Unmodified HKGov input row. Source storage uses Als3dSourceUnit instead. */
+type Als3dInputUnit = {
   EngFloor?: { FloorNum?: string | number; FloorDescription?: string }
   ChiFloor?: { FloorNum?: string | number; FloorDescription?: string }
   EngUnit?: { UnitNo?: string | number; UnitDescriptor?: string }
@@ -27,8 +28,8 @@ export type Als3dLocale = {
   ChiBlock?: { BlockNo?: string; BlockDescriptor?: string }
   EngStreet?: { StreetName?: string; BuildingNoFrom?: string; BuildingNoTo?: string }
   ChiStreet?: { StreetName?: string; BuildingNoFrom?: string; BuildingNoTo?: string }
-  Eng3dAddress?: SourceUnit[]
-  Chi3dAddress?: SourceUnit[]
+  Eng3dAddress?: Als3dInputUnit[]
+  Chi3dAddress?: Als3dInputUnit[]
 }
 export type Als3dFeature = {
   geometry: { type: string; coordinates: number[] }

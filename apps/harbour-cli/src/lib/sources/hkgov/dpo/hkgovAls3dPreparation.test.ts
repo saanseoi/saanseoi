@@ -1,5 +1,5 @@
 import {
-  alsSourcePayload,
+  als3dSourcePayload,
   captureAlsPublisherSources,
 } from '@repo/core/pipeline/services/sources/alsSourcePayload'
 import { expect, test } from 'bun:test'
@@ -199,7 +199,7 @@ test('skip mode retains a block-free parent despite mismatched 3D block referenc
       'parent-0',
     )
     expect(records.find(record => record.kind === 'source').properties).toEqual(
-      alsSourcePayload({ properties: { Address: { PremisesAddress: premises } } })
+      als3dSourcePayload({ properties: { Address: { PremisesAddress: premises } } })
         .properties,
     )
   } finally {
