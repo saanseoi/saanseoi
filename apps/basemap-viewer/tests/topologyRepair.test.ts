@@ -3,6 +3,7 @@ import type { Polygon, Position } from 'geojson'
 import {
   cleanStubGeometriesForLevel,
   GeometryCleanupError,
+  validateSharedCoverage,
   type RoadFeatureCollection,
 } from '../src/local-review/division-areas/geometryTools'
 import type {
@@ -405,6 +406,51 @@ describe('curved street snapping', () => {
 })
 
 describe('selected cleanup', () => {
+  it('clips a single selection to detailed coastal notches without processing neighbours', () => {
+    const coast = polygon([
+      [0, 0],
+      [2, 0],
+      [2, 1],
+      [1.6, 1],
+      [1.6, 0.7],
+      [1.4, 0.7],
+      [1.4, 1],
+      [0, 1],
+      [0, 0],
+    ])
+    const input = stubs(
+      box(0, 2),
+      polygon([
+        [3, 0],
+        [4, 1],
+        [3, 1],
+        [4, 0],
+        [3, 0],
+      ]),
+    )
+    const untouched = structuredClone(input.features[1])
+    const result = cleanStubGeometriesForLevel(
+      input,
+      inventory,
+      land(coast),
+      4,
+      undefined,
+      undefined,
+      new Set(['a']),
+    )
+    expect(result.levelCount).toBe(1)
+    expect(result.changedCount).toBe(1)
+    expect(result.snappedCount).toBe(0)
+    expect(result.stubs.features[0]!.geometry.coordinates.flat()).toContainEqual([
+      1.6, 0.7,
+    ])
+    expect(result.stubs.features[0]!.geometry.coordinates.flat()).toContainEqual([
+      1.4, 0.7,
+    ])
+    expect(result.stubs.features[1]).toEqual(untouched)
+    expect(result.stubs.features[0]!.properties.geometryCleanupRoadSnapMetres).toBe(0)
+  })
+
   it('leaves unselected polygons and their metadata untouched', () => {
     const input = stubs(box(0, 1), box(1, 2))
     input.features[1]!.properties.geometryCleanup = 'old-simplifier'
@@ -456,4 +502,169 @@ describe('selected cleanup', () => {
     expect(result.snappedCount).toBe(2)
     expect(result.addedNodeCount).toBe(2)
   })
+})
+
+it('nodes source edges once when coastline intersections are computed at fractional coordinates', () => {
+  const input = stubs(
+    polygon([
+      [114.18, 22.27],
+      [114.2, 22.28],
+      [114.19, 22.3],
+      [114.17, 22.29],
+      [114.18, 22.27],
+    ]),
+  )
+  const coast = land(
+    polygon([
+      [114.175, 22.265],
+      [114.195, 22.265],
+      [114.195, 22.305],
+      [114.175, 22.305],
+      [114.175, 22.265],
+    ]),
+  )
+  const before = structuredClone(input)
+  const result = cleanStubGeometriesForLevel(input, inventory, coast, 4)
+  expect(result.levelCount).toBe(1)
+  expect(result.changedCount).toBe(1)
+  expect(input).toEqual(before)
+})
+
+describe('simplification uses the cleanup selection', () => {
+  it('simplifies cleaned selected divisions without requiring cleanup of other drawings', async () => {
+    const { simplifyCleanedGeometries } = await import(
+      '../src/local-review/division-areas/simplificationTools'
+    )
+    const input = stubs(box(0, 1), box(1, 2), box(4, 5))
+    const selection = new Set(['a', 'b'])
+    const cleaned = cleanStubGeometriesForLevel(
+      input,
+      inventory,
+      land(),
+      4,
+      undefined,
+      undefined,
+      selection,
+    ).stubs
+    const before = structuredClone(cleaned)
+    const result = simplifyCleanedGeometries(cleaned, inventory, 4, 1, selection)
+    expect(result.features[0]!.properties.geometrySimplification).toBeDefined()
+    expect(result.features[1]!.properties.geometrySimplification).toBeDefined()
+    expect(result.features[2]).toEqual(input.features[2])
+    expect(cleaned).toEqual(before)
+    expect(() =>
+      simplifyCleanedGeometries(cleaned, inventory, 4, 1, new Set(['a', 'c'])),
+    ).toThrow('Polygon c')
+    expect(() =>
+      simplifyCleanedGeometries(cleaned, inventory, 4, 1, new Set()),
+    ).toThrow('Select drawn L4')
+  })
+  it('requires fresh cleanup after geometry is edited', async () => {
+    const { simplifyCleanedGeometries } = await import(
+      '../src/local-review/division-areas/simplificationTools'
+    )
+    const cleaned = run(stubs(box(0, 1))).stubs
+    cleaned.features[0]!.geometry = box(0, 0.9)
+    expect(() =>
+      simplifyCleanedGeometries(cleaned, inventory, 4, 1, new Set(['a'])),
+    ).toThrow('Polygon a')
+    const recleaned = run(cleaned).stubs
+    expect(() =>
+      simplifyCleanedGeometries(recleaned, inventory, 4, 1, new Set(['a'])),
+    ).not.toThrow()
+  })
+})
+
+describe('coverage comparison at floating-point intersections', () => {
+  const a = [114.188971, 22.2881981]
+  const b = [114.18916972867066, 22.288413096136185]
+  const c = [114.1892703, 22.2885219]
+  const d = [114.188, 22.289]
+  const source = polygon([a, c, d, a])
+  it('accepts the reported Causeway Bay intersection residue without changing coordinates', async () => {
+    const { default: GeoJSONReader } = await import(
+      'jsts/org/locationtech/jts/io/GeoJSONReader.js'
+    )
+    const { default: OverlayOp } = await import(
+      'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
+    )
+    const { default: GeometryFactory } = await import(
+      'jsts/org/locationtech/jts/geom/GeometryFactory.js'
+    )
+    const reader = new GeoJSONReader(new GeometryFactory())
+    const noded = polygon([a, b, c, d, a])
+    // Confirm the exact coordinates reproduce the old non-empty-difference failure.
+    const difference = OverlayOp.overlayOp(
+      reader.read(noded),
+      reader.read(source),
+      OverlayOp.SYMDIFFERENCE,
+    )
+    expect(difference.isEmpty()).toBe(false)
+    const before = structuredClone(noded)
+    expect(() => validateSharedCoverage([noded], [source])).not.toThrow()
+    expect(() => validateSharedCoverage([source], [noded])).not.toThrow()
+    expect(noded).toEqual(before)
+  })
+  it('still rejects a real millimetre-scale boundary displacement', () => {
+    const displaced = polygon([a, [b[0]! + 1e-8, b[1]!], c, d, a])
+    expect(() => validateSharedCoverage([displaced], [source])).toThrow('covered area')
+  })
+  it('rejects tiny detached regions even when their area is small', () => {
+    const tiny = polygon([
+      [114.2, 22.3],
+      [114.2000000001, 22.3],
+      [114.2, 22.3000000001],
+      [114.2, 22.3],
+    ])
+    expect(() => validateSharedCoverage([source, tiny], [source])).toThrow(
+      'covered area',
+    )
+  })
+})
+
+it('cleans and simplifies selected L6 drawings while preserving other levels', async () => {
+  const { simplifyCleanedGeometries } = await import(
+    '../src/local-review/division-areas/simplificationTools'
+  )
+  const l6 = {
+    ...inventory,
+    divisions: inventory.divisions.map(d => ({ ...d, level: d.id === 'c' ? 4 : 6 })),
+  }
+  const input = stubs(box(0, 1), box(1, 2), box(4, 5))
+  const selected = new Set(['a', 'b', 'c'])
+  const result = cleanStubGeometriesForLevel(
+    input,
+    l6,
+    land(),
+    6,
+    undefined,
+    undefined,
+    selected,
+  )
+  expect(result.levelCount).toBe(2)
+  expect(result.stubs.features[0]!.properties.geometryCleanupLevel).toBe(6)
+  expect(result.stubs.features[2]).toEqual(input.features[2])
+  const simplified = simplifyCleanedGeometries(result.stubs, l6, 6, 1, selected)
+  expect(simplified.features[0]!.properties.geometrySimplification).toBeDefined()
+  expect(simplified.features[2]).toEqual(input.features[2])
+})
+
+it('cleans L6 coast intersections containing an area and an isolated touching edge', () => {
+  const l6 = {
+    ...inventory,
+    divisions: inventory.divisions.map(d => ({ ...d, level: 6 })),
+  }
+  const input = stubs(box(0, 1))
+  input.features[0]!.geometry = {
+    type: 'MultiPolygon',
+    coordinates: [box(0, 1).coordinates, box(3, 4).coordinates],
+  }
+  const result = cleanStubGeometriesForLevel(input, l6, land(box(-1, 3)), 6)
+  const output = result.stubs.features[0]!.geometry as Polygon
+  expect(output.type).toBe('Polygon')
+  expect(output.coordinates[0]).toHaveLength(5)
+  expect(output.coordinates[0]).toEqual(
+    expect.arrayContaining(box(0, 1).coordinates[0]!),
+  )
+  expect(input.features[0]!.geometry.type).toBe('MultiPolygon')
 })

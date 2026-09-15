@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import {
   extendPencilPath,
+  drawingIntersection,
   pencilPolygon,
   validatePencilPath,
 } from '../src/local-review/division-areas/pencilGeometry'
@@ -79,4 +80,28 @@ describe('road pencil', () => {
       pencilPolygon(extendPencilPath(crossingClose, [0, 0], true, snap, route, true)),
     ).toThrow()
   })
+})
+
+it('locates a crossing for camera focus and does not invent a closing edge for open strokes', () => {
+  expect(
+    drawingIntersection(
+      [
+        [0, 0],
+        [2, 2],
+        [0, 2],
+        [2, 0],
+      ],
+      false,
+    ),
+  ).toEqual([1, 1])
+  expect(
+    drawingIntersection(
+      [
+        [0, 0],
+        [2, 0],
+        [2, 2],
+      ],
+      false,
+    ),
+  ).toBeNull()
 })

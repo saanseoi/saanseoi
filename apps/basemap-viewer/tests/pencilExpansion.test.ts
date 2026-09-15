@@ -283,3 +283,77 @@ describe('expansion along shared road edges', () => {
     ).toBeNull()
   })
 })
+
+it('automatically resolves a crossed expansion into the face retaining the main polygon', () => {
+  const stroke = [
+    [2, 0.2],
+    [3, 1.5],
+    [3, 0.5],
+    [2, 1.8],
+  ]
+  for (const path of [stroke, [...stroke].reverse()]) {
+    const before = structuredClone(path)
+    const result = expandPencilStroke(original, path)
+    expect(result.geometry?.type).toBe('Polygon')
+    const ring = (result.geometry as Polygon).coordinates[0]!
+    for (const p of [
+      [0, 0],
+      [2, 0],
+      [2, 2],
+      [0, 2],
+    ])
+      expect(ring).toContainEqual(p)
+    // The crossing is noded; the loop beyond it is not saved as a detached island.
+    expect(ring.some(p => p[0]! > 2)).toBe(true)
+    expect(ring).not.toContainEqual([3, 1.5])
+    expect(
+      commitPencilRegions([result.geometry as Polygon], [], 'selected').geometry,
+    ).toBeDefined()
+    expect(path).toEqual(before)
+  }
+})
+
+it('preserves holes and reports neighbour overlap after resolving crossings', () => {
+  const hole = [
+    [0.2, 0.2],
+    [0.2, 0.4],
+    [0.4, 0.4],
+    [0.4, 0.2],
+    [0.2, 0.2],
+  ]
+  const result = expandPencilStroke(
+    { type: 'Polygon', coordinates: [original.coordinates[0]!, hole] },
+    [
+      [2, 0.2],
+      [3, 1.5],
+      [3, 0.5],
+      [2, 1.8],
+    ],
+  )
+  expect(result.geometry?.type).toBe('Polygon')
+  expect((result.geometry as Polygon).coordinates).toHaveLength(2)
+  expect(
+    commitPencilRegions(
+      [result.geometry as Polygon],
+      [
+        {
+          id: 'neighbour',
+          name: 'Neighbour',
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                [2, 0.8],
+                [2.2, 0.8],
+                [2.2, 1.2],
+                [2, 1.2],
+                [2, 0.8],
+              ],
+            ],
+          },
+        },
+      ],
+      'selected',
+    ).overlaps,
+  ).toEqual([{ id: 'neighbour', name: 'Neighbour' }])
+})

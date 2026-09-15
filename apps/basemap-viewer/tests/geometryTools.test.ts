@@ -8,7 +8,6 @@ import {
   cleanTownStubGeometries,
   GeometryCleanupError,
   LEVEL_4_GEOMETRY_CLEANUP_VERSION,
-  TOWN_GEOMETRY_CLEANUP_ROAD_SNAP_METRES,
   TOWN_GEOMETRY_CLEANUP_VERSION,
 } from '../src/local-review/division-areas/geometryTools'
 import type {
@@ -289,9 +288,7 @@ describe('town stub geometry cleanup', () => {
         ? geometry.coordinates.flat(1)
         : geometry.coordinates.flat(2)
     expect(Math.min(...coordinates.map(point => point[0]!))).toBeCloseTo(0.50003, 7)
-    expect(result.stubs.features[0]?.properties.geometryCleanupRoadSnapMetres).toBe(
-      TOWN_GEOMETRY_CLEANUP_ROAD_SNAP_METRES,
-    )
+    expect(result.stubs.features[0]?.properties.geometryCleanupRoadSnapMetres).toBe(0)
   })
 
   it('leaves a boundary unchanged when the nearest street is beyond five metres', () => {
