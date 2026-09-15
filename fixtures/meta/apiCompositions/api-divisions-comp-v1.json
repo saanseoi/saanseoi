@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:66e20c988edde50ab5416690199fe80a9724327e9b35a7e5fc690010871c739b",
+  "versionHash": "sha256:055c285556d27e20d5744d7f853d00882512030bbb53c0d03b0c82a43363dc8e",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -51,7 +51,7 @@
           "variant": "overture",
           "role": "geometry",
           "isRequired": true,
-          "cohortMatchingMode": "exact_ref",
+          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
           "priority": 10,
           "ingestDependencies": [
             {
@@ -95,7 +95,7 @@
           "variant": "overture",
           "role": "geometry",
           "isRequired": true,
-          "cohortMatchingMode": "exact_ref",
+          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
           "priority": 20,
           "ingestDependencies": [
             {
