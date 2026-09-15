@@ -13,6 +13,7 @@ export function resolveCacheTablesForBinding(
   if (bindingName === 'DB_CURRENT') {
     if (cacheTableProfile === 'divisionStatistic') {
       return [
+        'statsDefinitionSets',
         'statsRecords',
         'statsPublicationState',
         'statsFields',
@@ -25,6 +26,7 @@ export function resolveCacheTablesForBinding(
 
     if (cacheTableProfile === 'statistics') {
       return [
+        'statsDefinitionSets',
         'statsRecords',
         'statsPublicationState',
         'statsFields',
@@ -128,6 +130,7 @@ export function resolveCacheTablesForBinding(
       'divisionAreaPublicationState',
       'divisionBoundaries',
       'divisionBoundaryPublicationState',
+      'statsDefinitionSets',
       'statsRecords',
       'statsPublicationState',
       'statsFields',
@@ -144,6 +147,7 @@ export function resolveCacheTablesForBinding(
         'sourceResolutions',
         'snapshotVersionChanges',
         'divisionStatistics',
+        'statsDefinitionSets',
         'statsRecords',
         'statsFields',
         'statsFieldsI18n',
@@ -157,6 +161,7 @@ export function resolveCacheTablesForBinding(
       return [
         'sourceResolutions',
         'snapshotVersionChanges',
+        'statsDefinitionSets',
         'statsRecords',
         'statsFields',
         'statsFieldsI18n',
@@ -240,6 +245,7 @@ export function resolveCacheTablesForBinding(
       'divisionAreas',
       'divisionBoundaries',
       'divisionStatistics',
+      'statsDefinitionSets',
       'statsRecords',
       'statsFields',
       'statsFieldsI18n',
@@ -446,9 +452,9 @@ export function resolveCachePruneOperation(
   ) {
     const id = tableName === 'address2d' ? 'id' : 'addressId'
     return {
-      retainedRowsWhereSql: `"isCurrent" = 1 OR "${id}" LIKE 'opa-%'`,
+      retainedRowsWhereSql: `"isCurrent" = 1 OR "${id}" LIKE 'ss-opa-%'`,
       tableName,
-      whereSql: `"isCurrent" <> 1 AND "${id}" NOT LIKE 'opa-%'`,
+      whereSql: `"isCurrent" <> 1 AND "${id}" NOT LIKE 'ss-opa-%'`,
     }
   }
   if (

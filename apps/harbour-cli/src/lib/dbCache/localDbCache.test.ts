@@ -74,9 +74,9 @@ test('mirrors only rows retained by annual shard cache pruning', () => {
     ['address2dI18n', 'addressId'],
   ] as const)
     expect(resolveCachePruneOperation('DB_HISTORY_HK_2025', tableName)).toEqual({
-      retainedRowsWhereSql: `"isCurrent" = 1 OR "${id}" LIKE 'opa-%'`,
+      retainedRowsWhereSql: `"isCurrent" = 1 OR "${id}" LIKE 'ss-opa-%'`,
       tableName,
-      whereSql: `"isCurrent" <> 1 AND "${id}" NOT LIKE 'opa-%'`,
+      whereSql: `"isCurrent" <> 1 AND "${id}" NOT LIKE 'ss-opa-%'`,
     })
   expect(
     resolveCachePruneOperation('DB_HISTORY_HK_2025', 'address2dEvidence'),
@@ -161,11 +161,11 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(166)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(170)
   expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(41)
   expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(110)
   expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(62)
-  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(54)
+  expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(58)
   expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'street')).not.toContain(
     'sourceResolutions',
   )
