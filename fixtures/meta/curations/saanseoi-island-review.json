@@ -2770,9 +2770,9 @@
       "sourceRelease": "refresh-hk-2026-09-01",
       "areaKm2": 0,
       "decision": "rejected",
-      "note": "no geometry",
-      "ai": true,
-      "rejectionCode": "no-geometry"
+      "note": "Excluded from coverage by curator.",
+      "ai": false,
+      "rejectionCode": "curator-excluded"
     },
     {
       "id": "BASEMAP:ISLAND:105f9853bcaf06ec",
