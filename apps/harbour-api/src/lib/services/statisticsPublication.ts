@@ -1,3 +1,4 @@
+import { statisticDefinitionHashesSql } from '@repo/db'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { withPrimarySession } from '../d1'
@@ -192,7 +193,7 @@ export async function promotePublishedStatisticsTarget(
     for (const [history, selected] of byBinding) {
       const result = await history
         .prepare(
-          `SELECT r.* FROM statsRecords r JOIN json_each(?) selected
+          `SELECT r.*, ${statisticDefinitionHashesSql('r')} AS fieldDefinitionHashes FROM statsRecords r JOIN json_each(?) selected
            ON r.id = json_extract(selected.value, '$.recordId')
            AND r.versionHash = json_extract(selected.value, '$.versionHash')`,
         )
@@ -219,9 +220,23 @@ export async function promotePublishedStatisticsTarget(
         rows,
         copiedDictionaryVersions,
       )
-      const statements = rows.map(row => currentRecordUpsert(current, target, row))
+      const definitionSets = new Map(
+        rows.map(row => [
+          String(row.definitionSetId),
+          {
+            id: row.definitionSetId!,
+            fieldDefinitionHashes: row.fieldDefinitionHashes!,
+          },
+        ]),
+      )
+      const statements = [
+        ...[...definitionSets.values()].map(row =>
+          immutableDictionaryInsert(current, target, 'statsDefinitionSets', row),
+        ),
+        ...rows.map(row => currentRecordUpsert(current, target, row)),
+      ]
       if (statements.length) await current.batch(statements)
-      changedRecords += statements.length
+      changedRecords += rows.length
     }
   }
 
@@ -350,7 +365,7 @@ function currentRecordUpsert(
   target: StatisticsPublicationTarget,
   row: StoredRow,
 ) {
-  const canonical = currentColumns(row)
+  const { fieldDefinitionHashes: _definitions, ...canonical } = currentColumns(row)
   const columns = Object.keys(canonical)
   return current
     .prepare(

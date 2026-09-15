@@ -25,9 +25,11 @@ function fixture() {
     [history, true],
   ] as const) {
     database.exec(`
+      CREATE TABLE statsDefinitionSets(id TEXT PRIMARY KEY, fieldDefinitionHashes TEXT NOT NULL);
+      INSERT INTO statsDefinitionSets VALUES ('definitions','{"population":"field-1"}');
       CREATE TABLE statsRecords (
         id TEXT, datasetCode TEXT, referencePeriodCode TEXT, versionHash TEXT,
-        "values" TEXT, fieldDefinitionHashes TEXT, sourceReleaseId TEXT,
+        "values" TEXT, definitionSetId TEXT, sourceReleaseId TEXT,
         createdAt TEXT, updatedAt TEXT ${historical ? ', isCurrent INTEGER' : ''},
         PRIMARY KEY (id ${historical ? ', versionHash' : ''})
       );
@@ -104,7 +106,7 @@ function fixture() {
         referencePeriod,
         hash,
         JSON.stringify({ population: value }),
-        JSON.stringify({ population: 'field-1' }),
+        'definitions',
         snapshotId,
         'now',
         'now',
