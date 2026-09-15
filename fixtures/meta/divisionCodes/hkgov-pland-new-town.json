@@ -1,58 +1,58 @@
 {
-  "versionHash": "sha256:9c61f96b8987e6c908373a979831d613c37b34d391a703ccf18576900fa3653c",
+  "versionHash": "sha256:06c459aabef6ae51f23d2d213d172fb825fc459e8fcd965a9dc4b8ce21cb8f26",
   "domainCode": "hkgov-pland-new-town",
   "assignments": [
     {
       "divisionCode": "FANLING_SHEUNG_SHUI_KWU_TUNG",
-      "canonicalId": "ecea60da-b31f-58c7-b32b-55ebb124039e"
+      "canonicalId": "ss-ecea60da-b31f-58c7-b32b-55ebb124039e"
     },
     {
       "divisionCode": "HUNG_SHUI_KIU_HA_TSUEN",
-      "canonicalId": "c8f38f4d-2d3e-5dc4-b8f2-0eac3b05b23a"
+      "canonicalId": "ss-c8f38f4d-2d3e-5dc4-b8f2-0eac3b05b23a"
     },
     {
       "divisionCode": "SHA_TIN_MA_ON_SHAN_AREA",
-      "canonicalId": "84de4d2a-467f-5395-86cd-f873c84b4793"
+      "canonicalId": "ss-84de4d2a-467f-5395-86cd-f873c84b4793"
     },
     {
       "divisionCode": "SHA_TIN_SHA_TIN_AREA",
-      "canonicalId": "81587600-8b6a-5490-877a-358f82647bf4"
+      "canonicalId": "ss-81587600-8b6a-5490-877a-358f82647bf4"
     },
     {
       "divisionCode": "TAI_PO",
-      "canonicalId": "a529f49f-abe0-5a0b-8726-f9a78a6e5754"
+      "canonicalId": "ss-a529f49f-abe0-5a0b-8726-f9a78a6e5754"
     },
     {
       "divisionCode": "TIN_SHUI_WAI",
-      "canonicalId": "47b64bdd-0605-58aa-b67f-824f143d4106"
+      "canonicalId": "ss-47b64bdd-0605-58aa-b67f-824f143d4106"
     },
     {
       "divisionCode": "TSUEN_WAN_KWAI_CHUNG_AREA",
-      "canonicalId": "c13f1abe-eb5d-5255-b454-ef5e868913c1"
+      "canonicalId": "ss-c13f1abe-eb5d-5255-b454-ef5e868913c1"
     },
     {
       "divisionCode": "TSUEN_WAN_TSING_YI_AREA",
-      "canonicalId": "d0b06deb-4842-507b-8284-a3254615e5aa"
+      "canonicalId": "ss-d0b06deb-4842-507b-8284-a3254615e5aa"
     },
     {
       "divisionCode": "TSUEN_WAN_TSUEN_WAN_AREA",
-      "canonicalId": "14dfb76e-4e82-5312-8fce-cfde214c04d5"
+      "canonicalId": "ss-14dfb76e-4e82-5312-8fce-cfde214c04d5"
     },
     {
       "divisionCode": "TSEUNG_KWAN_O",
-      "canonicalId": "9598a407-bc95-5bce-84e1-d284b6322315"
+      "canonicalId": "ss-9598a407-bc95-5bce-84e1-d284b6322315"
     },
     {
       "divisionCode": "TUEN_MUN",
-      "canonicalId": "355a5363-54d4-5784-9cdb-fcb10d826a9d"
+      "canonicalId": "ss-355a5363-54d4-5784-9cdb-fcb10d826a9d"
     },
     {
       "divisionCode": "TUNG_CHUNG",
-      "canonicalId": "9e97c5d6-a99e-53ea-9e4f-61af2299ff50"
+      "canonicalId": "ss-9e97c5d6-a99e-53ea-9e4f-61af2299ff50"
     },
     {
       "divisionCode": "YUEN_LONG",
-      "canonicalId": "9da8edd6-58fa-51bd-8220-4269eea60585"
+      "canonicalId": "ss-9da8edd6-58fa-51bd-8220-4269eea60585"
     }
   ]
 }
