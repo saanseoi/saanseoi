@@ -1,3 +1,5 @@
+import islandReview from '../../../../../../fixtures/meta/curations/saanseoi-island-review.json'
+import type { IslandReviewFixture } from '../islands/islandCuration'
 import exclusions from '../../../../../../fixtures/divisions/hk/exclusions.json'
 import classificationFixture from '../../../../../../fixtures/meta/patches/overture-division-classification.json'
 import { sql } from 'drizzle-orm'
@@ -81,6 +83,7 @@ export async function publishLocalCuratedDivisions(
       areaBase = base('divisionArea')
     if (!divisionBase || !areaBase) return null
     const data = assembleCuratedDivisions({
+      islandReview: islandReview as IslandReviewFixture,
       excludedIds: exclusions.entries.flatMap(entry => [
         entry.divisionId,
         ...(entry.reviewId ? [entry.reviewId] : []),
@@ -110,6 +113,7 @@ export async function publishLocalCuratedDivisions(
       hierarchy,
       stubs,
       islands,
+      islandReview,
       divisions: contentRows(data.divisions),
       names: contentRows(data.names),
       areas: contentRows(data.areas),
@@ -124,6 +128,7 @@ export async function publishLocalCuratedDivisions(
         hierarchy,
         stubs,
         islands,
+        islandReview,
         divisionSnapshotId: divisionBase.id,
         areaSnapshotId: areaBase.id,
       }),
@@ -410,7 +415,7 @@ export async function publishLocalCuratedDivisions(
       divisions: data.divisions.length,
       areas: data.areas.length,
       drawings: stubs.features.length,
-      islands: islands.length,
+      islands: data.islandCount,
     }
   } finally {
     current.close()

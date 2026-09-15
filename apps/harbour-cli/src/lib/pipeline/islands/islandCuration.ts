@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
-import { buildDeterministicUuidV5 } from '@repo/db'
+import { buildDeterministicUuidV5, classifyIslandArea } from '@repo/db'
 import { REPO_ROOT } from '../../sources/sourceUpdatesConfig.ts'
 
 export type IslandGeometry = {
@@ -416,7 +416,7 @@ export function curatedIslandToSaanSeoiDivisionRow(
     theme: 'divisions',
     type: 'division',
     subtype: 'landform',
-    class: island.areaKm2 >= 1 ? 'major_island' : 'minor_island',
+    class: classifyIslandArea(island.areaKm2),
     geometry: island.geometry,
     hierarchies: [],
     names: { common: names, primary: island.names.en },

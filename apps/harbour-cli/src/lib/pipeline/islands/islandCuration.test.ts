@@ -251,3 +251,21 @@ test('uses a reviewed geometry override and retains reviewed alternative names',
   expect(result.islands[0]?.names.alternativesEn).toEqual(['Kiu Tau Teng'])
   expect(result.islands[0]?.sources.at(-1)?.source).toBe('OpenStreetMap coastline')
 })
+
+for (const [areaKm2, expectedClass] of [
+  [0.009999, 'islet'],
+  [0.01, 'minor_island'],
+  [0.010001, 'minor_island'],
+  [9.999999, 'minor_island'],
+  [10, 'major_island'],
+] as const) {
+  test(`materialised island classifies ${areaKm2} km² as ${expectedClass}`, () => {
+    const candidate = entry('size-test', 'Island')
+    const result = curateIslands([candidate], {
+      curationPolicy: { version: 1, actions: [], aliasGroups: [] },
+      entries: [{ ...candidate, decision: 'accepted' }],
+    })
+    const row = curatedIslandToSaanSeoiDivisionRow({ ...result.islands[0]!, areaKm2 })
+    expect(row.class).toBe(expectedClass)
+  })
+}
