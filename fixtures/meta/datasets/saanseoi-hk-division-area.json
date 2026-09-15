@@ -1,0 +1,60 @@
+{
+  "versionHash": "sha256:a48b58f2b2c3834e31cc411ccbe25a3e2159401d0c25ee59411baac58631177d",
+  "publisherCode": "saanseoi",
+  "code": "ds-hk-saanseoi-division-area",
+  "regionCode": "hk",
+  "releaseType": "static",
+  "releaseFrequency": "as-needed",
+  "theme": "divisions",
+  "resourceTypes": [
+    "divisionArea"
+  ],
+  "licenseCode": "ODbL",
+  "attribution": "SaanSeoi; © OpenStreetMap contributors; Overture Maps Foundation",
+  "schemaURL": null,
+  "updatePolicy": {
+    "allowUpdates": true
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "irregular",
+    "revisionScope": "latest",
+    "checks": {
+      "newReleases": {
+        "trigger": "never"
+      },
+      "revisions": {
+        "trigger": "never"
+      },
+      "archives": {
+        "trigger": "never"
+      }
+    },
+    "archives": {
+      "availability": "full"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "upstream",
+    "correctionSuffixSource": "generated"
+  },
+  "category": "places",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "Handcrafted Division Areas",
+      "description": "Handcrafted Hong Kong geography. Incomplete and experimental. Initial edition dated 1 September 2026, updated as needed."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "手工繪製區劃範圍",
+      "description": "手工繪製的香港地理資料。資料尚未完整，屬實驗性質。首版日期為2026年9月1日，按需要更新。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "手工绘制区划范围",
+      "description": "手工绘制的香港地理资料。资料尚未完整，属实验性质。首版日期为2026年9月1日，按需要更新。"
+    }
+  ],
+  "sourceCrs": "EPSG:4326"
+}
