@@ -2762,6 +2762,14 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
         ('overture-division-2025', 'dataset-overture-division', 'release-overture-division-2025', 'primary');
     `)
 
+    sqlite.exec(`
+      INSERT INTO snapshotLineages (id,variant) VALUES ('curated-lineage','saanseoi');
+      INSERT INTO snapshots (id,snapshotLineageId,resourceType,code,cohortKey,status,publishedAt,createdAt)
+      VALUES ('curated','curated-lineage','division','ss-hk-division-saanseoi-2025-09-24.0','2025-09-24.0','published',1758672001000,1758672001000);
+      INSERT INTO snapshotSources (snapshotId,datasetId,resourceReleaseId,role)
+      VALUES ('curated','dataset-overture-division','release-overture-division-2025','primary');
+    `)
+
     await expect(
       resolvePublishedSnapshotForResourceTypeRegionCohortKey(
         db as never,

@@ -3181,6 +3181,7 @@ export async function resolvePublishedSnapshotForResourceTypeRegionCohortKey(
               buildDatasetCode(regionCode, 'overture', resourceType),
             ),
             eq(metaSnapshotSources.role, 'primary'),
+            snapshotVariantCondition(options.variant, resourceType, regionCode),
           ),
         )
         .orderBy(
