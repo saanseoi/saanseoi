@@ -66,7 +66,8 @@ export default defineConfig({
   server: {
     // Tailnet-only remote development through `tailscale serve --https=8443`.
     // Vite otherwise rejects the MagicDNS Host header before proxying/HMR.
-    allowedHosts: ['fi.tailb49776.ts.net'],
+    allowedHosts: ['fi.tailb49776.ts.net', 'atlas.localhost'],
+    hmr: { clientPort: 80 },
     watch: {
       usePolling: true,
       interval: 1000,

@@ -9,7 +9,7 @@ let {
 }: { text: ViewerText; theme: Theme; ghost?: boolean } = $props()
 
 const saanseoiBaseUrl = import.meta.env.DEV
-  ? 'http://localhost:5173'
+  ? 'http://atlas.localhost'
   : 'https://saanseoi.hk'
 const gettingStartedUrl = new URL('/guides/create-a-map', saanseoiBaseUrl).href
 </script>

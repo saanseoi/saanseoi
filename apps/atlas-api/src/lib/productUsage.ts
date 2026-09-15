@@ -26,6 +26,7 @@ export function isFirstPartyWebOrigin(origin: string | undefined) {
     return (
       url.protocol === 'http:' &&
       (url.hostname === 'localhost' ||
+        url.hostname === 'atlas.localhost' ||
         url.hostname === '127.0.0.1' ||
         url.hostname === '[::1]')
     )

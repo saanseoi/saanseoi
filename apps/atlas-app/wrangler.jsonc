@@ -15,7 +15,7 @@
     }
   ],
   "vars": {
-    "PUBLIC_ATLAS_API_BASE_URL": "http://localhost:8787"
+    "PUBLIC_ATLAS_API_BASE_URL": "http://api.atlas.localhost"
   },
   "secrets": {
     "required": [

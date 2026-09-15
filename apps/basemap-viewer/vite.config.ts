@@ -35,7 +35,13 @@ function localReviewRoutes() {
 
 export default defineConfig({
   plugins: [localReviewRoutes(), tailwindcss(), svelte()],
-  server: { host: 'localhost', port: 5174, strictPort: true },
+  server: {
+    host: 'localhost',
+    port: 5174,
+    strictPort: true,
+    allowedHosts: ['basemaps.localhost'],
+    hmr: { clientPort: 80 },
+  },
   preview: { port: 4173, strictPort: true },
   test: { environment: 'node' },
 })

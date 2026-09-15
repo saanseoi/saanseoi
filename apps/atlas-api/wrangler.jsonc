@@ -22,11 +22,11 @@
     ]
   },
   "vars": {
-    "ATLAS_BASE_URL": "http://localhost:8787",
+    "ATLAS_BASE_URL": "http://api.atlas.localhost",
     "ANALYTICS_ENGINE_ACCOUNT_ID": "a6eeace4b6d9f8e07ab307964e74d801",
     "AUTH_MODE": "disabled",
     "ENVIRONMENT": "local",
-    "HARBOUR_BASE_URL": "http://localhost:8788",
+    "HARBOUR_BASE_URL": "http://harbour.localhost",
     "PRODUCT_USAGE_DATASET": "ss-product-usage-local",
     "SUBSTACK_PUBLICATION": "saanseoi",
     "USAGE_ROLLUP_DATASETS": "ss-api-usage-local"
