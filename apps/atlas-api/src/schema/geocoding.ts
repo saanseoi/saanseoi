@@ -14,6 +14,7 @@ const coordinate = (min: number, max: number) =>
 
 export const GeocodingQuerySchema = z
   .object({
+    profile: z.enum(['compact', 'default', 'map', 'full']).default('default'),
     lat: coordinate(-90, 90).optional(),
     lng: coordinate(-180, 180).optional(),
     address: z.string().trim().min(1).max(500).optional(),
@@ -34,7 +35,7 @@ export const GeocodingQuerySchema = z
       })
       .default('en,zh-hant'),
     include: z.enum(['divisions']).optional(),
-    geometry: z.literal('stub').optional(),
+    geometry: z.enum(['area', 'stub']).optional(),
     limit: z.coerce.number().int().min(1).max(50).default(10),
     maxDistance: z.coerce.number().finite().min(0).max(50000).default(1000),
   })
@@ -63,116 +64,82 @@ export const GeocodingQuerySchema = z
 export type GeocodingQuery = z.infer<typeof GeocodingQuerySchema>
 
 const point = z.tuple([z.number(), z.number()]).describe('WGS84 [lng, lat].')
-const membership = z.object({
+const identifier = z.object({ type: z.string(), id: z.string() })
+const relationship = z.object({
+  data: z.array(identifier),
+  meta: z.object({ paths: z.array(z.array(identifier)) }).optional(),
+})
+const position = z.array(z.number()).min(2)
+const ring = z.array(position)
+const geometry = z
+  .discriminatedUnion('type', [
+    z.object({ type: z.literal('Point'), coordinates: position }),
+    z.object({ type: z.literal('Polygon'), coordinates: z.array(ring) }),
+    z.object({ type: z.literal('MultiPolygon'), coordinates: z.array(z.array(ring)) }),
+  ])
+  .nullable()
+const names = z.object({
+  name: z.string().nullable(),
+  nameVariant: z.array(z.string()).nullable().optional(),
+  nameAlts: z.array(z.string()).nullable().optional(),
+  nameRules: z.array(z.unknown()).nullable().optional(),
+})
+const divisionResource = z.object({
+  type: z.literal('divisions'),
   id: z.string(),
-  category: z.string().nullable(),
-  class: z.string().nullable(),
-  level: z.number().nullable(),
-  names: z.record(z.string(), z.unknown()),
-  evidence: z.string().describe('containment, hierarchy, or a forward name match'),
-  geometry: z
-    .unknown()
+  attributes: z.object({
+    level: z.number().nullable(),
+    class: z.string().nullable().optional(),
+    category: z.string().nullable().optional(),
+    i18n: z.record(z.string(), names),
+    geometry: geometry.optional(),
+  }),
+})
+const addressResource = z.object({
+  type: z.literal('addresses'),
+  id: z.string(),
+  attributes: z.record(z.string(), z.unknown()),
+})
+const resultResource = z.object({
+  type: z.literal('geocoding-results'),
+  id: z.string(),
+  attributes: z.object({
+    status: z.enum(['resolved', 'ambiguous', 'incomplete', 'not_found']),
+    rank: z.number().int().positive().optional(),
+    coordinates: point.optional(),
+    coordinateRole: z.string().optional(),
+    match: z
+      .object({
+        type: z
+          .enum([
+            'reverse-geocoding',
+            'forward-geocoding',
+            'exact_location',
+            'nearest',
+            'exact_text',
+            'partial_text',
+          ])
+          .describe(
+            'Division matches use reverse-geocoding for coordinate containment and forward-geocoding for name searches. Address matches use exact_location, nearest, exact_text or partial_text.',
+          ),
+        score: z.number().optional(),
+        distanceMetres: z.number().nullable().optional(),
+      })
+      .optional(),
+  }),
+  relationships: z
+    .record(z.string(), relationship)
+    .describe(
+      'Ordered root-to-leaf administrative, locality, hood and landform branches. Multiple alternative paths are retained in relationship meta.paths.',
+    ),
+  meta: z
+    .record(z.string(), z.unknown())
     .optional()
-    .describe('Only the geographic stub Polygon or MultiPolygon, or null.'),
-})
-export const DivisionGeocodingResolutionSchema = z.object({
-  status: z.string().describe('resolved, ambiguous, incomplete, or not_found'),
-  matchedDivisionIds: z.array(z.string()),
-  memberships: z.array(membership),
-  path: z
-    .array(z.string())
-    .nullable()
-    .describe(
-      'Ordered selected administrative/locality/hood path, including its leaf.',
-    ),
-  selectedAncestryIds: z
-    .array(z.string())
-    .nullable()
-    .describe(
-      'Complete deduplicated membership for counting, including landforms; null when ambiguous.',
-    ),
-  alternatives: z.array(z.array(z.string())),
-  landform: z.object({
-    memberships: z.array(membership),
-    paths: z.array(z.array(z.string())),
-  }),
-  coverage: z.object({
-    geometry: z.string(),
-    covered: z.number(),
-    total: z.number(),
-    missingAncestorIds: z.array(z.string()),
-  }),
-  ambiguity: z.object({
-    unresolvedDivisionIds: z.array(z.string()),
-    overlappingPaths: z.boolean(),
-  }),
-})
-const release = z.object({
-  apiReleaseSet: z.string(),
-  domain: z.string(),
-  cohort: z.string().nullable(),
-  schemaVersion: z.string(),
-  rulesetVersion: z.string(),
-  snapshots: z.array(
-    z.object({
-      snapshotId: z.string(),
-      snapshotResourceType: z.string(),
-      role: z.string(),
-      variant: z.string(),
-    }),
-  ),
+    .describe('Full-profile lookup evidence and separate dataset-wide coverage.'),
 })
 export const GeocodingResponseSchema = z.object({
-  data: z.union([
-    DivisionGeocodingResolutionSchema,
-    z.array(
-      z.union([
-        z.object({
-          type: z.string(),
-          id: z.string(),
-          rank: z.number(),
-          attributes: z.record(z.string(), z.unknown()),
-          match: z.object({
-            type: z.string(),
-            distanceMetres: z.number().nullable().optional(),
-            score: z.number().optional(),
-          }),
-          divisions: DivisionGeocodingResolutionSchema.nullable().optional(),
-        }),
-        z.object({
-          type: z.string(),
-          id: z.string(),
-          rank: z.number(),
-          score: z.number(),
-          category: z.string().nullable(),
-          class: z.string(),
-          level: z.number().nullable(),
-          names: z.record(z.string(), z.unknown()),
-          coordinates: point.nullable(),
-          coordinateRole: z.string(),
-          divisions: DivisionGeocodingResolutionSchema.nullable(),
-        }),
-        z.object({
-          type: z.string(),
-          rank: z.number(),
-          score: z.number(),
-          coordinates: point.nullable(),
-          addressId: z.string(),
-          divisions: DivisionGeocodingResolutionSchema.nullable(),
-        }),
-      ]),
-    ),
-  ]),
-  meta: z.object({
-    apiVersion: z.string(),
-    direction: z.string(),
-    release,
-    addressRelease: release.optional(),
-    divisionRelease: release.optional(),
-    coordinates: point.nullable().optional(),
-    maxDistance: z.number().optional(),
-    resolution: z.string().optional(),
-    total: z.number().optional(),
-    truncated: z.boolean().optional(),
-  }),
+  jsonapi: z.object({ version: z.literal('1.1') }),
+  data: z.array(resultResource),
+  included: z.array(z.discriminatedUnion('type', [divisionResource, addressResource])),
+  meta: z.record(z.string(), z.unknown()),
 })

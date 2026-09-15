@@ -1,3 +1,4 @@
+import { geocodingJsonApiErrors } from './routes/geocoding/jsonApiErrors'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import type { Context } from 'hono'
 import { Scalar } from '@scalar/hono-api-reference'
@@ -7,6 +8,10 @@ import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 
 import { createCurrentDb, createHistoryDb, createMetaDb } from '@repo/db'
+import {
+  hydrateCanonicalSourceDocument,
+  requiresCanonicalSourceExpansion,
+} from './services/canonicalSourceDocument'
 import { isTransientD1ReadError } from './lib/d1'
 import {
   localiseOpenApiDocument,
@@ -380,6 +385,8 @@ app.all('/places/v0/*', c => forwardMajorVersionAlias(c, '/places/v0'))
 app.all('/streets/v0/*', c => forwardMajorVersionAlias(c, '/streets/v0'))
 
 app.use('*', poweredBy())
+app.use('/divisions/v1/geocode', geocodingJsonApiErrors)
+app.use('/addresses/v1/geocode', geocodingJsonApiErrors)
 for (const path of apiRoutePaths) {
   app.use(path, prettyJSON())
 }
@@ -419,6 +426,20 @@ for (const path of apiRoutePaths) {
     c.set('historyDbs', Object.values(historyDbsByBinding))
     c.set('historyDbsByBinding', historyDbsByBinding)
     await next()
+    if (
+      requiresCanonicalSourceExpansion(c.req.path, c.req.query('profile')) &&
+      c.res.status === 200 &&
+      c.res.headers.get('content-type')?.includes('application/json')
+    ) {
+      const document = await c.res.clone().json()
+      await hydrateCanonicalSourceDocument(document as never, {
+        metaDb: c.get('metaDb'),
+        historyDbsByBinding,
+      })
+      const headers = new Headers(c.res.headers)
+      headers.delete('content-length')
+      c.res = new Response(JSON.stringify(document), { status: c.res.status, headers })
+    }
   })
 }
 

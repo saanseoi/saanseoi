@@ -21,6 +21,10 @@ const Address3dResourceSchema = z
       snapshotId: z.string(),
       address2dId: z.string(),
       unitCount: z.number().int(),
+      sources: z
+        .unknown()
+        .optional()
+        .describe('Exact source references, included only for the full profile.'),
       units: z.array(
         z.object({
           id: z.string(),

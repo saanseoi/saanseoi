@@ -101,9 +101,9 @@ export const DivisionHierarchyEntrySchema = z
 
 export const DivisionHierarchiesSchema = z
   .object({
-    administrative: z.array(z.array(DivisionHierarchyEntrySchema)),
-    locality: z.array(z.array(DivisionHierarchyEntrySchema)),
-    landform: z.array(z.array(DivisionHierarchyEntrySchema)),
+    administrative: z.array(z.array(DivisionHierarchyEntrySchema)).optional(),
+    locality: z.array(z.array(DivisionHierarchyEntrySchema)).optional(),
+    landform: z.array(z.array(DivisionHierarchyEntrySchema)).optional(),
     full: z.array(z.array(DivisionHierarchyEntrySchema)),
   })
   .openapi('DivisionHierarchies', {
@@ -311,6 +311,10 @@ const DivisionRelationshipsSchema = z
   .openapi('DivisionRelationships')
 
 const DivisionGeometryResourceAttributesSchema = z.object({
+  snapshotId: z
+    .string()
+    .optional()
+    .describe('Selected geometry snapshot, included only for the full profile.'),
   bbox: z.union([BBoxSchema, z.null()]).openapi({
     description: openApiText('openapi_divisions_geometry_resource_bbox_description'),
   }),

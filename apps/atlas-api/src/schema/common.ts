@@ -361,6 +361,24 @@ export const RequestedLocalesMetadataSchema = z
 
 export const ApiVersionMetadataSchema = z
   .object({
+    sourceSpecifications: z
+      .record(
+        z.string(),
+        z.object({
+          datasetCode: z.string(),
+          sourceReleaseId: z.string(),
+          sourceVersion: z.string(),
+          resourceReleaseCode: z.string(),
+          sourceReleaseCode: z.string(),
+          cohortKey: z.string().nullable(),
+          sourceSchemaVersion: z.string().nullable(),
+          originalFileName: z.string().nullable(),
+        }),
+      )
+      .optional()
+      .describe(
+        'Shared immutable source selections keyed by resource release ID, included only for full responses.',
+      ),
     requestedApiVersion: z.string().openapi({
       examples: ['0.1', '2'],
     }),
