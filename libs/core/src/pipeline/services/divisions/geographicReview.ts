@@ -9,6 +9,7 @@ import type {
   Polygon,
   Position,
 } from 'geojson'
+import { createFullContainmentAnnotator } from './fullContainment'
 
 export type ReviewDivision = {
   id: string
@@ -259,13 +260,12 @@ function eligibleParent(child: ReviewDivision, parent: ReviewDivision) {
   )
 }
 
-/** Per-point inference. Smaller containing area wins a same-tier overlap; ID breaks ties. */
-export function deriveHierarchyPatch(
+/** The exact polygon selection used by the editor hierarchy export. */
+export function selectReviewAreas(
   inventory: ReviewInventory,
   reference: ReviewArea[],
   stubs: StubAreas,
-  retainProvisional: boolean,
-): HierarchyPatch {
+): Map<string, ReviewArea> {
   validateStubAreas(stubs, inventory)
   const divisions = new Map(inventory.divisions.map(d => [d.id, d]))
   const stubIds = new Set(stubs.features.map(f => f.properties.divisionId))
@@ -308,6 +308,21 @@ export function deriveHierarchyPatch(
     }
   }
 
+  return byDivision
+}
+
+/** Per-point inference. Smaller containing area wins a same-tier overlap; ID breaks ties. */
+export function deriveHierarchyPatch(
+  inventory: ReviewInventory,
+  reference: ReviewArea[],
+  stubs: StubAreas,
+  retainProvisional: boolean,
+): HierarchyPatch {
+  const byDivision = selectReviewAreas(inventory, reference, stubs)
+  const divisions = new Map(inventory.divisions.map(d => [d.id, d]))
+  const annotateContainment = createFullContainmentAnnotator(
+    new Map([...byDivision].map(([id, feature]) => [id, [feature.geometry]])),
+  )
   const candidates = [...byDivision.values()].map(feature => ({
     feature,
     division: divisions.get(feature.properties.divisionId)!,
@@ -424,7 +439,7 @@ export function deriveHierarchyPatch(
         divisionId: c.division.id,
         variant: c.feature.properties.variant,
       })),
-      hierarchies: hierarchy,
+      hierarchies: annotateContainment(child.id, hierarchy),
     } as HierarchyDecision
   })
   return {

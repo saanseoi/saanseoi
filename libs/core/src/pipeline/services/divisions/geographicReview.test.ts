@@ -73,6 +73,29 @@ test('point evidence assigns level 6 without needing a level-6 polygon, with det
   expect(derive(features.toReversed())).toEqual(result)
   expect(() => validateStubAreas(stubs([square('child', 1)]), inventory)).not.toThrow()
 })
+test('editor export annotates every hierarchy projection from the current drawings', () => {
+  const derive = (features: ReviewArea[]) =>
+    deriveHierarchyPatch(
+      inventory,
+      [square('district', 10, 'overture')],
+      stubs(features),
+      false,
+    ).entries.find(entry => entry.divisionId === 'child')!
+  const result = derive([square('small', 4), square('child', 3)])
+  for (const paths of Object.values(result.hierarchies))
+    for (const path of paths)
+      for (const entry of path) {
+        expect(entry.full_containment).toBe(true)
+        expect(entry.containment_geometry?.division).toMatch(/^sha256:/)
+      }
+  expect(
+    derive([square('small', 4), square('child', 6)]).hierarchies.locality![0]![0]!
+      .full_containment,
+  ).toBe(false)
+  expect(
+    derive([square('small', 4)]).hierarchies.locality![0]![0]!.full_containment,
+  ).toBeNull()
+})
 test('holes, boundaries and disconnected polygon parts have defined point membership', () => {
   const geometry = square('x', 10).geometry
   if (geometry.type !== 'Polygon') throw Error()

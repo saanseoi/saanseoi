@@ -2,6 +2,7 @@
 export const divisionTaxonomy = {
   major_island: { category: 'landform', level: null },
   minor_island: { category: 'landform', level: null },
+  islet: { category: 'landform', level: null },
   island_group: { category: 'landform', level: null },
   country: { category: 'administrative', level: 0 },
   sar: { category: 'administrative', level: 0 },
@@ -29,6 +30,10 @@ export type DivisionHierarchyEntry = {
   id: string
   name: string | null
   class: string
+  /** This ancestor covers the owning division's entire area, including boundaries. */
+  full_containment?: boolean | null
+  /** Geometry identities for this assertion; null/absent evidence cannot skip checks. */
+  containment_geometry?: { division: string; ancestor: string }
 }
 
 /** Materialised at ingestion; readers must not infer or compose ancestry. */
@@ -41,4 +46,11 @@ export type DivisionHierarchies = {
 
 export function emptyDivisionHierarchies(): DivisionHierarchies {
   return { full: [] }
+}
+
+/** Individual island land area in square kilometres; groups are classified separately. */
+export function classifyIslandArea(areaKm2: number) {
+  if (!Number.isFinite(areaKm2) || areaKm2 <= 0)
+    throw new Error('Island area must be a finite, positive number')
+  return areaKm2 >= 10 ? 'major_island' : areaKm2 >= 0.01 ? 'minor_island' : 'islet'
 }
