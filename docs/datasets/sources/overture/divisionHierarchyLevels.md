@@ -9,6 +9,14 @@ publisher's `subtype` and `class`. `filter[class]` selects a canonical class;
 `filter[category]` selects administrative, locality, hood or landform divisions. A level
 alone does not identify a class.
 
+Reviewed hierarchy entries can carry `full_containment` and `containment_geometry`.
+These are SaanSeoi-derived assertions about the owning division's entire area within an
+ancestor; they are not publisher hierarchy assertions. The editor calculates them from
+polygons and curated assembly recalculates them after geometry replacements. Unknown
+coverage remains `null`. See
+[full ancestor containment](../saanseoi/divisionArea.md#full-ancestor-containment) for
+geometry identity checks and geocoder behaviour.
+
 | category       | class         | level |
 | -------------- | ------------- | ----- |
 | administrative | sar           | 0     |

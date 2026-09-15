@@ -981,6 +981,14 @@ island inventory geometry and Overture fallback, with exact coordinates retained
 [SaanSeoi reviewed DivisionArea](../sources/saanseoi/divisionArea.md) for local
 assembly, cohort constraints, provenance, coverage limitations and geocoding examples.
 
+Reviewed hierarchy ancestor entries include a geometry-derived `full_containment` flag
+(`true`, `false`, or `null` for unknown). The editor generates whole-area coverage
+evidence and assembly recomputes it against the final polygons. The geocoder can skip an
+ancestor point check after a child spatial match only when the stored child and ancestor
+geometry fingerprints match the loaded areas. Partial or unknown containment retains
+point checks and ambiguous branches. See
+[full ancestor containment](../sources/saanseoi/divisionArea.md#full-ancestor-containment).
+
 East Tsim Sha Tsui (尖沙咀東) uses neighbourhood level 5 in the reviewed geographic
 hierarchy, inventory and curated assembly.
 

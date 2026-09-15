@@ -13,6 +13,43 @@ Polygon and MultiPolygon coordinates, holes and shared edges are retained exactl
 simplification, rounding, snapping or buffering runs during assembly. Review-only
 original drawings and working baselines are not published as geometry.
 
+## Full ancestor containment
+
+Each ancestor entry in the editor's hierarchy fixture carries `full_containment`:
+
+- `true`: the ancestor covers the owning division's entire polygon area, including
+  boundaries, holes and every disconnected part.
+- `false`: both geometries are valid, but some of the division lies outside the
+  ancestor.
+- `null`: either geometry is missing, invalid or cannot be evaluated reliably.
+
+The flag relates each ancestor directly to the division that owns the hierarchy, not to
+the preceding entry in the path. The editor computes it for every category and full
+path, including retained provisional ancestry. It does not infer full containment from a
+label point, bounding box or vertex samples. Polygon coverage uses a topological
+`covers` test over the union of each division's area parts.
+
+`containment_geometry` records SHA-256 identities for the division and ancestor
+geometries. Fingerprints retain exact coordinates and are independent of area-row order
+and Polygon/MultiPolygon packaging. Assembly recomputes the flags and fingerprints after
+identity remapping and all geometry replacements.
+
+The geocoder checks children before ancestors. After a spatial child match, it can
+inherit an ancestor's membership when `full_containment` is `true` and both fingerprints
+match the loaded areas. It validates fingerprints lazily within the request-owned index.
+Missing evidence, changed geometry and partial containment use ordinary point checks; a
+name match alone cannot trigger inheritance. Multiple surviving paths remain ambiguous.
+Containment evidence is internal to hierarchy resolution and does not change the
+geocoding response shape.
+
+A local comparison on the retained 2,088-division, 488-area assembly reduced polygon
+checks from approximately 8.3 to 5 per sampled lookup and preserved results across 713
+grid points. Repeated lookups were modestly faster, but constructing a fresh resolver
+and validating fingerprints added approximately 0.7 ms to the sampled median. This
+reduces polygon work; it is not evidence of an end-to-end HTTP latency improvement.
+
+## Canonical assembly
+
 Island review identifiers map to existing island identities when unambiguous, or stable
 UUIDs otherwise. Hierarchy references use those same canonical identifiers. Missing
 ancestors, conflicting classes, ambiguous island identities and malformed rings block
