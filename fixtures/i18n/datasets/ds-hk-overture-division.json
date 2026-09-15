@@ -1096,6 +1096,16 @@
       "provenance": "ai-translated",
       "machine": "azure-translator-v3"
     },
+    "0edd9f148dca41f22d872036a8616caaa06b6c3b0260e3eff191d6b362ac7442": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "李鄭屋",
+      "sourceTextHash": "de5d0c12dfbb45929881d8f503db81a0fd71d82323d5156f441a824a6e8f3afa",
+      "targetLocale": "zh-hans",
+      "text": "李郑屋",
+      "provenance": "ai-translated",
+      "machine": "azure-translator-v3"
+    },
     "0f41d373a3962f5e2778b9dc4ca8de036bc9c9e0d70d66d56585c35c3b2ace2c": {
       "field": "name",
       "sourceLocale": "zh-hant",
@@ -5336,6 +5346,16 @@
       "provenance": "ai-translated",
       "machine": "azure-translator-v3"
     },
+    "53573f10dd8413d8968486269c6db1b7d80eb706978cc667a0e3822a2417194e": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "太子",
+      "sourceTextHash": "3181febfb01e795beb1945e5d171602db5f87518ff9f746d25a14407c3f4c6e2",
+      "targetLocale": "zh-hans",
+      "text": "太子",
+      "provenance": "ai-translated",
+      "machine": "azure-translator-v3"
+    },
     "535d30baca2ebbd05e497a65eb4ca3694c89a58b29310ca5892d09ec1192dbc6": {
       "field": "name",
       "sourceLocale": "zh-hant",
@@ -6213,6 +6233,16 @@
       "sourceTextHash": "e774bf987327df5b80a80f05b642432ebd258c1531107d8d0657f115e11381d6",
       "targetLocale": "zh-hans",
       "text": "白天",
+      "provenance": "ai-translated",
+      "machine": "azure-translator-v3"
+    },
+    "619a09b65140d392aa830b32aafb4047919525da16bde12846ddf36bf98b3159": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "柯士甸",
+      "sourceTextHash": "9f437943daa570777441ce7cf1a3b0a43f3b761f0a7aacb6550bd17360b868de",
+      "targetLocale": "zh-hans",
+      "text": "柯士甸",
       "provenance": "ai-translated",
       "machine": "azure-translator-v3"
     },
@@ -9476,6 +9506,16 @@
       "provenance": "ai-translated",
       "machine": "azure-translator-v3"
     },
+    "97ef75eb5c99e18d9214136b8d06ca228a6212ac8aaf439171d8356cc5d113b1": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "瀑布灣",
+      "sourceTextHash": "ceb92741e27f388dacf97fac9b383e8e77b7b9ad5f8173e80d1e2ff8b216e4d0",
+      "targetLocale": "zh-hans",
+      "text": "瀑布湾",
+      "provenance": "ai-translated",
+      "machine": "azure-translator-v3"
+    },
     "982cbf5654a13039291ba10bcb2e73235271bfbe436bc6ad6a77a2f44c992561": {
       "field": "name",
       "sourceLocale": "zh-hant",
@@ -10823,6 +10863,16 @@
       "sourceTextHash": "99cd8586c93332af31b2510edc1eb1c48b2663b2d82e25d2ee9f2e7da613ad02",
       "targetLocale": "zh-hans",
       "text": "毕武新村",
+      "provenance": "ai-translated",
+      "machine": "azure-translator-v3"
+    },
+    "ac9d384c2c6ae7c81f76aafa12f110a3fccef7abc561bdfc48c4d2039fb40c26": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "佐敦",
+      "sourceTextHash": "25c9dcecefe625b35b96bead64f59a0a86d301e07ebbe2084a9ab17b817b4b2c",
+      "targetLocale": "zh-hans",
+      "text": "佐敦",
       "provenance": "ai-translated",
       "machine": "azure-translator-v3"
     },
@@ -18022,6 +18072,15 @@
         "be5c3255-5606-452d-b95f-8ee449ab1245"
       ]
     },
+    "1a5fb186cf3d2e9689b6ce3bdf19e15b5be272afb778f917f44654afe25c038f": {
+      "context": "32124f7852a95565815b2953764e22a7b0d111e8d204a331dd4f137073a34a44",
+      "translation": "619a09b65140d392aa830b32aafb4047919525da16bde12846ddf36bf98b3159",
+      "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "recordIds": [
+        "2cfb80d9-7390-5474-962d-d33c6d08c04d"
+      ]
+    },
     "1a6221ec8e4a377bebd1901699202b095709b17bf987c5a684a40c9aa1c5168d": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
       "translation": "b336f069f87e2f348a8be04da943aae46c007c6d0028e5bbc9e4d6d1a76c039e",
@@ -22212,6 +22271,15 @@
         "4241faa6-3195-46ab-aa11-503f5e4a8fe7"
       ]
     },
+    "5693c01652156c5071ab670c47c253c687c70c5501275ca7dbfe6dbf386b1d7f": {
+      "context": "2c691296ec74586ff4d206cb3de7b396a539bee909f4241a0305794e8b72b0f8",
+      "translation": "0edd9f148dca41f22d872036a8616caaa06b6c3b0260e3eff191d6b362ac7442",
+      "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "recordIds": [
+        "3fc693e1-2038-58e4-8ef3-8ce7b01e97a8"
+      ]
+    },
     "56a37dc59d4cd5625d90949f569fedc55402235731b21c3d5524843eb5c3cd9c": {
       "context": "451987196d6cece39eec94352a0b67a6985ae3f7eda6550be980996455a9dc28",
       "translation": "57c56501de269f844759078c0e133d3f695b41b7d7dd3e4fb8106007aca232da",
@@ -22859,6 +22927,15 @@
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
         "029115b5-374c-43e9-a3fb-b2234b4e6005"
+      ]
+    },
+    "5fa4ebfb2ad732bf44dcf133edac602490f41a96b2431784b0ff99507edde6c8": {
+      "context": "66bc05b7c6c4e034a29af53b64d7329bf4510f82fa58b7a71e396418a1bb5634",
+      "translation": "97ef75eb5c99e18d9214136b8d06ca228a6212ac8aaf439171d8356cc5d113b1",
+      "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "recordIds": [
+        "b74bf860-5daf-50fb-8382-84975c7c8be0"
       ]
     },
     "5fc63bd7f90086154ca976e22aa45fb3b5bae53aa17ba5512ce4592a71cefa65": {
@@ -28330,6 +28407,15 @@
         "017b90d1-6ecf-450a-97c7-fe13267c8628"
       ]
     },
+    "aeb297d362c212cd71ceaa2bcb56436d4df11807d893093d80040e6fd7d32cf4": {
+      "context": "32124f7852a95565815b2953764e22a7b0d111e8d204a331dd4f137073a34a44",
+      "translation": "53573f10dd8413d8968486269c6db1b7d80eb706978cc667a0e3822a2417194e",
+      "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "recordIds": [
+        "98d5760d-f07a-5c44-9ae4-847efd8dc408"
+      ]
+    },
     "aee5eca043d7b468b648d5387b439f0f8186fdf79b1beeda88ff235e33bbce48": {
       "context": "e98392d52be4d0ee0d29933021230ef0d32daa8d977ff9f8a177d60a50c067d7",
       "translation": "2647aa4ea80c51f2ee73ee1d592e013c2b9bc7870e5db3fedf90427782ae1fe0",
@@ -28553,6 +28639,15 @@
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
         "55282c26-1192-406d-9bb9-5850bd77f9b9"
+      ]
+    },
+    "b2e52dfa897aff8ed6e1349dbb37a7a5922b45009a379c76452ac46b354bf782": {
+      "context": "32124f7852a95565815b2953764e22a7b0d111e8d204a331dd4f137073a34a44",
+      "translation": "ac9d384c2c6ae7c81f76aafa12f110a3fccef7abc561bdfc48c4d2039fb40c26",
+      "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
+      "recordIds": [
+        "b3809d1e-fdac-5cd5-9a06-9ab9a5859491"
       ]
     },
     "b31285ed65dd999dc732c741dcec91b5195538c7a90abc5b46bb2b7a8b08632a": {
