@@ -162,7 +162,13 @@ export function assembleCuratedDivisions(input: {
     if (excluded.has(id) || excluded.has(entry.divisionId)) continue
     const division = divisions.get(id)
     if (!division) throw Error(`Missing curated division ${entry.divisionId}`)
-    if (division.class !== entry.expectedClass)
+    // Reviewed area determines island size class; other taxonomy changes still
+    // require a matching hierarchy fixture.
+    const reviewedIslandClass =
+      input.islandReview &&
+      islands.some(island => aliases.get(island.id) === id) &&
+      ['major_island', 'minor_island', 'islet'].includes(entry.expectedClass)
+    if (division.class !== entry.expectedClass && !reviewedIslandClass)
       throw Error(
         `Curated class mismatch for ${id}: ${division.class} / ${entry.expectedClass}`,
       )

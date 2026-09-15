@@ -460,6 +460,16 @@ test('Ap Lei Chau and Ap Lei Pai publish their separately reviewed island polygo
   const result = assembleCuratedDivisions({
     ...input,
     islands,
+    hierarchy: {
+      entries: [
+        ...input.hierarchy.entries,
+        {
+          divisionId: 'LANDSD:PLACE_NAME:30',
+          expectedClass: 'major_island',
+          hierarchies: { full: [] },
+        },
+      ],
+    },
     islandReview: {
       ...review,
       entries: review.entries.filter(row => ids.includes(row.id)),
