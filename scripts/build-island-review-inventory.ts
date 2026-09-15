@@ -1,3 +1,4 @@
+import exclusions from '../fixtures/divisions/hk/exclusions.json'
 import { createHash } from 'node:crypto'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -356,7 +357,17 @@ const output = [
   ...entries,
 ]
 await mkdir(resolve(outputPath, '..'), { recursive: true })
-await writeFile(outputPath, `${JSON.stringify(output, null, 2)}\n`)
+await writeFile(
+  outputPath,
+  `${JSON.stringify(
+    output.filter(
+      row =>
+        !exclusions.entries.some(e => e.divisionId === row.id || e.reviewId === row.id),
+    ),
+    null,
+    2,
+  )}\n`,
+)
 console.log(
   JSON.stringify(
     {

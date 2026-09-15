@@ -49,3 +49,21 @@ test('B Block is excluded only when its reviewed source assertion matches', () =
     applyDivisionExclusionPatch({ ...row, subtype: 'neighborhood' }),
   ).toThrow('guard mismatch')
 })
+
+test('Kap Ma Kum Tong exclusion retains its reviewed source guard', () => {
+  const row = {
+    id: '4694b2f9-3257-411a-91e1-421ad4fdbf45',
+    subtype: 'macrohood',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_kap_ma_kum_tong_excluded',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'village' })).toThrow(
+    'guard mismatch',
+  )
+  expect(
+    applyDivisionExclusionPatch({ ...row, id: '639974f6-d055-45cf-bb8a-004c3d3af188' }),
+  ).toBeNull()
+})
