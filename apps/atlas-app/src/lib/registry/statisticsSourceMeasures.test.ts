@@ -30,6 +30,7 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
       historySchema.statsRecords,
       historySchema.statsFields,
       historySchema.statsFieldsI18n,
+      historySchema.statsDefinitionSets,
       historySchema.snapshotVersionChanges,
     ])
     meta.exec(`INSERT INTO releases (id,sourceReleaseId,resourceType) VALUES ('resource-reissue','publisher-reissue','divisionStatistic');
@@ -38,9 +39,12 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
       INSERT INTO snapshotSources (snapshotId,resourceReleaseId) VALUES ('reissue','resource-reissue');
       INSERT INTO stats (releaseId,dimension,metric,groupBy,groupValue,value) VALUES
         ('resource-reissue','observations','count','field','population',3495);`)
-    history.exec(`INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,referencePeriodCode,"values",geography,isCurrent,versionHash,fieldDefinitionHashes,fieldSources) VALUES
-      ('packed','dataset','old-resource','2025','{"population":"12","landArea":"5"}','{}',0,'v1','{"population":"f1","landArea":"retained-other-field"}','{}'),
-      ('packed','dataset','future-resource','2025','{"population":"13"}','{}',1,'v2','{"population":"f2"}','{}');
+    history.exec(`INSERT INTO statsDefinitionSets (id,fieldDefinitionHashes) VALUES
+      ('frozen','{"population":"f1","landArea":"retained-other-field"}'),
+      ('future','{"population":"f2"}');
+      INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,sourceFeatureRef,referencePeriodCode,referencePeriodGranularity,referencePeriodEndYear,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
+      ('packed','dataset','old-resource','source-feature','2025','year','2025','{"population":"12","landArea":"5"}','{}',0,'v1','frozen','{}'),
+      ('packed','dataset','future-resource','source-feature','2025','year','2025','{"population":"13"}','{}',1,'v2','future','{}');
       INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,versionHash,operation) VALUES ('base','statsRecord','packed','v1','upsert');
       INSERT INTO statsFields (datasetCode,fieldName,versionHash,sourceReleaseId,sourceField,statisticKind,aggregation,unitCode,valueKind) VALUES
         ('dataset','population','f1','old-resource','t_pop','count','total','person','numeric'),

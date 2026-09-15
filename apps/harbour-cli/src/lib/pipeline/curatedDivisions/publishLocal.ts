@@ -213,6 +213,29 @@ export async function publishLocalCuratedDivisions(
             `INSERT OR REPLACE INTO ${database}.${table} (${columns.map(k => `"${k}"`).join(',')}) VALUES (${columns.map(() => '?').join(',')})`,
           )
           .run(...columns.map(k => row[k]))
+        // Retained rows need membership journal entries for pinned-release replay.
+        if (database === 'history') {
+          const recordType =
+            table === 'divisions'
+              ? 'division'
+              : table === 'divisionsI18n'
+                ? 'divisionI18n'
+                : 'divisionArea'
+          current
+            .query(`INSERT OR REPLACE INTO history.snapshotVersionChanges
+            (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt)
+            VALUES (?,?,?,?,?,'upsert',?,?,?)`)
+            .run(
+              row.snapshotId,
+              recordType,
+              row.divisionId && table === 'divisionsI18n' ? row.divisionId : row.id,
+              row.locale ?? '',
+              row.versionHash,
+              row.sourceReleaseId ?? source.resourceReleaseId,
+              row.createdAt,
+              row.updatedAt,
+            )
+        }
       }
       current.transaction(() => {
         if (resourceType === 'division')
