@@ -31,6 +31,22 @@
         "subtype": "microhood"
       },
       "reason": "B Block is a building block rather than a geographic division. Exclude it from canonical divisions while preserving the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_kap_ma_kum_tong_excluded",
+      "source": "overture",
+      "divisionId": "4694b2f9-3257-411a-91e1-421ad4fdbf45",
+      "names": [
+        "Kap Ma Kum Tong",
+        "蛤䗫擒塘",
+        "蛤蟆擒塘"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "reason": "No evidence supports this geographic division. Exclude it from canonical coverage while retaining publisher source evidence."
     }
   ]
 }
