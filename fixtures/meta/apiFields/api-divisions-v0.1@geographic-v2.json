@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8ef90f2f4354d9596867b3d5ff8666e238b1acab6bf5bc1919f6f9040b52abd7",
+  "versionHash": "sha256:5a32a0e55968b1d7f805665a9b27a3bd32689ee57b5074c44b5844b86e0bb9b9",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 2,
@@ -41,6 +41,14 @@
     "ds-hk-overture-division-boundary": {
       "min": "1.16.0",
       "max": "1.18.0"
+    },
+    "ds-hk-saanseoi-division": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-saanseoi-division-area": {
+      "min": "1.0",
+      "max": "1.0"
     }
   },
   "publisherFields": {
@@ -111,7 +119,12 @@
         "ss-hk-division-2026-06-17.0",
         "ss-hk-division-2026-06-24.0",
         "ss-hk-division-2026-07-22.0",
-        "ss-hk-division-2026-08-19.0"
+        "ss-hk-division-2026-08-19.0",
+        "ss-hk-division-saanseoi-2026-08-19.0",
+        "ss-hk-division-saanseoi-2026-08-19.0-r1",
+        "ss-hk-division-saanseoi-2026-08-19.0-r2",
+        "ss-hk-division-saanseoi-2026-08-19.0-r3",
+        "ss-hk-division-saanseoi-2026-08-19.0-r4"
       ]
     },
     {
@@ -132,7 +145,12 @@
         "ss-hk-division-2026-06-17.0",
         "ss-hk-division-2026-06-24.0",
         "ss-hk-division-2026-07-22.0",
-        "ss-hk-division-2026-08-19.0"
+        "ss-hk-division-2026-08-19.0",
+        "ss-hk-division-saanseoi-2026-08-19.0",
+        "ss-hk-division-saanseoi-2026-08-19.0-r1",
+        "ss-hk-division-saanseoi-2026-08-19.0-r2",
+        "ss-hk-division-saanseoi-2026-08-19.0-r3",
+        "ss-hk-division-saanseoi-2026-08-19.0-r4"
       ]
     },
     {
@@ -152,7 +170,58 @@
         "ss-hk-division-2026-06-17.0",
         "ss-hk-division-2026-06-24.0",
         "ss-hk-division-2026-07-22.0",
-        "ss-hk-division-2026-08-19.0"
+        "ss-hk-division-2026-08-19.0",
+        "ss-hk-division-saanseoi-2026-08-19.0",
+        "ss-hk-division-saanseoi-2026-08-19.0-r1",
+        "ss-hk-division-saanseoi-2026-08-19.0-r2",
+        "ss-hk-division-saanseoi-2026-08-19.0-r3",
+        "ss-hk-division-saanseoi-2026-08-19.0-r4"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary",
+        "ds-hk-saanseoi-division",
+        "ds-hk-saanseoi-division-area"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-saanseoi-2026-09-01.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary",
+        "ds-hk-saanseoi-division",
+        "ds-hk-saanseoi-division-area"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-saanseoi-2026-09-01.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary",
+        "ds-hk-saanseoi-division",
+        "ds-hk-saanseoi-division-area"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-saanseoi-2026-09-01.0"
       ]
     }
   ],
@@ -183,6 +252,24 @@
     },
     {
       "snapshotVersion": "ss-hk-division-2026-08-19.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0-r1"
+    },
+    {
+      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0-r2"
+    },
+    {
+      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0-r3"
+    },
+    {
+      "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0-r4"
+    },
+    {
+      "snapshotVersion": "ss-hk-division-saanseoi-2026-09-01.0"
     }
   ],
   "resources": [
@@ -1990,6 +2077,33 @@
             {
               "origin": "intermediate",
               "fieldPath": "geometry.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "saanseoi",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "derive_variant_from_source",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations.stubAreas"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations.islandAreas"
             }
           ]
         }
