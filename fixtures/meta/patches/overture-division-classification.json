@@ -249,6 +249,294 @@
         "class": "village"
       },
       "reason": "Ngong Ping is a Hong Kong village. Preserve the publisher classification in source storage and use the reviewed village classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_tsat_tsz_mui_braemar_point_alias",
+      "source": "overture",
+      "divisionId": "12699b10-1e67-4994-8ecb-4716d86a3550",
+      "names": [
+        "Tsat Tsz Mui",
+        "七姊妹"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood",
+        "nameAltsEn": [
+          "Braemar Point"
+        ]
+      },
+      "reason": "Retain Braemar Point as a reviewed English alias of the Tsat Tsz Mui neighbourhood."
+    },
+    {
+      "id": "overture_hong_kong_sai_wan_ho_reclassified",
+      "source": "overture",
+      "divisionId": "ff8e1c52-ac5d-42a4-a411-454cfd71912e",
+      "names": [
+        "Sai Wan Ho",
+        "西灣河"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Sai Wan Ho is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_kornhill_reclassified",
+      "source": "overture",
+      "divisionId": "84768e85-9a98-442f-896c-ccc9a8d2314c",
+      "names": [
+        "Kornhill",
+        "康山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Kornhill is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_shau_kei_wan_reclassified",
+      "source": "overture",
+      "divisionId": "5db55200-4e24-41bf-93e4-8b5610145dea",
+      "names": [
+        "Shau Kei Wan",
+        "筲箕灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Shau Kei Wan is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_so_kon_po_reclassified",
+      "source": "overture",
+      "divisionId": "4cc6dd9f-b978-4b45-ab50-cc2c8a268df1",
+      "names": [
+        "So Kon Po",
+        "掃桿埔"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "So Kon Po is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_braemar_hill_reclassified",
+      "source": "overture",
+      "divisionId": "727f042f-399e-4f10-a282-2ce3eeabe8a9",
+      "names": [
+        "Braemar Hill",
+        "寶馬山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Braemar Hill is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_tin_wan_reclassified",
+      "source": "overture",
+      "divisionId": "d23375f4-b681-4899-8cb9-ce1a0454ac58",
+      "names": [
+        "Tin Wan",
+        "田灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Tin Wan is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_telegraph_bay_reclassified",
+      "source": "overture",
+      "divisionId": "567176ef-d8f0-4209-a06f-90530d4b7eb2",
+      "names": [
+        "Telegraph Bay",
+        "鋼綫灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Telegraph Bay is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_sandy_bay_reclassified",
+      "source": "overture",
+      "divisionId": "4901c4fd-c5d4-473a-a374-8ee068a56acf",
+      "names": [
+        "Sandy Bay",
+        "沙灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Sandy Bay is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_west_kowloon_reclassified",
+      "source": "overture",
+      "divisionId": "c389923d-1dca-44af-8abe-4ac5a9d90b0b",
+      "names": [
+        "West Kowloon",
+        "西九龍"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 4,
+        "class": "macrohood"
+      },
+      "reason": "West Kowloon is a reviewed Hong Kong macrohood. Preserve the publisher classification in source storage and use the reviewed macrohood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_shek_kip_mei_reclassified",
+      "source": "overture",
+      "divisionId": "62e48e67-a079-4fa5-b76f-baf1ec109179",
+      "names": [
+        "Shek Kip Mei",
+        "石硤尾"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Shek Kip Mei is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_kowloon_city_reclassified",
+      "source": "overture",
+      "divisionId": "cce58df1-e153-4c73-b68e-d83764b017ad",
+      "names": [
+        "Kowloon City",
+        "九龍城"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Kowloon City is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_ma_tau_chung_reclassified",
+      "source": "overture",
+      "divisionId": "bf07573f-396b-4bfc-9a3f-60b61e083d6d",
+      "names": [
+        "Ma Tau Chung",
+        "馬頭涌"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Ma Tau Chung is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_san_po_kong_reclassified",
+      "source": "overture",
+      "divisionId": "21ed82b0-c4f1-42f6-b79f-5c94363e4239",
+      "names": [
+        "San Po Kong",
+        "新蒲崗"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "San Po Kong is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_east_tsim_sha_tsui_reclassified",
+      "source": "overture",
+      "divisionId": "ff6d6244-3136-4bee-8373-ace44a01e3a5",
+      "names": [
+        "East Tsim Sha Tsui",
+        "尖沙咀東"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "East Tsim Sha Tsui is a reviewed Hong Kong neighbourhood. Preserve the publisher classification in source storage and use neighbourhood level 5 in canonical records and hierarchy lookup."
     }
   ]
 }

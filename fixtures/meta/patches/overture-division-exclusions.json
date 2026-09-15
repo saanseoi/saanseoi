@@ -6,9 +6,31 @@
       "id": "overture_hong_kong_central_district_excluded",
       "source": "overture",
       "divisionId": "f9321bdb-1e1e-49e6-89c8-662f988b29a3",
-      "names": ["Central District", "中區"],
-      "expected": { "adminLevel": null, "class": null, "subtype": "macrohood" },
+      "names": [
+        "Central District",
+        "中區"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
       "reason": "Central District duplicates the official Central and Western District administrative coverage and is excluded from the canonical Hong Kong division hierarchy. Preserve the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_b_block_excluded",
+      "source": "overture",
+      "divisionId": "cbfab9fe-5b9a-493d-b710-2cfd0a2ba6db",
+      "names": [
+        "B Block",
+        "前座"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "B Block is a building block rather than a geographic division. Exclude it from canonical divisions while preserving the publisher source assertion."
     }
   ]
 }
