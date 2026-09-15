@@ -23,6 +23,7 @@ export type ResolvedSnapshotSourceResolution = {
 export async function resolveSnapshotSourceResolutions(
   plan: SnapshotReplayStep[],
   shards: ReadonlyMap<string, ReplayShard>,
+  sourceRecordIds?: readonly string[],
 ): Promise<Map<string, ResolvedSnapshotSourceResolution>> {
   let parent: string | null = null
   const snapshots = new Set<string>()
@@ -70,6 +71,9 @@ export async function resolveSnapshotSourceResolutions(
                 `snapshot:${step.snapshotId}`,
               ),
               eq(historySchema.sourceResolutions.snapshotId, step.snapshotId),
+              sourceRecordIds
+                ? sql`${historySchema.sourceResolutions.sourceRecordId} IN (SELECT value FROM json_each(${JSON.stringify(sourceRecordIds)}))`
+                : undefined,
               cursor
                 ? sql`(${historySchema.sourceResolutions.sourceReleaseId}, ${historySchema.sourceResolutions.sourceRecordId}, ${historySchema.sourceResolutions.sourceVersionHash}) > (${cursor.sourceReleaseId}, ${cursor.sourceRecordId}, ${cursor.sourceVersionHash})`
                 : undefined,

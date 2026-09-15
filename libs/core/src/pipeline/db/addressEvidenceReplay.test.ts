@@ -51,13 +51,13 @@ function fixture() {
     requireDefined(databases[index])
       .query(`INSERT INTO snapshotVersionChanges
         (snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId)
-        VALUES(?,?, 'opa-shared',?,?,'upsert',?)`)
+        VALUES(?,?, 'ss-opa-shared',?,?,'upsert',?)`)
       .run(snapshot, type, locale, hash, `release-${snapshot}`)
   const evidence = (index: number, snapshot: string, hash: string, sources: unknown) =>
     requireDefined(databases[index])
       .query(`INSERT INTO address2dEvidence
         (addressId,sources,versionHash,sourceReleaseId,snapshotId,isCurrent)
-        VALUES('opa-shared',?,?,?,?,0)`)
+        VALUES('ss-opa-shared',?,?,?,?,0)`)
       .run(JSON.stringify(sources), hash, `release-${snapshot}`, snapshot)
   const plan = (snapshotId: string): SnapshotReplayStep[] => [
     {
@@ -83,10 +83,10 @@ function fixture() {
     )
   requireDefined(databases[0]).exec(`INSERT INTO address2d
     (id,sources,versionHash,sourceReleaseId,snapshotId,isCurrent)
-    VALUES('opa-shared',NULL,'base','release-first','first',1);
+    VALUES('ss-opa-shared',NULL,'base','release-first','first',1);
     INSERT INTO address2dI18n
     (addressId,locale,formattedAddress,versionHash,sourceReleaseId,snapshotId,isCurrent)
-    VALUES('opa-shared','en','1 Sample Road','english','release-first','first',1);`)
+    VALUES('ss-opa-shared','en','1 Sample Road','english','release-first','first',1);`)
   return {
     databases,
     shards,
@@ -141,18 +141,18 @@ test('parentless supplementary snapshots replay exact edition evidence across co
     data.journal(1, 'next', 'address2dEvidence', 'evidence-next')
     data.evidence(1, 'other-branch', 'wrong-evidence', [{ wrong: true }])
 
-    const original = requireDefined((await data.replay('first')).get('opa-shared'))
-    const changed = requireDefined((await data.replay('next')).get('opa-shared'))
+    const original = requireDefined((await data.replay('first')).get('ss-opa-shared'))
+    const changed = requireDefined((await data.replay('next')).get('ss-opa-shared'))
     expect(original.base.sources).toEqual(first)
     expect(changed.base.sources).toEqual(next)
     expect(changed.versionHash).toBe(original.versionHash)
     expect(changed.localisedRows).toEqual(original.localisedRows)
-    expect((await data.replay('next', false)).get('opa-shared')?.base.sources).toEqual(
-      next,
-    )
-    expect((await data.replay('next', false)).get('opa-shared')?.localisedRows).toEqual(
-      [],
-    )
+    expect(
+      (await data.replay('next', false)).get('ss-opa-shared')?.base.sources,
+    ).toEqual(next)
+    expect(
+      (await data.replay('next', false)).get('ss-opa-shared')?.localisedRows,
+    ).toEqual([])
     expect((await data.replay('empty')).size).toBe(0)
     expect(
       requireDefined(data.databases[0]).query('SELECT sources FROM address2d').get(),
@@ -191,7 +191,7 @@ test('evidence reads bound query parameters when a page selects many versions', 
       (addressId,sources,versionHash,sourceReleaseId,snapshotId,isCurrent)
       VALUES(?,'[]',?,'release','snapshot',0)`)
     for (let index = 0; index < 205; index++) {
-      const recordId = `opa-${index}`
+      const recordId = `ss-opa-${index}`
       const versionHash = `hash-${index}`
       insert.run(recordId, versionHash)
       versions.push({

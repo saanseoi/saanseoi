@@ -31,7 +31,13 @@ test('source interpretations are independently scoped, retryable and bounded', a
       resolutions: { entities: { division: ['first-match'] } },
     }))
     await recordSourceResolutions(db, input)
+    const changes = () =>
+      sqlite.query<{ n: number }, []>('SELECT total_changes() AS n').get()!.n
+    const afterFirstWrite = changes()
     await recordSourceResolutions(db, input)
+    expect(changes()).toBe(afterFirstWrite)
+    sqlite.exec(sourceResolutionSql(input[0]!))
+    expect(changes()).toBe(afterFirstWrite)
     expect(sqlite.query('SELECT count(*) AS n FROM sourceResolutions').get()).toEqual({
       n: 150,
     })

@@ -1,7 +1,12 @@
 import { historySchema, sql } from '@repo/db'
 import type { NewSourceResolution, SourceResolutions } from '@repo/db/historySchema'
 import type { HarbourWritableDb } from '../../lib/db/types'
-import { chunkArray, getMaxRowsPerInsert } from '../utils'
+import {
+  chunkArray,
+  getMaxRowsPerInsert,
+  sortJsonValue,
+  stableJsonStringify,
+} from '../utils'
 
 /** Each caller supplies the complete interpretation for its source/snapshot key. */
 export async function recordSourceResolutions(
@@ -11,7 +16,13 @@ export async function recordSourceResolutions(
   for (const chunk of chunkArray(rows, getMaxRowsPerInsert(6))) {
     await db
       .insert(historySchema.sourceResolutions)
-      .values(chunk.map(row => ({ ...row, scopeId: resolutionScopeId(row) })))
+      .values(
+        chunk.map(row => ({
+          ...row,
+          scopeId: resolutionScopeId(row),
+          resolutions: sortJsonValue(row.resolutions) as SourceResolutions,
+        })),
+      )
       .onConflictDoUpdate({
         target: [
           historySchema.sourceResolutions.scopeId,
@@ -20,6 +31,7 @@ export async function recordSourceResolutions(
           historySchema.sourceResolutions.sourceVersionHash,
         ],
         set: { resolutions: sql`excluded.resolutions` },
+        setWhere: sql`${historySchema.sourceResolutions.resolutions} IS NOT excluded.resolutions`,
       })
       .run()
   }
@@ -46,12 +58,12 @@ export function sourceResolutionSql(row: NewSourceResolution) {
     row.sourceReleaseId,
     row.sourceRecordId,
     row.sourceVersionHash,
-    JSON.stringify(row.resolutions),
+    stableJsonStringify(row.resolutions),
   ]
     .map(quote)
     .join(
       ', ',
-    )}) ON CONFLICT(scopeId, sourceReleaseId, sourceRecordId, sourceVersionHash) DO UPDATE SET resolutions = excluded.resolutions;`
+    )}) ON CONFLICT(scopeId, sourceReleaseId, sourceRecordId, sourceVersionHash) DO UPDATE SET resolutions = excluded.resolutions WHERE sourceResolutions.resolutions IS NOT excluded.resolutions;`
 }
 
 export function resolutionScopeId(
