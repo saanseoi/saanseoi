@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "divisionId": "8b673b40-3502-5f8e-af22-226360825506",
+      "reviewId": "BASEMAP:ISLAND:b38ed58be971ac84",
+      "names": [
+        "North Rock"
+      ],
+      "reason": "Excluded from reviewed coverage by curator."
+    },
+    {
+      "divisionId": "4694b2f9-3257-411a-91e1-421ad4fdbf45",
+      "names": [
+        "Kap Ma Kum Tong",
+        "蛤䗫擒塘",
+        "蛤蟆擒塘"
+      ],
+      "reason": "No evidence supports this division; excluded by curator."
+    }
+  ]
+}
