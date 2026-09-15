@@ -1,3 +1,5 @@
+import { GeocodingResponseSchema } from '../schema/geocoding'
+import { presentGeocoding } from './geocodingPresentation'
 import type { GeocodingQuery } from '../schema/geocoding'
 import {
   createDivisionResolver,
@@ -43,7 +45,7 @@ const requestedNames = <T>(values: Record<string, T>, locales: string) =>
         ),
       )
 
-export async function geocode(
+export async function resolveGeocode(
   args: GeocodingDatabases & {
     family: 'address' | 'division'
     query: GeocodingQuery
@@ -140,7 +142,15 @@ export async function geocode(
     if (args.family === 'division' && point)
       return {
         status: 200 as const,
-        body: { data: resolver!.resolve(point, query.geometry === 'stub'), meta },
+        body: {
+          data: resolver!.resolve(
+            point,
+            query.geometry !== undefined ||
+              query.profile === 'map' ||
+              query.profile === 'full',
+          ),
+          meta,
+        },
       }
     if (args.family === 'division' && query.placename !== undefined) {
       const candidates = divisions!.records
@@ -182,7 +192,9 @@ export async function geocode(
               divisions: resolver!.resolveNamed(
                 record.division.id,
                 coordinate,
-                query.geometry === 'stub',
+                query.geometry !== undefined ||
+                  query.profile === 'map' ||
+                  query.profile === 'full',
               ),
             }
           }),
@@ -215,7 +227,12 @@ export async function geocode(
           .map(({ record, coordinates, distance, score }, index) => {
             const divisions =
               coordinates && resolver
-                ? resolver.resolve(coordinates, query.geometry === 'stub')
+                ? resolver.resolve(
+                    coordinates,
+                    query.geometry !== undefined ||
+                      query.profile === 'map' ||
+                      query.profile === 'full',
+                  )
                 : null
             if (args.family === 'division')
               return {
@@ -264,5 +281,27 @@ export async function geocode(
       status: 503 as const,
       body: { error: 'snapshot_not_ready', message: error.message },
     }
+  }
+}
+
+export async function geocode(args: Parameters<typeof resolveGeocode>[0]) {
+  const result = await resolveGeocode(args)
+  if (result.status !== 200)
+    return {
+      status: result.status,
+      body: {
+        jsonapi: { version: '1.1' as const },
+        errors: [
+          {
+            status: String(result.status),
+            code: result.body.error,
+            title: result.body.message,
+          },
+        ],
+      },
+    }
+  return {
+    status: 200 as const,
+    body: GeocodingResponseSchema.parse(presentGeocoding(result.body, args.query)),
   }
 }

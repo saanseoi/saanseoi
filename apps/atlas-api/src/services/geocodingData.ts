@@ -1,3 +1,5 @@
+import { listDivisionAreasCurrentByDivisionIds } from '../db/divisions'
+import { listReplayedDivisionAreasByDivisionIds } from '../db/divisionGeometryReplay'
 import { and, desc, eq, sql, metaSchema } from '@repo/db'
 import {
   listApiReleaseSetSnapshots,
@@ -19,7 +21,6 @@ import {
   guardPublicationRead,
   PublicationReadUnavailableError,
 } from '../db/publicationState'
-import { hasDivisionStubVariant, listDivisionStubAreas } from './divisionStubAreas'
 import type { AppEnv } from '../types'
 
 export type GeocodingDatabases = Pick<
@@ -184,12 +185,45 @@ export async function loadGeocodingDivisions(
   const unique = [
     ...new Map(records.map(record => [record.division.id, record])).values(),
   ]
-  return {
-    records: unique,
-    areas: hasDivisionStubVariant(release.domainCode, release.cohortKey)
-      ? listDivisionStubAreas(unique.map(record => record.division.id))
-      : [],
+  const areaSnapshot =
+    release.snapshots.find(
+      s => s.snapshotResourceType === 'divisionArea' && s.variant === 'saanseoi',
+    ) ??
+    release.snapshots.find(
+      s => s.snapshotResourceType === 'divisionArea' && s.variant === 'overture',
+    )
+  let areas: Awaited<ReturnType<typeof listDivisionAreasCurrentByDivisionIds>> = []
+  if (areaSnapshot) {
+    const lookup = {
+      snapshotId: areaSnapshot.snapshotId,
+      divisionIds: unique.map(r => r.division.id),
+    }
+    const areaToken = await getPublicationReadiness(db.currentDb, 'divisionArea', [
+      lookup.snapshotId,
+    ])
+    const result = await guardPublicationRead(
+      db.currentDb,
+      'divisionArea',
+      [lookup.snapshotId],
+      areaToken,
+      async () => {
+        if (areaToken !== null)
+          return listDivisionAreasCurrentByDivisionIds(db.currentDb, lookup)
+        const plan = await replayPlan(db, lookup.snapshotId)
+        const shards = new Map(
+          Object.entries(db.historyDbsByBinding).map(([bindingName, history]) => [
+            bindingName,
+            { bindingName, db: history as never },
+          ]),
+        )
+        const state = await resolveSnapshotVersionState(plan, shards, ['divisionArea'])
+        return listReplayedDivisionAreasByDivisionIds(state.values(), lookup)
+      },
+    )
+    if (!result) throw new PublicationReadUnavailableError('Area publication changed.')
+    areas = result
   }
+  return { records: unique, areas }
 }
 
 export async function loadGeocodingAddresses(

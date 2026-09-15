@@ -347,6 +347,9 @@ async function loadDivisionGeometry(args: {
       : [],
   ])
   const areasByDivision = new Map<string, DivisionAreaRecord[]>()
+  for (const area of areas) area.snapshotId = areaSnapshotId ?? undefined
+  for (const boundary of boundaries)
+    boundary.snapshotId = boundarySnapshotId ?? undefined
   const boundariesByDivision = new Map<string, DivisionBoundaryRecord[]>()
   for (const area of areas)
     areasByDivision.set(area.divisionId, [

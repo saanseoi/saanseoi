@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import { geocode, type GeocodingDependencies } from './geocoding'
+import { resolveGeocode as geocode, type GeocodingDependencies } from './geocoding'
 import { GeocodingQuerySchema } from '../schema/geocoding'
 import type { GeocodingDatabases, GeocodingRelease } from './geocodingData'
 import type { AddressRecord } from '../db/addresses'

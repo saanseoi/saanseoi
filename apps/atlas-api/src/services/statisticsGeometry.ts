@@ -49,7 +49,7 @@ export async function loadStatisticAreas(args: {
         }),
       dependencies.getPublicationReadiness,
     )
-    if (rows !== null) return rows
+    if (rows !== null) return rows.map(row => ({ ...row, snapshotId }))
   }
 
   const plan = await dependencies.resolveSnapshotReplayPlan(
@@ -65,5 +65,7 @@ export async function loadStatisticAreas(args: {
   const versions = await dependencies.resolveSnapshotVersionState(plan, shards, [
     'divisionArea',
   ])
-  return dependencies.listReplayedDivisionAreasByDivisionIds(versions.values(), lookup)
+  return (
+    await dependencies.listReplayedDivisionAreasByDivisionIds(versions.values(), lookup)
+  ).map(row => ({ ...row, snapshotId }))
 }

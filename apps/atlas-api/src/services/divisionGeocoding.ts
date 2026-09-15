@@ -1,4 +1,6 @@
 import type { Polygon, MultiPolygon } from 'geojson'
+import { createHash } from 'node:crypto'
+import { containmentGeometryKey } from '@repo/core/pipeline/services/divisions/containmentGeometry.ts'
 import type { DivisionRecord, DivisionAreaRecord } from '../db/divisions'
 import {
   geographicDivisionClassification,
@@ -71,6 +73,7 @@ function normaliseHierarchies(value: unknown): DivisionHierarchies {
 export function createDivisionResolver(
   records: DivisionRecord[],
   areas: DivisionAreaRecord[],
+  options: { containsPoint?: typeof containsReviewPoint } = {},
 ) {
   const byId = new Map(records.map(record => [record.division.id, record]))
   const hierarchiesById = new Map(
@@ -103,25 +106,86 @@ export function createDivisionResolver(
   }
   const index = areas.flatMap(area => {
     const geometry = area.geometry as Polygon | MultiPolygon
-    return area.variant === 'stub' &&
+    return ['saanseoi', 'overture', 'stub'].includes(area.variant) &&
       byId.has(area.divisionId) &&
       (geometry?.type === 'Polygon' || geometry?.type === 'MultiPolygon')
       ? [{ id: area.divisionId, geometry, bbox: reviewAreaBounds(geometry) }]
       : []
   })
   const covered = new Set(index.map(area => area.id))
+  const areasById = new Map<string, typeof index>()
+  for (const area of index)
+    areasById.set(area.id, [...(areasById.get(area.id) ?? []), area])
+  const containedChildren = new Map<
+    string,
+    Array<{
+      id: string
+      evidence: NonNullable<DivisionHierarchyEntry['containment_geometry']>
+    }>
+  >()
+  for (const [id, hierarchy] of hierarchiesById) {
+    if (!covered.has(id)) continue
+    const seen = new Set<string>()
+    for (const entry of Object.values(hierarchy).flat(2)) {
+      if (
+        entry.full_containment !== true ||
+        !entry.containment_geometry ||
+        entry.id === id ||
+        seen.has(entry.id) ||
+        !covered.has(id) ||
+        !covered.has(entry.id)
+      )
+        continue
+      seen.add(entry.id)
+      containedChildren.set(entry.id, [
+        ...(containedChildren.get(entry.id) ?? []),
+        { id, evidence: entry.containment_geometry },
+      ])
+    }
+  }
+  // Validate evidence once per request-owned index, against the actual loaded areas.
+  const fingerprints = new Map<string, string>()
+  const fingerprint = (id: string) => {
+    let hash = fingerprints.get(id)
+    if (!hash) {
+      hash = `sha256:${createHash('sha256')
+        .update(containmentGeometryKey(areasById.get(id)!.map(area => area.geometry)))
+        .digest('hex')}`
+      fingerprints.set(id, hash)
+    }
+    return hash
+  }
+  const containsPoint = options.containsPoint ?? containsReviewPoint
   function resolve(point: Coordinate | null, withGeometry = false, namedId?: string) {
-    const containing = point
-      ? index.filter(
-          ({ bbox, geometry }) =>
-            point[0] >= bbox[0] &&
-            point[0] <= bbox[2] &&
-            point[1] >= bbox[1] &&
-            point[1] <= bbox[3] &&
-            containsReviewPoint(point, geometry),
+    const checked = new Map<string, boolean>()
+    const visiting = new Set<string>()
+    function contains(id: string): boolean {
+      if (!point || visiting.has(id)) return false
+      const previous = checked.get(id)
+      if (previous !== undefined) return previous
+      const candidates = (areasById.get(id) ?? []).filter(
+        ({ bbox }) =>
+          point[0] >= bbox[0] &&
+          point[0] <= bbox[2] &&
+          point[1] >= bbox[1] &&
+          point[1] <= bbox[3],
+      )
+      visiting.add(id)
+      const inherited =
+        candidates.length > 0 &&
+        (containedChildren.get(id) ?? []).some(
+          child =>
+            contains(child.id) &&
+            fingerprint(child.id) === child.evidence.division &&
+            fingerprint(id) === child.evidence.ancestor,
         )
-      : []
-    const containingIds = new Set(containing.map(area => area.id))
+      const result =
+        inherited || candidates.some(area => containsPoint(point, area.geometry))
+      visiting.delete(id)
+      checked.set(id, result)
+      return result
+    }
+    const containingIds = new Set([...covered].filter(contains))
     const matched = namedId ? new Set([namedId]) : containingIds
     const excluded = (id: string) =>
       point !== null && id !== namedId && covered.has(id) && !containingIds.has(id)
@@ -148,14 +212,19 @@ export function createDivisionResolver(
       const branches = hierarchy.full.length
         ? hierarchy.full.map(path => path.map(entry => entry.id))
         : [[]]
-      const viable = branches.filter(path => path.every(parent => !excluded(parent)))
+      // A containing division may cross its stored administrative parent.
+      // Keep its coordinate-supported ancestors even when that parent is outside.
+      const viable =
+        point && containingIds.has(id)
+          ? branches.map(path => path.filter(parent => !excluded(parent)))
+          : branches.filter(path => path.every(parent => !excluded(parent)))
       const result: string[][] = []
       for (const branch of viable) {
         let selected = [...branch, id]
         // A unique category projection is evidence; ambiguous projections must
         // be supported by IDs already present on this particular branch.
         for (const category of ['administrative', 'locality', 'landform'] as const) {
-          const alternatives = hierarchy[category]
+          const alternatives = (hierarchy[category] ?? [])
             .map(path => path.map(entry => entry.id))
             .filter(path => path.every(parent => !excluded(parent)))
           const evidenced = selected.filter(parent =>
@@ -240,9 +309,9 @@ export function createDivisionResolver(
       const branches = expand(id)
       if (!branches.length) unresolved.add(id)
       for (const path of branches) paths.set(JSON.stringify(path), path)
-      const landforms = hierarchiesById
-        .get(id)!
-        .landform.filter(path => path.every(entry => !excluded(entry.id)))
+      const landforms = (hierarchiesById.get(id)!.landform ?? []).filter(path =>
+        path.every(entry => !excluded(entry.id)),
+      )
       if (landforms.length > 1) unresolved.add(id)
       for (const landformPath of landforms) {
         const last = landformPath.at(-1)
@@ -283,7 +352,61 @@ export function createDivisionResolver(
           }),
       )
     }
+    // Reverse lookups can combine containing hoods at distinct levels on the
+    // same ancestry branch. This is a point-specific path, not a persisted
+    // assertion that one entire polygon contains the other.
     const administrative = maximalPaths(false)
+    if (point) {
+      for (let left = 0; left < administrative.length; left++) {
+        for (let right = left + 1; right < administrative.length; right++) {
+          const a = administrative[left]!
+          const b = administrative[right]!
+          const prefix = (path: string[]) =>
+            path.filter(id => classification(id).category !== 'hood')
+          const aPrefix = prefix(a)
+          const bPrefix = prefix(b)
+          const commonPrefix = aPrefix.length >= bPrefix.length ? aPrefix : bPrefix
+          const shorterPrefix = aPrefix.length < bPrefix.length ? aPrefix : bPrefix
+          if (
+            !shorterPrefix.every(
+              (id, index) =>
+                commonPrefix.includes(id) &&
+                (index === 0 ||
+                  commonPrefix.indexOf(shorterPrefix[index - 1]!) <
+                    commonPrefix.indexOf(id)),
+            )
+          )
+            continue
+          const hoods = [...new Set([...a, ...b])].filter(
+            id => classification(id).category === 'hood',
+          )
+          if (!hoods.length || hoods.some(id => !containingIds.has(id))) continue
+          const levels = hoods.map(id => classification(id).level)
+          if (
+            levels.some(level => level === null) ||
+            new Set(levels).size !== levels.length
+          )
+            continue
+          const ordered = hoods.sort(
+            (x, y) => classification(x).level! - classification(y).level!,
+          )
+          const merged = [...commonPrefix, ...ordered]
+          // Preserve every stored ancestor ordering; never cross another branch.
+          if (
+            ![a, b].every(path =>
+              path.every(
+                (id, index) =>
+                  index === 0 || merged.indexOf(path[index - 1]!) < merged.indexOf(id),
+              ),
+            )
+          )
+            continue
+          administrative[left] = merged
+          administrative.splice(right, 1)
+          right = left
+        }
+      }
+    }
     const landform = maximalPaths(true)
     const membership = [...new Set([...matched, ...allPaths.flat()])].sort()
     const resource = (id: string) => {
@@ -306,7 +429,7 @@ export function createDivisionResolver(
     return {
       status: ambiguous
         ? 'ambiguous'
-        : missing.size || covered.size < byId.size
+        : missing.size || (!matched.size && covered.size < byId.size)
           ? 'incomplete'
           : matched.size
             ? 'resolved'
@@ -323,7 +446,11 @@ export function createDivisionResolver(
         paths: landform,
       },
       coverage: {
-        geometry: 'stub',
+        geometry: areas.some(area => area.variant === 'saanseoi')
+          ? 'saanseoi'
+          : areas.some(area => area.variant === 'overture')
+            ? 'overture'
+            : 'stub',
         covered: covered.size,
         total: byId.size,
         missingAncestorIds: [...missing].sort(),

@@ -138,6 +138,7 @@ type DivisionResourcePayload = {
 }
 
 type DivisionGeometryResourceAttributes = {
+  snapshotId?: string
   bbox: BBox | null
   type: 'land' | 'maritime' | 'mixed'
   isLand: boolean | null
@@ -796,7 +797,10 @@ export function createIncludedDivisionGeometryResource(args: {
     isLand: record.isLand,
     isTerritorial: record.isTerritorial,
     ...(args.profile === 'full'
-      ? { sources: (record.sources as SourcesPayload | null) ?? null }
+      ? {
+          sources: (record.sources as SourcesPayload | null) ?? null,
+          snapshotId: record.snapshotId,
+        }
       : {}),
     identifiers: record.identifiers,
     variant: record.variant,

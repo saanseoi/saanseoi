@@ -53,6 +53,7 @@ import {
   type SnapshotNotReadyResponse,
 } from '../lib/api'
 import { runWithD1ReadRetry } from '../lib/d1'
+import { expandAddressSourceReferences } from './addressSourceReferences'
 import type { AppEnv } from '../types'
 import type { AccessAttribution } from './accessAnalytics'
 import {
@@ -96,6 +97,7 @@ type Address3dResourcePayload = {
     snapshotId: string
     address2dId: string
     unitCount: number
+    sources?: unknown
     units: Address3dUnit[]
     i18n: Record<string, Record<string, Address3dUnitI18n>>
   }
@@ -289,6 +291,7 @@ function requestedAddressIncludes(value?: string) {
 function createAddress3dResource(args: {
   record: NonNullable<Awaited<ReturnType<typeof getAddress3dCollection>>>
   selectedLocales: string[]
+  profile: AddressProfile
 }): Address3dResourcePayload {
   const selectedLocales = new Set(args.selectedLocales)
   return {
@@ -298,6 +301,9 @@ function createAddress3dResource(args: {
       snapshotId: args.record.collection.snapshotId,
       address2dId: args.record.collection.address2dId,
       unitCount: args.record.collection.unitCount,
+      ...(args.profile === 'full'
+        ? { sources: { evidence: [{ record_id: args.record.collection.id }] } }
+        : {}),
       units: args.record.collection.units,
       i18n: Object.fromEntries(
         args.record.i18n
@@ -330,6 +336,7 @@ async function loadIncludedAddressUnits(args: {
   return [
     createAddress3dResource({
       record,
+      profile: args.routeState.profile,
       selectedLocales:
         args.routeState.localeSelection.mode === 'all'
           ? record.i18n.map(row => row.locale)
@@ -340,6 +347,7 @@ async function loadIncludedAddressUnits(args: {
 
 type ActiveAddressSnapshot = {
   snapshotIds: string[]
+  sourceReleaseBySnapshot?: Map<string, string>
   datasetBySnapshot: Map<string, string>
   divisionSnapshotId: string
   apiReleaseSet: string
@@ -547,7 +555,13 @@ function createAddressResource(args: {
   if (args.routeState.profile === 'full') {
     attributes.snapshotId = address.snapshotId
     attributes.identifiers = address.identifiers
-    attributes.sources = address.sources ?? null
+    attributes.sources = expandAddressSourceReferences(address.sources, {
+      snapshotId: address.snapshotId,
+      datasetCode,
+      sourceReleaseId: args.activeSnapshot.sourceReleaseBySnapshot?.get(
+        address.snapshotId,
+      ),
+    })
   }
 
   const i18n = projectAddressI18n(args.record.i18n, args.routeState.profile)
@@ -716,6 +730,9 @@ async function getActiveAddressSnapshot(
       ? addressSnapshotIds.filter(id => datasetBySnapshot.get(id) === dataset)
       : addressSnapshotIds,
     datasetBySnapshot,
+    sourceReleaseBySnapshot: new Map(
+      sources.map(source => [source.snapshotId, source.sourceReleaseId]),
+    ),
     divisionSnapshotId: divisionSnapshot.snapshotId,
     apiReleaseSet: selection.releaseSet.code,
     apiCatalogRevision: selection.releaseSet.apiCatalogRevision,

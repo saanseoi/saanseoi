@@ -88,19 +88,11 @@ const mappingKey = (row: IdentityMapping) =>
 
 /** Regional source codes are also retained in the canonical area record key. */
 export function extractAreaIdentityMappings(
-  id: string,
+  _id: string,
   identifiers: unknown,
   divisionId: string,
 ) {
-  const rows = extractIdentityMappings(identifiers, divisionId)
-  const regional = /^CENSTATD:area:(HK|KLN|NT)$/.exec(id)
-  if (regional)
-    rows.push({
-      namespace: 'hkgovCenstatd.code',
-      identifier: requireDefined(regional[1]),
-      canonicalId: divisionId,
-    })
-  return rows
+  return extractIdentityMappings(identifiers, divisionId)
 }
 
 export function identityBridgePage(

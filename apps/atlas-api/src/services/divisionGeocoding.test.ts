@@ -3,6 +3,16 @@ import { createDivisionResolver, distanceMetres } from './divisionGeocoding'
 import { division, area, entry } from './geocoding.fixtures'
 
 describe('division geocoding evidence', () => {
+  test('published curated polygons retain both sides of a shared boundary', () => {
+    const areas = [area('a', 0, 5), area('b', 5, 10)].map(a => ({
+      ...a,
+      variant: 'saanseoi' as const,
+    }))
+    const resolver = createDivisionResolver([division('a'), division('b')], areas)
+    expect(resolver.resolve([5, 2]).matchedDivisionIds).toEqual(['a', 'b'])
+    expect(resolver.resolve([4.999, 2]).matchedDivisionIds).toEqual(['a'])
+    expect(resolver.resolve([5.001, 2]).matchedDivisionIds).toEqual(['b'])
+  })
   test('branches are selected by coordinate without crossing parent paths', () => {
     const village = division('village', 'locality', {
       full: [
@@ -95,7 +105,7 @@ describe('division geocoding evidence', () => {
     expect(
       createDivisionResolver(
         [division('a')],
-        [{ ...polygon, variant: 'overture' }],
+        [{ ...polygon, variant: 'hkgov-had' }],
       ).resolve([9, 1]).matchedDivisionIds,
     ).toEqual([])
   })
@@ -232,4 +242,66 @@ describe('division geocoding evidence', () => {
     expect(result.path).toEqual(['root', 'village'])
     expect(result.status).toBe('resolved')
   })
+})
+
+test('unrelated missing polygons do not make a fully covered match incomplete', () => {
+  const result = createDivisionResolver(
+    [division('covered'), division('elsewhere')],
+    [area('covered')],
+  ).resolve([2, 2])
+  expect(result.status).toBe('resolved')
+  expect(result.coverage).toMatchObject({
+    covered: 1,
+    total: 2,
+    missingAncestorIds: [],
+  })
+})
+
+test('reverse geocoding combines containing L4 and L5 hoods on one ancestry branch', () => {
+  const macro = division('mong-kok', 'hood', { full: [[entry('root')]] })
+  Object.assign(macro.division, { class: 'macrohood', level: 4 })
+  const hood = division('prince-edward', 'hood', { full: [[entry('root')]] })
+  Object.assign(hood.division, { class: 'neighbourhood', level: 5 })
+  const records = [division('root'), macro, hood]
+  const areas = [area('root'), area('mong-kok', 0, 6), area('prince-edward', 3, 9)]
+  const resolver = createDivisionResolver(records, areas)
+  expect(resolver.resolve([4, 2])).toMatchObject({
+    status: 'resolved',
+    path: ['root', 'mong-kok', 'prince-edward'],
+  })
+  // Partial polygon overlap must not imply global parentage outside the overlap.
+  expect(resolver.resolve([8, 2]).path).toEqual(['root', 'prince-edward'])
+  expect(
+    createDivisionResolver(records.toReversed(), areas.toReversed()).resolve([4, 2]),
+  ).toEqual(resolver.resolve([4, 2]))
+  const rival = division('other-hood', 'hood', { full: [[entry('root')]] })
+  Object.assign(rival.division, { class: 'neighbourhood', level: 5 })
+  expect(
+    createDivisionResolver([...records, rival], [...areas, area('other-hood')]).resolve(
+      [4, 2],
+    ).status,
+  ).toBe('ambiguous')
+})
+
+test('a containing L5 crossing its stored district resolves without an L4 parent', () => {
+  const west = division('west', 'administrative', { full: [[entry('root')]] })
+  const east = division('east', 'administrative', { full: [[entry('root')]] })
+  const hood = division('hood', 'hood', {
+    full: [[entry('root'), entry('west')]],
+    administrative: [[entry('root'), entry('west')]],
+  })
+  Object.assign(hood.division, { class: 'neighbourhood', level: 5 })
+  const resolver = createDivisionResolver(
+    [division('root'), west, east, hood],
+    [area('root'), area('west', 0, 5), area('east', 5, 10), area('hood', 3, 9)],
+  )
+  expect(resolver.resolve([8, 2])).toMatchObject({
+    status: 'resolved',
+    path: ['root', 'east', 'hood'],
+  })
+  expect(resolver.resolve([4, 2])).toMatchObject({
+    status: 'resolved',
+    path: ['root', 'west', 'hood'],
+  })
+  expect(resolver.resolve([5, 2]).status).toBe('ambiguous')
 })

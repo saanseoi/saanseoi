@@ -19,9 +19,9 @@ const query: IdentityBridgeQuery = {
 }
 
 test('regional codes target the area record division reference', () => {
-  expect(extractAreaIdentityMappings('CENSTATD:area:HK', null, 'island')).toEqual([
-    { namespace: 'hkgovCenstatd.code', identifier: 'HK', canonicalId: 'island' },
-  ])
+  expect(
+    extractAreaIdentityMappings('ss-geometry', { 'CENSTATD:code': 'HK' }, 'island'),
+  ).toEqual([{ namespace: 'CENSTATD:code', identifier: 'HK', canonicalId: 'island' }])
   expect(extractAreaIdentityMappings('CENSTATD:area:UNKNOWN', null, 'id')).toEqual([])
 })
 
