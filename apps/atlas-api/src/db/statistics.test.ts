@@ -58,8 +58,8 @@ test('replays sparse revisions and unchanged snapshots independently of mutable 
   try {
     run(
       fixture.history,
-      `INSERT INTO statsRecords (id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, fieldDefinitionHashes, "values", versionHash, isCurrent, createdAt, updatedAt)
-      SELECT id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, fieldDefinitionHashes, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt, updatedAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
+      `INSERT INTO statsRecords (id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt)
+      SELECT id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, '{"totalPopulation":"250000","femalePopulation":"125000"}', 'correction-hash', 0, createdAt, updatedAt FROM statsRecords WHERE id = ? AND versionHash = 'record-version-hash'`,
       [STATISTIC_ID],
     )
     run(
@@ -125,7 +125,11 @@ test('selects field meanings by each pack hash while current retains older-perio
     )
     run(
       fixture.current,
-      `UPDATE statsRecords SET fieldDefinitionHashes = '{"totalPopulation":"redefined-field-hash"}' WHERE id = ?`,
+      `INSERT INTO statsDefinitionSets VALUES ('redefined-set','{"totalPopulation":"redefined-field-hash"}')`,
+    )
+    run(
+      fixture.current,
+      `UPDATE statsRecords SET definitionSetId = 'redefined-set' WHERE id = ?`,
       [STATISTIC_ID],
     )
     const selection: StatisticReadSelection = {

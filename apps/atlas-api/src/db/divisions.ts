@@ -121,6 +121,7 @@ export type DivisionLocaleSelection = RequestedApiLocaleSelection
 
 export type DivisionGeometryType = 'land' | 'maritime' | 'mixed'
 export type DivisionGeometryVariant =
+  | 'saanseoi'
   | 'stub'
   | 'hkgov-censtatd'
   | 'hkgov-censtatd-landclipped'
@@ -130,6 +131,7 @@ export type DivisionGeometryVariant =
   | 'overture'
 
 export type DivisionAreaRecord = {
+  snapshotId?: string
   id: string
   variant: DivisionGeometryVariant
   divisionId: string
@@ -143,6 +145,7 @@ export type DivisionAreaRecord = {
 }
 
 export type DivisionBoundaryRecord = {
+  snapshotId?: string
   id: string
   variant: DivisionGeometryVariant
   leftDivisionId: string

@@ -1,3 +1,4 @@
+import { getTableColumns, statisticDefinitionHashes } from '@repo/db'
 import type {
   CanonicalStatsGeography,
   CurrentDatabase,
@@ -130,7 +131,13 @@ function statisticConditions(
   )
 }
 
-function mapStatisticRecord(row: typeof statsRecords.$inferSelect): StatisticRecord {
+function mapStatisticRecord(
+  row: typeof statsRecords.$inferSelect & {
+    fieldDefinitionHashes: Record<string, string>
+  },
+): StatisticRecord {
+  if (!row.fieldDefinitionHashes)
+    throw new Error(`Missing statistic definition set ${row.definitionSetId}.`)
   return { ...row }
 }
 
@@ -157,7 +164,12 @@ export async function listStatisticRecords(
     await Promise.all(
       dbs.map(db =>
         db
-          .select()
+          .select({
+            ...getTableColumns(statsRecords),
+            fieldDefinitionHashes: statisticDefinitionHashes.as(
+              'fieldDefinitionHashes',
+            ),
+          })
           .from(statsRecords)
           .where(
             and(
@@ -208,7 +220,7 @@ export async function listStatisticRecordsForGeography(
             referencePeriodGranularity: statsRecords.referencePeriodGranularity,
             geography: statsRecords.geography,
             value: sql<string>`json_extract(${statsRecords.values}, '$.' || ${lookup.fieldName})`,
-            fieldDefinitionHash: sql<string>`json_extract(${statsRecords.fieldDefinitionHashes}, '$.' || ${lookup.fieldName})`,
+            fieldDefinitionHash: sql<string>`json_extract(${statisticDefinitionHashes}, '$.' || ${lookup.fieldName})`,
             versionHash: statsRecords.versionHash,
             createdAt: statsRecords.createdAt,
             updatedAt: statsRecords.updatedAt,
@@ -260,7 +272,10 @@ export async function getStatisticRecord(
   const rows = await Promise.all(
     dbs.map(db =>
       db
-        .select()
+        .select({
+          ...getTableColumns(statsRecords),
+          fieldDefinitionHashes: statisticDefinitionHashes.as('fieldDefinitionHashes'),
+        })
         .from(statsRecords)
         .where(
           and(
@@ -297,7 +312,7 @@ function referencedFieldCondition(lookup: DictionaryLookup) {
   }
   return sql`exists (select 1 from ${statsRecords} where ${statisticConditions(lookup.selection)}
     and ${statsRecords.datasetCode} = ${statsFields.datasetCode}
-    and json_extract(${statsRecords.fieldDefinitionHashes}, '$.' || ${statsFields.fieldName}) = ${statsFields.versionHash})`
+    and json_extract(${statisticDefinitionHashes}, '$.' || ${statsFields.fieldName}) = ${statsFields.versionHash})`
 }
 
 export async function listStatisticFieldDefinitions(
