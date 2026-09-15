@@ -1,8 +1,12 @@
+import { getTableColumns, statisticDefinitionHashes } from '@repo/db'
 import { and, eq, historySchema, inArray } from '@repo/db'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import { resolveSnapshotReplayPlan } from '../../../lib/db/metaRegistry'
 
-export type RetainedStatisticRecord = typeof historySchema.statsRecords.$inferSelect
+export type RetainedStatisticRecord = Omit<
+  typeof historySchema.statsRecords.$inferSelect,
+  'definitionSetId'
+> & { fieldDefinitionHashes: Record<string, string> }
 
 export const STATISTIC_RECORD_TYPE = 'statsRecord'
 
@@ -65,7 +69,10 @@ export async function readStatisticRecordsForSnapshotPlan(
   for (const db of historyDbs) {
     for (let offset = 0; offset < ids.length; offset += 80) {
       const rows = await db
-        .select()
+        .select({
+          ...getTableColumns(historySchema.statsRecords),
+          fieldDefinitionHashes: statisticDefinitionHashes.as('fieldDefinitionHashes'),
+        })
         .from(historySchema.statsRecords)
         .where(inArray(historySchema.statsRecords.id, ids.slice(offset, offset + 80)))
         .all()
@@ -85,4 +92,32 @@ export async function readStatisticRecordsForSnapshotPlan(
         `Missing retained Statistics version ${id}/${selected.get(id)?.versionHash}`,
       )
   return [...records.values()].sort((a, b) => a.id.localeCompare(b.id))
+}
+
+/** Attach shared definitions for operations that also need the raw stored record columns. */
+export async function hydrateStatisticDefinitions(
+  db: HarbourReadableDb,
+  rows: Array<Record<string, unknown>>,
+) {
+  const ids = [...new Set(rows.map(row => String(row.definitionSetId)))]
+  const table = historySchema.statsDefinitionSets
+  const definitions = new Map<string, Record<string, string>>()
+  for (let offset = 0; offset < ids.length; offset += 80) {
+    const selected = await db
+      .select()
+      .from(table)
+      .where(inArray(table.id, ids.slice(offset, offset + 80)))
+      .all()
+    for (const row of selected)
+      definitions.set(
+        String(row.id),
+        row.fieldDefinitionHashes as Record<string, string>,
+      )
+  }
+  for (const row of rows) {
+    const hashes = definitions.get(String(row.definitionSetId))
+    if (!hashes)
+      throw new Error(`Missing statistic definition set ${row.definitionSetId}.`)
+    row.fieldDefinitionHashes = hashes
+  }
 }
