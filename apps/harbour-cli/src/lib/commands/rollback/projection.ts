@@ -1,3 +1,4 @@
+import { statisticDefinitionSet } from '@repo/db'
 import type { Database, SQLQueryBindings } from 'bun:sqlite'
 import { join } from 'node:path'
 import type { HarbourReadableDb } from '@repo/core/db/types'
@@ -101,6 +102,17 @@ export function insertProjectionRow(
   name: string,
   row: ProjectionRow,
 ) {
+  if (name === 'statsRecords' && row.fieldDefinitionHashes) {
+    const hashes =
+      typeof row.fieldDefinitionHashes === 'string'
+        ? JSON.parse(row.fieldDefinitionHashes)
+        : row.fieldDefinitionHashes
+    const set = statisticDefinitionSet(hashes as Record<string, string>)
+    current
+      .query('INSERT INTO statsDefinitionSets VALUES(?,?) ON CONFLICT DO NOTHING')
+      .run(set.id, JSON.stringify(set.fieldDefinitionHashes))
+    row = { ...row, definitionSetId: set.id }
+  }
   const table = currentSchema[name as keyof typeof currentSchema] as SQLiteTable
   if (!table) throw new Error(`Unknown current projection table ${name}.`)
   const columns = Object.values(getTableColumns(table))

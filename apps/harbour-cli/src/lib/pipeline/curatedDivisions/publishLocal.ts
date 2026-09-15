@@ -22,6 +22,7 @@ import {
 } from '@repo/core/db/metaRegistry'
 import { resolveLocalAddressDbContext } from '../../dbCache/localDbCache'
 import { assembleCuratedDivisions } from './assemble'
+import { readCuratedDivisionRelease } from './releaseMetadata'
 import type { UploadTarget } from '../../cli/options'
 
 const digest = (value: unknown) =>
@@ -37,11 +38,11 @@ export async function publishLocalCuratedDivisions(
     JSON.parse(await readFile(resolve(root, 'fixtures/divisions/hk', name), 'utf8'))
   const hierarchy = await read('geographic-hierarchy-patch.json'),
     stubs = await read('stub-areas.json'),
-    islands = await read('island-areas.json'),
-    release = await read('release.json')
-  if (options.cohort && options.cohort !== release.inputCohort) return null
-  if (hierarchy.cohort !== stubs.cohort || hierarchy.cohort !== release.inputCohort)
+    islands = await read('island-areas.json')
+  if (options.cohort && options.cohort !== hierarchy.cohort) return null
+  if (hierarchy.cohort !== stubs.cohort)
     throw Error('Curated geometry and hierarchy cohorts differ.')
+  const release = await readCuratedDivisionRelease(root)
   const ctx = await resolveLocalAddressDbContext(
     target,
     'hk',

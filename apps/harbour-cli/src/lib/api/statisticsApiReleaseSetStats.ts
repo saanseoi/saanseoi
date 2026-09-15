@@ -1,3 +1,4 @@
+import type { RetainedStatisticRecord } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import { and, eq, inArray, historySchema, metaSchema } from '@repo/db'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
@@ -10,7 +11,7 @@ import type { ApiReleaseSetScopedStatsRow } from '@repo/db/metaSchema'
 import type { DivisionHistoryTarget } from './divisionApiReleaseSetStats'
 import { buildStatisticsRecordChurn } from './statisticsApiRecordChurn'
 
-type RecordRow = typeof historySchema.statsRecords.$inferSelect
+type RecordRow = RetainedStatisticRecord
 type Field = typeof historySchema.statsFields.$inferSelect
 type Label = typeof historySchema.statsFieldsI18n.$inferSelect
 export type StatisticsStatsData = {

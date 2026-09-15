@@ -61,6 +61,7 @@ const CANONICAL_TABLES = [
   'statsValuesI18n',
   'statsFieldsI18n',
   'statsMeasuresI18n',
+  'statsDefinitionSets',
   'statsRecords',
   'statsFields',
   'statsMeasures',

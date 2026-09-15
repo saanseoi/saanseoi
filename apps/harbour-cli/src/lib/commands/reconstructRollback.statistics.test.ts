@@ -1,3 +1,4 @@
+import { statisticDefinitionSet } from '@repo/db'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -28,6 +29,18 @@ const datasetCode = 'ds-statistics'
 const period = '2021-Q1'
 const timestamp = '2026-01-01T00:00:00.000Z'
 const insert = (db: Database, table: string, row: Record<string, unknown>) => {
+  if (table === 'statsRecords' && row.fieldDefinitionHashes) {
+    const set = statisticDefinitionSet(
+      row.fieldDefinitionHashes as Record<string, string>,
+    )
+    db.query('INSERT INTO statsDefinitionSets VALUES(?,?) ON CONFLICT DO NOTHING').run(
+      set.id,
+      JSON.stringify(set.fieldDefinitionHashes),
+    )
+    const { fieldDefinitionHashes: _definitions, ...record } = row
+    row = { ...record, definitionSetId: set.id }
+  }
+
   db.query(
     `INSERT INTO ${table} (${Object.keys(row)
       .map(key => `"${key}"`)

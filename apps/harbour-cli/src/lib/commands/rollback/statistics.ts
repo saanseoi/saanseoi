@@ -1,3 +1,4 @@
+import { hydrateStatisticDefinitions } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import type { Database, SQLQueryBindings } from 'bun:sqlite'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { stableJsonStringify } from '@repo/core/pipeline/utils'
@@ -98,7 +99,6 @@ export async function restoreStatisticsProjection(input: Input) {
           row.referencePeriodCode !== input.referencePeriodCode
         )
           continue
-        validatePack(row)
         const owner = owners.get(JSON.stringify([row.id, row.versionHash]))
         if (!owner) throw new Error(`Missing Statistics history owner ${row.id}.`)
         const records = groups.get(owner.db) ?? []
@@ -106,6 +106,18 @@ export async function restoreStatisticsProjection(input: Input) {
         groups.set(owner.db, records)
       }
       for (const [history, records] of groups) {
+        await hydrateStatisticDefinitions(history, records)
+        for (const record of records) {
+          validatePack(record)
+          input.current
+            .query(
+              'INSERT INTO statsDefinitionSets(id,fieldDefinitionHashes) VALUES(?,?) ON CONFLICT DO NOTHING',
+            )
+            .run(
+              String(record.definitionSetId),
+              JSON.stringify(record.fieldDefinitionHashes),
+            )
+        }
         // The owner is part of this cache key: a later pack can refer to the same
         // definition hash, but its retained owning copy must still be complete.
         const binding = input.historyTargets.find(
@@ -130,7 +142,13 @@ export async function restoreStatisticsProjection(input: Input) {
             throw new Error(
               `Statistics pack ${row.id} would overwrite another serving scope.`,
             )
-          insertProjectionRow(input.current, 'statsRecords', row)
+          insertProjectionRow(
+            input.current,
+            'statsRecords',
+            Object.fromEntries(
+              Object.entries(row).filter(([key]) => key !== 'fieldDefinitionHashes'),
+            ),
+          )
           counts.statsRecords = (counts.statsRecords ?? 0) + 1
         }
       }

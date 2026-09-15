@@ -500,7 +500,7 @@ function districtIdForDivision(row: {
   if (row.class === 'district') return row.id
   const ids = [
     ...new Set(
-      row.hierarchies.administrative
+      (row.hierarchies.administrative ?? [])
         .flat()
         .filter(entry => entry.class === 'district')
         .map(entry => entry.id),

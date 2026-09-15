@@ -1,3 +1,5 @@
+import { reconcileDraftReleaseSets } from '../upload/upload'
+import { publishLocalCuratedDivisions } from '../pipeline/curatedDivisions/publishLocal'
 import { assertUploadApiFieldCompatibility } from './uploadApiFields'
 import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
 import { resolve } from 'node:path'
@@ -436,6 +438,22 @@ ${mutedBar}  `)
         divisionGeometryTransform,
         cacheArtefacts,
       })
+      if (
+        !target.remote &&
+        previewResult.plan.regionCode === 'hk' &&
+        previewResult.plan.source === 'overture' &&
+        ['division', 'divisionArea'].includes(previewResult.plan.resourceType)
+      ) {
+        const curated = await publishLocalCuratedDivisions(target, {
+          cohort: previewResult.plan.cohortKey,
+          waitForBaseline: true,
+        })
+        if (curated)
+          await reconcileDraftReleaseSets(target, {
+            apiFamily: 'divisions',
+            regionCode: 'hk',
+          })
+      }
       await discardSuccessfulReleaseArtefacts(
         cacheArtefacts,
         target,

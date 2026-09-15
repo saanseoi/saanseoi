@@ -67,6 +67,7 @@ const familyTables: Record<RollbackResourceType, string[]> = {
     'streetsAddress',
   ],
   divisionStatistic: [
+    'statsDefinitionSets',
     'statsRecords',
     'statsFields',
     'statsFieldsI18n',
@@ -112,11 +113,16 @@ export async function prepareReconstructedRollback(input: {
   const tables: NetTablePolicy[] = families.flatMap(family =>
     familyTables[family].map(name => ({
       name,
-      ignoredColumns: ['createdAt', 'updatedAt'],
-      rowScope: {
-        column: family === 'divisionStatistic' ? 'datasetCode' : scopeColumn(name),
-        values: [] as string[],
-      },
+      ignoredColumns: name === 'statsDefinitionSets' ? [] : ['createdAt', 'updatedAt'],
+      ...(name === 'statsDefinitionSets'
+        ? {}
+        : {
+            rowScope: {
+              column:
+                family === 'divisionStatistic' ? 'datasetCode' : scopeColumn(name),
+              values: [] as string[],
+            },
+          }),
       ...(family === 'address' && ['address3d', 'address3dI18n'].includes(name)
         ? {
             collection: {
@@ -152,7 +158,7 @@ export async function prepareReconstructedRollback(input: {
         if (!datasetCode) throw new Error('Statistics rollback dataset is missing.')
         for (const policy of tables)
           if (familyForTable(policy.name) === 'divisionStatistic')
-            policy.rowScope!.values.push(datasetCode)
+            policy.rowScope?.values.push(datasetCode)
         for (const snapshot of statisticsSnapshots) {
           const receipt = current
             .query<
@@ -286,7 +292,7 @@ export async function prepareReconstructedRollback(input: {
         claims.push(claim)
         for (const policy of tables)
           if (familyForTable(policy.name) === scope.family)
-            policy.rowScope!.values.push(scope.scopeId)
+            policy.rowScope?.values.push(scope.scopeId)
         if (scope.to) {
           await restoreSnapshotProjection({
             current,
