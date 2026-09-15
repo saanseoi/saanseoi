@@ -124,6 +124,24 @@ export function buildHkgovAlsProcessingActions(input: {
     ),
   ]
 
+  for (const row of input.resolvedRows) {
+    const sources = JSON.parse(row.sources ?? '{}') as Record<string, unknown>
+    const evidence = Object.fromEntries(
+      Object.entries(sources).filter(([key]) => key !== 'hkgovAls'),
+    )
+    if (!Object.keys(evidence).length) continue
+    actions.push({
+      action: 'als_canonical_evidence_retained',
+      affectedRecordCount: 1,
+      mode: 'automatic' as const,
+      summary: 'Retain exact curation evidence for the canonical premise.',
+      evidence: {
+        canonicalRecord: summariseHkgovAlsProcessingRow(row),
+        sources: evidence,
+      },
+    })
+  }
+
   const decisionByCurrentIdentityKey = new Map(
     input.decisions.decisions.map(decision => [decision.currentIdentityKey, decision]),
   )

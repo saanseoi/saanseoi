@@ -99,8 +99,17 @@ describe('Planning Department native TPU SHP intake', () => {
       const rows = await parquetReadObjects({
         file,
         compressors,
-        columns: ['planning_level', 'source_properties'],
+        columns: ['id', 'hierarchy', 'planning_level', 'source_properties'],
       })
+      const byId = new Map(rows.map(row => [row.id, row.planning_level]))
+      for (const row of rows.filter(row => row.planning_level === 'subunit')) {
+        const path =
+          typeof row.hierarchy === 'string' ? JSON.parse(row.hierarchy) : row.hierarchy
+        expect(
+          path.map((entry: { division_id: string }) => byId.get(entry.division_id)),
+        ).toEqual(['ppu', 'spu', 'tpu'])
+        expect(row.id).toMatch(/^ss-[0-9a-f-]{36}$/)
+      }
       const cells = rows
         .filter(row => row.planning_level === 'subunit')
         .flatMap(
@@ -201,7 +210,7 @@ describe('Planning Department native New Town SHP intake', () => {
       )
 
       expect(prepared).toMatchObject({
-        id: 'd0b06deb-4842-507b-8284-a3254615e5aa',
+        id: 'ss-d0b06deb-4842-507b-8284-a3254615e5aa',
         identifiers: { 'PLAND:NEWTOWN': 'tsuen-wan-tsing-yi-area' },
         source_version: '2021',
       })

@@ -4,7 +4,7 @@ import { resolve } from 'node:path'
 import { XMLParser } from 'fast-xml-parser'
 import { parquetWriteBuffer } from 'hyparquet-writer'
 
-import { buildDeterministicUuidV5 } from '@repo/db'
+import { buildDeterministicUuidV5, canonicalGeneratedId } from '@repo/db'
 import {
   overtureHongKongAreaDivisionId,
   overtureHongKongAreaForCenstatdCode,
@@ -122,9 +122,11 @@ export function hkgovCenstatdStatisticDivisionId(
     const area = overtureHongKongAreaForCenstatdCode(geography.code)
     return area ? overtureHongKongAreaDivisionId(area.code) : null
   }
-  return buildDeterministicUuidV5(
-    CANONICAL_DIVISION_ID_NAMESPACE,
-    `CENSTATD:HMA:${geography.code}`,
+  return canonicalGeneratedId(
+    buildDeterministicUuidV5(
+      CANONICAL_DIVISION_ID_NAMESPACE,
+      `CENSTATD:HMA:${geography.code}`,
+    ),
   )
 }
 

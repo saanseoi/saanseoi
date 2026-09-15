@@ -12,7 +12,7 @@ import BufferOp from 'jsts/org/locationtech/jts/operation/buffer/BufferOp.js'
 import UnionOp from 'jsts/org/locationtech/jts/operation/union/UnionOp.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 
-import { buildDeterministicUuidV5 } from '@repo/db'
+import { buildDeterministicUuidV5, canonicalGeneratedId } from '@repo/db'
 import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojson'
 
 const HKGOV_PLAND_SOURCE = 'hkgov-pland-pu'
@@ -708,15 +708,11 @@ function unionBalanced(geometries: Geometry[]): Geometry {
 }
 
 function resolveHierarchy(level: PlanningLevel, cell: PlanningCell) {
-  const parent =
-    level === 'spu'
-      ? divisionId('ppu', cell.ppu, cell)
-      : level === 'tpu'
-        ? divisionId('spu', cell.spu, cell)
-        : level === 'subunit'
-          ? divisionId('tpu', cell.tpu, cell)
-          : null
-  return parent ? [{ division_id: parent, domain: 'planning' as const }] : []
+  const levels: PlanningLevel[] = ['ppu', 'spu', 'tpu', 'subunit']
+  return levels.slice(0, levels.indexOf(level)).map(ancestor => ({
+    division_id: divisionId(ancestor, cell[ancestor], cell),
+    domain: 'planning' as const,
+  }))
 }
 
 function identifiersFor(level: PlanningLevel, cell: PlanningCell) {
@@ -731,9 +727,11 @@ function identifiersFor(level: PlanningLevel, cell: PlanningCell) {
 }
 
 function divisionId(level: PlanningLevel, key: string, cell: PlanningCell) {
-  return buildDeterministicUuidV5(
-    CANONICAL_DIVISION_ID_NAMESPACE,
-    hkgovPlanningDivisionId(level, key, cell),
+  return canonicalGeneratedId(
+    buildDeterministicUuidV5(
+      CANONICAL_DIVISION_ID_NAMESPACE,
+      hkgovPlanningDivisionId(level, key, cell),
+    ),
   )
 }
 

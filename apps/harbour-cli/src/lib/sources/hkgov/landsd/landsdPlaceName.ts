@@ -1,3 +1,4 @@
+import { canonicalGeometryId } from '@repo/db'
 import { readFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
 
@@ -378,7 +379,7 @@ function normaliseLandsdSettlement(feature: LandsdPlaceNameFeature, index: numbe
     district,
     geoNameId,
     geometry,
-    id: `LANDSD:${geoNameId}`,
+    id: canonicalGeometryId('division', 'hkgov-landsd', geoNameId),
     identifiers: { hkgovLandsd: { geoNameId } },
     names: sourceNames(feature.properties),
     placeType,

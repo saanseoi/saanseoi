@@ -9,7 +9,7 @@ import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import BufferOp from 'jsts/org/locationtech/jts/operation/buffer/BufferOp.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 
-import { buildDeterministicUuidV5 } from '@repo/db'
+import { buildDeterministicUuidV5, canonicalGeneratedId } from '@repo/db'
 import type { GeoJsonGeometry, GeoJsonPosition } from '@repo/core/pipeline/geojson'
 
 const EXPECTED_FEATURE_COUNTS: Record<string, number> = {
@@ -417,9 +417,11 @@ function canonicalDivisionId(row: NewTownRow, sourceVersion: string) {
     .toLowerCase()
     .replace(/\s+/g, ' ')
     .replace(/\s*-\s*/g, '-')
-  return buildDeterministicUuidV5(
-    CANONICAL_DIVISION_ID_NAMESPACE,
-    `hkgov-pland-new-town:hk:planning:${sourceVersion}:${name}`,
+  return canonicalGeneratedId(
+    buildDeterministicUuidV5(
+      CANONICAL_DIVISION_ID_NAMESPACE,
+      `hkgov-pland-new-town:hk:planning:${sourceVersion}:${name}`,
+    ),
   )
 }
 

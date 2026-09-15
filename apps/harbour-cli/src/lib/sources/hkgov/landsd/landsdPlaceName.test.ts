@@ -1,3 +1,4 @@
+import { canonicalGeometryId } from '@repo/db'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -127,7 +128,9 @@ describe('LandsD native Place Name FileGDB intake', () => {
         { source: 'hkgov-landsd', sourceVersion: '2026-06-10.0' },
       )
 
-      expect(hierarchy.get('LANDSD:123')).toMatchObject({ level: 5 })
+      expect(
+        hierarchy.get(canonicalGeometryId('division', 'hkgov-landsd', '123')),
+      ).toMatchObject({ level: 5 })
     } finally {
       await rm(outputDir, { force: true, recursive: true })
     }
