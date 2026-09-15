@@ -27,11 +27,12 @@ paths are retained.
 ## Local ingestion
 
 The initial independent edition is `2026-09-01.0`, published on 1 September 2026. The
-Division and DivisionArea datasets have an **as-needed** cadence. The manifest in
-`fixtures/divisions/hk/release.json` records the edition date separately from its
-reviewed Overture input cohort, `2026-08-19.0`, and September coastline reference.
-Drawings are retained between editions; monthly Overture uploads do not create a new
-reviewed edition.
+Division and DivisionArea datasets have an **as-needed** cadence. The assembler reads
+the latest matching Division and DivisionArea edition from `fixtures/meta/releases/`;
+cadence is defined in `fixtures/meta/datasets/`. The hierarchy and drawing fixtures pin
+the reviewed Overture input cohort, `2026-08-19.0`. The release notes document the
+September coastline reference. Drawings are retained between editions; monthly Overture
+uploads do not create a new reviewed edition.
 
 After a local Hong Kong Overture Division or DivisionArea upload for the input cohort,
 the CLI assembles this edition once both native projections are available. A local

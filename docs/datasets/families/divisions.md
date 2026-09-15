@@ -985,7 +985,8 @@ hierarchy, inventory and curated assembly.
 ### Reviewed release cadence
 
 The independent SaanSeoi Division and DivisionArea edition starts at `2026-09-01.0` with
-an **as-needed** cadence. Its release manifest separates the edition date from the
+an **as-needed** cadence. Edition metadata comes from `fixtures/meta/releases/` and
+cadence from `fixtures/meta/datasets/`. The hierarchy and drawing fixtures retain the
 reviewed Overture input cohort. Monthly source updates do not require redrawing
 polygons. See [reviewed DivisionArea](../sources/saanseoi/divisionArea.md) for local
 ingestion, retained geometry, exclusions and island coastline cleanup.
