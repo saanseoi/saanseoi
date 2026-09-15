@@ -23,6 +23,7 @@ alone does not identify a class.
 | hood           | microhood     | 6     |
 | landform       | major_island  | null  |
 | landform       | minor_island  | null  |
+| landform       | islet         | null  |
 | landform       | island_group  | null  |
 
 The country referent is a separate administrative level-0 anchor. Planning and
@@ -55,6 +56,7 @@ SaanSeoi 區劃使用 `category`、`class` 及 `level`，與來源的 `subtype` 
 | hood           | microhood     | 6     |
 | landform       | major_island  | null  |
 | landform       | minor_island  | null  |
+| landform       | islet         | null  |
 | landform       | island_group  | null  |
 
 國家參照點是獨立的行政 level-0 記錄。規劃及統計類別的地理 category 為
@@ -81,6 +83,7 @@ SaanSeoi 区划使用 `category`、`class` 及 `level`，与来源的 `subtype` 
 | hood           | microhood     | 6     |
 | landform       | major_island  | null  |
 | landform       | minor_island  | null  |
+| landform       | islet         | null  |
 | landform       | island_group  | null  |
 
 国家参照点是独立的行政 level-0 记录。规划及统计类别的地理 category 为

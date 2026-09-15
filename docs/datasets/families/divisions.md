@@ -35,10 +35,12 @@ Geographic divisions expose `category`, `class` and `level`. Administrative clas
 `village` (5) and `hamlet` (6); hoods are `macrohood` (4), `neighbourhood` (5) and
 `microhood` (6). The separate country anchor remains administrative. Planning and
 statistical domains retain their domain-specific classes with no geographic category.
-Landforms use `major_island`, `minor_island` and `island_group`, all with `level: null`.
-The major/minor island distinction uses a reviewed 10 km² threshold. Classification
-alone does not establish containment. Levels can be shared and skipped; a hood does not
-require a city parent.
+Landforms use `major_island`, `minor_island`, `islet` and `island_group`, all with
+`level: null`. Individual island land area determines the class: `islet` below 10,000 m²
+(1 hectare), `minor_island` from 10,000 m² inclusive to 10 km² exclusive, and
+`major_island` from 10 km² inclusive. Island groups are independent of area.
+Classification alone does not establish containment. Levels can be shared and skipped; a
+hood does not require a city parent.
 
 Ingestion stores `hierarchies.administrative`, `hierarchies.locality`,
 `hierarchies.landform` and `hierarchies.full` as arrays of ancestor paths. Every entry
@@ -990,3 +992,13 @@ cadence from `fixtures/meta/datasets/`. The hierarchy and drawing fixtures retai
 reviewed Overture input cohort. Monthly source updates do not require redrawing
 polygons. See [reviewed DivisionArea](../sources/saanseoi/divisionArea.md) for local
 ingestion, retained geometry, exclusions and island coastline cleanup.
+
+Point-only island records with unknown land area retain `minor_island` until a measured
+outline supports size classification; a stored zero area is not evidence that an island
+is an islet.
+
+Island assembly evaluates `saanseoi-island-review.json` before creating divisions. Only
+eligible canonical islands are emitted; excluded and no-geometry candidates remain
+review evidence and do not create divisions or areas. Merged aliases resolve to their
+canonical island in ancestry. Unresolved curation blocks assembly. Size classification
+requires a finite, positive land area.

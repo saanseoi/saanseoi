@@ -102,3 +102,21 @@ Local examples:
 - [Austin, L5](http://localhost:8787/divisions/v1/geocode?lat=22.3036669&lng=114.1658961)
 - [San Po Kong, L5](http://localhost:8787/divisions/v1/geocode?lat=22.3359905&lng=114.1989697)
 - [Lamma Island](http://localhost:8787/divisions/v1/geocode?lat=22.2094533&lng=114.1497273)
+
+## Island size classification
+
+Individual islands use land area: `islet` below 10,000 m² (1 hectare), `minor_island`
+from 10,000 m² inclusive to 10 km² exclusive, and `major_island` from 10 km² inclusive.
+All use category `landform` and `level: null`. `island_group` is independent of area.
+Assembly preserves matched island identities and uses the canonical island class in
+stored ancestor entries.
+
+Point-only island records with unknown land area retain `minor_island` until a measured
+outline supports size classification; a stored zero area is not evidence that an island
+is an islet.
+
+Island assembly evaluates `saanseoi-island-review.json` before creating divisions. Only
+eligible canonical islands are emitted; excluded and no-geometry candidates remain
+review evidence and do not create divisions or areas. Merged aliases resolve to their
+canonical island in ancestry. Unresolved curation blocks assembly. Size classification
+requires a finite, positive land area.
