@@ -1,0 +1,192 @@
+[
+  {
+    "id": "b74bf860-5daf-50fb-8382-84975c7c8be0",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "neighborhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": null,
+    "bbox": null,
+    "parent_division_id": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a",
+    "names": {
+      "primary": "瀑布灣 Waterfall Bay",
+      "common": [
+        {
+          "language": "en",
+          "value": "Waterfall Bay"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "瀑布灣"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed neighbourhood additions",
+        "record_id": "waterfall-bay"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-waterfall-bay",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Waterfall Bay neighbourhood addition; geometry awaits local review."
+    }
+  },
+  {
+    "id": "98d5760d-f07a-5c44-9ae4-847efd8dc408",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "neighborhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": null,
+    "bbox": null,
+    "parent_division_id": "c8ca7da1-2688-402a-8eb9-199b69b5691c",
+    "names": {
+      "primary": "太子 Prince Edward",
+      "common": [
+        {
+          "language": "en",
+          "value": "Prince Edward"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "太子"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed neighbourhood additions",
+        "record_id": "prince-edward"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-prince-edward",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Prince Edward neighbourhood addition; geometry awaits local review."
+    }
+  },
+  {
+    "id": "b3809d1e-fdac-5cd5-9a06-9ab9a5859491",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "neighborhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": null,
+    "bbox": null,
+    "parent_division_id": "c8ca7da1-2688-402a-8eb9-199b69b5691c",
+    "names": {
+      "primary": "佐敦 Jordan",
+      "common": [
+        {
+          "language": "en",
+          "value": "Jordan"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "佐敦"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed neighbourhood additions",
+        "record_id": "jordan"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-jordan",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Jordan neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
+    }
+  },
+  {
+    "id": "2cfb80d9-7390-5474-962d-d33c6d08c04d",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "neighborhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": null,
+    "bbox": null,
+    "parent_division_id": "c8ca7da1-2688-402a-8eb9-199b69b5691c",
+    "names": {
+      "primary": "柯士甸 Austin",
+      "common": [
+        {
+          "language": "en",
+          "value": "Austin"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "柯士甸"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed neighbourhood additions",
+        "record_id": "austin"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-austin",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Austin neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
+    }
+  },
+  {
+    "id": "3fc693e1-2038-58e4-8ef3-8ce7b01e97a8",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "neighborhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": null,
+    "bbox": null,
+    "parent_division_id": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5",
+    "names": {
+      "primary": "李鄭屋 Lei Cheng Uk",
+      "common": [
+        {
+          "language": "en",
+          "value": "Lei Cheng Uk"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "李鄭屋"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed neighbourhood additions",
+        "record_id": "lei-cheng-uk"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-lei-cheng-uk",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Lei Cheng Uk neighbourhood addition; geometry awaits local review."
+    }
+  }
+]
