@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:5a32a0e55968b1d7f805665a9b27a3bd32689ee57b5074c44b5844b86e0bb9b9",
+  "versionHash": "sha256:1b1d456b00641c67185e803dcb45b77e50daeb041720ced7ce44c5ea67fdb639",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 2,
@@ -191,7 +191,8 @@
         "ds-hk-saanseoi-division-area"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-saanseoi-2026-09-01.0"
+        "ss-hk-division-saanseoi-2026-09-01.0",
+        "ss-hk-division-saanseoi-2026-09-01.0-r1"
       ]
     },
     {
@@ -206,7 +207,8 @@
         "ds-hk-saanseoi-division-area"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-saanseoi-2026-09-01.0"
+        "ss-hk-division-saanseoi-2026-09-01.0",
+        "ss-hk-division-saanseoi-2026-09-01.0-r1"
       ]
     },
     {
@@ -221,7 +223,8 @@
         "ds-hk-saanseoi-division-area"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-saanseoi-2026-09-01.0"
+        "ss-hk-division-saanseoi-2026-09-01.0",
+        "ss-hk-division-saanseoi-2026-09-01.0-r1"
       ]
     }
   ],
@@ -270,6 +273,9 @@
     },
     {
       "snapshotVersion": "ss-hk-division-saanseoi-2026-09-01.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-division-saanseoi-2026-09-01.0-r1"
     }
   ],
   "resources": [
