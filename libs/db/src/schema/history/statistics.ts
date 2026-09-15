@@ -1,4 +1,5 @@
-import { index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
+import { jsonText } from '../shared'
+import { text, index, primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
 import {
   canonicalStatsField,
@@ -94,3 +95,11 @@ export const statsValuesI18n = sqliteTable(
     }),
   ],
 )
+
+/** Shared immutable selections; identical record maps are stored once per database. */
+export const statsDefinitionSets = sqliteTable('statsDefinitionSets', {
+  id: text('id').primaryKey(),
+  fieldDefinitionHashes: jsonText<Record<string, string>>(
+    'fieldDefinitionHashes',
+  ).notNull(),
+})

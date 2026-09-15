@@ -261,10 +261,8 @@ export const canonicalStatsRecord = {
   fieldSources: jsonText<Record<string, CanonicalStatsFieldSource>>('fieldSources')
     .notNull()
     .default({}),
-  /** Immutable field definitions, including dimensions and localised metadata. */
-  fieldDefinitionHashes: jsonText<Record<string, string>>('fieldDefinitionHashes')
-    .notNull()
-    .default({}),
+  /** Immutable shared field-definition selection. */
+  definitionSetId: text('definitionSetId').notNull(),
   /** Publisher literals keyed by the stable reviewed field name. */
   values: jsonText<Record<string, string>>('values').notNull(),
 }

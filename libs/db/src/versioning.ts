@@ -146,7 +146,11 @@ export function buildSnapshotLineageCode(
   const resourceTypeSegment = resourceTypeIsInDatasetCode
     ? ''
     : `-${normalisedResourceType}`
-  const variantSegment = variant.includes(':') ? `-${normaliseCodeSlug(variant)}` : ''
+  const variantSegment =
+    variant.includes(':') ||
+    (variant === 'saanseoi' && !normalisedDatasetCode.includes('saanseoi'))
+      ? `-${normaliseCodeSlug(variant)}`
+      : ''
   return `sl-${normalisedDatasetCode}${resourceTypeSegment}${variantSegment}`
 }
 

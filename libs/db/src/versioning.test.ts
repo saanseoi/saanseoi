@@ -10,6 +10,11 @@ import {
 } from './versioning'
 
 describe('snapshot identifiers', () => {
+  test('curated assembly has a separate lineage from its native source', () => {
+    expect(
+      buildSnapshotLineageCode('ds-hk-overture-division', 'division', 'saanseoi'),
+    ).toBe('sl-ds-hk-overture-division-saanseoi')
+  })
   test('qualifies non-default lineage codes with their variant', () => {
     expect(buildSnapshotLineageCode('ds-hk-overture-division', 'division')).toBe(
       'sl-ds-hk-overture-division',

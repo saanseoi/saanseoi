@@ -1,3 +1,4 @@
+import curatedDivisionDocument from '../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v3.json'
 import {
   validateApiFieldInputs,
   type ApiFieldInput,
@@ -292,6 +293,17 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   ),
   derivePermanentLivingQuartersFixture(
     apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
+  ),
+  expandApiFieldFixture(curatedDivisionDocument as unknown as ApiFieldFixtureDocument),
+  derivePopulationHouseholdsFixture(
+    expandApiFieldFixture(
+      curatedDivisionDocument as unknown as ApiFieldFixtureDocument,
+    ),
+  ),
+  derivePermanentLivingQuartersFixture(
+    expandApiFieldFixture(
+      curatedDivisionDocument as unknown as ApiFieldFixtureDocument,
+    ),
   ),
   apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,

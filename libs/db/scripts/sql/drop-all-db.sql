@@ -109,6 +109,7 @@ DROP TABLE IF EXISTS `statsMeasuresI18n`;
 DROP TABLE IF EXISTS `statsMeasures`;
 DROP TABLE IF EXISTS `statsFieldsI18n`;
 DROP TABLE IF EXISTS `statsFields`;
+DROP TABLE IF EXISTS `statsDefinitionSets`;
 DROP TABLE IF EXISTS `streetGeometry`;
 DROP TABLE IF EXISTS `snapshotVersionChanges`;
 DROP TABLE IF EXISTS `sourceResolutions`;

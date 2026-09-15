@@ -33,12 +33,12 @@ export type DivisionHierarchyEntry = {
 
 /** Materialised at ingestion; readers must not infer or compose ancestry. */
 export type DivisionHierarchies = {
-  administrative: DivisionHierarchyEntry[][]
-  locality: DivisionHierarchyEntry[][]
-  landform: DivisionHierarchyEntry[][]
+  administrative?: DivisionHierarchyEntry[][]
+  locality?: DivisionHierarchyEntry[][]
+  landform?: DivisionHierarchyEntry[][]
   full: DivisionHierarchyEntry[][]
 }
 
 export function emptyDivisionHierarchies(): DivisionHierarchies {
-  return { administrative: [], locality: [], landform: [], full: [] }
+  return { full: [] }
 }

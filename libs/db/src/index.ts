@@ -5,6 +5,7 @@ export * from './placementProbe'
 export * from './routing'
 export * from './versioning'
 export * from './addressIdentity'
+export * from './canonicalIdentity'
 export * from './addressGranularity'
 export * from './divisionTaxonomy'
 export * as metaSchema from './schema/meta'
@@ -67,3 +68,5 @@ export {
   type AnyColumn,
   type SQL,
 } from 'drizzle-orm'
+
+export * from './statisticDefinitionSets'
