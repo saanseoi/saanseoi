@@ -447,3 +447,35 @@ test('new geometry for a no-geometry decision blocks assembly for review', () =>
     }),
   ).toThrow('geometry appeared')
 })
+
+test('Ap Lei Chau and Ap Lei Pai publish their separately reviewed island polygons', async () => {
+  const { default: inventory } = await import(
+    '../../../../../../fixtures/divisions/hk/island-areas.json'
+  )
+  const { default: review } = await import(
+    '../../../../../../fixtures/meta/curations/saanseoi-island-review.json'
+  )
+  const ids = ['LANDSD:PLACE_NAME:28', 'LANDSD:PLACE_NAME:30']
+  const islands = inventory.filter(row => ids.includes(row.id))
+  const result = assembleCuratedDivisions({
+    ...input,
+    islands,
+    islandReview: {
+      ...review,
+      entries: review.entries.filter(row => ids.includes(row.id)),
+      curationPolicy: {
+        ...review.curationPolicy,
+        aliasGroups: [],
+        actions: review.curationPolicy.actions.filter(row => ids.includes(row.id)),
+      },
+    } as any,
+  })
+  for (const island of islands) {
+    const id = result.aliases[island.id]
+    const published = result.areas.find(row => row.divisionId === id)!
+    expect(JSON.parse(published.geometry)).toEqual(island.geometryOptions![0]!.geometry)
+    expect(JSON.parse(published.geometry)).not.toEqual(island.geometry)
+  }
+  const pai = result.divisions.find(row => row.id === result.aliases[ids[1]!])!
+  expect(pai.class).toBe('minor_island')
+})

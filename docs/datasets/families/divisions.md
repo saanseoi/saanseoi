@@ -1014,3 +1014,8 @@ eligible canonical islands are emitted; excluded and no-geometry candidates rema
 review evidence and do not create divisions or areas. Merged aliases resolve to their
 canonical island in ancestry. Unresolved curation blocks assembly. Size classification
 requires a finite, positive land area.
+
+Curated island publication uses the reviewed polygon and its measured area for geometry
+and island classification. Acceptance filtering alone is insufficient: geometry
+corrections, including the separate Ap Lei Chau and Ap Lei Pai polygons, are applied
+before Division and DivisionArea snapshots are assembled.

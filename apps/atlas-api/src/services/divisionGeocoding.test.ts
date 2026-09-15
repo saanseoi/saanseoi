@@ -305,3 +305,32 @@ test('a containing L5 crossing its stored district resolves without an L4 parent
   })
   expect(resolver.resolve([5, 2]).status).toBe('ambiguous')
 })
+
+test('partial district and city/hood paths are complementary point memberships', () => {
+  const district = division('wan-chai', 'administrative', { full: [[entry('root')]] })
+  const city = division('hong-kong-city', 'locality', { full: [[entry('root')]] })
+  Object.assign(city.division, { class: 'city', level: 1 })
+  const hood = division('mid-levels', 'hood', {
+    full: [[entry('root'), entry('hong-kong-city', 'city')]],
+  })
+  Object.assign(hood.division, { class: 'macrohood', level: 4 })
+  const records = [division('root'), district, city, hood]
+  const areas = records.map(record => area(record.division.id))
+  const result = createDivisionResolver(records, areas).resolve([2, 2])
+  expect(result).toMatchObject({
+    status: 'resolved',
+    path: ['root', 'wan-chai', 'hong-kong-city', 'mid-levels'],
+  })
+  expect(
+    createDivisionResolver(records.toReversed(), areas.toReversed()).resolve([2, 2]),
+  ).toEqual(result)
+  const other = division('other-district', 'administrative', {
+    full: [[entry('root')]],
+  })
+  expect(
+    createDivisionResolver(
+      [...records, other],
+      [...areas, area('other-district')],
+    ).resolve([2, 2]).status,
+  ).toBe('ambiguous')
+})

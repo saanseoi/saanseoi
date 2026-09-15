@@ -48,7 +48,15 @@ export function assembleCuratedDivisions(input: {
       for (const aliasId of group.aliasIds)
         mergedAliases.set(aliasId, group.canonicalId)
     }
-    islands = input.islands.filter(island => accepted.has(island.id))
+    // Carry reviewed geometry and its measured area into publication; acceptance
+    // alone must not restore the uncorrected inventory polygon.
+    const curated = new Map(result.islands.map(island => [island.id, island]))
+    islands = input.islands
+      .filter(island => accepted.has(island.id))
+      .map(island => {
+        const selected = curated.get(island.id)!
+        return { ...island, geometry: selected.geometry, areaKm2: selected.areaKm2 }
+      })
     const acceptedMatches = new Set(
       islands.flatMap(island => (island.matches ?? []).map((match: Row) => match.id)),
     )

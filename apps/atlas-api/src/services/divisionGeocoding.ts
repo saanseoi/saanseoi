@@ -352,55 +352,66 @@ export function createDivisionResolver(
           }),
       )
     }
-    // Reverse lookups can combine containing hoods at distinct levels on the
-    // same ancestry branch. This is a point-specific path, not a persisted
-    // assertion that one entire polygon contains the other.
+    // Reverse lookups combine compatible containment evidence across partial
+    // category paths. This describes membership at this point, not a global
+    // assertion that one entire division polygon contains another.
     const administrative = maximalPaths(false)
+    /** Merge coordinate-supported paths while preserving their ancestor ordering. */
+    function mergeContainingPaths(a: string[], b: string[]): string[] | null {
+      const ids = [...new Set([...a, ...b])]
+      if (
+        ids.some(id => (!a.includes(id) || !b.includes(id)) && !containingIds.has(id))
+      )
+        return null
+      const slots = new Set<string>()
+      for (const id of ids) {
+        const { category, level } = classification(id)
+        if (category === null || level === null) return null
+        const slot = `${category}:${level}`
+        if (slots.has(slot)) return null
+        slots.add(slot)
+      }
+      // Existing path edges constrain the merge. Distinct levels order members
+      // within a category; equal levels in different categories are independent.
+      const predecessors = new Map(ids.map(id => [id, new Set<string>()]))
+      for (const path of [a, b])
+        for (let i = 1; i < path.length; i++)
+          predecessors.get(path[i]!)!.add(path[i - 1]!)
+      for (const id of ids)
+        for (const other of ids)
+          if (
+            classification(id).category === classification(other).category &&
+            classification(id).level! > classification(other).level!
+          )
+            predecessors.get(id)!.add(other)
+      const categoryOrder = ['administrative', 'locality', 'hood']
+      const merged: string[] = []
+      while (merged.length < ids.length) {
+        const available = ids.filter(
+          id =>
+            !merged.includes(id) &&
+            [...predecessors.get(id)!].every(parent => merged.includes(parent)),
+        )
+        available.sort(
+          (x, y) =>
+            categoryOrder.indexOf(classification(x).category!) -
+              categoryOrder.indexOf(classification(y).category!) ||
+            classification(x).level! - classification(y).level! ||
+            x.localeCompare(y),
+        )
+        if (!available.length) return null
+        merged.push(available[0]!)
+      }
+      return merged
+    }
     if (point) {
       for (let left = 0; left < administrative.length; left++) {
         for (let right = left + 1; right < administrative.length; right++) {
-          const a = administrative[left]!
-          const b = administrative[right]!
-          const prefix = (path: string[]) =>
-            path.filter(id => classification(id).category !== 'hood')
-          const aPrefix = prefix(a)
-          const bPrefix = prefix(b)
-          const commonPrefix = aPrefix.length >= bPrefix.length ? aPrefix : bPrefix
-          const shorterPrefix = aPrefix.length < bPrefix.length ? aPrefix : bPrefix
-          if (
-            !shorterPrefix.every(
-              (id, index) =>
-                commonPrefix.includes(id) &&
-                (index === 0 ||
-                  commonPrefix.indexOf(shorterPrefix[index - 1]!) <
-                    commonPrefix.indexOf(id)),
-            )
+          const merged = mergeContainingPaths(
+            administrative[left]!,
+            administrative[right]!,
           )
-            continue
-          const hoods = [...new Set([...a, ...b])].filter(
-            id => classification(id).category === 'hood',
-          )
-          if (!hoods.length || hoods.some(id => !containingIds.has(id))) continue
-          const levels = hoods.map(id => classification(id).level)
-          if (
-            levels.some(level => level === null) ||
-            new Set(levels).size !== levels.length
-          )
-            continue
-          const ordered = hoods.sort(
-            (x, y) => classification(x).level! - classification(y).level!,
-          )
-          const merged = [...commonPrefix, ...ordered]
-          // Preserve every stored ancestor ordering; never cross another branch.
-          if (
-            ![a, b].every(path =>
-              path.every(
-                (id, index) =>
-                  index === 0 || merged.indexOf(path[index - 1]!) < merged.indexOf(id),
-              ),
-            )
-          )
-            continue
+          if (!merged) continue
           administrative[left] = merged
           administrative.splice(right, 1)
           right = left

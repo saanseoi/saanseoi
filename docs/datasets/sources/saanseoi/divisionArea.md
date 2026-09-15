@@ -7,7 +7,7 @@ DivisionArea snapshots. Both curated snapshots use the `saanseoi` variant. The
 geographic API composition selects the curated Division primary and DivisionArea
 companion together.
 
-Geometry precedence, per canonical division, is reviewed drawing, then island inventory
+Geometry precedence, per canonical division, is reviewed drawing, then curated island
 polygon, then Overture area. Drawings replace all source area parts for that division.
 Polygon and MultiPolygon coordinates, holes and shared edges are retained exactly. No
 simplification, rounding, snapping or buffering runs during assembly. Review-only
@@ -167,3 +167,7 @@ eligible canonical islands are emitted; excluded and no-geometry candidates rema
 review evidence and do not create divisions or areas. Merged aliases resolve to their
 canonical island in ancestry. Unresolved curation blocks assembly. Size classification
 requires a finite, positive land area.
+
+Island assembly carries the geometry and measured area selected by the island review.
+Named-geometry corrections for Ap Lei Chau and Ap Lei Pai publish separate polygons; the
+uncorrected inventory polygon is retained only as review evidence.
