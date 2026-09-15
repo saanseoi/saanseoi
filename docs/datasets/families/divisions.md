@@ -1,13 +1,20 @@
 # Divisions dataset family
 
+Canonical Division and geometry provenance follows the
+[source evidence contract](source-evidence.md).
+
+Canonical Division and included area/boundary resources expose `sources` only with
+`profile=full`, including geometry included by Statistics responses.
+
 Record-content hashes exclude observation timestamps and publisher version labels,
 including nested attribution metadata. Effective dates, statistical periods and content
 dependency hashes remain significant. Retained source payloads preserve the original
 metadata. File checksums and processing-cache identities retain their complete inputs.
 
-The [versioned geocoding contract](../../geocoding.md) uses only geographic `stub`
-polygons for containment and preserves separate administrative and landform identities.
-It reports missing coverage and unresolved hierarchy branches explicitly.
+The [versioned geocoding contract](../../geocoding.md) uses published SaanSeoi area
+polygons, with Overture fallback, for containment and preserves separate administrative
+and landform identities. It reports missing coverage and unresolved hierarchy branches
+explicitly.
 
 Published rollback reconstructs exact base, locale, area and boundary predecessors from
 retained journals and their owning history shards. It preserves unrelated domains and
@@ -173,6 +180,10 @@ Reviewed supplemental replacements are resolved before row processing. For an id
 being replaced, the hierarchy guard checks the final replacement after normalisation;
 the intermediate source row remains available for source provenance.
 
+Sai Wan Ho, Kornhill, Shau Kei Wan, So Kon Po, Braemar Hill and Tin Wan use guarded
+level-5 neighbourhood patches. Aldrich Bay normalises to level-5 neighbourhood from its
+publisher classification.
+
 QA corrections use explicit patch origins and fixtures under `fixtures/meta/patches/`.
 Curations name their related review guard; patch source checks are application
 preconditions, not triggers for requesting review. Area and boundary normalisers share
@@ -221,7 +232,7 @@ affected records. Source tables do not duplicate repaired geometry or repair fla
 
 Division `identifiers` contain source codes and identifiers. Geography classification
 belongs to `class` and other classification fields; C&SD HMA identifiers contain only
-`hkgovCenstatd.code`.
+`CENSTATD:code`.
 
 Canonical and geometry ingestion retain recipes, source rules and exact selections under
 the [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance).
@@ -556,8 +567,9 @@ source text, resulting text, target locale and available parent names. The retai
 fixture preserves unused entries as well as applied instructions. Translation
 applications are captured for every source using the shared Division processor,
 including C&SD. Lok Ma Chau Loop uses a guarded classification fixture in both direct
-normalisation and hierarchy lookup. The admin-level expectation permits an omitted field
-only when the accepted source-release schema has no `admin_level` column; supplied
+normalisation and hierarchy lookup. The same fixture can retain reviewed English
+alternate names in canonical locale rows. The admin-level expectation permits an omitted
+field only when the accepted source-release schema has no `admin_level` column; supplied
 values must match the fixture. Translation preparation passes the source-release context
 through the same normalisation guard. Identity, class and subtype checks remain
 mandatory, and source drift blocks ingestion. Audit shows bulk summaries first and loads
@@ -815,12 +827,60 @@ pagination, retention, authoritative geometry coverage and error semantics.
 
 ## Local polygon topology repair
 
-The division-area review map cleans a complete level from unsimplified inputs. It nodes
-source and authoritative land boundaries together, polygonises the shared graph and
-assigns overlap faces in division-ID order. It preserves exact source coordinates and
-collinear nodes, except where clipping, noding or an accepted street snap changes a
-boundary. Only exact consecutive duplicates and ring closures are normalised; invalid
-self-intersections stop cleanup with diagnostics.
+Working drawings and the current Undo snapshot are stored together in one IndexedDB
+transaction. Saved localStorage drawings remain readable and are removed only after a
+successful IndexedDB save. Large drawing snapshots do not consume localStorage quota.
+Archived history remains separate from the working state.
+
+Coastline intersections retain polygonal coverage before topology predicates run.
+Isolated point and line contacts carry no area and are excluded from the coverage
+target, allowing mixed GeometryCollection intersection results to be processed.
+
+Drawn Polygon and MultiPolygon areas are supported through level 6, including import,
+export, pencil expansion and node editing. Level 6 point membership remains available
+when no area has been drawn. Starting a pencil drawing makes its level visible. L6
+drawings support selected-level cleanup, simplification and cross-level boundary
+alignment.
+
+Cross-level alignment uses an explicitly selected reference outline and relationship.
+Inside-reference alignment enforces containment; neighbour alignment creates a shared
+edge without interior overlap. Nearby edges align within a conservative 5 m limit,
+following reference bends and inserting shared nodes. The reference keeps its outline;
+other selected divisions retain their original working baselines. Distant ownership
+changes, collapsed rings and invalid geometry stop the whole operation. Alignment
+supports selected drawn divisions at levels 0–6 and has a complete pre-operation Undo.
+Level numbers alone do not establish a parent relationship. Alignment does not change
+stored hierarchy assignments.
+
+Loading saved drawings preserves their division associations. Recovery exports include
+the current drawing, undo snapshot and retained browser history for the requested
+divisions; exporting history does not change a drawing.
+
+Pencil expansion replaces the contacted boundary arc. Crossing replacement outlines are
+noded and polygonised automatically; the valid face retaining the most original area is
+used, excluding loops attached only at a point. Original holes remain excluded, and net
+growth and validity checks apply before saving. Same-level interior overlaps save with
+warnings on both polygons. Shared edges and cross-level containment are not flagged.
+Warnings are recomputed after edits and imports. The pre-operation backup supports Undo.
+
+The division-area review map cleans selected divisions at one level from unsimplified
+inputs. Simplification uses the same selection and verifies each selected drawing
+against its retained cleanup result. Unselected drawings remain untouched; their
+junction vertices remain fixed. The simplification level follows the last requested
+cleanup level. It nodes source and authoritative land boundaries together, polygonises
+the shared graph and assigns overlap faces in division-ID order. It preserves exact
+source coordinates and collinear nodes, except where clipping, noding or an accepted
+street snap changes a boundary. Only exact consecutive duplicates and ring closures are
+normalised; invalid self-intersections stop cleanup with diagnostics.
+
+The shared graph uses source boundaries, land boundaries and any explicit coverage
+boundary. Derived clipped boundaries are excluded from graph construction to avoid
+re-noding independently computed intersections. Invalid polygoniser rings retain their
+coordinates for map highlights and downloadable diagnostics. Coverage comparisons accept
+intersection residue only within eight coordinate-scale floating-point epsilons, with an
+area bound and vertex/midpoint checks against both outlines. This comparison does not
+round or change saved coordinates. Coverage diagnostics identify the nearest source
+boundary rather than the last division visited during validation.
 
 The coverage target defaults to the union of source polygons intersected with
 `hongkong-2026-09-01.coastline-land.geojson`. Existing gaps therefore remain intentional
@@ -845,7 +905,87 @@ Failure diagnostics identify the division, operation and available coordinates, 
 markers at those coordinates.
 
 Simplification is an explicit later operation on shared internal chains, with its own
-tolerance and retained unsimplified geometry. It validates unchanged coverage and shared
-topology before saving. Cleanup restores that retained geometry before rebuilding;
-edited simplified results require source recovery to avoid discarding edits. Neither
-operation publishes fixtures automatically.
+tolerance and retained unsimplified geometry. The review map can preview the selected
+result in detailed, simplified or comparison display without changing saved stubs. It
+validates unchanged coverage and shared topology before saving. Cleanup restores that
+retained geometry before rebuilding; edited simplified results require source recovery
+to avoid discarding edits. Neither operation publishes fixtures automatically.
+
+## Canonical identities and identifiers
+
+SaanSeoi-generated division and geometry identities use stable `ss-` UUIDs. Geometry
+identity is scoped by entity kind, provider and original record identity, independently
+of publication or display transform. Publisher record IDs remain in source storage.
+
+Canonical identifier keys use `PUBLISHER:NativeField` spelling, including `PLAND:PPU`,
+`PLAND:SUBUNIT`, `HAD:AREA_ID` and `LANDSD:GEO_NAME_ID`. Native values, including
+leading zeroes, are preserved. Source properties retain their native shape.
+
+Planning subunits carry the complete root-to-parent `PPU → SPU → TPU` path in `full`.
+Empty `administrative`, `locality` and `landform` categories are omitted. A root has
+`full: []`; hierarchy labels are present only where source names are available.
+
+Waterfall Bay (瀑布灣) is a reviewed SaanSeoi supplemental neighbourhood at level 5,
+retained in the Hong Kong Overture division import with explicit SaanSeoi provenance.
+Its provisional administrative ancestry is Southern District, Hong Kong Island and Hong
+Kong SAR. Its point and boundary await geometry review.
+
+Telegraph Bay (鋼綫灣) uses a guarded level-5 neighbourhood patch in the Overture
+division import; its original microhood subtype remains in source provenance.
+
+Sandy Bay (沙灣) uses a guarded level-5 neighbourhood patch in the Overture division
+import; its original microhood subtype remains in source provenance.
+
+West Kowloon (西九龍) uses a guarded level-4 macrohood patch in the Overture division
+import; its original neighbourhood subtype remains in source provenance.
+
+Prince Edward (太子) is a reviewed SaanSeoi supplemental neighbourhood at level 5,
+retained in the Hong Kong Overture import with explicit SaanSeoi provenance. Its
+provisional administrative ancestry is Yau Tsim Mong District, Kowloon and Hong Kong
+SAR. Its point and boundary await geometry review.
+
+Jordan (佐敦) is a reviewed SaanSeoi supplemental neighbourhood at level 5, retained in
+the Hong Kong Overture import with explicit SaanSeoi provenance and Yau Tsim Mong
+District, Kowloon and Hong Kong SAR ancestry. Its point and boundary await geometry
+review.
+
+Austin (柯士甸) is a reviewed SaanSeoi supplemental neighbourhood at level 5, retained
+in the Hong Kong Overture import with explicit SaanSeoi provenance and Yau Tsim Mong
+District, Kowloon and Hong Kong SAR ancestry. Its point and boundary await geometry
+review.
+
+Shek Kip Mei (石硤尾) uses a guarded level-5 neighbourhood patch, retaining its Overture
+macrohood subtype in source provenance. Lei Cheng Uk (李鄭屋) is a reviewed SaanSeoi
+supplemental level-5 neighbourhood with provisional Sham Shui Po District, Kowloon and
+Hong Kong SAR ancestry. Its point and boundary await geometry review.
+
+Kowloon City (九龍城) uses a guarded level-5 neighbourhood patch in the Overture
+division import; its original macrohood subtype remains in source provenance.
+
+Ma Tau Chung (馬頭涌) uses a guarded level-5 neighbourhood patch in the Overture
+division import; its original macrohood subtype remains in source provenance.
+
+B Block (前座) is excluded by a guarded Overture division patch because it represents a
+building block. The publisher source assertion remains retained.
+
+San Po Kong (新蒲崗) uses a guarded level-5 neighbourhood patch in the Overture division
+import; its original macrohood subtype remains in source provenance.
+
+## Reviewed SaanSeoi hierarchy and areas
+
+The geographic composition uses the SaanSeoi Division and DivisionArea assembly for
+reviewed L4/L5 hierarchy, drawings and island coverage. Drawings take precedence over
+island inventory geometry and Overture fallback, with exact coordinates retained. See
+[SaanSeoi reviewed DivisionArea](../sources/saanseoi/divisionArea.md) for local
+assembly, cohort constraints, provenance, coverage limitations and geocoding examples.
+
+East Tsim Sha Tsui (尖沙咀東) uses neighbourhood level 5 in the reviewed geographic
+hierarchy, inventory and curated assembly.
+
+### Reviewed release cadence
+
+The independent SaanSeoi Division and DivisionArea edition starts at `2026-09-01.0` with
+an **as-needed** cadence. Its release manifest separates the edition date from the
+reviewed Overture input cohort. Monthly source updates do not require redrawing
+polygons. See [reviewed DivisionArea](../sources/saanseoi/divisionArea.md) for local
+ingestion, retained geometry, exclusions and island coastline cleanup.

@@ -1,5 +1,9 @@
 # Statistics dataset family
 
+Field provenance and full-response source specifications follow the
+[source evidence contract](source-evidence.md). Each field retains its own contributing
+release; a later release for another field does not replace that evidence.
+
 Record-content hashes exclude observation timestamps and publisher version labels.
 Statistical periods, effective dates and content dependency hashes remain significant.
 Retained publisher payloads preserve their original metadata.
@@ -237,13 +241,15 @@ New annual releases preserve earlier periods. A partial revision replaces only s
 fields; omitted fields and geographies remain available. An explicit suppression or
 unavailable value replaces the corresponding value.
 
-Both current and history store the same complete packs, `fieldSources` and
-`fieldDefinitionHashes`. Each field keeps the provenance of its last real value or
-definition change. A content version covers values, field meanings, canonical division
-linkage and reviewed geography metadata, including its companion. Unchanged reissues
-reuse that version without rewriting either canonical row or adding a
-snapshot-membership row for it. Source assertions and publication metadata retain the
-new release's evidence.
+Both current and history store complete packs, `fieldSources` and a `definitionSetId`.
+`statsDefinitionSets` stores each immutable `fieldDefinitionHashes` map once per
+database. Identical maps share a deterministic ID; a changed field meaning selects a
+different set. Readers resolve the set to recover the exact per-field definition
+selection. Each field keeps the provenance of its last real value or definition change.
+A content version covers values, field meanings, canonical division linkage and reviewed
+geography metadata, including its companion. Unchanged reissues reuse that version
+without rewriting either canonical row or adding a snapshot-membership row for it.
+Source assertions and publication metadata retain the new release's evidence.
 
 History stores immutable complete versions only for changed packs, sharded by the
 reference period's end year. `snapshotVersionChanges` records sparse `statsRecord`
@@ -293,7 +299,7 @@ Packed values use exact decimal strings or canonical categorical codes. The reta
 publisher assertion preserves original property names and literals; normalisation also
 records precision and status for structural release statistics. Field and measure
 dictionaries remain small, shared metadata. Both current and history retain immutable
-content versions referenced by each pack's `fieldDefinitionHashes`; a partial correction
+content versions referenced by each pack's shared definition set; a partial correction
 can therefore retain several field-definition versions in the same dataset. Field hashes
 cover analytical dimensions, statistical meaning, localisations and the linked measure
 version. Localisations share their owning field or measure hash. Readers join these
@@ -420,10 +426,10 @@ flattening preserve upstream values; corrections and resolved identities remain 
 
 The Stats tab describes each frozen API release at its exact reference period. Counts
 resolve its Statistics snapshots through sparse parent ancestry, including unchanged
-reissues whose snapshots contain no new packs. Exact `fieldDefinitionHashes` select
-field definitions and labels. Supporting geometry and lookup sources do not contribute
-statistical records. Duplicate shard copies count once; conflicting versions, missing
-contributing datasets and missing field definitions stop calculation.
+reissues whose snapshots contain no new packs. Each record’s `definitionSetId` resolves
+the exact field-definition hashes and labels. Supporting geometry and lookup sources do
+not contribute statistical records. Duplicate shard copies count once; conflicting
+versions, missing contributing datasets and missing field definitions stop calculation.
 
 Metrics include geographic packs, observations, referenced field-definition versions,
 dataset-qualified measures, datasets, reference periods, geography types, canonical

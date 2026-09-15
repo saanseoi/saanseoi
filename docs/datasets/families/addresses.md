@@ -1,5 +1,18 @@
 # Addresses dataset family
 
+Canonical provenance follows the [source evidence contract](source-evidence.md).
+
+Canonical Address2D and Address3D collection IDs use the `ss-` prefix. ALS premise
+identities use deterministic UUIDv5 inputs; Places-derived supplementary addresses
+retain their deterministic `opa-` hash inside that prefix. Collection IDs use a fixed
+UUIDv5 namespace and the prefixed parent identity, so bare and prefixed forms of the
+same parent produce the same collection ID. Source assertion IDs are independent
+evidence keys.
+
+ALS premise structure and Roman-numeral normalisation decisions belong to the release
+processing audit. Canonical `sources` omit these processing flags and their unchanged
+defaults.
+
 Record-content hashes exclude observation timestamps and publisher version labels,
 including nested attribution metadata. Effective dates, statistical periods and content
 dependency hashes remain significant. Retained source payloads preserve the original

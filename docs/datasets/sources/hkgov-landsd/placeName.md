@@ -1,5 +1,9 @@
 # LandsD Place Name database
 
+Canonical source references follow the
+[source evidence contract](../../families/source-evidence.md). Original publisher
+properties and file locators remain in retained source assertions.
+
 Source validity uses the owning release's version component in `validFromRelease` and
 `validToRelease`. Dataset prefixes and resource suffixes are omitted; `releaseId`
 retains the release association.
@@ -151,3 +155,6 @@ islet features from the Hong Kong basemap, then applies the reviewed policy in
 the resulting source evidence rather than in a separate `hkgov-landsd` island domain.
 See the [island inventory review](../../internal/island-inventory-review.md) for
 coverage, geometry inputs and the release gate.
+
+Constructed canonical divisions use stable `ss-` UUIDs and expose `LANDSD:GEO_NAME_ID`;
+native source record IDs remain unchanged.

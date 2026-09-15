@@ -1,5 +1,17 @@
 # HKGov DPO ALS addresses
 
+Canonical references and retained processing evidence follow the
+[source evidence contract](../../families/source-evidence.md).
+
+Canonical ALS premise and 3D collection IDs use `ss-`. Collection UUIDv5 seeds use the
+normalised prefixed parent ID, retaining deterministic identity across repeated
+ingestion and parent prefix formatting. Publisher source occurrence IDs remain separate.
+
+Premise structure and Roman-numeral normalisation decisions are retained in release
+processing actions alongside the publisher representation. They are preparation evidence
+and are omitted from canonical Address `sources`; unchanged premises produce no
+structure normalisation action.
+
 Record-content hashes exclude observation timestamps and publisher version labels,
 including nested attribution metadata. Effective dates, statistical periods and content
 dependency hashes remain significant. Retained source payloads preserve the original
@@ -1052,3 +1064,7 @@ names, building names and formatted-address substrings do not establish town mem
 Derived `townAssociation` evidence retains the input names, method and division snapshot
 separately from the publisher payload. Prepared files carry `townId` into Address2D
 storage and version hashing.
+
+Canonical Address2D identifiers use `ALS:CsuId` and retain the original identifier
+value. Curation identities use the `SS:` namespace; native source properties retain
+their original structure.

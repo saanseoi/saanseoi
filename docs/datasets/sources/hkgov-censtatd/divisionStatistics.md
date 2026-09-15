@@ -1,5 +1,9 @@
 # Census and Statistics Department division statistics
 
+Canonical source references follow the
+[source evidence contract](../../families/source-evidence.md); Statistics fields retain
+independent release selections in full-response specifications.
+
 Record-content hashes exclude observation timestamps and publisher version labels,
 including nested attribution metadata. Effective dates, statistical periods and content
 dependency hashes remain significant. Retained source payloads preserve the original
@@ -657,3 +661,7 @@ publication promotion: dataset and exact reference period select packed geograph
 records, older periods remain current, and partial revisions preserve omitted fields and
 geographies. This membership boundary is distinct from complete inventory replacement in
 Division and Place datasets.
+
+Canonical statistic packs reference shared immutable field-definition sets using
+`definitionSetId`. Publication and rollback retain the selected set and its exact field
+and measure definitions.

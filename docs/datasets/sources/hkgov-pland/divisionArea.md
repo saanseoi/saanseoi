@@ -1,5 +1,9 @@
 # Planning Department TPU and subunit areas
 
+Canonical Division and geometry references follow the
+[source evidence contract](../../families/source-evidence.md). Planning classification
+is read from canonical fields rather than duplicated source metadata.
+
 Record-content hashes exclude observation timestamps and publisher version labels,
 including nested attribution metadata. Effective dates, statistical periods and content
 dependency hashes remain significant. Retained source payloads preserve the original
@@ -424,3 +428,6 @@ definitions reuse their owning history shard and original provenance even when a
 hash also contains another component or a publication version. Real component changes
 close only the previous owning version. Repeated source interpretations inherit through
 snapshot ancestry, and explicit omissions override that inheritance.
+
+Planning divisions and areas use stable `ss-` UUIDs. Subunit ancestry includes PPU, SPU
+and TPU; canonical identifiers retain the `PLAND:` namespace and native code spelling.

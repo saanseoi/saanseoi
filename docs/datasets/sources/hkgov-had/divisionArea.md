@@ -1,5 +1,9 @@
 # Home Affairs Department District Boundary area ingestion
 
+Canonical source references follow the
+[source evidence contract](../../families/source-evidence.md). Original publisher
+properties and file locators remain in retained source assertions.
+
 Canonical Area versions are immutable. Snapshot membership follows the selected parent's
 version journal and recorded history shards; complete releases remove only members of
 that parent. Exact and simplified scopes and other providers retain their versions
@@ -201,3 +205,6 @@ preparation; publication grants current readiness. Empty scopes require the same
 completion evidence. Retained cohorts and variants remain independently available, with
 older revisions replayed from history. See the
 [publication-state contract](../../publication-state-plan.md).
+
+Canonical area IDs are stable `ss-` UUIDs. Identifiers use `HAD:OBJECTID`,
+`HAD:CSDI_ADMIN_AREA_ID`, `HAD:AREA_ID` and `HAD:AREA_CODE`.

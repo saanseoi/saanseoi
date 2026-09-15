@@ -9,6 +9,13 @@ one publisher ID remain current when all are present in the incoming release.
 
 ## TODO: Source payload consolidation
 
+- [ ] Normalise canonical provenance into compact exact source-evidence references and
+      snapshot-selected specifications for shared dataset, release and file metadata.
+      Retain occurrence-specific exceptions and processing decisions in their evidence
+      and audit stores. Reconstruct richer `sources` only for `profile=full`, using
+      batched reads and the selected historical evidence. Verify unchanged-record write
+      economy without losing lifecycle or notice provenance.
+
 - [ ] When Streets work resumes, review moving parsed publisher attributes from
       `hkgovLandsdStreetBaselineRecords` and `hkgovLandsdStreetNotices` into
       `properties`. The baseline stores names and district codes directly; notices store

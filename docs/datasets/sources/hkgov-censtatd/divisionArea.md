@@ -1,5 +1,9 @@
 # Census and Statistics Department District Council district areas
 
+Canonical source references follow the
+[source evidence contract](../../families/source-evidence.md). Original publisher
+properties and file locators remain in retained source assertions.
+
 Unchanged open source geometry and derivative versions retain their release metadata and
 validity. Supersession updates target the exact current version; derivative comparison
 remains scoped by source record, input version and transform.
@@ -312,8 +316,8 @@ The generated HMA division rows include the shared Parquet hierarchy columns. Th
 `class` is `housing-market-area`; `subtype` and `parent_division_id` are empty because
 HMAs have no hierarchy. Their authoritative classification remains the C&SD
 `canonical_type` of `housing-market-area`. The canonical `identifiers` object contains
-only the publisher code, for example `{"hkgovCenstatd":{"code":"HMA158"}}`; the
-geography type belongs to classification.
+only the publisher code, for example `{"CENSTATD:code":"HMA158"}`; the geography type
+belongs to classification.
 
 ## Ingestion
 
@@ -411,3 +415,7 @@ Area and HMA candidate preparation uses the shared final-difference compiler. A
 contribution merges its supplied geometry into the exact cohort scope; it does not
 remove independent cohorts or inherited companion members. Canonical equality can reuse
 a complete snapshot while retaining the new publisher assertion separately.
+
+Canonical areas and constructed statistical divisions use stable `ss-` UUIDs. Area
+identifiers retain `CENSTATD:dcClass` and `CENSTATD:dcCode`; regional lookup codes are
+explicit identifiers rather than part of the canonical ID.

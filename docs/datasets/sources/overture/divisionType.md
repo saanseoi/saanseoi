@@ -1,12 +1,16 @@
 # division type and level
 
-Lok Ma Chau Loop classification is selected from
-`fixtures/meta/patches/overture-division-classification.json`. This is an independently
-reviewed QA patch, not the result of a curation guard triggering. Its source ID, admin
-level, class and subtype must match the fixture before the level-4 `macrohood`
-replacement is used. Both direct normalisation and hierarchy lookup execute the same
-registered guarded rule. The [processing audit](../../processing-provenance.md) retains
-the fixture and individual decision; bulk normalisation retains declarations and counts.
+Reviewed Overture classification patches are selected from
+`fixtures/meta/patches/overture-division-classification.json`. They are independently
+reviewed QA patches, not the result of a curation guard triggering. Each source ID,
+admin level, class and subtype must match its fixture before the canonical replacement
+is used. This includes the level-4 `macrohood` for Lok Ma Chau Loop and level-5
+`neighbourhood` classifications for Sai Wan Ho, Kornhill, Shau Kei Wan, So Kon Po,
+Braemar Hill and Tin Wan. Aldrich Bay already arrives as Overture `neighborhood` and
+normalises to the same canonical classification without a patch. Both direct
+normalisation and hierarchy lookup execute the same registered guarded rule. The
+[processing audit](../../processing-provenance.md) retains the fixture and individual
+decision; bulk normalisation retains declarations and counts.
 
 Source Divisions retain publisher attributes in `properties`, alongside source identity,
 original `sourceGeometry`, `sources` and release history. Names, admin level, subtype,
@@ -115,3 +119,57 @@ macrohood。科技园及科学园等 hood 不一定有聚落祖先。来源分�
 Ancestor hierarchy names retain source localisations when translation fixtures add
 missing locales. An empty translation result preserves every source name used for Hong
 Kong Area assignment and hierarchy validation.
+
+Waterfall Bay (瀑布灣) is a reviewed SaanSeoi supplemental neighbourhood at level 5,
+retained in the Hong Kong Overture division import with explicit SaanSeoi provenance.
+Its provisional administrative ancestry is Southern District, Hong Kong Island and Hong
+Kong SAR. Its point and boundary await geometry review.
+
+Telegraph Bay (鋼綫灣) uses a guarded level-5 neighbourhood patch in the Overture
+division import; its original microhood subtype remains in source provenance.
+
+Sandy Bay (沙灣) uses a guarded level-5 neighbourhood patch in the Overture division
+import; its original microhood subtype remains in source provenance.
+
+West Kowloon (西九龍) uses a guarded level-4 macrohood patch in the Overture division
+import; its original neighbourhood subtype remains in source provenance.
+
+Prince Edward (太子) is a reviewed SaanSeoi supplemental neighbourhood at level 5,
+retained in the Hong Kong Overture import with explicit SaanSeoi provenance. Its
+provisional administrative ancestry is Yau Tsim Mong District, Kowloon and Hong Kong
+SAR. Its point and boundary await geometry review.
+
+Jordan (佐敦) is a reviewed SaanSeoi supplemental neighbourhood at level 5, retained in
+the Hong Kong Overture import with explicit SaanSeoi provenance and Yau Tsim Mong
+District, Kowloon and Hong Kong SAR ancestry. Its point and boundary await geometry
+review.
+
+Austin (柯士甸) is a reviewed SaanSeoi supplemental neighbourhood at level 5, retained
+in the Hong Kong Overture import with explicit SaanSeoi provenance and Yau Tsim Mong
+District, Kowloon and Hong Kong SAR ancestry. Its point and boundary await geometry
+review.
+
+Shek Kip Mei (石硤尾) uses a guarded level-5 neighbourhood patch, retaining its Overture
+macrohood subtype in source provenance. Lei Cheng Uk (李鄭屋) is a reviewed SaanSeoi
+supplemental level-5 neighbourhood with provisional Sham Shui Po District, Kowloon and
+Hong Kong SAR ancestry. Its point and boundary await geometry review.
+
+Kowloon City (九龍城) uses a guarded level-5 neighbourhood patch in the Overture
+division import; its original macrohood subtype remains in source provenance.
+
+Ma Tau Chung (馬頭涌) uses a guarded level-5 neighbourhood patch in the Overture
+division import; its original macrohood subtype remains in source provenance.
+
+B Block (前座) is excluded by a guarded Overture division patch because it represents a
+building block. The publisher source assertion remains retained.
+
+San Po Kong (新蒲崗) uses a guarded level-5 neighbourhood patch in the Overture division
+import; its original macrohood subtype remains in source provenance.
+
+East Tsim Sha Tsui (尖沙咀東) is a reviewed neighbourhood at level 5. The classification
+patch preserves the Overture microhood assertion in source storage; the curated assembly
+also applies it to an existing native projection.
+
+The reviewed coverage excludes Kap Ma Kum Tong (蛤䗫擒塘 / 蛤蟆擒塘) through
+`overture-division-exclusions.json`. North Rock is excluded through the supplemental
+SaanSeoi island curation and shared reviewed-coverage exclusion fixture.

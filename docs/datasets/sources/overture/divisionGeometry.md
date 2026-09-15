@@ -1,5 +1,9 @@
 # Overture division geometry ingestion
 
+Canonical source references follow the
+[source evidence contract](../../families/source-evidence.md). Original publisher
+properties and file locators remain in retained source assertions.
+
 Record-content hashes exclude observation timestamps and publisher version labels,
 including nested attribution metadata. Effective dates, statistical periods and content
 dependency hashes remain significant. Retained source payloads preserve the original
@@ -358,3 +362,14 @@ shared graph construction, authoritative land clipping and conservative 5-metre
 centreline snapping. Simplification requires a separate later action and retains the
 unsimplified input. A simplified review export is not an authoritative source for
 boundary reconstruction.
+
+Canonical geometry IDs are stable `ss-` UUIDs derived from provider, entity kind and
+original record identity. Native Overture IDs remain source record identities.
+
+## Reviewed SaanSeoi assembly
+
+Native Overture areas remain the fallback input to the
+[SaanSeoi reviewed DivisionArea assembly](../saanseoi/divisionArea.md). Reviewed
+polygons and island geometry take precedence per division in the separate `saanseoi`
+snapshot. The geographic API composition selects that assembly for geocoding; Overture
+source geometry retains its own snapshot and provenance.
