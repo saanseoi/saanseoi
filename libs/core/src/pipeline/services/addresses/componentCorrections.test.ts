@@ -77,11 +77,10 @@ test('corrects bilingual Address2D components without changing identity, street 
   expect(result.coverageComponents).toContain('estate_name')
   expect(result.coverageComponents).not.toContain('building_name')
   expect(result.base.sources).toMatchObject({
-    hkgovAls: JSON.parse(source.sources).hkgovAls,
-    hkgovAlsComponentCorrections: {
-      fixtureVersion: 1,
-      corrections: [{ id: 'ngong-ping-theme-village-estate', revision: 1 }],
-    },
+    hkgovAls: [{ record_id: 'source-theme-village', versionHash: 'source-hash' }],
+    componentCorrections: [
+      { record_id: 'ngong-ping-theme-village-estate', revision: 1 },
+    ],
   })
   expect(source).toEqual(before)
   expect(buildHkgovAlsSourceHashInput(source)).toEqual(hashInput)
@@ -102,7 +101,9 @@ test('preserves array-shaped source references alongside correction provenance',
   expect(
     normaliseAddressRowForPipeline({ ...source, sources: JSON.stringify(references) })
       .base.sources,
-  ).toMatchObject({ hkgovAls: references })
+  ).toMatchObject({
+    hkgovAls: [{ record_id: 'source-theme-village', versionHash: 'source-hash' }],
+  })
 })
 
 test('leaves Ngong Ping Tsuen and unrelated similarly named premises untouched', () => {

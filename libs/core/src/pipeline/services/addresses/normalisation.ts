@@ -1,5 +1,7 @@
+import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
 import { recordContent } from '../sources/recordContent'
 import { readAlsPublisherSource } from '../sources/alsSourcePayload'
+import { addressSourceReferences } from './sourceReferences'
 import { publisherSourceHashInput } from '../sources/sourcePayload'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
 import ruleFixture from '../../../../../../fixtures/meta/processing-rules/address-normalisation.json'
@@ -59,10 +61,10 @@ function normaliseAddressRowForPipelineInternal(
       ...(Array.isArray(normalised.base.sources)
         ? { hkgovAls: normalised.base.sources }
         : asRecord(normalised.base.sources)),
-      hkgovAlsComponentCorrections: {
-        fixtureVersion: 1,
-        corrections: corrected.applied,
-      },
+      componentCorrections: corrected.applied.map(correction => ({
+        record_id: correction.id,
+        revision: correction.revision,
+      })),
     }
   }
   return normalised
@@ -237,9 +239,9 @@ function normalisePreparedHkgovAddressRow(
       areaId: asNonEmptyString(row.areaId),
       countryId: asNonEmptyString(row.countryId),
       geometry: parseOptionalJson(row.geometry),
-      identifiers: parseOptionalJson(row.identifiers),
+      identifiers: canonicalIdentifiers(row.identifiers),
       bbox: null,
-      sources: parseOptionalJson(row.sources),
+      sources: addressSourceReferences(row, canonicalId),
     } satisfies Omit<AddressRow, 'id' | 'snapshotId' | 'createdAt' | 'updatedAt'>,
     coverageComponents: [...coverageComponents],
     i18n,
