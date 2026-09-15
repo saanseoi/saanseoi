@@ -18,7 +18,12 @@ export function materialiseDivisionHierarchies(
   divisionId: string,
   paths: readonly (readonly ClassifiedAncestor[])[],
 ): DivisionHierarchies {
-  const result = emptyDivisionHierarchies()
+  const result: DivisionHierarchies = {
+    administrative: [],
+    locality: [],
+    landform: [],
+    full: [],
+  }
   for (const path of paths) {
     const ancestors = path.filter(entry => entry.division_id !== divisionId)
     if (new Set(ancestors.map(entry => entry.division_id)).size !== ancestors.length) {
@@ -48,15 +53,18 @@ export function materialiseDivisionHierarchies(
     // Other geographic domains retain their evidenced ancestry without pretending
     // their planning/statistical classes belong to the geographic taxonomy.
     const other = entries.filter(entry => !category(entry))
-    appendUniquePath(result.administrative, administrative)
-    appendUniquePath(result.locality, localPath)
-    appendUniquePath(result.landform, landforms)
+    appendUniquePath(result.administrative!, administrative)
+    appendUniquePath(result.locality!, localPath)
+    appendUniquePath(result.landform!, landforms)
     appendUniquePath(result.full, [
       ...administrative,
       ...displayedLandforms,
       ...localPath.filter(entry => entry.class !== 'city'),
       ...other,
     ])
+  }
+  for (const key of ['administrative', 'locality', 'landform'] as const) {
+    if (!result[key]?.length) delete result[key]
   }
   return result
 }

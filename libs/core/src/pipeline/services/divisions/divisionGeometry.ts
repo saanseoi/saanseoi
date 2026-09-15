@@ -1,3 +1,5 @@
+import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
+import { canonicalGeometryId } from '@repo/db'
 import { recordContent } from '../sources/recordContent'
 import { retainSourceProperties } from '../sources/retainedProperties'
 import {
@@ -68,7 +70,7 @@ type GeometryBase = {
   id: string
   isLand: boolean | null
   isTerritorial: boolean | null
-  identifiers: Record<string, Record<string, unknown>> | null
+  identifiers: Record<string, unknown> | null
   sources: Record<string, unknown> | undefined
   type: 'land' | 'maritime' | 'mixed'
   variant: string
@@ -147,12 +149,13 @@ function normaliseDivisionAreaGeometry(
     throw new Error('Division area row requires non-empty `id` and `division_id`.')
   }
 
-  const identifiers = buildIdentifiers(row, source)
-  const sources = normaliseSources(row.sources, source)
+  const identifiers = canonicalIdentifiers(buildIdentifiers(row, source))
+  const canonicalId = canonicalGeometryId('divisionArea', source, id)
+  const sources = geometrySourceReferences(row, source, canonicalId)
   const base: GeometryBase = {
     bbox,
     geometry: withoutEmbeddedBbox(geometry),
-    id,
+    id: canonicalId,
     isLand,
     isTerritorial,
     identifiers,
@@ -208,12 +211,13 @@ function normaliseDivisionBoundaryGeometry(
     throw new Error(`Division boundary ${id} contains dropped perspectives data.`)
   }
 
-  const identifiers = buildIdentifiers(row, source)
-  const sources = normaliseSources(row.sources, source)
+  const identifiers = canonicalIdentifiers(buildIdentifiers(row, source))
+  const canonicalId = canonicalGeometryId('divisionBoundary', source, id)
+  const sources = geometrySourceReferences(row, source, canonicalId)
   const base: GeometryBase = {
     bbox,
     geometry: withoutEmbeddedBbox(geometry),
-    id,
+    id: canonicalId,
     isLand,
     isTerritorial,
     identifiers,
@@ -289,6 +293,40 @@ export function normaliseDivisionBoundaryGeometryRow(
   )
 }
 
+/** Native Planning and Statistics assertions are retained in their own source tables. */
+function geometrySourceReferences(
+  row: Record<string, unknown>,
+  source: string,
+  id: string,
+) {
+  if (source === 'hkgov-pland-new-town') {
+    const recordId = asNonEmptyString(row.newtown_id)
+    if (!recordId)
+      throw new Error('Planning New Town geometry requires its native record ID.')
+    return { hkgovPland: [{ record_id: recordId }] }
+  }
+  if (source === 'hkgov-pland-pu') {
+    const cells =
+      typeof row.source_cell_ids === 'string'
+        ? JSON.parse(row.source_cell_ids)
+        : row.source_cell_ids
+    if (
+      !Array.isArray(cells) ||
+      !cells.length ||
+      cells.some(cell => typeof cell !== 'string' || !cell)
+    )
+      throw new Error('Planning geometry requires its contributing native cell IDs.')
+    return { hkgovPland: cells.map(cell => ({ cell_id: cell })) }
+  }
+  if (source === 'hkgov-censtatd' && Array.isArray(row.sources)) {
+    const ids = row.sources
+      .map(reference => reference?.sourceRecordId)
+      .filter((value): value is string => typeof value === 'string' && !!value)
+    if (ids.length) return { hkgovCenstatd: ids.map(record_id => ({ record_id })) }
+  }
+  return { evidence: [{ record_id: id }] }
+}
+
 function normaliseSourceReferences(value: unknown): SourceReferences | null {
   if (Array.isArray(value) && value.length > 0 && value.every(hasSourceReference)) {
     return value
@@ -327,7 +365,7 @@ export function hashDivisionGeometrySourceRow(row: Record<string, unknown>) {
 function buildIdentifiers(
   row: Record<string, unknown>,
   source: string,
-): Record<string, Record<string, unknown>> | null {
+): Record<string, unknown> | null {
   if (source === 'hkgov-had') {
     return {
       hkgov: {
@@ -351,11 +389,11 @@ function buildIdentifiers(
   }
 
   if (source === 'hkgov-censtatd') {
+    const region = /^CENSTATD:area:(HK|KLN|NT)$/.exec(String(row.id))?.[1]
     return {
-      hkgovCenstatd: {
-        class: asNonEmptyString(row.district_class),
-        code: asOptionalInteger(row.district_code),
-      },
+      'CENSTATD:dcClass': asNonEmptyString(row.district_class),
+      'CENSTATD:dcCode': asOptionalInteger(row.district_code),
+      ...(region ? { 'CENSTATD:code': region } : {}),
     }
   }
 
@@ -368,22 +406,6 @@ function buildIdentifiers(
   }
 
   return null
-}
-
-function normaliseSources(value: unknown, source: string) {
-  return Array.isArray(value) && value.length > 0
-    ? {
-        [source === 'hkgov-had'
-          ? 'hkgovHad'
-          : source === 'hkgov-censtatd'
-            ? 'hkgovCenstatd'
-            : source === 'hkgov-pland-pu'
-              ? 'hkgovPland'
-              : source === 'hkgov-pland-new-town'
-                ? 'hkgovPlandNewTown'
-                : 'overture']: value,
-      }
-    : undefined
 }
 
 function sourceProperties(row: Record<string, unknown>, source: string) {

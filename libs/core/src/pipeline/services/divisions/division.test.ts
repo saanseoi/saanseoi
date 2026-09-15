@@ -197,6 +197,98 @@ describe('collectOvertureHongKongDivisionSourceAssumptionViolations', () => {
 })
 
 describe('getSupplementalDivisionFixtureRows', () => {
+  test('adds Lei Cheng Uk under Sham Shui Po', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '3fc693e1-2038-58e4-8ef3-8ce7b01e97a8')!
+    expect(row.parent_division_id).toBe('73e4cfa9-558b-4017-84a3-f5c0b3507aa5')
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: { class: 'neighbourhood', level: 5 },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Lei Cheng Uk' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '李鄭屋' }),
+      ]),
+    })
+  })
+  test('adds Austin as a reviewed neighbourhood under Yau Tsim Mong', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '2cfb80d9-7390-5474-962d-d33c6d08c04d')!
+    expect(row.parent_division_id).toBe('c8ca7da1-2688-402a-8eb9-199b69b5691c')
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: { class: 'neighbourhood', level: 5 },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Austin' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '柯士甸' }),
+      ]),
+    })
+    expect(row.sources).toEqual([
+      { dataset: 'SaanSeoi reviewed neighbourhood additions', record_id: 'austin' },
+    ])
+  })
+  test('adds Jordan as a reviewed neighbourhood under Yau Tsim Mong', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === 'b3809d1e-fdac-5cd5-9a06-9ab9a5859491')!
+    expect(row.parent_division_id).toBe('c8ca7da1-2688-402a-8eb9-199b69b5691c')
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: { class: 'neighbourhood', level: 5 },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Jordan' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '佐敦' }),
+      ]),
+    })
+    expect(row.sources).toEqual([
+      { dataset: 'SaanSeoi reviewed neighbourhood additions', record_id: 'jordan' },
+    ])
+  })
+  test('adds Prince Edward as a reviewed neighbourhood', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '98d5760d-f07a-5c44-9ae4-847efd8dc408')!
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: { class: 'neighbourhood', level: 5 },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Prince Edward' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '太子' }),
+      ]),
+    })
+    expect(row.sources).toEqual([
+      {
+        dataset: 'SaanSeoi reviewed neighbourhood additions',
+        record_id: 'prince-edward',
+      },
+    ])
+  })
+  test('adds reviewed Waterfall Bay as a neighbourhood with SaanSeoi provenance', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === 'b74bf860-5daf-50fb-8382-84975c7c8be0')!
+    expect(row.sources).toEqual([
+      {
+        dataset: 'SaanSeoi reviewed neighbourhood additions',
+        record_id: 'waterfall-bay',
+      },
+    ])
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: { class: 'neighbourhood', level: 5 },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Waterfall Bay' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '瀑布灣' }),
+      ]),
+    })
+  })
+
   test('adds the PRC country anchor to Overture Hong Kong division snapshots', () => {
     const [fixture] = getSupplementalDivisionFixtureRows({
       source: 'overture',
@@ -378,7 +470,7 @@ describe('normaliseDivisionRow i18n', () => {
 
     expect(normalised).toMatchObject({
       base: {
-        hierarchies: { administrative: [], locality: [], landform: [], full: [] },
+        hierarchies: { full: [] },
         level: null,
         class: 'housing-market-area',
       },
@@ -410,9 +502,7 @@ describe('normaliseDivisionRow i18n', () => {
         geometry: { coordinates: [114.1577, 22.2855], type: 'Point' },
         level: 5,
         sources: {
-          hkgovLandsd: {
-            properties: { GEO_NAME_ID: '101', PLACE_CLASS: 'Settlement' },
-          },
+          evidence: [{ record_id: 'LANDSD:101' }],
         },
         class: 'settlement',
       },
@@ -539,8 +629,6 @@ describe('normaliseDivisionRow hierarchy', () => {
     )
 
     expect(normalised.base.hierarchies).toEqual({
-      landform: [],
-      administrative: [],
       locality: [
         [
           {
@@ -625,7 +713,6 @@ describe('normaliseDivisionRow hierarchy', () => {
     )
 
     expect(normalised.base.hierarchies).toEqual({
-      landform: [],
       administrative: [
         [
           {
@@ -645,7 +732,6 @@ describe('normaliseDivisionRow hierarchy', () => {
           },
         ],
       ],
-      locality: [],
       full: [
         [
           {
@@ -708,8 +794,6 @@ describe('normaliseDivisionRow hierarchy', () => {
     )
 
     expect(normalised.base.hierarchies).toEqual({
-      landform: [],
-      administrative: [],
       locality: [[{ id: 'division-locality', class: 'town', name: '某處 Somewhere' }]],
       full: [[{ id: 'division-locality', class: 'town', name: '某處 Somewhere' }]],
     })

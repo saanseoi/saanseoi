@@ -1,3 +1,4 @@
+import supplementalNeighbourhoods from '../../../../../../fixtures/divisions/hk/supplemental-neighbourhoods.json'
 import { overtureHongKongCityRestorationActions } from './overtureHongKongCityRestoration'
 import { readDivisionInputBatches, type DivisionInput } from './divisionInput'
 
@@ -8,6 +9,8 @@ import { missingOvertureHongKongCityRows } from './overtureHongKongCities'
 import { kowloonRestorationActions } from './kowloonRestoration'
 import { overtureHongKongAreaRestorationActions } from './overtureHongKongAreaRestoration'
 import type { ReleaseProcessingAction } from '../../db/processingActions'
+
+export { supplementalNeighbourhoods }
 
 type DivisionFixtureRow = Record<string, unknown>
 
@@ -38,6 +41,7 @@ export function getSupplementalDivisionFixtureRows(
   return [
     ...supplementalRows.map(row => structuredClone(row)),
     structuredClone(prcCountryAnchor) as DivisionFixtureRow,
+    ...supplementalNeighbourhoods.map(row => structuredClone(row)),
   ]
 }
 

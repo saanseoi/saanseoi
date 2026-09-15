@@ -71,9 +71,7 @@ test('point evidence assigns level 6 without needing a level-6 polygon, with det
   expect(result.competingParentIds).toEqual(['large'])
   expect(result.hierarchies.full[0]!.map(d => d.id)).toEqual(['district', 'small'])
   expect(derive(features.toReversed())).toEqual(result)
-  expect(() => validateStubAreas(stubs([square('child', 1)]), inventory)).toThrow(
-    'Level 6',
-  )
+  expect(() => validateStubAreas(stubs([square('child', 1)]), inventory)).not.toThrow()
 })
 test('holes, boundaries and disconnected polygon parts have defined point membership', () => {
   const geometry = square('x', 10).geometry

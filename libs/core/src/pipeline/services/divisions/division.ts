@@ -1,3 +1,4 @@
+import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
 import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import {
   geographicHierarchyPatchRule,
@@ -219,6 +220,7 @@ type DivisionHierarchyLookupEntry = {
 export type DivisionHierarchyLookup = ReadonlyMap<string, DivisionHierarchyLookupEntry>
 
 type DivisionNormaliseOptions = {
+  nativeSourceEvidence?: boolean
   hierarchyGuard?: import('../../../provenance').AuditGuard
   /** A reviewed replacement will validate this identity's final hierarchy. */
   deferHierarchyGuard?: boolean
@@ -583,6 +585,7 @@ export async function processDivisionDataset(
     for (const row of batch) {
       const exclusion = applyDivisionExclusionPatch(row, message)
       const normalised = normaliseDivisionRow(row, {
+        nativeSourceEvidence: message.source === 'overture' && !isSupplemental,
         deferHierarchyGuard: replacedDivisionIds.has(String(row.id)),
         hierarchyLookup,
         source: message,
@@ -1212,17 +1215,38 @@ function normaliseDivisionRowInternal(
           branchCounts: options.branchCounts,
         })
   const i18n = normaliseDivisionI18n(id, row.names, options.branchCounts)
-  if (overtureHongKongDivisionClassificationCorrection?.nameEn) {
+  if (
+    overtureHongKongDivisionClassificationCorrection?.nameEn ||
+    overtureHongKongDivisionClassificationCorrection?.nameAltsEn
+  ) {
     const english = i18n.find(entry => entry.locale === 'en')
-    if (english) english.name = overtureHongKongDivisionClassificationCorrection.nameEn
-    else
+    if (english) {
+      if (overtureHongKongDivisionClassificationCorrection.nameEn)
+        english.name = overtureHongKongDivisionClassificationCorrection.nameEn
+      const nameAlts = [
+        ...(english.nameAlts?.split('|').filter(Boolean) ?? []),
+        ...(overtureHongKongDivisionClassificationCorrection.nameAltsEn ?? []),
+      ].filter(name => name !== english.name)
+      const dedupedNameAlts = [...new Set(nameAlts)]
+      english.nameAlts = dedupedNameAlts.length > 0 ? dedupedNameAlts.join('|') : null
+      english.nameVariant = [...(english.nameVariant ?? []), ...dedupedNameAlts].filter(
+        (name, index, values) => values.indexOf(name) === index,
+      )
+    } else
       i18n.push({
         divisionId: id,
         locale: 'en',
-        name: overtureHongKongDivisionClassificationCorrection.nameEn,
-        nameAlts: null,
+        name: overtureHongKongDivisionClassificationCorrection.nameEn ?? null,
+        nameAlts:
+          overtureHongKongDivisionClassificationCorrection.nameAltsEn?.join('|') ??
+          null,
         nameRules: null,
-        nameVariant: null,
+        nameVariant: [
+          ...(overtureHongKongDivisionClassificationCorrection.nameEn
+            ? [overtureHongKongDivisionClassificationCorrection.nameEn]
+            : []),
+          ...(overtureHongKongDivisionClassificationCorrection.nameAltsEn ?? []),
+        ],
         isLocaleInferred: false,
       })
   }
@@ -1281,18 +1305,15 @@ function normaliseDivisionRowInternal(
               source: options.source,
             }),
       id,
-      identifiers: row.identifiers ?? null,
+      identifiers: canonicalIdentifiers(row.identifiers),
       level,
       category: geographicDivisionClassification(type)?.category ?? null,
       class: type,
       sources: landsdPlaceName
-        ? {
-            hkgovLandsd: {
-              feature: row.source_feature ?? null,
-              properties: row.source_properties ?? null,
-            },
-          }
-        : normaliseOvertureSources(row.sources),
+        ? { evidence: [{ record_id: id }] }
+        : options.nativeSourceEvidence
+          ? { evidence: [{ record_id: id }] }
+          : normaliseOvertureSources(row.sources),
       updatedAt: now,
       wikidata: asNonEmptyString(row.wikidata),
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
@@ -1506,9 +1527,8 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
   }
   const names = parseJsonRecord(row.names, 'names')
   const geometry = parseJsonGeometry(row.geometry, 'geometry')
-  const identifiers = parseJsonValue(row.identifiers, 'identifiers')
+  const identifiers = canonicalIdentifiers(row.identifiers)
   const sources = parseJsonValue(row.sources, 'sources')
-  const sourceProperties = parseJsonValue(row.source_properties, 'source_properties')
   const now = new Date().toISOString()
   return {
     base: {
@@ -1521,7 +1541,16 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
       id,
       identifiers,
       level,
-      sources: { hkgovCenstatd: { properties: sourceProperties, sources } },
+      sources: {
+        hkgovCenstatd: (Array.isArray(sources) ? sources : []).map(reference => {
+          const recordId = asNonEmptyString(
+            (reference as Record<string, unknown>)?.sourceRecordId,
+          )
+          if (!recordId)
+            throw new Error('C&SD source reference requires sourceRecordId.')
+          return { record_id: recordId }
+        }),
+      },
       class: type,
       category: geographicDivisionClassification(type)?.category ?? null,
       updatedAt: now,
@@ -1595,7 +1624,7 @@ export function resolveDistrictId(base: {
 }) {
   if (base.class === 'district') return base.id
   const ids = new Set(
-    base.hierarchies.administrative
+    (base.hierarchies.administrative ?? [])
       .flat()
       .filter(entry => entry.class === 'district')
       .map(entry => entry.id),

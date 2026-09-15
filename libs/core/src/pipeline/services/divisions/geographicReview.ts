@@ -157,8 +157,6 @@ export function validateStubAreas(
     const division = divisions.get(id)
     if (!division || ids.has(id) || feature.properties.variant !== 'stub')
       throw new Error('Every stub needs one unique, known division identity.')
-    if (division.level === 6)
-      throw new Error('Level 6 uses point membership; draw its parent instead.')
     ids.add(id)
     if (
       !feature.geometry ||
@@ -388,11 +386,13 @@ export function deriveHierarchyPatch(
     if (localities.length) hierarchy.locality = [localities]
     // Preserve correlated fallback paths; inferred paths are a single deterministic chain.
     if (selected.length) {
-      const adminPaths = hierarchy.administrative.length
+      const adminPaths = hierarchy.administrative?.length
         ? hierarchy.administrative
         : [[]]
-      const landformPath = hierarchy.landform.length === 1 ? hierarchy.landform[0]! : []
-      const localityPath = hierarchy.locality.length === 1 ? hierarchy.locality[0]! : []
+      const landformPath =
+        hierarchy.landform?.length === 1 ? hierarchy.landform[0]! : []
+      const localityPath =
+        hierarchy.locality?.length === 1 ? hierarchy.locality[0]! : []
       hierarchy.full = adminPaths
         .map(path => [
           ...path,

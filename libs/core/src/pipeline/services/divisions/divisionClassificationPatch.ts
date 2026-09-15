@@ -38,7 +38,15 @@ export function validateDivisionClassificationFixture(value: unknown) {
       e.replacement.level !==
         geographicDivisionClassification(e.replacement.class)?.level ||
       (e.replacement.nameEn != null &&
-        (typeof e.replacement.nameEn !== 'string' || !e.replacement.nameEn.trim()))
+        (typeof e.replacement.nameEn !== 'string' || !e.replacement.nameEn.trim())) ||
+      (e.replacement.nameAltsEn != null &&
+        (!Array.isArray(e.replacement.nameAltsEn) ||
+          e.replacement.nameAltsEn.length === 0 ||
+          !e.replacement.nameAltsEn.every(
+            name => typeof name === 'string' && name.trim().length > 0,
+          ) ||
+          new Set(e.replacement.nameAltsEn.map(name => name.trim())).size !==
+            e.replacement.nameAltsEn.length))
     )
       throw new Error('Invalid division classification patch entry.')
     ids.add(e.divisionId)
@@ -97,6 +105,9 @@ function applyClassification({
     level: entry.replacement.level,
     class: entry.replacement.class as GeographicDivisionClass,
     ...(entry.replacement.nameEn ? { nameEn: entry.replacement.nameEn } : {}),
+    ...(entry.replacement.nameAltsEn
+      ? { nameAltsEn: entry.replacement.nameAltsEn.map(name => name.trim()) }
+      : {}),
   }
 }
 

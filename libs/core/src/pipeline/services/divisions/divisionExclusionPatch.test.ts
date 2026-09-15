@@ -31,3 +31,21 @@ test('Central District exclusion accepts only its reviewed Overture source asser
     }),
   ).toThrow('patch entry')
 })
+
+test('B Block is excluded only when its reviewed source assertion matches', () => {
+  const row = {
+    id: 'cbfab9fe-5b9a-493d-b710-2cfd0a2ba6db',
+    subtype: 'microhood',
+    class: null,
+    admin_level: null,
+  }
+  expect(
+    applyDivisionExclusionPatch(row, {
+      source: 'overture',
+      sourceVersion: '2026-08-19.0',
+    })?.id,
+  ).toBe('overture_hong_kong_b_block_excluded')
+  expect(() =>
+    applyDivisionExclusionPatch({ ...row, subtype: 'neighborhood' }),
+  ).toThrow('guard mismatch')
+})

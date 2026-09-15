@@ -59,6 +59,7 @@ const normalisationCounters = new Set([
   'overture_division_api_locale_fallback_added',
   'overture_division_geometry_cn_gd_excluded',
   'overture_hong_kong_central_district_excluded',
+  'overture_hong_kong_b_block_excluded',
   'planning_geometry_self_intersection_repaired',
 ])
 

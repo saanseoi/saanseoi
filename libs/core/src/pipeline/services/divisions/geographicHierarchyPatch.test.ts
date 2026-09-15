@@ -4,7 +4,7 @@ import inventory from '../../../../../../fixtures/divisions/hk/geographic-review
 import { geographicHierarchyPatchRule } from './geographicHierarchyPatch'
 
 test('the hierarchy patch covers every retained geographic division exactly once', () => {
-  expect(patch.entries).toHaveLength(1820)
+  expect(patch.entries).toHaveLength(1824)
   expect(new Set(patch.entries.map(e => e.divisionId))).toEqual(
     new Set(inventory.divisions.map(d => d.id)),
   )

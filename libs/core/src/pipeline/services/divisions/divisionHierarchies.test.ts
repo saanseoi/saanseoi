@@ -9,7 +9,7 @@ const entry = (id: string, type: string): ClassifiedAncestor => ({
   class: type,
   i18n: { en: { name: id }, 'zh-hant': { name: id } },
 })
-const ids = (paths: Array<Array<{ id: string }>>) =>
+const ids = (paths: Array<Array<{ id: string }>> = []) =>
   paths.map(path => path.map(entry => entry.id))
 
 test('materialises independent administrative, locality and full paths', () => {
@@ -26,7 +26,7 @@ test('materialises independent administrative, locality and full paths', () => {
   expect(ids(paths.administrative)).toEqual([['sar', 'area', 'district']])
   expect(ids(paths.locality)).toEqual([['city', 'macro']])
   expect(ids(paths.full)).toEqual([['sar', 'area', 'district', 'macro']])
-  expect(paths.locality[0]?.[0]).toEqual({ id: 'city', name: 'city', class: 'city' })
+  expect(paths.locality?.[0]?.[0]).toEqual({ id: 'city', name: 'city', class: 'city' })
 })
 
 test('preserves branch correlation instead of multiplying district and hood paths', () => {
@@ -67,9 +67,6 @@ test('supports a hood without a locality and rejects duplicate ancestors', () =>
     materialiseDivisionHierarchies('self', [[entry('a', 'town'), entry('a', 'town')]]),
   ).toThrow('duplicate')
   expect(materialiseDivisionHierarchies('self', [])).toEqual({
-    landform: [],
-    administrative: [],
-    locality: [],
     full: [],
   })
 })

@@ -178,3 +178,82 @@ test('Ngong Ping patch demotes only the reviewed Overture town to a village', ()
     'guard mismatch',
   )
 })
+
+test('Tsat Tsz Mui retains Braemar Point as a guarded English alias', () => {
+  const row = {
+    id: '12699b10-1e67-4994-8ecb-4716d86a3550',
+    subtype: 'neighborhood',
+    class: null,
+    admin_level: null,
+    names: {
+      common: { en: 'Tsat Tsz Mui' },
+      primary: '七姊妹 Tsat Tsz Mui',
+    },
+  }
+  expect(
+    normaliseDivisionRow(row, {
+      source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+    }).i18n.find(entry => entry.locale === 'en'),
+  ).toMatchObject({
+    name: 'Tsat Tsz Mui',
+    nameAlts: 'Braemar Point',
+    nameVariant: ['Tsat Tsz Mui', 'Braemar Point'],
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'macrohood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Hong Kong neighbourhood classifications preserve the source guard', () => {
+  const rows = [
+    ['1f79f23d-d33d-4528-b4b7-0b3bb302d71c', 'neighborhood'],
+    ['ff8e1c52-ac5d-42a4-a411-454cfd71912e', 'macrohood'],
+    ['84768e85-9a98-442f-896c-ccc9a8d2314c', 'microhood'],
+    ['5db55200-4e24-41bf-93e4-8b5610145dea', 'macrohood'],
+    ['4cc6dd9f-b978-4b45-ab50-cc2c8a268df1', 'microhood'],
+    ['727f042f-399e-4f10-a282-2ce3eeabe8a9', 'microhood'],
+    ['d23375f4-b681-4899-8cb9-ce1a0454ac58', 'macrohood'],
+    ['567176ef-d8f0-4209-a06f-90530d4b7eb2', 'microhood'],
+    ['4901c4fd-c5d4-473a-a374-8ee068a56acf', 'microhood'],
+    ['62e48e67-a079-4fa5-b76f-baf1ec109179', 'macrohood'],
+    ['cce58df1-e153-4c73-b68e-d83764b017ad', 'macrohood'],
+    ['bf07573f-396b-4bfc-9a3f-60b61e083d6d', 'macrohood'],
+    ['21ed82b0-c4f1-42f6-b79f-5c94363e4239', 'macrohood'],
+  ] as const
+
+  for (const [id, subtype] of rows) {
+    expect(
+      normaliseDivisionRow(
+        { id, subtype, class: null, admin_level: null },
+        { source: { source: 'overture', sourceVersion: '2026-08-19.0' } },
+      ).base,
+    ).toMatchObject({ id, category: 'hood', class: 'neighbourhood', level: 5 })
+  }
+
+  expect(() =>
+    applyDivisionClassificationPatch({
+      id: 'ff8e1c52-ac5d-42a4-a411-454cfd71912e',
+      subtype: 'microhood',
+      class: null,
+      admin_level: null,
+    }),
+  ).toThrow('guard mismatch')
+})
+
+test('West Kowloon is a guarded level-4 macrohood', () => {
+  const row = {
+    id: 'c389923d-1dca-44af-8abe-4ac5a9d90b0b',
+    subtype: 'neighborhood',
+    class: null,
+    admin_level: null,
+  }
+  expect(
+    normaliseDivisionRow(row, {
+      source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+    }).base,
+  ).toMatchObject({ category: 'hood', class: 'macrohood', level: 4 })
+  expect(row.subtype).toBe('neighborhood')
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
