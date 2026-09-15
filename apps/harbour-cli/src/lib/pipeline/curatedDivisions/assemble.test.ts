@@ -51,6 +51,22 @@ test('source coverage remains the fallback for divisions without drawings', () =
     assembleCuratedDivisions({ ...input, stubs: { features: [] } }).areas[0]!.geometry,
   ).toBe(JSON.stringify(polygon))
 })
+test('withheld review drawings never become published areas or divisions', () => {
+  const original = assembleCuratedDivisions(input)
+  const result = assembleCuratedDivisions({
+    ...input,
+    stubs: {
+      ...input.stubs,
+      withheld: [
+        {
+          feature: { properties: { divisionId: 'withheld' }, geometry: polygon },
+          reason: 'Excluded by curator.',
+        },
+      ],
+    },
+  })
+  expect(result).toEqual(original)
+})
 test('publication recomputes containment after drawings replace the reviewed geometry', () => {
   const parent = structuredClone(polygon) as Polygon
   const child: Polygon = {

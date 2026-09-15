@@ -41,6 +41,8 @@ export type StubAreas = FeatureCollection<
   domain: string
   cohort: string
   variant: 'stub'
+  /** Review-only drawings excluded by explicit curation; never area inputs. */
+  withheld?: Array<{ feature: ReviewArea; reason: string }>
 }
 export type HierarchyDecision = {
   divisionId: string

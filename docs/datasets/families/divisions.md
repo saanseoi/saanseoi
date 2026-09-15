@@ -989,6 +989,10 @@ geometry fingerprints match the loaded areas. Partial or unknown containment ret
 point checks and ambiguous branches. See
 [full ancestor containment](../sources/saanseoi/divisionArea.md#full-ancestor-containment).
 
+The drawing fixture retains ineligible drawings as `withheld` review data with their
+curation reasons. The editor applies this distinction to seed data, saved work and
+imports. Only active `features` contribute to hierarchy generation and publication.
+
 East Tsim Sha Tsui (尖沙咀東) uses neighbourhood level 5 in the reviewed geographic
 hierarchy, inventory and curated assembly.
 

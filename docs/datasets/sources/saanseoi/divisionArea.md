@@ -13,6 +13,16 @@ Polygon and MultiPolygon coordinates, holes and shared edges are retained exactl
 simplification, rounding, snapping or buffering runs during assembly. Review-only
 original drawings and working baselines are not published as geometry.
 
+Drawings for identities withheld by curation remain in `stub-areas.json` under
+`withheld`, each with its original `feature` and a human-readable `reason`. The editor
+reconciles the seed fixture, saved browser work, undo data and imports against current
+curation decisions. Active `features` alone contribute to hierarchy generation and
+publication; exports retain both collections. Imports replace matching drawings and
+preserve unrelated active and withheld work. Unknown identities without a curation
+decision and invalid polygons still block import. A withheld drawing becomes active only
+when its identity is eligible in the review inventory and its curation hold has been
+removed.
+
 ## Full ancestor containment
 
 Each ancestor entry in the editor's hierarchy fixture carries `full_containment`:
