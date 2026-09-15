@@ -319,10 +319,7 @@ const entries = basemapOnlyNames.map(requestedName => {
 
 const landsdEntries = (
   JSON.parse(
-    await readFile(
-      resolve(root, 'apps/basemap-viewer/src/local-review/islands/inventory.json'),
-      'utf8',
-    ),
+    await readFile(resolve(root, 'fixtures/divisions/hk/island-areas.json'), 'utf8'),
   ) as Array<JsonObject>
 ).filter(entry => entry.coverage !== 'basemap-only')
 const enrichedLandsdEntries = landsdEntries.map(entry => {
