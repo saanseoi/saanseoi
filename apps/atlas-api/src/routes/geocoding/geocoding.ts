@@ -1,6 +1,6 @@
 import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
 import { GeocodingQuerySchema, GeocodingResponseSchema } from '../../schema/geocoding'
-import { ValidationErrorOpenAPIResponse } from '../../schema'
+
 import { geocode } from '../../services/geocoding'
 import type { AppEnv } from '../../types'
 
@@ -12,23 +12,45 @@ export const geocodingRoutes = (['divisions', 'addresses'] as const).map(family 
     summary: family === 'divisions' ? 'Geocode Division' : 'Geocode Address',
     tags: ['Geocoding'],
     description:
-      'Ranked forward or reverse geocoding in WGS84. Supply exactly one of lat/lng, address, or placename. Division containment uses geographic stub polygons, including polygon boundaries. Unresolved branches remain ambiguous. Reverse addresses are exact locations or nearest points within maxDistance metres.',
+      'Ranked forward or reverse geocoding in WGS84, returned as JSON:API 1.1. Profiles compact, default, map and full control response detail. Division match.type is reverse-geocoding for coordinate containment or forward-geocoding for name searches. Supply exactly one of lat/lng, address, or placename. Division containment uses published SaanSeoi area polygons (Overture fallback), including polygon boundaries. Unresolved branches remain ambiguous. Reverse addresses are exact locations or nearest points within maxDistance metres.',
     request: { query: GeocodingQuerySchema },
     responses: {
       200: {
         description:
           'Geocoding candidates or division membership, with explicit release identities and resolution evidence.',
-        content: { 'application/json': { schema: GeocodingResponseSchema } },
+        content: { 'application/vnd.api+json': { schema: GeocodingResponseSchema } },
       },
       503: {
         description: 'A selected publication or compatible companion is unavailable.',
         content: {
-          'application/json': {
-            schema: z.object({ error: z.string(), message: z.string() }),
+          'application/vnd.api+json': {
+            schema: z.object({
+              jsonapi: z.object({ version: z.literal('1.1') }),
+              errors: z.array(
+                z.object({ status: z.string(), code: z.string(), title: z.string() }),
+              ),
+            }),
           },
         },
       },
-      422: ValidationErrorOpenAPIResponse,
+      422: {
+        description: 'Invalid geocoding query.',
+        content: {
+          'application/vnd.api+json': {
+            schema: z.object({
+              jsonapi: z.object({ version: z.literal('1.1') }),
+              errors: z.array(
+                z.object({
+                  status: z.string(),
+                  code: z.string(),
+                  title: z.string(),
+                  source: z.object({ parameter: z.string() }),
+                }),
+              ),
+            }),
+          },
+        },
+      },
     },
   })
   return defineOpenAPIRoute<typeof route, AppEnv>({
@@ -42,8 +64,9 @@ export const geocodingRoutes = (['divisions', 'addresses'] as const).map(family 
         query: c.req.valid('query'),
         onResolved: attribution => c.set('accessAttribution', attribution),
       })
-      if (result.status === 503) return c.json(result.body, 503)
-      return c.json(result.body, 200)
+      if (result.status === 503)
+        return c.json(result.body, 503, { 'Content-Type': 'application/vnd.api+json' })
+      return c.json(result.body, 200, { 'Content-Type': 'application/vnd.api+json' })
     },
   })
 })

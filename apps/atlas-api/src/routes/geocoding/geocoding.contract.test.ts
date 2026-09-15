@@ -250,9 +250,16 @@ async function fixture() {
 test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catalogue', async () => {
   const f = await fixture()
   try {
-    expect((await f.request('/divisions/v1/geocode?lat=22&lng=114', true)).status).toBe(
-      401,
+    const unauthorised = await f.request('/divisions/v1/geocode?lat=22&lng=114', true)
+    expect(unauthorised.status).toBe(401)
+    expect(unauthorised.headers.get('content-type')).toContain(
+      'application/vnd.api+json',
     )
+    expect(await unauthorised.json()).toMatchObject({
+      jsonapi: { version: '1.1' },
+      errors: [{ status: '401' }],
+    })
+
     expect(
       (await f.request('/divisions/v1/changes?fromApiReleaseSet=example', true)).status,
     ).toBe(401)
@@ -265,13 +272,30 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
       '/api/v1/divisions/changes',
     ])
       expect((await f.request(oldPath)).status).toBe(404)
-    expect((await f.request('/addresses/v1/geocode?lat=22')).status).toBe(422)
+    const invalid = await f.request('/addresses/v1/geocode?lat=22')
+    expect(invalid.status).toBe(422)
+    expect(await invalid.json()).toMatchObject({
+      errors: [{ status: '422', source: { parameter: 'lat' } }],
+    })
+    expect(
+      (await f.request('/divisions/v1/geocode?lat=22&lng=114&profile=unknown')).status,
+    ).toBe(422)
     const old = await f.request(
       '/addresses/v1/geocode?address=Old&apiReleaseSet=addresses-2025-01-01.0&include=divisions',
     )
     expect(old.status).toBe(200)
+    expect(old.headers.get('content-type')).toContain('application/vnd.api+json')
     expect(await old.json()).toMatchObject({
-      data: [{ attributes: { i18n: { en: { formattedAddress: 'Old Harbour' } } } }],
+      included: expect.arrayContaining([
+        expect.objectContaining({
+          type: 'addresses',
+          attributes: expect.objectContaining({
+            i18n: expect.objectContaining({
+              en: expect.objectContaining({ formattedAddress: 'Old Harbour' }),
+            }),
+          }),
+        }),
+      ]),
       meta: {
         release: { apiReleaseSet: 'addresses-2025-01-01.0' },
         divisionRelease: { apiReleaseSet: 'divisions-2025-01-01.0' },
@@ -282,8 +306,8 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
     expect(await latest.json()).toMatchObject({
       data: [
         {
-          match: { type: 'exact_location', distanceMetres: 0 },
-          attributes: { i18n: { en: { formattedAddress: 'New Harbour' } } },
+          type: 'geocoding-results',
+          attributes: { match: { type: 'exact_location', distanceMetres: 0 } },
         },
       ],
       meta: { release: { apiReleaseSet: 'addresses-2026-08-19.0' } },
@@ -293,7 +317,13 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
     )
     expect(divisions.status).toBe(200)
     expect(await divisions.json()).toMatchObject({
-      data: [{ names: { en: { name: 'Old Village' } } }],
+      included: expect.arrayContaining([
+        expect.objectContaining({
+          attributes: expect.objectContaining({
+            i18n: { en: { name: 'Old Village' } },
+          }),
+        }),
+      ]),
     })
     const docs = await f.request('/openapi/addresses/v1')
     expect(Object.keys(((await docs.json()) as { paths: object }).paths)).toEqual([
@@ -309,6 +339,9 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
         expect(document.paths[`/${family}/v1/geocode`]?.get?.tags).toEqual([
           'Geocoding',
         ])
+        const serialised = JSON.stringify(document)
+        expect(serialised).toContain('"reverse-geocoding"')
+        expect(serialised).toContain('"forward-geocoding"')
         expect(document.tags.some(tag => tag.name === 'Geocoding')).toBe(true)
         expect(
           document.paths[
@@ -323,12 +356,16 @@ test('HTTP auth, validation, OpenAPI and exact old pins outside the latest catal
     )
     expect(historical.status).toBe(200)
     expect(await historical.json()).toMatchObject({
-      data: [
-        {
+      included: expect.arrayContaining([
+        expect.objectContaining({
           id: 'historic-address',
-          attributes: { i18n: { en: { formattedAddress: 'Historic Harbour' } } },
-        },
-      ],
+          attributes: expect.objectContaining({
+            i18n: expect.objectContaining({
+              en: expect.objectContaining({ formattedAddress: 'Historic Harbour' }),
+            }),
+          }),
+        }),
+      ]),
     })
     f.removeHistory()
     expect(
