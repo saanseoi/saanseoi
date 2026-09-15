@@ -369,7 +369,15 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
         current.query<{ sources: string }, []>('SELECT sources FROM address3d').get()
           ?.sources ?? 'null',
       ),
-    ).toEqual(retained.processingSources)
+    ).toEqual([{ auditRecordId: retained.id }])
+    const audit = historyNew
+      .query<{ resolutions: string }, [string]>(
+        'SELECT resolutions FROM sourceResolutions WHERE sourceRecordId = ?',
+      )
+      .get(`curation:${retained.id}`)
+    expect(JSON.parse(audit!.resolutions).decisions).toEqual([
+      { action: 'als_inventory_curated', evidence: retained.processingSources },
+    ])
   } finally {
     for (const db of [current, historyOld, historyNew, sourceOld, sourceNew]) db.close()
     await rm(directory, { recursive: true, force: true })

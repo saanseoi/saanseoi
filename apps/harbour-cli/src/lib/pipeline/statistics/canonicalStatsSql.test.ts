@@ -62,7 +62,7 @@ describe('buildCanonicalStatsSqlBatches', () => {
     })
 
     expect(batches.current).toHaveLength(1)
-    expect(batches.current[0]?.match(/INSERT INTO/g)).toHaveLength(1)
+    expect(batches.current[0]?.match(/INSERT INTO/g)).toHaveLength(2)
     expect(batches.current[0]).toContain("'stats:0'")
     expect(batches.current[0]).toContain("'stats:99'")
   })
@@ -313,25 +313,27 @@ function sqlStatements(batches: string[]) {
 }
 
 const currentRecordsTableSql = `
+  CREATE TABLE statsDefinitionSets(id TEXT PRIMARY KEY, fieldDefinitionHashes TEXT NOT NULL);
   CREATE TABLE statsRecords (
     id TEXT PRIMARY KEY, datasetCode TEXT NOT NULL, sourceReleaseId TEXT NOT NULL,
     sourceFeatureRef TEXT NOT NULL, divisionId TEXT, referencePeriodCode TEXT NOT NULL,
     referencePeriodStart TEXT, referencePeriodEnd TEXT,
     referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
     geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
-    fieldDefinitionHashes TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
+    definitionSetId TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
     createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL
   );
 `
 
 const historyRecordsTableSql = `
+  CREATE TABLE statsDefinitionSets(id TEXT PRIMARY KEY, fieldDefinitionHashes TEXT NOT NULL);
   CREATE TABLE statsRecords (
     id TEXT NOT NULL, datasetCode TEXT NOT NULL, sourceReleaseId TEXT NOT NULL,
     sourceFeatureRef TEXT NOT NULL, divisionId TEXT, referencePeriodCode TEXT NOT NULL,
     referencePeriodStart TEXT, referencePeriodEnd TEXT,
     referencePeriodGranularity TEXT NOT NULL, referencePeriodEndYear TEXT NOT NULL,
     geography TEXT NOT NULL, fieldSources TEXT NOT NULL,
-    fieldDefinitionHashes TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
+    definitionSetId TEXT NOT NULL, "values" TEXT NOT NULL, versionHash TEXT NOT NULL,
     isCurrent INTEGER NOT NULL, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL,
     PRIMARY KEY (id, versionHash)
   );
@@ -411,4 +413,58 @@ describe('replayCanonicalStatsSqlBatches', () => {
       'local-history-replay:3/3',
     ])
   })
+})
+
+test('stores a shared definition selection once and performs no writes on identical replay', () => {
+  const db = new Database(':memory:')
+  db.exec(`CREATE TABLE statsDefinitionSets(id TEXT PRIMARY KEY,fieldDefinitionHashes TEXT NOT NULL);
+    CREATE TABLE statsRecords(id TEXT PRIMARY KEY,versionHash TEXT NOT NULL,definitionSetId TEXT NOT NULL,"values" TEXT NOT NULL);`)
+  const records = Array.from({ length: 100 }, (_, index) => ({
+    id: `record-${index}`,
+    versionHash: `version-${index}`,
+    values: { population: String(index) },
+    fieldDefinitionHashes: { population: 'definition-v1' },
+  }))
+  const batches = buildCanonicalStatsSqlBatches({
+    current: [{ table: 'statsRecords', rows: records }],
+    history: [],
+    dictionaries: [],
+  })
+  try {
+    for (const batch of batches.current) db.exec(batch)
+    expect(db.query('SELECT count(*) AS n FROM statsDefinitionSets').get()).toEqual({
+      n: 1,
+    })
+    expect(
+      db.query('SELECT count(DISTINCT definitionSetId) AS n FROM statsRecords').get(),
+    ).toEqual({ n: 1 })
+    const before = db.query('SELECT total_changes() AS n').get()
+    for (const batch of batches.current) db.exec(batch)
+    expect(db.query('SELECT total_changes() AS n').get()).toEqual(before)
+    const changed = buildCanonicalStatsSqlBatches({
+      current: [
+        {
+          table: 'statsRecords',
+          rows: [
+            {
+              ...records[0]!,
+              versionHash: 'revised',
+              fieldDefinitionHashes: { population: 'definition-v2' },
+            },
+          ],
+        },
+      ],
+      history: [],
+      dictionaries: [],
+    })
+    for (const batch of changed.current) db.exec(batch)
+    expect(db.query('SELECT count(*) AS n FROM statsDefinitionSets').get()).toEqual({
+      n: 2,
+    })
+    expect(
+      db.query('SELECT count(DISTINCT definitionSetId) AS n FROM statsRecords').get(),
+    ).toEqual({ n: 2 })
+  } finally {
+    db.close()
+  }
 })

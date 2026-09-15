@@ -45,16 +45,16 @@ test('published supplementary retry recovers revocations from immutable history'
       INSERT INTO snapshotVersionChanges
         (snapshotId,recordType,recordId,locale,versionHash,operation)
       VALUES
-        ('published-snapshot','address2d','opa-stale-a','',NULL,'delete'),
-        ('published-snapshot','address2d','opa-current','', 'hash','upsert'),
-        ('other-snapshot','address2d','opa-other','',NULL,'delete');
+        ('published-snapshot','address2d','ss-opa-stale-a','',NULL,'delete'),
+        ('published-snapshot','address2d','ss-opa-current','', 'hash','upsert'),
+        ('other-snapshot','address2d','ss-opa-other','',NULL,'delete');
     `)
     second.exec(`
       INSERT INTO snapshotVersionChanges
         (snapshotId,recordType,recordId,locale,versionHash,operation)
       VALUES
-        ('published-snapshot','address2d','opa-stale-b','',NULL,'delete'),
-        ('published-snapshot','address2dI18n','opa-locale','en',NULL,'delete');
+        ('published-snapshot','address2d','ss-opa-stale-b','',NULL,'delete'),
+        ('published-snapshot','address2dI18n','ss-opa-locale','en',NULL,'delete');
     `)
     expect(
       await collectPublishedSupplementaryRevocations(
@@ -67,7 +67,7 @@ test('published supplementary retry recovers revocations from immutable history'
         })),
         'published-snapshot',
       ),
-    ).toEqual(['opa-stale-a', 'opa-stale-b'])
+    ).toEqual(['ss-opa-stale-a', 'ss-opa-stale-b'])
   } finally {
     first.close()
     second.close()
@@ -672,13 +672,13 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     // leave their current flags and immutable payloads intact.
     historyNext.exec(`
       INSERT INTO address2d(id,versionHash,snapshotId,sourceReleaseId,isCurrent)
-        VALUES('opa-other-lineage','other-base','other-snapshot','other-release',1);
+        VALUES('ss-opa-other-lineage','other-base','other-snapshot','other-release',1);
       INSERT INTO address2dI18n(addressId,versionHash,locale,formattedAddress,snapshotId,sourceReleaseId,isCurrent)
-        VALUES('opa-other-lineage','other-locale','en','Another address','other-snapshot','other-release',1);
+        VALUES('ss-opa-other-lineage','other-locale','en','Another address','other-snapshot','other-release',1);
       INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,buildingNumber,numericStem,evidence,snapshotId,sourceReleaseId,isCurrent)
-        VALUES('opa-other-lineage','other-lookup','2',2,'source_endpoint','other-snapshot','other-release',1);
+        VALUES('ss-opa-other-lineage','other-lookup','2',2,'source_endpoint','other-snapshot','other-release',1);
       INSERT INTO address2dEvidence(addressId,versionHash,sources,snapshotId,sourceReleaseId,isCurrent)
-        VALUES('opa-other-lineage','other-evidence','[]','other-snapshot','other-release',1);
+        VALUES('ss-opa-other-lineage','other-evidence','[]','other-snapshot','other-release',1);
     `)
     const foreignComponents = () =>
       [

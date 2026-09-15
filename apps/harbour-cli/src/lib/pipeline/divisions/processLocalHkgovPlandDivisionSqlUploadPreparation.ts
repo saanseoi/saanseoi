@@ -51,20 +51,9 @@ export async function listCurrentHistoryRows(
     .where(eq(historySchema.divisions.isCurrent, true))
     .all()
   return rows.filter(row => {
-    const sources = row.sources as Record<string, unknown>
-    const pland = sources.hkgovPland
-    return (
-      Array.isArray(pland) &&
-      pland.some(
-        item =>
-          item &&
-          typeof item === 'object' &&
-          (item as Record<string, unknown>).sourceVersion !== undefined &&
-          (source === 'hkgov-pland-new-town'
-            ? (item as Record<string, unknown>).planningLevel === 'newtown'
-            : (item as Record<string, unknown>).planningLevel !== 'newtown'),
-      )
-    )
+    return source === 'hkgov-pland-new-town'
+      ? row.class === 'planning-newtown'
+      : row.class.startsWith('planning-') && row.class !== 'planning-newtown'
   })
 }
 
@@ -172,7 +161,7 @@ async function normalisePreparedDivision(
     identifiers,
     level: levelNumber(level),
     sources: {
-      hkgovPland: [{ sourceVersion: value.source_version, planningLevel: level }],
+      evidence: [{ record_id: id }],
     },
     class: `planning-${level}`,
     category: null,

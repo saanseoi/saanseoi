@@ -1,3 +1,4 @@
+import { statisticDefinitionSet } from '@repo/db'
 import { afterEach, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { createHash } from 'node:crypto'
@@ -490,6 +491,18 @@ function migrationSql(family: 'current' | 'history') {
 }
 
 function insert(db: Database, table: string, row: Record<string, unknown>) {
+  if (table === 'statsRecords' && row.fieldDefinitionHashes) {
+    const set = statisticDefinitionSet(
+      row.fieldDefinitionHashes as Record<string, string>,
+    )
+    db.query('INSERT INTO statsDefinitionSets VALUES(?,?) ON CONFLICT DO NOTHING').run(
+      set.id,
+      JSON.stringify(set.fieldDefinitionHashes),
+    )
+    const { fieldDefinitionHashes: _definitions, ...record } = row
+    row = { ...record, definitionSetId: set.id }
+  }
+
   const keys = Object.keys(row)
   db.query(
     `INSERT INTO "${table}" (${keys.map(key => `"${key}"`).join(',')}) VALUES (${keys.map(() => '?').join(',')})`,

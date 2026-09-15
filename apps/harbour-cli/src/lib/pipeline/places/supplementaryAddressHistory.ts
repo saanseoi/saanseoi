@@ -124,7 +124,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
             },
             [string, string]
           >(`SELECT snapshotId,recordId,locale,versionHash FROM snapshotVersionChanges
-          WHERE snapshotId IN (SELECT value FROM json_each(?)) AND recordType=? AND operation='upsert' AND recordId LIKE 'opa-%'`)
+          WHERE snapshotId IN (SELECT value FROM json_each(?)) AND recordType=? AND operation='upsert' AND recordId LIKE 'ss-opa-%'`)
           .all(JSON.stringify([...ownSnapshots, ...otherSnapshots]), policy.table)) {
           const key = identity(
             {
@@ -143,7 +143,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
       // original snapshot. A closure must respect every current selection.
       const active = db
         .query<Row, []>(
-          `SELECT * FROM ${policy.table} WHERE isCurrent=1 AND ${policy.keys[0]} LIKE 'opa-%'`,
+          `SELECT * FROM ${policy.table} WHERE isCurrent=1 AND ${policy.keys[0]} LIKE 'ss-opa-%'`,
         )
         .all()
       for (const row of active) {

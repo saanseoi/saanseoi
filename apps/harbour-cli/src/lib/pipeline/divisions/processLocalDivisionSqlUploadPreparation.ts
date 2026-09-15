@@ -247,6 +247,7 @@ export async function buildDivisionSqlState(
       const raw = row as Record<string, unknown>
       const exclusion = applyDivisionExclusionPatch(raw, message)
       const normalised = normaliseDivisionRow(raw, {
+        nativeSourceEvidence: message.source === 'overture' && !isSupplemental,
         deferHierarchyGuard: replacedDivisionIds.has(String(raw.id)),
         hierarchyLookup,
         source: message,

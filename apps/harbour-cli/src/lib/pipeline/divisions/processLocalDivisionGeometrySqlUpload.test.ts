@@ -175,6 +175,7 @@ describe('Hong Kong Government display simplification', () => {
         division_id: 'division-1',
         geometry: sourceGeometry,
         id: 'area-1',
+        source_cell_ids: ['111:1'],
       },
       'hkgov-pland-pu',
     )

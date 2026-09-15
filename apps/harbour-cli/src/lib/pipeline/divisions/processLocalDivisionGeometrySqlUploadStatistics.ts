@@ -342,7 +342,7 @@ async function resolveGeometryDistricts(
       if (division.class === 'district') return [[division.id, division.id]]
       const ids = [
         ...new Set(
-          division.hierarchies.administrative
+          (division.hierarchies.administrative ?? [])
             .flat()
             .filter(entry => entry.class === 'district')
             .map(entry => entry.id),

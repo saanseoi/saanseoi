@@ -16,6 +16,7 @@ import {
 } from '@repo/core/pipeline/db/sourceResolutions'
 import { als3dHash, assertAddress3dRowBudget } from '../../sources/hkgov/dpo/hkgovAls3d'
 import { validateAddress3dOwners } from './address3dOwners'
+import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 
 type Statement = { sql: string; params: unknown[] }
 type Target = 'current' | 'history' | 'source'
@@ -58,6 +59,7 @@ export async function validateAddress3dPreparation(
   const unitIds = new Set<string>()
   const sourceIds = new Set<string>()
   const source2dIds = new Set<string>()
+  const processingActions: ReleaseProcessingAction[] = []
   let manifest: Extract<PreparedAls3dRecord, { kind: 'manifest' }> | undefined
   let units = 0
   let localisedCollectionCount = 0
@@ -67,6 +69,31 @@ export async function validateAddress3dPreparation(
       manifest = row
       continue
     }
+    const evidence =
+      row.kind === 'collection'
+        ? (row.processingSources ?? [])
+        : row.sources.filter(
+            value =>
+              !(
+                value &&
+                typeof value === 'object' &&
+                String((value as { dataset?: string }).dataset ?? '').startsWith(
+                  'hkgov-dpo-als-',
+                )
+              ),
+          )
+    if (evidence.length)
+      processingActions.push({
+        action: 'als_3d_evidence_retained',
+        mode: 'automatic',
+        affectedRecordCount: 1,
+        summary: 'Retain exact ALS inventory processing evidence.',
+        evidence: {
+          recordId: row.kind === 'collection' ? row.id : row.sourceRecordId,
+          kind: row.kind,
+          sources: evidence,
+        },
+      })
     if (
       (row.kind === 'source2d' || row.kind === 'source') &&
       !Object.hasOwn(row, 'properties')
@@ -134,7 +161,13 @@ export async function validateAddress3dPreparation(
     throw new Error(
       'Incomplete or stale Address3D preparation; prepare the ALS release again',
     )
-  return { ...manifest, localisedCollectionCount, ids, digest: await fileSha256(path) }
+  return {
+    ...manifest,
+    localisedCollectionCount,
+    ids,
+    processingActions,
+    digest: await fileSha256(path),
+  }
 }
 
 /** Small SQL text with one bound row per statement; batches stay collection-sized. */
@@ -257,10 +290,9 @@ export function collectionStatements(
   const base = { ...baseFields, contentHash: als3dHash({ units: baseFields.units }) }
   const sources = [
     ...sourceRecordIds.map(sourceRecordId => ({
-      dataset: 'hkgov-dpo-als-3d',
       sourceRecordId,
     })),
-    ...(processingSources ?? []),
+    ...(processingSources?.length ? [{ auditRecordId: collection.id }] : []),
   ]
   const versionHash = als3dHash(recordContent({ ...base, sources }))
   const history = {
@@ -281,7 +313,11 @@ export function collectionStatements(
     updatedAt: now,
   }
   const currentStatements = [
-    insert('address3d', current, 'ON CONFLICT(snapshotId,id) DO NOTHING'),
+    insert(
+      'address3d',
+      current,
+      `ON CONFLICT(snapshotId,id) DO UPDATE SET address2dId=excluded.address2dId, units=excluded.units, unitCount=excluded.unitCount, contentHash=excluded.contentHash, unresolvedSectionIds=excluded.unresolvedSectionIds, sources=excluded.sources, updatedAt=excluded.updatedAt WHERE address3d.address2dId IS NOT excluded.address2dId OR address3d.units IS NOT excluded.units OR address3d.unitCount IS NOT excluded.unitCount OR address3d.contentHash IS NOT excluded.contentHash OR address3d.unresolvedSectionIds IS NOT excluded.unresolvedSectionIds OR address3d.sources IS NOT excluded.sources`,
+    ),
   ]
   const historyStatements = [
     insert(
@@ -304,7 +340,7 @@ export function collectionStatements(
       insert(
         'address3dI18n',
         { ...fields, snapshotId: currentSnapshotId },
-        'ON CONFLICT(snapshotId,address3dId,locale) DO NOTHING',
+        'ON CONFLICT(snapshotId,address3dId,locale) DO UPDATE SET units=excluded.units,updatedAt=excluded.updatedAt WHERE address3dI18n.units IS NOT excluded.units',
       ),
     )
     historyStatements.push(
@@ -356,7 +392,7 @@ function journalStatement(
       createdAt: now,
       updatedAt: now,
     },
-    'ON CONFLICT(snapshotId,recordType,recordId,locale) DO UPDATE SET versionHash=excluded.versionHash,operation=excluded.operation,sourceReleaseId=excluded.sourceReleaseId,updatedAt=excluded.updatedAt',
+    'ON CONFLICT(snapshotId,recordType,recordId,locale) DO UPDATE SET versionHash=excluded.versionHash,operation=excluded.operation,sourceReleaseId=excluded.sourceReleaseId,updatedAt=excluded.updatedAt WHERE snapshotVersionChanges.versionHash IS NOT excluded.versionHash OR snapshotVersionChanges.operation IS NOT excluded.operation OR snapshotVersionChanges.sourceReleaseId IS NOT excluded.sourceReleaseId',
   )
 }
 
@@ -470,15 +506,33 @@ export async function importAddress3dCollections(args: {
     }
     remainingSources.set(table, remaining)
   }
-  // The snapshot is still draft; retries replace its complete collection set.
+  const collectionIds: string[] = []
+  const ownersBySource = new Map<string, { address2d: string[]; address3d: string[] }>()
+  for await (const record of records(args.path)) {
+    if (record.kind !== 'collection') continue
+    collectionIds.push(record.id)
+    for (const source of record.sourceRecordIds) {
+      const owners = ownersBySource.get(source) ?? { address2d: [], address3d: [] }
+      owners.address2d = [...new Set([...owners.address2d, record.address2dId])].sort()
+      owners.address3d = [...new Set([...owners.address3d, record.id])].sort()
+      ownersBySource.set(source, owners)
+    }
+  }
+  // Remove only omitted collections; retries preserve unchanged current inventories.
   await args.execute('current', [
     {
-      sql: 'DELETE FROM address3dI18n WHERE snapshotId = ?',
-      params: [args.currentSnapshotId ?? args.snapshotId],
+      sql: 'DELETE FROM address3dI18n WHERE snapshotId = ? AND address3dId NOT IN (SELECT value FROM json_each(?))',
+      params: [
+        args.currentSnapshotId ?? args.snapshotId,
+        JSON.stringify(collectionIds),
+      ],
     },
     {
-      sql: 'DELETE FROM address3d WHERE snapshotId = ?',
-      params: [args.currentSnapshotId ?? args.snapshotId],
+      sql: 'DELETE FROM address3d WHERE snapshotId = ? AND id NOT IN (SELECT value FROM json_each(?))',
+      params: [
+        args.currentSnapshotId ?? args.snapshotId,
+        JSON.stringify(collectionIds),
+      ],
     },
   ])
   for await (const record of records(args.path)) {
@@ -503,7 +557,10 @@ export async function importAddress3dCollections(args: {
               sourceReleaseId: args.releaseId,
               sourceRecordId: record.sourceRecordId,
               sourceVersionHash: record.versionHash,
-              resolutions: { entities: {}, ...(decisions.length ? { decisions } : {}) },
+              resolutions: {
+                entities: ownersBySource.get(record.sourceRecordId) ?? {},
+                ...(decisions.length ? { decisions } : {}),
+              },
             }),
             params: [],
           },
@@ -599,27 +656,35 @@ export async function importAddress3dCollections(args: {
           ),
         ])
     } else if (record.kind === 'collection') {
+      if (record.processingSources?.length) {
+        await args.execute('history', [
+          {
+            sql: sourceResolutionSql({
+              snapshotId: args.snapshotId,
+              sourceReleaseId: args.releaseId,
+              sourceRecordId: `curation:${record.id}`,
+              sourceVersionHash: als3dHash(record.processingSources),
+              resolutions: {
+                entities: resolvedEntities({
+                  address3d: record.id,
+                  address2d: record.address2dId,
+                }),
+                decisions: [
+                  {
+                    action: 'als_inventory_curated',
+                    evidence: record.processingSources,
+                  },
+                ],
+              },
+            }),
+            params: [],
+          },
+        ])
+      }
       for (const sourceRecordId of record.sourceRecordIds) {
         const sourceVersionHash = sourceVersions.get(sourceRecordId)
         if (!sourceVersionHash)
           throw new Error(`Missing ALS source version for collection ${record.id}`)
-        await args.execute('history', [
-          {
-            sql: "UPDATE sourceResolutions SET resolutions = json_set(resolutions, '$.entities', json(?)) WHERE snapshotId = ? AND sourceReleaseId = ? AND sourceRecordId = ? AND sourceVersionHash = ?",
-            params: [
-              JSON.stringify(
-                resolvedEntities({
-                  address3d: record.id,
-                  address2d: record.address2dId,
-                }),
-              ),
-              args.snapshotId,
-              args.releaseId,
-              sourceRecordId,
-              sourceVersionHash,
-            ],
-          },
-        ])
       }
       const { currentStatements, historyStatements } = collectionStatements(
         record,

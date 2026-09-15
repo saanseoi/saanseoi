@@ -101,6 +101,7 @@ for (const target of ['local', 'preview'] as const)
           'overture',
         )
         if (!result) throw new Error('Invalid geometry fixture')
+        result.canonical.id = id
         return result
       }
       const version = {
@@ -271,6 +272,7 @@ test('canonical replacement retains only real publisher geometry and resolves it
         'overture',
       )
       if (!row) throw new Error('Missing test geometry')
+      row.canonical.id = id
       return row
     }
     const publisher = makeRow('publisher-area', 115)

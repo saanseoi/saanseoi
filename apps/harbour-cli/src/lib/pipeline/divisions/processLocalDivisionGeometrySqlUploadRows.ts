@@ -156,7 +156,6 @@ export async function writeGeometryRows(
   }
   for (const row of publisherRows) {
     if (
-      !isDisplayDerivative &&
       !isCenstatdStatisticGeometry &&
       version.source !== 'hkgov-pland-pu' &&
       version.source !== 'hkgov-pland-new-town'

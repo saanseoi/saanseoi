@@ -136,7 +136,7 @@ export async function buildSupplementaryAddressRows(input: {
       streetId: null,
       geometry: null,
       bbox: null,
-      identifiers: { supplementaryIdentityKey: entry.identityKey },
+      identifiers: { 'SS:supplementaryIdentityKey': entry.identityKey },
     }
     const i18n = entry.values.map(({ provenance: _provenance, ...value }) => ({
       ...value,

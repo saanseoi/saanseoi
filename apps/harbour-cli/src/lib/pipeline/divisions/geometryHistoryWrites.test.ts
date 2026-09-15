@@ -51,6 +51,8 @@ function geometry(kind: DivisionGeometryKind, id: string, edge = 115) {
           },
         })
   if (!row) throw new Error('Invalid geometry fixture')
+  // Publication fixtures use readable identities; producer identity is tested separately.
+  row.canonical.id = id
   return row
 }
 

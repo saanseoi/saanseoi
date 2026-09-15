@@ -47,7 +47,7 @@ test('empty ALS preparation must retain its exact Division selection before uplo
   }
 })
 
-test('ALS retains reviewed documents and an individual identity decision, with bulk evidence reduced to counts', async () => {
+test('ALS retains reviewed documents, individual identity decisions and automatic action evidence', async () => {
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {
     async get(key) {
@@ -111,7 +111,7 @@ test('ALS retains reviewed documents and an individual identity decision, with b
     alsAuditFixtures.length,
   )
   const text = [...objects.values()].map(b => new TextDecoder().decode(b)).join('')
-  expect(text).not.toContain('TRANSIENT_PUBLISHER_PAYLOAD')
+  expect(text).toContain('TRANSIENT_PUBLISHER_PAYLOAD')
   const chunk = await readObject(store, requireDefined(result.manifest.chunks[0]))
   expect(chunk).toMatchObject({
     actions: [

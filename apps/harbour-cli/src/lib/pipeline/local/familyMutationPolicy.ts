@@ -23,6 +23,7 @@ const current = {
   ],
   geometry: ['divisionAreas', 'divisionBoundaries'],
   statistics: [
+    'statsDefinitionSets',
     'statsRecords',
     'statsFields',
     'statsFieldsI18n',

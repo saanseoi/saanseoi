@@ -1,3 +1,4 @@
+import { statisticDefinitionSet } from '@repo/db'
 import { readFileSync } from 'node:fs'
 import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
 import type { NewSourceResolution } from '@repo/db/historySchema'
@@ -24,6 +25,7 @@ const SQL_CHUNK_BYTE_LIMIT = 1_000_000
 const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
 
 export type CanonicalStatsDictionaryTable =
+  | 'statsDefinitionSets'
   | 'statsFields'
   | 'statsFieldsI18n'
   | 'statsMeasures'
@@ -122,7 +124,11 @@ export function buildCanonicalStatsSqlBatches(input: {
               group.rows,
               [
                 ...historyIdentityColumns(group.table),
-                ...(group.table === 'snapshotVersionChanges' ? [] : ['versionHash']),
+                ...(['snapshotVersionChanges', 'statsDefinitionSets'].includes(
+                  group.table,
+                )
+                  ? []
+                  : ['versionHash']),
               ],
               true,
             ),
@@ -276,7 +282,29 @@ function buildUpsertStatements(
   rows: Row[],
   conflictColumns: string[],
   immutable = false,
-) {
+): string[] {
+  if (
+    table === 'statsRecords' &&
+    rows.some(row => row.fieldDefinitionHashes !== undefined)
+  ) {
+    const sets = new Map<string, ReturnType<typeof statisticDefinitionSet>>()
+    const compact = rows.map(row => {
+      const { fieldDefinitionHashes, ...record } = row
+      if (!fieldDefinitionHashes)
+        throw new Error('Statistic record requires a definition selection.')
+      const set = statisticDefinitionSet(
+        typeof fieldDefinitionHashes === 'string'
+          ? JSON.parse(fieldDefinitionHashes)
+          : (fieldDefinitionHashes as Record<string, string>),
+      )
+      sets.set(set.id, set)
+      return { ...record, definitionSetId: set.id }
+    })
+    return [
+      ...buildUpsertStatements('statsDefinitionSets', [...sets.values()], ['id'], true),
+      ...buildUpsertStatements(table, compact, conflictColumns, immutable),
+    ]
+  }
   const rowsByColumns = new Map<string, Row[]>()
   for (const row of rows) {
     const columns = Object.keys(row).sort()
@@ -437,12 +465,15 @@ function upsertSuffix(
       .filter(column => !conflictColumns.includes(column))
       .map(column => `${identifier(column)} = excluded.${identifier(column)}`)
       .join(', '),
+    ...(columns.includes('versionHash')
+      ? ['WHERE "versionHash" IS NOT excluded."versionHash"']
+      : []),
     ';',
   ].join(' ')
 }
 
 function currentConflictColumns(table: CanonicalStatsTable) {
-  if (table === 'statsRecords') return ['id']
+  if (table === 'statsRecords' || table === 'statsDefinitionSets') return ['id']
   if (table === 'snapshotVersionChanges') return historyIdentityColumns(table)
   return [...dictionaryIdentityColumns(table), 'versionHash']
 }
@@ -455,6 +486,8 @@ function historyIdentityColumns(table: CanonicalStatsTable) {
 
 function dictionaryIdentityColumns(table: CanonicalStatsDictionaryTable) {
   switch (table) {
+    case 'statsDefinitionSets':
+      return ['id']
     case 'statsFields':
       return ['datasetCode', 'fieldName']
     case 'statsFieldsI18n':

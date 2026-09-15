@@ -55,7 +55,7 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
           ],
         ],
       },
-      sources: { hkgovPland: [{ sourceVersion: version, planningLevel: 'subunit' }] },
+      sources: { evidence: [{ record_id: 'one' }] },
     },
     versionHash: version,
     i18n: [

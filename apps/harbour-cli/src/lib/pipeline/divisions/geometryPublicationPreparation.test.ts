@@ -43,6 +43,7 @@ function row(id: string) {
     'overture',
   )
   if (!value) throw new Error('Invalid geometry fixture')
+  value.canonical.id = id
   return value
 }
 function fixture() {

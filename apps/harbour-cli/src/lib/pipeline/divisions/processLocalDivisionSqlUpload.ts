@@ -1,3 +1,4 @@
+import { supplementalNeighbourhoods } from '@repo/core/pipeline/services/divisions/divisionFixtures'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { createHash } from '@repo/core/pipeline/utils'
 import {
@@ -377,7 +378,10 @@ export async function processLocalDivisionSqlUpload(
       // Reviewed Geographic rows are an input to the captured SQL plan.
       // Include their content in the cache key so a curation change cannot
       // reuse a source-only delivery for an already registered release.
-      supplementalRowsHash: await createHash(options.supplementalRows ?? []),
+      supplementalRowsHash: await createHash({
+        rows: options.supplementalRows ?? [],
+        supplementalNeighbourhoods,
+      }),
       ...(options.nativeRows
         ? { nativeRowsHash: await createHash(options.nativeRows) }
         : {}),

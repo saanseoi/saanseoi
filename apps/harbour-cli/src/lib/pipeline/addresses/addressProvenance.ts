@@ -71,7 +71,12 @@ export async function retainAddressProvenance(
     datasetCode: string
     preparation: AddressPreparationAudit
     outputCount: number
-    address3d?: { sourceCount: number; collectionCount: number; unitCount: number }
+    address3d?: {
+      sourceCount: number
+      collectionCount: number
+      unitCount: number
+      processingActions?: ReleaseProcessingAction[]
+    }
   },
 ) {
   const { preparation } = input
@@ -145,6 +150,20 @@ export async function retainAddressProvenance(
         },
         recordsAffected: preparation.sourceFeatureCount,
         decisions: counters,
+        fixtures: [
+          {
+            type: 'als-processing-actions',
+            document: {
+              actions: [
+                ...preparation.processingActions.filter(
+                  action => action.mode === 'automatic',
+                ),
+                ...(input.address3d?.processingActions ?? []),
+              ],
+            },
+            arrayKey: 'actions',
+          },
+        ],
       },
       {
         declaration,

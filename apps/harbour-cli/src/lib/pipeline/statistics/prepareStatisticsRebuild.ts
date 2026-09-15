@@ -445,6 +445,7 @@ async function exportReplacementSql(db: Database, path: string, current: boolean
   try {
     writer.write('BEGIN;\n')
     for (const table of [
+      'statsDefinitionSets',
       ...TABLES,
       ...(current ? ['statsPublicationState'] : ['snapshotVersionChanges']),
     ]) {

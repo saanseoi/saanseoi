@@ -118,7 +118,12 @@ function fixture(resourceType: ResourceType) {
     const result =
       resourceType === 'divisionArea'
         ? normaliseDivisionAreaGeometryRow(
-            { ...raw, source_properties: { name: id }, source_geometry: raw.geometry },
+            {
+              ...raw,
+              source_cell_ids: [id],
+              source_properties: { name: id },
+              source_geometry: raw.geometry,
+            },
             scope.source,
             { variant: scope.variant },
           )
@@ -126,6 +131,8 @@ function fixture(resourceType: ResourceType) {
             variant: scope.variant,
           })
     if (!result) throw new Error(`Invalid geometry fixture: ${id}`)
+    // Publication fixtures use readable identities; producer identity is tested separately.
+    result.canonical.id = id
     return result
   }
   const lineage = (scope: Scope) => `${resourceType}:${scope.variant}`

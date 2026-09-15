@@ -233,7 +233,13 @@ test('writes large bound collections, replays idempotently and journals removed 
     expect(generated).toBe(1)
     await runNativeSqlDelivery(planDirectory, { files })
     await runNativeSqlDelivery(planDirectory, { files })
+    const beforeCurrentReplay = databases.current
+      .query('SELECT total_changes() AS n')
+      .get()
     await importAddress3dCollections(args)
+    expect(databases.current.query('SELECT total_changes() AS n').get()).toEqual(
+      beforeCurrentReplay,
+    )
     expect(
       databases.source
         .query(
