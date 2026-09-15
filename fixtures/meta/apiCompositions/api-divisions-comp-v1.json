@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:245f5b956dd39b070afc31419b4eda6c3e7e24c09f0d839f6a30a64370fec298",
+  "versionHash": "sha256:66e20c988edde50ab5416690199fe80a9724327e9b35a7e5fc690010871c739b",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -13,30 +13,38 @@
         {
           "locale": "en",
           "name": "Geographic",
-          "descriptionShort": "Overture-led geographical and administrative divisions.",
-          "description": "Overture geographical and administrative divisions, with separately selectable area companions from Overture, the Home Affairs Department and C&SD, plus Overture boundaries."
+          "descriptionShort": "Reviewed SaanSeoi geographical and administrative divisions.",
+          "description": "Reviewed SaanSeoi hierarchy and areas, with Overture geometry fallback and selectable government area companions."
         },
         {
           "locale": "zh-hant",
           "name": "地理分區",
-          "descriptionShort": "以 Overture 為主的地理及行政分區。",
-          "description": "以 Overture 的地理及行政分區為主，並可另行選取 Overture、民政事務總署及政府統計處的面積配套資源，以及 Overture 邊界。"
+          "descriptionShort": "SaanSeoi 地理及行政分區。",
+          "description": "SaanSeoi 審核的層級及範圍，並提供 Overture 後備幾何及政府範圍配套。"
         },
         {
           "locale": "zh-hans",
           "name": "地理分区",
-          "descriptionShort": "以 Overture 为主的地理及行政分区。",
-          "description": "以 Overture 的地理及行政分区为主，并可另行选取 Overture、民政事务总署及政府统计处的面积配套资源，以及 Overture 边界。"
+          "descriptionShort": "SaanSeoi 地理及行政分区。",
+          "description": "SaanSeoi 审核的层级及范围，并提供 Overture 后备几何及政府范围配套。"
         }
       ],
       "members": [
         {
           "resourceType": "division",
-          "variant": "overture",
+          "variant": "saanseoi",
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
           "priority": 0
+        },
+        {
+          "resourceType": "divisionArea",
+          "variant": "saanseoi",
+          "role": "geometry",
+          "isRequired": true,
+          "cohortMatchingMode": "exact_ref",
+          "priority": 5
         },
         {
           "resourceType": "divisionArea",
