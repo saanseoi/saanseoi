@@ -1,0 +1,25 @@
+{
+  "versionHash": "sha256:27b3566e8b1894d0b83d70c8828fbb2ee6af5afb1e28db672d725b79790ab5d9",
+  "code": "saanseoi",
+  "url": "https://saanseoi.hk",
+  "i18n": [
+    {
+      "locale": "en",
+      "name": "SaanSeoi",
+      "nameShort": "SaanSeoi",
+      "description": "Handcrafted datasets by the SaanSeoi team."
+    },
+    {
+      "locale": "zh-hant",
+      "name": "SaanSeoi",
+      "nameShort": "SaanSeoi",
+      "description": "由 SaanSeoi 團隊精心製作的數據集。"
+    },
+    {
+      "locale": "zh-hans",
+      "name": "SaanSeoi",
+      "nameShort": "SaanSeoi",
+      "description": "由 SaanSeoi 团队精心制作的数据集。"
+    }
+  ]
+}
