@@ -411,6 +411,10 @@ function seedMeta(sqlite: Database) {
 }
 
 function seedHistory(sqlite: Database) {
+  sqlite.exec(
+    `INSERT INTO statsDefinitionSets VALUES ('population-definition-set','{"totalPopulation":"field-version-hash"}'),('households-definition-set','{"households":"historical-field-version-hash"}');`,
+  )
+
   run(
     sqlite,
     `INSERT INTO statsFields (
@@ -500,7 +504,7 @@ function seedHistory(sqlite: Database) {
       id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
       referencePeriodCode, referencePeriodStart, referencePeriodEnd,
       referencePeriodGranularity, referencePeriodEndYear, geography,
-      fieldDefinitionHashes, "values",
+      definitionSetId, "values",
       versionHash, isCurrent, createdAt, updatedAt
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
@@ -515,7 +519,7 @@ function seedHistory(sqlite: Database) {
       'year',
       '2021',
       JSON.stringify({ kind: 'district', code: '11', class: 'A' }),
-      JSON.stringify({ totalPopulation: 'field-version-hash' }),
+      'population-definition-set',
       JSON.stringify({ totalPopulation: '235953' }),
       'record-version-hash',
       1,
@@ -570,13 +574,13 @@ function seedHistory(sqlite: Database) {
       id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
       referencePeriodCode, referencePeriodStart, referencePeriodEnd,
       referencePeriodGranularity, referencePeriodEndYear, geography,
-      fieldDefinitionHashes, "values", versionHash, isCurrent, createdAt, updatedAt
+      definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt
     )
     SELECT
       id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
       referencePeriodCode, referencePeriodStart, referencePeriodEnd,
       referencePeriodGranularity, referencePeriodEndYear, geography,
-      fieldDefinitionHashes, '{"totalPopulation":"230000"}', 'record-version-hash-superseded', 0,
+      definitionSetId, '{"totalPopulation":"230000"}', 'record-version-hash-superseded', 0,
       createdAt, updatedAt
     FROM statsRecords
     WHERE id = ? AND isCurrent = 1`,
@@ -609,12 +613,12 @@ function seedHistory(sqlite: Database) {
       id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId,
       referencePeriodCode, referencePeriodStart, referencePeriodEnd,
       referencePeriodGranularity, referencePeriodEndYear, geography,
-      fieldDefinitionHashes, "values", versionHash, isCurrent, createdAt, updatedAt
+      definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt
     )
     SELECT
       'statistic-population-households-2020-district-1', datasetCode,
       sourceReleaseId, sourceFeatureRef, divisionId, '2020', NULL, NULL,
-      'year', '2020', geography, fieldDefinitionHashes, "values",
+      'year', '2020', geography, definitionSetId, "values",
       'record-version-hash-2020', isCurrent, createdAt, updatedAt
     FROM statsRecords
     WHERE id = ? AND isCurrent = 1`,
@@ -828,11 +832,12 @@ function seedPackedPublication(current: Database, history: Database, meta: Datab
   )
   run(
     history,
-    `INSERT INTO statsRecords (id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, fieldDefinitionHashes, "values", versionHash, isCurrent, createdAt, updatedAt)
-    SELECT 'statistic-households-2020-district-1', ?, ?, 'households/2020/11', divisionId, '2020', 'year', '2020', geography, '{"households":"historical-field-version-hash"}', '{"households":"100000"}', 'households-record-version', 1, createdAt, updatedAt FROM statsRecords WHERE id = ? AND isCurrent = 1`,
+    `INSERT INTO statsRecords (id, datasetCode, sourceReleaseId, sourceFeatureRef, divisionId, referencePeriodCode, referencePeriodGranularity, referencePeriodEndYear, geography, definitionSetId, "values", versionHash, isCurrent, createdAt, updatedAt)
+    SELECT 'statistic-households-2020-district-1', ?, ?, 'households/2020/11', divisionId, '2020', 'year', '2020', geography, 'households-definition-set', '{"households":"100000"}', 'households-record-version', 1, createdAt, updatedAt FROM statsRecords WHERE id = ? AND isCurrent = 1`,
     [HISTORICAL_DATASET_CODE, HISTORICAL_RELEASE_ID, STATISTIC_ID],
   )
   for (const table of [
+    'statsDefinitionSets',
     'statsRecords',
     'statsFields',
     'statsFieldsI18n',
@@ -844,7 +849,7 @@ function seedPackedPublication(current: Database, history: Database, meta: Datab
     ).map(column => column.name)
     const rows = history
       .query(
-        `SELECT ${columns.map(name => `"${name}"`).join(',')} FROM "${table}" WHERE isCurrent = 1`,
+        `SELECT ${columns.map(name => `"${name}"`).join(',')} FROM "${table}"${table === 'statsDefinitionSets' ? '' : ' WHERE isCurrent = 1'}`,
       )
       .all() as Array<Record<string, SQLQueryBindings>>
     for (const row of rows)

@@ -183,7 +183,11 @@ describe('Statistics API responses through the Worker route', () => {
       )
       run(
         fixture.current,
-        `UPDATE statsRecords SET "values" = '{"totalPopulation":"250000"}', fieldDefinitionHashes = '{"totalPopulation":"revised-field-hash"}', versionHash = 'revised-pack-hash' WHERE id = ?`,
+        `INSERT INTO statsDefinitionSets VALUES ('revised-set','{"totalPopulation":"revised-field-hash"}')`,
+      )
+      run(
+        fixture.current,
+        `UPDATE statsRecords SET "values" = '{"totalPopulation":"250000"}', definitionSetId = 'revised-set', versionHash = 'revised-pack-hash' WHERE id = ?`,
         [STATISTIC_ID],
       )
       run(
