@@ -83,7 +83,13 @@ export function assembleCuratedDivisions(input: {
   for (const patch of input.classificationPatches ?? []) {
     const division = divisions.get(patch.divisionId)
     if (!division || division.class === patch.replacement.class) continue
-    if (division.class !== patch.expected.subtype)
+    // The local projection stores the canonical British spelling even when the
+    // guarded Overture assertion uses its American `neighborhood` subtype.
+    const expectedCurrentClass =
+      patch.expected.subtype === 'neighborhood'
+        ? 'neighbourhood'
+        : patch.expected.subtype
+    if (division.class !== expectedCurrentClass)
       throw Error(`Canonical classification patch mismatch for ${patch.divisionId}`)
     const classification = geographicDivisionClassification(patch.replacement.class)
     if (!classification) throw Error(`Unknown classification for ${patch.divisionId}`)

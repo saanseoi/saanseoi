@@ -248,6 +248,30 @@ test('reviewed classification upgrades an existing native microhood during assem
   expect(result.divisions[0]!.level).toBe(5)
 })
 
+test('reviewed classification can demote an already normalised neighbourhood', () => {
+  const result = assembleCuratedDivisions({
+    ...input,
+    divisions: [{ id: 'hood', category: 'hood', class: 'neighbourhood', level: 5 }],
+    hierarchy: {
+      entries: [
+        {
+          ...hierarchy.entries[0],
+          expectedClass: 'microhood',
+        },
+      ],
+    },
+    classificationPatches: [
+      {
+        divisionId: 'hood',
+        expected: { subtype: 'neighborhood' },
+        replacement: { class: 'microhood', level: 6 },
+      },
+    ],
+  })
+  expect(result.divisions[0]!.class).toBe('microhood')
+  expect(result.divisions[0]!.level).toBe(6)
+})
+
 test('excluded divisions cannot reappear through stale drawings or island inventory', () => {
   const result = assembleCuratedDivisions({
     ...input,

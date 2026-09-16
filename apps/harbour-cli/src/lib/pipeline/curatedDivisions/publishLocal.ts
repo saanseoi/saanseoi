@@ -1,6 +1,7 @@
 import islandReview from '../../../../../../fixtures/meta/curations/saanseoi-island-review.json'
 import type { IslandReviewFixture } from '../islands/islandCuration'
 import exclusions from '../../../../../../fixtures/divisions/hk/exclusions.json'
+import supplementalNeighbourhoods from '../../../../../../fixtures/divisions/hk/supplemental-neighbourhoods.json'
 import classificationFixture from '../../../../../../fixtures/meta/patches/overture-division-classification.json'
 import { sql } from 'drizzle-orm'
 import { Database } from 'bun:sqlite'
@@ -26,9 +27,54 @@ import { resolveLocalAddressDbContext } from '../../dbCache/localDbCache'
 import { assembleCuratedDivisions } from './assemble'
 import { readCuratedDivisionRelease } from './releaseMetadata'
 import type { UploadTarget } from '../../cli/options'
+import {
+  normaliseDivisionI18nForStorage,
+  normaliseDivisionRow,
+} from '@repo/core/pipeline/services/divisions/division'
 
 const digest = (value: unknown) =>
   createHash('sha256').update(JSON.stringify(value)).digest('hex')
+
+const jsonText = (value: unknown) =>
+  value === null || value === undefined ? null : JSON.stringify(value)
+
+/**
+ * A reviewed addition normally enters the Overture projection during native
+ * ingestion. Merge absent fixture rows here too, so a local curated backfill
+ * does not require the much larger upstream snapshot to be reprocessed.
+ */
+function missingSupplementalDivisionRows(currentRows: Record<string, any>[]) {
+  const existingIds = new Set(currentRows.map(row => row.id))
+  const divisions: Record<string, any>[] = []
+  const names: Record<string, any>[] = []
+
+  for (const raw of supplementalNeighbourhoods) {
+    if (existingIds.has(raw.id)) continue
+    const normalised = normaliseDivisionRow(raw)
+    const { base } = normalised
+    divisions.push({
+      ...base,
+      bbox: jsonText(base.bbox),
+      cartography: jsonText(base.cartography),
+      geometry: jsonText(base.geometry),
+      hierarchies: jsonText(base.hierarchies),
+      identifiers: jsonText(base.identifiers),
+      sources: jsonText(base.sources),
+    })
+    names.push(
+      ...normaliseDivisionI18nForStorage(normalised.i18n).map(row => ({
+        ...row,
+        isLocaleInferred: Number(row.isLocaleInferred),
+        nameAlts: jsonText(row.nameAlts),
+        nameRules: jsonText(row.nameRules),
+        nameVariant: jsonText(row.nameVariant),
+      })),
+    )
+  }
+
+  return { divisions, names }
+}
+
 export async function publishLocalCuratedDivisions(
   target: UploadTarget,
   options: { cohort?: string; waitForBaseline?: boolean } = {},
@@ -82,6 +128,13 @@ export async function publishLocalCuratedDivisions(
     const divisionBase = base('division'),
       areaBase = base('divisionArea')
     if (!divisionBase || !areaBase) return null
+    const divisions = current
+      .query('SELECT * FROM divisions WHERE snapshotId=?')
+      .all(divisionBase.scopeId) as any[]
+    const names = current
+      .query('SELECT * FROM divisionsI18n WHERE snapshotId=?')
+      .all(divisionBase.scopeId) as any[]
+    const supplemental = missingSupplementalDivisionRows(divisions)
     const data = assembleCuratedDivisions({
       islandReview: islandReview as IslandReviewFixture,
       excludedIds: exclusions.entries.flatMap(entry => [
@@ -89,12 +142,8 @@ export async function publishLocalCuratedDivisions(
         ...(entry.reviewId ? [entry.reviewId] : []),
       ]),
       classificationPatches: classificationFixture.entries,
-      divisions: current
-        .query('SELECT * FROM divisions WHERE snapshotId=?')
-        .all(divisionBase.scopeId) as any[],
-      names: current
-        .query('SELECT * FROM divisionsI18n WHERE snapshotId=?')
-        .all(divisionBase.scopeId) as any[],
+      divisions: [...divisions, ...supplemental.divisions],
+      names: [...names, ...supplemental.names],
       areas: current
         .query('SELECT * FROM divisionAreas WHERE snapshotId=?')
         .all(areaBase.scopeId) as any[],
@@ -135,7 +184,7 @@ export async function publishLocalCuratedDivisions(
     )
     await writeFile(resolve(reportDirectory, 'assembled.json'), JSON.stringify(data))
     const snapshots: any[] = []
-    for (const [resourceType, baseline, table, rows] of [
+    for (const [resourceType, _baseline, table, rows] of [
       ['division', divisionBase, 'divisions', data.divisions],
       ['divisionArea', areaBase, 'divisionAreas', data.areas],
     ] as const) {
@@ -147,7 +196,7 @@ export async function publishLocalCuratedDivisions(
         .query('SELECT id FROM datasets WHERE code=?')
         .get(datasetCode) as any
       if (!datasetRow) throw Error('Sync metadata before assembling curated divisions.')
-      const code = datasetCode.replace(/^ds-/, 'dr-') + '-' + release.releaseVersion
+      const code = `${datasetCode.replace(/^ds-/, 'dr-')}-${release.releaseVersion}`
       const sourceReleaseId = buildDeterministicSourceReleaseId(code)
       const resourceReleaseId = buildDeterministicReleaseId(code)
       const source = { datasetCode, datasetId: datasetRow.id, resourceReleaseId }

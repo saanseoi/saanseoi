@@ -67,3 +67,30 @@ test('Kap Ma Kum Tong exclusion retains its reviewed source guard', () => {
     applyDivisionExclusionPatch({ ...row, id: '639974f6-d055-45cf-bb8a-004c3d3af188' }),
   ).toBeNull()
 })
+
+test('Culture Plaza, Happy Valley and Chai Wan exclusions retain their source guards', () => {
+  const cases = [
+    [
+      '37e9807f-5404-461c-ba18-db54e942a898',
+      'microhood',
+      'overture_hong_kong_culture_plaza_excluded',
+    ],
+    [
+      '8c62eda7-887c-40a0-84f2-5d3569d34b94',
+      'microhood',
+      'overture_hong_kong_happy_valley_microhood_excluded',
+    ],
+    [
+      '5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac',
+      'macrohood',
+      'overture_hong_kong_chai_wan_neighbourhood_excluded',
+    ],
+  ] as const
+  for (const [id, subtype, patchId] of cases) {
+    const row = { id, subtype, class: null, admin_level: null }
+    expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)
+    expect(() =>
+      applyDivisionExclusionPatch({ ...row, subtype: 'neighborhood' }),
+    ).toThrow('guard mismatch')
+  }
+})

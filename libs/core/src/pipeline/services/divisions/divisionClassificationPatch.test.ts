@@ -133,7 +133,6 @@ test('Hong Kong neighbourhood and name patches apply only to their reviewed Over
     ['fc40613a-be4e-408f-9414-deae675850a7', 'macrohood'],
     ['65a273eb-ce61-40db-ba4c-2f2f7fe496e0', 'microhood'],
     ['e5322b23-24d0-46d7-affb-cae30cc883a8', 'microhood'],
-    ['5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac', 'macrohood'],
     ['a60dba0a-41e2-4c84-ae70-05f647bd0e3a', 'macrohood'],
     ['4edbae57-59b3-4757-8e2c-526d48fd1d44', 'macrohood'],
   ] as const
@@ -253,6 +252,217 @@ test('West Kowloon is a guarded level-4 macrohood', () => {
     }).base,
   ).toMatchObject({ category: 'hood', class: 'macrohood', level: 4 })
   expect(row.subtype).toBe('neighborhood')
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Caroline Hill is a guarded level-6 microhood', () => {
+  expect(
+    applyDivisionClassificationPatch({
+      id: 'dd472098-9bbe-42fb-b4bb-12682d4b68a4',
+      admin_level: null,
+      class: null,
+      subtype: 'neighborhood',
+    }),
+  ).toMatchObject({ class: 'microhood', level: 6 })
+  expect(() =>
+    applyDivisionClassificationPatch({
+      id: 'dd472098-9bbe-42fb-b4bb-12682d4b68a4',
+      admin_level: null,
+      class: null,
+      subtype: 'macrohood',
+    }),
+  ).toThrow('guard mismatch')
+})
+
+test('Kwun Chung is a guarded level-6 microhood', () => {
+  const row = {
+    id: '1aae385b-4843-4ea9-b8b3-d3726764daf3',
+    admin_level: null,
+    class: null,
+    subtype: 'neighborhood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'microhood',
+    level: 6,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'macrohood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Gun Club Hill is a guarded level-6 microhood', () => {
+  const row = {
+    id: 'ff78bc6d-3d7d-42df-80ec-350b21728027',
+    admin_level: null,
+    class: null,
+    subtype: 'neighborhood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'microhood',
+    level: 6,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'macrohood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Mid-Levels West is a guarded level-5 neighbourhood', () => {
+  const row = {
+    id: '0a047469-9d4f-4101-ab9c-75560584888e',
+    admin_level: null,
+    class: null,
+    subtype: 'microhood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'neighbourhood',
+    level: 5,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Sham Wan is a guarded level-6 microhood', () => {
+  const row = {
+    id: 'cd521aae-5acd-4cca-8479-7713a584e1f2',
+    admin_level: null,
+    class: null,
+    subtype: 'macrohood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'microhood',
+    level: 6,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Brick Hill is a guarded level-6 microhood', () => {
+  const row = {
+    id: 'f47dbbad-7211-4f2c-8bb0-4425d5d83e3e',
+    admin_level: null,
+    class: null,
+    subtype: 'neighborhood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'microhood',
+    level: 6,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'macrohood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Tai Shue Wan is a guarded level-6 hamlet locality', () => {
+  const row = {
+    id: '8da0dec7-a8dc-493d-b291-893fae29fc59',
+    admin_level: null,
+    class: null,
+    subtype: 'macrohood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'hamlet',
+    level: 6,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Wan Chai North and Wan Chai South are guarded level-5 neighbourhoods', () => {
+  for (const id of [
+    '04ad160c-ba32-44b8-8ab6-b7eaf7f5afe3',
+    'b5f8964d-ed2e-4e3e-9708-038c79db43ea',
+  ]) {
+    const row = { id, admin_level: null, class: null, subtype: 'microhood' }
+    expect(applyDivisionClassificationPatch(row)).toMatchObject({
+      class: 'neighbourhood',
+      level: 5,
+    })
+    expect(() =>
+      applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
+    ).toThrow('guard mismatch')
+  }
+})
+
+test('Tamar is a guarded level-6 microhood', () => {
+  const row = {
+    id: 'ae137810-8767-4c1d-a1d0-5adff0b633c8',
+    admin_level: null,
+    class: null,
+    subtype: 'neighborhood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'microhood',
+    level: 6,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Fort Street Area is a guarded level-6 microhood', () => {
+  const row = {
+    id: '3ba4e85e-0bae-43cc-9590-3dbdb3ed977b',
+    admin_level: null,
+    class: null,
+    subtype: 'neighborhood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'microhood',
+    level: 6,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Lok Kang Po and Mount Butler are guarded level-6 microhoods', () => {
+  for (const [id, subtype] of [
+    ['95528b81-7107-41c5-9a49-7d45a37b2b4b', 'neighborhood'],
+    ['cf5e7340-5d2d-47a3-b2df-c1136901b146', 'macrohood'],
+  ] as const) {
+    const row = { id, admin_level: null, class: null, subtype }
+    expect(applyDivisionClassificationPatch(row)).toMatchObject({
+      class: 'microhood',
+      level: 6,
+    })
+    expect(() =>
+      applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+    ).toThrow('guard mismatch')
+  }
+})
+
+test('Shouson Hill is a guarded level-5 neighbourhood', () => {
+  const row = {
+    id: '1f358117-47ce-45c7-90a4-9e5538d0b884',
+    admin_level: null,
+    class: null,
+    subtype: 'macrohood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'neighbourhood',
+    level: 5,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Wong Nai Chung Gap is a guarded level-5 neighbourhood', () => {
+  const row = {
+    id: 'fbeb1745-0047-4831-b70e-d637decda7f7',
+    admin_level: null,
+    class: null,
+    subtype: 'macrohood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'neighbourhood',
+    level: 5,
+  })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
   ).toThrow('guard mismatch')

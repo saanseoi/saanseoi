@@ -197,6 +197,25 @@ describe('collectOvertureHongKongDivisionSourceAssumptionViolations', () => {
 })
 
 describe('getSupplementalDivisionFixtureRows', () => {
+  test('adds Lan Kwai Fong as a reviewed microhood', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '86e53121-284a-5640-aaa3-bc28a3703ff7')!
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: {
+        class: 'microhood',
+        geometry: { type: 'Point', coordinates: [114.1556, 22.2808] },
+        level: 6,
+      },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Lan Kwai Fong' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '蘭桂坊' }),
+      ]),
+    })
+  })
+
   test('adds Lei Cheng Uk under Sham Shui Po', () => {
     const row = getSupplementalDivisionFixtureRows({
       source: 'overture',

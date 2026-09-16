@@ -30,9 +30,9 @@ test('reviewed island hierarchy classes agree with land area thresholds', () => 
   )
   for (const entry of hierarchy.entries) {
     if (classes.has(entry.divisionId))
-      expect(entry.expectedClass).toBe(classes.get(entry.divisionId))
+      expect(entry.expectedClass).toBe(classes.get(entry.divisionId)!)
     for (const parent of Object.values(entry.hierarchies).flat(2))
-      if (classes.has(parent.id)) expect(parent.class).toBe(classes.get(parent.id))
+      if (classes.has(parent.id)) expect(parent.class).toBe(classes.get(parent.id)!)
   }
 })
 

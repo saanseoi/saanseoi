@@ -6,11 +6,21 @@ reviewed QA patches, not the result of a curation guard triggering. Each source 
 admin level, class and subtype must match its fixture before the canonical replacement
 is used. This includes the level-4 `macrohood` for Lok Ma Chau Loop and level-5
 `neighbourhood` classifications for Sai Wan Ho, Kornhill, Shau Kei Wan, So Kon Po,
-Braemar Hill and Tin Wan. Aldrich Bay already arrives as Overture `neighborhood` and
-normalises to the same canonical classification without a patch. Both direct
-normalisation and hierarchy lookup execute the same registered guarded rule. The
-[processing audit](../../processing-provenance.md) retains the fixture and individual
-decision; bulk normalisation retains declarations and counts.
+Braemar Hill and Tin Wan, and level-6 `microhood` classifications for Caroline Hill Kwun
+Chung and Gun Club Hill. Mid-Levels West is promoted from the source microhood to a
+level-5 `neighbourhood`. Sham Wan is demoted from the source macrohood to a level-6
+`microhood`; Brick Hill is demoted from the source neighbourhood to a level-6
+`microhood`. Tai Shue Wan is reclassified from the source macrohood to a level-6
+`hamlet` locality. Wan Chai South and Wan Chai North are promoted from source microhoods
+to level-5 `neighbourhood` classifications. Tamar, Fort Street Area, Lok Kang Po and
+Mount Butler are demoted to level-6 `microhood` classifications. Culture Plaza, the
+microhood Happy Valley and the neighbourhood Chai Wan are excluded from the reviewed
+hierarchy by guarded source assertions. Shouson Hill is demoted from the source
+macrohood to a level-5 `neighbourhood`, as is Wong Nai Chung Gap. Aldrich Bay already
+arrives as Overture `neighborhood` and normalises to the same canonical classification
+without a patch. Both direct normalisation and hierarchy lookup execute the same
+registered guarded rule. The [processing audit](../../processing-provenance.md) retains
+the fixture and individual decision; bulk normalisation retains declarations and counts.
 
 Source Divisions retain publisher attributes in `properties`, alongside source identity,
 original `sourceGeometry`, `sources` and release history. Names, admin level, subtype,
@@ -156,6 +166,10 @@ Shek Kip Mei (石硤尾) uses a guarded level-5 neighbourhood patch, retaining i
 macrohood subtype in source provenance. Lei Cheng Uk (李鄭屋) is a reviewed SaanSeoi
 supplemental level-5 neighbourhood with provisional Sham Shui Po District, Kowloon and
 Hong Kong SAR ancestry. Its point and boundary await geometry review.
+
+Lan Kwai Fong (蘭桂坊) is a reviewed SaanSeoi supplemental level-6 microhood with
+Central and Western District, Hong Kong Island and Hong Kong SAR ancestry. Its
+representative point is retained while its boundary awaits geometry review.
 
 Kowloon City (九龍城) uses a guarded level-5 neighbourhood patch in the Overture
 division import; its original macrohood subtype remains in source provenance.
