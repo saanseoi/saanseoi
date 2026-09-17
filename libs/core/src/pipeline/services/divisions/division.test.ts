@@ -216,6 +216,165 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
+  test('adds Thirty Houses as a reviewed Sheung Wan microhood', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === 'f6207b8e-e4a4-54a2-9c1b-0a9a6291447e')!
+    expect(row.parent_division_id).toBe('64a1b3b8-ee9e-4193-bc22-e5abca06cf1c')
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: {
+        class: 'microhood',
+        geometry: { type: 'Point', coordinates: [114.1511702, 22.2833691] },
+        level: 6,
+        wikidata: 'Q10905033',
+      },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({
+          locale: 'en',
+          name: 'Thirty Houses',
+          nameAlts: '30 Houses',
+        }),
+        expect.objectContaining({
+          locale: 'zh-hant',
+          name: '卅間',
+          nameAlts: '三十間',
+        }),
+      ]),
+    })
+  })
+
+  test('adds Tai Tam Gap as a reviewed Eastern District neighbourhood', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '7a3c5e91-95c2-5c93-8e3c-7d5b5d3bb6e7')!
+    expect(row.parent_division_id).toBe('01b58985-268d-4b8a-8e09-64604668b13e')
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: {
+        class: 'neighbourhood',
+        geometry: { type: 'Point', coordinates: [114.2281758, 22.2574719] },
+        level: 5,
+        wikidata: 'Q10936624',
+      },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Tai Tam Gap' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '大潭峽' }),
+        expect.objectContaining({ locale: 'zh-hans', name: '大潭峡' }),
+      ]),
+    })
+  })
+
+  test('adds Tai Tam Tau as a reviewed Southern District microhood', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '1105e168-19e9-5c1c-abda-588f9f15d84c')!
+    expect(row.parent_division_id).toBe('1dff7a5f-afe1-4db2-8ca7-cda8bb25754a')
+    expect(row.sources).toContainEqual({
+      dataset: 'OpenStreetMap',
+      record_id: 'node/1128001275',
+    })
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: {
+        class: 'microhood',
+        geometry: { type: 'Point', coordinates: [114.2187883, 22.1951389] },
+        level: 6,
+      },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Tai Tam Tau' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '大潭頭' }),
+        expect.objectContaining({ locale: 'zh-hans', name: '大潭头' }),
+      ]),
+    })
+  })
+
+  test('adds Cape Collinson as a reviewed Eastern District microhood', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '0ae98281-dc7d-52f3-861d-dd47af906fe1')!
+    expect(row.parent_division_id).toBe('01b58985-268d-4b8a-8e09-64604668b13e')
+    expect(row.sources).toContainEqual({
+      dataset: 'OpenStreetMap',
+      record_id: 'node/8736436992',
+    })
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: {
+        class: 'microhood',
+        geometry: { type: 'Point', coordinates: [114.2453662, 22.2582498] },
+        level: 6,
+      },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Cape Collinson' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '歌連臣角' }),
+        expect.objectContaining({ locale: 'zh-hans', name: '歌连臣角' }),
+      ]),
+    })
+  })
+
+  test('adds Hok Tsui Lower Village as a reviewed Southern District hamlet', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '182d0a4c-99b4-5811-bd28-15d5c3bc339d')!
+    expect(row.parent_division_id).toBe('1dff7a5f-afe1-4db2-8ca7-cda8bb25754a')
+    expect(row.sources).toContainEqual({
+      dataset: 'OpenStreetMap',
+      record_id: 'node/2741299690',
+    })
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: {
+        class: 'hamlet',
+        geometry: { type: 'Point', coordinates: [114.2420554, 22.2101577] },
+        level: 6,
+      },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Hok Tsui Lower Village' }),
+        expect.objectContaining({
+          locale: 'zh-hant',
+          name: '鶴咀村',
+          nameAlts: '鶴咀下村',
+        }),
+        expect.objectContaining({
+          locale: 'zh-hans',
+          name: '鹤咀村',
+          nameAlts: '鹤咀下村',
+        }),
+      ]),
+    })
+  })
+
+  test('adds Sandy Bay Gap as a reviewed Central and Western District microhood', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '7bf6763f-7384-5233-8568-a24c10789432')!
+    expect(row.parent_division_id).toBe('8d17afe0-5631-49c5-b86d-d53c5d4b2f9d')
+    expect(row.sources).toContainEqual({
+      dataset: 'OpenStreetMap',
+      record_id: 'node/9520791845',
+    })
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: {
+        class: 'microhood',
+        geometry: { type: 'Point', coordinates: [114.1293839, 22.2758724] },
+        level: 6,
+      },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Sandy Bay Gap' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '沙灣坳' }),
+        expect.objectContaining({ locale: 'zh-hans', name: '沙湾坳' }),
+      ]),
+    })
+  })
+
   test('adds Lei Cheng Uk under Sham Shui Po', () => {
     const row = getSupplementalDivisionFixtureRows({
       source: 'overture',

@@ -68,7 +68,37 @@ test('Kap Ma Kum Tong exclusion retains its reviewed source guard', () => {
   ).toBeNull()
 })
 
-test('Culture Plaza, Happy Valley and Chai Wan exclusions retain their source guards', () => {
+test('South Bay Garden is excluded only when its reviewed source assertion matches', () => {
+  const row = {
+    id: '1deda0f6-c887-4987-8d29-74ae24b90780',
+    subtype: 'neighborhood',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_south_bay_garden_excluded',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'microhood' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('Shek Pai Wan is excluded only when its reviewed source assertion matches', () => {
+  const row = {
+    id: '5b44a59f-8a88-4b7f-addc-d74b79aad31a',
+    subtype: 'microhood',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_shek_pai_wan_excluded',
+  )
+  expect(() =>
+    applyDivisionExclusionPatch({ ...row, subtype: 'neighborhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('reviewed Hong Kong curation exclusions retain their source guards', () => {
   const cases = [
     [
       '37e9807f-5404-461c-ba18-db54e942a898',
@@ -84,6 +114,16 @@ test('Culture Plaza, Happy Valley and Chai Wan exclusions retain their source gu
       '5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac',
       'macrohood',
       'overture_hong_kong_chai_wan_neighbourhood_excluded',
+    ],
+    [
+      'f9d753ff-a601-4345-84dd-31ea8b0c23de',
+      'microhood',
+      'overture_hong_kong_expo_promenade_excluded',
+    ],
+    [
+      'f2c19edf-36b7-4078-b101-95ae60b0193f',
+      'microhood',
+      'overture_hong_kong_east_wing_forecourt_excluded',
     ],
   ] as const
   for (const [id, subtype, patchId] of cases) {

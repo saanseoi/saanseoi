@@ -135,6 +135,8 @@ test('Hong Kong neighbourhood and name patches apply only to their reviewed Over
     ['e5322b23-24d0-46d7-affb-cae30cc883a8', 'microhood'],
     ['a60dba0a-41e2-4c84-ae70-05f647bd0e3a', 'macrohood'],
     ['4edbae57-59b3-4757-8e2c-526d48fd1d44', 'macrohood'],
+    ['b15871ff-6563-4c34-b333-a58fec032fd6', 'microhood'],
+    ['cc911334-7897-4c13-99a1-89c69677b51a', 'microhood'],
   ] as const
   for (const [id, subtype] of rows) {
     expect(
@@ -466,4 +468,86 @@ test('Wong Nai Chung Gap is a guarded level-5 neighbourhood', () => {
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
   ).toThrow('guard mismatch')
+})
+
+test('Bluff Head is a guarded level-5 neighbourhood', () => {
+  const row = {
+    id: 'c1a8152b-ebb8-4ac4-92ec-9a1d27bf6421',
+    admin_level: null,
+    class: null,
+    subtype: 'microhood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'neighbourhood',
+    level: 5,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Tai Long Wan and Cape D’Aguilar use their reviewed levels', () => {
+  for (const [id, level, classification] of [
+    ['931ea57a-8db5-4f9d-9b99-31fadef286c5', 4, 'macrohood'],
+    ['3dba1059-d30d-47e9-8a19-89d43c7db8d0', 6, 'microhood'],
+  ] as const) {
+    const row = { id, admin_level: null, class: null, subtype: 'macrohood' }
+    expect(applyDivisionClassificationPatch(row)).toMatchObject({
+      class: classification,
+      level,
+    })
+    expect(() =>
+      applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+    ).toThrow('guard mismatch')
+  }
+})
+
+test('Hok Tsui Tsuen is a guarded level-6 hamlet with its reviewed English name', () => {
+  const row = {
+    id: '45285648-a223-4780-af58-129b6f3b3540',
+    admin_level: null,
+    class: 'village',
+    subtype: 'locality',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'hamlet',
+    level: 6,
+    nameEn: 'Hok Tsui Tsuen',
+    nameAltsEn: ['Hok Tsui Village'],
+  })
+  expect(() => applyDivisionClassificationPatch({ ...row, class: 'hamlet' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('Tai Tam Tuk is a guarded level-5 neighbourhood', () => {
+  const row = {
+    id: 'a0883d47-ea3d-48c0-ab37-feae33f4e969',
+    admin_level: null,
+    class: null,
+    subtype: 'microhood',
+  }
+  expect(applyDivisionClassificationPatch(row)).toMatchObject({
+    class: 'neighbourhood',
+    level: 5,
+  })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Mid-Levels Central and Happy Valley Mid-Levels are guarded level-5 neighbourhoods', () => {
+  for (const id of [
+    'cd1f2665-d2d3-4a05-b386-e992030cbd5c',
+    'd39ae65a-e6cc-4dcd-9186-3b041c3d1b9c',
+  ]) {
+    const row = { id, admin_level: null, class: null, subtype: 'microhood' }
+    expect(applyDivisionClassificationPatch(row)).toMatchObject({
+      class: 'neighbourhood',
+      level: 5,
+    })
+    expect(() =>
+      applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
+    ).toThrow('guard mismatch')
+  }
 })
