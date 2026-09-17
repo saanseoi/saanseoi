@@ -1142,6 +1142,126 @@
         "subtype": "microhood"
       },
       "reason": "This level 6 Tai Hang microhood duplicates the reviewed level 5 Tai Hang neighbourhood and is excluded from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_tsim_sha_tsui_microhood_excluded",
+      "source": "overture",
+      "divisionId": "e55d9216-f534-4d89-9a2f-0f564de447cc",
+      "names": [
+        "Tsim Sha Tsui",
+        "尖沙咀"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 Tsim Sha Tsui microhood duplicates the retained level 4 Tsim Sha Tsui macrohood and is excluded from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_avenue_of_comic_stars_excluded",
+      "source": "overture",
+      "divisionId": "0f959136-e10e-49b5-aa57-97672d01cb34",
+      "names": [
+        "Avenue of Comic Stars",
+        "香港漫畫星光大道"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "Avenue of Comic Stars is a visitor attraction rather than a geographic division. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_sculpture_walk_excluded",
+      "source": "overture",
+      "divisionId": "b41774d7-4162-4802-ae67-04f0a08f2911",
+      "names": [
+        "Sculpture Walk",
+        "雕塑廊"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "Sculpture Walk is a visitor attraction rather than a geographic division. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_new_asia_college_mall_excluded",
+      "source": "overture",
+      "divisionId": "abef14db-bd24-4e33-ac68-fe42562ffd8f",
+      "names": [
+        "New Asia College Mall",
+        "小百萬大道"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "New Asia College Mall is a campus walkway rather than a geographic division. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_university_mall_primary_excluded",
+      "source": "overture",
+      "divisionId": "fc590c1d-dc3d-425e-8bc0-2ca30e3cc9b9",
+      "names": [
+        "The University Mall",
+        "百萬大道"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "The University Mall is a campus walkway rather than a geographic division. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_university_mall_duplicate_excluded",
+      "source": "overture",
+      "divisionId": "994c536c-cbb4-4448-b139-7b0a0fd7f7e9",
+      "names": [
+        "The University Mall",
+        "百萬大道"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "The University Mall is a campus walkway rather than a geographic division. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_kau_pui_shek_historic_excluded",
+      "source": "overture",
+      "divisionId": "7b98c68d-a4d0-46e6-bb2d-12b358c59001",
+      "names": [
+        "Kau Pui Shek",
+        "靠背石"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "reason": "Kau Pui Shek is a historic locality rather than a current geographic division. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_kai_tak_north_excluded",
+      "source": "overture",
+      "divisionId": "c99e175c-ed9c-4e90-84de-7a506061fd16",
+      "names": [
+        "Kai Tak North",
+        "啟德北"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "reason": "Kai Tak North is excluded from canonical coverage while retaining the publisher source assertion."
     }
   ]
 }

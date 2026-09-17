@@ -596,6 +596,25 @@
       "reason": "Mid-Levels West is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use neighbourhood level 5 in canonical records and hierarchy lookup."
     },
     {
+      "id": "overture_hong_kong_tai_hang_mid_levels_reclassified",
+      "source": "overture",
+      "divisionId": "593026eb-279a-4755-ab5d-9c7c685f4501",
+      "names": [
+        "Tai Hang Mid-Levels",
+        "大坑半山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Tai Hang Mid-Levels is a Hong Kong neighbourhood within Tai Hang. Preserve the publisher classification in source storage and use reviewed neighbourhood level 5 in canonical records and hierarchy lookup."
+    },
+    {
       "id": "overture_hong_kong_sham_wan_reclassified",
       "source": "overture",
       "divisionId": "cd521aae-5acd-4cca-8479-7713a584e1f2",
@@ -894,10 +913,10 @@
         "subtype": "macrohood"
       },
       "replacement": {
-        "level": 6,
-        "class": "microhood"
+        "level": 5,
+        "class": "neighbourhood"
       },
-      "reason": "Cape D'Aguilar is a Hong Kong microhood. Preserve the publisher classification in source storage and use the reviewed microhood classification in canonical records and hierarchy lookup."
+      "reason": "Cape D'Aguilar is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
     },
     {
       "id": "overture_hong_kong_hok_tsui_tsuen_reclassified",
@@ -980,6 +999,139 @@
       "reason": "Happy Valley Mid-Levels is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
     },
     {
+      "id": "overture_hong_kong_un_chau_reclassified",
+      "source": "overture",
+      "divisionId": "3b473eb5-f4dc-4822-ad20-5e045544afa7",
+      "names": [
+        "Un Chau",
+        "元洲"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Un Chau is a Hong Kong microhood. Preserve the publisher classification in source storage and use the reviewed level-6 microhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_kings_park_reclassified",
+      "source": "overture",
+      "divisionId": "fa7405e4-505c-499a-8114-9175bbaff368",
+      "names": [
+        "King's Park",
+        "京士柏"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "King's Park is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed level-5 neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_hung_hom_bay_reclassified",
+      "source": "overture",
+      "divisionId": "36ba2e79-8bae-45a5-8814-6499842f5ca2",
+      "names": [
+        "Hung Hom Bay",
+        "紅磡灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Hung Hom Bay is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed level-5 neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_kau_pui_lung_reclassified",
+      "source": "overture",
+      "divisionId": "f3a5d2ab-5e5c-4217-a72c-f736bc04d0d6",
+      "names": [
+        "Kau Pui Lung",
+        "靠背壟"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Kau Pui Lung is a Hong Kong microhood. Preserve the publisher classification in source storage and use the reviewed level-6 microhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_ma_tau_wai_reclassified",
+      "source": "overture",
+      "divisionId": "4efceb9d-8751-4396-8a22-351bb90dd8fa",
+      "names": [
+        "Ma Tau Wai",
+        "馬頭圍"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Ma Tau Wai is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed level-5 neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_ma_tau_kok_reclassified",
+      "source": "overture",
+      "divisionId": "5bc42e3a-b7de-485c-a651-57fb3b02957d",
+      "names": [
+        "Ma Tau Kok",
+        "馬頭角"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Ma Tau Kok is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed level-5 neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_tai_wo_ping_reclassified",
+      "source": "overture",
+      "divisionId": "ffe094bc-3d49-4f8a-a1d4-4c625cc495f0",
+      "names": [
+        "Tai Wo Ping",
+        "大窩坪"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Tai Wo Ping is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed level-5 neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
       "id": "overture_hong_kong_causeway_bay_east_point_alias",
       "source": "overture",
       "divisionId": "af77229e-a369-422e-a664-7d97b4da08bb",
@@ -1003,6 +1155,65 @@
         ]
       },
       "reason": "Retain East Point 東角 as reviewed English and Traditional Chinese aliases of Causeway Bay 銅鑼灣."
+    },
+    {
+      "id": "overture_hong_kong_kai_tak_runway_area_reclassified",
+      "source": "overture",
+      "divisionId": "34c93412-e95a-4aa0-8a1e-d5d780386512",
+      "names": [
+        "Kai Tak Runway Area",
+        "啟德跑道區"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood",
+        "nameEn": "Kai Tak Runway Precinct"
+      },
+      "reason": "Kai Tak Runway Precinct is a Hong Kong microhood. Preserve the publisher Kai Tak Runway Area name and classification in source storage and use the reviewed English name and level-6 microhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_kai_tak_city_centre_reclassified",
+      "source": "overture",
+      "divisionId": "f9caa794-68b4-4e8d-92c7-44ebafa5352f",
+      "names": [
+        "Kai Tak City Centre",
+        "啟德城中心"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Kai Tak City Centre is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed level-5 neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_kai_tak_south_apron_renamed",
+      "source": "overture",
+      "divisionId": "e173143c-e3f1-4f3d-9d31-b1bf22faaf3c",
+      "names": [
+        "Kai Tak South Apron Area",
+        "啟德南停機坪區"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood",
+        "nameEn": "Kai Tak South Apron"
+      },
+      "reason": "Kai Tak South Apron is a Hong Kong microhood. Preserve the publisher Kai Tak South Apron Area name in source storage and use the reviewed English name in canonical records and hierarchy lookup."
     }
   ]
 }
