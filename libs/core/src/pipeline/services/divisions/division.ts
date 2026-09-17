@@ -1217,7 +1217,8 @@ function normaliseDivisionRowInternal(
   const i18n = normaliseDivisionI18n(id, row.names, options.branchCounts)
   if (
     overtureHongKongDivisionClassificationCorrection?.nameEn ||
-    overtureHongKongDivisionClassificationCorrection?.nameAltsEn
+    overtureHongKongDivisionClassificationCorrection?.nameAltsEn ||
+    overtureHongKongDivisionClassificationCorrection?.nameAltsZhHant
   ) {
     const english = i18n.find(entry => entry.locale === 'en')
     if (english) {
@@ -1249,6 +1250,18 @@ function normaliseDivisionRowInternal(
         ],
         isLocaleInferred: false,
       })
+    const zhHant = i18n.find(entry => entry.locale === 'zh-hant')
+    if (zhHant && overtureHongKongDivisionClassificationCorrection.nameAltsZhHant) {
+      const nameAlts = [
+        ...(zhHant.nameAlts?.split('|').filter(Boolean) ?? []),
+        ...overtureHongKongDivisionClassificationCorrection.nameAltsZhHant,
+      ].filter(name => name !== zhHant.name)
+      const dedupedNameAlts = [...new Set(nameAlts)]
+      zhHant.nameAlts = dedupedNameAlts.length > 0 ? dedupedNameAlts.join('|') : null
+      zhHant.nameVariant = [...(zhHant.nameVariant ?? []), ...dedupedNameAlts].filter(
+        (name, index, values) => values.indexOf(name) === index,
+      )
+    }
   }
   const normalisedHierarchies = normaliseDivisionHierarchies(
     row.hierarchies,

@@ -205,6 +205,32 @@ test('Tsat Tsz Mui retains Braemar Point as a guarded English alias', () => {
   ).toThrow('guard mismatch')
 })
 
+test('Causeway Bay retains East Point as guarded bilingual aliases', () => {
+  const row = {
+    id: 'af77229e-a369-422e-a664-7d97b4da08bb',
+    subtype: 'macrohood',
+    class: null,
+    admin_level: null,
+    names: {
+      common: { en: 'Causeway Bay', 'zh-hant': '銅鑼灣' },
+      primary: '銅鑼灣 Causeway Bay',
+    },
+  }
+  const normalised = normaliseDivisionRow(row, {
+    source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+  }).i18n
+  expect(normalised.find(entry => entry.locale === 'en')).toMatchObject({
+    name: 'Causeway Bay',
+    nameAlts: 'East Point',
+    nameVariant: ['Causeway Bay', 'East Point'],
+  })
+  expect(normalised.find(entry => entry.locale === 'zh-hant')).toMatchObject({
+    name: '銅鑼灣',
+    nameAlts: '東角',
+    nameVariant: ['銅鑼灣', '東角'],
+  })
+})
+
 test('Hong Kong neighbourhood classifications preserve the source guard', () => {
   const rows = [
     ['1f79f23d-d33d-4528-b4b7-0b3bb302d71c', 'neighborhood'],

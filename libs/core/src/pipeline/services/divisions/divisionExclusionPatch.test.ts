@@ -98,6 +98,30 @@ test('Shek Pai Wan is excluded only when its reviewed source assertion matches',
   ).toThrow('guard mismatch')
 })
 
+test('East Point and the level-6 Tai Hang duplicate retain guarded exclusions', () => {
+  for (const [id, subtype, patchId] of [
+    [
+      'c982f940-8e30-4ae6-87d8-6fd73a335217',
+      'neighborhood',
+      'overture_hong_kong_east_point_causeway_bay_alias',
+    ],
+    [
+      'a21076d4-1c2c-4a79-94d8-90c582a9bc5c',
+      'microhood',
+      'overture_hong_kong_tai_hang_microhood_excluded',
+    ],
+  ] as const) {
+    const row = { id, subtype, class: null, admin_level: null }
+    expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)
+    expect(() =>
+      applyDivisionExclusionPatch({
+        ...row,
+        subtype: subtype === 'microhood' ? 'neighborhood' : 'microhood',
+      }),
+    ).toThrow('guard mismatch')
+  }
+})
+
 test('reviewed Hong Kong curation exclusions retain their source guards', () => {
   const cases = [
     [

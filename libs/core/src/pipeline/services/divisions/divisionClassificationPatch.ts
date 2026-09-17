@@ -46,7 +46,15 @@ export function validateDivisionClassificationFixture(value: unknown) {
             name => typeof name === 'string' && name.trim().length > 0,
           ) ||
           new Set(e.replacement.nameAltsEn.map(name => name.trim())).size !==
-            e.replacement.nameAltsEn.length))
+            e.replacement.nameAltsEn.length)) ||
+      (e.replacement.nameAltsZhHant != null &&
+        (!Array.isArray(e.replacement.nameAltsZhHant) ||
+          e.replacement.nameAltsZhHant.length === 0 ||
+          !e.replacement.nameAltsZhHant.every(
+            name => typeof name === 'string' && name.trim().length > 0,
+          ) ||
+          new Set(e.replacement.nameAltsZhHant.map(name => name.trim())).size !==
+            e.replacement.nameAltsZhHant.length))
     )
       throw new Error('Invalid division classification patch entry.')
     ids.add(e.divisionId)
@@ -107,6 +115,11 @@ function applyClassification({
     ...(entry.replacement.nameEn ? { nameEn: entry.replacement.nameEn } : {}),
     ...(entry.replacement.nameAltsEn
       ? { nameAltsEn: entry.replacement.nameAltsEn.map(name => name.trim()) }
+      : {}),
+    ...(entry.replacement.nameAltsZhHant
+      ? {
+          nameAltsZhHant: entry.replacement.nameAltsZhHant.map(name => name.trim()),
+        }
       : {}),
   }
 }
