@@ -302,12 +302,25 @@ export function assembleCuratedDivisions(input: {
       put(aliases.get(island.id)!, island.geometry, 'island-areas', island.id)
   for (const feature of input.stubs.features) {
     if (excluded.has(feature.properties.divisionId)) continue
-    put(
-      aliases.get(feature.properties.divisionId) ?? feature.properties.divisionId,
-      feature.geometry,
-      'stub-areas',
-      feature.properties.divisionId,
-    )
+    const divisionId =
+      aliases.get(feature.properties.divisionId) ?? feature.properties.divisionId
+    if (feature.properties.corePoint) {
+      if (!containsReviewPoint(feature.properties.corePoint, feature.geometry))
+        throw Error(`Core point is outside reviewed geometry for ${divisionId}`)
+      const division = divisions.get(divisionId)
+      if (!division) throw Error(`Core point references unknown division ${divisionId}`)
+      division.geometry = JSON.stringify({
+        type: 'Point',
+        coordinates: feature.properties.corePoint,
+      })
+      division.bbox = JSON.stringify([
+        feature.properties.corePoint[0],
+        feature.properties.corePoint[1],
+        feature.properties.corePoint[0],
+        feature.properties.corePoint[1],
+      ])
+    }
+    put(divisionId, feature.geometry, 'stub-areas', feature.properties.divisionId)
   }
   const outputAreas: Row[] = [...areas.values()]
     .flat()

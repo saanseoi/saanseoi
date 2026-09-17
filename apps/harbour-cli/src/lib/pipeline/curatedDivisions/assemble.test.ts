@@ -46,6 +46,25 @@ test('reviewed geometry replaces source coverage without moving any vertex', () 
   expect(JSON.parse(result.areas[0]!.geometry)).toEqual(polygon)
   expect(input.areas[0]!.geometry).toBe(JSON.stringify(polygon))
 })
+test('reviewed geometry publishes its curated core point on the division', () => {
+  const result = assembleCuratedDivisions({
+    ...input,
+    divisions: [{ ...input.divisions[0], geometry: null, bbox: null }],
+    stubs: {
+      features: [
+        {
+          properties: { divisionId: 'hood', corePoint: [0.25, 0.75] },
+          geometry: polygon,
+        },
+      ],
+    },
+  })
+  expect(JSON.parse(result.divisions[0]!.geometry)).toEqual({
+    type: 'Point',
+    coordinates: [0.25, 0.75],
+  })
+  expect(JSON.parse(result.divisions[0]!.bbox)).toEqual([0.25, 0.75, 0.25, 0.75])
+})
 test('source coverage remains the fallback for divisions without drawings', () => {
   expect(
     assembleCuratedDivisions({ ...input, stubs: { features: [] } }).areas[0]!.geometry,
