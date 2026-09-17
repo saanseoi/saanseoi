@@ -122,6 +122,82 @@ test('East Point and the level-6 Tai Hang duplicate retain guarded exclusions', 
   }
 })
 
+test('the level-6 Tsim Sha Tsui duplicate retains a guarded exclusion', () => {
+  const row = {
+    id: 'e55d9216-f534-4d89-9a2f-0f564de447cc',
+    admin_level: null,
+    class: null,
+    subtype: 'microhood',
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_tsim_sha_tsui_microhood_excluded',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'macrohood' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('historic Kau Pui Shek retains a guarded exclusion', () => {
+  const row = {
+    id: '7b98c68d-a4d0-46e6-bb2d-12b358c59001',
+    admin_level: null,
+    class: null,
+    subtype: 'neighborhood',
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_kau_pui_shek_historic_excluded',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'microhood' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('Kai Tak North retains a guarded exclusion', () => {
+  const row = {
+    id: 'c99e175c-ed9c-4e90-84de-7a506061fd16',
+    admin_level: null,
+    class: null,
+    subtype: 'neighborhood',
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_kai_tak_north_excluded',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'microhood' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('visitor-attraction and campus-walkway POIs retain guarded exclusions', () => {
+  for (const [id, patchId] of [
+    [
+      '0f959136-e10e-49b5-aa57-97672d01cb34',
+      'overture_hong_kong_avenue_of_comic_stars_excluded',
+    ],
+    [
+      'b41774d7-4162-4802-ae67-04f0a08f2911',
+      'overture_hong_kong_sculpture_walk_excluded',
+    ],
+    [
+      'abef14db-bd24-4e33-ac68-fe42562ffd8f',
+      'overture_hong_kong_new_asia_college_mall_excluded',
+    ],
+    [
+      'fc590c1d-dc3d-425e-8bc0-2ca30e3cc9b9',
+      'overture_hong_kong_university_mall_primary_excluded',
+    ],
+    [
+      '994c536c-cbb4-4448-b139-7b0a0fd7f7e9',
+      'overture_hong_kong_university_mall_duplicate_excluded',
+    ],
+  ] as const) {
+    const row = { id, admin_level: null, class: null, subtype: 'microhood' }
+    expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)
+    expect(() =>
+      applyDivisionExclusionPatch({ ...row, subtype: 'neighborhood' }),
+    ).toThrow('guard mismatch')
+  }
+})
+
 test('reviewed Hong Kong curation exclusions retain their source guards', () => {
   const cases = [
     [

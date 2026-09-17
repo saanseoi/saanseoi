@@ -73,6 +73,18 @@ test('point evidence assigns level 6 without needing a level-6 polygon, with det
   expect(derive(features.toReversed())).toEqual(result)
   expect(() => validateStubAreas(stubs([square('child', 1)]), inventory)).not.toThrow()
 })
+test('a reviewed core point replaces the source point for hierarchy derivation', () => {
+  const child = square('child', 3)
+  child.properties.corePoint = [0.5, 0.5]
+  const result = deriveHierarchyPatch(
+    inventory,
+    [square('district', 10, 'overture'), square('small', 1, 'overture')],
+    stubs([child]),
+    false,
+  ).entries.find(entry => entry.divisionId === 'child')!
+  expect(result.point).toEqual([0.5, 0.5])
+  expect(result.parentIds).toContain('small')
+})
 test('editor export annotates every hierarchy projection from the current drawings', () => {
   const derive = (features: ReviewArea[]) =>
     deriveHierarchyPatch(
@@ -143,6 +155,16 @@ test('invalid imports do not pass validation and missing geometry remains explic
       entry => entry.status === 'provisional',
     ),
   ).toBe(true)
+})
+
+test('reviewed core points must be valid coordinates inside their polygon', () => {
+  const feature = square('child', 1)
+  feature.properties.corePoint = [0.5, 0.5]
+  expect(() => validateStubAreas(stubs([feature]), inventory)).not.toThrow()
+  feature.properties.corePoint = [2, 2]
+  expect(() => validateStubAreas(stubs([feature]), inventory)).toThrow('inside')
+  feature.properties.corePoint = [Number.NaN, 0]
+  expect(() => validateStubAreas(stubs([feature]), inventory)).toThrow('Invalid')
 })
 
 test('ignores a non-polygon reference feature at runtime', () => {

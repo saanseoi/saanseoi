@@ -197,6 +197,48 @@ describe('collectOvertureHongKongDivisionSourceAssumptionViolations', () => {
 })
 
 describe('getSupplementalDivisionFixtureRows', () => {
+  test('adds the missing Kai Tak level-6 precinct markers', () => {
+    const rows = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    })
+    for (const [id, name, zhHant, coordinates] of [
+      [
+        '7a719ce4-ef50-5a85-9f9a-1d0375c3eeaa',
+        'Kai Tak Sports Park',
+        '啟德體育園',
+        [114.1978125, 22.3236344],
+      ],
+      [
+        'f8470431-cc49-5c1a-9c97-7b75f809f125',
+        'Kai Tak Metro Park',
+        '啟德都會公園',
+        [114.1996688, 22.318758],
+      ],
+      [
+        'c96f4670-4aba-566f-85e2-e7bfd905fa49',
+        'Kai Tak Cruise Terminal',
+        '啟德郵輪碼頭',
+        [114.2120721, 22.3070126],
+      ],
+    ] as const) {
+      const row = rows.find(row => row.id === id)!
+      expect(row.parent_division_id).toBe('537c8fc4-5ea5-40e8-bdb1-825d93d45059')
+      expect(normaliseDivisionRow(row)).toMatchObject({
+        base: {
+          class: 'microhood',
+          geometry: { type: 'Point', coordinates },
+          level: 6,
+        },
+        i18n: expect.arrayContaining([
+          expect.objectContaining({ locale: 'en', name }),
+          expect.objectContaining({ locale: 'zh-hant', name: zhHant }),
+        ]),
+      })
+    }
+  })
+
   test('adds Lan Kwai Fong as a reviewed microhood', () => {
     const row = getSupplementalDivisionFixtureRows({
       source: 'overture',

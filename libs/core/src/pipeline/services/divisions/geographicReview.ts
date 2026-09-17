@@ -30,7 +30,13 @@ export type ReviewInventory = {
 }
 export type ReviewArea = Feature<
   Polygon | MultiPolygon,
-  { divisionId: string; variant: string; [key: string]: unknown }
+  {
+    divisionId: string
+    variant: string
+    /** Curator-selected representative point for the division. */
+    corePoint?: Position
+    [key: string]: unknown
+  }
 >
 export type StubAreas = FeatureCollection<
   Polygon | MultiPolygon,
@@ -224,6 +230,19 @@ export function validateStubAreas(
     }
     if (areaSize(feature.geometry) <= 0)
       throw new Error('Polygon area must be positive.')
+    const corePoint = feature.properties.corePoint
+    if (corePoint !== undefined) {
+      if (
+        !Array.isArray(corePoint) ||
+        corePoint.length !== 2 ||
+        !corePoint.every(Number.isFinite) ||
+        Math.abs(corePoint[0]!) > 180 ||
+        Math.abs(corePoint[1]!) > 90
+      )
+        throw new Error('Invalid division core point.')
+      if (!containsReviewPoint(corePoint, feature.geometry))
+        throw new Error('Division core point must be inside its polygon.')
+    }
   }
 }
 function segmentsIntersect(a: Position, b: Position, c: Position, d: Position) {
@@ -332,15 +351,16 @@ export function deriveHierarchyPatch(
     size: areaSize(feature.geometry),
   }))
   const entries = inventory.divisions.map(child => {
+    const point = byDivision.get(child.id)?.properties.corePoint ?? child.point
     const inferFromPoint =
       (child.category === 'locality' || child.category === 'hood') &&
       child.level !== null &&
       child.level >= 3
     const found =
-      child.point && inferFromPoint
+      point && inferFromPoint
         ? candidates
             .filter(candidate => {
-              const [x, y] = child.point!
+              const [x, y] = point
               const [w, s, e, n] = candidate.bounds
               return (
                 eligibleParent(child, candidate.division) &&
@@ -348,7 +368,7 @@ export function deriveHierarchyPatch(
                 x! <= e &&
                 y! >= s &&
                 y! <= n &&
-                containsReviewPoint(child.point!, candidate.feature.geometry)
+                containsReviewPoint(point, candidate.feature.geometry)
               )
             })
             .sort(
@@ -420,7 +440,7 @@ export function deriveHierarchyPatch(
     }
     const complete =
       inferFromPoint &&
-      Boolean(child.point) &&
+      Boolean(point) &&
       selected.some(c => c.division.class === 'district') &&
       (child.level === 3 ||
         selected.some(
@@ -432,7 +452,7 @@ export function deriveHierarchyPatch(
       divisionId: child.id,
       expectedClass: child.class,
       status: complete ? 'geometry' : retainProvisional ? 'provisional' : 'unresolved',
-      point: child.point,
+      point,
       parentIds: selected.map(c => c.division.id),
       competingParentIds: [...groups.values()].flatMap(group =>
         group.slice(1).map(c => c.division.id),
