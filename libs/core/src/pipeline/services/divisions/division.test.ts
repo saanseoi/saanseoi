@@ -334,7 +334,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
-  test('adds Cape Collinson as a reviewed Eastern District microhood', () => {
+  test('adds Cape Collinson as a reviewed Eastern District neighbourhood', () => {
     const row = getSupplementalDivisionFixtureRows({
       source: 'overture',
       resourceType: 'division',
@@ -347,9 +347,9 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: {
-        class: 'microhood',
+        class: 'neighbourhood',
         geometry: { type: 'Point', coordinates: [114.2453662, 22.2582498] },
-        level: 6,
+        level: 5,
       },
       i18n: expect.arrayContaining([
         expect.objectContaining({ locale: 'en', name: 'Cape Collinson' }),

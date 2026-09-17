@@ -614,7 +614,7 @@ test('Bluff Head is a guarded level-5 neighbourhood', () => {
 test('Tai Long Wan and Cape D’Aguilar use their reviewed levels', () => {
   for (const [id, level, classification] of [
     ['931ea57a-8db5-4f9d-9b99-31fadef286c5', 4, 'macrohood'],
-    ['3dba1059-d30d-47e9-8a19-89d43c7db8d0', 6, 'microhood'],
+    ['3dba1059-d30d-47e9-8a19-89d43c7db8d0', 5, 'neighbourhood'],
   ] as const) {
     const row = { id, admin_level: null, class: null, subtype: 'macrohood' }
     expect(applyDivisionClassificationPatch(row)).toMatchObject({
@@ -661,8 +661,9 @@ test('Tai Tam Tuk is a guarded level-5 neighbourhood', () => {
   ).toThrow('guard mismatch')
 })
 
-test('Mid-Levels Central and Happy Valley Mid-Levels are guarded level-5 neighbourhoods', () => {
+test('Tai Hang, Central and Happy Valley Mid-Levels are guarded level-5 neighbourhoods', () => {
   for (const id of [
+    '593026eb-279a-4755-ab5d-9c7c685f4501',
     'cd1f2665-d2d3-4a05-b386-e992030cbd5c',
     'd39ae65a-e6cc-4dcd-9186-3b041c3d1b9c',
   ]) {
