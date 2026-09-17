@@ -86,9 +86,10 @@ export function assembleCuratedDivisions(input: {
     // The local projection stores the canonical British spelling even when the
     // guarded Overture assertion uses its American `neighborhood` subtype.
     const expectedCurrentClass =
-      patch.expected.subtype === 'neighborhood'
+      patch.expected.class ??
+      (patch.expected.subtype === 'neighborhood'
         ? 'neighbourhood'
-        : patch.expected.subtype
+        : patch.expected.subtype)
     if (division.class !== expectedCurrentClass)
       throw Error(`Canonical classification patch mismatch for ${patch.divisionId}`)
     const classification = geographicDivisionClassification(patch.replacement.class)
@@ -101,6 +102,30 @@ export function assembleCuratedDivisions(input: {
   const names = input.names
     .filter(row => !excluded.has(row.divisionId))
     .map(row => ({ ...row }))
+  for (const patch of input.classificationPatches ?? []) {
+    for (const [locale, additions] of [
+      ['en', patch.replacement.nameAltsEn],
+      ['zh-hant', patch.replacement.nameAltsZhHant],
+    ] as const) {
+      if (!Array.isArray(additions) || additions.length === 0) continue
+      const name = names.find(
+        row => row.divisionId === patch.divisionId && row.locale === locale,
+      )
+      if (!name) continue
+      const alternatives = [
+        ...(name.nameAlts?.split('|').filter(Boolean) ?? []),
+        ...additions,
+      ].filter(value => value !== name.name)
+      const deduped = [...new Set(alternatives)]
+      name.nameAlts = deduped.length > 0 ? deduped.join('|') : null
+      const variants = Array.isArray(name.nameVariant)
+        ? name.nameVariant
+        : typeof name.nameVariant === 'string'
+          ? JSON.parse(name.nameVariant)
+          : []
+      name.nameVariant = JSON.stringify([...new Set([...(variants ?? []), ...deduped])])
+    }
+  }
   const aliases = new Map<string, string>()
   for (const island of islands) {
     if (excluded.has(island.id) || excluded.has(uuid(island.id))) continue

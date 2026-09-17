@@ -248,6 +248,29 @@ test('reviewed classification upgrades an existing native microhood during assem
   expect(result.divisions[0]!.level).toBe(5)
 })
 
+test('assembly validates a source class before its locality subtype', () => {
+  const result = assembleCuratedDivisions({
+    ...input,
+    divisions: [{ id: 'hood', category: 'locality', class: 'village', level: 5 }],
+    hierarchy: {
+      entries: [
+        {
+          ...input.hierarchy.entries[0],
+          expectedClass: 'hamlet',
+        },
+      ],
+    },
+    classificationPatches: [
+      {
+        divisionId: 'hood',
+        expected: { class: 'village', subtype: 'locality' },
+        replacement: { class: 'hamlet', level: 6 },
+      },
+    ],
+  })
+  expect(result.divisions[0]).toMatchObject({ class: 'hamlet', level: 6 })
+})
+
 test('reviewed classification can demote an already normalised neighbourhood', () => {
   const result = assembleCuratedDivisions({
     ...input,
@@ -270,6 +293,65 @@ test('reviewed classification can demote an already normalised neighbourhood', (
   })
   expect(result.divisions[0]!.class).toBe('microhood')
   expect(result.divisions[0]!.level).toBe(6)
+})
+
+test('curated assembly retains reviewed bilingual aliases', () => {
+  const result = assembleCuratedDivisions({
+    ...input,
+    divisions: [{ id: 'hood', category: 'hood', class: 'macrohood', level: 4 }],
+    hierarchy: {
+      entries: [
+        {
+          ...input.hierarchy.entries[0],
+          expectedClass: 'macrohood',
+        },
+      ],
+    },
+    names: [
+      {
+        divisionId: 'hood',
+        locale: 'en',
+        name: 'Causeway Bay',
+        nameAlts: null,
+        nameVariant: '["Causeway Bay"]',
+      },
+      {
+        divisionId: 'hood',
+        locale: 'zh-hant',
+        name: '銅鑼灣',
+        nameAlts: null,
+        nameVariant: '["銅鑼灣"]',
+      },
+    ],
+    classificationPatches: [
+      {
+        divisionId: 'hood',
+        expected: { subtype: 'macrohood' },
+        replacement: {
+          class: 'macrohood',
+          level: 4,
+          nameAltsEn: ['East Point'],
+          nameAltsZhHant: ['東角'],
+        },
+      },
+    ],
+  })
+  expect(result.names).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        divisionId: 'hood',
+        locale: 'en',
+        nameAlts: 'East Point',
+        nameVariant: '["Causeway Bay","East Point"]',
+      }),
+      expect.objectContaining({
+        divisionId: 'hood',
+        locale: 'zh-hant',
+        nameAlts: '東角',
+        nameVariant: '["銅鑼灣","東角"]',
+      }),
+    ]),
+  )
 })
 
 test('excluded divisions cannot reappear through stale drawings or island inventory', () => {
