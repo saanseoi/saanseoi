@@ -1,5 +1,8 @@
 import { it, expect } from 'vitest'
-import { alignBoundary } from '../src/local-review/division-areas/boundaryAlignment'
+import {
+  alignBoundary,
+  BoundaryAlignmentError,
+} from '../src/local-review/division-areas/boundaryAlignment'
 import type { Polygon } from 'geojson'
 const box = (w: number, s: number, e: number, n: number): Polygon => ({
   type: 'Polygon',
@@ -44,6 +47,31 @@ it('rejects a wrong relationship rather than removing distant land', () => {
   expect(() =>
     alignBoundary(parent, box(114.005, 22.002, 114.015, 22.008), 'inside'),
   ).toThrow('more than 5 m')
+})
+it('identifies an invalid selected polygon and its topology fault', () => {
+  const selfIntersecting: Polygon = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [114, 22],
+        [114.01, 22.01],
+        [114.01, 22],
+        [114, 22.01],
+        [114, 22],
+      ],
+    ],
+  }
+  try {
+    alignBoundary(parent, selfIntersecting, 'inside')
+    throw Error('Expected alignment to fail')
+  } catch (error) {
+    expect(error).toBeInstanceOf(BoundaryAlignmentError)
+    expect(error).toMatchObject({
+      coordinate: [114.005, 22.005],
+      message:
+        'Selected target polygon is invalid: Self-intersection at 114.0050000, 22.0050000.',
+    })
+  }
 })
 
 it('follows reference bends instead of leaving a straight shortcut', () => {
