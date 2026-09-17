@@ -7,10 +7,11 @@ viewer (`bun run --cwd apps/basemap-viewer dev`). Its page and modules live in
 are ignored by Git and excluded from the deployed viewer.
 
 The review inventory in `fixtures/divisions/hk/geographic-review-inventory.json`
-contains all 1,821 geographic divisions from `data-hk-divisions-2026-08-19.0`, their
-retained source points, names and provisional ancestry. Four divisions have no source
-point. The local reference-area file contains the selected release's existing polygons;
-these remain distinct from drawn stubs.
+contains 1,759 retained geographic divisions from `data-hk-divisions-2026-08-19.0`,
+their retained source points, names and provisional ancestry. Nine divisions have no
+source point. Reviewed exclusions, including level-6 squares, plazas, promenades and
+East Wing Forecourt, are omitted. The local reference-area file contains the selected
+release's existing polygons; these remain distinct from drawn stubs.
 
 ## Drawing and retaining decisions
 

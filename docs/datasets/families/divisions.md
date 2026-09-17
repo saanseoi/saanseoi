@@ -192,6 +192,17 @@ preconditions, not triggers for requesting review. Area and boundary normalisers
 the `division-geometry-exclusions.json` executable policy, retained as a resolved
 dependency in both declarations. WKB decoding has a shared registered rule too.
 
+The reviewed Hong Kong hierarchy excludes level-6 squares, plazas, promenades and East
+Wing Forecourt. These named public spaces and building plazas remain in publisher source
+evidence but do not become canonical geographic divisions.
+
+South Bay Garden (南灣花園) is excluded by a guarded Overture division patch because it
+is a residential development rather than a geographic division. The publisher source
+assertion remains retained.
+
+Shek Pai Wan (石排灣) is excluded from the reviewed hierarchy by a guarded Overture
+division patch. The publisher source assertion remains retained.
+
 Division, area, boundary, classification, translation, Planning and synthetic-area
 normalisers register JSON declarations from `fixtures/meta/processing-rules/`; Audit
 retains those same frozen definitions. Taxonomy mappings, locale priorities and geometry
@@ -569,13 +580,15 @@ source text, resulting text, target locale and available parent names. The retai
 fixture preserves unused entries as well as applied instructions. Translation
 applications are captured for every source using the shared Division processor,
 including C&SD. Lok Ma Chau Loop uses a guarded classification fixture in both direct
-normalisation and hierarchy lookup. The same fixture can retain reviewed English
-alternate names in canonical locale rows. The admin-level expectation permits an omitted
-field only when the accepted source-release schema has no `admin_level` column; supplied
-values must match the fixture. Translation preparation passes the source-release context
-through the same normalisation guard. Identity, class and subtype checks remain
-mandatory, and source drift blocks ingestion. Audit shows bulk summaries first and loads
-declarations, fixtures and individual pages on request.
+normalisation and hierarchy lookup. The same fixture can retain reviewed English and
+Traditional Chinese alternate names in canonical locale rows. The local curated assembly
+applies the same aliases when it rebuilds from an already normalised Overture snapshot.
+The admin-level expectation permits an omitted field only when the accepted
+source-release schema has no `admin_level` column; supplied values must match the
+fixture. Translation preparation passes the source-release context through the same
+normalisation guard. Identity, class and subtype checks remain mandatory, and source
+drift blocks ingestion. Audit shows bulk summaries first and loads declarations,
+fixtures and individual pages on request.
 
 For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to
@@ -960,6 +973,59 @@ Shek Kip Mei (石硤尾) uses a guarded level-5 neighbourhood patch, retaining i
 macrohood subtype in source provenance. Lei Cheng Uk (李鄭屋) is a reviewed SaanSeoi
 supplemental level-5 neighbourhood with provisional Sham Shui Po District, Kowloon and
 Hong Kong SAR ancestry. Its point and boundary await geometry review.
+
+Thirty Houses (卅間, also 三十間 and 30 Houses) is a reviewed SaanSeoi supplemental
+level-6 microhood in Sheung Wan. Its representative point and Wikidata identity are
+retained while its boundary awaits geometry review.
+
+Tai Tam Gap (大潭峽) is a reviewed SaanSeoi supplemental level-5 neighbourhood. Its
+mountain-pass point and Wikidata identity are retained with provisional Eastern
+District, Hong Kong Island and Hong Kong SAR ancestry while its boundary awaits geometry
+review.
+
+Tai Tam Tau (大潭頭) is a reviewed SaanSeoi supplemental level-6 microhood beside Bluff
+Head. Its mapped cape point and provisional Southern District, Hong Kong Island and Hong
+Kong SAR ancestry are retained while its boundary awaits geometry review.
+
+Cape Collinson (歌連臣角) is a reviewed SaanSeoi supplemental level-6 microhood. Its
+mapped locality point and provisional Eastern District, Hong Kong Island and Hong Kong
+SAR ancestry are retained while its boundary awaits geometry review.
+
+Sandy Bay Gap (沙灣坳) is a reviewed SaanSeoi supplemental level-6 microhood. Its mapped
+mountain-pass point and provisional Central and Western District, Hong Kong Island and
+Hong Kong SAR ancestry are retained while its boundary awaits geometry review.
+
+Chung Hom Kok (舂坎角) and Ma Hang (馬坑) use guarded level-5 neighbourhood patches in
+the Overture division import, retaining their publisher microhood classifications in
+source provenance.
+
+Bluff Head (黃麻角) uses a guarded level-5 neighbourhood patch in the Overture division
+import, retaining its publisher microhood classification in source provenance.
+
+Tai Long Wan (大浪灣) uses a guarded level-4 macrohood patch, while Cape D’Aguilar
+(鶴咀) uses a guarded level-6 microhood patch. Hok Tsui Tsuen (鶴咀村) uses its existing
+Overture identity with a guarded level-6 hamlet classification and retains “Hok Tsui
+Village” as an English alias. Publisher classifications and names remain in source
+provenance.
+
+Hok Tsui Lower Village (鶴咀村, source spelling 鶴咀下村) is a distinct reviewed
+SaanSeoi supplemental level-6 hamlet. Its mapped locality point and provisional Southern
+District, Hong Kong Island and Hong Kong SAR ancestry are retained while its boundary
+awaits geometry review.
+
+Tai Tam Tuk (大潭篤) uses a guarded level-5 neighbourhood patch in the Overture division
+import, retaining its publisher microhood classification in source provenance. Tai Tam
+Tuk Village (大潭篤村) remains a distinct level-6 hamlet.
+
+Mid-Levels Central (中半山) and Happy Valley Mid-Levels (跑馬地半山) use guarded level-5
+neighbourhood patches in the Overture division import, retaining their publisher
+microhood classifications in source provenance.
+
+East Point (東角) is retained as English and Traditional Chinese alternate names of
+Causeway Bay (銅鑼灣). Its separate Overture neighbourhood is excluded from canonical
+coverage. The level-6 Tai Hang (大坑) microhood is also excluded as a duplicate of the
+retained level-5 Tai Hang neighbourhood. Both publisher assertions remain in source
+provenance.
 
 Kowloon City (九龍城) uses a guarded level-5 neighbourhood patch in the Overture
 division import; its original macrohood subtype remains in source provenance.

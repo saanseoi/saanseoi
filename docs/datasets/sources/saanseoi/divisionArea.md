@@ -86,10 +86,11 @@ the CLI assembles this edition once both native projections are available. A loc
 database reset followed by metadata sync and those source uploads recreates the edition
 from the fixtures. Remote publication is not implemented by this assembler.
 
-The exclusions in `fixtures/divisions/hk/exclusions.json` remove North Rock and Kap Ma
-Kum Tong from reviewed coverage. Kap Ma Kum Tong also has a guarded native Overture
-exclusion; North Rock is rejected in the supplemental island curation. The inventory
-generator and geometry editor apply these exclusions.
+The exclusions in `fixtures/divisions/hk/exclusions.json` remove rejected duplicate and
+unsupported identities, as well as level-6 squares, plazas and promenades, from reviewed
+coverage. Guarded native Overture exclusions preserve their publisher assertions. North
+Rock is rejected in the supplemental island curation. The inventory generator and
+geometry editor apply these exclusions.
 
 In [the local editor](http://localhost:5174/local-review/), open Cleanup, select islands
 with polygons, and choose **Clip islands to coast**. Accepted island reference polygons
