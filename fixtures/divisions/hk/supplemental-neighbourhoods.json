@@ -400,7 +400,7 @@
     "country": "HK",
     "theme": "divisions",
     "type": "division",
-    "subtype": "microhood",
+    "subtype": "neighbourhood",
     "class": null,
     "admin_level": null,
     "geometry": {
@@ -444,7 +444,7 @@
       "code": "saanseoi-hk-cape-collinson",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-requested Cape Collinson level-6 microhood addition; its representative point is the mapped locality and its boundary awaits local review."
+      "purpose": "User-requested Cape Collinson level-5 neighbourhood addition; its representative point is the mapped locality and its boundary awaits local review."
     }
   },
   {
@@ -557,6 +557,162 @@
       "version": 1,
       "reviewStatus": "reviewed",
       "purpose": "User-requested Sandy Bay Gap level-6 microhood addition; its representative point is the mapped mountain pass and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "7a719ce4-ef50-5a85-9f9a-1d0375c3eeaa",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.1978125,
+        22.3236344
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "537c8fc4-5ea5-40e8-bdb1-825d93d45059",
+    "names": {
+      "primary": "啟德體育園 Kai Tak Sports Park",
+      "common": [
+        {
+          "language": "en",
+          "value": "Kai Tak Sports Park"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "啟德體育園"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "启德体育园"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "kai-tak-sports-park"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "relation/12076859"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-kai-tak-sports-park",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Kai Tak Sports Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "f8470431-cc49-5c1a-9c97-7b75f809f125",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.1996688,
+        22.318758
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "537c8fc4-5ea5-40e8-bdb1-825d93d45059",
+    "names": {
+      "primary": "啟德都會公園 Kai Tak Metro Park",
+      "common": [
+        {
+          "language": "en",
+          "value": "Kai Tak Metro Park"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "啟德都會公園"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "启德都会公园"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "kai-tak-metro-park"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "way/887523895"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-kai-tak-metro-park",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Kai Tak Metro Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "c96f4670-4aba-566f-85e2-e7bfd905fa49",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.2120721,
+        22.3070126
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "537c8fc4-5ea5-40e8-bdb1-825d93d45059",
+    "names": {
+      "primary": "啟德郵輪碼頭 Kai Tak Cruise Terminal",
+      "common": [
+        {
+          "language": "en",
+          "value": "Kai Tak Cruise Terminal"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "啟德郵輪碼頭"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "启德邮轮码头"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "kai-tak-cruise-terminal"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "way/205719345"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-kai-tak-cruise-terminal",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Kai Tak Cruise Terminal level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
     }
   }
 ]
