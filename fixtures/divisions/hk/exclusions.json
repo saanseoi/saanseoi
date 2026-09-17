@@ -601,6 +601,22 @@
         "大坑"
       ],
       "reason": "This level 6 Tai Hang microhood duplicates the reviewed level 5 Tai Hang neighbourhood and is excluded from the hierarchy."
+    },
+    {
+      "divisionId": "7b98c68d-a4d0-46e6-bb2d-12b358c59001",
+      "names": [
+        "Kau Pui Shek",
+        "靠背石"
+      ],
+      "reason": "Historic locality; excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "c99e175c-ed9c-4e90-84de-7a506061fd16",
+      "names": [
+        "Kai Tak North",
+        "啟德北"
+      ],
+      "reason": "Excluded from reviewed Hong Kong division coverage by curator."
     }
   ]
 }
