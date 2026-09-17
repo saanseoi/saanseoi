@@ -7,20 +7,21 @@ admin level, class and subtype must match its fixture before the canonical repla
 is used. This includes the level-4 `macrohood` for Lok Ma Chau Loop and level-5
 `neighbourhood` classifications for Sai Wan Ho, Kornhill, Shau Kei Wan, So Kon Po,
 Braemar Hill and Tin Wan, and level-6 `microhood` classifications for Caroline Hill Kwun
-Chung and Gun Club Hill. Mid-Levels West is promoted from the source microhood to a
-level-5 `neighbourhood`. Sham Wan is demoted from the source macrohood to a level-6
-`microhood`; Brick Hill is demoted from the source neighbourhood to a level-6
-`microhood`. Tai Shue Wan is reclassified from the source macrohood to a level-6
-`hamlet` locality. Wan Chai South and Wan Chai North are promoted from source microhoods
-to level-5 `neighbourhood` classifications. Tamar, Fort Street Area, Lok Kang Po and
-Mount Butler are demoted to level-6 `microhood` classifications. Culture Plaza, the
-microhood Happy Valley and the neighbourhood Chai Wan are excluded from the reviewed
-hierarchy by guarded source assertions. Shouson Hill is demoted from the source
-macrohood to a level-5 `neighbourhood`, as is Wong Nai Chung Gap. Aldrich Bay already
-arrives as Overture `neighborhood` and normalises to the same canonical classification
-without a patch. Both direct normalisation and hierarchy lookup execute the same
-registered guarded rule. The [processing audit](../../processing-provenance.md) retains
-the fixture and individual decision; bulk normalisation retains declarations and counts.
+Chung and Gun Club Hill. Mid-Levels West and Tai Hang Mid-Levels are promoted from
+source microhoods to level-5 `neighbourhood` classifications. Sham Wan is demoted from
+the source macrohood to a level-6 `microhood`; Brick Hill is demoted from the source
+neighbourhood to a level-6 `microhood`. Tai Shue Wan is reclassified from the source
+macrohood to a level-6 `hamlet` locality. Wan Chai South and Wan Chai North are promoted
+from source microhoods to level-5 `neighbourhood` classifications. Tamar, Fort Street
+Area, Lok Kang Po and Mount Butler are demoted to level-6 `microhood` classifications.
+Culture Plaza, the microhood Happy Valley and the neighbourhood Chai Wan are excluded
+from the reviewed hierarchy by guarded source assertions. Shouson Hill is demoted from
+the source macrohood to a level-5 `neighbourhood`, as is Wong Nai Chung Gap. Aldrich Bay
+already arrives as Overture `neighborhood` and normalises to the same canonical
+classification without a patch. Both direct normalisation and hierarchy lookup execute
+the same registered guarded rule. The [processing audit](../../processing-provenance.md)
+retains the fixture and individual decision; bulk normalisation retains declarations and
+counts.
 
 Source Divisions retain publisher attributes in `properties`, alongside source identity,
 original `sourceGeometry`, `sources` and release history. Names, admin level, subtype,
@@ -184,7 +185,7 @@ Tai Tam Tau (大潭頭) is a reviewed SaanSeoi supplemental level-6 microhood be
 Head. Its mapped cape point and provisional Southern District, Hong Kong Island and Hong
 Kong SAR ancestry are retained while its boundary awaits geometry review.
 
-Cape Collinson (歌連臣角) is a reviewed SaanSeoi supplemental level-6 microhood. Its
+Cape Collinson (歌連臣角) is a reviewed SaanSeoi supplemental level-5 neighbourhood. Its
 mapped locality point and provisional Eastern District, Hong Kong Island and Hong Kong
 SAR ancestry are retained while its boundary awaits geometry review.
 
@@ -200,9 +201,9 @@ Bluff Head (黃麻角) uses a guarded level-5 neighbourhood patch in the Overtur
 import, retaining its publisher microhood classification in source provenance.
 
 Tai Long Wan (大浪灣) uses a guarded level-4 macrohood patch, while Cape D’Aguilar
-(鶴咀) uses a guarded level-6 microhood patch. Hok Tsui Tsuen (鶴咀村) uses its existing
-Overture identity with a guarded level-6 hamlet classification and retains “Hok Tsui
-Village” as an English alias. Publisher classifications and names remain in source
+(鶴咀) uses a guarded level-5 neighbourhood patch. Hok Tsui Tsuen (鶴咀村) uses its
+existing Overture identity with a guarded level-6 hamlet classification and retains “Hok
+Tsui Village” as an English alias. Publisher classifications and names remain in source
 provenance.
 
 Hok Tsui Lower Village (鶴咀村, source spelling 鶴咀下村) is a distinct reviewed
@@ -214,9 +215,43 @@ Tai Tam Tuk (大潭篤) uses a guarded level-5 neighbourhood patch in the Overtu
 import, retaining its publisher microhood classification in source provenance. Tai Tam
 Tuk Village (大潭篤村) remains a distinct level-6 hamlet.
 
-Mid-Levels Central (中半山) and Happy Valley Mid-Levels (跑馬地半山) use guarded level-5
+Tai Hang Mid-Levels (大坑半山), Mid-Levels Central (中半山) and Happy Valley Mid-Levels
+(跑馬地半山) use guarded level-5 neighbourhood patches in the Overture division import,
+retaining their publisher microhood classifications in source provenance.
+
+Un Chau (元洲) uses a guarded level-6 microhood patch in the Overture division import,
+retaining its publisher neighbourhood classification in source provenance.
+
+King's Park (京士柏) uses a guarded level-5 neighbourhood patch in the Overture division
+import, retaining its publisher macrohood classification in source provenance.
+
+Hung Hom Bay (紅磡灣) uses a guarded level-5 neighbourhood patch in the Overture
+division import, retaining its publisher microhood classification in source provenance.
+
+Kai Tak City Centre (啟德城中心) uses a guarded level-5 neighbourhood patch. Kai Tak
+Runway Precinct (啟德跑道區) and Kai Tak South Apron (啟德南停機坪區) use reviewed
+English names and remain level-6 microhoods. Their original Overture classifications and
+names remain in source provenance. Kai Tak Sports Park (啟德體育園), Kai Tak Metro Park
+(啟德都會公園) and Kai Tak Cruise Terminal (啟德郵輪碼頭) are reviewed supplemental
+level-6 microhood markers under the Kai Tak macrohood; their boundaries await geometry
+review. Kai Tak North (啟德北) is excluded from the reviewed hierarchy by a guarded
+Overture division patch. The publisher source assertion remains retained.
+
+Ma Tau Wai (馬頭圍), Ma Tau Kok (馬頭角) and Tai Wo Ping (大窩坪) use guarded level-5
 neighbourhood patches in the Overture division import, retaining their publisher
-microhood classifications in source provenance.
+macrohood classifications in source provenance. Kau Pui Lung (靠背壟) uses a guarded
+level-6 microhood patch, retaining its publisher neighbourhood classification.
+
+The level-6 Tsim Sha Tsui (尖沙咀) microhood is excluded as a duplicate of the retained
+level-4 Tsim Sha Tsui macrohood. The publisher assertion remains in source storage.
+
+Kau Pui Shek (靠背石) is excluded from current geographic coverage because it is a
+historic locality. Its guarded publisher assertion remains in source storage.
+
+Avenue of Comic Stars (香港漫畫星光大道), Sculpture Walk (雕塑廊), New Asia College Mall
+(小百萬大道) and both source identities for The University Mall (百萬大道) are excluded
+as visitor-attraction or campus-walkway POIs rather than geographic divisions. Publisher
+assertions remain in source storage.
 
 East Point (東角) is retained as English and Traditional Chinese alternate names of
 Causeway Bay (銅鑼灣). The distinct East Point neighbourhood assertion is excluded from

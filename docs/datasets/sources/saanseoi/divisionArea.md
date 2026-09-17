@@ -13,6 +13,20 @@ Polygon and MultiPolygon coordinates, holes and shared edges are retained exactl
 simplification, rounding, snapping or buffering runs during assembly. Review-only
 original drawings and working baselines are not published as geometry.
 
+An active drawing may carry a `corePoint` coordinate in its GeoJSON properties. The
+editor exposes the selected division's point as a draggable marker and saves a moved
+marker with that polygon. The point must be finite and inside the reviewed geometry.
+Hierarchy derivation and Division publication use it in place of the source point;
+DivisionArea publication continues to retain the polygon unchanged. Drawings without a
+reviewed core point keep their source point.
+
+The editor applies a one-time cleanup to browser-saved multipart drawings. It removes a
+detached locality polygon only when it is smaller than one hectare and less than one per
+cent of the principal polygon. Administrative divisions retain every component. An
+individual island retains its largest connected land polygon because detached polygons
+represent separate islands. The complete preceding collection remains available through
+Undo and the IndexedDB backup history.
+
 Drawings for identities withheld by curation remain in `stub-areas.json` under
 `withheld`, each with its original `feature` and a human-readable `reason`. The editor
 reconciles the seed fixture, saved browser work, undo data and imports against current
