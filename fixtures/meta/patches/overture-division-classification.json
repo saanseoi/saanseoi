@@ -175,25 +175,6 @@
       "reason": "Use Chai Wan as the canonical English name for 柴灣區 while retaining the publisher name in source storage."
     },
     {
-      "id": "overture_hong_kong_chai_wan_reclassified",
-      "source": "overture",
-      "divisionId": "5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac",
-      "names": [
-        "Chai Wan",
-        "柴灣"
-      ],
-      "expected": {
-        "adminLevel": null,
-        "class": null,
-        "subtype": "macrohood"
-      },
-      "replacement": {
-        "level": 5,
-        "class": "neighbourhood"
-      },
-      "reason": "Chai Wan is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
-    },
-    {
       "id": "overture_hong_kong_siu_sai_wan_reclassified",
       "source": "overture",
       "divisionId": "a60dba0a-41e2-4c84-ae70-05f647bd0e3a",
@@ -537,6 +518,491 @@
         "class": "neighbourhood"
       },
       "reason": "East Tsim Sha Tsui is a reviewed Hong Kong neighbourhood. Preserve the publisher classification in source storage and use neighbourhood level 5 in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_caroline_hill_reclassified",
+      "source": "overture",
+      "divisionId": "dd472098-9bbe-42fb-b4bb-12682d4b68a4",
+      "names": [
+        "Caroline Hill",
+        "加路連山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Caroline Hill is a small Hong Kong neighbourhood. Preserve the publisher classification in source storage and use microhood level 6 in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_kwun_chung_reclassified",
+      "source": "overture",
+      "divisionId": "1aae385b-4843-4ea9-b8b3-d3726764daf3",
+      "names": [
+        "Kwun Chung",
+        "官涌"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Kwun Chung is a small Hong Kong neighbourhood. Preserve the publisher classification in source storage and use microhood level 6 in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_gun_club_hill_reclassified",
+      "source": "overture",
+      "divisionId": "ff78bc6d-3d7d-42df-80ec-350b21728027",
+      "names": [
+        "Gun Club Hill",
+        "槍會山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Gun Club Hill is a small Hong Kong neighbourhood. Preserve the publisher classification in source storage and use microhood level 6 in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_mid_levels_west_reclassified",
+      "source": "overture",
+      "divisionId": "0a047469-9d4f-4101-ab9c-75560584888e",
+      "names": [
+        "Mid-Levels West",
+        "西半山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Mid-Levels West is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use neighbourhood level 5 in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_sham_wan_reclassified",
+      "source": "overture",
+      "divisionId": "cd521aae-5acd-4cca-8479-7713a584e1f2",
+      "names": [
+        "Sham Wan",
+        "深灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Sham Wan is a small Hong Kong neighbourhood. Preserve the publisher classification in source storage and use microhood level 6 in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_brick_hill_reclassified",
+      "source": "overture",
+      "divisionId": "f47dbbad-7211-4f2c-8bb0-4425d5d83e3e",
+      "names": [
+        "Brick Hill",
+        "南朗山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Brick Hill is a small Hong Kong neighbourhood. Preserve the publisher classification in source storage and use microhood level 6 in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_tai_shue_wan_reclassified",
+      "source": "overture",
+      "divisionId": "8da0dec7-a8dc-493d-b291-893fae29fc59",
+      "names": [
+        "Tai Shue Wan",
+        "大樹灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "hamlet"
+      },
+      "reason": "Tai Shue Wan is a small locality south of Nam Long Shan. Preserve the publisher classification in source storage and use hamlet level 6 in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_wan_chai_south_reclassified",
+      "source": "overture",
+      "divisionId": "04ad160c-ba32-44b8-8ab6-b7eaf7f5afe3",
+      "names": [
+        "Wan Chai South",
+        "灣仔南"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Wan Chai South is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_wan_chai_north_reclassified",
+      "source": "overture",
+      "divisionId": "b5f8964d-ed2e-4e3e-9708-038c79db43ea",
+      "names": [
+        "Wan Chai North",
+        "灣仔北"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Wan Chai North is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_tamar_reclassified",
+      "source": "overture",
+      "divisionId": "ae137810-8767-4c1d-a1d0-5adff0b633c8",
+      "names": [
+        "Tamar",
+        "添馬"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Tamar is a small Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed microhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_fort_street_area_reclassified",
+      "source": "overture",
+      "divisionId": "3ba4e85e-0bae-43cc-9590-3dbdb3ed977b",
+      "names": [
+        "Fort Street Area",
+        "堡壘街區"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Fort Street Area is a small Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed microhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_lok_kang_po_reclassified",
+      "source": "overture",
+      "divisionId": "95528b81-7107-41c5-9a49-7d45a37b2b4b",
+      "names": [
+        "Lok Kang Po",
+        "樂耕埔"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Lok Kang Po is a small Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed microhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_mount_butler_reclassified",
+      "source": "overture",
+      "divisionId": "cf5e7340-5d2d-47a3-b2df-c1136901b146",
+      "names": [
+        "Mount Butler",
+        "畢拉山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Mount Butler is a small Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed microhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_shouson_hill_reclassified",
+      "source": "overture",
+      "divisionId": "1f358117-47ce-45c7-90a4-9e5538d0b884",
+      "names": [
+        "Shouson Hill",
+        "壽臣山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Shouson Hill is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_wong_nai_chung_gap_reclassified",
+      "source": "overture",
+      "divisionId": "fbeb1745-0047-4831-b70e-d637decda7f7",
+      "names": [
+        "Wong Nai Chung Gap",
+        "黃泥涌峽"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Wong Nai Chung Gap is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_chung_hom_kok_reclassified",
+      "source": "overture",
+      "divisionId": "b15871ff-6563-4c34-b333-a58fec032fd6",
+      "names": [
+        "Chung Hom Kok",
+        "舂坎角"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Chung Hom Kok is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_ma_hang_reclassified",
+      "source": "overture",
+      "divisionId": "cc911334-7897-4c13-99a1-89c69677b51a",
+      "names": [
+        "Ma Hang",
+        "馬坑"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Ma Hang is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_bluff_head_reclassified",
+      "source": "overture",
+      "divisionId": "c1a8152b-ebb8-4ac4-92ec-9a1d27bf6421",
+      "names": [
+        "Bluff Head",
+        "黃麻角"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Bluff Head is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_tai_long_wan_reclassified",
+      "source": "overture",
+      "divisionId": "931ea57a-8db5-4f9d-9b99-31fadef286c5",
+      "names": [
+        "Tai Long Wan",
+        "大浪灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 4,
+        "class": "macrohood"
+      },
+      "reason": "Tai Long Wan is a Hong Kong macrohood. Preserve the publisher classification in source storage and use the reviewed level-4 macrohood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_cape_d_aguilar_reclassified",
+      "source": "overture",
+      "divisionId": "3dba1059-d30d-47e9-8a19-89d43c7db8d0",
+      "names": [
+        "Cape D'Aguilar",
+        "鶴咀"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Cape D'Aguilar is a Hong Kong microhood. Preserve the publisher classification in source storage and use the reviewed microhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_hok_tsui_tsuen_reclassified",
+      "source": "overture",
+      "divisionId": "45285648-a223-4780-af58-129b6f3b3540",
+      "names": [
+        "Hok Tsui Village",
+        "鶴咀村"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": "village",
+        "subtype": "locality"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "hamlet",
+        "nameEn": "Hok Tsui Tsuen",
+        "nameAltsEn": [
+          "Hok Tsui Village"
+        ]
+      },
+      "reason": "Use Hok Tsui Tsuen as the canonical English name for 鶴咀村 and classify the settlement as a level-6 hamlet. Preserve the publisher name and village classification in source storage."
+    },
+    {
+      "id": "overture_hong_kong_tai_tam_tuk_reclassified",
+      "source": "overture",
+      "divisionId": "a0883d47-ea3d-48c0-ab37-feae33f4e969",
+      "names": [
+        "Tai Tam Tuk",
+        "大潭篤"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Tai Tam Tuk is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_mid_levels_central_reclassified",
+      "source": "overture",
+      "divisionId": "cd1f2665-d2d3-4a05-b386-e992030cbd5c",
+      "names": [
+        "Mid-Levels Central",
+        "中半山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Mid-Levels Central is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_happy_valley_mid_levels_reclassified",
+      "source": "overture",
+      "divisionId": "d39ae65a-e6cc-4dcd-9186-3b041c3d1b9c",
+      "names": [
+        "Happy Valley Mid-Levels",
+        "跑馬地半山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Happy Valley Mid-Levels is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_causeway_bay_east_point_alias",
+      "source": "overture",
+      "divisionId": "af77229e-a369-422e-a664-7d97b4da08bb",
+      "names": [
+        "Causeway Bay",
+        "銅鑼灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 4,
+        "class": "macrohood",
+        "nameAltsEn": [
+          "East Point"
+        ],
+        "nameAltsZhHant": [
+          "東角"
+        ]
+      },
+      "reason": "Retain East Point 東角 as reviewed English and Traditional Chinese aliases of Causeway Bay 銅鑼灣."
     }
   ]
 }

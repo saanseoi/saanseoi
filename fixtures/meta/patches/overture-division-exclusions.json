@@ -47,6 +47,1101 @@
         "subtype": "macrohood"
       },
       "reason": "No evidence supports this geographic division. Exclude it from canonical coverage while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_culture_plaza_excluded",
+      "source": "overture",
+      "divisionId": "37e9807f-5404-461c-ba18-db54e942a898",
+      "names": [
+        "Culture Plaza",
+        "文化廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "Culture Plaza is excluded from the reviewed Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_happy_valley_microhood_excluded",
+      "source": "overture",
+      "divisionId": "8c62eda7-887c-40a0-84f2-5d3569d34b94",
+      "names": [
+        "Happy Valley",
+        "跑馬地"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This duplicate Happy Valley microhood is excluded from the reviewed Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_chai_wan_neighbourhood_excluded",
+      "source": "overture",
+      "divisionId": "5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac",
+      "names": [
+        "Chai Wan",
+        "柴灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "reason": "This Chai Wan neighbourhood is excluded from the reviewed Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_ocean_square_06f5c76f_excluded",
+      "source": "overture",
+      "divisionId": "06f5c76f-35fb-42ea-9835-65e047160866",
+      "names": [
+        "Ocean Square",
+        "海洋廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_olympic_square_0aa7500f_excluded",
+      "source": "overture",
+      "divisionId": "0aa7500f-47af-438c-8e53-12dbd8f15507",
+      "names": [
+        "Olympic Square",
+        "奧林匹克廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_tin_hau_temple_plaza_0b20b0ab_excluded",
+      "source": "overture",
+      "divisionId": "0b20b0ab-3910-42b8-8b82-2037c424430a",
+      "names": [
+        "Tin Hau Temple Plaza",
+        "天后廟廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_town_square_0e37bb26_excluded",
+      "source": "overture",
+      "divisionId": "0e37bb26-ab54-4967-b5b5-69c56e3a8629",
+      "names": [
+        "Town Square",
+        "小鎮廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_ginza_square_10939c86_excluded",
+      "source": "overture",
+      "divisionId": "10939c86-c6bf-47e1-bb57-994b173b1ce5",
+      "names": [
+        "Ginza Square",
+        "銀座廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_circular_plaza_12a993a0_excluded",
+      "source": "overture",
+      "divisionId": "12a993a0-fd13-44ff-a742-44590f3182e8",
+      "names": [
+        "Circular plaza",
+        "圓形廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_yuen_long_jockey_club_town_square_1fbcf2b4_excluded",
+      "source": "overture",
+      "divisionId": "1fbcf2b4-0acc-40db-9fe1-92cc02a541d2",
+      "names": [
+        "Yuen Long Jockey Club Town Square",
+        "元朗賽馬會廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_circular_plaza_254c87e0_excluded",
+      "source": "overture",
+      "divisionId": "254c87e0-2f32-4abd-a911-a95999dc38c2",
+      "names": [
+        "Circular plaza",
+        "圓形廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_william_m_w_mong_courtyard_2a6057d1_excluded",
+      "source": "overture",
+      "divisionId": "2a6057d1-b529-4931-99c2-3adf978e46e9",
+      "names": [
+        "William M.W. Mong Courtyard",
+        "蒙民偉廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_noah_s_ark_entrance_plaza_2ad9a1ba_excluded",
+      "source": "overture",
+      "divisionId": "2ad9a1ba-920e-4369-9a35-6631ee0c8300",
+      "names": [
+        "Noah's Ark Entrance Plaza",
+        "挪亞方舟入口廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_the_way_33cae81d_excluded",
+      "source": "overture",
+      "divisionId": "33cae81d-37ee-4d45-ae01-7dd662e75c46",
+      "names": [
+        "The Way",
+        "道生廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_statue_square_35acdd77_excluded",
+      "source": "overture",
+      "divisionId": "35acdd77-5dba-4412-8a6e-5a9959a76d19",
+      "names": [
+        "Statue Square",
+        "皇后像廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_summit_plaza_36947839_excluded",
+      "source": "overture",
+      "divisionId": "36947839-7da9-4fba-84fb-93c989fe6f1e",
+      "names": [
+        "Summit Plaza",
+        "高峰廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_central_square_3b1bddb7_excluded",
+      "source": "overture",
+      "divisionId": "3b1bddb7-4183-41e6-a545-35eff840e951",
+      "names": [
+        "Central Square",
+        "中央廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_amphitheatre_3f822307_excluded",
+      "source": "overture",
+      "divisionId": "3f822307-a355-45cf-8f13-554355e7b916",
+      "names": [
+        "Amphitheatre",
+        "羅馬廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_south_pavilion_plaza_42510288_excluded",
+      "source": "overture",
+      "divisionId": "42510288-7278-4cdf-b9d2-4bec4d5917a5",
+      "names": [
+        "South Pavilion Plaza",
+        "南亭廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_kai_tak_station_square_44a22c9d_excluded",
+      "source": "overture",
+      "divisionId": "44a22c9d-d225-497a-93af-e32d6b1bc168",
+      "names": [
+        "Kai Tak Station Square",
+        "啟德車站廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_welcome_plaza_47ae1bfd_excluded",
+      "source": "overture",
+      "divisionId": "47ae1bfd-faf7-4dca-9fbe-31e88547ceeb",
+      "names": [
+        "Welcome Plaza",
+        "主廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_edinburgh_place_4dcf8ac4_excluded",
+      "source": "overture",
+      "divisionId": "4dcf8ac4-e046-4dfb-a946-5a87625ec25b",
+      "names": [
+        "Edinburgh Place",
+        "愛丁堡廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_the_podium_5144b56f_excluded",
+      "source": "overture",
+      "divisionId": "5144b56f-8c7c-4d8a-a77f-478070b8eea7",
+      "names": [
+        "The Podium",
+        "數碼廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_ground_plaza_57701665_excluded",
+      "source": "overture",
+      "divisionId": "57701665-c2fe-43f5-932d-0b6f7bcceee9",
+      "names": [
+        "Ground Plaza",
+        "地下廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_grand_plaza_62b8361b_excluded",
+      "source": "overture",
+      "divisionId": "62b8361b-7b0e-4aef-81c9-c03a18ce4cbb",
+      "names": [
+        "Grand Plaza",
+        "大廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_hsmc_square_635de50f_excluded",
+      "source": "overture",
+      "divisionId": "635de50f-369e-48a3-b349-4894c8c99a63",
+      "names": [
+        "HSMC Square",
+        "恒管廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_wong_tai_sin_square_70e8c2ae_excluded",
+      "source": "overture",
+      "divisionId": "70e8c2ae-10b4-4541-a7ff-c103084dd1fb",
+      "names": [
+        "Wong Tai Sin Square",
+        "黃大仙廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_golden_bauhinia_square_71ad003f_excluded",
+      "source": "overture",
+      "divisionId": "71ad003f-a328-4253-b308-c70ab903a46a",
+      "names": [
+        "Golden Bauhinia Square",
+        "金紫荊廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_plaza_13_31_750f1fbc_excluded",
+      "source": "overture",
+      "divisionId": "750f1fbc-a62e-4a16-8a2a-4d696e528200",
+      "names": [
+        "Plaza 13/31",
+        "13/31廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_green_plaza_7863c770_excluded",
+      "source": "overture",
+      "divisionId": "7863c770-4b03-4ffd-83e9-819ac0d9a6de",
+      "names": [
+        "Green Plaza",
+        "綠化廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_harbour_view_square_7921d08e_excluded",
+      "source": "overture",
+      "divisionId": "7921d08e-a793-4b93-a5d6-8ef4b32697ef",
+      "names": [
+        "Harbour View Square",
+        "海濱廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_aberdeen_square_817f1aab_excluded",
+      "source": "overture",
+      "divisionId": "817f1aab-5ee2-4162-b900-01779aa308ec",
+      "names": [
+        "Aberdeen Square",
+        "香港仔廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_civic_square_82ff6e65_excluded",
+      "source": "overture",
+      "divisionId": "82ff6e65-f93b-477f-8eb7-a249c50ad6a2",
+      "names": [
+        "Civic Square",
+        "演薈廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_cultural_square_83691f63_excluded",
+      "source": "overture",
+      "divisionId": "83691f63-8bee-411f-a515-39abc20d2da5",
+      "names": [
+        "Cultural Square",
+        "文化廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_sha_tau_kok_plaza_district_9_8966e4cc_excluded",
+      "source": "overture",
+      "divisionId": "8966e4cc-1e4e-4a6e-8735-9e24301b1a17",
+      "names": [
+        "Sha Tau Kok Plaza (District 9)",
+        "沙頭角廣場(九區)"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_long_ping_estate_plaza_8da11c48_excluded",
+      "source": "overture",
+      "divisionId": "8da11c48-b6c4-4839-bcdb-aafedce03265",
+      "names": [
+        "Long Ping Estate Plaza",
+        "朗屏邨八角廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_sheung_wan_cultural_square_8e950523_excluded",
+      "source": "overture",
+      "divisionId": "8e950523-6ea1-4e56-8028-a19fb056228b",
+      "names": [
+        "Sheung Wan Cultural Square",
+        "上環文化廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_lai_shuk_ying_memorial_square_8f62e3a1_excluded",
+      "source": "overture",
+      "divisionId": "8f62e3a1-f1ff-4853-84dd-f017519a21de",
+      "names": [
+        "Lai Shuk Ying Memorial Square",
+        "黎淑英紀念廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_kin_sun_square_95c48036_excluded",
+      "source": "overture",
+      "divisionId": "95c48036-8a47-4922-a3e7-8a2133b3f74e",
+      "names": [
+        "Kin Sun Square",
+        "乾新坊"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_theatre_a00099bc_excluded",
+      "source": "overture",
+      "divisionId": "a00099bc-003c-4f03-9304-9f0f0d8615d1",
+      "names": [
+        "Theatre",
+        "露天廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_waterfront_plaza_a25dbc0f_excluded",
+      "source": "overture",
+      "divisionId": "a25dbc0f-71df-418a-b2cb-8e9a646a586a",
+      "names": [
+        "Waterfront Plaza",
+        "海濱樂園廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_marine_square_aa9d6a2a_excluded",
+      "source": "overture",
+      "divisionId": "aa9d6a2a-0c2e-4485-8628-55d7ec734d2b",
+      "names": [
+        "Marine Square",
+        "海洋廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_tang_ping_yuan_square_ace2e35e_excluded",
+      "source": "overture",
+      "divisionId": "ace2e35e-b493-41c2-9fd4-efe7fee6f9e6",
+      "names": [
+        "Tang Ping Yuan Square",
+        "唐炳源廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_piazza_bd1b2577_excluded",
+      "source": "overture",
+      "divisionId": "bd1b2577-4b5e-4862-973c-5716d277e566",
+      "names": [
+        "Piazza",
+        "廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_the_square_c0437a28_excluded",
+      "source": "overture",
+      "divisionId": "c0437a28-ea5e-474a-aa84-16d6d76f3487",
+      "names": [
+        "The Square",
+        "方院"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_tai_ming_lane_square_c07ee407_excluded",
+      "source": "overture",
+      "divisionId": "c07ee407-3be1-4ca0-919d-021c9069cbb7",
+      "names": [
+        "Tai Ming Lane Square",
+        "大明里廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_eastern_district_cultural_square_c183120a_excluded",
+      "source": "overture",
+      "divisionId": "c183120a-117c-479f-adf1-d7fd8d7effc3",
+      "names": [
+        "Eastern District Cultural Square",
+        "東區文化廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_the_forum_c2d093ad_excluded",
+      "source": "overture",
+      "divisionId": "c2d093ad-5e2f-407e-a209-630eb2f384df",
+      "names": [
+        "The Forum",
+        "議事廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_cultural_plaza_c3129b00_excluded",
+      "source": "overture",
+      "divisionId": "c3129b00-2c9a-4e23-9bed-4e33d3bbd980",
+      "names": [
+        "Cultural Plaza",
+        "文化廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_suen_chi_sun_memorial_square_cc910ea6_excluded",
+      "source": "overture",
+      "divisionId": "cc910ea6-105e-4cb5-96f1-956d70d08529",
+      "names": [
+        "Suen Chi Sun Memorial Square",
+        "孫志新紀念廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_chan_sui_kau_and_chan_lam_moon_chun_square_d1f4c258_excluded",
+      "source": "overture",
+      "divisionId": "d1f4c258-bb57-447b-a38f-ccdcf4bb2024",
+      "names": [
+        "Chan Sui Kau and Chan Lam Moon Chun Square",
+        "陳瑞球林滿珍伉儷廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_tsui_ping_amphitheatre_da8af9d5_excluded",
+      "source": "overture",
+      "divisionId": "da8af9d5-a4da-4c6a-b507-155f3ad4ae24",
+      "names": [
+        "Tsui Ping Amphitheatre",
+        "翠屏羅馬廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_ho_iu_kwong_kwok_pui_chun_square_dce76cda_excluded",
+      "source": "overture",
+      "divisionId": "dce76cda-77ff-4ae9-83aa-c87abc34370e",
+      "names": [
+        "Ho Iu Kwong & Kwok Pui Chun Square",
+        "何耀光郭佩珍伉儷廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_yau_oi_square_e0a6b266_excluded",
+      "source": "overture",
+      "divisionId": "e0a6b266-8190-47c3-9c7c-4cb94587d47c",
+      "names": [
+        "Yau Oi Square",
+        "友愛廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_wing_on_plaza_e8168fc2_excluded",
+      "source": "overture",
+      "divisionId": "e8168fc2-7e85-4ed1-9566-f2253523bba4",
+      "names": [
+        "Wing On Plaza",
+        "永安廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_flora_plaza_f109ba37_excluded",
+      "source": "overture",
+      "divisionId": "f109ba37-64d3-4e1e-8a15-308b5a6b3e48",
+      "names": [
+        "Flora Plaza",
+        "花花廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_tuen_mun_cultural_square_f3f74f54_excluded",
+      "source": "overture",
+      "divisionId": "f3f74f54-b91f-4721-b12c-d3be30f65132",
+      "names": [
+        "Tuen Mun Cultural Square",
+        "屯門文娛廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_entrance_plaza_fcb0a9a9_excluded",
+      "source": "overture",
+      "divisionId": "fcb0a9a9-5270-4d10-b155-5c8bfa748dbd",
+      "names": [
+        "Entrance Plaza",
+        "大澳入口廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_eastern_plaza_3e2173fb_excluded",
+      "source": "overture",
+      "divisionId": "3e2173fb-7721-4159-9d52-f3f1b0248b79",
+      "names": [
+        "Eastern Plaza",
+        "東籬廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_golden_mean_plaza_aa3c5f77_excluded",
+      "source": "overture",
+      "divisionId": "aa3c5f77-2cb4-48ae-b70f-f7be87f2485d",
+      "names": [
+        "Golden Mean Plaza",
+        "金律廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_aviation_square_715c75c6_excluded",
+      "source": "overture",
+      "divisionId": "715c75c6-f886-483a-8aeb-96893eeb60f8",
+      "names": [
+        "Aviation Square",
+        "飛機廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_anchor_plaza_17dbd6d8_excluded",
+      "source": "overture",
+      "divisionId": "17dbd6d8-5037-42a6-9375-8d09f1604b78",
+      "names": [
+        "Anchor Plaza",
+        "賽馬會海事廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_wen_lan_square_0f285434_excluded",
+      "source": "overture",
+      "divisionId": "0f285434-0663-491f-a6cd-c2031710044d",
+      "names": [
+        "Wen Lan Square",
+        "文瀾前地"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_lam_tai_fai_amphitheatre_19e6838a_excluded",
+      "source": "overture",
+      "divisionId": "19e6838a-1faa-408c-90e7-fb9da971543a",
+      "names": [
+        "Lam Tai Fai Amphitheatre",
+        "林大輝廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_bamboo_plaza_40036b5d_excluded",
+      "source": "overture",
+      "divisionId": "40036b5d-cf27-45fe-b39a-f3145a707f4b",
+      "names": [
+        "Bamboo Plaza",
+        "竹林廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_airside_plaza_6fdb1e6c_excluded",
+      "source": "overture",
+      "divisionId": "6fdb1e6c-f46c-45e6-985a-f59c341fdfac",
+      "names": [
+        "AIRSIDE Plaza",
+        "AIRSIDE 露天廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_new_asia_concourse_c87f35b7_excluded",
+      "source": "overture",
+      "divisionId": "c87f35b7-7894-43c7-a495-0aaae2666a50",
+      "names": [
+        "New Asia Concourse",
+        "圓形廣場"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 square is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_expo_promenade_excluded",
+      "source": "overture",
+      "divisionId": "f9d753ff-a601-4345-84dd-31ea8b0c23de",
+      "names": [
+        "Expo Promenade",
+        "博覽海濱花園"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 promenade is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_east_wing_forecourt_excluded",
+      "source": "overture",
+      "divisionId": "f2c19edf-36b7-4078-b101-95ae60b0193f",
+      "names": [
+        "East Wing Forecourt",
+        "東翼前地"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 forecourt is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_south_bay_garden_excluded",
+      "source": "overture",
+      "divisionId": "1deda0f6-c887-4987-8d29-74ae24b90780",
+      "names": [
+        "South Bay Garden",
+        "南灣花園"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "reason": "South Bay Garden is a residential development and is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_shek_pai_wan_excluded",
+      "source": "overture",
+      "divisionId": "5b44a59f-8a88-4b7f-addc-d74b79aad31a",
+      "names": [
+        "Shek Pai Wan",
+        "石排灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "Shek Pai Wan is excluded from the canonical Hong Kong division hierarchy while retaining publisher source evidence."
+    },
+    {
+      "id": "overture_hong_kong_east_point_causeway_bay_alias",
+      "source": "overture",
+      "divisionId": "c982f940-8e30-4ae6-87d8-6fd73a335217",
+      "names": [
+        "East Point",
+        "東角"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "reason": "East Point is a synonym of Causeway Bay and is excluded as a duplicate canonical division while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_tai_hang_microhood_excluded",
+      "source": "overture",
+      "divisionId": "a21076d4-1c2c-4a79-94d8-90c582a9bc5c",
+      "names": [
+        "Tai Hang",
+        "大坑"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "reason": "This level 6 Tai Hang microhood duplicates the reviewed level 5 Tai Hang neighbourhood and is excluded from canonical coverage while retaining the publisher source assertion."
     }
   ]
 }
