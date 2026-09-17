@@ -188,5 +188,375 @@
       "reviewStatus": "reviewed",
       "purpose": "User-reviewed Lei Cheng Uk neighbourhood addition; geometry awaits local review."
     }
+  },
+  {
+    "id": "86e53121-284a-5640-aaa3-bc28a3703ff7",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.1556,
+        22.2808
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d",
+    "names": {
+      "primary": "蘭桂坊 Lan Kwai Fong",
+      "common": [
+        {
+          "language": "en",
+          "value": "Lan Kwai Fong"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "蘭桂坊"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "lan-kwai-fong"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-lan-kwai-fong",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Lan Kwai Fong microhood addition; its representative point is on Lan Kwai Fong and geometry awaits local review."
+    }
+  },
+  {
+    "id": "f6207b8e-e4a4-54a2-9c1b-0a9a6291447e",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.1511702,
+        22.2833691
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "64a1b3b8-ee9e-4193-bc22-e5abca06cf1c",
+    "names": {
+      "primary": "卅間 Thirty Houses",
+      "common": [
+        {
+          "language": "en",
+          "value": "Thirty Houses"
+        },
+        {
+          "language": "en",
+          "value": "30 Houses"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "卅間"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "三十間"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "卅间"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "三十间"
+        }
+      ]
+    },
+    "wikidata": "Q10905033",
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "thirty-houses"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-thirty-houses",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-requested Thirty Houses level-6 microhood addition; its representative point is within the historic community and geometry awaits local review."
+    }
+  },
+  {
+    "id": "7a3c5e91-95c2-5c93-8e3c-7d5b5d3bb6e7",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "neighborhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.2281758,
+        22.2574719
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "01b58985-268d-4b8a-8e09-64604668b13e",
+    "names": {
+      "primary": "大潭峽 Tai Tam Gap",
+      "common": [
+        {
+          "language": "en",
+          "value": "Tai Tam Gap"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "大潭峽"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "大潭峡"
+        }
+      ]
+    },
+    "wikidata": "Q10936624",
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "tai-tam-gap"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-tai-tam-gap",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-requested Tai Tam Gap level-5 neighbourhood addition; its representative point is the mapped mountain pass and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "1105e168-19e9-5c1c-abda-588f9f15d84c",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.2187883,
+        22.1951389
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a",
+    "names": {
+      "primary": "大潭頭 Tai Tam Tau",
+      "common": [
+        {
+          "language": "en",
+          "value": "Tai Tam Tau"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "大潭頭"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "大潭头"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "tai-tam-tau"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "node/1128001275"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-tai-tam-tau",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-requested Tai Tam Tau level-6 microhood addition beside Bluff Head; its representative point is the mapped cape and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "0ae98281-dc7d-52f3-861d-dd47af906fe1",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.2453662,
+        22.2582498
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "01b58985-268d-4b8a-8e09-64604668b13e",
+    "names": {
+      "primary": "歌連臣角 Cape Collinson",
+      "common": [
+        {
+          "language": "en",
+          "value": "Cape Collinson"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "歌連臣角"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "歌连臣角"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "cape-collinson"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "node/8736436992"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-cape-collinson",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-requested Cape Collinson level-6 microhood addition; its representative point is the mapped locality and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "182d0a4c-99b4-5811-bd28-15d5c3bc339d",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "locality",
+    "class": "hamlet",
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.2420554,
+        22.2101577
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a",
+    "names": {
+      "primary": "鶴咀村 Hok Tsui Lower Village",
+      "common": [
+        {
+          "language": "en",
+          "value": "Hok Tsui Lower Village"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "鶴咀村"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "鶴咀下村"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "鹤咀村"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "鹤咀下村"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "hok-tsui-lower-village"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "node/2741299690"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-hok-tsui-lower-village",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-requested Hok Tsui Lower Village level-6 hamlet addition; its representative point is the mapped locality and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "7bf6763f-7384-5233-8568-a24c10789432",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.1293839,
+        22.2758724
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d",
+    "names": {
+      "primary": "沙灣坳 Sandy Bay Gap",
+      "common": [
+        {
+          "language": "en",
+          "value": "Sandy Bay Gap"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "沙灣坳"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "沙湾坳"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "sandy-bay-gap"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "node/9520791845"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-sandy-bay-gap",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-requested Sandy Bay Gap level-6 microhood addition; its representative point is the mapped mountain pass and its boundary awaits local review."
+    }
   }
 ]
