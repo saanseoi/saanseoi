@@ -1214,6 +1214,63 @@
         "nameEn": "Kai Tak South Apron"
       },
       "reason": "Kai Tak South Apron is a Hong Kong microhood. Preserve the publisher Kai Tak South Apron Area name in source storage and use the reviewed English name in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_nga_tsin_wai_reclassified",
+      "source": "overture",
+      "divisionId": "ac162f33-9966-4d6e-9d53-8a6df575775f",
+      "names": [
+        "Nga Tsin Wai",
+        "衙前圍"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "neighborhood"
+      },
+      "replacement": {
+        "level": 6,
+        "class": "microhood"
+      },
+      "reason": "Nga Tsin Wai is a Hong Kong microhood. Preserve the publisher classification in source storage and use the reviewed level-6 microhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_chuk_yuen_reclassified",
+      "source": "overture",
+      "divisionId": "5e8e3793-9b4c-4ad0-a6d5-48310df83428",
+      "names": [
+        "Chuk Yuen",
+        "竹園"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "microhood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Chuk Yuen is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed level-5 neighbourhood classification in canonical records and hierarchy lookup."
+    },
+    {
+      "id": "overture_hong_kong_wang_tau_hom_reclassified",
+      "source": "overture",
+      "divisionId": "a0a99bd7-7336-4390-97cc-d61dd553697c",
+      "names": [
+        "Wang Tau Hom",
+        "橫頭磡"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "replacement": {
+        "level": 5,
+        "class": "neighbourhood"
+      },
+      "reason": "Wang Tau Hom is a Hong Kong neighbourhood. Preserve the publisher classification in source storage and use the reviewed level-5 neighbourhood classification in canonical records and hierarchy lookup."
     }
   ]
 }

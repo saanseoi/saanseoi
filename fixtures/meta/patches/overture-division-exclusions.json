@@ -1262,6 +1262,96 @@
         "subtype": "neighborhood"
       },
       "reason": "Kai Tak North is excluded from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_high_island_macrohood_excluded",
+      "source": "overture",
+      "divisionId": "0eb68e06-4951-41ef-afe9-cbced12cd7e6",
+      "names": [
+        "High Island",
+        "糧船灣"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "reason": "High Island is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_po_toi_islands_macrohood_excluded",
+      "source": "overture",
+      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
+      "names": [
+        "Po Toi Islands",
+        "蒲台群島"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "reason": "Po Toi Islands is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_soko_islands_macrohood_excluded",
+      "source": "overture",
+      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
+      "names": [
+        "Soko Islands",
+        "索罟群島"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "reason": "Soko Islands is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_lamma_island_macrohood_excluded",
+      "source": "overture",
+      "divisionId": "2a938b4b-1803-4e35-97ca-f4c4ed2ed108",
+      "names": [
+        "Lamma Island",
+        "南丫島"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "reason": "Lamma Island is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_stonecutters_island_macrohood_excluded",
+      "source": "overture",
+      "divisionId": "c81690db-fae9-4802-8745-fd6d96ca9f60",
+      "names": [
+        "Stonecutters Island",
+        "昂船洲"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "reason": "Stonecutters Island is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
+    },
+    {
+      "id": "overture_hong_kong_lantau_macrohood_excluded",
+      "source": "overture",
+      "divisionId": "d5ea5db9-fe81-4156-abeb-f00c0debb48a",
+      "names": [
+        "Lantau",
+        "大嶼山"
+      ],
+      "expected": {
+        "adminLevel": null,
+        "class": null,
+        "subtype": "macrohood"
+      },
+      "reason": "Lantau is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
     }
   ]
 }
