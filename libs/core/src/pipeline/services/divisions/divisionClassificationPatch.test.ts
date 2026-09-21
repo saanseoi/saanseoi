@@ -595,6 +595,57 @@ test('Ma Tau Wai, Ma Tau Kok and Tai Wo Ping are guarded level-5 neighbourhoods'
   }
 })
 
+test('Wang Tau Hom is a guarded level-5 neighbourhood', () => {
+  const row = {
+    id: 'a0a99bd7-7336-4390-97cc-d61dd553697c',
+    admin_level: null,
+    class: null,
+    subtype: 'macrohood',
+  }
+  expect(
+    normaliseDivisionRow(row, {
+      source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+    }).base,
+  ).toMatchObject({ id: row.id, category: 'hood', class: 'neighbourhood', level: 5 })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Chuk Yuen is a guarded level-5 neighbourhood', () => {
+  const row = {
+    id: '5e8e3793-9b4c-4ad0-a6d5-48310df83428',
+    admin_level: null,
+    class: null,
+    subtype: 'microhood',
+  }
+  expect(
+    normaliseDivisionRow(row, {
+      source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+    }).base,
+  ).toMatchObject({ id: row.id, category: 'hood', class: 'neighbourhood', level: 5 })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'macrohood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Nga Tsin Wai is a guarded level-6 microhood', () => {
+  const row = {
+    id: 'ac162f33-9966-4d6e-9d53-8a6df575775f',
+    admin_level: null,
+    class: null,
+    subtype: 'neighborhood',
+  }
+  expect(
+    normaliseDivisionRow(row, {
+      source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+    }).base,
+  ).toMatchObject({ id: row.id, category: 'hood', class: 'microhood', level: 6 })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
+
 test('Bluff Head is a guarded level-5 neighbourhood', () => {
   const row = {
     id: 'c1a8152b-ebb8-4ac4-92ec-9a1d27bf6421',

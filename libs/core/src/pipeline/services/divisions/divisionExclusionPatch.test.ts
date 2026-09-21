@@ -167,6 +167,41 @@ test('Kai Tak North retains a guarded exclusion', () => {
   )
 })
 
+test('whole-island and island-group macrohoods retain guarded exclusions', () => {
+  for (const [id, patchId] of [
+    [
+      '0eb68e06-4951-41ef-afe9-cbced12cd7e6',
+      'overture_hong_kong_high_island_macrohood_excluded',
+    ],
+    [
+      '13363714-2649-4066-935d-c24757ff2a86',
+      'overture_hong_kong_po_toi_islands_macrohood_excluded',
+    ],
+    [
+      '15de4c83-f54a-4eaa-b002-c88de1f8c310',
+      'overture_hong_kong_soko_islands_macrohood_excluded',
+    ],
+    [
+      '2a938b4b-1803-4e35-97ca-f4c4ed2ed108',
+      'overture_hong_kong_lamma_island_macrohood_excluded',
+    ],
+    [
+      'c81690db-fae9-4802-8745-fd6d96ca9f60',
+      'overture_hong_kong_stonecutters_island_macrohood_excluded',
+    ],
+    [
+      'd5ea5db9-fe81-4156-abeb-f00c0debb48a',
+      'overture_hong_kong_lantau_macrohood_excluded',
+    ],
+  ] as const) {
+    const row = { id, admin_level: null, class: null, subtype: 'macrohood' }
+    expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)
+    expect(() =>
+      applyDivisionExclusionPatch({ ...row, subtype: 'neighborhood' }),
+    ).toThrow('guard mismatch')
+  }
+})
+
 test('visitor-attraction and campus-walkway POIs retain guarded exclusions', () => {
   for (const [id, patchId] of [
     [
