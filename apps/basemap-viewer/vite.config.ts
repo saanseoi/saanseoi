@@ -40,7 +40,7 @@ export default defineConfig({
     port: 5174,
     strictPort: true,
     allowedHosts: ['basemaps.localhost'],
-    hmr: { clientPort: 80 },
+    hmr: { clientPort: 5174 },
   },
   preview: { port: 4173, strictPort: true },
   test: { environment: 'node' },
