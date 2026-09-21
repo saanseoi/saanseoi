@@ -117,7 +117,7 @@
     "./apiFieldInputs": "./src/apiFieldInputs.ts"
   },
   "dependencies": {
-    "@clack/prompts": "^1.8.0",
+    "@clack/prompts": "^1.8.1",
     "@types/bun": "^1.4.2",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c"
   },
