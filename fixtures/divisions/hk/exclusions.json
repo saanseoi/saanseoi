@@ -617,6 +617,54 @@
         "啟德北"
       ],
       "reason": "Excluded from reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "0eb68e06-4951-41ef-afe9-cbced12cd7e6",
+      "names": [
+        "High Island",
+        "糧船灣"
+      ],
+      "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
+    },
+    {
+      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
+      "names": [
+        "Po Toi Islands",
+        "蒲台群島"
+      ],
+      "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
+    },
+    {
+      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
+      "names": [
+        "Soko Islands",
+        "索罟群島"
+      ],
+      "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
+    },
+    {
+      "divisionId": "2a938b4b-1803-4e35-97ca-f4c4ed2ed108",
+      "names": [
+        "Lamma Island",
+        "南丫島"
+      ],
+      "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
+    },
+    {
+      "divisionId": "c81690db-fae9-4802-8745-fd6d96ca9f60",
+      "names": [
+        "Stonecutters Island",
+        "昂船洲"
+      ],
+      "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
+    },
+    {
+      "divisionId": "d5ea5db9-fe81-4156-abeb-f00c0debb48a",
+      "names": [
+        "Lantau",
+        "大嶼山"
+      ],
+      "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
     }
   ]
 }
