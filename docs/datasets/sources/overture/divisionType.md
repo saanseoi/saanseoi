@@ -291,3 +291,19 @@ also applies it to an existing native projection.
 The reviewed coverage excludes Kap Ma Kum Tong (蛤䗫擒塘 / 蛤蟆擒塘) through
 `overture-division-exclusions.json`. North Rock is excluded through the supplemental
 SaanSeoi island curation and shared reviewed-coverage exclusion fixture.
+
+Overture macrohoods that represent whole islands or island groups are excluded from
+canonical coverage by guarded source assertions: High Island (糧船灣), Po Toi Islands
+(蒲台群島), Soko Islands (索罟群島), Lamma Island (南丫島), Stonecutters Island
+(昂船洲), and the duplicate Lantau (大嶼山) macrohood. Their landform identities remain
+available; separate named settlement divisions, including Cheung Chau and Ap Lei Chau,
+are retained.
+
+Wang Tau Hom (橫頭磡) uses a guarded level-5 neighbourhood patch in the Overture
+division import, retaining its publisher macrohood classification in source provenance.
+
+Chuk Yuen (竹園) uses a guarded level-5 neighbourhood patch in the Overture division
+import, retaining its publisher microhood classification in source provenance.
+
+Nga Tsin Wai (衙前圍) uses a guarded level-6 microhood patch in the Overture division
+import, retaining its publisher neighbourhood classification in source provenance.

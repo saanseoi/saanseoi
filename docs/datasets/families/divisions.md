@@ -1057,10 +1057,24 @@ markers under the Kai Tak macrohood; their boundaries await geometry review. Kai
 North (啟德北) is excluded from reviewed coverage through a guarded Overture source
 assertion; its publisher record remains in source storage.
 
+Whole-island and island-group source macrohoods are excluded from reviewed coverage:
+High Island (糧船灣), Po Toi Islands (蒲台群島), Soko Islands (索罟群島), Lamma Island
+(南丫島), Stonecutters Island (昂船洲), and the duplicate Lantau (大嶼山) macrohood.
+Their island landforms remain independently available. Named settlement divisions such
+as Cheung Chau and Ap Lei Chau remain separate locality identities.
+
 Ma Tau Wai (馬頭圍), Ma Tau Kok (馬頭角) and Tai Wo Ping (大窩坪) use guarded level-5
 neighbourhood patches in the Overture division import, retaining their publisher
 macrohood classifications in source provenance. Kau Pui Lung (靠背壟) uses a guarded
-level-6 microhood patch, retaining its publisher neighbourhood classification.
+level-6 microhood patch, retaining its publisher neighbourhood classification. Wang Tau
+Hom (橫頭磡) uses a guarded level-5 neighbourhood patch, retaining its publisher
+macrohood classification in source provenance.
+
+Chuk Yuen (竹園) uses a guarded level-5 neighbourhood patch, retaining its publisher
+microhood classification in source provenance.
+
+Nga Tsin Wai (衙前圍) uses a guarded level-6 microhood patch, retaining its publisher
+neighbourhood classification in source provenance.
 
 The level-6 Tsim Sha Tsui (尖沙咀) microhood is excluded as a duplicate of the retained
 level-4 Tsim Sha Tsui macrohood. The publisher assertion remains in source provenance.
