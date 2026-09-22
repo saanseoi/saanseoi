@@ -1070,11 +1070,35 @@ level-6 microhood patch, retaining its publisher neighbourhood classification. W
 Hom (橫頭磡) uses a guarded level-5 neighbourhood patch, retaining its publisher
 macrohood classification in source provenance.
 
-Chuk Yuen (竹園) uses a guarded level-5 neighbourhood patch, retaining its publisher
-microhood classification in source provenance.
+Chuk Yuen and Chuk Un, with the Traditional Chinese name 竹園, are retained as aliases
+of Wong Tai Sin (黃大仙). The duplicate Chuk Yuen marker is excluded from reviewed
+coverage through a guarded Overture source assertion.
 
-Nga Tsin Wai (衙前圍) uses a guarded level-6 microhood patch, retaining its publisher
-neighbourhood classification in source provenance.
+Chuk Yuen United Village (竹園聯合村) is excluded from current reviewed coverage because
+the settlement has been demolished; the guarded Overture assertion remains in source
+provenance.
+
+Ngau Chi Wan Village (牛池灣村) is excluded from current reviewed coverage through a
+guarded Overture source assertion.
+
+Nga Tsin Wai (衙前圍) is excluded from current reviewed coverage through a guarded
+Overture source assertion.
+
+Tung Tau (東頭) is excluded from current reviewed coverage through a guarded Overture
+source assertion.
+
+Fung Wong New Village (鳳凰新村) uses a guarded level-6 microhood patch, retaining its
+publisher neighbourhood classification in source provenance.
+
+Ping Shek (坪石) uses a guarded level-6 microhood patch, retaining its publisher
+macrohood classification in source provenance.
+
+Kai Tak Grid Neighbourhood (啟德坊) uses a guarded level-6 microhood patch, retaining
+its publisher neighbourhood classification in source provenance.
+
+Sheung Yuen Leng (上元嶺) is a reviewed level-5 neighbourhood and Ha Yuen Leng (下元嶺)
+is a reviewed level-6 microhood, both under Wong Tai Sin District. Their OSM locality
+points are retained while their boundaries await local review.
 
 The level-6 Tsim Sha Tsui (尖沙咀) microhood is excluded as a duplicate of the retained
 level-4 Tsim Sha Tsui macrohood. The publisher assertion remains in source provenance.
@@ -1145,3 +1169,30 @@ Curated island publication uses the reviewed polygon and its measured area for g
 and island classification. Acceptance filtering alone is insufficient: geometry
 corrections, including the separate Ap Lei Chau and Ap Lei Pai polygons, are applied
 before Division and DivisionArea snapshots are assembled.
+
+Lai Chi Kok Hill (荔枝角山) is excluded from current reviewed coverage through a guarded
+Overture source assertion. Lai Wan (荔灣) remains a level-6 microhood, using its
+reviewed English name while retaining the Overture source name in provenance.
+
+Kowloon Bay Business Area (九龍灣商貿區) uses a guarded level-5 neighbourhood patch,
+retaining its publisher microhood classification in source provenance.
+
+Ngau Tau Kok Industrial Area (牛頭角工業區) is excluded from current reviewed coverage
+through a guarded Overture source assertion.
+
+Lower Ngau Tau Kok (牛頭角下) and Upper Ngau Tau Kok (牛頭角上) are housing estates, not
+geographic divisions, and are excluded from current reviewed coverage through guarded
+Overture source assertions.
+
+Yue Man Square (裕民坊) and Lok Wah Shan (樂華山) are excluded from current reviewed
+coverage as a square and housing estate respectively, through guarded Overture source
+assertions. Cha Liu Au (茶寮坳) is a reviewed level-4 macrohood under Kwun Tong
+District, and Ping Shan (平山) is a reviewed level-5 neighbourhood under the same
+district; their representative points are sourced from OpenStreetMap. Jordan Valley
+(佐敦谷), Sai Tso Wan (晒草灣), and Cha Kwo Ling (茶果嶺) are reviewed level-5
+neighbourhoods; Crocodile Hill (鱷魚山) is a reviewed level-6 microhood. Tai Chi Area
+(太極區) is a square and is excluded from reviewed coverage. The eastern duplicate of Ma
+Wan Tsuen (馬環村) is excluded; the western locality record remains canonical. Che Ting
+Tsuen (輋頂村) is excluded because surrounding villages have subsumed it. Lei Yue Mun
+Villages (鯉魚門村) is retained as an alias of Lei Yue Mun (鯉魚門), without its own
+marker.
