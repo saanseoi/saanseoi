@@ -98,7 +98,7 @@ test('Shek Pai Wan is excluded only when its reviewed source assertion matches',
   ).toThrow('guard mismatch')
 })
 
-test('East Point and the level-6 Tai Hang duplicate retain guarded exclusions', () => {
+test('East Point, Chuk Yuen and the level-6 Tai Hang duplicate retain guarded exclusions', () => {
   for (const [id, subtype, patchId] of [
     [
       'c982f940-8e30-4ae6-87d8-6fd73a335217',
@@ -110,6 +110,11 @@ test('East Point and the level-6 Tai Hang duplicate retain guarded exclusions', 
       'microhood',
       'overture_hong_kong_tai_hang_microhood_excluded',
     ],
+    [
+      '5e8e3793-9b4c-4ad0-a6d5-48310df83428',
+      'microhood',
+      'overture_hong_kong_chuk_yuen_wong_tai_sin_alias',
+    ],
   ] as const) {
     const row = { id, subtype, class: null, admin_level: null }
     expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)
@@ -119,6 +124,52 @@ test('East Point and the level-6 Tai Hang duplicate retain guarded exclusions', 
         subtype: subtype === 'microhood' ? 'neighborhood' : 'microhood',
       }),
     ).toThrow('guard mismatch')
+  }
+})
+
+test('demolished Chuk Yuen United Village retains a guarded exclusion', () => {
+  const row = {
+    id: '669e74d6-c80b-4132-9bb8-43b59280657c',
+    subtype: 'hamlet',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_chuk_yuen_united_village_demolished',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'village' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('Ngau Chi Wan Village retains a guarded exclusion', () => {
+  const row = {
+    id: '1e0827ef-4f1a-40d0-bdf1-a0807da65da2',
+    subtype: 'village',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_ngau_chi_wan_village_excluded',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'hamlet' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('Tung Tau and Nga Tsin Wai retain guarded exclusions', () => {
+  for (const [id, patchId] of [
+    ['d1e1327a-28ff-4487-9103-df158b9c94a0', 'overture_hong_kong_tung_tau_excluded'],
+    [
+      'ac162f33-9966-4d6e-9d53-8a6df575775f',
+      'overture_hong_kong_nga_tsin_wai_excluded',
+    ],
+  ] as const) {
+    const row = { id, subtype: 'neighborhood', class: null, admin_level: null }
+    expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)
+    expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'microhood' })).toThrow(
+      'guard mismatch',
+    )
   }
 })
 
@@ -268,4 +319,127 @@ test('reviewed Hong Kong curation exclusions retain their source guards', () => 
       applyDivisionExclusionPatch({ ...row, subtype: 'neighborhood' }),
     ).toThrow('guard mismatch')
   }
+})
+
+test('Lai Chi Kok Hill retains its guarded exclusion', () => {
+  const row = {
+    id: 'fe3b73dc-e11e-40cb-bc92-11d2650bae01',
+    subtype: 'neighborhood',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_lai_chi_kok_hill_excluded',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'microhood' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('Ngau Tau Kok Industrial Area retains its guarded exclusion', () => {
+  const row = {
+    id: 'd3d2ddbb-b432-4c31-8f0d-8daec765e27f',
+    subtype: 'microhood',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_ngau_tau_kok_industrial_area_excluded',
+  )
+  expect(() =>
+    applyDivisionExclusionPatch({ ...row, subtype: 'neighborhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('Lower and Upper Ngau Tau Kok estates retain guarded exclusions', () => {
+  for (const [id, patchId] of [
+    [
+      '1a5eb2ce-766c-4deb-b1df-11012459a429',
+      'overture_hong_kong_lower_ngau_tau_kok_estate_excluded',
+    ],
+    [
+      '8026fe90-c346-4f26-a95f-19caef42649a',
+      'overture_hong_kong_upper_ngau_tau_kok_estate_excluded',
+    ],
+  ] as const) {
+    const row = { id, subtype: 'microhood', class: null, admin_level: null }
+    expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)
+    expect(() =>
+      applyDivisionExclusionPatch({ ...row, subtype: 'neighborhood' }),
+    ).toThrow('guard mismatch')
+  }
+})
+
+test('Yue Man Square, Lok Wah Shan and Tai Chi Area retain guarded exclusions', () => {
+  for (const [id, subtype, patchId] of [
+    [
+      'c0294424-7440-44c8-bd01-d610f48b25c4',
+      'neighborhood',
+      'overture_hong_kong_yue_man_square_excluded',
+    ],
+    [
+      '1747465a-dbf9-4bca-a965-5eed1b6f197a',
+      'microhood',
+      'overture_hong_kong_lok_wah_shan_excluded',
+    ],
+    [
+      'd8609aa4-f217-4869-8c2d-cf256f92a608',
+      'microhood',
+      'overture_hong_kong_tai_chi_area_excluded',
+    ],
+  ] as const) {
+    const row = { id, subtype, class: null, admin_level: null }
+    expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)
+    expect(() =>
+      applyDivisionExclusionPatch({
+        ...row,
+        subtype: subtype === 'microhood' ? 'neighborhood' : 'microhood',
+      }),
+    ).toThrow('guard mismatch')
+  }
+})
+
+test('the eastern Ma Wan Tsuen duplicate retains its guarded exclusion', () => {
+  const row = {
+    id: '59c7ae90-5b5f-4ea4-9a69-39f2ef4dc178',
+    subtype: 'hamlet',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_eastern_ma_wan_tsuen_duplicate_excluded',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'village' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('Che Ting Tsuen retains its guarded exclusion', () => {
+  const row = {
+    id: 'a62dfc8a-c5a0-454a-94db-b57792ede77b',
+    subtype: 'hamlet',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_che_ting_tsuen_excluded',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'village' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('Lei Yue Mun Villages retains its guarded alias exclusion', () => {
+  const row = {
+    id: '6656a014-0303-44eb-a3de-74ab665770f7',
+    subtype: 'microhood',
+    class: null,
+    admin_level: null,
+  }
+  expect(applyDivisionExclusionPatch(row)?.id).toBe(
+    'overture_hong_kong_lei_yue_mun_villages_alias',
+  )
+  expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'macrohood' })).toThrow(
+    'guard mismatch',
+  )
 })

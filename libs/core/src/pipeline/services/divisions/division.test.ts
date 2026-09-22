@@ -509,6 +509,94 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
+  test('adds reviewed Sheung and Ha Yuen Leng divisions under Wong Tai Sin', () => {
+    const rows = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    })
+    for (const [id, name, zhHant, classification, level, coordinates, recordId] of [
+      [
+        '00c5bf41-782b-5eea-8e1f-9c3c94dfe6e9',
+        'Sheung Yuen Leng',
+        '上元嶺',
+        'neighbourhood',
+        5,
+        [114.2059129, 22.3415699],
+        'node/4503903852',
+      ],
+      [
+        '5b8a5036-d099-53d2-81a3-7be83837766f',
+        'Ha Yuen Leng',
+        '下元嶺',
+        'microhood',
+        6,
+        [114.204061, 22.338932],
+        'node/5104835121',
+      ],
+    ] as const) {
+      const row = rows.find(row => row.id === id)!
+      expect(row).toMatchObject({
+        parent_division_id: '8cb650f2-5721-4c32-bb57-330ecc13987d',
+        geometry: { type: 'Point', coordinates },
+        sources: expect.arrayContaining([
+          { dataset: 'OpenStreetMap', record_id: recordId },
+        ]),
+      })
+      expect(normaliseDivisionRow(row)).toMatchObject({
+        base: { id, class: classification, level },
+        i18n: expect.arrayContaining([
+          expect.objectContaining({ locale: 'en', name }),
+          expect.objectContaining({ locale: 'zh-hant', name: zhHant }),
+        ]),
+      })
+    }
+  })
+
+  test('adds Cha Liu Au as a reviewed Kwun Tong level-4 macrohood', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === '3c8839d0-9013-5e3f-8669-0ad60ed5eeb4')!
+    expect(row).toMatchObject({
+      parent_division_id: 'cf79b69e-8575-4e9b-b15a-a4a8901e685b',
+      geometry: { type: 'Point', coordinates: [114.2250772, 22.3341772] },
+      sources: expect.arrayContaining([
+        { dataset: 'OpenStreetMap', record_id: 'node/7688146514' },
+      ]),
+    })
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: { class: 'macrohood', level: 4 },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Cha Liu Au' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '茶寮坳' }),
+      ]),
+    })
+  })
+
+  test('adds Ping Shan as a reviewed Kwun Tong level-5 neighbourhood', () => {
+    const row = getSupplementalDivisionFixtureRows({
+      source: 'overture',
+      resourceType: 'division',
+      regionCode: 'hk',
+    }).find(row => row.id === 'e4500843-e738-4b02-a64c-fa5f4af63263')!
+    expect(row).toMatchObject({
+      parent_division_id: 'cf79b69e-8575-4e9b-b15a-a4a8901e685b',
+      geometry: { type: 'Point', coordinates: [114.2188153, 22.3307477] },
+      sources: expect.arrayContaining([
+        { dataset: 'OpenStreetMap', record_id: 'node/3192519568' },
+      ]),
+    })
+    expect(normaliseDivisionRow(row)).toMatchObject({
+      base: { class: 'neighbourhood', level: 5 },
+      i18n: expect.arrayContaining([
+        expect.objectContaining({ locale: 'en', name: 'Ping Shan' }),
+        expect.objectContaining({ locale: 'zh-hant', name: '平山' }),
+      ]),
+    })
+  })
+
   test('adds the PRC country anchor to Overture Hong Kong division snapshots', () => {
     const [fixture] = getSupplementalDivisionFixtureRows({
       source: 'overture',
