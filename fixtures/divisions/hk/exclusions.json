@@ -595,6 +595,46 @@
       "reason": "East Point is a reviewed synonym of Causeway Bay and is not retained as a separate division."
     },
     {
+      "divisionId": "5e8e3793-9b4c-4ad0-a6d5-48310df83428",
+      "names": [
+        "Chuk Yuen",
+        "竹園"
+      ],
+      "reason": "Chuk Yuen is a reviewed synonym of Wong Tai Sin and is not retained as a separate division."
+    },
+    {
+      "divisionId": "669e74d6-c80b-4132-9bb8-43b59280657c",
+      "names": [
+        "Chuk Yuen United Village",
+        "竹園聯合村"
+      ],
+      "reason": "Demolished settlement; excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "1e0827ef-4f1a-40d0-bdf1-a0807da65da2",
+      "names": [
+        "Ngau Chi Wan Village",
+        "牛池灣村"
+      ],
+      "reason": "Excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "d1e1327a-28ff-4487-9103-df158b9c94a0",
+      "names": [
+        "Tung Tau",
+        "東頭"
+      ],
+      "reason": "Excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "ac162f33-9966-4d6e-9d53-8a6df575775f",
+      "names": [
+        "Nga Tsin Wai",
+        "衙前圍"
+      ],
+      "reason": "Excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
       "divisionId": "a21076d4-1c2c-4a79-94d8-90c582a9bc5c",
       "names": [
         "Tai Hang",
@@ -665,6 +705,94 @@
         "大嶼山"
       ],
       "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
+    },
+    {
+      "divisionId": "fe3b73dc-e11e-40cb-bc92-11d2650bae01",
+      "names": [
+        "Lai Chi Kok Hill",
+        "荔枝角山"
+      ],
+      "reason": "Excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "d3d2ddbb-b432-4c31-8f0d-8daec765e27f",
+      "names": [
+        "Ngau Tau Kok Industrial Area",
+        "牛頭角工業區"
+      ],
+      "reason": "Excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "1a5eb2ce-766c-4deb-b1df-11012459a429",
+      "names": [
+        "Lower Ngau Tau Kok",
+        "牛頭角下"
+      ],
+      "reason": "Housing estate; excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "8026fe90-c346-4f26-a95f-19caef42649a",
+      "names": [
+        "Upper Ngau Tau Kok",
+        "牛頭角上"
+      ],
+      "reason": "Housing estate; excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "1747465a-dbf9-4bca-a965-5eed1b6f197a",
+      "names": [
+        "Lok Wah Shan",
+        "樂華山"
+      ],
+      "reason": "Housing estate; excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "c0294424-7440-44c8-bd01-d610f48b25c4",
+      "names": [
+        "Yue Man Square",
+        "裕民坊"
+      ],
+      "reason": "Square; excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "d8609aa4-f217-4869-8c2d-cf256f92a608",
+      "names": [
+        "Tai Chi Area",
+        "太極區"
+      ],
+      "reason": "Square; excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "59c7ae90-5b5f-4ea4-9a69-39f2ef4dc178",
+      "names": [
+        "Ma Wan Tsuen",
+        "馬環村"
+      ],
+      "reason": "Duplicate eastern Ma Wan Tsuen locality; the western canonical record is retained."
+    },
+    {
+      "divisionId": "a62dfc8a-c5a0-454a-94db-b57792ede77b",
+      "names": [
+        "Che Ting Tsuen",
+        "輋頂村"
+      ],
+      "reason": "Cannibalised by surrounding villages; excluded from current reviewed Hong Kong division coverage by curator."
+    },
+    {
+      "divisionId": "6656a014-0303-44eb-a3de-74ab665770f7",
+      "names": [
+        "Lei Yue Mun Villages",
+        "鯉魚門村"
+      ],
+      "reason": "Lei Yue Mun Villages is a reviewed synonym of Lei Yue Mun and is not retained as a separate division."
+    },
+    {
+      "divisionId": "ee49a68b-e7f8-4781-9211-38c77e54d64d",
+      "names": [
+        "Chek Lap Kok",
+        "赤鱲角"
+      ],
+      "reason": "Chek Lap Kok is represented by its curated island landform identity and is excluded as a duplicate macrohood."
     }
   ]
 }
