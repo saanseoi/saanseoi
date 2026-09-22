@@ -714,5 +714,213 @@
       "reviewStatus": "reviewed",
       "purpose": "User-reviewed Kai Tak Cruise Terminal level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
     }
+  },
+  {
+    "id": "00c5bf41-782b-5eea-8e1f-9c3c94dfe6e9",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "neighborhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.2059129,
+        22.3415699
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "8cb650f2-5721-4c32-bb57-330ecc13987d",
+    "names": {
+      "primary": "上元嶺 Sheung Yuen Leng",
+      "common": [
+        {
+          "language": "en",
+          "value": "Sheung Yuen Leng"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "上元嶺"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "上元岭"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "sheung-yuen-leng"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "node/4503903852"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-sheung-yuen-leng",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Sheung Yuen Leng level-5 neighbourhood addition; its representative point is the mapped locality and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "5b8a5036-d099-53d2-81a3-7be83837766f",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.204061,
+        22.338932
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "8cb650f2-5721-4c32-bb57-330ecc13987d",
+    "names": {
+      "primary": "下元嶺 Ha Yuen Leng",
+      "common": [
+        {
+          "language": "en",
+          "value": "Ha Yuen Leng"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "下元嶺"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "下元岭"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "ha-yuen-leng"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "node/5104835121"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-ha-yuen-leng",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Ha Yuen Leng level-6 microhood addition; its representative point is the mapped locality and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "3c8839d0-9013-5e3f-8669-0ad60ed5eeb4",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "macrohood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.2250772,
+        22.3341772
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "cf79b69e-8575-4e9b-b15a-a4a8901e685b",
+    "names": {
+      "primary": "茶寮坳 Cha Liu Au",
+      "common": [
+        {
+          "language": "en",
+          "value": "Cha Liu Au"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "茶寮坳"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "茶寮坳"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "cha-liu-au"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "node/7688146514"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-cha-liu-au",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Cha Liu Au level-4 macrohood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
+    }
+  },
+  {
+    "id": "e4500843-e738-4b02-a64c-fa5f4af63263",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "neighborhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.2188153,
+        22.3307477
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "cf79b69e-8575-4e9b-b15a-a4a8901e685b",
+    "names": {
+      "primary": "平山 Ping Shan",
+      "common": [
+        {
+          "language": "en",
+          "value": "Ping Shan"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "平山"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "平山"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "ping-shan-kowloon"
+      },
+      {
+        "dataset": "OpenStreetMap",
+        "record_id": "node/3192519568"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-ping-shan",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed Ping Shan level-5 neighbourhood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
+    }
   }
 ]
