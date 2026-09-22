@@ -244,6 +244,10 @@ test('whole-island and island-group macrohoods retain guarded exclusions', () =>
       'd5ea5db9-fe81-4156-abeb-f00c0debb48a',
       'overture_hong_kong_lantau_macrohood_excluded',
     ],
+    [
+      'ee49a68b-e7f8-4781-9211-38c77e54d64d',
+      'overture_hong_kong_chek_lap_kok_macrohood_excluded',
+    ],
   ] as const) {
     const row = { id, admin_level: null, class: null, subtype: 'macrohood' }
     expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)

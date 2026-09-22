@@ -866,6 +866,61 @@ test('Sai Tso Wan and Cha Kwo Ling are guarded level-5 neighbourhoods', () => {
   }
 })
 
+test('Cha Kwo Ling Village is a guarded level-6 hamlet', () => {
+  const row = {
+    id: '9879ebb4-1171-4b2f-8125-bc60a256ed52',
+    subtype: 'locality',
+    class: 'village',
+    admin_level: null,
+  }
+  expect(
+    normaliseDivisionRow(row, {
+      source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+    }).base,
+  ).toMatchObject({ category: 'locality', class: 'hamlet', level: 6 })
+  expect(() => applyDivisionClassificationPatch({ ...row, class: 'hamlet' })).toThrow(
+    'guard mismatch',
+  )
+})
+
+test('the reviewed hills and industrial areas retain their requested levels', () => {
+  const rows = [
+    ['38c2dec8-4e8d-45ec-971d-621160fbaa80', 'macrohood', 'neighbourhood', 5],
+    ['fff6ed27-1d9b-4e7f-a9f8-eff55d7f3f05', 'microhood', 'neighbourhood', 5],
+    ['5e1896d8-af25-40eb-9c89-36e490d830ed', 'microhood', 'neighbourhood', 5],
+    ['610d1e88-0cfe-476b-ae6a-b20c56037c23', 'neighborhood', 'microhood', 6],
+    ['df80bddb-9acd-4d5c-b93a-281ab352141b', 'neighborhood', 'microhood', 6],
+  ] as const
+  for (const [id, subtype, classification, level] of rows) {
+    const row = { id, subtype, class: null, admin_level: null }
+    expect(
+      normaliseDivisionRow(row, {
+        source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+      }).base,
+    ).toMatchObject({ class: classification, level })
+    expect(() =>
+      applyDivisionClassificationPatch({ ...row, class: 'unexpected' }),
+    ).toThrow('guard mismatch')
+  }
+})
+
+test('Ma Wan Tsuen and Ma Pui Tsuen are guarded level-5 neighbourhoods', () => {
+  for (const id of [
+    '6f7286f2-2eb0-4a6a-b3f1-c994471545d9',
+    'a1a26b21-3c2a-46f6-82fa-d65cc55a1622',
+  ]) {
+    const row = { id, subtype: 'locality', class: 'hamlet', admin_level: null }
+    expect(
+      normaliseDivisionRow(row, {
+        source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+      }).base,
+    ).toMatchObject({ category: 'hood', class: 'neighbourhood', level: 5 })
+    expect(() =>
+      applyDivisionClassificationPatch({ ...row, class: 'village' }),
+    ).toThrow('guard mismatch')
+  }
+})
+
 test('Lei Yue Mun retains Lei Yue Mun Villages as guarded bilingual aliases', () => {
   const row = {
     id: 'd3ec706f-f6f0-414d-9e8b-193e73c90c1c',
@@ -892,5 +947,43 @@ test('Lei Yue Mun retains Lei Yue Mun Villages as guarded bilingual aliases', ()
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
+  ).toThrow('guard mismatch')
+})
+
+test('the reviewed Chai Wan, Ma Chai Hang and Hammer Hill areas are guarded level-5 neighbourhoods', () => {
+  const rows = [
+    ['04c3eff2-3582-495f-8408-061b6e5485f5', 'microhood'],
+    ['53ed173c-c379-4ff0-b9bc-5fc1842ed773', 'microhood'],
+    ['f4b61c53-a9ea-4585-8f06-c9302e61777c', 'microhood'],
+    ['e80a2e43-618a-4431-a2f1-bd9e30e6158e', 'macrohood'],
+    ['9313a020-4d76-4cba-8218-25d96b9b7954', 'macrohood'],
+  ] as const
+  for (const [id, subtype] of rows) {
+    const row = { id, subtype, class: null, admin_level: null }
+    expect(
+      normaliseDivisionRow(row, {
+        source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+      }).base,
+    ).toMatchObject({ category: 'hood', class: 'neighbourhood', level: 5 })
+    expect(() =>
+      applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
+    ).toThrow('guard mismatch')
+  }
+})
+
+test('Kwun Tong Business Area is a guarded level-5 neighbourhood', () => {
+  const row = {
+    id: '94acd951-b94c-4a0f-8b5d-85a95d45063f',
+    subtype: 'microhood',
+    class: null,
+    admin_level: null,
+  }
+  expect(
+    normaliseDivisionRow(row, {
+      source: { source: 'overture', sourceVersion: '2026-08-19.0' },
+    }).base,
+  ).toMatchObject({ category: 'hood', class: 'neighbourhood', level: 5 })
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
   ).toThrow('guard mismatch')
 })
