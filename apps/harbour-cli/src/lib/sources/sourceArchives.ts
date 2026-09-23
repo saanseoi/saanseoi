@@ -184,7 +184,6 @@ export async function mirrorCsdiSourceArchive(
       metadata: {
         assetKey: sourceKey,
         contentHash: prepared.manifest.archive.sha256,
-        manifest: prepared.manifest,
         mediaType: 'application/zip',
         originalUrl: archive.sourceUrl,
         retrievedAt,

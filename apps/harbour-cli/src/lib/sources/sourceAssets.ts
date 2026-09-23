@@ -245,7 +245,6 @@ export async function uploadPreparedSourceAsset(
       metadata: {
         assetKey: asset.objectKey,
         contentHash: asset.manifest.artefact.sha256,
-        manifest: { manifestObjectKey: asset.manifestObjectKey, ...asset.manifest },
         mediaType: asset.manifest.artefact.mediaType,
         originalUrl: asset.manifest.original.url,
         retrievedAt: asset.manifest.downloadedAt,
