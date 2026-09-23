@@ -241,10 +241,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       id, code, regionCode, resourceType, variant, identityMode,
       primaryDatasetId, versionHash, createdAt, updatedAt
     ) VALUES
-      ('lineage-overture-division', 'sl-ds-hk-overture-division', 'hk', 'division', 'overture', 'persistent', 'overture-hk-division', 'vh-lineage-overture-division', 1761264000001, 1761264000001),
-      ('lineage-overture-division-area', 'sl-ds-hk-overture-division-area', 'hk', 'divisionArea', 'overture', 'persistent', 'overture-hk-divisionArea', 'vh-lineage-overture-division-area', 1761264000001, 1761264000001),
-      ('lineage-overture-division-boundary', 'sl-ds-hk-overture-division-boundary', 'hk', 'divisionBoundary', 'overture', 'persistent', 'overture-hk-divisionBoundary', 'vh-lineage-overture-division-boundary', 1761264000001, 1761264000001),
-      ('lineage-hkgov-had-division-area', 'sl-ds-hk-hkgov-had-division-area-district', 'hk', 'divisionArea', 'hkgov-had', 'persistent', 'hkgov-had-hk-district', 'vh-lineage-hkgov-had-division-area', 1761264000001, 1761264000001);
+      ('lineage-overture-division', 'sl-hk-overture-division', 'hk', 'division', 'overture', 'persistent', 'overture-hk-division', 'vh-lineage-overture-division', 1761264000001, 1761264000001),
+      ('lineage-overture-division-area', 'sl-hk-overture-division-area', 'hk', 'divisionArea', 'overture', 'persistent', 'overture-hk-divisionArea', 'vh-lineage-overture-division-area', 1761264000001, 1761264000001),
+      ('lineage-overture-division-boundary', 'sl-hk-overture-division-boundary', 'hk', 'divisionBoundary', 'overture', 'persistent', 'overture-hk-divisionBoundary', 'vh-lineage-overture-division-boundary', 1761264000001, 1761264000001),
+      ('lineage-hkgov-had-division-area', 'sl-hk-hkgov-had-division-area-district', 'hk', 'divisionArea', 'hkgov-had', 'persistent', 'hkgov-had-hk-district', 'vh-lineage-hkgov-had-division-area', 1761264000001, 1761264000001);
 
     UPDATE snapshots
     SET snapshotLineageId = CASE id
@@ -332,7 +332,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         id, code, regionCode, resourceType, variant, identityMode,
         primaryDatasetId, versionHash, createdAt, updatedAt
       ) VALUES (
-        'lineage-censtatd-${year}', 'sl-ds-hk-hkgov-censtatd-division-area-district-${year}', 'hk', 'divisionArea', 'hkgov-censtatd:${year}', 'persistent', 'hkgov-censtatd-hk-district', 'vh-lineage-censtatd-${year}', 1761264000001, 1761264000001
+        'lineage-censtatd-${year}', 'sl-hk-hkgov-censtatd-division-area-district-${year}', 'hk', 'divisionArea', 'hkgov-censtatd:${year}', 'persistent', 'hkgov-censtatd-hk-district', 'vh-lineage-censtatd-${year}', 1761264000001, 1761264000001
       );
     `)
     const snapshotId = seedSnapshot(sqlite, {
@@ -377,7 +377,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       primaryDatasetId, versionHash, createdAt, updatedAt
     ) VALUES (
       'lineage-censtatd-annual-2024',
-      'sl-ds-hk-hkgov-censtatd-division-area-district-annual',
+      'sl-hk-hkgov-censtatd-division-area-district-annual',
       'hk', 'divisionArea', 'hkgov-censtatd', 'persistent',
       'hkgov-censtatd-hk-district-annual', 'vh-lineage-censtatd-annual-2024',
       1761264000001, 1761264000001
@@ -447,7 +447,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       id, code, regionCode, resourceType, variant, identityMode,
       primaryDatasetId, versionHash, createdAt, updatedAt
     ) VALUES (
-      'lineage-censtatd-area-type', 'sl-ds-hk-hkgov-censtatd-area-type',
+      'lineage-censtatd-area-type', 'sl-hk-hkgov-censtatd-area-type',
       'hk', 'divisionArea', 'hkgov-censtatd-area', 'persistent',
       'hkgov-censtatd-hk-permanent-living-quarters', 'vh-lineage-censtatd-area-type',
       1761264000001, 1761264000001

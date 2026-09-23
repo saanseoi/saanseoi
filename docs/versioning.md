@@ -217,7 +217,7 @@ later from the current fixture tree.
 flowchart LR
   Publisher[Publisher fixture<br/>overture] --> Dataset[Dataset fixture<br/>ds-hk-overture-division]
   Dataset --> Release[Uploaded release<br/>dr-hk-overture-division-2025-09-24.0]
-  Release --> Lineage[Lineage<br/>sl-ds-hk-overture-division]
+  Release --> Lineage[Lineage<br/>sl-hk-overture-division]
   Lineage --> Snapshot[Snapshot<br/>ss-hk-division-2025-09-24.0]
 
   Source[Raw source or resource fixture] --> Release
@@ -559,14 +559,15 @@ scoped by:
 Example conceptual lineage codes:
 
 ```text
-sl-ds-hk-overture-division
-sl-ds-hk-hkgov-pland-division-pu
+sl-hk-overture-division
+sl-hk-hkgov-pland-division-pu
 ```
 
-The code is `sl-{primaryDatasetCode}`. The dataset code already carries source, region,
-and resource scope, so the lineage code does not repeat them. The separate lineage row
-stores `regionCode`, `resourceType`, `variant`, `primaryDatasetId`, and `identityMode`
-as queryable fields rather than asking consumers to parse the code.
+The code is `sl-{primaryDatasetCode without the ds- prefix}`, with resource and variant
+qualifiers where needed to distinguish streams. The dataset code already carries source,
+region, and resource scope, so the lineage code does not repeat them. The separate
+lineage row stores `regionCode`, `resourceType`, `variant`, `primaryDatasetId`, and
+`identityMode` as queryable fields rather than asking consumers to parse the code.
 
 Identity modes are:
 
@@ -583,15 +584,19 @@ lineage if the identity namespace or cross-cohort identity guarantee changes.
 A lineage is an internal assembly and history boundary; it is not an API domain or a
 public request selector.
 
-1. On ingest, Harbour finds the lineage by its unique `primaryDatasetId`, or creates it
-   deterministically from `sl-{primaryDatasetCode}`.
+1. On ingest, Harbour finds the lineage by its unique
+   `(primaryDatasetId, resourceType, variant)` tuple, or creates it deterministically
+   from its lineage code.
 2. Every snapshot stores `snapshotLineageId` and a cohort-local `revision`.
 3. The unique `(snapshotLineageId, cohortKey, revision)` tuple prevents two different
    assemblies from claiming the same position in the stream.
 4. When the same dataset and cohort are assembled again after publication, Harbour finds
    the highest revision in that lineage and creates the next one.
 5. `identityMode` tells history readers whether identifiers may be compared between
-   cohorts (`persistent`) or only within a cohort (`cohort_scoped`).
+   cohorts (`persistent`) or only within a cohort (`cohort_scoped`). Parent snapshot
+   selection enforces this: persistent streams can select an accepted predecessor from
+   an earlier cohort; cohort-scoped streams can only select one from the same cohort.
+   Statistics use a dedicated parent selector that always stays within the same cohort.
 6. An API release set selects exact snapshot IDs from one or more lineages. A catalogue
    selects the release set; neither layer copies the lineage's entity data.
 

@@ -131,7 +131,7 @@ export function buildSnapshotLineageCode(
   // dataset code already contains that scope. Some source datasets intentionally
   // expose more than one resource type, so qualify a resource type that is not
   // already represented by the dataset code.
-  const normalisedDatasetCode = normaliseCodeSlug(datasetCode)
+  const normalisedDatasetCode = normaliseCodeSlug(datasetCode).replace(/^ds-/, '')
   const normalisedResourceType = normaliseCodeSlug(resourceType)
   // `division` is a prefix of the more specific resource types. A dataset
   // such as `…-division-statistic-…` can also publish its geography as

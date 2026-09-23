@@ -13,11 +13,11 @@ describe('snapshot identifiers', () => {
   test('curated assembly has a separate lineage from its native source', () => {
     expect(
       buildSnapshotLineageCode('ds-hk-overture-division', 'division', 'saanseoi'),
-    ).toBe('sl-ds-hk-overture-division-saanseoi')
+    ).toBe('sl-hk-overture-division-saanseoi')
   })
   test('qualifies non-default lineage codes with their variant', () => {
     expect(buildSnapshotLineageCode('ds-hk-overture-division', 'division')).toBe(
-      'sl-ds-hk-overture-division',
+      'sl-hk-overture-division',
     )
     expect(
       buildSnapshotLineageCode(
@@ -25,7 +25,7 @@ describe('snapshot identifiers', () => {
         'divisionArea',
         'hkgov-censtatd:2016',
       ),
-    ).toBe('sl-ds-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2016')
+    ).toBe('sl-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2016')
   })
 
   test('qualifies a resource type omitted from a shared dataset code', () => {
@@ -35,7 +35,7 @@ describe('snapshot identifiers', () => {
         'divisionArea',
         'hkgov-pland-pu',
       ),
-    ).toBe('sl-ds-hk-hkgov-pland-division-pu-division-area')
+    ).toBe('sl-hk-hkgov-pland-division-pu-division-area')
   })
 
   test('distinguishes geography from a shared division-statistic dataset', () => {
@@ -46,7 +46,7 @@ describe('snapshot identifiers', () => {
         'hkgov-censtatd-hma',
       ),
     ).toBe(
-      'sl-ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-division',
+      'sl-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-division',
     )
   })
 

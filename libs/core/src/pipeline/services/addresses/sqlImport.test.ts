@@ -71,7 +71,7 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
         id, code, regionCode, resourceType, variant, identityMode,
         primaryDatasetId, versionHash, createdAt, updatedAt
       ) VALUES (
-        'address-lineage', 'sl-ds-hk-hkgov-dpo-address', 'hk', 'address', 'default',
+        'address-lineage', 'sl-hk-hkgov-dpo-address', 'hk', 'address', 'default',
         'persistent', 'dataset-address', 'lineage-hash', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
       INSERT INTO snapshots (

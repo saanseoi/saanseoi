@@ -1547,7 +1547,7 @@ describe('ensureDraftSnapshotForRelease', () => {
       first.sqlite
         .query('SELECT code FROM snapshotLineages WHERE primaryDatasetId = ?')
         .get('dataset-overture-division'),
-    ).toEqual({ code: 'sl-ds-hk-overture-division' })
+    ).toEqual({ code: 'sl-hk-overture-division' })
 
     first.sqlite.close()
     second.sqlite.close()
@@ -1570,7 +1570,7 @@ describe('ensureDraftSnapshotForRelease', () => {
       sqlite
         .query('SELECT code FROM snapshotLineages WHERE primaryDatasetId = ?')
         .get('dataset-pland-division-pu'),
-    ).toEqual({ code: 'sl-ds-hk-hkgov-pland-division-pu' })
+    ).toEqual({ code: 'sl-hk-hkgov-pland-division-pu' })
 
     sqlite.close()
   })
@@ -1608,11 +1608,11 @@ describe('ensureDraftSnapshotForRelease', () => {
         .all(),
     ).toEqual([
       {
-        code: 'sl-ds-hk-hkgov-pland-division-pu',
+        code: 'sl-hk-hkgov-pland-division-pu',
         resourceType: 'division',
       },
       {
-        code: 'sl-ds-hk-hkgov-pland-division-pu-division-area',
+        code: 'sl-hk-hkgov-pland-division-pu-division-area',
         resourceType: 'divisionArea',
       },
     ])
@@ -1661,11 +1661,11 @@ describe('ensureDraftSnapshotForRelease', () => {
         .all(base.datasetId),
     ).toEqual([
       {
-        code: 'sl-ds-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2016',
+        code: 'sl-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2016',
         variant: 'hkgov-censtatd:2016',
       },
       {
-        code: 'sl-ds-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2021',
+        code: 'sl-hk-hkgov-censtatd-division-area-district-hkgov-censtatd-2021',
         variant: 'hkgov-censtatd:2021',
       },
     ])
@@ -2044,7 +2044,7 @@ describe('ensureDraftSnapshotForRelease', () => {
         .get('dataset-overture-division'),
     ).toEqual({
       id: 'legacy-lineage-id',
-      code: 'sl-ds-hk-overture-division',
+      code: 'sl-hk-overture-division',
     })
     expect(
       sqlite
