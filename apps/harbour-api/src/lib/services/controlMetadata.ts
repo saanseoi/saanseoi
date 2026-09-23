@@ -98,7 +98,6 @@ export async function resolveApiReleaseSetMetadataDelta(
       cohortKey: metaApiReleaseSets.cohortKey,
       revision: metaApiReleaseSets.revision,
       effectiveFrom: metaApiReleaseSets.effectiveFrom,
-      effectiveTo: metaApiReleaseSets.effectiveTo,
       supersedesApiReleaseSetId: metaApiReleaseSets.supersedesApiReleaseSetId,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,

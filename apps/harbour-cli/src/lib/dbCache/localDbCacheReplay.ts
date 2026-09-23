@@ -113,7 +113,7 @@ async function applyPublishMetadataDeltaLocked(
       const updateReleaseSet = sqlite.prepare(
         `UPDATE apiReleaseSets SET
           apiVersionId = ?, apiCompositionId = ?, code = ?, regionCode = ?, domainCode = ?,
-          cohortKey = ?, revision = ?, effectiveFrom = ?, effectiveTo = ?,
+          cohortKey = ?, revision = ?, effectiveFrom = ?,
           supersedesApiReleaseSetId = ?, schemaVersion = ?, rulesetVersion = ?, status = ?,
           publishedAt = ?, validFrom = ?, validTo = ?, notes = ?, guide = ?, versionHash = ?,
           createdAt = ?, updatedAt = ?
@@ -125,10 +125,10 @@ async function applyPublishMetadataDeltaLocked(
       const insertReleaseSet = sqlite.prepare(`
         INSERT INTO apiReleaseSets (
           id, apiVersionId, apiCompositionId, code, regionCode, domainCode, cohortKey,
-          revision, effectiveFrom, effectiveTo, supersedesApiReleaseSetId, schemaVersion,
+          revision, effectiveFrom, supersedesApiReleaseSetId, schemaVersion,
           rulesetVersion, status, publishedAt, validFrom, validTo, notes, guide, versionHash,
           createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       const updatedAt = new Date().toISOString()
       for (const release of delta.releases) {
@@ -160,7 +160,6 @@ async function applyPublishMetadataDeltaLocked(
           releaseSet.cohortKey,
           releaseSet.revision,
           releaseSet.effectiveFrom,
-          releaseSet.effectiveTo,
           releaseSet.supersedesApiReleaseSetId,
           releaseSet.schemaVersion,
           releaseSet.rulesetVersion,
@@ -186,7 +185,6 @@ async function applyPublishMetadataDeltaLocked(
             releaseSet.cohortKey,
             releaseSet.revision,
             releaseSet.effectiveFrom,
-            releaseSet.effectiveTo,
             releaseSet.supersedesApiReleaseSetId,
             releaseSet.schemaVersion,
             releaseSet.rulesetVersion,

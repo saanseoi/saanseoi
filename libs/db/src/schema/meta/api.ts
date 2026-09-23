@@ -199,7 +199,6 @@ export const metaApiReleaseSets = sqliteTable(
     cohortKey: text('cohortKey'),
     revision: integer('revision').notNull().default(0),
     effectiveFrom: isoTimestamp('effectiveFrom'),
-    effectiveTo: isoTimestamp('effectiveTo'),
     supersedesApiReleaseSetId: text('supersedesApiReleaseSetId'),
     schemaVersion: text('schemaVersion').notNull(),
     rulesetVersion: text('rulesetVersion').notNull(),

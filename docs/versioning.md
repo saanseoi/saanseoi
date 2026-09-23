@@ -535,6 +535,16 @@ Where possible, the cohort derives an `effectiveFrom` instant:
 The cohort and effective time answer **when the data applies**. They do not answer when
 Saanseoi ingested or published it.
 
+API release sets store only `effectiveFrom`. For point-in-time selection, the selected
+catalogue determines the available cohorts within an API version, region and domain. The
+latest effective start at or before `effectiveAt` wins, with the highest revision
+breaking ties. The next distinct effective start in that catalogue is the implicit
+exclusive endpoint; the last cohort is open-ended. Revisions of the same cohort share an
+effective period. Backfills and replacements in a newer catalogue do not alter effective
+periods in an older catalogue.
+
+Publication lifecycle closure is recorded separately in `validTo`.
+
 ### Snapshot lineage
 
 A snapshot lineage identifies a logical stream of assembled resource snapshots. It is

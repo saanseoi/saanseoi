@@ -1,0 +1,1 @@
+ALTER TABLE `apiReleaseSets` DROP COLUMN `effectiveTo`;

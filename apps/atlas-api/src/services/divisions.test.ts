@@ -56,7 +56,6 @@ const resolvedReleaseSet = {
     cohortKey: activeSnapshot.cohortKey,
     domainCode: activeSnapshot.domainCode,
     effectiveFrom: activeSnapshot.effectiveFrom,
-    effectiveTo: null,
     revision: 0,
     schemaVersion: activeSnapshot.schemaVersion,
     rulesetVersion: activeSnapshot.rulesetVersion,

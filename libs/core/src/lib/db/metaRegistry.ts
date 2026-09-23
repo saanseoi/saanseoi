@@ -4403,7 +4403,6 @@ export async function ensureDraftReleaseSetForRelease(
       cohortKey: release.cohortKey,
       revision: nextRevision,
       effectiveFrom: cohortKeyEffectiveFrom(release.cohortKey),
-      effectiveTo: null,
       supersedesApiReleaseSetId: latestReleaseSet?.id ?? null,
       schemaVersion,
       rulesetVersion,
@@ -6234,7 +6233,6 @@ export async function resolveApiReleaseSetForRequest(
       cohortKey: metaApiCatalogRevisionReleaseSets.cohortKey,
       domainCode: metaApiCatalogRevisionReleaseSets.domainCode,
       effectiveFrom: metaApiReleaseSets.effectiveFrom,
-      effectiveTo: metaApiReleaseSets.effectiveTo,
       revision: metaApiReleaseSets.revision,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
@@ -6253,10 +6251,7 @@ export async function resolveApiReleaseSetForRequest(
           ? eq(metaApiCatalogRevisionReleaseSets.cohortKey, args.cohortKey)
           : undefined,
         !args.releaseSet && !args.cohortKey && effectiveAt
-          ? and(
-              sql`${metaApiReleaseSets.effectiveFrom} <= ${effectiveAt}`,
-              sql`(${metaApiReleaseSets.effectiveTo} IS NULL OR ${metaApiReleaseSets.effectiveTo} > ${effectiveAt})`,
-            )
+          ? sql`${metaApiReleaseSets.effectiveFrom} <= ${effectiveAt}`
           : undefined,
         !args.releaseSet && !args.cohortKey && !effectiveAt
           ? eq(metaApiCatalogRevisionReleaseSets.isDefault, true)
@@ -6348,7 +6343,6 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
       cohortKey: metaApiCatalogRevisionReleaseSets.cohortKey,
       domainCode: metaApiCatalogRevisionReleaseSets.domainCode,
       effectiveFrom: metaApiReleaseSets.effectiveFrom,
-      effectiveTo: metaApiReleaseSets.effectiveTo,
       revision: metaApiReleaseSets.revision,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
@@ -6367,10 +6361,7 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
           ? eq(metaApiCatalogRevisionReleaseSets.cohortKey, args.cohortKey)
           : undefined,
         !args.releaseSet && !args.cohortKey && effectiveAt
-          ? and(
-              sql`${metaApiReleaseSets.effectiveFrom} <= ${effectiveAt}`,
-              sql`(${metaApiReleaseSets.effectiveTo} IS NULL OR ${metaApiReleaseSets.effectiveTo} > ${effectiveAt})`,
-            )
+          ? sql`${metaApiReleaseSets.effectiveFrom} <= ${effectiveAt}`
           : undefined,
       ),
     )

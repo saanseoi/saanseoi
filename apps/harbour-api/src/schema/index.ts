@@ -478,7 +478,6 @@ export const ControlResponseSchema = z
               revision: z.number(),
               status: z.enum(['current', 'draft', 'archived']),
               effectiveFrom: z.string().nullable(),
-              effectiveTo: z.string().nullable(),
               supersedesApiReleaseSetId: z.string().nullable(),
               schemaVersion: z.string(),
               rulesetVersion: z.string(),
