@@ -1,4 +1,8 @@
-import { pinApiFieldRules, type ApiFieldInput } from '@repo/db/apiFieldInputs'
+import {
+  pinApiFieldRules,
+  resolvePublisherFieldPaths,
+  type ApiFieldInput,
+} from '@repo/db/apiFieldInputs'
 import { sourceReleasePublicationCondition } from './sourceReleasePublication'
 export { resolveAcceptedStatisticSnapshotParent } from './statisticSnapshotParent'
 import {
@@ -2494,6 +2498,11 @@ type ApiFieldProvenanceGroupRow = {
   versionHash: string
 }
 
+type ApiFieldPublisherFieldsByDatasetId = ReadonlyMap<
+  string,
+  Record<string, string | string[]>
+>
+
 function apiFieldProvenanceGroupKey(
   resourceType: string,
   apiField: string,
@@ -2504,16 +2513,40 @@ function apiFieldProvenanceGroupKey(
 
 function apiFieldProvenanceGroupVersionHash(
   rows: readonly ApiFieldProvenanceRow[],
-  fixtureVersionHash: string | null,
+  publisherFieldsByDatasetId: ApiFieldPublisherFieldsByDatasetId | null,
 ) {
   return computeVersionHash({
-    fixtureVersionHash,
     rows: rows
       .map(row => ({
         apiField: row.apiField,
         confidence: row.confidence,
         contributionType: row.contributionType,
         inputs: row.inputs,
+        // Scope fixture dependencies to paths this group actually consumes.
+        publisherPaths: publisherFieldsByDatasetId
+          ? row.inputs.flatMap(input => {
+              if (input.origin !== 'source') return []
+
+              const publisherFields = publisherFieldsByDatasetId.get(
+                row.sourceDatasetId,
+              )
+              if (!publisherFields) {
+                throw new Error(
+                  `Publisher field mappings not found for API provenance dataset ${row.sourceDatasetId}`,
+                )
+              }
+
+              return [
+                {
+                  fieldPath: input.fieldPath,
+                  publisherPaths: resolvePublisherFieldPaths(
+                    input.fieldPath,
+                    publisherFields,
+                  ),
+                },
+              ]
+            })
+          : null,
         priority: row.priority,
         resolverCode: row.resolverCode,
         resolverRules: row.resolverRules,
@@ -2527,7 +2560,7 @@ function apiFieldProvenanceGroupVersionHash(
 
 function groupApiFieldProvenanceRows(
   rows: readonly ApiFieldProvenanceRow[],
-  fixtureVersionHash: string | null,
+  publisherFieldsByDatasetId: ApiFieldPublisherFieldsByDatasetId | null,
 ) {
   const groupedRows = new Map<string, ApiFieldProvenanceRow[]>()
 
@@ -2548,7 +2581,10 @@ function groupApiFieldProvenanceRows(
         rows: groupRows,
         sourceReleaseSetId: groupRows[0]!.apiReleaseSetId,
         variant: groupRows[0]!.variant ?? 'default',
-        versionHash: apiFieldProvenanceGroupVersionHash(groupRows, fixtureVersionHash),
+        versionHash: apiFieldProvenanceGroupVersionHash(
+          groupRows,
+          publisherFieldsByDatasetId,
+        ),
       } satisfies ApiFieldProvenanceGroup,
     ]),
   )
@@ -5092,7 +5128,7 @@ export async function publishReleaseArtefacts(
   }
 
   // Some API families do not have bundled field provenance fixtures yet.
-  const apiFieldProvenanceRows = resolvedApiFieldFixture
+  const { apiFieldProvenanceRows, publisherFieldsByDatasetId } = resolvedApiFieldFixture
     ? await (async () => {
         const sourceDatasetCodes = [
           ...new Set(
@@ -5114,8 +5150,20 @@ export async function publishReleaseArtefacts(
         const sourceDatasetIdsByCode = new Map(
           sourceDatasets.map(dataset => [dataset.code, dataset.id]),
         )
+        const publisherFieldsByDatasetId = new Map<
+          string,
+          Record<string, string | string[]>
+        >()
+        for (const [datasetCode, publisherFields] of Object.entries(
+          resolvedApiFieldFixture.publisherFields,
+        )) {
+          const sourceDatasetId = sourceDatasetIdsByCode.get(datasetCode)
+          if (sourceDatasetId) {
+            publisherFieldsByDatasetId.set(sourceDatasetId, publisherFields)
+          }
+        }
 
-        return resolvedApiFieldFixture.fields.map(field => {
+        const apiFieldProvenanceRows = resolvedApiFieldFixture.fields.map(field => {
           const sourceDatasetId = sourceDatasetIdsByCode.get(field.sourceDatasetCode)
 
           if (!sourceDatasetId) {
@@ -5166,12 +5214,13 @@ export async function publishReleaseArtefacts(
             updatedAt: publishedAt,
           }
         })
+        return { apiFieldProvenanceRows, publisherFieldsByDatasetId }
       })()
-    : []
+    : { apiFieldProvenanceRows: [], publisherFieldsByDatasetId: null }
 
   const apiFieldProvenanceGroups = groupApiFieldProvenanceRows(
     apiFieldProvenanceRows,
-    resolvedApiFieldFixture?.versionHash ?? null,
+    publisherFieldsByDatasetId,
   )
   const inheritedApiFieldProvenanceGroups = deferApiReleaseSet
     ? new Map<string, ApiFieldProvenanceGroup>()
