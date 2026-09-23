@@ -119,7 +119,7 @@ export async function recordEffectiveSnapshotAssembly(
     inputs: [...inputs.values()],
   }
   const versionHash = computeVersionHash(recipe)
-  const code = `snapshot-assembly-${args.resourceType}-v1-${versionHash}`
+  const code = `sa-${args.resourceType}-v1-${versionHash}`
   const assemblyId = buildDeterministicUuidV5(namespace, code)
   const now = toIsoTimestamp()
   await db

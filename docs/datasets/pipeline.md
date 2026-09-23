@@ -9,6 +9,9 @@ the run. Identical recipes can serve multiple snapshots. These records describe 
 selected inputs, rather than a catalogue of optional future inputs: `isRequired` means
 the input is needed to reproduce that effective selection.
 
+Assembly codes use `sa-<resourceType>-v1-<versionHash>`, where `versionHash` includes
+its `sha256:` prefix. The code determines the assembly's UUID.
+
 `snapshotAssemblyRuns` retains one evolving record per draft snapshot, including exact
 source releases, roles, selection rules, selection modes and source cohorts. Enrichment
 and lookup selection refresh the draft recipe and preserve specialised review and
