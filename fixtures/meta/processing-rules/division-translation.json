@@ -4,7 +4,7 @@
   "id": "apply-division-name-translation",
   "scope": "individual",
   "basis": "fixture",
-  "summary": "Add a reviewed name in a language only when no name in that language was published, and record where the translation came from.",
+  "summary": "Add a missing English or Traditional Chinese name from a reviewed fixture, retaining its provenance. Simplified Chinese translations are not applied.",
   "inputs": ["division-i18n", "division-translations"],
   "outputs": ["division-i18n"],
   "parameters": {},

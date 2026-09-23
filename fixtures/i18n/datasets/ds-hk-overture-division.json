@@ -76,15 +76,19 @@
     }
   },
   "translations": {
-    "01da0b63e540fa4618c6ae2379c0130e352d7f25c714c69c9c6ba81af8661e47": {
+    "002db46eb9d6d8808171eac38afd33dd1bc30258de1478296eb67b5eb243c2d5": {
       "field": "name",
       "sourceLocale": "zh-hant",
-      "sourceText": "下光板田村",
-      "sourceTextHash": "74f1b1933d682fa0421a079e92562cf16d056178a803e4bae5006c6243e2b6ad",
+      "sourceText": "大坪",
+      "sourceTextHash": "b95b7dadded450eee22ecc49e8b656f8352783302bd31b9e96ea52d459537776",
       "targetLocale": "en",
-      "text": "Xiaguang Bantian Village",
+      "text": "Tai Ping",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4j",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A9W"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: daai6 ping4. The complete English spelling is not independently attested."
     },
     "0464264fbf70e0348fb4cc19e72f843b39c066cb2081cd9f0d00f6ffe3a395ef": {
       "field": "name",
@@ -96,225 +100,335 @@
       "provenance": "ai-translated",
       "machine": "azure-translator-v3"
     },
-    "074928b2c6abc851a963194701eafd125c91937f61e211b0c71f94bad5d2eb2e": {
+    "0678f8a4dee3e4f0a15b4f4e10ec78910012023ad09eedb0ea465b17a05d2ba7": {
       "field": "name",
       "sourceLocale": "zh-hant",
-      "sourceText": "明愛新村",
-      "sourceTextHash": "d10c045be4498a7aa5b3b92b337c9e94261f040206999f98c57e1f918ff5a6fe",
+      "sourceText": "陶家村",
+      "sourceTextHash": "27bc26c825e6541e94a77e428ae7d0ecf0492b1d451d9735fa2427417a0d100e",
       "targetLocale": "en",
-      "text": "Caritas New Village",
+      "text": "To Ka Tsuen",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B3%B3",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%AEa",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: tou4 gaa1 cyun1. The complete English spelling is not independently attested."
     },
-    "17ca1c9271a79c33cda634f50127bd5c5f3288f8eecf7a0d061a6f31052388a2": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "和平區",
-      "sourceTextHash": "527f23740afb9315134b15441ecbd829b9b0344548ea1d06acb0ea3a1277435f",
-      "targetLocale": "en",
-      "text": "Heping District",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "19e76d2d2b4abade2b162ddfacb49e7096f6106bd977fca0f9778005841e90b1": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "蠔田",
-      "sourceTextHash": "d3e9a8518a1ffa0eb71a6df35cfc705e20f49b9df993c8f7724bda37f14cf665",
-      "targetLocale": "en",
-      "text": "Oyster fields",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "257c9585d1442be507ef0dbba45207127c5424887bd0deec8051ea6fd14c5273": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "大陽輋西",
-      "sourceTextHash": "8ee5ec71ca1d701617e40bef1d6cae3d867139d701257daced730d420a01460d",
-      "targetLocale": "en",
-      "text": "West of Dayang Village",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "2f969f1be1d60211863eb00c2f70862f2d78b9cdd18209bc89d0c9b5ded1b4d9": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "沙江廟村",
-      "sourceTextHash": "75a9c50bc66be8dc4ad999035b64bddef9bd66828506b12e8492bc77e61c1509",
-      "targetLocale": "en",
-      "text": "Shajiang Temple Village",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "46016d1819ad7545e31c0c0b5776820753d04a1f23cf90394e812dfbe71dfe4c": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "賴家村",
-      "sourceTextHash": "6a4615c374d6a07e886b17e76155630fc4aac5c02e7b21bfe6cbd9bcf3725a2d",
-      "targetLocale": "en",
-      "text": "Lai Family Village",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "461ddec121d21822bd4f4040dea3bf30913e8f460523b849fc716d225a5f78a7": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "貝澳圍",
-      "sourceTextHash": "a19ea1e9357d25eb5427eb36d582e4d135df30e49b04d8873be01766a9336869",
-      "targetLocale": "en",
-      "text": "Pak O Wai",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "4dded34b50a81e2640f5133854deaeb9003ccf529daef6848a3f28c06828b329": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "龍山村",
-      "sourceTextHash": "c7f738a23abb96298a3fdd5d3dd401b728e26c8a7393cc29cf45f126ada670fc",
-      "targetLocale": "en",
-      "text": "Longshan Village",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "568d08a024e1de8fcf0b4923b72996ea6cd62d039b63ae4be807c9a12220b968": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "賽馬會研究生宿舍廣埸",
-      "sourceTextHash": "20128c788aa59a49c588afeed3cdece89fa758de58337a8291c5282f284eb44f",
-      "targetLocale": "en",
-      "text": "Jockey Club graduate dormitory spacious area",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "614f3af84ec32ad502de18571635e9e0d1cfae46a6fd9204635e7199d7fd628e": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "三角地",
-      "sourceTextHash": "382fb3b5d8830fbb4e0561b3bc989dda0170d5f4e08510ee2dceb81655621d79",
-      "targetLocale": "en",
-      "text": "Triangle area",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "6b772a00c3d5e08f7a762ab4ffe916a1d2aaae3121d4eec709aa15e456d7b15f": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "五源",
-      "sourceTextHash": "5eeca111c9b809cf69f6a872d6473390d3908285e5262b79e71f43f7ba62f9bc",
-      "targetLocale": "en",
-      "text": "Five sources",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "6ed7f5cee316e288058a8603df2a392e0441626987eaa1dca1b4871600e51587": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "圓形廣場",
-      "sourceTextHash": "e45ea6972d897b4f108ee113d284ce84636d5e3800d5bccc40a4f8050f6c6109",
-      "targetLocale": "en",
-      "text": "Circular plaza",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "8704bee12321c9e8b382d33cf8bd8ae20618992d1d43d82b2b2b391da6744f10": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "鶴佬村",
-      "sourceTextHash": "663fc9f92f715f14a36b05f84ffc5c8fdcccf070e195eb78ff97e620c37a7bfa",
-      "targetLocale": "en",
-      "text": "Crane Village",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "8715f92526ac249364fdf03ed8343243c4adf6df9e13891b35d0892dfb8e183c": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "楊家村",
-      "sourceTextHash": "0c722091b597246ba15c54beaa1345eb1b3aeb9e7862d66147a3db382f712547",
-      "targetLocale": "en",
-      "text": "Yangjia Village",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "8b8e660df57f23ba3f7daff4cd307d3af6da7d51c774d74a20e59446468ea061": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "上光板田村",
-      "sourceTextHash": "584ebcac5b0bafa507e786a5cfdaea867067f65de2de0f5040126bb6aeb54bbf",
-      "targetLocale": "en",
-      "text": "Shangguang Bantian Village",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "91252fd9ef205cbc97aaf5ba2ec88a89f55b56c80265573e401cca4e5d6d34a7": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "井頭",
-      "sourceTextHash": "3c46abd6c5bbf3b420fb0f7d30de2710e1155c082764ab7cb4bdeafdc270e77e",
-      "targetLocale": "en",
-      "text": "At the wellhead",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "945d8cff9966712bacdc00e7930087927ba6d43ed8f3294dcb971efa2e7fac84": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "圍尾",
-      "sourceTextHash": "96b382fc5ef04b913c772155ed10b79ee95900b2377f353edeb21489ea24b7b2",
-      "targetLocale": "en",
-      "text": "Weiwei",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "9fe4a3595205a048744dcd69ebb1ac33c6ed3d438ee7ee01b61f0aef1cd812df": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "流浮山墟",
-      "sourceTextHash": "c02280e0ac410dc66d309aea634ae549d54bddaeaa49542634b9dd972d223e9f",
-      "targetLocale": "en",
-      "text": "drifting to the mountain villages",
-      "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
-    },
-    "a01565a034f0d35817e9afd3b3328a734372a9679a02fd437cea10d7a9aec5f8": {
+    "07ff3ada107501dbf10e1265eb50b3cdb46ca831ec2ea6eefd047ebec28f9ef6": {
       "field": "name",
       "sourceLocale": "zh-hant",
       "sourceText": "沙頭角廣場(九區)",
       "sourceTextHash": "969252fe82c2abc737ee787878e79aae7dd22f914d54298dfc478b107daa861f",
       "targetLocale": "en",
-      "text": "Sha Tau Kok Plaza (District 9)",
+      "text": "Sha Tau Kok Square (Area 9)",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://en.wikipedia.org/wiki/Sha_Tau_Kok",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A8F",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%C0Y",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A8%A4",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%BCs",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B3%F5",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4E",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B0%CF"
+      ],
+      "derivation": "Attested locality spelling Sha Tau Kok with descriptive Square (Area 9). The complete square name is not independently attested; 區 is not treated as an administrative district."
     },
-    "a8d9be59afd37108226be4540604e2e997ab9596a73321630bfd332fcd30abfa": {
+    "18eb5a4bedf6e7c1ba81618be4791a5f0aa721da5fe6aa0434ddb7527b2c5ded": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "明愛新村",
+      "sourceTextHash": "d10c045be4498a7aa5b3b92b337c9e94261f040206999f98c57e1f918ff5a6fe",
+      "targetLocale": "en",
+      "text": "Ming Oi San Tsuen",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A9%FA",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B7R",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B7s",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: ming4 oi3 san1 cyun1. The complete English spelling is not independently attested."
+    },
+    "225489b5a20a3f1cc887af9faf711bf1b536129cded81f9747a99ccb786ab900": {
       "field": "name",
       "sourceLocale": "zh-hant",
       "sourceText": "伍村",
       "sourceTextHash": "95c311ef88274b655ad73e167574ef43a3d8cc13ebfc6cacf3ebe33059770526",
       "targetLocale": "en",
-      "text": "Wu Village",
+      "text": "Ng Tsuen",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%EE",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: ng5 cyun1. The complete English spelling is not independently attested."
     },
-    "bc8ad16367fa7ca45dd12a18ebd90e7c7af7061ff57989efcf08299078d721a9": {
+    "25b42f1937297fcafd6cae87a0c67efa3c12baa0bbc37e497a267216ac58e224": {
       "field": "name",
       "sourceLocale": "zh-hant",
-      "sourceText": "文瀾前地",
-      "sourceTextHash": "70d07c76e71dccecbc989b8eacdd29664f10b03f631a147c1570e0b5f8d76a3a",
+      "sourceText": "圓形廣場",
+      "sourceTextHash": "e45ea6972d897b4f108ee113d284ce84636d5e3800d5bccc40a4f8050f6c6109",
       "targetLocale": "en",
-      "text": "Wenlan Front ground",
+      "text": "Circular Plaza",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B6%EA",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%CE",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%BCs",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B3%F5"
+      ],
+      "derivation": "Descriptive translation of a generic circular plaza label; not an independently attested proper name."
     },
-    "c6aba70a6ea0f6fd1abd321f04f3c3be2f8d6d18a820910c64c22eddd59bd339": {
+    "327c6a2df9cba2dcb46cd19ff6cf8e03585002790acdc8ad796fa968a0abcbba": {
       "field": "name",
       "sourceLocale": "zh-hant",
-      "sourceText": "大坪",
-      "sourceTextHash": "b95b7dadded450eee22ecc49e8b656f8352783302bd31b9e96ea52d459537776",
+      "sourceText": "五源",
+      "sourceTextHash": "5eeca111c9b809cf69f6a872d6473390d3908285e5262b79e71f43f7ba62f9bc",
       "targetLocale": "en",
-      "text": "Daping",
+      "text": "Ng Yuen",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4%AD",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B7%BD"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: ng5 jyun4. The complete English spelling is not independently attested."
+    },
+    "36002e734c4a9d4efba7b37298a42ef55332164e418e5f9adac9743b6d674e96": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "井頭",
+      "sourceTextHash": "3c46abd6c5bbf3b420fb0f7d30de2710e1155c082764ab7cb4bdeafdc270e77e",
+      "targetLocale": "en",
+      "text": "Tseng Tau",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4%AB",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%C0Y"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: zeng2 tau4. The complete English spelling is not independently attested."
+    },
+    "3bf5ba4ad413a517453f6d14cb72961b614944eaf206b72403b4cb59b065fef9": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "流浮山墟",
+      "sourceTextHash": "c02280e0ac410dc66d309aea634ae549d54bddaeaa49542634b9dd972d223e9f",
+      "targetLocale": "en",
+      "text": "Lau Fau Shan Hui",
+      "provenance": "ai-translated",
+      "references": [
+        "https://en.wikipedia.org/wiki/Lau_Fau_Shan",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%ACy",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%AFB",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4s",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%BCV"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: lau4 fau4 saan1 heoi1. The complete English spelling is not independently attested. Retains the attested locality spelling Lau Fau Shan."
+    },
+    "4648575532abc3bff95bf953dc227a13bc105f390f9594c4788b4eabc7244fd8": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "賴家村",
+      "sourceTextHash": "6a4615c374d6a07e886b17e76155630fc4aac5c02e7b21bfe6cbd9bcf3725a2d",
+      "targetLocale": "en",
+      "text": "Lai Ka Tsuen",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%BF%E0",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%AEa",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: laai6 gaa1 cyun1. The complete English spelling is not independently attested."
+    },
+    "5652d56614e44920763eabaff822a3009c093826d70ffa318e69e1ad0e212a47": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "楊家村",
+      "sourceTextHash": "0c722091b597246ba15c54beaa1345eb1b3aeb9e7862d66147a3db382f712547",
+      "targetLocale": "en",
+      "text": "Yeung Ka Tsuen",
+      "provenance": "ai-translated",
+      "references": [
+        "https://en.wikipedia.org/wiki/Yeung_Ka_Tsuen"
+      ],
+      "derivation": "Attested village name; the source identifies Tai Tong, Yuen Long and coordinates matching this record."
+    },
+    "65b363dc072969c7314ff8d4f9e532208c143e2c32e08029383461d26fdefd8b": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "圍尾",
+      "sourceTextHash": "96b382fc5ef04b913c772155ed10b79ee95900b2377f353edeb21489ea24b7b2",
+      "targetLocale": "en",
+      "text": "Wai Mei",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B3%F2",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%C0"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: wai4 mei5. The complete English spelling is not independently attested."
+    },
+    "66899dbdb0a38dfd1ced1fde93938e1e931e0169cabc1ec60b5dd05f8b85aebe": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "三角地",
+      "sourceTextHash": "382fb3b5d8830fbb4e0561b3bc989dda0170d5f4e08510ee2dceb81655621d79",
+      "targetLocale": "en",
+      "text": "Sam Kok Tei",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4T",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A8%A4",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A6a"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: saam1 gok3 dei6. The complete English spelling is not independently attested."
+    },
+    "7157a2d740bfd46a64b58f1e5c98e7be39f6637fddb8b78da9f9aa69695aca81": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "圍中",
+      "sourceTextHash": "b0eaa558b2df76dd99529e487188f8c4c614006b03100b9b23d565a22a2c9b64",
+      "targetLocale": "en",
+      "text": "Wai Chung",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B3%F2",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4%A4"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: wai4 zung1. The complete English spelling is not independently attested."
+    },
+    "74232a4abdb9c7ba07ec902e2b6d7eb33640a255bc71af6b2d9d7ee4938a47e4": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "大陽輋西",
+      "sourceTextHash": "8ee5ec71ca1d701617e40bef1d6cae3d867139d701257daced730d420a01460d",
+      "targetLocale": "en",
+      "text": "Tai Yeung Che West",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4j",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B6%A7",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%E0%7C",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A6%E8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: daai6 joeng4 ce4 sai1. The complete English spelling is not independently attested. The generic area, direction or forecourt descriptor is rendered in English."
+    },
+    "7f6439debacd738640b77b2122a42ac19900638b3c5f96b0a3da1621687d73a8": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "賽馬會研究生宿舍廣埸",
+      "sourceTextHash": "20128c788aa59a49c588afeed3cdece89fa758de58337a8291c5282f284eb44f",
+      "targetLocale": "en",
+      "text": "Jockey Club Postgraduate Halls Plaza",
+      "provenance": "ai-translated",
+      "references": [
+        "https://www.pgh.cuhk.edu.hk/about/introduction/pgh1/",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%C1%C9",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B0%A8",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B7%7C",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%AC%E3",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A8s",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%CD",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B1J",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%AA%D9",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%BCs",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%D4%B7"
+      ],
+      "derivation": "Descriptive English rendering using CUHK Postgraduate Halls terminology. Interprets source 廣埸 as 廣場 (plaza), retaining the literal source spelling. The complete plaza name is not independently attested."
+    },
+    "8e7fca5172089fb8d06777d92a3c05453f63d2df4572c4f84085135e538f1c9d": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "涌口村",
+      "sourceTextHash": "1ae8910c5c151ed8127932684fa1ee0d5db11790c0f1a05e3fa311e580e917bb",
+      "targetLocale": "en",
+      "text": "Chung Hau Tsuen",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%AFF",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4f",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: cung1 hau2 cyun1. The complete English spelling is not independently attested."
+    },
+    "96d72dd0f1e09a77502300093d659a2369b07a1acf8a92483ef18ba52ced2ee1": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "光板田新村",
+      "sourceTextHash": "5820978e0de697957604825ee9814283f15921f4e1f8285969120d8e06e3af4a",
+      "targetLocale": "en",
+      "text": "Kwong Pan Tin San Tsuen",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%FA",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%AAO",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%D0",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B7s",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: gwong1 baan2 tin4 san1 cyun1. The complete English spelling is not independently attested. Retains the Kwong Pan Tin stem used by neighbouring publisher-named divisions."
+    },
+    "a74f53d143f04e201bbc469ed606f9d544d7137dff9d9970c5b65c8c1d0574c9": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "下光板田村",
+      "sourceTextHash": "74f1b1933d682fa0421a079e92562cf16d056178a803e4bae5006c6243e2b6ad",
+      "targetLocale": "en",
+      "text": "Ha Kwong Pan Tin Tsuen",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4U",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%FA",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%AAO",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%D0",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: haa6 gwong1 baan2 tin4 cyun1. The complete English spelling is not independently attested. Retains the Kwong Pan Tin stem used by neighbouring publisher-named divisions."
+    },
+    "b148d57e09c6fbd57135bc5c3aafb0df74c1b771437c613cf6bfe8651d582224": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "安樂區",
+      "sourceTextHash": "71c22c8f4985bed27e5e814dbb1f199f42fd091e6358fed06cf07041744697cd",
+      "targetLocale": "en",
+      "text": "On Lok Area",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A6w",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%BC%D6",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B0%CF"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: on1 lok6 keoi1. The complete English spelling is not independently attested. The generic area, direction or forecourt descriptor is rendered in English."
+    },
+    "b3841769f15f2edc04c38eb72f9b861ea6a2756a7133e50a6d62dd3734d951cf": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "和平區",
+      "sourceTextHash": "527f23740afb9315134b15441ecbd829b9b0344548ea1d06acb0ea3a1277435f",
+      "targetLocale": "en",
+      "text": "Wo Ping Area",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A9M",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%AD",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B0%CF"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: wo4 ping4 keoi1. The complete English spelling is not independently attested. The generic area, direction or forecourt descriptor is rendered in English."
+    },
+    "c595c5809fcee17060aed1bb0ad7d78564f0117e0610bb152793de6b6e7aca87": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "鶴佬村",
+      "sourceTextHash": "663fc9f92f715f14a36b05f84ffc5c8fdcccf070e195eb78ff97e620c37a7bfa",
+      "targetLocale": "en",
+      "text": "Hok Lo Tsuen",
+      "provenance": "ai-translated",
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%C5b",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A8%D0",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: hok6 lou2 cyun1. The complete English spelling is not independently attested."
     },
     "c6bc021a462c510f8ccd876949d2922df4fa15c3af543329097574db45ec2618": {
       "field": "name",
@@ -326,61 +440,105 @@
       "provenance": "ai-translated",
       "machine": "azure-translator-v3"
     },
-    "d2db4d07201b5c84092ee286fe8f48b0fad70c8d34c31bc0e17e0702408e7234": {
+    "d3bb3d822d4bd9e18ee1aa8571382b538f6951426bff9ea032e367548b046420": {
       "field": "name",
       "sourceLocale": "zh-hant",
-      "sourceText": "圍中",
-      "sourceTextHash": "b0eaa558b2df76dd99529e487188f8c4c614006b03100b9b23d565a22a2c9b64",
+      "sourceText": "文瀾前地",
+      "sourceTextHash": "70d07c76e71dccecbc989b8eacdd29664f10b03f631a147c1570e0b5f8d76a3a",
       "targetLocale": "en",
-      "text": "Surrounded by the encirclement",
+      "text": "Man Lan Forecourt",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4%E5",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%C4i",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%ABe",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A6a"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: man4 laan4 cin4 dei6. The complete English spelling is not independently attested. The generic area, direction or forecourt descriptor is rendered in English."
     },
-    "d31d5d1f8de1a4f58a9861b6a1bfefd8c80906c73edf178c22ea3c50e14880c5": {
+    "daf10642b99d7c176cb06ba236c20cb6ba416554297230ef28629e2584924834": {
       "field": "name",
       "sourceLocale": "zh-hant",
-      "sourceText": "安樂區",
-      "sourceTextHash": "71c22c8f4985bed27e5e814dbb1f199f42fd091e6358fed06cf07041744697cd",
+      "sourceText": "蠔田",
+      "sourceTextHash": "d3e9a8518a1ffa0eb71a6df35cfc705e20f49b9df993c8f7724bda37f14cf665",
       "targetLocale": "en",
-      "text": "Anle District",
+      "text": "Ho Tin",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%C4%AE",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%D0"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: hou4 tin4. The complete English spelling is not independently attested."
     },
-    "d589a57368eee314f122bfae68cc555180a774d4916d661def3025ee12ff77be": {
+    "ebaa0acb5f51eb978943a2689b9eff8663188641985d20d0c4c1c0b6524c4ffa": {
       "field": "name",
       "sourceLocale": "zh-hant",
-      "sourceText": "光板田新村",
-      "sourceTextHash": "5820978e0de697957604825ee9814283f15921f4e1f8285969120d8e06e3af4a",
+      "sourceText": "沙江廟村",
+      "sourceTextHash": "75a9c50bc66be8dc4ad999035b64bddef9bd66828506b12e8492bc77e61c1509",
       "targetLocale": "en",
-      "text": "Guangbantian New Village",
+      "text": "Sha Kong Miu Tsuen",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A8F",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A6%BF",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%BCq",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: saa1 gong1 miu6 cyun1. The complete English spelling is not independently attested."
     },
-    "d5cc0a1d472ca19cc121e775afdac9312cc07ad07aeee02ca75759a51bc813d6": {
+    "f50a50280483624bc4440d40d15aecccc8d917a79bbbcb5ca7cb7f555ae5d94d": {
       "field": "name",
       "sourceLocale": "zh-hant",
-      "sourceText": "涌口村",
-      "sourceTextHash": "1ae8910c5c151ed8127932684fa1ee0d5db11790c0f1a05e3fa311e580e917bb",
+      "sourceText": "上光板田村",
+      "sourceTextHash": "584ebcac5b0bafa507e786a5cfdaea867067f65de2de0f5040126bb6aeb54bbf",
       "targetLocale": "en",
-      "text": "Yongkou Village",
+      "text": "Sheung Kwong Pan Tin Tsuen",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4W",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%FA",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%AAO",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A5%D0",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: soeng6 gwong1 baan2 tin4 cyun1. The complete English spelling is not independently attested. Retains the Kwong Pan Tin stem used by neighbouring publisher-named divisions."
     },
-    "ea765b8671a8375dd0169b7adec06a62703cc1238e731e04378849864198f235": {
+    "fb62c546ff14a97b3ebf0b8705471c0d0c117fe16cf2e2139f5fc5ed6ccf3a4d": {
       "field": "name",
       "sourceLocale": "zh-hant",
-      "sourceText": "陶家村",
-      "sourceTextHash": "27bc26c825e6541e94a77e428ae7d0ecf0492b1d451d9735fa2427417a0d100e",
+      "sourceText": "龍山村",
+      "sourceTextHash": "c7f738a23abb96298a3fdd5d3dd401b728e26c8a7393cc29cf45f126ada670fc",
       "targetLocale": "en",
-      "text": "Tao Family Village",
+      "text": "Lung Shan Tsuen",
       "provenance": "ai-translated",
-      "machine": "azure-translator-v3"
+      "references": [
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%C0s",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A4s",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
+      ],
+      "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: lung4 saan1 cyun1. The complete English spelling is not independently attested."
+    },
+    "fc79a9341834f6c9b8e43dbece0f04fb35cbf1118d6aab6d0dc45735ddcfbf18": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "貝澳圍",
+      "sourceTextHash": "a19ea1e9357d25eb5427eb36d582e4d135df30e49b04d8873be01766a9336869",
+      "targetLocale": "en",
+      "text": "Pui O Wai",
+      "provenance": "ai-translated",
+      "references": [
+        "https://en.wikipedia.org/wiki/Pui_O",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A8%A9",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%BFD",
+        "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%B3%F2"
+      ],
+      "derivation": "Attested locality spelling Pui O plus Cantonese Wai for 圍. The complete name Pui O Wai is a fallback, not independently attested."
     }
   },
   "usages": {
     "021e56a6090640ef566eefe5ea228e33d6d2dbb412f13db3ae9f9416e45af57b": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "945d8cff9966712bacdc00e7930087927ba6d43ed8f3294dcb971efa2e7fac84",
+      "translation": "65b363dc072969c7314ff8d4f9e532208c143e2c32e08029383461d26fdefd8b",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -389,7 +547,7 @@
     },
     "05b399175a88030e82474bafc3480cbb33121b61c800c0a0a3d3d84f8e07694b": {
       "context": "4c90d04a72ba55e98382caeb75d438f2644cf207df83da598559545494b75850",
-      "translation": "8b8e660df57f23ba3f7daff4cd307d3af6da7d51c774d74a20e59446468ea061",
+      "translation": "f50a50280483624bc4440d40d15aecccc8d917a79bbbcb5ca7cb7f555ae5d94d",
       "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -398,7 +556,7 @@
     },
     "0dd282b4507f75e674532f7bab89d6b77aec7fbfd16db8dd7e88a559033346c7": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "d5cc0a1d472ca19cc121e775afdac9312cc07ad07aeee02ca75759a51bc813d6",
+      "translation": "8e7fca5172089fb8d06777d92a3c05453f63d2df4572c4f84085135e538f1c9d",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -407,7 +565,7 @@
     },
     "11396bbb481765fa1f38b12a11e5c881822c419282dccc2c67242f6164bec19e": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "46016d1819ad7545e31c0c0b5776820753d04a1f23cf90394e812dfbe71dfe4c",
+      "translation": "4648575532abc3bff95bf953dc227a13bc105f390f9594c4788b4eabc7244fd8",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -416,7 +574,7 @@
     },
     "1dd354ba59f048e75ecab567daa9e1921a4cbc1ccad12f611fa6298eaf89f07e": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "17ca1c9271a79c33cda634f50127bd5c5f3288f8eecf7a0d061a6f31052388a2",
+      "translation": "b3841769f15f2edc04c38eb72f9b861ea6a2756a7133e50a6d62dd3734d951cf",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -425,7 +583,7 @@
     },
     "1f1d51dad4e3363776bd4a0192fdd5193e8b8a169008f6788a9f8cb90dfeec22": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "d2db4d07201b5c84092ee286fe8f48b0fad70c8d34c31bc0e17e0702408e7234",
+      "translation": "7157a2d740bfd46a64b58f1e5c98e7be39f6637fddb8b78da9f9aa69695aca81",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -434,7 +592,7 @@
     },
     "21ab145cfa209387e06d64865ae8779e27c15de326716edef37c699a724c5790": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "a8d9be59afd37108226be4540604e2e997ab9596a73321630bfd332fcd30abfa",
+      "translation": "225489b5a20a3f1cc887af9faf711bf1b536129cded81f9747a99ccb786ab900",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -444,7 +602,7 @@
     },
     "2cf173f7ee6aae96b68e9ac77101012d7a1507eb87d941dbb2b53884c6b0fc2a": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "9fe4a3595205a048744dcd69ebb1ac33c6ed3d438ee7ee01b61f0aef1cd812df",
+      "translation": "3bf5ba4ad413a517453f6d14cb72961b614944eaf206b72403b4cb59b065fef9",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -453,7 +611,7 @@
     },
     "2e1ee933ec50c89fb8d593f8f7bf005902f988af27c9843a24520db317979801": {
       "context": "682013bc92db93beb78108dfaef4a4f7e529466d0793791532bb7a2e18a0c3f1",
-      "translation": "8b8e660df57f23ba3f7daff4cd307d3af6da7d51c774d74a20e59446468ea061",
+      "translation": "f50a50280483624bc4440d40d15aecccc8d917a79bbbcb5ca7cb7f555ae5d94d",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -462,7 +620,7 @@
     },
     "30c8359239e838ce81c90edac8b1418d16ea2d4daa426afdd02ec50725e6c92c": {
       "context": "08f78120a80d925bcbb80be33d98daa2421670364f71f35a8789b17fe3803f5f",
-      "translation": "6b772a00c3d5e08f7a762ab4ffe916a1d2aaae3121d4eec709aa15e456d7b15f",
+      "translation": "327c6a2df9cba2dcb46cd19ff6cf8e03585002790acdc8ad796fa968a0abcbba",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-05-20.0",
       "recordIds": [
@@ -471,7 +629,7 @@
     },
     "36744a099d74f0e0a1097483c96553e607b43aa26f428b23346851ac0277f697": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "ea765b8671a8375dd0169b7adec06a62703cc1238e731e04378849864198f235",
+      "translation": "0678f8a4dee3e4f0a15b4f4e10ec78910012023ad09eedb0ea465b17a05d2ba7",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -480,7 +638,7 @@
     },
     "3ddb6f9eecdd37854391f0baf910d1f1cb97427edc80a4bba0aa122819bf69ab": {
       "context": "08f78120a80d925bcbb80be33d98daa2421670364f71f35a8789b17fe3803f5f",
-      "translation": "568d08a024e1de8fcf0b4923b72996ea6cd62d039b63ae4be807c9a12220b968",
+      "translation": "7f6439debacd738640b77b2122a42ac19900638b3c5f96b0a3da1621687d73a8",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-05-20.0",
       "recordIds": [
@@ -498,7 +656,7 @@
     },
     "4174a1bd054c34d6eb955be2eb36381ae27285bc63bbb492c54650f8710d58d7": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "8704bee12321c9e8b382d33cf8bd8ae20618992d1d43d82b2b2b391da6744f10",
+      "translation": "c595c5809fcee17060aed1bb0ad7d78564f0117e0610bb152793de6b6e7aca87",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -507,7 +665,7 @@
     },
     "448285f16f3eba95cec2a7d6147b2d56104fa524d3b6b4b3d3f27376878bdd82": {
       "context": "08f78120a80d925bcbb80be33d98daa2421670364f71f35a8789b17fe3803f5f",
-      "translation": "614f3af84ec32ad502de18571635e9e0d1cfae46a6fd9204635e7199d7fd628e",
+      "translation": "66899dbdb0a38dfd1ced1fde93938e1e931e0169cabc1ec60b5dd05f8b85aebe",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-05-20.0",
       "recordIds": [
@@ -516,7 +674,7 @@
     },
     "4fefd6afa489982611b8f3b379b2679a3acd6b0c019be8aa8bb264db08509ce3": {
       "context": "583334ac4e30b3c10043d71189e4e3e38984cbd10b035f5bfdcbea6ecfe21fb4",
-      "translation": "6b772a00c3d5e08f7a762ab4ffe916a1d2aaae3121d4eec709aa15e456d7b15f",
+      "translation": "327c6a2df9cba2dcb46cd19ff6cf8e03585002790acdc8ad796fa968a0abcbba",
       "firstSeenRelease": "dr-hk-overture-division-2026-06-17.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -525,7 +683,7 @@
     },
     "530eb826885ef8b1596400eb7294819185af125b5fca4a99eed5c822d4bb94dc": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "d31d5d1f8de1a4f58a9861b6a1bfefd8c80906c73edf178c22ea3c50e14880c5",
+      "translation": "b148d57e09c6fbd57135bc5c3aafb0df74c1b771437c613cf6bfe8651d582224",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -534,7 +692,7 @@
     },
     "55f5552b0ade17852f71f74c607038b0a30624b47afe322bc848a945d2fa2c70": {
       "context": "d38098cdd0c249f7f9e295a6c68c1aeab2b9b2c429b3bd2cb622b86c6916d0a8",
-      "translation": "074928b2c6abc851a963194701eafd125c91937f61e211b0c71f94bad5d2eb2e",
+      "translation": "18eb5a4bedf6e7c1ba81618be4791a5f0aa721da5fe6aa0434ddb7527b2c5ded",
       "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -543,7 +701,7 @@
     },
     "566cea6a5c91340cfc2118255b6c3989eb42952cd096ab71dfc96e6982fd6892": {
       "context": "682013bc92db93beb78108dfaef4a4f7e529466d0793791532bb7a2e18a0c3f1",
-      "translation": "d589a57368eee314f122bfae68cc555180a774d4916d661def3025ee12ff77be",
+      "translation": "96d72dd0f1e09a77502300093d659a2369b07a1acf8a92483ef18ba52ced2ee1",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -552,7 +710,7 @@
     },
     "5f58447b13c1500e3744a54c8ff013a9faaf86e703024bfaae4d47da5b398ba3": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "8715f92526ac249364fdf03ed8343243c4adf6df9e13891b35d0892dfb8e183c",
+      "translation": "5652d56614e44920763eabaff822a3009c093826d70ffa318e69e1ad0e212a47",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2025-12-17.0",
       "recordIds": [
@@ -561,7 +719,7 @@
     },
     "7b392939aef9fe479138088f4989e180de4d580e62aafd29289333c1409339bd": {
       "context": "83f9919c8489e4de2f798303c259794cfb2d6205d14df0a2d4ec145d95305b72",
-      "translation": "a01565a034f0d35817e9afd3b3328a734372a9679a02fd437cea10d7a9aec5f8",
+      "translation": "07ff3ada107501dbf10e1265eb50b3cdb46ca831ec2ea6eefd047ebec28f9ef6",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -570,7 +728,7 @@
     },
     "837b93cea7677413a61706e8aae7b54d6ad4d031a2303041d8b3453ce14d2acf": {
       "context": "83f9919c8489e4de2f798303c259794cfb2d6205d14df0a2d4ec145d95305b72",
-      "translation": "4dded34b50a81e2640f5133854deaeb9003ccf529daef6848a3f28c06828b329",
+      "translation": "fb62c546ff14a97b3ebf0b8705471c0d0c117fe16cf2e2139f5fc5ed6ccf3a4d",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -579,7 +737,7 @@
     },
     "8a14b2a5e9fe7b9c848606f1f4965f0364df88dfe15132d735a8cd33c9110142": {
       "context": "583334ac4e30b3c10043d71189e4e3e38984cbd10b035f5bfdcbea6ecfe21fb4",
-      "translation": "614f3af84ec32ad502de18571635e9e0d1cfae46a6fd9204635e7199d7fd628e",
+      "translation": "66899dbdb0a38dfd1ced1fde93938e1e931e0169cabc1ec60b5dd05f8b85aebe",
       "firstSeenRelease": "dr-hk-overture-division-2026-06-17.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -588,7 +746,7 @@
     },
     "92c221bbb1593da89491031d3174e7f56d0f47f7005115eb2b0fc584742a4937": {
       "context": "4c90d04a72ba55e98382caeb75d438f2644cf207df83da598559545494b75850",
-      "translation": "d589a57368eee314f122bfae68cc555180a774d4916d661def3025ee12ff77be",
+      "translation": "96d72dd0f1e09a77502300093d659a2369b07a1acf8a92483ef18ba52ced2ee1",
       "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -597,7 +755,7 @@
     },
     "978c99f60d9acc32d9a3392756685ce4fec29892f3b6e58bae01c75bb440f03a": {
       "context": "277d68a4c1a26ac9fa6ed73c0a906aebd528abb3401e99c50b2e309be5a488dd",
-      "translation": "461ddec121d21822bd4f4040dea3bf30913e8f460523b849fc716d225a5f78a7",
+      "translation": "fc79a9341834f6c9b8e43dbece0f04fb35cbf1118d6aab6d0dc45735ddcfbf18",
       "firstSeenRelease": "dr-hk-overture-division-2026-06-17.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -606,7 +764,7 @@
     },
     "97ce87c4e108b91d11cfba651578ba29af760788b2219fa25b172a4f29bc0263": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "c6aba70a6ea0f6fd1abd321f04f3c3be2f8d6d18a820910c64c22eddd59bd339",
+      "translation": "002db46eb9d6d8808171eac38afd33dd1bc30258de1478296eb67b5eb243c2d5",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -615,7 +773,7 @@
     },
     "9f2f93402139abf6daeb15e365bdfe7c2000dd93076225115edde57b5f2924e1": {
       "context": "583334ac4e30b3c10043d71189e4e3e38984cbd10b035f5bfdcbea6ecfe21fb4",
-      "translation": "568d08a024e1de8fcf0b4923b72996ea6cd62d039b63ae4be807c9a12220b968",
+      "translation": "7f6439debacd738640b77b2122a42ac19900638b3c5f96b0a3da1621687d73a8",
       "firstSeenRelease": "dr-hk-overture-division-2026-06-17.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -624,7 +782,7 @@
     },
     "9fd1cd9eb794e222da4613182e26d3f3e4b14b2185bf82695f94cb7a66039084": {
       "context": "fa8529e950ee87a2bdc3cecbc679ba3ce75010432fa8c65d6654af7aee7253b2",
-      "translation": "bc8ad16367fa7ca45dd12a18ebd90e7c7af7061ff57989efcf08299078d721a9",
+      "translation": "d3bb3d822d4bd9e18ee1aa8571382b538f6951426bff9ea032e367548b046420",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-05-20.0",
       "recordIds": [
@@ -633,7 +791,7 @@
     },
     "a1e36c6e4b0972da935d45f647597a29b9ea9cf069edc581af9c22b56e7c94d5": {
       "context": "682013bc92db93beb78108dfaef4a4f7e529466d0793791532bb7a2e18a0c3f1",
-      "translation": "01da0b63e540fa4618c6ae2379c0130e352d7f25c714c69c9c6ba81af8661e47",
+      "translation": "a74f53d143f04e201bbc469ed606f9d544d7137dff9d9970c5b65c8c1d0574c9",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -642,7 +800,7 @@
     },
     "a3f0264331feb09cf09c8d9e83a7f7dd77be59fd426cfc756ec3d418411ec100": {
       "context": "14aa52d2f1ad261fe106e2df61bdc33f214ff321e0744d5b4c0dd7774113c9cc",
-      "translation": "6ed7f5cee316e288058a8603df2a392e0441626987eaa1dca1b4871600e51587",
+      "translation": "25b42f1937297fcafd6cae87a0c67efa3c12baa0bbc37e497a267216ac58e224",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -652,7 +810,7 @@
     },
     "b1ed8cac7fcfca6d23702211f67e024d9f4398ac4f8dcf09c1aad87aad44e502": {
       "context": "583334ac4e30b3c10043d71189e4e3e38984cbd10b035f5bfdcbea6ecfe21fb4",
-      "translation": "257c9585d1442be507ef0dbba45207127c5424887bd0deec8051ea6fd14c5273",
+      "translation": "74232a4abdb9c7ba07ec902e2b6d7eb33640a255bc71af6b2d9d7ee4938a47e4",
       "firstSeenRelease": "dr-hk-overture-division-2026-06-17.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -661,7 +819,7 @@
     },
     "b5f2e4302818d04ae51c85bcfad39114fc21f221582ca4ee26e398cdc160b3b6": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "2f969f1be1d60211863eb00c2f70862f2d78b9cdd18209bc89d0c9b5ded1b4d9",
+      "translation": "ebaa0acb5f51eb978943a2689b9eff8663188641985d20d0c4c1c0b6524c4ffa",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -670,7 +828,7 @@
     },
     "b7b86606704d10c86563e7d85fdbcc84ba45d0873c1f20468433b8b56ab22dd7": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "91252fd9ef205cbc97aaf5ba2ec88a89f55b56c80265573e401cca4e5d6d34a7",
+      "translation": "36002e734c4a9d4efba7b37298a42ef55332164e418e5f9adac9743b6d674e96",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -688,7 +846,7 @@
     },
     "bc1e7d84e4d30755f9086591ea3f4c5ac2097d5e778cd400f86bc9b2a8904da0": {
       "context": "08f78120a80d925bcbb80be33d98daa2421670364f71f35a8789b17fe3803f5f",
-      "translation": "257c9585d1442be507ef0dbba45207127c5424887bd0deec8051ea6fd14c5273",
+      "translation": "74232a4abdb9c7ba07ec902e2b6d7eb33640a255bc71af6b2d9d7ee4938a47e4",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-05-20.0",
       "recordIds": [
@@ -697,7 +855,7 @@
     },
     "bfe518ec731a64a93132af7b14de97e7a84743ce0ccd7dc5adaadf3c3be46c97": {
       "context": "127e73d618c319137135b1e8ea52550ba3cf7e90a7f996bf25244d820c18c798",
-      "translation": "074928b2c6abc851a963194701eafd125c91937f61e211b0c71f94bad5d2eb2e",
+      "translation": "18eb5a4bedf6e7c1ba81618be4791a5f0aa721da5fe6aa0434ddb7527b2c5ded",
       "firstSeenRelease": "dr-hk-overture-division-2026-03-18.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -706,7 +864,7 @@
     },
     "c22e51bc6d53918ea022d1a6cf632db276deb2bf0cfdcdce840f48a475b0af2c": {
       "context": "079542ecdf5f24652f655305e1e17ef6e91f46a185b45c818e230158df2a15b9",
-      "translation": "a8d9be59afd37108226be4540604e2e997ab9596a73321630bfd332fcd30abfa",
+      "translation": "225489b5a20a3f1cc887af9faf711bf1b536129cded81f9747a99ccb786ab900",
       "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -716,7 +874,7 @@
     },
     "c2bc7ed3206c307a25c8484495dab9dd9f5b0d5c55b8040ead0760e551f60128": {
       "context": "4c90d04a72ba55e98382caeb75d438f2644cf207df83da598559545494b75850",
-      "translation": "01da0b63e540fa4618c6ae2379c0130e352d7f25c714c69c9c6ba81af8661e47",
+      "translation": "a74f53d143f04e201bbc469ed606f9d544d7137dff9d9970c5b65c8c1d0574c9",
       "firstSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
@@ -725,7 +883,7 @@
     },
     "f593607d2d9110ddf408ae776387da3b22a84608f3abd2a2a46430774326a38b": {
       "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
-      "translation": "19e76d2d2b4abade2b162ddfacb49e7096f6106bd977fca0f9778005841e90b1",
+      "translation": "daf10642b99d7c176cb06ba236c20cb6ba416554297230ef28629e2584924834",
       "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
