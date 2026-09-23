@@ -1,5 +1,20 @@
 # Divisions dataset family
 
+Division audit actions retain repeated field values in bounded column dictionaries. R2
+delivery uploads independent objects concurrently and registers the release audit only
+after all dependencies and its manifest are verified. The Audit page expands the
+retained actions for evidence display and search. Automatic rules retain declarations
+and counts; translations retain applied decisions and aggregate unused-instruction
+counts without per-instruction skipped actions.
+
+Initialisation recognises a retained native baseline as complete when its published
+curated snapshot records the exact source release through the registered SaanSeoi
+assembly rule and has a complete delivery receipt with the matching publication scope.
+Derived curated releases require their snapshot history assignment; source-row shard
+assignments apply to the ingested native releases rather than the derived archives.
+Curated assembly can replay published native baseline membership from immutable history
+when its current serving projection is no longer present.
+
 Canonical Division and geometry provenance follows the
 [source evidence contract](source-evidence.md).
 
@@ -1220,3 +1235,7 @@ Area selection excludes every identity in the reviewed Overture division-exclusi
 fixture. The geometry exclusion policy retains these IDs explicitly so its audit
 definition matches the selected rows. Original geometry remains in the retained
 publisher archive.
+
+Publishing a later native Overture division baseline supersedes earlier published
+resource releases in that dataset. Retained snapshots and processing audits remain
+available for history and safe initialiser continuation.

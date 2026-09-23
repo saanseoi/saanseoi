@@ -1,5 +1,12 @@
 # division type and level
 
+Division audit actions retain repeated field values in bounded column dictionaries. R2
+delivery uploads independent objects concurrently and registers the release audit only
+after all dependencies and its manifest are verified. The Audit page expands the
+retained actions for evidence display and search. Automatic rules retain declarations
+and counts; translations retain applied decisions and aggregate unused-instruction
+counts without per-instruction skipped actions.
+
 Reviewed Overture classification patches are selected from
 `fixtures/meta/patches/overture-division-classification.json`. They are independently
 reviewed QA patches, not the result of a curation guard triggering. Each source ID,
@@ -373,3 +380,12 @@ When the geographic API composition selects SaanSeoi divisions, Overture divisio
 releases publish their native baseline snapshots independently. Curated assembly
 consumes these published baselines; baseline publication does not create an API release
 set.
+
+Later published Overture baselines supersede earlier resource releases while retaining
+their published snapshots and audit evidence.
+
+The completion check accepts the published curated snapshot's exact baseline source
+membership and complete delivery receipt after curated publication replaces native
+current rows. Unrecognised assembly rules or incomplete receipts do not permit skipping.
+Curated assembly reads the exact native snapshot's replay journal and immutable history
+rows when native current rows have been replaced by the curated serving projection.

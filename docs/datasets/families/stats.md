@@ -508,3 +508,6 @@ Publication retains the sparse packed-statistics promotion adapter, whose member
 dataset × exact reference period × geography. A later annual release leaves older
 periods available, and partial revisions retain omitted dimensions, fields and
 geographies. Publication state remains outside ordinary content diffs.
+
+C&SD combined uploads attach geometry status to Division Area resources only; Division
+identity resources do not accept this option.

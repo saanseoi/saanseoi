@@ -665,3 +665,8 @@ Division and Place datasets.
 Canonical statistic packs reference shared immutable field-definition sets using
 `definitionSetId`. Publication and rollback retain the selected set and its exact field
 and measure definitions.
+
+Combined Statistics and Geography uploads pass geometry status only to area resources.
+Division identity uploads share the source archive and cohort without a geometry-status
+option. Geographic area companions can publish their source snapshots before a curated
+geographic API release set is available.

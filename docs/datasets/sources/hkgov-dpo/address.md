@@ -1,7 +1,16 @@
 # HKGov DPO ALS addresses
 
+Automatic ALS audit operations retain one declaration and aggregate count per operation.
+Per-record publisher and canonical evidence is excluded from automatic audit entries;
+reviewed identity decisions retain individual fixture references.
+
 Canonical references and retained processing evidence follow the
 [source evidence contract](../../families/source-evidence.md).
+
+ALS audit verification reads bounded evidence partitions and preserves the registered
+bulk-search prefix without concatenating all preparation actions. Large non-tabular
+search catalogues retain bounded derived text; complete preparation evidence remains
+available in the immutable audit partitions.
 
 Canonical ALS premise and 3D collection IDs use `ss-`. Collection UUIDv5 seeds use the
 normalised prefixed parent ID, retaining deterministic identity across repeated

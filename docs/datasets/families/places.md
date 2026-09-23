@@ -1,5 +1,9 @@
 # Places dataset family
 
+Automatic Place normalisation and Address matching retain rules and aggregate counts.
+Individual audit entries require record-specific fixture decisions; matching additional
+records does not create additional audit actions.
+
 Historical Address, Division and DivisionArea dependencies are rebuilt in a disposable
 SQLite transaction. Missing content rolls back rows and readiness receipts together, so
 a retry cannot reuse a partial dependency view. Serving and history databases remain
@@ -441,6 +445,9 @@ immutable uploads and continuation requirements.
 Local Places continuation reuses retained inputs and completed source releases.
 Official-address matching reads English and Traditional Chinese definitions from the
 selected ALS snapshot. Local ownership-manifest completion opens only metadata.
+
+A successful full local database reset clears full and minimal family completion
+manifests so an empty database cannot be skipped as an already completed run.
 
 ## Publisher attribution and field provenance
 

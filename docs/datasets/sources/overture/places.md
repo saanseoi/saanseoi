@@ -1,5 +1,9 @@
 # Overture Places
 
+Automatic Place normalisation and Address matching retain rules and aggregate counts.
+Individual audit entries require record-specific fixture decisions; matching additional
+records does not create additional audit actions.
+
 Historical Address and Division dependencies are rebuilt in a disposable SQLite
 transaction. Missing content rolls back rows and readiness receipts together, so a retry
 cannot reuse a partial dependency view. Serving and history databases remain read-only

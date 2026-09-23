@@ -8,6 +8,21 @@ release registration validates the complete graph. Retries query current destina
 contents. Local D1 ingestion with a separate R2 target independently confirms that
 destination.
 
+R2 delivery uses four concurrent requests through the persistent Node adapter. Existing
+objects are confirmed in bounded batches; new objects use conditional writes and SHA-256
+checksums. A checksum-bearing successful PUT confirms the committed bytes;
+conditional-write races and responses without checksums require readback verification.
+The manifest follows all dependencies, and database registration runs only after the
+complete transfer succeeds. Failed transfers leave locally retained evidence available
+for retry without registering an incomplete graph.
+
+Individual action chunks use version-2 column dictionaries: each field stores its unique
+values once, with row indices preserving action order and absent optional fields. Chunks
+contain at most 256 actions and remain bounded to 1 MiB. Audit readers expand these
+columns into complete actions for search, pagination and evidence views. Hashes and byte
+lengths describe the compact stored JSON. Registered version-1 evidence is read in its
+immutable representation; delivery never rewrites an existing audit.
+
 Divisions, Statistics, Addresses and Places retain a `processing-audit` manifest. Other
 consumers can use the separate `processing-result` effects contract described below.
 
@@ -44,11 +59,18 @@ The hierarchy rule's assignment count and the separate Hong Kong hierarchy guard
 checked/failed counts describe different operations.
 
 Bulk code rules retain immutable declarations and execution counts, without affected
-record lists, publisher values or canonical output copies. A declaration explains the
-transformation and references its implementation; it is not an executable application
-copy. The processor and audit producer use the same registered definition and frozen
-parameters. CLI retention also records the referenced source file's SHA-256 revision.
-Processor substeps can contribute named aggregate counters to that declaration.
+record lists, publisher values or canonical output copies. The shared audit validator
+rejects individual code-rule actions and record-evidence fixtures on code rules.
+Declared identity-mapping inputs are retained once as reusable matching policies.
+Individual entries require a retained fixture decision and a fixture-based declaration.
+ALS automatic actions are grouped by operation into stable declarations and aggregate
+counts; publisher and canonical row evidence is not copied into the audit. Each
+operation must have one stable description, independent of the number of affected
+records. A declaration explains the transformation and references its implementation; it
+is not an executable application copy. The processor and audit producer use the same
+registered definition and frozen parameters. CLI retention also records the referenced
+source file's SHA-256 revision. Processor substeps can contribute named aggregate
+counters to that declaration.
 
 Division normalisation, classification, translation, geometry, Planning, synthetic-area,
 geography-identity and Statistics declarations are readable JSON under
@@ -83,7 +105,8 @@ definitions, and CLI retention hashes their implementation sources recursively.
 Bulk fixture curations retain the selected reviewed documents in R2. Individual
 curations, translations and QA patches retain their decision, record context and a
 pointer to the selected fixture entry. Translation context includes available parent
-division names. Unused translation instructions are marked skipped without inventing a
+division names. Unused translation instructions contribute an aggregate
+unused-instruction count; they do not generate individual skipped actions or imply a
 matching record. Statistics localisations with no recorded origin remain
 origin-unrecorded; verification alone does not prove translation.
 

@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+Automatic ALS audit operations retain one declaration and aggregate count per operation.
+Per-record publisher and canonical evidence is excluded from automatic audit entries;
+reviewed identity decisions retain individual fixture references.
+
 Canonical provenance follows the [source evidence contract](source-evidence.md).
 
 Canonical Address2D and Address3D collection IDs use the `ss-` prefix. ALS premise
@@ -808,6 +812,14 @@ Official-address initialisation stores the identity-history before-image in a se
 file beside its manifest. Keep both files for reset recovery. Completion queries release
 metadata and distinct current division snapshot IDs; it does not export source or
 history shards. A missing before-image blocks reset before mutations.
+
+A successful full local database reset clears full and minimal family completion
+manifests. Failed resets and focused family resets retain their ownership state.
+
+Audit registration verifies evidence partitions individually and derives bounded search
+text without concatenating the complete ALS preparation evidence. Large non-tabular
+fixture catalogues retain bounded search text; their complete evidence remains in the
+immutable audit objects.
 
 ## Registry metadata
 
