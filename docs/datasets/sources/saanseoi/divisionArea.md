@@ -128,6 +128,16 @@ snapshots remain available through retained history. A changed root snapshot req
 corresponding API field fixture anchor; unsupported signatures fail rather than reuse an
 unreviewed mapping.
 
+Each Division and DivisionArea release retains an immutable ZIP in the selected R2 asset
+bucket before snapshot publication. `records.json` contains the assembled rows and, for
+Division, multilingual names; snapshot placement and ingestion timestamps are excluded.
+`manifest.json` retains edition metadata, the Overture baseline cohort and the curation
+fixtures. Polygon coordinates retain their full precision. The archive is registered as
+a `sourceArchive` asset with a SHA-256 checksum, and both the source release and
+resource release reference its key through `rawObjectKey`. Replays verify the retained
+bytes, including when the snapshot is already published. A different archive requires a
+new release version.
+
 ## Geocoding and coverage
 
 `/divisions/v1/geocode` reads the selected published SaanSeoi area snapshot, with

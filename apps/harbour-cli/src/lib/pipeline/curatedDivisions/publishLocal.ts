@@ -24,9 +24,16 @@ import {
   recordSnapshotAssemblyRun,
 } from '@repo/core/db/metaRegistry'
 import { resolveLocalAddressDbContext } from '../../dbCache/localDbCache'
+import { pinLocalR2Mode } from '../../storage/localR2Mode'
 import { assembleCuratedDivisions } from './assemble'
 import { readCuratedDivisionRelease } from './releaseMetadata'
-import type { UploadTarget } from '../../cli/options'
+import {
+  curatedContentRows,
+  linkCuratedReleaseAsset,
+  prepareCuratedReleaseAsset,
+  uploadCuratedReleaseAsset,
+} from './releaseAsset'
+import { resolveR2Target, type UploadTarget } from '../../cli/options'
 import {
   normaliseDivisionI18nForStorage,
   normaliseDivisionRow,
@@ -98,7 +105,7 @@ export async function publishLocalCuratedDivisions(
     { cacheTableProfile: 'divisionGeometry' },
   )
   const files = ctx.state.files!
-  const meta = new Database(files.DB_META!, { readonly: true })
+  const meta = new Database(files.DB_META!, { create: false })
   const current = new Database(files.DB_CURRENT!)
   const historyPath = files[`DB_HISTORY_HK_${hierarchy.cohort.slice(0, 4)}`]!
   if (!historyPath) throw Error('History database not found.')
@@ -128,6 +135,7 @@ export async function publishLocalCuratedDivisions(
     const divisionBase = base('division'),
       areaBase = base('divisionArea')
     if (!divisionBase || !areaBase) return null
+    await pinLocalR2Mode(resolveR2Target(target))
     const divisions = current
       .query('SELECT * FROM divisions WHERE snapshotId=?')
       .all(divisionBase.scopeId) as any[]
@@ -152,10 +160,7 @@ export async function publishLocalCuratedDivisions(
       islands,
     })
     // A replay with new snapshot IDs but identical records is the same assembly.
-    const contentRows = (rows: Record<string, unknown>[]) =>
-      rows
-        .map(({ snapshotId: _, createdAt: __, updatedAt: ___, ...row }) => row)
-        .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
+    const contentRows = curatedContentRows
     const hash = digest({
       release,
       exclusions,
@@ -200,6 +205,26 @@ export async function publishLocalCuratedDivisions(
       const sourceReleaseId = buildDeterministicSourceReleaseId(code)
       const resourceReleaseId = buildDeterministicReleaseId(code)
       const source = { datasetCode, datasetId: datasetRow.id, resourceReleaseId }
+      const asset = await prepareCuratedReleaseAsset({
+        directory: reportDirectory,
+        datasetCode,
+        releaseCode: code,
+        resourceType,
+        sourceVersion: release.releaseVersion,
+        rows,
+        ...(resourceType === 'division' ? { names: data.names } : {}),
+        provenance: {
+          release,
+          exclusions,
+          hierarchy,
+          stubs,
+          islands,
+          islandReview,
+          classificationPatches: classificationFixture.entries,
+          supplementalNeighbourhoods,
+          baseline: { publisher: 'overture', cohortKey: hierarchy.cohort },
+        },
+      })
       const ingestedAt = new Date().toISOString()
       await ctx.metaDb.run(sql`INSERT INTO sourceReleases
         (id,datasetId,code,sourceVersion,expectedResourceTypes,sourceSchemaVersion,publicationDate,cohortKey,status,ingestedAt)
@@ -209,6 +234,25 @@ export async function publishLocalCuratedDivisions(
         (id,sourceReleaseId,datasetId,code,resourceType,sourceVersion,sourceSchemaVersion,publicationDate,cohortKey,status,ingestedAt)
         VALUES (${resourceReleaseId},${sourceReleaseId},${source.datasetId},${code},${resourceType},${release.releaseVersion},${release.sourceSchemaVersion},${release.publicationDate},${release.releaseVersion},'processing',${ingestedAt})
         ON CONFLICT(id) DO NOTHING`)
+      const existingObjectKeys = [
+        meta
+          .query('SELECT rawObjectKey FROM releases WHERE id=?')
+          .get(resourceReleaseId),
+        meta
+          .query('SELECT rawObjectKey FROM sourceReleases WHERE id=?')
+          .get(sourceReleaseId),
+      ].map(row => (row as { rawObjectKey: string | null }).rawObjectKey)
+      const rawObjectKey = await uploadCuratedReleaseAsset(target, asset, {
+        datasetId: source.datasetId,
+        releaseId: resourceReleaseId,
+        existingObjectKeys,
+      })
+      linkCuratedReleaseAsset(meta, {
+        sourceReleaseId,
+        releaseId: resourceReleaseId,
+        assetKey: rawObjectKey,
+        fileName: asset.fileName,
+      })
       const existing = meta
         .query(
           "SELECT s.* FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId WHERE l.variant='saanseoi' AND s.resourceType=? AND s.notes=? AND s.status='published'",

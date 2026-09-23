@@ -90,6 +90,12 @@ Kowloon and New Territories. Source assertions remain unchanged. See the
 [internal geographic review workflow](../internal/geographic-review.md) for
 cohort-scoped ancestry decisions and local area drawing.
 
+Curated SaanSeoi Division and DivisionArea releases archive their assembled records and
+curation provenance as checksum-verified ZIP assets before publication. Both source and
+resource release `rawObjectKey` fields identify the retained archive. Identical replays
+verify the same asset; changed content requires a new edition. See the
+[SaanSeoi assembly contract](../sources/saanseoi/divisionArea.md) for archive contents.
+
 Named islands are curated as geographic landforms in a separate SaanSeoi assembly. The
 native Overture Division source remains independently selectable. Where a reviewed
 crosswalk exists, the assembled division retains the Overture ID; otherwise the assembly
