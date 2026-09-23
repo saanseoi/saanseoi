@@ -1,9 +1,10 @@
 import { env } from 'cloudflare:workers'
-import { sequence, type Handle } from '@sveltejs/kit/hooks'
+import type { Handle } from '@sveltejs/kit'
+import { sequence } from '@sveltejs/kit/hooks'
 import { building } from '$app/env'
 import { paraglideMiddleware } from '@repo/i18n/server'
 import { createAuth } from '#lib/server/auth.js'
-import { svelteKitHandler } from 'better-auth/svelte-kit'
+import { handleAuthSession } from '#lib/server/authSession.js'
 import { initTheme, THEME_STORAGE_KEY } from '#lib/bits/internal/theme.js'
 import { recordProductUsage } from '@repo/core/productUsage'
 
@@ -48,15 +49,7 @@ const handleBetterAuth: Handle = async ({ event, resolve }) => {
 
   event.locals.auth = createAuth(env.DB_META, event.url.origin, env)
 
-  const { auth } = event.locals
-  const session = await auth.api.getSession({ headers: event.request.headers })
-
-  if (session) {
-    event.locals.session = session.session
-    event.locals.user = session.user
-  }
-
-  const response = await svelteKitHandler({ event, resolve, auth, building })
+  const response = await handleAuthSession({ event, resolve }, building)
   if (event.url.pathname.startsWith('/api/auth/')) {
     const path = event.url.pathname
     const method = path.includes('sign-up')
