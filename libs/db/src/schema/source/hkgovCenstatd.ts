@@ -1,4 +1,4 @@
-import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { binaryText, geoBbox, jsonText } from '../shared'
 import {
@@ -88,10 +88,5 @@ export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
       ],
     }),
     ...sourceVersionIndexes(table, 'hkgovCenstatdDivisionAreaDerivatives'),
-    index('hkgovCenstatdDivisionAreaDerivatives_input_idx').on(
-      table.sourceRecordId,
-      table.inputVersionHash,
-      table.transform,
-    ),
   ],
 )

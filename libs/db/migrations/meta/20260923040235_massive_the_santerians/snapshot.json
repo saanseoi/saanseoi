@@ -5,6 +5,36 @@
   "prevIds": ["29b87c0b-78a9-4e9e-8a7b-29f3f398cf27"],
   "ddl": [
     {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'authoritative'",
+      "generated": null,
+      "name": "legacyGeometryStatus",
+      "entityType": "columns",
+      "table": "releases"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'authoritative'",
+      "generated": null,
+      "name": "legacyGeometryStatus",
+      "entityType": "columns",
+      "table": "sourceReleases"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": "'authoritative'",
+      "generated": null,
+      "name": "legacyGeometryStatus",
+      "entityType": "columns",
+      "table": "snapshots"
+    },
+    {
       "name": "publishers",
       "entityType": "tables"
     },

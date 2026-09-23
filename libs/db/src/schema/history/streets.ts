@@ -32,8 +32,6 @@ export const streetsI18n = sqliteTable(
     primaryKey({
       columns: [table.streetId, table.versionHash, table.locale],
     }),
-    index('streetsI18n_locale_idx').on(table.locale),
-    index('streetsI18n_name_idx').on(table.locale, table.name),
     index('streetsI18n_current_lookup_idx').on(
       table.streetId,
       table.locale,

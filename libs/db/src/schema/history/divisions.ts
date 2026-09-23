@@ -30,8 +30,6 @@ export const divisionsI18n = sqliteTable(
     primaryKey({
       columns: [table.divisionId, table.versionHash, table.locale],
     }),
-    index('divisionsI18n_locale_idx').on(table.locale),
-    index('divisionsI18n_name_idx').on(table.locale, table.name),
     index('divisionsI18n_current_lookup_idx').on(
       table.divisionId,
       table.locale,

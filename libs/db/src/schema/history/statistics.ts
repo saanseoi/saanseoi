@@ -18,14 +18,6 @@ export const statsRecords = sqliteTable(
   table => [
     primaryKey({ columns: [table.id, table.versionHash] }),
     index('statsRecords_current_lookup_idx').on(table.id, table.isCurrent),
-    index('statsRecords_dataset_period_idx').on(
-      table.datasetCode,
-      table.referencePeriodCode,
-    ),
-    index('statsRecords_division_period_idx').on(
-      table.divisionId,
-      table.referencePeriodCode,
-    ),
     index('statsRecords_source_release_idx').on(table.sourceReleaseId),
   ],
 )

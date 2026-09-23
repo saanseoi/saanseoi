@@ -16,10 +16,6 @@ export const divisionStatistics = sqliteTable(
   table => [
     primaryKey({ columns: [table.id, table.versionHash] }),
     index('divisionStatistics_current_lookup_idx').on(table.id, table.isCurrent),
-    index('divisionStatistics_divisionId_referenceYear_idx').on(
-      table.divisionId,
-      table.referenceYear,
-    ),
     index('divisionStatistics_sourceReleaseId_idx').on(table.sourceReleaseId),
   ],
 )

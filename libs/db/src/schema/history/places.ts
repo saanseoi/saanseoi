@@ -29,8 +29,6 @@ export const placesI18n = sqliteTable(
     primaryKey({
       columns: [table.placeId, table.versionHash, table.locale],
     }),
-    index('placesI18n_locale_idx').on(table.locale),
-    index('placesI18n_name_idx').on(table.locale, table.name),
     index('placesI18n_current_lookup_idx').on(
       table.placeId,
       table.locale,

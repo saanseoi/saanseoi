@@ -32,9 +32,13 @@ export const places = sqliteTable(
       sql`(${table.address3dId} IS NULL AND ${table.address3dUnitId} IS NULL AND ${table.address3dMembership} IS NULL) OR (${table.address3dId} IS NOT NULL AND ${table.address3dUnitId} IS NOT NULL AND ${table.address3dMembership} IS NOT NULL AND ${table.address2dId} IS NOT NULL)`,
     ),
     index('places_releaseId_idx').on(table.releaseId),
-    index('places_category_idx').on(table.snapshotId, table.basicCategory),
-    index('places_taxonomy_idx').on(table.snapshotId, table.taxonomyPrimary),
-    index('places_status_idx').on(table.snapshotId, table.operatingStatus),
+    index('places_category_id_idx').on(table.snapshotId, table.basicCategory, table.id),
+    index('places_taxonomy_id_idx').on(
+      table.snapshotId,
+      table.taxonomyPrimary,
+      table.id,
+    ),
+    index('places_status_id_idx').on(table.snapshotId, table.operatingStatus, table.id),
   ],
 )
 
@@ -54,7 +58,6 @@ export const placesI18n = sqliteTable(
       foreignColumns: [places.snapshotId, places.id],
       name: 'placesI18n_snapshotId_placeId_places_fk',
     }).onDelete('cascade'),
-    index('placesI18n_locale_idx').on(table.locale),
     index('placesI18n_name_idx').on(table.locale, table.name),
   ],
 )
@@ -83,10 +86,9 @@ export const placesDivision = sqliteTable(
       foreignColumns: [places.snapshotId, places.id],
       name: 'placesDivision_placeSnapshotId_placeId_places_fk',
     }).onDelete('cascade'),
-    index('placesDivision_divisionId_idx').on(
-      table.divisionSnapshotId,
-      table.divisionId,
+    index('placesDivision_scope_division_place_idx').on(
       table.placeSnapshotId,
+      table.divisionId,
       table.placeId,
     ),
   ],

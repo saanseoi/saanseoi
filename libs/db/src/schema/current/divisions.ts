@@ -26,7 +26,12 @@ export const divisions = sqliteTable(
       columns: [table.snapshotId, table.id],
     }),
     index('divisions_divisionCode_idx').on(table.snapshotId, table.divisionCode),
-    index('divisions_level_idx').on(table.level),
+    index('divisions_scope_order_idx').on(
+      table.snapshotId,
+      table.level,
+      table.class,
+      table.id,
+    ),
   ],
 )
 
@@ -46,7 +51,6 @@ export const divisionsI18n = sqliteTable(
       foreignColumns: [divisions.snapshotId, divisions.id],
       name: 'divisionsI18n_snapshotId_divisionId_divisions_fk',
     }).onDelete('cascade'),
-    index('divisionsI18n_locale_idx').on(table.snapshotId, table.locale),
     index('divisionsI18n_name_idx').on(table.snapshotId, table.locale, table.name),
   ],
 )

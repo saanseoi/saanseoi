@@ -1,3 +1,4 @@
+import { sql } from 'drizzle-orm'
 import { index, integer, text } from 'drizzle-orm/sqlite-core'
 import { jsonText, timestamps } from '../shared'
 
@@ -79,11 +80,11 @@ export const sourceVersionIndexes = <
   prefix: string,
 ) => [
   index(`${prefix}_releaseId_idx`).on(table.releaseId as never),
-  index(`${prefix}_sourceRecordId_idx`).on(table.sourceRecordId as never),
-  index(`${prefix}_current_lookup_idx`).on(
-    table.sourceRecordId as never,
-    table.isCurrent as never,
-  ),
+  // Ingestion scans open assertions and reconciles them by publisher identity.
+  // The primary key already supports unfiltered sourceRecordId lookups.
+  index(`${prefix}_open_records_idx`)
+    .on(table.sourceRecordId as never)
+    .where(sql`${table.isCurrent} = 1`),
   index(`${prefix}_release_validity_idx`).on(
     table.validFromRelease as never,
     table.validToRelease as never,

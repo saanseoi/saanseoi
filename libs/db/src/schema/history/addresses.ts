@@ -37,7 +37,6 @@ export const address2dI18n = sqliteTable(
     primaryKey({
       columns: [table.addressId, table.versionHash, table.locale],
     }),
-    index('address2dI18n_locale_idx').on(table.locale),
     index('address2dI18n_current_lookup_idx').on(
       table.addressId,
       table.locale,
@@ -70,16 +69,6 @@ export const address2dBuildingNumberLookup = sqliteTable(
     primaryKey({
       columns: [table.addressId, table.versionHash, table.buildingNumber],
     }),
-    index('address2dBuildingNumberLookup_lookup_idx').on(
-      table.snapshotId,
-      table.buildingNumber,
-      table.isCurrent,
-    ),
-    index('address2dBuildingNumberLookup_numericStem_idx').on(
-      table.snapshotId,
-      table.numericStem,
-      table.isCurrent,
-    ),
   ],
 )
 
@@ -110,7 +99,6 @@ export const address3dI18n = sqliteTable(
     primaryKey({
       columns: [table.address3dId, table.versionHash, table.locale],
     }),
-    index('address3dI18n_locale_idx').on(table.locale),
     index('address3dI18n_current_lookup_idx').on(
       table.address3dId,
       table.locale,

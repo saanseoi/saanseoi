@@ -28,7 +28,6 @@ export const snapshotVersionChanges = sqliteTable(
       table.locale,
       table.snapshotId,
     ),
-    index('snapshotVersionChanges_snapshot_idx').on(table.snapshotId),
   ],
 )
 

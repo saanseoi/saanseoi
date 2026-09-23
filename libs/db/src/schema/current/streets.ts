@@ -41,7 +41,6 @@ export const streetsI18n = sqliteTable(
       foreignColumns: [streets.snapshotId, streets.id],
       name: 'streetsI18n_snapshotId_streetId_streets_fk',
     }).onDelete('cascade'),
-    index('streetsI18n_locale_idx').on(table.locale),
     index('streetsI18n_name_idx').on(table.locale, table.name),
   ],
 )
