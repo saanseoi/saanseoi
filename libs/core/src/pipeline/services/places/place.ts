@@ -182,6 +182,7 @@ export async function hashPlaceMaterialisation(
     divisionSnapshotId: string
     addressId: string | null
     divisionIds: string[]
+    divisionAssociation?: unknown
     addressDependencyHash?: string | null
     effectiveLng?: number
     effectiveLat?: number
@@ -213,6 +214,9 @@ export async function hashPlaceMaterialisation(
     address3dUnitId: references.address3dUnitId ?? null,
     address3dMembership: references.address3dMembership ?? null,
     divisionIds: [...new Set(references.divisionIds)].sort(),
+    ...(references.divisionAssociation
+      ? { divisionAssociation: references.divisionAssociation }
+      : {}),
   })
 }
 

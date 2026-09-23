@@ -329,10 +329,21 @@ export async function writeAddressReleaseMetaSqlFile(
       snapshotId,
       lookupSnapshotId: pipelineMessage.addressDivisionSnapshotId,
       anchorReleaseId: message.releaseId ?? message.datasetId,
-      selectedByRule: 'api-composition:address/default->division/overture',
+      selectedByRule: 'address-preparation:exact-division',
       selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
     },
   )
+  if (pipelineMessage.addressDivisionAreaSnapshotId)
+    await recordSnapshotLookupDependency(
+      metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      {
+        snapshotId,
+        lookupSnapshotId: pipelineMessage.addressDivisionAreaSnapshotId,
+        anchorReleaseId: message.releaseId ?? message.datasetId,
+        selectedByRule: 'address-preparation:exact-division-area',
+        selectionMode: 'exact',
+      },
+    )
   const file = await buildAddressMetaSqlFile(metaDb, message, snapshotId)
   const keys = await writeSqlFiles(bucket, message, [file])
 

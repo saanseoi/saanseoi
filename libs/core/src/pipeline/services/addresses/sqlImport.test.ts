@@ -106,9 +106,9 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId)
       VALUES ('address-snapshot', 'history-shard');
       INSERT INTO snapshots(id,code,resourceType,cohortKey,status)
-      VALUES ('division-snapshot','division-snapshot','division','2025','published');
+      VALUES ('division-snapshot','division-snapshot','division','2025','published'),('area-snapshot','area-snapshot','divisionArea','2025','published');
       INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
-      VALUES ('division-snapshot','dataset-division','release-division','primary','division-test','exact_ref');
+      VALUES ('division-snapshot','dataset-division','release-division','primary','division-test','exact_ref'),('area-snapshot','dataset-area','release-area','primary','area-test','exact_ref');
     `)
     expect(
       source
@@ -135,6 +135,7 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
         ...message,
         totalRows: 0,
         addressDivisionSnapshotId: 'division-snapshot',
+        addressDivisionAreaSnapshotId: 'area-snapshot',
       } as typeof message,
     )
     expect(result.addressSqlArtefactKeys).toHaveLength(1)
@@ -142,17 +143,20 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
     expect(
       delivered
         .query(
-          "SELECT json_extract(selectionSummaryJson,'$.lookupSnapshotIds.division') AS division FROM snapshotAssemblyRuns WHERE snapshotId='address-snapshot'",
+          "SELECT json_extract(selectionSummaryJson,'$.lookupSnapshotIds.division') AS division, json_extract(selectionSummaryJson,'$.lookupSnapshotIds.divisionArea') AS divisionArea FROM snapshotAssemblyRuns WHERE snapshotId='address-snapshot'",
         )
         .get(),
-    ).toEqual({ division: 'division-snapshot' })
+    ).toEqual({ division: 'division-snapshot', divisionArea: 'area-snapshot' })
     expect(
       delivered
         .query(
-          "SELECT resourceReleaseId FROM snapshotSources WHERE snapshotId='address-snapshot' AND role='lookup'",
+          "SELECT resourceReleaseId FROM snapshotSources WHERE snapshotId='address-snapshot' AND role='lookup' ORDER BY resourceReleaseId",
         )
-        .get(),
-    ).toEqual({ resourceReleaseId: 'release-division' })
+        .all(),
+    ).toEqual([
+      { resourceReleaseId: 'release-area' },
+      { resourceReleaseId: 'release-division' },
+    ])
 
     expect(
       delivered

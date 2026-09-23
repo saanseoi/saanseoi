@@ -44,6 +44,7 @@ export type AddressPipelineMessage = DatasetProcessingMessage & {
   addressHistoricalParentSnapshotId?: string
   /** Exact Division snapshot used to prepare this address release. */
   addressDivisionSnapshotId?: string
+  addressDivisionAreaSnapshotId?: string
   /** Stable lineage key used only by the current serving projection. */
   addressCurrentScopeId?: string
   artefactKey?: string
