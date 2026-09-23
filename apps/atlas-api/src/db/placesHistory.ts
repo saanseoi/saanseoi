@@ -1,14 +1,13 @@
 import type { HistoryDatabase } from '@repo/db'
-import { and, asc, eq, historySchema, inArray, sql } from '@repo/db'
+import { and, asc, eq, historySchema, sql } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
 import {
   groupResolvedVersionsByShard,
   resolveSnapshotVersionState,
 } from '@repo/core/pipeline/db/snapshotReplay.ts'
-import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
+import { chunkArray } from '@repo/core/pipeline/utils.ts'
 
-import type { AddressRecord } from './addresses'
 import { normalisePlaceBbox, type PlaceLocaleValue, type PlaceRecord } from './places'
 
 type HistoryPlace = typeof historySchema.places.$inferSelect
@@ -51,20 +50,13 @@ function mapPlaceLocale(row: HistoryPlaceI18n): PlaceLocaleValue {
   }
 }
 
-function addressDivisionIds(address: AddressRecord['address'] | undefined) {
-  if (!address) return []
+function recordedDivisionIds(sources: unknown) {
+  const value = sources as {
+    divisionAssociation?: { evidence?: { divisionId: string }[] }
+  } | null
   return [
-    address.countryId,
-    address.landformId,
-    address.areaId,
-    address.districtId,
-    address.townId,
-    address.macrohoodId,
-    address.neighbourhoodId,
-    address.villageId,
-    address.microhoodId,
-    address.hamletId,
-  ].filter((id): id is string => Boolean(id))
+    ...new Set(value?.divisionAssociation?.evidence?.map(row => row.divisionId) ?? []),
+  ].sort()
 }
 
 type PlaceVersionRef = {
@@ -178,65 +170,12 @@ export async function listReplayedPlaceRecords(args: {
     localisedByPlace.set(row.placeId, values)
   }
 
-  const addressRefs = new Map<string, Set<string>>()
-  for (const row of places) {
-    if (args.resolveDivisions === false) continue
-    if (!row.addressSnapshotId || !row.address2dId) continue
-    const ids = addressRefs.get(row.addressSnapshotId) ?? new Set<string>()
-    ids.add(row.address2dId)
-    addressRefs.set(row.addressSnapshotId, ids)
-  }
-  const addressesBySnapshot = new Map<string, Map<string, AddressRecord['address']>>()
-  for (const [addressSnapshotId, addressIds] of addressRefs) {
-    const addressPlan = await resolveSnapshotReplayPlan(
-      args.metaDb as never,
-      addressSnapshotId,
-    )
-    const addressVersions = await resolveSnapshotVersionState(
-      addressPlan,
-      shards as never,
-      ['address2d'],
-      [...addressIds],
-    )
-    const addresses: Array<AddressRecord['address']> = []
-    for (const group of groupResolvedVersionsByShard(
-      addressVersions.values(),
-    ).values()) {
-      const first = group.at(0)
-      if (!first) continue
-      const expected = new Set(
-        group.map(version => `${version.recordId}\u0000${version.versionHash}`),
-      )
-      for (const hashes of chunkArray(
-        [...new Set(group.map(version => version.versionHash))],
-        getMaxItemsPerInClause(),
-      )) {
-        const rows = await first.shard.db
-          .select()
-          .from(historySchema.address2d)
-          .where(inArray(historySchema.address2d.versionHash, hashes))
-          .all()
-        for (const row of rows) {
-          if (expected.has(`${row.id}\u0000${row.versionHash}`))
-            addresses.push(row as unknown as AddressRecord['address'])
-        }
-      }
-    }
-    addressesBySnapshot.set(
-      addressSnapshotId,
-      new Map(addresses.map(address => [address.id, address])),
-    )
-  }
-
   return places.map(row => {
     const i18n = Object.fromEntries(
       Object.entries(localisedByPlace.get(row.id) ?? {}).filter(([locale]) =>
         localeIsSelected(args.localeSelection, locale),
       ),
     )
-    const address = row.addressSnapshotId
-      ? addressesBySnapshot.get(row.addressSnapshotId)?.get(row.address2dId ?? '')
-      : undefined
     return {
       place: {
         ...row,
@@ -244,7 +183,8 @@ export async function listReplayedPlaceRecords(args: {
         bbox: normalisePlaceBbox(row.bbox),
       },
       i18n,
-      divisionIds: addressDivisionIds(address),
+      divisionIds:
+        args.resolveDivisions === false ? [] : recordedDivisionIds(row.sources),
     } as PlaceRecord
   })
 }

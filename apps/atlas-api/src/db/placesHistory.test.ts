@@ -25,7 +25,7 @@ function run(sqlite: Database, query: string, values: SQLQueryBindings[] = []) {
   sqlite.query(query).run(...values)
 }
 
-test('replays Place text and Address-derived divisions from the selected snapshot', async () => {
+test('replays Place text and spatial divisions from the selected version without an Address', async () => {
   const meta = init('meta')
   const history = init('history')
   try {
@@ -140,13 +140,22 @@ test('replays Place text and Address-derived divisions from the selected snapsho
         [
           'place-1',
           versionHash === 'place-old-hash' ? 'release-old' : 'release-new',
-          'address-snapshot-old',
-          'address-old',
+          null,
+          null,
           114.1,
           22.3,
           '[114.1,22.3,114.1,22.3]',
           'restaurant',
-          '{}',
+          JSON.stringify({
+            divisionAssociation: {
+              divisionSnapshotId: 'division-snapshot-old',
+              divisionAreaSnapshotId: 'area-old',
+              evidence: [
+                { divisionId: 'division-country-old', method: 'ancestry' },
+                { divisionId: 'division-district-old', method: 'geometry' },
+              ],
+            },
+          }),
           '2025-09',
           '2026-09',
           versionHash,
