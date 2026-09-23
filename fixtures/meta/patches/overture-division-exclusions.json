@@ -1153,8 +1153,8 @@
       ],
       "expected": {
         "adminLevel": null,
-        "class": null,
-        "subtype": "hamlet"
+        "class": "hamlet",
+        "subtype": "locality"
       },
       "reason": "Chuk Yuen United Village has been demolished and is excluded from current canonical coverage while retaining the publisher source assertion."
     },
@@ -1168,8 +1168,8 @@
       ],
       "expected": {
         "adminLevel": null,
-        "class": null,
-        "subtype": "village"
+        "class": "village",
+        "subtype": "locality"
       },
       "reason": "Ngau Chi Wan Village is excluded from current canonical coverage while retaining the publisher source assertion."
     },
@@ -1543,8 +1543,8 @@
       ],
       "expected": {
         "adminLevel": null,
-        "class": null,
-        "subtype": "hamlet"
+        "class": "hamlet",
+        "subtype": "locality"
       },
       "reason": "This eastern Ma Wan Tsuen duplicate is excluded from canonical coverage; retain the western Ma Wan Tsuen locality and the publisher source assertion."
     },
@@ -1558,8 +1558,8 @@
       ],
       "expected": {
         "adminLevel": null,
-        "class": null,
-        "subtype": "hamlet"
+        "class": "hamlet",
+        "subtype": "locality"
       },
       "reason": "Che Ting Tsuen is cannibalised by surrounding villages, not an independent canonical division. Exclude it from current canonical coverage while retaining the publisher source assertion."
     },
