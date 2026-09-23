@@ -1202,3 +1202,8 @@ Wan Tsuen (馬環村) is excluded; the western locality record remains canonical
 Tsuen (輋頂村) is excluded because surrounding villages have subsumed it. Lei Yue Mun
 Villages (鯉魚門村) is retained as an alias of Lei Yue Mun (鯉魚門), without its own
 marker.
+
+Exclusion guards for Che Ting Tsuen, eastern Ma Wan Tsuen and Chuk Yuen United Village
+require the publisher subtype `locality` and class `hamlet`. Ngau Chi Wan Village
+requires subtype `locality` and class `village`. These expectations apply to the
+retained Overture cohorts from September 2025 through August 2026.
