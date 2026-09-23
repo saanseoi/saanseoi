@@ -90,6 +90,19 @@ without inference or fallback.
 
 #### Dataset translation memory
 
+Name completion targets `en` and `zh-hant` only. Simplified Chinese fixture translations
+are neither generated nor applied; publisher-supplied names are retained. English names
+require a context-specific established spelling with public source URLs in `references`,
+or explicit human curation. Azure does not generate English division names. Local
+imports write missing English research requests and Google search links to an adjacent
+`.english-review.json` file and stop until those names are curated. Search results guide
+research; the linked source and parent locality must substantiate an attested spelling.
+Where no established English name is available, a dictionary-backed Cantonese fallback
+in Hong Kong place-name style is permitted. `derivation` records the selected readings
+and clearly distinguishes fallback spellings or descriptive translations from attested
+names. These entries retain `ai-translated` provenance and omit the Azure machine label;
+references and derivation are preserved in the applied translation evidence.
+
 Division fixtures use version 2 `contexts`, `translations` and `usages` maps. Contexts
 and identical translation values are stored once; usage links retain record IDs and
 first/last source releases independently. Different translations for different parent

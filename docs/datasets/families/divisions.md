@@ -622,11 +622,11 @@ processing.
 
 ## Reviewable API name translations
 
-Division imports complete the API's `en`, `zh-hant`, and `zh-hans` name locales only
-when a publisher has supplied at least one name. A missing Simplified Chinese value is
-translated from Traditional Chinese where available, and vice versa. When no Chinese
-name is available, English supplies a missing Chinese value. If both Chinese values are
-present but English is absent, Simplified Chinese supplies the English translation.
+Division imports retain publisher names and fill missing `en` and `zh-hant` names. They
+do not generate or apply fixture translations targeting `zh-hans`; publisher Simplified
+Chinese names remain available. Missing English names require a researched,
+context-specific spelling, never an Azure literal translation. Prefer official bilingual
+sources and established local usage over mechanically romanising Chinese characters.
 
 Overture geographic divisions use one version-controlled translation memory per dataset:
 `fixtures/i18n/datasets/<datasetCode>.json`. An entry is identified by its field,
@@ -656,17 +656,36 @@ translation while retaining the same identity key. Translations are timeless val
 fixture entry has no validity interval. Releases instead preserve the exact application
 that was made in their immutable audit actions.
 
-The older source-release fixture format remains available for Planning Department
-division datasets. During the Overture transition, a matching legacy entry seeds the
-dataset fixture without calling the translation service again. A later local import
-reads the dataset fixture rather than calling the translation service; it may add
-missing entries in locale-pair batches, which keeps the generated changes reviewable
-before release SQL is used in production.
+Planning Department divisions use source-release fixtures with the same target-locale
+policy. English entries require public source URLs in `references`. Overture English
+entries require `references` or explicit human curation. AI-assisted research retains
+`ai-translated` provenance; it must not be labelled as human review.
 
-Only a local import may create a missing fixture entry. A non-local import can use an
-existing fixture but fails clearly when an entry is absent. A source that provides codes
-without a name is not translated. Locale statistics distinguish publisher-provided,
-inferred, AI-translated, and human-translated names as four exclusive categories.
+For missing Overture English names, local imports write
+`<datasetCode>.json.english-review.json` beside the dataset fixture, containing source
+text, record ID, parent context and Google search links. The import stops until curation
+is complete. Non-local imports report missing curation without writing review files.
+Search using the Chinese name and parent locality; verify the actual source page and
+geographic identity before selecting its English spelling. Record source URLs on the
+translation entry, preserve its source/context identity and rebuild the version 2 maps
+with `translationEntries` and `translationMap` when editing translation values. Do not
+use search snippets alone as proof. When an established spelling cannot be obtained, use
+a Cantonese dictionary to select contextual readings and render a fallback in Hong Kong
+place-name style: separate capitalised syllables, no tone numbers, and familiar forms
+such as `Tsuen`, `Wai`, `Sheung`, `Ha`, `Tseng` and `Chung`. Preserve established
+locality stems such as `Pui O`; do not substitute Mandarin pinyin or literal
+translations of village names. Generic descriptors such as a plaza, forecourt or
+direction may use English.
+
+Retain dictionary/source URLs in `references` and explain the reading, spelling choices
+and any source typo in `derivation`. Distinguish an attested complete name from a
+Cantonese fallback or descriptive rendering. AI-assisted curation remains
+`ai-translated`, without an Azure `machine` label. Dictionary-backed fallback entries
+are usable during import and retain their derivation in application evidence.
+
+Traditional Chinese generation remains available during local imports. A source that
+provides codes without a name is not translated. Locale statistics distinguish
+publisher-provided, inferred, AI-translated and human-translated names.
 
 ## Publisher source boundary
 

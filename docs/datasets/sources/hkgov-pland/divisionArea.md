@@ -431,3 +431,11 @@ snapshot ancestry, and explicit omissions override that inheritance.
 
 Planning divisions and areas use stable `ss-` UUIDs. Subunit ancestry includes PPU, SPU
 and TPU; canonical identifiers retain the `PLAND:` namespace and native code spelling.
+
+## Division name completion
+
+Division name completion targets English and Traditional Chinese. Publisher Simplified
+Chinese names may be retained, but missing Simplified Chinese names are not generated. A
+missing English name requires a source-release fixture entry with public source URLs in
+`references` establishing the local spelling; Azure English translation is disabled. New
+Town preparation permits an absent Simplified Chinese name.
