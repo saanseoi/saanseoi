@@ -16,6 +16,7 @@ import {
   initialDataShards,
   initialDivisionCodes,
   initialPublishers,
+  initialUnits,
   resolveInitialDataShardsForEnvironment,
   validateDivisionCodeFixtures,
   resolveMergeRulesetDefinitions,
@@ -199,11 +200,13 @@ describe('fixture version hashes', () => {
       initialApiCompositions
         .filter(composition => composition.status === 'current')
         .filter(composition =>
-          Object.values(composition.i18n).every(translations =>
-            translations.every(
-              translation => translation.description && translation.descriptionShort,
+          initialApiCompositionMembers
+            .filter(member => member.apiCompositionCode === composition.code)
+            .every(member =>
+              member.i18n.every(
+                translation => translation.description && translation.descriptionShort,
+              ),
             ),
-          ),
         )
         .map(composition => composition.apiVersion),
     )
@@ -514,6 +517,77 @@ describe('buildMetaRegistrySyncStatements', () => {
       db.close()
     }
   })
+  test('stores locale values on owners and composition members after migration and repeated sync', () => {
+    const db = new Database(':memory:')
+    try {
+      db.exec(loadMigrationSql(resolve(import.meta.dir, '../../migrations'), ['meta']))
+      const statements = buildMetaRegistrySyncStatements('preview')
+      for (let attempt = 0; attempt < 2; attempt++) {
+        for (const statement of statements) db.exec(statement)
+        for (const [table, seeds] of [
+          ['publishers', initialPublishers],
+          ['datasets', initialDatasets],
+          ['units', initialUnits],
+        ] as const) {
+          const rows = db.query(`SELECT code, i18n FROM ${table}`).all() as Array<{
+            code: string
+            i18n: string
+          }>
+          expect(rows).toHaveLength(seeds.length)
+          for (const seed of seeds) {
+            expect(
+              JSON.parse(requireDefined(rows.find(row => row.code === seed.code)).i18n),
+            ).toEqual(seed.i18n)
+          }
+          // Matching fixture hashes must not prevent restoration of locale values.
+          if (attempt === 0) db.exec(`UPDATE ${table} SET i18n = '[]'`)
+        }
+        const members = db
+          .query(`
+          SELECT c.code, m.domainCode, m.resourceType, m.variant, m.i18n
+          FROM apiCompositionMembers m JOIN apiComposition c ON c.id = m.apiCompositionId
+        `)
+          .all() as Array<{
+          code: string
+          domainCode: string
+          resourceType: string
+          variant: string
+          i18n: string
+        }>
+        expect(members).toHaveLength(initialApiCompositionMembers.length)
+        for (const seed of initialApiCompositionMembers) {
+          const row = requireDefined(
+            members.find(
+              row =>
+                row.code === seed.apiCompositionCode &&
+                row.domainCode === seed.domainCode &&
+                row.resourceType === seed.resourceType &&
+                row.variant === seed.variant,
+            ),
+          )
+          expect(JSON.parse(row.i18n)).toEqual(seed.i18n)
+          expect(Array.isArray(JSON.parse(row.i18n))).toBe(true)
+        }
+      }
+      expect(
+        db
+          .query(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND name IN ('publisherI18n', 'datasetI18n', 'unitsI18n')",
+          )
+          .all(),
+      ).toEqual([])
+      expect(
+        db
+          .query(
+            "SELECT name FROM pragma_table_info('apiComposition') WHERE name = 'i18n'",
+          )
+          .all(),
+      ).toEqual([])
+    } finally {
+      db.close()
+    }
+  })
+
   test('seeds resource arrays directly on datasets and preserves them on repeated sync', () => {
     const db = new Database(':memory:')
     try {

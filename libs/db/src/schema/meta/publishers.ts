@@ -1,12 +1,7 @@
-import {
-  foreignKey,
-  index,
-  primaryKey,
-  sqliteTable,
-  text,
-} from 'drizzle-orm/sqlite-core'
+import type { MetaTranslation } from './i18n'
+import { foreignKey, index, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { primaryUuid, timestamps } from '../shared'
+import { jsonText, primaryUuid, timestamps } from '../shared'
 
 export const metaPublishers = sqliteTable(
   'publishers',
@@ -18,6 +13,7 @@ export const metaPublishers = sqliteTable(
     contactEmail: text('contactEmail'),
     contactPhone: text('contactPhone'),
     parentPublisherId: text('parentPublisherId'),
+    i18n: jsonText<MetaTranslation[]>('i18n').notNull().default([]),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -28,25 +24,5 @@ export const metaPublishers = sqliteTable(
       name: 'publishers_parentPublisherId_publishers_id_fk',
     }).onDelete('restrict'),
     index('publishers_parentPublisherId_idx').on(table.parentPublisherId),
-  ],
-)
-
-export const metaPublisherI18n = sqliteTable(
-  'publisherI18n',
-  {
-    publisherId: text('publisherId')
-      .notNull()
-      .references(() => metaPublishers.id, { onDelete: 'cascade' }),
-    locale: text('locale').notNull(),
-    name: text('name').notNull(),
-    nameShort: text('nameShort'),
-    description: text('description'),
-    ...timestamps,
-  },
-  table => [
-    primaryKey({
-      columns: [table.publisherId, table.locale],
-    }),
-    index('publisherI18n_locale_idx').on(table.locale),
   ],
 )

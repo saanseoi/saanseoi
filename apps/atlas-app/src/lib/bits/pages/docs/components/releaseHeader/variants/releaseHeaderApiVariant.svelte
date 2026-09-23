@@ -86,12 +86,21 @@ let domainOptions = $derived(
   getReleaseHeaderDomainOptions(api, release, activeTab).map(option => ({
     ...option,
     label:
-      selectLocalisedRow(composition?.i18n?.[option.code], locale)?.name ?? option.code,
+      selectLocalisedRow(
+        composition?.apiCompositionMembers?.find(
+          member => member.domainCode === option.code,
+        )?.i18n,
+        locale,
+      )?.name ?? option.code,
   })),
 )
 let scopeDescription = $derived(
-  selectLocalisedRow(composition?.i18n?.[release.domainCode ?? 'default'], locale)
-    ?.description,
+  selectLocalisedRow(
+    composition?.apiCompositionMembers?.find(
+      member => member.domainCode === (release.domainCode ?? 'default'),
+    )?.i18n,
+    locale,
+  )?.description,
 )
 let accessMetrics = $derived([
   {

@@ -1,3 +1,4 @@
+import type { MetaTranslation } from './i18n'
 import type {
   ApiFieldInput,
   ApiFieldRulePin,
@@ -356,7 +357,6 @@ export const metaApiComposition = sqliteTable(
       enum: datasetTypes,
     }).notNull(),
     defaultDomainCode: text('defaultDomainCode'),
-    i18n: jsonText('i18n'),
     status: text('status').notNull(),
     notes: text('notes'),
     versionHash: text('versionHash').notNull(),
@@ -374,6 +374,7 @@ export const metaApiCompositionMembers = sqliteTable(
   'apiCompositionMembers',
   {
     apiCompositionId: apiCompositionIdColumn(),
+    i18n: jsonText<MetaTranslation[]>('i18n').notNull().default([]),
     domainCode: text('domainCode').notNull().default('default'),
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     variant: text('variant').notNull().default('default'),

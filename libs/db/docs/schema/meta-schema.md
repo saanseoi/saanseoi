@@ -16,10 +16,8 @@ Core groups:
 Tables:
 
 - `publishers`
-- `publisherI18n`
 - `licenses`
 - `datasets`
-- `datasetI18n`
 - `releases`
 
 Key points:
@@ -136,3 +134,19 @@ values, guess multi-resource archive keys, assign draft shards or manufacture mi
 publication dates. Apply schema changes and metadata repairs with ingestion writers
 stopped and a retained database backup. Published source resources may be `superseded`;
 that status still satisfies completed historical materialisation.
+
+## Localised metadata
+
+`publishers.i18n`, `datasets.i18n` and `units.i18n` store JSON arrays of locale values,
+such as `[{"locale":"en","name":"Example"}]`. Optional descriptions and short names live
+in the same entries. Parent IDs and timestamps belong to the owning row.
+
+`apiCompositionMembers.i18n` stores the domain's locale values directly. Members with
+the same `apiCompositionId` and `domainCode` share identical translations. The member's
+`domainCode` identifies the domain; the JSON has no domain-code wrapper.
+
+Metadata migrations and registry synchronisation form one maintenance operation: run the
+meta migration, then `bun run db:sync:meta` for a local database before starting
+readers. Use the corresponding environment-specific registry sync for a remote database.
+Registry fixtures populate these columns, including rows whose fixture version hashes
+already match.

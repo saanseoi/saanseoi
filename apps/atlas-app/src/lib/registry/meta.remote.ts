@@ -172,7 +172,7 @@ export const getSourcesPageData = query(async () => {
         api.familyType,
         {
           defaultDomainCode: composition?.defaultDomainCode ?? 'default',
-          i18n: composition?.i18n ?? {},
+          members: composition?.apiCompositionMembers ?? [],
         },
       ]
     }),

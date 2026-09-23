@@ -36,12 +36,9 @@ const UNIT_ID_NAMESPACE = 'f78a7f44-3e21-54f4-a6e1-56c021bb7c29'
 
 export const metaRegistryRequiredTables = [
   'publishers',
-  'publisherI18n',
   'licenses',
   'units',
-  'unitsI18n',
   'datasets',
-  'datasetI18n',
   'datasetTransforms',
   'apiVersions',
   'apiComposition',
@@ -250,15 +247,8 @@ type InitialPublisherSeed = VersionedFixture<{
   url?: string
   contactUrl?: string
   parentCode?: string
+  i18n: PublisherFixture['i18n']
 }>
-
-type InitialPublisherI18nSeed = {
-  publisherCode: string
-  locale: Locale
-  name: string
-  nameShort?: string
-  description?: string
-}
 
 type InitialLicenseSeed = VersionedFixture<LicenseFixture>
 
@@ -266,34 +256,17 @@ type InitialUnitSeed = {
   code: string
   dimension: string
   symbol: string
+  i18n: UnitFixture['units'][number]['i18n']
   versionHash: string
 }
 
-type InitialUnitI18nSeed = {
-  code: string
-  locale: Locale
-  name: string
-  description?: string
-}
-
 type InitialDatasetSeed = VersionedFixture<
-  Omit<
-    DatasetFixture,
-    'i18n' | 'mergeRules' | 'kind' | 'sourceVariant' | 'transforms'
-  > & {
+  Omit<DatasetFixture, 'mergeRules' | 'kind' | 'sourceVariant' | 'transforms'> & {
     kind: string | null
     sourceVariant: string
     processingRules: ReleaseMergeRules | null
   }
 >
-
-type InitialDatasetI18nSeed = {
-  datasetCode: string
-  publisherCode: string
-  locale: Locale
-  name: string
-  description?: string
-}
 
 type InitialDatasetTransformSeed = {
   datasetCode: string
@@ -322,20 +295,12 @@ type InitialApiCompositionSeed = VersionedFixture<{
   version: number
   primaryResourceType: ResourceType
   defaultDomainCode?: string
-  i18n: Record<
-    string,
-    Array<{
-      locale: Locale
-      name: string
-      descriptionShort?: string
-      description?: string
-    }>
-  >
   status: string
   notes?: string
 }>
 
 type InitialApiCompositionMemberSeed = {
+  i18n: NonNullable<ApiCompositionFixture['domains']>[number]['i18n']
   apiCompositionCode: string
   domainCode: string
   resourceType: ResourceType
@@ -542,30 +507,14 @@ export const initialPublishers: InitialPublisherSeed[] = publisherFixtures
     url: fixture.url,
     contactUrl: fixture.contactUrl,
     parentCode: fixture.parentCode,
+    i18n: fixture.i18n,
     versionHash: fixture.versionHash,
   }))
-
-export const initialPublisherI18n: InitialPublisherI18nSeed[] =
-  publisherFixtures.flatMap(fixture =>
-    fixture.i18n.map(translation => ({
-      publisherCode: fixture.code,
-      locale: translation.locale,
-      name: translation.name,
-      nameShort: translation.nameShort,
-      description: translation.description,
-    })),
-  )
 
 export const initialLicenses = readFixtureDir<InitialLicenseSeed>('dataLicenses')
 
 export const initialUnits: InitialUnitSeed[] = unitFixtures.flatMap(fixture =>
   fixture.units.map(unit => ({ ...unit, versionHash: fixture.versionHash })),
-)
-
-export const initialUnitsI18n: InitialUnitI18nSeed[] = unitFixtures.flatMap(fixture =>
-  fixture.units.flatMap(unit =>
-    unit.i18n.map(translation => ({ code: unit.code, ...translation })),
-  ),
 )
 
 export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture => ({
@@ -586,6 +535,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   schemaURL: fixture.schemaURL,
   category: fixture.category,
   processingRules: resolveDatasetMergeRules(fixture.mergeRules),
+  i18n: fixture.i18n,
 }))
 
 /**
@@ -628,17 +578,6 @@ export function resolveDatasetMergeRules(
   }
 }
 
-export const initialDatasetI18n: InitialDatasetI18nSeed[] = datasetFixtures.flatMap(
-  fixture =>
-    fixture.i18n.map(translation => ({
-      datasetCode: fixture.code,
-      publisherCode: fixture.publisherCode,
-      locale: translation.locale,
-      name: translation.name,
-      description: translation.description,
-    })),
-)
-
 export const initialDatasetTransforms: InitialDatasetTransformSeed[] =
   datasetFixtures.flatMap(fixture =>
     (fixture.transforms ?? []).map(transform => ({
@@ -662,9 +601,6 @@ export const initialApiCompositions: InitialApiCompositionSeed[] =
     version: fixture.version,
     primaryResourceType: fixture.primaryResourceType,
     defaultDomainCode: fixture.domains?.find(domain => domain.isDefault)?.code,
-    i18n: Object.fromEntries(
-      (fixture.domains ?? []).map(domain => [domain.code, domain.i18n]),
-    ),
     status: fixture.status,
     notes: fixture.notes,
     versionHash: fixture.versionHash,
@@ -674,10 +610,19 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
   apiCompositionFixtures.flatMap(fixture =>
     (fixture.domains
       ? fixture.domains.flatMap(domain =>
-          domain.members.map(member => ({ domainCode: domain.code, member })),
+          domain.members.map(member => ({
+            domainCode: domain.code,
+            i18n: domain.i18n,
+            member,
+          })),
         )
-      : (fixture.members ?? []).map(member => ({ domainCode: 'default', member }))
-    ).map(({ domainCode, member }) => ({
+      : (fixture.members ?? []).map(member => ({
+          domainCode: 'default',
+          i18n: [],
+          member,
+        }))
+    ).map(({ domainCode, i18n, member }) => ({
+      i18n,
       apiCompositionCode: fixture.code,
       domainCode,
       resourceType: member.resourceType,
@@ -769,7 +714,7 @@ export function buildMetaRegistrySyncStatements(
     statements.push(
       `
 INSERT INTO publishers (
-  id, code, url, contactUrl, parentPublisherId, versionHash, createdAt, updatedAt
+  id, code, url, contactUrl, parentPublisherId, i18n, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDeterministicId(PUBLISHER_ID_NAMESPACE, publisher.code)},
   ${sqlString(publisher.code)},
@@ -780,6 +725,7 @@ INSERT INTO publishers (
       ? `(SELECT id FROM publishers WHERE code = ${sqlString(publisher.parentCode)})`
       : 'NULL'
   },
+  ${sqlString(JSON.stringify(publisher.i18n))},
   ${sqlString(publisher.versionHash)},
   ${nowSql},
   ${nowSql}
@@ -788,36 +734,15 @@ ON CONFLICT(code) DO UPDATE SET
   url = excluded.url,
   contactUrl = excluded.contactUrl,
   parentPublisherId = excluded.parentPublisherId,
+  i18n = excluded.i18n,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE
-  publishers.versionHash <> excluded.versionHash
+  publishers.versionHash <> excluded.versionHash OR publishers.i18n IS NOT excluded.i18n
   OR (
     publishers.parentPublisherId IS NULL
     AND excluded.parentPublisherId IS NOT NULL
   );`.trim(),
-    )
-  }
-
-  for (const translation of initialPublisherI18n) {
-    statements.push(
-      `
-INSERT INTO publisherI18n (
-  publisherId, locale, name, nameShort, description, createdAt, updatedAt
-) VALUES (
-  (SELECT id FROM publishers WHERE code = ${sqlString(translation.publisherCode)}),
-  ${sqlString(translation.locale)},
-  ${sqlString(translation.name)},
-  ${sqlNullable(translation.nameShort)},
-  ${sqlNullable(translation.description)},
-  ${nowSql},
-  ${nowSql}
-)
-ON CONFLICT(publisherId, locale) DO UPDATE SET
-  name = excluded.name,
-  nameShort = excluded.nameShort,
-  description = excluded.description,
-  updatedAt = excluded.updatedAt;`.trim(),
     )
   }
 
@@ -848,12 +773,13 @@ WHERE licenses.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO units (
-  id, code, dimension, symbol, versionHash, createdAt, updatedAt
+  id, code, dimension, symbol, i18n, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDeterministicId(UNIT_ID_NAMESPACE, unit.code)},
   ${sqlString(unit.code)},
   ${sqlString(unit.dimension)},
   ${sqlString(unit.symbol)},
+  ${sqlString(JSON.stringify(unit.i18n))},
   ${sqlString(unit.versionHash)},
   ${nowSql},
   ${nowSql}
@@ -861,39 +787,10 @@ INSERT INTO units (
 ON CONFLICT(code) DO UPDATE SET
   dimension = excluded.dimension,
   symbol = excluded.symbol,
+  i18n = excluded.i18n,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
-WHERE units.versionHash <> excluded.versionHash;`.trim(),
-    )
-  }
-
-  // Registry-owned translations use exactly the locale keys declared by their unit.
-  for (const unit of initialUnits) {
-    const locales = initialUnitsI18n
-      .filter(translation => translation.code === unit.code)
-      .map(translation => sqlString(translation.locale))
-    statements.push(
-      `DELETE FROM unitsI18n WHERE unitId = (SELECT id FROM units WHERE code = ${sqlString(unit.code)})${locales.length ? ` AND locale NOT IN (${locales.join(', ')})` : ''};`,
-    )
-  }
-
-  for (const translation of initialUnitsI18n) {
-    statements.push(
-      `
-INSERT INTO unitsI18n (
-  unitId, locale, name, description, createdAt, updatedAt
-) VALUES (
-  (SELECT id FROM units WHERE code = ${sqlString(translation.code)}),
-  ${sqlString(translation.locale)},
-  ${sqlString(translation.name)},
-  ${sqlNullable(translation.description)},
-  ${nowSql},
-  ${nowSql}
-)
-ON CONFLICT(unitId, locale) DO UPDATE SET
-  name = excluded.name,
-  description = excluded.description,
-  updatedAt = excluded.updatedAt;`.trim(),
+WHERE units.versionHash <> excluded.versionHash OR units.i18n IS NOT excluded.i18n;`.trim(),
     )
   }
 
@@ -928,7 +825,7 @@ WHERE divisionCodes.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO datasets (
-  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, kind, sourceVariant, sourceCrs, sourceUrl, schemaURL, licenseId, attribution, category, resourceTypes, processingRules, versionHash, createdAt, updatedAt
+  id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, kind, sourceVariant, sourceCrs, sourceUrl, schemaURL, licenseId, attribution, category, resourceTypes, processingRules, i18n, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDatasetId(dataset.publisherCode, dataset.code)},
   (SELECT id FROM publishers WHERE code = ${sqlString(dataset.publisherCode)}),
@@ -949,6 +846,7 @@ INSERT INTO datasets (
   ${sqlNullable(
     dataset.processingRules ? JSON.stringify(dataset.processingRules) : undefined,
   )},
+  ${sqlString(JSON.stringify(dataset.i18n))},
   ${sqlString(dataset.versionHash)},
   ${nowSql},
   ${nowSql}
@@ -968,35 +866,11 @@ ON CONFLICT(publisherId, code) DO UPDATE SET
   category = excluded.category,
   resourceTypes = excluded.resourceTypes,
   processingRules = excluded.processingRules,
+  i18n = excluded.i18n,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
-WHERE datasets.versionHash <> excluded.versionHash
+WHERE datasets.versionHash <> excluded.versionHash OR datasets.i18n IS NOT excluded.i18n
    OR datasets.schemaURL IS NOT excluded.schemaURL;`.trim(),
-    )
-  }
-
-  for (const translation of initialDatasetI18n) {
-    statements.push(
-      `
-INSERT INTO datasetI18n (
-  datasetId, locale, name, description, createdAt, updatedAt
-) VALUES (
-  (
-    SELECT d.id
-    FROM datasets d
-    JOIN publishers p ON p.id = d.publisherId
-    WHERE p.code = ${sqlString(translation.publisherCode)} AND d.code = ${sqlString(translation.datasetCode)}
-  ),
-  ${sqlString(translation.locale)},
-  ${sqlString(translation.name)},
-  ${sqlNullable(translation.description)},
-  ${nowSql},
-  ${nowSql}
-)
-ON CONFLICT(datasetId, locale) DO UPDATE SET
-  name = excluded.name,
-  description = excluded.description,
-  updatedAt = excluded.updatedAt;`.trim(),
     )
   }
 
@@ -1067,7 +941,7 @@ WHERE apiVersions.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO apiComposition (
-  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, i18n, status, notes, versionHash, createdAt, updatedAt
+  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDeterministicId(API_COMPOSITION_ID_NAMESPACE, composition.code)},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(composition.apiVersion)}),
@@ -1075,7 +949,6 @@ INSERT INTO apiComposition (
   ${composition.version},
   ${sqlString(composition.primaryResourceType)},
   ${sqlNullable(composition.defaultDomainCode)},
-  ${sqlString(JSON.stringify(composition.i18n))},
   ${sqlString(composition.status)},
   ${sqlNullable(composition.notes)},
   ${sqlString(composition.versionHash)},
@@ -1087,7 +960,6 @@ ON CONFLICT(code) DO UPDATE SET
   version = excluded.version,
   primaryResourceType = excluded.primaryResourceType,
   defaultDomainCode = excluded.defaultDomainCode,
-  i18n = excluded.i18n,
   status = excluded.status,
   notes = excluded.notes,
   versionHash = excluded.versionHash,
@@ -1144,10 +1016,11 @@ WHERE apiCompositionId IN (
     statements.push(
       `
 INSERT INTO apiCompositionMembers (
-  apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority
+  apiCompositionId, domainCode, i18n, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority
 ) VALUES (
   (SELECT id FROM apiComposition WHERE code = ${sqlString(member.apiCompositionCode)}),
   ${sqlString(member.domainCode)},
+  ${sqlString(JSON.stringify(member.i18n))},
   ${sqlString(member.resourceType)},
   ${sqlString(member.variant)},
   ${sqlString(member.role)},
@@ -1158,6 +1031,7 @@ INSERT INTO apiCompositionMembers (
   ${member.priority}
 )
 ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
+  i18n = excluded.i18n,
   role = excluded.role,
   isRequired = excluded.isRequired,
   cohortMatchingMode = excluded.cohortMatchingMode,

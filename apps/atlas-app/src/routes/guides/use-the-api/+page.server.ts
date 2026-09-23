@@ -3,6 +3,7 @@ import {
   createMetaDb,
   eq,
   metaApiComposition,
+  metaApiCompositionMembers,
   metaApiReleaseSets,
   metaApiVersions,
   or,
@@ -18,7 +19,7 @@ export const load: PageServerLoad = async () => {
   if (!binding) throw new Error('D1 binding "DB_META" not found.')
 
   const db = createMetaDb(binding)
-  const [apiVersions, compositions, releases] = await runWithD1ReadRetry(() =>
+  const [apiVersions, compositions, releases, members] = await runWithD1ReadRetry(() =>
     Promise.all([
       db
         .select({
@@ -31,7 +32,7 @@ export const load: PageServerLoad = async () => {
       db
         .select({
           apiVersionId: metaApiComposition.apiVersionId,
-          i18n: metaApiComposition.i18n,
+          id: metaApiComposition.id,
           status: metaApiComposition.status,
           version: metaApiComposition.version,
         })
@@ -56,6 +57,7 @@ export const load: PageServerLoad = async () => {
           ),
         )
         .all(),
+      db.select().from(metaApiCompositionMembers).all(),
     ]),
   )
 
@@ -64,9 +66,14 @@ export const load: PageServerLoad = async () => {
       apiVersions.map(api => ({
         familyType: api.familyType,
         status: api.status,
-        apiComposition: compositions.filter(
-          composition => composition.apiVersionId === api.id,
-        ),
+        apiComposition: compositions
+          .filter(composition => composition.apiVersionId === api.id)
+          .map(composition => ({
+            ...composition,
+            apiCompositionMembers: members.filter(
+              member => member.apiCompositionId === composition.id,
+            ),
+          })),
         releases: releases.filter(release => release.apiVersionId === api.id),
       })),
     ),

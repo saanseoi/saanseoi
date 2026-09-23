@@ -277,7 +277,12 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             return [
               {
                 id: `${familyType}:${groupCode}`,
-                label: domainLabel(groupCode, domainMetadata?.i18n[groupCode]),
+                label: domainLabel(
+                  groupCode,
+                  domainMetadata?.members.find(
+                    member => member.domainCode === groupCode,
+                  )?.i18n,
+                ),
                 primary: sourceFlowInput(primary, primaryType, familyType),
                 variants: domainSources
                   .filter(source => source.code !== primary.code)

@@ -76,12 +76,10 @@ const {
   metaApiReleaseSetSnapshots,
   metaApiVersions,
   ingestRuns,
-  metaDatasetI18n,
   metaDatasetTransforms,
   metaDatasets,
   metaLicenses,
   metaPublishers,
-  metaPublisherI18n,
   metaDataShards,
   metaPublishedDataJournal,
   metaReleaseShardAssignments,
@@ -424,15 +422,17 @@ export async function listRegistryReleases(
               .all(),
           ),
       queryInBatches(datasetIds, ids =>
-        db
-          .select({
-            datasetId: metaDatasetI18n.datasetId,
-            locale: metaDatasetI18n.locale,
-            name: metaDatasetI18n.name,
-          })
-          .from(metaDatasetI18n)
-          .where(inArray(metaDatasetI18n.datasetId, ids))
-          .all(),
+        Promise.resolve(
+          db
+            .select({ id: metaDatasets.id, i18n: metaDatasets.i18n })
+            .from(metaDatasets)
+            .where(inArray(metaDatasets.id, ids))
+            .all(),
+        ).then(rows =>
+          rows.flatMap(row =>
+            row.i18n.map(translation => ({ datasetId: row.id, ...translation })),
+          ),
+        ),
       ),
     ])
   const resourceTypesByDatasetId = new Map(
@@ -726,7 +726,6 @@ export async function listRegistryApiCompositions(db: MetaDatabase, limit?: numb
         id: metaApiComposition.id,
         apiVersionId: metaApiComposition.apiVersionId,
         defaultDomainCode: metaApiComposition.defaultDomainCode,
-        i18n: metaApiComposition.i18n,
         status: metaApiComposition.status,
         version: metaApiComposition.version,
       })
@@ -735,6 +734,16 @@ export async function listRegistryApiCompositions(db: MetaDatabase, limit?: numb
       .orderBy(desc(metaApiComposition.version))
       .all(),
   ])
+
+  const members = await queryInBatches(
+    compositions.map(row => row.id),
+    ids =>
+      db
+        .select()
+        .from(metaApiCompositionMembers)
+        .where(inArray(metaApiCompositionMembers.apiCompositionId, ids))
+        .all(),
+  )
 
   const currentCompositionByApiVersionId = new Map<
     string,
@@ -750,7 +759,16 @@ export async function listRegistryApiCompositions(db: MetaDatabase, limit?: numb
     const composition = currentCompositionByApiVersionId.get(api.id)
     return {
       ...api,
-      apiComposition: composition ? [{ ...composition }] : [],
+      apiComposition: composition
+        ? [
+            {
+              ...composition,
+              apiCompositionMembers: members.filter(
+                member => member.apiCompositionId === composition.id,
+              ),
+            },
+          ]
+        : [],
     }
   })
 }
@@ -1107,6 +1125,7 @@ const registrySourceSelection = {
   attribution: metaDatasets.attribution,
   processingRules: metaDatasets.processingRules,
   tags: metaDatasets.tags,
+  i18n: metaDatasets.i18n,
   resourceTypes: metaDatasets.resourceTypes,
   versionHash: metaDatasets.versionHash,
   createdAt: metaDatasets.createdAt,
@@ -1124,14 +1143,7 @@ export async function listRegistrySources(db: MetaDatabase, limit?: number) {
     .all()
 
   const sourceIds = sources.map(source => source.id)
-  const [i18n, transforms, sourceVersions, publishers] = await Promise.all([
-    queryInBatches(sourceIds, ids =>
-      db
-        .select()
-        .from(metaDatasetI18n)
-        .where(inArray(metaDatasetI18n.datasetId, ids))
-        .all(),
-    ),
+  const [transforms, sourceVersions, publishers] = await Promise.all([
     queryInBatches(sourceIds, ids =>
       db
         .select()
@@ -1147,7 +1159,7 @@ export async function listRegistrySources(db: MetaDatabase, limit?: number) {
     ...source,
     publisher:
       publishers.find(publisher => publisher.id === source.publisherId) ?? null,
-    datasetI18n: i18n.filter(row => row.datasetId === source.id),
+    datasetI18n: source.i18n,
     transforms: transforms.filter(row => row.datasetId === source.id),
     sourceVersions: sourceVersions.filter(version => version.datasetId === source.id),
   }))
@@ -1163,6 +1175,8 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
   const sources = await db
     .select({
       id: metaDatasets.id,
+      i18n: metaDatasets.i18n,
+      publisherI18n: metaPublishers.i18n,
       publisherId: metaDatasets.publisherId,
       publisherCode: metaPublishers.code,
       code: metaDatasets.code,
@@ -1185,22 +1199,7 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
   if (!sources.length) return []
 
   const sourceIds = sources.map(source => source.id)
-  const publisherIds = [...new Set(sources.map(source => source.publisherId))]
-  const [i18n, publisherI18n, sourceVersions] = await Promise.all([
-    queryInBatches(sourceIds, ids =>
-      db
-        .select()
-        .from(metaDatasetI18n)
-        .where(inArray(metaDatasetI18n.datasetId, ids))
-        .all(),
-    ),
-    queryInBatches(publisherIds, ids =>
-      db
-        .select()
-        .from(metaPublisherI18n)
-        .where(inArray(metaPublisherI18n.publisherId, ids))
-        .all(),
-    ),
+  const [sourceVersions] = await Promise.all([
     queryInBatches(sourceIds, ids =>
       db
         .select({
@@ -1327,11 +1326,9 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
   return sources.map(source => ({
     ...source,
     publisher: {
-      publisherI18n: publisherI18n.filter(
-        row => row.publisherId === source.publisherId,
-      ),
+      publisherI18n: source.publisherI18n,
     },
-    datasetI18n: i18n.filter(row => row.datasetId === source.id),
+    datasetI18n: source.i18n,
     sourceVersions: latestVersions
       .filter(version => version.datasetId === source.id)
       .map(version => {
@@ -1362,12 +1359,7 @@ export async function getRegistrySource(db: MetaDatabase, id: string) {
 
   if (!source) return null
 
-  const [datasetI18n, transforms, sourceVersions, publisher] = await Promise.all([
-    db
-      .select()
-      .from(metaDatasetI18n)
-      .where(eq(metaDatasetI18n.datasetId, source.id))
-      .all(),
+  const [transforms, sourceVersions, publisher] = await Promise.all([
     db
       .select()
       .from(metaDatasetTransforms)
@@ -1380,7 +1372,7 @@ export async function getRegistrySource(db: MetaDatabase, id: string) {
   return {
     ...source,
     publisher,
-    datasetI18n,
+    datasetI18n: source.i18n,
     transforms,
     sourceVersions,
   }
@@ -1415,14 +1407,7 @@ export async function getRegistrySourceReleaseShell(
   const source = await timed('source', () => getRegistrySourceRecord(db, id))
   if (!source) return null
 
-  const [datasetI18n, sourceVersions, publisher] = await Promise.all([
-    timed('header-i18n', () =>
-      db
-        .select()
-        .from(metaDatasetI18n)
-        .where(eq(metaDatasetI18n.datasetId, source.id))
-        .all(),
-    ),
+  const [sourceVersions, publisher] = await Promise.all([
     timed('versions', () =>
       db
         .select({
@@ -1473,7 +1458,7 @@ export async function getRegistrySourceReleaseShell(
   return {
     ...source,
     publisher,
-    datasetI18n,
+    datasetI18n: source.i18n,
     sourceVersions: sourceVersions.map(release =>
       release.id === selectedRelease?.id
         ? { ...release, processingActionCount }
@@ -1495,12 +1480,7 @@ export async function getRegistrySourceRelease(
   const source = await getRegistrySourceRecord(db, id)
   if (!source) return null
 
-  const [datasetI18n, transforms, sourceVersions, publisher] = await Promise.all([
-    db
-      .select()
-      .from(metaDatasetI18n)
-      .where(eq(metaDatasetI18n.datasetId, source.id))
-      .all(),
+  const [transforms, sourceVersions, publisher] = await Promise.all([
     db
       .select()
       .from(metaDatasetTransforms)
@@ -1513,7 +1493,7 @@ export async function getRegistrySourceRelease(
   return {
     ...source,
     publisher,
-    datasetI18n,
+    datasetI18n: source.i18n,
     transforms,
     sourceVersions,
   }
@@ -1747,21 +1727,33 @@ async function queryRegistrySourceVersions(
     ...new Set(assemblySourceRows.map(source => source.datasetId)),
   ]
   const assemblyDatasetI18n = await queryInBatches(assemblyDatasetIds, ids =>
-    db
-      .select()
-      .from(metaDatasetI18n)
-      .where(inArray(metaDatasetI18n.datasetId, ids))
-      .all(),
+    Promise.resolve(
+      db
+        .select({ id: metaDatasets.id, i18n: metaDatasets.i18n })
+        .from(metaDatasets)
+        .where(inArray(metaDatasets.id, ids))
+        .all(),
+    ).then(rows =>
+      rows.flatMap(row =>
+        row.i18n.map(translation => ({ datasetId: row.id, ...translation })),
+      ),
+    ),
   )
   const assemblyPublisherIds = [
     ...new Set(assemblySourceRows.map(source => source.publisherId)),
   ]
   const assemblyPublisherI18n = await queryInBatches(assemblyPublisherIds, ids =>
-    db
-      .select()
-      .from(metaPublisherI18n)
-      .where(inArray(metaPublisherI18n.publisherId, ids))
-      .all(),
+    Promise.resolve(
+      db
+        .select({ id: metaPublishers.id, i18n: metaPublishers.i18n })
+        .from(metaPublishers)
+        .where(inArray(metaPublishers.id, ids))
+        .all(),
+    ).then(rows =>
+      rows.flatMap(row =>
+        row.i18n.map(translation => ({ publisherId: row.id, ...translation })),
+      ),
+    ),
   )
   const processingActions = includeProcessingActions
     ? await readReleaseAuditDecisions(
@@ -1870,18 +1862,9 @@ export async function listRegistrySourcePublishers(db: MetaDatabase, limit?: num
     .limit(registryLimit(limit))
     .all()
 
-  const publisherIds = publishers.map(publisher => publisher.id)
-  const i18n = await queryInBatches(publisherIds, ids =>
-    db
-      .select()
-      .from(metaPublisherI18n)
-      .where(inArray(metaPublisherI18n.publisherId, ids))
-      .all(),
-  )
-
   return publishers.map(publisher => ({
     ...publisher,
-    publisherI18n: i18n.filter(row => row.publisherId === publisher.id),
+    publisherI18n: publisher.i18n,
   }))
 }
 
@@ -1895,13 +1878,7 @@ export async function getRegistrySourcePublisher(db: MetaDatabase, id: string) {
 
   if (!publisher) return null
 
-  const publisherI18n = await db
-    .select()
-    .from(metaPublisherI18n)
-    .where(eq(metaPublisherI18n.publisherId, publisher.id))
-    .all()
-
-  return { ...publisher, publisherI18n }
+  return { ...publisher, publisherI18n: publisher.i18n }
 }
 
 type LatestDatasetLookup = {

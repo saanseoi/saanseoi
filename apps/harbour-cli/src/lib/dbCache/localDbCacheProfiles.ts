@@ -356,10 +356,8 @@ function resolveExpectedTablesForBinding(
   if (bindingName === 'DB_META') {
     return [
       'publishers',
-      'publisherI18n',
       'licenses',
       'datasets',
-      'datasetI18n',
       'dataShards',
       'apiVersions',
       'apiReleaseSets',

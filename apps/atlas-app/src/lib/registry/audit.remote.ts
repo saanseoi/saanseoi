@@ -81,7 +81,6 @@ export const getSourceAudit = query(
       metaSourceReleases: s,
       metaDatasets: d,
       metaPublishers: publishers,
-      metaPublisherI18n: publisherI18n,
     } = metaSchema
     const rows = await runWithReadRetry(() =>
       getMetaDb()
@@ -89,8 +88,8 @@ export const getSourceAudit = query(
           releaseId: r.id,
           code: r.code,
           resourceType: r.resourceType,
-          sourcePublisherName: sql<string>`coalesce((select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
-          sourcePublisherShortName: sql<string>`coalesce((select ${publisherI18n.nameShort} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), (select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
+          sourcePublisherName: sql<string>`coalesce((select json_extract(value, '$.name') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), ${publishers.code})`,
+          sourcePublisherShortName: sql<string>`coalesce((select json_extract(value, '$.nameShort') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), (select json_extract(value, '$.name') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), ${publishers.code})`,
           sourceKind: d.kind,
           hash: p.manifestHash,
           byteLength: p.byteLength,
@@ -120,7 +119,6 @@ export const getApiAudit = query(
       metaSourceReleases: sourceReleases,
       metaDatasets: datasets,
       metaPublishers: publishers,
-      metaPublisherI18n: publisherI18n,
     } = metaSchema
     const rows = await runWithReadRetry(() =>
       getMetaDb()
@@ -129,8 +127,8 @@ export const getApiAudit = query(
           code: r.code,
           resourceType: r.resourceType,
           apiReleaseSetRole: sql<string>`coalesce((select ${members.role} from ${sources} inner join ${members} on ${members.snapshotId} = ${sources.snapshotId} inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId} inner join ${versions} on ${versions.id} = ${sets.apiVersionId} where ${sources.resourceReleaseId} = ${r.id} and ${sources.role} <> 'lookup' and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode} limit 1), 'supporting')`,
-          sourcePublisherName: sql<string>`coalesce((select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
-          sourcePublisherShortName: sql<string>`coalesce((select ${publisherI18n.nameShort} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), (select ${publisherI18n.name} from ${publisherI18n} where ${publisherI18n.publisherId} = ${publishers.id} and ${publisherI18n.locale} = 'en' limit 1), ${publishers.code})`,
+          sourcePublisherName: sql<string>`coalesce((select json_extract(value, '$.name') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), ${publishers.code})`,
+          sourcePublisherShortName: sql<string>`coalesce((select json_extract(value, '$.nameShort') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), (select json_extract(value, '$.name') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), ${publishers.code})`,
           sourceKind: datasets.kind,
           sourceVariant: datasets.sourceVariant,
           hash: p.manifestHash,

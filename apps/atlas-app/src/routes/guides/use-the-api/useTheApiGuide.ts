@@ -10,7 +10,7 @@ type ApiRelease = {
 }
 
 type ApiComposition = {
-  i18n?: unknown
+  apiCompositionMembers?: Array<{ domainCode: string; i18n: DomainI18n[] }>
   status: string
   version: number
 }
@@ -42,26 +42,6 @@ export type UseTheApiGuideFamily = {
 }
 
 const publishedReleaseStatuses = new Set(['current', 'archived'])
-
-const isDomainI18n = (value: unknown): value is DomainI18n =>
-  Boolean(
-    value &&
-      typeof value === 'object' &&
-      typeof (value as DomainI18n).locale === 'string' &&
-      typeof (value as DomainI18n).name === 'string',
-  )
-
-const readDomainI18n = (value: unknown): Record<string, DomainI18n[]> => {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return {}
-
-  return Object.fromEntries(
-    Object.entries(value).flatMap(([domainCode, rows]) => {
-      if (!Array.isArray(rows)) return []
-      const i18n = rows.filter(isDomainI18n)
-      return i18n.length ? [[domainCode, i18n]] : []
-    }),
-  )
-}
 
 const getUsingApiHeadingId = (notes: string) =>
   getMarkdownHeadings(notes).find(heading => /^using the .+ api$/i.test(heading.text))
@@ -101,7 +81,12 @@ export const buildUseTheApiGuideFamilies = (apis: ApiFamily[]) =>
       const composition = [...(api.apiComposition ?? [])]
         .filter(item => item.status === 'current')
         .sort((left, right) => right.version - left.version)[0]
-      const domainI18n = readDomainI18n(composition?.i18n)
+      const domainI18n = Object.fromEntries(
+        (composition?.apiCompositionMembers ?? []).map(member => [
+          member.domainCode,
+          member.i18n,
+        ]),
+      )
       const latestReleaseByDomain = getLatestReleaseByDomain(
         api.familyType,
         api.releases ?? [],

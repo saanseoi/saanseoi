@@ -33,7 +33,11 @@ export function getReleaseHeaderDomainOptions(
   const composition = api.apiComposition
     ?.filter(item => item.status === 'current')
     .sort((left, right) => right.version - left.version)[0]
-  const configuredDomainCodes = Object.keys(composition?.i18n ?? {})
+  const configuredDomainCodes = [
+    ...new Set(
+      (composition?.apiCompositionMembers ?? []).map(member => member.domainCode),
+    ),
+  ]
   const domainCodes = [
     ...configuredDomainCodes.filter(code => releasesByDomain.has(code)),
     ...[...releasesByDomain.keys()].filter(

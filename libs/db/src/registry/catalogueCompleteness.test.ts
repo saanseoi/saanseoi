@@ -8,8 +8,8 @@ import {
   buildMetaRegistrySyncStatements,
   initialApiVersions,
   initialApiEndpoints,
-  initialDatasetI18n,
-  initialUnitsI18n,
+  initialDatasets,
+  initialUnits,
 } from './meta'
 
 const root = new URL('../../../../fixtures/meta/', import.meta.url).pathname
@@ -48,9 +48,13 @@ test('all current API versions have endpoint metadata', () => {
 })
 
 test('Statistics dataset and unit metadata has complete canonical locale keys and text', () => {
-  const statistics = initialDatasetI18n.filter(row =>
-    row.datasetCode.startsWith('ds-hk-hkgov-censtatd-division-statistic-'),
-  )
+  const statistics = initialDatasets
+    .flatMap(dataset =>
+      dataset.i18n.map(row => ({ datasetCode: dataset.code, ...row })),
+    )
+    .filter(row =>
+      row.datasetCode.startsWith('ds-hk-hkgov-censtatd-division-statistic-'),
+    )
   expect(new Set(statistics.map(row => row.datasetCode)).size).toBe(8)
   for (const code of new Set(statistics.map(row => row.datasetCode))) {
     const rows = statistics.filter(row => row.datasetCode === code)
@@ -60,37 +64,36 @@ test('Statistics dataset and unit metadata has complete canonical locale keys an
       expect(row.description?.trim().length).toBeGreaterThan(0)
     }
   }
-  for (const code of new Set(initialUnitsI18n.map(row => row.code)))
-    expect(
-      initialUnitsI18n
-        .filter(row => row.code === code)
-        .map(row => row.locale)
-        .sort(),
-    ).toEqual(['en', 'zh-hans', 'zh-hant'])
+  for (const unit of initialUnits)
+    expect(unit.i18n.map(row => row.locale).sort()).toEqual([
+      'en',
+      'zh-hans',
+      'zh-hant',
+    ])
 })
 
 test('unit registry sync removes undeclared locale keys and remains idempotent', () => {
   const db = new Database(':memory:')
   try {
     db.exec(
-      'CREATE TABLE units(id TEXT PRIMARY KEY, code TEXT UNIQUE, dimension TEXT, symbol TEXT, versionHash TEXT, createdAt INTEGER, updatedAt INTEGER); CREATE TABLE unitsI18n(unitId TEXT, locale TEXT, name TEXT, description TEXT, createdAt INTEGER, updatedAt INTEGER, PRIMARY KEY(unitId, locale));',
+      'CREATE TABLE units(id TEXT PRIMARY KEY, code TEXT UNIQUE, dimension TEXT, symbol TEXT, i18n TEXT, versionHash TEXT, createdAt INTEGER, updatedAt INTEGER);',
     )
     const statements = buildMetaRegistrySyncStatements('preview').filter(statement =>
-      /^(INSERT INTO units(?:I18n)?\b|DELETE FROM unitsI18n\b)/.test(statement.trim()),
+      /^INSERT INTO units\b/.test(statement.trim()),
     )
     const sync = () => {
       for (const statement of statements) db.exec(statement)
     }
     sync()
     db.exec(
-      "INSERT INTO unitsI18n(unitId, locale, name) SELECT id, 'zh-Hant', 'stale' FROM units WHERE code = 'person'",
+      "UPDATE units SET i18n = json_insert(i18n, '$[#]', json_object('locale', 'zh-Hant', 'name', 'stale')) WHERE code = 'person'",
     )
     sync()
     sync()
     expect(
       db
         .query(
-          "SELECT locale FROM unitsI18n WHERE unitId = (SELECT id FROM units WHERE code = 'person') ORDER BY locale",
+          "SELECT json_extract(value, '$.locale') AS locale FROM units, json_each(units.i18n) WHERE code = 'person' ORDER BY locale",
         )
         .all(),
     ).toEqual([{ locale: 'en' }, { locale: 'zh-hans' }, { locale: 'zh-hant' }])

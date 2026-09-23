@@ -2,7 +2,7 @@
 
 - `datasets`
 - -> localised by
-- `datasetI18n`
+- `datasets.i18n`
 - -> incremental snapshots are published as
 - `releases`
 - -> owned by

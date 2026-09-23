@@ -10,18 +10,19 @@ describe('getReleaseHeaderDomainOptions', () => {
         {
           status: 'current',
           version: 1,
-          i18n: {
-            overture: [],
-            'hkgov-pland-pu': [],
-            'hkgov-pland-new-town': [],
-            'hkgov-landsd': [],
-          },
+          apiCompositionMembers: [
+            { domainCode: 'overture', i18n: [] },
+            { domainCode: 'overture', i18n: [] },
+            { domainCode: 'hkgov-pland-pu', i18n: [] },
+            { domainCode: 'hkgov-pland-new-town', i18n: [] },
+            { domainCode: 'hkgov-landsd', i18n: [] },
+          ],
         },
       ],
       releases: [
+        { code: 'planning-unit', domainCode: 'hkgov-pland-pu', status: 'published' },
         { code: 'overture-new', domainCode: 'overture', status: 'published' },
         { code: 'overture-old', domainCode: 'overture', status: 'published' },
-        { code: 'planning-unit', domainCode: 'hkgov-pland-pu', status: 'published' },
         { code: 'new-town-draft', domainCode: 'hkgov-pland-new-town', status: 'draft' },
       ],
     }
@@ -42,7 +43,13 @@ describe('getReleaseHeaderDomainOptions', () => {
     }
     const api = {
       familyType: 'divisions',
-      apiComposition: [{ status: 'current', version: 1, i18n: { overture: [] } }],
+      apiComposition: [
+        {
+          status: 'current',
+          version: 1,
+          apiCompositionMembers: [{ domainCode: 'overture', i18n: [] }],
+        },
+      ],
       releases: [
         { code: 'overture', domainCode: 'overture', status: 'published' },
         currentRelease,

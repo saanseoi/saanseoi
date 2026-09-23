@@ -1,3 +1,4 @@
+import type { MetaTranslation } from './i18n'
 import {
   foreignKey,
   index,
@@ -58,6 +59,7 @@ export const metaDatasets = sqliteTable(
     // rewrite historic processing decisions; per-record exceptions belong in
     // releaseProcessingActions instead.
     processingRules: jsonText('processingRules'),
+    i18n: jsonText<MetaTranslation[]>('i18n').notNull().default([]),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -67,25 +69,6 @@ export const metaDatasets = sqliteTable(
       table.code,
     ),
     index('datasets_region_theme_idx').on(table.regionCode, table.theme),
-  ],
-)
-
-export const metaDatasetI18n = sqliteTable(
-  'datasetI18n',
-  {
-    datasetId: text('datasetId')
-      .notNull()
-      .references(() => metaDatasets.id, { onDelete: 'cascade' }),
-    locale: text('locale').notNull(),
-    name: text('name').notNull(),
-    description: text('description'),
-    ...timestamps,
-  },
-  table => [
-    primaryKey({
-      columns: [table.datasetId, table.locale],
-    }),
-    index('datasetI18n_locale_idx').on(table.locale),
   ],
 )
 

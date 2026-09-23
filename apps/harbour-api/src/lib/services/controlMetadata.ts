@@ -11,7 +11,7 @@ import {
   metaApiComposition,
   metaApiReleaseSets,
   metaApiVersions,
-  metaPublisherI18n,
+  metaApiCompositionMembers,
   metaPublishers,
   metaSnapshots,
 } from '@repo/db'
@@ -132,16 +132,12 @@ export async function resolvePublisherName(
   publisherCode: string,
 ) {
   const publisher = await db
-    .select({ name: metaPublisherI18n.name })
-    .from(metaPublisherI18n)
-    .innerJoin(metaPublishers, eq(metaPublisherI18n.publisherId, metaPublishers.id))
-    .where(
-      and(eq(metaPublishers.code, publisherCode), eq(metaPublisherI18n.locale, 'en')),
-    )
+    .select({ i18n: metaPublishers.i18n })
+    .from(metaPublishers)
+    .where(eq(metaPublishers.code, publisherCode))
     .limit(1)
     .get()
-
-  return publisher?.name ?? publisherCode
+  return publisher?.i18n.find(row => row.locale === 'en')?.name ?? publisherCode
 }
 
 export async function requireReleaseSetPublicationMetadata(
@@ -176,9 +172,17 @@ export async function requireReleaseSetPublicationMetadata(
     )
   }
 
+  const domainCode = releaseSet.domainCode ?? fallback.domainCode
   const composition = await db
-    .select({ i18n: metaApiComposition.i18n })
+    .select({ i18n: metaApiCompositionMembers.i18n })
     .from(metaApiComposition)
+    .innerJoin(
+      metaApiCompositionMembers,
+      and(
+        eq(metaApiCompositionMembers.apiCompositionId, metaApiComposition.id),
+        eq(metaApiCompositionMembers.domainCode, domainCode),
+      ),
+    )
     .where(
       releaseSet.apiCompositionId
         ? eq(metaApiComposition.id, releaseSet.apiCompositionId)
@@ -189,7 +193,6 @@ export async function requireReleaseSetPublicationMetadata(
     )
     .limit(1)
     .get()
-  const domainCode = releaseSet.domainCode ?? fallback.domainCode
   const copy = getEnglishDomainCopy(composition?.i18n, domainCode)
   return {
     apiFamily: releaseSet.apiFamily ?? fallback.apiFamily,
@@ -203,11 +206,7 @@ export async function requireReleaseSetPublicationMetadata(
 }
 
 function getEnglishDomainCopy(value: unknown, domainCode: string) {
-  const composition = parseCompositionI18n(value)
-  const translations =
-    composition && typeof composition === 'object'
-      ? (composition as Record<string, unknown>)[domainCode]
-      : undefined
+  const translations = parseCompositionI18n(value)
   const english = Array.isArray(translations)
     ? translations.find(
         translation =>

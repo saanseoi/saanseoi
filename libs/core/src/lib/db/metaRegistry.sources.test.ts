@@ -12,6 +12,8 @@ describe('listRegistrySourcesPage', () => {
     const sources = Array.from({ length: 200 }, (_, index) => ({
       id: `dataset-${index}`,
       publisherId: 'publisher-1',
+      i18n: [],
+      publisherI18n: [],
     }))
     let allCalls = 0
 
@@ -54,7 +56,7 @@ describe('listRegistrySourcesPage', () => {
     const result = await listRegistrySourcesPage(db as never)
 
     expect(result).toHaveLength(200)
-    expect(allCalls).toBe(8)
+    expect(allCalls).toBe(4)
   })
 
   test('batches explicit snapshot cleanup candidates within D1 limits', async () => {

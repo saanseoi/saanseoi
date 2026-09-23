@@ -522,11 +522,13 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
       )
       .all<ApiReleaseSetSourceQueryRow>(),
     db
-      .prepare('SELECT datasetId AS id, locale, name, description FROM datasetI18n')
+      .prepare(
+        `SELECT d.id, json_extract(t.value, '$.locale') AS locale, json_extract(t.value, '$.name') AS name, json_extract(t.value, '$.description') AS description FROM datasets d, json_each(d.i18n) t`,
+      )
       .all<LocalisedDocsNameRow>(),
     db
       .prepare(
-        'SELECT publisherId AS id, locale, name, nameShort, description FROM publisherI18n',
+        `SELECT p.id, json_extract(t.value, '$.locale') AS locale, json_extract(t.value, '$.name') AS name, json_extract(t.value, '$.nameShort') AS nameShort, json_extract(t.value, '$.description') AS description FROM publishers p, json_each(p.i18n) t`,
       )
       .all<LocalisedDocsNameRow>(),
   ])
