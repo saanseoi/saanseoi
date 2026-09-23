@@ -18,6 +18,7 @@ import {
 import { getRequestEvent } from '$app/server'
 import { createMetaDb } from '@repo/db/client'
 import { createAuthEmail } from './auth-email'
+import { authCookieOptions } from './authCookies'
 
 const sendAuthEmail = (input: {
   to: string
@@ -96,6 +97,7 @@ const createSocialProviders = (authEnv: AuthEnvironment) => ({
 const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
   ({
     baseURL,
+    advanced: authCookieOptions,
     secret: authEnv.BETTER_AUTH_SECRET,
     account: {
       accountLinking: {
