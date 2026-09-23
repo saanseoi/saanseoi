@@ -1,0 +1,15 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "summarise-division-name-translations",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Count translation applications and distinct selected instructions. Match each applied translation to its retained instruction by context hash, source locale, source-text hash, target locale and translated text. Count unselected instructions without creating per-record skipped actions; an unused instruction does not prove a failed match or a missing source record.",
+  "inputs": ["translation-instructions", "translation-applications"],
+  "outputs": ["translated-names"],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/divisions/divisionProvenance.ts",
+    "symbol": "retainDivisionProvenance"
+  }
+}
