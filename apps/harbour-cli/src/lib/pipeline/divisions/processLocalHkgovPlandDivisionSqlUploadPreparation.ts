@@ -240,7 +240,7 @@ function normaliseNewTown(
     i18n.find(entry => entry.locale === locale)?.name ?? null
   return {
     nameEn: requireString(name('en'), 'New Town English name'),
-    nameZhHans: requireString(name('zh-hans'), 'New Town Simplified Chinese name'),
+    nameZhHans: name('zh-hans'),
     nameZhHant: requireString(name('zh-hant'), 'New Town Traditional Chinese name'),
     properties: asRecord(sourceProperties.sourceFeature).properties ?? null,
     sourceGeometry: requireValue(

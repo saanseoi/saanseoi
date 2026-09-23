@@ -2,253 +2,234 @@ import { createHash } from 'node:crypto'
 import { mkdtemp, readFile, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-
-import { describe, expect, test } from 'bun:test'
-
-import { resolveDatasetNameTranslationsBatch } from './datasetNameTranslations.ts'
+import { expect, test } from 'bun:test'
+import {
+  resolveDatasetNameTranslationsBatch,
+  type FixtureEntry,
+} from './datasetNameTranslations'
 import { translationMap, translationEntries } from './datasetTranslationFixture'
-import type { FixtureEntry } from './datasetNameTranslations'
 
-const DATASET = 'ds-hk-overture-division'
-const RELEASE_1 = 'dr-hk-overture-division-2025-09-24.0'
-const RELEASE_2 = 'dr-hk-overture-division-2026-08-19.0'
-
-const hash = (value: string) =>
-  createHash('sha256').update(value.normalize('NFKC')).digest('hex')
-
-const record = (recordId: string, parentName = 'Hong Kong Island') => ({
-  context: { parentDivisionId: 'parent-1', parentName },
+const datasetCode = 'ds-hk-overture-division'
+const sourceRelease = 'dr-hk-overture-division-2026-08-19.0'
+const hash = (s: string) =>
+  createHash('sha256').update(s.normalize('NFKC')).digest('hex')
+const context = { parentDivisionId: 'parent-1', parentName: 'Hong Kong Island' }
+const record = {
+  context,
   localisations: [{ locale: 'zh-hant', name: '中環' }],
-  recordId,
-})
+  recordId: 'division-1',
+}
+const entry: FixtureEntry = {
+  context,
+  contextHash: hash(JSON.stringify(context)),
+  field: 'name',
+  firstSeenRelease: sourceRelease,
+  lastSeenRelease: sourceRelease,
+  sourceLocale: 'zh-hant',
+  sourceText: '中環',
+  sourceTextHash: hash('中環'),
+  targetLocale: 'en',
+  text: 'Central',
+  provenance: 'ai-translated',
+  references: ['https://example.org/central'],
+}
 
-describe('dataset name translations', () => {
-  test('reuses one context-aware entry across records and releases', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'saanseoi-dataset-i18n-'))
-    const fixturePath = join(root, 'fixture.json')
-    try {
-      const first = await resolveDatasetNameTranslationsBatch({
-        allowGeneration: true,
-        datasetCode: DATASET,
-        fixturePath,
-        records: [record('division-1'), record('division-3')],
-        sourceRelease: RELEASE_1,
-        translate: async (_, { to }) =>
-          new Map([['中環', to === 'en' ? 'Central' : '中环']]),
-      })
-      expect(first.get('division-1')?.localisations).toEqual([
-        { locale: 'en', name: 'Central' },
-        { locale: 'zh-hans', name: '中环' },
-      ])
+async function fixtureTest(run: (fixturePath: string) => Promise<void>) {
+  const root = await mkdtemp(join(tmpdir(), 'division-i18n-'))
+  try {
+    await run(join(root, 'fixture.json'))
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+}
 
-      const second = await resolveDatasetNameTranslationsBatch({
-        datasetCode: DATASET,
-        fixturePath,
-        records: [
-          {
-            ...record('division-2'),
-            context: {
-              ...record('division-2').context,
-              'parentName.zh-hant': '香港島',
-            },
-          },
-        ],
-        sourceRelease: RELEASE_2,
-        translate: async () => {
-          throw new Error('dataset cache should prevent translation')
-        },
-      })
-      expect(second.get('division-2')?.localisations).toEqual([
-        { locale: 'en', name: 'Central' },
-        { locale: 'zh-hans', name: '中环' },
-      ])
-      expect(
-        second.get('division-2')?.applications[0]?.context['parentName.zh-hant'],
-      ).toBe('香港島')
+test('reuses researched English names across records and releases, retaining evidence', () =>
+  fixtureTest(async fixturePath => {
+    await writeFile(fixturePath, JSON.stringify(translationMap(datasetCode, [entry])))
+    const result = await resolveDatasetNameTranslationsBatch({
+      datasetCode,
+      sourceRelease,
+      fixturePath,
+      records: [record, { ...record, recordId: 'division-2' }],
+      translate: async () => {
+        throw new Error('must not call Azure')
+      },
+    })
+    expect(result.get('division-1')?.localisations).toEqual([
+      { locale: 'en', name: 'Central' },
+    ])
+    const stored = translationEntries(JSON.parse(await readFile(fixturePath, 'utf8')))
+    expect(stored[0]?.references).toEqual(entry.references)
+    expect(stored[0]?.recordIds).toEqual(['division-1', 'division-2'])
+  }))
 
-      const stored = JSON.parse(await readFile(fixturePath, 'utf8'))
-      const fixture = { entries: translationEntries(stored) } as {
-        entries: Array<{
-          firstSeenRelease: string
-          lastSeenRelease: string
-          recordIds: string[]
-          sourceText: string
-        }>
-      }
-      expect(fixture.entries).toHaveLength(2)
-      expect(fixture.entries).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            firstSeenRelease: RELEASE_1,
-            lastSeenRelease: RELEASE_2,
-            recordIds: ['division-1', 'division-2', 'division-3'],
-            sourceText: '中環',
-          }),
+test('does not generate or reuse Simplified Chinese names from dataset or legacy fixtures', () =>
+  fixtureTest(async fixturePath => {
+    await writeFile(
+      fixturePath,
+      JSON.stringify(
+        translationMap(datasetCode, [
+          { ...entry, targetLocale: 'zh-hans', text: '中环' },
         ]),
-      )
-    } finally {
-      await rm(root, { force: true, recursive: true })
-    }
-  })
-
-  test('keeps identical source text distinct when its parent context differs', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'saanseoi-dataset-i18n-'))
-    const fixturePath = join(root, 'fixture.json')
-    try {
-      await resolveDatasetNameTranslationsBatch({
-        allowGeneration: true,
-        datasetCode: DATASET,
-        fixturePath,
-        records: [
-          record('division-1', 'Hong Kong Island'),
-          record('division-2', 'Kowloon'),
-        ],
-        sourceRelease: RELEASE_1,
-        translate: async (_, { to }) =>
-          new Map([['中環', to === 'en' ? 'Central' : '中环']]),
-      })
-
-      const stored = JSON.parse(await readFile(fixturePath, 'utf8'))
-      expect(Object.keys(stored.translations)).toHaveLength(2)
-      expect(Object.keys(stored.contexts)).toHaveLength(2)
-      expect(Object.keys(stored.usages)).toHaveLength(4)
-      const fixture = { entries: translationEntries(stored) } as {
-        entries: Array<{ contextHash: string }>
-      }
-      expect(fixture.entries).toHaveLength(4)
-      expect(new Set(fixture.entries.map(entry => entry.contextHash)).size).toBe(2)
-    } finally {
-      await rm(root, { force: true, recursive: true })
-    }
-  })
-
-  test('seeds a dataset fixture from the matching legacy release entry', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'saanseoi-dataset-i18n-'))
-    const fixturePath = join(root, 'fixture.json')
-    const legacyFixturePath = join(root, 'legacy.json')
-    try {
-      await writeFile(
-        legacyFixturePath,
-        JSON.stringify({
-          entries: [
-            {
-              field: 'name',
-              recordId: 'division-1',
-              sourceLocale: 'zh-hant',
-              sourceTextHash: hash('中環'),
-              targetLocale: 'zh-hans',
-              text: '中环',
-            },
-          ],
-        }),
-      )
-      const result = await resolveDatasetNameTranslationsBatch({
-        datasetCode: DATASET,
-        fixturePath,
-        legacyFixturePath,
-        records: [
+      ),
+    )
+    const legacyFixturePath = `${fixturePath}.legacy`
+    await writeFile(
+      legacyFixturePath,
+      JSON.stringify({
+        entries: [
           {
-            context: { parentDivisionId: 'parent-1', parentName: 'Hong Kong Island' },
-            localisations: [
-              { locale: 'en', name: 'Central' },
-              { locale: 'zh-hant', name: '中環' },
-            ],
-            recordId: 'division-1',
+            ...entry,
+            recordId: record.recordId,
+            targetLocale: 'zh-hans',
+            text: '中环',
           },
         ],
-        sourceRelease: RELEASE_1,
+      }),
+    )
+    const result = await resolveDatasetNameTranslationsBatch({
+      datasetCode,
+      sourceRelease,
+      fixturePath,
+      legacyFixturePath,
+      records: [
+        {
+          ...record,
+          localisations: [...record.localisations, { locale: 'en', name: 'Central' }],
+        },
+      ],
+      allowGeneration: true,
+      translate: async () => {
+        throw new Error('must not call Azure')
+      },
+    })
+    expect(result.get(record.recordId)?.applications).toEqual([])
+  }))
+
+test('queues every missing English name with context instead of using unresearched Azure results', () =>
+  fixtureTest(async fixturePath => {
+    await writeFile(
+      fixturePath,
+      JSON.stringify(
+        translationMap(datasetCode, [{ ...entry, references: undefined }]),
+      ),
+    )
+    await expect(
+      resolveDatasetNameTranslationsBatch({
+        datasetCode,
+        sourceRelease,
+        fixturePath,
+        allowGeneration: true,
+        records: [
+          record,
+          {
+            ...record,
+            recordId: 'division-2',
+            context: { ...context, parentDivisionId: 'other' },
+          },
+        ],
         translate: async () => {
-          throw new Error('legacy fixture should prevent translation')
+          throw new Error('must not call Azure')
+        },
+      }),
+    ).rejects.toThrow('Missing researched English division names for 2 records')
+    const review = JSON.parse(
+      await readFile(`${fixturePath}.english-review.json`, 'utf8'),
+    )
+    expect(review.records).toHaveLength(2)
+    expect(review.records[0].sourceText).toBe('中環')
+    expect(review.records[0].searchUrl).toContain('https://www.google.com/search?q=')
+  }))
+
+test('accepts human curation and preserves publisher English names', () =>
+  fixtureTest(async fixturePath => {
+    await writeFile(
+      fixturePath,
+      JSON.stringify(
+        translationMap(datasetCode, [
+          { ...entry, references: undefined, provenance: 'human-translated' },
+        ]),
+      ),
+    )
+    const result = await resolveDatasetNameTranslationsBatch({
+      datasetCode,
+      sourceRelease,
+      fixturePath,
+      records: [
+        record,
+        {
+          ...record,
+          recordId: 'division-2',
+          localisations: [
+            ...record.localisations,
+            { locale: 'en', name: 'Publisher spelling' },
+          ],
+        },
+      ],
+    })
+    expect(result.get(record.recordId)?.applications[0]?.provenance).toBe(
+      'human-translated',
+    )
+    expect(result.get('division-2')?.applications).toEqual([])
+  }))
+
+test('remote imports report missing curation without writing a research queue', () =>
+  fixtureTest(async fixturePath => {
+    await expect(
+      resolveDatasetNameTranslationsBatch({
+        datasetCode,
+        sourceRelease,
+        fixturePath,
+        records: [record],
+      }),
+    ).rejects.toThrow('Run a local import')
+    await expect(readFile(`${fixturePath}.english-review.json`)).rejects.toThrow()
+  }))
+
+test('curated Hong Kong English names resolve every queued context without Azure', () =>
+  fixtureTest(async fixturePath => {
+    const fixture = JSON.parse(
+      await readFile(
+        new URL(
+          '../../../../../fixtures/i18n/datasets/ds-hk-overture-division.json',
+          import.meta.url,
+        ),
+        'utf8',
+      ),
+    )
+    await writeFile(fixturePath, JSON.stringify(fixture))
+    const entries = translationEntries(fixture).filter(
+      entry => entry.targetLocale === 'en',
+    )
+    const byName = new Map(entries.map(entry => [entry.sourceText, entry]))
+    expect(byName.size).toBe(28)
+    expect(byName.get('蠔田')?.text).toBe('Ho Tin')
+    expect(byName.get('伍村')?.text).toBe('Ng Tsuen')
+    expect(byName.get('貝澳圍')?.text).toBe('Pui O Wai')
+    expect(byName.get('楊家村')?.text).toBe('Yeung Ka Tsuen')
+    let applications = 0
+    for (const entry of entries) {
+      expect(entry.machine).toBeUndefined()
+      expect(entry.derivation).toBeTruthy()
+      expect(entry.references?.length).toBeGreaterThan(0)
+      const result = await resolveDatasetNameTranslationsBatch({
+        datasetCode,
+        fixturePath,
+        sourceRelease: entry.lastSeenRelease,
+        records: (entry.recordIds ?? []).map(recordId => ({
+          recordId,
+          context: entry.context,
+          localisations: [{ locale: entry.sourceLocale, name: entry.sourceText! }],
+        })),
+        translate: async () => {
+          throw new Error('curated names must not call Azure')
         },
       })
-      expect(result.get('division-1')?.localisations).toEqual([
-        { locale: 'zh-hans', name: '中环' },
-      ])
-      await expect(readFile(fixturePath, 'utf8')).resolves.toContain('"text": "中环"')
-    } finally {
-      await rm(root, { force: true, recursive: true })
+      for (const resolved of result.values()) {
+        expect(resolved.localisations).toEqual([{ locale: 'en', name: entry.text }])
+        expect(resolved.applications[0]?.derivation).toBe(entry.derivation)
+        applications++
+      }
     }
-  })
-
-  test('returns human provenance from a reviewed dataset entry', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'saanseoi-dataset-i18n-'))
-    const fixturePath = join(root, 'fixture.json')
-    const context = { parentDivisionId: 'parent-1', parentName: 'Hong Kong Island' }
-    try {
-      await writeFile(
-        fixturePath,
-        JSON.stringify(
-          translationMap(DATASET, [
-            {
-              context,
-              contextHash: hash(JSON.stringify(context)),
-              field: 'name',
-              firstSeenRelease: RELEASE_1,
-              lastSeenRelease: RELEASE_1,
-              provenance: 'human-translated',
-              recordIds: ['division-1'],
-              sourceLocale: 'zh-hant',
-              sourceText: '中環',
-              sourceTextHash: hash('中環'),
-              targetLocale: 'zh-hans',
-              text: '中环',
-            },
-          ]),
-        ),
-      )
-      const result = await resolveDatasetNameTranslationsBatch({
-        datasetCode: DATASET,
-        fixturePath,
-        records: [
-          {
-            context,
-            localisations: [
-              { locale: 'en', name: 'Central' },
-              { locale: 'zh-hant', name: '中環' },
-            ],
-            recordId: 'division-1',
-          },
-        ],
-        sourceRelease: RELEASE_2,
-      })
-      expect(result.get('division-1')?.applications).toEqual([
-        expect.objectContaining({
-          locale: 'zh-hans',
-          name: '中环',
-          provenance: 'human-translated',
-        }),
-      ])
-    } finally {
-      await rm(root, { force: true, recursive: true })
-    }
-  })
-
-  test('rejects conflicting translations with the same dataset identity key', async () => {
-    const root = await mkdtemp(join(tmpdir(), 'saanseoi-dataset-i18n-'))
-    const _fixturePath = join(root, 'fixture.json')
-    const context = { parentDivisionId: 'parent-1', parentName: 'Hong Kong Island' }
-    const shared = {
-      context,
-      contextHash: hash(JSON.stringify(context)),
-      field: 'name',
-      firstSeenRelease: RELEASE_1,
-      lastSeenRelease: RELEASE_1,
-      provenance: 'human-translated',
-      recordIds: ['division-1'],
-      sourceLocale: 'zh-hant',
-      sourceText: '中環',
-      sourceTextHash: hash('中環'),
-      targetLocale: 'en',
-    }
-    try {
-      expect(() =>
-        translationMap(DATASET, [
-          { ...shared, text: 'Central' },
-          { ...shared, text: 'Central District' },
-        ] as FixtureEntry[]),
-      ).toThrow('Conflicting dataset i18n fixture entries')
-    } finally {
-      await rm(root, { force: true, recursive: true })
-    }
-  })
-})
+    expect(applications).toBe(40)
+  }))

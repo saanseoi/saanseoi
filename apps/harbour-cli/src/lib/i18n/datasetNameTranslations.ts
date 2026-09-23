@@ -18,9 +18,9 @@ import {
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const DATASET_FIXTURE_ROOT = resolve(REPO_ROOT, 'fixtures/i18n/datasets')
 const LEGACY_FIXTURE_ROOT = resolve(REPO_ROOT, 'fixtures/i18n/source-releases')
-const REQUIRED_LOCALES = ['en', 'zh-hant', 'zh-hans'] as const
+const REQUIRED_LOCALES = ['en', 'zh-hant'] as const
 
-type I18nLocale = (typeof REQUIRED_LOCALES)[number]
+type I18nLocale = 'en' | 'zh-hant' | 'zh-hans'
 
 export type TranslationProvenance = 'ai-translated' | 'human-translated'
 
@@ -38,6 +38,8 @@ export type DatasetTranslationRecord = {
 export type DatasetTranslationApplication = {
   context: Record<string, string | null>
   contextHash: string
+  derivation?: string
+  references?: string[]
   entryKey: string
   locale: I18nLocale
   name: string
@@ -58,6 +60,9 @@ export type FixtureEntry = {
   field: 'name'
   firstSeenRelease: string
   lastSeenRelease: string
+  /** Public sources supporting the name or its documented Cantonese derivation. */
+  derivation?: string
+  references?: string[]
   machine?: typeof AZURE_TRANSLATION_MACHINE
   provenance: TranslationProvenance
   /** Canonical division IDs which have used this reusable translation entry. */
@@ -118,6 +123,13 @@ export async function resolveDatasetNameTranslationsBatch(input: {
   const additionsByRecordId = new Map<string, DatasetTranslationApplication[]>()
   const generated: FixtureEntry[] = []
   let fixtureChanged = false
+  const englishReview: Array<{
+    recordId: string
+    context: Record<string, string | null>
+    sourceLocale: I18nLocale
+    sourceText: string
+    searchUrl: string
+  }> = []
   const unresolvedByLocalePair = new Map<
     string,
     Array<{
@@ -159,8 +171,12 @@ export async function resolveDatasetNameTranslationsBatch(input: {
           entry.targetLocale === targetLocale,
       )
       const entry =
-        cached ??
-        (legacy
+        (targetLocale === 'en' &&
+        cached?.provenance !== 'human-translated' &&
+        !cached?.references?.some(url => /^https?:\/\//.test(url))
+          ? null
+          : cached) ??
+        (legacy && targetLocale !== 'en'
           ? {
               context,
               contextHash,
@@ -229,6 +245,27 @@ export async function resolveDatasetNameTranslationsBatch(input: {
         continue
       }
 
+      if (targetLocale === 'en') {
+        const query = [
+          source.name,
+          ...new Set(
+            Object.entries(context)
+              .filter(([key]) => key === 'parentName' || key.startsWith('parentName.'))
+              .map(([, value]) => value)
+              .filter(Boolean),
+          ),
+          'English name',
+        ].join(' ')
+        englishReview.push({
+          recordId: record.recordId,
+          context,
+          sourceLocale: source.locale,
+          sourceText: source.name,
+          searchUrl: `https://www.google.com/search?q=${encodeURIComponent(query)}`,
+        })
+        continue
+      }
+
       if (!input.allowGeneration) {
         throw new Error(
           `Missing ${targetLocale} name fixture for ${input.datasetCode}/${record.recordId}. Run a local import to generate a reviewable translation fixture.`,
@@ -247,6 +284,24 @@ export async function resolveDatasetNameTranslationsBatch(input: {
         },
       ])
     }
+  }
+
+  if (englishReview.length) {
+    const reviewPath = `${fixturePath}.english-review.json`
+    if (input.allowGeneration) {
+      await mkdir(dirname(reviewPath), { recursive: true })
+      await writeFile(
+        reviewPath,
+        `${JSON.stringify({ datasetCode: input.datasetCode, records: englishReview }, null, 2)}\n`,
+      )
+    }
+    throw new Error(
+      `Missing researched English division names for ${englishReview.length} records in ${input.datasetCode}. ` +
+        `Curate context-specific English spellings in ${fixturePath}, retaining public source URLs in references. ` +
+        (input.allowGeneration
+          ? `Research requests: ${reviewPath}.`
+          : 'Run a local import to produce research requests.'),
+    )
   }
 
   for (const unresolved of unresolvedByLocalePair.values()) {
@@ -324,6 +379,8 @@ function toApplication(
   sourceText: string,
 ): DatasetTranslationApplication {
   return {
+    derivation: entry.derivation,
+    references: entry.references,
     context: entry.context,
     contextHash: entry.contextHash,
     entryKey: hashText(

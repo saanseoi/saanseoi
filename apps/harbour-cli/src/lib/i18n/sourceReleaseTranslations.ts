@@ -13,11 +13,12 @@ import {
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const FIXTURE_ROOT = resolve(REPO_ROOT, 'fixtures/i18n/source-releases')
-const REQUIRED_LOCALES = ['en', 'zh-hant', 'zh-hans'] as const
+const REQUIRED_LOCALES = ['en', 'zh-hant'] as const
 
-type I18nLocale = (typeof REQUIRED_LOCALES)[number]
+type I18nLocale = 'en' | 'zh-hant' | 'zh-hans'
 
 type FixtureEntry = {
+  references?: string[]
   field: 'name'
   isTranslationVerified: false
   machine: typeof AZURE_TRANSLATION_MACHINE
@@ -56,8 +57,9 @@ export type SourceReleaseTranslationResult = {
 }
 
 /**
- * Completes the three supported API name locales from a source-release-keyed fixture.
- * A local import creates missing entries through Azure Translator, then writes them to
+ * Completes English and Traditional Chinese name locales from a source-release-keyed fixture.
+ * English names require researched fixture entries. A local import may create missing
+ * Traditional Chinese entries through Azure Translator, then writes them to
  * the repository fixture so the next import is deterministic and the values can be
  * reviewed.
  */
@@ -151,6 +153,14 @@ export async function resolveSourceReleaseNameTranslationsBatch(input: {
           entry.sourceLocale === translationSource.locale &&
           entry.sourceTextHash === sourceTextHash,
       )
+      if (
+        targetLocale === 'en' &&
+        !cached?.references?.some(url => /^https?:\/\//.test(url))
+      ) {
+        throw new Error(
+          `Missing researched English division name for ${input.sourceRelease}/${record.recordId}: ${translationSource.name}. Curate the fixture with public source URLs in references; Azure English translation is disabled.`,
+        )
+      }
       if (cached) {
         additionsByRecordId.get(record.recordId)?.push({
           locale: targetLocale,

@@ -11,6 +11,8 @@ type Translation = Pick<
   | 'text'
   | 'provenance'
   | 'machine'
+  | 'references'
+  | 'derivation'
 >
 type Usage = Pick<
   FixtureEntry,
@@ -46,6 +48,8 @@ export function translationMap(
       text,
       provenance,
       machine,
+      references,
+      derivation,
     } = entry
     const translation: Translation = {
       field,
@@ -56,6 +60,8 @@ export function translationMap(
       text,
       provenance,
       ...(machine ? { machine } : {}),
+      ...(references?.length ? { references } : {}),
+      ...(derivation ? { derivation } : {}),
     }
     const translationId = hash(translation)
     const usageId = hash([

@@ -47,7 +47,7 @@ export type PreparedDivision = {
   i18n: Array<{ locale: string; name: string }>
   newTown: null | {
     nameEn: string
-    nameZhHans: string
+    nameZhHans: string | null
     nameZhHant: string
     properties: unknown
     sourceGeometry: unknown
