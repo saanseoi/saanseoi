@@ -86,7 +86,7 @@ const sourceName = (source: SourcesPageSource) => {
 }
 
 const sourceFrequency = (source: SourcesPageSource) => {
-  if (source.releaseFrequency === 'census' || source.sourceVariant === 'census') {
+  if (source.releaseFrequency === 'census') {
     return '5-yearly'
   }
   return source.releaseFrequency
@@ -325,7 +325,9 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
         <PageDescription class="max-w-none">
           <Popover.Root>
             <Popover.Trigger openOnHover openDelay={200}>
-              {#snippet child({ props })}
+              {#snippet child({
+  props,
+})}
                 <button
                   {...props}
                   class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
@@ -349,7 +351,9 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
           {m.sources_api_families_description()}
           <Popover.Root>
             <Popover.Trigger openOnHover openDelay={200}>
-              {#snippet child({ props })}
+              {#snippet child({
+  props,
+})}
                 <button
                   {...props}
                   class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"

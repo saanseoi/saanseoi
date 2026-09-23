@@ -1,12 +1,11 @@
 {
-  "versionHash": "sha256:3c7d139512d2fb6dbd94f9938b02d2039e027690bed46e24e761b43299ebc6e5",
+  "versionHash": "sha256:7f4942e153f545a0700c83b3551f14486cdee36539b6b36231624b084b6cbd8b",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "yearly",
   "theme": "stats",
-  "sourceVariant": "official-statistics",
   "areaCompanionByReferencePeriod": {
     "*": {
       "variant": "hkgov-censtatd",

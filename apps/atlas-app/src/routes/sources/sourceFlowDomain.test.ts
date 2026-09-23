@@ -13,7 +13,7 @@ const source = (overrides: Partial<SourcesPageSource>): SourcesPageSource =>
     publisherCode: 'hkgov-censtatd',
     releaseFrequency: 'five-yearly',
     resourceTypes: ['divisionStatistic'],
-    sourceVariant: 'census',
+    sourceVariant: 'default',
     sourceVersions: [],
     theme: 'stats',
     ...overrides,

@@ -231,20 +231,19 @@ describe('fixture version hashes', () => {
           dataset.sourceCrs === 'EPSG:2326' && dataset.releaseType === 'static',
       ),
     ).toBe(true)
+    expect(censtatdStats.map(dataset => dataset.sourceVariant).sort()).toEqual([
+      'default',
+      'default',
+      'default',
+      'default',
+      'default',
+      'default',
+      'hkgov-censtatd-hma',
+      'hkgov-censtatd-landclipped',
+    ])
     expect(
-      censtatdStats.filter(dataset => dataset.sourceVariant === 'census'),
+      censtatdStats.filter(dataset => dataset.releaseFrequency === 'census'),
     ).toHaveLength(2)
-    expect(
-      censtatdStats
-        .filter(dataset => dataset.sourceVariant === 'census')
-        .every(dataset => dataset.releaseFrequency === 'census'),
-    ).toBe(true)
-    expect(
-      censtatdStats
-        .filter(dataset => dataset.sourceVariant === 'official-statistics')
-        .map(dataset => dataset.releaseFrequency)
-        .sort(),
-    ).toEqual(['half-yearly', 'yearly', 'yearly'])
     expect(
       initialApiCompositions.find(
         composition => composition.apiVersion === 'api-stats-v0.1',

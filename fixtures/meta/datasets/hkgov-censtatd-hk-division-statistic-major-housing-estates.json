@@ -1,12 +1,11 @@
 {
-  "versionHash": "sha256:074d8fcb3a5a0f9db07598626ca1602683cb6dae53f7d3fe86ddd43288321809",
+  "versionHash": "sha256:c9f94373adc027b5aaa6fdbf359abe16a6608bf2db1a9466f29d5a1ad1347bce",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "census",
   "theme": "stats",
-  "sourceVariant": "census",
   "sourceCrs": "EPSG:2326",
   "resourceTypes": ["divisionStatistic"],
   "licenseCode": "hkgov-open-data",

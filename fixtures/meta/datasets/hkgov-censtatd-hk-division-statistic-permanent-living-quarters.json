@@ -1,12 +1,11 @@
 {
-  "versionHash": "sha256:daac4c1ec92d0f2d708ae38f64f9d8301667ba4f3b6f0ec644c264f8ae10327c",
+  "versionHash": "sha256:654e20af02cb5ab6b64576fc659bfdb6326c560d0718c0d7f7cd40ba2c5cf431",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
   "regionCode": "hk",
   "releaseType": "static",
   "releaseFrequency": "half-yearly",
   "theme": "stats",
-  "sourceVariant": "hkgov-censtatd",
   "areaCompanionByReferencePeriod": {
     "*": {
       "variant": "hkgov-censtatd",
