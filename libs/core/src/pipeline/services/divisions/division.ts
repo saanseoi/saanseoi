@@ -674,7 +674,12 @@ export async function processDivisionDataset(
         processingActions.push({
           action: exclusion.id,
           affectedRecordCount: 1,
-          evidence: { divisionId: normalised.base.id, sourceNames: row.names },
+          evidence: {
+            divisionId: normalised.base.id,
+            // Parquet optional name fields can be undefined. Retain their JSON
+            // representation without passing absent properties to the audit store.
+            sourceNames: JSON.parse(JSON.stringify(row.names ?? null)),
+          },
           mode: 'manual',
           summary: 'Excluded reviewed Overture division from canonical records.',
         })
@@ -1711,7 +1716,7 @@ export function buildOvertureDivisionLocaleProcessingActions(input: {
   }
   const evidenceBase = {
     canonicalDivision,
-    sourceNames: input.rawNames ?? null,
+    sourceNames: JSON.parse(JSON.stringify(input.rawNames ?? null)),
     normalisedI18n: input.sourceI18n,
   }
   const inferredI18n = input.sourceI18n.filter(row => row.isLocaleInferred)

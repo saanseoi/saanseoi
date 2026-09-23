@@ -295,6 +295,9 @@ describe('retained processing effects', () => {
       new Array(1),
     ])
       expect(() => serialise(value)).toThrow()
+    expect(() => serialise({ actions: [{ context: { names: undefined } }] })).toThrow(
+      'Invalid value at $.actions[0].context.names.',
+    )
   })
   test('reads previously retained lexicographic canonical JSON', async () => {
     const objects = new Map<string, ArrayBuffer>()

@@ -358,7 +358,10 @@ export async function buildDivisionSqlState(
         processingActions.push({
           action: exclusion.id,
           affectedRecordCount: 1,
-          evidence: { divisionId: normalised.base.id, sourceNames: raw.names },
+          evidence: {
+            divisionId: normalised.base.id,
+            sourceNames: JSON.parse(JSON.stringify(raw.names ?? null)),
+          },
           mode: 'manual',
           summary: 'Excluded reviewed Overture division from canonical records.',
         })

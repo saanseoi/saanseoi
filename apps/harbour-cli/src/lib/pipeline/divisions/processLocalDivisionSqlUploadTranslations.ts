@@ -138,7 +138,7 @@ export function buildDivisionTranslationProcessingActions(input: {
         level: input.division.level,
         class: input.division.class,
       },
-      sourceNames: input.rawNames ?? null,
+      sourceNames: JSON.parse(JSON.stringify(input.rawNames ?? null)),
       translation,
       parents: input.parents ?? [],
     },

@@ -39,7 +39,11 @@ test('C&SD translation applications retain applied decisions and only unused fix
     outputCount: 1,
     actions: buildDivisionTranslationProcessingActions({
       division: { id: 'anderson', level: null, class: 'housing-market-area' },
-      rawNames: ['Anderson', '安達臣'],
+      rawNames: {
+        primary: 'Anderson',
+        common: { 'zh-Hant': '安達臣' },
+        rules: undefined,
+      },
       translations: [translation],
     }),
     curationDocuments: [
