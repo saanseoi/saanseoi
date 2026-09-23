@@ -1,3 +1,4 @@
+import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
 import {
@@ -128,7 +129,7 @@ export async function processLocalStreetSqlUpload(
     await client.stageRunning(
       releaseId,
       'processDataset',
-      { resourceType: 'street', rowCount: previewPlan.rowCount },
+      { resourceType: 'street', sourceRows: previewPlan.rowCount },
       releaseCode,
     )
 
@@ -404,8 +405,10 @@ export async function processLocalStreetSqlUpload(
       {
         resourceType: 'street',
         sourceRows: previewPlan.rowCount,
-        ...completionCounts,
-      },
+        processedRows: completionCounts.importedRows,
+        changedRows: completionCounts.changedRows,
+        sourceRowsChanged: completionCounts.sourceRowsChanged,
+      } satisfies DatasetProcessingStats & Record<string, unknown>,
       releaseCode,
     )
     const publishResult = await client.publishDataset(releaseId, releaseCode, {

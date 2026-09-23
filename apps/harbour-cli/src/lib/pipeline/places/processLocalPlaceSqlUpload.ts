@@ -1,3 +1,4 @@
+import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
 import { PlaceRecordCache } from './placeRecordCache.ts'
 import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -177,7 +178,7 @@ export async function processLocalPlaceSqlUpload(
       processingClient.stageRunning(
         releaseId,
         'processDataset',
-        undefined,
+        { resourceType: previewPlan.resourceType, sourceRows: previewPlan.rowCount },
         releaseCode,
       ),
     )
@@ -572,9 +573,11 @@ export async function processLocalPlaceSqlUpload(
           releaseId,
           'processDataset',
           {
+            resourceType: previewPlan.resourceType,
+            sourceRows: previewPlan.rowCount,
             processedRows: stagedEnrichedPlaces.processedRows,
             snapshotId: snapshots.snapshotId,
-          },
+          } satisfies DatasetProcessingStats & Record<string, unknown>,
           releaseCode,
         ),
       stagedEnrichedPlaces.processedRows,

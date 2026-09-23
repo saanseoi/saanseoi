@@ -1,3 +1,4 @@
+import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
 import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { missingSourceMembershipPredicates } from './sourceMembershipSql.ts'
 import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
@@ -185,6 +186,7 @@ export async function processNativeSourceSqlRelease(
       {
         archiveObjectKey: input.archiveObjectKey,
         archiveSha256: input.archiveSha256,
+        resourceType: input.resourceType,
         sourceRows: input.rowCount,
       },
       releaseCode,
@@ -243,12 +245,14 @@ export async function processNativeSourceSqlRelease(
       {
         archiveObjectKey: input.archiveObjectKey,
         archiveSha256: input.archiveSha256,
-        importedRows: input.rowCount,
+        resourceType: input.resourceType,
+        sourceRows: input.rowCount,
+        processedRows: input.rowCount,
         tables: input.tables.map(table => ({
           name: table.name,
           rows: table.rows.length,
         })),
-      },
+      } satisfies DatasetProcessingStats & Record<string, unknown>,
       releaseCode,
     )
     if (!input.divisionRows) {

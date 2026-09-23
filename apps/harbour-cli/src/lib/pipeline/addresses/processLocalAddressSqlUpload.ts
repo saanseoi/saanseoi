@@ -344,7 +344,7 @@ export async function processLocalAddressSqlUpload(
     await harbourClient.stageRunning(
       releaseId,
       'processDataset',
-      undefined,
+      { resourceType: previewPlan.resourceType, sourceRows: previewPlan.rowCount },
       releaseCode,
     )
     await harbourClient.stageRunning(

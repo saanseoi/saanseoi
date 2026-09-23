@@ -1,3 +1,4 @@
+import type { DatasetProcessingStats } from '../../ingestRunStats'
 import type { DatasetProcessingMessage } from '../../../types'
 import type { PublishDatasetResult } from '../../harbourClient'
 import { createD1ImportClient } from '../../../lib/d1ImportApi'
@@ -143,7 +144,7 @@ export async function processAddressSqlImportOrCleanupStage(
   await harbourClient.stageRunning(
     message.releaseId ?? message.datasetId,
     'processDataset',
-    undefined,
+    { resourceType: message.resourceType, sourceRows: message.totalRows ?? null },
     message.releaseCode,
   )
 
@@ -317,7 +318,12 @@ export async function importAddressSqlArtefacts(
   const initKeys = currentKeys.filter(isCurrentInitSqlKey)
   const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
 
-  await harbourClient.stageRunning(releaseId, 'processDataset', undefined, releaseCode)
+  await harbourClient.stageRunning(
+    releaseId,
+    'processDataset',
+    { resourceType: message.resourceType, sourceRows: message.totalRows ?? null },
+    releaseCode,
+  )
   await completeAddressSqlGenerationPhases(harbourClient, message)
 
   await Promise.all([
@@ -422,7 +428,12 @@ export async function importAddressSqlDataArtefacts(
   const initKeys = currentKeys.filter(isCurrentInitSqlKey)
   const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
 
-  await harbourClient.stageRunning(releaseId, 'processDataset', undefined, releaseCode)
+  await harbourClient.stageRunning(
+    releaseId,
+    'processDataset',
+    { resourceType: message.resourceType, sourceRows: message.totalRows ?? null },
+    releaseCode,
+  )
 
   await Promise.all([
     runReportedPhase(harbourClient, message, 'cacheAddressSqlSource', progress =>
@@ -760,11 +771,9 @@ export async function publishImportedAddressSqlRelease(
   const releaseId = message.releaseId ?? message.datasetId
   const releaseCode = message.releaseCode
   const extractDurationStats = {
-    deletedRows: 0,
+    deletedRows: message.addressStats?.deletedRows ?? 0,
     insertedVersions: message.addressStats?.insertedVersions ?? 0,
-    processedRows:
-      message.addressStats?.processedRows ??
-      Math.max(0, Math.floor(message.totalRows ?? 0)),
+    processedRows: message.addressStats?.processedRows ?? null,
     sqlArtefactCount: message.addressSqlArtefactKeys?.length ?? 0,
     unchangedRows: message.addressStats?.unchangedRows ?? 0,
   }
@@ -804,8 +813,11 @@ export async function publishImportedAddressSqlRelease(
     releaseId,
     'processDataset',
     {
-      sqlArtefactCount: message.addressSqlArtefactKeys?.length ?? 0,
-    },
+      ...extractDurationStats,
+      resourceType: message.resourceType,
+      sourceRows: message.totalRows ?? null,
+      localisedRows: i18nStats.localisedRows,
+    } satisfies DatasetProcessingStats & Record<string, unknown>,
     releaseCode,
   )
 

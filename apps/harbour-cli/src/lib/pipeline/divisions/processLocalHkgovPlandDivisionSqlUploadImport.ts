@@ -132,7 +132,12 @@ export async function importPlandSqlArtefacts(
           await client.stageRunning(releaseId, phase, importProgress, releaseCode)
         },
       )
-      await client.stageCompleted(releaseId, phase, stats, releaseCode)
+      await client.stageCompleted(
+        releaseId,
+        phase,
+        { ...stats, durationMs: Date.now() - importStartedAt },
+        releaseCode,
+      )
       progress.complete(
         appendPhaseDetails(
           formatCompletedPhaseLabel(colorTeal('Import'), colorRed(importTarget.name)),
@@ -145,7 +150,7 @@ export async function importPlandSqlArtefacts(
         releaseId,
         phase,
         error instanceof Error ? error.message : String(error),
-        undefined,
+        { durationMs: Date.now() - importStartedAt },
         releaseCode,
       )
       throw error

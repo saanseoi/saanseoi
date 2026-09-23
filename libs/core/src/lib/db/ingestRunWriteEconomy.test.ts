@@ -193,3 +193,58 @@ describe('ingest phase write economy', () => {
     })
   })
 })
+
+for (const useUpsert of [false, true]) {
+  for (const failureStats of [null, { durationMs: 5000, processedRows: 4 }]) {
+    test(`failure retains progress (upsert=${useUpsert}, stats=${JSON.stringify(failureStats)})`, async () => {
+      const { db, report, row } = fixture()
+      await report({ processedRows: 3, bytes: 128, resourceType: 'address' })
+      const finishedAt = '2026-09-12T00:00:05.000Z'
+      if (useUpsert) {
+        await upsertIngestRunStatus(
+          db,
+          'release',
+          phase,
+          'error',
+          startedAt,
+          finishedAt,
+          failureStats,
+          'failed',
+        )
+      } else {
+        await updateLatestOpenIngestRun(
+          db,
+          'release',
+          phase,
+          'error',
+          finishedAt,
+          failureStats,
+          'failed',
+        )
+      }
+      expect(JSON.parse(row()!.stats as string)).toEqual({
+        processedRows: 3,
+        bytes: 128,
+        resourceType: 'address',
+        ...failureStats,
+      })
+      await report({ processedRows: 0 }, '2026-09-12T00:00:06.000Z')
+      expect(JSON.parse(row()!.stats as string)).toEqual({ processedRows: 0 })
+    })
+  }
+}
+
+test('failure without a running report stores its supplied stats', async () => {
+  const { db, row } = fixture()
+  await upsertIngestRunStatus(
+    db,
+    'release',
+    phase,
+    'error',
+    startedAt,
+    startedAt,
+    { durationMs: 0 },
+    'failed',
+  )
+  expect(JSON.parse(row()!.stats as string)).toEqual({ durationMs: 0 })
+})

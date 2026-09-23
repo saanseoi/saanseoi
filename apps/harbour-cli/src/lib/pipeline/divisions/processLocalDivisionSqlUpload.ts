@@ -1,3 +1,4 @@
+import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
 import { supplementalNeighbourhoods } from '@repo/core/pipeline/services/divisions/divisionFixtures'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { createHash } from '@repo/core/pipeline/utils'
@@ -323,7 +324,7 @@ export async function processLocalDivisionSqlUpload(
     await harbourClient.stageRunning(
       releaseId,
       'processDataset',
-      undefined,
+      { resourceType: previewPlan.resourceType, sourceRows: previewPlan.rowCount },
       releaseCode,
     )
     await harbourClient.stageRunning(
@@ -963,8 +964,11 @@ export async function processLocalDivisionSqlUpload(
       releaseId,
       'processDataset',
       {
+        resourceType: previewPlan.resourceType,
+        sourceRows: previewPlan.rowCount,
+        ...retained,
         sqlArtefactCount,
-      },
+      } satisfies DatasetProcessingStats & Record<string, unknown>,
       releaseCode,
     )
   } catch (error) {

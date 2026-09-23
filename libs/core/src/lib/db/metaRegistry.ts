@@ -6644,7 +6644,7 @@ export async function upsertIngestRunStatus(
       target: [ingestRuns.releaseId, ingestRuns.phase],
       set: {
         status,
-        stats: normalisedStats,
+        stats: terminalIngestRunStats(status, normalisedStats),
         error,
         finishedAt,
         updatedAt,
@@ -6688,7 +6688,7 @@ export async function updateLatestOpenIngestRun(
     .update(ingestRuns)
     .set({
       status,
-      stats: normalisedStats,
+      stats: terminalIngestRunStats(status, normalisedStats),
       error,
       finishedAt,
       updatedAt: toIsoTimestamp(finishedAt),
@@ -6697,6 +6697,22 @@ export async function updateLatestOpenIngestRun(
     .run()
 
   return true
+}
+
+// Failed phases retain their last progress; a retry starts with fresh stats.
+// Keep the merge in SQL so a concurrent progress report cannot be lost to a read.
+function terminalIngestRunStats(
+  status: IngestRunStatus,
+  stats: Record<string, unknown> | string | null,
+) {
+  if (status !== 'error') return stats
+  if (stats === null) return sql`${ingestRuns.stats}`
+  if (typeof stats !== 'object' || Array.isArray(stats)) return stats
+  return sql`json_patch(
+    CASE WHEN json_type(${ingestRuns.stats}) = 'object'
+      THEN ${ingestRuns.stats} ELSE '{}' END,
+    ${JSON.stringify(stats)}
+  )`
 }
 
 function normaliseOptionalJsonText(

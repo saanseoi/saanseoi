@@ -1,3 +1,4 @@
+import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { resolveGeometryPreparationContext } from '../../dbCache/geometryPreparationContext.ts'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
@@ -268,7 +269,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         'processDataset',
         {
           resourceType: previewPlan.resourceType,
-          rowCount: previewPlan.rowCount,
+          sourceRows: previewPlan.rowCount,
         },
         releaseCode,
       )
@@ -818,9 +819,9 @@ export async function processLocalDivisionGeometrySqlUpload(
           {
             resourceType: previewPlan.resourceType,
             sourceRows: previewPlan.rowCount,
-            importedRows: normalised.length,
+            processedRows: normalised.length,
             rejectedRows,
-          },
+          } satisfies DatasetProcessingStats & Record<string, unknown>,
           releaseCode,
         ),
     )

@@ -1,3 +1,4 @@
+import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
@@ -470,10 +471,12 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
       releaseId,
       'processDataset',
       {
+        resourceType: plan.resourceType,
+        sourceRows: plan.rowCount,
+        processedRows: sourceRows.length,
         historyRows: historyRows.length,
-        importedRows: sourceRows.length,
         statsRows: materialisedStats.length,
-      },
+      } satisfies DatasetProcessingStats & Record<string, unknown>,
       releaseCode,
     )
     await replayStatisticSnapshotMetaToRemote(

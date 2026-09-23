@@ -29,6 +29,25 @@ units where they are known, and fail the active phase before propagating an erro
 Source-specific processors should describe _what_ is happening; the shared helper owns
 timing, count formatting, clamping and completion behaviour.
 
+## Ingestion run statistics
+
+`ingestRuns.stats` describes work performed by one phase. Completed `processDataset`
+reports share `resourceType`, `sourceRows` (inspected input records) and `processedRows`
+(records accepted by the processor). An unavailable count is `null`, not zero. Native
+source imports count retained source records; canonical processors count their own
+output records. These counts need not equal each other or SQL mutation counts.
+
+Phase-specific fields remain separate: `localisedRows` counts localised records,
+`insertedVersions` and `deletedRows` describe lifecycle changes, `statsRows` counts
+materialised statistics, and `sqlArtefactCount` counts generated artefacts. SQL import
+phases report `bytes`, `fileCount`, `statementCount` and `durationMs`. Phase elapsed
+time is also available from `startedAt` and `finishedAt`; `durationMs`, when supplied,
+is the producer's measured operation duration in milliseconds.
+
+Failed phases retain their last reported progress and overlay supplied failure stats. A
+retry starts with fresh stats. Successful completion supplies the final phase summary.
+Historical reports are not inferred or backfilled from current snapshot counts.
+
 ## API-field compatibility preflight
 
 The upload command checks the inspected dataset's publisher schema against the API

@@ -1,3 +1,4 @@
+import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
 import { resolveRemoteCacheDir } from '../../dbCache/localDbCacheTargets.ts'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import {
@@ -148,7 +149,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         await client.stageRunning(
           releaseId,
           'processDataset',
-          { resourceType: 'division', rowCount: previewPlan.rowCount },
+          { resourceType: 'division', sourceRows: previewPlan.rowCount },
           releaseCode,
         )
 
@@ -627,8 +628,10 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         {
           resourceType: 'division',
           sourceRows: previewPlan.rowCount,
-          ...completionCounts,
-        },
+          processedRows: completionCounts.importedRows,
+          changedRows: completionCounts.changedRows,
+          deletedRows: completionCounts.deletedRows,
+        } satisfies DatasetProcessingStats & Record<string, unknown>,
         releaseCode,
       ),
     )
