@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:7740249a154ff78805a10e3aeaafeef49ac3e1d8392a485d0c66872d769ea656",
+  "versionHash": "sha256:f9300439a3e23f3ed6fedbd900b0140423f8a1c6ce5bd1ba270ac2a2f3cb0b3c",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -396,53 +396,7 @@
       ]
     },
     {
-      "apiField": "relationships.country",
-      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
-      "resolverCode": "lookup_fk",
-      "contributionType": "resolver-input",
-      "priority": 1,
-      "confidence": 1,
-      "inputs": [
-        {
-          "origin": "registry",
-          "fieldPath": "selectedDivisionSnapshot.countryId"
-        }
-      ]
-    },
-    {
-      "apiField": "relationships.country",
-      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
-      "resolverCode": "lookup_fk",
-      "contributionType": "resolver-input",
-      "priority": 0,
-      "confidence": 1,
-      "inputs": [
-        {
-          "origin": "registry",
-          "fieldPath": "selectedDivisionSnapshot.countryId"
-        }
-      ]
-    },
-    {
-      "apiField": "relationships.area",
-      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
-      "resolverCode": "lookup_fk",
-      "contributionType": "resolver-input",
-      "priority": 1,
-      "confidence": 1,
-      "inputs": [
-        {
-          "origin": "source",
-          "fieldPath": "properties.regionZhHant"
-        },
-        {
-          "origin": "registry",
-          "fieldPath": "selectedDivisionSnapshot"
-        }
-      ]
-    },
-    {
-      "apiField": "relationships.area",
+      "apiField": "relationships.divisions",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "resolverCode": "lookup_fk",
       "contributionType": "resolver-input",
@@ -454,19 +408,13 @@
           "fieldPath": "properties.regionEn"
         },
         {
-          "origin": "registry",
-          "fieldPath": "selectedDivisionSnapshot"
-        }
-      ]
-    },
-    {
-      "apiField": "relationships.district",
-      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
-      "resolverCode": "lookup_fk",
-      "contributionType": "resolver-input",
-      "priority": 1,
-      "confidence": 1,
-      "inputs": [
+          "origin": "source",
+          "fieldPath": "properties.regionZhHant"
+        },
+        {
+          "origin": "source",
+          "fieldPath": "properties.districtEn"
+        },
         {
           "origin": "source",
           "fieldPath": "properties.districtZhHant"
@@ -475,25 +423,8 @@
           "origin": "registry",
           "fieldPath": "selectedDivisionSnapshot"
         }
-      ]
-    },
-    {
-      "apiField": "relationships.district",
-      "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
-      "resolverCode": "lookup_fk",
-      "contributionType": "resolver-input",
-      "priority": 0,
-      "confidence": 1,
-      "inputs": [
-        {
-          "origin": "source",
-          "fieldPath": "properties.districtEn"
-        },
-        {
-          "origin": "registry",
-          "fieldPath": "selectedDivisionSnapshot"
-        }
-      ]
+      ],
+      "processingRuleIds": ["prepare-als-addresses", "normalise-als-addresses"]
     },
     {
       "apiField": "attributes.i18n.en.formattedAddress",
