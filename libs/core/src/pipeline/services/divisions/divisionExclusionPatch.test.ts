@@ -130,8 +130,8 @@ test('East Point, Chuk Yuen and the level-6 Tai Hang duplicate retain guarded ex
 test('demolished Chuk Yuen United Village retains a guarded exclusion', () => {
   const row = {
     id: '669e74d6-c80b-4132-9bb8-43b59280657c',
-    subtype: 'hamlet',
-    class: null,
+    subtype: 'locality',
+    class: 'hamlet',
     admin_level: null,
   }
   expect(applyDivisionExclusionPatch(row)?.id).toBe(
@@ -145,8 +145,8 @@ test('demolished Chuk Yuen United Village retains a guarded exclusion', () => {
 test('Ngau Chi Wan Village retains a guarded exclusion', () => {
   const row = {
     id: '1e0827ef-4f1a-40d0-bdf1-a0807da65da2',
-    subtype: 'village',
-    class: null,
+    subtype: 'locality',
+    class: 'village',
     admin_level: null,
   }
   expect(applyDivisionExclusionPatch(row)?.id).toBe(
@@ -406,8 +406,8 @@ test('Yue Man Square, Lok Wah Shan and Tai Chi Area retain guarded exclusions', 
 test('the eastern Ma Wan Tsuen duplicate retains its guarded exclusion', () => {
   const row = {
     id: '59c7ae90-5b5f-4ea4-9a69-39f2ef4dc178',
-    subtype: 'hamlet',
-    class: null,
+    subtype: 'locality',
+    class: 'hamlet',
     admin_level: null,
   }
   expect(applyDivisionExclusionPatch(row)?.id).toBe(
@@ -421,8 +421,8 @@ test('the eastern Ma Wan Tsuen duplicate retains its guarded exclusion', () => {
 test('Che Ting Tsuen retains its guarded exclusion', () => {
   const row = {
     id: 'a62dfc8a-c5a0-454a-94db-b57792ede77b',
-    subtype: 'hamlet',
-    class: null,
+    subtype: 'locality',
+    class: 'hamlet',
     admin_level: null,
   }
   expect(applyDivisionExclusionPatch(row)?.id).toBe(

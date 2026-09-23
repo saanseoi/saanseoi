@@ -22,6 +22,7 @@ import {
   divisionClassificationRule,
 } from './divisionClassificationPatch'
 import { divisionTranslationRule } from './divisionTranslationRule'
+import { divisionExclusionFixture } from './divisionExclusionPatch'
 import { divisionNormalisationRule } from './division'
 import { requireDefined } from '../../../requireDefined'
 import type { ReleaseProcessingAction } from '../../db/processingActions'
@@ -123,6 +124,32 @@ export async function retainDivisionProvenance(
   const bulk: BulkAudit[] = []
   const normalisation = input.normalisation ?? divisionNormalisationRule.declaration
   const patchDefinitions: Record<string, PatchDefinition> = {
+    ...Object.fromEntries(
+      divisionExclusionFixture.entries.map(entry => [
+        entry.id,
+        {
+          declaration: {
+            kind: 'processing-rule',
+            schemaVersion: 1,
+            id: entry.id,
+            scope: 'individual',
+            basis: 'fixture',
+            review: { kind: 'patch' },
+            summary: entry.reason,
+            inputs: ['source-divisions'],
+            outputs: ['divisions'],
+            parameters: {},
+            implementation: {
+              path: 'libs/core/src/pipeline/services/divisions/divisionExclusionPatch.ts',
+              symbol: 'applyDivisionExclusionPatch',
+            },
+          } satisfies RuleDeclaration,
+          fixture: entry,
+          names: entry.names,
+          reason: entry.reason,
+        },
+      ]),
+    ),
     [geographicHierarchyPatchRule.declaration.id]: {
       declaration: geographicHierarchyPatchRule.declaration,
       fixture: geographicHierarchyFixture,

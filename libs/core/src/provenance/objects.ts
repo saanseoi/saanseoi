@@ -46,21 +46,22 @@ function orderedKeys(value: object) {
 function serialiseWithObjectKeys(
   value: unknown,
   keysFor: (value: object) => string[],
+  path = '$',
 ): string {
   if (value === null || typeof value === 'boolean' || typeof value === 'string')
     return JSON.stringify(value)
   if (typeof value === 'number' && Number.isFinite(value)) return JSON.stringify(value)
   if (Array.isArray(value))
-    return `[${Array.from(value, item => serialiseWithObjectKeys(item, keysFor)).join(',')}]`
+    return `[${Array.from(value, (item, index) => serialiseWithObjectKeys(item, keysFor, `${path}[${index}]`)).join(',')}]`
   if (typeof value === 'object' && Object.getPrototypeOf(value) === Object.prototype)
     return `{${keysFor(value)
       .map(
         key =>
-          `${JSON.stringify(key)}:${serialiseWithObjectKeys((value as Record<string, unknown>)[key], keysFor)}`,
+          `${JSON.stringify(key)}:${serialiseWithObjectKeys((value as Record<string, unknown>)[key], keysFor, `${path}.${key}`)}`,
       )
       .join(',')}}`
   throw new Error(
-    'Provenance values must be finite JSON, without undefined or class instances.',
+    `Provenance values must be finite JSON, without undefined or class instances. Invalid value at ${path}.`,
   )
 }
 
