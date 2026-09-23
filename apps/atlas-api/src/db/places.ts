@@ -434,11 +434,10 @@ function buildPlaceConditions(
       ? eq(places.operatingStatus, lookup.operatingStatus)
       : undefined,
     lookup.divisionId
-      ? sql`exists (
-          select 1
+      ? sql`(${places.snapshotId}, ${places.id}) in (
+          select ${placesDivision.placeSnapshotId}, ${placesDivision.placeId}
           from ${placesDivision}
-          where ${placesDivision.placeSnapshotId} = ${places.snapshotId}
-            and ${placesDivision.placeId} = ${places.id}
+          where ${publicationScopeCondition('place', placesDivision.placeSnapshotId, [lookup.snapshotId])}
             and ${placesDivision.divisionId} = ${lookup.divisionId}
         )`
       : undefined,

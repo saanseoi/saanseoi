@@ -8,6 +8,7 @@ import type { CurrentDatabase, HistoryDatabase } from '@repo/db'
 import { and, asc, eq, inArray, sql } from '@repo/db'
 import { currentSchema, historySchema } from '@repo/db'
 import type { RequestedApiLocale, RequestedApiLocaleSelection } from '@repo/core'
+import { chunkArray } from '@repo/core/pipeline/utils.ts'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 
 const { divisions, divisionsI18n, divisionAreas, divisionBoundaries } = currentSchema
@@ -431,10 +432,7 @@ export async function listReplayedDivisionRecords(
         )
         const rows = (
           await Promise.all(
-            chunkD1Values(
-              shardVersions.map(version => version.versionHash),
-              0,
-            ).map(versionHashes =>
+            chunkArray(shardVersions, 256).map(versions =>
               db
                 .select({
                   id: historyDivisions.id,
@@ -454,7 +452,9 @@ export async function listReplayedDivisionRecords(
                   versionHash: historyDivisions.versionHash,
                 })
                 .from(historyDivisions)
-                .where(inArray(historyDivisions.versionHash, versionHashes))
+                .where(sql`(${historyDivisions.id}, ${historyDivisions.versionHash}) in
+                  (select json_extract(value, '$[0]'), json_extract(value, '$[1]')
+                   from json_each(${JSON.stringify(versions.map(version => [version.recordId, version.versionHash]))}))`)
                 .all(),
             ),
           )
@@ -484,10 +484,7 @@ export async function listReplayedDivisionRecords(
       )
       const rows = (
         await Promise.all(
-          chunkD1Values(
-            shardVersions.map(version => version.versionHash),
-            0,
-          ).map(versionHashes =>
+          chunkArray(shardVersions, 256).map(versions =>
             db
               .select({
                 divisionId: historyDivisionsI18n.divisionId,
@@ -499,7 +496,9 @@ export async function listReplayedDivisionRecords(
                 versionHash: historyDivisionsI18n.versionHash,
               })
               .from(historyDivisionsI18n)
-              .where(inArray(historyDivisionsI18n.versionHash, versionHashes))
+              .where(sql`(${historyDivisionsI18n.divisionId}, ${historyDivisionsI18n.versionHash}, ${historyDivisionsI18n.locale}) in
+                (select json_extract(value, '$[0]'), json_extract(value, '$[1]'), json_extract(value, '$[2]')
+                 from json_each(${JSON.stringify(versions.map(version => [version.recordId, version.versionHash, version.locale]))}))`)
               .all(),
           ),
         )

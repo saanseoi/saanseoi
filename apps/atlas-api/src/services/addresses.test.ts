@@ -184,6 +184,16 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       })
       .run()
     currentDb
+      .insert(currentSchema.divisions)
+      .values({
+        snapshotId: 'division',
+        id: 'division-district',
+        class: 'district',
+        category: 'administrative',
+        hierarchies: { administrative: [], locality: [], landform: [], full: [] },
+      })
+      .run()
+    currentDb
       .insert(currentSchema.divisionPublicationState)
       .values({
         snapshotId: divisionSnapshotId,
@@ -219,6 +229,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
           snapshotId: `scope:${snapshotId}`,
           divisionSnapshotId: 'division',
           countryId,
+          districtId: id === 'b' ? 'division-district' : null,
           parentAddressId: id === 'b' ? 'a' : null,
           granularity: id === 'a' ? 'complex' : id === 'b' ? 'unit' : 'unknown',
           geometry: { type: 'Point', coordinates: [114.13, 22.28] },
@@ -422,6 +433,60 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     expect(detail.status === 200 && detail.body.data.attributes.datasetCode).toBe(
       'ds-hk-overture-place',
     )
+    expect(
+      detail.status === 200 && detail.body.data.relationships.divisions.data,
+    ).toEqual([
+      { type: 'divisions', id: 'hk', meta: { role: 'country' } },
+      {
+        type: 'divisions',
+        id: 'division-district',
+        meta: { role: 'district' },
+      },
+    ])
+    expect(
+      detail.status === 200 && detail.body.data.relationships.hierarchy.data,
+    ).toEqual([
+      { type: 'divisions', id: 'hk' },
+      { type: 'divisions', id: 'division-district' },
+    ])
+    const withDivisions = await getAddressDetail({
+      ...args,
+      id: 'b',
+      query: { include: 'divisions' },
+    })
+    expect(withDivisions.status).toBe(200)
+    expect(
+      withDivisions.status === 200 &&
+        AddressDetailResponseSchema.safeParse(withDivisions.body).success,
+    ).toBe(true)
+    expect(withDivisions.status === 200 && withDivisions.body.included).toMatchObject([
+      { type: 'divisions', id: 'hk' },
+      { type: 'divisions', id: 'division-district' },
+    ])
+    const withHierarchy = await getAddressDetail({
+      ...args,
+      id: 'b',
+      query: { include: 'hierarchy' },
+    })
+    expect(withHierarchy.status).toBe(200)
+    expect(
+      withHierarchy.status === 200 &&
+        AddressDetailResponseSchema.safeParse(withHierarchy.body).success,
+    ).toBe(true)
+    expect(withHierarchy.status === 200 && withHierarchy.body.included).toMatchObject([
+      { type: 'divisions', id: 'hk' },
+      { type: 'divisions', id: 'division-district' },
+    ])
+    for (const filter of [
+      { 'filter[division]': 'division-district' },
+      { 'filter[district]': 'division-district' },
+    ]) {
+      const filteredByDivision = await listAddresses({ ...args, query: filter })
+      expect(
+        filteredByDivision.status === 200 &&
+          filteredByDivision.body.data.map(row => row.id),
+      ).toEqual(['b'])
+    }
     expect((await getAddressDetail({ ...args, id: 'outside', query: {} })).status).toBe(
       404,
     )
@@ -470,8 +535,15 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       false,
     )
     expect(AddressesListQuerySchema.safeParse({ include: 'units' }).success).toBe(false)
+    expect(AddressesListQuerySchema.safeParse({ include: 'hierarchy' }).success).toBe(
+      true,
+    )
     expect(
-      AddressDetailQuerySchema.safeParse({ include: 'units,hierarchy' }).success,
+      AddressDetailQuerySchema.safeParse({ include: 'units,divisions' }).success,
+    ).toBe(true)
+    expect(
+      AddressDetailQuerySchema.safeParse({ include: 'hierarchy,divisions,units' })
+        .success,
     ).toBe(true)
     expect(
       AddressSearchQuerySchema.safeParse({
@@ -535,7 +607,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     const withUnits = await getAddressDetail({
       ...args,
       id: 'a',
-      query: { include: 'units,hierarchy', locales: 'en' },
+      query: { include: 'units,divisions', locales: 'en' },
     })
     expect(withUnits.status).toBe(200)
     expect(

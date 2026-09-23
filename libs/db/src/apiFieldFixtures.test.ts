@@ -24,6 +24,33 @@ const overtureSourceSchemas = {
 }
 
 describe('api field fixtures', () => {
+  test('curated Address division provenance stays in the current generic relationship field', () => {
+    const fixture = listApiFieldFixtures().find(
+      value =>
+        value.apiVersion === 'api-addresses-v0.1' &&
+        value.domainCode === 'saanseoi' &&
+        value.mappingVersion === 1 &&
+        value.sourceCompositions.some(composition =>
+          composition.datasetCodes.includes('ds-hk-overture-place'),
+        ),
+    )!
+    expect(fixture).toMatchObject({ mappingVersion: 1, schemaVersion: 'sv-address-v1' })
+    for (const sourceDatasetCode of [
+      'ds-hk-hkgov-dpo-address',
+      'ds-hk-overture-place',
+    ]) {
+      expect(
+        fixture.fields
+          .filter(
+            field =>
+              field.sourceDatasetCode === sourceDatasetCode &&
+              field.apiField.startsWith('relationships'),
+          )
+          .map(field => field.apiField),
+      ).toEqual(['relationships.divisions'])
+    }
+  })
+
   test('statistics distinguish publisher periods, registry IDs and named measure outputs', () => {
     const fields = listApiFieldFixtures().find(
       f => f.apiVersion === 'api-stats-v0.1',

@@ -361,13 +361,13 @@ export function buildAddressHistorySqlImportFile(
     buildAddressResolvedStagingSchemaSql(),
     ...(artefact.rowStart === 0
       ? [
-          `DELETE FROM zzAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
-          `DELETE FROM zzAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
+          `DELETE FROM ${RESOLVED_ROWS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
+          `DELETE FROM ${RESOLVED_I18N_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
           `DELETE FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
         ]
       : []),
     ...buildInsertStatements(
-      'zzAddressImportResolvedRows',
+      RESOLVED_ROWS_TABLE,
       RESOLVED_ROW_COLUMNS,
       artefact.rows.map((row, index) => ({
         runId,
@@ -403,7 +403,7 @@ export function buildAddressHistorySqlImportFile(
       options.maxStatementBytes,
     ),
     ...buildInsertStatements(
-      'zzAddressImportResolvedI18n',
+      RESOLVED_I18N_TABLE,
       RESOLVED_I18N_COLUMNS,
       artefact.rows.flatMap(row =>
         row.i18n.map(localised => ({
@@ -455,11 +455,11 @@ export function buildAddressCurrentSqlImportFile(
   const runId = options.runId ?? buildAddressSqlImportRunId(message)
   const currentStatements = [
     buildAddressResolvedStagingSchemaSql(),
-    `DELETE FROM zzAddressImportResolvedRows WHERE runId = ${sqlLiteral(runId)};`,
-    `DELETE FROM zzAddressImportResolvedI18n WHERE runId = ${sqlLiteral(runId)};`,
+    `DELETE FROM ${RESOLVED_ROWS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
+    `DELETE FROM ${RESOLVED_I18N_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
     `DELETE FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} WHERE runId = ${sqlLiteral(runId)};`,
     ...buildInsertStatements(
-      'zzAddressImportResolvedRows',
+      RESOLVED_ROWS_TABLE,
       RESOLVED_ROW_COLUMNS,
       artefact.rows.map((row, index) => ({
         runId,
@@ -499,7 +499,7 @@ export function buildAddressCurrentSqlImportFile(
       },
     ),
     ...buildInsertStatements(
-      'zzAddressImportResolvedI18n',
+      RESOLVED_I18N_TABLE,
       RESOLVED_I18N_COLUMNS,
       artefact.rows.flatMap(row =>
         row.i18n.map(localised => ({
@@ -718,7 +718,7 @@ CREATE TABLE IF NOT EXISTS ${SOURCE_CHANGED_TABLE} (
 
 function buildAddressResolvedStagingSchemaSql() {
   return `
-CREATE TABLE IF NOT EXISTS zzAddressImportResolvedRows (
+CREATE TABLE IF NOT EXISTS ${RESOLVED_ROWS_TABLE} (
   runId TEXT NOT NULL,
   rowNumber INTEGER NOT NULL,
   sourceRecordId TEXT NOT NULL,
@@ -750,10 +750,10 @@ CREATE TABLE IF NOT EXISTS zzAddressImportResolvedRows (
   updatedAt TEXT NOT NULL,
   PRIMARY KEY (runId, addressId)
 );
-CREATE INDEX IF NOT EXISTS zzAddressImportResolvedRows_run_changed_existing_idx ON zzAddressImportResolvedRows (runId, changed, changedExistingId);
-CREATE INDEX IF NOT EXISTS zzAddressImportResolvedRows_run_address_changed_idx ON zzAddressImportResolvedRows (runId, addressId, changed);
-CREATE INDEX IF NOT EXISTS zzAddressImportResolvedRows_run_row_idx ON zzAddressImportResolvedRows (runId, rowNumber);
-CREATE TABLE IF NOT EXISTS zzAddressImportResolvedI18n (
+CREATE INDEX IF NOT EXISTS ${RESOLVED_ROWS_TABLE}_run_changed_existing_idx ON ${RESOLVED_ROWS_TABLE} (runId, changed, changedExistingId);
+CREATE INDEX IF NOT EXISTS ${RESOLVED_ROWS_TABLE}_run_address_changed_idx ON ${RESOLVED_ROWS_TABLE} (runId, addressId, changed);
+CREATE INDEX IF NOT EXISTS ${RESOLVED_ROWS_TABLE}_run_row_idx ON ${RESOLVED_ROWS_TABLE} (runId, rowNumber);
+CREATE TABLE IF NOT EXISTS ${RESOLVED_I18N_TABLE} (
   runId TEXT NOT NULL,
   addressId TEXT NOT NULL,
   versionHash TEXT NOT NULL,
@@ -778,7 +778,7 @@ CREATE TABLE IF NOT EXISTS zzAddressImportResolvedI18n (
   updatedAt TEXT NOT NULL,
   PRIMARY KEY (runId, addressId, locale)
 );
-CREATE INDEX IF NOT EXISTS zzAddressImportResolvedI18n_run_address_idx ON zzAddressImportResolvedI18n (runId, addressId);
+CREATE INDEX IF NOT EXISTS ${RESOLVED_I18N_TABLE}_run_address_idx ON ${RESOLVED_I18N_TABLE} (runId, addressId);
 CREATE TABLE IF NOT EXISTS ${RESOLVED_BUILDING_LOOKUPS_TABLE} (
   runId TEXT NOT NULL,
   addressId TEXT NOT NULL,
@@ -887,13 +887,13 @@ INSERT INTO snapshotVersionChanges (
 SELECT ${snapshot}, 'address2dI18n', old.addressId, old.locale, NULL, 'delete', ${releaseId}, ${now}, ${now}
 FROM address2dI18n old
 WHERE old.isCurrent = 1
-  AND EXISTS (SELECT 1 FROM zzAddressImportResolvedRows r WHERE r.runId = ${run} AND r.changed = 1 AND r.addressId = old.addressId)
-  AND NOT EXISTS (SELECT 1 FROM zzAddressImportResolvedI18n i WHERE i.runId = ${run} AND i.addressId = old.addressId AND i.locale = old.locale)
+  AND EXISTS (SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r WHERE r.runId = ${run} AND r.changed = 1 AND r.addressId = old.addressId)
+  AND NOT EXISTS (SELECT 1 FROM ${RESOLVED_I18N_TABLE} i WHERE i.runId = ${run} AND i.addressId = old.addressId AND i.locale = old.locale)
 ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
   versionHash = NULL, operation = 'delete', sourceReleaseId = excluded.sourceReleaseId, updatedAt = excluded.updatedAt;
 WITH changedExisting AS (
   SELECT DISTINCT r.changedExistingId AS addressId
-  FROM zzAddressImportResolvedRows r
+  FROM ${RESOLVED_ROWS_TABLE} r
   WHERE r.runId = ${run}
     AND r.changed = 1
     AND r.changedExistingId IS NOT NULL
@@ -906,7 +906,7 @@ WHERE address2d.isCurrent = 1
   AND address2d.id = changedExisting.addressId;
 WITH changedExisting AS (
   SELECT DISTINCT r.changedExistingId AS addressId
-  FROM zzAddressImportResolvedRows r
+  FROM ${RESOLVED_ROWS_TABLE} r
   WHERE r.runId = ${run}
     AND r.changed = 1
     AND r.changedExistingId IS NOT NULL
@@ -919,7 +919,7 @@ WHERE address2dI18n.isCurrent = 1
   AND address2dI18n.addressId = changedExisting.addressId;
 WITH changedExisting AS (
   SELECT DISTINCT r.changedExistingId AS addressId
-  FROM zzAddressImportResolvedRows r
+  FROM ${RESOLVED_ROWS_TABLE} r
   WHERE r.runId = ${run}
     AND r.changed = 1
     AND r.changedExistingId IS NOT NULL
@@ -940,7 +940,7 @@ SELECT
   1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
   r.neighbourhoodId, r.macrohoodId, r.townId, r.districtId, r.landformId, r.areaId, r.countryId,
   r.geometry, r.bbox, r.identifiers, r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
-FROM zzAddressImportResolvedRows r
+FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
 ON CONFLICT(id, versionHash) DO UPDATE SET
@@ -963,8 +963,8 @@ SELECT
   i.blockExpression, i.blockType, i.blockRef, i.blockTypeBeforeNumber,
   i.phaseExpression, i.phaseName, i.phaseRef, i.estateName, i.streetName,
   i.createdAt, i.updatedAt
-FROM zzAddressImportResolvedRows r
-INNER JOIN zzAddressImportResolvedI18n i
+FROM ${RESOLVED_ROWS_TABLE} r
+INNER JOIN ${RESOLVED_I18N_TABLE} i
   ON i.runId = r.runId
   AND i.addressId = r.addressId
 WHERE r.runId = ${run}
@@ -1008,7 +1008,7 @@ SELECT
 FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} lookup
 WHERE lookup.runId = ${run}
   AND EXISTS (
-    SELECT 1 FROM zzAddressImportResolvedRows r
+    SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
     WHERE r.runId = ${run} AND r.addressId = lookup.addressId AND r.changed = 1
   )
 ON CONFLICT(addressId, versionHash, buildingNumber) DO UPDATE SET
@@ -1026,7 +1026,7 @@ INSERT INTO snapshotVersionChanges (
 SELECT
   ${snapshot}, 'address2d', r.addressId, '', r.versionHash, 'upsert',
   ${releaseId}, ${now}, ${now}
-FROM zzAddressImportResolvedRows r
+FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
 ON CONFLICT(snapshotId, recordType, recordId, locale) DO UPDATE SET
@@ -1041,8 +1041,8 @@ INSERT INTO snapshotVersionChanges (
 SELECT
   ${snapshot}, 'address2dI18n', i.addressId, i.locale, i.versionHash, 'upsert',
   ${releaseId}, ${now}, ${now}
-FROM zzAddressImportResolvedRows r
-INNER JOIN zzAddressImportResolvedI18n i
+FROM ${RESOLVED_ROWS_TABLE} r
+INNER JOIN ${RESOLVED_I18N_TABLE} i
   ON i.runId = r.runId AND i.addressId = r.addressId
 WHERE r.runId = ${run}
   AND r.changed = 1
@@ -1067,7 +1067,7 @@ SELECT
   r.landformId, r.areaId, r.districtId, r.townId, r.macrohoodId, r.villageId, r.neighbourhoodId,
   r.hamletId, r.microhoodId, r.streetSnapshotId, r.streetId, r.identifiers,
   r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
-FROM zzAddressImportResolvedRows r
+FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
 ON CONFLICT(snapshotId, id) DO UPDATE SET
@@ -1112,13 +1112,13 @@ WHERE address2d.divisionSnapshotId IS NOT excluded.divisionSnapshotId
   OR address2d.granularity IS NOT excluded.granularity;
 DELETE FROM address2dI18n
 WHERE EXISTS (
-  SELECT 1 FROM zzAddressImportResolvedRows r
+  SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
   WHERE r.runId = ${run}
     AND r.changed = 1
     AND r.snapshotId = address2dI18n.snapshotId
     AND r.addressId = address2dI18n.addressId
 ) AND NOT EXISTS (
-  SELECT 1 FROM zzAddressImportResolvedI18n i WHERE i.runId = ${run}
+  SELECT 1 FROM ${RESOLVED_I18N_TABLE} i WHERE i.runId = ${run}
     AND i.addressId = address2dI18n.addressId AND i.locale = address2dI18n.locale
 );
 INSERT INTO address2dI18n (
@@ -1134,10 +1134,10 @@ SELECT
   i.buildingNumberConnector, i.blockExpression, i.blockType, i.blockRef,
   i.blockTypeBeforeNumber, i.phaseExpression, i.phaseName, i.phaseRef,
   i.estateName, i.streetName, i.createdAt, i.updatedAt
-FROM zzAddressImportResolvedI18n i
+FROM ${RESOLVED_I18N_TABLE} i
 WHERE i.runId = ${run}
   AND EXISTS (
-    SELECT 1 FROM zzAddressImportResolvedRows r
+    SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
     WHERE r.runId = i.runId AND r.addressId = i.addressId AND r.changed = 1
   )
 ON CONFLICT(snapshotId, addressId, locale) DO UPDATE SET
@@ -1174,7 +1174,7 @@ WHERE address2dI18n.formattedAddress IS NOT excluded.formattedAddress
   OR address2dI18n.streetName IS NOT excluded.streetName;
 DELETE FROM address2dBuildingNumberLookup
 WHERE EXISTS (
-  SELECT 1 FROM zzAddressImportResolvedRows r
+  SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
   WHERE r.runId = ${run}
     AND r.changed = 1
     AND r.snapshotId = address2dBuildingNumberLookup.snapshotId
@@ -1199,7 +1199,7 @@ SELECT
 FROM ${RESOLVED_BUILDING_LOOKUPS_TABLE} lookup
 WHERE lookup.runId = ${run}
   AND EXISTS (
-    SELECT 1 FROM zzAddressImportResolvedRows r
+    SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r
     WHERE r.runId = ${run} AND r.addressId = lookup.addressId AND r.changed = 1
   )
 ON CONFLICT(snapshotId, addressId, buildingNumber) DO UPDATE SET

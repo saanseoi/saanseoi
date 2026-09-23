@@ -2,6 +2,10 @@ import type { address2d, address2dI18n, address3d, address3dI18n } from './addre
 
 export type AddressRow = typeof address2d.$inferSelect
 export type NewAddressRow = typeof address2d.$inferInsert
+export type AddressDivisionRelationship = {
+  divisionId: string
+  role: string
+}
 
 export type AddressI18nRow = typeof address2dI18n.$inferSelect
 export type NewAddressI18nRow = typeof address2dI18n.$inferInsert

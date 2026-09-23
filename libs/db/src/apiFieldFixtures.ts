@@ -255,7 +255,7 @@ function deriveCuratedAddressFixture(): ApiFieldFixture {
     })),
     fields: [
       ...official.fields,
-      ...['id', 'attributes.i18n', 'attributes.sources', 'relationships'].map(
+      ...['id', 'attributes.i18n', 'attributes.sources', 'relationships.divisions'].map(
         apiField => ({
           apiField,
           resourceType: 'address',

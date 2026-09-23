@@ -11,6 +11,7 @@ import type {
   AddressSearchComponent,
   AddressSearchMode,
 } from './addresses'
+import { addressDivisionRelationshipsFromDedicatedIds } from './addresses'
 
 type HistoryShard = {
   bindingName: string
@@ -111,6 +112,9 @@ export async function listReplayedAddressRecords(args: {
         sources: version.base.sources,
         parentAddressId: version.base.parentAddressId,
         granularity: version.base.granularity,
+        divisionRelationships: addressDivisionRelationshipsFromDedicatedIds(
+          version.base,
+        ),
         countryId: version.base.countryId,
         landformId: version.base.landformId,
         areaId: version.base.areaId,
@@ -203,22 +207,27 @@ export async function listReplayedAddressPage(
       ? searchReplayedAddressRecords(records, args.search)
       : records) {
       if (
-        (args.countryId && address.countryId !== args.countryId) ||
+        (args.countryId &&
+          !address.divisionRelationships.some(
+            relationship =>
+              relationship.role === 'country' &&
+              relationship.divisionId === args.countryId,
+          )) ||
         (args.divisionId &&
-          ![
-            address.countryId,
-            address.areaId,
-            address.districtId,
-            address.townId,
-            address.macrohoodId,
-            address.neighbourhoodId,
-            address.villageId,
-            address.microhoodId,
-            address.hamletId,
-            address.landformId,
-          ].includes(args.divisionId)) ||
-        (args.areaId && address.areaId !== args.areaId) ||
-        (args.districtId && address.districtId !== args.districtId)
+          !address.divisionRelationships.some(
+            relationship => relationship.divisionId === args.divisionId,
+          )) ||
+        (args.areaId &&
+          !address.divisionRelationships.some(
+            relationship =>
+              relationship.role === 'area' && relationship.divisionId === args.areaId,
+          )) ||
+        (args.districtId &&
+          !address.divisionRelationships.some(
+            relationship =>
+              relationship.role === 'district' &&
+              relationship.divisionId === args.districtId,
+          ))
       )
         continue
       if (skipped < args.offset) {

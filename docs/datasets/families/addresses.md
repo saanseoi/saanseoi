@@ -415,7 +415,7 @@ belong to Place localisation (`accessHint`), not the address inventory.
 
 Ordinary address responses expose `address3dCoverage`, without loading unit arrays.
 `GET /addresses/v0.1/{id}?include=units` includes the selected `address3d` collection in
-the JSON:API `included` array. It can be combined with `include=hierarchy`; unit
+the JSON:API `included` array. It can be combined with `include=divisions`; unit
 inclusion is deliberately detail-only, so list and search requests cannot expand one
 page into every unit of many buildings. `GET /addresses/v0.1/{id}/units` remains the
 direct collection endpoint. Direct coverage has established owner membership. An
@@ -1062,3 +1062,10 @@ Addresses inherit recorded references from their selected official base.
 or landform IDs in list and search requests, including historical reads. The `landform`
 relationship remains the explicit individual-island association. Filtering reads
 materialised membership; it does not run geometry tests per API request.
+
+CURRENT division filtering unions indexed lookups across the dedicated role columns.
+Partial `(roleId, snapshotId, id)` indexes omit null memberships. Matching several roles
+counts an Address once within its physical scope; identical IDs in separate selected
+scopes remain separate records. List pagination applies after this deduplication, with
+the physical scope breaking equal-ID ordering ties. HISTORY retains the recorded IDs
+without role lookup indexes.

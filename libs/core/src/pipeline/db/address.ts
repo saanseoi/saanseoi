@@ -38,10 +38,10 @@ import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 import { buildAddressBuildingNumberLookupRows } from '../services/addresses/normalisation'
 import { loadReplayedAddressEvidence } from './addressEvidenceReplay'
 
-const CURRENT_ADDRESS2D_COLUMN_COUNT = 22
+const CURRENT_ADDRESS2D_COLUMN_COUNT = 23
 const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 20
 const CURRENT_ADDRESS2D_BUILDING_LOOKUP_COLUMN_COUNT = 8
-const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 23
+const HISTORY_ADDRESS2D_VERSION_COLUMN_COUNT = 24
 const HISTORY_ADDRESS2D_I18N_VERSION_COLUMN_COUNT = 20
 const HISTORY_ADDRESS2D_BUILDING_LOOKUP_VERSION_COLUMN_COUNT = 11
 const HISTORY_ADDRESS2D_VERSION_UPSERT_FIXED_VARIABLE_COUNT = 7
@@ -181,7 +181,8 @@ SET
 ${assignments.join(',\n')},
   updatedAt = ${updatedAtSql}
 WHERE snapshotId = ${sqlLiteral(snapshotId)}
-  AND divisionSnapshotId IS NOT ${sqlLiteral(divisionSnapshotId)};`.trim()
+  AND divisionSnapshotId IS NOT ${sqlLiteral(divisionSnapshotId)};
+`.trim()
 }
 
 function selectCurrentAddressVersionFields() {
@@ -655,11 +656,11 @@ async function loadReplayedAddressBaseRows(
           ),
         )
         .all()) as CurrentAddressVersionLookupRow[]
-      for (const row of candidates) {
-        const key = `${row.id}\u0000${row.versionHash}`
+      for (const candidate of candidates) {
+        const key = `${candidate.id}\u0000${candidate.versionHash}`
         if (!expected.has(key)) continue
         found.add(key)
-        rows.push(row)
+        rows.push(candidate)
       }
     }
 

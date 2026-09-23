@@ -38,6 +38,7 @@ const address = (
     sources: null,
     parentAddressId: null,
     granularity: 'building',
+    divisionRelationships: [],
     countryId: null,
     landformId: null,
     areaId: null,

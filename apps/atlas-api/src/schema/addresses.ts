@@ -319,11 +319,21 @@ const AddressAttributesSchema = z
     description: openApiText('openapi_addresses_attributes_description'),
   })
 
+const AddressDivisionLinkageSchema = z.object({
+  type: z.literal('divisions'),
+  id: IdSchema,
+  meta: z.object({
+    role: z.string().regex(/^[a-z][a-z0-9_-]*$/),
+  }),
+})
+
 const AddressDivisionRelationshipSchema = z
-  .object({
-    data: z.union([z.object({ type: z.literal('divisions'), id: IdSchema }), z.null()]),
-  })
+  .object({ data: z.array(AddressDivisionLinkageSchema) })
   .openapi('AddressDivisionRelationship')
+
+const AddressHierarchyRelationshipSchema = z.object({
+  data: z.array(z.object({ type: z.literal('divisions'), id: IdSchema })),
+})
 
 const AddressUnitsRelationshipSchema = z
   .object({
@@ -334,20 +344,9 @@ const AddressUnitsRelationshipSchema = z
 
 const AddressRelationshipsSchema = z
   .object({
-    country: AddressDivisionRelationshipSchema,
-    landform: AddressDivisionRelationshipSchema,
-    area: AddressDivisionRelationshipSchema,
-    district: AddressDivisionRelationshipSchema,
-    town: AddressDivisionRelationshipSchema,
-    macrohood: AddressDivisionRelationshipSchema,
-    neighbourhood: AddressDivisionRelationshipSchema,
-    microhood: AddressDivisionRelationshipSchema,
-    village: AddressDivisionRelationshipSchema,
-    hamlet: AddressDivisionRelationshipSchema,
+    divisions: AddressDivisionRelationshipSchema,
+    hierarchy: AddressHierarchyRelationshipSchema,
     units: AddressUnitsRelationshipSchema,
-    hierarchy: z.object({
-      data: z.array(z.object({ type: z.literal('divisions'), id: IdSchema })),
-    }),
   })
   .openapi('AddressRelationships', {
     description: openApiText('openapi_addresses_relationships_description'),
@@ -430,8 +429,31 @@ const AddressSelectionQuerySchema = z.object({
   locales: RequestedLocalesQuerySchema.optional(),
 })
 
+const AddressCollectionIncludeSchema = z.enum([
+  'hierarchy',
+  'divisions',
+  'hierarchy,divisions',
+  'divisions,hierarchy',
+])
+
 const AddressDetailIncludeSchema = z
-  .enum(['hierarchy', 'units', 'hierarchy,units', 'units,hierarchy'])
+  .enum([
+    'hierarchy',
+    'divisions',
+    'units',
+    'hierarchy,divisions',
+    'divisions,hierarchy',
+    'hierarchy,units',
+    'units,hierarchy',
+    'divisions,units',
+    'units,divisions',
+    'hierarchy,divisions,units',
+    'hierarchy,units,divisions',
+    'divisions,hierarchy,units',
+    'divisions,units,hierarchy',
+    'units,hierarchy,divisions',
+    'units,divisions,hierarchy',
+  ])
   .optional()
 
 export const AddressesListQuerySchema = AddressSelectionQuerySchema.extend({
@@ -453,7 +475,7 @@ export const AddressesListQuerySchema = AddressSelectionQuerySchema.extend({
   'filter[division]': IdSchema.optional(),
   'filter[area]': IdSchema.optional(),
   'filter[district]': IdSchema.optional(),
-  include: z.literal('hierarchy').optional(),
+  include: AddressCollectionIncludeSchema.optional(),
 }).openapi('AddressesListQuery')
 
 export const AddressDetailQuerySchema = AddressSelectionQuerySchema.extend({
@@ -484,7 +506,7 @@ export const AddressSearchQuerySchema = AddressSelectionQuerySchema.extend({
   'filter[division]': IdSchema.optional(),
   'filter[area]': IdSchema.optional(),
   'filter[district]': IdSchema.optional(),
-  include: z.enum(['hierarchy']).optional(),
+  include: AddressCollectionIncludeSchema.optional(),
 })
   .superRefine((value, ctx) => {
     if (value.match === 'component' && !value.component) {

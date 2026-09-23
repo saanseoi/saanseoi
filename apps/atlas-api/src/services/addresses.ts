@@ -121,21 +121,18 @@ type AddressResourcePayload = {
     i18n?: Record<string, AddressLocaleValue>
   }
   relationships: {
-    country: { data: { type: 'divisions'; id: string } | null }
-    landform: { data: { type: 'divisions'; id: string } | null }
-    area: { data: { type: 'divisions'; id: string } | null }
-    district: { data: { type: 'divisions'; id: string } | null }
-    town: { data: { type: 'divisions'; id: string } | null }
-    macrohood: { data: { type: 'divisions'; id: string } | null }
-    neighbourhood: { data: { type: 'divisions'; id: string } | null }
-    microhood: { data: { type: 'divisions'; id: string } | null }
-    village: { data: { type: 'divisions'; id: string } | null }
-    hamlet: { data: { type: 'divisions'; id: string } | null }
+    divisions: {
+      data: Array<{
+        type: 'divisions'
+        id: string
+        meta: { role: string }
+      }>
+    }
+    hierarchy: { data: Array<{ type: 'divisions'; id: string }> }
     units: {
       data: { type: 'address3d'; id: string } | null
       meta: { address3dCoverage: Address3dCoverage }
     }
-    hierarchy: { data: Array<{ type: 'divisions'; id: string }> }
   }
   links: { self: string }
 }
@@ -195,7 +192,7 @@ type AddressDetailDocument = {
   meta: AddressDocumentMeta
 }
 
-async function loadIncludedAddressHierarchy(args: {
+async function loadIncludedAddressDivisions(args: {
   currentDb: AppEnv['Variables']['currentDb']
   historyDbsByBinding?: AppEnv['Variables']['historyDbsByBinding']
   metaDb: AppEnv['Variables']['metaDb']
@@ -205,13 +202,22 @@ async function loadIncludedAddressHierarchy(args: {
   include?: string
   baseUrl: string
 }) {
-  if (!requestedAddressIncludes(args.include).has('hierarchy')) return []
+  const includes = requestedAddressIncludes(args.include)
+  const includeDivisions = includes.has('divisions')
+  const includeHierarchy = includes.has('hierarchy')
+  if (!includeDivisions && !includeHierarchy) return []
 
   const idsBySnapshot = new Map<string, Set<string>>()
   for (const record of args.records) {
     const snapshotId = record.address.divisionSnapshotId ?? args.snapshotId
     const ids = idsBySnapshot.get(snapshotId) ?? new Set<string>()
-    for (const id of addressHierarchyIds(record.address)) ids.add(id)
+    if (includeDivisions) {
+      for (const { divisionId } of record.address.divisionRelationships)
+        ids.add(divisionId)
+    }
+    if (includeHierarchy) {
+      for (const id of addressHierarchyIds(record.address)) ids.add(id)
+    }
     idsBySnapshot.set(snapshotId, ids)
   }
   const recordsById = new Map<
@@ -262,7 +268,7 @@ async function loadIncludedAddressHierarchy(args: {
     } else {
       if (currentRecords === null)
         throw new PublicationReadUnavailableError(
-          'The selected Address hierarchy is not ready',
+          'The selected Address hierarchy or Divisions are not ready',
         )
       for (const record of currentRecords) recordsById.set(record.division.id, record)
     }
@@ -377,8 +383,28 @@ export type AddressListQuery = {
   'filter[division]'?: string
   'filter[area]'?: string
   'filter[district]'?: string
-  include?: 'hierarchy'
+  include?: AddressCollectionInclude
 }
+
+type AddressCollectionInclude =
+  | 'hierarchy'
+  | 'divisions'
+  | 'hierarchy,divisions'
+  | 'divisions,hierarchy'
+
+type AddressDetailInclude =
+  | AddressCollectionInclude
+  | 'units'
+  | 'hierarchy,units'
+  | 'units,hierarchy'
+  | 'divisions,units'
+  | 'units,divisions'
+  | 'hierarchy,divisions,units'
+  | 'hierarchy,units,divisions'
+  | 'divisions,hierarchy,units'
+  | 'divisions,units,hierarchy'
+  | 'units,hierarchy,divisions'
+  | 'units,divisions,hierarchy'
 
 export type AddressSearchQuery = AddressListQuery & {
   component?: AddressSearchComponent
@@ -397,7 +423,7 @@ export type AddressDetailQuery = Omit<
   | 'filter[district]'
   | 'include'
 > & {
-  include?: 'hierarchy' | 'units' | 'hierarchy,units' | 'units,hierarchy'
+  include?: AddressDetailInclude
 }
 
 type AddressNotFoundResponse = {
@@ -490,8 +516,20 @@ function projectAddressI18n(i18n: AddressRecord['i18n'], profile: AddressProfile
   return entries.length > 0 ? Object.fromEntries(entries) : undefined
 }
 
-function divisionRelationship(id: string | null) {
-  return id ? { type: 'divisions' as const, id } : null
+function addressPointGeometry(value: unknown): AddressPointGeometry | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
+  const { type, coordinates } = value as JsonObject
+  if (
+    type !== 'Point' ||
+    !Array.isArray(coordinates) ||
+    coordinates.length < 2 ||
+    coordinates.length > 3 ||
+    !coordinates.every(
+      coordinate => typeof coordinate === 'number' && Number.isFinite(coordinate),
+    )
+  )
+    return null
+  return { type, coordinates }
 }
 
 function addressHierarchyIds(address: AddressRecord['address']) {
@@ -507,22 +545,6 @@ function addressHierarchyIds(address: AddressRecord['address']) {
     address.microhoodId,
     address.hamletId,
   ].filter((id): id is string => Boolean(id))
-}
-
-function addressPointGeometry(value: unknown): AddressPointGeometry | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
-  const { type, coordinates } = value as JsonObject
-  if (
-    type !== 'Point' ||
-    !Array.isArray(coordinates) ||
-    coordinates.length < 2 ||
-    coordinates.length > 3 ||
-    !coordinates.every(
-      coordinate => typeof coordinate === 'number' && Number.isFinite(coordinate),
-    )
-  )
-    return null
-  return { type, coordinates }
 }
 
 function createAddressResource(args: {
@@ -572,16 +594,19 @@ function createAddressResource(args: {
     id: address.id,
     attributes,
     relationships: {
-      country: { data: divisionRelationship(address.countryId) },
-      landform: { data: divisionRelationship(address.landformId) },
-      area: { data: divisionRelationship(address.areaId) },
-      district: { data: divisionRelationship(address.districtId) },
-      town: { data: divisionRelationship(address.townId) },
-      macrohood: { data: divisionRelationship(address.macrohoodId) },
-      neighbourhood: { data: divisionRelationship(address.neighbourhoodId) },
-      microhood: { data: divisionRelationship(address.microhoodId) },
-      village: { data: divisionRelationship(address.villageId) },
-      hamlet: { data: divisionRelationship(address.hamletId) },
+      divisions: {
+        data: address.divisionRelationships.map(({ divisionId, role }) => ({
+          type: 'divisions' as const,
+          id: divisionId,
+          meta: { role },
+        })),
+      },
+      hierarchy: {
+        data: addressHierarchyIds(address).map(id => ({
+          type: 'divisions' as const,
+          id,
+        })),
+      },
       units: {
         data:
           args.record.address3dCoverage?.kind === 'none' ||
@@ -594,12 +619,6 @@ function createAddressResource(args: {
         meta: {
           address3dCoverage: args.record.address3dCoverage ?? { kind: 'none' },
         },
-      },
-      hierarchy: {
-        data: addressHierarchyIds(address).map(id => ({
-          type: 'divisions' as const,
-          id,
-        })),
       },
     },
     links: {
@@ -851,7 +870,7 @@ export async function listAddresses(args: {
 
         const url = new URL(args.requestUrl)
         const included = await runWithD1ReadRetry(async () => [
-          ...(await loadIncludedAddressHierarchy({
+          ...(await loadIncludedAddressDivisions({
             currentDb: args.currentDb,
             historyDbsByBinding: args.historyDbsByBinding,
             metaDb: args.metaDb,
@@ -1027,7 +1046,7 @@ export async function searchAddresses(args: {
         })
         const url = new URL(args.requestUrl)
         const included = await runWithD1ReadRetry(async () => [
-          ...(await loadIncludedAddressHierarchy({
+          ...(await loadIncludedAddressDivisions({
             currentDb: args.currentDb,
             historyDbsByBinding: args.historyDbsByBinding,
             metaDb: args.metaDb,
@@ -1159,7 +1178,7 @@ export async function getAddressDetail(args: {
 
         const url = new URL(args.requestUrl)
         const included = await runWithD1ReadRetry(async () => [
-          ...(await loadIncludedAddressHierarchy({
+          ...(await loadIncludedAddressDivisions({
             currentDb: args.currentDb,
             historyDbsByBinding: args.historyDbsByBinding,
             metaDb: args.metaDb,

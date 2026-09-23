@@ -1,7 +1,8 @@
 import { getPublicationReadiness, publicationLogicalSnapshot } from './publicationState'
 import type { AddressBlockType, CurrentDatabase } from '@repo/db'
-import { addressBlockTypes, and, asc, eq, ne, or, sql } from '@repo/db'
+import { addressBlockTypes, and, asc, eq, ne, sql } from '@repo/db'
 import { currentSchema } from '@repo/db'
+import type { AddressDivisionRelationship } from '@repo/db/currentSchema'
 import type { Address3dCoverage } from '@repo/db/address3d'
 import type { RequestedApiLocaleSelection } from '@repo/core'
 
@@ -45,6 +46,7 @@ export type AddressRecord = {
     sources: unknown
     parentAddressId: string | null
     granularity: typeof address2d.$inferSelect.granularity
+    divisionRelationships: AddressDivisionRelationship[]
     countryId: string | null
     landformId: string | null
     areaId: string | null
@@ -228,6 +230,7 @@ function mapAddressRow(row: AddressRow): AddressRecord {
       sources: row.sources,
       parentAddressId: row.parentAddressId,
       granularity: row.granularity,
+      divisionRelationships: addressDivisionRelationshipsFromDedicatedIds(row),
       countryId: row.countryId,
       landformId: row.landformId,
       areaId: row.areaId,
@@ -245,30 +248,78 @@ function mapAddressRow(row: AddressRow): AddressRecord {
   }
 }
 
+export function addressDivisionRelationshipsFromDedicatedIds(
+  row: Pick<
+    AddressRow,
+    | 'countryId'
+    | 'landformId'
+    | 'areaId'
+    | 'districtId'
+    | 'townId'
+    | 'macrohoodId'
+    | 'neighbourhoodId'
+    | 'microhoodId'
+    | 'villageId'
+    | 'hamletId'
+  >,
+): AddressDivisionRelationship[] {
+  const dedicatedRelationships = [
+    ['country', row.countryId],
+    ['landform', row.landformId],
+    ['area', row.areaId],
+    ['district', row.districtId],
+    ['town', row.townId],
+    ['macrohood', row.macrohoodId],
+    ['neighbourhood', row.neighbourhoodId],
+    ['microhood', row.microhoodId],
+    ['village', row.villageId],
+    ['hamlet', row.hamletId],
+  ] as const
+  return dedicatedRelationships.flatMap(([role, divisionId]) =>
+    divisionId ? [{ role, divisionId }] : [],
+  )
+}
+
 function buildAddressConditions(
   lookup: Pick<
     AddressListLookup,
     'snapshotIds' | 'countryId' | 'areaId' | 'divisionId' | 'districtId'
   >,
 ) {
+  // JSON membership keeps the parameter count independent of the selected scopes.
+  const selectedScopes = sql`select ${addressPublicationState.scopeId} from ${addressPublicationState}
+    where ${addressPublicationState.status} = 'current'
+      and ${addressPublicationState.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds)}))`
+  const divisionMatches = lookup.divisionId
+    ? sql.join(
+        [
+          address2d.countryId,
+          address2d.landformId,
+          address2d.areaId,
+          address2d.districtId,
+          address2d.townId,
+          address2d.macrohoodId,
+          address2d.neighbourhoodId,
+          address2d.microhoodId,
+          address2d.villageId,
+          address2d.hamletId,
+        ].map(
+          role => sql`select ${address2d.snapshotId}, ${address2d.id} from ${address2d}
+            where ${role} = ${lookup.divisionId}
+              and ${address2d.snapshotId} in (select scopeId from selectedAddressScopes)`,
+        ),
+        sql` union `,
+      )
+    : undefined
   return [
-    // One bound JSON array preserves global SQL pagination without an unbounded
-    // IN parameter list. An empty selection deliberately matches no rows.
-    sql`${address2d.snapshotId} in (select ${addressPublicationState.scopeId} from ${addressPublicationState} where ${addressPublicationState.status} = 'current' and ${addressPublicationState.snapshotId} in (select value from json_each(${JSON.stringify(lookup.snapshotIds)})))`,
+    sql`${address2d.snapshotId} in (${selectedScopes})`,
     lookup.countryId ? eq(address2d.countryId, lookup.countryId) : undefined,
-    lookup.divisionId
-      ? or(
-          eq(address2d.countryId, lookup.divisionId),
-          eq(address2d.areaId, lookup.divisionId),
-          eq(address2d.districtId, lookup.divisionId),
-          eq(address2d.townId, lookup.divisionId),
-          eq(address2d.macrohoodId, lookup.divisionId),
-          eq(address2d.neighbourhoodId, lookup.divisionId),
-          eq(address2d.villageId, lookup.divisionId),
-          eq(address2d.microhoodId, lookup.divisionId),
-          eq(address2d.hamletId, lookup.divisionId),
-          eq(address2d.landformId, lookup.divisionId),
-        )
+    // Each branch seeks a covering role index. UNION removes repeated role matches
+    // while retaining the same address ID in distinct physical scopes.
+    divisionMatches
+      ? sql`(${address2d.snapshotId}, ${address2d.id}) in (
+          with selectedAddressScopes as (${selectedScopes}) ${divisionMatches}
+        )`
       : undefined,
     lookup.areaId ? eq(address2d.areaId, lookup.areaId) : undefined,
     lookup.districtId ? eq(address2d.districtId, lookup.districtId) : undefined,
@@ -377,7 +428,7 @@ export async function listAddressRecordsCurrent(
         lookup.after === undefined ? undefined : sql`${address2d.id} > ${lookup.after}`,
       ),
     )
-    .orderBy(asc(address2d.id))
+    .orderBy(asc(address2d.id), asc(address2d.snapshotId))
     .limit(lookup.limit ?? 25)
     .offset(lookup.offset ?? 0)
     .all()

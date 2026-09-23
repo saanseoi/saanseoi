@@ -2943,7 +2943,7 @@
   "openapi_addresses_phase_ref_description": "The source phase reference or label, when supplied.",
   "openapi_addresses_estate_name_description": "The named estate or development associated with the premise, when supplied.",
   "openapi_addresses_street_name_description": "The source street or village route name associated with the premise, when supplied.",
-  "openapi_addresses_relationships_description": "Links to the canonical divisions containing this address. The related resources are returned only when requested through include.",
+  "openapi_addresses_relationships_description": "The divisions relationship lists direct Division memberships with explicit roles; hierarchy separately preserves the canonical resolved hierarchy. The two may differ because not every Division membership belongs in the hierarchy. Request include=divisions or include=hierarchy for the corresponding Division resources.",
   "openapi_addresses_links_description": "Links for this address resource, including its canonical URL.",
   "openapi_places_i18n_snapshot_id_description": "The immutable Place snapshot from which this localisation was produced.",
   "openapi_places_i18n_place_id_description": "The identifier of the Place to which this localisation belongs.",

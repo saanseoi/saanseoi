@@ -100,19 +100,39 @@ export const address2d = sqliteTable(
       'address2d_street_reference_consistency_chk',
       sql`(${table.streetSnapshotId} IS NULL) = (${table.streetId} IS NULL)`,
     ),
-    index('address2d_landformId_idx').on(table.snapshotId, table.landformId),
+    index('address2d_countryId_scope_id_idx')
+      .on(table.countryId, table.snapshotId, table.id)
+      .where(sql`${table.countryId} IS NOT NULL`),
+    index('address2d_landformId_scope_id_idx')
+      .on(table.landformId, table.snapshotId, table.id)
+      .where(sql`${table.landformId} IS NOT NULL`),
+    index('address2d_areaId_scope_id_idx')
+      .on(table.areaId, table.snapshotId, table.id)
+      .where(sql`${table.areaId} IS NOT NULL`),
+    index('address2d_districtId_scope_id_idx')
+      .on(table.districtId, table.snapshotId, table.id)
+      .where(sql`${table.districtId} IS NOT NULL`),
+    index('address2d_townId_scope_id_idx')
+      .on(table.townId, table.snapshotId, table.id)
+      .where(sql`${table.townId} IS NOT NULL`),
+    index('address2d_macrohoodId_scope_id_idx')
+      .on(table.macrohoodId, table.snapshotId, table.id)
+      .where(sql`${table.macrohoodId} IS NOT NULL`),
+    index('address2d_neighbourhoodId_scope_id_idx')
+      .on(table.neighbourhoodId, table.snapshotId, table.id)
+      .where(sql`${table.neighbourhoodId} IS NOT NULL`),
+    index('address2d_microhoodId_scope_id_idx')
+      .on(table.microhoodId, table.snapshotId, table.id)
+      .where(sql`${table.microhoodId} IS NOT NULL`),
+    index('address2d_villageId_scope_id_idx')
+      .on(table.villageId, table.snapshotId, table.id)
+      .where(sql`${table.villageId} IS NOT NULL`),
+    index('address2d_hamletId_scope_id_idx')
+      .on(table.hamletId, table.snapshotId, table.id)
+      .where(sql`${table.hamletId} IS NOT NULL`),
     index('address2d_streetId_idx').on(table.streetId),
     index('address2d_parentAddressId_idx').on(table.snapshotId, table.parentAddressId),
-    index('address2d_division_idx').on(
-      table.divisionSnapshotId,
-      table.hamletId,
-      table.microhoodId,
-      table.villageId,
-      table.neighbourhoodId,
-      table.macrohoodId,
-      table.townId,
-      table.districtId,
-    ),
+    index('address2d_divisionSnapshotId_idx').on(table.divisionSnapshotId),
   ],
 )
 

@@ -33,6 +33,10 @@ test('SQL imports retain and clear parent links in current and versioned history
         ]),
       )
     }
+    current.exec(`
+      INSERT INTO divisions (snapshotId, id, class, hierarchies, createdAt, updatedAt)
+      VALUES ('division-snapshot', 'district-central', 'administrative', '{}', '${timestamp}', '${timestamp}');
+    `)
     const normalised = normaliseAddressRowForPipeline({
       id: 'child',
       canonicalId: 'child',
@@ -41,6 +45,7 @@ test('SQL imports retain and clear parent links in current and versioned history
       enBlockDescriptor: 'BLOCK',
       enBlockNumber: 'A',
       enEstateName: 'Example Estate',
+      districtId: 'district-central',
     })
     expect(normalised.base.parentAddressId).toBeNull()
     for (const [versionHash, parentAddressId] of [
@@ -94,6 +99,9 @@ test('SQL imports retain and clear parent links in current and versioned history
       expect(
         current.query('SELECT granularity FROM address2d WHERE id = ?').get('child'),
       ).toEqual({ granularity: 'building' })
+      expect(
+        current.query('SELECT districtId FROM address2d WHERE id = ?').get('child'),
+      ).toEqual({ districtId: 'district-central' })
     }
     expect(
       history
@@ -108,6 +116,9 @@ test('SQL imports retain and clear parent links in current and versioned history
     expect(history.query('SELECT DISTINCT granularity FROM address2d').all()).toEqual([
       { granularity: 'building' },
     ])
+    expect(history.query('SELECT districtId FROM address2d LIMIT 1').get()).toEqual({
+      districtId: 'district-central',
+    })
     for (const db of [current, history]) {
       expect(db.query('PRAGMA table_info(address2d)').all()).not.toContainEqual(
         expect.objectContaining({ name: 'granularityProvenance' }),

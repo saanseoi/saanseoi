@@ -99,11 +99,12 @@ composition uses the default `saanseoi` domain: the required ALS address member 
 selected Overture Places supplementary member form one curated collection. A
 cohort-compatible Overture division snapshot is required. List requests support
 catalogue/cohort/release-set selection, profiles and locale projection, pagination, and
-dataset/country/area/district filters. Address relationships identify all available
-canonical containment levels: `country`, `area`, `district`, `town`, `macrohood`,
-`neighbourhood`, `microhood`, `village`, and `hamlet`. They do not join division data by
-default; `include=hierarchy` returns deduplicated Division resources in JSON:API
-`included` using bounded D1 batches.
+dataset/country/area/district filters. `relationships.divisions` lists each direct
+linked Division with its explicit `meta.role`; `relationships.hierarchy` separately
+preserves the canonical resolved hierarchy. These relationships may differ because not
+every Division membership belongs in the hierarchy. The Division resource supplies its
+own level and classification. `include=divisions` and `include=hierarchy` return the
+corresponding Division resources in JSON:API `included` using bounded D1 batches.
 
 List and search requests accept `filter[dataset]=ds-hk-hkgov-dpo-address` for ALS or
 `filter[dataset]=ds-hk-overture-place` for supplementary addresses. Omitting the filter

@@ -19,6 +19,7 @@ const buildBase = (sources: unknown) =>
     geometry: null,
     hamletId: null,
     id: 'address-1',
+    landformId: null,
     parentAddressId: null,
     identifiers: null,
     macrohoodId: null,
@@ -74,6 +75,39 @@ test('versions explicit parent changes independently of localisation', async () 
   expect(await createHash(buildAddressBaseHashInput(base))).not.toBe(
     await createHash(
       buildAddressBaseHashInput({ ...base, parentAddressId: 'complex-1' }),
+    ),
+  )
+})
+
+test('normalises landform division IDs with the existing address divisions', async () => {
+  const normalised = normaliseAddressRowForPipeline({
+    canonicalId: 'address-1',
+    id: 'address-1',
+    divisionSnapshotId: 'division-snapshot',
+    enFormattedAddress: 'Example',
+    countryId: 'country-hk',
+    landformId: 'island-hk',
+    areaId: 'area-hk-island',
+    districtId: 'district-central',
+  })
+
+  expect(normalised.base).toMatchObject({
+    countryId: 'country-hk',
+    landformId: 'island-hk',
+    areaId: 'area-hk-island',
+    districtId: 'district-central',
+  })
+  expect(
+    await createHash(
+      buildAddressBaseHashInput({ id: 'address-1', ...normalised.base }),
+    ),
+  ).not.toBe(
+    await createHash(
+      buildAddressBaseHashInput({
+        id: 'address-1',
+        ...normalised.base,
+        landformId: null,
+      }),
     ),
   )
 })

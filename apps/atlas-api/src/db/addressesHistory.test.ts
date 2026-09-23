@@ -46,10 +46,10 @@ test('replays the selected address snapshot from its assigned history shard', as
     `)
     history.exec(`
       INSERT INTO address2d (
-        id, granularity, parentAddressId, countryId, geometry, bbox, identifiers, sources, versionHash,
+        id, granularity, parentAddressId, countryId, districtId, landformId, geometry, bbox, identifiers, sources, versionHash,
         sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
       ) VALUES (
-        'historic-address', 'building', 'historic-complex', 'hk', '{"type":"Point","coordinates":[114.1,22.3]}',
+        'historic-address', 'building', 'historic-complex', 'hk', 'district-central', 'hong-kong-island-landform', '{"type":"Point","coordinates":[114.1,22.3]}',
         '[114.1,22.3,114.1,22.3]', '{"source":"historic"}',
         '{"hkgov-dpo":[{"record_id":"historic"}]}', 'historic-address-v1',
         'historic-release', 'address-snapshot-2025', 0, '${TIMESTAMP}', '${TIMESTAMP}'
@@ -93,6 +93,11 @@ test('replays the selected address snapshot from its assigned history shard', as
           id: 'historic-address',
           parentAddressId: 'historic-complex',
           granularity: 'building',
+          divisionRelationships: [
+            { role: 'country', divisionId: 'hk' },
+            { role: 'landform', divisionId: 'hong-kong-island-landform' },
+            { role: 'district', divisionId: 'district-central' },
+          ],
           snapshotId: 'address-snapshot-2025',
         }),
         i18n: {
@@ -226,6 +231,16 @@ test('replays the selected address snapshot from its assigned history shard', as
     })
     expect(filtered.records).toEqual([])
     expect(filtered.hasMore).toBe(false)
+    const districtFiltered = await listReplayedAddressPage({
+      ...lookup,
+      localeSelection: { mode: 'none', locales: [] },
+      districtId: 'district-central',
+      limit: 1,
+      offset: 0,
+    })
+    expect(districtFiltered.records.map(row => row.address.id)).toEqual([
+      'historic-address',
+    ])
     expect(
       await listReplayedAddressRecords({
         ...lookup,

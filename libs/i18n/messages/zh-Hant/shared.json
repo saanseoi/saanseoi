@@ -2946,7 +2946,7 @@
   "openapi_addresses_phase_ref_description": "來源的期參考值或標籤（如有提供）。",
   "openapi_addresses_estate_name_description": "地址前提所屬的屋苑或發展項目名稱（如有提供）。",
   "openapi_addresses_street_name_description": "地址前提所屬的來源街道或村路名稱（如有提供）。",
-  "openapi_addresses_relationships_description": "連結至包含此地址的標準分區。只有在使用 include 要求時才會傳回相關資源。",
+  "openapi_addresses_relationships_description": "divisions 關係會列出直接關聯的分區及其明確角色；hierarchy 則分開保留已解析的標準層級。兩者可能不同，因為並非每個分區關聯都屬於層級。使用 include=divisions 或 include=hierarchy 可傳回相應的分區資源。",
   "openapi_addresses_links_description": "此地址資源的連結，包括其標準網址。",
   "openapi_places_i18n_snapshot_id_description": "產生此本地化資料的不可變地點快照。",
   "openapi_places_i18n_place_id_description": "此本地化資料所屬地點的識別碼。",
