@@ -95,6 +95,7 @@ test('full reset holds the delivery lock and clears ownership after all database
       },
     })
     expect(steps).toEqual([
+      'rehash-fixture.ts',
       'drop-local-db.sh',
       'migrate-local-db.sh',
       'syncMetaRegistry.ts',
@@ -114,7 +115,7 @@ test('full reset holds the delivery lock and clears ownership after all database
   }
 })
 
-for (const failureStep of [1, 2, 3, 4]) {
+for (const failureStep of [1, 2, 3, 4, 5]) {
   test(`failed reset step ${failureStep} retains ownership and artefacts`, async () => {
     const f = await fixture()
     let steps = 0
@@ -128,6 +129,8 @@ for (const failureStep of [1, 2, 3, 4]) {
         }),
       ).rejects.toThrow('reset step failed')
       expect(steps).toBe(failureStep)
+      if (failureStep === 1)
+        expect(await readSqlDeliveryGeneration(f.cacheDir, 'test')).toBeNull()
       for (const path of [...f.files, f.marker]) {
         expect(await Bun.file(path).exists()).toBe(true)
       }

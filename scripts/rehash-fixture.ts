@@ -20,6 +20,7 @@ const fixtureGroups = [
   'curations/identity',
   'rulesetVersions',
   'schemaVersions',
+  'units',
 ]
 
 function isJsonRecord(value: unknown): value is JsonRecord {

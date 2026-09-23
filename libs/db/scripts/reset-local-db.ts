@@ -23,6 +23,17 @@ export async function resetLocalDb(
   await withDeliveryLock(resolve(cacheDir, 'sql-delivery-lock'), async () => {
     if (dbFamily === 'all') {
       await assertLocalR2Stopped(repoRoot)
+    }
+
+    if (dbFamily === 'all' || dbFamily === 'meta') {
+      await executeStep({
+        pending: 'Rehashing metadata fixtures',
+        success: 'Rehashed metadata fixtures.',
+        command: ['bun', resolve(repoRoot, 'scripts/rehash-fixture.ts')],
+      })
+    }
+
+    if (dbFamily === 'all') {
       const pending = await readPendingSqlDelivery(cacheDir)
       if (pending) await invalidateSqlDeliveryReleases(cacheDir, [pending.releaseId])
     }
