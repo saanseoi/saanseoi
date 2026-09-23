@@ -43,6 +43,7 @@ test('empty exact Address dependencies resolve from metadata and reject missing 
     for (const [id, resourceType] of [
       ['empty-address', 'address'],
       ['empty-division', 'division'],
+      ['empty-area', 'divisionArea'],
       ['unrecorded-address', 'address'],
     ])
       insert(meta, 'snapshots', {
@@ -64,7 +65,7 @@ test('empty exact Address dependencies resolve from metadata and reject missing 
       status: 'active',
       versionHash: 'history',
     })
-    for (const snapshotId of ['empty-address', 'empty-division'])
+    for (const snapshotId of ['empty-address', 'empty-division', 'empty-area'])
       insert(meta, 'snapshotShardAssignments', { snapshotId, dataShardId: 'history' })
     insert(meta, 'snapshotAssembly', {
       id: 'assembly',
@@ -79,7 +80,9 @@ test('empty exact Address dependencies resolve from metadata and reject missing 
       snapshotId: 'empty-address',
       snapshotAssemblyId: 'assembly',
       status: 'selected',
-      selectionSummaryJson: { lookupSnapshotIds: { division: 'empty-division' } },
+      selectionSummaryJson: {
+        lookupSnapshotIds: { division: 'empty-division', divisionArea: 'empty-area' },
+      },
     })
     const metaDb = createLocalHarbourDb(meta)
     view = await PlaceDependencyView.create({
@@ -162,6 +165,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       ['a1', 'address', 'a0'],
       ['a2', 'address', 'a1'],
       ['d', 'division', null],
+      ['g', 'divisionArea', null],
     ])
       insert(meta, 'snapshots', {
         id,
@@ -192,6 +196,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       ['a1', 'new'],
       ['a2', 'new'],
       ['d', 'old'],
+      ['g', 'old'],
     ])
       insert(meta, 'snapshotShardAssignments', { snapshotId: id, dataShardId: shard })
     insert(meta, 'snapshotAssembly', {
@@ -208,7 +213,9 @@ test('exact historical Place dependencies replay independent locale shards and s
         snapshotId,
         snapshotAssemblyId: 'assembly',
         status: 'selected',
-        selectionSummaryJson: { lookupSnapshotIds: { division: 'd' } },
+        selectionSummaryJson: {
+          lookupSnapshotIds: { division: 'd', divisionArea: 'g' },
+        },
       })
     const history = (
       db: Database,
@@ -237,11 +244,13 @@ test('exact historical Place dependencies replay independent locale shards and s
         isCurrent: 1,
       })
       const recordType =
-        table === 'divisions'
-          ? 'division'
-          : table === 'divisionsI18n'
-            ? 'divisionI18n'
-            : table
+        table === 'divisionAreas'
+          ? 'divisionArea'
+          : table === 'divisions'
+            ? 'division'
+            : table === 'divisionsI18n'
+              ? 'divisionI18n'
+              : table
       insert(db, 'snapshotVersionChanges', {
         snapshotId,
         recordType,
@@ -252,6 +261,21 @@ test('exact historical Place dependencies replay independent locale shards and s
         sourceReleaseId: 'release',
       })
     }
+    history(before, 'divisionAreas', 'g', 'area-old', {
+      divisionId: 'country',
+      type: 'division_area',
+      geometry: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [0, 0],
+          ],
+        ],
+      },
+    })
     history(before, 'divisions', 'd', 'country', { class: 'country', hierarchies: [] })
     history(
       before,
@@ -348,11 +372,20 @@ test('exact historical Place dependencies replay independent locale shards and s
     await expect(view.prepare('a1')).rejects.toThrow('Dependency replay is missing')
     expect(await view.db.select().from(currentSchema.address2d).all()).toEqual([])
     expect(await view.db.select().from(currentSchema.divisions).all()).toEqual([])
+    expect(await view.db.select().from(currentSchema.divisionAreas).all()).toEqual([])
     for (const row of missingContent) insert(after, 'address2dI18n', row)
     const changesBeforeRetry = [meta, before, after, current].map(db =>
       db.query('SELECT total_changes() AS n').get(),
     )
     await view.prepare('a1')
+    expect(
+      (
+        await view.db
+          .select({ id: currentSchema.divisionAreas.id })
+          .from(currentSchema.divisionAreas)
+          .all()
+      ).map(row => row.id),
+    ).toEqual(['area-old'])
     expect(
       [meta, before, after, current].map(db =>
         db.query('SELECT total_changes() AS n').get(),

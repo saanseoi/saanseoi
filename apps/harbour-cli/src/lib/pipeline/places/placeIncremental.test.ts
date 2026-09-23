@@ -177,7 +177,18 @@ test('enrichment reuses unchanged records across releases with fresh dates and i
   const root = await mkdtemp(join(tmpdir(), 'incremental-enrichment-'))
   const cache = new PlaceRecordCache(join(root, 'cache.sqlite'), 'test')
   const db = {
-    select: () => ({ from: () => ({ where: () => ({ all: async () => [] }) }) }),
+    select: () => ({
+      from: () => ({
+        where: () => ({
+          all: async () => [],
+          get: async () => ({
+            scopeId: 'areas',
+            preparedAt: 'ready',
+            publicationToken: 'ready',
+          }),
+        }),
+      }),
+    }),
   } as unknown as HarbourReadableDb
   const resolution: StagedAddressResolution = {
     placeId: 'place',
@@ -213,7 +224,11 @@ test('enrichment reuses unchanged records across releases with fresh dates and i
       }
       const staged = await stageEnrichedPlaces(
         db,
-        { addressSnapshotId, divisionSnapshotId: 'divisions' },
+        {
+          addressSnapshotId,
+          divisionSnapshotId: 'divisions',
+          divisionAreaSnapshotId: 'areas',
+        },
         places(),
         resolutions(),
         release,

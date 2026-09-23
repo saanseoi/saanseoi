@@ -42,6 +42,11 @@ export type EnrichedPlace = {
   address3dId: string | null
   address3dUnitId?: string | null
   address3dMembership?: 'established' | 'unresolved' | null
+  divisionAssociation?: {
+    divisionSnapshotId: string
+    divisionAreaSnapshotId: string
+    evidence: { divisionId: string; method: string }[]
+  }
   divisionIds: string[]
   divisionDefinitions?: Record<
     string,
@@ -102,6 +107,7 @@ export type BuildPlaceSqlInput = {
   snapshots: {
     addressSnapshotId: string
     divisionSnapshotId: string
+    divisionAreaSnapshotId?: string
     snapshotId: string
     snapshotLineageId: string
   }

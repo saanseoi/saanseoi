@@ -1,3 +1,4 @@
+import { createDivisionMembership } from '../divisions/divisionMembership'
 import { createRecordEnrichmentReuse } from './placeRecordEnrichment.ts'
 import { recordCacheKey, type PlaceRecordCache } from './placeRecordCache.ts'
 import { rename, open } from 'node:fs/promises'
@@ -13,7 +14,10 @@ import { deliveryFileSha256, sha256 } from '../local/sqlDeliveryFiles.ts'
 import type { PlaceAddress3dReadObserver } from './placeAddress3d.ts'
 import { createPlaceAddress3dMatcher } from './placeAddress3d'
 import { createPlaceSearchDependencies } from './placeSearchDependencies.ts'
-import { resolvePlaceDivisionDependency } from './placeSnapshotDependencies.ts'
+import {
+  resolvePlaceDivisionDependency,
+  readAddressDivisionAreaSnapshotId,
+} from './placeSnapshotDependencies.ts'
 import { createReadStream } from 'node:fs'
 import { resolve } from 'node:path'
 import { createInterface } from 'node:readline'
@@ -208,6 +212,10 @@ export async function resolvePlaceSnapshots(
     )
 
   const division = await resolvePlaceDivisionDependency(metaDb, currentDb, address.id)
+  const divisionAreaSnapshotId = await readAddressDivisionAreaSnapshotId(
+    metaDb,
+    address.id,
+  )
   if (!recordedAddressId)
     await recordPlaceAddressAssembly(metaDb, {
       snapshotId: place.id,
@@ -217,12 +225,15 @@ export async function resolvePlaceSnapshots(
       selectionSummaryJson: {
         addressSnapshotId: address.id,
         divisionSnapshotId: division.id,
+        divisionAreaSnapshotId,
+        lookupSnapshotIds: { divisionArea: divisionAreaSnapshotId },
         addressReviewRequired: null,
       },
     })
   return {
     addressSnapshotId: address.id,
     divisionSnapshotId: division.id,
+    divisionAreaSnapshotId,
     snapshotId: place.id,
     snapshotLineageId: place.snapshotLineageId,
   }
@@ -332,7 +343,11 @@ export async function* readStagedJsonLines<T>(path: string) {
 
 export async function stageEnrichedPlaces(
   currentDb: HarbourReadableDb,
-  snapshots: { addressSnapshotId: string; divisionSnapshotId: string },
+  snapshots: {
+    addressSnapshotId: string
+    divisionSnapshotId: string
+    divisionAreaSnapshotId?: string
+  },
   places: AsyncIterable<NormalisedPlace>,
   resolutions: AsyncIterable<StagedAddressResolution>,
   releaseRoot: string,
@@ -366,17 +381,46 @@ export async function stageEnrichedPlaces(
       sql`${currentSchema.address2d.snapshotId} = (select ${currentSchema.addressPublicationState.scopeId} from ${currentSchema.addressPublicationState} where ${currentSchema.addressPublicationState.preparedAt} is not null and ${currentSchema.addressPublicationState.snapshotId} = ${snapshots.addressSnapshotId})`,
     )
     .all()
-  const divisionIds = new Set(
-    (
-      await currentDb
-        .select({ id: currentSchema.divisions.id })
-        .from(currentSchema.divisions)
-        .where(
-          sql`${currentSchema.divisions.snapshotId} = (select ${currentSchema.divisionPublicationState.scopeId} from ${currentSchema.divisionPublicationState} where ${currentSchema.divisionPublicationState.snapshotId} = ${snapshots.divisionSnapshotId} and ${currentSchema.divisionPublicationState.preparedAt} is not null)`,
-        )
-        .all()
-    ).map(row => row.id),
-  )
+  const divisions = await currentDb
+    .select({
+      id: currentSchema.divisions.id,
+      class: currentSchema.divisions.class,
+      hierarchies: currentSchema.divisions.hierarchies,
+    })
+    .from(currentSchema.divisions)
+    .where(
+      sql`${currentSchema.divisions.snapshotId} = (select ${currentSchema.divisionPublicationState.scopeId} from ${currentSchema.divisionPublicationState} where ${currentSchema.divisionPublicationState.snapshotId} = ${snapshots.divisionSnapshotId} and ${currentSchema.divisionPublicationState.preparedAt} is not null)`,
+    )
+    .all()
+  const divisionIds = new Set(divisions.map(row => row.id))
+  if (!snapshots.divisionAreaSnapshotId)
+    throw new Error('Places preparation requires its exact DivisionArea dependency.')
+  const divisionAreaSnapshotId = snapshots.divisionAreaSnapshotId
+  const geometryReceipt = await currentDb
+    .select({
+      scopeId: currentSchema.divisionAreaPublicationState.scopeId,
+      preparedAt: currentSchema.divisionAreaPublicationState.preparedAt,
+      publicationToken: currentSchema.divisionAreaPublicationState.publicationToken,
+    })
+    .from(currentSchema.divisionAreaPublicationState)
+    .where(
+      eq(
+        currentSchema.divisionAreaPublicationState.snapshotId,
+        snapshots.divisionAreaSnapshotId,
+      ),
+    )
+    .get()
+  if (!geometryReceipt?.preparedAt || !geometryReceipt.publicationToken)
+    throw new Error('Places preparation requires a complete DivisionArea projection.')
+  const areas = await currentDb
+    .select({
+      divisionId: currentSchema.divisionAreas.divisionId,
+      geometry: currentSchema.divisionAreas.geometry,
+    })
+    .from(currentSchema.divisionAreas)
+    .where(eq(currentSchema.divisionAreas.snapshotId, geometryReceipt.scopeId))
+    .all()
+  const membership = createDivisionMembership(divisions, areas)
   const addressById = new Map(addresses.map(row => [row.id, row]))
   if (!supplementary)
     throw new Error('Places require supplementary address analysis before enrichment.')
@@ -422,22 +466,18 @@ export async function stageEnrichedPlaces(
             const effectiveLat = resolution.lat ?? place.lat
             const geometryOverridden =
               effectiveLng !== place.lng || effectiveLat !== place.lat
-            const referencedDivisionIds = address
-              ? [
-                  address.countryId,
-                  address.areaId,
-                  address.districtId,
-                  address.landformId,
-                  address.townId,
-                  address.macrohoodId,
-                  address.villageId,
-                  address.neighbourhoodId,
-                  address.hamletId,
-                  address.microhoodId,
-                ].filter(
-                  (id): id is string => typeof id === 'string' && divisionIds.has(id),
-                )
-              : []
+            const association = membership.resolve({
+              lng: effectiveLng,
+              lat: effectiveLat,
+              fallback: address,
+              fallbackMethod: 'address',
+            })
+            const referencedDivisionIds = association.divisionIds
+            const divisionAssociation = {
+              divisionSnapshotId: snapshots.divisionSnapshotId,
+              divisionAreaSnapshotId,
+              evidence: association.evidence,
+            }
             const {
               firstSeenMonth: _first,
               lastSeenMonth: _last,
@@ -451,6 +491,7 @@ export async function stageEnrichedPlaces(
               snapshots.divisionSnapshotId,
               address ?? null,
               referencedDivisionIds,
+              divisionAssociation,
               effectiveLng,
               effectiveLat,
             ])
@@ -481,12 +522,14 @@ export async function stageEnrichedPlaces(
                 address3dUnitId: unitReference?.address3dUnitId ?? null,
                 address3dMembership: unitReference?.address3dMembership ?? null,
                 divisionIds: [...new Set(referencedDivisionIds)],
+                divisionAssociation,
                 ...dependencies,
                 versionHash: await hashPlaceMaterialisation(place, {
                   addressSnapshotId,
                   divisionSnapshotId: snapshots.divisionSnapshotId,
                   addressId,
                   divisionIds: referencedDivisionIds,
+                  divisionAssociation,
                   addressDependencyHash: dependencies.addressDependencyHash,
                   effectiveLng,
                   effectiveLat,
@@ -520,12 +563,13 @@ export async function stageEnrichedPlaces(
     db: currentDb,
     identity: sha256(
       JSON.stringify({
-        contract: ['places-enrichment-v3-pinned-dependencies', recordCache?.contract],
+        contract: ['places-enrichment-v4-spatial-divisions', recordCache?.contract],
         places: await deliveryFileSha256(sourcePath),
         resolutions: await deliveryFileSha256(supplementary.resolutionPath),
         snapshots,
         addresses: addresses.sort((a, b) => a.id.localeCompare(b.id)),
         divisions: [...divisionIds].sort(),
+        geometry: membership.fingerprint,
         supplementary: {
           snapshotId: supplementary.snapshotId,
           addresses: supplementary.addresses,

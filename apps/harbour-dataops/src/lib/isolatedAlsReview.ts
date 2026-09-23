@@ -72,6 +72,8 @@ export function divisionLookupFingerprint(lookup: DivisionLookupMaps) {
     districtByEn: sortedMapEntries(lookup.districtByEn),
     districtByZh: sortedMapEntries(lookup.districtByZh),
     snapshotId: lookup.snapshotId,
+    divisionAreaSnapshotId: lookup.areaSnapshotId,
+    membershipFingerprint: lookup.membership?.fingerprint,
   }
 }
 

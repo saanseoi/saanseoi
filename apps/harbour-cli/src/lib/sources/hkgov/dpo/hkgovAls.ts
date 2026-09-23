@@ -1,3 +1,4 @@
+import { applyAlsDivisionMembership } from './hkgovAlsDivisionMembership'
 import {
   retainReviewedAlsPremises,
   applyReviewedAlsPremiseRetentions,
@@ -297,7 +298,6 @@ async function prepareHkgovAlsAddressParquetInternal(
   const resolvedIdDistinctRows = consolidateRowsSharingResolvedId(rows)
   rows.splice(0, rows.length, ...resolvedIdDistinctRows)
   assertUniquePreparedRowIds(rows)
-  const divisionQuality = buildHkgovAlsDivisionQuality(rows)
   const aliasOwnerIds = coalesceAlsAliasedPremises(
     rows,
     options.sourceVersion,
@@ -348,6 +348,8 @@ async function prepareHkgovAlsAddressParquetInternal(
   backfillOiHei(rows, options.sourceVersion, options.skipCurationChecks)
   assertUniquePreparedRowIds(rows)
   finishReviewedAlsPremiseRetentions(rows)
+  applyAlsDivisionMembership(rows, divisionMaps)
+  const divisionQuality = buildHkgovAlsDivisionQuality(rows)
   auditGuards.passed('unique-identities', rows.length)
   auditGuards.passed('coordinate-source', coordinateChanges.backfilled)
   auditGuards.passed(
@@ -446,6 +448,20 @@ async function prepareHkgovAlsAddressParquetInternal(
           'divisionSnapshotId',
           rows.map(row => row.divisionSnapshotId),
           false,
+        ),
+        ...(
+          [
+            'macrohoodId',
+            'neighbourhoodId',
+            'villageId',
+            'microhoodId',
+            'hamletId',
+          ] as const
+        ).map(field =>
+          stringColumn(
+            field,
+            rows.map(row => row[field] ?? null),
+          ),
         ),
         stringColumn(
           'townId',
@@ -690,6 +706,7 @@ async function prepareHkgovAlsAddressParquetInternal(
         sourceVersion: options.sourceVersion,
         preparedSha256: await fileSha256(outputFile),
         divisionSnapshotId: divisionMaps.snapshotId,
+        divisionAreaSnapshotId: divisionMaps.areaSnapshotId,
         sourceFeatureCount,
         outputCount: rows.length,
         declarations: {

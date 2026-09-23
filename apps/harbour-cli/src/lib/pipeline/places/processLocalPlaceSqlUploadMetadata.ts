@@ -22,6 +22,7 @@ export async function upsertPlaceMetadata(
   snapshots: {
     addressSnapshotId: string
     divisionSnapshotId: string
+    divisionAreaSnapshotId?: string
     snapshotId: string
     supplementaryAddressSnapshotId: string
   },
@@ -52,6 +53,7 @@ export async function upsertPlaceMetadata(
     selectionSummaryJson: {
       addressSnapshotId: snapshots.addressSnapshotId,
       divisionSnapshotId: snapshots.divisionSnapshotId,
+      divisionAreaSnapshotId: snapshots.divisionAreaSnapshotId,
       sourceReleaseId: releaseId,
       sourceVersion: plan.sourceVersion,
       supplementaryAddressSnapshotId: snapshots.supplementaryAddressSnapshotId,
@@ -68,11 +70,18 @@ export async function upsertPlaceMetadata(
   await recordSnapshotLookupDependency(metaDb, {
     anchorReleaseId: releaseId,
     lookupSnapshotId: snapshots.divisionSnapshotId,
-    selectedByRule:
-      'api-composition:places/overture:address/default->division/overture',
+    selectedByRule: 'place-preparation:address-exact-division',
     selectionMode: 'address_snapshot_reference',
     snapshotId: snapshots.snapshotId,
   })
+  if (snapshots.divisionAreaSnapshotId)
+    await recordSnapshotLookupDependency(metaDb, {
+      anchorReleaseId: releaseId,
+      lookupSnapshotId: snapshots.divisionAreaSnapshotId,
+      selectedByRule: 'place-preparation:address-exact-division-area',
+      selectionMode: 'address_snapshot_reference',
+      snapshotId: snapshots.snapshotId,
+    })
   const environment = resolvePipelineEnvironment(target)
   const historyShard = await resolveShardForTypeRegionYear(
     metaDb,

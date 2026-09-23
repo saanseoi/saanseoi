@@ -113,7 +113,16 @@ export async function buildPlaceSql(
   let processedPlaceRows = 0
   for (const row of input.places) {
     const place = row.place
+    const resolvedSources = {
+      ...place.sources,
+      ...(row.divisionAssociation
+        ? { divisionAssociation: row.divisionAssociation }
+        : {}),
+    }
     const resolutions = {
+      ...(row.divisionAssociation
+        ? { divisionAssociation: row.divisionAssociation }
+        : {}),
       entities: {
         place: [place.id],
         ...(row.divisionIds.length
@@ -214,7 +223,7 @@ export async function buildPlaceSql(
       phones: place.phones,
       addresses: place.addresses,
       confidence: place.confidence,
-      sources: unchanged ? (previous.row.sources ?? place.sources) : place.sources,
+      sources: unchanged ? (previous.row.sources ?? resolvedSources) : resolvedSources,
       firstSeenMonth,
       lastSeenMonth: unchanged ? previous.row.lastSeenMonth : place.lastSeenMonth,
       createdAt: now,
@@ -377,7 +386,7 @@ export async function buildPlaceSql(
             phones: place.phones,
             addresses: place.addresses,
             confidence: place.confidence,
-            sources: place.sources,
+            sources: resolvedSources,
             firstSeenMonth,
             lastSeenMonth: place.lastSeenMonth,
             versionHash: row.versionHash,

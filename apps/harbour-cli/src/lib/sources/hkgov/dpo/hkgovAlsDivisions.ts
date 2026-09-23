@@ -3,16 +3,14 @@ import { addLandformLookup, type LandformLookup } from './hkgovAlsLandforms'
 import type { DivisionHierarchies } from '@repo/db'
 import { dirname, join, resolve } from 'node:path'
 import { Database as SQLiteDatabase } from 'bun:sqlite'
-import { and, desc, eq, isNotNull, ne } from 'drizzle-orm'
-import { resolveLocalD1Path } from '@repo/core/testing/localDb'
+import { sql } from 'drizzle-orm'
 import {
-  currentSchema,
-  historySchema,
-  metaSchema,
-  type CurrentDatabase,
-  type HistoryDatabase,
-  type MetaDatabase,
-} from '@repo/db'
+  createDivisionMembership,
+  type MembershipArea,
+} from '../../../pipeline/divisions/divisionMembership'
+import { readGeometrySnapshot } from '../../../pipeline/divisions/readGeometrySnapshot'
+import { resolveLocalD1Path } from '@repo/core/testing/localDb'
+import type { CurrentDatabase, HistoryDatabase, MetaDatabase } from '@repo/db'
 import type { UploadEnvironment } from '../../../cli/options.ts'
 import type { DivisionLookupMaps, DivisionLookupSource } from './hkgovAlsTypes.ts'
 import { COUNTRY_NAME_ALIASES, HARBOUR_API_WRANGLER_CONFIG } from './hkgovAlsConfig.ts'
@@ -20,7 +18,7 @@ import { normaliseEnKey, normaliseZhKey, sqlLiteral } from './hkgovAlsNormalisat
 import type { ReplayShard } from '@repo/core/pipeline/db/snapshotReplay'
 import { loadAlsDivisionHistory } from './hkgovAlsDivisionHistory'
 
-export async function loadDivisionLookupMaps(options: {
+type LookupOptions = {
   currentDb?: CurrentDatabase
   historyDb?: HistoryDatabase
   historyShards?: ReadonlyMap<string, ReplayShard>
@@ -28,315 +26,143 @@ export async function loadDivisionLookupMaps(options: {
   dbPath?: string
   environment: UploadEnvironment
   metaDb?: MetaDatabase
-}): Promise<DivisionLookupMaps> {
-  if (options.currentDb && options.metaDb) {
-    const snapshot = await options.metaDb
-      .select({ id: metaSchema.metaSnapshots.id })
-      .from(metaSchema.metaSnapshots)
-      .innerJoin(
-        metaSchema.metaSnapshotLineages,
-        eq(
-          metaSchema.metaSnapshots.snapshotLineageId,
-          metaSchema.metaSnapshotLineages.id,
-        ),
-      )
-      .where(
-        and(
-          eq(metaSchema.metaSnapshots.resourceType, 'division'),
-          eq(metaSchema.metaSnapshots.status, 'published'),
-          eq(metaSchema.metaSnapshots.cohortKey, options.cohortKey),
-          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
-        ),
-      )
-      .orderBy(desc(metaSchema.metaSnapshots.revision))
-      .limit(1)
-      .get()
-    if (!snapshot) {
-      throw new Error(
-        `No published Overture division snapshot found for cohort ${options.cohortKey}.`,
-      )
-    }
-    if (options.historyShards) {
-      return buildDivisionLookupMaps(
-        await loadAlsDivisionHistory(
-          options.metaDb,
-          snapshot.id,
-          options.historyShards,
-        ),
-      )
-    }
-    let rows = await options.currentDb
-      .select({
-        snapshotId: currentSchema.divisionPublicationState.snapshotId,
-        id: currentSchema.divisions.id,
-        level: currentSchema.divisions.level,
-        category: currentSchema.divisions.category,
-        class: currentSchema.divisions.class,
-        hierarchies: currentSchema.divisions.hierarchies,
-        locale: currentSchema.divisionsI18n.locale,
-        name: currentSchema.divisionsI18n.name,
-      })
-      .from(currentSchema.divisions)
-      .innerJoin(
-        currentSchema.divisionPublicationState,
-        eq(
-          currentSchema.divisionPublicationState.scopeId,
-          currentSchema.divisions.snapshotId,
-        ),
-      )
-      .innerJoin(
-        currentSchema.divisionsI18n,
-        and(
-          eq(
-            currentSchema.divisionsI18n.snapshotId,
-            currentSchema.divisions.snapshotId,
-          ),
-          eq(currentSchema.divisionsI18n.divisionId, currentSchema.divisions.id),
-        ),
-      )
-      .where(
-        and(
-          eq(currentSchema.divisionPublicationState.snapshotId, snapshot.id),
-          isNotNull(currentSchema.divisionPublicationState.preparedAt),
-          ne(currentSchema.divisionPublicationState.publicationToken, ''),
-        ),
-      )
-      .all()
-    if (rows.length === 0 && options.historyDb) {
-      rows = await options.historyDb
-        .select({
-          snapshotId: historySchema.divisions.snapshotId,
-          id: historySchema.divisions.id,
-          level: historySchema.divisions.level,
-          category: historySchema.divisions.category,
-          class: historySchema.divisions.class,
-          hierarchies: historySchema.divisions.hierarchies,
-          locale: historySchema.divisionsI18n.locale,
-          name: historySchema.divisionsI18n.name,
-        })
-        .from(historySchema.divisions)
-        .innerJoin(
-          historySchema.divisionsI18n,
-          and(
-            eq(historySchema.divisionsI18n.divisionId, historySchema.divisions.id),
-            eq(
-              historySchema.divisionsI18n.versionHash,
-              historySchema.divisions.versionHash,
-            ),
-          ),
-        )
-        .where(eq(historySchema.divisions.snapshotId, snapshot.id))
-        .all()
-    }
-    return buildDivisionLookupMaps(rows)
-  }
-
-  const currentSource = resolveDivisionLookupSource(options)
-  const snapshotSource = resolveDivisionSnapshotSource(options)
-  const snapshotId =
-    snapshotSource.kind === 'sqlite'
-      ? loadPublishedDivisionSnapshotIdFromSqlite(
-          snapshotSource.dbPath,
-          options.cohortKey,
-        )
-      : await loadPublishedDivisionSnapshotIdFromWrangler(
-          snapshotSource,
-          options.cohortKey,
-        )
-  const rows =
-    currentSource.kind === 'sqlite'
-      ? loadDivisionLookupRowsFromSqlite(currentSource.dbPath, snapshotId)
-      : await loadDivisionLookupRowsFromWrangler(currentSource, snapshotId)
-
-  return buildDivisionLookupMaps(rows)
 }
 
-function loadPublishedDivisionSnapshotIdFromSqlite(
-  explicitDbPath: string,
-  cohortKey: string,
-) {
-  const databasePath = resolveLocalD1Path(explicitDbPath)
-  const sqlite = new SQLiteDatabase(databasePath, { readonly: true })
-
-  try {
-    const row = sqlite
-      .query(
-        `
-          SELECT s.id AS snapshotId
-          FROM snapshots s
-          INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
-          WHERE s.resourceType = 'division'
-            AND s.status = 'published'
-            AND s.cohortKey = ?
-            AND sl.variant = 'overture'
-          ORDER BY s.revision DESC
-          LIMIT 1
-        `,
-      )
-      .get(cohortKey) as { snapshotId: string } | null
-
-    if (!row?.snapshotId) {
-      throw new Error(
-        `No published Overture division snapshot found for cohort ${cohortKey}.`,
-      )
+export async function loadDivisionLookupMaps(
+  options: LookupOptions,
+): Promise<DivisionLookupMaps> {
+  const query = async <T>(
+    kind: 'current' | 'meta',
+    statement: string,
+  ): Promise<T[]> => {
+    const db = kind === 'current' ? options.currentDb : options.metaDb
+    if (db) return (await db.all(sql.raw(statement))) as T[]
+    const source =
+      kind === 'current'
+        ? resolveDivisionLookupSource(options)
+        : resolveDivisionSnapshotSource(options)
+    if (source.kind === 'sqlite') {
+      const sqlite = new SQLiteDatabase(source.dbPath, { readonly: true })
+      try {
+        return sqlite.query(statement).all() as T[]
+      } finally {
+        sqlite.close()
+      }
     }
-
-    return row.snapshotId
-  } finally {
-    sqlite.close()
+    const process = Bun.spawn({
+      cmd: [
+        'bun',
+        'x',
+        'wrangler',
+        'd1',
+        'execute',
+        source.databaseName,
+        `--${source.mode}`,
+        '--config',
+        HARBOUR_API_WRANGLER_CONFIG,
+        '--env',
+        source.wranglerEnv,
+        '--json',
+        '--command',
+        statement,
+      ],
+      cwd: resolve(import.meta.dir, '../../../../..'),
+      stdout: 'pipe',
+      stderr: 'pipe',
+    })
+    const [stdout, stderr, code] = await Promise.all([
+      new Response(process.stdout).text(),
+      new Response(process.stderr).text(),
+      process.exited,
+    ])
+    if (code) throw new Error(`Division lookup failed: ${stderr || stdout}`)
+    const result = JSON.parse(stdout)[0]
+    if (!result?.success || !Array.isArray(result.results))
+      throw new Error('Invalid division lookup response.')
+    return result.results as T[]
   }
-}
-
-function loadDivisionLookupRowsFromSqlite(explicitDbPath: string, snapshotId: string) {
-  const databasePath = resolveLocalD1Path(explicitDbPath)
-  const sqlite = new SQLiteDatabase(databasePath, { readonly: true })
-
-  try {
-    return sqlite
-      .query(
-        `
-          SELECT p.snapshotId, d.id, d.level, d.class, d.hierarchies, di.locale, di.name
-          FROM divisions d
-          JOIN divisionPublicationState p ON p.scopeId = d.snapshotId
-          JOIN divisionsI18n di
-            ON di.snapshotId = d.snapshotId
-           AND di.divisionId = d.id
-          WHERE p.snapshotId = ? AND p.preparedAt IS NOT NULL AND p.publicationToken <> ''
-            AND di.locale IN ('en', 'zh-hant')
-        `,
-      )
-      .all(snapshotId) as Array<DivisionLookupRow>
-  } finally {
-    sqlite.close()
-  }
-}
-
-async function loadDivisionLookupRowsFromWrangler(
-  target: Extract<DivisionLookupSource, { kind: 'wrangler' }>,
-  snapshotId: string,
-) {
-  const args = [
-    'x',
-    'wrangler',
-    'd1',
-    'execute',
-    target.databaseName,
-    `--${target.mode}`,
-    '--config',
-    HARBOUR_API_WRANGLER_CONFIG,
-    '--env',
-    target.wranglerEnv,
-    '--json',
-    '--command',
+  // Curated HK editions are independent of Overture's monthly cohorts. Fresh
+  // ingestion uses the latest reviewed edition and records its immutable IDs.
+  const [snapshot] = await query<{
+    id: string
+    cohortKey: string
+    variant: string
+    notes: string | null
+  }>(
+    'meta',
     `
-      SELECT p.snapshotId, d.id, d.level, d.class, d.hierarchies, di.locale, di.name
-      FROM divisions d
-      JOIN divisionPublicationState p ON p.scopeId = d.snapshotId
-      JOIN divisionsI18n di
-        ON di.snapshotId = d.snapshotId
-       AND di.divisionId = d.id
-      WHERE p.snapshotId = ${sqlLiteral(snapshotId)} AND p.preparedAt IS NOT NULL AND p.publicationToken <> ''
-        AND di.locale IN ('en', 'zh-hant')
-    `,
-  ]
-
-  const process = Bun.spawn({
-    cmd: ['bun', ...args],
-    cwd: resolve(import.meta.dir, '../../../../..'),
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-  const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
-    process.exited,
-  ])
-
-  if (exitCode !== 0) {
-    throw new Error(
-      `Failed to query divisions from ${target.wranglerEnv} D1.\n${stderr.trim() || stdout.trim()}`,
+    SELECT s.id,s.cohortKey,l.variant,s.notes FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId
+    WHERE s.resourceType='division' AND s.status='published' AND l.regionCode='hk'
+      AND (l.variant='saanseoi' OR (l.variant='overture' AND s.cohortKey=${sqlLiteral(options.cohortKey)}))
+    ORDER BY CASE WHEN l.variant='saanseoi' THEN 0 ELSE 1 END,s.cohortKey DESC,s.revision DESC LIMIT 1`,
+  )
+  if (!snapshot)
+    throw new Error('No published division snapshot found for ALS preparation.')
+  let rows: DivisionLookupRow[]
+  if (options.metaDb && options.historyShards) {
+    rows = await loadAlsDivisionHistory(
+      options.metaDb,
+      snapshot.id,
+      options.historyShards,
+    )
+  } else {
+    rows = await query<DivisionLookupRow>(
+      'current',
+      `
+      SELECT p.snapshotId,d.id,d.level,d.class,d.hierarchies,di.locale,di.name
+      FROM divisions d JOIN divisionPublicationState p ON p.scopeId=d.snapshotId
+      JOIN divisionsI18n di ON di.snapshotId=d.snapshotId AND di.divisionId=d.id
+      WHERE p.snapshotId=${sqlLiteral(snapshot.id)} AND p.preparedAt IS NOT NULL AND p.publicationToken<>''`,
     )
   }
-
-  const payload = JSON.parse(stdout) as Array<{
-    results?: DivisionLookupRow[]
-    success?: boolean
-  }>
-  const firstResult = payload[0]
-
-  if (!firstResult?.success || !Array.isArray(firstResult.results)) {
-    throw new Error(
-      `Unexpected Wrangler D1 response for ${target.wranglerEnv} environment.`,
-    )
-  }
-
-  return firstResult.results
-}
-
-async function loadPublishedDivisionSnapshotIdFromWrangler(
-  target: Extract<DivisionLookupSource, { kind: 'wrangler' }>,
-  cohortKey: string,
-) {
-  const args = [
-    'x',
-    'wrangler',
-    'd1',
-    'execute',
-    'DB_META',
-    `--${target.mode}`,
-    '--config',
-    HARBOUR_API_WRANGLER_CONFIG,
-    '--env',
-    target.wranglerEnv,
-    '--json',
-    '--command',
+  const maps = buildDivisionLookupMaps(rows)
+  const [areaSnapshot] = await query<{ id: string }>(
+    'meta',
     `
-      SELECT s.id AS snapshotId
-      FROM snapshots s
-      INNER JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
-      WHERE s.resourceType = 'division'
-        AND s.status = 'published'
-        AND s.cohortKey = ${sqlLiteral(cohortKey)}
-        AND sl.variant = 'overture'
-      ORDER BY s.revision DESC
-      LIMIT 1
-    `,
-  ]
-
-  const process = Bun.spawn({
-    cmd: ['bun', ...args],
-    cwd: resolve(import.meta.dir, '../../../../..'),
-    stdout: 'pipe',
-    stderr: 'pipe',
-  })
-  const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(process.stdout).text(),
-    new Response(process.stderr).text(),
-    process.exited,
-  ])
-
-  if (exitCode !== 0) {
+    SELECT s.id FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId
+    WHERE s.resourceType='divisionArea' AND s.status='published' AND l.regionCode='hk'
+      AND l.variant=${sqlLiteral(snapshot.variant)} AND s.cohortKey=${sqlLiteral(snapshot.cohortKey)}
+      ${snapshot.variant === 'saanseoi' ? `AND s.notes=${sqlLiteral(snapshot.notes ?? '')}` : ''}
+    ORDER BY s.revision DESC LIMIT 1`,
+  )
+  if (!areaSnapshot)
     throw new Error(
-      `Failed to query division snapshot from ${target.wranglerEnv} meta D1.\n${stderr.trim() || stdout.trim()}`,
+      `ALS preparation requires published ${snapshot.variant} divisionArea geometry for ${snapshot.cohortKey}.`,
+    )
+  let areas: MembershipArea[]
+  if (options.currentDb && options.metaDb && options.historyShards) {
+    const geometryRows = await readGeometrySnapshot(
+      {
+        currentDb: options.currentDb,
+        metaDb: options.metaDb,
+        historyTargets: [...options.historyShards.values()] as never,
+      },
+      'divisionArea',
+      areaSnapshot.id,
+    )
+    areas = geometryRows.map(row => ({
+      divisionId: (row as { divisionId: string }).divisionId,
+      geometry: row.geometry,
+    }))
+  } else {
+    const [receipt] = await query<{ scopeId: string }>(
+      'current',
+      `SELECT scopeId FROM divisionAreaPublicationState WHERE snapshotId=${sqlLiteral(areaSnapshot.id)} AND preparedAt IS NOT NULL AND publicationToken<>''`,
+    )
+    if (!receipt)
+      throw new Error(
+        `DivisionArea ${areaSnapshot.id} requires a complete local projection or history replay.`,
+      )
+    areas = await query<MembershipArea>(
+      'current',
+      `SELECT divisionId,geometry FROM divisionAreas WHERE snapshotId=${sqlLiteral(receipt.scopeId)}`,
     )
   }
-
-  const payload = JSON.parse(stdout) as Array<{
-    results?: Array<{
-      snapshotId?: string
-    }>
-    success?: boolean
-  }>
-  const firstResult = payload[0]
-  const snapshotId = firstResult?.results?.[0]?.snapshotId
-
-  if (!firstResult?.success || !snapshotId) {
-    throw new Error(
-      `No published Overture division snapshot found for cohort ${cohortKey} in ${target.wranglerEnv} meta D1.`,
-    )
+  return {
+    ...maps,
+    areaSnapshotId: areaSnapshot.id,
+    membership: createDivisionMembership(rows, areas),
   }
-
-  return snapshotId
 }
 
 export function resolveDivisionLookupSource(

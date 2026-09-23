@@ -155,12 +155,13 @@ async function fixture() {
           : {}),
       },
     })
+  snapshot('areas', 'divisionArea', null, 'OLD')
   for (let i = 0; i < 4; i++) {
     const shard = i < 2 ? 'OLD' : 'NEW'
     snapshot(`d${i}`, 'division', i ? `d${i - 1}` : null, shard)
     snapshot(`a${i}`, 'address', i ? `a${i - 1}` : null, shard)
     snapshot(`p${i}`, 'place', i ? `p${i - 1}` : null, shard)
-    assembly(`a${i}`, 'address', { division: `d${i}` })
+    assembly(`a${i}`, 'address', { division: `d${i}`, divisionArea: 'areas' })
     assembly(`p${i}`, 'place', { address: `a${i}`, division: `d${i}` })
   }
   history(old, 'divisions', 'd0', 'division', 'division-old', {

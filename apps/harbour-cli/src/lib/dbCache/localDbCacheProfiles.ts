@@ -54,6 +54,8 @@ export function resolveCacheTablesForBinding(
 
     if (cacheTableProfile === 'places') {
       return [
+        'divisionAreas',
+        'divisionAreaPublicationState',
         'divisions',
         'divisionPublicationState',
         'divisionsI18n',
@@ -77,6 +79,8 @@ export function resolveCacheTablesForBinding(
 
     if (cacheTableProfile === 'address') {
       return [
+        'divisionAreas',
+        'divisionAreaPublicationState',
         'divisions',
         'divisionPublicationState',
         'divisionsI18n',
@@ -186,6 +190,11 @@ export function resolveCacheTablesForBinding(
 
     if (cacheTableProfile === 'places') {
       return [
+        'divisionAreas',
+        'divisions',
+        'divisionsI18n',
+        'address3d',
+        'address3dI18n',
         'places',
         'placesI18n',
         'address2d',
@@ -199,6 +208,9 @@ export function resolveCacheTablesForBinding(
 
     if (cacheTableProfile === 'address') {
       return [
+        'divisionAreas',
+        'divisions',
+        'divisionsI18n',
         'address2d',
         'address2dEvidence',
         'address2dI18n',
@@ -441,7 +453,7 @@ export function resolveCachePruneOperation(
   // predecessor. Their journals can reference superseded identity/name hashes.
   if (
     bindingName.startsWith('DB_HISTORY_') &&
-    (tableName === 'divisions' || tableName === 'divisionsI18n')
+    ['divisions', 'divisionsI18n', 'divisionAreas'].includes(tableName)
   )
     return null
   // Supplementary roots and returning members select immutable components from

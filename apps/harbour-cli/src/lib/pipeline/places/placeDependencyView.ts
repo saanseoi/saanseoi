@@ -21,13 +21,18 @@ import {
 } from '@repo/db'
 import type { SQLiteTable } from 'drizzle-orm/sqlite-core'
 import { getMaxItemsPerInClause } from '@repo/core/pipeline/utils'
-import { readAddressDivisionSnapshotId } from './placeSnapshotDependencies.ts'
+import {
+  readAddressDivisionSnapshotId,
+  readAddressDivisionAreaSnapshotId,
+} from './placeSnapshotDependencies.ts'
 
 const tables = {
   address2d: currentSchema.address2d,
   address2dI18n: currentSchema.address2dI18n,
   address3d: currentSchema.address3d,
   address3dI18n: currentSchema.address3dI18n,
+  divisionAreas: currentSchema.divisionAreas,
+  divisionAreaPublicationState: currentSchema.divisionAreaPublicationState,
   divisions: currentSchema.divisions,
   divisionsI18n: currentSchema.divisionsI18n,
   addressPublicationState: currentSchema.addressPublicationState,
@@ -38,6 +43,7 @@ const components = [
   ['address2dI18n', 'address2dI18n', 'addressId'],
   ['address3d', 'address3d', 'id'],
   ['address3dI18n', 'address3dI18n', 'address3dId'],
+  ['divisionArea', 'divisionAreas', 'id'],
   ['division', 'divisions', 'id'],
   ['divisionI18n', 'divisionsI18n', 'divisionId'],
 ] as const
@@ -111,6 +117,14 @@ export class PlaceDependencyView {
         await this.hydrate(divisionSnapshotId, ['division', 'divisionI18n'])
         this.receipt('divisionPublicationState', divisionSnapshotId)
       }
+      const areaSnapshotId = await readAddressDivisionAreaSnapshotId(
+        this.metaDb,
+        addressSnapshotId,
+      )
+      if (!this.snapshots.has(areaSnapshotId)) {
+        await this.hydrate(areaSnapshotId, ['divisionArea'])
+        this.receipt('divisionAreaPublicationState', areaSnapshotId)
+      }
       await this.hydrate(
         addressSnapshotId,
         ['address2d', 'address2dI18n', 'address3d', 'address3dI18n'],
@@ -118,6 +132,7 @@ export class PlaceDependencyView {
       )
       this.receipt('addressPublicationState', addressSnapshotId)
       this.sqlite.exec('COMMIT')
+      this.snapshots.add(areaSnapshotId)
       this.snapshots.add(divisionSnapshotId)
       this.snapshots.add(addressSnapshotId)
       return this.db
@@ -128,7 +143,10 @@ export class PlaceDependencyView {
   }
 
   private receipt(
-    table: 'addressPublicationState' | 'divisionPublicationState',
+    table:
+      | 'addressPublicationState'
+      | 'divisionPublicationState'
+      | 'divisionAreaPublicationState',
     snapshotId: string,
   ) {
     this.insert(tables[table], {

@@ -25,6 +25,7 @@ test('empty ALS preparation must retain its exact Division selection before uplo
     sourceVersion: '2026-09-01.0',
     preparedSha256: 'empty',
     divisionSnapshotId: 'division-exact',
+    divisionAreaSnapshotId: 'area-exact',
     sourceFeatureCount: 0,
     outputCount: 0,
     fixtures: [],
@@ -35,6 +36,13 @@ test('empty ALS preparation must retain its exact Division selection before uplo
     expect(
       await readAddressPreparationAudit(path, 'empty', audit.sourceVersion),
     ).toMatchObject({ divisionSnapshotId: 'division-exact', outputCount: 0 })
+    await writeFile(
+      `${path}.audit.json`,
+      JSON.stringify({ ...audit, divisionAreaSnapshotId: undefined }),
+    )
+    await expect(
+      readAddressPreparationAudit(path, 'empty', audit.sourceVersion),
+    ).rejects.toThrow('audit does not match')
     await writeFile(
       `${path}.audit.json`,
       JSON.stringify({ ...audit, divisionSnapshotId: undefined }),
@@ -67,6 +75,7 @@ test('ALS retains reviewed documents, individual identity decisions and automati
       sourceVersion: '2026-09-01.0',
       preparedSha256: 'test',
       divisionSnapshotId: 'division',
+      divisionAreaSnapshotId: 'area',
       sourceFeatureCount: 2,
       outputCount: 1,
       declarations: {

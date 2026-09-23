@@ -330,7 +330,7 @@ export async function writeAddressReleaseMetaSqlFile(
       lookupSnapshotId: pipelineMessage.addressDivisionSnapshotId,
       anchorReleaseId: message.releaseId ?? message.datasetId,
       selectedByRule: 'address-preparation:exact-division',
-      selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
+      selectionMode: 'exact_ref',
     },
   )
   if (pipelineMessage.addressDivisionAreaSnapshotId)
@@ -341,7 +341,7 @@ export async function writeAddressReleaseMetaSqlFile(
         lookupSnapshotId: pipelineMessage.addressDivisionAreaSnapshotId,
         anchorReleaseId: message.releaseId ?? message.datasetId,
         selectedByRule: 'address-preparation:exact-division-area',
-        selectionMode: 'exact',
+        selectionMode: 'exact_ref',
       },
     )
   const file = await buildAddressMetaSqlFile(metaDb, message, snapshotId)

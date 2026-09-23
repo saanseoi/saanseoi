@@ -542,3 +542,31 @@ test('Place replay batches exact indexed identities even when many places share 
     f.close()
   }
 })
+
+test('spatial membership evidence is retained in current and historical Places without an Address', async () => {
+  const f = fixture()
+  try {
+    const row = await place()
+    row.divisionIds = ['town']
+    row.divisionDefinitions = {
+      town: { level: 3, locales: [{ locale: 'en', name: 'Town' }] },
+    }
+    row.divisionAssociation = {
+      divisionSnapshotId: 'division-a',
+      divisionAreaSnapshotId: 'areas-a',
+      evidence: [{ divisionId: 'town', method: 'geometry' }],
+    }
+    await f.run([row])
+    for (const db of [f.current, getDatabase(f.databases, 'old')]) {
+      const stored = db
+        .query(
+          "SELECT address2dId,json_extract(sources,'$.divisionAssociation') AS association FROM places WHERE id=?",
+        )
+        .get(row.place.id) as { address2dId: string | null; association: string }
+      expect(stored.address2dId).toBeNull()
+      expect(JSON.parse(stored.association)).toEqual(row.divisionAssociation)
+    }
+  } finally {
+    f.close()
+  }
+})

@@ -335,8 +335,8 @@ test('retains prepared town membership and versions town reassignment', () => {
   const first = normaliseAddressRowForPipeline(prepared)
   const second = normaliseAddressRowForPipeline({ ...prepared, townId: 'town-b' })
   expect(first.base.townId).toBe('town-a')
-  expect(buildAddressBaseHashInput(first.base)).not.toEqual(
-    buildAddressBaseHashInput(second.base),
+  expect(buildAddressBaseHashInput({ id: prepared.id, ...first.base })).not.toEqual(
+    buildAddressBaseHashInput({ id: prepared.id, ...second.base }),
   )
 })
 
@@ -360,8 +360,8 @@ test('prepared spatial and village references survive normalisation and affect v
   expect(original.base).toMatchObject(references)
   for (const field of Object.keys(references)) {
     const changed = normaliseAddressRowForPipeline({ ...prepared, [field]: 'another' })
-    expect(buildAddressBaseHashInput(changed.base)).not.toEqual(
-      buildAddressBaseHashInput(original.base),
+    expect(buildAddressBaseHashInput({ id: prepared.id, ...changed.base })).not.toEqual(
+      buildAddressBaseHashInput({ id: prepared.id, ...original.base }),
     )
   }
 })

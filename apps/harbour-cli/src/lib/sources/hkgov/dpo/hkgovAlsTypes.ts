@@ -33,6 +33,8 @@ export type PrepareHkgovAlsOptions = {
 }
 
 export type DivisionLookupMaps = {
+  membership?: import('../../../pipeline/divisions/divisionMembership').DivisionMembership
+  areaSnapshotId?: string
   towns?: import('./hkgovAlsTowns').TownLookup
   landforms?: import('./hkgovAlsLandforms').LandformLookup
   areaByEn: Map<string, string>
@@ -173,6 +175,11 @@ export type PreparedHkgovAlsRow = {
   identifiers: string | null
   sources: string
   divisionSnapshotId: string
+  macrohoodId?: string | null
+  neighbourhoodId?: string | null
+  villageId?: string | null
+  microhoodId?: string | null
+  hamletId?: string | null
   townId?: string | null
   landformId?: string | null
   areaId: string | null

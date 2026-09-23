@@ -80,3 +80,24 @@ export async function resolvePlaceDivisionDependency(
     )
   return division
 }
+
+/** Geometry is pinned by Address preparation, never selected from the current edition. */
+export async function readAddressDivisionAreaSnapshotId(
+  metaDb: HarbourReadableDb,
+  addressSnapshotId: string,
+) {
+  const assembly = await metaDb
+    .select({ summary: metaSchema.metaSnapshotAssemblyRuns.selectionSummaryJson })
+    .from(metaSchema.metaSnapshotAssemblyRuns)
+    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, addressSnapshotId))
+    .get()
+  const summary = assembly?.summary as
+    | { lookupSnapshotIds?: { divisionArea?: string } }
+    | undefined
+  const id = summary?.lookupSnapshotIds?.divisionArea
+  if (!id)
+    throw new Error(
+      `Address snapshot ${addressSnapshotId} has no recorded exact DivisionArea dependency.`,
+    )
+  return id
+}

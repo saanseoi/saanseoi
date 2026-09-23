@@ -271,6 +271,7 @@ export async function processLocalAddressSqlUpload(
       )
   const initialMessage: AddressPipelineMessage = {
     addressDivisionSnapshotId: preparationAudit.divisionSnapshotId,
+    addressDivisionAreaSnapshotId: preparationAudit.divisionAreaSnapshotId,
     datasetId,
     datasetCode,
     rawObjectKey,

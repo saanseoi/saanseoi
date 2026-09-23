@@ -20,6 +20,7 @@ export type AddressPreparationAudit = {
   preparedSha256: string
   /** Exact selected Division snapshot, including for an empty prepared release. */
   divisionSnapshotId: string
+  divisionAreaSnapshotId: string
   sourceFeatureCount: number
   outputCount: number
   declarations: { preparation: RuleDeclaration; curation: RuleDeclaration }
@@ -51,6 +52,8 @@ export async function readAddressPreparationAudit(
     audit.sourceVersion !== sourceVersion ||
     typeof audit.divisionSnapshotId !== 'string' ||
     !audit.divisionSnapshotId.trim() ||
+    typeof audit.divisionAreaSnapshotId !== 'string' ||
+    !audit.divisionAreaSnapshotId.trim() ||
     !Number.isSafeInteger(audit.sourceFeatureCount) ||
     audit.sourceFeatureCount < 0 ||
     !Number.isSafeInteger(audit.outputCount) ||
