@@ -11,7 +11,7 @@
       "i18n": [
         {
           "locale": "en",
-          "name": "SaanSeoi",
+          "name": "山水",
           "descriptionShort": "Lands Department street names, with optional centre lines.",
           "description": "Lands Department street names, optionally enriched with road centre lines for approximate location lookup and map labelling."
         },

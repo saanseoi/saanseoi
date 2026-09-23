@@ -13,8 +13,8 @@
         {
           "locale": "en",
           "name": "Geographic",
-          "descriptionShort": "Reviewed SaanSeoi geographical and administrative divisions.",
-          "description": "Reviewed SaanSeoi hierarchy and areas, with Overture geometry fallback and selectable government area companions."
+          "descriptionShort": "Reviewed 山水 geographical and administrative divisions.",
+          "description": "Reviewed 山水 hierarchy and areas, with Overture geometry fallback and selectable government area companions."
         },
         {
           "locale": "zh-hant",

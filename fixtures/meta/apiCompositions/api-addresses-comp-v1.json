@@ -12,19 +12,19 @@
       "i18n": [
         {
           "locale": "en",
-          "name": "SaanSeoi",
-          "descriptionShort": "SaanSeoi's curated Hong Kong address collection.",
+          "name": "山水",
+          "descriptionShort": "山水's curated Hong Kong address collection.",
           "description": "Government Address Lookup Service addresses and accepted supplementary addresses from Overture Places, with source provenance and Overture division context. Use filter[dataset] to select a contributing dataset."
         },
         {
           "locale": "zh-hant",
-          "name": "SaanSeoi",
+          "name": "山水",
           "descriptionShort": "SaanSeoi 整理的香港地址集合。",
           "description": "政府地址查詢服務地址及經接納的 Overture 地點補充地址，保留來源及 Overture 分區資訊。可使用 filter[dataset] 選擇資料集。"
         },
         {
           "locale": "zh-hans",
-          "name": "SaanSeoi",
+          "name": "山水",
           "descriptionShort": "SaanSeoi 整理的香港地址集合。",
           "description": "政府地址查询服务地址及经接纳的 Overture 地点补充地址，保留来源及 Overture 分区信息。可使用 filter[dataset] 选择数据集。"
         }
