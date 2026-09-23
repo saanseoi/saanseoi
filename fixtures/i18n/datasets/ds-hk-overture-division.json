@@ -11766,6 +11766,16 @@
       "provenance": "ai-translated",
       "machine": "azure-translator-v3"
     },
+    "bb25410fdeb5756f89e294b058eb43e89757e085557e5c3bfcda3793419ab331": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "蘭桂坊",
+      "sourceTextHash": "3f81625651ce8993d101d9d8603e8798dc819073cab79a0fff84aeaf40d73f80",
+      "targetLocale": "zh-hans",
+      "text": "兰桂坊",
+      "provenance": "ai-translated",
+      "machine": "azure-translator-v3"
+    },
     "bb437bdc452ecfed0d105457d71a71b23c5f909cdf415297042fff9be282d68c": {
       "field": "name",
       "sourceLocale": "zh-hant",
@@ -19052,6 +19062,15 @@
         "8fc259a5-352a-5024-9adb-4b51efd4a955"
       ]
     },
+    "27637fd86fc5c991d0e6bdb5e6501da3e65e4d9f1407da54e1f9320bdc88f16d": {
+      "context": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "translation": "0edd9f148dca41f22d872036a8616caaa06b6c3b0260e3eff191d6b362ac7442",
+      "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "lastSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "recordIds": [
+        "3fc693e1-2038-58e4-8ef3-8ce7b01e97a8"
+      ]
+    },
     "2789a387814f97e15237d9db3e355e34353b9c5a92fda78921f837f2a6ef7fa6": {
       "context": "c7ffd7486c52412222db324760103f1ba08066655d4946dd669fe21d42e0fe6c",
       "translation": "4fbbf50cb4a7a50e40679883ae49d0e892a3c01e9ac6fa180247188bc3424755",
@@ -20996,6 +21015,15 @@
         "62c6af65-3346-4edb-9ccf-bbdbbd3aea7e"
       ]
     },
+    "43e8bdfaff61ef1bf53eba2f053ca5a7bfcde81f4acccf32538c71bb7e988914": {
+      "context": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "translation": "ac9d384c2c6ae7c81f76aafa12f110a3fccef7abc561bdfc48c4d2039fb40c26",
+      "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "lastSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "recordIds": [
+        "b3809d1e-fdac-5cd5-9a06-9ab9a5859491"
+      ]
+    },
     "44062fc260256cfcbf9f86f4d5694151b6952e2d1e3f528f0e99e6c6e39c957e": {
       "context": "83f9919c8489e4de2f798303c259794cfb2d6205d14df0a2d4ec145d95305b72",
       "translation": "c75c31ebef36dabce7533753f9752e46619443705fb7ac9a0fc1d89a560bcda9",
@@ -22251,6 +22279,15 @@
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
         "d4e30f55-7496-46a2-a8ea-b0aa57d89460"
+      ]
+    },
+    "5644ddb576fc87823df7f73c903dedc8440cc79a7fa6e1c52cb1b6d30f79eee1": {
+      "context": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "translation": "619a09b65140d392aa830b32aafb4047919525da16bde12846ddf36bf98b3159",
+      "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "lastSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "recordIds": [
+        "2cfb80d9-7390-5474-962d-d33c6d08c04d"
       ]
     },
     "566484804aa3e807a118db4ba02c8722a35bf2e0fc8b768033fc9baaf3895a86": {
@@ -25208,6 +25245,15 @@
       "lastSeenRelease": "dr-hk-overture-division-2026-08-19.0",
       "recordIds": [
         "8e6b72ef-0a02-4579-b422-a2ffa70458c3"
+      ]
+    },
+    "7fee73264fc185afd56e2a41f86f1ac40e520471696461587f86d1e3b0c74dbf": {
+      "context": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "translation": "53573f10dd8413d8968486269c6db1b7d80eb706978cc667a0e3822a2417194e",
+      "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "lastSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "recordIds": [
+        "98d5760d-f07a-5c44-9ae4-847efd8dc408"
       ]
     },
     "800d7ac49e51627c725d58a023df21df19c4ff8fbd467ba3683fc358087b72ba": {
@@ -28506,6 +28552,15 @@
         "8edbccc6-24cf-5e6c-aca3-f6449c138355"
       ]
     },
+    "b0b6bb9f8ee7e8e45b2edcd240f86f6f373eadf6f431ba9faca755db8d6632fe": {
+      "context": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "translation": "97ef75eb5c99e18d9214136b8d06ca228a6212ac8aaf439171d8356cc5d113b1",
+      "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "lastSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "recordIds": [
+        "b74bf860-5daf-50fb-8382-84975c7c8be0"
+      ]
+    },
     "b0bb363d334d393f3c1a29cd35cea53d1e37ed30d59aa5783dd6fe09d534779c": {
       "context": "e98392d52be4d0ee0d29933021230ef0d32daa8d977ff9f8a177d60a50c067d7",
       "translation": "4bac1b628a778c15fec77820c7a271935a839c988769b1333ffb1e08336adae5",
@@ -30481,6 +30536,15 @@
       "recordIds": [
         "52f82bce-7f7c-59e9-ab31-92a649e43b13",
         "ad9096de-aba0-5b67-af81-ca8abfc5dbcd"
+      ]
+    },
+    "cce011f9ca42b41d57e868d0b1924811e0f0113d561a8ac3fa73764f8e196ecd": {
+      "context": "0f32ea91f66210c14fdeb7a78a6d38b7cfcf8af8abee3f9821c3bd3857348852",
+      "translation": "bb25410fdeb5756f89e294b058eb43e89757e085557e5c3bfcda3793419ab331",
+      "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "lastSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "recordIds": [
+        "86e53121-284a-5640-aaa3-bc28a3703ff7"
       ]
     },
     "cd2196367f5167b44a454483cc66d9d69290b705f315fbaa6591e416c99aeb60": {

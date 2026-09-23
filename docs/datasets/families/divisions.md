@@ -1207,3 +1207,6 @@ Exclusion guards for Che Ting Tsuen, eastern Ma Wan Tsuen and Chuk Yuen United V
 require the publisher subtype `locality` and class `hamlet`. Ngau Chi Wan Village
 requires subtype `locality` and class `village`. These expectations apply to the
 retained Overture cohorts from September 2025 through August 2026.
+
+Each applied exclusion retains an individual patch audit with its source identity,
+reviewed names, reason and exact exclusion fixture.
