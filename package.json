@@ -134,7 +134,7 @@
   },
   "dependencies": {
     "@inlang/paraglide-js": "^2.25.4",
-    "bits-ui": "^2.19.2",
+    "bits-ui": "^2.19.3",
     "bun-types": "^1.4.2",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
     "tailwindcss": "^4.3.3"
@@ -155,8 +155,8 @@
     "husky": "^9.1.7",
     "prettier": "^3.9.8",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.11.2",
-    "wrangler": "^4.135.0"
+    "turbo": "^2.11.3",
+    "wrangler": "^4.136.3"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"

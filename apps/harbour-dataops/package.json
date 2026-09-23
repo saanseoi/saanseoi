@@ -23,7 +23,7 @@
     "fgdb": "1.0.0",
     "hyparquet": "^1.31.1",
     "hyparquet-compressors": "^1.1.2",
-    "hyparquet-writer": "^0.16.9",
+    "hyparquet-writer": "^0.16.10",
     "jsts": "2.12.1",
     "proj4": "2.22.0",
     "shpjs": "6.2.0"
