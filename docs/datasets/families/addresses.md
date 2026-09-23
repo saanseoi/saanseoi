@@ -1031,32 +1031,34 @@ preparation rolls back open transactions and emits no delivery.
 Preparation-cache code fingerprints exclude test files; runtime code and all source,
 curation and division dependencies still invalidate reuse when their contents change.
 
-## Landform associations
+## Division membership
 
-Address2D retains a nullable `landformId` in current and history storage, scoped to its
-selected division snapshot. The API exposes the `landform` relationship and
-`filter[division]`; hierarchy includes load the linked division. Supplementary addresses
-inherit this reference from their selected official base.
+ALS preparation selects the latest published SaanSeoi geographic Division edition and
+its matching DivisionArea assembly. Where no curated edition is published, it uses the
+requested Overture cohort and its published DivisionArea snapshot. Both immutable
+snapshot IDs are retained as release lookup dependencies, including empty releases.
 
-ALS preparation can establish an association from an exact locality or island name
-within its matched district when every evidenced path identifies the same individual
-island. Conflicting names or ancestry remain unlinked. Association evidence is retained
-separately from the publisher payload. The link does not require an island label in the
-publisher's formatted address; supplied formatted address text is retained.
+After all coordinate and locality corrections, a shared spatial index matches each
+Address point to available district, town, macrohood, neighbourhood, village, microhood,
+hamlet and individual-island polygons. Holes and MultiPolygons retain their exact
+geometry. Shared boundaries or overlapping peers with more than one candidate leave the
+corresponding scalar relationship unset. Common canonical ancestors supply
+administrative references; island landforms remain separate from numbered levels.
 
-`filter[division]` matches any recorded country, area, district, town, hood, village,
-hamlet or landform Division ID in list and search requests, including historical reads.
-`relationships.landform` remains the explicit island association. Filtering uses
-recorded relationships rather than point-in-polygon inference.
+Exact English and Traditional Chinese structured locality names supplement towns,
+villages and hamlets without polygons. Matching normalises Unicode, case and whitespace,
+requires district ancestry and rejects duplicate names, conflicting recognised names and
+incompatible ancestry. Building names, street-name substrings and formatted-address
+substrings do not establish membership. Missing polygons are unknown coverage, not an
+exclusion. Name or Address evidence cannot override an available polygon that excludes
+the point.
 
-## Town associations
+The canonical Address columns retain the resolved references in current and history
+storage. Preparation provenance records geometry, text and ancestry evidence alongside
+both snapshot IDs, separately from the untouched publisher payload. Supplementary
+Addresses inherit recorded references from their selected official base.
 
-ALS preparation resolves `townId` from exact English or Traditional Chinese town names
-in structured street/village `LocationName` or `VillageName` fields. Names are matched
-against town divisions in the selected division snapshot, with case and whitespace
-normalisation and matching district ancestry. Missing district ancestry, duplicate town
-names within a district and conflicting recognised town names remain unlinked. Street
-names, building names and formatted-address substrings do not establish town membership.
-Derived `townAssociation` evidence retains the input names, method and division snapshot
-separately from the publisher payload. Prepared files carry `townId` into Address2D
-storage and version hashing.
+`filter[division]` matches recorded country, area, district, town, hood, village, hamlet
+or landform IDs in list and search requests, including historical reads. The `landform`
+relationship remains the explicit individual-island association. Filtering reads
+materialised membership; it does not run geometry tests per API request.

@@ -1,9 +1,9 @@
 # Places dataset family
 
-Historical Address and Division dependencies are rebuilt in a disposable SQLite
-transaction. Missing content rolls back rows and readiness receipts together, so a retry
-cannot reuse a partial dependency view. Serving and history databases remain read-only
-during this preparation.
+Historical Address, Division and DivisionArea dependencies are rebuilt in a disposable
+SQLite transaction. Missing content rolls back rows and readiness receipts together, so
+a retry cannot reuse a partial dependency view. Serving and history databases remain
+read-only during this preparation.
 
 Place predecessor and historical Address/Division dependency hydration query exact
 record, version and locale keys through composite indexes. Query batches respect the
@@ -181,14 +181,15 @@ Sealed [delivery plans and receipts](../sql-delivery.md) let remote delivery and
 replay recover independently. Local replay commits each payload and receipt in one
 transaction.
 
-Places has three required reference members:
+Places has four required reference members:
 
 - the default canonical address snapshot;
 - the cohort's Overture Places supplementary address snapshot
   (`address/overture-places`);
-- the Overture canonical division snapshot.
+- the exact canonical Division snapshot selected by the Address release;
+- the exact DivisionArea snapshot pinned by that Address release.
 
-The official reference members use `latest_at_or_before_or_earliest_after_cohort`. This
+The official Address reference uses `latest_at_or_before_or_earliest_after_cohort`. This
 is intentional: Overture releases are monthly, while the authoritative ALS address
 dataset is released irregularly. A Places release therefore records the newest published
 compatible reference snapshot available at its cohort, falling forward only when no
@@ -254,8 +255,16 @@ membership.
 Canonical place rows are indexed at H3 resolutions 5, 7, and 9. Search uses the
 incremental `placeSearchFts` index. `placesDivision` and `placesCells` are current-only
 projections and are rebuilt for the active Place snapshot; they are not copied into
-history. The division projection is derived from the selected address snapshot's
-`divisionSnapshotId` and division IDs.
+history. The division projection uses the Place's effective coordinates against the
+pinned DivisionArea polygons, with common canonical ancestors and separate island
+membership. A matched Address supplies compatible references where polygons are missing,
+including text-resolved village and hamlet membership. A Place without an Address can
+still have spatial Division links. Geometry takes precedence over inherited Address
+references. Shared boundaries and overlapping peers remain unresolved.
+
+Each Place version retains its resolved Division membership and association evidence in
+`sources.divisionAssociation`; source-resolution evidence retains the same result.
+Snapshot IDs and geometry content participate in preparation cache invalidation.
 
 The Places collection endpoint is `GET /places/v0.1`. All API families accept the
 optional `region` query parameter: `hk` (default), `mo`, or `gba`. GBA currently selects
@@ -268,11 +277,10 @@ audit/provenance fields. H3 cell memberships remain current indexing projections
 than canonical Place attributes; use `by-cell` for that map lookup.
 
 Place history records the address snapshot and address ID selected for each version.
-Historical reads must follow that recorded address snapshot into historical addresses
-and then use the address entry's division IDs. They must not join a historical Place to
-the latest address or division projection. Place history uses the source payload plus
-the resolved address reference as its version boundary; unchanged places do not create a
-new history version.
+Historical Division filters read that Place version's retained spatial and inherited
+membership, including Places with no Address. They never join a historical Place to the
+latest Address or Division projection. Place version hashes include resolved membership
+and its evidence as well as source content and Address dependencies.
 
 Place localisation resolves explicit language and script evidence independently for
 names, brand names, and free-form addresses. Missing locale information is inferred;

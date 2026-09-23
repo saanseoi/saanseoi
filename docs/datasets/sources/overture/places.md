@@ -376,18 +376,24 @@ entry, policy version, score, and selected ALS base candidate. The supplementary
 ID is deterministic from that durable identity key; any incompatible change follows the
 same identity-drift review process as other Address sources.
 
-An accepted ALS base candidate may supply division IDs only as recorded derivation
-evidence on the supplementary row. A supplementary row without that base has no division
-IDs. Place geometry must not fill those fields. The final Places materialisation then
-selects the recorded Address row, sets `addressSnapshotId` and `address2dId`, and
-creates `placesDivision` rows from that Address row's recorded division IDs. A Place
-with neither an ALS nor an accepted supplementary Address remains division-unlinked but
-continues to be indexed in H3 cells and returned by cell and search queries.
+An accepted ALS base candidate may supply division IDs as recorded derivation evidence
+on the supplementary Address. A supplementary Address without that base has no inherited
+division IDs. Place membership is resolved independently: the effective Place point is
+matched against the DivisionArea snapshot pinned by the selected ALS release. Compatible
+Address references supplement missing polygons, including village and hamlet names.
+Geometry does not rewrite the supplementary Address's fields.
+
+The final materialisation writes `placesDivision` from these resolved spatial and
+inherited memberships, including Places without an Address. It retains canonical
+ancestors and individual islands separately from locality levels. Overlapping peers and
+shared boundaries do not arbitrarily select a division. The Place version and source
+resolution retain membership methods and exact Division/DivisionArea snapshot IDs;
+historical filtering reads the recorded Place membership.
 
 ### Required ingestion order
 
-1. Load the cohort-selected ALS Address and Division snapshots and build the canonical
-   matcher indexes.
+1. Load the cohort-selected ALS Address snapshot and its exact Division and DivisionArea
+   dependencies; build the address matcher and polygon indexes.
 2. Parse and run the four tiers for every retained publisher address; write the review
    artefact before any Place rows are finalised.
 3. When no reviews remain, atomically update the target's generated entry ledger,
@@ -518,10 +524,11 @@ stored as a synthetic locale and is not counted as locale coverage.
 
 Each canonical place receives H3 cells at resolutions 5, 7, and 9. The H3 index supports
 the Places `by-cell` API. Cells and `placesDivision` links share the Place lineage's
-stable current scope and retain unchanged rows across publications. Division links
-resolve from the selected Address's Division scope and IDs. Search finalisation runs
-after the selected Place and dependency publications are ready and updates only changed
-FTS content plus the logical snapshot mapping.
+stable current scope and retain unchanged rows across publications. Division links use
+the pinned Division scope and spatial membership, supplemented by compatible Address
+references where polygons are missing. Search finalisation runs after the selected Place
+and dependency publications are ready and updates only changed FTS content plus the
+logical snapshot mapping.
 
 ## ZH-HANT
 
@@ -634,7 +641,6 @@ are retained in the release review artefact and provenance. Ingestion does not s
 identity or record a curation decision. Reviewed links and approved supplementary
 addresses continue to apply. Later review can resolve these cases in revised releases.
 
-The current Place division projection includes the linked address's `landformId`,
-alongside its administrative and locality references. `filter[division]` therefore
-accepts an island Division ID. Historical reads derive the same association from the
-selected address history; coverage depends on the recorded address association.
+The Place division projection includes point-in-polygon island membership alongside
+administrative and locality references. `filter[division]` accepts island IDs even when
+no Address is linked. Historical reads use the Place version's recorded membership.

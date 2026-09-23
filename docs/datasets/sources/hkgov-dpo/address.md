@@ -1068,3 +1068,19 @@ storage and version hashing.
 Canonical Address2D identifiers use `ALS:CsuId` and retain the original identifier
 value. Curation identities use the `SS:` namespace; native source properties retain
 their original structure.
+
+## Geographic membership
+
+Fresh ALS preparation selects the latest published SaanSeoi Division edition and the
+DivisionArea snapshot from the same reviewed assembly. Without a published curated
+edition, both references use the requested Overture cohort. Their exact snapshot IDs are
+recorded in the release lookup dependencies and preparation audit.
+
+Membership runs after reviewed coordinate and locality corrections. Point inclusion
+populates levels 3–6 wherever polygons exist and independently resolves island
+landforms. Exact bilingual structured locality names resolve towns, villages and hamlets
+without polygons, constrained by district and compatible canonical ancestry. Duplicate
+names, conflicting recognised names and ambiguous spatial peers remain unresolved.
+Per-premise provenance retains the method and references without altering the publisher
+assertion. Prepared nullable fields carry all locality IDs into current and historical
+Address storage and version hashing.
