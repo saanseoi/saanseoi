@@ -526,3 +526,45 @@ test('marks the superseded dataset historic for same-cohort releases with differ
     },
   ])
 })
+
+test('publishes an Overture baseline independently of the curated geographic API member', async () => {
+  const sqlite = initDb(join(createTempDir(), 'curated-baseline.sqlite'))
+  const db = createLocalHarbourDb(sqlite)
+  sqlite.exec(`UPDATE apiCompositionMembers SET variant='saanseoi'
+    WHERE domainCode='geographic' AND resourceType='division' AND role='primary'`)
+  const releaseId = 'release-curated-baseline'
+  insertFixtureRelease(sqlite, {
+    releaseId,
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey: '2026-08-19.0',
+    resourceType: 'division',
+    sourceVersion: '2026-08-19.0',
+    rawObjectKey: 'hk/overture/2026-08-19.0/division.parquet',
+    originalFileName: 'division.parquet',
+    status: 'processing',
+    ingestedAt: '2026-09-23T00:00:00.000Z',
+    createdAt: '2026-09-23T00:00:00.000Z',
+    updatedAt: '2026-09-23T00:00:00.000Z',
+  })
+  const snapshotId = seedSnapshot(sqlite, { code: 'ss-baseline', releaseId })
+  const before = sqlite.query('SELECT count(*) n FROM apiReleaseSets').get()
+  const deferred = await handlePublishDataset(db, {
+    releaseId,
+    deferSourcePublish: true,
+  })
+  expect(deferred.status).toBe('processing')
+  expect(
+    sqlite.query('SELECT status FROM snapshots WHERE id=?').get(snapshotId),
+  ).toEqual({ status: 'draft' })
+  const result = await handlePublishDataset(db, { releaseId })
+  expect(result.status).toBe('published')
+  expect(
+    sqlite.query('SELECT status FROM snapshots WHERE id=?').get(snapshotId),
+  ).toEqual({ status: 'published' })
+  expect(sqlite.query('SELECT status FROM releases WHERE id=?').get(releaseId)).toEqual(
+    { status: 'published' },
+  )
+  expect(sqlite.query('SELECT count(*) n FROM apiReleaseSets').get()).toEqual(before)
+  sqlite.close()
+})

@@ -368,3 +368,8 @@ retained Overture cohorts from September 2025 through August 2026.
 
 Each applied exclusion retains an individual patch audit with its source identity,
 reviewed names, reason and exact exclusion fixture.
+
+When the geographic API composition selects SaanSeoi divisions, Overture division
+releases publish their native baseline snapshots independently. Curated assembly
+consumes these published baselines; baseline publication does not create an API release
+set.

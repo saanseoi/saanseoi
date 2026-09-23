@@ -373,3 +373,8 @@ Native Overture areas remain the fallback input to the
 polygons and island geometry take precedence per division in the separate `saanseoi`
 snapshot. The geographic API composition selects that assembly for geocoding; Overture
 source geometry retains its own snapshot and provenance.
+
+Area selection excludes every identity in the reviewed Overture division-exclusion
+fixture. The geometry exclusion policy retains these IDs explicitly so its audit
+definition matches the selected rows. Original geometry remains in the retained
+publisher archive.

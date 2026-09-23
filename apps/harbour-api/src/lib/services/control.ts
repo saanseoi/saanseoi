@@ -172,6 +172,53 @@ export async function handlePublishDataset(
         member =>
           member.resourceType === datasetType && member.variant === datasetVariant,
       ) ?? resolveTransformMember(compositionMembers, datasetType, datasetVariant)
+    // Curated geographic divisions consume a published native baseline. That
+    // baseline is an ingestion input, not the API composition's primary member.
+    const isCuratedDivisionBaseline =
+      !datasetMember &&
+      datasetType === 'division' &&
+      datasetVariant === 'overture' &&
+      compositionMembers.some(
+        member =>
+          member.domainCode === 'geographic' &&
+          member.resourceType === 'division' &&
+          member.variant === 'saanseoi' &&
+          member.role === 'primary',
+      )
+    if (isCuratedDivisionBaseline) {
+      const snapshots = await waitForSnapshotsForRelease(
+        db,
+        dataset.releaseId,
+        datasetType,
+        datasetVariant,
+      )
+      const firstSnapshot = snapshots[0]
+      if (!firstSnapshot)
+        throw new ControlRequestError(`Snapshot not found for ${dataset.releaseCode}.`)
+      if (!request.deferSourcePublish) {
+        await updateDatasetStatus(db, dataset.releaseId, 'published')
+        for (const snapshot of snapshots)
+          if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
+      }
+      return {
+        datasetId: dataset.releaseCode,
+        releaseCode: dataset.releaseCode,
+        releaseId: dataset.releaseId,
+        snapshotId: firstSnapshot.id,
+        status: request.deferSourcePublish ? 'processing' : 'published',
+        phase: null,
+        metadataDelta: publishMetadataDelta(
+          request.deferSourcePublish ? null : dataset.releaseId,
+          undefined,
+          request.deferSourcePublish
+            ? []
+            : await resolvePublishedSnapshotMetadataDeltas(
+                db,
+                snapshots.map(snapshot => snapshot.id),
+              ),
+        ),
+      }
+    }
     if (!datasetMember) {
       throw new ControlRequestError(
         `No current API composition member accepts ${datasetType}/${datasetVariant}.`,
