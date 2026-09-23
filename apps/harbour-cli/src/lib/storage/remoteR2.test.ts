@@ -102,3 +102,30 @@ test('continuation cannot change storage beneath retained releases', () => {
   expect(() => checkLocalR2Mode('production', 'production', true)).not.toThrow()
   expect(() => checkLocalR2Mode(undefined, 'production', false)).not.toThrow()
 })
+
+test('successful checksum-bearing PUT avoids a redundant HEAD', async () => {
+  let heads = 0
+  const bucket: RemoteR2Bucket = {
+    async head() {
+      heads++
+      return null
+    },
+    async get() {
+      throw new Error('Unexpected GET')
+    },
+    async put(_key, bytes) {
+      return {
+        size: bytes.length,
+        checksums: { sha256: createHash('sha256').update(bytes).digest() },
+      }
+    },
+  }
+  await retainRemoteR2Object(
+    'production',
+    'asset',
+    new Uint8Array([1]),
+    { contentType: 'application/json' },
+    bucket,
+  )
+  expect(heads).toBe(1)
+})

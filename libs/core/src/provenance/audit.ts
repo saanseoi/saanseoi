@@ -1,3 +1,4 @@
+import { packAuditActions, unpackAuditActions } from './auditActionStorage'
 import {
   MAX_OBJECT_BYTES,
   readObject,
@@ -9,7 +10,7 @@ import {
 import type { AuditManifest, IndividualAudit } from './auditTypes'
 import type { ObjectRef, ProvenanceStore } from './types'
 import { createProvenanceReader } from './cache'
-import { boundedBulkSearchText } from './boundedSearchText'
+import { createBoundedBulkSearchText } from './boundedSearchText'
 import type { BulkAudit } from './auditTypes'
 import { auditActionCategory } from './auditTypes'
 import { auditManifestSchema, individualAuditSchema } from './auditSchema'
@@ -171,6 +172,10 @@ function validateIndividual(a: IndividualAudit) {
     !isObject(a.context)
   )
     throw new Error('Invalid individual audit.')
+  if (a.basis !== 'fixture' || !a.fixture)
+    throw new Error(
+      'Individual audit entries require a record-specific fixture decision; automatic rules must use bulk counts.',
+    )
   validateRef(a.definition)
   if (a.review && a.basis !== 'fixture')
     throw new Error('Review origins require a reviewed fixture.')
@@ -198,27 +203,24 @@ const searchText = (a: IndividualAudit) =>
 type SearchEntry = { id: string; text: string }
 
 async function bulkSearchText(store: ProvenanceStore, bulk: BulkAudit) {
-  const values = [
-    bulk.id,
-    bulk.summary,
-    serialise(await readObject(store, bulk.definition)),
-  ]
+  const text = createBoundedBulkSearchText()
+  const seen = new Set<string>()
+  const append = (value: string) => {
+    for (const token of value
+      .normalize('NFKC')
+      .toLowerCase()
+      .split(/[\s"{},:[\]]+/)) {
+      if (!token || seen.has(token)) continue
+      if (!text.add(token)) return false
+      seen.add(token)
+    }
+    return true
+  }
+  if (!append(`${bulk.id} ${bulk.summary}`)) return text.text()
+  if (!append(serialise(await readObject(store, bulk.definition)))) return text.text()
   for (const fixture of bulk.fixtures)
-    values.push(serialise(await readObject(store, fixture.object)))
-  const tokens = [
-    ...new Set(
-      values
-        .join(' ')
-        .normalize('NFKC')
-        .toLowerCase()
-        .split(/[\s"{},:[\]]+/)
-        .filter(Boolean),
-    ),
-  ]
-  // Search text is derived metadata. Keep it bounded when a large retained
-  // fixture is split across many provenance objects; the complete fixture
-  // partitions remain available for exact audit reads.
-  return boundedBulkSearchText(tokens)
+    if (!append(serialise(await readObject(store, fixture.object)))) break
+  return text.text()
 }
 
 export async function retainAuditResult(
@@ -244,38 +246,50 @@ export async function retainAuditResult(
       text: await bulkSearchText(store, bulk),
     })
   const ids = new Set<string>()
-  const envelope = (actions: IndividualAudit[]) => ({
-    kind: 'individual-actions',
-    schemaVersion: 1,
-    actions,
-  })
+  const envelope = packAuditActions
   const index = (actions: IndividualAudit[]) => ({
     kind: 'individual-search',
     schemaVersion: 1,
     entries: actions.map(a => ({ id: a.id, text: searchText(a) })),
   })
-  const fits = (actions: IndividualAudit[]) =>
-    [envelope(actions), index(actions)].every(
-      v => new TextEncoder().encode(serialise(v)).length <= MAX_OBJECT_BYTES,
-    )
+  const byteLength = (value: unknown) =>
+    new TextEncoder().encode(serialise(value)).length
+  let pendingBytes = 0
+  async function retainChunk(actions: IndividualAudit[]): Promise<void> {
+    const payload = envelope(actions)
+    const search = index(actions)
+    if ([payload, search].some(value => byteLength(value) > MAX_OBJECT_BYTES)) {
+      if (actions.length === 1)
+        throw new Error('Individual action exceeds retention limit.')
+      const middle = Math.floor(actions.length / 2)
+      await retainChunk(actions.slice(0, middle))
+      await retainChunk(actions.slice(middle))
+      return
+    }
+    manifest.chunks.push({
+      ...(await retainObject(store, payload)),
+      firstOrdinal: manifest.applicationCount,
+      count: actions.length,
+      index: await retainObject(store, search),
+    })
+    manifest.applicationCount += actions.length
+  }
   async function flush() {
     if (!pending.length) return
-    manifest.chunks.push({
-      ...(await retainObject(store, envelope(pending))),
-      firstOrdinal: manifest.applicationCount,
-      count: pending.length,
-      index: await retainObject(store, index(pending)),
-    })
-    manifest.applicationCount += pending.length
+    await retainChunk(pending)
     pending = []
+    pendingBytes = 0
   }
   for await (const a of individuals) {
     validateIndividual(a)
     if (ids.has(a.id)) throw new Error('Duplicate individual action.')
     ids.add(a.id)
-    if (!fits([a])) throw new Error('Individual action exceeds retention limit.')
-    if (pending.length === 256 || !fits([...pending, a])) await flush()
+    const size = byteLength(a)
+    if (size > MAX_OBJECT_BYTES)
+      throw new Error('Individual action exceeds retention limit.')
+    if (pending.length === 256 || pendingBytes + size > MAX_OBJECT_BYTES) await flush()
     pending.push(a)
+    pendingBytes += size
   }
   await flush()
   await verifyAuditResult(store, manifest)
@@ -326,9 +340,7 @@ export async function readAuditPage(
     const size = matches?.size ?? ref.count
     if (filter?.category || filter?.fixture) {
       if (matches?.size === 0) continue
-      const chunk = (await readObject(store, ref)) as unknown as {
-        actions: IndividualAudit[]
-      }
+      const chunk = unpackAuditActions(await readObject(store, ref))
       for (const action of chunk.actions) {
         if (matches && !matches.has(action.id)) continue
         if (filter.category && auditActionCategory(action) !== filter.category) continue
@@ -352,9 +364,7 @@ export async function readAuditPage(
       matched += size
       continue
     }
-    const chunk = (await readObject(store, ref)) as unknown as {
-      actions: IndividualAudit[]
-    }
+    const chunk = unpackAuditActions(await readObject(store, ref))
     for (const a of chunk.actions) {
       if (matches && !matches.has(a.id)) continue
       if (matched >= offset && rows.length < limit) rows.push(a)
@@ -381,9 +391,7 @@ export async function readAuditDecision(
       entries: SearchEntry[]
     }
     if (!index.entries.some(entry => entry.id === id)) continue
-    const chunk = (await readObject(store, ref)) as unknown as {
-      actions: IndividualAudit[]
-    }
+    const chunk = unpackAuditActions(await readObject(store, ref))
     const action = chunk.actions.find(action => action.id === id)
     if (!action)
       throw new Error('Individual audit index does not resolve to its action.')
@@ -413,6 +421,7 @@ export async function verifyAuditResult(
       id: string
       scope: string
       basis: string
+      inputs?: string[]
     }
     if (
       definition.id !== b.id ||
@@ -420,6 +429,17 @@ export async function verifyAuditResult(
       definition.basis !== b.basis
     )
       throw new Error('Bulk rule declaration mismatch.')
+    if (
+      b.basis === 'code' &&
+      b.fixtures.some(
+        fixture =>
+          fixture.type !== 'identity-mappings' ||
+          !definition.inputs?.includes(fixture.type),
+      )
+    )
+      throw new Error(
+        'Automatic audit rules retain declarations and counts, not record evidence fixtures.',
+      )
     refs.push(...b.fixtures.map(f => f.object))
     if (b.search) {
       const search = (await reader.read(b.search)) as unknown as {
@@ -437,11 +457,7 @@ export async function verifyAuditResult(
   }
   const ids = new Set<string>()
   for (const ref of manifest.chunks) {
-    const chunk = (await reader.read(ref)) as unknown as {
-      kind: string
-      schemaVersion: number
-      actions: IndividualAudit[]
-    }
+    const chunk = unpackAuditActions(await reader.read(ref))
     const index = (await reader.read(ref.index)) as unknown as {
       kind: string
       schemaVersion: number
@@ -460,7 +476,12 @@ export async function verifyAuditResult(
       validateIndividual(a)
       const definition = (await reader.read(a.definition)) as unknown as {
         review?: unknown
+        basis?: string
       }
+      if (definition.basis !== 'fixture')
+        throw new Error(
+          'Individual audit decision must reference a fixture-based declaration.',
+        )
       if (serialise(definition.review ?? null) !== serialise(a.review ?? null))
         throw new Error('Individual review origin does not match its retained rule.')
       if (ids.has(a.id)) throw new Error('Duplicate individual action.')
@@ -498,9 +519,7 @@ export async function transferAuditResult(
     dependencies.push(fixture.object)
   if (manifest.apiFields) dependencies.push(manifest.apiFields)
   for (const c of manifest.chunks) {
-    const chunk = (await readObject(source, c)) as unknown as {
-      actions: IndividualAudit[]
-    }
+    const chunk = unpackAuditActions(await readObject(source, c))
     for (const a of chunk.actions) {
       dependencies.push(a.definition)
       if (a.fixture) dependencies.push(a.fixture.object)

@@ -26,6 +26,7 @@ import {
 import { resolveLocalAddressDbContext } from '../../dbCache/localDbCache'
 import { pinLocalR2Mode } from '../../storage/localR2Mode'
 import { assembleCuratedDivisions } from './assemble'
+import { readBaselineHistory } from './readBaselineHistory'
 import { readCuratedDivisionRelease } from './releaseMetadata'
 import {
   curatedContentRows,
@@ -102,11 +103,11 @@ export async function publishLocalCuratedDivisions(
     target,
     'hk',
     hierarchy.cohort.slice(0, 4),
-    { cacheTableProfile: 'divisionGeometry' },
+    { cacheTableProfile: 'divisionGeometry', includeAllHistoryShardYears: true },
   )
   const files = ctx.state.files!
-  const meta = new Database(files.DB_META!, { create: false })
-  const current = new Database(files.DB_CURRENT!)
+  const meta = new Database(files.DB_META!, { readwrite: true, create: false })
+  const current = new Database(files.DB_CURRENT!, { readwrite: true, create: false })
   const historyPath = files[`DB_HISTORY_HK_${hierarchy.cohort.slice(0, 4)}`]!
   if (!historyPath) throw Error('History database not found.')
   current.query('ATTACH DATABASE ? AS history').run(historyPath)
@@ -124,11 +125,12 @@ export async function publishLocalCuratedDivisions(
       for (const snapshot of snapshots) {
         const receipt = current
           .query(
-            `SELECT scopeId FROM ${publication} WHERE snapshotId=? AND status='current'`,
+            `SELECT scopeId FROM ${publication} WHERE snapshotId=? AND preparedAt IS NOT NULL AND publicationToken <> ''`,
           )
           .get(snapshot.id) as any
         if (receipt) return { ...snapshot, scopeId: receipt.scopeId }
       }
+      if (snapshots[0]) return { ...snapshots[0], scopeId: null }
       if (options.waitForBaseline) return null
       throw Error(`No materialised Overture ${type} baseline for ${hierarchy.cohort}`)
     }
@@ -136,12 +138,22 @@ export async function publishLocalCuratedDivisions(
       areaBase = base('divisionArea')
     if (!divisionBase || !areaBase) return null
     await pinLocalR2Mode(resolveR2Target(target))
-    const divisions = current
-      .query('SELECT * FROM divisions WHERE snapshotId=?')
-      .all(divisionBase.scopeId) as any[]
-    const names = current
-      .query('SELECT * FROM divisionsI18n WHERE snapshotId=?')
-      .all(divisionBase.scopeId) as any[]
+    const retainedDivisions = divisionBase.scopeId
+      ? null
+      : await readBaselineHistory(ctx, divisionBase.id, ['division', 'divisionI18n'])
+    const retainedAreas = areaBase.scopeId
+      ? null
+      : await readBaselineHistory(ctx, areaBase.id, ['divisionArea'])
+    const divisions =
+      retainedDivisions?.division ??
+      (current
+        .query('SELECT * FROM divisions WHERE snapshotId=?')
+        .all(divisionBase.scopeId) as any[])
+    const names =
+      retainedDivisions?.divisionI18n ??
+      (current
+        .query('SELECT * FROM divisionsI18n WHERE snapshotId=?')
+        .all(divisionBase.scopeId) as any[])
     const supplemental = missingSupplementalDivisionRows(divisions)
     const data = assembleCuratedDivisions({
       islandReview: islandReview as IslandReviewFixture,
@@ -152,9 +164,11 @@ export async function publishLocalCuratedDivisions(
       classificationPatches: classificationFixture.entries,
       divisions: [...divisions, ...supplemental.divisions],
       names: [...names, ...supplemental.names],
-      areas: current
-        .query('SELECT * FROM divisionAreas WHERE snapshotId=?')
-        .all(areaBase.scopeId) as any[],
+      areas:
+        retainedAreas?.divisionArea ??
+        (current
+          .query('SELECT * FROM divisionAreas WHERE snapshotId=?')
+          .all(areaBase.scopeId) as any[]),
       hierarchy,
       stubs,
       islands,

@@ -84,6 +84,16 @@ export async function resetLocalDb(
     for (const result of cleanup) {
       if (result.status === 'rejected') throw result.reason
     }
+    // Completed family manifests describe the database that was just removed.
+    // Clear them only after a successful full reset so focused initialisers
+    // cannot mistake an empty database for a completed run.
+    for (const family of ['hkgov-dpo', 'overture-places']) {
+      for (const name of ['local.json', 'local.minimal.json']) {
+        await rm(resolve(repoRoot, '.local', family, 'init-runs', name), {
+          force: true,
+        })
+      }
+    }
     // Keep ownership until every reset and cleanup step succeeds. The lock prevents
     // a new delivery from installing another marker while its retained files go away.
     await rm(resolve(cacheDir, 'pending-sql-delivery.json'), { force: true })

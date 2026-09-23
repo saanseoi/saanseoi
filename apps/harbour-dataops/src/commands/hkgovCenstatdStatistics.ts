@@ -376,7 +376,12 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
               'source-archive-key': key,
               'source-archive-sha256': sha,
               'source-version': sourceVersion,
-              'geometry-status': referencePeriods?.geometryStatus ?? 'authoritative',
+              ...(type === 'divisionArea'
+                ? {
+                    'geometry-status':
+                      referencePeriods?.geometryStatus ?? 'authoritative',
+                  }
+                : {}),
               theme: 'divisions',
               'resource-type': type,
               yes: true,

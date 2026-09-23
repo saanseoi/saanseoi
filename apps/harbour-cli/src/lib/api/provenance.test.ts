@@ -254,3 +254,89 @@ test('destination checks cannot acknowledge different bytes or skip independent 
   await deliver()
   expect(retained).toHaveLength(1)
 })
+
+test('audit delivery drains parallel failures and registers only after every dependency and root', async () => {
+  const { retainAuditResult, retainObject, objectKey } = await import(
+    '@repo/core/provenance'
+  )
+  const store = memoryStore()
+  const individuals = await Promise.all(
+    Array.from({ length: 12 }, async (_, i) => ({
+      id: `action-${i}`,
+      operation: `rule-${i}`,
+      basis: 'fixture' as const,
+      outcome: 'applied' as const,
+      summary: 'Applied rule',
+      reason: 'Normalisation',
+      definition: await retainObject(store, {
+        kind: 'processing-rule',
+        schemaVersion: 1,
+        id: `rule-${i}`,
+        basis: 'fixture',
+      }),
+      fixture: {
+        object: await retainObject(store, {
+          recordId: `record-${i}`,
+          decision: 'reviewed',
+        }),
+        pointer: '',
+      },
+      context: {},
+      record: { id: `record-${i}`, names: [], parents: [] },
+    })),
+  )
+  const { ref } = await retainAuditResult(store, {
+    releaseId: 'release',
+    datasetCode: 'divisions',
+    attempt: { id: 'attempt', status: 'completed' },
+    bulk: [],
+    guards: [],
+    individuals,
+  })
+  let registrations = 0
+  let active = 0
+  let peak = 0
+  let fail = true
+  const retained: string[] = []
+  globalThis.fetch = absentObjectChecks((async (input, init) => {
+    const url = String(input)
+    if (url.includes('/objects/'))
+      return Response.json({
+        hash: url.split('/').at(-1),
+        byteLength: (init!.body as ArrayBuffer).byteLength,
+      })
+    expect(active).toBe(0)
+    expect(retained.at(-1)).toBe(objectKey(ref.hash))
+    registrations++
+    return Response.json({ manifestHash: ref.hash })
+  }) as typeof fetch)
+  const options = {
+    async retainRemoteObject(_environment: 'preview' | 'production', key: string) {
+      active++
+      peak = Math.max(peak, active)
+      const reject = fail
+      fail = false
+      try {
+        await new Promise(resolve => setTimeout(resolve, reject ? 1 : 10))
+        if (reject) throw new Error('Remote upload failed')
+        retained.push(key)
+      } finally {
+        active--
+      }
+    },
+  }
+  const target = {
+    remote: false,
+    environment: 'dev' as const,
+    r2: 'production' as const,
+  }
+  await expect(
+    deliverProcessingResult(target, store, ref, undefined, options),
+  ).rejects.toThrow('Remote upload failed')
+  expect(active).toBe(0)
+  expect(registrations).toBe(0)
+  expect(retained).not.toContain(objectKey(ref.hash))
+  await deliverProcessingResult(target, store, ref, undefined, options)
+  expect(peak).toBe(4)
+  expect(registrations).toBe(1)
+})

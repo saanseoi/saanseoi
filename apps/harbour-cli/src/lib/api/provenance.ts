@@ -217,16 +217,22 @@ export async function deliverProcessingResult(
         // ownership. Confirm the second destination even when the API has bytes.
         const r2 = resolveR2Target(target)
         if (!target.remote && r2 !== 'local') {
-          for (const ref of retained) {
-            const key = objectKey(ref.hash)
-            const object = await source.get(key)
-            if (!object) throw new Error(`Missing provenance object: ${ref.hash}`)
-            await (options.retainRemoteObject ?? retainRemoteR2Object)(
-              r2,
-              key,
-              new Uint8Array(await object.arrayBuffer()),
-              { contentType: 'application/json' },
+          for (let offset = 0; offset < retained.length; offset += 4) {
+            const results = await Promise.allSettled(
+              retained.slice(offset, offset + 4).map(async ref => {
+                const key = objectKey(ref.hash)
+                const object = await source.get(key)
+                if (!object) throw new Error(`Missing provenance object: ${ref.hash}`)
+                await (options.retainRemoteObject ?? retainRemoteR2Object)(
+                  r2,
+                  key,
+                  new Uint8Array(await object.arrayBuffer()),
+                  { contentType: 'application/json' },
+                )
+              }),
             )
+            const failed = results.find(result => result.status === 'rejected')
+            if (failed?.status === 'rejected') throw failed.reason
           }
         }
         existing.push(...retained)

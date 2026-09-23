@@ -1,9 +1,8 @@
 import { afterEach, expect, test } from 'bun:test'
-import { requireDefined } from '@repo/core/requireDefined'
 import { mkdtemp, writeFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import { verifyAuditResult, readObject } from '@repo/core/provenance'
+import { verifyAuditResult, readAuditPage } from '@repo/core/provenance'
 import { LocalPipelineBucket } from '../local/localBucket'
 import { retainPlaceProvenance } from './placeProvenance'
 import {
@@ -114,10 +113,8 @@ test.each([false, true])(
     })
     expect(result.manifest.applicationCount).toBe(deferred ? 0 : 1)
     if (deferred) return
-    expect(
-      await readObject(store, requireDefined(result.manifest.chunks[0])),
-    ).toMatchObject({
-      actions: [
+    expect(await readAuditPage(store, result.manifest)).toMatchObject({
+      rows: [
         {
           reason: 'No matching official premise.',
           record: { id: 'reviewed' },
@@ -127,3 +124,60 @@ test.each([false, true])(
     })
   },
 )
+
+test('automatic Place matching grows counts without generating per-record audit objects', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'place-bulk-audit-'))
+  directories.push(directory)
+  const fixture = {
+    ...parseSupplementaryCuration(structuredClone(policy)),
+    entries: [],
+    decisions: [],
+  }
+  const sizes: Array<{ objects: number; bytes: number }> = []
+  for (const count of [10, 10000]) {
+    const resolutionPath = join(directory, `resolutions-${count}.jsonl`)
+    await writeFile(
+      resolutionPath,
+      Array.from({ length: count }, (_, i) =>
+        JSON.stringify({
+          placeId: `place-${i}`,
+          fingerprint: `fingerprint-${i}`,
+          tier: 'direct',
+          addressId: `address-${i}`,
+        }),
+      ).join('\n'),
+    )
+    const objects = new Map<string, ArrayBuffer>()
+    const store = {
+      async get(key: string) {
+        const bytes = objects.get(key)
+        return bytes ? { arrayBuffer: async () => bytes } : null
+      },
+      async put(key: string, bytes: ArrayBuffer) {
+        objects.set(key, bytes)
+      },
+    }
+    const result = await retainPlaceProvenance(store, {
+      releaseId: 'release',
+      datasetCode: 'places',
+      addresses: {
+        fixture,
+        resolutionPath,
+        sourceVersion: '2026-09',
+        supplementaryCount: 0,
+      },
+    })
+    expect(result.manifest.applicationCount).toBe(0)
+    expect(result.manifest.chunks).toHaveLength(0)
+    expect(result.manifest.bulk[0]?.counts.decisions.direct).toBe(count)
+    sizes.push({
+      objects: objects.size,
+      bytes: [...objects.values()].reduce(
+        (total, bytes) => total + bytes.byteLength,
+        0,
+      ),
+    })
+  }
+  expect(sizes[1]!.objects).toBe(sizes[0]!.objects)
+  expect(sizes[1]!.bytes - sizes[0]!.bytes).toBeLessThan(100)
+})

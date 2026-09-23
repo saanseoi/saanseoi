@@ -1,3 +1,4 @@
+import { summariseAutomaticActions } from '../../api/automaticAuditSummary'
 import { readFile } from 'node:fs/promises'
 import { requireDefined } from '@repo/core/requireDefined'
 import {
@@ -127,11 +128,13 @@ export async function retainAddressProvenance(
       context: JSON.parse(JSON.stringify(action.evidence)) as JsonRecord,
     }
   })
-  const counters: Record<string, number> = {}
-  for (const action of preparation.processingActions)
-    if (action.mode === 'automatic')
-      counters[action.action] =
-        (counters[action.action] ?? 0) + action.affectedRecordCount
+  const automatic = summariseAutomaticActions([
+    ...preparation.processingActions.filter(action => action.mode === 'automatic'),
+    ...(input.address3d?.processingActions ?? []),
+  ])
+  const counters = Object.fromEntries(
+    automatic.map(action => [action.action, action.affectedRecordCount]),
+  )
   return retainProducerAudit(store, {
     releaseId: input.releaseId,
     datasetCode: input.datasetCode,
@@ -153,21 +156,28 @@ export async function retainAddressProvenance(
         },
         recordsAffected: preparation.sourceFeatureCount,
         decisions: counters,
-        fixtures: [
-          {
-            type: 'als-processing-actions',
-            document: {
-              actions: [
-                ...preparation.processingActions.filter(
-                  action => action.mode === 'automatic',
-                ),
-                ...(input.address3d?.processingActions ?? []),
-              ],
-            },
-            arrayKey: 'actions',
-          },
-        ],
       },
+      ...automatic.map(action => ({
+        declaration: {
+          ...preparation.declarations.preparation,
+          id: action.action,
+          summary: action.summary,
+          implementation:
+            action.action === 'als_3d_evidence_retained'
+              ? {
+                  path: 'apps/harbour-cli/src/lib/pipeline/addresses/address3dImport.ts',
+                  symbol: 'validateAddress3dPreparation',
+                }
+              : {
+                  path: 'apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsEvidence.ts',
+                  symbol: 'buildHkgovAlsProcessingActions',
+                },
+        },
+        inputs: {},
+        outputs: {},
+        recordsAffected: action.affectedRecordCount,
+        decisions: { applied: action.affectedRecordCount },
+      })),
       {
         declaration,
         definition,

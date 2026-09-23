@@ -125,7 +125,8 @@ export function startR2Process(
         new Error(`R2 ${item.operation} failed for ${item.key}: ${reply.message}`),
       )
   })
-  let queue: Promise<unknown> = Promise.resolve()
+  const queues: Promise<unknown>[] = Array.from({ length: 4 }, () => Promise.resolve())
+  let nextQueue = 0
   return {
     ready,
     retain(
@@ -134,7 +135,8 @@ export function startR2Process(
       metadata: R2Metadata,
       requestOptions: { sourceFile?: boolean } = {},
     ) {
-      const result = queue.then(async () => {
+      const lane = nextQueue++ % queues.length
+      const result = queues[lane]!.then(async () => {
         await ready
         if (stopped) throw new Error('R2 adapter is stopped.')
         const id = ++sequence
@@ -178,7 +180,7 @@ export function startR2Process(
           }
         })
       })
-      queue = result.catch(() => {})
+      queues[lane] = result.catch(() => {})
       return result
     },
     stop() {

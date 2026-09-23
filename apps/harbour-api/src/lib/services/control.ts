@@ -1,3 +1,4 @@
+import { lt } from 'drizzle-orm'
 import {
   publishReleaseArtefacts,
   ensureDraftReleaseSetForRelease,
@@ -199,6 +200,22 @@ export async function handlePublishDataset(
         await updateDatasetStatus(db, dataset.releaseId, 'published')
         for (const snapshot of snapshots)
           if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
+        await db
+          .update(metaSchema.metaReleases)
+          .set({
+            status: 'superseded',
+            supersededByReleaseId: dataset.releaseId,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(
+            and(
+              eq(metaSchema.metaReleases.datasetId, dataset.datasetId),
+              eq(metaSchema.metaReleases.resourceType, datasetType),
+              eq(metaSchema.metaReleases.status, 'published'),
+              lt(metaSchema.metaReleases.cohortKey, dataset.cohortKey),
+            ),
+          )
+          .run()
       }
       return {
         datasetId: dataset.releaseCode,
@@ -250,12 +267,6 @@ export async function handlePublishDataset(
           dataset.cohortKey,
         )
       : []
-
-    if (isCenstatdGeographicGeometry && censtatdReleaseSetCohorts.length === 0) {
-      throw new ControlRequestError(
-        `No Overture division release set is available on or after C&SD cohort ${dataset.cohortKey}.`,
-      )
-    }
 
     // Census cohorts are independently selectable required inputs. Publishing
     // a later one must not supersede the earlier source release.
@@ -343,7 +354,10 @@ export async function handlePublishDataset(
     // Fallback geometry remains a selectable Statistics companion, but must
     // never become a Divisions release-set member or fan out across Overture
     // cohorts. A later authoritative C&SD release owns that publication.
-    if (isFallbackCenstatdGeographicGeometry) {
+    if (
+      isFallbackCenstatdGeographicGeometry ||
+      (isCenstatdGeographicGeometry && censtatdReleaseSetCohorts.length === 0)
+    ) {
       if (!request.deferSourcePublish) {
         await updateDatasetStatus(db, dataset.releaseId, 'published')
         for (const snapshot of materialisedSnapshots) {

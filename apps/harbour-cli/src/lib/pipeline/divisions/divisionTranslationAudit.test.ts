@@ -3,7 +3,7 @@ import { readAuditPage, type ProvenanceStore } from '@repo/core/provenance'
 import { retainDivisionProvenance } from '@repo/core/pipeline/services/divisions/divisionProvenance'
 import { buildDivisionTranslationProcessingActions } from './processLocalDivisionSqlUploadTranslations'
 
-test('C&SD translation applications retain applied decisions and only unused fixtures are skipped', async () => {
+test('C&SD translation applications retain applied decisions and aggregate unused fixture counts', async () => {
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {
     async get(key) {
@@ -56,11 +56,18 @@ test('C&SD translation applications retain applied decisions and only unused fix
     ],
   })
   const page = await readAuditPage(store, result.manifest, '')
-  expect(page.rows.map(row => row.outcome)).toEqual(['applied', 'skipped'])
+  expect(page.rows.map(row => row.outcome)).toEqual(['applied'])
   expect(page.rows[0]).toMatchObject({
     operation: 'division_name_human_translated',
     record: { id: 'anderson', names: ['Anderson', '安達臣', '安达臣'] },
     fixture: { pointer: '/entries/0' },
   })
-  expect(page.rows[1]).toMatchObject({ id: 'unused-translation:0:1' })
+  expect(
+    result.manifest.bulk.find(
+      rule => rule.id === 'summarise-division-name-translations',
+    )?.counts.decisions,
+  ).toEqual({ applied: 1, selectedInstructions: 1, unusedInstructions: 1 })
+  expect(
+    [...objects.values()].map(bytes => new TextDecoder().decode(bytes)).join(''),
+  ).not.toContain('division-translation-curations')
 })

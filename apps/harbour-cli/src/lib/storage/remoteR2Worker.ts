@@ -33,7 +33,7 @@ let proxy:
       >
     >
   | undefined
-let chain = Promise.resolve()
+let activeRequests = 0
 let closing = false
 let requestPoller: ReturnType<typeof setInterval> | undefined
 async function close() {
@@ -53,6 +53,7 @@ process.once('SIGINT', () => void close())
 
 function consumeRequests(bucket: RemoteR2Bucket & SourceAssetStore) {
   for (const fileName of readdirSync(requestDirectory).sort()) {
+    if (closing || activeRequests >= 4) break
     if (!fileName.endsWith('.json')) continue
     const requestPath = `${requestDirectory}/${fileName}`
     let request: Request
@@ -67,7 +68,8 @@ function consumeRequests(bucket: RemoteR2Bucket & SourceAssetStore) {
       void close()
       return
     }
-    chain = chain.then(async () => {
+    activeRequests++
+    void (async () => {
       try {
         const progress = (operation: string) =>
           send({ type: 'progress', id: request.id, operation })
@@ -94,8 +96,10 @@ function consumeRequests(bucket: RemoteR2Bucket & SourceAssetStore) {
           id: request.id,
           message: error instanceof Error ? error.message : String(error),
         })
+      } finally {
+        activeRequests--
       }
-    })
+    })()
   }
 }
 try {

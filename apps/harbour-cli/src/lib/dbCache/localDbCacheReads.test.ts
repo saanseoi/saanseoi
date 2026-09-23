@@ -142,3 +142,56 @@ test('initialisation skips published divisions only after their exact delivery i
     await rm(directory, { recursive: true, force: true })
   }
 })
+
+test('curated division delivery proves completion of its retained native baseline', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'completed-curated-divisions-'))
+  const meta = new Database(':memory:')
+  const currentPath = join(directory, 'DB_CURRENT.sqlite')
+  const current = new Database(currentPath)
+  try {
+    meta.exec(`
+      CREATE TABLE releases(id TEXT, code TEXT, datasetId TEXT, resourceType TEXT, status TEXT);
+      CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
+      CREATE TABLE snapshotSources(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
+      CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
+      CREATE TABLE releaseShardAssignments(releaseId TEXT);
+      CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
+      INSERT INTO releases VALUES ('release','native','dataset','division','published');
+      INSERT INTO snapshots VALUES ('native','native-lineage','division','published',1,'2026-08');
+      INSERT INTO snapshots VALUES ('curated','curated-lineage','division','published',0,'2026-09');
+      INSERT INTO snapshotSources VALUES ('native','dataset','release','exact_ref','snapshot-assembly-division-v1','release');
+      INSERT INTO snapshotSources VALUES ('curated','dataset','release','exact_ref','saanseoi-curated-division-assembly-v1','curated-release');
+      INSERT INTO snapshotLineages VALUES ('native-lineage','division','dataset'),('curated-lineage','division','curated-dataset');
+      INSERT INTO releaseShardAssignments VALUES ('release'),('release'),('release');
+      INSERT INTO snapshotShardAssignments VALUES ('native'),('curated');
+    `)
+    current.exec(`
+      CREATE TABLE divisionPublicationState(snapshotId TEXT, scopeId TEXT, status TEXT, preparedAt TEXT, publicationToken TEXT);
+      INSERT INTO divisionPublicationState VALUES ('curated','curated-lineage','current','complete','delivery');
+    `)
+    const completed = () =>
+      listCompletedReleaseCodes(directory, { DB_CURRENT: currentPath }, meta)
+    expect(await completed()).toEqual(['native'])
+    current.exec('UPDATE divisionPublicationState SET preparedAt = NULL')
+    expect(await completed()).toEqual([])
+    current.exec("UPDATE divisionPublicationState SET preparedAt = 'complete'")
+    meta.exec(
+      "UPDATE snapshotSources SET selectedByRule = 'unrecognised' WHERE snapshotId = 'curated'",
+    )
+    expect(await completed()).toEqual([])
+    meta.exec(`
+      UPDATE snapshotSources SET selectedByRule = 'saanseoi-curated-division-assembly-v1' WHERE snapshotId = 'curated';
+      INSERT INTO releases VALUES ('curated-release','curated','curated-dataset','division','published');
+      INSERT INTO snapshotSources VALUES ('curated','curated-dataset','curated-release','exact_ref','saanseoi-curated-division-assembly-v1',NULL);
+    `)
+    // Derived releases retain an archive and snapshot history, without a
+    // separately ingested source-row shard.
+    expect(await completed()).toEqual(['curated', 'native'])
+    meta.exec("DELETE FROM snapshotShardAssignments WHERE snapshotId = 'curated'")
+    expect(await completed()).toEqual([])
+  } finally {
+    current.close()
+    meta.close()
+    await rm(directory, { recursive: true, force: true })
+  }
+})

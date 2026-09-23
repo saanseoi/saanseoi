@@ -1,7 +1,6 @@
 import { expect, test } from 'bun:test'
-import { requireDefined } from '@repo/core/requireDefined'
 import {
-  readObject,
+  readAuditPage,
   verifyAuditResult,
   ruleDeclarationFromFixture,
   type ProvenanceStore,
@@ -55,7 +54,7 @@ test('empty ALS preparation must retain its exact Division selection before uplo
   }
 })
 
-test('ALS retains reviewed documents, individual identity decisions and automatic action evidence', async () => {
+test('ALS retains reviewed documents, individual identity decisions and automatic operation summaries', async () => {
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {
     async get(key) {
@@ -116,14 +115,23 @@ test('ALS retains reviewed documents, individual identity decisions and automati
   expect(
     result.manifest.bulk[0]?.counts.decisions.als_exact_source_duplicate_removed,
   ).toBe(1)
-  expect(result.manifest.bulk[1]?.fixtures.length).toBeGreaterThanOrEqual(
-    alsAuditFixtures.length,
-  )
+  expect(
+    result.manifest.bulk.find(rule => rule.id === curation.id)?.fixtures.length,
+  ).toBeGreaterThanOrEqual(alsAuditFixtures.length)
   const text = [...objects.values()].map(b => new TextDecoder().decode(b)).join('')
-  expect(text).toContain('TRANSIENT_PUBLISHER_PAYLOAD')
-  const chunk = await readObject(store, requireDefined(result.manifest.chunks[0]))
+  expect(text).not.toContain('TRANSIENT_PUBLISHER_PAYLOAD')
+  expect(
+    result.manifest.bulk
+      .filter(rule => rule.basis === 'code')
+      .every(rule => rule.fixtures.length === 0),
+  ).toBe(true)
+  expect(
+    result.manifest.bulk.find(rule => rule.id === 'als_exact_source_duplicate_removed')
+      ?.counts.recordsAffected,
+  ).toBe(1)
+  const chunk = await readAuditPage(store, result.manifest)
   expect(chunk).toMatchObject({
-    actions: [
+    rows: [
       {
         record: { id: 'address-1', names: ['Example House'] },
         fixture: { pointer: '/entries/0' },

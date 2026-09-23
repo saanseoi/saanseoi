@@ -149,7 +149,9 @@ export async function findIncompletePublishedReleases(
       const snapshot = metaSqlite
         .query(
           `
-            SELECT s.id AS snapshotId, s.snapshotLineageId AS snapshotLineageId, s.cohortKey AS cohortKey
+            SELECT s.id AS snapshotId, s.snapshotLineageId AS snapshotLineageId, s.cohortKey AS cohortKey,
+              (ss.selectedByRule = 'saanseoi-curated-division-assembly-v1'
+                AND sl.primaryDatasetId = ss.datasetId) AS isCuratedPrimary
             FROM snapshots s
             INNER JOIN snapshotSources ss ON ss.snapshotId = s.id
             LEFT JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
@@ -160,6 +162,9 @@ export async function findIncompletePublishedReleases(
                 (s.status = 'published' AND (
                   s.snapshotLineageId IS NULL
                   OR (sl.resourceType = ? AND sl.primaryDatasetId = ?)
+                  OR (sl.resourceType = s.resourceType
+                    AND ss.selectionMode = 'exact_ref'
+                    AND ss.selectedByRule = 'saanseoi-curated-division-assembly-v1')
                 ))
                 OR (
                   s.status IN ('draft', 'published')
@@ -177,7 +182,8 @@ export async function findIncompletePublishedReleases(
                   )
                 )
               )
-            ORDER BY s.revision DESC
+            ORDER BY (ss.selectedByRule = 'saanseoi-curated-division-assembly-v1') DESC,
+                     s.revision DESC
             LIMIT 1
           `,
         )
@@ -191,6 +197,7 @@ export async function findIncompletePublishedReleases(
         snapshotId: string
         snapshotLineageId: string
         cohortKey: string
+        isCuratedPrimary: number | null
       } | null
 
       if (!snapshot?.snapshotId) {
@@ -212,7 +219,8 @@ export async function findIncompletePublishedReleases(
         .get(snapshot.snapshotId) as { count?: number }
 
       if (
-        (releaseShardCount.count ?? 0) < REQUIRED_RELEASE_SHARD_ASSIGNMENTS ||
+        (!snapshot.isCuratedPrimary &&
+          (releaseShardCount.count ?? 0) < REQUIRED_RELEASE_SHARD_ASSIGNMENTS) ||
         (snapshot.snapshotLineageId && (snapshotShardCount.count ?? 0) < 1)
       ) {
         incomplete.push(`${release.code}: missing release or snapshot shard assignment`)

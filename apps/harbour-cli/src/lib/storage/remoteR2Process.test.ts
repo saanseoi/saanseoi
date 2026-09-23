@@ -31,7 +31,7 @@ async function fixture(script: string) {
   return { workerPath, close: () => rm(directory, { recursive: true, force: true }) }
 }
 
-test('Bun sends sequential work to one persistent Node process', async () => {
+test('Bun sends work to one persistent Node process', async () => {
   const f = await fixture(`
     if (process.versions.bun) throw new Error('Worker must run under Node');
     let count = 0;
@@ -140,6 +140,44 @@ test('worker death rejects in-flight requests without waiting for deadline', asy
     await expect(
       client.retain('key', '/unused', { contentType: 'text/plain' }),
     ).rejects.toThrow('adapter exited (7)')
+  } finally {
+    await client.dispose()
+    await f.close()
+  }
+})
+
+test('IPC overlaps four requests and keeps subsequent work bounded', async () => {
+  const f = await fixture(`
+    let active = 0;
+    let total = 0;
+    let first = [];
+    receive(r => {
+      active++;
+      total++;
+      if (active > 4) throw new Error('Unbounded concurrency');
+      if (total <= 4) {
+        first.push(r);
+        if (first.length === 4) {
+          setTimeout(() => {
+            for (const item of first) { active--; send({type:'done',id:item.id}); }
+          }, 50);
+        }
+      } else {
+        setTimeout(() => { active--; send({type:'done',id:r.id}); }, 10);
+      }
+    });
+    send({type:'ready'});
+  `)
+  const client = startR2Process('unused', {
+    workerPath: f.workerPath,
+    requestTimeoutMs: 1000,
+  })
+  try {
+    await Promise.all(
+      Array.from({ length: 12 }, (_, i) =>
+        client.retain(`key-${i}`, '/unused', { contentType: 'application/json' }),
+      ),
+    )
   } finally {
     await client.dispose()
     await f.close()

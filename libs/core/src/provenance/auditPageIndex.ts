@@ -1,3 +1,4 @@
+import { unpackAuditActions } from './auditActionStorage'
 import type { AuditManifest, IndividualAudit } from './auditTypes'
 import { auditActionCategory } from './auditTypes'
 import type { ProvenanceStore } from './types'
@@ -37,9 +38,7 @@ export async function buildAuditPageIndex(
 ): Promise<AuditPageIndex> {
   const actions: ActionSearch[] = []
   for (const [chunk, ref] of manifest.chunks.entries()) {
-    const value = (await readObject(store, ref)) as unknown as {
-      actions: IndividualAudit[]
-    }
+    const value = unpackAuditActions(await readObject(store, ref))
     for (const action of value.actions)
       actions.push({
         id: action.id,
@@ -96,9 +95,7 @@ export async function readIndexedAuditPage(
   for (const chunk of new Set(page.map(row => row.chunk))) {
     const ref = manifest.chunks[chunk]
     if (!ref) throw new Error('Audit search index references an unknown chunk.')
-    const value = (await readObject(store, ref)) as unknown as {
-      actions: IndividualAudit[]
-    }
+    const value = unpackAuditActions(await readObject(store, ref))
     const ids = new Set(page.filter(row => row.chunk === chunk).map(row => row.id))
     rows.push(...value.actions.filter(action => ids.has(action.id)))
   }

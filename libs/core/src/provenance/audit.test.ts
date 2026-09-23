@@ -284,3 +284,68 @@ test('bulk payloads and completed failed guards cannot pass audit validation', a
     }),
   ).toThrow('Invalid provenance structure')
 })
+
+test('automatic rules cannot retain per-record actions or payload fixtures', async () => {
+  const { store } = memoryStore()
+  const definition = await retainObject(store, {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'automatic',
+    scope: 'bulk',
+    basis: 'code',
+  })
+  const fixture = await retainObject(store, { record: 'publisher-copy' })
+  const input = {
+    releaseId: 'release',
+    datasetCode: 'dataset',
+    attempt: { id: 'attempt', status: 'completed' as const },
+    guards: [],
+    bulk: [],
+    individuals: [
+      {
+        id: 'automatic:record',
+        operation: 'automatic',
+        basis: 'code' as const,
+        outcome: 'applied' as const,
+        summary: 'Normalise',
+        reason: 'Matches rule',
+        definition,
+        fixture: null,
+        record: { id: 'record', names: [], parents: [] },
+        context: {},
+      },
+    ],
+  }
+  await expect(retainAuditResult(store, input)).rejects.toThrow(
+    'automatic rules must use bulk counts',
+  )
+  await expect(
+    retainAuditResult(store, {
+      ...input,
+      individuals: [],
+      bulk: [
+        {
+          id: 'automatic',
+          definition,
+          basis: 'code',
+          summary: 'Normalise',
+          outcome: 'applied',
+          counts: { inputs: {}, outputs: {}, recordsAffected: 1, decisions: {} },
+          fixtures: [{ type: 'copied-records', object: fixture }],
+        },
+      ],
+    }),
+  ).rejects.toThrow('not record evidence fixtures')
+  await expect(
+    retainAuditResult(store, {
+      ...input,
+      individuals: [
+        {
+          ...input.individuals[0]!,
+          basis: 'fixture',
+          fixture: { object: fixture, pointer: '' },
+        },
+      ],
+    }),
+  ).rejects.toThrow('fixture-based declaration')
+})

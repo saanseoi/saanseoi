@@ -65,3 +65,52 @@ test('backfill preserves immutable audit objects and serves search without evide
   expect(reads).not.toContain(objectKey(fixture.hash))
   expect(reads).not.toContain(objectKey(definition.hash))
 })
+
+test('large non-tabular evidence builds bounded search without merging its payloads', async () => {
+  const objects = new Map<string, ArrayBuffer>()
+  const store: ProvenanceStore = {
+    async get(key) {
+      const bytes = objects.get(key)
+      return bytes ? { arrayBuffer: async () => bytes } : null
+    },
+    async put(key, bytes) {
+      objects.set(key, bytes)
+    },
+  }
+  const definition = await retainObject(store, {
+    kind: 'processing-rule',
+    schemaVersion: 1,
+    id: 'prepare',
+    scope: 'bulk',
+    basis: 'fixture',
+  })
+  const fixture = await retainObject(store, {
+    actions: [{ evidence: `needle ${'retained evidence '.repeat(55000)}` }],
+  })
+  const audit = await retainAuditResult(store, {
+    releaseId: 'release',
+    datasetCode: 'addresses',
+    attempt: { id: 'attempt', status: 'completed' },
+    bulk: [
+      {
+        id: 'prepare',
+        basis: 'fixture',
+        summary: 'Retained preparation evidence',
+        outcome: 'applied',
+        definition,
+        counts: { inputs: {}, outputs: {}, recordsAffected: 10, decisions: {} },
+        fixtures: Array.from({ length: 10 }, () => ({
+          type: 'actions',
+          object: fixture,
+        })),
+      },
+    ],
+    guards: [],
+    individuals: [],
+  })
+  await retainAuditSearchIndex(store, audit.ref, audit.manifest, '2026')
+  const catalogue = await readAuditFixtureCatalogue(store, audit.ref.hash)
+  expect(catalogue.groups.prepare?.actions?.text).toContain('needle')
+  expect(catalogue.groups.prepare?.actions?.text?.length).toBeLessThan(1_048_576)
+  expect(objects.get(objectKey(fixture.hash))).toBeDefined()
+})

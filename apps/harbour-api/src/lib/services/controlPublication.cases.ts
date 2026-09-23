@@ -547,6 +547,20 @@ test('publishes an Overture baseline independently of the curated geographic API
     createdAt: '2026-09-23T00:00:00.000Z',
     updatedAt: '2026-09-23T00:00:00.000Z',
   })
+  insertFixtureRelease(sqlite, {
+    releaseId: 'previous-baseline',
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey: '2026-07-22.0',
+    resourceType: 'division',
+    sourceVersion: '2026-07-22.0',
+    rawObjectKey: 'previous.parquet',
+    originalFileName: 'previous.parquet',
+    status: 'published',
+    ingestedAt: '2026-08-01T00:00:00.000Z',
+    createdAt: '2026-08-01T00:00:00.000Z',
+    updatedAt: '2026-08-01T00:00:00.000Z',
+  })
   const snapshotId = seedSnapshot(sqlite, { code: 'ss-baseline', releaseId })
   const before = sqlite.query('SELECT count(*) n FROM apiReleaseSets').get()
   const deferred = await handlePublishDataset(db, {
@@ -566,5 +580,10 @@ test('publishes an Overture baseline independently of the curated geographic API
     { status: 'published' },
   )
   expect(sqlite.query('SELECT count(*) n FROM apiReleaseSets').get()).toEqual(before)
+  expect(
+    sqlite
+      .query('SELECT status, supersededByReleaseId FROM releases WHERE id=?')
+      .get('previous-baseline'),
+  ).toEqual({ status: 'superseded', supersededByReleaseId: releaseId })
   sqlite.close()
 })

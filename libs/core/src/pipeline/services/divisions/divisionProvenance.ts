@@ -1,3 +1,5 @@
+import translationSummaryFixture from '../../../../../../fixtures/meta/processing-rules/division-translation-summary.json'
+import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import {
   geographicHierarchyFixture,
   geographicHierarchyPatchRule,
@@ -220,18 +222,19 @@ export async function retainDivisionProvenance(
     })),
   )
   const translations = input.actions.filter(a => actionKind(a.action) === 'translation')
-  const translationFixture = translations.length
-    ? await retainFixturePartitions(
-        store,
-        {
-          kind: 'division-translation-curations',
-          schemaVersion: 1,
-          datasetCode: input.datasetCode,
-          entries: translations.map(a => record(a.evidence).translation),
-        },
-        'entries',
-      )
-    : null
+  const translationFixture =
+    translations.length && !individualDocuments.length
+      ? await retainFixturePartitions(
+          store,
+          {
+            kind: 'division-translation-curations',
+            schemaVersion: 1,
+            datasetCode: input.datasetCode,
+            entries: translations.map(a => record(a.evidence).translation),
+          },
+          'entries',
+        )
+      : null
   const classifications = await retainObject(store, divisionClassificationFixture)
   function translationReference(index: number) {
     const part = requireDefined(
@@ -371,7 +374,9 @@ export async function retainDivisionProvenance(
             object: classifications,
             pointer: `/entries/${divisionClassificationFixture.entries.indexOf(classification)}`,
           }
-        : translationReference(translations.indexOf(a))
+        : individualDocuments.length
+          ? null
+          : translationReference(translations.indexOf(a))
       if (translated) {
         const documentIndex =
           individualDocuments.findIndex(f => f.type === 'division-translations') ?? -1
@@ -414,7 +419,7 @@ export async function retainDivisionProvenance(
         summary: a.summary,
         reason: classification?.reason ?? a.summary,
         definition,
-        fixture: selectedFixture,
+        fixture: requireDefined(selectedFixture),
         record: {
           id: recordId,
           names: classification?.names ?? [
@@ -444,50 +449,35 @@ export async function retainDivisionProvenance(
       })
     }
   }
-  for (const [documentIndex, document] of individualDocuments.entries()) {
-    const entries = record(document.document).entries
-    if (!Array.isArray(entries)) continue
-    const definition = await retainDeclaration(divisionTranslationRule.declaration)
-    for (const [index, value] of entries.entries()) {
-      if (usedTranslationEntries.has(`${documentIndex}:${index}`)) continue
-      const entry = record(value)
-      const context = record(entry.context)
-      const part = requireDefined(
-        documentPartitions[documentIndex]?.find(
-          p => index >= p.firstOrdinal && index < p.firstOrdinal + p.count,
-        ),
-      )
-      individuals.push({
-        id: `unused-translation:${documentIndex}:${index}`,
-        operation: divisionTranslationRule.declaration.id,
-        ...(divisionTranslationRule.declaration.review
-          ? { review: divisionTranslationRule.declaration.review }
-          : {}),
-        basis: 'fixture',
-        outcome: 'skipped',
-        summary: 'Retained translation instruction was not applied in this attempt.',
-        reason:
-          'No applied translation selected this entry; the source text, context or required locale may differ, or the locale is already present.',
-        definition,
-        fixture: {
-          object: part.object,
-          pointer: `/entries/${index - part.firstOrdinal}`,
+  if (individualDocuments.length) {
+    const entries = individualDocuments.reduce((total, document) => {
+      const values = record(document.document).entries
+      return total + (Array.isArray(values) ? values.length : 0)
+    }, 0)
+    const declaration = ruleDeclarationFromFixture(translationSummaryFixture)
+    bulk.push({
+      id: declaration.id,
+      summary: declaration.summary,
+      basis: declaration.basis,
+      definition: await retainDeclaration(declaration),
+      outcome: translations.length ? 'applied' : 'not-applicable',
+      counts: {
+        inputs: { 'translation-instructions': entries },
+        outputs: { 'translated-names': translations.length },
+        recordsAffected: new Set(
+          translations.map(action => {
+            const evidence = record(action.evidence)
+            return String(record(evidence.canonicalDivision).id ?? evidence.divisionId)
+          }),
+        ).size,
+        decisions: {
+          applied: translations.length,
+          selectedInstructions: usedTranslationEntries.size,
+          unusedInstructions: entries - usedTranslationEntries.size,
         },
-        record: {
-          id: strings(entry.recordIds).join(', ') || `${documentIndex}:${index}`,
-          names: [...strings(entry.sourceText), ...strings(entry.text)],
-          parents: context.parentDivisionId
-            ? [
-                {
-                  id: String(context.parentDivisionId),
-                  names: strings(context.parentName),
-                },
-              ]
-            : [],
-        },
-        context: entry as JsonRecord,
-      })
-    }
+      },
+      fixtures: [],
+    })
   }
   const identityDocuments = (input.curationDocuments ?? []).filter(
     f => f.type === 'identity-mappings',

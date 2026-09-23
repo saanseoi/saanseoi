@@ -47,10 +47,28 @@ export async function retainObjectInBucket(
   }
   if (await matches()) return
   progress('uploading')
-  await bucket.put(key, bytes, {
+  const written = await bucket.put(key, bytes, {
     sha256,
     onlyIf: { etagDoesNotMatch: '*' },
     httpMetadata: metadata,
   })
+  // R2 returns the committed object's metadata and validates the supplied SHA-256.
+  // A conditional-write race returns null and still needs independent verification.
+  if (
+    written &&
+    typeof written === 'object' &&
+    'size' in written &&
+    'checksums' in written
+  ) {
+    const result = written as { size: number; checksums?: { sha256?: ArrayBuffer } }
+    if (result.checksums?.sha256) {
+      if (
+        result.size !== bytes.byteLength ||
+        Buffer.from(result.checksums.sha256).toString('hex') !== sha256
+      )
+        throw new Error(`R2 immutable object conflict: ${key}`)
+      return
+    }
+  }
   if (!(await matches())) throw new Error(`R2 object missing after upload: ${key}`)
 }

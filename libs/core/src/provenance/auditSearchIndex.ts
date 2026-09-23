@@ -10,6 +10,10 @@ import {
   type FixtureSearchGroup,
 } from './auditFixtureCatalogue'
 import { alsAuditDecisions, type AlsDecision } from './auditAlsDecisions'
+import { createBoundedBulkSearchText } from './boundedSearchText'
+import { auditSearchText } from './auditSearch'
+import { rowKeys } from './auditFixtureRows'
+import type { Json } from './types'
 
 type SearchIndex = {
   kind: 'audit-search'
@@ -58,12 +62,6 @@ export async function retainAuditSearchIndex(
     return index
   }
   const page = await buildAuditPageIndex(store, manifest)
-  const groups = await loadAuditFixtures(manifest.bulk, (id, i) => {
-    const ref = manifest.bulk.find(b => b.id === id)?.fixtures[i]?.object
-    if (!ref) throw new Error('Missing declared fixture.')
-    return readObject(store, ref)
-  })
-  const catalogue = auditFixtureCatalogue(groups, releaseCode)
   const index: SearchIndex = {
     kind: 'audit-search',
     schemaVersion: 1,
@@ -80,16 +78,68 @@ export async function retainAuditSearchIndex(
       }),
     ),
     groups: [],
-    als: await partitions(store, catalogue.als),
+    als: [],
     decisions: [],
   }
-  for (const [id, tables] of Object.entries(catalogue.groups)) {
-    for (const [type, group] of Object.entries(tables)) {
+  const alsFixtures: Record<string, Json> = {}
+  for (const bulk of manifest.bulk) {
+    for (const type of new Set(bulk.fixtures.map(fixture => fixture.type))) {
+      const fixtures = bulk.fixtures.filter(fixture => fixture.type === type)
+      let group: FixtureSearchGroup
+      let largeNonTabular =
+        fixtures.reduce((size, fixture) => size + fixture.object.byteLength, 0) >
+          8 * 1024 * 1024 && bulk.id !== 'curate-als-addresses'
+      if (largeNonTabular) {
+        for (const fixture of fixtures) {
+          const value = await readObject(store, fixture.object)
+          if (
+            value &&
+            typeof value === 'object' &&
+            !Array.isArray(value) &&
+            rowKeys.some(key => Array.isArray(value[key]))
+          ) {
+            largeNonTabular = false
+            break
+          }
+        }
+      }
+      if (largeNonTabular) {
+        // Large non-tabular evidence is searched through bounded derived text.
+        // Its complete, immutable partitions remain available for audit reads.
+        const text = createBoundedBulkSearchText()
+        const seen = new Set<string>()
+        let full = false
+        for (const fixture of fixtures) {
+          const value = await readObject(store, fixture.object)
+          for (const token of auditSearchText(value).split(/\s+/)) {
+            if (!token || seen.has(token)) continue
+            if (!text.add(token)) {
+              full = true
+              break
+            }
+            seen.add(token)
+          }
+          if (full) break
+        }
+        group = { rows: [], text: text.text() }
+      } else {
+        const loaded = await loadAuditFixtures([{ id: bulk.id, fixtures }], (_id, i) =>
+          readObject(store, fixtures[i]!.object),
+        )
+        const value = loaded[bulk.id]![type]!
+        if (bulk.id === 'curate-als-addresses') alsFixtures[type] = value
+        group = auditFixtureCatalogue(loaded, releaseCode).groups[bulk.id]![type]!
+      }
       const parts = await retainFixturePartitions(store, group, 'rows')
-      index.groups.push({ id, type, parts: parts.map(p => p.object) })
+      index.groups.push({ id: bulk.id, type, parts: parts.map(p => p.object) })
     }
   }
-  const decisions = alsAuditDecisions(groups['curate-als-addresses'] ?? {}, releaseCode)
+  const catalogue = auditFixtureCatalogue(
+    { 'curate-als-addresses': alsFixtures },
+    releaseCode,
+  )
+  index.als = await partitions(store, catalogue.als)
+  const decisions = alsAuditDecisions(alsFixtures, releaseCode)
   for (let i = 0; i < decisions.length; i += 10) {
     const rows = decisions.slice(i, i + 10)
     for (const part of await retainFixturePartitions(

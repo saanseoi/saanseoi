@@ -447,3 +447,14 @@ test('Lei Yue Mun Villages retains its guarded alias exclusion', () => {
     'guard mismatch',
   )
 })
+
+test('geometry policy excludes areas for every reviewed excluded division', async () => {
+  const { divisionGeometryExclusionRule } = await import('./divisionGeometry')
+  for (const entry of divisionExclusionFixture.entries)
+    expect(
+      divisionGeometryExclusionRule.execute({
+        kind: 'area',
+        divisionId: entry.divisionId,
+      }),
+    ).toBe(true)
+})

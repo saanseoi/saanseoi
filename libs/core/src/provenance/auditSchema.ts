@@ -156,6 +156,24 @@ export const auditObjectSchemas = [
     actions: { ...array(individualAuditSchema), maxItems: 256 },
   }),
   object({
+    kind: { const: 'individual-actions' },
+    schemaVersion: { const: 2 },
+    count: { type: 'integer', minimum: 1, maximum: 256 },
+    columns: {
+      ...array(
+        object({
+          field: text,
+          values: { type: 'array', items: {}, maxItems: 256 },
+          rows: {
+            ...array({ type: 'integer', minimum: -1, maximum: 255 }),
+            maxItems: 256,
+          },
+        }),
+      ),
+      maxItems: 32,
+    },
+  }),
+  object({
     kind: { const: 'individual-search' },
     schemaVersion: { const: 1 },
     entries: array(object({ id: text, text: string })),
