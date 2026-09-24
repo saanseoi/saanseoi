@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:e65a76ef81ea52016b8f8a7733394fc54b648daf2523be383e9797686fd56c96",
+  "versionHash": "sha256:7fd16230ce4cce7fdc44f9db0f467db4962780a8fdd319dea180c2403f54c21a",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "mappingVersion": 1,
@@ -17,6 +17,14 @@
     "ds-hk-overture-place": {
       "min": "1.12.0",
       "max": "1.18.0"
+    },
+    "ds-hk-overture-division-area": {
+      "min": "1.12.0",
+      "max": "1.18.0"
+    },
+    "ds-hk-saanseoi-division": {
+      "min": "1.0",
+      "max": "1.0"
     }
   },
   "publisherFields": {
@@ -49,6 +57,28 @@
         "ds-hk-hkgov-dpo-address",
         "ds-hk-overture-division",
         "ds-hk-overture-place"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-place-2025-09-24.0",
+        "ss-hk-place-2025-10-22.0",
+        "ss-hk-place-2025-12-17.0",
+        "ss-hk-place-2026-01-21.0",
+        "ss-hk-place-2026-02-18.0",
+        "ss-hk-place-2026-03-18.0",
+        "ss-hk-place-2026-04-15.0",
+        "ss-hk-place-2026-05-20.0",
+        "ss-hk-place-2026-06-17.0",
+        "ss-hk-place-2026-07-22.0",
+        "ss-hk-place-2026-08-19.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-dpo-address",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-place",
+        "ds-hk-saanseoi-division"
       ],
       "anchorSnapshotVersions": [
         "ss-hk-place-2025-09-24.0",
@@ -133,7 +163,9 @@
           "fieldPath": "overturePlaceAddress.coordinates"
         }
       ],
-      "processingRuleIds": ["resolve-place-addresses"]
+      "processingRuleIds": [
+        "resolve-place-addresses"
+      ]
     },
     {
       "apiField": "attributes.bbox",
@@ -162,7 +194,9 @@
           "fieldPath": "placesI18n"
         }
       ],
-      "processingRuleIds": ["normalise-overture-places"]
+      "processingRuleIds": [
+        "normalise-overture-places"
+      ]
     },
     {
       "apiField": "attributes.basicCategory",
@@ -349,7 +383,9 @@
           "fieldPath": "overturePlaceAddress"
         }
       ],
-      "processingRuleIds": ["resolve-place-addresses"]
+      "processingRuleIds": [
+        "resolve-place-addresses"
+      ]
     },
     {
       "apiField": "relationships.divisions",
