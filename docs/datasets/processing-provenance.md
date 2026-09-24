@@ -1,5 +1,47 @@
 # Retained processing provenance
 
+## Reuse and reset controls
+
+R2 provenance reuse is automatic. Objects use their canonical JSON SHA-256 as the
+storage key; matching bytes are retained once across releases and runs. Deterministic
+release IDs do not establish matching audit contents: changes to declarations, fixtures,
+counts or API field metadata can produce different object hashes under the same release
+ID. Delivery verifies existing objects before reusing them, uploads missing objects, and
+rejects conflicting bytes before registration.
+
+A clean local database can register regenerated matching audits against populated
+production R2 without rewriting those R2 objects. This saves remote writes, but does not
+skip producer computation. A completed local `audit.json` checkpoint additionally skips
+audit generation when its input identity matches. Keep the checkpoint and its object
+directory together. R2 alone has no producer-input lookup that restores this checkpoint
+after its local directory is removed.
+
+| Artefact or state                                                       | Reuse and reset control                                                                                                                                                                                                                              |
+| ----------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Publisher downloads and raw R2 source assets                            | Source preparation uses retained inputs; immutable R2 delivery verifies matching contents. These are separate from derived release artefacts.                                                                                                        |
+| ALS prepared Parquet and Address3D, seal, membership and audit sidecars | Automatic reuse requires matching source, code, fixtures, runtime, identity history and Division dependencies, with checksums for every output. `--no-cache-artefacts` disables this preparation reuse.                                              |
+| Normalised artefacts                                                    | Content and processing-contract keys under `.local/harbour-sql/normalised-cache`; no independent general CLI reset switch.                                                                                                                           |
+| Places staged source, enriched output and per-record computation caches | Automatic input/contract checks, including Address3D dependencies and review state. These caches have no independent general CLI reuse switch.                                                                                                       |
+| Address current-row lookup cache                                        | Reused only for the exact parent snapshot; a baseline without a parent bypasses it.                                                                                                                                                                  |
+| Local processed release objects                                         | Init retains them by default. `--no-cache-artefacts` discards `objects/processed` after successful upload. Direct upload retention uses `--cacheArtefacts` or `--cache-artefacts`. This is not a universal cache purge.                              |
+| Local provenance checkpoint and objects                                 | Completed matching `audit.json` resumes the retained graph. The processed-object cleanup does not delete provenance.                                                                                                                                 |
+| R2 provenance objects and derived audit search indexes                  | Content-addressed retention is automatic; there is no force-overwrite or purge toggle in init. Registered evidence must remain available.                                                                                                            |
+| SQL plans, delivery receipts and pending ownership                      | Resume through `--continue`; stale generations are invalidated on reset even with `--keep-cache`. They are recovery state, not freely reusable computation caches.                                                                                   |
+| Local mirrors of remote D1                                              | `cache:rebuild` refreshes them; `cache:seed-reset` seeds after a remote reset. Invalidation triggers rebuilding before reuse.                                                                                                                        |
+| GERS lookup cache                                                       | `cache:gers --refresh` rebuilds it; `--cache-file` selects its location.                                                                                                                                                                             |
+| Completed-release and family run state                                  | `--continue` resumes/skips completed work. Family reset commands remove the selected family state and normally its release/delivery caches; `--keep-cache` retains those files. The official Address reset also clears prepared outputs unless kept. |
+| Full local initialisation reset                                         | `init:local` invokes `db:reset:local`, which clears local release/delivery directories and local R2 storage. It does not delete production R2 objects. There is no `--keep-cache` option on this full reset.                                         |
+
+`--target` selects database execution; `--r2` selects asset storage. A populated local
+database pins its R2 selection. Neither option is a cache invalidation switch.
+
+Deleting an audit by size requires tracing its complete graph and retaining objects
+shared with every surviving audit, including derived search indexes. Removing only local
+copies does not reduce R2 storage. Removing registered R2 evidence leaves its release
+audit unavailable until a complete replacement is generated and registered.
+
+## Delivery
+
 CLI provenance transfer checks batches of up to 64 object references through the private
 `POST /v1/provenance/objects/check` endpoint. The destination verifies retained lengths,
 checksums and canonical JSON before acknowledging reuse; missing objects are uploaded.
