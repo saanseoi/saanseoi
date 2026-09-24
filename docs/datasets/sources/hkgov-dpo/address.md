@@ -1,5 +1,9 @@
 # HKGov DPO ALS addresses
 
+Publisher Point geometries without coordinates retain their source representation.
+Division membership uses the available district and bilingual locality evidence when
+point coordinates are absent; it does not infer a location.
+
 Automatic ALS audit operations retain one declaration and aggregate count per operation.
 Per-record publisher and canonical evidence is excluded from automatic audit entries;
 reviewed identity decisions retain individual fixture references.

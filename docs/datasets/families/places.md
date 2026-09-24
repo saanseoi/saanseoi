@@ -451,6 +451,11 @@ manifests so an empty database cannot be skipped as an already completed run.
 
 ## Publisher attribution and field provenance
 
+Spatial-membership release sets include the selected Overture DivisionArea and curated
+SaanSeoi Division sources in their API-field mapping signature, alongside ALS, Overture
+Divisions and Places. Publication validates this exact source composition and its
+publisher schema ranges.
+
 The full Places profile returns publisher attribution as `sources: { overture: [...] }`.
 Retained source properties use camelCase keys while field provenance pairs those keys
 with original publisher paths. Localisation alternatives, access hints, trust metadata,

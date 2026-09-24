@@ -637,6 +637,11 @@ supplementary Address release can share the Places dataset code without claiming
 Place normalisation rules; missing rules and conflicting captured definitions still stop
 API release-set publication.
 
+The Places field mapping supports the spatial-membership source composition of ALS,
+Overture Places, Overture Divisions and DivisionAreas, and curated SaanSeoi Divisions.
+Each selected publisher schema must fall within its declared range; the curated Division
+schema is `1.0`.
+
 ### Deferred address review
 
 Unresolved Place Address cases are retained as unreviewed during ingestion. The place

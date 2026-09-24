@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+ALS Division membership accepts publisher Point geometries without coordinates and uses
+the available district and bilingual locality evidence. Missing coordinates do not
+prevent address preparation or create an inferred point.
+
 Automatic ALS audit operations retain one declaration and aggregate count per operation.
 Per-record publisher and canonical evidence is excluded from automatic audit entries;
 reviewed identity decisions retain individual fixture references.
