@@ -260,6 +260,7 @@ html input[class]:focus-visible {
 }
 
 @theme saanseoi {
+  --color-brand-green: #006b59;
   --color-background: var(--background);
   --color-background-alt: var(--background-alt);
   --color-foreground: var(--foreground);

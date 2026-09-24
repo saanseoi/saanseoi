@@ -1,8 +1,10 @@
+import saanseoiLogo from '#lib/assets/saanseoi-logo.png'
 import dianapangLogo from '#lib/assets/sourcePublishers/dpang.png'
 import hkgovLogo from '#lib/assets/sourcePublishers/hkgov.webp'
 import overtureLogo from '#lib/assets/sourcePublishers/overture.png'
 
 const publisherLogos: Record<string, string> = {
+  saanseoi: saanseoiLogo,
   dpang: dianapangLogo,
   overture: overtureLogo,
   hkgov: hkgovLogo,

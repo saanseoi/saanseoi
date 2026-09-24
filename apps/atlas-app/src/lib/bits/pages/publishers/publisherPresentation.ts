@@ -1,4 +1,5 @@
 export const publisherAccent = (publisherCode: string) => {
+  if (publisherCode === 'saanseoi') return 'var(--color-brand-green)'
   if (publisherCode === 'dpang') return '#719b62'
   if (publisherCode === 'overture') return '#6a83cd'
   if (publisherCode.startsWith('hkgov')) return '#e47561'
