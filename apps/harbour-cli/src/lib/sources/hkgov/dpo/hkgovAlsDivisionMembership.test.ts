@@ -4,6 +4,41 @@ import { createDivisionMembership } from '../../../pipeline/divisions/divisionMe
 import type { DivisionLookupMaps, PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { normaliseAddressRowForPipeline } from '@repo/core/pipeline/services/addresses/normalisation'
 
+test('ALS points without publisher coordinates retain text-based Division membership', () => {
+  const district = { id: 'north', name: 'North District', class: 'district' }
+  const membership = createDivisionMembership(
+    [
+      district,
+      {
+        id: 'wo-hop-shek',
+        name: 'WO HOP SHEK VILLAGE',
+        locale: 'en',
+        class: 'village',
+        hierarchies: { full: [[district]] },
+      },
+    ],
+    [],
+  )
+  // December 2024 publisher CSU 3359638359T20050430 has this geometry.
+  const row = {
+    geometry: JSON.stringify({ type: 'Point' }),
+    enVillageName: 'WO HOP SHEK VILLAGE',
+    districtId: 'north',
+    sources: '{}',
+  } as PreparedHkgovAlsRow
+  applyAlsDivisionMembership([row], {
+    snapshotId: 'divisions',
+    membership,
+  } as DivisionLookupMaps)
+  expect(row.districtId).toBe('north')
+  expect(row.villageId).toBe('wo-hop-shek')
+  expect(JSON.parse(row.geometry!)).toEqual({ type: 'Point' })
+  expect(JSON.parse(row.sources).divisionAssociation.evidence).toContainEqual({
+    divisionId: 'wo-hop-shek',
+    method: 'text',
+  })
+})
+
 test('final ALS coordinate corrections, structured village names and islands reach persisted address fields', () => {
   const country = { id: 'country', name: 'China', class: 'country' }
   const district = { id: 'district', name: 'District', class: 'district' }

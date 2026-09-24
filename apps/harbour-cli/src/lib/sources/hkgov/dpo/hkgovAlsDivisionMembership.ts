@@ -10,6 +10,10 @@ export function applyAlsDivisionMembership(
     throw new Error('ALS preparation requires a Division geometry index.')
   for (const row of rows) {
     const geometry = row.geometry ? JSON.parse(row.geometry) : null
+    const coordinates =
+      geometry?.type === 'Point' && Array.isArray(geometry.coordinates)
+        ? geometry.coordinates
+        : null
     const sources = row.sources ? JSON.parse(row.sources) : {}
     const en = row.engPremisesAddressJson ? JSON.parse(row.engPremisesAddressJson) : {}
     const zh = row.chiPremisesAddressJson ? JSON.parse(row.chiPremisesAddressJson) : {}
@@ -24,8 +28,8 @@ export function applyAlsDivisionMembership(
       ...(sources.landformAssociation?.names ?? []),
     ]
     const result = lookup.membership.resolve({
-      lng: geometry?.type === 'Point' ? geometry.coordinates[0] : null,
-      lat: geometry?.type === 'Point' ? geometry.coordinates[1] : null,
+      lng: coordinates?.[0] ?? null,
+      lat: coordinates?.[1] ?? null,
       districtId: row.districtId,
       names,
       fallback: {
