@@ -216,6 +216,7 @@ export async function publishLocalCuratedDivisions(
         .get(datasetCode) as any
       if (!datasetRow) throw Error('Sync metadata before assembling curated divisions.')
       const code = `${datasetCode.replace(/^ds-/, 'dr-')}-${release.releaseVersion}`
+      const releaseNotesUrl = `https://saanseoi.hk/sources/${datasetCode}/${code}`
       const sourceReleaseId = buildDeterministicSourceReleaseId(code)
       const resourceReleaseId = buildDeterministicReleaseId(code)
       const source = { datasetCode, datasetId: datasetRow.id, resourceReleaseId }
@@ -241,13 +242,13 @@ export async function publishLocalCuratedDivisions(
       })
       const ingestedAt = new Date().toISOString()
       await ctx.metaDb.run(sql`INSERT INTO sourceReleases
-        (id,datasetId,code,sourceVersion,expectedResourceTypes,sourceSchemaVersion,publicationDate,cohortKey,status,ingestedAt)
-        VALUES (${sourceReleaseId},${source.datasetId},${code},${release.releaseVersion},${JSON.stringify([resourceType])},${release.sourceSchemaVersion},${release.publicationDate},${release.releaseVersion},'processing',${ingestedAt})
-        ON CONFLICT(id) DO NOTHING`)
+        (id,datasetId,code,sourceVersion,expectedResourceTypes,sourceSchemaVersion,publicationDate,cohortKey,releaseNotesUrl,status,ingestedAt)
+        VALUES (${sourceReleaseId},${source.datasetId},${code},${release.releaseVersion},${JSON.stringify([resourceType])},${release.sourceSchemaVersion},${release.publicationDate},${release.releaseVersion},${releaseNotesUrl},'processing',${ingestedAt})
+        ON CONFLICT(id) DO UPDATE SET releaseNotesUrl=excluded.releaseNotesUrl`)
       await ctx.metaDb.run(sql`INSERT INTO releases
-        (id,sourceReleaseId,datasetId,code,resourceType,sourceVersion,sourceSchemaVersion,publicationDate,cohortKey,status,ingestedAt)
-        VALUES (${resourceReleaseId},${sourceReleaseId},${source.datasetId},${code},${resourceType},${release.releaseVersion},${release.sourceSchemaVersion},${release.publicationDate},${release.releaseVersion},'processing',${ingestedAt})
-        ON CONFLICT(id) DO NOTHING`)
+        (id,sourceReleaseId,datasetId,code,resourceType,sourceVersion,sourceSchemaVersion,publicationDate,cohortKey,releaseNotesUrl,status,ingestedAt)
+        VALUES (${resourceReleaseId},${sourceReleaseId},${source.datasetId},${code},${resourceType},${release.releaseVersion},${release.sourceSchemaVersion},${release.publicationDate},${release.releaseVersion},${releaseNotesUrl},'processing',${ingestedAt})
+        ON CONFLICT(id) DO UPDATE SET releaseNotesUrl=excluded.releaseNotesUrl`)
       const existingObjectKeys = [
         meta
           .query('SELECT rawObjectKey FROM releases WHERE id=?')
