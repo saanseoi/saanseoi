@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:fad3c89d5bd05cec30d2ae44859dde9d1d48628dd4f0d889203d6db0673895d3",
+  "versionHash": "sha256:a17d8a91a5b994ad083772d20b583567d9ae84682ac1c813ca961ff5b9990858",
   "units": [
     {
       "code": "category",
@@ -114,22 +114,22 @@
     {
       "code": "per-thousand",
       "dimension": "ratio",
-      "symbol": "‰",
+      "symbol": "males per 1,000 females",
       "i18n": [
         {
-          "description": "A ratio expressed per 1,000 units of the denominator",
+          "description": "Number of males per 1,000 females in the specified population.",
           "locale": "en",
-          "name": "Per thousand"
+          "name": "Males per 1,000 females"
         },
         {
-          "description": "一個每1,000個分母單位的比率",
+          "description": "指定人口中每1,000名女性所對應的男性人數。",
           "locale": "zh-hant",
-          "name": "每千人"
+          "name": "每千名女性的男性人數"
         },
         {
-          "description": "每1000单位分母的比率表示",
+          "description": "指定人口中每1,000名女性所对应的男性人数。",
           "locale": "zh-hans",
-          "name": "每千人"
+          "name": "每千名女性的男性人数"
         }
       ]
     },
