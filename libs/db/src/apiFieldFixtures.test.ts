@@ -156,6 +156,38 @@ describe('api field fixtures', () => {
     ).toBeNull()
   })
 
+  test('covers Places spatial membership with curated Divisions and Overture areas', () => {
+    const fixture = listApiFieldFixtures().find(
+      fixture => fixture.apiVersion === 'api-places-v0.1',
+    )!
+    for (const anchor of fixture.lineageAnchors) {
+      const lookup = {
+        apiVersion: fixture.apiVersion,
+        domainCode: fixture.domainCode,
+        schemaVersion: fixture.schemaVersion,
+        rulesetVersion: fixture.rulesetVersion,
+        lineageSnapshotVersions: [anchor.snapshotVersion],
+        sourceSchemas: {
+          'ds-hk-hkgov-dpo-address': '3.2',
+          'ds-hk-overture-place': '1.12.0',
+          'ds-hk-overture-division': '1.18.0',
+          'ds-hk-overture-division-area': '1.18.0',
+          'ds-hk-saanseoi-division': '1.0',
+        },
+      }
+      expect(resolveApiFieldFixture(lookup)).not.toBeNull()
+      expect(
+        resolveApiFieldFixture({
+          ...lookup,
+          sourceSchemas: {
+            ...lookup.sourceSchemas,
+            'ds-hk-saanseoi-division': '2.0',
+          },
+        }),
+      ).toBeNull()
+    }
+  })
+
   test('bundled mappings have current hashes and registered resolvers', () => {
     for (const fixture of listApiFieldFixtures()) {
       expect(fixture.versionHash).toBe(computeVersionHash(fixture))
