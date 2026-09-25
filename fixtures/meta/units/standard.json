@@ -1,313 +1,271 @@
 {
-  "versionHash": "sha256:a17d8a91a5b994ad083772d20b583567d9ae84682ac1c813ca961ff5b9990858",
+  "versionHash": "sha256:6fd4951bf257e81c5c21a4709c01b17061c358b6278391953b842de1841d51fb",
   "units": [
     {
       "code": "category",
       "dimension": "categorical",
       "symbol": "",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Category",
           "description": "A publisher-defined categorical value."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "類別",
           "description": "由發佈者定義的類別值。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "类别",
           "description": "由发布者定义的类别值。"
         }
-      ]
+      }
     },
     {
       "code": "hong-kong-dollar",
       "dimension": "currency",
       "symbol": "HK$",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Hong Kong dollars",
           "description": "Amount in Hong Kong dollars."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "港元",
           "description": "以港元表示的金額。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "港元",
           "description": "以港元表示的金额。"
         }
-      ]
+      }
     },
     {
       "code": "hour",
       "dimension": "time",
       "symbol": "hours",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Hours",
           "description": "Duration measured in hours."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "小時",
           "description": "以小時計量的時間。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "小时",
           "description": "以小时计量的时间。"
         }
-      ]
+      }
     },
     {
       "code": "household",
       "dimension": "household",
       "symbol": "households",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Households",
           "description": "Count of households."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "住戶",
           "description": "住戶數。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "住户",
           "description": "住户数。"
         }
-      ]
+      }
     },
     {
       "code": "living-quarter",
       "dimension": "housing",
       "symbol": "quarters",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Living quarters",
           "description": "Count of living quarters."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "居住單位",
           "description": "居住單位數目。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "居住单位",
           "description": "居住单位数目。"
         }
-      ]
+      }
     },
     {
       "code": "per-thousand",
       "dimension": "ratio",
       "symbol": "males per 1,000 females",
-      "i18n": [
-        {
+      "i18n": {
+        "en": {
           "description": "Number of males per 1,000 females in the specified population.",
-          "locale": "en",
           "name": "Males per 1,000 females"
         },
-        {
+        "zh-hant": {
           "description": "指定人口中每1,000名女性所對應的男性人數。",
-          "locale": "zh-hant",
           "name": "每千名女性的男性人數"
         },
-        {
+        "zh-hans": {
           "description": "指定人口中每1,000名女性所对应的男性人数。",
-          "locale": "zh-hans",
           "name": "每千名女性的男性人数"
         }
-      ]
+      }
     },
     {
       "code": "percent",
       "dimension": "proportion",
       "symbol": "%",
-      "i18n": [
-        {
+      "i18n": {
+        "en": {
           "description": "A proportion expressed per 100 units.",
-          "locale": "en",
           "name": "Percent"
         },
-        {
+        "zh-hant": {
           "description": "以每100個分母單位表示的比例。",
-          "locale": "zh-hant",
           "name": "百分比"
         },
-        {
+        "zh-hans": {
           "description": "以每100个分母单位表示的比例。",
-          "locale": "zh-hans",
           "name": "百分比"
         }
-      ]
+      }
     },
     {
       "code": "person",
       "dimension": "population",
       "symbol": "persons",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Persons",
           "description": "Count of people."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "人",
           "description": "人數。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "人",
           "description": "人数。"
         }
-      ]
+      }
     },
     {
       "code": "person-per-square-kilometre",
       "dimension": "population-density",
       "symbol": "persons/km²",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Persons per square kilometre",
           "description": "Population density per square kilometre."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "每平方公里人數",
           "description": "以每平方公里人數表示的人口密度。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "每平方公里人数",
           "description": "以每平方公里人数表示的人口密度。"
         }
-      ]
+      }
     },
     {
       "code": "room",
       "dimension": "room",
       "symbol": "rooms",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Rooms",
           "description": "Count of rooms."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "房間",
           "description": "房間數目。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "房间",
           "description": "房间数目。"
         }
-      ]
+      }
     },
     {
       "code": "square-kilometre",
       "dimension": "area",
       "symbol": "km²",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Square kilometres",
           "description": "Area measured in square kilometres."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "平方公里",
           "description": "以平方公里計量的面積。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "平方公里",
           "description": "以平方公里计量的面积。"
         }
-      ]
+      }
     },
     {
       "code": "square-metre",
       "dimension": "area",
       "symbol": "m²",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Square metres",
           "description": "Area measured in square metres."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "平方米",
           "description": "以平方米計量的面積。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "平方米",
           "description": "以平方米计量的面积。"
         }
-      ]
+      }
     },
     {
       "code": "subdivided-unit",
       "dimension": "housing",
       "symbol": "subdivided units",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Subdivided units",
           "description": "Count of subdivided units."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "分間單位",
           "description": "分間單位數目。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "分间单位",
           "description": "分间单位数目。"
         }
-      ]
+      }
     },
     {
       "code": "year",
       "dimension": "time",
       "symbol": "years",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Years",
           "description": "Duration measured in years."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "歲",
           "description": "以歲計量的時間。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "岁",
           "description": "以岁计量的时间。"
         }
-      ]
+      }
     }
   ]
 }

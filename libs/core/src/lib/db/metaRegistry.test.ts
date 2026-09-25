@@ -185,13 +185,13 @@ id TEXT PRIMARY KEY,
     );
 
     CREATE TABLE publishers (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL
     );
 
     CREATE TABLE datasets (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT,
@@ -319,7 +319,7 @@ describe('listRegistryReleases', () => {
 UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = 'dataset-b' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');
 UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'dataset-c' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
 
-      UPDATE datasets SET i18n = '[{"locale":"en","name":"Hong Kong addresses"},{"locale":"zh-Hant","name":"香港地址"}]' WHERE id = 'dataset-a';
+      UPDATE datasets SET i18n = '{"en":{"name":"Hong Kong addresses"},"zh-hant":{"name":"香港地址"}}' WHERE id = 'dataset-a';
 
       INSERT INTO sourceReleases (id, datasetId, code) VALUES
         ('source-version-a', 'dataset-a', 'dr-hk-addresses-2026-07-15'),
@@ -327,8 +327,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('source-version-c', 'dataset-c', 'dr-hk-overture-divisions-2026-07-15');
 
       INSERT INTO releases (id, datasetId, sourceReleaseId, code, sourceVersion, ingestedAt, processingRules) VALUES
-        ('source-release-a', 'dataset-a', 'source-version-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
-        ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":[]}]}]}'),
+        ('source-release-a', 'dataset-a', 'source-version-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":{}}]}]}'),
+        ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":{}}]}]}'),
         ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{}');
 
       INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role) VALUES
@@ -395,10 +395,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
           sourceReleaseCode: '2026-07-15',
           sourceVersion: '2026-07-15',
           kind: null,
-          datasetI18n: [
-            { datasetId: 'dataset-a', locale: 'en', name: 'Hong Kong addresses' },
-            { datasetId: 'dataset-a', locale: 'zh-Hant', name: '香港地址' },
-          ],
+          datasetI18n: {
+            en: { name: 'Hong Kong addresses' },
+            'zh-hant': { name: '香港地址' },
+          },
         }),
         expect.objectContaining({
           publisherCode: 'landsd',
@@ -636,7 +636,7 @@ function createDraftReleaseSetDb() {
     );
 
     CREATE TABLE apiCompositionMembers (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       apiCompositionId TEXT NOT NULL,
       domainCode TEXT NOT NULL DEFAULT 'default',
       resourceType TEXT NOT NULL,
@@ -753,13 +753,13 @@ function createRegionalSnapshotLookupDb() {
 
   sqlite.exec(`
     CREATE TABLE publishers (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL
     );
 
     CREATE TABLE datasets (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT,
@@ -801,13 +801,13 @@ function createLatestDatasetLookupDb() {
 
   sqlite.exec(`
     CREATE TABLE publishers (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL
     );
 
     CREATE TABLE datasets (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT NOT NULL,
@@ -900,11 +900,11 @@ function createCleanupCandidatesDb() {
       id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, status TEXT
     );
     CREATE TABLE datasets (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       id TEXT PRIMARY KEY, publisherId TEXT, code TEXT, regionCode TEXT, sourceVariant TEXT
     );
     CREATE TABLE publishers (
-      i18n TEXT NOT NULL DEFAULT '[]', id TEXT PRIMARY KEY, code TEXT);
+      i18n TEXT NOT NULL DEFAULT '{}', id TEXT PRIMARY KEY, code TEXT);
 
     CREATE TABLE apiReleaseSets (
       publisherFields TEXT,
@@ -978,13 +978,13 @@ id TEXT PRIMARY KEY,
     );
 
     CREATE TABLE publishers (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL
     );
 
     CREATE TABLE datasets (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT NOT NULL,
@@ -1011,13 +1011,13 @@ function createPublishReleaseArtefactsDb() {
 
   sqlite.exec(`
     CREATE TABLE publishers (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL
     );
 
     CREATE TABLE datasets (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       resourceTypes TEXT NOT NULL DEFAULT '[]',
       id TEXT PRIMARY KEY,
       publisherId TEXT NOT NULL,
@@ -1043,7 +1043,7 @@ function createPublishReleaseArtefactsDb() {
     );
 
     CREATE TABLE apiCompositionMembers (
-      i18n TEXT NOT NULL DEFAULT '[]',
+      i18n TEXT NOT NULL DEFAULT '{}',
       apiCompositionId TEXT NOT NULL,
       domainCode TEXT NOT NULL DEFAULT 'default',
       resourceType TEXT NOT NULL,

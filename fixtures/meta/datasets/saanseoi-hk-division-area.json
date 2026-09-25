@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:76bfe3b1a441d2e99ad206988e8f9dde76cae887b0cda6f92601fee02df65db6",
+  "versionHash": "sha256:cdb9ae96d1b1eb9d7cf0fe47815a54ae265f83ae54d245502acf91cfd7b5e72a",
   "publisherCode": "saanseoi",
   "code": "ds-hk-saanseoi-division-area",
   "regionCode": "hk",
@@ -39,22 +39,19 @@
     "correctionSuffixSource": "generated"
   },
   "category": "places",
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Locality & Neighbourhood Areas",
       "description": "Handcrafted Hong Kong geography. Incomplete and experimental. Initial edition dated 1 September 2026, updated as needed."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "手工繪製區劃範圍",
       "description": "手工繪製的香港地理資料。資料尚未完整，屬實驗性質。首版日期為2026年9月1日，按需要更新。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "手工绘制区划范围",
       "description": "手工绘制的香港地理资料。资料尚未完整，属实验性质。首版日期为2026年9月1日，按需要更新。"
     }
-  ],
+  },
   "sourceCrs": "EPSG:4326"
 }

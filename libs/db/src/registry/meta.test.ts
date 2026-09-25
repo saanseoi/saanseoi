@@ -37,7 +37,7 @@ test('referenced policy content determines resolved ruleset identity and descrip
   }
   const first = resolveMergeRulesetDefinitions(fixture, definitions)
   expect(first.mergeRules[0]?.definition).toEqual(definition)
-  expect(first.mergeRules[0]?.i18n[0]?.description).toBe(definition.summary)
+  expect(first.mergeRules[0]?.i18n.en?.description).toBe(definition.summary)
   definition.parameters.factor = 100
   const changed = resolveMergeRulesetDefinitions(fixture, definitions)
   expect(changed.versionHash).not.toBe(first.versionHash)
@@ -203,7 +203,7 @@ describe('fixture version hashes', () => {
           initialApiCompositionMembers
             .filter(member => member.apiCompositionCode === composition.code)
             .every(member =>
-              member.i18n.every(
+              Object.values(member.i18n).every(
                 translation => translation.description && translation.descriptionShort,
               ),
             ),
@@ -540,7 +540,7 @@ describe('buildMetaRegistrySyncStatements', () => {
             ).toEqual(seed.i18n)
           }
           // Matching fixture hashes must not prevent restoration of locale values.
-          if (attempt === 0) db.exec(`UPDATE ${table} SET i18n = '[]'`)
+          if (attempt === 0) db.exec(`UPDATE ${table} SET i18n = '{}'`)
         }
         const members = db
           .query(`

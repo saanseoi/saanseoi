@@ -16,16 +16,24 @@ export { getLocale, locales, setLocale }
 export { getCurrentLocale, updateLocale }
 export type { AppLocale, MessageKey }
 
-export function selectLocalisedRow<T extends { locale: string }>(
-  rows: readonly T[] | null | undefined,
+export function selectLocalisedRow<T>(
+  rows:
+    | Readonly<Record<string, T>>
+    | readonly (T & { locale: string })[]
+    | null
+    | undefined,
   locale: AppLocale,
 ) {
   const registryLocale = locale.toLowerCase()
-
-  return (
-    rows?.find(row => row.locale.toLowerCase() === registryLocale) ??
-    rows?.find(row => row.locale.toLowerCase() === 'en')
-  )
+  if (Array.isArray(rows)) {
+    const legacyRows = rows as readonly (T & { locale: string })[]
+    return (
+      legacyRows.find(row => row.locale.toLowerCase() === registryLocale) ??
+      legacyRows.find(row => row.locale.toLowerCase() === 'en')
+    )
+  }
+  const localeMap = rows as Readonly<Record<string, T>> | null | undefined
+  return localeMap?.[registryLocale] ?? localeMap?.en
 }
 
 export const localeOptions = [

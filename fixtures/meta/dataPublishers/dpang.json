@@ -1,26 +1,23 @@
 {
-  "versionHash": "sha256:9a5e681606c380279c0a58647529788750a006249ef266dcf01cb118f698dd9e",
+  "versionHash": "sha256:42f4651662e6b0dca4b771821a758c2df8540e8e177163d9dfa355d977e230c1",
   "code": "dpang",
   "url": "https://dianapang.net/",
   "contact": "mailto:hello@dianapang.net",
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Diana Pang",
       "nameShort": "DPang",
       "description": "Independent researcher and chronicler of Hong Kong street names."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "Diana Pang",
       "nameShort": "彭皓婷",
       "description": "香港街道名稱資料的獨立研究者及收藏者。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "Diana Pang",
       "nameShort": "彭皓婷",
       "description": "香港街道名称资料的独立研究者及收藏者。"
     }
-  ]
+  }
 }

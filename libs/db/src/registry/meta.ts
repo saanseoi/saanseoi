@@ -53,6 +53,7 @@ export const initialProfiles: ProfileName[] = [...profileNames]
 export const initialResolverCodes: ResolverCode[] = [...resolverCodes]
 
 type Locale = 'en' | 'zh-hant' | 'zh-hans'
+type LocaleMap<T> = Partial<Record<Locale, T>>
 
 type VersionedFixture<T> = T & {
   versionHash: string
@@ -64,8 +65,7 @@ type PublisherFixture = {
   url?: string
   contactUrl?: string
   parentCode?: string
-  i18n: Array<{
-    locale: Locale
+  i18n: LocaleMap<{
     name: string
     nameShort?: string
     description?: string
@@ -85,8 +85,7 @@ type UnitFixture = {
     code: string
     dimension: string
     symbol: string
-    i18n: Array<{
-      locale: Locale
+    i18n: LocaleMap<{
       name: string
       description?: string
     }>
@@ -116,8 +115,7 @@ type DatasetFixture = {
     rulesetVersion: string
     operationCodes: string[]
   }>
-  i18n: Array<{
-    locale: Locale
+  i18n: LocaleMap<{
     name: string
     description?: string
   }>
@@ -178,8 +176,7 @@ type ApiCompositionFixture = {
   domains?: Array<{
     code: string
     isDefault?: boolean
-    i18n: Array<{
-      locale: Locale
+    i18n: LocaleMap<{
       name: string
       descriptionShort?: string
       description?: string
@@ -211,8 +208,7 @@ export type MergeProcessingRule = {
   targetFieldPath?: string
   condition?: string
   mappings?: Array<{ from: string; to: string }>
-  i18n: Array<{
-    locale: Locale
+  i18n: LocaleMap<{
     description: string
   }>
 }
@@ -472,12 +468,9 @@ export function resolveMergeRulesetDefinitions(
       targetFieldPath: [
         ...new Set(selected.flatMap(definition => definition.outputs)),
       ].join(', '),
-      i18n: [
-        {
-          locale: 'en',
-          description: selected.map(definition => definition.summary).join(' '),
-        },
-      ],
+      i18n: {
+        en: { description: selected.map(definition => definition.summary).join(' ') },
+      },
       ...(selected.length === 1 ? { definition: first } : { definitions: selected }),
     }
   })
@@ -618,7 +611,7 @@ export const initialApiCompositionMembers: InitialApiCompositionMemberSeed[] =
         )
       : (fixture.members ?? []).map(member => ({
           domainCode: 'default',
-          i18n: [],
+          i18n: {},
           member,
         }))
     ).map(({ domainCode, i18n, member }) => ({

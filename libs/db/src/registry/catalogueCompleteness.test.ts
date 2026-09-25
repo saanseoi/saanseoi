@@ -50,7 +50,11 @@ test('all current API versions have endpoint metadata', () => {
 test('Statistics dataset and unit metadata has complete canonical locale keys and text', () => {
   const statistics = initialDatasets
     .flatMap(dataset =>
-      dataset.i18n.map(row => ({ datasetCode: dataset.code, ...row })),
+      Object.entries(dataset.i18n).map(([locale, row]) => ({
+        datasetCode: dataset.code,
+        locale,
+        ...row,
+      })),
     )
     .filter(row =>
       row.datasetCode.startsWith('ds-hk-hkgov-censtatd-division-statistic-'),
@@ -65,11 +69,7 @@ test('Statistics dataset and unit metadata has complete canonical locale keys an
     }
   }
   for (const unit of initialUnits)
-    expect(unit.i18n.map(row => row.locale).sort()).toEqual([
-      'en',
-      'zh-hans',
-      'zh-hant',
-    ])
+    expect(Object.keys(unit.i18n).sort()).toEqual(['en', 'zh-hans', 'zh-hant'])
 })
 
 test('unit registry sync removes undeclared locale keys and remains idempotent', () => {
@@ -86,14 +86,14 @@ test('unit registry sync removes undeclared locale keys and remains idempotent',
     }
     sync()
     db.exec(
-      "UPDATE units SET i18n = json_insert(i18n, '$[#]', json_object('locale', 'zh-Hant', 'name', 'stale')) WHERE code = 'person'",
+      "UPDATE units SET i18n = json_set(i18n, '$.stale', json_object('name', 'stale')) WHERE code = 'person'",
     )
     sync()
     sync()
     expect(
       db
         .query(
-          "SELECT json_extract(value, '$.locale') AS locale FROM units, json_each(units.i18n) WHERE code = 'person' ORDER BY locale",
+          "SELECT key AS locale FROM units, json_each(units.i18n) WHERE code = 'person' ORDER BY locale",
         )
         .all(),
     ).toEqual([{ locale: 'en' }, { locale: 'zh-hans' }, { locale: 'zh-hant' }])

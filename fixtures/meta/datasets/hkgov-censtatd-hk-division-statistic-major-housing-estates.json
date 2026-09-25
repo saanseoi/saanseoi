@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:c9f94373adc027b5aaa6fdbf359abe16a6608bf2db1a9466f29d5a1ad1347bce",
+  "versionHash": "sha256:ca14dfd8ce59234e891d27b6d73b7cb8488cf56ab942660ad357103e210dfaca",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates",
   "regionCode": "hk",
@@ -79,21 +79,18 @@
       ]
     }
   ],
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Census: Major Housing Estates",
       "description": "C&SD source for Census statistics and boundaries for 540 major housing estates."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "人口普查：主要屋苑",
       "description": "政府統計處提供的540個主要屋苑的人口普查統計及地理界線。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "人口普查：主要屋苑",
       "description": "政府统计处提供的540个主要屋苑的人口普查统计及地理界线。"
     }
-  ]
+  }
 }

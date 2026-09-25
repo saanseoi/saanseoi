@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:942c0708bef0c8a9bdb868cafca5a6f9fe49b9cdbb4789c2d61766e08c9da62c",
+  "versionHash": "sha256:8e008ab2110f7f8c9def08e5152efedb2d882f1a1f38e3dc73daf4b57b8a3d1e",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
   "regionCode": "hk",
@@ -104,21 +104,18 @@
       }
     }
   ],
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Census: Housing Market Areas and Building Groups",
       "description": "C&SD source for Census statistics and geography for housing market areas and building groups."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "人口普查：房屋市場分區及樓宇組別",
       "description": "政府統計處提供的房屋市場分區及樓宇組別人口普查統計和地理資料。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "人口普查：房屋市场分区及楼宇组别",
       "description": "政府统计处提供的房屋市场分区及楼宇组别人口普查统计和地理资料。"
     }
-  ]
+  }
 }

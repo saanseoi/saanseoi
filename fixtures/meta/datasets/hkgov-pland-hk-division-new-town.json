@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:7c23c73b699d943482ccf172029743fe054b7857363897c2d8156c5b08b2c238",
+  "versionHash": "sha256:35f510baa3ac9212188fbb43380eefcf125f25bf1a26108e7654bfef27d2f0f1",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-new-town",
   "regionCode": "hk",
@@ -127,23 +127,20 @@
     }
   ],
   "category": "boundaries",
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "New Town Planning Divisions",
       "description": "Planning division data for Hong Kong's new towns, published by the Planning Department."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "新市鎮規劃分區（香港）",
       "description": "由規劃署發布的香港新市鎮規劃分區資料。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "新市镇规划分区（香港）",
       "description": "由规划署发布的香港新市镇规划分区资料。"
     }
-  ],
+  },
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-hkgov-pland-new-town-merge-v1",

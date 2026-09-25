@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f8d9c53108a8c61c41b77f38a0469472dcd6baea5620f35ffeae973a3bee1dd5",
+  "versionHash": "sha256:0e448f24065b6faa80def8a97f0d1b9cb5e7233556fee48eeb99c72b02999ebd",
   "code": "rs-protomaps-island-assembly-v1",
   "resourceType": "division",
   "strategy": "merge",
@@ -22,20 +22,17 @@
           "to": "block assembly and retain the review evidence"
         }
       ],
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "description": "Selects only reviewed Protomaps island features and blocks assembly when a name or geometry needs review."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "description": "只選取已審核的 Protomaps 島嶼要素；名稱或幾何需要審核時會停止組裝。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "description": "只选取已审核的 Protomaps 岛屿要素；名称或几何需要审核时会停止组装。"
         }
-      ]
+      }
     },
     {
       "operationCode": "materialise_saanseoi_island_divisions",
@@ -53,20 +50,17 @@
           "to": "SaanSeoi Division official-name and alias provenance"
         }
       ],
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "description": "Materialises each reviewed island as a SaanSeoi landform Division, retaining an Overture identity when available."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "description": "將每個已審核島嶼實體化為 SaanSeoi 地貌區劃，並在可用時保留 Overture 身分。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "description": "将每个已审核岛屿实体化为 SaanSeoi 地貌区划，并在可用时保留 Overture 身份。"
         }
-      ]
+      }
     },
     {
       "operationCode": "materialise_saanseoi_island_division_areas",
@@ -80,20 +74,17 @@
           "to": "SaanSeoi DivisionArea geometry contribution"
         }
       ],
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "description": "Materialises the selected Protomaps polygon as the SaanSeoi island DivisionArea without combining source geometries."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "description": "將選定的 Protomaps 多邊形實體化為 SaanSeoi 島嶼區劃範圍，不合併來源幾何。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "description": "将选定的 Protomaps 多边形实体化为 SaanSeoi 岛屿区划范围，不合并来源几何。"
         }
-      ]
+      }
     }
   ]
 }

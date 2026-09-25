@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:21bf8825faf8080e9607c5c9d91eb92018c64d2ce18b2f16b8cb6a3777fbafca",
+  "versionHash": "sha256:50805b9ca1e69f9d3cca513899058b8f01ad87b057f419c19066606479b8e417",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division",
   "regionCode": "hk",
@@ -66,22 +66,19 @@
       ]
     }
   ],
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Divisions",
       "description": "A `division` is a feature type that represents an official or non-official organization of people: country, region, province, city, neighborhood, etc. — as seen from a given political perspective. It has a Point geometry which gives an approximate location of the position most commonly associated with the feature."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "區劃 (香港)",
       "description": "「division」是一種要素類型，表示從某一政治視角所見的官方或非官方人群組織：國家、地區、省、市、社區等。它具有 Point 幾何，提供與該要素最常見相關位置的大約位置。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "区划 (香港)",
       "description": "「division」是一种要素类型，表示从某个政治视角所见的官方或非官方人群组织：国家、地区、省、市、社区等。它具有 Point 几何，提供与该要素最常关联位置的大致位置。"
     }
-  ],
+  },
   "sourceCrs": "EPSG:4326"
 }

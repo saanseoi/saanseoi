@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:4f72ed8cb9f72911c451aa52d1075209b0ed1672f59ce8a3e8bc31ae37ab71ba",
+  "versionHash": "sha256:4254b46b7407f5495f90ca67bf73025f6fb73b4940307ed0d7b6cfe301669102",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-area",
   "regionCode": "hk",
@@ -57,22 +57,19 @@
       ]
     }
   ],
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Division Areas",
       "description": "Division areas are polygons that represent the land or maritime area covered by a division. Each division area belongs to a division which it references by ID, and for which the division area provides an area polygon."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "Overture 區劃範圍 (香港)",
       "description": "區劃範圍是代表區劃所涵蓋陸地或海事範圍的多邊形。每個區劃範圍透過 ID 關聯所屬區劃，並為該區劃提供範圍多邊形。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "Overture 区划范围 (香港)",
       "description": "区划范围是代表区划所涵盖陆地或海事范围的多边形。每个区划范围通过 ID 关联所属区划，并为该区划提供范围多边形。"
     }
-  ],
+  },
   "sourceCrs": "EPSG:4326"
 }

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:6b97c57d4de9145aa1e791ffd01958b0eb75cf4b3e47b2dfc7e78edbe63f075e",
+  "versionHash": "sha256:96725efb59e6830170412bafd6ff6608dfc45ad232a58af3a39b160f8599d4b6",
   "publisherCode": "hkgov-landsd",
   "code": "ds-hk-hkgov-landsd-street",
   "regionCode": "hk",
@@ -44,21 +44,18 @@
   },
   "lastUpdated": "2025-12-19",
   "category": "places",
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Lands Department Street Names",
       "description": "Official current Hong Kong street names from the Lands Department gazetted list. Historical Government Notice evidence can be added in later release revisions."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "地政總署街道名稱",
       "description": "來自地政總署刊憲街道名稱清單的香港官方現行街道名稱資料集；歷史政府公告證據可於後續發布修訂加入。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "地政总署街道名称",
       "description": "来自地政总署刊宪街道名称清单的香港官方现行街道名称数据集；历史政府公告证据可在后续发布修订加入。"
     }
-  ]
+  }
 }

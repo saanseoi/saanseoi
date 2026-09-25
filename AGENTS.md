@@ -79,6 +79,8 @@
 - Prefer `rg`/`rg --files` for search
 - Use `bash` for scripts running on CI; use `fish` for scripts run locally.
 - The product is pre-release: avoid legacy compatibility paths or migration shims.
+- Represent translations as objects keyed by locale in fixtures, application types, API
+  responses, and JSON columns. Keep relational translation tables as locale rows.
 - Validate complex front-end design changes with `playwright`. Ignore content changes.
 - Put temporary map-review pages in `apps/basemap-viewer/local-review/`, with their
   modules in `apps/basemap-viewer/src/local-review/`; both are ignored and served on

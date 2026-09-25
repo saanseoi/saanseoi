@@ -1,10 +1,10 @@
 export type LocalisedRow = {
-  locale: string
   name: string
   nameShort?: string | null
   descriptionShort?: string | null
   description?: string | null
 }
+export type LocalisedMap = Record<string, LocalisedRow>
 
 export type RegistryPublisher = {
   id: string
@@ -14,7 +14,7 @@ export type RegistryPublisher = {
   contactEmail?: string | null
   contactPhone?: string | null
   parentPublisherId?: string | null
-  publisherI18n?: LocalisedRow[]
+  publisherI18n?: LocalisedMap
   accessMetrics?: AccessMetrics | null
 }
 
@@ -79,14 +79,14 @@ export type ApiRelease = {
     targetFieldPath?: string
     condition?: string
     mappings?: Array<{ from: string; to: string }>
-    i18n: Array<{ locale: string; description: string }>
+    i18n: Record<string, { description: string }>
     sourceCode: string
     sourceReleaseCode: string
   }>
   contributingSources?: Array<{
     sourceCode: string
     sourceReleaseCode: string
-    datasetI18n?: Array<{ locale: string; name: string }>
+    datasetI18n?: Record<string, { name: string }>
     publisherCode: string
     snapshotCode: string
     role: 'primary' | 'supporting'
@@ -137,7 +137,7 @@ export type RegistryApi = {
   apiComposition?: Array<{
     id: string
     defaultDomainCode?: string | null
-    apiCompositionMembers?: Array<{ domainCode: string; i18n: LocalisedRow[] }>
+    apiCompositionMembers?: Array<{ domainCode: string; i18n: LocalisedMap }>
     status: string
     version: number
   }>
@@ -209,8 +209,8 @@ export type SourceVersion = {
   }>
   assembledWith?: Array<{
     datasetCode: string
-    datasetI18n: LocalisedRow[]
-    publisherI18n: LocalisedRow[]
+    datasetI18n: LocalisedMap
+    publisherI18n: LocalisedMap
     role: string
     sourceReleaseCode: string
     sourceVersion: string
@@ -252,7 +252,7 @@ export type RegistrySource = {
   attribution?: string | null
   tags?: unknown
   processingRules?: DatasetMergeRuleReference[] | null
-  datasetI18n?: LocalisedRow[]
+  datasetI18n?: LocalisedMap
   transforms?: Array<{
     code: string
     resourceType: string
@@ -279,10 +279,7 @@ export type ReleaseMergeRules = {
       targetFieldPath?: string
       condition?: string
       mappings?: Array<{ from: string; to: string }>
-      i18n: Array<{
-        locale: string
-        description: string
-      }>
+      i18n: Record<string, { description: string }>
     }>
   }>
 }

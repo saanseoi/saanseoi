@@ -137,7 +137,13 @@ export async function resolvePublisherName(
     .where(eq(metaPublishers.code, publisherCode))
     .limit(1)
     .get()
-  return publisher?.i18n.find(row => row.locale === 'en')?.name ?? publisherCode
+  const i18n = publisher?.i18n as unknown
+  const english = Array.isArray(i18n)
+    ? i18n.find(row => row?.locale === 'en')
+    : i18n && typeof i18n === 'object'
+      ? (i18n as Record<string, { name?: string }>).en
+      : undefined
+  return english?.name ?? publisherCode
 }
 
 export async function requireReleaseSetPublicationMetadata(
@@ -214,7 +220,9 @@ function getEnglishDomainCopy(value: unknown, domainCode: string) {
           typeof translation === 'object' &&
           (translation as { locale?: unknown }).locale === 'en',
       )
-    : undefined
+    : translations && typeof translations === 'object'
+      ? (translations as Record<string, unknown>).en
+      : undefined
   const name =
     english &&
     typeof english === 'object' &&

@@ -57,23 +57,20 @@
     }
   ],
   "category": "places",
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Lands Department Road Centreline",
       "description": "Based on the Land Information System (“LIS”) 1:1000 Topographic dataset and is also available as the Street Centre Lines feature class in the iB1000 dataset and Road Centreline in iRG1000 dataset. The usage of the LandsD’s Road Centreline is primarily focused on approximate location query and map annotation labelling."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "地政總署道路中心線",
       "description": "本資料以土地資訊系統（「LIS」）1:1000 地形資料集為基礎，亦可於 iB1000 資料集的 Street Centre Lines 要素類別及 iRG1000 資料集的 Road Centreline 取得。地政總署道路中心線主要用於大概位置查詢及地圖註記標籤。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "地政总署道路中心线",
       "description": "本数据以土地信息系统（“LIS”）1:1000 地形数据集为基础，亦可在 iB1000 数据集的 Street Centre Lines 要素类及 iRG1000 数据集的 Road Centreline 获取。地政总署道路中心线主要用于大概位置查询及地图注记标注。"
     }
-  ],
-  "versionHash": "sha256:6f531463ab64fb2369a9f78abb825f7c9ceb610a36ccd2c7de471a8975bdf80e",
+  },
+  "versionHash": "sha256:ed1440e90cfdd6f7a6d438ab373f1a0a7696ed5c6598ee985e2c4775cce95a78",
   "sourceCrs": "EPSG:2326"
 }

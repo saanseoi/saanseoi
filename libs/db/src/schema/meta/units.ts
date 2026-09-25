@@ -1,4 +1,4 @@
-import type { MetaTranslation } from './i18n'
+import type { MetaTranslations } from './i18n'
 import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { jsonText, primaryUuid, timestamps } from '../shared'
@@ -11,7 +11,7 @@ export const metaUnits = sqliteTable('units', {
   dimension: text('dimension').notNull(),
   /** Locale-neutral compact rendering, for example `km²` or `persons/km²`. */
   symbol: text('symbol').notNull(),
-  i18n: jsonText<MetaTranslation[]>('i18n').notNull().default([]),
+  i18n: jsonText<MetaTranslations>('i18n').notNull().default({}),
   versionHash: text('versionHash').notNull(),
   ...timestamps,
 })

@@ -121,7 +121,7 @@ type ReleaseProcessingRules = {
     rulesetVersion: string
     rules: Array<{
       condition?: string
-      i18n: Array<{ description: string; locale: string }>
+      i18n: Record<string, { description: string }>
       mappings?: Array<{ from: string; to: string }>
       operationCode: string
       sourceFieldPath?: string
@@ -129,6 +129,30 @@ type ReleaseProcessingRules = {
       kind: 'bulk' | 'record'
     }>
   }>
+}
+
+function localeMapFromStoredValue(
+  value: unknown,
+): Record<string, Record<string, unknown>> {
+  if (Array.isArray(value)) {
+    return Object.fromEntries(
+      value.flatMap(row =>
+        row && typeof row === 'object' && typeof row.locale === 'string'
+          ? [
+              [
+                row.locale,
+                Object.fromEntries(
+                  Object.entries(row).filter(([key]) => key !== 'locale'),
+                ),
+              ],
+            ]
+          : [],
+      ),
+    )
+  }
+  return value && typeof value === 'object'
+    ? (value as Record<string, Record<string, unknown>>)
+    : {}
 }
 
 function bulkRulesFromProcessingRules(processingRules: unknown) {
@@ -149,7 +173,14 @@ function bulkRulesFromProcessingRules(processingRules: unknown) {
         (rule): rule is ReleaseProcessingRules['rulesets'][number]['rules'][number] =>
           !!rule && typeof rule === 'object' && rule.type === 'bulk',
       )
-      .map((rule, index) => ({ rule, rulesetVersion, index }))
+      .map((rule, index) => ({
+        rule: {
+          ...rule,
+          i18n: localeMapFromStoredValue(rule.i18n) as typeof rule.i18n,
+        },
+        rulesetVersion,
+        index,
+      }))
   })
 }
 
@@ -422,17 +453,19 @@ export async function listRegistryReleases(
               .all(),
           ),
       queryInBatches(datasetIds, ids =>
-        Promise.resolve(
-          db
-            .select({ id: metaDatasets.id, i18n: metaDatasets.i18n })
-            .from(metaDatasets)
-            .where(inArray(metaDatasets.id, ids))
-            .all(),
-        ).then(rows =>
-          rows.flatMap(row =>
-            row.i18n.map(translation => ({ datasetId: row.id, ...translation })),
+        db
+          .select({ id: metaDatasets.id, i18n: metaDatasets.i18n })
+          .from(metaDatasets)
+          .where(inArray(metaDatasets.id, ids))
+          .all(),
+      ).then(
+        rows =>
+          new Map(
+            rows.map(row => [
+              row.id,
+              localeMapFromStoredValue(row.i18n) as typeof row.i18n,
+            ]),
           ),
-        ),
       ),
     ])
   const resourceTypesByDatasetId = new Map(
@@ -529,9 +562,7 @@ export async function listRegistryReleases(
                   {
                     sourceCode: release.datasetCode,
                     sourceReleaseCode: release.code,
-                    datasetI18n: datasetI18n.filter(
-                      row => row.datasetId === release.datasetId,
-                    ),
+                    datasetI18n: datasetI18n.get(release.datasetId) ?? {},
                     publisherCode: release.publisherCode,
                     snapshotCode: snapshot.snapshot.code,
                     role: releaseAsRole({
@@ -656,6 +687,8 @@ export async function listRegistryApis(db: MetaDatabase, limit?: number) {
       .where(inArray(metaApiCompositionMembers.apiCompositionId, ids))
       .all(),
   )
+  for (const member of members)
+    member.i18n = localeMapFromStoredValue(member.i18n) as typeof member.i18n
   const catalogRevisions = await queryInBatches(apiIds, ids =>
     db
       .select()
@@ -744,6 +777,8 @@ export async function listRegistryApiCompositions(db: MetaDatabase, limit?: numb
         .where(inArray(metaApiCompositionMembers.apiCompositionId, ids))
         .all(),
   )
+  for (const member of members)
+    member.i18n = localeMapFromStoredValue(member.i18n) as typeof member.i18n
 
   const currentCompositionByApiVersionId = new Map<
     string,
@@ -805,6 +840,8 @@ export async function getRegistryApi(
       .where(inArray(metaApiCompositionMembers.apiCompositionId, ids))
       .all(),
   )
+  for (const member of members)
+    member.i18n = localeMapFromStoredValue(member.i18n) as typeof member.i18n
   const catalogRevisions = await db
     .select()
     .from(metaApiCatalogRevisions)
@@ -1159,7 +1196,7 @@ export async function listRegistrySources(db: MetaDatabase, limit?: number) {
     ...source,
     publisher:
       publishers.find(publisher => publisher.id === source.publisherId) ?? null,
-    datasetI18n: source.i18n,
+    datasetI18n: localeMapFromStoredValue(source.i18n) as typeof source.i18n,
     transforms: transforms.filter(row => row.datasetId === source.id),
     sourceVersions: sourceVersions.filter(version => version.datasetId === source.id),
   }))
@@ -1326,9 +1363,11 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
   return sources.map(source => ({
     ...source,
     publisher: {
-      publisherI18n: source.publisherI18n,
+      publisherI18n: localeMapFromStoredValue(
+        source.publisherI18n,
+      ) as typeof source.publisherI18n,
     },
-    datasetI18n: source.i18n,
+    datasetI18n: localeMapFromStoredValue(source.i18n) as typeof source.i18n,
     sourceVersions: latestVersions
       .filter(version => version.datasetId === source.id)
       .map(version => {
@@ -1372,14 +1411,14 @@ export async function getRegistrySource(db: MetaDatabase, id: string) {
   return {
     ...source,
     publisher,
-    datasetI18n: source.i18n,
+    datasetI18n: localeMapFromStoredValue(source.i18n) as typeof source.i18n,
     transforms,
     sourceVersions,
   }
 }
 
 async function getRegistrySourceRecord(db: MetaDatabase, id: string) {
-  return db
+  const source = await db
     .select(registrySourceSelection)
     .from(metaDatasets)
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
@@ -1387,6 +1426,9 @@ async function getRegistrySourceRecord(db: MetaDatabase, id: string) {
     .where(sql`${metaDatasets.id} = ${id} or ${metaDatasets.code} = ${id}`)
     .limit(1)
     .get()
+  return source
+    ? { ...source, i18n: localeMapFromStoredValue(source.i18n) as typeof source.i18n }
+    : null
 }
 
 export async function getRegistrySourceReleaseShell(
@@ -1458,7 +1500,7 @@ export async function getRegistrySourceReleaseShell(
   return {
     ...source,
     publisher,
-    datasetI18n: source.i18n,
+    datasetI18n: localeMapFromStoredValue(source.i18n) as typeof source.i18n,
     sourceVersions: sourceVersions.map(release =>
       release.id === selectedRelease?.id
         ? { ...release, processingActionCount }
@@ -1493,7 +1535,7 @@ export async function getRegistrySourceRelease(
   return {
     ...source,
     publisher,
-    datasetI18n: source.i18n,
+    datasetI18n: localeMapFromStoredValue(source.i18n) as typeof source.i18n,
     transforms,
     sourceVersions,
   }
@@ -1727,33 +1769,37 @@ async function queryRegistrySourceVersions(
     ...new Set(assemblySourceRows.map(source => source.datasetId)),
   ]
   const assemblyDatasetI18n = await queryInBatches(assemblyDatasetIds, ids =>
-    Promise.resolve(
-      db
-        .select({ id: metaDatasets.id, i18n: metaDatasets.i18n })
-        .from(metaDatasets)
-        .where(inArray(metaDatasets.id, ids))
-        .all(),
-    ).then(rows =>
-      rows.flatMap(row =>
-        row.i18n.map(translation => ({ datasetId: row.id, ...translation })),
+    db
+      .select({ id: metaDatasets.id, i18n: metaDatasets.i18n })
+      .from(metaDatasets)
+      .where(inArray(metaDatasets.id, ids))
+      .all(),
+  ).then(
+    rows =>
+      new Map(
+        rows.map(row => [
+          row.id,
+          localeMapFromStoredValue(row.i18n) as typeof row.i18n,
+        ]),
       ),
-    ),
   )
   const assemblyPublisherIds = [
     ...new Set(assemblySourceRows.map(source => source.publisherId)),
   ]
   const assemblyPublisherI18n = await queryInBatches(assemblyPublisherIds, ids =>
-    Promise.resolve(
-      db
-        .select({ id: metaPublishers.id, i18n: metaPublishers.i18n })
-        .from(metaPublishers)
-        .where(inArray(metaPublishers.id, ids))
-        .all(),
-    ).then(rows =>
-      rows.flatMap(row =>
-        row.i18n.map(translation => ({ publisherId: row.id, ...translation })),
+    db
+      .select({ id: metaPublishers.id, i18n: metaPublishers.i18n })
+      .from(metaPublishers)
+      .where(inArray(metaPublishers.id, ids))
+      .all(),
+  ).then(
+    rows =>
+      new Map(
+        rows.map(row => [
+          row.id,
+          localeMapFromStoredValue(row.i18n) as typeof row.i18n,
+        ]),
       ),
-    ),
   )
   const processingActions = includeProcessingActions
     ? await readReleaseAuditDecisions(
@@ -1772,12 +1818,8 @@ async function queryRegistrySourceVersions(
           .filter(source => source.datasetCode !== release.datasetCode)
           .map(source => ({
             datasetCode: source.datasetCode,
-            datasetI18n: assemblyDatasetI18n.filter(
-              item => item.datasetId === source.datasetId,
-            ),
-            publisherI18n: assemblyPublisherI18n.filter(
-              item => item.publisherId === source.publisherId,
-            ),
+            datasetI18n: assemblyDatasetI18n.get(source.datasetId) ?? {},
+            publisherI18n: assemblyPublisherI18n.get(source.publisherId) ?? {},
             role: source.role,
             sourceReleaseCode: source.sourceReleaseCode,
             sourceVersion: source.sourceVersion,
@@ -1864,7 +1906,7 @@ export async function listRegistrySourcePublishers(db: MetaDatabase, limit?: num
 
   return publishers.map(publisher => ({
     ...publisher,
-    publisherI18n: publisher.i18n,
+    publisherI18n: localeMapFromStoredValue(publisher.i18n) as typeof publisher.i18n,
   }))
 }
 
@@ -1878,7 +1920,10 @@ export async function getRegistrySourcePublisher(db: MetaDatabase, id: string) {
 
   if (!publisher) return null
 
-  return { ...publisher, publisherI18n: publisher.i18n }
+  return {
+    ...publisher,
+    publisherI18n: localeMapFromStoredValue(publisher.i18n) as typeof publisher.i18n,
+  }
 }
 
 type LatestDatasetLookup = {

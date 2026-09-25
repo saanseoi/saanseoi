@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3febe45b791d175ab7f4df2f3f7ab7f21eadcd521cc28413007d61b37c7a91f8",
+  "versionHash": "sha256:cb0f4db3058575c8ed06a71ebfe7053e715f876a9b9a157f690084c5f98e491f",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-boundary",
   "regionCode": "hk",
@@ -57,22 +57,19 @@
       ]
     }
   ],
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Division Boundaries",
       "description": "Boundaries represent borders between divisions of the same subtype. In the case of Hong Kong, only district-level divisions have boundaries as these are the only official administrative levels within the SAR."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "Overture 區劃邊界 (香港)",
       "description": "邊界代表相同 subtype 區劃之間的界線。在香港，只有區級區劃具有邊界，因為這些是特區內唯一的正式行政級別。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "Overture 区划边界 (香港)",
       "description": "边界代表相同 subtype 区划之间的界线。在香港，只有区级区划具有边界，因为这些是特区内唯一的正式行政级别。"
     }
-  ],
+  },
   "sourceCrs": "EPSG:4326"
 }

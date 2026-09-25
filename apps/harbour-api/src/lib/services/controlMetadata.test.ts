@@ -59,14 +59,14 @@ test('publication metadata reads locale values from the selected domain member a
       CREATE TABLE apiReleaseSets(id TEXT, apiVersionId TEXT, apiCompositionId TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER);
       CREATE TABLE apiComposition(id TEXT, apiVersionId TEXT, status TEXT);
       CREATE TABLE apiCompositionMembers(apiCompositionId TEXT, domainCode TEXT, i18n TEXT);
-      INSERT INTO publishers VALUES ('publisher', '[{"locale":"en","name":"Publisher name"}]');
+      INSERT INTO publishers VALUES ('publisher', '{"en":{"name":"Publisher name"}}');
       INSERT INTO apiVersions VALUES ('api', 'divisions');
       INSERT INTO apiReleaseSets VALUES ('release', 'api', 'composition', '2026', 'selected', 'hk', 0);
       INSERT INTO apiComposition VALUES ('composition', 'api', 'current');
       INSERT INTO apiCompositionMembers VALUES
-        ('composition', 'other', '[{"locale":"en","name":"Other domain"}]'),
-        ('composition', 'selected', '[{"locale":"zh-hant","name":"中文"},{"locale":"en","name":"Selected domain","description":"Domain description"}]'),
-        ('composition', 'selected', '[{"locale":"zh-hant","name":"中文"},{"locale":"en","name":"Selected domain","description":"Domain description"}]');
+        ('composition', 'other', '{"en":{"name":"Other domain"}}'),
+        ('composition', 'selected', '{"zh-hant":{"name":"中文"},"en":{"name":"Selected domain","description":"Domain description"}}'),
+        ('composition', 'selected', '{"zh-hant":{"name":"中文"},"en":{"name":"Selected domain","description":"Domain description"}}');
     `)
     const db = drizzle({ client: sqlite }) as never
     expect(await resolvePublisherName(db, 'publisher')).toBe('Publisher name')

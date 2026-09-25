@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:449203b601a4c6cc5bd213e24330041111285cc6292531833c9c8eca83fea6f6",
+  "versionHash": "sha256:68b4ccaff3610279e0079cde8ba49d7f80345276d2c68f1601fc91b5cb82e8c6",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
@@ -145,23 +145,20 @@
     }
   ],
   "category": "boundaries",
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Tertiary Planning Units and Subunits",
       "description": "Planning divisions derived from the Planning Department's published TPU and subunit boundary cells."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "第三級規劃單位及分區（香港）",
       "description": "由規劃署公布的第三級規劃單位及分區界線格網衍生的規劃區劃。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "第三级规划单位及分区（香港）",
       "description": "由规划署公布的第三级规划单位及分区边界格网衍生的规划区划。"
     }
-  ],
+  },
   "mergeRules": [
     {
       "rulesetVersion": "rs-division-hkgov-pland-pu-merge-v1",

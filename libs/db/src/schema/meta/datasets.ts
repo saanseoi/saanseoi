@@ -1,4 +1,4 @@
-import type { MetaTranslation } from './i18n'
+import type { MetaTranslations } from './i18n'
 import {
   foreignKey,
   index,
@@ -59,7 +59,7 @@ export const metaDatasets = sqliteTable(
     // rewrite historic processing decisions; per-record exceptions belong in
     // releaseProcessingActions instead.
     processingRules: jsonText('processingRules'),
-    i18n: jsonText<MetaTranslation[]>('i18n').notNull().default([]),
+    i18n: jsonText<MetaTranslations>('i18n').notNull().default({}),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },

@@ -8,26 +8,23 @@
     {
       "code": "saanseoi",
       "isDefault": true,
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "山水",
           "descriptionShort": "Lands Department street names, with optional centre lines.",
           "description": "Lands Department street names, optionally enriched with road centre lines for approximate location lookup and map labelling."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "山水",
           "descriptionShort": "地政總署街道名稱及可選道路中心線。",
           "description": "地政總署的街道名稱，可選配道路中心線用於大概位置查詢及地圖標註。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "山水",
           "descriptionShort": "地政总署街道名称及可选道路中心线。",
           "description": "地政总署的街道名称，可选配道路中心线用于大概位置查询及地图标注。"
         }
-      ],
+      },
       "members": [
         {
           "resourceType": "street",
@@ -48,5 +45,5 @@
       ]
     }
   ],
-  "versionHash": "sha256:0170d25d375737f717a88117f048199421e3eaf85314d8258258f883c5016ba3"
+  "versionHash": "sha256:5999c152b4c5deda20f4b6df268a227b6df4578426cca701fc729772715927e0"
 }

@@ -36,7 +36,7 @@ import {
   getRegistryAccessMetricsBatch,
 } from './accessMetrics.js'
 import type {
-  LocalisedRow,
+  LocalisedMap,
   RegistryApi,
   RegistryPublisher,
   RegistrySource,
@@ -92,10 +92,10 @@ export type SourcesPageSource = Pick<
   | 'resourceTypes'
   | 'theme'
 > & {
-  datasetI18n: LocalisedRow[]
+  datasetI18n: LocalisedMap
   license: Pick<NonNullable<RegistrySource['license']>, 'code'> | null
   publisher: {
-    publisherI18n: LocalisedRow[]
+    publisherI18n: LocalisedMap
   } | null
   sourceVersions: Array<
     Pick<SourceVersion, 'code' | 'cohortKey' | 'status'> & {
@@ -121,10 +121,10 @@ function toSourcesPageSource(source: RegistrySource): SourcesPageSource {
 
   return {
     code: source.code,
-    datasetI18n: source.datasetI18n ?? [],
+    datasetI18n: source.datasetI18n ?? {},
     license: source.license ? { code: source.license.code } : null,
     publisher: source.publisher
-      ? { publisherI18n: source.publisher.publisherI18n ?? [] }
+      ? { publisherI18n: source.publisher.publisherI18n ?? {} }
       : null,
     publisherCode: source.publisherCode,
     releaseFrequency: source.releaseFrequency,

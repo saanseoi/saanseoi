@@ -419,7 +419,12 @@ async function handlePlaceDetail(
               withPlacePublication(place, activeSnapshot.cohortKey),
               derivePlaceReferenceName(i18n),
             ),
-            i18n: i18n.map(toPlaceI18nApiRecord),
+            i18n: Object.fromEntries(
+              i18n.map(record => {
+                const { locale, ...translation } = toPlaceI18nApiRecord(record)
+                return [locale, translation]
+              }),
+            ),
             divisions,
           },
           200,

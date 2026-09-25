@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:d4631edf6704fd9f726e4372be677b8e91e5345d4de330a0ee372f7adb1d28ff",
+  "versionHash": "sha256:ffa5b62bd565d03fb7a2c2df45b2e0dd024eb24e942170f8325c942f2115d44f",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
   "regionCode": "hk",
@@ -86,21 +86,18 @@
       ]
     }
   ],
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Census: New Towns",
       "description": "C&SD source for 2021 Census statistics across 13 New Town areas."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "人口普查：新市鎮",
       "description": "政府統計處提供的2021年人口普查統計，涵蓋13個新市鎮地區。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "人口普查：新市镇",
       "description": "政府统计处提供的2021年人口普查统计，涵盖13个新市镇地区。"
     }
-  ]
+  }
 }

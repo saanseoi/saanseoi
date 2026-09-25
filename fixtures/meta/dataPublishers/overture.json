@@ -1,26 +1,23 @@
 {
-  "versionHash": "sha256:3a1197885a1586c52d556027487538bcca553a17c75df403acad375737d6bb42",
+  "versionHash": "sha256:6caa233375eb1a0835e6e38429a221a0f1e531df01d8cbdcbb5f83c3770b0de5",
   "code": "overture",
   "url": "https://overturemaps.org",
   "contactUrl": "https://docs.overturemaps.org/support/",
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Overture Maps Foundation",
       "nameShort": "Overture",
       "description": "Public-private partnership to build open, reliable, and interoperable map data infrastructure."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "Overture 地圖基金會",
       "nameShort": "Overture",
       "description": "一個匯聚科技公司、製圖組織、政府機構、開放數據社群及研究人員的平台，共同建設開放、可靠且可互操作的地圖資料基礎設施。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "Overture 地图基金会",
       "nameShort": "Overture",
       "description": "一个汇聚科技公司、制图组织、政府机构、开放数据社区及研究人员的平台，共同建设开放、可靠且可互操作的地图数据基础设施。"
     }
-  ]
+  }
 }

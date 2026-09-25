@@ -482,7 +482,7 @@ export const PlaceResponseSchema = z
     place: PlaceSchema.openapi({
       description: openApiText('openapi_places_response_place_description'),
     }),
-    i18n: z.array(PlaceI18nSchema).openapi({
+    i18n: z.record(z.string(), PlaceI18nSchema.omit({ locale: true })).openapi({
       description: openApiText('openapi_places_response_i18n_description'),
     }),
     divisions: z.array(PlaceDivisionSchema).openapi({

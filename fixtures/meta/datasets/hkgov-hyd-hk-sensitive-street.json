@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:d9bb9a79d2961f13364884adb09417bbeed2fb7d5f55ac8d88b4e3a20ed9105f",
+  "versionHash": "sha256:487a868ee6baffdeebc84c1c7b14f1085bc84a2888bd57dac29eb44eca1e7fa6",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-sensitive-street",
   "regionCode": "hk",
@@ -57,22 +57,19 @@
   ],
   "sourceLayer": "sensitive",
   "category": "transportation",
-  "i18n": [
-    {
-      "locale": "en",
+  "i18n": {
+    "en": {
       "name": "Sensitive Streets",
       "description": "Highways Department GIS data identifying sensitive streets. The source is a street classification layer and is retained as a government street-domain dataset."
     },
-    {
-      "locale": "zh-hant",
+    "zh-hant": {
       "name": "敏感街道",
       "description": "路政署提供的敏感街道地理資訊。來源是街道分類圖層，並以政府街道資料域資料集保留。"
     },
-    {
-      "locale": "zh-hans",
+    "zh-hans": {
       "name": "敏感街道",
       "description": "路政署提供的敏感街道地理信息。来源是街道分类图层，并以政府街道数据域数据集保留。"
     }
-  ],
+  },
   "sourceCrs": "EPSG:2326"
 }

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:1e482fea5f79aaa983ab44922dd01af9c15c25e0615382e9ec49bb0693c4847a",
+  "versionHash": "sha256:09466bff592ebfe34a7a3ea73866d48983660954e46fd41065bd858a10dc9a8c",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -9,26 +9,23 @@
     {
       "code": "geographic",
       "isDefault": true,
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Geographic",
           "descriptionShort": "Reviewed 山水 geographical and administrative divisions.",
           "description": "Reviewed 山水 hierarchy and areas, with Overture geometry fallback and selectable government area companions."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "地理分區",
           "descriptionShort": "SaanSeoi 地理及行政分區。",
           "description": "SaanSeoi 審核的層級及範圍，並提供 Overture 後備幾何及政府範圍配套。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "地理分区",
           "descriptionShort": "SaanSeoi 地理及行政分区。",
           "description": "SaanSeoi 审核的层级及范围，并提供 Overture 后备几何及政府范围配套。"
         }
-      ],
+      },
       "members": [
         {
           "resourceType": "division",
@@ -108,26 +105,23 @@
     },
     {
       "code": "hkgov-censtatd-hma",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "HMA",
           "descriptionShort": "C&SD Housing Market Areas.",
           "description": "Housing Market Areas and published area geometry from the Census and Statistics Department."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "房屋市場區域（政府統計處）",
           "descriptionShort": "政府統計處房屋市場區域。",
           "description": "政府統計處的房屋市場區域及其發布的面積幾何。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "房屋市场区域（政府统计处）",
           "descriptionShort": "政府统计处房屋市场区域。",
           "description": "政府统计处的房屋市场区域及其发布的面积几何。"
         }
-      ],
+      },
       "members": [
         {
           "resourceType": "division",
@@ -155,26 +149,23 @@
     },
     {
       "code": "hkgov-pland-pu",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "Planning Unit",
           "descriptionShort": "Planning Department planning units and subunits.",
           "description": "Tertiary Planning Units and subunits from the Planning Department, with their published area geometry."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "規劃單元",
           "descriptionShort": "規劃署的規劃單元及小組。",
           "description": "規劃署的三級規劃單元及小組，以及其發布的面積幾何。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "规划单元",
           "descriptionShort": "规划署的规划单元及小组。",
           "description": "规划署的三级规划单元及小组，以及其发布的面积几何。"
         }
-      ],
+      },
       "members": [
         {
           "resourceType": "division",
@@ -202,26 +193,23 @@
     },
     {
       "code": "hkgov-pland-new-town",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "New Town",
           "descriptionShort": "Planning Department New Town divisions.",
           "description": "New Town divisions from the Planning Department, with their published area geometry."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "新市鎮",
           "descriptionShort": "規劃署的新市鎮分區。",
           "description": "規劃署的新市鎮分區，以及其發布的面積幾何。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "新市镇",
           "descriptionShort": "规划署的新市镇分区。",
           "description": "规划署的新市镇分区，以及其发布的面积几何。"
         }
-      ],
+      },
       "members": [
         {
           "resourceType": "division",
@@ -249,26 +237,23 @@
     },
     {
       "code": "hkgov-landsd",
-      "i18n": [
-        {
-          "locale": "en",
+      "i18n": {
+        "en": {
           "name": "HKGOV",
           "descriptionShort": "Lands Department settlement place names.",
           "description": "Lands Department settlement place names published as point divisions, not an administrative hierarchy."
         },
-        {
-          "locale": "zh-hant",
+        "zh-hant": {
           "name": "香港政府",
           "descriptionShort": "地政總署的聚落地名。",
           "description": "地政總署的聚落地名，作為點區劃發布，而非行政層級。"
         },
-        {
-          "locale": "zh-hans",
+        "zh-hans": {
           "name": "香港政府",
           "descriptionShort": "地政总署的聚落地名。",
           "description": "地政总署的聚落地名，作为点区划发布，而非行政层级。"
         }
-      ],
+      },
       "members": [
         {
           "resourceType": "division",
