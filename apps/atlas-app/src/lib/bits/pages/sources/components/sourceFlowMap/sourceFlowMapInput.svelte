@@ -7,6 +7,14 @@ type Props = {
   input: SourceFlowInput
 }
 
+const borderClasses = {
+  saanseoi: 'border-logo-midnight-reflection!',
+  protomaps: 'border-logo-protomaps-border!',
+  overture: 'border-logo-overture-border!',
+  hkgov: 'border-logo-hkgov-border!',
+  dpang: 'border-logo-dpang-border!',
+}
+
 let { input }: Props = $props()
 </script>
 
@@ -24,7 +32,7 @@ let { input }: Props = $props()
     <img class="source-flow-watermark" src={input.icon} alt="" aria-hidden="true">
   {/if}
   <span
-    class={`source-flow-icon ${input.iconTone === 'saanseoi' ? 'border-logo-midnight-reflection!' : ''} ${input.iconTone ? `source-flow-icon-${input.iconTone}` : ''}`}
+    class={`source-flow-icon ${input.iconBorder ? borderClasses[input.iconBorder] : ''} ${input.iconTone ? `source-flow-icon-${input.iconTone}` : ''}`}
     aria-hidden="true"
   >
     {#if input.icon}

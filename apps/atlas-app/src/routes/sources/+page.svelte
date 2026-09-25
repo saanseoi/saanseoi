@@ -195,18 +195,13 @@ const sourceFlowInput = (
       source.publisherCode === 'saanseoi' || source.publisherCode === 'protomaps'
         ? 'soft'
         : undefined,
-    iconTone:
-      source.publisherCode === 'saanseoi'
-        ? 'saanseoi'
-        : source.publisherCode === 'overture'
-          ? 'light'
-          : source.publisherCode.startsWith('hkgov')
-            ? 'hkgov'
-            : source.publisherCode === 'dpang'
-              ? 'diana'
-              : source.publisherCode === 'protomaps'
-                ? 'protomaps'
-                : undefined,
+    iconBorder: source.publisherCode.startsWith('hkgov')
+      ? 'hkgov'
+      : source.publisherCode === 'saanseoi' ||
+          source.publisherCode === 'protomaps' ||
+          source.publisherCode === 'dpang'
+        ? source.publisherCode
+        : 'overture',
     accent: publisherAccent(source.publisherCode),
     fallbackIcon: publisherName(source)
       .split(/\s+/)

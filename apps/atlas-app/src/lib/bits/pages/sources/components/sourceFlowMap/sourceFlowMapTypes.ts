@@ -4,6 +4,7 @@ export type SourceFlowInput = {
   source: string
   href?: string
   icon?: string
+  iconBorder?: 'saanseoi' | 'protomaps' | 'overture' | 'hkgov' | 'dpang'
   iconPadding?: 'none' | 'inset'
   fallbackIcon?: string
   accent: string

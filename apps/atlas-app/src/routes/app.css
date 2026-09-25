@@ -260,6 +260,10 @@ html input[class]:focus-visible {
 }
 
 @theme saanseoi {
+  --color-logo-protomaps-border: #a6a2ef;
+  --color-logo-overture-border: #62b7ae;
+  --color-logo-hkgov-border: #f5f2e9;
+  --color-logo-dpang-border: #90be69;
   --color-logo-midnight-reflection: #e8d4a0;
   --color-publisher-protomaps: #3130d3;
   --color-brand-green: #006b59;

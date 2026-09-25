@@ -65,11 +65,11 @@ try {
     JSON.stringify(report, null, 2),
   )
   process.stdout.write(
-    JSON.stringify({
+    `${JSON.stringify({
       address2d: mapping.address2d.size,
       address3d: mapping.address3d.size,
       report: join(resolve(directory), 'report.json'),
-    }) + '\n',
+    })}\n`,
   )
 } finally {
   for (const db of [...sources, ...copies]) db.close()
