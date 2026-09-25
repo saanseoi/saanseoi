@@ -1,7 +1,7 @@
-import dianapangLogo from '#lib/assets/sourcePublishers/dpang.png'
-import hkgovLogo from '#lib/assets/sourcePublishers/hkgov.webp'
-import overtureLogo from '#lib/assets/sourcePublishers/overture.png'
-import protomapsLogo from '#lib/assets/sourcePublishers/protomaps.png'
+import dianapangLogo from '#lib/assets/logos/publisher-studies/dpang-fluid-dinosaur.svg'
+import hkgovLogo from '#lib/assets/logos/publisher-studies/hong-kong-fluid-bauhinia.svg'
+import overtureLogo from '#lib/assets/logos/publisher-studies/overture-fluid-atlas.svg'
+import protomapsLogo from '#lib/assets/logos/publisher-studies/protomaps-fluid-mosaic.svg'
 import saanseoiLogo from '#lib/assets/logos/saanseoi-emblem-deco-midnight-square.svg'
 
 const publisherLogos: Record<string, string> = {
@@ -19,8 +19,7 @@ const publisherLogos: Record<string, string> = {
 }
 
 /** Logos with their own background or internal spacing fill the icon frame. */
-export const publisherLogoPadding = (publisherCode: string): 'none' | 'inset' =>
-  publisherCode === 'saanseoi' ? 'none' : 'inset'
+export const publisherLogoPadding = (_publisherCode: string): 'none' | 'inset' => 'none'
 
 export const getPublisherLogo = (publisherCode: string) =>
   publisherLogos[publisherCode] ??
