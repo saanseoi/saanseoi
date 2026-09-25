@@ -1,4 +1,4 @@
-import { cp, mkdtemp, rm } from 'node:fs/promises'
+import { cp, mkdtemp, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import type {
@@ -209,6 +209,20 @@ async function downloadOverture(
   theme: string,
   outputFileName: string,
 ) {
+  const existingFile = resolve(
+    REPO_ROOT,
+    'data/overture',
+    version,
+    'divisions/China/Hong Kong',
+    outputFileName,
+  )
+  try {
+    const fileStat = await stat(existingFile)
+    if (fileStat.isFile() && fileStat.size > 0) return existingFile
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+  }
+
   const jobKey = `${version}:${theme}`
   const existingJob = overtureDownloadJobs.get(jobKey)
   const releaseRoot = existingJob ?? runOverturist(version, theme)
