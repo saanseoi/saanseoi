@@ -21,7 +21,9 @@
   },
   "sourceCompositions": [
     {
-      "datasetCodes": ["ds-hk-hkgov-pland-division-new-town"],
+      "datasetCodes": [
+        "ds-hk-hkgov-pland-division-new-town"
+      ],
       "anchorSnapshotVersions": [
         "ss-hk-division-hkgov-pland-new-town-2006",
         "ss-hk-division-hkgov-pland-new-town-2011",

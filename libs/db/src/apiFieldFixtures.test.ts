@@ -51,6 +51,25 @@ describe('api field fixtures', () => {
     }
   })
 
+  test('resolves Overture Place Addresses with the selected Geographic Division sources', () => {
+    expect(
+      resolveApiFieldFixture({
+        apiVersion: 'api-addresses-v0.1',
+        domainCode: 'saanseoi',
+        lineageSnapshotVersions: ['ss-hk-address-2026-07-22.0'],
+        schemaVersion: 'sv-address-v1',
+        rulesetVersion: 'rs-address-merge-v1',
+        sourceSchemas: {
+          'ds-hk-hkgov-dpo-address': '3.2',
+          'ds-hk-overture-division': '1.18.0',
+          'ds-hk-overture-division-area': '1.18.0',
+          'ds-hk-overture-place': '2.0.0',
+          'ds-hk-saanseoi-division': '1.0',
+        },
+      }),
+    ).not.toBeNull()
+  })
+
   test('statistics distinguish publisher periods, registry IDs and named measure outputs', () => {
     const fields = listApiFieldFixtures().find(
       f => f.apiVersion === 'api-stats-v0.1',
@@ -889,7 +908,13 @@ test('mapping compatibility uses bounded numeric publisher ranges independently 
   expect(
     resolveApiFieldFixture({
       ...lookup,
-      sourceSchemas: { ...lookup.sourceSchemas, 'ds-hk-overture-division': '1.19.0' },
+      sourceSchemas: { ...lookup.sourceSchemas, 'ds-hk-overture-division': '2.0.0' },
+    })?.mappingVersion,
+  ).toBe(1)
+  expect(
+    resolveApiFieldFixture({
+      ...lookup,
+      sourceSchemas: { ...lookup.sourceSchemas, 'ds-hk-overture-division': '2.1.0' },
     }),
   ).toBeNull()
   expect(

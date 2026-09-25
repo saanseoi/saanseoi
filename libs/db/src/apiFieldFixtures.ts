@@ -240,6 +240,14 @@ function deriveCuratedAddressFixture(): ApiFieldFixture {
     ...official,
     publisherSchemaRanges: {
       ...official.publisherSchemaRanges,
+      'ds-hk-overture-division-area':
+        apiDivisionsV01FixtureOverture116To118.publisherSchemaRanges[
+          'ds-hk-overture-division-area'
+        ]!,
+      'ds-hk-saanseoi-division':
+        apiDivisionsV01FixtureOverture116To118.publisherSchemaRanges[
+          'ds-hk-saanseoi-division'
+        ]!,
       'ds-hk-overture-place':
         apiPlacesV01FixtureOverture112To118.publisherSchemaRanges[
           'ds-hk-overture-place'
@@ -251,7 +259,12 @@ function deriveCuratedAddressFixture(): ApiFieldFixture {
     },
     sourceCompositions: official.sourceCompositions.map(composition => ({
       ...composition,
-      datasetCodes: [...composition.datasetCodes, 'ds-hk-overture-place'].sort(),
+      datasetCodes: [
+        ...composition.datasetCodes,
+        'ds-hk-overture-division-area',
+        'ds-hk-overture-place',
+        'ds-hk-saanseoi-division',
+      ].sort(),
     })),
     fields: [
       ...official.fields,

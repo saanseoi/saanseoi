@@ -135,7 +135,9 @@ function normaliseOverturePlaceInternal(
       asString(row.basic_category) ?? asString(row.basicCategory) ?? taxonomyPrimary,
     taxonomyPrimary,
     taxonomyHierarchy: jsonValue(taxonomy?.hierarchy),
-    taxonomyAlternates: jsonValue(categories?.alternate ?? taxonomy?.alternate),
+    taxonomyAlternates: jsonValue(
+      categories?.alternate ?? taxonomy?.alternates ?? taxonomy?.alternate,
+    ),
     wikidataId: asString(brand?.wikidata),
     websites: jsonValue(row.websites),
     socials: jsonValue(row.socials),

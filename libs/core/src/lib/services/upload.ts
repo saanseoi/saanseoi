@@ -1033,6 +1033,22 @@ function matchesKnownOverturePlaceSchemaTransition(
   }
 
   const nextFields = new Map(nextSchema.fields.map(field => [field.name, field]))
+  const removedCategoriesField = previousSchema.fields.find(
+    field => field.name === 'categories',
+  )
+  const isKnownCategoriesRemoval =
+    nextPlan.sourceVersion === '2026-09-23.0' &&
+    removedCategoriesField?.type === 'struct' &&
+    removedCategoriesField.nullable &&
+    !nextFields.has('categories') &&
+    previousSchema.fields
+      .filter(field => field.name !== 'categories')
+      .every(field => {
+        const nextField = nextFields.get(field.name)
+        return nextField?.type === field.type && nextField.nullable === field.nullable
+      })
+  if (isKnownCategoriesRemoval) return true
+
   return previousSchema.fields.every(field => {
     const nextField = nextFields.get(field.name)
     return nextField?.type === field.type && nextField.nullable === field.nullable

@@ -52,7 +52,10 @@
     },
     {
       "operationCode": "overture_division_geometry_cn_gd_excluded",
-      "ruleFixture": ["division-area-geometry", "division-boundary-geometry"]
+      "ruleFixture": [
+        "division-area-geometry",
+        "division-boundary-geometry"
+      ]
     }
   ]
 }

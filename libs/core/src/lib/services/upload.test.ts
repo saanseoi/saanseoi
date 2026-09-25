@@ -1261,6 +1261,52 @@ describe('upload', () => {
     sqlite.close()
   })
 
+  test('allows the Overture 2.0.0 Place categories removal', async () => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour.sqlite')
+    const fixtureFile = createResourceFixturePath(tempDir, 'place')
+    const sqlite = initDb(dbPath)
+    seedPlaceDataset(sqlite)
+    const db = createLocalHarbourDb(sqlite)
+    const previousInspection = placeInspection('2026-08-19.0')
+    const nextInspection = placeInspection('2026-09-23.0')
+
+    insertFixtureRelease(sqlite, {
+      datasetCode: 'ds-hk-overture-place',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2026-08-19.0',
+      theme: 'places',
+      resourceType: 'place',
+      sourceVersion: '2026-08-19.0',
+      rawObjectKey: 'hk/overture/2026-08-19.0/place.parquet',
+      originalFileName: 'place.parquet',
+      status: 'published',
+      ingestedAt: '2026-09-01T00:00:00.000Z',
+      createdAt: '2026-09-01T00:00:00.000Z',
+      updatedAt: '2026-09-01T00:00:00.000Z',
+    })
+
+    const plan = await planUpload(db, {
+      filePath: fixtureFile,
+      cohortKey: '2026-09-23.0',
+      source: 'overture',
+      sourceVersion: '2026-09-23.0',
+      datasetCode: 'ds-hk-overture-place',
+      inspection: nextInspection,
+      resolveSchemaFingerprint: async () => createSchemaFingerprint(previousInspection),
+    })
+
+    expect(plan).toMatchObject({
+      plan: {
+        datasetId: 'dr-hk-overture-place-2026-09-23.0',
+        supersedesDatasetId: 'dr-hk-overture-place-2026-08-19.0',
+      },
+    })
+
+    sqlite.close()
+  })
+
   test('allows the known C&SD density reference-period schema transition', async () => {
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour.sqlite')

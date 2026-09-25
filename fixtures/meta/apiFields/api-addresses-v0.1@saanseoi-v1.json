@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f9300439a3e23f3ed6fedbd900b0140423f8a1c6ce5bd1ba270ac2a2f3cb0b3c",
+  "versionHash": "sha256:3a5a9f52cd59f82d7f3ee7da3bd82ee15aeecd2553073e9abd291dbe1067559d",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -12,7 +12,7 @@
     },
     "ds-hk-overture-division": {
       "min": "1.12.0",
-      "max": "1.18.0"
+      "max": "2.0.0"
     }
   },
   "publisherFields": {
@@ -76,7 +76,10 @@
   },
   "sourceCompositions": [
     {
-      "datasetCodes": ["ds-hk-hkgov-dpo-address", "ds-hk-overture-division"],
+      "datasetCodes": [
+        "ds-hk-hkgov-dpo-address",
+        "ds-hk-overture-division"
+      ],
       "anchorSnapshotVersions": [
         "ss-hk-address-2024-07-25.0",
         "ss-hk-address-2025-01-23.0",
@@ -424,7 +427,10 @@
           "fieldPath": "selectedDivisionSnapshot"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses", "normalise-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses",
+        "normalise-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.formattedAddress",
@@ -519,7 +525,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.buildingName",
@@ -538,7 +546,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.blockType",
@@ -557,7 +567,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.blockRef",
@@ -576,7 +588,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.estateName",
@@ -595,7 +609,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.buildingNumberFrom",
@@ -614,7 +630,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.buildingNumberTo",
@@ -633,7 +651,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.buildingNumberExpression",
@@ -652,7 +672,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.buildingNumberExpression",
@@ -671,7 +693,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.blockExpression",
@@ -698,7 +722,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.blockTypeBeforeNumber",
@@ -725,7 +751,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.phaseName",
@@ -744,7 +772,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.phaseRef",
@@ -763,7 +793,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.phaseExpression",
@@ -786,7 +818,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.streetName",
@@ -805,7 +839,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.formattedAddress",
@@ -900,7 +936,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.buildingName",
@@ -919,7 +957,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.blockType",
@@ -938,7 +978,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.blockRef",
@@ -957,7 +999,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.estateName",
@@ -976,7 +1020,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.buildingNumberFrom",
@@ -995,7 +1041,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.buildingNumberTo",
@@ -1014,7 +1062,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.buildingNumberExpression",
@@ -1033,7 +1083,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.buildingNumberExpression",
@@ -1052,7 +1104,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.blockExpression",
@@ -1079,7 +1133,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.blockTypeBeforeNumber",
@@ -1106,7 +1162,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.phaseName",
@@ -1125,7 +1183,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.phaseRef",
@@ -1144,7 +1204,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.phaseExpression",
@@ -1167,7 +1229,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.streetName",
@@ -1186,7 +1250,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.buildingNumberFrom",
@@ -1205,7 +1271,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.buildingNumberTo",
@@ -1224,7 +1292,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.buildingNumberExpression",
@@ -1243,7 +1313,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.buildingNumberExpression",
@@ -1262,7 +1334,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.phaseName",
@@ -1281,7 +1355,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.phaseRef",
@@ -1300,7 +1376,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.en.phaseExpression",
@@ -1323,7 +1401,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.buildingNumberFrom",
@@ -1342,7 +1422,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.buildingNumberTo",
@@ -1361,7 +1443,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.buildingNumberExpression",
@@ -1380,7 +1464,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.buildingNumberExpression",
@@ -1399,7 +1485,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.phaseName",
@@ -1418,7 +1506,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.phaseRef",
@@ -1437,7 +1527,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.i18n.zh-hant.phaseExpression",
@@ -1460,7 +1552,9 @@
           "fieldPath": "alsCurations.components"
         }
       ],
-      "processingRuleIds": ["prepare-als-addresses"]
+      "processingRuleIds": [
+        "prepare-als-addresses"
+      ]
     },
     {
       "apiField": "attributes.bbox",

@@ -22,8 +22,12 @@
   },
   "sourceCompositions": [
     {
-      "datasetCodes": ["ds-hk-hkgov-pland-division-pu"],
-      "anchorSnapshotVersions": ["ss-hk-division-hkgov-pland-pu-2001"]
+      "datasetCodes": [
+        "ds-hk-hkgov-pland-division-pu"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-hkgov-pland-pu-2001"
+      ]
     }
   ],
   "lineageAnchors": [

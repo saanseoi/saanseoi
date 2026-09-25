@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:5a32a0e55968b1d7f805665a9b27a3bd32689ee57b5074c44b5844b86e0bb9b9",
+  "versionHash": "sha256:9104718167abc661d61305cfb289f5a28dafdbdbb3e881c08efb34fcce36000e",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 2,
@@ -32,15 +32,15 @@
     },
     "ds-hk-overture-division": {
       "min": "1.16.0",
-      "max": "1.18.0"
+      "max": "2.0.0"
     },
     "ds-hk-overture-division-area": {
       "min": "1.16.0",
-      "max": "1.18.0"
+      "max": "2.0.0"
     },
     "ds-hk-overture-division-boundary": {
       "min": "1.16.0",
-      "max": "1.18.0"
+      "max": "2.0.0"
     },
     "ds-hk-saanseoi-division": {
       "min": "1.0",
@@ -120,6 +120,7 @@
         "ss-hk-division-2026-06-24.0",
         "ss-hk-division-2026-07-22.0",
         "ss-hk-division-2026-08-19.0",
+        "ss-hk-division-2026-09-23.0",
         "ss-hk-division-saanseoi-2026-08-19.0",
         "ss-hk-division-saanseoi-2026-08-19.0-r1",
         "ss-hk-division-saanseoi-2026-08-19.0-r2",
@@ -146,6 +147,7 @@
         "ss-hk-division-2026-06-24.0",
         "ss-hk-division-2026-07-22.0",
         "ss-hk-division-2026-08-19.0",
+        "ss-hk-division-2026-09-23.0",
         "ss-hk-division-saanseoi-2026-08-19.0",
         "ss-hk-division-saanseoi-2026-08-19.0-r1",
         "ss-hk-division-saanseoi-2026-08-19.0-r2",
@@ -171,6 +173,7 @@
         "ss-hk-division-2026-06-24.0",
         "ss-hk-division-2026-07-22.0",
         "ss-hk-division-2026-08-19.0",
+        "ss-hk-division-2026-09-23.0",
         "ss-hk-division-saanseoi-2026-08-19.0",
         "ss-hk-division-saanseoi-2026-08-19.0-r1",
         "ss-hk-division-saanseoi-2026-08-19.0-r2",
@@ -252,6 +255,9 @@
     },
     {
       "snapshotVersion": "ss-hk-division-2026-08-19.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-division-2026-09-23.0"
     },
     {
       "snapshotVersion": "ss-hk-division-saanseoi-2026-08-19.0"
