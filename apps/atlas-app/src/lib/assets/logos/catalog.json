@@ -1,0 +1,71 @@
+{
+  "description": "Editable reference colour treatments of the provisional SaanSeoi landscape emblem, in circular and square formats.",
+  "preview": "saanseoi-emblem-treatments.png",
+  "treatments": [
+    {
+      "id": "saanseoi-emblem-sage-plum-apricot",
+      "name": "Sage / Plum / Apricot",
+      "file": "saanseoi-emblem-sage-plum-apricot.svg",
+      "colours": {
+        "warm-gray-sky": "#CBD2BE",
+        "moon": "#F28B59",
+        "background-far": "#ACA6B7",
+        "background-near": "#887A98",
+        "water": "#504057",
+        "foreground-hill": "#504057",
+        "cream-winding-reflection": "#F0C5A3"
+      },
+      "squareFile": "saanseoi-emblem-sage-plum-apricot-square.svg"
+    },
+    {
+      "id": "saanseoi-emblem-modernismo",
+      "name": "Modernismo",
+      "file": "saanseoi-emblem-modernismo.svg",
+      "colours": {
+        "warm-gray-sky": "#F0B8A4",
+        "moon": "#FFF0D3",
+        "background-far": "#DE9075",
+        "background-near": "#A75A4B",
+        "water": "#204B8B",
+        "foreground-hill": "#204B8B",
+        "cream-winding-reflection": "#FFE4A7"
+      },
+      "squareFile": "saanseoi-emblem-modernismo-square.svg"
+    },
+    {
+      "id": "saanseoi-emblem-deco-midnight",
+      "name": "Deco Midnight",
+      "file": "saanseoi-emblem-deco-midnight.svg",
+      "colours": {
+        "warm-gray-sky": "#243549",
+        "moon": "#E0BE76",
+        "background-far": "#58797E",
+        "background-near": "#254B54",
+        "water": "#101E2C",
+        "foreground-hill": "#101E2C",
+        "cream-winding-reflection": "#E8D4A0"
+      },
+      "squareFile": "saanseoi-emblem-deco-midnight-square.svg"
+    },
+    {
+      "id": "saanseoi-emblem-lilac-petrol-gold",
+      "name": "Lilac / Petrol / Gold",
+      "file": "saanseoi-emblem-lilac-petrol-gold.svg",
+      "colours": {
+        "warm-gray-sky": "#BFC0D2",
+        "moon": "#F4C34F",
+        "background-far": "#88A9A4",
+        "background-near": "#5D898B",
+        "water": "#315D66",
+        "foreground-hill": "#315D66",
+        "cream-winding-reflection": "#EEE0AC"
+      },
+      "squareFile": "saanseoi-emblem-lilac-petrol-gold-square.svg"
+    }
+  ],
+  "originalSquare": {
+    "name": "Original",
+    "file": "saanseoi-emblem-original-square.svg"
+  },
+  "squarePreview": "saanseoi-emblem-square-treatments.png"
+}

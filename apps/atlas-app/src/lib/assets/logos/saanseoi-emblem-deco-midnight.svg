@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  width="800"
+  height="800"
+  viewBox="7 33 121 121"
+  role="img"
+  aria-labelledby="title description"
+>
+  <title id="title">SAANSEOI — Deco Midnight</title>
+  <desc id="description">
+    Soft asymmetric foreground mountain, offset background hills and an abstract sea
+    reflection. Moon nudged right to (75,68), with radius 14.5. Original palette.
+  </desc>
+  <defs>
+    <clipPath id="landscape-circle">
+      <circle cx="67.5" cy="93.5" r="60.5" />
+    </clipPath>
+  </defs>
+  <g id="landscape-emblem" clip-path="url(#landscape-circle)">
+    <circle id="warm-gray-sky" cx="67.5" cy="93.5" r="60.5" fill="#243549" />
+    <circle id="moon" cx="75" cy="68" r="14.5" fill="#E0BE76" />
+    <path
+      id="background-far"
+      fill="#58797E"
+      d="M40 110 C52 108 59 104 65 100 C71 96 77 97 84 101 C96 108 112 111 132 112 L132 116 L40 116 Z"
+    />
+    <path
+      id="background-near"
+      fill="#254B54"
+      d="M44 110 C64 110 76 107 86 102 C93 99 98 96 105 96 C113 96 117 100 122 102 C127 104 130 104.5 134 104.5 L134 116 L44 116 Z"
+    />
+    <path
+      id="water"
+      fill="#101E2C"
+      d="M0 108 H66 C83 108 100 110 116 109 C123 108.6 129 108 135 108 V158 H0 Z"
+    />
+    <path
+      id="foreground-hill"
+      fill="#101E2C"
+      d="M4 88 C12 86 17 81 24 80 C32 78.8 37 84 42 90 C49 98.4 56 103.833333 66 108 L66 110 L4 110 Z"
+    />
+    <path
+      id="cream-winding-reflection"
+      fill="#E8D4A0"
+      data-role="abstract-moonlight-on-sea"
+      d="M66 108 C75 108 94 110.5 99 114.5 C106 119 87 121 75 122 C66 122.8 69 124.4 82 126 C96 127.8 99 130.1 89 132 C82 133.5 69 133.2 65 134.4 C60 136 74 137 80 138.8 C91 142 83 145 71 146 C62 146.8 52 145.7 53 143.5 C54 141.6 65 141 68 139.5 C72 137.7 59 137.2 50 135.8 C39 134.2 36 132 45 130 C52 128.5 65 128 68 126.8 C71 125.4 51 125 42 123.5 C31 121.6 35 119.7 47 118.8 C56 118.1 69 118.4 76 117.4 C90 115.4 78 113 66 108 Z"
+    ></path>
+  </g>
+</svg>
