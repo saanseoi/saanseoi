@@ -7043,7 +7043,7 @@
       "sourceNullOption": "Null",
       "sourceField": "lbnp_sr",
       "statisticKind": "ratio",
-      "unitCode": "per-thousand",
+      "unitCode": "males-per-thousand-females",
       "measureCode": "sexRatio"
     },
     {
@@ -7079,7 +7079,7 @@
       "sourceNullOption": "Null",
       "sourceField": "lbnp_sr_xfdh",
       "statisticKind": "ratio",
-      "unitCode": "per-thousand",
+      "unitCode": "males-per-thousand-females",
       "measureCode": "sexRatio"
     },
     {
@@ -7115,7 +7115,7 @@
       "sourceNullOption": "Null",
       "sourceField": "lf_sr",
       "statisticKind": "ratio",
-      "unitCode": "per-thousand",
+      "unitCode": "males-per-thousand-females",
       "measureCode": "sexRatio"
     },
     {
@@ -7151,7 +7151,7 @@
       "sourceNullOption": "Null",
       "sourceField": "lf_sr_xfdh",
       "statisticKind": "ratio",
-      "unitCode": "per-thousand",
+      "unitCode": "males-per-thousand-females",
       "measureCode": "sexRatio"
     },
     {

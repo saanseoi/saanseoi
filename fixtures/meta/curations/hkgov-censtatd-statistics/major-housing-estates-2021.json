@@ -140,7 +140,7 @@
       "sourceNullOption": "Null",
       "sourceField": "sr",
       "statisticKind": "ratio",
-      "unitCode": "per-thousand",
+      "unitCode": "males-per-thousand-females",
       "measureCode": "sexRatio"
     },
     {

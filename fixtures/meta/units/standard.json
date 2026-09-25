@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:6fd4951bf257e81c5c21a4709c01b17061c358b6278391953b842de1841d51fb",
+  "versionHash": "sha256:374f1a2c1ded51ba6d422b2f6ffbe1b480a0cc505cf78ec22b43ec233c7ba421",
   "units": [
     {
       "code": "category",
@@ -97,7 +97,7 @@
       }
     },
     {
-      "code": "per-thousand",
+      "code": "males-per-thousand-females",
       "dimension": "ratio",
       "symbol": "males per 1,000 females",
       "i18n": {
@@ -258,12 +258,12 @@
           "description": "Duration measured in years."
         },
         "zh-hant": {
-          "name": "歲",
-          "description": "以歲計量的時間。"
+          "name": "年",
+          "description": "以年計量的時間。"
         },
         "zh-hans": {
-          "name": "岁",
-          "description": "以岁计量的时间。"
+          "name": "年",
+          "description": "以年计量的时间。"
         }
       }
     }
