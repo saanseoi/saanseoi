@@ -1,0 +1,390 @@
+{
+  "schemaVersion": 1,
+  "nodes": {
+    "01b58985-268d-4b8a-8e09-64604668b13e": {
+      "name": "東區 Eastern District",
+      "class": "district"
+    },
+    "0dfa95bb-35e2-49a7-8649-3df274dd8e12": {
+      "name": "鳳園老村 Fung Yuen Lo Tsuen",
+      "class": "hamlet"
+    },
+    "106de92f-8a6d-44ba-b2c6-488d181a0deb": {
+      "name": "葵青區 Kwai Tsing District",
+      "class": "district"
+    },
+    "17009785-57fd-4e5b-af86-2d27352e4718": {
+      "name": "九龍 Kowloon",
+      "class": "city"
+    },
+    "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a": {
+      "name": "南區 Southern District",
+      "class": "district"
+    },
+    "20bd679a-c47e-461a-9aed-59233a614323": {
+      "name": "青衣 Tsing Yi",
+      "class": "town"
+    },
+    "222b7818-970a-491d-98b6-b88d8c6f0161": {
+      "name": "落馬洲河套地區 Lok Ma Chau Loop",
+      "class": "macrohood"
+    },
+    "25cec859-44f3-5e1d-a72b-952f804e56ab": {
+      "name": "香港島 Hong Kong Island",
+      "class": "area"
+    },
+    "2a8a09ab-e8fb-4dfe-8dd5-c895beaae1ed": {
+      "name": "荔枝山 Lai Chi Shan",
+      "class": "hamlet"
+    },
+    "33f89038-2eaa-41be-9275-f7deaef17e95": {
+      "name": "打鐵屻 Ta Tit Yan",
+      "class": "hamlet"
+    },
+    "3707878f-080b-42cf-aecf-89fef56a066a": {
+      "name": "大嶼山 Lantau",
+      "class": "major_island"
+    },
+    "3a6cdf57-2a99-481a-994f-62f81bf1454e": {
+      "name": "馬灣 Ma Wan",
+      "class": "town"
+    },
+    "3e62a290-4718-4f7d-bc9f-5d18ec0e23c8": {
+      "name": "大坪舊村 Tai Peng Kau Tsuen",
+      "class": "hamlet"
+    },
+    "469b597a-0803-4010-a0be-c68e0cff0147": {
+      "name": "大埔 Tai Po",
+      "class": "town"
+    },
+    "537c8fc4-5ea5-40e8-bdb1-825d93d45059": {
+      "name": "啟德 Kai Tak",
+      "class": "macrohood"
+    },
+    "5aa908d4-65c5-4aac-b6eb-bb7481c14a31": {
+      "name": "離島區 Islands District",
+      "class": "district"
+    },
+    "64a1b3b8-ee9e-4193-bc22-e5abca06cf1c": {
+      "name": "上環 Sheung Wan",
+      "class": "macrohood"
+    },
+    "73e4cfa9-558b-4017-84a3-f5c0b3507aa5": {
+      "name": "深水埗區 Sham Shui Po District",
+      "class": "district"
+    },
+    "780c42b7-213b-5076-9d36-6ae0024e3bd3": {
+      "name": "新界 New Territories",
+      "class": "area"
+    },
+    "7f99b544-4e68-4574-98d8-ca4de48a0607": {
+      "name": "香港 Hong Kong",
+      "class": "city"
+    },
+    "8cb650f2-5721-4c32-bb57-330ecc13987d": {
+      "name": "黃大仙區 Wong Tai Sin District",
+      "class": "district"
+    },
+    "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d": {
+      "name": "中西區 Central and Western District",
+      "class": "district"
+    },
+    "94d17307-4085-457b-93a1-1f2f31f1b6c0": {
+      "name": "九龍城區 Kowloon City District",
+      "class": "district"
+    },
+    "9d3e1167-83cb-4bef-a615-acc056d59173": {
+      "name": "愉景灣 Discovery Bay",
+      "class": "town"
+    },
+    "a3f5d985-9d91-4629-a530-f66420a0be01": {
+      "name": "灣仔區 Wan Chai District",
+      "class": "district"
+    },
+    "a55585af-2cb4-41a5-93a9-2e22568c9839": {
+      "name": "屯門區 Tuen Mun District",
+      "class": "district"
+    },
+    "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d": {
+      "name": "香港 Hong Kong",
+      "class": "sar"
+    },
+    "bb5c7e0a-fd09-5416-8bb8-9593c90280fb": {
+      "name": "九龍 Kowloon",
+      "class": "area"
+    },
+    "bfb5966d-812d-4eee-9303-b6abf899b81e": {
+      "name": "荃灣區 Tsuen Wan District",
+      "class": "district"
+    },
+    "c08d5a29-e6d4-4e99-a764-f60cfb0575fc": {
+      "name": "葵涌 Kwai Chung",
+      "class": "town"
+    },
+    "c11cb4be-3b0b-405a-9c30-34677c6c4ab2": {
+      "name": "西貢區 Sai Kung District",
+      "class": "district"
+    },
+    "c8ca7da1-2688-402a-8eb9-199b69b5691c": {
+      "name": "油尖旺區 Yau Tsim Mong District",
+      "class": "district"
+    },
+    "cf79b69e-8575-4e9b-b15a-a4a8901e685b": {
+      "name": "觀塘區 Kwun Tong District",
+      "class": "district"
+    },
+    "d70db334-3685-4475-a252-23bdd13650e8": {
+      "name": "元朗區 Yuen Long District",
+      "class": "district"
+    },
+    "e0c8872f-c29e-4ea3-8efd-88afccef2b08": {
+      "name": "北區 North District",
+      "class": "district"
+    },
+    "e70ad27b-857b-45f9-b94f-2168550591da": {
+      "name": "沙田區 Sha Tin District",
+      "class": "district"
+    },
+    "f20e26ca-8ab6-422d-bf31-d4648b931b8c": {
+      "name": "大埔區 Tai Po District",
+      "class": "district"
+    }
+  },
+  "paths": {
+    "06871b81-b356-52c5-ac9a-ba5ead629ed3": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "25cec859-44f3-5e1d-a72b-952f804e56ab",
+      "a3f5d985-9d91-4629-a530-f66420a0be01"
+    ],
+    "06901d60-4b93-59a9-ba25-cafb5d4018a3": [
+      "7f99b544-4e68-4574-98d8-ca4de48a0607",
+      "64a1b3b8-ee9e-4193-bc22-e5abca06cf1c"
+    ],
+    "0ccbbf8c-f1c8-58e8-8480-345cfd124529": [
+      "17009785-57fd-4e5b-af86-2d27352e4718",
+      "537c8fc4-5ea5-40e8-bdb1-825d93d45059"
+    ],
+    "0ce42fc3-7451-5c81-9fd6-542ffa9c3ad3": [
+      "17009785-57fd-4e5b-af86-2d27352e4718"
+    ],
+    "0d5eecea-220c-5d97-be1d-316424c099ca": [
+      "3e62a290-4718-4f7d-bc9f-5d18ec0e23c8"
+    ],
+    "0ec9d60a-2460-5b2f-bb5b-41244ba37b1b": [
+      "469b597a-0803-4010-a0be-c68e0cff0147"
+    ],
+    "17ec1201-3ff0-57de-b104-daea552ee924": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "f20e26ca-8ab6-422d-bf31-d4648b931b8c",
+      "33f89038-2eaa-41be-9275-f7deaef17e95"
+    ],
+    "181d75ca-bdea-5f9c-807f-5141e9e15ac6": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "8cb650f2-5721-4c32-bb57-330ecc13987d",
+      "17009785-57fd-4e5b-af86-2d27352e4718"
+    ],
+    "203bf452-f624-5478-9086-de3b08ee739e": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "bfb5966d-812d-4eee-9303-b6abf899b81e"
+    ],
+    "28ee848f-bcfe-59a8-ab84-e63126323848": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "73e4cfa9-558b-4017-84a3-f5c0b3507aa5"
+    ],
+    "2d69d0fa-0bc5-517b-b49b-242bfafe5a32": [
+      "9d3e1167-83cb-4bef-a615-acc056d59173"
+    ],
+    "34701392-dc58-54f2-a074-10083d7d8f6e": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "5aa908d4-65c5-4aac-b6eb-bb7481c14a31",
+      "3e62a290-4718-4f7d-bc9f-5d18ec0e23c8"
+    ],
+    "380ee23b-bc8a-56a0-abb4-b1b963c70520": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "106de92f-8a6d-44ba-b2c6-488d181a0deb",
+      "c08d5a29-e6d4-4e99-a764-f60cfb0575fc"
+    ],
+    "3dd0e71d-08c0-5960-a9ed-fd4e3fdf6eff": [
+      "33f89038-2eaa-41be-9275-f7deaef17e95"
+    ],
+    "4383affe-c54f-5897-8a05-69ca13c6ad99": [
+      "2a8a09ab-e8fb-4dfe-8dd5-c895beaae1ed"
+    ],
+    "4b3d8586-fc2b-571d-a628-e9b115574402": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d"
+    ],
+    "4e82af48-693e-5a68-9689-a333008194a9": [
+      "7f99b544-4e68-4574-98d8-ca4de48a0607"
+    ],
+    "553a2bc1-76ec-5220-9edf-4ddfd69cc67a": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "25cec859-44f3-5e1d-a72b-952f804e56ab",
+      "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d",
+      "64a1b3b8-ee9e-4193-bc22-e5abca06cf1c"
+    ],
+    "57f591ab-0ec0-5abe-8443-8666a8b85d76": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "f20e26ca-8ab6-422d-bf31-d4648b931b8c",
+      "0dfa95bb-35e2-49a7-8649-3df274dd8e12"
+    ],
+    "60406f04-8fc3-52c1-b797-46d18ad4997c": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "106de92f-8a6d-44ba-b2c6-488d181a0deb",
+      "20bd679a-c47e-461a-9aed-59233a614323"
+    ],
+    "6711dc63-28b8-5b4c-9c30-04d5f58ddaf0": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "94d17307-4085-457b-93a1-1f2f31f1b6c0"
+    ],
+    "6921ffb7-9be7-5fc0-afb5-1a0b658cd6e4": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "a55585af-2cb4-41a5-93a9-2e22568c9839"
+    ],
+    "6e586165-cf35-5806-b84c-6d6f7cc8ea88": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "25cec859-44f3-5e1d-a72b-952f804e56ab"
+    ],
+    "7d52c631-2c43-56d9-95df-27bbb8450529": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "d70db334-3685-4475-a252-23bdd13650e8"
+    ],
+    "7edbc2b8-1e4a-5dd7-9d57-fac5f8f48019": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "cf79b69e-8575-4e9b-b15a-a4a8901e685b"
+    ],
+    "868104c1-8731-5062-9490-554c76fb1312": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "5aa908d4-65c5-4aac-b6eb-bb7481c14a31"
+    ],
+    "8b028fb1-b584-5ec0-98c8-0dfbfe0eca08": [
+      "3707878f-080b-42cf-aecf-89fef56a066a"
+    ],
+    "93c3e85e-f9d3-5863-b739-06b73d145995": [
+      "20bd679a-c47e-461a-9aed-59233a614323"
+    ],
+    "9a78b4d4-dc9a-5317-9c21-ba40faa92abc": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "e0c8872f-c29e-4ea3-8efd-88afccef2b08"
+    ],
+    "9fdb739f-54a5-522c-b774-e3ebbf11a664": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "106de92f-8a6d-44ba-b2c6-488d181a0deb"
+    ],
+    "a3642a40-bab8-59e0-ba24-b53b11161b9c": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "e70ad27b-857b-45f9-b94f-2168550591da"
+    ],
+    "a6bc0fee-0652-502b-943a-8e1dd0bdc140": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "c11cb4be-3b0b-405a-9c30-34677c6c4ab2"
+    ],
+    "b49a794d-742c-5da1-be5c-7533c6bf2db1": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "f20e26ca-8ab6-422d-bf31-d4648b931b8c",
+      "2a8a09ab-e8fb-4dfe-8dd5-c895beaae1ed"
+    ],
+    "b5a10a2f-ca88-52bf-a5a1-8345bc442307": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "94d17307-4085-457b-93a1-1f2f31f1b6c0",
+      "537c8fc4-5ea5-40e8-bdb1-825d93d45059"
+    ],
+    "ba1bcae1-a37e-5d57-956a-d924b98f06e6": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "5aa908d4-65c5-4aac-b6eb-bb7481c14a31",
+      "3707878f-080b-42cf-aecf-89fef56a066a",
+      "9d3e1167-83cb-4bef-a615-acc056d59173"
+    ],
+    "bfa25537-4e7c-514d-91d7-eca2dac69a5c": [
+      "0dfa95bb-35e2-49a7-8649-3df274dd8e12"
+    ],
+    "c314bf04-5b8d-5b1d-937a-c42ae6688884": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "25cec859-44f3-5e1d-a72b-952f804e56ab",
+      "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d"
+    ],
+    "c4cd79b9-be78-556a-ae2e-d0bea0eb3a63": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "bfb5966d-812d-4eee-9303-b6abf899b81e",
+      "3a6cdf57-2a99-481a-994f-62f81bf1454e"
+    ],
+    "c4e0f559-6f1c-5999-b0e4-4d17e771cbff": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "25cec859-44f3-5e1d-a72b-952f804e56ab",
+      "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a"
+    ],
+    "c72b7062-30e6-53d5-9625-ad11056902e8": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "f20e26ca-8ab6-422d-bf31-d4648b931b8c"
+    ],
+    "c821c2eb-c72a-50db-a57c-4f8184b20c9d": [
+      "c08d5a29-e6d4-4e99-a764-f60cfb0575fc"
+    ],
+    "ce257f41-0811-5632-8a55-0bf34bdd10a8": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "8cb650f2-5721-4c32-bb57-330ecc13987d"
+    ],
+    "d2a9cea1-9b5a-5802-9c94-c3a7219c54bb": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "c8ca7da1-2688-402a-8eb9-199b69b5691c"
+    ],
+    "d4d613d3-bd5e-5433-99ab-c483621b38d1": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3"
+    ],
+    "d84e6aac-a08f-5323-a52d-e010f9780aa5": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "5aa908d4-65c5-4aac-b6eb-bb7481c14a31",
+      "3707878f-080b-42cf-aecf-89fef56a066a"
+    ],
+    "df9f580a-3c2c-5e37-af37-f86d5839380f": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "222b7818-970a-491d-98b6-b88d8c6f0161"
+    ],
+    "e1ad0c8c-3ec8-5400-8e24-8119196a7de6": [
+      "222b7818-970a-491d-98b6-b88d8c6f0161"
+    ],
+    "ecb58f13-d1db-5c7a-b78a-89e848a10b54": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "25cec859-44f3-5e1d-a72b-952f804e56ab",
+      "01b58985-268d-4b8a-8e09-64604668b13e"
+    ],
+    "f51f0669-480c-530d-9a86-653907d1fee4": [
+      "3a6cdf57-2a99-481a-994f-62f81bf1454e"
+    ],
+    "f658a944-12eb-594b-a940-f7513e3fedd6": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "bb5c7e0a-fd09-5416-8bb8-9593c90280fb"
+    ],
+    "fca99477-6da6-5667-8d26-290706633dbc": [
+      "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "f20e26ca-8ab6-422d-bf31-d4648b931b8c",
+      "469b597a-0803-4010-a0be-c68e0cff0147"
+    ]
+  }
+}
