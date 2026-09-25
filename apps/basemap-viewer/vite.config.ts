@@ -35,6 +35,8 @@ function localReviewRoutes() {
 
 export default defineConfig({
   plugins: [localReviewRoutes(), tailwindcss(), svelte()],
+  // Keep the renderer and its separately served worker on the same package version.
+  optimizeDeps: { exclude: ['maplibre-gl'] },
   server: {
     host: 'localhost',
     port: 5174,
