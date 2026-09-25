@@ -30,6 +30,7 @@ test('lineage shares root ruleset pins and ignores release-specific rule binding
     publisher,
   )
   expect(a).toEqual(b)
+  expect(a.definition.processingDefinitions).toEqual([])
   expect(a.definition.rulesets).toHaveLength(1)
   expect(a.definition.ingestion[0]!.rawFields).toEqual([
     'names.primary',
@@ -37,4 +38,10 @@ test('lineage shares root ruleset pins and ignores release-specific rule binding
   ])
   expect(JSON.stringify(a)).not.toContain('release-one')
   expect(a.definition.fields[0]!.canonicalInputs).toEqual(['division.i18n.en.name'])
+})
+
+test('root ingestion policy references are deduplicated across selected releases', () => {
+  const pin = { datasetCode: 'dataset', definitionId: 'sha256:policy' }
+  const { definition } = buildFieldLineageDefinition([], new Map(), [pin, pin])
+  expect(definition.processingDefinitions).toEqual([pin])
 })

@@ -27,6 +27,7 @@ export type FieldLineageDefinition = {
     code: 'canonical-response-v1'
     rules: Record<string, string>
   }
+  processingDefinitions: Array<{ datasetCode: string; definitionId: string }>
   rulesets: Array<{ version: string; hash: string }>
   rules: Array<{ id: string; ruleset: string; definitionHash: string }>
   ingestion: Array<{
@@ -43,6 +44,7 @@ export function buildFieldLineageDefinition(
     Omit<FieldLineageMapping, 'ruleIds'> & { resolverRules: ApiFieldRulePin[] }
   >,
   publisherFields: ReadonlyMap<string, PublisherFields[string]>,
+  processingDefinitions: FieldLineageDefinition['processingDefinitions'] = [],
 ) {
   const rulesets = new Map<string, FieldLineageDefinition['rulesets'][number]>()
   const rules = new Map<string, FieldLineageDefinition['rules'][number]>()
@@ -80,6 +82,9 @@ export function buildFieldLineageDefinition(
     rows.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
   const definition: FieldLineageDefinition = {
     version: 1,
+    processingDefinitions: sort([
+      ...new Map(processingDefinitions.map(pin => [JSON.stringify(pin), pin])).values(),
+    ]),
     responseRuleset: {
       code: 'canonical-response-v1',
       rules: {
