@@ -216,7 +216,7 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     ...[
       'releaseProcessingActionChunks',
       'releaseProcessingActions',
-      'ingestRuns',
+      'processingRuns',
       'releaseShardAssignments',
       'releaseProvenance',
     ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),

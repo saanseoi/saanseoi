@@ -20,7 +20,7 @@ DROP TABLE IF EXISTS `releaseShardAssignments`;
 DROP TABLE IF EXISTS `releaseSetShardAssignments`;
 DROP TABLE IF EXISTS `snapshotShardAssignments`;
 DROP TABLE IF EXISTS `snapshotSourceReleases`;
-DROP TABLE IF EXISTS `ingestRuns`;
+DROP TABLE IF EXISTS `processingRuns`;
 DROP TABLE IF EXISTS `stats`;
 DROP TABLE IF EXISTS `historyVersionProvenance`;
 DROP TABLE IF EXISTS `assets`;

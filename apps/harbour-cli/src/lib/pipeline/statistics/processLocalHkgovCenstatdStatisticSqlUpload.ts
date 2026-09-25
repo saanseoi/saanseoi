@@ -1,4 +1,4 @@
-import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'

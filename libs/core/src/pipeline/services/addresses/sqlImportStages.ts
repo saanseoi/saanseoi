@@ -1,4 +1,4 @@
-import type { DatasetProcessingStats } from '../../ingestRunStats'
+import type { DatasetProcessingStats } from '../../processingRunStats'
 import type { DatasetProcessingMessage } from '../../../types'
 import type { PublishDatasetResult } from '../../harbourClient'
 import { createD1ImportClient } from '../../../lib/d1ImportApi'

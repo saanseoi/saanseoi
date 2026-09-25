@@ -26,13 +26,13 @@ export function createLocalControlClient(
         publishOptions,
       )
     },
-    async stageCompleted(resourceReleaseId, phase, stats) {
+    async stageCompleted(resourceReleaseId, phase, results) {
       return runLocalControlWrite(
         async () => {
           const dataset = await requireLocalControlDataset(db, resourceReleaseId)
           await recordDatasetStage(
             db,
-            { resourceReleaseId: dataset.resourceReleaseId, phase, stats },
+            { resourceReleaseId: dataset.resourceReleaseId, phase, results },
             'completed',
           )
         },
@@ -40,13 +40,13 @@ export function createLocalControlClient(
         targetName,
       )
     },
-    async stageFailed(resourceReleaseId, phase, error, stats) {
+    async stageFailed(resourceReleaseId, phase, error, results) {
       return runLocalControlWrite(
         async () => {
           const dataset = await requireLocalControlDataset(db, resourceReleaseId)
           await recordDatasetStage(
             db,
-            { resourceReleaseId: dataset.resourceReleaseId, phase, stats, error },
+            { resourceReleaseId: dataset.resourceReleaseId, phase, results, error },
             'error',
           )
         },
@@ -54,13 +54,13 @@ export function createLocalControlClient(
         targetName,
       )
     },
-    async stageRunning(resourceReleaseId, phase, stats) {
+    async stageRunning(resourceReleaseId, phase, results) {
       return runLocalControlWrite(
         async () => {
           const dataset = await requireLocalControlDataset(db, resourceReleaseId)
           await recordDatasetStage(
             db,
-            { resourceReleaseId: dataset.resourceReleaseId, phase, stats },
+            { resourceReleaseId: dataset.resourceReleaseId, phase, results },
             'running',
           )
         },

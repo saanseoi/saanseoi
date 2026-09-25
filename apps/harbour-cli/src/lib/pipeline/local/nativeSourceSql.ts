@@ -1,4 +1,4 @@
-import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { missingSourceMembershipPredicates } from './sourceMembershipSql.ts'
 import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'

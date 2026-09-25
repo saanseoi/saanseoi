@@ -1,7 +1,7 @@
 import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import type {
-  IngestRunReportRow,
+  ProcessingRunReportRow,
   ProcessingActionReportRow,
   ReleaseReportRow,
   StatReportRow,
@@ -225,8 +225,8 @@ export function formatUploadResult(
 
 type TableCell = string | number
 
-export function filterIngestionRows(rows: IngestRunReportRow[]) {
-  const groupedRows = new Map<string, IngestRunReportRow[]>()
+export function filterIngestionRows(rows: ProcessingRunReportRow[]) {
+  const groupedRows = new Map<string, ProcessingRunReportRow[]>()
   const orderedReleaseCodes: string[] = []
 
   for (const row of rows) {
@@ -264,7 +264,7 @@ export function filterIngestionRows(rows: IngestRunReportRow[]) {
 }
 
 export function formatIngestionReportTable(
-  rows: IngestRunReportRow[],
+  rows: ProcessingRunReportRow[],
   options?: {
     applyDefaultReleaseFilter?: boolean
   },
@@ -279,7 +279,7 @@ export function formatIngestionReportTable(
 
   return formatTable(
     ['release', 'phase', 'status', 'startedAt', 'duration', 'stat', 'value', 'error'],
-    expandIngestRunRows(displayRows),
+    expandProcessingRunRows(displayRows),
   )
 }
 
@@ -400,7 +400,7 @@ function uniqueHeaders(values: string[]) {
   return [...new Set(values)]
 }
 
-function expandIngestRunRows(rows: IngestRunReportRow[]): TableCell[][] {
+function expandProcessingRunRows(rows: ProcessingRunReportRow[]): TableCell[][] {
   return rows.flatMap<TableCell[]>(row => {
     const statsEntries = asRecordEntries(row.stats, row.phase)
     const statRows: Array<[string, string]> =
@@ -420,7 +420,7 @@ function expandIngestRunRows(rows: IngestRunReportRow[]): TableCell[][] {
   })
 }
 
-function filterDisplayIngestionRows(rows: IngestRunReportRow[]) {
+function filterDisplayIngestionRows(rows: ProcessingRunReportRow[]) {
   const sqlReleaseIds = new Set(
     rows.filter(row => isSqlReportPhase(row.phase)).map(row => row.resourceReleaseId),
   )

@@ -10,7 +10,7 @@ export type ReportRowCount = {
   tableName: string
 }
 
-export type IngestRunReportRow = {
+export type ProcessingRunReportRow = {
   datasetCode: string
   error: unknown
   finishedAt: string | null
@@ -83,8 +83,8 @@ export type ReleaseReportRow = {
   updatedAt: string
 }
 
-type IngestRunReportResponse = {
-  rows: IngestRunReportRow[]
+type ProcessingRunReportResponse = {
+  rows: ProcessingRunReportRow[]
 }
 
 type StatsReportResponse = {
@@ -164,7 +164,7 @@ function isRetryableReportReadError(error: unknown) {
   )
 }
 
-export async function fetchIngestRunReport(
+export async function fetchProcessingRunReport(
   target: UploadTarget,
   options?: {
     limit?: number
@@ -197,7 +197,7 @@ export async function fetchIngestRunReport(
     url.searchParams.set('resourceType', options.resourceType)
   }
 
-  return fetchReport<IngestRunReportResponse>(url, 'Harbour ingestion report')
+  return fetchReport<ProcessingRunReportResponse>(url, 'Harbour ingestion report')
 }
 
 export async function fetchStatsReport(

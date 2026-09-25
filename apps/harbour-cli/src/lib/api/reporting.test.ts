@@ -7,7 +7,7 @@ import {
   formatStatsReportTable,
 } from '../cli/display.ts'
 import type {
-  IngestRunReportRow,
+  ProcessingRunReportRow,
   ReleaseReportRow,
   StatReportRow,
 } from './reporting.ts'
@@ -69,7 +69,7 @@ describe('reporting client', () => {
 
 describe('filterIngestionRows', () => {
   test('keeps all ongoing releases plus the latest finished release', () => {
-    const rows: IngestRunReportRow[] = [
+    const rows: ProcessingRunReportRow[] = [
       {
         datasetCode: 'ds-hk-hkgov-dpo-address',
         error: null,
@@ -190,7 +190,7 @@ describe('formatReleaseReportTable', () => {
 
 describe('formatIngestionReportTable', () => {
   test('omits non-display ingestion stats from expanded stats rows', () => {
-    const rows: IngestRunReportRow[] = [
+    const rows: ProcessingRunReportRow[] = [
       {
         datasetCode: 'ds-hk-hkgov-dpo-address',
         error: null,
@@ -248,7 +248,7 @@ describe('formatIngestionReportTable', () => {
   })
 
   test('renders SQL import stats compactly and hides SQL umbrella phases', () => {
-    const rows: IngestRunReportRow[] = [
+    const rows: ProcessingRunReportRow[] = [
       {
         datasetCode: 'ds-hk-hkgov-dpo-address',
         error: null,

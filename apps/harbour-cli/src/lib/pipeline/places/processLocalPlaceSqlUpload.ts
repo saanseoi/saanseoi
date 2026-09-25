@@ -1,4 +1,4 @@
-import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { PlaceRecordCache } from './placeRecordCache.ts'
 import { mkdir } from 'node:fs/promises'
 import { resolve } from 'node:path'

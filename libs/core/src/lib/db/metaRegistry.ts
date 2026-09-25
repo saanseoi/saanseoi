@@ -60,7 +60,7 @@ import type { HarbourReadableDb, HarbourWritableDb } from './types'
 import type {
   ApiFamilyType,
   DataShardType,
-  IngestRunStatus,
+  ProcessingRunStatus,
   ReleaseStatus,
   MetaDatabase,
 } from '@repo/db'
@@ -76,7 +76,7 @@ const {
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
   metaApiVersions,
-  ingestRuns,
+  processingRuns,
   metaDatasetTransforms,
   metaDatasets,
   metaLicenses,
@@ -2207,17 +2207,17 @@ export async function getDatasetById(db: HarbourReadableDb, releaseCode: string)
   )
 }
 
-export async function listIngestRunStatesForRelease(
+export async function listProcessingRunStatesForRelease(
   db: HarbourReadableDb,
   resourceReleaseId: string,
 ) {
   return db
     .select({
-      phase: metaSchema.ingestRuns.phase,
-      status: metaSchema.ingestRuns.status,
+      phase: metaSchema.processingRuns.phase,
+      status: metaSchema.processingRuns.status,
     })
-    .from(metaSchema.ingestRuns)
-    .where(eq(metaSchema.ingestRuns.resourceReleaseId, resourceReleaseId))
+    .from(metaSchema.processingRuns)
+    .where(eq(metaSchema.processingRuns.resourceReleaseId, resourceReleaseId))
     .all()
 }
 
@@ -6643,12 +6643,12 @@ export async function resolveSnapshotReplayPlan(
   return result
 }
 
-export async function insertIngestRun(
+export async function insertProcessingRun(
   db: HarbourReadableDb & HarbourWritableDb,
   resourceReleaseId: string,
   phase: string,
-  status: IngestRunStatus,
-  stats: Record<string, unknown> | string | null,
+  status: ProcessingRunStatus,
+  results: Record<string, unknown> | string | null,
   startedAt: string,
   finishedAt: string | null,
   error: string | null = null,
@@ -6656,13 +6656,13 @@ export async function insertIngestRun(
   const now = toIsoTimestamp(startedAt)
 
   await db
-    .insert(ingestRuns)
+    .insert(processingRuns)
     .values({
       runId: crypto.randomUUID(),
       resourceReleaseId,
       phase,
       status,
-      stats: normaliseOptionalJsonText(stats),
+      results: normaliseOptionalJsonText(results),
       error,
       startedAt: now,
       finishedAt,
@@ -6672,30 +6672,30 @@ export async function insertIngestRun(
     .run()
 }
 
-const INGEST_RUN_HEARTBEAT_INTERVAL_MS = 60_000
+const PROCESSING_RUN_HEARTBEAT_INTERVAL_MS = 60_000
 
-export async function ensureIngestRunStarted(
+export async function ensureProcessingRunStarted(
   db: HarbourReadableDb & HarbourWritableDb,
   resourceReleaseId: string,
   phase: string,
-  stats: Record<string, unknown> | string | null,
+  results: Record<string, unknown> | string | null,
   startedAt: string,
 ) {
   const now = toIsoTimestamp(startedAt)
   const heartbeatCutoff = new Date(
-    Date.parse(now) - INGEST_RUN_HEARTBEAT_INTERVAL_MS,
+    Date.parse(now) - PROCESSING_RUN_HEARTBEAT_INTERVAL_MS,
   ).toISOString()
 
   // Keep retries atomic with terminal transitions. Identical running reports only
   // refresh the heartbeat once a minute; progress and error recovery write at once.
   await db
-    .insert(ingestRuns)
+    .insert(processingRuns)
     .values({
       runId: crypto.randomUUID(),
       resourceReleaseId,
       phase,
       status: 'running',
-      stats: normaliseOptionalJsonText(stats),
+      results: normaliseOptionalJsonText(results),
       error: null,
       startedAt,
       finishedAt: null,
@@ -6703,48 +6703,48 @@ export async function ensureIngestRunStarted(
       updatedAt: now,
     })
     .onConflictDoUpdate({
-      target: [ingestRuns.resourceReleaseId, ingestRuns.phase],
+      target: [processingRuns.resourceReleaseId, processingRuns.phase],
       set: {
         status: 'running',
-        stats: sql`excluded.stats`,
+        results: sql`excluded.results`,
         error: null,
-        startedAt: sql`CASE WHEN ${ingestRuns.status} = 'error' THEN excluded.startedAt ELSE ${ingestRuns.startedAt} END`,
-        finishedAt: sql`CASE WHEN ${ingestRuns.status} = 'error' THEN NULL ELSE ${ingestRuns.finishedAt} END`,
+        startedAt: sql`CASE WHEN ${processingRuns.status} = 'error' THEN excluded.startedAt ELSE ${processingRuns.startedAt} END`,
+        finishedAt: sql`CASE WHEN ${processingRuns.status} = 'error' THEN NULL ELSE ${processingRuns.finishedAt} END`,
         updatedAt: now,
       },
-      setWhere: sql`${ingestRuns.status} = 'error' OR (
-        ${ingestRuns.status} = 'running' AND (
-          ${ingestRuns.stats} IS NOT excluded.stats
-          OR ${ingestRuns.error} IS NOT NULL
-          OR ${ingestRuns.updatedAt} <= ${heartbeatCutoff}
+      setWhere: sql`${processingRuns.status} = 'error' OR (
+        ${processingRuns.status} = 'running' AND (
+          ${processingRuns.results} IS NOT excluded.results
+          OR ${processingRuns.error} IS NOT NULL
+          OR ${processingRuns.updatedAt} <= ${heartbeatCutoff}
         )
       )`,
     })
     .run()
 }
 
-export async function upsertIngestRunStatus(
+export async function upsertProcessingRunStatus(
   db: HarbourReadableDb & HarbourWritableDb,
   resourceReleaseId: string,
   phase: string,
-  status: IngestRunStatus,
+  status: ProcessingRunStatus,
   startedAt: string,
   finishedAt: string | null,
-  stats: Record<string, unknown> | string | null,
+  results: Record<string, unknown> | string | null,
   error: string | null = null,
 ) {
   const createdAt = toIsoTimestamp(startedAt)
   const updatedAt = toIsoTimestamp(finishedAt ?? startedAt)
-  const normalisedStats = normaliseOptionalJsonText(stats)
+  const normalisedStats = normaliseOptionalJsonText(results)
 
   await db
-    .insert(ingestRuns)
+    .insert(processingRuns)
     .values({
       runId: crypto.randomUUID(),
       resourceReleaseId,
       phase,
       status,
-      stats: normalisedStats,
+      results: normalisedStats,
       error,
       startedAt,
       finishedAt,
@@ -6752,10 +6752,10 @@ export async function upsertIngestRunStatus(
       updatedAt,
     })
     .onConflictDoUpdate({
-      target: [ingestRuns.resourceReleaseId, ingestRuns.phase],
+      target: [processingRuns.resourceReleaseId, processingRuns.phase],
       set: {
         status,
-        stats: terminalIngestRunStats(status, normalisedStats),
+        results: terminalProcessingRunStats(status, normalisedStats),
         error,
         finishedAt,
         updatedAt,
@@ -6764,30 +6764,30 @@ export async function upsertIngestRunStatus(
     .run()
 }
 
-export async function updateLatestOpenIngestRun(
+export async function updateLatestOpenProcessingRun(
   db: HarbourReadableDb & HarbourWritableDb,
   resourceReleaseId: string,
   phase: string,
-  status: IngestRunStatus,
+  status: ProcessingRunStatus,
   finishedAt: string,
-  stats: Record<string, unknown> | string | null,
+  results: Record<string, unknown> | string | null,
   error: string | null = null,
 ) {
-  const normalisedStats = normaliseOptionalJsonText(stats)
+  const normalisedStats = normaliseOptionalJsonText(results)
   const openRun =
     ((await db
       .select({
-        runId: ingestRuns.runId,
+        runId: processingRuns.runId,
       })
-      .from(ingestRuns)
+      .from(processingRuns)
       .where(
         and(
-          eq(ingestRuns.resourceReleaseId, resourceReleaseId),
-          eq(ingestRuns.phase, phase),
-          eq(ingestRuns.status, 'running'),
+          eq(processingRuns.resourceReleaseId, resourceReleaseId),
+          eq(processingRuns.phase, phase),
+          eq(processingRuns.status, 'running'),
         ),
       )
-      .orderBy(desc(ingestRuns.startedAt), desc(ingestRuns.runId))
+      .orderBy(desc(processingRuns.startedAt), desc(processingRuns.runId))
       .limit(1)
       .get()) as { runId: string } | undefined) ?? null
 
@@ -6796,33 +6796,33 @@ export async function updateLatestOpenIngestRun(
   }
 
   await db
-    .update(ingestRuns)
+    .update(processingRuns)
     .set({
       status,
-      stats: terminalIngestRunStats(status, normalisedStats),
+      results: terminalProcessingRunStats(status, normalisedStats),
       error,
       finishedAt,
       updatedAt: toIsoTimestamp(finishedAt),
     })
-    .where(eq(ingestRuns.runId, openRun.runId))
+    .where(eq(processingRuns.runId, openRun.runId))
     .run()
 
   return true
 }
 
-// Failed phases retain their last progress; a retry starts with fresh stats.
+// Failed phases retain their last progress; a retry starts with fresh results.
 // Keep the merge in SQL so a concurrent progress report cannot be lost to a read.
-function terminalIngestRunStats(
-  status: IngestRunStatus,
-  stats: Record<string, unknown> | string | null,
+function terminalProcessingRunStats(
+  status: ProcessingRunStatus,
+  results: Record<string, unknown> | string | null,
 ) {
-  if (status !== 'error') return stats
-  if (stats === null) return sql`${ingestRuns.stats}`
-  if (typeof stats !== 'object' || Array.isArray(stats)) return stats
+  if (status !== 'error') return results
+  if (results === null) return sql`${processingRuns.results}`
+  if (typeof results !== 'object' || Array.isArray(results)) return results
   return sql`json_patch(
-    CASE WHEN json_type(${ingestRuns.stats}) = 'object'
-      THEN ${ingestRuns.stats} ELSE '{}' END,
-    ${JSON.stringify(stats)}
+    CASE WHEN json_type(${processingRuns.results}) = 'object'
+      THEN ${processingRuns.results} ELSE '{}' END,
+    ${JSON.stringify(results)}
   )`
 }
 

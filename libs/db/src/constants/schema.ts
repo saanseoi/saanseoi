@@ -95,7 +95,12 @@ export const releaseStatuses = [
   'failed',
 ] as const
 
-export const ingestRunStatuses = ['queued', 'running', 'completed', 'error'] as const
+export const processingRunStatuses = [
+  'queued',
+  'running',
+  'completed',
+  'error',
+] as const
 
 export const apiVersionStatuses = ['draft', 'current', 'deprecated', 'retired'] as const
 
@@ -152,7 +157,7 @@ export type DatasetType = (typeof datasetTypes)[number]
 export type DatasetCategory = (typeof datasetCategories)[number]
 export type DatasetStatus = (typeof datasetStatuses)[number]
 export type ReleaseStatus = (typeof releaseStatuses)[number]
-export type IngestRunStatus = (typeof ingestRunStatuses)[number]
+export type ProcessingRunStatus = (typeof processingRunStatuses)[number]
 export type ApiVersionStatus = (typeof apiVersionStatuses)[number]
 export type ApiReleaseSetStatus = (typeof apiReleaseSetStatuses)[number]
 export type ApiFamilyType = (typeof apiFamilyTypes)[number]

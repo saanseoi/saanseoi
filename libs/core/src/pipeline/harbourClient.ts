@@ -83,20 +83,20 @@ export type HarbourClient = {
   stageCompleted(
     resourceReleaseId: string,
     phase: string,
-    stats?: Record<string, unknown>,
+    results?: Record<string, unknown>,
     releaseCode?: string,
   ): Promise<void>
   stageFailed(
     resourceReleaseId: string,
     phase: string,
     error: string,
-    stats?: Record<string, unknown>,
+    results?: Record<string, unknown>,
     releaseCode?: string,
   ): Promise<void>
   stageRunning(
     resourceReleaseId: string,
     phase: string,
-    stats?: Record<string, unknown>,
+    results?: Record<string, unknown>,
     releaseCode?: string,
   ): Promise<void>
 }

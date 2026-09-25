@@ -13,8 +13,8 @@ import {
   insertDataset,
   buildDeterministicReleaseId,
   updateDatasetStatus,
-  ensureIngestRunStarted,
-  upsertIngestRunStatus,
+  ensureProcessingRunStarted,
+  upsertProcessingRunStatus,
   upsertSnapshotSource,
   listRegistrySourceVersions,
 } from './metaRegistry'
@@ -67,7 +67,7 @@ test('post-publication statistics failures retain superseded source release stat
     ).toEqual({ status: 'superseded' })
     expect(
       sqlite
-        .query('SELECT status FROM ingestRuns WHERE resourceReleaseId = ?')
+        .query('SELECT status FROM processingRuns WHERE resourceReleaseId = ?')
         .get(resourceReleaseId),
     ).toEqual({ status: 'error' })
   } finally {
@@ -128,7 +128,7 @@ for (const order of [types, [...types].reverse()]) {
           '2026-09-09T00:00:00Z',
         )
         await updateDatasetStatus(db, resourceReleaseId, 'processing')
-        await ensureIngestRunStarted(
+        await ensureProcessingRunStarted(
           db,
           resourceReleaseId,
           'process',
@@ -137,7 +137,7 @@ for (const order of [types, [...types].reverse()]) {
         )
         if (index === 1) {
           await updateDatasetStatus(db, resourceReleaseId, 'failed')
-          await upsertIngestRunStatus(
+          await upsertProcessingRunStatus(
             db,
             resourceReleaseId,
             'process',
@@ -158,7 +158,7 @@ for (const order of [types, [...types].reverse()]) {
               .get(),
           ).toEqual({ n: 1 })
           await updateDatasetStatus(db, resourceReleaseId, 'processing')
-          await upsertIngestRunStatus(
+          await upsertProcessingRunStatus(
             db,
             resourceReleaseId,
             'process',
@@ -194,7 +194,7 @@ for (const order of [types, [...types].reverse()]) {
           [type, type, type],
         )
         await upsertSnapshotSource(db, type, 'dataset', resourceReleaseId, 'primary')
-        await upsertIngestRunStatus(
+        await upsertProcessingRunStatus(
           db,
           resourceReleaseId,
           'process',
@@ -220,7 +220,7 @@ for (const order of [types, [...types].reverse()]) {
       expect(sqlite.query('SELECT count(*) AS n FROM sourceReleases').get()).toEqual({
         n: 1,
       })
-      expect(sqlite.query('SELECT count(*) AS n FROM ingestRuns').get()).toEqual({
+      expect(sqlite.query('SELECT count(*) AS n FROM processingRuns').get()).toEqual({
         n: 2,
       })
       const versions = await listRegistrySourceVersions(db as never)

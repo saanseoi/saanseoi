@@ -9,7 +9,7 @@ import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtu
 import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 
 import { resolveDataShardEnvironment } from './shared'
-import { listIngestRuns, listReleases, listStats } from './reporting'
+import { listProcessingRuns, listReleases, listStats } from './reporting'
 
 const repoRoot = resolve(import.meta.dir, '../../../../..')
 
@@ -68,7 +68,7 @@ describe('reporting service', () => {
 
       seedMetaCatalog(metaSqlite)
       seedRelease(metaSqlite)
-      seedIngestRun(metaSqlite)
+      seedProcessingRun(metaSqlite)
       seedStat(metaSqlite)
       seedSourceRows(sourceSqlite)
       seedHistoryRows(historySqlite)
@@ -80,7 +80,7 @@ describe('reporting service', () => {
       }
 
       const releases = await listReleases(metaDb, bindings, 'preview', { limit: 10 })
-      const ingestRows = await listIngestRuns(metaDb, { limit: 10 })
+      const ingestRows = await listProcessingRuns(metaDb, { limit: 10 })
       const statRows = await listStats(metaDb, { limit: 10 })
 
       expect(releases).toHaveLength(1)
@@ -373,7 +373,7 @@ describe('reporting service', () => {
             1761264000000
           );
 
-        INSERT INTO ingestRuns (
+        INSERT INTO processingRuns (
           runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
         ) VALUES
           ('run-1a', 'release-1', 'extractAddresses', 'completed', '{"release":1,"run":"a"}', null, '2026-06-26T10:00:00.000Z', '2026-06-26T10:05:00.000Z', 1761434400000, 1761434700000),
@@ -383,7 +383,7 @@ describe('reporting service', () => {
       `)
 
       const metaDb = createLocalHarbourDb(metaSqlite)
-      const rows = await listIngestRuns(metaDb, { limit: 2 })
+      const rows = await listProcessingRuns(metaDb, { limit: 2 })
 
       expect(rows.map(row => row.resourceReleaseId)).toEqual([
         'release-1',
@@ -628,9 +628,9 @@ function seedRelease(
   `)
 }
 
-function seedIngestRun(sqlite: SQLiteDatabase) {
+function seedProcessingRun(sqlite: SQLiteDatabase) {
   sqlite.exec(`
-    INSERT INTO ingestRuns (
+    INSERT INTO processingRuns (
       runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
       'run-dr-hk-hkgov-dpo-address-2026-06-24.0',

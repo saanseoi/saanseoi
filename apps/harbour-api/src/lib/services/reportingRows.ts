@@ -8,7 +8,7 @@ import type { DatasetType } from '@repo/db'
 import type { CountTarget } from './reportingTypes.ts'
 
 export const {
-  ingestRuns,
+  processingRuns,
   metaDataShards,
   metaDatasets,
   metaPublishers,

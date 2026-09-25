@@ -86,27 +86,30 @@ function createSchemaFingerprintResolver(
     if (!releaseCode) return null
 
     return readSchemaFingerprint(
-      await getIngestRunStatsByReleaseCode(db, releaseCode, 'registerDataset'),
+      await getProcessingRunStatsByReleaseCode(db, releaseCode, 'registerDataset'),
     )
   }
 }
 
-async function getIngestRunStatsByReleaseCode(
+async function getProcessingRunStatsByReleaseCode(
   db: HarbourReadableDb,
   releaseCode: string,
   phase: 'registerDataset',
 ): Promise<Record<string, unknown> | null> {
   const row = await db
-    .select({ stats: metaSchema.ingestRuns.stats })
-    .from(metaSchema.ingestRuns)
+    .select({ stats: metaSchema.processingRuns.results })
+    .from(metaSchema.processingRuns)
     .innerJoin(
       metaSchema.metaResourceReleases,
-      eq(metaSchema.ingestRuns.resourceReleaseId, metaSchema.metaResourceReleases.id),
+      eq(
+        metaSchema.processingRuns.resourceReleaseId,
+        metaSchema.metaResourceReleases.id,
+      ),
     )
     .where(
       and(
         eq(metaSchema.metaResourceReleases.code, releaseCode),
-        eq(metaSchema.ingestRuns.phase, phase),
+        eq(metaSchema.processingRuns.phase, phase),
       ),
     )
     .limit(1)

@@ -550,7 +550,7 @@ export const ReportRowCountSchema = z
   })
   .openapi('HarbourReportRowCount')
 
-export const IngestRunReportRowSchema = z
+export const ProcessingRunReportRowSchema = z
   .object({
     datasetCode: DatasetCodeSchema,
     error: z.unknown().nullable(),
@@ -566,13 +566,13 @@ export const IngestRunReportRowSchema = z
     status: z.string(),
     resourceType: z.string(),
   })
-  .openapi('HarbourIngestRunReportRow')
+  .openapi('HarbourProcessingRunReportRow')
 
-export const IngestRunReportResponseSchema = z
+export const ProcessingRunReportResponseSchema = z
   .object({
-    rows: z.array(IngestRunReportRowSchema),
+    rows: z.array(ProcessingRunReportRowSchema),
   })
-  .openapi('HarbourIngestRunReportResponse')
+  .openapi('HarbourProcessingRunReportResponse')
 
 export const StatReportRowSchema = z
   .object({

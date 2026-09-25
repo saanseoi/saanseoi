@@ -31,7 +31,7 @@ timing, count formatting, clamping and completion behaviour.
 
 ## Ingestion run statistics
 
-`ingestRuns.stats` describes work performed by one phase. Completed `processDataset`
+`processingRuns.stats` describes work performed by one phase. Completed `processDataset`
 reports share `resourceType`, `sourceRows` (inspected input records) and `processedRows`
 (records accepted by the processor). An unavailable count is `null`, not zero. Native
 source imports count retained source records; canonical processors count their own

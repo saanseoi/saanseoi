@@ -1,4 +1,4 @@
-import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { resolveGeometryPreparationContext } from '../../dbCache/geometryPreparationContext.ts'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'

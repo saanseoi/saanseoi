@@ -10,10 +10,10 @@ import {
   assertPlacesInitialisationComplete,
   buildPlacesResetSql,
   collectOwnedPlaces,
-  failRunningPlacesIngestRuns,
+  failRunningPlacesProcessingRuns,
   failPlacesManifest,
   hasCompletedOverturePlacesBaseline,
-  recoverFailedPlacesIngestRuns,
+  recoverFailedPlacesProcessingRuns,
   resumePlacesManifest,
 } from './resetPlaces.ts'
 import type { resolveLocalAddressDbContext } from '../dbCache/localDbCache.ts'
@@ -106,7 +106,7 @@ function createPlacesOwnershipDb() {
       status TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     );
-    CREATE TABLE ingestRuns (
+    CREATE TABLE processingRuns (
       runId TEXT PRIMARY KEY,
       resourceReleaseId TEXT NOT NULL,
       phase TEXT NOT NULL,
@@ -354,7 +354,7 @@ describe('Overture Places initialisation ownership', () => {
   test('fails only abandoned Places phases last updated before the manifest failure', async () => {
     const { db, sqlite } = createPlacesOwnershipDb()
     sqlite.exec(`
-      INSERT INTO ingestRuns (
+      INSERT INTO processingRuns (
         runId, resourceReleaseId, phase, status, startedAt, createdAt, updatedAt
       ) VALUES
         (
@@ -369,10 +369,12 @@ describe('Overture Places initialisation ownership', () => {
         );
     `)
 
-    expect(await failRunningPlacesIngestRuns(db, '2026-09-06T00:02:00.000Z')).toBe(1)
+    expect(await failRunningPlacesProcessingRuns(db, '2026-09-06T00:02:00.000Z')).toBe(
+      1,
+    )
     expect(
       sqlite
-        .query('SELECT status, finishedAt, error FROM ingestRuns WHERE runId = ?')
+        .query('SELECT status, finishedAt, error FROM processingRuns WHERE runId = ?')
         .get('abandoned'),
     ).toMatchObject({
       error: expect.stringContaining('interrupted'),
@@ -385,7 +387,7 @@ describe('Overture Places initialisation ownership', () => {
         .get('places-release'),
     ).toEqual({ status: 'failed' })
     expect(
-      sqlite.query('SELECT status FROM ingestRuns WHERE runId = ?').get('newer'),
+      sqlite.query('SELECT status FROM processingRuns WHERE runId = ?').get('newer'),
     ).toEqual({ status: 'running' })
 
     sqlite.close()
@@ -394,7 +396,7 @@ describe('Overture Places initialisation ownership', () => {
   test('opens interrupted recovery as the retained SQL owner before failing its stale phase', async () => {
     const { db, sqlite } = createPlacesOwnershipDb()
     sqlite.exec(`
-      INSERT INTO ingestRuns (
+      INSERT INTO processingRuns (
         runId, resourceReleaseId, phase, status, startedAt, createdAt, updatedAt
       ) VALUES (
         'abandoned', 'places-release', 'processDataset', 'running',
@@ -404,7 +406,7 @@ describe('Overture Places initialisation ownership', () => {
     `)
     const events: string[] = []
 
-    await recoverFailedPlacesIngestRuns(
+    await recoverFailedPlacesProcessingRuns(
       { environment: 'dev', remote: false },
       {
         createdAt: '2026-09-06T00:00:00.000Z',
@@ -433,7 +435,9 @@ describe('Overture Places initialisation ownership', () => {
 
     expect(events).toEqual(['resolve owner', 'open as places-release'])
     expect(
-      sqlite.query('SELECT status FROM ingestRuns WHERE runId = ?').get('abandoned'),
+      sqlite
+        .query('SELECT status FROM processingRuns WHERE runId = ?')
+        .get('abandoned'),
     ).toEqual({ status: 'error' })
     sqlite.close()
   })

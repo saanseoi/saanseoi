@@ -1,15 +1,15 @@
 import type { HarbourReadableDb, HarbourWritableDb } from '../lib/db/types'
 import {
-  ensureIngestRunStarted,
+  ensureProcessingRunStarted,
   updateDatasetStatus,
-  updateLatestOpenIngestRun,
-  upsertIngestRunStatus,
+  updateLatestOpenProcessingRun,
+  upsertProcessingRunStatus,
 } from '../lib/db/metaRegistry'
 
 export type DatasetStageRequest = {
   resourceReleaseId: string
   phase: string
-  stats?: Record<string, unknown>
+  results?: Record<string, unknown>
   error?: string
 }
 
@@ -20,22 +20,22 @@ export async function recordDatasetStage(
 ) {
   const { resourceReleaseId, phase } = request
   const now = new Date().toISOString()
-  const stats = request.stats ?? null
+  const results = request.results ?? null
   if (status === 'running') {
     if (phase === 'processDataset')
       await updateDatasetStatus(db, resourceReleaseId, 'processing')
     if (reopensCompletedPhase(phase)) {
-      await upsertIngestRunStatus(
+      await upsertProcessingRunStatus(
         db,
         resourceReleaseId,
         phase,
         status,
         now,
         null,
-        stats,
+        results,
       )
     } else {
-      await ensureIngestRunStarted(db, resourceReleaseId, phase, stats, now)
+      await ensureProcessingRunStarted(db, resourceReleaseId, phase, results, now)
     }
     return
   }
@@ -45,24 +45,24 @@ export async function recordDatasetStage(
       ? JSON.stringify({ message: request.error || 'Unknown processing error.' })
       : null
   if (status === 'error') await updateDatasetStatus(db, resourceReleaseId, 'failed')
-  const updated = await updateLatestOpenIngestRun(
+  const updated = await updateLatestOpenProcessingRun(
     db,
     resourceReleaseId,
     phase,
     status,
     now,
-    stats,
+    results,
     error,
   )
   if (!updated) {
-    await upsertIngestRunStatus(
+    await upsertProcessingRunStatus(
       db,
       resourceReleaseId,
       phase,
       status,
       now,
       now,
-      stats,
+      results,
       error,
     )
   }

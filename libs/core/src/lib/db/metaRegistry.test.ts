@@ -10,7 +10,7 @@ import { metaSchema } from '@repo/db'
 import {
   ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
-  ensureIngestRunStarted,
+  ensureProcessingRunStarted,
   canonicaliseApiFieldSourceSchemas,
   getCurrentReleaseForDatasetId,
   getLatestNewerDatasetRelease,
@@ -512,11 +512,11 @@ function createShardLookupDb() {
   }
 }
 
-function createIngestRunDb() {
+function createProcessingRunDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
-    CREATE TABLE ingestRuns (
+    CREATE TABLE processingRuns (
       runId TEXT PRIMARY KEY,
       resourceReleaseId TEXT NOT NULL,
       phase TEXT NOT NULL,
@@ -1432,12 +1432,12 @@ describe('resolveShardForKindRegionYear', () => {
   })
 })
 
-describe('ensureIngestRunStarted', () => {
+describe('ensureProcessingRunStarted', () => {
   test('does not reopen a completed ingest run', async () => {
-    const { sqlite, db } = createIngestRunDb()
+    const { sqlite, db } = createProcessingRunDb()
 
     sqlite.exec(`
-      INSERT INTO ingestRuns (
+      INSERT INTO processingRuns (
         runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
       ) VALUES (
         'run-1',
@@ -1453,7 +1453,7 @@ describe('ensureIngestRunStarted', () => {
       );
     `)
 
-    await ensureIngestRunStarted(
+    await ensureProcessingRunStarted(
       db as never,
       'release-1',
       'stageDataset',
@@ -1463,7 +1463,7 @@ describe('ensureIngestRunStarted', () => {
 
     const row = sqlite
       .query(
-        'SELECT runId, status, stats, startedAt, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
+        'SELECT runId, status, stats, startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
       )
       .get('release-1', 'stageDataset') as {
       finishedAt: string | null

@@ -1,6 +1,6 @@
 import type { CountSpec, ReportFilters, ReportRowCount } from './reportingRows.ts'
 
-export type IngestRunReportRow = {
+export type ProcessingRunReportRow = {
   datasetCode: string
   error: unknown
   finishedAt: string | null

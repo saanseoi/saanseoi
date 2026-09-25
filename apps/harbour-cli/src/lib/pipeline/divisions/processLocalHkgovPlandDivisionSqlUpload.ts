@@ -1,4 +1,4 @@
-import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { resolveRemoteCacheDir } from '../../dbCache/localDbCacheTargets.ts'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import {

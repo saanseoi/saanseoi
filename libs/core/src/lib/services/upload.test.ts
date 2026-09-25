@@ -288,7 +288,7 @@ function seedPlaceDataset(db: Database) {
   `)
 }
 
-function insertFixtureIngestRun(
+function insertFixtureProcessingRun(
   db: Database,
   run: {
     runId: string
@@ -303,7 +303,7 @@ function insertFixtureIngestRun(
 ) {
   db.query(
     `
-      INSERT INTO ingestRuns (
+      INSERT INTO processingRuns (
         runId,
         resourceReleaseId,
         phase,
@@ -590,9 +590,9 @@ describe('upload', () => {
       rawObjectKey: string
       originalFileName: string
     } | null
-    const ingestRunCount = sqliteCheck
+    const processingRunCount = sqliteCheck
       .query(
-        'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ?',
+        'SELECT COUNT(*) AS count FROM processingRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ?',
       )
       .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
 
@@ -620,7 +620,7 @@ describe('upload', () => {
     expect(dataset?.status).toBe('staged')
     expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
     expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
-    expect(ingestRunCount.count).toBe(2)
+    expect(processingRunCount.count).toBe(2)
   })
 
   test('uses a deterministic release id for the same release code', async () => {
@@ -983,9 +983,9 @@ describe('upload', () => {
       .get('ds-hk-overture-division', 'overture') as {
       processingRules: string | null
     } | null
-    const ingestRunCount = sqlite
+    const processingRunCount = sqlite
       .query(
-        'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ?',
+        'SELECT COUNT(*) AS count FROM processingRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ?',
       )
       .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
 
@@ -997,7 +997,7 @@ describe('upload', () => {
     expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
     expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(dataset?.processingRules).toBe(processingRules?.processingRules)
-    expect(ingestRunCount.count).toBe(2)
+    expect(processingRunCount.count).toBe(2)
   })
 
   test('reuses existing phase rows when retrying a failed registered dataset', async () => {
@@ -1021,7 +1021,7 @@ describe('upload', () => {
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',
     })
-    insertFixtureIngestRun(sqlite, {
+    insertFixtureProcessingRun(sqlite, {
       runId: 'run-register-dataset-old',
       resourceReleaseId,
       phase: 'registerDataset',
@@ -1029,7 +1029,7 @@ describe('upload', () => {
       startedAt: '2026-06-02T00:00:00.000Z',
       finishedAt: '2026-06-02T00:00:00.000Z',
     })
-    insertFixtureIngestRun(sqlite, {
+    insertFixtureProcessingRun(sqlite, {
       runId: 'run-stage-dataset-old',
       resourceReleaseId,
       phase: 'stageDataset',
@@ -1050,9 +1050,9 @@ describe('upload', () => {
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
     })
 
-    const ingestRuns = sqlite
+    const processingRuns = sqlite
       .query(
-        'SELECT runId, phase, status, stats, error, startedAt FROM ingestRuns WHERE resourceReleaseId = ? ORDER BY phase ASC',
+        'SELECT runId, phase, status, stats, error, startedAt FROM processingRuns WHERE resourceReleaseId = ? ORDER BY phase ASC',
       )
       .all(resourceReleaseId) as Array<{
       error: string | null
@@ -1066,7 +1066,7 @@ describe('upload', () => {
     sqlite.close()
 
     expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
-    expect(ingestRuns).toEqual([
+    expect(processingRuns).toEqual([
       {
         error: null,
         phase: 'registerDataset',
@@ -1088,8 +1088,8 @@ describe('upload', () => {
         status: 'completed',
       },
     ])
-    expect(ingestRuns[0]?.startedAt).toBe('2026-06-02T00:00:00.000Z')
-    expect(ingestRuns[1]?.startedAt).toBe('2026-06-02T00:00:01.000Z')
+    expect(processingRuns[0]?.startedAt).toBe('2026-06-02T00:00:00.000Z')
+    expect(processingRuns[1]?.startedAt).toBe('2026-06-02T00:00:01.000Z')
   })
 
   test('uses injected schema metadata for remote chronology checks', async () => {
@@ -1549,7 +1549,7 @@ Reconcile the schema before uploading this dataset.`)
         updatedAt: '2026-06-02T00:00:00.000Z',
       })
       if (recovery === 'completed')
-        insertFixtureIngestRun(sqlite, {
+        insertFixtureProcessingRun(sqlite, {
           runId: 'completed-processing-run',
           resourceReleaseId,
           phase: 'processDataset',
@@ -1617,7 +1617,7 @@ Reconcile the schema before uploading this dataset.`)
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',
     })
-    insertFixtureIngestRun(sqlite, {
+    insertFixtureProcessingRun(sqlite, {
       runId: 'completed-processing-run',
       resourceReleaseId,
       phase: 'processDataset',
@@ -1625,7 +1625,7 @@ Reconcile the schema before uploading this dataset.`)
       startedAt: '2026-06-02T00:00:00.000Z',
       finishedAt: '2026-06-02T00:01:00.000Z',
     })
-    insertFixtureIngestRun(sqlite, {
+    insertFixtureProcessingRun(sqlite, {
       runId: 'active-import-run',
       resourceReleaseId,
       phase: 'importPlandSqlSource',

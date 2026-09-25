@@ -8,7 +8,7 @@ import {
 } from '../cli/display.ts'
 import { getStringOption, type ParsedArgs, type UploadTarget } from '../cli/options.ts'
 import {
-  fetchIngestRunReport,
+  fetchProcessingRunReport,
   fetchProcessingActionReport,
   fetchReleaseReport,
   fetchStatsReport,
@@ -24,7 +24,7 @@ export async function runReportCommand(args: ParsedArgs, target: UploadTarget) {
   const hasExplicitLimit = typeof args.options.limit === 'string'
 
   if (args.command === 'reports:ingestion') {
-    const report = await fetchIngestRunReport(target, {
+    const report = await fetchProcessingRunReport(target, {
       limit: hasExplicitLimit ? reportLimit : 100,
       ...resolveReportReleaseFilter(args),
       source: reportSource,

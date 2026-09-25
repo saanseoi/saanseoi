@@ -7,7 +7,7 @@ import {
   buildReportFilterWhereClause,
   buildReportRowCounts,
   collectCountRowsByRelease,
-  ingestRuns,
+  processingRuns,
   metaDatasets,
   metaPublishers,
   metaResourceReleases,
@@ -21,7 +21,7 @@ import {
   type ReportRowCount,
 } from './reportingRows.ts'
 import type {
-  IngestRunReportRow,
+  ProcessingRunReportRow,
   ListStatsOptions,
   ProcessingActionReportRow,
   ReleaseQueryRow,
@@ -30,35 +30,35 @@ import type {
   StatReportRow,
 } from './reportingTypes.ts'
 
-export async function listIngestRuns(
+export async function listProcessingRuns(
   db: HarbourReadableDb,
   options: ReportFilters,
-): Promise<IngestRunReportRow[]> {
+): Promise<ProcessingRunReportRow[]> {
   const query = db
     .select({
       datasetCode: metaDatasets.code,
-      error: ingestRuns.error,
-      finishedAt: ingestRuns.finishedAt,
-      phase: ingestRuns.phase,
+      error: processingRuns.error,
+      finishedAt: processingRuns.finishedAt,
+      phase: processingRuns.phase,
       releaseCode: metaResourceReleases.code,
       resourceReleaseId: metaResourceReleases.id,
-      runId: ingestRuns.runId,
+      runId: processingRuns.runId,
       cohortKey: metaResourceReleases.cohortKey,
       source: metaPublishers.code,
-      startedAt: ingestRuns.startedAt,
-      stats: ingestRuns.stats,
-      status: ingestRuns.status,
+      startedAt: processingRuns.startedAt,
+      stats: processingRuns.results,
+      status: processingRuns.status,
       resourceType: metaResourceReleases.resourceType,
     })
-    .from(ingestRuns)
+    .from(processingRuns)
     .innerJoin(
       metaResourceReleases,
-      eq(ingestRuns.resourceReleaseId, metaResourceReleases.id),
+      eq(processingRuns.resourceReleaseId, metaResourceReleases.id),
     )
     .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .orderBy(desc(ingestRuns.startedAt), desc(ingestRuns.createdAt))
-  const releaseIds = await listLatestIngestRunReleaseIds(db, {
+    .orderBy(desc(processingRuns.startedAt), desc(processingRuns.createdAt))
+  const releaseIds = await listLatestProcessingRunReleaseIds(db, {
     datasetCode: options.datasetCode,
     limit: options.limit ?? 10,
     source: options.source,
@@ -84,7 +84,7 @@ export async function listIngestRuns(
           : query.where(inArray(metaResourceReleases.id, releaseIdBatch)).all(),
       ),
     )
-  ).flat() as IngestRunReportRow[]
+  ).flat() as ProcessingRunReportRow[]
 
   return rows.map(row => ({
     ...row,
@@ -293,18 +293,21 @@ export async function listReleases(
   }))
 }
 
-async function listLatestIngestRunReleaseIds(
+async function listLatestProcessingRunReleaseIds(
   db: HarbourReadableDb,
   options: ReportFilters,
 ) {
-  const latestStartedAt = sql<string>`max(${ingestRuns.startedAt})`
-  const latestCreatedAt = sql<string>`max(${ingestRuns.createdAt})`
+  const latestStartedAt = sql<string>`max(${processingRuns.startedAt})`
+  const latestCreatedAt = sql<string>`max(${processingRuns.createdAt})`
   const query = db
     .select({
       resourceReleaseId: metaResourceReleases.id,
     })
     .from(metaResourceReleases)
-    .innerJoin(ingestRuns, eq(ingestRuns.resourceReleaseId, metaResourceReleases.id))
+    .innerJoin(
+      processingRuns,
+      eq(processingRuns.resourceReleaseId, metaResourceReleases.id),
+    )
     .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .groupBy(
@@ -415,7 +418,7 @@ export type {
 } from './reportingRows.ts'
 
 export type {
-  IngestRunReportRow,
+  ProcessingRunReportRow,
   StatReportRow,
   ProcessingActionReportRow,
   ListStatsOptions,

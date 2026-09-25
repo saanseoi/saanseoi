@@ -12,7 +12,7 @@ export type StageRequest = {
   resourceReleaseId?: string
   error?: string
   phase: string
-  stats?: Record<string, unknown>
+  results?: Record<string, unknown>
 }
 
 export type PublishRequest = {

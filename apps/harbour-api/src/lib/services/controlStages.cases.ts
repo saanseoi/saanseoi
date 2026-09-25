@@ -12,7 +12,7 @@ import {
 } from './controlFixtures.fixtures.ts'
 
 test('classifies transient D1 lock and internal errors as retryable control failures', () => {
-  const lockedError = new Error('Failed query: select "runId" from "ingestRuns"')
+  const lockedError = new Error('Failed query: select "runId" from "processingRuns"')
   lockedError.cause = new Error(
     'D1_ERROR: Failed to parse body as JSON, got: Error: internal error; reference = abc123',
   )
@@ -66,9 +66,9 @@ test('updates the running ingest run in place when a phase completes or fails', 
     error: 'Network connection lost.',
   })
 
-  const ingestRuns = sqlite
+  const processingRuns = sqlite
     .query(
-      'SELECT ir.phase, ir.status, ir.stats, ir.error, ir.finishedAt FROM ingestRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
+      'SELECT ir.phase, ir.status, ir.stats, ir.error, ir.finishedAt FROM processingRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
     )
     .all('dr-hk-overture-division-2025-09-24.0') as Array<{
     phase: string
@@ -85,9 +85,9 @@ test('updates the running ingest run in place when a phase completes or fails', 
 
   sqlite.close()
 
-  expect(ingestRuns).toHaveLength(2)
-  const extractRun = ingestRuns[0]
-  const publishRun = ingestRuns[1]
+  expect(processingRuns).toHaveLength(2)
+  const extractRun = processingRuns[0]
+  const publishRun = processingRuns[1]
 
   expect(extractRun).toBeDefined()
   expect(publishRun).toBeDefined()
@@ -128,7 +128,7 @@ test('reopens completed address SQL generation phases on running progress', asyn
   })
 
   sqlite.exec(`
-    INSERT INTO ingestRuns (
+    INSERT INTO processingRuns (
       runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
       'run-generate-current',
@@ -155,7 +155,7 @@ test('reopens completed address SQL generation phases on running progress', asyn
 
   const row = sqlite
     .query(
-      'SELECT status, stats, startedAt, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
+      'SELECT status, stats, startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
     .get(resourceReleaseId, 'generateAddressSqlCurrent') as {
     finishedAt: string | null
@@ -194,7 +194,7 @@ test('reopens a completed processing phase for the next shared resource', async 
     updatedAt: '2026-06-05T00:00:00.000Z',
   })
   sqlite.exec(`
-    INSERT INTO ingestRuns (
+    INSERT INTO processingRuns (
       runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
       'run-process-shared-resource',
@@ -219,7 +219,7 @@ test('reopens a completed processing phase for the next shared resource', async 
   expect(
     sqlite
       .query(
-        'SELECT status, stats, startedAt, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
+        'SELECT status, stats, startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
       )
       .get(resourceReleaseId, 'processDataset'),
   ).toEqual({
@@ -257,7 +257,9 @@ test('preserves the original startedAt when a running phase completes', async ()
   })
 
   const startedRun = sqlite
-    .query('SELECT startedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?')
+    .query(
+      'SELECT startedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
+    )
     .get(resourceReleaseId, 'extractDivisions') as { startedAt: string } | null
 
   await handleStageCompleted(db, {
@@ -270,7 +272,7 @@ test('preserves the original startedAt when a running phase completes', async ()
 
   const completedRun = sqlite
     .query(
-      'SELECT startedAt, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
+      'SELECT startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
     .get(resourceReleaseId, 'extractDivisions') as {
     finishedAt: string | null
@@ -319,9 +321,9 @@ test('updates running phase stats in place when progress is reported again', asy
     },
   })
 
-  const ingestRuns = sqlite
+  const processingRuns = sqlite
     .query(
-      'SELECT phase, status, stats, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
+      'SELECT phase, status, stats, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
     .all(resourceReleaseId, 'extractDivisions') as Array<{
     finishedAt: string | null
@@ -332,8 +334,8 @@ test('updates running phase stats in place when progress is reported again', asy
 
   sqlite.close()
 
-  expect(ingestRuns).toHaveLength(1)
-  expect(ingestRuns[0]).toEqual({
+  expect(processingRuns).toHaveLength(1)
+  expect(processingRuns[0]).toEqual({
     finishedAt: null,
     phase: 'extractDivisions',
     stats: '{"processedRows":128}',
@@ -384,9 +386,9 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
     },
   })
 
-  const ingestRuns = sqlite
+  const processingRuns = sqlite
     .query(
-      'SELECT phase, status, stats, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? ORDER BY startedAt ASC',
+      'SELECT phase, status, stats, finishedAt FROM processingRuns WHERE resourceReleaseId = ? ORDER BY startedAt ASC',
     )
     .all(resourceReleaseId) as Array<{
     finishedAt: string | null
@@ -397,13 +399,13 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
 
   sqlite.close()
 
-  expect(ingestRuns).toHaveLength(1)
-  expect(ingestRuns[0]).toMatchObject({
+  expect(processingRuns).toHaveLength(1)
+  expect(processingRuns[0]).toMatchObject({
     phase: 'extractAddresses',
     status: 'completed',
     stats: '{"processedRows":12}',
   })
-  expect(ingestRuns[0]?.finishedAt).not.toBeNull()
+  expect(processingRuns[0]?.finishedAt).not.toBeNull()
 })
 
 test('falls back to releaseCode when the queued resourceReleaseId no longer resolves', async () => {
@@ -433,9 +435,9 @@ test('falls back to releaseCode when the queued resourceReleaseId no longer reso
     phase: 'extractDivisions',
   })
 
-  const ingestRun = sqlite
+  const processingRun = sqlite
     .query(
-      'SELECT phase, status FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
+      'SELECT phase, status FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
     .get('release-dr-hk-overture-division-2025-09-24.0', 'extractDivisions') as {
     phase: string
@@ -450,7 +452,7 @@ test('falls back to releaseCode when the queued resourceReleaseId no longer reso
     resourceReleaseId: 'release-dr-hk-overture-division-2025-09-24.0',
     status: 'running',
   })
-  expect(ingestRun).toEqual({
+  expect(processingRun).toEqual({
     phase: 'extractDivisions',
     status: 'running',
   })
@@ -490,9 +492,9 @@ test('reopens a failed phase as running when processing is retried', async () =>
     phase: 'processDataset',
   })
 
-  const ingestRun = sqlite
+  const processingRun = sqlite
     .query(
-      'SELECT phase, status, error, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
+      'SELECT phase, status, error, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
     .get(resourceReleaseId, 'processDataset') as {
     error: string | null
@@ -506,7 +508,7 @@ test('reopens a failed phase as running when processing is retried', async () =>
 
   sqlite.close()
 
-  expect(ingestRun).toMatchObject({
+  expect(processingRun).toMatchObject({
     phase: 'processDataset',
     status: 'running',
     error: null,

@@ -52,7 +52,7 @@ test.each([
     expect(
       sqlite
         .query(
-          'SELECT status, stats, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
+          'SELECT status, stats, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
         )
         .get(resourceReleaseId, phase),
     ).toMatchObject({

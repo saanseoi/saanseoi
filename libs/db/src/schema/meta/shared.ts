@@ -10,28 +10,45 @@ import {
 } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
 
-import { ingestRunStatuses } from '../../constants/schema'
-import { metaApiReleaseSets } from './api'
+import { processingRunStatuses } from '../../constants/schema'
+import { metaApiReleaseSets, metaSnapshots } from './api'
 import { metaResourceReleases } from './datasets'
 import { jsonText, timestamps } from '../shared'
 
-export const ingestRuns = sqliteTable(
-  'ingestRuns',
+export const processingRuns = sqliteTable(
+  'processingRuns',
   {
     runId: text('runId').primaryKey(),
-    resourceReleaseId: text('resourceReleaseId')
-      .notNull()
-      .references(() => metaResourceReleases.id),
+    resourceReleaseId: text('resourceReleaseId').references(
+      () => metaResourceReleases.id,
+    ),
+    stage: text('stage', { enum: ['ingestion', 'assembly', 'composition'] }).notNull(),
     phase: text('phase').notNull(),
-    status: text('status', { enum: ingestRunStatuses }).notNull(),
-    stats: jsonText('stats'),
+    checkpoint: jsonText('checkpoint'),
+    attempt: integer('attempt').notNull().default(1),
+    snapshotId: text('snapshotId').references(() => metaSnapshots.id),
+    apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id),
+    status: text('status', { enum: processingRunStatuses }).notNull(),
+    results: jsonText('results'),
     error: jsonText('error'),
     startedAt: text('startedAt').notNull(),
     finishedAt: text('finishedAt'),
     ...timestamps,
   },
   table => [
-    uniqueIndex('ingestRuns_release_phase_unique_idx').on(
+    check(
+      'processingRuns_owner_chk',
+      sql`(${table.resourceReleaseId} IS NOT NULL) + (${table.snapshotId} IS NOT NULL) + (${table.apiReleaseSetId} IS NOT NULL) = 1`,
+    ),
+    uniqueIndex('processingRuns_snapshot_phase_unique_idx').on(
+      table.snapshotId,
+      table.phase,
+    ),
+    uniqueIndex('processingRuns_composition_phase_unique_idx').on(
+      table.apiReleaseSetId,
+      table.phase,
+    ),
+    uniqueIndex('processingRuns_release_phase_unique_idx').on(
       table.resourceReleaseId,
       table.phase,
     ),

@@ -36,7 +36,7 @@ test('resource release rename preserves parent identity, siblings and dependent 
       INSERT INTO releases(id,sourceReleaseId,datasetId,code,resourceType,sourceVersion,status)
         VALUES ('division','source','dataset','division','division','2026','published'),
                ('area','source','dataset','area','divisionArea','2026','published');
-      INSERT INTO ingestRuns(runId,releaseId,phase,status,startedAt)
+      INSERT INTO processingRuns(runId,releaseId,phase,status,startedAt)
         VALUES ('run','division','process','completed','2026-01-01');
       INSERT INTO stats(id,releaseId,dimension,metric,metricUnit,value)
         VALUES ('stat','area','rows','processing','count',7);
@@ -53,7 +53,7 @@ test('resource release rename preserves parent identity, siblings and dependent 
       { id: 'division', sourceReleaseId: 'source' },
     ])
     expect(db.query('SELECT id FROM sourceReleases').all()).toEqual([{ id: 'source' }])
-    expect(db.query('SELECT resourceReleaseId FROM ingestRuns').get()).toEqual({
+    expect(db.query('SELECT resourceReleaseId FROM processingRuns').get()).toEqual({
       resourceReleaseId: 'division',
     })
     expect(db.query('SELECT resourceReleaseId, value FROM stats').get()).toEqual({

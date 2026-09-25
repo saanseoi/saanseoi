@@ -3,9 +3,9 @@ import { afterEach, describe, expect, test } from 'bun:test'
 import { recordDatasetStage } from '../../pipeline/datasetStages'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import {
-  ensureIngestRunStarted,
-  updateLatestOpenIngestRun,
-  upsertIngestRunStatus,
+  ensureProcessingRunStarted,
+  updateLatestOpenProcessingRun,
+  upsertProcessingRunStatus,
 } from './metaRegistry'
 
 const opened: Database[] = []
@@ -19,7 +19,7 @@ afterEach(() => {
 function fixture() {
   const sqlite = new Database(':memory:')
   opened.push(sqlite)
-  sqlite.exec(`CREATE TABLE ingestRuns (
+  sqlite.exec(`CREATE TABLE processingRuns (
     runId TEXT PRIMARY KEY,
     resourceReleaseId TEXT NOT NULL,
     phase TEXT NOT NULL,
@@ -37,12 +37,12 @@ function fixture() {
     db,
     sqlite,
     row: () =>
-      sqlite.query<Record<string, unknown>, []>('SELECT * FROM ingestRuns').get(),
+      sqlite.query<Record<string, unknown>, []>('SELECT * FROM processingRuns').get(),
     writes: () =>
       (sqlite.query('SELECT total_changes() AS count').get() as { count: number })
         .count,
     report: (stats: Record<string, unknown> | string | null = null, time = startedAt) =>
-      ensureIngestRunStarted(db, 'release', phase, stats, time),
+      ensureProcessingRunStarted(db, 'release', phase, stats, time),
   }
 }
 
@@ -109,7 +109,7 @@ describe('ingest phase write economy', () => {
     await report()
     const initial = row()
     expect(
-      await updateLatestOpenIngestRun(
+      await updateLatestOpenProcessingRun(
         db,
         'release',
         phase,
@@ -136,7 +136,7 @@ describe('ingest phase write economy', () => {
   test('a running report clears residual error state immediately', async () => {
     const { sqlite, report, row, writes } = fixture()
     await report()
-    sqlite.exec("UPDATE ingestRuns SET error = 'residual error'")
+    sqlite.exec("UPDATE processingRuns SET error = 'residual error'")
     await report(null, '2026-09-12T00:00:01.000Z')
     expect(writes()).toBe(3)
     expect(row()).toMatchObject({
@@ -170,7 +170,7 @@ describe('ingest phase write economy', () => {
   test('explicitly reopening phases still accept a running report after completion', async () => {
     const { db, row, writes } = fixture()
     const reopeningPhase = 'normaliseAddressSql'
-    await upsertIngestRunStatus(
+    await upsertProcessingRunStatus(
       db,
       'release',
       reopeningPhase,
@@ -201,7 +201,7 @@ for (const useUpsert of [false, true]) {
       await report({ processedRows: 3, bytes: 128, resourceType: 'address' })
       const finishedAt = '2026-09-12T00:00:05.000Z'
       if (useUpsert) {
-        await upsertIngestRunStatus(
+        await upsertProcessingRunStatus(
           db,
           'release',
           phase,
@@ -212,7 +212,7 @@ for (const useUpsert of [false, true]) {
           'failed',
         )
       } else {
-        await updateLatestOpenIngestRun(
+        await updateLatestOpenProcessingRun(
           db,
           'release',
           phase,
@@ -236,7 +236,7 @@ for (const useUpsert of [false, true]) {
 
 test('failure without a running report stores its supplied stats', async () => {
   const { db, row } = fixture()
-  await upsertIngestRunStatus(
+  await upsertProcessingRunStatus(
     db,
     'release',
     phase,

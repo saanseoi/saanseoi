@@ -2,9 +2,9 @@ import {
   getDatasetById,
   getLatestDatasetForRegionSourceDatasetType,
   insertDataset,
-  listIngestRunStatesForRelease,
+  listProcessingRunStatesForRelease,
   resetFailedDataset,
-  upsertIngestRunStatus,
+  upsertProcessingRunStatus,
 } from '../db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
 import type { ReleaseStatus } from '@repo/db'
@@ -1272,7 +1272,7 @@ async function assertExistingDatasetCanBeReuploaded(
     return
   }
 
-  const runs = await listIngestRunStatesForRelease(
+  const runs = await listProcessingRunStatesForRelease(
     db,
     existingDataset.resourceReleaseId,
   )
@@ -1359,7 +1359,7 @@ export async function registerUpload(
     throw new Error(`Release not found after registration: ${plan.releaseCode}`)
   }
 
-  await upsertIngestRunStatus(
+  await upsertProcessingRunStatus(
     db,
     release.resourceReleaseId,
     'registerDataset',
@@ -1373,7 +1373,7 @@ export async function registerUpload(
     }),
   )
 
-  await upsertIngestRunStatus(
+  await upsertProcessingRunStatus(
     db,
     release.resourceReleaseId,
     'stageDataset',

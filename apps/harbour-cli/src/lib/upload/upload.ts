@@ -382,16 +382,19 @@ function createLocalSchemaFingerprintResolver(db: HarbourReadableDb) {
     if (!releaseCode) return null
 
     const row = await db
-      .select({ stats: metaSchema.ingestRuns.stats })
-      .from(metaSchema.ingestRuns)
+      .select({ stats: metaSchema.processingRuns.results })
+      .from(metaSchema.processingRuns)
       .innerJoin(
         metaSchema.metaResourceReleases,
-        eq(metaSchema.ingestRuns.resourceReleaseId, metaSchema.metaResourceReleases.id),
+        eq(
+          metaSchema.processingRuns.resourceReleaseId,
+          metaSchema.metaResourceReleases.id,
+        ),
       )
       .where(
         and(
           eq(metaSchema.metaResourceReleases.code, releaseCode),
-          eq(metaSchema.ingestRuns.phase, 'registerDataset'),
+          eq(metaSchema.processingRuns.phase, 'registerDataset'),
         ),
       )
       .limit(1)

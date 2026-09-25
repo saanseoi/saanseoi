@@ -10,7 +10,7 @@ type StagePayload = {
   resourceReleaseId?: string
   error?: string
   phase: string
-  stats?: Record<string, unknown>
+  results?: Record<string, unknown>
 }
 
 type PublishPayload = {
@@ -92,14 +92,14 @@ export function createHarbourControlClient(target: UploadTarget) {
     async stageCompleted(
       resourceReleaseId: string,
       phase: string,
-      stats?: Record<string, unknown>,
+      results?: Record<string, unknown>,
       releaseCode?: string,
     ) {
       await postControl(
         baseUrl,
         authHeaders,
         '/v1/control/stageCompleted',
-        { releaseCode, resourceReleaseId, phase, stats },
+        { releaseCode, resourceReleaseId, phase, results },
         { retryLocalProxyConnectionFailure: !target.remote },
       )
     },
@@ -107,28 +107,28 @@ export function createHarbourControlClient(target: UploadTarget) {
       resourceReleaseId: string,
       phase: string,
       error: string,
-      stats?: Record<string, unknown>,
+      results?: Record<string, unknown>,
       releaseCode?: string,
     ) {
       await postControl(
         baseUrl,
         authHeaders,
         '/v1/control/stageFailed',
-        { releaseCode, resourceReleaseId, error, phase, stats },
+        { releaseCode, resourceReleaseId, error, phase, results },
         { retryLocalProxyConnectionFailure: !target.remote },
       )
     },
     async stageRunning(
       resourceReleaseId: string,
       phase: string,
-      stats?: Record<string, unknown>,
+      results?: Record<string, unknown>,
       releaseCode?: string,
     ) {
       await postControl(
         baseUrl,
         authHeaders,
         '/v1/control/stageRunning',
-        { releaseCode, resourceReleaseId, phase, stats },
+        { releaseCode, resourceReleaseId, phase, results },
         { retryLocalProxyConnectionFailure: !target.remote },
       )
     },

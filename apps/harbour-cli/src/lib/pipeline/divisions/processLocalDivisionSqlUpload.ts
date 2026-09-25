@@ -1,4 +1,4 @@
-import type { DatasetProcessingStats } from '@repo/core/pipeline/ingestRunStats'
+import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { supplementalNeighbourhoods } from '@repo/core/pipeline/services/divisions/divisionFixtures'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { createHash } from '@repo/core/pipeline/utils'

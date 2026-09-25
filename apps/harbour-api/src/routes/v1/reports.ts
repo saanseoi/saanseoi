@@ -2,7 +2,7 @@ import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import {
   ErrorResponseSchema,
-  IngestRunReportResponseSchema,
+  ProcessingRunReportResponseSchema,
   ProcessingActionReportResponseSchema,
   ReleaseReportResponseSchema,
   ReportQuerySchema,
@@ -11,7 +11,7 @@ import {
   ValidationErrorOpenAPIResponse,
 } from '../../schema'
 import {
-  listIngestRuns,
+  listProcessingRuns,
   listProcessingActions,
   listReleases,
   listStats,
@@ -31,7 +31,7 @@ const ingestionRouteConfig = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: IngestRunReportResponseSchema,
+          schema: ProcessingRunReportResponseSchema,
         },
       },
       description: 'Recent ingestion runs ordered by newest start time.',
@@ -146,7 +146,7 @@ export const ingestionReportRoute = defineOpenAPIRoute<
 
       return c.json(
         {
-          rows: await listIngestRuns(db, {
+          rows: await listProcessingRuns(db, {
             datasetCode: query.datasetCode,
             limit: query.limit,
             releaseCode: query.releaseCode,

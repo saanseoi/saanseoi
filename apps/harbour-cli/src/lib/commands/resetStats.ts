@@ -251,7 +251,7 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...[
       'releaseProcessingActionChunks',
       'releaseProcessingActions',
-      'ingestRuns',
+      'processingRuns',
       'releaseShardAssignments',
       'releaseProvenance',
     ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),

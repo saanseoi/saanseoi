@@ -188,7 +188,7 @@ export async function beginOverturePlacesInitialisation(
       throw new Error('Overture Places initialisation manifest target does not match.')
     if (options.continue && ['running', 'failed'].includes(existing.status)) {
       if (existing.status === 'failed') {
-        await recoverFailedPlacesIngestRuns(target, existing)
+        await recoverFailedPlacesProcessingRuns(target, existing)
         await writePlacesManifest(path, resumePlacesManifest(existing))
       }
       note(formatField('manifest', path), 'RESUMING OVERTURE PLACES INITIALISATION')
@@ -257,7 +257,7 @@ export function failPlacesManifest(
   return { ...manifest, failedAt, status: 'failed' }
 }
 
-export async function recoverFailedPlacesIngestRuns(
+export async function recoverFailedPlacesProcessingRuns(
   target: UploadTarget,
   manifest: PlacesInitManifest,
   dependencies: {
@@ -288,7 +288,7 @@ export async function recoverFailedPlacesIngestRuns(
   )
   try {
     const remoteClient = target.remote ? createHarbourControlClient(target) : null
-    await failRunningPlacesIngestRuns(
+    await failRunningPlacesProcessingRuns(
       context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
       manifest.failedAt,
       remoteClient
@@ -321,7 +321,7 @@ export async function resolvePlacesRecoverySqlDeliveryOwner(target: UploadTarget
   return (await readPendingSqlDelivery(cacheDir))?.resourceReleaseId
 }
 
-export async function failRunningPlacesIngestRuns(
+export async function failRunningPlacesProcessingRuns(
   db: HarbourReadableDb & HarbourWritableDb,
   failedAt: string,
   failRemote?: (run: {
@@ -333,23 +333,26 @@ export async function failRunningPlacesIngestRuns(
 ) {
   const conditions = [
     eq(metaSchema.metaDatasets.code, DATASET_CODE),
-    eq(metaSchema.ingestRuns.status, 'running'),
-    lte(metaSchema.ingestRuns.startedAt, failedAt),
-    lte(metaSchema.ingestRuns.updatedAt, failedAt),
+    eq(metaSchema.processingRuns.status, 'running'),
+    lte(metaSchema.processingRuns.startedAt, failedAt),
+    lte(metaSchema.processingRuns.updatedAt, failedAt),
   ]
   if (recoveryReleaseId) {
-    conditions.push(eq(metaSchema.ingestRuns.resourceReleaseId, recoveryReleaseId))
+    conditions.push(eq(metaSchema.processingRuns.resourceReleaseId, recoveryReleaseId))
   }
   const runs = await db
     .select({
-      phase: metaSchema.ingestRuns.phase,
+      phase: metaSchema.processingRuns.phase,
       releaseCode: metaSchema.metaResourceReleases.code,
-      resourceReleaseId: metaSchema.ingestRuns.resourceReleaseId,
+      resourceReleaseId: metaSchema.processingRuns.resourceReleaseId,
     })
-    .from(metaSchema.ingestRuns)
+    .from(metaSchema.processingRuns)
     .innerJoin(
       metaSchema.metaResourceReleases,
-      eq(metaSchema.ingestRuns.resourceReleaseId, metaSchema.metaResourceReleases.id),
+      eq(
+        metaSchema.processingRuns.resourceReleaseId,
+        metaSchema.metaResourceReleases.id,
+      ),
     )
     .innerJoin(
       metaSchema.metaDatasets,
@@ -1046,7 +1049,7 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM stats WHERE resourceReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM releaseProcessingActions WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId IN (${releaseIds});`,
-    `DELETE FROM ingestRuns WHERE resourceReleaseId IN (${releaseIds});`,
+    `DELETE FROM processingRuns WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM releaseShardAssignments WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId IN (${snapshots});`,
