@@ -46,7 +46,7 @@ export async function listProcessingRuns(
       cohortKey: metaResourceReleases.cohortKey,
       source: metaPublishers.code,
       startedAt: processingRuns.startedAt,
-      stats: processingRuns.results,
+      results: processingRuns.results,
       status: processingRuns.status,
       resourceType: metaResourceReleases.resourceType,
     })
@@ -89,7 +89,7 @@ export async function listProcessingRuns(
   return rows.map(row => ({
     ...row,
     error: normaliseJsonField(row.error),
-    stats: normaliseJsonField(row.stats),
+    results: normaliseJsonField(row.results),
   }))
 }
 

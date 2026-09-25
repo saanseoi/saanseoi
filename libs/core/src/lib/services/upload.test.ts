@@ -308,7 +308,7 @@ function insertFixtureProcessingRun(
         resourceReleaseId,
         phase,
         status,
-        stats,
+        results,
         error,
         startedAt,
         finishedAt,
@@ -1052,7 +1052,7 @@ describe('upload', () => {
 
     const processingRuns = sqlite
       .query(
-        'SELECT runId, phase, status, stats, error, startedAt FROM processingRuns WHERE resourceReleaseId = ? ORDER BY phase ASC',
+        'SELECT runId, phase, status, results, error, startedAt FROM processingRuns WHERE resourceReleaseId = ? ORDER BY phase ASC',
       )
       .all(resourceReleaseId) as Array<{
       error: string | null

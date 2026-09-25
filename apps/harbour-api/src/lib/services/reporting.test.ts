@@ -374,7 +374,7 @@ describe('reporting service', () => {
           );
 
         INSERT INTO processingRuns (
-          runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+          runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
         ) VALUES
           ('run-1a', 'release-1', 'extractAddresses', 'completed', '{"release":1,"run":"a"}', null, '2026-06-26T10:00:00.000Z', '2026-06-26T10:05:00.000Z', 1761434400000, 1761434700000),
           ('run-1b', 'release-1', 'normaliseAddresses', 'completed', '{"release":1,"run":"b"}', null, '2026-06-26T09:00:00.000Z', '2026-06-26T09:05:00.000Z', 1761430800000, 1761431100000),
@@ -631,7 +631,7 @@ function seedRelease(
 function seedProcessingRun(sqlite: SQLiteDatabase) {
   sqlite.exec(`
     INSERT INTO processingRuns (
-      runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+      runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
       'run-dr-hk-hkgov-dpo-address-2026-06-24.0',
       'release-dr-hk-hkgov-dpo-address-2026-06-24.0',

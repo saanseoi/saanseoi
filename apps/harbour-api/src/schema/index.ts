@@ -342,7 +342,7 @@ export const ControlStageRequestSchema = z
     phase: z.string().openapi({
       examples: ['processDataset', 'extractDivisions', 'extractDivisionsI18n'],
     }),
-    stats: z.record(z.string(), z.unknown()).optional(),
+    results: z.record(z.string(), z.unknown()).optional(),
     error: z.string().optional(),
   })
   .refine(
@@ -562,7 +562,7 @@ export const ProcessingRunReportRowSchema = z
     cohortKey: z.string().nullable(),
     source: SourceSchema,
     startedAt: z.string(),
-    stats: z.unknown().nullable(),
+    results: z.unknown().nullable(),
     status: z.string(),
     resourceType: z.string(),
   })

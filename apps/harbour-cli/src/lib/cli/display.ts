@@ -402,7 +402,7 @@ function uniqueHeaders(values: string[]) {
 
 function expandProcessingRunRows(rows: ProcessingRunReportRow[]): TableCell[][] {
   return rows.flatMap<TableCell[]>(row => {
-    const statsEntries = asRecordEntries(row.stats, row.phase)
+    const statsEntries = asRecordEntries(row.results, row.phase)
     const statRows: Array<[string, string]> =
       statsEntries.length > 0 ? statsEntries : [['-', '-']]
     const renderedError = summariseJsonCell(row.error)

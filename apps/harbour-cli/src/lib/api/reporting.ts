@@ -21,7 +21,7 @@ export type ProcessingRunReportRow = {
   cohortKey: string | null
   source: string
   startedAt: string
-  stats: unknown
+  results: unknown
   status: string
   resourceType: string
 }

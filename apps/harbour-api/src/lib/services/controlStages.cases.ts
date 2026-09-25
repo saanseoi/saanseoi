@@ -68,7 +68,7 @@ test('updates the running ingest run in place when a phase completes or fails', 
 
   const processingRuns = sqlite
     .query(
-      'SELECT ir.phase, ir.status, ir.stats, ir.error, ir.finishedAt FROM processingRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
+      'SELECT ir.phase, ir.status, ir.results, ir.error, ir.finishedAt FROM processingRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
     )
     .all('dr-hk-overture-division-2025-09-24.0') as Array<{
     phase: string
@@ -129,7 +129,7 @@ test('reopens completed address SQL generation phases on running progress', asyn
 
   sqlite.exec(`
     INSERT INTO processingRuns (
-      runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+      runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
       'run-generate-current',
       '${resourceReleaseId}',
@@ -155,7 +155,7 @@ test('reopens completed address SQL generation phases on running progress', asyn
 
   const row = sqlite
     .query(
-      'SELECT status, stats, startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
+      'SELECT status, results, startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
     .get(resourceReleaseId, 'generateAddressSqlCurrent') as {
     finishedAt: string | null
@@ -195,7 +195,7 @@ test('reopens a completed processing phase for the next shared resource', async 
   })
   sqlite.exec(`
     INSERT INTO processingRuns (
-      runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+      runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
       'run-process-shared-resource',
       '${resourceReleaseId}',
@@ -219,7 +219,7 @@ test('reopens a completed processing phase for the next shared resource', async 
   expect(
     sqlite
       .query(
-        'SELECT status, stats, startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
+        'SELECT status, results, startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
       )
       .get(resourceReleaseId, 'processDataset'),
   ).toEqual({
@@ -323,7 +323,7 @@ test('updates running phase stats in place when progress is reported again', asy
 
   const processingRuns = sqlite
     .query(
-      'SELECT phase, status, stats, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
+      'SELECT phase, status, results, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
     .all(resourceReleaseId, 'extractDivisions') as Array<{
     finishedAt: string | null
@@ -388,7 +388,7 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
 
   const processingRuns = sqlite
     .query(
-      'SELECT phase, status, stats, finishedAt FROM processingRuns WHERE resourceReleaseId = ? ORDER BY startedAt ASC',
+      'SELECT phase, status, results, finishedAt FROM processingRuns WHERE resourceReleaseId = ? ORDER BY startedAt ASC',
     )
     .all(resourceReleaseId) as Array<{
     finishedAt: string | null

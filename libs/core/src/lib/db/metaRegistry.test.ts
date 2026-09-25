@@ -521,7 +521,7 @@ function createProcessingRunDb() {
       resourceReleaseId TEXT NOT NULL,
       phase TEXT NOT NULL,
       status TEXT NOT NULL,
-      stats TEXT,
+      results TEXT,
       error TEXT,
       startedAt TEXT NOT NULL,
       finishedAt TEXT,
@@ -1438,7 +1438,7 @@ describe('ensureProcessingRunStarted', () => {
 
     sqlite.exec(`
       INSERT INTO processingRuns (
-        runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+        runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
       ) VALUES (
         'run-1',
         'release-1',
@@ -1463,7 +1463,7 @@ describe('ensureProcessingRunStarted', () => {
 
     const row = sqlite
       .query(
-        'SELECT runId, status, stats, startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
+        'SELECT runId, status, results, startedAt, finishedAt FROM processingRuns WHERE resourceReleaseId = ? AND phase = ?',
       )
       .get('release-1', 'stageDataset') as {
       finishedAt: string | null

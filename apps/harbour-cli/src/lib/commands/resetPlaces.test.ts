@@ -111,7 +111,7 @@ function createPlacesOwnershipDb() {
       resourceReleaseId TEXT NOT NULL,
       phase TEXT NOT NULL,
       status TEXT NOT NULL,
-      stats TEXT,
+      results TEXT,
       error TEXT,
       startedAt TEXT NOT NULL,
       finishedAt TEXT,
