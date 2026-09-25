@@ -157,8 +157,8 @@ export const metaSnapshots = sqliteTable(
   ],
 )
 
-export const metaSnapshotSourceReleases = sqliteTable(
-  'snapshotSourceReleases',
+export const metaSnapshotResourceReleases = sqliteTable(
+  'snapshotResourceReleases',
   {
     snapshotId: snapshotIdColumn('cascade'),
     datasetId: datasetIdColumn(),
@@ -177,10 +177,10 @@ export const metaSnapshotSourceReleases = sqliteTable(
     foreignKey({
       columns: [table.resourceReleaseId, table.datasetId],
       foreignColumns: [metaResourceReleases.id, metaResourceReleases.datasetId],
-      name: 'snapshotSourceReleases_resourceReleaseId_datasetId_resourceReleases_id_datasetId_fk',
+      name: 'snapshotResourceReleases_resourceReleaseId_datasetId_resourceReleases_id_datasetId_fk',
     }).onDelete('restrict'),
-    index('snapshotSourceReleases_datasetId_idx').on(table.datasetId),
-    index('snapshotSourceReleases_resourceReleaseId_idx').on(table.resourceReleaseId),
+    index('snapshotResourceReleases_datasetId_idx').on(table.datasetId),
+    index('snapshotResourceReleases_resourceReleaseId_idx').on(table.resourceReleaseId),
   ],
 )
 
@@ -209,7 +209,6 @@ export const metaApiReleaseSets = sqliteTable(
     validTo: isoTimestamp('validTo'),
     notes: text('notes'),
     guide: text('guide'),
-    publisherFields: text('publisherFields', { mode: 'json' }).$type<PublisherFields>(),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -505,78 +504,19 @@ export const metaApiEndpoints = sqliteTable(
   ],
 )
 
-export const metaApiFieldProvenance = sqliteTable(
-  'apiFieldProvenance',
-  {
-    id: primaryUuid('id'),
-    apiReleaseSetId: apiReleaseSetIdColumn(),
-    apiField: text('apiField').notNull(),
-    resourceType: text('resourceType').notNull(),
-    variant: text('variant'),
-    sourceDatasetId: text('sourceDatasetId')
-      .notNull()
-      .references(() => metaDatasets.id, { onDelete: 'restrict' }),
-    inputs: text('inputs', { mode: 'json' }).$type<ApiFieldInput[]>().notNull(),
-    resolverRules: text('resolverRules', { mode: 'json' })
-      .$type<ApiFieldRulePin[]>()
-      .notNull(),
-    resolverCode: text('resolverCode').notNull(),
-    contributionType: text('contributionType', {
-      enum: provenanceContributionTypes,
-    }).notNull(),
-    priority: integer('priority').notNull().default(0),
-    confidence: real('confidence'),
-    versionHash: text('versionHash').notNull(),
-    ...timestamps,
-  },
-  table => [
-    uniqueIndex('apiFieldProvenance_release_resource_field_inputs_unique_idx').on(
-      table.apiReleaseSetId,
-      table.resourceType,
-      table.apiField,
-      table.variant,
-      table.sourceDatasetId,
-      table.inputs,
-      table.contributionType,
-      table.priority,
-    ),
-    index('apiFieldProvenance_release_field_idx').on(
-      table.apiReleaseSetId,
-      table.resourceType,
-      table.apiField,
-    ),
-  ],
-)
+/** Content-addressed general lineage, shared by every release using the same rules. */
+export const metaFieldLineageDefinitions = sqliteTable('fieldLineageDefinitions', {
+  id: text('id').primaryKey(),
+  definition:
+    jsonText<import('../../fieldLineage').FieldLineageDefinition>(
+      'definition',
+    ).notNull(),
+})
 
-/**
- * A release-set writes a group only when that field's complete provenance
- * changes. Unlisted groups inherit from `supersedesApiReleaseSetId`.
- */
-export const metaApiFieldProvenanceGroups = sqliteTable(
-  'apiFieldProvenanceGroups',
-  {
-    apiReleaseSetId: apiReleaseSetIdColumn(),
-    resourceType: text('resourceType').notNull(),
-    apiField: text('apiField').notNull(),
-    variant: text('variant').notNull().default('default'),
-    isDeleted: integer('isDeleted', { mode: 'boolean' }).notNull().default(false),
-    versionHash: text('versionHash').notNull(),
-    createdAt: timestamps.createdAt,
-  },
-  table => [
-    primaryKey({
-      columns: [
-        table.apiReleaseSetId,
-        table.resourceType,
-        table.apiField,
-        table.variant,
-      ],
-    }),
-    index('apiFieldProvenanceGroups_release_idx').on(table.apiReleaseSetId),
-    index('apiFieldProvenanceGroups_field_idx').on(
-      table.resourceType,
-      table.apiField,
-      table.variant,
-    ),
-  ],
-)
+/** One root pin per API release; snapshots already pin concrete source inputs. */
+export const metaApiFieldProvenance = sqliteTable('apiFieldProvenance', {
+  apiReleaseSetId: apiReleaseSetIdColumn().primaryKey(),
+  definitionId: text('definitionId')
+    .notNull()
+    .references(() => metaFieldLineageDefinitions.id, { onDelete: 'restrict' }),
+})

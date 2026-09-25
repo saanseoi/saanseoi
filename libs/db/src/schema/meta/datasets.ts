@@ -125,14 +125,13 @@ export const metaSourceReleases = sqliteTable(
     releaseNotesUrl: text('releaseNotesUrl'),
     notes: text('notes'),
     status: text('status', { enum: releaseStatuses }).notNull(),
+    // Content-addressed reference to the immutable processingRuleDefinitions row.
+    // Releases sharing a policy retain the same reference.
+    processingRules: jsonText('processingRules'),
+    ingestedAt: isoTimestamp('ingestedAt'),
     revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
     supersededBySourceReleaseId: text('supersededBySourceReleaseId'),
-    // Copied from the dataset when this immutable source release is created.
-    // Do not rebuild a historic audit from later dataset metadata or later
-    // merge-ruleset revisions.
-    processingRules: jsonText('processingRules'),
-    ingestedAt: isoTimestamp('ingestedAt'),
     ...timestamps,
   },
   table => [
@@ -183,14 +182,13 @@ export const metaResourceReleases = sqliteTable(
     releaseNotesUrl: text('releaseNotesUrl'),
     notes: text('notes'),
     status: text('status', { enum: releaseStatuses }).notNull(),
+    // Content-addressed reference to the immutable processingRuleDefinitions row.
+    // Releases sharing a policy retain the same reference.
+    processingRules: jsonText('processingRules'),
+    ingestedAt: isoTimestamp('ingestedAt'),
     revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
     supersededByResourceReleaseId: text('supersededByResourceReleaseId'),
-    // Copied from the dataset when this immutable source release is created.
-    // Do not rebuild a historic audit from later dataset metadata or later
-    // merge-ruleset revisions.
-    processingRules: jsonText('processingRules'),
-    ingestedAt: isoTimestamp('ingestedAt'),
     ...timestamps,
   },
   table => [
@@ -215,3 +213,9 @@ export const metaResourceReleases = sqliteTable(
     ),
   ],
 )
+
+/** Immutable general processing definitions; releases retain a content hash reference. */
+export const metaProcessingRuleDefinitions = sqliteTable('processingRuleDefinitions', {
+  id: text('id').primaryKey(),
+  definition: jsonText('definition').notNull(),
+})

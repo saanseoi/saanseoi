@@ -5,7 +5,7 @@ The versioned provenance path is:
 1. `apiReleaseSet`
 2. `apiReleaseSetSnapshots`
 3. `snapshots`
-4. `snapshotSourceReleases`
+4. `snapshotResourceReleases`
 5. `apiFieldProvenanceGroups`
 6. `apiFieldProvenance`
 
@@ -62,7 +62,7 @@ restoring it; the command performs no deployment or live database mutation.
 Tables:
 
 - `snapshots`
-- `snapshotSourceReleases`
+- `snapshotResourceReleases`
 
 This answers:
 

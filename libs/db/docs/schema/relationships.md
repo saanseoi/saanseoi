@@ -14,7 +14,7 @@
 
 - `resourceReleases`
 - -> grouped into canonical snapshots through
-- `snapshotSourceReleases`
+- `snapshotResourceReleases`
   - -> and together form
   - `snapshots`
 
@@ -46,7 +46,7 @@
 
 - `snapshots`
 - -> provenance to upstream source releases lives in
-- `snapshotSourceReleases`
+- `snapshotResourceReleases`
 - -> source rows ultimately live in
 - `source{resourceType}Db`
 

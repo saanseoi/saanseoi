@@ -45,7 +45,7 @@ Tables:
 
 - `snapshots`
 - `snapshotLineages`
-- `snapshotSourceReleases`
+- `snapshotResourceReleases`
 - `snapshotRecipes`
 - `snapshotRecipeInputs`
 - `snapshotAssemblies`
@@ -55,7 +55,7 @@ Key points:
 
 - `snapshots.code` should use the snapshot-version format
 - `snapshots.parentSnapshotId` records the exact parent in the lineage DAG
-- `snapshotSourceReleases` records concrete upstream release membership
+- `snapshotResourceReleases` records concrete upstream release membership
 - `snapshotRecipes` and `snapshotRecipeInputs` describe effective dataset/role selection
   policies; processing implementations live in the codebase
 - `snapshotAssemblies` links each snapshot to one recipe and records construction

@@ -70,3 +70,5 @@ export {
 } from 'drizzle-orm'
 
 export * from './statisticDefinitionSets'
+
+export * from './fieldLineage'

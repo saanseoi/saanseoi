@@ -26,6 +26,7 @@ export type ApiFieldFixtureField = {
   /** Geometry-source selector; omitted for fields independent of a variant. */
   variant?: string | null
   sourceDatasetCode: string
+  canonicalInputs: string[]
   inputs: ApiFieldInput[]
   processingRuleIds?: string[]
   resolverCode: string
@@ -48,6 +49,7 @@ export type ApiFieldFixture = {
   lineageAnchors: ApiFieldFixtureLineageAnchor[]
   schemaVersion: string
   rulesetVersion: string
+  responseFields: Record<string, Record<string, string[]>>
   publisherFields: PublisherFields
   fields: ApiFieldFixtureField[]
 }
@@ -57,7 +59,7 @@ export type ApiFieldFixtureDocument = Omit<ApiFieldFixture, 'fields'> &
   (
     | {
         resourceType: string
-        fields: Omit<ApiFieldFixtureField, 'resourceType'>[]
+        fields: Omit<ApiFieldFixtureField, 'resourceType' | 'canonicalInputs'>[]
         resources?: never
       }
     | {
@@ -65,7 +67,7 @@ export type ApiFieldFixtureDocument = Omit<ApiFieldFixture, 'fields'> &
         fields?: never
         resources: Array<{
           resourceType: string
-          fields: Omit<ApiFieldFixtureField, 'resourceType'>[]
+          fields: Omit<ApiFieldFixtureField, 'resourceType' | 'canonicalInputs'>[]
         }>
       }
   )
@@ -124,7 +126,12 @@ export function expandApiFieldFixture(
       return group.fields.map(field => {
         if (Object.hasOwn(field, 'resourceType'))
           throw new Error('Declare resourceType on the fixture or resource group.')
-        return { ...field, resourceType: group.resourceType }
+        return {
+          ...field,
+          canonicalInputs:
+            document.responseFields[group.resourceType]?.[field.apiField] ?? [],
+          resourceType: group.resourceType,
+        }
       })
     }),
   }
@@ -272,6 +279,11 @@ function deriveCuratedAddressFixture(): ApiFieldFixture {
         apiField => ({
           apiField,
           resourceType: 'address',
+          canonicalInputs: [
+            apiField === 'relationships.divisions'
+              ? 'address.divisions'
+              : `address.${apiField.replace(/^attributes\./, '')}`,
+          ],
           sourceDatasetCode: 'ds-hk-overture-place',
           inputs: [
             {
@@ -319,6 +331,7 @@ function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixture
   return {
     ...field,
     inputs: structuredClone(field.inputs),
+    canonicalInputs: [...field.canonicalInputs],
     ...(field.processingRuleIds
       ? { processingRuleIds: [...field.processingRuleIds] }
       : {}),
@@ -336,6 +349,11 @@ function cloneApiFieldFixture(fixture: ApiFieldFixture): ApiFieldFixture {
       throw new Error(
         'API field must be resource-relative with an explicit resourceType.',
       )
+    if (
+      !field.canonicalInputs?.length ||
+      field.canonicalInputs.some(path => !/^[a-zA-Z][a-zA-Z0-9-]*\..+/.test(path))
+    )
+      throw new Error('API field requires canonical input paths.')
     validateApiFieldInputs(
       field.inputs,
       fixture.publisherFields[field.sourceDatasetCode],
@@ -344,6 +362,7 @@ function cloneApiFieldFixture(fixture: ApiFieldFixture): ApiFieldFixture {
   return {
     ...fixture,
     publisherFields: structuredClone(fixture.publisherFields),
+    responseFields: structuredClone(fixture.responseFields),
     publisherSchemaRanges: structuredClone(fixture.publisherSchemaRanges),
     lineageAnchors: structuredClone(fixture.lineageAnchors),
     sourceCompositions: structuredClone(fixture.sourceCompositions),
