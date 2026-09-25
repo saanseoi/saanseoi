@@ -43,7 +43,7 @@ let siteFooter = $derived(
   {#if !isLandingPage}
     {#await siteFooter then footer}
       {#if footer}
-        {@const (SiteFooter = footer.SiteFooter)}
+        {@const SiteFooter = footer.SiteFooter}
         <SiteFooter />
       {/if}
     {/await}

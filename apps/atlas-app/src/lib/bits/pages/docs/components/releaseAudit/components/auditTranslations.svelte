@@ -177,11 +177,11 @@ async function toggle(side: 'source' | 'target', value: string) {
     >
       {#snippet children()}
         {#each matching.slice(0, visible) as { entry, index } (index)}
-          {@const (row = object(entry))}
-          {@const (parentName = translationParentName(row.context, getLocale()))}
-          {@const (reference =
+          {@const row = object(entry)}
+          {@const parentName = translationParentName(row.context, getLocale())}
+          {@const reference =
   references?.[index] ??
-  (fixtureIndex !== undefined ? { fixtureIndex, entryIndex: index } : undefined))}
+  (fixtureIndex !== undefined ? { fixtureIndex, entryIndex: index } : undefined)}
           <details
             class="border-b border-current/10 last:border-b-0"
             open={expanded.includes(index)}

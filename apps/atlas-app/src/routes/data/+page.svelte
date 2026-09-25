@@ -691,7 +691,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
       class={`relative mt-6 h-143 isolate overflow-visible py-3 transition-[height] duration-500 before:absolute before:inset-0 before:-z-1 before:bg-[radial-gradient(var(--secondary)_1px,transparent_1px)] before:bg-size-[1.2rem_1.2rem] before:opacity-0 dark:before:opacity-[0.05] ${activeApiIndex !== null ? 'min-[901px]:h-220' : ''} max-[900px]:block max-[900px]:h-140 max-[900px]:pt-5 max-[900px]:pb-8`}
     >
       {#each apiDeckOrder as apiIndex, orderIndex (apiIndex)}
-        {@const (api = apiDirectoryItem(apiIndex))}
+        {@const api = apiDirectoryItem(apiIndex)}
         {#if isApiDeckVisible}
           <CardDeck.Card
             intro={{ y: 18, duration: 360, delay: orderIndex * 70 }}

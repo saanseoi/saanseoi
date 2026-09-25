@@ -248,7 +248,7 @@ const providerDetails = (providerId: string) =>
       class="mt-6 divide-y divide-border-card border border-border-card bg-background-alt"
     >
       {#each accounts as account}
-        {@const (provider = providerDetails(account.providerId))}
+        {@const provider = providerDetails(account.providerId)}
         <article class="flex items-center justify-between gap-4 p-5">
           <div class="flex items-center gap-3">
             <div

@@ -112,10 +112,10 @@ $effect(() => {
 
 <div class="space-y-5" aria-busy={loading}>
   {#each rows as row (row.id)}
-    {@const (comparison = auditApplicationComparison(row))}
-    {@const (areaGeometry = row.operation === 'overture_hong_kong_area_geometry_restored')}
-    {@const (areaName = row.record.names[0] || row.record.id)}
-    {@const (areaIdentity = row.operation === 'overture_hong_kong_area_identities_restored')}
+    {@const comparison = auditApplicationComparison(row)}
+    {@const areaGeometry = row.operation === 'overture_hong_kong_area_geometry_restored'}
+    {@const areaName = row.record.names[0] || row.record.id}
+    {@const areaIdentity = row.operation === 'overture_hong_kong_area_identities_restored'}
     {#if category === 'patches' || comparison}
       <PatchCard
         geometryReleaseId={areaGeometry ? releaseId : undefined}

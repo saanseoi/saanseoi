@@ -46,7 +46,7 @@ async function load(index: number) {
       </summary>
       <div class="pt-3">
         {#if documents[index] !== undefined}
-          {@const (document = documents[index])}
+          {@const document = documents[index]}
           {#if translations &&
   document &&
   typeof document === 'object' &&

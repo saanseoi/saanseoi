@@ -23,7 +23,7 @@ const providerLabel = (provider: SocialProvider) =>
 
 <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2">
   {#each socialProviders as provider (provider.id)}
-    {@const (isPending = pendingProvider === provider.id)}
+    {@const isPending = pendingProvider === provider.id}
     <Button
       aria-busy={isPending}
       {disabled}

@@ -320,7 +320,7 @@ onMount(() => {
                     class="mt-3 space-y-1 lg:mt-0 lg:space-y-2"
                   >
                     {#each displayedOutline as item, index}
-                      {@const (targetId = locked && index > 0 && reminderId ? reminderId : item.id)}
+                      {@const targetId = locked && index > 0 && reminderId ? reminderId : item.id}
                       <li class:hidden={item.hidden}>
                         <a
                           class={`block border-l-2 py-1.5 pl-3 font-body text-sm transition-colors lg:border lg:border-r-0 lg:px-3 lg:py-2.5 lg:shadow-card lg:backdrop-blur-sm ${currentOutlineId === item.id ? 'border-secondary font-semibold text-primary lg:bg-secondary lg:text-on-secondary' : 'border-transparent text-foreground-alt hover:border-border-card hover:text-primary lg:border-border-card lg:bg-background/95 lg:hover:border-secondary lg:hover:bg-surface-container-low'}`}
@@ -355,13 +355,13 @@ onMount(() => {
                     class={`mt-3 space-y-2 ${projectChoicesOpen ? 'block' : 'hidden'}`}
                   >
                     {#each decisions as decision}
-                      {@const (targetId =
+                      {@const targetId =
   locked &&
   decision.id !== 'destination' &&
   decision.id !== 'llm-involvement' &&
   reminderId
     ? reminderId
-    : decision.id)}
+    : decision.id}
                       <li>
                         <a
                           class="block border-l-2 py-1.5 pl-3 font-body text-sm transition-colors lg:border lg:border-r-0 lg:px-3 lg:py-2.5 lg:shadow-card lg:backdrop-blur-sm lg:border-border-card lg:bg-background/95 hover:border-secondary hover:bg-surface-container-low"
@@ -433,7 +433,7 @@ onMount(() => {
               class="mt-3 space-y-1 lg:mt-0 lg:space-y-2"
             >
               {#each displayedOutline as item, index}
-                {@const (targetId = locked && index > 0 && reminderId ? reminderId : item.id)}
+                {@const targetId = locked && index > 0 && reminderId ? reminderId : item.id}
                 <li class:hidden={item.hidden}>
                   <a
                     class={`block border-l-2 py-1.5 pl-3 font-body text-sm transition-colors lg:border lg:border-r-0 lg:px-3 lg:py-2.5 lg:shadow-card lg:backdrop-blur-sm ${currentOutlineId === item.id ? 'border-secondary font-semibold text-primary lg:bg-secondary lg:text-on-secondary' : 'border-transparent text-foreground-alt hover:border-border-card hover:text-primary lg:border-border-card lg:bg-background/95 lg:hover:border-secondary lg:hover:bg-surface-container-low'}`}
@@ -468,13 +468,13 @@ onMount(() => {
               class={`mt-3 space-y-2 ${projectChoicesOpen ? 'block' : 'hidden'}`}
             >
               {#each decisions as decision}
-                {@const (targetId =
+                {@const targetId =
   locked &&
   decision.id !== 'destination' &&
   decision.id !== 'llm-involvement' &&
   reminderId
     ? reminderId
-    : decision.id)}
+    : decision.id}
                 <li>
                   <a
                     class="block border-l-2 py-1.5 pl-3 font-body text-sm transition-colors lg:border lg:border-r-0 lg:px-3 lg:py-2.5 lg:shadow-card lg:backdrop-blur-sm lg:border-border-card lg:bg-background/95 hover:border-secondary hover:bg-surface-container-low"

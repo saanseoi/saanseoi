@@ -34,12 +34,12 @@ let skeleton = $derived(
 {:else}
   {#if linksSkeleton}
     {#await linksSkeleton then module}
-      {@const (ReleaseLinksSkeleton = module.default)}
+      {@const ReleaseLinksSkeleton = module.default}
       <ReleaseLinksSkeleton variant={linksVariant} />
     {/await}
   {:else if skeleton}
     {#await skeleton then module}
-      {@const (Skeleton = module.default)}
+      {@const Skeleton = module.default}
       <Skeleton />
     {/await}
   {/if}

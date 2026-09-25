@@ -26,7 +26,7 @@ const object = (v: Json) => (v && typeof v === 'object' && !Array.isArray(v) ? v
     </thead>
     <tbody>
       {#each mappings as mapping}
-        {@const (row = object(mapping))}
+        {@const row = object(mapping)}
         <tr class="[&_td]:border-b [&_td]:border-current/10">
           <td class="p-2">
             <code title={String(row.externalId ?? '—')} class="text-emerald-500"

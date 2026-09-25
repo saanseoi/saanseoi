@@ -138,7 +138,7 @@ const geometryPath = (geometry: Geometry) => {
         </div>
         <div class="mt-3 grid grid-cols-3 gap-2 min-[500px]:grid-cols-6">
           {#each divisions as division}
-            {@const (code = division.attributes.divisionCode)}
+            {@const code = division.attributes.divisionCode}
             <button
               type="button"
               class="border px-2 py-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-[#80e7c7] focus-visible:outline-none {selectedDivisionCode === code

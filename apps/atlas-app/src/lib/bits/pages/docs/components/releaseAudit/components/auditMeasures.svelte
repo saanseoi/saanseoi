@@ -18,7 +18,7 @@ const locales = ['en', 'zh-hant', 'zh-hans']
   </thead>
   <tbody>
     {#each measures as measure}
-      {@const (row = object(measure))}
+      {@const row = object(measure)}
       <tr class="[&_td]:border-b [&_td]:border-current/10 align-top">
         <td class="p-2">
           <code
@@ -27,9 +27,9 @@ const locales = ['en', 'zh-hant', 'zh-hans']
           >
         </td>
         {#each locales as locale}
-          {@const (entry = (Array.isArray(row.localisations) ? row.localisations : [])
+          {@const entry = (Array.isArray(row.localisations) ? row.localisations : [])
   .map(object)
-  .find(item => String(item.locale).toLowerCase() === locale))}
+  .find(item => String(item.locale).toLowerCase() === locale)}
           <td class="wrap-break-word p-2">
             {#if entry}
               <p class="font-medium">{String(entry.name ?? '')}</p>

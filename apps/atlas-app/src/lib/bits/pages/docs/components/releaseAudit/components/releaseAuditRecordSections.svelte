@@ -68,9 +68,9 @@ const toggleSection = (section: AuditSection) => {
 {#if sections.length}
   <div class="mt-6 grid gap-6">
     {#each sections as section}
-      {@const (action = formatAction(section.action))}
-      {@const (expanded = isSectionExpanded(section))}
-      {@const (recordListId = `${section.id}-records`)}
+      {@const action = formatAction(section.action)}
+      {@const expanded = isSectionExpanded(section)}
+      {@const recordListId = `${section.id}-records`}
       <ReleaseAuditCard>
         <ReleaseAuditCardHeader>
           <div class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4">

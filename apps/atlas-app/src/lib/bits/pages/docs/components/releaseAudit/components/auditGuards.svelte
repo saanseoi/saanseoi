@@ -17,7 +17,7 @@ let { guards }: { guards: AuditGuard[] } = $props()
   />
   <div class="space-y-5">
     {#each guards as guard (guard.id)}
-      {@const (copy = guardCopy(guard))}
+      {@const copy = guardCopy(guard)}
       <article
         class="grid grid-cols-[minmax(0,1fr)_7rem] overflow-hidden rounded-xl border border-current/15 text-sm sm:grid-cols-[minmax(0,1fr)_9rem]"
       >

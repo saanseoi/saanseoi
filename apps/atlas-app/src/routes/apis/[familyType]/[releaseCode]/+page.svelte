@@ -813,7 +813,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
         {:else if activeTab === 'stats'}
           {#if statsRoot}
             {#await statsRoot then module}
-              {@const (ReleaseStatsRoot = module.default)}
+              {@const ReleaseStatsRoot = module.default}
               <ReleaseStatsRoot
                 resourceType={api.familyType === 'stats' ? 'divisionStatistic' : undefined}
                 stats={release.stats}
@@ -828,7 +828,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
         {:else if activeTab === 'schema'}
           {#if schemaRoot}
             {#await schemaRoot then module}
-              {@const (ReleaseSchemaRoot = module.default)}
+              {@const ReleaseSchemaRoot = module.default}
               <ReleaseSchemaRoot
                 apiFamily={api.familyType}
                 apiVersion={release.apiVersion}
@@ -839,7 +839,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
         {:else if activeTab === 'samples'}
           {#if samplesRoot}
             {#await samplesRoot then module}
-              {@const (ReleaseSamplesRoot = module.default)}
+              {@const ReleaseSamplesRoot = module.default}
               {#key `${release.apiVersion}:${release.code}:${apiProfile}`}
                 <ReleaseSamplesRoot
                   apiVersion={release.apiVersion}
@@ -869,7 +869,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
           >
             {#if auditRoot}
               {#await auditRoot then module}
-                {@const (ReleaseAuditRoot = module.default)}
+                {@const ReleaseAuditRoot = module.default}
                 {#if auditData || !auditDataQuery}
                   {#key release.code}
                     <ReleaseAuditRoot
@@ -886,7 +886,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
                   {/key}
                 {:else if auditSkeleton}
                   {#await auditSkeleton then skeletonModule}
-                    {@const (ReleaseAuditSkeleton = skeletonModule.default)}
+                    {@const ReleaseAuditSkeleton = skeletonModule.default}
                     <ReleaseAuditSkeleton />
                   {/await}
                 {/if}
@@ -896,8 +896,8 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
         {:else}
           {#if linksComponents}
             {#await linksComponents then modules}
-              {@const (ReleaseLinksRoot = modules[0].default)}
-              {@const (ReleaseLinksProvenance = modules[1].default)}
+              {@const ReleaseLinksRoot = modules[0].default}
+              {@const ReleaseLinksProvenance = modules[1].default}
               <ReleaseLinksRoot>
                 <ReleaseLinksProvenance
                   analyticsSurface="api_release"

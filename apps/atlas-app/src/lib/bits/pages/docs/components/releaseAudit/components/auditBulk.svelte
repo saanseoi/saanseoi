@@ -175,7 +175,7 @@ async function loadDeclaration() {
     </details>
   {/if}
   {#each evidence.fixtures as fixture, index}
-    {@const (group = groups?.[fixture.type])}
+    {@const group = groups?.[fixture.type]}
     {#if evidence.fixtures.findIndex(part => part.type === fixture.type) === index &&
   group &&
   catalogueGroupMatches(group, query)}

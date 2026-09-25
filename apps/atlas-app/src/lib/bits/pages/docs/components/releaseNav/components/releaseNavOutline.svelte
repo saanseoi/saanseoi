@@ -44,7 +44,7 @@ const containsActive = (node: OutlineNode): boolean =>
   isLast: boolean,
   stem: StemState = 'inactive',
 )}
-    {@const (active = activeId === node.id)}
+    {@const active = activeId === node.id}
     <li class:ml-2={nested} class:pl-3={nested} class="relative">
       {#if nested}
         <span
@@ -75,7 +75,7 @@ const containsActive = (node: OutlineNode): boolean =>
         ><ReleaseNavInlineLabel emphasis={node.emphasis} label={node.label} /></a
       >
       {#if node.children.length}
-        {@const (activeChildIndex = node.children.findIndex(containsActive))}
+        {@const activeChildIndex = node.children.findIndex(containsActive)}
         <ol class="space-y-1 pt-1">
           {#each node.children as child, index}
             {@render item(

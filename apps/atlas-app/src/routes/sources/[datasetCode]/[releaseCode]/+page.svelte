@@ -645,7 +645,7 @@ $effect(() => {
               {#await statsRoot}
                 <ReleaseNav.ContentSkeleton tab="stats" />
               {:then module}
-                {@const (ReleaseStatsRoot = module.default)}
+                {@const ReleaseStatsRoot = module.default}
                 <ReleaseStatsRoot
                   isFirstRelease={!previousVersion}
                   resourceType={selectedResource?.resourceType ?? source.resourceTypes[0]}
@@ -690,8 +690,8 @@ $effect(() => {
               {#await auditComponents}
                 <ReleaseNav.ContentSkeleton tab="audit" />
               {:then modules}
-                {@const (Audit = modules[0].default)}
-                {@const (ReleaseAuditRoot = modules[1].default)}
+                {@const Audit = modules[0].default}
+                {@const ReleaseAuditRoot = modules[1].default}
                 <Audit
                   selectedResourceType={selectedAuditResourceType}
                   onResourceTypesChange={resourceTypes => {

@@ -204,7 +204,7 @@ const handleViewportResize = () => {
 }`}
 >
   {#each principleDeckOrder as principleIndex, orderIndex (principleIndex)}
-    {@const (principle = principles[principleIndex] ?? principles[0])}
+    {@const principle = principles[principleIndex] ?? principles[0]}
     <FeatureSectionCard
       {principle}
       {principleIndex}
