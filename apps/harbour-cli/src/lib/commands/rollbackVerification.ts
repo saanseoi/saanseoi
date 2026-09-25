@@ -109,7 +109,7 @@ async function countHistoryRollbackRows(
       db,
       table,
       and(
-        eq(table.sourceReleaseId, input.release.releaseId),
+        eq(table.sourceReleaseId, input.release.resourceReleaseId),
         eq(table.snapshotId, input.snapshotId),
       ),
     )
@@ -140,7 +140,7 @@ async function countSourceRollbackRows(
         total += await countRows(
           db,
           table,
-          eq(table.releaseId, input.release.releaseId),
+          eq(table.resourceReleaseId, input.release.resourceReleaseId),
         )
         if (input.release.resourceType === 'place') {
           total += await countRows(
@@ -158,7 +158,7 @@ async function countSourceRollbackRows(
         db,
         table,
         and(
-          eq(table.releaseId, input.release.releaseId),
+          eq(table.resourceReleaseId, input.release.resourceReleaseId),
           eq(table.validFromRelease, input.release.sourceVersion),
         ),
       )
@@ -175,7 +175,7 @@ async function countSourceRollbackRows(
             db,
             table,
             and(
-              eq(table.releaseId, input.release.releaseId),
+              eq(table.resourceReleaseId, input.release.resourceReleaseId),
               ne(table.validFromRelease, input.release.sourceVersion),
             ),
           )
@@ -239,25 +239,28 @@ async function countMetaRollbackRows(
     countRows(
       db,
       metaSchema.metaPublishedDataJournal,
-      sql`${metaSchema.metaPublishedDataJournal.releaseId} = ${input.release.releaseId} OR ${metaSchema.metaPublishedDataJournal.relatedReleaseId} = ${input.release.releaseId}`,
+      sql`${metaSchema.metaPublishedDataJournal.resourceReleaseId} = ${input.release.resourceReleaseId} OR ${metaSchema.metaPublishedDataJournal.relatedResourceReleaseId} = ${input.release.resourceReleaseId}`,
     ),
     countRows(
       db,
       metaSchema.stats,
       input.operation === 'purge'
-        ? sql`${metaSchema.stats.releaseId} = ${input.release.releaseId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`
-        : eq(metaSchema.stats.releaseId, input.release.releaseId),
+        ? sql`${metaSchema.stats.resourceReleaseId} = ${input.release.resourceReleaseId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`
+        : eq(metaSchema.stats.resourceReleaseId, input.release.resourceReleaseId),
     ),
     countRows(
       db,
       metaSchema.ingestRuns,
-      eq(metaSchema.ingestRuns.releaseId, input.release.releaseId),
+      eq(metaSchema.ingestRuns.resourceReleaseId, input.release.resourceReleaseId),
     ),
     input.operation === 'purge'
       ? countRows(
           db,
           metaSchema.releaseProcessingActions,
-          eq(metaSchema.releaseProcessingActions.releaseId, input.release.releaseId),
+          eq(
+            metaSchema.releaseProcessingActions.resourceReleaseId,
+            input.release.resourceReleaseId,
+          ),
         )
       : Promise.resolve(0),
     input.operation === 'purge'
@@ -265,15 +268,18 @@ async function countMetaRollbackRows(
           db,
           metaSchema.releaseProcessingActionChunks,
           eq(
-            metaSchema.releaseProcessingActionChunks.releaseId,
-            input.release.releaseId,
+            metaSchema.releaseProcessingActionChunks.resourceReleaseId,
+            input.release.resourceReleaseId,
           ),
         )
       : Promise.resolve(0),
     countRows(
       db,
       metaSchema.metaReleaseShardAssignments,
-      eq(metaSchema.metaReleaseShardAssignments.releaseId, input.release.releaseId),
+      eq(
+        metaSchema.metaReleaseShardAssignments.resourceReleaseId,
+        input.release.resourceReleaseId,
+      ),
     ),
     countRows(
       db,
@@ -288,7 +294,7 @@ async function countMetaRollbackRows(
     countRows(
       db,
       metaSchema.metaSnapshotSourceReleases,
-      sql`${metaSchema.metaSnapshotSourceReleases.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSourceReleases.resourceReleaseId} = ${input.release.releaseId}`,
+      sql`${metaSchema.metaSnapshotSourceReleases.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSourceReleases.resourceReleaseId} = ${input.release.resourceReleaseId}`,
     ),
     countRows(
       db,
@@ -302,14 +308,14 @@ async function countMetaRollbackRows(
     ),
     countRows(
       db,
-      metaSchema.metaReleases,
-      eq(metaSchema.metaReleases.id, input.release.releaseId),
+      metaSchema.metaResourceReleases,
+      eq(metaSchema.metaResourceReleases.id, input.release.resourceReleaseId),
     ),
     input.previousReleaseId
       ? countRows(
           db,
-          metaSchema.metaReleases,
-          eq(metaSchema.metaReleases.id, input.previousReleaseId),
+          metaSchema.metaResourceReleases,
+          eq(metaSchema.metaResourceReleases.id, input.previousReleaseId),
         )
       : Promise.resolve(0),
     input.previousApiReleaseSetId
@@ -448,7 +454,7 @@ export async function verifyPurgeResult(
   dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   input: {
     apiReleaseSetId: string
-    releaseId: string
+    resourceReleaseId: string
     resourceType: string
     sourceVersion: string
     snapshotId: string
@@ -473,8 +479,8 @@ export async function verifyPurgeResult(
   ] = await Promise.all([
     countRows(
       dbContext.metaDb,
-      metaSchema.metaReleases,
-      eq(metaSchema.metaReleases.id, input.releaseId),
+      metaSchema.metaResourceReleases,
+      eq(metaSchema.metaResourceReleases.id, input.resourceReleaseId),
     ),
     countRows(
       dbContext.metaDb,
@@ -492,12 +498,12 @@ export async function verifyPurgeResult(
     countRows(
       dbContext.metaDb,
       metaSchema.stats,
-      sql`${metaSchema.stats.releaseId} = ${input.releaseId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`,
+      sql`${metaSchema.stats.resourceReleaseId} = ${input.resourceReleaseId} OR ${metaSchema.stats.apiReleaseSetId} = ${input.apiReleaseSetId}`,
     ),
     countRows(
       dbContext.metaDb,
       metaSchema.metaPublishedDataJournal,
-      sql`${metaSchema.metaPublishedDataJournal.releaseId} = ${input.releaseId} OR ${metaSchema.metaPublishedDataJournal.relatedReleaseId} = ${input.releaseId}`,
+      sql`${metaSchema.metaPublishedDataJournal.resourceReleaseId} = ${input.resourceReleaseId} OR ${metaSchema.metaPublishedDataJournal.relatedResourceReleaseId} = ${input.resourceReleaseId}`,
     ),
     countRows(
       dbContext.metaDb,
@@ -515,22 +521,28 @@ export async function verifyPurgeResult(
     countRows(
       dbContext.metaDb,
       metaSchema.metaSnapshotSourceReleases,
-      sql`${metaSchema.metaSnapshotSourceReleases.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSourceReleases.resourceReleaseId} = ${input.releaseId}`,
+      sql`${metaSchema.metaSnapshotSourceReleases.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSourceReleases.resourceReleaseId} = ${input.resourceReleaseId}`,
     ),
     countRows(
       dbContext.metaDb,
       metaSchema.ingestRuns,
-      eq(metaSchema.ingestRuns.releaseId, input.releaseId),
+      eq(metaSchema.ingestRuns.resourceReleaseId, input.resourceReleaseId),
     ),
     countRows(
       dbContext.metaDb,
       metaSchema.releaseProcessingActions,
-      eq(metaSchema.releaseProcessingActions.releaseId, input.releaseId),
+      eq(
+        metaSchema.releaseProcessingActions.resourceReleaseId,
+        input.resourceReleaseId,
+      ),
     ),
     countRows(
       dbContext.metaDb,
       metaSchema.releaseProcessingActionChunks,
-      eq(metaSchema.releaseProcessingActionChunks.releaseId, input.releaseId),
+      eq(
+        metaSchema.releaseProcessingActionChunks.resourceReleaseId,
+        input.resourceReleaseId,
+      ),
     ),
   ])
   const remainingRows =
@@ -559,7 +571,7 @@ export async function verifyPurgeResult(
 async function countPurgeSourceRows(
   dbContext: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   input: {
-    releaseId: string
+    resourceReleaseId: string
     resourceType: string
     sourceVersion: string
     tables: ReturnType<typeof describeDraftReleasePurgePlan>
@@ -573,7 +585,11 @@ async function countPurgeSourceRows(
     >['sourceDb']
     for (const tableName of input.tables.sourceTables) {
       const table = resolveSourceTable(tableName)
-      total += await countRows(db, table, eq(table.releaseId, input.releaseId))
+      total += await countRows(
+        db,
+        table,
+        eq(table.resourceReleaseId, input.resourceReleaseId),
+      )
       if (input.resourceType === 'place') {
         total += await countRows(
           db,
@@ -593,7 +609,7 @@ async function countPurgeSourceRows(
 async function countPurgeHistoryRows(
   db: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['historyDb'],
   input: {
-    releaseId: string
+    resourceReleaseId: string
     snapshotId: string
     tables: ReturnType<typeof describeDraftReleasePurgePlan>
   },
@@ -611,7 +627,7 @@ async function countPurgeHistoryRows(
       table,
       and(
         eq(table.snapshotId, input.snapshotId),
-        eq(table.sourceReleaseId, input.releaseId),
+        eq(table.sourceReleaseId, input.resourceReleaseId),
       ),
     )
   }

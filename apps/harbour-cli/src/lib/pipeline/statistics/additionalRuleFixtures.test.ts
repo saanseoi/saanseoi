@@ -44,7 +44,7 @@ test('source assertions validate periods and retain native evidence', async () =
   const result = await censtatdSourceAssertionRule.execute([row, 'release-id', '2021'])
   expect(result.properties).toEqual({ test: 1 })
   expect(result.sourceRecordId).toBe('fixture-record')
-  expect(result.releaseId).toBe('release-id')
+  expect(result.resourceReleaseId).toBe('release-id')
   expect(result.validFromRelease).toBe('2021')
   expect(result.validToRelease).toBeNull()
   const { properties: _, ...incomplete } = row

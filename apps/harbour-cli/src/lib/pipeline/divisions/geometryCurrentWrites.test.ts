@@ -94,7 +94,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       const result = await writeGeometryRows(context, 'divisionArea', rows, {
         source: sourceName,
         variant: 'variant',
-        releaseId: snapshotId,
+        resourceReleaseId: snapshotId,
         releaseCode: snapshotId,
         sourceVersion: snapshotId,
         snapshotId,

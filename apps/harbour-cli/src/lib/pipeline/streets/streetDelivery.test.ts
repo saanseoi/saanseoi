@@ -25,7 +25,7 @@ test('Street delivery resumes a sealed interrupted publication and accepts empty
     bindings.map(name => [name, new Database(files[name]!)]),
   )
   const current = databases.DB_CURRENT!
-  const releaseId = `street-publication-${crypto.randomUUID()}`
+  const resourceReleaseId = `street-publication-${crypto.randomUUID()}`
   const context = {
     currentDb: drizzle({ client: current }),
     metaDb: drizzle({ client: databases.DB_META! }),
@@ -37,7 +37,7 @@ test('Street delivery resumes a sealed interrupted publication and accepts empty
   } as unknown as LocalAddressDbContext
   const phaseDirectory = sqlDeliveryPhaseDirectory({
     context,
-    releaseId,
+    resourceReleaseId,
     phase: 'street-data',
     inputs: {},
   })
@@ -61,7 +61,7 @@ test('Street delivery resumes a sealed interrupted publication and accepts empty
       table: 'streetPublicationState' as const,
       scopeId: 'lineage',
       snapshotId: 'snapshot',
-      publicationToken: releaseId,
+      publicationToken: resourceReleaseId,
       timestamp: '2026-09-11',
     }
     let generated = 0
@@ -79,11 +79,13 @@ test('Street delivery resumes a sealed interrupted publication and accepts empty
       return { importedRows: 0, changedRows: 0, sourceRowsChanged: 0 }
     }
     await expect(
-      deliverStreetWorkflow(context, releaseId, {}, generate),
+      deliverStreetWorkflow(context, resourceReleaseId, {}, generate),
     ).rejects.toThrow('street interrupted')
     expect(current.query('SELECT * FROM streetPublicationState').all()).toEqual([])
     current.exec('DROP TRIGGER interrupt_street')
-    expect(await deliverStreetWorkflow(context, releaseId, {}, generate)).toEqual({
+    expect(
+      await deliverStreetWorkflow(context, resourceReleaseId, {}, generate),
+    ).toEqual({
       importedRows: 0,
       changedRows: 0,
       sourceRowsChanged: 0,
@@ -93,7 +95,7 @@ test('Street delivery resumes a sealed interrupted publication and accepts empty
       current.query('SELECT status, preparedAt FROM streetPublicationState').get(),
     ).toEqual({ status: 'publishing', preparedAt: '2026-09-11' })
     current.query("UPDATE streetPublicationState SET status = 'current'").run()
-    await deliverStreetWorkflow(context, releaseId, {}, generate)
+    await deliverStreetWorkflow(context, resourceReleaseId, {}, generate)
     expect(generated).toBe(1)
     expect(current.query('SELECT status FROM streetPublicationState').get()).toEqual({
       status: 'current',

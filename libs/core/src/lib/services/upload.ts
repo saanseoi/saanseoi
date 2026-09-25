@@ -1257,7 +1257,7 @@ async function assertExistingDatasetCanBeReuploaded(
     datasetId: string
     source?: string
     datasetCode?: string
-    releaseId: string
+    resourceReleaseId: string
     status: ReleaseStatus
   },
   options: RegisterUploadOptions,
@@ -1272,14 +1272,17 @@ async function assertExistingDatasetCanBeReuploaded(
     return
   }
 
-  const runs = await listIngestRunStatesForRelease(db, existingDataset.releaseId)
+  const runs = await listIngestRunStatesForRelease(
+    db,
+    existingDataset.resourceReleaseId,
+  )
   const processCompleted = runs.some(
     run => run.phase === 'processDataset' && run.status === 'completed',
   )
   const activePhase = runs.find(run => run.status === 'running')
 
   const recoveredOwner =
-    options.recoveredSqlDeliveryReleaseId === existingDataset.releaseId ||
+    options.recoveredSqlDeliveryReleaseId === existingDataset.resourceReleaseId ||
     (options.reuseExistingRelease &&
       options.allowExistingDatasetStatuses?.includes('processing'))
   if ((processCompleted || recoveredOwner) && !activePhase) return
@@ -1333,7 +1336,7 @@ export async function registerUpload(
       datasetId: null,
       inspection,
       rawObjectKey: null,
-      releaseId: null,
+      resourceReleaseId: null,
     }
   }
 
@@ -1352,13 +1355,13 @@ export async function registerUpload(
   }
   const release = await getDatasetById(db, plan.releaseCode)
 
-  if (!release?.releaseId) {
+  if (!release?.resourceReleaseId) {
     throw new Error(`Release not found after registration: ${plan.releaseCode}`)
   }
 
   await upsertIngestRunStatus(
     db,
-    release.releaseId,
+    release.resourceReleaseId,
     'registerDataset',
     'completed',
     now,
@@ -1372,7 +1375,7 @@ export async function registerUpload(
 
   await upsertIngestRunStatus(
     db,
-    release.releaseId,
+    release.resourceReleaseId,
     'stageDataset',
     'completed',
     now,
@@ -1389,6 +1392,6 @@ export async function registerUpload(
     plan,
     inspection,
     rawObjectKey,
-    releaseId: release.releaseId,
+    resourceReleaseId: release.resourceReleaseId,
   }
 }

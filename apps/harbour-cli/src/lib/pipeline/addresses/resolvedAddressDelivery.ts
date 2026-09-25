@@ -218,7 +218,8 @@ export async function captureResolvedAddressDelivery(input: {
             expectedDigest: address3d.digest,
             snapshotId: input.snapshotId,
             currentSnapshotId: input.scopeId,
-            releaseId: input.message.releaseId ?? input.message.datasetId,
+            resourceReleaseId:
+              input.message.resourceReleaseId ?? input.message.datasetId,
             timestamp: input.message.processingRunStartedAt,
             historyShards: Object.entries(candidates)
               .filter(([name]) => name.startsWith('DB_HISTORY_'))
@@ -288,7 +289,7 @@ export async function captureResolvedAddressDelivery(input: {
           prior: input.priorVersions,
           snapshotId: input.snapshotId,
           scopeId: input.scopeId,
-          releaseId: input.message.releaseId ?? input.message.datasetId,
+          resourceReleaseId: input.message.resourceReleaseId ?? input.message.datasetId,
           now: input.message.processingRunStartedAt ?? new Date().toISOString(),
         })
         if (input.membership)
@@ -298,7 +299,8 @@ export async function captureResolvedAddressDelivery(input: {
             membership: input.membership,
             parentPlan: input.parentReplayPlan,
             snapshotId: input.snapshotId,
-            releaseId: input.message.releaseId ?? input.message.datasetId,
+            resourceReleaseId:
+              input.message.resourceReleaseId ?? input.message.datasetId,
           })
         validateResolvedAddressProjection(
           current,
@@ -348,7 +350,7 @@ export function applyResolvedAddressRetirements(
   if (!history) throw new Error('Address retirement requires a selected history shard.')
   // Journal all locales found on the selected predecessor across retained shards.
   const now = input.message.processingRunStartedAt ?? new Date().toISOString()
-  const releaseId = input.message.releaseId ?? input.message.datasetId
+  const resourceReleaseId = input.message.resourceReleaseId ?? input.message.datasetId
   // Candidate copies are discarded on failure; batch the retirement writes on
   // each shard instead of synchronising every individual historical row.
   history.transaction(() => {
@@ -365,7 +367,7 @@ export function applyResolvedAddressRetirements(
             history
               .query(`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt)
           VALUES(?,'address2dI18n',?,?,NULL,'delete',?,?,?) ON CONFLICT(snapshotId,recordType,recordId,locale) DO NOTHING`)
-              .run(input.snapshotId, id, locale, releaseId, now, now)
+              .run(input.snapshotId, id, locale, resourceReleaseId, now, now)
           for (const [table, key] of [
             ['address2d', 'id'],
             ['address2dI18n', 'addressId'],

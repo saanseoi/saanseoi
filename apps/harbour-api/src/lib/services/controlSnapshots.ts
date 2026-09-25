@@ -202,15 +202,15 @@ export async function resolveSupportingSnapshotsForMember(
 
 export async function waitForSnapshotsForRelease(
   db: HarbourReadableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   datasetType: ResourceType,
   variant: string,
 ) {
   for (let attempt = 0; attempt <= PUBLISH_SNAPSHOT_WAIT_LIMIT; attempt += 1) {
     const snapshots =
       datasetType === 'divisionStatistic'
-        ? await listSnapshotsForRelease(db, releaseId, datasetType, { variant })
-        : await resolveSnapshotForRelease(db, releaseId, datasetType, {
+        ? await listSnapshotsForRelease(db, resourceReleaseId, datasetType, { variant })
+        : await resolveSnapshotForRelease(db, resourceReleaseId, datasetType, {
             variant,
           }).then(snapshot => (snapshot ? [snapshot] : []))
 

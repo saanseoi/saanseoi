@@ -9,7 +9,7 @@ export type UploadResult = {
   datasetId?: string
   rawObjectKey?: string
   releaseCode?: string
-  releaseId?: string
+  resourceReleaseId?: string
 }
 
 export type GeometryUploadPlan = {

@@ -12,7 +12,7 @@ import {
 
 type OriginalDecision = ReleaseProcessingAction & {
   id: string
-  releaseId: string
+  resourceReleaseId: string
   createdAt: string
   updatedAt: string
 }
@@ -33,12 +33,12 @@ export async function migrateProcessingActionStorage(
     throw new Error('Expected the unconverted processing-action schema.')
   const original = sqlite
     .query(
-      'SELECT * FROM releaseProcessingActions ORDER BY releaseId, action, mode, createdAt DESC, id DESC',
+      'SELECT * FROM releaseProcessingActions ORDER BY resourceReleaseId, action, mode, createdAt DESC, id DESC',
     )
     .all() as Array<Omit<OriginalDecision, 'evidence'> & { evidence: string }>
   const groups = new Map<string, OriginalDecision[]>()
   for (const row of original) {
-    const key = JSON.stringify([row.releaseId, row.action, row.mode])
+    const key = JSON.stringify([row.resourceReleaseId, row.action, row.mode])
     const group = groups.get(key) ?? []
     group.push({ ...row, evidence: JSON.parse(row.evidence) })
     groups.set(key, group)
@@ -46,10 +46,12 @@ export async function migrateProcessingActionStorage(
   const summaries: AuditSummary[] = []
   const chunks: Array<typeof metaSchema.releaseProcessingActionChunks.$inferInsert> = []
   const generations = new Map<string, string>()
-  for (const releaseId of new Set(original.map(row => row.releaseId))) {
+  for (const resourceReleaseId of new Set(original.map(row => row.resourceReleaseId))) {
     generations.set(
-      releaseId,
-      await createHash(original.filter(row => row.releaseId === releaseId)),
+      resourceReleaseId,
+      await createHash(
+        original.filter(row => row.resourceReleaseId === resourceReleaseId),
+      ),
     )
   }
   // Preserve per-decision metadata in the migration envelope as explicit fields.
@@ -58,10 +60,12 @@ export async function migrateProcessingActionStorage(
     const normalised = normaliseAuditActions(rows)
     const summary: AuditSummary = {
       id: await createHash(key),
-      releaseId: requireDefined(rows[0]).releaseId,
+      resourceReleaseId: requireDefined(rows[0]).resourceReleaseId,
       action: requireDefined(rows[0]).action,
       mode: requireDefined(rows[0]).mode,
-      generation: requireDefined(generations.get(requireDefined(rows[0]).releaseId)),
+      generation: requireDefined(
+        generations.get(requireDefined(rows[0]).resourceReleaseId),
+      ),
       decisionCount: rows.length,
       affectedRecordCount: normalised.reduce(
         (sum, row) => sum + row.affectedRecordCount,

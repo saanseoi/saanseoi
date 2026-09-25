@@ -97,15 +97,18 @@ export async function runSqlDeliveryCommand(
       published =
         metaDb
           .query<{ status: string }, [string]>(
-            'SELECT status FROM releases WHERE id = ? LIMIT 1',
+            'SELECT status FROM resourceReleases WHERE id = ? LIMIT 1',
           )
-          .get(plan.context.releaseId)?.status === 'published'
+          .get(plan.context.resourceReleaseId)?.status === 'published'
     } finally {
       metaDb.close()
     }
     const released =
       published &&
-      (await completeSqlDeliveryRelease(plan.context.cacheDir, plan.context.releaseId))
+      (await completeSqlDeliveryRelease(
+        plan.context.cacheDir,
+        plan.context.resourceReleaseId,
+      ))
     if (released) {
       console.log(
         'Native local SQL recovered and the published release released its database ownership.',
@@ -134,7 +137,7 @@ export async function runSqlDeliveryCommand(
       async () => {
         await assertSqlDeliveryGeneration(
           plan.context.cacheDir,
-          plan.context.releaseId,
+          plan.context.resourceReleaseId,
           plan.context.inputs.resetGeneration,
         )
         for (const batch of plan.batches) {
@@ -146,7 +149,7 @@ export async function runSqlDeliveryCommand(
         await resolveDeliveryMirrorFiles(plan)
         await registerPendingSqlDelivery(
           plan.context.cacheDir,
-          plan.context.releaseId,
+          plan.context.resourceReleaseId,
           directory,
         )
         const databaseId = targets.DB_META
@@ -158,10 +161,10 @@ export async function runSqlDeliveryCommand(
           databaseId,
         })
         const resumed = await client.query(
-          sqlDeliveryRecoveryStatusSql(plan.context.releaseId),
+          sqlDeliveryRecoveryStatusSql(plan.context.resourceReleaseId),
         )
         const rows = await client.query(
-          `SELECT status FROM releases WHERE id = '${plan.context.releaseId.replaceAll("'", "''")}';`,
+          `SELECT status FROM resourceReleases WHERE id = '${plan.context.resourceReleaseId.replaceAll("'", "''")}';`,
         )
         if (!rows.length || rows[0]?.status === 'failed')
           throw new Error(
@@ -173,10 +176,12 @@ export async function runSqlDeliveryCommand(
           await refreshRemoteMetaCacheLocked(
             environment,
             plan.context.cacheDir,
-            plan.context.releaseId,
+            plan.context.resourceReleaseId,
           )
         if (resumed.length)
-          console.log(`Resumed failed release ${plan.context.releaseId} as processing.`)
+          console.log(
+            `Resumed failed release ${plan.context.resourceReleaseId} as processing.`,
+          )
       },
     )
   }
@@ -200,7 +205,7 @@ export async function runSqlDeliveryCommand(
         await refreshRemoteMetaCacheLocked(
           environment,
           plan.context.cacheDir,
-          plan.context.releaseId,
+          plan.context.resourceReleaseId,
         )
         const databaseId = targets.DB_META
         if (!databaseId)
@@ -210,7 +215,7 @@ export async function runSqlDeliveryCommand(
           apiToken,
           databaseId,
         }).query(
-          `SELECT status FROM releases WHERE id = '${plan.context.releaseId.replaceAll("'", "''")}';`,
+          `SELECT status FROM resourceReleases WHERE id = '${plan.context.resourceReleaseId.replaceAll("'", "''")}';`,
         )
         return rows[0]?.status === 'published'
       },
@@ -219,7 +224,10 @@ export async function runSqlDeliveryCommand(
     // plan's receipts. Calling it inside the refresh lock deadlocks SQLite.
     const complete =
       published &&
-      (await completeSqlDeliveryRelease(plan.context.cacheDir, plan.context.releaseId))
+      (await completeSqlDeliveryRelease(
+        plan.context.cacheDir,
+        plan.context.resourceReleaseId,
+      ))
     if (!complete)
       console.log(
         'Mirror ownership retained: the release must be published and every SQL plan reconciled before another release can use this mirror.',

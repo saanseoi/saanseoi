@@ -104,7 +104,7 @@ function actionRegistry(
 export async function retainDivisionProvenance(
   store: ProvenanceStore,
   input: {
-    releaseId: string
+    resourceReleaseId: string
     datasetCode: string
     actions: ReleaseProcessingAction[]
     inputCount: number
@@ -506,9 +506,9 @@ export async function retainDivisionProvenance(
     })
   }
   return retainAuditResult(store, {
-    releaseId: input.releaseId,
+    resourceReleaseId: input.resourceReleaseId,
     datasetCode: input.datasetCode,
-    attempt: { id: input.releaseId, status: 'completed' },
+    attempt: { id: input.resourceReleaseId, status: 'completed' },
     bulk,
     individuals,
     individualFixtures,

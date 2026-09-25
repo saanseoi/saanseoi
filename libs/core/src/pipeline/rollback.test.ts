@@ -7,7 +7,7 @@ describe('draft release purge SQL', () => {
   test('purges a draft PLAND release without reopening or retaining its rows', () => {
     const sql = buildDraftReleasePurgeSql({
       apiReleaseSetId: 'release-set-draft',
-      releaseId: 'release-draft',
+      resourceReleaseId: 'release-draft',
       snapshotId: 'snapshot-draft',
       source: 'hkgov-pland-new-town',
       sourceVersion: '2006',
@@ -15,7 +15,7 @@ describe('draft release purge SQL', () => {
     })
 
     expect(sql.source).toBe(
-      "DELETE FROM hkgovPlandNewTowns WHERE releaseId = 'release-draft';\n",
+      "DELETE FROM hkgovPlandNewTowns WHERE resourceReleaseId = 'release-draft';\n",
     )
     expect(sql.current).toContain(
       "DELETE FROM divisionsI18n WHERE snapshotId IN (SELECT scopeId FROM divisionPublicationState WHERE snapshotId = 'snapshot-draft');",
@@ -34,25 +34,27 @@ describe('draft release purge SQL', () => {
     expect(sql.meta).toContain(
       "DELETE FROM apiReleaseSets WHERE id = 'release-set-draft';",
     )
-    expect(sql.meta).toContain("DELETE FROM releases WHERE id = 'release-draft';")
+    expect(sql.meta).toContain(
+      "DELETE FROM resourceReleases WHERE id = 'release-draft';",
+    )
 
     const planningCellSql = buildDraftReleasePurgeSql({
       apiReleaseSetId: 'release-set-draft',
-      releaseId: 'release-draft',
+      resourceReleaseId: 'release-draft',
       snapshotId: 'snapshot-draft',
       source: 'hkgov-pland-pu',
       sourceVersion: '2006',
       resourceType: 'division',
     })
     expect(planningCellSql.source).toBe(
-      "DELETE FROM hkgovPlandPlanningCells WHERE releaseId = 'release-draft';\n",
+      "DELETE FROM hkgovPlandPlanningCells WHERE resourceReleaseId = 'release-draft';\n",
     )
   })
 
   test('purges Places children before the parent', () => {
     const sql = buildDraftReleasePurgeSql({
       apiReleaseSetId: 'places-release-set-new',
-      releaseId: 'places-release-new',
+      resourceReleaseId: 'places-release-new',
       snapshotId: 'places-snapshot-new',
       source: 'overture',
       sourceVersion: '2026-08-19.0',
@@ -73,7 +75,7 @@ describe('draft release purge SQL', () => {
       "DELETE FROM places WHERE snapshotId = 'places-snapshot-new' AND sourceReleaseId = 'places-release-new';",
     )
     expect(sql.source).toContain(
-      "DELETE FROM overturePlaces WHERE releaseId = 'places-release-new';",
+      "DELETE FROM overturePlaces WHERE resourceReleaseId = 'places-release-new';",
     )
     expect(sql.source).toContain(
       "UPDATE overturePlaces SET isCurrent = 1, validToRelease = NULL WHERE isCurrent = 0 AND validToRelease = '2026-08-19.0';",
@@ -83,7 +85,7 @@ describe('draft release purge SQL', () => {
   test('reopens Place source predecessors in the shard that owned them', () => {
     const sql = buildDraftReleasePurgeSql({
       apiReleaseSetId: 'places-release-set-new',
-      releaseId: 'places-release-new',
+      resourceReleaseId: 'places-release-new',
       snapshotId: 'places-snapshot-new',
       source: 'overture',
       sourceVersion: '2026-08-19.0',
@@ -96,7 +98,7 @@ describe('draft release purge SQL', () => {
         database.exec(`
           CREATE TABLE overturePlaces (
             sourceRecordId TEXT,
-            releaseId TEXT,
+            resourceReleaseId TEXT,
             validFromRelease TEXT,
             validToRelease TEXT,
             isCurrent INTEGER
@@ -115,7 +117,7 @@ describe('draft release purge SQL', () => {
       expect(old.query('SELECT * FROM overturePlaces').all()).toEqual([
         {
           sourceRecordId: 'place-1',
-          releaseId: 'old-release',
+          resourceReleaseId: 'old-release',
           validFromRelease: '2025-01-01.0',
           validToRelease: null,
           isCurrent: 1,
@@ -132,7 +134,7 @@ describe('draft release purge SQL', () => {
     expect(() =>
       buildDraftReleasePurgeSql({
         apiReleaseSetId: 'release-set-new',
-        releaseId: 'release-new',
+        resourceReleaseId: 'release-new',
         snapshotId: 'snapshot-new',
         source: 'unknown',
         sourceVersion: '2026-05-20.0',
@@ -153,7 +155,7 @@ test('draft purge resolves the selected logical revision to its scope and leaves
     INSERT INTO divisionsI18n VALUES('selected-scope','a','en'),('other-scope','b','en');`)
   const input = {
     apiReleaseSetId: 'set',
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     snapshotId: 'selected',
     source: 'overture',
     sourceVersion: '2026',

@@ -91,7 +91,7 @@ const scopeColumn = (table: string) =>
 /** Current-only reconstruction preserves retained evidence and emits keyed row differences. */
 export async function prepareReconstructedRollback(input: {
   context: LocalAddressDbContext
-  releaseId: string
+  resourceReleaseId: string
   append: Parameters<typeof captureRollbackDelivery>[0]['append']
 }) {
   const metaPath = input.context.state.files?.DB_META
@@ -99,7 +99,7 @@ export async function prepareReconstructedRollback(input: {
   const baseline = new Database(metaPath, { readonly: true, create: false })
   let families: RollbackResourceType[]
   try {
-    const selection = resolveRollbackSelection(baseline, input.releaseId)
+    const selection = resolveRollbackSelection(baseline, input.resourceReleaseId)
     families = [
       ...new Set(
         [...selection.changes, ...selection.restores].map(
@@ -138,7 +138,7 @@ export async function prepareReconstructedRollback(input: {
     tables,
     append: input.append,
     prepare: async (current, meta) => {
-      const selection = resolveRollbackSelection(meta, input.releaseId)
+      const selection = resolveRollbackSelection(meta, input.resourceReleaseId)
       const metaDb = drizzle({
         client: meta,
         schema: metaSchema,
@@ -374,19 +374,24 @@ export async function runReconstructRollbackCommand(
   try {
     const release = await resolveDatasetRecord(
       context.metaDb as unknown as HarbourReadableDb,
-      { releaseId: specifier, releaseCode: specifier },
+      { resourceReleaseId: specifier, releaseCode: specifier },
     )
     if (!release) throw new Error(`Release not found: ${specifier}.`)
     const directory = resolve(
       import.meta.dir,
       '../../../../../.local/harbour-sql/rollbacks',
       context.state.target,
-      encodeURIComponent(release.releaseId),
+      encodeURIComponent(release.resourceReleaseId),
       'reconstruction',
     )
     const generate = (
       append: Parameters<typeof captureRollbackDelivery>[0]['append'],
-    ) => prepareReconstructedRollback({ context, releaseId: release.releaseId, append })
+    ) =>
+      prepareReconstructedRollback({
+        context,
+        resourceReleaseId: release.resourceReleaseId,
+        append,
+      })
     if (options.dryRun) {
       const result = await withDeliveryLock(
         resolve(context.state.dbCacheDir, 'sql-delivery-lock'),
@@ -410,14 +415,17 @@ export async function runReconstructRollbackCommand(
       return
     }
     const phase = 'rollback-reconstruction'
-    const inputs = { operation: 'rollback', releaseId: release.releaseId }
+    const inputs = {
+      operation: 'rollback',
+      resourceReleaseId: release.resourceReleaseId,
+    }
     const files = context.state.files!
     const plan =
       context.state.target === 'local'
         ? await prepareNativeSqlDelivery({
             directory,
             ownershipDirectory: context.state.dbCacheDir,
-            releaseId: release.releaseId,
+            resourceReleaseId: release.resourceReleaseId,
             phase,
             inputs,
             files,
@@ -426,7 +434,7 @@ export async function runReconstructRollbackCommand(
         : await prepareReleaseSqlDelivery({
             directory,
             context,
-            releaseId: release.releaseId,
+            resourceReleaseId: release.resourceReleaseId,
             phase,
             inputs,
             generate: append =>
@@ -467,7 +475,10 @@ export async function runReconstructRollbackCommand(
     if (!terminal) throw new Error('Rollback plan is missing its completion contract.')
     await verifyRollbackTerminal(files, terminal)
     if (
-      !(await completeSqlDeliveryRelease(context.state.dbCacheDir, release.releaseId))
+      !(await completeSqlDeliveryRelease(
+        context.state.dbCacheDir,
+        release.resourceReleaseId,
+      ))
     )
       throw new Error('Rollback delivery has not acknowledged every sealed batch.')
     outro(
@@ -490,8 +501,10 @@ export async function verifyRollbackTerminal(
   try {
     if (
       meta
-        .query<{ status: string }, [string]>('SELECT status FROM releases WHERE id=?')
-        .get(terminal.releaseId)?.status !== 'revoked'
+        .query<{ status: string }, [string]>(
+          'SELECT status FROM resourceReleases WHERE id=?',
+        )
+        .get(terminal.resourceReleaseId)?.status !== 'revoked'
     )
       throw new Error('Rollback source release has not been revoked.')
     const catalog = meta

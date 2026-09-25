@@ -12,12 +12,12 @@ export async function readStatisticsSourceMeasures(input: {
   includeUnobserved?: boolean
 }) {
   const release = await input.metaDb
-    .select({ id: metaSchema.metaReleases.id })
-    .from(metaSchema.metaReleases)
+    .select({ id: metaSchema.metaResourceReleases.id })
+    .from(metaSchema.metaResourceReleases)
     .where(
       and(
-        eq(metaSchema.metaReleases.sourceReleaseId, input.sourceReleaseId),
-        eq(metaSchema.metaReleases.resourceType, 'divisionStatistic'),
+        eq(metaSchema.metaResourceReleases.sourceReleaseId, input.sourceReleaseId),
+        eq(metaSchema.metaResourceReleases.resourceType, 'divisionStatistic'),
       ),
     )
     .get()
@@ -27,7 +27,7 @@ export async function readStatisticsSourceMeasures(input: {
     .from(stats)
     .where(
       and(
-        eq(stats.releaseId, release.id),
+        eq(stats.resourceReleaseId, release.id),
         eq(stats.dimension, 'observations'),
         eq(stats.groupBy, 'field'),
         eq(stats.metric, 'count'),

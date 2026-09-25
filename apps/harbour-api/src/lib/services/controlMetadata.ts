@@ -18,7 +18,7 @@ import {
 import { ControlRequestError } from './controlRequests.ts'
 
 export function publishMetadataDelta(
-  releaseId: string | null,
+  resourceReleaseId: string | null,
   apiReleaseSet?: ApiReleaseSetMetadataDelta,
   snapshots?: SnapshotMetadataDelta[],
 ) {
@@ -28,7 +28,9 @@ export function publishMetadataDelta(
           apiReleaseSets: [apiReleaseSet],
         }
       : {}),
-    releases: releaseId ? [{ id: releaseId, status: 'published' as const }] : [],
+    releases: resourceReleaseId
+      ? [{ id: resourceReleaseId, status: 'published' as const }]
+      : [],
     ...(snapshots && snapshots.length > 0 ? { snapshots } : {}),
   }
 }

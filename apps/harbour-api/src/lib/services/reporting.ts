@@ -10,7 +10,7 @@ import {
   ingestRuns,
   metaDatasets,
   metaPublishers,
-  metaReleases,
+  metaResourceReleases,
   normaliseJsonField,
   releaseProcessingActions,
   stats,
@@ -40,19 +40,22 @@ export async function listIngestRuns(
       error: ingestRuns.error,
       finishedAt: ingestRuns.finishedAt,
       phase: ingestRuns.phase,
-      releaseCode: metaReleases.code,
-      releaseId: metaReleases.id,
+      releaseCode: metaResourceReleases.code,
+      resourceReleaseId: metaResourceReleases.id,
       runId: ingestRuns.runId,
-      cohortKey: metaReleases.cohortKey,
+      cohortKey: metaResourceReleases.cohortKey,
       source: metaPublishers.code,
       startedAt: ingestRuns.startedAt,
       stats: ingestRuns.stats,
       status: ingestRuns.status,
-      resourceType: metaReleases.resourceType,
+      resourceType: metaResourceReleases.resourceType,
     })
     .from(ingestRuns)
-    .innerJoin(metaReleases, eq(ingestRuns.releaseId, metaReleases.id))
-    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(
+      metaResourceReleases,
+      eq(ingestRuns.resourceReleaseId, metaResourceReleases.id),
+    )
+    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .orderBy(desc(ingestRuns.startedAt), desc(ingestRuns.createdAt))
   const releaseIds = await listLatestIngestRunReleaseIds(db, {
@@ -76,9 +79,9 @@ export async function listIngestRuns(
       releaseIdBatches.map(releaseIdBatch =>
         whereClause
           ? query
-              .where(and(whereClause, inArray(metaReleases.id, releaseIdBatch)))
+              .where(and(whereClause, inArray(metaResourceReleases.id, releaseIdBatch)))
               .all()
-          : query.where(inArray(metaReleases.id, releaseIdBatch)).all(),
+          : query.where(inArray(metaResourceReleases.id, releaseIdBatch)).all(),
       ),
     )
   ).flat() as IngestRunReportRow[]
@@ -104,21 +107,24 @@ export async function listStats(
       id: stats.id,
       metric: stats.metric,
       metricUnit: stats.metricUnit,
-      releaseCode: metaReleases.code,
-      releaseId: metaReleases.id,
+      releaseCode: metaResourceReleases.code,
+      resourceReleaseId: metaResourceReleases.id,
       source: metaPublishers.code,
-      resourceType: metaReleases.resourceType,
+      resourceType: metaResourceReleases.resourceType,
       updatedAt: stats.updatedAt,
       value: stats.value,
     })
     .from(stats)
-    .innerJoin(metaReleases, eq(stats.releaseId, metaReleases.id))
-    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(
+      metaResourceReleases,
+      eq(stats.resourceReleaseId, metaResourceReleases.id),
+    )
+    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .orderBy(desc(stats.createdAt), desc(stats.updatedAt))
 
-  const releaseIds = options.releaseId
-    ? [options.releaseId]
+  const releaseIds = options.resourceReleaseId
+    ? [options.resourceReleaseId]
     : await listLatestStatsReleaseIds(db, {
         limit: options.limit ?? 1,
         source: options.source,
@@ -130,7 +136,7 @@ export async function listStats(
   }
 
   const rows = (await query
-    .where(inArray(stats.releaseId, releaseIds))
+    .where(inArray(stats.resourceReleaseId, releaseIds))
     .all()) as StatQueryRow[]
 
   return rows.map(row => ({
@@ -148,22 +154,25 @@ export async function listProcessingActions(
     .select({
       ...auditSummarySelection,
       datasetCode: metaDatasets.code,
-      releaseCode: metaReleases.code,
-      releaseId: metaReleases.id,
+      releaseCode: metaResourceReleases.code,
+      resourceReleaseId: metaResourceReleases.id,
       source: metaPublishers.code,
-      resourceType: metaReleases.resourceType,
+      resourceType: metaResourceReleases.resourceType,
       updatedAt: releaseProcessingActions.updatedAt,
     })
     .from(releaseProcessingActions)
-    .innerJoin(metaReleases, eq(releaseProcessingActions.releaseId, metaReleases.id))
-    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(
+      metaResourceReleases,
+      eq(releaseProcessingActions.resourceReleaseId, metaResourceReleases.id),
+    )
+    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
     .orderBy(
       desc(releaseProcessingActions.createdAt),
       desc(releaseProcessingActions.id),
     )
-  const releaseIds = options.releaseId
-    ? [options.releaseId]
+  const releaseIds = options.resourceReleaseId
+    ? [options.resourceReleaseId]
     : await listLatestStatsReleaseIds(db, {
         limit: options.limit ?? 1,
         source: options.source,
@@ -182,9 +191,9 @@ export async function listProcessingActions(
       releaseIdBatches.map(releaseIdBatch =>
         whereClause
           ? query
-              .where(and(whereClause, inArray(metaReleases.id, releaseIdBatch)))
+              .where(and(whereClause, inArray(metaResourceReleases.id, releaseIdBatch)))
               .all()
-          : query.where(inArray(metaReleases.id, releaseIdBatch)).all(),
+          : query.where(inArray(metaResourceReleases.id, releaseIdBatch)).all(),
       ),
     )
   ).flat()
@@ -206,40 +215,43 @@ export async function listReleases(
 ): Promise<ReleaseReportRow[]> {
   const query = db
     .select({
-      createdAt: metaReleases.createdAt,
+      createdAt: metaResourceReleases.createdAt,
       datasetCode: metaDatasets.code,
       datasetId: metaDatasets.id,
-      ingestedAt: metaReleases.ingestedAt,
-      notes: metaReleases.notes,
-      originalFileName: metaReleases.originalFileName,
-      publicationDate: metaReleases.publicationDate,
-      rawObjectKey: metaReleases.rawObjectKey,
+      ingestedAt: metaResourceReleases.ingestedAt,
+      notes: metaResourceReleases.notes,
+      originalFileName: metaResourceReleases.originalFileName,
+      publicationDate: metaResourceReleases.publicationDate,
+      rawObjectKey: metaResourceReleases.rawObjectKey,
       hasStatisticsSnapshot: sql<boolean>`EXISTS (
         SELECT 1 FROM ${metaSnapshotSourceReleases}
         JOIN ${metaSnapshots} ON ${metaSnapshots.id} = ${metaSnapshotSourceReleases.snapshotId}
-        WHERE ${metaSnapshotSourceReleases.resourceReleaseId} = ${metaReleases.id}
+        WHERE ${metaSnapshotSourceReleases.resourceReleaseId} = ${metaResourceReleases.id}
           AND ${metaSnapshotSourceReleases.role} <> 'lookup'
           AND ${metaSnapshots.resourceType} = 'divisionStatistic'
           AND ${metaSnapshots.status} IN ('draft', 'published')
       )`.mapWith(Boolean),
       regionCode: metaDatasets.regionCode,
-      releaseCode: metaReleases.code,
-      releaseId: metaReleases.id,
-      revocationReason: metaReleases.revocationReason,
-      revokedAt: metaReleases.revokedAt,
-      cohortKey: metaReleases.cohortKey,
+      releaseCode: metaResourceReleases.code,
+      resourceReleaseId: metaResourceReleases.id,
+      revocationReason: metaResourceReleases.revocationReason,
+      revokedAt: metaResourceReleases.revokedAt,
+      cohortKey: metaResourceReleases.cohortKey,
       source: metaPublishers.code,
       sourceUrl: metaDatasets.sourceUrl,
-      sourceVersion: metaReleases.sourceVersion,
-      status: metaReleases.status,
-      supersededByReleaseId: metaReleases.supersededByReleaseId,
-      resourceType: metaReleases.resourceType,
-      updatedAt: metaReleases.updatedAt,
+      sourceVersion: metaResourceReleases.sourceVersion,
+      status: metaResourceReleases.status,
+      supersededByResourceReleaseId: metaResourceReleases.supersededByResourceReleaseId,
+      resourceType: metaResourceReleases.resourceType,
+      updatedAt: metaResourceReleases.updatedAt,
     })
-    .from(metaReleases)
-    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .from(metaResourceReleases)
+    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .orderBy(desc(metaReleases.ingestedAt), desc(metaReleases.createdAt))
+    .orderBy(
+      desc(metaResourceReleases.ingestedAt),
+      desc(metaResourceReleases.createdAt),
+    )
   const whereClause = buildReportFilterWhereClause(options)
   const rows = (
     whereClause
@@ -266,16 +278,16 @@ export async function listReleases(
     publicationDate: row.publicationDate,
     rawObjectKey: row.rawObjectKey,
     releaseCode: row.releaseCode,
-    releaseId: row.releaseId,
+    resourceReleaseId: row.resourceReleaseId,
     revocationReason: row.revocationReason,
     revokedAt: toIsoString(row.revokedAt),
-    rowCounts: rowCountsByReleaseId.get(row.releaseId) ?? [],
+    rowCounts: rowCountsByReleaseId.get(row.resourceReleaseId) ?? [],
     hasStatisticsSnapshot: row.hasStatisticsSnapshot,
     cohortKey: row.cohortKey,
     source: row.source,
     sourceVersion: row.sourceVersion,
     status: row.status,
-    supersededByReleaseId: row.supersededByReleaseId,
+    supersededByResourceReleaseId: row.supersededByResourceReleaseId,
     resourceType: row.resourceType,
     updatedAt: toIsoString(row.updatedAt) ?? '',
   }))
@@ -289,18 +301,22 @@ async function listLatestIngestRunReleaseIds(
   const latestCreatedAt = sql<string>`max(${ingestRuns.createdAt})`
   const query = db
     .select({
-      releaseId: metaReleases.id,
+      resourceReleaseId: metaResourceReleases.id,
     })
-    .from(metaReleases)
-    .innerJoin(ingestRuns, eq(ingestRuns.releaseId, metaReleases.id))
-    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .from(metaResourceReleases)
+    .innerJoin(ingestRuns, eq(ingestRuns.resourceReleaseId, metaResourceReleases.id))
+    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .groupBy(metaReleases.id, metaReleases.ingestedAt, metaReleases.createdAt)
+    .groupBy(
+      metaResourceReleases.id,
+      metaResourceReleases.ingestedAt,
+      metaResourceReleases.createdAt,
+    )
     .orderBy(
-      desc(metaReleases.ingestedAt),
+      desc(metaResourceReleases.ingestedAt),
       desc(latestStartedAt),
       desc(latestCreatedAt),
-      desc(metaReleases.createdAt),
+      desc(metaResourceReleases.createdAt),
     )
   const whereClause = buildReportFilterWhereClause(options)
   const rows = (
@@ -310,16 +326,16 @@ async function listLatestIngestRunReleaseIds(
           .limit(options.limit ?? 10)
           .all()
       : await query.limit(options.limit ?? 10).all()
-  ) as Array<{ releaseId: string }>
+  ) as Array<{ resourceReleaseId: string }>
 
-  return rows.map(row => row.releaseId)
+  return rows.map(row => row.resourceReleaseId)
 }
 
 function countReportFilterVariables(options: ReportFilters) {
   return [
     options.datasetCode,
     options.releaseCode,
-    options.releaseId,
+    options.resourceReleaseId,
     options.source,
     options.resourceType,
   ].filter(value => value !== undefined).length
@@ -340,7 +356,7 @@ async function listReleaseRowCounts(
 
   return new Map(
     plans.map(plan => [
-      plan.releaseId,
+      plan.resourceReleaseId,
       [
         ...buildReportRowCounts(plan.source, countsByReleaseSpec),
         ...buildReportRowCounts(plan.history, countsByReleaseSpec),
@@ -358,19 +374,26 @@ async function listLatestStatsReleaseIds(
   const query = db
     .select({
       createdAt: latestCreatedAt,
-      releaseId: metaReleases.id,
+      resourceReleaseId: metaResourceReleases.id,
       updatedAt: latestUpdatedAt,
     })
     .from(stats)
-    .innerJoin(metaReleases, eq(stats.releaseId, metaReleases.id))
-    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .innerJoin(
+      metaResourceReleases,
+      eq(stats.resourceReleaseId, metaResourceReleases.id),
+    )
+    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
     .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .groupBy(metaReleases.id, metaReleases.ingestedAt, metaReleases.createdAt)
+    .groupBy(
+      metaResourceReleases.id,
+      metaResourceReleases.ingestedAt,
+      metaResourceReleases.createdAt,
+    )
     .orderBy(
-      desc(metaReleases.ingestedAt),
+      desc(metaResourceReleases.ingestedAt),
       desc(latestCreatedAt),
       desc(latestUpdatedAt),
-      desc(metaReleases.createdAt),
+      desc(metaResourceReleases.createdAt),
     )
   const whereClause = buildReportFilterWhereClause(options)
   const rows = (
@@ -380,9 +403,9 @@ async function listLatestStatsReleaseIds(
           .limit(options.limit ?? 1)
           .all()
       : await query.limit(options.limit ?? 1).all()
-  ) as Array<{ releaseId: string }>
+  ) as Array<{ resourceReleaseId: string }>
 
-  return rows.map(row => row.releaseId)
+  return rows.map(row => row.resourceReleaseId)
 }
 
 export type {

@@ -76,7 +76,7 @@ test('published supplementary retry recovers revocations from immutable history'
 
 test('supplementary editions reuse cross-year components, replay immutable provenance, and withdraw empty membership', async () => {
   const root = await mkdtemp(resolve(tmpdir(), 'place-address-integration-'))
-  const releaseId = `place-release-${crypto.randomUUID()}`
+  const resourceReleaseId = `place-release-${crypto.randomUUID()}`
   let withdrawnPlaceReleaseId: string | null = null
   const editionReleaseIds: string[] = []
   const files = {
@@ -110,7 +110,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       FROM datasets WHERE id = 'overture-hk-division';
       UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'place') WHERE id = 'overture-hk-place' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'place');`)
     insertFixtureRelease(meta, {
-      releaseId,
+      resourceReleaseId,
       source: 'overture',
       regionCode: 'hk',
       rawObjectKey: 'places.parquet',
@@ -124,7 +124,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       updatedAt: '2025-08-19T00:00:00Z',
     })
     insertFixtureRelease(meta, {
-      releaseId: 'als-release',
+      resourceReleaseId: 'als-release',
       source: 'hkgov-dpo',
       regionCode: 'hk',
       rawObjectKey: 'als.parquet',
@@ -156,7 +156,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       datasetCode: 'ds-hk-overture-place',
       datasetId: 'overture-hk-place',
       regionCode: 'hk',
-      sourceReleaseId: releaseId,
+      sourceReleaseId: resourceReleaseId,
     })
     const currentDb = drizzle({ client: current, schema: currentSchema })
     meta.exec(`INSERT INTO snapshotLineages(id,code,regionCode,resourceType,identityMode,versionHash)
@@ -285,7 +285,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       places: [place],
       historyRows: [],
       releaseRoot: root,
-      releaseId,
+      resourceReleaseId,
       datasetId: 'overture-hk-place',
       plan: {
         datasetCode: 'ds-hk-overture-place',
@@ -322,7 +322,10 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     if (!nextHistoryTarget) throw new Error('Expected the next history shard.')
     await writeFile(
       resolve(root, 'entries.json.lock'),
-      JSON.stringify({ pid: process.pid + 1_000_000, releaseId: 'interrupted-run' }),
+      JSON.stringify({
+        pid: process.pid + 1_000_000,
+        resourceReleaseId: 'interrupted-run',
+      }),
     )
     history.exec(
       "CREATE TRIGGER fail_import BEFORE INSERT ON address2d BEGIN SELECT RAISE(ABORT, 'simulated history import failure'); END;",
@@ -350,7 +353,9 @@ test('supplementary editions reuse cross-year components, replay immutable prove
         ...input,
         retainAudit: async auditReleaseId => {
           expect(
-            meta.query('SELECT status FROM releases WHERE id = ?').get(auditReleaseId),
+            meta
+              .query('SELECT status FROM resourceReleases WHERE id = ?')
+              .get(auditReleaseId),
           ).toEqual({ status: 'processing' })
           throw new Error('simulated provenance registration failure')
         },
@@ -379,11 +384,11 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     )
     expect(
       meta
-        .query('SELECT datasetId, sourceReleaseId FROM releases WHERE id = ?')
-        .get(first.releaseId),
+        .query('SELECT datasetId, sourceReleaseId FROM resourceReleases WHERE id = ?')
+        .get(first.resourceReleaseId),
     ).toEqual({
       datasetId: 'overture-hk-place',
-      sourceReleaseId: `source-${releaseId}`,
+      sourceReleaseId: `source-${resourceReleaseId}`,
     })
     expect(
       meta
@@ -393,7 +398,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     expect(
       meta
         .query('SELECT status FROM sourceReleases WHERE id = ?')
-        .get(`source-${releaseId}`),
+        .get(`source-${resourceReleaseId}`),
     ).toEqual({ status: 'processing' })
     expect(first.addresses).toHaveLength(1)
     expect(first.addresses[0]?.canonical.granularity).toBe('unknown')
@@ -442,7 +447,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     })
     // The parent Places workflow normally finalises this retained receipt after
     // both outputs succeed. This focused test invokes only the Address stage.
-    await completeSqlDeliveryRelease(root, releaseId)
+    await completeSqlDeliveryRelease(root, resourceReleaseId)
     const generatedAddressId = first.addresses[0]?.current.id
     if (!generatedAddressId)
       throw new Error('Expected a generated supplementary Address.')
@@ -493,7 +498,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       const cohortKey = sourceVersion.slice(0, 7)
       const timestamp = `${sourceVersion.slice(0, 10)}T00:00:00Z`
       insertFixtureRelease(meta, {
-        releaseId: editionId,
+        resourceReleaseId: editionId,
         source: 'overture',
         regionCode: 'hk',
         rawObjectKey: 'places.parquet',
@@ -516,7 +521,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       const result = await prepareSupplementaryAddresses({
         ...input,
         places,
-        releaseId: editionId,
+        resourceReleaseId: editionId,
         snapshots: {
           ...input.snapshots,
           snapshotId: placeSnapshot.id,
@@ -566,7 +571,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       ]),
     )
     insertFixtureRelease(meta, {
-      releaseId: 'als-release-next',
+      resourceReleaseId: 'als-release-next',
       source: 'hkgov-dpo',
       regionCode: 'hk',
       rawObjectKey: 'als-next.parquet',
@@ -695,7 +700,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     await writeFile(curationPath, JSON.stringify(policy))
     withdrawnPlaceReleaseId = `place-release-${crypto.randomUUID()}`
     insertFixtureRelease(meta, {
-      releaseId: withdrawnPlaceReleaseId,
+      resourceReleaseId: withdrawnPlaceReleaseId,
       source: 'overture',
       regionCode: 'hk',
       rawObjectKey: 'places-withdrawn.parquet',
@@ -718,7 +723,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     const withdrawn = await prepareSupplementaryAddresses({
       ...input,
       places: [],
-      releaseId: withdrawnPlaceReleaseId,
+      resourceReleaseId: withdrawnPlaceReleaseId,
       plan: {
         ...input.plan,
         cohortKey: '2026-09',
@@ -884,7 +889,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       resolve(
         import.meta.dir,
         '../../../../../../.local/harbour-sql/deliveries/local',
-        `release-${encodeURIComponent(releaseId)}`,
+        `release-${encodeURIComponent(resourceReleaseId)}`,
       ),
       { recursive: true, force: true },
     )

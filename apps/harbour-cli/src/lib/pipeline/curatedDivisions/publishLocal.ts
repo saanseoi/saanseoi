@@ -245,13 +245,13 @@ export async function publishLocalCuratedDivisions(
         (id,datasetId,code,sourceVersion,expectedResourceTypes,sourceSchemaVersion,publicationDate,cohortKey,releaseNotesUrl,status,ingestedAt)
         VALUES (${sourceReleaseId},${source.datasetId},${code},${release.releaseVersion},${JSON.stringify([resourceType])},${release.sourceSchemaVersion},${release.publicationDate},${release.releaseVersion},${releaseNotesUrl},'processing',${ingestedAt})
         ON CONFLICT(id) DO UPDATE SET releaseNotesUrl=excluded.releaseNotesUrl`)
-      await ctx.metaDb.run(sql`INSERT INTO releases
+      await ctx.metaDb.run(sql`INSERT INTO resourceReleases
         (id,sourceReleaseId,datasetId,code,resourceType,sourceVersion,sourceSchemaVersion,publicationDate,cohortKey,releaseNotesUrl,status,ingestedAt)
         VALUES (${resourceReleaseId},${sourceReleaseId},${source.datasetId},${code},${resourceType},${release.releaseVersion},${release.sourceSchemaVersion},${release.publicationDate},${release.releaseVersion},${releaseNotesUrl},'processing',${ingestedAt})
         ON CONFLICT(id) DO UPDATE SET releaseNotesUrl=excluded.releaseNotesUrl`)
       const existingObjectKeys = [
         meta
-          .query('SELECT rawObjectKey FROM releases WHERE id=?')
+          .query('SELECT rawObjectKey FROM resourceReleases WHERE id=?')
           .get(resourceReleaseId),
         meta
           .query('SELECT rawObjectKey FROM sourceReleases WHERE id=?')
@@ -259,12 +259,12 @@ export async function publishLocalCuratedDivisions(
       ].map(row => (row as { rawObjectKey: string | null }).rawObjectKey)
       const rawObjectKey = await uploadCuratedReleaseAsset(target, asset, {
         datasetId: source.datasetId,
-        releaseId: resourceReleaseId,
+        resourceReleaseId: resourceReleaseId,
         existingObjectKeys,
       })
       linkCuratedReleaseAsset(meta, {
         sourceReleaseId,
-        releaseId: resourceReleaseId,
+        resourceReleaseId: resourceReleaseId,
         assetKey: rawObjectKey,
         fileName: asset.fileName,
       })
@@ -457,7 +457,7 @@ export async function publishLocalCuratedDivisions(
       )
       await publishSnapshot(ctx.metaDb as never, snapshot.id)
       await ctx.metaDb.run(
-        sql`UPDATE releases SET status='published' WHERE id=${resourceReleaseId}`,
+        sql`UPDATE resourceReleases SET status='published' WHERE id=${resourceReleaseId}`,
       )
       await ctx.metaDb.run(
         sql`UPDATE sourceReleases SET status='published' WHERE id=${sourceReleaseId}`,

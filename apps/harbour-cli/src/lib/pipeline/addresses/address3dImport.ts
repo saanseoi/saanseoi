@@ -273,7 +273,7 @@ const insert = (table: string, row: Record<string, unknown>, conflict: string) =
 export function collectionStatements(
   collection: Collection,
   snapshotId: string,
-  releaseId: string,
+  resourceReleaseId: string,
   now: string,
   currentSnapshotId = snapshotId,
 ) {
@@ -299,7 +299,7 @@ export function collectionStatements(
     ...base,
     sources,
     versionHash,
-    sourceReleaseId: releaseId,
+    sourceReleaseId: resourceReleaseId,
     snapshotId,
     isCurrent: 1,
     createdAt: now,
@@ -325,7 +325,15 @@ export function collectionStatements(
       history,
       'ON CONFLICT(id,versionHash) DO UPDATE SET isCurrent=1,updatedAt=excluded.updatedAt WHERE address3d.isCurrent <> 1',
     ),
-    journalStatement(snapshotId, releaseId, 'address3d', base.id, '', versionHash, now),
+    journalStatement(
+      snapshotId,
+      resourceReleaseId,
+      'address3d',
+      base.id,
+      '',
+      versionHash,
+      now,
+    ),
   ]
   for (const [locale, units] of Object.entries(locales)) {
     const localeVersionHash = als3dHash({ address3dId: base.id, locale, units })
@@ -350,14 +358,14 @@ export function collectionStatements(
           ...fields,
           snapshotId,
           versionHash: localeVersionHash,
-          sourceReleaseId: releaseId,
+          sourceReleaseId: resourceReleaseId,
           isCurrent: 1,
         },
         'ON CONFLICT(address3dId,versionHash,locale) DO UPDATE SET isCurrent=1,updatedAt=excluded.updatedAt WHERE address3dI18n.isCurrent <> 1',
       ),
       journalStatement(
         snapshotId,
-        releaseId,
+        resourceReleaseId,
         'address3dI18n',
         base.id,
         locale,
@@ -401,7 +409,7 @@ export async function importAddress3dCollections(args: {
   sourceVersion: string
   snapshotId: string
   currentSnapshotId?: string
-  releaseId: string
+  resourceReleaseId: string
   expectedDigest: string
   timestamp?: string
   priorMembership: PriorMembership[]
@@ -461,11 +469,11 @@ export async function importAddress3dCollections(args: {
     args.execute,
   )
   // Source versions remain open across releases. Compare membership explicitly;
-  // releaseId identifies the assertion's provenance, not its last observation.
+  // resourceReleaseId identifies the assertion's provenance, not its last observation.
   type SourceVersion = {
     versionHash: string
     shard: Address3dImportShard
-    releaseId: string
+    resourceReleaseId: string
     validFromRelease: string
   }
   const remainingSources = new Map<string, Map<string, SourceVersion[]>>()
@@ -479,7 +487,7 @@ export async function importAddress3dCollections(args: {
       for (;;) {
         const rows = await shard.execute([
           {
-            sql: `SELECT rowid, sourceRecordId, versionHash, releaseId, validFromRelease FROM ${table} WHERE ${cursor === undefined ? '' : `rowid > ${cursor} AND `}isCurrent = 1 ORDER BY rowid LIMIT 1024`,
+            sql: `SELECT rowid, sourceRecordId, versionHash, resourceReleaseId, validFromRelease FROM ${table} WHERE ${cursor === undefined ? '' : `rowid > ${cursor} AND `}isCurrent = 1 ORDER BY rowid LIMIT 1024`,
             params: [],
           },
         ])
@@ -496,7 +504,7 @@ export async function importAddress3dCollections(args: {
             {
               versionHash: row.versionHash,
               shard,
-              releaseId: String(row.releaseId),
+              resourceReleaseId: String(row.resourceReleaseId),
               validFromRelease: String(row.validFromRelease),
             },
           ])
@@ -554,7 +562,7 @@ export async function importAddress3dCollections(args: {
           {
             sql: sourceResolutionSql({
               snapshotId: args.snapshotId,
-              sourceReleaseId: args.releaseId,
+              sourceReleaseId: args.resourceReleaseId,
               sourceRecordId: record.sourceRecordId,
               sourceVersionHash: record.versionHash,
               resolutions: {
@@ -583,14 +591,18 @@ export async function importAddress3dCollections(args: {
         if (prior.versionHash === record.versionHash) {
           // The 2D candidate stage can insert this year's copy before the complete
           // publisher ledger is reconciled. Discard only that candidate duplicate.
-          if (prior.releaseId !== args.releaseId)
+          if (prior.resourceReleaseId !== args.resourceReleaseId)
             throw new Error(
               `Duplicate retained ALS source version ${record.sourceRecordId} across shards.`,
             )
           await prior.shard.execute([
             {
-              sql: `DELETE FROM ${sourceTable} WHERE sourceRecordId = ? AND versionHash = ? AND releaseId = ?`,
-              params: [record.sourceRecordId, prior.versionHash, args.releaseId],
+              sql: `DELETE FROM ${sourceTable} WHERE sourceRecordId = ? AND versionHash = ? AND resourceReleaseId = ?`,
+              params: [
+                record.sourceRecordId,
+                prior.versionHash,
+                args.resourceReleaseId,
+              ],
             },
           ])
         } else
@@ -611,7 +623,7 @@ export async function importAddress3dCollections(args: {
         for (const shard of sourceShards) {
           const rows = await shard.execute([
             {
-              sql: `SELECT versionHash, releaseId, validFromRelease FROM ${sourceTable} WHERE sourceRecordId = ? AND versionHash = ?`,
+              sql: `SELECT versionHash, resourceReleaseId, validFromRelease FROM ${sourceTable} WHERE sourceRecordId = ? AND versionHash = ?`,
               params: [record.sourceRecordId, record.versionHash],
             },
           ])
@@ -623,7 +635,7 @@ export async function importAddress3dCollections(args: {
           existing = {
             versionHash: record.versionHash,
             shard,
-            releaseId: String(rows[0]?.releaseId),
+            resourceReleaseId: String(rows[0]?.resourceReleaseId),
             validFromRelease: String(rows[0]?.validFromRelease),
           }
         }
@@ -642,7 +654,7 @@ export async function importAddress3dCollections(args: {
             {
               sourceRecordId: record.sourceRecordId,
               versionHash: record.versionHash,
-              releaseId: args.releaseId,
+              resourceReleaseId: args.resourceReleaseId,
               validFromRelease: args.sourceVersion,
               validToRelease: null,
               isCurrent: 1,
@@ -661,7 +673,7 @@ export async function importAddress3dCollections(args: {
           {
             sql: sourceResolutionSql({
               snapshotId: args.snapshotId,
-              sourceReleaseId: args.releaseId,
+              sourceReleaseId: args.resourceReleaseId,
               sourceRecordId: `curation:${record.id}`,
               sourceVersionHash: als3dHash(record.processingSources),
               resolutions: {
@@ -689,7 +701,7 @@ export async function importAddress3dCollections(args: {
       const { currentStatements, historyStatements } = collectionStatements(
         record,
         args.snapshotId,
-        args.releaseId,
+        args.resourceReleaseId,
         now,
         args.currentSnapshotId ?? args.snapshotId,
       )
@@ -739,7 +751,7 @@ export async function importAddress3dCollections(args: {
     await args.execute('history', [
       journalStatement(
         args.snapshotId,
-        args.releaseId,
+        args.resourceReleaseId,
         prior.recordType,
         prior.recordId,
         prior.locale,

@@ -2,7 +2,7 @@ import type { ResourceType } from '../types'
 
 export type DraftReleasePurgeInput = {
   apiReleaseSetId: string
-  releaseId: string
+  resourceReleaseId: string
   snapshotId: string
   source: string
   sourceVersion: string
@@ -179,7 +179,7 @@ function buildPurgeHistorySql(input: DraftReleasePurgeInput, plan: RollbackPlan)
         ]),
     ...plan.historyTables.map(
       ({ table }) =>
-        `DELETE FROM ${table} WHERE snapshotId = ${literal(input.snapshotId)} AND sourceReleaseId = ${literal(input.releaseId)};`,
+        `DELETE FROM ${table} WHERE snapshotId = ${literal(input.snapshotId)} AND sourceReleaseId = ${literal(input.resourceReleaseId)};`,
     ),
   ])
 }
@@ -187,7 +187,8 @@ function buildPurgeHistorySql(input: DraftReleasePurgeInput, plan: RollbackPlan)
 function buildPurgeSourceSql(input: DraftReleasePurgeInput, plan: RollbackPlan) {
   return joinStatements([
     ...plan.sourceTables.map(
-      table => `DELETE FROM ${table} WHERE releaseId = ${literal(input.releaseId)};`,
+      table =>
+        `DELETE FROM ${table} WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
     ),
     ...(input.resourceType === 'place'
       ? [
@@ -202,18 +203,18 @@ function buildPurgeMetaSql(input: DraftReleasePurgeInput) {
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM apiFieldProvenanceGroups WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
-    `DELETE FROM publishedDataJournal WHERE releaseId = ${literal(input.releaseId)} OR relatedReleaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM stats WHERE releaseId = ${literal(input.releaseId)} OR apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
-    `DELETE FROM ingestRuns WHERE releaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM releaseProcessingActions WHERE releaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM releaseProcessingActionChunks WHERE releaseId = ${literal(input.releaseId)};`,
-    `DELETE FROM releaseShardAssignments WHERE releaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM publishedDataJournal WHERE resourceReleaseId = ${literal(input.resourceReleaseId)} OR relatedResourceReleaseId = ${literal(input.resourceReleaseId)};`,
+    `DELETE FROM stats WHERE resourceReleaseId = ${literal(input.resourceReleaseId)} OR apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
+    `DELETE FROM ingestRuns WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
+    `DELETE FROM releaseProcessingActions WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
+    `DELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
+    `DELETE FROM releaseShardAssignments WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
     `DELETE FROM snapshotDependencies WHERE snapshotId = ${literal(input.snapshotId)};`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId = ${literal(input.snapshotId)};`,
-    `DELETE FROM snapshotSourceReleases WHERE snapshotId = ${literal(input.snapshotId)} OR resourceReleaseId = ${literal(input.releaseId)};`,
+    `DELETE FROM snapshotSourceReleases WHERE snapshotId = ${literal(input.snapshotId)} OR resourceReleaseId = ${literal(input.resourceReleaseId)};`,
     `DELETE FROM apiReleaseSets WHERE id = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM snapshots WHERE id = ${literal(input.snapshotId)};`,
-    `DELETE FROM releases WHERE id = ${literal(input.releaseId)};`,
+    `DELETE FROM resourceReleases WHERE id = ${literal(input.resourceReleaseId)};`,
   ])
 }
 

@@ -31,7 +31,7 @@ export const places = sqliteTable(
       'places_address3d_unit_reference_chk',
       sql`(${table.address3dId} IS NULL AND ${table.address3dUnitId} IS NULL AND ${table.address3dMembership} IS NULL) OR (${table.address3dId} IS NOT NULL AND ${table.address3dUnitId} IS NOT NULL AND ${table.address3dMembership} IS NOT NULL AND ${table.address2dId} IS NOT NULL)`,
     ),
-    index('places_releaseId_idx').on(table.releaseId),
+    index('places_resourceReleaseId_idx').on(table.resourceReleaseId),
     index('places_category_id_idx').on(table.snapshotId, table.basicCategory, table.id),
     index('places_taxonomy_id_idx').on(
       table.snapshotId,

@@ -23,7 +23,7 @@ export type SourceAssetMetadata = {
   retrievedAt: string
   manifest?: unknown
   originalUrl?: string
-  releaseId?: string
+  resourceReleaseId?: string
   sourcePageLocale?: string
   sourcePageUrl?: string
 }
@@ -93,13 +93,16 @@ export async function registerManagedSourceAsset(
 export async function deleteManagedSourceAsset(
   db: HarbourReadableDb & HarbourWritableDb,
   bucket: AssetBucket,
-  input: { assetId: string; releaseId: string },
+  input: { assetId: string; resourceReleaseId: string },
 ) {
   const asset = await db
     .select({ assetKey: metaAssets.assetKey, id: metaAssets.id })
     .from(metaAssets)
     .where(
-      and(eq(metaAssets.id, input.assetId), eq(metaAssets.releaseId, input.releaseId)),
+      and(
+        eq(metaAssets.id, input.assetId),
+        eq(metaAssets.resourceReleaseId, input.resourceReleaseId),
+      ),
     )
     .get()
   if (!asset)
@@ -146,7 +149,7 @@ async function registerSourceAssetMetadata(
       sourcePageUrl: metadata.sourcePageUrl ?? null,
       sourceRecordId: null,
       datasetId: metadata.datasetId ?? null,
-      releaseId: metadata.releaseId ?? null,
+      resourceReleaseId: metadata.resourceReleaseId ?? null,
     })
     .onConflictDoNothing()
     .run()

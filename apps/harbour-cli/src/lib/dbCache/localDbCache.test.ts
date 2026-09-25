@@ -228,7 +228,7 @@ test('publication metadata respects pending ownership and the shared writer lock
     },
     phase: null,
     releaseCode: 'release',
-    releaseId: 'owner',
+    resourceReleaseId: 'owner',
     status: 'current',
   }
   const lock = resolve(cacheDir, 'sql-delivery-lock')
@@ -241,7 +241,7 @@ test('publication metadata respects pending ownership and the shared writer lock
   await expect(
     applyPublishMetadataDeltaToRemoteCache('preview', cacheDir, {
       ...publishResult,
-      releaseId: 'other',
+      resourceReleaseId: 'other',
     }),
   ).rejects.toThrow('unfinished SQL delivery')
   const before = new Database(resolve(cacheDir, 'DB_META.sqlite'), { readonly: true })
@@ -298,7 +298,7 @@ test('inserts an API release set that was created during deferred publication', 
     metadataDelta: { apiReleaseSets: [releaseSet], releases: [] },
     phase: null,
     releaseCode: 'dr-hk-example-2026-08-31.0',
-    releaseId: 'release-example',
+    resourceReleaseId: 'release-example',
     status: 'current',
   }
 
@@ -366,7 +366,7 @@ test('updates an existing API release set from the complete publication delta', 
     metadataDelta: { apiReleaseSets: [releaseSet], releases: [] },
     phase: null,
     releaseCode: 'dr-hk-example-2026-08-31.0',
-    releaseId: 'release-example',
+    resourceReleaseId: 'release-example',
     status: 'current',
   })
 
@@ -425,7 +425,7 @@ test('marks a deferred source snapshot published in the local metadata cache', a
     },
     phase: null,
     releaseCode: 'dr-hk-example-2026-08-31.0',
-    releaseId: 'release-example',
+    resourceReleaseId: 'release-example',
     status: 'published',
   })
 

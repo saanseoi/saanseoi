@@ -21,7 +21,7 @@ export async function landsdPlaceNameResolutions(
   })
   const versions = new Map<
     string,
-    { sourceRecordId: string; versionHash: string; releaseId: string }
+    { sourceRecordId: string; versionHash: string; resourceReleaseId: string }
   >()
   for (const database of databases) {
     for (const chunk of chunkArray(
@@ -32,7 +32,7 @@ export async function landsdPlaceNameResolutions(
         .select({
           sourceRecordId: table.sourceRecordId,
           versionHash: table.versionHash,
-          releaseId: table.releaseId,
+          resourceReleaseId: table.resourceReleaseId,
         })
         .from(table)
         .where(

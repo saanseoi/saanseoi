@@ -49,7 +49,7 @@ test('Division retry retains original counts after one target commits and anothe
         files: { DB_SOURCE: sourcePath, DB_CURRENT: currentPath },
       },
     } as unknown as LocalAddressDbContext,
-    releaseId: `division-continuation-${crypto.randomUUID()}`,
+    resourceReleaseId: `division-continuation-${crypto.randomUUID()}`,
     phase: 'division-data',
     nativeLocal: true,
     inputs: { preparedSha256: 'fixed', snapshotId: 'fixed' },

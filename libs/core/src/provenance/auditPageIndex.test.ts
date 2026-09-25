@@ -42,7 +42,7 @@ test('cached category and fixture search reads only page chunks and shares globa
     }),
   )
   const { manifest } = await retainAuditResult(store, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'divisions',
     attempt: { id: 'attempt', status: 'completed' },
     bulk: [],

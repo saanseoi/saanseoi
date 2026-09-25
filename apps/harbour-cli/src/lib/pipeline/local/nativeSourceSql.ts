@@ -130,7 +130,10 @@ export async function processNativeSourceSqlRelease(
   }
   const registered = await resolveNativeSourceRelease(target, input, registerOptions)
   if ('completed' in registered && registered.completed) return
-  const releaseId = requireString(registered.releaseId, 'releaseId')
+  const resourceReleaseId = requireString(
+    registered.resourceReleaseId,
+    'resourceReleaseId',
+  )
   const releaseCode = requireString(registered.releaseCode, 'releaseCode')
   const shardYear = resolveShardYear(input.cohortKey, input.sourceVersion)
   // Native source tables are not part of the canonical street/division cache
@@ -163,7 +166,7 @@ export async function processNativeSourceSqlRelease(
       {
         datasetCode: input.datasetCode,
         releaseCode,
-        releaseId,
+        resourceReleaseId,
         rawObjectKey: input.archiveObjectKey,
       },
       {
@@ -181,7 +184,7 @@ export async function processNativeSourceSqlRelease(
       'datasetId',
     )
     await client.stageRunning(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       {
         archiveObjectKey: input.archiveObjectKey,
@@ -191,7 +194,11 @@ export async function processNativeSourceSqlRelease(
       },
       releaseCode,
     )
-    const sql = await buildNativeSourceSql(input.tables, releaseId, input.sourceVersion)
+    const sql = await buildNativeSourceSql(
+      input.tables,
+      resourceReleaseId,
+      input.sourceVersion,
+    )
     const remoteReplay = target.remote
       ? resolveNativeRemoteReplay(target, context, shardYear)
       : null
@@ -200,7 +207,7 @@ export async function processNativeSourceSqlRelease(
       : await prepareNativeDivisionMetaSql(
           metaDb,
           input,
-          releaseId,
+          resourceReleaseId,
           releaseCode,
           resolvePipelineEnvironment(target),
         )
@@ -233,14 +240,14 @@ export async function processNativeSourceSqlRelease(
       archiveSha256: input.archiveSha256,
       datasetCode: input.datasetCode,
       releaseCode,
-      releaseId,
+      resourceReleaseId,
       rowCount: input.rowCount,
       sourceVersion: input.sourceVersion,
       tables: input.tables,
     })
 
     await client.stageCompleted(
-      releaseId,
+      resourceReleaseId,
       input.divisionRows ? 'importNativeSource' : 'processDataset',
       {
         archiveObjectKey: input.archiveObjectKey,
@@ -256,7 +263,7 @@ export async function processNativeSourceSqlRelease(
       releaseCode,
     )
     if (!input.divisionRows) {
-      publishResult = await client.publishDataset(releaseId, releaseCode)
+      publishResult = await client.publishDataset(resourceReleaseId, releaseCode)
       published = true
     }
   } catch (error) {
@@ -269,7 +276,7 @@ export async function processNativeSourceSqlRelease(
     }
     await client
       .stageFailed(
-        releaseId,
+        resourceReleaseId,
         'processDataset',
         error instanceof Error ? error.message : String(error),
         undefined,
@@ -297,7 +304,7 @@ export async function processNativeSourceSqlRelease(
       {
         datasetCode: input.datasetCode,
         datasetId: requireString(datasetId, 'datasetId'),
-        releaseId,
+        resourceReleaseId,
         releaseCode,
         rawObjectKey: input.archiveObjectKey,
       },
@@ -317,7 +324,7 @@ export async function processNativeSourceSqlRelease(
     await refreshRemoteMetaCache(
       target.environment === 'production' ? 'production' : 'preview',
       context.state.dbCacheDir,
-      releaseId,
+      resourceReleaseId,
     )
   }
 
@@ -327,14 +334,14 @@ export async function processNativeSourceSqlRelease(
 async function prepareNativeDivisionMetaSql(
   metaDb: HarbourReadableDb & HarbourWritableDb,
   input: NativeSourceRelease,
-  releaseId: string,
+  resourceReleaseId: string,
   releaseCode: string,
   environment: 'preview' | 'production',
 ) {
   const message: DatasetProcessingMessage = {
-    datasetId: releaseId,
+    datasetId: resourceReleaseId,
     datasetCode: input.datasetCode,
-    releaseId,
+    resourceReleaseId,
     releaseCode,
     rawObjectKey: input.archiveObjectKey,
     regionCode: 'hk',
@@ -381,7 +388,12 @@ async function prepareNativeDivisionMetaSql(
       metaDb
         .select()
         .from(metaSchema.metaReleaseShardAssignments)
-        .where(eq(metaSchema.metaReleaseShardAssignments.releaseId, releaseId))
+        .where(
+          eq(
+            metaSchema.metaReleaseShardAssignments.resourceReleaseId,
+            resourceReleaseId,
+          ),
+        )
         .all(),
       metaDb
         .select()
@@ -393,11 +405,13 @@ async function prepareNativeDivisionMetaSql(
     ])
   if (
     lineages.length !== 1 ||
-    !sources.some(row => row.resourceReleaseId === releaseId) ||
+    !sources.some(row => row.resourceReleaseId === resourceReleaseId) ||
     releaseAssignments.length === 0 ||
     snapshotAssignments.length === 0
   ) {
-    throw new Error(`Native division snapshot metadata is incomplete for ${releaseId}.`)
+    throw new Error(
+      `Native division snapshot metadata is incomplete for ${resourceReleaseId}.`,
+    )
   }
 
   const assemblySql = await readSnapshotAssemblySql(metaDb, prepared.snapshotId, true)
@@ -460,7 +474,7 @@ async function prepareNativeDivisionMetaSql(
     ...assemblySql,
     ...buildMetaInsertStatements(
       'releaseShardAssignments',
-      ['releaseId', 'dataShardId'],
+      ['resourceReleaseId', 'dataShardId'],
       releaseAssignments,
       [],
     ),
@@ -504,7 +518,7 @@ async function retainNativeSourceAudit(
     archiveSha256: string
     datasetCode: string
     releaseCode: string
-    releaseId: string
+    resourceReleaseId: string
     rowCount: number
     sourceVersion: string
     tables: NativeSourceTable[]
@@ -554,7 +568,7 @@ async function retainNativeSourceAudit(
     }),
     retain: (store: ProvenanceStore) =>
       retainProducerAudit(store, {
-        releaseId: input.releaseId,
+        resourceReleaseId: input.resourceReleaseId,
         datasetCode: input.datasetCode,
         rules: [
           ...selectionRules,
@@ -614,7 +628,7 @@ async function resolveNativeSourceRelease(
           const snapshot = (
             await listSnapshotsForRelease(
               context.metaDb as unknown as HarbourReadableDb,
-              existing.releaseId,
+              existing.resourceReleaseId,
               'division',
             )
           ).find(snapshot => snapshot.variant === 'hkgov-landsd')
@@ -627,16 +641,19 @@ async function resolveNativeSourceRelease(
             if (
               receipt?.status === 'current' &&
               receipt.preparedAt &&
-              receipt.publicationToken === existing.releaseId
+              receipt.publicationToken === existing.resourceReleaseId
             )
               return {
                 releaseCode: existing.releaseCode,
-                releaseId: existing.releaseId,
+                resourceReleaseId: existing.resourceReleaseId,
                 completed: true,
               }
           }
         }
-        return { releaseCode: existing.releaseCode, releaseId: existing.releaseId }
+        return {
+          releaseCode: existing.releaseCode,
+          resourceReleaseId: existing.resourceReleaseId,
+        }
       }
     } finally {
       context.cleanup()
@@ -693,7 +710,7 @@ function resolveNativeMetaReplay(
 
 export async function versionNativeSourceRows<T extends NativeSourceRow>(
   rows: T[],
-  releaseId: string,
+  resourceReleaseId: string,
   sourceVersion: string,
   hashPublisherContentOnly = false,
   separatePublisherEnvelope = false,
@@ -716,7 +733,7 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
         ...payload,
         createdAt: now,
         isCurrent: true,
-        releaseId,
+        resourceReleaseId,
         updatedAt: now,
         validFromRelease: sourceVersion,
         validToRelease: null,
@@ -742,7 +759,7 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
 
 export async function buildNativeSourceSql(
   tables: NativeSourceTable[],
-  releaseId: string,
+  resourceReleaseId: string,
   sourceVersion: string,
 ) {
   const statements: string[] = []
@@ -750,7 +767,7 @@ export async function buildNativeSourceSql(
     assertIdentifier(table.name, 'table')
     const rows = await versionNativeSourceRows(
       table.rows,
-      releaseId,
+      resourceReleaseId,
       sourceVersion,
       table.name === 'hkgovLandsdRoadCentrelines',
       [

@@ -17,7 +17,7 @@ import type { PublicationTable } from '@repo/core/pipeline/services/publication/
 
 export type SqlDeliveryPhase = {
   context: LocalAddressDbContext
-  releaseId: string
+  resourceReleaseId: string
   phase: string
   inputs: Record<string, unknown>
   nativeLocal?: boolean
@@ -36,7 +36,7 @@ export function sqlDeliveryPhaseDirectory(input: SqlDeliveryPhase) {
     import.meta.dir,
     '../../../../../../.local/harbour-sql/deliveries',
     input.context.state.target,
-    `release-${encodeURIComponent(input.releaseId)}`,
+    `release-${encodeURIComponent(input.resourceReleaseId)}`,
     input.phase,
   )
 }

@@ -5,11 +5,16 @@ import { bbox } from '@turf/turf'
 import type { Polygon, MultiPolygon } from 'geojson'
 import type { Json } from '@repo/core/provenance'
 let {
-  releaseId,
+  resourceReleaseId,
   divisionId,
   title,
   exclusion = null,
-}: { releaseId: string; divisionId: string; title: string; exclusion?: Json } = $props()
+}: {
+  resourceReleaseId: string
+  divisionId: string
+  title: string
+  exclusion?: Json
+} = $props()
 let excludedGeometry = $derived.by(() => {
   const value =
     exclusion && typeof exclusion === 'object' && !Array.isArray(exclusion)
@@ -25,7 +30,7 @@ let excludedGeometry = $derived.by(() => {
     return null
   return value as unknown as Polygon
 })
-let result = $derived(getAuditGeometry({ releaseId, divisionId }))
+let result = $derived(getAuditGeometry({ resourceReleaseId, divisionId }))
 let geometry = $derived.by(() => {
   const value = result.ready ? result.current : null
   if (

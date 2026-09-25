@@ -632,8 +632,8 @@ vocabularies, not casing variants. Source geography `class` values such as `B` a
 retain their separate publisher meaning.
 
 Release statistics use `metric` for measurement classification. Exactly one of
-`releaseId` and `apiReleaseSetId` identifies the owner. Processing-audit counts use
-`metric: processing` and are preserved when ordinary measurement statistics are
+`resourceReleaseId` and `apiReleaseSetId` identifies the owner. Processing-audit counts
+use `metric: processing` and are preserved when ordinary measurement statistics are
 replaced.
 
 ## Retained property mapping

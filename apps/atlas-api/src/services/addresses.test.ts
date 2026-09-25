@@ -88,7 +88,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     const snapshots = new Map<string, string>()
     for (const member of members) {
       insertFixtureRelease(meta, {
-        releaseId: member.id,
+        resourceReleaseId: member.id,
         datasetCode: member.datasetCode,
         releaseCode: `release-${member.id}`,
         source: member.source,
@@ -127,7 +127,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         .flatMap(fixture => fixture.fields)
         .flatMap(field => [field.resolverCode, ...(field.processingRuleIds ?? [])]),
     )
-    meta.query('UPDATE releases SET processingRules = ?').run(
+    meta.query('UPDATE resourceReleases SET processingRules = ?').run(
       JSON.stringify({
         rulesets: [
           {

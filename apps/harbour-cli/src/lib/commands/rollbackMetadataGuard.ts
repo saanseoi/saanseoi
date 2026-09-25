@@ -7,7 +7,7 @@ import { rollbackLiteral as lit } from './rollbackDelivery.ts'
 export function buildRollbackMetadataGuard(
   meta: Database,
   input: {
-    releaseId: string
+    resourceReleaseId: string
     datasetId: string
     catalogId: string
     apiVersionId: string
@@ -23,8 +23,8 @@ export function buildRollbackMetadataGuard(
   const params: NetStatement['params'] = []
   for (const [table, where] of [
     [
-      'releases',
-      `id=${lit(input.releaseId)} OR (supersededByReleaseId=${lit(input.releaseId)} AND datasetId=${lit(input.datasetId)})`,
+      'resourceReleases',
+      `id=${lit(input.resourceReleaseId)} OR (supersededByResourceReleaseId=${lit(input.resourceReleaseId)} AND datasetId=${lit(input.datasetId)})`,
     ],
     ['apiVersions', `id=${lit(input.apiVersionId)}`],
     ['apiCatalogRevisions', `id=${lit(input.catalogId)}`],

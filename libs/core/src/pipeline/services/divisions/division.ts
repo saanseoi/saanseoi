@@ -361,7 +361,7 @@ export async function processDivisionDataset(
     table: 'divisionPublicationState',
     scopeId: versionInsertContext.snapshotLineageId,
     snapshotId: versionInsertContext.snapshotId,
-    publicationToken: versionInsertContext.releaseId,
+    publicationToken: versionInsertContext.resourceReleaseId,
     timestamp: new Date().toISOString(),
   }
   const currentScopeId = publication.scopeId
@@ -451,7 +451,7 @@ export async function processDivisionDataset(
           historyCurrentLocaleCount:
             currentRows.get(divisionId)?.localisedRows.length ?? 0,
           phase: 'processDivisionDataset',
-          releaseId: message.releaseId ?? message.datasetId,
+          resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
           snapshotI18nRowCount: snapshotState?.i18nRowCount ?? 0,
           snapshotRowExists: snapshotState?.isPresent ?? false,
           sourceVersion: message.sourceVersion,
@@ -526,7 +526,7 @@ export async function processDivisionDataset(
       historyCurrentExists: currentRows.has(divisionId),
       historyCurrentLocaleCount: currentRows.get(divisionId)?.localisedRows.length ?? 0,
       phase: 'processDivisionDataset',
-      releaseId: message.releaseId ?? message.datasetId,
+      resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
       sourceCurrentExists: currentSourceRows?.has(divisionId) ?? null,
       sourceVersion: message.sourceVersion,
     })
@@ -638,11 +638,11 @@ export async function processDivisionDataset(
 
       if (sourceDb && message.source === 'overture' && !isSupplemental) {
         seenPublisherIds.add(normalised.base.id)
-        const releaseId = buildSourceReleaseId(message)
+        const resourceReleaseId = buildSourceReleaseId(message)
         const sourcePayloadHash = await createHash(recordContent(row))
         sourceResolutionRows.push({
           snapshotId: versionInsertContext.snapshotId,
-          sourceReleaseId: releaseId,
+          sourceReleaseId: resourceReleaseId,
           sourceRecordId: normalised.base.id,
           sourceVersionHash: sourcePayloadHash,
           resolutions: { entities: resolvedEntities({ division: normalised.base.id }) },
@@ -656,7 +656,7 @@ export async function processDivisionDataset(
           sourceVersionRows.push({
             sourceRecordId: normalised.base.id,
             versionHash: sourcePayloadHash,
-            releaseId,
+            resourceReleaseId,
             validFromRelease: message.sourceVersion,
             validToRelease: null,
             isCurrent: true,
@@ -775,7 +775,7 @@ export async function processDivisionDataset(
       closeDivisionHistoryComponents({
         activeDb: historyRepoDb,
         snapshotId: versionInsertContext.snapshotId,
-        sourceReleaseId: versionInsertContext.releaseId,
+        sourceReleaseId: versionInsertContext.resourceReleaseId,
         components: changedHistoryComponents,
         timestamp: new Date().toISOString(),
       }),
@@ -864,7 +864,7 @@ export async function processDivisionDataset(
   logDivisionTraceGroup(traceDivisionIds, missingCurrentIds, {
     event: 'missingFromDataset',
     phase: 'processDivisionDataset',
-    releaseId: message.releaseId ?? message.datasetId,
+    resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
     snapshotId: versionInsertContext.snapshotId,
     sourceVersion: message.sourceVersion,
   })
@@ -875,7 +875,7 @@ export async function processDivisionDataset(
       await closeDivisionHistoryComponents({
         activeDb: historyRepoDb,
         snapshotId: versionInsertContext.snapshotId,
-        sourceReleaseId: versionInsertContext.releaseId,
+        sourceReleaseId: versionInsertContext.resourceReleaseId,
         components: [...historyBaseline.components.values()]
           .filter(row => missing.has(row.recordId))
           .map(row => ({ ...row, omitted: true })),
@@ -891,7 +891,7 @@ export async function processDivisionDataset(
       historyBaseline.sourceResolutions,
       seenSourceResolutionIds,
       versionInsertContext.snapshotId,
-      versionInsertContext.releaseId,
+      versionInsertContext.resourceReleaseId,
     ),
   )
   await timings.measure('deleteStaleDivisionCurrentRowsMs', () =>
@@ -907,7 +907,7 @@ export async function processDivisionDataset(
     }),
   )
   const statsRows = await timings.measure('replaceDatasetStatsMs', () =>
-    replaceDatasetStats(metaRepoDb, message.releaseId ?? message.datasetId, [
+    replaceDatasetStats(metaRepoDb, message.resourceReleaseId ?? message.datasetId, [
       ...buildLocaleStatsRows(statsAccumulator),
       ...buildDistrictDistributionStatsRows(districtCounts),
       ...churnStats,
@@ -920,7 +920,7 @@ export async function processDivisionDataset(
     ),
   )
   const audit = await retainDivisionProvenance(options.auditStore, {
-    releaseId: message.releaseId ?? message.datasetId,
+    resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
     datasetCode: message.datasetCode ?? message.datasetId,
     actions: processingActions,
     branchCounts,
@@ -931,7 +931,7 @@ export async function processDivisionDataset(
   await registerProcessingResult(
     metaRepoDb,
     options.auditStore,
-    message.releaseId ?? message.datasetId,
+    message.resourceReleaseId ?? message.datasetId,
     audit.ref,
   )
 
@@ -971,7 +971,7 @@ export async function processDivisionDataset(
     unchangedRows,
     phase: 'processDivisionDataset',
     processedRows,
-    releaseId: message.releaseId ?? message.datasetId,
+    resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
     snapshotId: versionInsertContext.snapshotId,
     source: message.source,
     sourceChangedRows,

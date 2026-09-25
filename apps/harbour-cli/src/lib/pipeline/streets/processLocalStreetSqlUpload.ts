@@ -84,7 +84,10 @@ export async function processLocalStreetSqlUpload(
   preparedUpload: PreparedUploadFile,
   options: { skipSnapshotCleanup?: boolean } = {},
 ) {
-  const releaseId = requireString(uploadResult.releaseId, 'releaseId')
+  const resourceReleaseId = requireString(
+    uploadResult.resourceReleaseId,
+    'resourceReleaseId',
+  )
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const rawObjectKey = requireString(uploadResult.rawObjectKey, 'rawObjectKey')
@@ -106,7 +109,7 @@ export async function processLocalStreetSqlUpload(
         previewPlan.regionCode,
         previewPlan.sourceVersion,
         {
-          resumeSqlDeliveryReleaseId: releaseId,
+          resumeSqlDeliveryReleaseId: resourceReleaseId,
         },
       ),
   )
@@ -123,35 +126,35 @@ export async function processLocalStreetSqlUpload(
   try {
     await syncStagedReleaseIntoLocalMetaCache(
       context.metaDb,
-      { datasetCode, rawObjectKey, releaseCode, releaseId },
+      { datasetCode, rawObjectKey, releaseCode, resourceReleaseId },
       previewPlan,
     )
     await client.stageRunning(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       { resourceType: 'street', sourceRows: previewPlan.rowCount },
       releaseCode,
     )
 
-    const dataset = await waitForDatasetRecord(metaDb, { releaseId })
-    if (!dataset) throw new Error(`Release not found: ${releaseId}`)
+    const dataset = await waitForDatasetRecord(metaDb, { resourceReleaseId })
+    if (!dataset) throw new Error(`Release not found: ${resourceReleaseId}`)
     const snapshot = await ensureDraftSnapshotForRelease(metaDb, 'street', {
       cohortKey: previewPlan.cohortKey,
       datasetCode,
       datasetId: dataset.datasetId,
       identityMode: 'persistent',
       regionCode: previewPlan.regionCode,
-      sourceReleaseId: dataset.releaseId,
+      sourceReleaseId: dataset.resourceReleaseId,
       variant: previewPlan.source,
     })
     await upsertSnapshotSource(
       metaDb,
       snapshot.id,
       dataset.datasetId,
-      dataset.releaseId,
+      dataset.resourceReleaseId,
       LANDSD_STREET_SNAPSHOT_SOURCE_ROLE,
       {
-        anchorReleaseId: dataset.releaseId,
+        anchorReleaseId: dataset.resourceReleaseId,
         selectedByRule: 'snapshot-assembly-hkgov-landsd-street-v1',
         // This snapshot is deliberately pinned to this exact staged release,
         // rather than selecting the latest release through a rolling rule.
@@ -162,11 +165,11 @@ export async function processLocalStreetSqlUpload(
     await recordSnapshotAssembly(metaDb, {
       snapshotId: snapshot.id,
       resourceType: 'street',
-      anchorReleaseId: dataset.releaseId,
+      anchorReleaseId: dataset.resourceReleaseId,
       anchorCohortKey: dataset.cohortKey,
       detailsJson: {
         releaseRole: LANDSD_STREET_SNAPSHOT_SOURCE_ROLE,
-        sourceReleaseId: dataset.releaseId,
+        sourceReleaseId: dataset.resourceReleaseId,
         sourceVersion: dataset.sourceVersion,
       },
     })
@@ -193,8 +196,8 @@ export async function processLocalStreetSqlUpload(
       )
     }
     await Promise.all([
-      upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id),
-      upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id),
+      upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, historyShard.id),
+      upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, sourceShard.id),
       upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id),
     ])
 
@@ -209,7 +212,7 @@ export async function processLocalStreetSqlUpload(
 
     const completionCounts = await deliverStreetWorkflow(
       context,
-      releaseId,
+      resourceReleaseId,
       {
         snapshotId: snapshot.id,
         preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
@@ -236,7 +239,7 @@ export async function processLocalStreetSqlUpload(
           table: 'streetPublicationState',
           scopeId: snapshot.snapshotLineageId,
           snapshotId: snapshot.id,
-          publicationToken: releaseId,
+          publicationToken: resourceReleaseId,
           timestamp: now,
           previous,
         }
@@ -290,7 +293,7 @@ export async function processLocalStreetSqlUpload(
         const preparedChangelog = await Promise.all(
           lifecycle.changelog.map(entry =>
             addStreetChangelogHash(entry, {
-              sourceReleaseId: releaseId,
+              sourceReleaseId: resourceReleaseId,
               sourceShardId: sourceShard.id,
             }),
           ),
@@ -335,14 +338,14 @@ export async function processLocalStreetSqlUpload(
         await insertHistoryRows(
           context.historyDb as unknown as HarbourWritableDb,
           snapshot.id,
-          releaseId,
+          resourceReleaseId,
           changedMaterialisedStreets,
           now,
         )
         await insertHistoryI18nRows(
           context.historyDb as unknown as HarbourWritableDb,
           snapshot.id,
-          releaseId,
+          resourceReleaseId,
           changedMaterialisedStreets,
           now,
         )
@@ -354,15 +357,15 @@ export async function processLocalStreetSqlUpload(
         )
         await insertSourceRows(
           context.sourceDb as unknown as HarbourWritableDb,
-          releaseId,
+          resourceReleaseId,
           dataset.sourceVersion,
           changedSourceRecords,
           now,
         )
-        await replaceReleaseProcessingActions(metaDb, releaseId, [])
+        await replaceReleaseProcessingActions(metaDb, resourceReleaseId, [])
         await replaceDatasetStats(
           metaDb,
-          releaseId,
+          resourceReleaseId,
           buildStreetStats(resolvedRecords, lifecycle.current, lifecycle.stats, now),
         )
         const removedStreetIds = new Set(
@@ -400,7 +403,7 @@ export async function processLocalStreetSqlUpload(
       },
     )
     await client.stageCompleted(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       {
         resourceType: 'street',
@@ -411,7 +414,7 @@ export async function processLocalStreetSqlUpload(
       } satisfies DatasetProcessingStats & Record<string, unknown>,
       releaseCode,
     )
-    const publishResult = await client.publishDataset(releaseId, releaseCode, {
+    const publishResult = await client.publishDataset(resourceReleaseId, releaseCode, {
       skipSnapshotCleanup: options.skipSnapshotCleanup,
     })
     completed = true
@@ -420,7 +423,7 @@ export async function processLocalStreetSqlUpload(
     progress.fail()
     await client
       .stageFailed(
-        releaseId,
+        resourceReleaseId,
         'processDataset',
         error instanceof Error ? error.message : String(error),
         undefined,
@@ -429,7 +432,8 @@ export async function processLocalStreetSqlUpload(
       .catch(() => undefined)
     throw error
   } finally {
-    if (completed) await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
+    if (completed)
+      await completeSqlDeliveryRelease(context.state.dbCacheDir, resourceReleaseId)
     context.cleanup()
   }
 }

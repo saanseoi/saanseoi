@@ -12,7 +12,7 @@ separate source contract.
 
 Source validity columns store only the owning release's version component, for example
 `2025-09-24.0`, `2021` or `2025-Q1`. The interval is inclusive at `validFromRelease` and
-exclusive at `validToRelease`; null means open. `releaseId` provides the release
+exclusive at `validToRelease`; null means open. `resourceReleaseId` provides the release
 association. Dataset prefixes and resource suffixes do not belong in validity values.
 This interval representation also applies to Streets.
 
@@ -29,7 +29,7 @@ canonical entity to which it resolves.
 | `properties`                                      | Upstream attribute values with documented field mappings.                                                   |
 | `sourceGeometry`                                  | Original publisher geometry, retained once outside the properties. Non-spatial assertions use null.         |
 | `sourceLocator`                                   | Optional private acquisition locator (asset, file, layer or feature position); never publisher attribution. |
-| `releaseId`                                       | Release association.                                                                                        |
+| `resourceReleaseId`                               | Release association.                                                                                        |
 | `validFromRelease`, `validToRelease`, `isCurrent` | Source-version validity.                                                                                    |
 | `createdAt`, `updatedAt`                          | Storage bookkeeping.                                                                                        |
 

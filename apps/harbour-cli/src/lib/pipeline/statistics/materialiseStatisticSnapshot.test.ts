@@ -39,7 +39,7 @@ test.each(['2026-Q2', '2023-H2'])(
       'source-release', 'dataset', 'source-release-statistics-2026-q2', '2026-Q2',
       '2026-Q2', 'processing', '${NOW}', '${NOW}', '${NOW}'
     );
-    INSERT INTO releases (
+    INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       status, ingestedAt, createdAt, updatedAt
     ) VALUES (
@@ -67,7 +67,7 @@ test.each(['2026-Q2', '2023-H2'])(
       );
   `)
     const db = createLocalHarbourDb(sqlite)
-    sqlite.run('UPDATE releases SET sourceVersion = ?', [sourceVersion])
+    sqlite.run('UPDATE resourceReleases SET sourceVersion = ?', [sourceVersion])
     sqlite.run('UPDATE dataShards SET year = NULL WHERE id = ?', ['source-2026'])
     if (sourceVersion.startsWith('2026')) {
       sqlite.run('UPDATE dataShards SET year = ? WHERE id = ?', ['2026', 'source-2026'])
@@ -87,7 +87,7 @@ test.each(['2026-Q2', '2023-H2'])(
         { code: '2016', endYear: '2016' },
         { code: '2024/25', endYear: '2025' },
       ],
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       target: { environment: 'dev', remote: false },
     })
 
@@ -111,7 +111,7 @@ test.each(['2026-Q2', '2023-H2'])(
             `SELECT ds.bindingName
            FROM releaseShardAssignments rsa
            INNER JOIN dataShards ds ON ds.id = rsa.dataShardId
-           WHERE rsa.releaseId = 'release'
+           WHERE rsa.resourceReleaseId = 'release'
            ORDER BY ds.bindingName`,
           )
           .all() as Array<{ bindingName: string }>
@@ -141,8 +141,8 @@ test.each(['2026-Q2', '2023-H2'])(
     // A retained draft is not an accepted predecessor. Deferred publication
     // certifies the completed audit and immutable snapshots before API activation.
     sqlite.exec(`
-      UPDATE releases SET status = 'published' WHERE id = 'release';
-      INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount, attemptStatus)
+      UPDATE resourceReleases SET status = 'published' WHERE id = 'release';
+      INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount, attemptStatus)
       VALUES ('release', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed');
       UPDATE snapshots SET status = 'published';
     `)
@@ -154,7 +154,7 @@ test.each(['2026-Q2', '2023-H2'])(
         datasetCode: 'dataset-statistics',
         metaDb: db,
         referencePeriods: [],
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         target: { environment: 'dev', remote: false },
       }),
     ).toEqual([])
@@ -176,7 +176,7 @@ test.each(['2026-Q2', '2023-H2'])(
       datasetCode: 'dataset-statistics',
       metaDb: db,
       referencePeriods: [{ code: '2016', endYear: '2016' }],
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       target: { environment: 'dev', remote: false },
     })
     expect(retry[0]?.id).toBe(firstSnapshot.id)
@@ -210,7 +210,7 @@ test('rejects a reference period later than the source release cohort', async ()
       'source-release', 'dataset', 'source-release-statistics-2021', '2021',
       '2021', 'processing', '${NOW}', '${NOW}', '${NOW}'
     );
-    INSERT INTO releases (
+    INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       status, ingestedAt, createdAt, updatedAt
     ) VALUES (
@@ -225,7 +225,7 @@ test('rejects a reference period later than the source release cohort', async ()
       datasetCode: 'dataset-statistics',
       metaDb: db,
       referencePeriods: [{ code: '2025', endYear: '2025' }],
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       target: { environment: 'dev', remote: false },
     }),
   ).rejects.toThrow(

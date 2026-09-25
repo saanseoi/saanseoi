@@ -15,7 +15,7 @@ import { buildAddressSqlCleanupFile, type AddressSqlImportTarget } from './sqlIm
 
 type SqlStageHarbourClient = {
   publishDataset(
-    releaseId: string,
+    resourceReleaseId: string,
     releaseCode?: string,
     options?: {
       deferApiReleaseSet?: boolean
@@ -23,20 +23,20 @@ type SqlStageHarbourClient = {
     },
   ): Promise<PublishDatasetResult | void>
   stageCompleted(
-    releaseId: string,
+    resourceReleaseId: string,
     phase: string,
     stats?: Record<string, unknown>,
     releaseCode?: string,
   ): Promise<void>
   stageFailed(
-    releaseId: string,
+    resourceReleaseId: string,
     phase: string,
     error: string,
     stats?: Record<string, unknown>,
     releaseCode?: string,
   ): Promise<void>
   stageRunning(
-    releaseId: string,
+    resourceReleaseId: string,
     phase: string,
     stats?: Record<string, unknown>,
     releaseCode?: string,
@@ -142,7 +142,7 @@ export async function processAddressSqlImportOrCleanupStage(
     )
   }
   await harbourClient.stageRunning(
-    message.releaseId ?? message.datasetId,
+    message.resourceReleaseId ?? message.datasetId,
     'processDataset',
     { resourceType: message.resourceType, sourceRows: message.totalRows ?? null },
     message.releaseCode,
@@ -308,7 +308,7 @@ export async function importAddressSqlArtefacts(
   message: DatasetProcessingMessage,
   options: AddressSqlImportStageOptions,
 ): Promise<void> {
-  const releaseId = message.releaseId ?? message.datasetId
+  const resourceReleaseId = message.resourceReleaseId ?? message.datasetId
   const releaseCode = message.releaseCode
   const sourceKeys = filterSqlArtefactKeys(message, 'source')
   const historyKeys = filterSqlArtefactKeys(message, 'history')
@@ -319,7 +319,7 @@ export async function importAddressSqlArtefacts(
   const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
 
   await harbourClient.stageRunning(
-    releaseId,
+    resourceReleaseId,
     'processDataset',
     { resourceType: message.resourceType, sourceRows: message.totalRows ?? null },
     releaseCode,
@@ -419,7 +419,7 @@ export async function importAddressSqlDataArtefacts(
   message: DatasetProcessingMessage,
   options: AddressSqlImportStageOptions,
 ) {
-  const releaseId = message.releaseId ?? message.datasetId
+  const resourceReleaseId = message.resourceReleaseId ?? message.datasetId
   const releaseCode = message.releaseCode
   const sourceKeys = filterSqlArtefactKeys(message, 'source')
   const historyKeys = filterSqlArtefactKeys(message, 'history')
@@ -429,7 +429,7 @@ export async function importAddressSqlDataArtefacts(
   const deltaKeys = currentKeys.filter(key => !isCurrentInitSqlKey(key))
 
   await harbourClient.stageRunning(
-    releaseId,
+    resourceReleaseId,
     'processDataset',
     { resourceType: message.resourceType, sourceRows: message.totalRows ?? null },
     releaseCode,
@@ -545,7 +545,7 @@ export async function completeAddressSqlGenerationPhases(
     'generateAddressSqlCurrent',
   ]) {
     await harbourClient.stageCompleted(
-      message.releaseId ?? message.datasetId,
+      message.resourceReleaseId ?? message.datasetId,
       phase,
       stats,
       message.releaseCode,
@@ -571,20 +571,20 @@ async function runReportedPhase<T extends Record<string, unknown>>(
     reportProgress: (stats: Record<string, unknown>) => Promise<void>,
   ) => Promise<T>,
 ) {
-  const releaseId = message.releaseId ?? message.datasetId
+  const resourceReleaseId = message.resourceReleaseId ?? message.datasetId
   const releaseCode = message.releaseCode
   const startedAt = Date.now()
   const reportProgress = async (stats: Record<string, unknown>) => {
-    await harbourClient.stageRunning(releaseId, phase, stats, releaseCode)
+    await harbourClient.stageRunning(resourceReleaseId, phase, stats, releaseCode)
   }
 
-  await harbourClient.stageRunning(releaseId, phase, undefined, releaseCode)
+  await harbourClient.stageRunning(resourceReleaseId, phase, undefined, releaseCode)
 
   try {
     const stats = await operation(reportProgress)
 
     await harbourClient.stageCompleted(
-      releaseId,
+      resourceReleaseId,
       phase,
       {
         ...stats,
@@ -598,7 +598,7 @@ async function runReportedPhase<T extends Record<string, unknown>>(
     const errorMessage = error instanceof Error ? error.message : String(error)
 
     await harbourClient.stageFailed(
-      releaseId,
+      resourceReleaseId,
       phase,
       errorMessage,
       {
@@ -768,7 +768,7 @@ export async function publishImportedAddressSqlRelease(
   message: DatasetProcessingMessage,
   publishOptions: { deferApiReleaseSet?: boolean } = {},
 ): Promise<PublishDatasetResult | void> {
-  const releaseId = message.releaseId ?? message.datasetId
+  const resourceReleaseId = message.resourceReleaseId ?? message.datasetId
   const releaseCode = message.releaseCode
   const extractDurationStats = {
     deletedRows: message.addressStats?.deletedRows ?? 0,
@@ -783,26 +783,35 @@ export async function publishImportedAddressSqlRelease(
   }
 
   await harbourClient.stageCompleted(
-    releaseId,
+    resourceReleaseId,
     'extractAddresses',
     extractDurationStats,
     releaseCode,
   )
   await harbourClient.stageCompleted(
-    releaseId,
+    resourceReleaseId,
     'extractAddressesI18n',
     i18nStats,
     releaseCode,
   )
 
   const publishStartedAt = Date.now()
-  await harbourClient.stageRunning(releaseId, 'publishDataset', undefined, releaseCode)
-  const publishResult = await harbourClient.publishDataset(releaseId, releaseCode, {
-    deferApiReleaseSet: publishOptions.deferApiReleaseSet,
-    skipSnapshotCleanup: message.skipSnapshotCleanup,
-  })
+  await harbourClient.stageRunning(
+    resourceReleaseId,
+    'publishDataset',
+    undefined,
+    releaseCode,
+  )
+  const publishResult = await harbourClient.publishDataset(
+    resourceReleaseId,
+    releaseCode,
+    {
+      deferApiReleaseSet: publishOptions.deferApiReleaseSet,
+      skipSnapshotCleanup: message.skipSnapshotCleanup,
+    },
+  )
   await harbourClient.stageCompleted(
-    releaseId,
+    resourceReleaseId,
     'publishDataset',
     {
       durationMs: Date.now() - publishStartedAt,
@@ -810,7 +819,7 @@ export async function publishImportedAddressSqlRelease(
     releaseCode,
   )
   await harbourClient.stageCompleted(
-    releaseId,
+    resourceReleaseId,
     'processDataset',
     {
       ...extractDurationStats,

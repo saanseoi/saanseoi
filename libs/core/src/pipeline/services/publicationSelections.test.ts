@@ -14,7 +14,7 @@ function fixture() {
   sqlite.exec(`
     CREATE TABLE publishers(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE datasets(id TEXT PRIMARY KEY,publisherId TEXT,code TEXT,regionCode TEXT,sourceVariant TEXT);
-    CREATE TABLE releases(id TEXT PRIMARY KEY,datasetId TEXT,resourceType TEXT,status TEXT);
+    CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,datasetId TEXT,resourceType TEXT,status TEXT);
     CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY,variant TEXT);
     CREATE TABLE snapshots(id TEXT PRIMARY KEY,snapshotLineageId TEXT,parentSnapshotId TEXT,resourceType TEXT,
       cohortKey TEXT,geometryStatus TEXT,revision INTEGER,status TEXT,publishedAt TEXT,createdAt TEXT);
@@ -44,7 +44,7 @@ function fixture() {
   ) {
     const type = options.type ?? 'divisionArea'
     sqlite
-      .query('INSERT INTO releases VALUES (?, ?, ?, ?)')
+      .query('INSERT INTO resourceReleases VALUES (?, ?, ?, ?)')
       .run(id, 'geometry', type, options.sourceStatus ?? 'published')
     sqlite
       .query(

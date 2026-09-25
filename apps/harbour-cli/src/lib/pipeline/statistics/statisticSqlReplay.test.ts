@@ -7,7 +7,7 @@ import {
   replayStatisticSqlBatches,
 } from './statisticSqlReplay.ts'
 
-const releaseId = 'release-2022'
+const resourceReleaseId = 'release-2022'
 const sourceVersion = '2022'
 
 function sourceRow(sourceRecordId: string) {
@@ -15,7 +15,7 @@ function sourceRow(sourceRecordId: string) {
     createdAt: '2026-08-16T00:00:00.000Z',
     isCurrent: true,
     properties: { district: sourceRecordId },
-    releaseId,
+    resourceReleaseId,
     sourceGeometry: { type: 'Point', coordinates: [114, 22] },
     sourceRecordId,
     sources: [{ dataset: 'C&SD' }],
@@ -38,7 +38,7 @@ function historyRow(id: string) {
     midYearPopulation: 1,
     midYearPopulationDensityPerSqKm: 1,
     referenceYear: '2022',
-    sourceReleaseId: releaseId,
+    sourceReleaseId: resourceReleaseId,
     sources: [{ dataset: 'C&SD' }],
     updatedAt: '2026-08-16T00:00:00.000Z',
     versionHash: `history-${id}`,
@@ -54,7 +54,7 @@ describe('buildStatisticSqlBatches', () => {
       const sqlite = new Database(':memory:')
       try {
         sqlite.exec(`CREATE TABLE ${table} (
-          createdAt TEXT, isCurrent INTEGER, properties TEXT, releaseId TEXT,
+          createdAt TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
           sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
           validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
           PRIMARY KEY (sourceRecordId, versionHash)
@@ -62,13 +62,13 @@ describe('buildStatisticSqlBatches', () => {
         const replay = (version: string, hash: string) => {
           const batches = buildStatisticSqlBatches({
             sourceVersion: version,
-            releaseId: `release-${version}`,
+            resourceReleaseId: `release-${version}`,
             source: {
               table,
               rows: [
                 {
                   ...sourceRow('district-1'),
-                  releaseId: `release-${version}`,
+                  resourceReleaseId: `release-${version}`,
                   validFromRelease: version,
                   versionHash: hash,
                 },
@@ -98,7 +98,7 @@ describe('buildStatisticSqlBatches', () => {
     expect(() =>
       buildStatisticSqlBatches({
         sourceVersion,
-        releaseId,
+        resourceReleaseId,
         source: {
           rows: [
             {
@@ -116,7 +116,7 @@ describe('buildStatisticSqlBatches', () => {
     const sourceGeometry = { value: 'x'.repeat(100_000) }
     const batches = buildStatisticSqlBatches({
       sourceVersion,
-      releaseId,
+      resourceReleaseId,
       source: {
         rows: [{ ...sourceRow('district-large'), sourceGeometry }],
         table: 'hkgovCenstatdStatistics',
@@ -141,7 +141,7 @@ describe('buildStatisticSqlBatches', () => {
         layerName TEXT, properties TEXT, referencePeriodCode TEXT,
         referencePeriodEnd TEXT, referencePeriodEndYear TEXT,
         referencePeriodGranularity TEXT, referencePeriodStart TEXT,
-        releaseId TEXT, sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT,
+        resourceReleaseId TEXT, sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT,
         updatedAt TEXT, validFromRelease TEXT, validToRelease TEXT, version INTEGER,
         versionHash TEXT, PRIMARY KEY (sourceRecordId, versionHash)
       );
@@ -164,7 +164,7 @@ describe('buildStatisticSqlBatches', () => {
     )
     const batches = buildStatisticSqlBatches({
       sourceVersion,
-      releaseId,
+      resourceReleaseId,
       source: {
         rows: [
           {
@@ -191,7 +191,7 @@ describe('buildStatisticSqlBatches', () => {
     sqlite.exec(`
       CREATE TABLE hkgovCenstatdDivisionAreas (
         censusYear TEXT, createdAt TEXT, isCurrent INTEGER, properties TEXT,
-        releaseId TEXT, sourceGeometry BLOB NOT NULL, sourceLocator TEXT,
+        resourceReleaseId TEXT, sourceGeometry BLOB NOT NULL, sourceLocator TEXT,
         sourceRecordId TEXT, sources TEXT, updatedAt TEXT, validFromRelease TEXT,
         validToRelease TEXT, version INTEGER, versionHash TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)
@@ -215,7 +215,7 @@ describe('buildStatisticSqlBatches', () => {
         table: 'divisionStatistics',
       },
       sourceVersion,
-      releaseId,
+      resourceReleaseId,
       source: {
         rows: [sourceRow('district-2'), sourceRow('district-1')],
         table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
@@ -244,7 +244,7 @@ describe('buildStatisticSqlBatches', () => {
           table: 'divisionStatistics',
         },
         sourceVersion,
-        releaseId,
+        resourceReleaseId,
         source: {
           rows: [sourceRow('district-1'), sourceRow('district-2')],
           table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
@@ -257,7 +257,7 @@ describe('buildStatisticSqlBatches', () => {
     const batches = buildStatisticSqlBatches({
       history: { rows: [historyRow('stat-1')], table: 'divisionStatistics' },
       sourceVersion,
-      releaseId,
+      resourceReleaseId,
       source: {
         rows: [sourceRow('district-1')],
         table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
@@ -266,7 +266,7 @@ describe('buildStatisticSqlBatches', () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`
       CREATE TABLE hkgovCenstatdDistrictLandAreaPopulationDensities (
-        createdAt TEXT, isCurrent INTEGER, properties TEXT, releaseId TEXT,
+        createdAt TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
         sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
         validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)
@@ -365,7 +365,7 @@ describe('replayStatisticSqlBatches', () => {
   test('replays a source-only statistic without requiring a history shard', async () => {
     const batches = buildStatisticSqlBatches({
       sourceVersion,
-      releaseId,
+      resourceReleaseId,
       source: { rows: [sourceRow('district-1')], table: 'hkgovCenstatdStatistics' },
     })
     const calls: Array<[boolean, string]> = []
@@ -403,7 +403,7 @@ describe('replayStatisticSqlBatches', () => {
     const batches = buildStatisticSqlBatches({
       history: { rows: [historyRow('stat-1')], table: 'divisionStatistics' },
       sourceVersion,
-      releaseId,
+      resourceReleaseId,
       source: {
         rows: [sourceRow('district-1')],
         table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
@@ -480,7 +480,7 @@ describe('replayStatisticSqlBatches', () => {
     const batches = buildStatisticSqlBatches({
       history: { rows: [historyRow('stat-1')], table: 'divisionStatistics' },
       sourceVersion,
-      releaseId,
+      resourceReleaseId,
       source: {
         rows: [sourceRow('district-1')],
         table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',

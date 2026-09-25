@@ -1,5 +1,11 @@
 # Retained processing provenance
 
+Processing-result and audit manifests identify their processed output with
+`resourceReleaseId`, matching `resourceReleases.id`. The publisher input is identified
+separately by `resourceReleases.sourceReleaseId`. Manifest fields are part of the
+content-addressed contract: SQL schema migrations do not rewrite R2 objects or retained
+local checkpoints. Artefacts must satisfy the producer and reader contract before reuse.
+
 ## Reuse and reset controls
 
 R2 provenance reuse is automatic. Objects use their canonical JSON SHA-256 as the
@@ -231,9 +237,9 @@ whole graph, checks guards and returns a new state without invoking producer cod
 
 The authenticated Harbour API exposes object upload/read, release registration and
 paginated release views under `/v1/provenance`. The version-1 JSON Schema is available
-at `GET /v1/provenance/schema`. `GET /v1/provenance/releases/{releaseId}` accepts
-`view=manifest`, `applications`, `audit`, `curations` or `api-fields`. Supply the
-returned manifest hash on subsequent pages to reject a changed staged generation.
+at `GET /v1/provenance/schema`. `GET /v1/provenance/releases/{resourceReleaseId}`
+accepts `view=manifest`, `applications`, `audit`, `curations` or `api-fields`. Supply
+the returned manifest hash on subsequent pages to reject a changed staged generation.
 
 ## Producer integration
 

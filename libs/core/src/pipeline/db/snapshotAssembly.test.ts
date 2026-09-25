@@ -31,7 +31,7 @@ function fixture() {
       VALUES ('${id}', 'publisher', '${id}', 'hk', 'static', 'yearly', 'address', '${id}', 'hash', '${now}', '${now}');
       INSERT INTO sourceReleases (id, datasetId, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt)
       VALUES ('source-${id}', '${id}', 'source-${id}', '2026', '2026', 'processing', '${now}', '${now}', '${now}');
-      INSERT INTO releases (id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt)
+      INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt)
       VALUES ('release-${id}', 'source-${id}', '${id}', 'address', 'release-${id}', '2026', '2026', 'processing', '${now}', '${now}', '${now}');`)
   }
   const db = createLocalHarbourDb(sqlite)

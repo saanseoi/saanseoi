@@ -16,14 +16,14 @@ function fixture() {
     generationMs: 0,
     mirrorPreparationMs: 0,
     context: {
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       environment: 'preview',
       phase: 'address-data',
       cacheDir: resolveSharedRemoteDbCacheDir(target),
       cachePreparedAt: '',
       inputs: {
         message: {
-          releaseId: 'release',
+          resourceReleaseId: 'release',
           releaseCode: 'code',
           datasetId: 'dataset',
           datasetCode: 'ds-hk-hkgov-dpo-address',
@@ -38,7 +38,9 @@ function fixture() {
   }
   const dependencies: NonNullable<Parameters<typeof resumeAddressInitialisation>[1]> = {
     readPendingSqlDelivery: async () =>
-      pending ? { releaseId: 'release', directories: ['first', 'second'] } : null,
+      pending
+        ? { resourceReleaseId: 'release', directories: ['first', 'second'] }
+        : null,
     readDeliveryPlan: async () => plan,
     runSqlDeliveryCommand: async args => {
       events.push(String(args.options.plan))

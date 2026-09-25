@@ -62,7 +62,7 @@ export async function normaliseAddressChunkStage(
         phase: 'normaliseAddressChunk',
         rowEnd: Math.min(requestedRowEnd, metadata.rowCount),
         rowStart,
-        releaseId: message.releaseId ?? message.datasetId,
+        resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
         source: message.source,
         sourceVersion: message.sourceVersion,
         resourceType: message.resourceType,
@@ -117,7 +117,7 @@ export async function normaliseAddressChunkStage(
   }
   logStructuredInfo({
     phase: 'addressGranularity',
-    releaseId: message.releaseId ?? message.datasetId,
+    resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
     rowStart,
     rowEnd,
     granularityCounts,
@@ -127,7 +127,7 @@ export async function normaliseAddressChunkStage(
   await writeJsonArtefact<NormalisedAddressChunkArtefact>(bucket, artefactKey, {
     kind: 'address.normalised.v1',
     processingRunStartedAt,
-    releaseId: message.releaseId ?? message.datasetId,
+    resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
     rowStart,
     rowEnd,
     rows,

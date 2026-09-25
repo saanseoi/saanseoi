@@ -223,7 +223,7 @@ async function fixture() {
     await dependency.close()
   }
   const base = {
-    releaseId: 'release-p0',
+    resourceReleaseId: 'release-p0',
     lng: 114.1,
     lat: 22.3,
     addressSnapshotId: 'a0',
@@ -367,7 +367,7 @@ test('Place rollback clears empty predecessor companions and resets pointers whe
     f.assembly('p5', 'place', { address: 'a1', division: 'd1' })
     f.history(f.recent, 'places', 'p5', 'place', 'place-new', {
       ...f.base,
-      releaseId: 'release-p5',
+      resourceReleaseId: 'release-p5',
     })
     f.history(
       f.recent,

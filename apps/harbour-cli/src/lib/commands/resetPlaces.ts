@@ -102,16 +102,16 @@ export async function getOverturePlacesInitialisationStatus(target: UploadTarget
   try {
     const [releases, snapshot, current] = await Promise.all([
       context.metaDb
-        .select({ status: metaSchema.metaReleases.status })
-        .from(metaSchema.metaReleases)
+        .select({ status: metaSchema.metaResourceReleases.status })
+        .from(metaSchema.metaResourceReleases)
         .innerJoin(
           metaSchema.metaDatasets,
-          eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+          eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
         )
         .where(
           and(
             eq(metaSchema.metaDatasets.code, DATASET_CODE),
-            eq(metaSchema.metaReleases.resourceType, 'place'),
+            eq(metaSchema.metaResourceReleases.resourceType, 'place'),
           ),
         )
         .all(),
@@ -294,7 +294,7 @@ export async function recoverFailedPlacesIngestRuns(
       remoteClient
         ? async run => {
             await remoteClient.stageFailed(
-              run.releaseId,
+              run.resourceReleaseId,
               run.phase,
               'Overture Places initialisation was interrupted.',
               undefined,
@@ -318,7 +318,7 @@ export async function resolvePlacesRecoverySqlDeliveryOwner(target: UploadTarget
     if (!metaPath) throw new Error('Places recovery requires the DB_META binding.')
     cacheDir = dirname(metaPath)
   }
-  return (await readPendingSqlDelivery(cacheDir))?.releaseId
+  return (await readPendingSqlDelivery(cacheDir))?.resourceReleaseId
 }
 
 export async function failRunningPlacesIngestRuns(
@@ -327,7 +327,7 @@ export async function failRunningPlacesIngestRuns(
   failRemote?: (run: {
     phase: string
     releaseCode: string
-    releaseId: string
+    resourceReleaseId: string
   }) => Promise<void>,
   recoveryReleaseId?: string,
 ) {
@@ -338,22 +338,22 @@ export async function failRunningPlacesIngestRuns(
     lte(metaSchema.ingestRuns.updatedAt, failedAt),
   ]
   if (recoveryReleaseId) {
-    conditions.push(eq(metaSchema.ingestRuns.releaseId, recoveryReleaseId))
+    conditions.push(eq(metaSchema.ingestRuns.resourceReleaseId, recoveryReleaseId))
   }
   const runs = await db
     .select({
       phase: metaSchema.ingestRuns.phase,
-      releaseCode: metaSchema.metaReleases.code,
-      releaseId: metaSchema.ingestRuns.releaseId,
+      releaseCode: metaSchema.metaResourceReleases.code,
+      resourceReleaseId: metaSchema.ingestRuns.resourceReleaseId,
     })
     .from(metaSchema.ingestRuns)
     .innerJoin(
-      metaSchema.metaReleases,
-      eq(metaSchema.ingestRuns.releaseId, metaSchema.metaReleases.id),
+      metaSchema.metaResourceReleases,
+      eq(metaSchema.ingestRuns.resourceReleaseId, metaSchema.metaResourceReleases.id),
     )
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .where(and(...conditions))
     .all()
@@ -364,7 +364,7 @@ export async function failRunningPlacesIngestRuns(
       {
         error: 'Overture Places initialisation was interrupted.',
         phase: run.phase,
-        releaseId: run.releaseId,
+        resourceReleaseId: run.resourceReleaseId,
       },
       'error',
     )
@@ -505,7 +505,7 @@ type OwnedPlaces = {
   addressReleaseIds: string[]
   addressSnapshotIds: string[]
   apiReleaseSetIds: string[]
-  assets: Array<{ assetKey: string; id: string; releaseId: string | null }>
+  assets: Array<{ assetKey: string; id: string; resourceReleaseId: string | null }>
   placeReleaseIds: string[]
   placeSnapshotIds: string[]
   releaseCodes: string[]
@@ -517,15 +517,15 @@ type OwnedPlaces = {
 export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPlaces> {
   const releases = await db
     .select({
-      code: metaSchema.metaReleases.code,
-      id: metaSchema.metaReleases.id,
-      resourceType: metaSchema.metaReleases.resourceType,
-      sourceReleaseId: metaSchema.metaReleases.sourceReleaseId,
+      code: metaSchema.metaResourceReleases.code,
+      id: metaSchema.metaResourceReleases.id,
+      resourceType: metaSchema.metaResourceReleases.resourceType,
+      sourceReleaseId: metaSchema.metaResourceReleases.sourceReleaseId,
     })
-    .from(metaSchema.metaReleases)
+    .from(metaSchema.metaResourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -590,16 +590,16 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
     .select({
       assetKey: metaSchema.metaAssets.assetKey,
       id: metaSchema.metaAssets.id,
-      releaseId: metaSchema.metaAssets.releaseId,
+      resourceReleaseId: metaSchema.metaAssets.resourceReleaseId,
     })
     .from(metaSchema.metaAssets)
     .innerJoin(
-      metaSchema.metaReleases,
-      eq(metaSchema.metaAssets.releaseId, metaSchema.metaReleases.id),
+      metaSchema.metaResourceReleases,
+      eq(metaSchema.metaAssets.resourceReleaseId, metaSchema.metaResourceReleases.id),
     )
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -637,14 +637,19 @@ export async function assertPlacesInitialisationComplete(
   const [unfinishedRelease, unfinishedSnapshot] = await Promise.all([
     db
       .select({
-        code: metaSchema.metaReleases.code,
-        status: metaSchema.metaReleases.status,
+        code: metaSchema.metaResourceReleases.code,
+        status: metaSchema.metaResourceReleases.status,
       })
-      .from(metaSchema.metaReleases)
+      .from(metaSchema.metaResourceReleases)
       .where(
         and(
-          inArray(metaSchema.metaReleases.id, owned.releaseIds),
-          not(inArray(metaSchema.metaReleases.status, ['published', 'superseded'])),
+          inArray(metaSchema.metaResourceReleases.id, owned.releaseIds),
+          not(
+            inArray(metaSchema.metaResourceReleases.status, [
+              'published',
+              'superseded',
+            ]),
+          ),
         ),
       )
       .limit(1)
@@ -682,11 +687,11 @@ async function assertCleanPlacesBaseline(
 ) {
   const [release, snapshot, current] = await Promise.all([
     context.metaDb
-      .select({ id: metaSchema.metaReleases.id })
-      .from(metaSchema.metaReleases)
+      .select({ id: metaSchema.metaResourceReleases.id })
+      .from(metaSchema.metaResourceReleases)
       .innerJoin(
         metaSchema.metaDatasets,
-        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+        eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
       )
       .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
       .limit(1)
@@ -738,11 +743,11 @@ async function assertPlacesResetStillSafe(
   owned: OwnedPlaces,
 ) {
   const releases = await context.metaDb
-    .select({ id: metaSchema.metaReleases.id })
-    .from(metaSchema.metaReleases)
+    .select({ id: metaSchema.metaResourceReleases.id })
+    .from(metaSchema.metaResourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -848,11 +853,16 @@ async function assertPlacesResetStillSafe(
   }
   for (const target of context.sourceTargets) {
     const unexpectedSource = await (target.db as HarbourReadableDb)
-      .select({ releaseId: sourceSchema.sourceOverturePlaces.releaseId })
+      .select({
+        resourceReleaseId: sourceSchema.sourceOverturePlaces.resourceReleaseId,
+      })
       .from(sourceSchema.sourceOverturePlaces)
       .where(
         not(
-          inArray(sourceSchema.sourceOverturePlaces.releaseId, owned.placeReleaseIds),
+          inArray(
+            sourceSchema.sourceOverturePlaces.resourceReleaseId,
+            owned.placeReleaseIds,
+          ),
         ),
       )
       .limit(1)
@@ -866,7 +876,7 @@ async function assertPlacesResetStillSafe(
   const assets = await context.metaDb
     .select({ id: metaSchema.metaAssets.id })
     .from(metaSchema.metaAssets)
-    .where(inArray(metaSchema.metaAssets.releaseId, owned.releaseIds))
+    .where(inArray(metaSchema.metaAssets.resourceReleaseId, owned.releaseIds))
     .all()
   if (
     !sameSet(
@@ -879,9 +889,11 @@ async function assertPlacesResetStillSafe(
     )
 
   const sourceReleaseOwners = await context.metaDb
-    .select({ id: metaSchema.metaReleases.id })
-    .from(metaSchema.metaReleases)
-    .where(inArray(metaSchema.metaReleases.sourceReleaseId, owned.sourceReleaseIds))
+    .select({ id: metaSchema.metaResourceReleases.id })
+    .from(metaSchema.metaResourceReleases)
+    .where(
+      inArray(metaSchema.metaResourceReleases.sourceReleaseId, owned.sourceReleaseIds),
+    )
     .all()
   if (sourceReleaseOwners.some(row => !owned.releaseIds.includes(row.id)))
     throw new Error(
@@ -1026,24 +1038,24 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});`,
     `DELETE FROM sourceResolutions WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${placeReleases});`,
   ].join('\n')
-  const sourceSql = `DELETE FROM overturePlaces WHERE releaseId IN (${placeReleases});`
+  const sourceSql = `DELETE FROM overturePlaces WHERE resourceReleaseId IN (${placeReleases});`
   const metaSql = [
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${apiReleaseSets});`,
-    `DELETE FROM publishedDataJournal WHERE releaseId IN (${releaseIds}) OR relatedReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
-    `DELETE FROM stats WHERE releaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
-    `DELETE FROM releaseProcessingActions WHERE releaseId IN (${releaseIds});`,
-    `DELETE FROM releaseProcessingActionChunks WHERE releaseId IN (${releaseIds});`,
-    `DELETE FROM ingestRuns WHERE releaseId IN (${releaseIds});`,
-    `DELETE FROM releaseShardAssignments WHERE releaseId IN (${releaseIds});`,
+    `DELETE FROM publishedDataJournal WHERE resourceReleaseId IN (${releaseIds}) OR relatedResourceReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
+    `DELETE FROM stats WHERE resourceReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
+    `DELETE FROM releaseProcessingActions WHERE resourceReleaseId IN (${releaseIds});`,
+    `DELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId IN (${releaseIds});`,
+    `DELETE FROM ingestRuns WHERE resourceReleaseId IN (${releaseIds});`,
+    `DELETE FROM releaseShardAssignments WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId IN (${snapshots});`,
     `DELETE FROM snapshotSourceReleases WHERE snapshotId IN (${snapshots}) OR resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM apiReleaseSets WHERE id IN (${apiReleaseSets});`,
     `DELETE FROM assets WHERE id IN (${assets});`,
     `DELETE FROM snapshots WHERE id IN (${snapshots});`,
-    `DELETE FROM releases WHERE id IN (${releaseIds});`,
-    `DELETE FROM sourceReleases WHERE id IN (${sourceReleases}) AND NOT EXISTS (SELECT 1 FROM releases WHERE releases.sourceReleaseId = sourceReleases.id);`,
+    `DELETE FROM resourceReleases WHERE id IN (${releaseIds});`,
+    `DELETE FROM sourceReleases WHERE id IN (${sourceReleases}) AND NOT EXISTS (SELECT 1 FROM resourceReleases WHERE resourceReleases.sourceReleaseId = sourceReleases.id);`,
   ].join('\n')
 
   return { currentSql, historySql, sourceSql, metaSql }

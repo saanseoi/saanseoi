@@ -7,7 +7,7 @@ import type { UploadTarget } from '../cli/options.ts'
 
 type StagePayload = {
   releaseCode?: string
-  releaseId?: string
+  resourceReleaseId?: string
   error?: string
   phase: string
   stats?: Record<string, unknown>
@@ -24,7 +24,7 @@ type PublishPayload = {
   deferStatsReleaseSet?: boolean
   deferSourcePublish?: boolean
   releaseCode?: string
-  releaseId?: string
+  resourceReleaseId?: string
   skipSnapshotCleanup?: boolean
 }
 
@@ -42,7 +42,7 @@ export function createHarbourControlClient(target: UploadTarget) {
 
   return {
     publishDataset(
-      releaseId: string,
+      resourceReleaseId: string,
       releaseCode?: string,
       publishOptions: {
         carriedSnapshots?: Array<{
@@ -63,7 +63,7 @@ export function createHarbourControlClient(target: UploadTarget) {
         '/v1/control/publishDataset',
         {
           releaseCode,
-          releaseId,
+          resourceReleaseId,
           ...(publishOptions.carriedSnapshots
             ? { carriedSnapshots: publishOptions.carriedSnapshots }
             : {}),
@@ -90,7 +90,7 @@ export function createHarbourControlClient(target: UploadTarget) {
       )
     },
     async stageCompleted(
-      releaseId: string,
+      resourceReleaseId: string,
       phase: string,
       stats?: Record<string, unknown>,
       releaseCode?: string,
@@ -99,12 +99,12 @@ export function createHarbourControlClient(target: UploadTarget) {
         baseUrl,
         authHeaders,
         '/v1/control/stageCompleted',
-        { releaseCode, releaseId, phase, stats },
+        { releaseCode, resourceReleaseId, phase, stats },
         { retryLocalProxyConnectionFailure: !target.remote },
       )
     },
     async stageFailed(
-      releaseId: string,
+      resourceReleaseId: string,
       phase: string,
       error: string,
       stats?: Record<string, unknown>,
@@ -114,12 +114,12 @@ export function createHarbourControlClient(target: UploadTarget) {
         baseUrl,
         authHeaders,
         '/v1/control/stageFailed',
-        { releaseCode, releaseId, error, phase, stats },
+        { releaseCode, resourceReleaseId, error, phase, stats },
         { retryLocalProxyConnectionFailure: !target.remote },
       )
     },
     async stageRunning(
-      releaseId: string,
+      resourceReleaseId: string,
       phase: string,
       stats?: Record<string, unknown>,
       releaseCode?: string,
@@ -128,7 +128,7 @@ export function createHarbourControlClient(target: UploadTarget) {
         baseUrl,
         authHeaders,
         '/v1/control/stageRunning',
-        { releaseCode, releaseId, phase, stats },
+        { releaseCode, resourceReleaseId, phase, stats },
         { retryLocalProxyConnectionFailure: !target.remote },
       )
     },

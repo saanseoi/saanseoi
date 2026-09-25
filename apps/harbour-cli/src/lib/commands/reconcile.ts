@@ -85,7 +85,7 @@ export async function runReconcileDraftReleaseSetsCommand(
           metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
           progress: new OperationProgress(),
           releaseCode: statsTarget.releaseCode,
-          releaseId: statsTarget.releaseId,
+          resourceReleaseId: statsTarget.resourceReleaseId,
           target: {
             apiReleaseSetId: statsTarget.apiReleaseSetId,
             snapshotId: statsTarget.snapshotId,

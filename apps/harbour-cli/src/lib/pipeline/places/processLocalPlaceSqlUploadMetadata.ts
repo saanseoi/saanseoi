@@ -27,7 +27,7 @@ export async function upsertPlaceMetadata(
     supplementaryAddressSnapshotId: string
   },
   datasetId: string,
-  releaseId: string,
+  resourceReleaseId: string,
   plan: PlaceUploadPlan,
   target: UploadTarget,
   options: { sourceBindingNames?: readonly string[] } = {},
@@ -36,10 +36,10 @@ export async function upsertPlaceMetadata(
     metaDb,
     snapshots.snapshotId,
     datasetId,
-    releaseId,
+    resourceReleaseId,
     'primary',
     {
-      anchorReleaseId: releaseId,
+      anchorReleaseId: resourceReleaseId,
       selectedByRule: 'snapshot-assembly-places-overture-v1',
       selectionMode: 'exact_ref',
       sourceCohortKey: plan.cohortKey,
@@ -48,7 +48,7 @@ export async function upsertPlaceMetadata(
   await recordPlaceAddressAssembly(metaDb, {
     snapshotId: snapshots.snapshotId,
     resourceType: 'place',
-    anchorReleaseId: releaseId,
+    anchorReleaseId: resourceReleaseId,
     anchorCohortKey: plan.cohortKey,
     dependencies: {
       address: snapshots.addressSnapshotId,
@@ -60,19 +60,19 @@ export async function upsertPlaceMetadata(
     },
     reviewRequired: 0,
     detailsJson: {
-      sourceReleaseId: releaseId,
+      sourceReleaseId: resourceReleaseId,
       sourceVersion: plan.sourceVersion,
     },
   })
   await recordSnapshotLookupDependency(metaDb, {
-    anchorReleaseId: releaseId,
+    anchorReleaseId: resourceReleaseId,
     lookupSnapshotId: snapshots.addressSnapshotId,
     selectedByRule: 'api-composition:places/overture:place/default->address/default',
     selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
     snapshotId: snapshots.snapshotId,
   })
   await recordSnapshotLookupDependency(metaDb, {
-    anchorReleaseId: releaseId,
+    anchorReleaseId: resourceReleaseId,
     lookupSnapshotId: snapshots.divisionSnapshotId,
     selectedByRule: 'place-preparation:address-exact-division',
     selectionMode: 'address_snapshot_reference',
@@ -80,7 +80,7 @@ export async function upsertPlaceMetadata(
   })
   if (snapshots.divisionAreaSnapshotId)
     await recordSnapshotLookupDependency(metaDb, {
-      anchorReleaseId: releaseId,
+      anchorReleaseId: resourceReleaseId,
       lookupSnapshotId: snapshots.divisionAreaSnapshotId,
       selectedByRule: 'place-preparation:address-exact-division-area',
       selectionMode: 'address_snapshot_reference',
@@ -103,18 +103,23 @@ export async function upsertPlaceMetadata(
   )
   if (historyShard) {
     await upsertSnapshotShardAssignment(metaDb, snapshots.snapshotId, historyShard.id)
-    await upsertReleaseShardAssignment(metaDb, releaseId, historyShard.id)
+    await upsertReleaseShardAssignment(metaDb, resourceReleaseId, historyShard.id)
   }
   const sourceBindingNames = [
     ...(options.sourceBindingNames ?? []),
     ...(sourceShard ? [sourceShard.bindingName] : []),
   ]
-  await assignPlaceSourceShards(metaDb, releaseId, environment, sourceBindingNames)
+  await assignPlaceSourceShards(
+    metaDb,
+    resourceReleaseId,
+    environment,
+    sourceBindingNames,
+  )
 }
 
 export async function assignPlaceSourceShards(
   metaDb: HarbourReadableDb & HarbourWritableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   environment: 'preview' | 'production',
   bindingNames: readonly string[],
 ) {
@@ -145,7 +150,7 @@ export async function assignPlaceSourceShards(
   )
   await Promise.all(
     sourceShards.map(shard =>
-      upsertReleaseShardAssignment(metaDb, releaseId, shard.id),
+      upsertReleaseShardAssignment(metaDb, resourceReleaseId, shard.id),
     ),
   )
   return sourceShards
@@ -220,7 +225,7 @@ export async function placeTargets(
 export async function buildPlaceMetadataSql(
   db: HarbourReadableDb,
   snapshotId: string,
-  releaseId: string,
+  resourceReleaseId: string,
 ) {
   const snapshot = await db
     .select()
@@ -261,12 +266,14 @@ export async function buildPlaceMetadataSql(
     db
       .select()
       .from(metaSchema.metaReleaseShardAssignments)
-      .where(eq(metaSchema.metaReleaseShardAssignments.releaseId, releaseId))
+      .where(
+        eq(metaSchema.metaReleaseShardAssignments.resourceReleaseId, resourceReleaseId),
+      )
       .all(),
     db
       .select()
       .from(metaSchema.stats)
-      .where(eq(metaSchema.stats.releaseId, releaseId))
+      .where(eq(metaSchema.stats.resourceReleaseId, resourceReleaseId))
       .all(),
   ])
   return [

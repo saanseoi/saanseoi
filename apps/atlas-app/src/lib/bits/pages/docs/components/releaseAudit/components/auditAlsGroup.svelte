@@ -10,14 +10,14 @@ let {
   all,
   visible,
   query,
-  releaseId,
+  resourceReleaseId,
   releaseCode,
   hash,
 }: {
   all: AlsSearchRow[]
   visible: AlsSearchRow[]
   query: string
-  releaseId: string
+  resourceReleaseId: string
   releaseCode: string
   hash: string
 } = $props()
@@ -30,7 +30,7 @@ let scope = ''
 const retained = new Map<string, AlsDecision>()
 const read = (offset = 0, copy = false) =>
   getAuditAlsDecisions({
-    releaseId,
+    resourceReleaseId,
     releaseCode,
     hash,
     kind: all[0]?.kind ?? '',
@@ -42,7 +42,7 @@ async function load(reset = false) {
   const request = ++generation
   loading = true
   failure = false
-  const currentScope = JSON.stringify([releaseId, hash, all[0]?.kind])
+  const currentScope = JSON.stringify([resourceReleaseId, hash, all[0]?.kind])
   if (scope !== currentScope) {
     scope = currentScope
     retained.clear()
@@ -72,7 +72,7 @@ async function load(reset = false) {
 }
 $effect(() => {
   query
-  releaseId
+  resourceReleaseId
   releaseCode
   hash
   if (open)

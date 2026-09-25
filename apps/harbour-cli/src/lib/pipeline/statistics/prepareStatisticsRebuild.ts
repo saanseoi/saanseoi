@@ -254,7 +254,7 @@ function listRetainedSnapshots(meta: Database) {
     .query(`SELECT s.id, s.parentSnapshotId, s.cohortKey, s.status, s.createdAt,
     ss.resourceReleaseId AS sourceReleaseId, r.sourceVersion, r.code AS releaseCode, d.code AS datasetCode
     FROM snapshots s JOIN snapshotSourceReleases ss ON ss.snapshotId = s.id
-    JOIN releases r ON r.id = ss.resourceReleaseId JOIN datasets d ON d.id = ss.datasetId
+    JOIN resourceReleases r ON r.id = ss.resourceReleaseId JOIN datasets d ON d.id = ss.datasetId
     WHERE s.resourceType = 'divisionStatistic' AND ss.role <> 'lookup'
     ORDER BY s.createdAt, s.revision, s.id`)
     .all() as Snapshot[]
@@ -413,7 +413,7 @@ function sourcePropertiesReader(dbs: Database[], snapshot: Snapshot) {
       db =>
         db
           .query(`SELECT properties FROM hkgovCenstatdStatistics
-      WHERE sourceRecordId = ? AND (releaseId = ? OR (validFromRelease <= ? AND (validToRelease IS NULL OR validToRelease > ?)))`)
+      WHERE sourceRecordId = ? AND (resourceReleaseId = ? OR (validFromRelease <= ? AND (validToRelease IS NULL OR validToRelease > ?)))`)
           .all(sourceRecordId, snapshot.sourceReleaseId, boundary, boundary) as Array<{
           properties: string
         }>,

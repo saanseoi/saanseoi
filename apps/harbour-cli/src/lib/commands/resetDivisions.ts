@@ -56,7 +56,7 @@ function resetReadContext(
 }
 
 const TYPES = "('division', 'divisionArea', 'divisionBoundary')"
-const RELEASES = `SELECT id FROM releases WHERE resourceType IN ${TYPES}`
+const RELEASES = `SELECT id FROM resourceReleases WHERE resourceType IN ${TYPES}`
 const SNAPSHOTS = `SELECT id FROM snapshots WHERE resourceType IN ${TYPES}`
 const VERSIONS = "SELECT id FROM apiVersions WHERE familyType = 'divisions'"
 const SETS = `SELECT id FROM apiReleaseSets WHERE apiVersionId IN (${VERSIONS})`
@@ -86,7 +86,7 @@ async function rows(binding: ReadBinding | undefined, sql: string) {
 export async function collectDivisionResetPlan(context: ResetReadContext) {
   const releases = await rows(
     context.metaBinding,
-    `SELECT id, code, sourceReleaseId, status, updatedAt FROM releases WHERE resourceType IN ${TYPES} ORDER BY id`,
+    `SELECT id, code, sourceReleaseId, status, updatedAt FROM resourceReleases WHERE resourceType IN ${TYPES} ORDER BY id`,
   )
   const snapshots = await rows(
     context.metaBinding,
@@ -204,33 +204,33 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     ...deleteIds('sourceResolutions', 'sourceReleaseId', releaseIds),
   ].join('\n')
   const sourceSql = SOURCE_TABLES.flatMap(table =>
-    deleteIds(table, 'releaseId', releaseIds),
+    deleteIds(table, 'resourceReleaseId', releaseIds),
   ).join('\n')
   const metaSql = [
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId IN (${SETS});`,
     `DELETE FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId IN (SELECT id FROM apiCatalogRevisions WHERE apiVersionId IN (${VERSIONS}));`,
     `DELETE FROM apiCatalogRevisions WHERE apiVersionId IN (${VERSIONS});`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${SETS});`,
-    `DELETE FROM publishedDataJournal WHERE releaseId IN (${RELEASES});`,
-    `DELETE FROM stats WHERE releaseId IN (${RELEASES}) OR apiReleaseSetId IN (${SETS});`,
+    `DELETE FROM publishedDataJournal WHERE resourceReleaseId IN (${RELEASES});`,
+    `DELETE FROM stats WHERE resourceReleaseId IN (${RELEASES}) OR apiReleaseSetId IN (${SETS});`,
     ...[
       'releaseProcessingActionChunks',
       'releaseProcessingActions',
       'ingestRuns',
       'releaseShardAssignments',
       'releaseProvenance',
-    ].map(table => `DELETE FROM ${table} WHERE releaseId IN (${RELEASES});`),
+    ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),
     `DELETE FROM snapshotDependencies WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM snapshotSourceReleases WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM apiReleaseSets WHERE id IN (${SETS});`,
     // Keep source evidence assets and fixture identities available for replay.
-    // assets.releaseId and journal references use ON DELETE SET NULL.
+    // assets.resourceReleaseId and journal references use ON DELETE SET NULL.
     `DELETE FROM snapshots WHERE id IN (${SNAPSHOTS});`,
-    `DELETE FROM releases WHERE id IN (${RELEASES});`,
+    `DELETE FROM resourceReleases WHERE id IN (${RELEASES});`,
     ...sourceReleaseIds.map(
       id =>
-        `DELETE FROM sourceReleases WHERE id = ${literal(id)} AND NOT EXISTS (SELECT 1 FROM releases WHERE releases.sourceReleaseId = sourceReleases.id);`,
+        `DELETE FROM sourceReleases WHERE id = ${literal(id)} AND NOT EXISTS (SELECT 1 FROM resourceReleases WHERE resourceReleases.sourceReleaseId = sourceReleases.id);`,
     ),
   ].join('\n')
   return { currentSql, historySql, sourceSql, metaSql }
@@ -298,7 +298,7 @@ export async function runResetDivisionsCommand(
     const metaPath = mapLocalTargetPaths(await resolveD1Targets('local')).DB_META
     if (!metaPath) throw new Error('Division reset requires the DB_META binding.')
     resumeSqlDeliveryReleaseId = (await readPendingSqlDelivery(dirname(metaPath)))
-      ?.releaseId
+      ?.resourceReleaseId
   }
   const context = await resolveLocalAddressDbContext(target, 'hk', '2025', {
     resumeSqlDeliveryReleaseId,

@@ -141,7 +141,7 @@ export async function replaceCurrentI18n(
 export async function insertHistoryRows(
   db: HarbourWritableDb,
   snapshotId: string,
-  releaseId: string,
+  resourceReleaseId: string,
   _cohortKey: string,
   records: PreparedDivision[],
   compressedGeometryByDivisionId: CompressedPlanningDivisionGeometry,
@@ -158,7 +158,7 @@ export async function insertHistoryRows(
       if (!resolution) {
         resolution = {
           snapshotId,
-          sourceReleaseId: releaseId,
+          sourceReleaseId: resourceReleaseId,
           sourceRecordId: source.sourceRecordId,
           sourceVersionHash: await createHash(nativeSourcePayloadHashInput(source)),
           resolutions: { entities: { division: [] } },
@@ -186,7 +186,7 @@ export async function insertHistoryRows(
             record.base.id,
           ),
           versionHash: record.versionHash,
-          sourceReleaseId: releaseId,
+          sourceReleaseId: resourceReleaseId,
           snapshotId,
           isCurrent: true,
           createdAt: now,
@@ -198,7 +198,7 @@ export async function insertHistoryRows(
         set: {
           isCurrent: true,
           snapshotId,
-          sourceReleaseId: releaseId,
+          sourceReleaseId: resourceReleaseId,
           updatedAt: now,
         },
       })
@@ -208,7 +208,7 @@ export async function insertHistoryRows(
   }
   await recordSnapshotVersionChanges(db, {
     snapshotId,
-    sourceReleaseId: releaseId,
+    sourceReleaseId: resourceReleaseId,
     recordType: 'division',
     operation: 'upsert',
     changes: records.map(record => ({
@@ -221,7 +221,7 @@ export async function insertHistoryRows(
 export async function insertHistoryI18nRows(
   db: HarbourWritableDb,
   snapshotId: string,
-  releaseId: string,
+  resourceReleaseId: string,
   _cohortKey: string,
   records: PreparedDivision[],
   now: string,
@@ -237,7 +237,7 @@ export async function insertHistoryI18nRows(
       nameRules: null,
       isLocaleInferred: false,
       versionHash: record.versionHash,
-      sourceReleaseId: releaseId,
+      sourceReleaseId: resourceReleaseId,
       snapshotId,
       isCurrent: true,
       createdAt: now,
@@ -258,7 +258,7 @@ export async function insertHistoryI18nRows(
         set: {
           isCurrent: true,
           snapshotId,
-          sourceReleaseId: releaseId,
+          sourceReleaseId: resourceReleaseId,
           updatedAt: now,
         },
       })
@@ -268,7 +268,7 @@ export async function insertHistoryI18nRows(
   }
   await recordSnapshotVersionChanges(db, {
     snapshotId,
-    sourceReleaseId: releaseId,
+    sourceReleaseId: resourceReleaseId,
     recordType: 'divisionI18n',
     operation: 'upsert',
     changes: rows.map(row => ({
@@ -281,7 +281,7 @@ export async function insertHistoryI18nRows(
 
 export async function insertSourceRows(
   db: HarbourWritableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   sourceVersion: string,
   records: Array<
     PreparedDivision['cells'][number] | NonNullable<PreparedDivision['newTown']>
@@ -299,7 +299,7 @@ export async function insertSourceRows(
         sourceGeometry: cell.sourceGeometry,
         sourceLocator: { layer: 'TPUSU' },
         versionHash: await createHash(nativeSourcePayloadHashInput(cell)),
-        releaseId,
+        resourceReleaseId,
         validFromRelease: sourceVersion,
         validToRelease: null,
         isCurrent: true,
@@ -317,7 +317,7 @@ export async function insertSourceRows(
             sourceSchema.sourceHkgovPlandPlanningCells.sourceRecordId,
             sourceSchema.sourceHkgovPlandPlanningCells.versionHash,
           ],
-          set: sourceVersionConflictUpdate(releaseId, sourceVersion, now),
+          set: sourceVersionConflictUpdate(resourceReleaseId, sourceVersion, now),
         })
         .run()
       processedRows += chunk.length
@@ -334,7 +334,7 @@ export async function insertSourceRows(
       sourceGeometry: town.sourceGeometry,
       sourceLocator: null,
       versionHash: await createHash(nativeSourcePayloadHashInput(town)),
-      releaseId,
+      resourceReleaseId,
       validFromRelease: sourceVersion,
       validToRelease: null,
       isCurrent: true,
@@ -352,7 +352,7 @@ export async function insertSourceRows(
           sourceSchema.sourceHkgovPlandNewTowns.sourceRecordId,
           sourceSchema.sourceHkgovPlandNewTowns.versionHash,
         ],
-        set: sourceVersionConflictUpdate(releaseId, sourceVersion, now),
+        set: sourceVersionConflictUpdate(resourceReleaseId, sourceVersion, now),
       })
       .run()
     processedRows += chunk.length
@@ -361,13 +361,13 @@ export async function insertSourceRows(
 }
 
 function sourceVersionConflictUpdate(
-  releaseId: string,
+  resourceReleaseId: string,
   sourceVersion: string,
   now: string,
 ) {
   return {
     isCurrent: true,
-    releaseId,
+    resourceReleaseId,
     validFromRelease: sourceVersion,
     validToRelease: null,
     updatedAt: now,

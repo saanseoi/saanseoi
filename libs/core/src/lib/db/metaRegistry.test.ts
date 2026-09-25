@@ -167,7 +167,7 @@ id TEXT PRIMARY KEY,
       role TEXT NOT NULL
     );
 
-    CREATE TABLE releases (
+    CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY,
       datasetId TEXT,
       sourceReleaseId TEXT,
@@ -203,7 +203,7 @@ id TEXT PRIMARY KEY,
 
     CREATE TABLE releaseProcessingActions (
       id TEXT PRIMARY KEY,
-      releaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       action TEXT NOT NULL,
       mode TEXT NOT NULL,
       generation TEXT NOT NULL,
@@ -213,7 +213,7 @@ id TEXT PRIMARY KEY,
       updatedAt TEXT NOT NULL
     );
     CREATE TABLE releaseProcessingActionChunks (
-      id TEXT PRIMARY KEY, releaseId TEXT, actionId TEXT, generation TEXT,
+      id TEXT PRIMARY KEY, resourceReleaseId TEXT, actionId TEXT, generation TEXT,
       firstOrdinal INTEGER, decisionCount INTEGER, part INTEGER, parts INTEGER,
       encoding TEXT, checksum TEXT, payload BLOB
     );
@@ -326,7 +326,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('source-version-b', 'dataset-b', 'dr-hk-landsd-addresses-2026-07-15'),
         ('source-version-c', 'dataset-c', 'dr-hk-overture-divisions-2026-07-15');
 
-      INSERT INTO releases (id, datasetId, sourceReleaseId, code, sourceVersion, ingestedAt, processingRules) VALUES
+      INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, sourceVersion, ingestedAt, processingRules) VALUES
         ('source-release-a', 'dataset-a', 'source-version-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":{}}]}]}'),
         ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":{}}]}]}'),
         ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{}');
@@ -337,7 +337,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('snapshot-b', 'dataset-b', 'source-release-b', 'primary');
 
       INSERT INTO releaseProcessingActions (
-        id, releaseId, action, mode, generation, affectedRecordCount, decisionCount, createdAt, updatedAt
+        id, resourceReleaseId, action, mode, generation, affectedRecordCount, decisionCount, createdAt, updatedAt
       ) VALUES
         ('action-a', 'source-release-a', 'address_normalised', 'automatic', 'g1', 5, 1, '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
         ('action-b', 'source-release-b', 'address_normalised', 'automatic', 'g1', 3, 1, '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z');
@@ -518,7 +518,7 @@ function createIngestRunDb() {
   sqlite.exec(`
     CREATE TABLE ingestRuns (
       runId TEXT PRIMARY KEY,
-      releaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       phase TEXT NOT NULL,
       status TEXT NOT NULL,
       stats TEXT,
@@ -527,7 +527,7 @@ function createIngestRunDb() {
       finishedAt TEXT,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL,
-      UNIQUE(releaseId, phase)
+      UNIQUE(resourceReleaseId, phase)
     );
   `)
 
@@ -562,7 +562,7 @@ function createDraftSnapshotDb() {
   const sqlite = new SQLiteDatabase(':memory:')
 
   sqlite.exec(`
-    CREATE TABLE releases(id TEXT PRIMARY KEY,status TEXT NOT NULL);
+    CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,status TEXT NOT NULL);
     CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT NOT NULL,snapshotId TEXT NOT NULL);
     CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT NOT NULL,apiReleaseSetId TEXT NOT NULL);
     CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY,apiVersionId TEXT NOT NULL,regionCode TEXT NOT NULL,status TEXT NOT NULL,publishedAt TEXT NOT NULL,revision INTEGER NOT NULL);
@@ -823,7 +823,7 @@ function createLatestDatasetLookupDb() {
       processingRules TEXT
     );
 
-    CREATE TABLE releases (
+    CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY,
       sourceReleaseId TEXT,
       datasetId TEXT NOT NULL,
@@ -842,7 +842,7 @@ function createLatestDatasetLookupDb() {
       status TEXT NOT NULL,
       revokedAt INTEGER,
       revocationReason TEXT,
-      supersededByReleaseId TEXT,
+      supersededByResourceReleaseId TEXT,
       ingestedAt TEXT NOT NULL,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
@@ -899,7 +899,7 @@ function createCleanupCandidatesDb() {
     CREATE TABLE snapshotSourceReleases (
       snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT
     );
-    CREATE TABLE releases (
+    CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, status TEXT
     );
     CREATE TABLE datasets (
@@ -1121,7 +1121,7 @@ id TEXT PRIMARY KEY,
       PRIMARY KEY (apiCatalogRevisionId, domainCode, cohortKey)
     );
 
-    CREATE TABLE releases (
+    CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY,
       sourceReleaseId TEXT,
       datasetId TEXT,
@@ -1134,7 +1134,7 @@ id TEXT PRIMARY KEY,
       status TEXT NOT NULL,
       revokedAt INTEGER,
       revocationReason TEXT,
-      supersededByReleaseId TEXT,
+      supersededByResourceReleaseId TEXT,
       updatedAt INTEGER NOT NULL
     );
 
@@ -1198,8 +1198,8 @@ id TEXT PRIMARY KEY,
 
     CREATE TABLE publishedDataJournal (
       id TEXT PRIMARY KEY,
-      releaseId TEXT NOT NULL,
-      relatedReleaseId TEXT,
+      resourceReleaseId TEXT NOT NULL,
+      relatedResourceReleaseId TEXT,
       snapshotId TEXT,
       apiReleaseSetId TEXT,
       action TEXT NOT NULL,
@@ -1235,9 +1235,9 @@ function seedCompleteOvertureFixtureSources(
       ('publisher-hkgov-had', 'hkgov-had'),
       ('publisher-hkgov-censtatd', 'hkgov-censtatd');
 
-    INSERT OR IGNORE INTO releases (
+    INSERT OR IGNORE INTO resourceReleases (
       id, sourceVersion, sourceSchemaVersion, status, revokedAt,
-      revocationReason, supersededByReleaseId, updatedAt
+      revocationReason, supersededByResourceReleaseId, updatedAt
     ) VALUES
       ('release-supporting-area', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
       ('release-supporting-boundary', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
@@ -1257,7 +1257,7 @@ function seedCompleteOvertureFixtureSources(
   for (const dataset of initialDatasets) {
     sqlite
       .query(
-        `UPDATE releases SET processingRules = ? WHERE id IN (SELECT ss.resourceReleaseId FROM snapshotSourceReleases ss JOIN datasets d ON d.id = ss.datasetId WHERE d.code = ?)`,
+        `UPDATE resourceReleases SET processingRules = ? WHERE id IN (SELECT ss.resourceReleaseId FROM snapshotSourceReleases ss JOIN datasets d ON d.id = ss.datasetId WHERE d.code = ?)`,
       )
       .run(JSON.stringify(dataset.processingRules), dataset.code)
   }
@@ -1438,7 +1438,7 @@ describe('ensureIngestRunStarted', () => {
 
     sqlite.exec(`
       INSERT INTO ingestRuns (
-        runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+        runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
       ) VALUES (
         'run-1',
         'release-1',
@@ -1463,7 +1463,7 @@ describe('ensureIngestRunStarted', () => {
 
     const row = sqlite
       .query(
-        'SELECT runId, status, stats, startedAt, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+        'SELECT runId, status, stats, startedAt, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
       )
       .get('release-1', 'stageDataset') as {
       finishedAt: string | null
@@ -1876,9 +1876,11 @@ describe('ensureDraftSnapshotForRelease', () => {
           sourceReleaseId: 'source-b',
         })
         sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(b.id)
-        sqlite.query('INSERT INTO releases VALUES (?,?)').run('source-a', 'published')
         sqlite
-          .query('INSERT INTO releases VALUES (?,?)')
+          .query('INSERT INTO resourceReleases VALUES (?,?)')
+          .run('source-a', 'published')
+        sqlite
+          .query('INSERT INTO resourceReleases VALUES (?,?)')
           .run('source-b', withdrawnSourceStatus)
         sqlite
           .query(
@@ -2268,7 +2270,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 
     expect(
       sqlite
-        .query('SELECT datasetId FROM releases WHERE code = ?')
+        .query('SELECT datasetId FROM resourceReleases WHERE code = ?')
         .get('dr-hk-hkgov-pland-division-pu-2001'),
     ).toEqual({ datasetId: 'dataset-pland-pu' })
 
@@ -2306,7 +2308,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-district-area', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'divisions', 'divisionArea'),
         ('dataset-hma', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups', 'hk', 'divisions', 'divisionArea');
-      INSERT INTO releases (
+      INSERT INTO resourceReleases (
         id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey,
         originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES
@@ -2337,8 +2339,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-division', 'publisher-overture', 'ds-hk-overture-division', 'hk', 'divisions', 'division');
 
-      INSERT INTO releases (
-        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+      INSERT INTO resourceReleases (
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
       ) VALUES
         (
           'release-10',
@@ -2384,7 +2386,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'division',
     )
 
-    expect(result.latestDataset?.releaseId).toBe('release-10')
+    expect(result.latestDataset?.resourceReleaseId).toBe('release-10')
   })
 })
 
@@ -2415,7 +2417,7 @@ describe('source release lifecycle status', () => {
     )
 
     const release = sqlite
-      .query('SELECT id FROM releases WHERE code = ?')
+      .query('SELECT id FROM resourceReleases WHERE code = ?')
       .get('dr-hk-hkgov-pland-division-pu-2001') as { id: string }
 
     await updateDatasetStatus(db as never, release.id, 'processing')
@@ -2444,7 +2446,7 @@ describe('getCurrentReleaseForDatasetId', () => {
       INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division');
-      INSERT INTO releases (
+      INSERT INTO resourceReleases (
         id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES
         (
@@ -2479,10 +2481,10 @@ describe('getCurrentReleaseForDatasetId', () => {
 
     await expect(
       getCurrentReleaseForDatasetId(db as never, 'dataset-pland-pu', 'division'),
-    ).resolves.toMatchObject({ releaseId: 'release-pland-pu-division-2001' })
+    ).resolves.toMatchObject({ resourceReleaseId: 'release-pland-pu-division-2001' })
     await expect(
       getCurrentReleaseForDatasetId(db as never, 'dataset-pland-pu', 'divisionArea'),
-    ).resolves.toMatchObject({ releaseId: 'release-pland-pu-area-2001' })
+    ).resolves.toMatchObject({ resourceReleaseId: 'release-pland-pu-area-2001' })
 
     sqlite.close()
   })
@@ -2504,8 +2506,8 @@ describe('getLatestNewerDatasetRelease', () => {
         'divisions',
         'division'
       );
-      INSERT INTO releases (
-        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByReleaseId, ingestedAt, createdAt, updatedAt
+      INSERT INTO resourceReleases (
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
       ) VALUES
       (
         'release-dr-hk-overture-division-2025-09-24.0',
@@ -2582,7 +2584,9 @@ describe('getLatestNewerDatasetRelease', () => {
       'release-dr-hk-overture-division-2025-09-24.0',
     )
 
-    expect(result?.releaseId).toBe('release-dr-hk-overture-division-2025-10-22.0')
+    expect(result?.resourceReleaseId).toBe(
+      'release-dr-hk-overture-division-2025-10-22.0',
+    )
     sqlite.close()
   })
 })
@@ -3322,7 +3326,7 @@ describe('publishReleaseArtefacts', () => {
       SET expectedResourceTypes = '["address"]'
       WHERE id = 'source-release-address';
 
-      INSERT INTO releases (
+      INSERT INTO resourceReleases (
         id, sourceReleaseId, datasetId, sourceVersion, sourceSchemaVersion,
         processingRules, resourceType, status, updatedAt
       ) VALUES
@@ -3347,7 +3351,7 @@ describe('publishReleaseArtefacts', () => {
         ('release-set-addresses', 'snapshot-division', 'overture', 'supporting', 1, 'exact_ref', null, 1760000000000);
     `)
 
-    for (const [datasetCode, releaseId] of [
+    for (const [datasetCode, resourceReleaseId] of [
       ['ds-hk-hkgov-dpo-address', 'release-address'],
       ['ds-hk-overture-division', 'release-division'],
       ['ds-hk-overture-place', 'release-place-anchor'],
@@ -3357,8 +3361,8 @@ describe('publishReleaseArtefacts', () => {
       )?.processingRules
       if (!processingRules) throw new Error(`Missing rules for ${datasetCode}.`)
       sqlite
-        .query('UPDATE releases SET processingRules = ? WHERE id = ?')
-        .run(JSON.stringify(processingRules), releaseId)
+        .query('UPDATE resourceReleases SET processingRules = ? WHERE id = ?')
+        .run(JSON.stringify(processingRules), resourceReleaseId)
     }
 
     await publishReleaseArtefacts(db, {
@@ -3368,7 +3372,7 @@ describe('publishReleaseArtefacts', () => {
       dataset: {
         datasetId: 'dataset-address',
         releaseCode: 'release-address',
-        releaseId: 'release-address',
+        resourceReleaseId: 'release-address',
         source: 'hkgov-dpo',
       },
       publishedAt: '2026-09-13T00:00:00.000Z',
@@ -3389,8 +3393,8 @@ describe('publishReleaseArtefacts', () => {
     expect(rows.length).toBeGreaterThan(0)
     expect(
       rows.every(row =>
-        (JSON.parse(row.resolverRules) as Array<{ releaseId: string }>).every(
-          rule => rule.releaseId === 'release-place-anchor',
+        (JSON.parse(row.resolverRules) as Array<{ resourceReleaseId: string }>).every(
+          rule => rule.resourceReleaseId === 'release-place-anchor',
         ),
       ),
     ).toBe(true)
@@ -3448,8 +3452,8 @@ describe('publishReleaseArtefacts', () => {
         ('source-release-1', 'staged', null, null, 1760000000000);
       UPDATE sourceReleases SET expectedResourceTypes = '["division"]' WHERE id = 'source-release-1';
 
-      INSERT INTO releases (
-        id, sourceReleaseId, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      INSERT INTO resourceReleases (
+        id, sourceReleaseId, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt
       ) VALUES (
         'release-1',
         'source-release-1',
@@ -3480,7 +3484,9 @@ describe('publishReleaseArtefacts', () => {
       );
     `)
     seedCompleteOvertureFixtureSources(sqlite, 'snapshot-new')
-    sqlite.run("UPDATE releases SET resourceType = 'division' WHERE id = 'release-1'")
+    sqlite.run(
+      "UPDATE resourceReleases SET resourceType = 'division' WHERE id = 'release-1'",
+    )
 
     const catalogRevision = await publishReleaseArtefacts(db, {
       carriedSnapshots: [],
@@ -3489,7 +3495,7 @@ describe('publishReleaseArtefacts', () => {
       dataset: {
         datasetId: 'dataset-1',
         releaseCode: 'release-code-1',
-        releaseId: 'release-1',
+        resourceReleaseId: 'release-1',
         source: 'overture',
       },
       publishedAt: '2026-06-29T00:00:00.000Z',
@@ -3601,13 +3607,13 @@ describe('publishReleaseArtefacts', () => {
 
     const journalRows = sqlite
       .query(
-        'SELECT releaseId, relatedReleaseId, snapshotId, apiReleaseSetId, action, statusFrom, statusTo FROM publishedDataJournal ORDER BY createdAt',
+        'SELECT resourceReleaseId, relatedResourceReleaseId, snapshotId, apiReleaseSetId, action, statusFrom, statusTo FROM publishedDataJournal ORDER BY createdAt',
       )
       .all() as Array<{
       action: string
       apiReleaseSetId: string | null
-      relatedReleaseId: string | null
-      releaseId: string
+      relatedResourceReleaseId: string | null
+      resourceReleaseId: string
       snapshotId: string | null
       statusFrom: string | null
       statusTo: string | null
@@ -3615,8 +3621,8 @@ describe('publishReleaseArtefacts', () => {
 
     expect(journalRows).toEqual([
       {
-        releaseId: 'release-1',
-        relatedReleaseId: null,
+        resourceReleaseId: 'release-1',
+        relatedResourceReleaseId: null,
         snapshotId: 'snapshot-new',
         apiReleaseSetId: 'release-set-1',
         action: 'published',
@@ -3655,7 +3661,7 @@ describe('publishReleaseArtefacts', () => {
       dataset: {
         datasetId: 'dataset-1',
         releaseCode: 'release-code-1',
-        releaseId: 'release-1',
+        resourceReleaseId: 'release-1',
         source: 'overture',
       },
       publishedAt: '2026-06-30T00:00:00.000Z',
@@ -3727,8 +3733,8 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO releases (
-        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      INSERT INTO resourceReleases (
+        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt
       ) VALUES
         ('release-overture-2025', '2025-09-24.0', '1.12.0', 'published', null, null, null, 1760000000000),
         ('release-overture-2026', '2026-07-22.0', '1.18.0', 'published', null, null, null, 1760000000000),
@@ -3763,7 +3769,7 @@ describe('publishReleaseArtefacts', () => {
           datasetCode: 'ds-hk-hkgov-censtatd-division-area-district',
           datasetId: 'dataset-hkgov-censtatd-district',
           releaseCode: 'release-censtatd',
-          releaseId: 'release-censtatd',
+          resourceReleaseId: 'release-censtatd',
           source: 'hkgov-censtatd',
           sourceVersion: '2016',
         },
@@ -3817,8 +3823,8 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO releases (
-        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      INSERT INTO resourceReleases (
+        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt
       ) VALUES (
         'release-1',
         '2026-07-15.0',
@@ -3842,7 +3848,7 @@ describe('publishReleaseArtefacts', () => {
         dataset: {
           datasetId: 'dataset-1',
           releaseCode: 'release-code-1',
-          releaseId: 'release-1',
+          resourceReleaseId: 'release-1',
           source: 'overture',
         },
         publishedAt: '2026-06-29T00:00:00.000Z',
@@ -3904,8 +3910,8 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO releases (
-        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      INSERT INTO resourceReleases (
+        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt
       ) VALUES (
         'release-1',
         '2026-06-24.0',
@@ -3933,7 +3939,7 @@ describe('publishReleaseArtefacts', () => {
           dataset: {
             datasetId: 'dataset-1',
             releaseCode: 'release-code-1',
-            releaseId: 'release-1',
+            resourceReleaseId: 'release-1',
             source: 'overture',
           },
           publishedAt: '2026-06-29T00:00:00.000Z',
@@ -3980,8 +3986,8 @@ describe('publishReleaseArtefacts', () => {
         1760000000000
       );
 
-      INSERT INTO releases (
-        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByReleaseId, updatedAt
+      INSERT INTO resourceReleases (
+        id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt
       ) VALUES (
         'release-1',
         '2026-06-24.0',
@@ -4013,7 +4019,7 @@ describe('publishReleaseArtefacts', () => {
         dataset: {
           datasetId: 'dataset-1',
           releaseCode: 'release-code-1',
-          releaseId: 'release-1',
+          resourceReleaseId: 'release-1',
           source: 'overture',
         },
         publishedAt: '2026-06-29T00:00:00.000Z',

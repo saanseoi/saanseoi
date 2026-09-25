@@ -135,7 +135,10 @@ export async function processLocalDivisionSqlUpload(
     supplementalRows?: Record<string, unknown>[]
   } = {},
 ) {
-  const releaseId = requireString(uploadResult.releaseId, 'releaseId')
+  const resourceReleaseId = requireString(
+    uploadResult.resourceReleaseId,
+    'resourceReleaseId',
+  )
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const datasetId = requireString(uploadResult.datasetId, 'datasetId')
@@ -186,7 +189,7 @@ export async function processLocalDivisionSqlUpload(
           updateDbCacheProgress(progress, event)
         },
 
-        resumeSqlDeliveryReleaseId: releaseId,
+        resumeSqlDeliveryReleaseId: resourceReleaseId,
       },
     )
   } catch (error) {
@@ -216,7 +219,7 @@ export async function processLocalDivisionSqlUpload(
       datasetCode,
       rawObjectKey,
       releaseCode,
-      releaseId,
+      resourceReleaseId,
     },
     previewPlan,
     {
@@ -254,7 +257,7 @@ export async function processLocalDivisionSqlUpload(
     datasetCode,
     rawObjectKey,
     releaseCode,
-    releaseId,
+    resourceReleaseId,
     regionCode: previewPlan.regionCode,
     shardYear,
     cohortKey: previewPlan.cohortKey,
@@ -308,7 +311,7 @@ export async function processLocalDivisionSqlUpload(
     preparedAt: processingRunStartedAt,
     rawObjectKey,
     releaseCode,
-    releaseId,
+    resourceReleaseId,
     shardYear,
     sqlStatementByteTarget: SQL_STATEMENT_BYTE_TARGET,
     target: resolvedTargetName,
@@ -322,19 +325,19 @@ export async function processLocalDivisionSqlUpload(
 
   try {
     await harbourClient.stageRunning(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       { resourceType: previewPlan.resourceType, sourceRows: previewPlan.rowCount },
       releaseCode,
     )
     await harbourClient.stageRunning(
-      releaseId,
+      resourceReleaseId,
       'extractDivisions',
       undefined,
       releaseCode,
     )
     await harbourClient.stageRunning(
-      releaseId,
+      resourceReleaseId,
       'extractDivisionsI18n',
       undefined,
       releaseCode,
@@ -366,7 +369,7 @@ export async function processLocalDivisionSqlUpload(
       table: 'divisionPublicationState',
       scopeId: versionInsertContext.snapshotLineageId,
       snapshotId: versionInsertContext.snapshotId,
-      publicationToken: releaseId,
+      publicationToken: resourceReleaseId,
       timestamp: processingRunStartedAt,
     }
     const deliveryInputs = {
@@ -394,7 +397,7 @@ export async function processLocalDivisionSqlUpload(
     const deliveryOutputs = await deliverSqlPhase(
       {
         context: dbContext,
-        releaseId,
+        resourceReleaseId,
         phase: deliveryPhase,
         resolvedFamily: 'division',
         publicationTables: ['divisionPublicationState'],
@@ -486,7 +489,7 @@ export async function processLocalDivisionSqlUpload(
             },
             phase: 'normaliseDivisionSql',
             releaseCode,
-            releaseId,
+            resourceReleaseId,
             totalUnits: previewPlan.rowCount,
           },
           async reportProgress =>
@@ -501,7 +504,7 @@ export async function processLocalDivisionSqlUpload(
               async current => {
                 await reportProgress(current)
                 await harbourClient.stageRunning(
-                  releaseId,
+                  resourceReleaseId,
                   'extractDivisions',
                   {
                     processedRows: current,
@@ -515,7 +518,7 @@ export async function processLocalDivisionSqlUpload(
             ),
         )
         await harbourClient.stageCompleted(
-          releaseId,
+          resourceReleaseId,
           'normaliseDivisionSql',
           {
             localisedRows: divisionState.localisedRows,
@@ -535,7 +538,7 @@ export async function processLocalDivisionSqlUpload(
           progress,
           harbourClient,
           buildStreamingPhase(
-            releaseId,
+            resourceReleaseId,
             releaseCode,
             'generateDivisionSqlSource',
             previewPlan.rowCount,
@@ -545,7 +548,7 @@ export async function processLocalDivisionSqlUpload(
             buildDivisionSourceSqlFile(initialMessage, divisionState, reportProgress),
         )
         await harbourClient.stageCompleted(
-          releaseId,
+          resourceReleaseId,
           'generateDivisionSqlSource',
           {
             processedRows: divisionState.processedRows,
@@ -557,7 +560,7 @@ export async function processLocalDivisionSqlUpload(
           progress,
           harbourClient,
           buildStreamingPhase(
-            releaseId,
+            resourceReleaseId,
             releaseCode,
             'generateDivisionSqlHistory',
             previewPlan.rowCount,
@@ -567,7 +570,7 @@ export async function processLocalDivisionSqlUpload(
             buildDivisionHistorySqlFile(initialMessage, divisionState, reportProgress),
         )
         await harbourClient.stageCompleted(
-          releaseId,
+          resourceReleaseId,
           'generateDivisionSqlHistory',
           {
             processedRows: divisionState.processedRows,
@@ -580,7 +583,7 @@ export async function processLocalDivisionSqlUpload(
           progress,
           harbourClient,
           buildStreamingPhase(
-            releaseId,
+            resourceReleaseId,
             releaseCode,
             'generateDivisionSqlCurrent',
             previewPlan.rowCount,
@@ -595,7 +598,7 @@ export async function processLocalDivisionSqlUpload(
             ),
         )
         await harbourClient.stageCompleted(
-          releaseId,
+          resourceReleaseId,
           'generateDivisionSqlCurrent',
           {
             processedRows: divisionState.processedRows,
@@ -624,7 +627,7 @@ export async function processLocalDivisionSqlUpload(
           {},
         )
         const audit = await retainDivisionProvenance(bucket, {
-          releaseId,
+          resourceReleaseId,
           datasetCode,
           actions: divisionState.processingActions,
           branchCounts: divisionState.branchCounts,
@@ -701,7 +704,7 @@ export async function processLocalDivisionSqlUpload(
             },
             phase: 'generateDivisionSqlStats',
             releaseCode,
-            releaseId,
+            resourceReleaseId,
             totalUnits: Math.max(divisionState.statsRows.length, 1),
           },
           reportProgress =>
@@ -713,7 +716,7 @@ export async function processLocalDivisionSqlUpload(
             ),
         )
         await harbourClient.stageCompleted(
-          releaseId,
+          resourceReleaseId,
           'generateDivisionSqlStats',
           {
             processedRows: divisionState.statsRows.length,
@@ -736,7 +739,7 @@ export async function processLocalDivisionSqlUpload(
           preparedAt: processingRunStartedAt,
           rawObjectKey,
           releaseCode,
-          releaseId,
+          resourceReleaseId,
           shardYear,
           snapshotId: divisionState.snapshotId,
           sqlStatementByteTarget: SQL_STATEMENT_BYTE_TARGET,
@@ -771,7 +774,7 @@ export async function processLocalDivisionSqlUpload(
             async () => {
               await runReportedSqlImportPhase(
                 importProgressClient,
-                releaseId,
+                resourceReleaseId,
                 releaseCode,
                 'importDivisionSqlSource',
                 progressReporter =>
@@ -790,7 +793,7 @@ export async function processLocalDivisionSqlUpload(
             async () => {
               await runReportedSqlImportPhase(
                 importProgressClient,
-                releaseId,
+                resourceReleaseId,
                 releaseCode,
                 'importDivisionSqlHistory',
                 progressReporter =>
@@ -812,7 +815,7 @@ export async function processLocalDivisionSqlUpload(
               if (currentInitKey) {
                 await runReportedSqlImportPhase(
                   importProgressClient,
-                  releaseId,
+                  resourceReleaseId,
                   releaseCode,
                   'importDivisionSqlCurrentInit',
                   progressReporter =>
@@ -828,7 +831,7 @@ export async function processLocalDivisionSqlUpload(
 
               await runReportedSqlImportPhase(
                 importProgressClient,
-                releaseId,
+                resourceReleaseId,
                 releaseCode,
                 'importDivisionSqlCurrent',
                 progressReporter =>
@@ -863,7 +866,7 @@ export async function processLocalDivisionSqlUpload(
             () =>
               runReportedSqlImportPhase(
                 importProgressClient,
-                releaseId,
+                resourceReleaseId,
                 releaseCode,
                 'importDivisionSqlStats',
                 progressReporter =>
@@ -885,7 +888,7 @@ export async function processLocalDivisionSqlUpload(
     sqlArtefactCount = retained.sqlArtefactCount
 
     await harbourClient.stageCompleted(
-      releaseId,
+      resourceReleaseId,
       'extractDivisions',
       {
         deletedRows: retained.deletedRows,
@@ -896,7 +899,7 @@ export async function processLocalDivisionSqlUpload(
       releaseCode,
     )
     await harbourClient.stageCompleted(
-      releaseId,
+      resourceReleaseId,
       'extractDivisionsI18n',
       {
         localisedRows: retained.localisedRows,
@@ -906,12 +909,12 @@ export async function processLocalDivisionSqlUpload(
 
     await runReportedSqlImportPhase(
       importProgressClient,
-      releaseId,
+      resourceReleaseId,
       releaseCode,
       'publishDataset',
       async () => {
         publishResult = await importProgressClient.publishDataset(
-          releaseId,
+          resourceReleaseId,
           releaseCode,
           {
             deferApiReleaseSet:
@@ -956,12 +959,12 @@ export async function processLocalDivisionSqlUpload(
         metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
         progress,
         releaseCode,
-        releaseId,
+        resourceReleaseId,
         target: resolveApiReleaseSetStatsTarget(publishResult),
       })
     }
     await harbourClient.stageCompleted(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       {
         resourceType: previewPlan.resourceType,
@@ -976,12 +979,12 @@ export async function processLocalDivisionSqlUpload(
       error,
       store: bucket,
       target,
-      releaseId,
+      resourceReleaseId,
       datasetCode,
     })
     progress.fail()
     await harbourClient.stageFailed(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       error instanceof Error ? error.message : String(error),
       undefined,
@@ -995,14 +998,14 @@ export async function processLocalDivisionSqlUpload(
         await refreshRemoteMetaCacheAfterReplay(
           target.environment === 'production' ? 'production' : 'preview',
           dbContext.state.dbCacheDir,
-          releaseId,
+          resourceReleaseId,
         )
       } catch (error) {
         postPublishCacheError = normaliseError(error)
       }
     }
     if (!postPublishCacheError && published)
-      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
+      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, resourceReleaseId)
   }
 
   if (postPublishCacheError) {

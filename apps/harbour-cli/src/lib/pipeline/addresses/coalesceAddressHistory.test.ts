@@ -137,7 +137,7 @@ test('a base change leaves unchanged lookup evidence open after exact history cl
     coalesceAddressHistory(input)
     closeResolvedAddressHistory({
       ...input,
-      releaseId: 'r2',
+      resourceReleaseId: 'r2',
       prior: [
         {
           recordType: 'address2d',

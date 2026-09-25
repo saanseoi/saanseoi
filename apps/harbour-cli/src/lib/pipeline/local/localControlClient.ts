@@ -19,20 +19,20 @@ export function createLocalControlClient(
   const targetName = options.targetName ?? 'meta'
 
   return {
-    publishDataset(releaseId, releaseCode, publishOptions) {
+    publishDataset(resourceReleaseId, releaseCode, publishOptions) {
       return options.publishClient.publishDataset(
-        releaseId,
+        resourceReleaseId,
         releaseCode,
         publishOptions,
       )
     },
-    async stageCompleted(releaseId, phase, stats) {
+    async stageCompleted(resourceReleaseId, phase, stats) {
       return runLocalControlWrite(
         async () => {
-          const dataset = await requireLocalControlDataset(db, releaseId)
+          const dataset = await requireLocalControlDataset(db, resourceReleaseId)
           await recordDatasetStage(
             db,
-            { releaseId: dataset.releaseId, phase, stats },
+            { resourceReleaseId: dataset.resourceReleaseId, phase, stats },
             'completed',
           )
         },
@@ -40,13 +40,13 @@ export function createLocalControlClient(
         targetName,
       )
     },
-    async stageFailed(releaseId, phase, error, stats) {
+    async stageFailed(resourceReleaseId, phase, error, stats) {
       return runLocalControlWrite(
         async () => {
-          const dataset = await requireLocalControlDataset(db, releaseId)
+          const dataset = await requireLocalControlDataset(db, resourceReleaseId)
           await recordDatasetStage(
             db,
-            { releaseId: dataset.releaseId, phase, stats, error },
+            { resourceReleaseId: dataset.resourceReleaseId, phase, stats, error },
             'error',
           )
         },
@@ -54,13 +54,13 @@ export function createLocalControlClient(
         targetName,
       )
     },
-    async stageRunning(releaseId, phase, stats) {
+    async stageRunning(resourceReleaseId, phase, stats) {
       return runLocalControlWrite(
         async () => {
-          const dataset = await requireLocalControlDataset(db, releaseId)
+          const dataset = await requireLocalControlDataset(db, resourceReleaseId)
           await recordDatasetStage(
             db,
-            { releaseId: dataset.releaseId, phase, stats },
+            { resourceReleaseId: dataset.resourceReleaseId, phase, stats },
             'running',
           )
         },
@@ -83,11 +83,14 @@ async function runLocalControlWrite(
   })
 }
 
-async function requireLocalControlDataset(db: HarbourReadableDb, releaseId: string) {
-  const dataset = await getDatasetRecordByReleaseId(db, releaseId)
+async function requireLocalControlDataset(
+  db: HarbourReadableDb,
+  resourceReleaseId: string,
+) {
+  const dataset = await getDatasetRecordByReleaseId(db, resourceReleaseId)
 
   if (!dataset) {
-    throw new Error(`Release not found: ${releaseId}`)
+    throw new Error(`Release not found: ${resourceReleaseId}`)
   }
 
   return dataset

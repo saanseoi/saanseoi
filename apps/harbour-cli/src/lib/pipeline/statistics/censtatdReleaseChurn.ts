@@ -10,38 +10,38 @@ import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm'
  */
 export async function findPreviousComparableCenstatdReleaseStats(
   metaDb: HarbourReadableDb,
-  releaseId: string,
+  resourceReleaseId: string,
 ): Promise<ReleaseStatsRow[] | null> {
   const release = await metaDb
     .select({
-      datasetId: metaSchema.metaReleases.datasetId,
-      resourceType: metaSchema.metaReleases.resourceType,
-      sourceSchemaVersion: metaSchema.metaReleases.sourceSchemaVersion,
+      datasetId: metaSchema.metaResourceReleases.datasetId,
+      resourceType: metaSchema.metaResourceReleases.resourceType,
+      sourceSchemaVersion: metaSchema.metaResourceReleases.sourceSchemaVersion,
     })
-    .from(metaSchema.metaReleases)
-    .where(eq(metaSchema.metaReleases.id, releaseId))
+    .from(metaSchema.metaResourceReleases)
+    .where(eq(metaSchema.metaResourceReleases.id, resourceReleaseId))
     .get()
   if (!release)
-    throw new Error(`Cannot resolve previous C&SD release stats: ${releaseId}.`)
+    throw new Error(`Cannot resolve previous C&SD release stats: ${resourceReleaseId}.`)
 
   const candidates = await metaDb
-    .select({ id: metaSchema.metaReleases.id })
-    .from(metaSchema.metaReleases)
+    .select({ id: metaSchema.metaResourceReleases.id })
+    .from(metaSchema.metaResourceReleases)
     .where(
       and(
-        eq(metaSchema.metaReleases.datasetId, release.datasetId),
-        eq(metaSchema.metaReleases.resourceType, release.resourceType),
-        ne(metaSchema.metaReleases.id, releaseId),
-        eq(metaSchema.metaReleases.status, 'published'),
+        eq(metaSchema.metaResourceReleases.datasetId, release.datasetId),
+        eq(metaSchema.metaResourceReleases.resourceType, release.resourceType),
+        ne(metaSchema.metaResourceReleases.id, resourceReleaseId),
+        eq(metaSchema.metaResourceReleases.status, 'published'),
         release.sourceSchemaVersion === null
-          ? isNull(metaSchema.metaReleases.sourceSchemaVersion)
+          ? isNull(metaSchema.metaResourceReleases.sourceSchemaVersion)
           : eq(
-              metaSchema.metaReleases.sourceSchemaVersion,
+              metaSchema.metaResourceReleases.sourceSchemaVersion,
               release.sourceSchemaVersion,
             ),
       ),
     )
-    .orderBy(desc(metaSchema.metaReleases.createdAt))
+    .orderBy(desc(metaSchema.metaResourceReleases.createdAt))
     .all()
 
   for (const candidate of candidates) {
@@ -50,7 +50,7 @@ export async function findPreviousComparableCenstatdReleaseStats(
       .from(metaSchema.stats)
       .where(
         and(
-          eq(metaSchema.stats.releaseId, candidate.id),
+          eq(metaSchema.stats.resourceReleaseId, candidate.id),
           sql`${metaSchema.stats.metric} != 'processing'`,
         ),
       )

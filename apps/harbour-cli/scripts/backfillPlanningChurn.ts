@@ -18,7 +18,7 @@ const meta = new Database(
 )
 const history = new Database(historyPath, { readonly: true })
 const releases = meta
-  .query(`SELECT id, code, datasetId, sourceVersion FROM releases
+  .query(`SELECT id, code, datasetId, sourceVersion FROM resourceReleases
   WHERE resourceType = 'division' AND status IN ('published', 'superseded')
   AND (code LIKE 'dr-hk-hkgov-pland-division-pu-%'
     OR code LIKE 'dr-hk-hkgov-pland-division-new-town-%')
@@ -36,7 +36,7 @@ const plans = releases.map(release => {
     .all(release.id) as Array<{ id: string; versionHash: string; level: number }>
   const count = meta
     .query(
-      "SELECT value FROM stats WHERE releaseId = ? AND dimension = 'records' AND metric = 'count'",
+      "SELECT value FROM stats WHERE resourceReleaseId = ? AND dimension = 'records' AND metric = 'count'",
     )
     .get(release.id) as { value: number } | null
   if (
@@ -76,7 +76,7 @@ if (mode === '--apply')
       if (release.code.includes('-division-pu-')) {
         meta
           .query(
-            "DELETE FROM stats WHERE releaseId = ? AND groupBy = 'unit_distribution'",
+            "DELETE FROM stats WHERE resourceReleaseId = ? AND groupBy = 'unit_distribution'",
           )
           .run(release.id)
         for (const [level, label] of [
@@ -86,7 +86,7 @@ if (mode === '--apply')
           [6, 'subunits'],
         ] as const) {
           meta
-            .query(`INSERT INTO stats (id,releaseId,dimension,metric,metricUnit,value,groupBy,groupValue)
+            .query(`INSERT INTO stats (id,resourceReleaseId,dimension,metric,metricUnit,value,groupBy,groupValue)
             VALUES (?, ?, 'units', 'count', 'rows', ?, 'unit_distribution', ?)`)
             .run(
               crypto.randomUUID(),
@@ -98,13 +98,13 @@ if (mode === '--apply')
       }
       meta
         .query(
-          "DELETE FROM stats WHERE releaseId = ? AND metric = 'churn' AND groupBy IS NULL",
+          "DELETE FROM stats WHERE resourceReleaseId = ? AND metric = 'churn' AND groupBy IS NULL",
         )
         .run(release.id)
       for (const row of stats)
         meta
           .query(`INSERT INTO stats
-      (id,type,releaseId,dimension,metric,metricUnit,value,createdAt,updatedAt)
+      (id,type,resourceReleaseId,dimension,metric,metricUnit,value,createdAt,updatedAt)
       VALUES (?,?,?,?,?,?,?,?,?)`)
           .run(
             crypto.randomUUID(),

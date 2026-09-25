@@ -70,7 +70,7 @@ test('reconstructed rollback writes only the changed locale and updates FTS whil
         .get(),
     ).toEqual({ nameText: 'Old Name' })
     expect(
-      f.meta.query("SELECT status FROM releases WHERE id='release-new'").get(),
+      f.meta.query("SELECT status FROM resourceReleases WHERE id='release-new'").get(),
     ).toEqual({ status: 'revoked' })
     expect(f.meta.query('SELECT count(*) AS n FROM snapshots').get()).toEqual({ n: 3 })
     expect(
@@ -233,7 +233,7 @@ test('stale publication ownership stops sealed rollback before any canonical or 
         .get(),
     ).toEqual({ publicationToken: 'intervening-publication' })
     expect(
-      f.meta.query("SELECT status FROM releases WHERE id='release-new'").get(),
+      f.meta.query("SELECT status FROM resourceReleases WHERE id='release-new'").get(),
     ).toEqual({ status: 'published' })
   } finally {
     await f.close()

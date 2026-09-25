@@ -14,7 +14,7 @@ import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.t
 const version = {
   source: 'overture' as const,
   variant: 'hkgov-censtatd',
-  releaseId: 'parent-release',
+  resourceReleaseId: 'parent-release',
   releaseCode: 'parent-release',
   sourceVersion: '2021',
   snapshotId: 'parent',
@@ -101,7 +101,7 @@ test('geometry merge and canonical reuse reject unprepared snapshots before writ
     const child = {
       ...version,
       snapshotId: 'child',
-      releaseId: 'child-release',
+      resourceReleaseId: 'child-release',
       releaseCode: 'child-release',
       sourceVersion: '2022',
       parentSnapshotId: 'parent',

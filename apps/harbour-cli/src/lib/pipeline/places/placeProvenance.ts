@@ -31,7 +31,7 @@ export type PlaceAddressAuditInput = {
 export async function retainPlaceProvenance(
   store: ProvenanceStore,
   input: {
-    releaseId: string
+    resourceReleaseId: string
     datasetCode: string
     addresses: PlaceAddressAuditInput
     staged?: StagedPlaces

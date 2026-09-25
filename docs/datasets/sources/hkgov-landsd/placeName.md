@@ -5,8 +5,8 @@ Canonical source references follow the
 properties and file locators remain in retained source assertions.
 
 Source validity uses the owning release's version component in `validFromRelease` and
-`validToRelease`. Dataset prefixes and resource suffixes are omitted; `releaseId`
-retains the release association.
+`validToRelease`. Dataset prefixes and resource suffixes are omitted;
+`resourceReleaseId` retains the release association.
 
 Native source replay preserves open matching versions without rewriting their release
 metadata. Complete replacement membership closes omissions and superseded hashes; large

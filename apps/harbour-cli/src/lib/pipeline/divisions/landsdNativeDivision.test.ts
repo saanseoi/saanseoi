@@ -47,7 +47,7 @@ test('native LandsD settlements deliver canonical rows, source resolutions and a
     const message: DatasetProcessingMessage = {
       datasetId: 'dataset',
       datasetCode: 'ds-hk-hkgov-landsd-division',
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       releaseCode: 'dr-hk-hkgov-landsd-division-2026-06-10.0',
       rawObjectKey: 'publisher-source.zip',
       regionCode: 'hk',

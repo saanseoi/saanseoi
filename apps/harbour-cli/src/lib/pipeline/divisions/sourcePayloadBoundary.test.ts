@@ -19,14 +19,14 @@ test('division SQL retains publisher assertions and excludes supplemental snapsh
       ),
     )
     db.exec(
-      `INSERT INTO overtureDivisions (sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,properties) VALUES ('supplement','old-hash','old-release','2020-01-01.0',1,'{"processed":true}');`,
+      `INSERT INTO overtureDivisions (sourceRecordId,versionHash,resourceReleaseId,validFromRelease,isCurrent,properties) VALUES ('supplement','old-hash','old-release','2020-01-01.0',1,'{"processed":true}');`,
     )
     const message = {
       source: 'overture',
       regionCode: 'hk',
       resourceType: 'division',
       sourceVersion: '2026-08-19.0',
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       datasetId: 'dataset',
     } as DatasetProcessingMessage
     const state = {

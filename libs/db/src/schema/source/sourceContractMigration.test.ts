@@ -24,7 +24,7 @@ test('fresh source migration chain creates every Streets table and source payloa
         )
         .all()
     db.exec(
-      "INSERT INTO overturePlaces (sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,properties,sourceLocator) VALUES ('publisher','hash','release','2025',0,'{\"name\":\"literal\"}','{\"sourceFile\":\"original\"}')",
+      "INSERT INTO overturePlaces (sourceRecordId,versionHash,resourceReleaseId,validFromRelease,isCurrent,properties,sourceLocator) VALUES ('publisher','hash','release','2025',0,'{\"name\":\"literal\"}','{\"sourceFile\":\"original\"}')",
     )
     expect(streetSchema().length).toBeGreaterThan(0)
     expect(

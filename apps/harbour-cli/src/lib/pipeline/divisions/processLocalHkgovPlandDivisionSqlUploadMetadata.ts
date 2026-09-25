@@ -41,28 +41,37 @@ export async function buildPlandMetaSql(
     context.metaDb
       .select()
       .from(metaSchema.metaReleaseShardAssignments)
-      .where(eq(metaSchema.metaReleaseShardAssignments.releaseId, state.releaseId))
+      .where(
+        eq(
+          metaSchema.metaReleaseShardAssignments.resourceReleaseId,
+          state.resourceReleaseId,
+        ),
+      )
       .all(),
     context.metaDb
       .select()
       .from(metaSchema.metaSnapshotShardAssignments)
       .where(eq(metaSchema.metaSnapshotShardAssignments.snapshotId, state.snapshotId))
       .all(),
-    readAuditReplaySql(context.metaDb, state.releaseId),
+    readAuditReplaySql(context.metaDb, state.resourceReleaseId),
     context.metaDb
       .select()
       .from(metaSchema.stats)
-      .where(eq(metaSchema.stats.releaseId, state.releaseId))
+      .where(eq(metaSchema.stats.resourceReleaseId, state.resourceReleaseId))
       .all(),
   ])
   if (
     snapshots.length !== 1 ||
-    !sources.some(row => row.resourceReleaseId === state.releaseId)
+    !sources.some(row => row.resourceReleaseId === state.resourceReleaseId)
   ) {
-    throw new Error(`PLAND snapshot metadata is incomplete for ${state.releaseId}.`)
+    throw new Error(
+      `PLAND snapshot metadata is incomplete for ${state.resourceReleaseId}.`,
+    )
   }
   if (releaseAssignments.length === 0 || snapshotAssignments.length === 0) {
-    throw new Error(`PLAND shard assignments are incomplete for ${state.releaseId}.`)
+    throw new Error(
+      `PLAND shard assignments are incomplete for ${state.resourceReleaseId}.`,
+    )
   }
   const snapshotLineageId = snapshots[0]?.snapshotLineageId
   const lineages = snapshotLineageId
@@ -128,7 +137,7 @@ export async function buildPlandMetaSql(
   ]
   const statsColumns = [
     'id',
-    'releaseId',
+    'resourceReleaseId',
     'apiReleaseSetId',
     'dimension',
     'metric',
@@ -156,10 +165,10 @@ export async function buildPlandMetaSql(
     }),
     ...buildInsertStatements(
       'releaseShardAssignments',
-      ['releaseId', 'dataShardId'],
+      ['resourceReleaseId', 'dataShardId'],
       releaseAssignments,
       {
-        suffix: 'ON CONFLICT(releaseId, dataShardId) DO NOTHING',
+        suffix: 'ON CONFLICT(resourceReleaseId, dataShardId) DO NOTHING',
       },
     ),
     ...buildInsertStatements(
@@ -171,7 +180,7 @@ export async function buildPlandMetaSql(
       },
     ),
     ...auditSql,
-    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(state.releaseId)} AND metric != 'processing';`,
+    `DELETE FROM stats WHERE resourceReleaseId = ${sqlLiteral(state.resourceReleaseId)} AND metric != 'processing';`,
     ...buildInsertStatements(
       'stats',
       statsColumns,

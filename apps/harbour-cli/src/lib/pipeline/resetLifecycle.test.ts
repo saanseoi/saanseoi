@@ -64,7 +64,10 @@ test('scoped reset SQL rechecks pending ownership and excludes active delivery w
     const marker = join(root, 'pending-sql-delivery.json')
     await writeFile(
       marker,
-      JSON.stringify({ releaseId: 'active', directories: [join(root, 'plan')] }),
+      JSON.stringify({
+        resourceReleaseId: 'active',
+        directories: [join(root, 'plan')],
+      }),
     )
     await expect(executeResetSqlArtefacts(input)).rejects.toThrow(
       'unfinished SQL delivery',
@@ -106,7 +109,7 @@ test('scoped local reset can discard an orphaned SQL ownership marker', async ()
     await writeFile(
       marker,
       JSON.stringify({
-        releaseId: 'orphaned-release',
+        resourceReleaseId: 'orphaned-release',
         directories: [join(root, 'missing-plan')],
       }),
     )

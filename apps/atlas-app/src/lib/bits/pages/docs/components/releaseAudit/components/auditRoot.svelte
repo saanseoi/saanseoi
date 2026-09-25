@@ -139,7 +139,9 @@ let visibleResources = $derived(
     : [],
 )
 let searchState = $derived.by(() => {
-  const states = visibleResources.map(resource => searchStates[resource.releaseId])
+  const states = visibleResources.map(
+    resource => searchStates[resource.resourceReleaseId],
+  )
   if (states.some(state => !state)) return null
   if (states.some(state => state?.failed)) return { failed: true }
   return {
@@ -151,8 +153,8 @@ let searchState = $derived.by(() => {
     totalCount: states.reduce((total, state) => total + (state?.totalCount ?? 0), 0),
   }
 })
-const updateSearchState = (releaseId: string, state: AuditSearchState) => {
-  const current = searchStates[releaseId]
+const updateSearchState = (resourceReleaseId: string, state: AuditSearchState) => {
+  const current = searchStates[resourceReleaseId]
   if (
     current?.failed === state.failed &&
     current.filteredCount === state.filteredCount &&
@@ -160,7 +162,7 @@ const updateSearchState = (releaseId: string, state: AuditSearchState) => {
     current.totalCount === state.totalCount
   )
     return
-  searchStates = { ...searchStates, [releaseId]: state }
+  searchStates = { ...searchStates, [resourceReleaseId]: state }
 }
 const sourceKindLabels: Record<string, string> = {
   district: 'District',
@@ -203,8 +205,8 @@ const sourceHeadingLabel = (resource: {
   ]
     .filter(Boolean)
     .join(' · ')
-const sourceHeadingId = (releaseId: string) =>
-  `audit-source-${encodeURIComponent(releaseId)}`
+const sourceHeadingId = (resourceReleaseId: string) =>
+  `audit-source-${encodeURIComponent(resourceReleaseId)}`
 </script>
 
 {#if audit.error}
@@ -227,7 +229,7 @@ const sourceHeadingId = (releaseId: string) =>
       infoDescription={m.source_audit_search_info_description()}
       placeholder={m.source_audit_search_retained_placeholder()}
     />
-    {#each visibleResources as resource, index (resource.releaseId)}
+    {#each visibleResources as resource, index (resource.resourceReleaseId)}
       <section
         class={familyType
   ? index === 0
@@ -238,11 +240,11 @@ const sourceHeadingId = (releaseId: string) =>
         {#if familyType}
           <div>
             <h2
-              id={sourceHeadingId(resource.releaseId)}
+              id={sourceHeadingId(resource.resourceReleaseId)}
               class="font-mono text-label-sm uppercase tracking-[0.12em] text-foreground-alt"
               data-audit-source-heading
               data-audit-source-emphasis={resourceLabel(resource.resourceType)}
-              data-audit-release-id={resource.releaseId}
+              data-audit-release-id={resource.resourceReleaseId}
               data-audit-source-label={sourceOutlineLabel(resource)}
             >
               {sourceHeadingLabel(resource)}
@@ -257,7 +259,7 @@ const sourceHeadingId = (releaseId: string) =>
           showControls={false}
           showResourceHeading={!familyType && selectedResourceType === undefined}
           bind:query
-          onSearchStateChange={state => updateSearchState(resource.releaseId, state)}
+          onSearchStateChange={state => updateSearchState(resource.resourceReleaseId, state)}
         />
       </section>
     {/each}

@@ -111,7 +111,7 @@ describe('formatUploadResult', () => {
     const lines = formatUploadResult(previewResult, {
       datasetCode: 'ds-hk-overture-division',
       rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
-      releaseId: 'release-123',
+      resourceReleaseId: 'release-123',
       datasetId: 'dataset-456',
       schemaVersion: '1.12.0',
       status: 'staged',
@@ -122,7 +122,7 @@ describe('formatUploadResult', () => {
     expect(lines[2]).toContain('dataset')
     expect(lines[3]).toContain('datasetId')
     expect(lines[4]).toContain('release')
-    expect(lines[5]).toContain('releaseId')
+    expect(lines[5]).toContain('resourceReleaseId')
     expect(lines[6]).toContain('schemaVersion')
   })
 })

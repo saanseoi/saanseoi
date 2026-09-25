@@ -57,7 +57,7 @@ export const rollbackSnapshotScope = (snapshot: RollbackSnapshot) =>
   )
 
 /** Resolve published ownership through the latest catalogue, preserving other domains/cohorts. */
-export function resolveRollbackSelection(meta: Database, releaseId: string) {
+export function resolveRollbackSelection(meta: Database, resourceReleaseId: string) {
   const release = meta
     .query<
       {
@@ -68,15 +68,15 @@ export function resolveRollbackSelection(meta: Database, releaseId: string) {
         datasetId: string
       },
       [string]
-    >('SELECT id,code,resourceType,status,datasetId FROM releases WHERE id=?')
-    .get(releaseId)
+    >('SELECT id,code,resourceType,status,datasetId FROM resourceReleases WHERE id=?')
+    .get(resourceReleaseId)
   if (release?.status !== 'published')
     throw new Error('Rollback requires a published source release.')
   const candidates = meta
     .query<ReleaseSet, [string]>(
       `SELECT DISTINCT r.id,r.apiVersionId,r.regionCode,r.domainCode,r.cohortKey,r.supersedesApiReleaseSetId,r.status FROM apiReleaseSets r JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id JOIN snapshotSourceReleases s ON s.snapshotId=m.snapshotId WHERE s.resourceReleaseId=? AND s.role<>'lookup' AND r.status<>'draft'`,
     )
-    .all(releaseId)
+    .all(resourceReleaseId)
   const catalogs = new Map<string, Catalog>()
   const selected: Array<{ current: ReleaseSet; previous: ReleaseSet | null }> = []
   for (const candidate of candidates) {
@@ -103,7 +103,7 @@ export function resolveRollbackSelection(meta: Database, releaseId: string) {
           .query(
             "SELECT 1 FROM snapshotSourceReleases WHERE snapshotId=? AND resourceReleaseId=? AND role<>'lookup'",
           )
-          .get(snapshot.id, releaseId),
+          .get(snapshot.id, resourceReleaseId),
     )
     if (owned.length !== 1 && release.resourceType !== 'divisionStatistic')
       throw new Error(
@@ -283,7 +283,7 @@ export function prepareRollbackMetadata(
   )
   const catalogId = buildDeterministicApiCatalogRevisionId(code)
   const guard = buildRollbackMetadataGuard(meta, {
-    releaseId: release.id,
+    resourceReleaseId: release.id,
     datasetId: release.datasetId,
     catalogId: catalog.id,
     apiVersionId: catalog.apiVersionId,
@@ -335,15 +335,15 @@ export function prepareRollbackMetadata(
   }
   // Canonical/source rows and published snapshot evidence stay immutable and retained.
   metadata.push({
-    sql: "UPDATE releases SET status='revoked',revokedAt=?,revocationReason='Published rollback',supersededByReleaseId=NULL,updatedAt=? WHERE id=?",
+    sql: "UPDATE resourceReleases SET status='revoked',revokedAt=?,revocationReason='Published rollback',supersededByResourceReleaseId=NULL,updatedAt=? WHERE id=?",
     params: [timestamp, timestamp, release.id],
   })
   metadata.push({
-    sql: "UPDATE releases SET status='published',supersededByReleaseId=NULL,updatedAt=? WHERE supersededByReleaseId=? AND datasetId=?",
+    sql: "UPDATE resourceReleases SET status='published',supersededByResourceReleaseId=NULL,updatedAt=? WHERE supersededByResourceReleaseId=? AND datasetId=?",
     params: [timestamp, release.id, release.datasetId],
   })
   metadata.push({
-    sql: `INSERT INTO publishedDataJournal(id,releaseId,action,statusFrom,statusTo,reason,metadataJson,createdAt) VALUES(?,?,'rolled_back','published','revoked','Restored retained predecessor projections',?,?)`,
+    sql: `INSERT INTO publishedDataJournal(id,resourceReleaseId,action,statusFrom,statusTo,reason,metadataJson,createdAt) VALUES(?,?,'rolled_back','published','revoked','Restored retained predecessor projections',?,?)`,
     params: [
       crypto.randomUUID(),
       release.id,
@@ -359,7 +359,7 @@ export function prepareRollbackMetadata(
   })
   const terminal: RollbackTerminal = {
     operation: 'rollback',
-    releaseId: release.id,
+    resourceReleaseId: release.id,
     catalogId,
     apiVersionId: catalog.apiVersionId,
     regionCode: catalog.regionCode,

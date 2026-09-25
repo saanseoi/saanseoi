@@ -10,7 +10,7 @@ import {
 } from './sqlDeliveryFiles.ts'
 
 const NAME = 'pending-sql-delivery.json'
-type Pending = { releaseId: string; directories: string[] }
+type Pending = { resourceReleaseId: string; directories: string[] }
 
 /**
  * Returns the retained release only when every sealed plan proves that it is
@@ -30,16 +30,16 @@ export async function findPendingSqlDeliveryReleaseId(
     const plan = await readDeliveryPlan(directory)
     if (
       !plan ||
-      plan.context.releaseId !== pending.releaseId ||
+      plan.context.resourceReleaseId !== pending.resourceReleaseId ||
       resolve(plan.context.cacheDir) !== resolve(cacheDir) ||
-      (plan.context.releaseId !== expectedReleaseId &&
+      (plan.context.resourceReleaseId !== expectedReleaseId &&
         !hasReleaseCode(plan.context.inputs, releaseCode))
     ) {
       return undefined
     }
   }
 
-  return pending.releaseId
+  return pending.resourceReleaseId
 }
 
 export async function readPendingSqlDelivery(
@@ -49,8 +49,8 @@ export async function readPendingSqlDelivery(
     const pending = JSON.parse(await readFile(join(cacheDir, NAME), 'utf8')) as Pending
     if (
       !pending ||
-      typeof pending.releaseId !== 'string' ||
-      !pending.releaseId.trim() ||
+      typeof pending.resourceReleaseId !== 'string' ||
+      !pending.resourceReleaseId.trim() ||
       !Array.isArray(pending.directories) ||
       pending.directories.length === 0 ||
       pending.directories.some(
@@ -69,12 +69,12 @@ export async function readPendingSqlDelivery(
 
 export async function assertSqlDeliveryPlanningAllowed(
   cacheDir: string,
-  releaseId?: string,
+  resourceReleaseId?: string,
 ) {
   const pending = await readPendingSqlDelivery(cacheDir)
-  if (pending && pending.releaseId !== releaseId) {
+  if (pending && pending.resourceReleaseId !== resourceReleaseId) {
     throw new Error(
-      `The mirror has an unfinished SQL delivery for ${pending.releaseId}. Resume the retained plan with sql:resume --plan ${pending.directories[0]} before planning another release.`,
+      `The mirror has an unfinished SQL delivery for ${pending.resourceReleaseId}. Resume the retained plan with sql:resume --plan ${pending.directories[0]} before planning another release.`,
     )
   }
 }
@@ -103,31 +103,34 @@ export async function discardAbandonedSqlDelivery(cacheDir: string) {
 /** Caller holds the cache-wide delivery lock. */
 export async function registerPendingSqlDelivery(
   cacheDir: string,
-  releaseId: string,
+  resourceReleaseId: string,
   directory: string,
 ) {
-  await assertSqlDeliveryPlanningAllowed(cacheDir, releaseId)
+  await assertSqlDeliveryPlanningAllowed(cacheDir, resourceReleaseId)
   const pending = await readPendingSqlDelivery(cacheDir)
   await writeDeliveryFile(
     cacheDir,
     NAME,
     JSON.stringify({
-      releaseId,
+      resourceReleaseId,
       directories: [...new Set([...(pending?.directories ?? []), directory])],
     }),
   )
 }
 
 /** Only the owning release may clear its marker after replay and metadata synchronisation. */
-export async function completeSqlDeliveryRelease(cacheDir: string, releaseId: string) {
+export async function completeSqlDeliveryRelease(
+  cacheDir: string,
+  resourceReleaseId: string,
+) {
   return withDeliveryLock(join(cacheDir, 'sql-delivery-lock'), () =>
-    completeLocked(cacheDir, releaseId),
+    completeLocked(cacheDir, resourceReleaseId),
   )
 }
 
-async function completeLocked(cacheDir: string, releaseId: string) {
+async function completeLocked(cacheDir: string, resourceReleaseId: string) {
   const pending = await readPendingSqlDelivery(cacheDir)
-  if (pending?.releaseId !== releaseId) return false
+  if (pending?.resourceReleaseId !== resourceReleaseId) return false
   const acknowledged: Array<{
     directory: string
     plan: NonNullable<Awaited<ReturnType<typeof readDeliveryPlan>>>
@@ -136,7 +139,7 @@ async function completeLocked(cacheDir: string, releaseId: string) {
     const plan = await readDeliveryPlan(directory)
     if (!plan) throw new Error('Cannot clear an incomplete SQL delivery plan.')
     if (
-      plan.context.releaseId !== releaseId ||
+      plan.context.resourceReleaseId !== resourceReleaseId ||
       resolve(plan.context.cacheDir) !== resolve(cacheDir)
     )
       throw new Error('Pending SQL plan does not belong to this release and cache.')

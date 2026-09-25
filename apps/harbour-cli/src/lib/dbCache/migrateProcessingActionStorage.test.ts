@@ -10,7 +10,7 @@ import { migrateProcessingActionStorage } from './migrateProcessingActionStorage
 const migration = `
   CREATE TABLE releaseProcessingActionChunks (
     id TEXT PRIMARY KEY,
-    releaseId TEXT NOT NULL,
+    resourceReleaseId TEXT NOT NULL,
     actionId TEXT NOT NULL,
     generation TEXT NOT NULL,
     firstOrdinal INTEGER NOT NULL,
@@ -20,7 +20,7 @@ const migration = `
     encoding TEXT NOT NULL,
     checksum TEXT NOT NULL,
     payload BLOB NOT NULL,
-    FOREIGN KEY (releaseId) REFERENCES releases(id) ON DELETE CASCADE,
+    FOREIGN KEY (resourceReleaseId) REFERENCES resourceReleases(id) ON DELETE CASCADE,
     CHECK(length(payload) <= 32768)
   );
   ALTER TABLE releaseProcessingActions ADD generation TEXT NOT NULL;
@@ -31,9 +31,9 @@ const migration = `
 
 function originalDatabase() {
   const sqlite = new Database(':memory:')
-  sqlite.exec(`CREATE TABLE releases(id TEXT PRIMARY KEY, status TEXT);
-    INSERT INTO releases VALUES ('published','published');
-    CREATE TABLE releaseProcessingActions(id TEXT PRIMARY KEY, releaseId TEXT NOT NULL, action TEXT NOT NULL, mode TEXT NOT NULL, summary TEXT NOT NULL, affectedRecordCount INTEGER NOT NULL, evidence TEXT NOT NULL, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL);
+  sqlite.exec(`CREATE TABLE resourceReleases(id TEXT PRIMARY KEY, status TEXT);
+    INSERT INTO resourceReleases VALUES ('published','published');
+    CREATE TABLE releaseProcessingActions(id TEXT PRIMARY KEY, resourceReleaseId TEXT NOT NULL, action TEXT NOT NULL, mode TEXT NOT NULL, summary TEXT NOT NULL, affectedRecordCount INTEGER NOT NULL, evidence TEXT NOT NULL, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL);
     INSERT INTO releaseProcessingActions VALUES
       ('first','published','review','manual','First decision',2,'{"text":"香港"}','2026-01-01','2026-01-02'),
       ('second','published','review','manual','Second decision',3,'{"text":"中文"}','2026-01-03','2026-01-04');`)
@@ -60,7 +60,7 @@ test('offline conversion preserves published decisions, original IDs and timesta
     'published',
   ])
   expect(records.sort((a, b) => a.id.localeCompare(b.id))).toEqual(original)
-  expect(sqlite.query('SELECT status FROM releases').get()).toEqual({
+  expect(sqlite.query('SELECT status FROM resourceReleases').get()).toEqual({
     status: 'published',
   })
   sqlite.close()

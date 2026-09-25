@@ -24,13 +24,18 @@ const proxy = await getPlatformProxy<{
 })
 try {
   const { results } = await proxy.env.DB_META.prepare(
-    `SELECT p.releaseId, p.manifestHash, p.byteLength, r.code FROM releaseProvenance p JOIN releases r ON r.id = p.releaseId ORDER BY r.code`,
-  ).all<{ releaseId: string; manifestHash: Digest; byteLength: number; code: string }>()
+    `SELECT p.resourceReleaseId, p.manifestHash, p.byteLength, r.code FROM releaseProvenance p JOIN resourceReleases r ON r.id = p.resourceReleaseId ORDER BY r.code`,
+  ).all<{
+    resourceReleaseId: string
+    manifestHash: Digest
+    byteLength: number
+    code: string
+  }>()
   const store = proxy.env.R2_GUIDE_ASSETS
   let created = 0,
     existing = 0,
     skipped = 0
-  const failures: Array<{ releaseId: string; error: string }> = []
+  const failures: Array<{ resourceReleaseId: string; error: string }> = []
   for (const row of results) {
     try {
       const ref = { hash: row.manifestHash, byteLength: row.byteLength }
@@ -50,12 +55,12 @@ try {
         continue
       }
       console.log(
-        `${apply ? 'Indexing' : 'Would index'} ${row.code} (${row.releaseId})`,
+        `${apply ? 'Indexing' : 'Would index'} ${row.code} (${row.resourceReleaseId})`,
       )
       if (apply) await retainAuditSearchIndex(store, ref, manifest, row.code)
       created++
     } catch (error) {
-      failures.push({ releaseId: row.releaseId, error: String(error) })
+      failures.push({ resourceReleaseId: row.resourceReleaseId, error: String(error) })
       console.error(row.code, String(error))
     }
   }

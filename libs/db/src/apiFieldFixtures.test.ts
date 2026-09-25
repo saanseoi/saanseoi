@@ -217,7 +217,7 @@ describe('api field fixtures', () => {
             initialDatasets
               .filter(dataset => dataset.code === field.sourceDatasetCode)
               .map(dataset => ({
-                releaseId: dataset.code,
+                resourceReleaseId: dataset.code,
                 processingRules: dataset.processingRules,
               })),
           ),

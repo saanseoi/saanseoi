@@ -18,7 +18,7 @@ import { buildAuditReplaySql } from './processingActionReplay'
 function createProcessingActionsDb() {
   const sqlite = new SQLiteDatabase(':memory:')
   sqlite.exec(`
-    CREATE TABLE releases (
+    CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY,
       status TEXT NOT NULL,
       processingRules TEXT,
@@ -26,7 +26,7 @@ function createProcessingActionsDb() {
     );
     CREATE TABLE releaseProcessingActions (
       id TEXT PRIMARY KEY,
-      releaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       action TEXT NOT NULL,
       mode TEXT NOT NULL,
       generation TEXT NOT NULL,
@@ -36,14 +36,14 @@ function createProcessingActionsDb() {
       updatedAt TEXT NOT NULL
     );
     CREATE TABLE releaseProcessingActionChunks (
-      id TEXT PRIMARY KEY, releaseId TEXT NOT NULL, actionId TEXT NOT NULL,
+      id TEXT PRIMARY KEY, resourceReleaseId TEXT NOT NULL, actionId TEXT NOT NULL,
       generation TEXT NOT NULL, firstOrdinal INTEGER NOT NULL, decisionCount INTEGER NOT NULL,
       part INTEGER NOT NULL, parts INTEGER NOT NULL, encoding TEXT NOT NULL,
       checksum TEXT NOT NULL, payload BLOB NOT NULL CHECK(length(payload) <= 32768)
     );
     CREATE TABLE stats (
       id TEXT PRIMARY KEY,
-      releaseId TEXT,
+      resourceReleaseId TEXT,
       apiReleaseSetId TEXT,
       dimension TEXT,
       metric TEXT,
@@ -62,7 +62,9 @@ function createProcessingActionsDb() {
 describe('replaceReleaseProcessingActions', () => {
   test('publication winning the staging race prevents the audit switch', async () => {
     const { sqlite, db } = createProcessingActionsDb()
-    sqlite.exec("INSERT INTO releases(id,status) VALUES ('release-1','processing')")
+    sqlite.exec(
+      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
+    )
     const original = [
       {
         action: 'review',
@@ -89,7 +91,7 @@ describe('replaceReleaseProcessingActions', () => {
             })()
             if (!published) {
               published = true
-              sqlite.exec("UPDATE releases SET status='published'")
+              sqlite.exec("UPDATE resourceReleases SET status='published'")
             }
           }
         return Reflect.get(target, key, receiver)
@@ -105,7 +107,9 @@ describe('replaceReleaseProcessingActions', () => {
 
   test('compacts decisions, retains page boundaries and skips identical writes', async () => {
     const { sqlite, db } = createProcessingActionsDb()
-    sqlite.exec("INSERT INTO releases(id,status) VALUES ('release-1','processing')")
+    sqlite.exec(
+      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
+    )
     const actions = Array.from({ length: 1000 }, (_, index) => ({
       action: 'normalise',
       mode: 'automatic' as const,
@@ -132,7 +136,7 @@ describe('replaceReleaseProcessingActions', () => {
     expect(sqlite.query('SELECT total_changes() AS n').get()).toEqual(before)
     const target = createProcessingActionsDb()
     target.sqlite.exec(
-      "INSERT INTO releases(id,status) VALUES ('release-1','processing')",
+      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
     )
     for (const statement of buildAuditReplaySql('release-1', materialised)) {
       expect(new TextEncoder().encode(statement).length).toBeLessThan(100_000)
@@ -145,7 +149,9 @@ describe('replaceReleaseProcessingActions', () => {
 
   test('fragments oversized evidence losslessly and detects corruption', async () => {
     const { sqlite, db } = createProcessingActionsDb()
-    sqlite.exec("INSERT INTO releases(id,status) VALUES ('release-1','processing')")
+    sqlite.exec(
+      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
+    )
     const evidence = {
       text: Array.from({ length: 12000 }, () => crypto.randomUUID()).join('香港'),
     }
@@ -179,7 +185,9 @@ describe('replaceReleaseProcessingActions', () => {
 
   test('failed summary commit keeps previous evidence and statistics visible', async () => {
     const { sqlite, db } = createProcessingActionsDb()
-    sqlite.exec("INSERT INTO releases(id,status) VALUES ('release-1','processing')")
+    sqlite.exec(
+      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
+    )
     const original = [
       {
         action: 'review',
@@ -210,7 +218,7 @@ describe('replaceReleaseProcessingActions', () => {
   test('allows retries before publication and preserves published action evidence', async () => {
     const { sqlite, db } = createProcessingActionsDb()
     sqlite.exec(
-      `INSERT INTO releases (id, status, processingRules) VALUES (
+      `INSERT INTO resourceReleases (id, status, processingRules) VALUES (
         'release-1',
         'staged',
         '{"rulesets":[{"rules":[{"operationCode":"division_code_mapped","type":"bulk"}]}]}'
@@ -239,7 +247,9 @@ describe('replaceReleaseProcessingActions', () => {
       ]),
     ).rejects.toThrow('not declared in processing rules')
 
-    sqlite.exec("UPDATE releases SET status = 'published' WHERE id = 'release-1'")
+    sqlite.exec(
+      "UPDATE resourceReleases SET status = 'published' WHERE id = 'release-1'",
+    )
 
     await expect(replaceReleaseProcessingActions(db, 'release-1', [])).rejects.toThrow(
       'published releases are immutable',

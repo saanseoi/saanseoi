@@ -38,52 +38,52 @@ function fixture() {
     VALUES('composition','government','divisionStatistic','${datasetCode}','primary',1,'exact_ref',0);
   `)
   let sourceRevision = 0
-  const snapshot = async (releaseId: string, period = '2020') => {
+  const snapshot = async (resourceReleaseId: string, period = '2020') => {
     const sourceVersion = ['2021', '2022', '2023-H2', '2024', '2026-Q2'][
       sourceRevision++
     ]!
     meta
       .query(`INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status)
       VALUES(?,'dataset',?,?,'2026-Q2','processing')`)
-      .run(releaseId, `sr-${releaseId}`, sourceVersion)
+      .run(resourceReleaseId, `sr-${resourceReleaseId}`, sourceVersion)
     meta
-      .query(`INSERT INTO releases(id,sourceReleaseId,datasetId,resourceType,code,sourceVersion,cohortKey,status)
+      .query(`INSERT INTO resourceReleases(id,sourceReleaseId,datasetId,resourceType,code,sourceVersion,cohortKey,status)
       VALUES(?,?,'dataset','divisionStatistic',?,?,'2026-Q2','processing')`)
-      .run(releaseId, releaseId, releaseId, sourceVersion)
+      .run(resourceReleaseId, resourceReleaseId, resourceReleaseId, sourceVersion)
     meta
-      .query('UPDATE releases SET processingRules=? WHERE id=?')
+      .query('UPDATE resourceReleases SET processingRules=? WHERE id=?')
       .run(
         JSON.stringify(
           initialDatasets.find(row => row.code === datasetCode)?.processingRules,
         ),
-        releaseId,
+        resourceReleaseId,
       )
     meta
-      .query(`INSERT INTO releaseProvenance(releaseId,manifestHash,byteLength,applicationCount,attemptStatus)
+      .query(`INSERT INTO releaseProvenance(resourceReleaseId,manifestHash,byteLength,applicationCount,attemptStatus)
       VALUES(?,?,1,1,'completed')`)
-      .run(releaseId, `sha256:${'0'.repeat(64)}`)
+      .run(resourceReleaseId, `sha256:${'0'.repeat(64)}`)
     const result = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
       cohortKey: period,
       datasetCode,
       datasetId: 'dataset',
       identityMode: 'cohort_scoped',
       regionCode: 'hk',
-      sourceReleaseId: releaseId,
+      sourceReleaseId: resourceReleaseId,
       variant: datasetCode,
     })
-    await upsertSnapshotSource(db, result.id, 'dataset', releaseId, 'primary')
+    await upsertSnapshotSource(db, result.id, 'dataset', resourceReleaseId, 'primary')
     return result
   }
   const stage = async (
     target: Awaited<ReturnType<typeof snapshot>>,
-    releaseId: string,
+    resourceReleaseId: string,
     rows: Array<[string, Record<string, string>]>,
   ) => {
     const records: CanonicalStatsRows['records'] = rows.map(([id, values]) => ({
       id,
       datasetCode,
-      sourceReleaseId: releaseId,
-      sourceFeatureRef: `${releaseId}/${id}`,
+      sourceReleaseId: resourceReleaseId,
+      sourceFeatureRef: `${resourceReleaseId}/${id}`,
       divisionId: `division-${id}`,
       geography: { kind: 'district', code: id },
       referencePeriodCode: '2020',
@@ -98,7 +98,10 @@ function fixture() {
       fieldSources: Object.fromEntries(
         Object.keys(values).map(key => [
           key,
-          { sourceReleaseId: releaseId, sourceFeatureRef: `${releaseId}/${id}` },
+          {
+            sourceReleaseId: resourceReleaseId,
+            sourceFeatureRef: `${resourceReleaseId}/${id}`,
+          },
         ]),
       ),
     }))
@@ -117,7 +120,7 @@ function fixture() {
       metaDb: db,
       historyDbs,
       snapshots: [target],
-      sourceReleaseId: releaseId,
+      sourceReleaseId: resourceReleaseId,
       now: '2026-09-12T00:00:00.000Z',
     })
     expect(plan.buildBatches().current).toEqual([])
@@ -148,7 +151,7 @@ test.each([false, true])(
         ['B', { population: '200', age: '41' }],
       ])
       const shared = await handlePublishDataset(f.db, {
-        releaseId: 'first',
+        resourceReleaseId: 'first',
         deferStatsReleaseSet: true,
         deferSourcePublish: true,
       })
@@ -157,7 +160,7 @@ test.each([false, true])(
         f.meta.query('SELECT status FROM snapshots WHERE id=?').get(first.id),
       ).toEqual({ status: 'draft' })
       const published = await handlePublishDataset(f.db, {
-        releaseId: 'first',
+        resourceReleaseId: 'first',
         deferStatsReleaseSet: true,
       })
       expect(published.metadataDelta?.snapshots).toEqual([
@@ -168,7 +171,7 @@ test.each([false, true])(
         .get(first.id)
       expect(
         await handlePublishDataset(f.db, {
-          releaseId: 'first',
+          resourceReleaseId: 'first',
           deferStatsReleaseSet: true,
         }),
       ).toEqual(published)
@@ -186,14 +189,14 @@ test.each([false, true])(
       expect(second.parentSnapshotId).toBe(first.id)
       await f.stage(second, 'second', [['A', { population: '101' }]])
       await handlePublishDataset(f.db, {
-        releaseId: 'second',
+        resourceReleaseId: 'second',
         deferStatsReleaseSet: true,
       })
       const third = await f.snapshot('third')
       expect(third.parentSnapshotId).toBe(second.id)
       await f.stage(third, 'third', [['A', { population: '102' }]])
       await handlePublishDataset(f.db, {
-        releaseId: 'third',
+        resourceReleaseId: 'third',
         deferStatsReleaseSet: true,
       })
       expect(f.meta.query('SELECT * FROM apiCatalogRevisions').all()).toEqual(
@@ -242,23 +245,26 @@ test.each(['draft', 'missing-audit', 'failed-audit', 'processing', 'revoked'])(
     try {
       const first = await f.snapshot('first')
       await handlePublishDataset(f.db, {
-        releaseId: 'first',
+        resourceReleaseId: 'first',
         deferStatsReleaseSet: true,
       })
       const second = await f.snapshot('second')
       await handlePublishDataset(f.db, {
-        releaseId: 'second',
+        resourceReleaseId: 'second',
         deferStatsReleaseSet: true,
       })
       if (state === 'draft')
         f.meta.query("UPDATE snapshots SET status='draft' WHERE id=?").run(second.id)
       else if (state === 'missing-audit')
-        f.meta.exec("DELETE FROM releaseProvenance WHERE releaseId='second'")
+        f.meta.exec("DELETE FROM releaseProvenance WHERE resourceReleaseId='second'")
       else if (state === 'failed-audit')
         f.meta.exec(
-          "UPDATE releaseProvenance SET attemptStatus='failed' WHERE releaseId='second'",
+          "UPDATE releaseProvenance SET attemptStatus='failed' WHERE resourceReleaseId='second'",
         )
-      else f.meta.query('UPDATE releases SET status=? WHERE id=?').run(state, 'second')
+      else
+        f.meta
+          .query('UPDATE resourceReleases SET status=? WHERE id=?')
+          .run(state, 'second')
       expect((await f.snapshot('third')).parentSnapshotId).toBe(first.id)
     } finally {
       f.close()
@@ -270,16 +276,19 @@ test('rejects competing deferred branches before bootstrap writes a release set'
   const f = fixture()
   try {
     const first = await f.snapshot('first')
-    await handlePublishDataset(f.db, { releaseId: 'first', deferStatsReleaseSet: true })
+    await handlePublishDataset(f.db, {
+      resourceReleaseId: 'first',
+      deferStatsReleaseSet: true,
+    })
     const second = await f.snapshot('second')
     const competing = await f.snapshot('competing')
     expect(competing.parentSnapshotId).toBe(first.id)
     await handlePublishDataset(f.db, {
-      releaseId: 'second',
+      resourceReleaseId: 'second',
       deferStatsReleaseSet: true,
     })
     await handlePublishDataset(f.db, {
-      releaseId: 'competing',
+      resourceReleaseId: 'competing',
       deferStatsReleaseSet: true,
     })
     await expect(f.snapshot('fourth')).rejects.toThrow(
@@ -301,12 +310,18 @@ test('does not cross an archived catalogue branch after a rollback', async () =>
   const f = fixture()
   try {
     const first = await f.snapshot('first')
-    await handlePublishDataset(f.db, { releaseId: 'first', deferStatsReleaseSet: true })
+    await handlePublishDataset(f.db, {
+      resourceReleaseId: 'first',
+      deferStatsReleaseSet: true,
+    })
     await handleBootstrapStatsReleaseSets(f.db)
     const _second = await f.snapshot('second')
-    await handlePublishDataset(f.db, { releaseId: 'second' })
+    await handlePublishDataset(f.db, { resourceReleaseId: 'second' })
     const third = await f.snapshot('third')
-    await handlePublishDataset(f.db, { releaseId: 'third', deferStatsReleaseSet: true })
+    await handlePublishDataset(f.db, {
+      resourceReleaseId: 'third',
+      deferStatsReleaseSet: true,
+    })
     f.meta.exec(`UPDATE apiCatalogRevisions SET status='archived';
       UPDATE apiCatalogRevisions SET status='current' WHERE revision=(SELECT min(revision) FROM apiCatalogRevisions);`)
     expect((await f.snapshot('after-rollback')).parentSnapshotId).toBe(first.id)

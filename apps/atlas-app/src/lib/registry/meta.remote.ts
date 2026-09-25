@@ -21,7 +21,7 @@ import {
   eq,
   inArray,
   metaAssets,
-  metaReleases,
+  metaResourceReleases,
   metaSourceReleases,
   stats,
 } from '@repo/db'
@@ -351,11 +351,14 @@ export const getSourceReleaseContentData = query(
           ? db
               .select({ assetId: metaAssets.id })
               .from(metaAssets)
-              .leftJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+              .leftJoin(
+                metaResourceReleases,
+                eq(metaAssets.resourceReleaseId, metaResourceReleases.id),
+              )
               .where(
                 and(
                   eq(metaAssets.role, 'sourceArchive'),
-                  eq(metaReleases.sourceReleaseId, version.id),
+                  eq(metaResourceReleases.sourceReleaseId, version.id),
                 ),
               )
               .orderBy(desc(metaAssets.retrievedAt))
@@ -368,7 +371,7 @@ export const getSourceReleaseContentData = query(
         tab === 'stats' || tab === 'schema'
           ? await getSourceReleaseMeasures({
               datasetCode,
-              releaseId: version.id,
+              resourceReleaseId: version.id,
               includeUnobserved: tab === 'schema',
             })
           : []
@@ -432,7 +435,7 @@ export const getPublisherPageData = query(registryCodeSchema, async publisherCod
 
 async function getSourceReleaseMeasures(input: {
   datasetCode: string
-  releaseId: string
+  resourceReleaseId: string
   includeUnobserved?: boolean
 }) {
   return readStatisticsSourceMeasures({
@@ -443,7 +446,7 @@ async function getSourceReleaseMeasures(input: {
       'DB_HISTORY_HK_2026',
     ].map(binding => getHistoryDb(binding) as unknown as HarbourReadableDb),
     datasetCode: input.datasetCode,
-    sourceReleaseId: input.releaseId,
+    sourceReleaseId: input.resourceReleaseId,
     includeUnobserved: input.includeUnobserved,
   })
 }
@@ -516,10 +519,13 @@ export const getApiReleasePageData = query(
                   releaseCode: metaSourceReleases.code,
                 })
                 .from(metaAssets)
-                .innerJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+                .innerJoin(
+                  metaResourceReleases,
+                  eq(metaAssets.resourceReleaseId, metaResourceReleases.id),
+                )
                 .innerJoin(
                   metaSourceReleases,
-                  eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+                  eq(metaResourceReleases.sourceReleaseId, metaSourceReleases.id),
                 )
                 .where(
                   and(
@@ -551,10 +557,13 @@ export const getApiReleasePageData = query(
                   value: stats.value,
                 })
                 .from(stats)
-                .innerJoin(metaReleases, eq(stats.releaseId, metaReleases.id))
+                .innerJoin(
+                  metaResourceReleases,
+                  eq(stats.resourceReleaseId, metaResourceReleases.id),
+                )
                 .innerJoin(
                   metaSourceReleases,
-                  eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+                  eq(metaResourceReleases.sourceReleaseId, metaSourceReleases.id),
                 )
                 .where(
                   and(

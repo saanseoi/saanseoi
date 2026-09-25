@@ -134,7 +134,7 @@ test('geometry reserves the shared mirror and keeps WAL-safe disposable preparat
     const input = {
       context,
       directory,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'geometry-preparation',
       inputs: { source: 'checksum' },
     }
@@ -185,7 +185,7 @@ test('geometry refuses a missing retained copy and changed source or binding inp
     const input = {
       context,
       directory,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'geometry-preparation',
       inputs: { source: 'checksum' },
     }
@@ -218,7 +218,7 @@ test('geometry refuses to reuse preparation after a reset generation or mirror g
     const input = {
       context,
       directory,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'geometry-preparation',
       inputs: {},
     }

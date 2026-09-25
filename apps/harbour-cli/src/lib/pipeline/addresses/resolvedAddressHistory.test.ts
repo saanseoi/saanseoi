@@ -52,7 +52,7 @@ test('source interpretations inherit unchanged evidence and journal omissions on
         parentPlan: plan,
         membership: membership(ids),
         snapshotId,
-        releaseId: `r-${snapshotId}`,
+        resourceReleaseId: `r-${snapshotId}`,
       })
     run('two', ['raw'])
     expect(next.query('SELECT * FROM sourceResolutions').all()).toEqual([])
@@ -126,7 +126,7 @@ test('changed interpretation survives compaction even when publisher content is 
       parentPlan,
       membership: membership(['raw']),
       snapshotId: 'two',
-      releaseId: 'r2',
+      resourceReleaseId: 'r2',
     })
     expect(
       next.query('SELECT sourceRecordId,resolutions FROM sourceResolutions').all(),
@@ -177,7 +177,7 @@ test('cross-year replacement closes prior base and missing locale while keeping 
       prior,
       snapshotId: 'two',
       scopeId: 'scope',
-      releaseId: 'r2',
+      resourceReleaseId: 'r2',
       now: 'now',
     })
     expect(old.query('SELECT versionHash,isCurrent FROM address2d').all()).toEqual([

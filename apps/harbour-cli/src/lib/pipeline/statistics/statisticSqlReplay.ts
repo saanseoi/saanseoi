@@ -30,7 +30,7 @@ export type StatisticSqlReplayInput = {
     table: 'divisionStatistics'
   }
   sourceVersion: string
-  releaseId: string
+  resourceReleaseId: string
   source: {
     rows: StatisticRow[]
     table:
@@ -73,7 +73,7 @@ export function buildStatisticSqlBatches(
     ...buildCloseSourceStatements(
       input.source.table,
       sourceIds,
-      input.releaseId,
+      input.resourceReleaseId,
       input.sourceVersion,
       sourceRows,
     ),
@@ -81,7 +81,13 @@ export function buildStatisticSqlBatches(
       input.source.table,
       sourceRows,
       ['sourceRecordId', 'versionHash'],
-      ['isCurrent', 'releaseId', 'updatedAt', 'validToRelease', 'sourceGeometry'],
+      [
+        'isCurrent',
+        'resourceReleaseId',
+        'updatedAt',
+        'validToRelease',
+        'sourceGeometry',
+      ],
       ['sourceGeometry'],
     ),
   ]
@@ -232,7 +238,7 @@ function resolveRemoteReplay(
 function buildCloseSourceStatements(
   table: StatisticSqlReplayInput['source']['table'],
   ids: string[],
-  releaseId: string,
+  resourceReleaseId: string,
   sourceVersion: string,
   rows: StatisticRow[],
 ) {
@@ -256,7 +262,7 @@ function buildCloseSourceStatements(
     // A same-release rebuild can omit rows; do not close other source lineages.
     ...missingSourceMembershipPredicates(ids).map(
       predicate =>
-        `${update} AND "releaseId" = ${sqlValue(releaseId)} AND ${predicate};`,
+        `${update} AND "resourceReleaseId" = ${sqlValue(resourceReleaseId)} AND ${predicate};`,
     ),
   ]
 }

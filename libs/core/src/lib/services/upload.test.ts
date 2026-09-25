@@ -292,7 +292,7 @@ function insertFixtureIngestRun(
   db: Database,
   run: {
     runId: string
-    releaseId: string
+    resourceReleaseId: string
     phase: string
     status: string
     stats?: string | null
@@ -305,7 +305,7 @@ function insertFixtureIngestRun(
     `
       INSERT INTO ingestRuns (
         runId,
-        releaseId,
+        resourceReleaseId,
         phase,
         status,
         stats,
@@ -318,7 +318,7 @@ function insertFixtureIngestRun(
     `,
   ).run(
     run.runId,
-    run.releaseId,
+    run.resourceReleaseId,
     run.phase,
     run.status,
     run.stats ?? null,
@@ -582,7 +582,7 @@ describe('upload', () => {
     const sqliteCheck = new Database(dbPath)
     const dataset = sqliteCheck
       .query(
-        'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM releases WHERE code = ?',
+        'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM resourceReleases WHERE code = ?',
       )
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
@@ -592,7 +592,7 @@ describe('upload', () => {
     } | null
     const ingestRunCount = sqliteCheck
       .query(
-        'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ?',
+        'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ?',
       )
       .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
 
@@ -600,7 +600,7 @@ describe('upload', () => {
       .query(`
       SELECT s.rawObjectKey, s.processingRules AS sourceRules,
         r.processingRules AS resourceRules, d.processingRules AS datasetRules
-      FROM releases r JOIN sourceReleases s ON s.id = r.sourceReleaseId
+      FROM resourceReleases r JOIN sourceReleases s ON s.id = r.sourceReleaseId
       JOIN datasets d ON d.id = r.datasetId WHERE r.code = ?
     `)
       .get(result.plan.releaseCode) as {
@@ -650,8 +650,8 @@ describe('upload', () => {
     const second = await registerFreshUpload()
     const expectedReleaseId = await buildDeterministicReleaseId(first.plan.releaseCode)
 
-    expect(first.releaseId).toBe(expectedReleaseId)
-    expect(second.releaseId).toBe(expectedReleaseId)
+    expect(first.resourceReleaseId).toBe(expectedReleaseId)
+    expect(second.resourceReleaseId).toBe(expectedReleaseId)
   })
 
   test('rejects non-chronological uploads for the same region/type', async () => {
@@ -829,7 +829,9 @@ describe('upload', () => {
     })
 
     const dataset = sqlite
-      .query('SELECT code AS datasetId, rawObjectKey FROM releases WHERE code = ?')
+      .query(
+        'SELECT code AS datasetId, rawObjectKey FROM resourceReleases WHERE code = ?',
+      )
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       rawObjectKey: string
@@ -855,7 +857,7 @@ describe('upload', () => {
         inspection: addressFixtureInspection,
         rawObjectKey: 'hk/hkgov-dpo/2026-06-04.0/address.parquet',
       })
-      sqlite.exec("UPDATE releases SET status = 'published'")
+      sqlite.exec("UPDATE resourceReleases SET status = 'published'")
       const added = { name: 'publisherSource', type: 'utf8', nullable: true }
       const plan = (schema: UploadInspection['schema']) =>
         planUpload(db, {
@@ -905,7 +907,7 @@ describe('upload', () => {
       .query(
         `
           SELECT d.code AS datasetCode, r.code AS releaseCode, r.status AS status
-          FROM releases r
+          FROM resourceReleases r
           JOIN datasets d ON d.id = r.datasetId
           WHERE r.code = ?
         `,
@@ -960,7 +962,7 @@ describe('upload', () => {
 
     const dataset = sqlite
       .query(
-        'SELECT code AS datasetId, status, rawObjectKey, originalFileName, processingRules FROM releases WHERE code = ?',
+        'SELECT code AS datasetId, status, rawObjectKey, originalFileName, processingRules FROM resourceReleases WHERE code = ?',
       )
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
@@ -983,7 +985,7 @@ describe('upload', () => {
     } | null
     const ingestRunCount = sqlite
       .query(
-        'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ?',
+        'SELECT COUNT(*) AS count FROM ingestRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ?',
       )
       .get('dr-hk-overture-division-2026-05-20.0') as { count: number }
 
@@ -1005,7 +1007,7 @@ describe('upload', () => {
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
 
-    const { releaseId } = insertFixtureRelease(sqlite, {
+    const { resourceReleaseId } = insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2026-05',
@@ -1021,7 +1023,7 @@ describe('upload', () => {
     })
     insertFixtureIngestRun(sqlite, {
       runId: 'run-register-dataset-old',
-      releaseId,
+      resourceReleaseId,
       phase: 'registerDataset',
       status: 'completed',
       startedAt: '2026-06-02T00:00:00.000Z',
@@ -1029,7 +1031,7 @@ describe('upload', () => {
     })
     insertFixtureIngestRun(sqlite, {
       runId: 'run-stage-dataset-old',
-      releaseId,
+      resourceReleaseId,
       phase: 'stageDataset',
       status: 'error',
       stats:
@@ -1050,9 +1052,9 @@ describe('upload', () => {
 
     const ingestRuns = sqlite
       .query(
-        'SELECT runId, phase, status, stats, error, startedAt FROM ingestRuns WHERE releaseId = ? ORDER BY phase ASC',
+        'SELECT runId, phase, status, stats, error, startedAt FROM ingestRuns WHERE resourceReleaseId = ? ORDER BY phase ASC',
       )
-      .all(releaseId) as Array<{
+      .all(resourceReleaseId) as Array<{
       error: string | null
       phase: string
       runId: string
@@ -1328,7 +1330,7 @@ describe('upload', () => {
       sourceVersion: '2024',
       rawObjectKey: 'hk/hkgov-censtatd/2024/density.parquet',
     })
-    sqlite.exec("UPDATE releases SET status = 'published';")
+    sqlite.exec("UPDATE resourceReleases SET status = 'published';")
 
     const planned = await planUpload(db, {
       cohortKey: '2024',
@@ -1375,7 +1377,7 @@ describe('upload', () => {
       theme: 'stats',
     })
 
-    expect(sqlite.query('SELECT geometryStatus FROM releases').get()).toEqual({
+    expect(sqlite.query('SELECT geometryStatus FROM resourceReleases').get()).toEqual({
       geometryStatus: null,
     })
 
@@ -1532,7 +1534,7 @@ Reconcile the schema before uploading this dataset.`)
       const fixtureFile = createFixturePath(tempDir)
       const sqlite = initDb(dbPath)
       const db = createLocalHarbourDb(sqlite)
-      const { releaseId } = insertFixtureRelease(sqlite, {
+      const { resourceReleaseId } = insertFixtureRelease(sqlite, {
         source: 'overture',
         regionCode: 'hk',
         cohortKey: '2026-05',
@@ -1549,7 +1551,7 @@ Reconcile the schema before uploading this dataset.`)
       if (recovery === 'completed')
         insertFixtureIngestRun(sqlite, {
           runId: 'completed-processing-run',
-          releaseId,
+          resourceReleaseId,
           phase: 'processDataset',
           status: 'completed',
           startedAt: '2026-06-02T00:00:00.000Z',
@@ -1571,7 +1573,7 @@ Reconcile the schema before uploading this dataset.`)
           recovery === 'retained-remote' ? ['staged', 'processing'] : undefined,
         recoveredSqlDeliveryReleaseId:
           recovery === 'retained'
-            ? releaseId
+            ? resourceReleaseId
             : recovery === 'mismatched'
               ? 'other-release'
               : undefined,
@@ -1584,10 +1586,12 @@ Reconcile the schema before uploading this dataset.`)
         return
       }
       const result = await registration
-      expect(result).toMatchObject({ releaseId })
+      expect(result).toMatchObject({ resourceReleaseId })
 
       expect(
-        sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+        sqlite
+          .query('SELECT status FROM resourceReleases WHERE id = ?')
+          .get(resourceReleaseId),
       ).toEqual({ status: 'staged' })
       sqlite.close()
     },
@@ -1599,7 +1603,7 @@ Reconcile the schema before uploading this dataset.`)
     const fixtureFile = createFixturePath(tempDir)
     const sqlite = initDb(dbPath)
     const db = createLocalHarbourDb(sqlite)
-    const { releaseId } = insertFixtureRelease(sqlite, {
+    const { resourceReleaseId } = insertFixtureRelease(sqlite, {
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2026-05',
@@ -1615,7 +1619,7 @@ Reconcile the schema before uploading this dataset.`)
     })
     insertFixtureIngestRun(sqlite, {
       runId: 'completed-processing-run',
-      releaseId,
+      resourceReleaseId,
       phase: 'processDataset',
       status: 'completed',
       startedAt: '2026-06-02T00:00:00.000Z',
@@ -1623,7 +1627,7 @@ Reconcile the schema before uploading this dataset.`)
     })
     insertFixtureIngestRun(sqlite, {
       runId: 'active-import-run',
-      releaseId,
+      resourceReleaseId,
       phase: 'importPlandSqlSource',
       status: 'running',
       startedAt: '2026-06-02T00:01:00.000Z',
@@ -1638,7 +1642,7 @@ Reconcile the schema before uploading this dataset.`)
         inspection: fixtureInspection,
         rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
         resumeInterruptedProcessingRelease: true,
-        recoveredSqlDeliveryReleaseId: releaseId,
+        recoveredSqlDeliveryReleaseId: resourceReleaseId,
         reuseExistingRelease: true,
         allowExistingDatasetStatuses: ['staged', 'processing'],
       }),

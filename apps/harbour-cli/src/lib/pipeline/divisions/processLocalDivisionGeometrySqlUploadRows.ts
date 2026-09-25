@@ -52,7 +52,7 @@ export async function writeGeometryRows(
     publisherRows?: Array<NonNullable<NormalisedGeometry>>
     source: GeometryUploadPlan['source']
     variant: string
-    releaseId: string
+    resourceReleaseId: string
     releaseCode: string
     sourceVersion: string
     snapshotId: string
@@ -110,7 +110,7 @@ export async function writeGeometryRows(
           table: publicationTable,
           scopeId,
           snapshotId: version.snapshotId,
-          publicationToken: version.releaseId,
+          publicationToken: version.resourceReleaseId,
           timestamp: now,
         }
       : null
@@ -251,7 +251,7 @@ export async function writeGeometryRows(
       context.historyDb as unknown as HarbourWritableDb,
       {
         snapshotId: version.snapshotId,
-        sourceReleaseId: version.releaseId,
+        sourceReleaseId: version.resourceReleaseId,
         recordType: resourceType,
         operation: 'delete',
         changes: removedHistoryIds.map(recordId => ({ recordId })),
@@ -336,7 +336,7 @@ export async function writeGeometryRows(
           row.canonical.id,
         ),
         versionHash: requireGeometryHash(historyHashes, row.canonical.id),
-        sourceReleaseId: version.releaseId,
+        sourceReleaseId: version.resourceReleaseId,
         snapshotId: version.snapshotId,
         isCurrent: true,
         createdAt: now,
@@ -362,7 +362,7 @@ export async function writeGeometryRows(
       return [
         {
           snapshotId: version.snapshotId,
-          sourceReleaseId: version.releaseId,
+          sourceReleaseId: version.resourceReleaseId,
           sourceRecordId: row.source.sourceRecordId,
           sourceVersionHash,
           resolutions: {
@@ -401,7 +401,7 @@ export async function writeGeometryRows(
                     }
                   : { sourceGeometry }),
               versionHash: requireGeometryHash(sourceHashes, row.source.sourceRecordId),
-              releaseId: version.releaseId,
+              resourceReleaseId: version.resourceReleaseId,
               validFromRelease: version.sourceVersion,
               validToRelease: null,
               isCurrent: true,
@@ -461,7 +461,7 @@ export async function writeGeometryRows(
       context.historyDb as unknown as HarbourWritableDb,
       {
         snapshotId: version.snapshotId,
-        sourceReleaseId: version.releaseId,
+        sourceReleaseId: version.resourceReleaseId,
         recordType: resourceType,
         operation: 'upsert',
         changes: historyRows.map(row => ({
@@ -482,7 +482,7 @@ export async function writeGeometryRows(
           target: [sourceTable.sourceRecordId, sourceTable.versionHash],
           setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
           set: {
-            releaseId: version.releaseId,
+            resourceReleaseId: version.resourceReleaseId,
             validToRelease: null,
             isCurrent: true,
             updatedAt: now,
@@ -556,7 +556,7 @@ async function writeCenstatdSourceDerivatives(
   rows: Array<NonNullable<NormalisedGeometry>>,
   version: {
     cohortKey: string
-    releaseId: string
+    resourceReleaseId: string
     sourceVersion: string
     transform?: 'simplified'
   },
@@ -610,7 +610,7 @@ async function writeCenstatdSourceDerivatives(
         geometry: row.canonical.geometry,
         bbox: row.canonical.bbox,
         versionHash,
-        releaseId: version.releaseId,
+        resourceReleaseId: version.resourceReleaseId,
         validFromRelease: version.sourceVersion,
         validToRelease: null,
         isCurrent: true,
@@ -663,7 +663,7 @@ async function writeCenstatdSourceDerivatives(
         ],
         setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
         set: {
-          releaseId: version.releaseId,
+          resourceReleaseId: version.resourceReleaseId,
           validToRelease: null,
           isCurrent: true,
           updatedAt: now,

@@ -26,7 +26,7 @@ import {
   snapshotStatuses,
 } from '../../constants/schema'
 import { isoTimestamp, jsonText, primaryUuid, timestamps } from '../shared'
-import { metaDatasets, metaReleases } from './datasets'
+import { metaDatasets, metaResourceReleases } from './datasets'
 
 type ReferenceAction = 'cascade' | 'restrict'
 
@@ -176,8 +176,8 @@ export const metaSnapshotSourceReleases = sqliteTable(
     }),
     foreignKey({
       columns: [table.resourceReleaseId, table.datasetId],
-      foreignColumns: [metaReleases.id, metaReleases.datasetId],
-      name: 'snapshotSourceReleases_resourceReleaseId_datasetId_releases_id_datasetId_fk',
+      foreignColumns: [metaResourceReleases.id, metaResourceReleases.datasetId],
+      name: 'snapshotSourceReleases_resourceReleaseId_datasetId_resourceReleases_id_datasetId_fk',
     }).onDelete('restrict'),
     index('snapshotSourceReleases_datasetId_idx').on(table.datasetId),
     index('snapshotSourceReleases_resourceReleaseId_idx').on(table.resourceReleaseId),
@@ -263,12 +263,15 @@ export const metaPublishedDataJournal = sqliteTable(
   'publishedDataJournal',
   {
     id: primaryUuid('id'),
-    releaseId: text('releaseId')
+    resourceReleaseId: text('resourceReleaseId')
       .notNull()
-      .references(() => metaReleases.id, { onDelete: 'restrict' }),
-    relatedReleaseId: text('relatedReleaseId').references(() => metaReleases.id, {
-      onDelete: 'set null',
-    }),
+      .references(() => metaResourceReleases.id, { onDelete: 'restrict' }),
+    relatedResourceReleaseId: text('relatedResourceReleaseId').references(
+      () => metaResourceReleases.id,
+      {
+        onDelete: 'set null',
+      },
+    ),
     snapshotId: text('snapshotId').references(() => metaSnapshots.id, {
       onDelete: 'set null',
     }),
@@ -283,8 +286,10 @@ export const metaPublishedDataJournal = sqliteTable(
     createdAt: timestamps.createdAt,
   },
   table => [
-    index('publishedDataJournal_releaseId_idx').on(table.releaseId),
-    index('publishedDataJournal_relatedReleaseId_idx').on(table.relatedReleaseId),
+    index('publishedDataJournal_resourceReleaseId_idx').on(table.resourceReleaseId),
+    index('publishedDataJournal_relatedReleaseId_idx').on(
+      table.relatedResourceReleaseId,
+    ),
     index('publishedDataJournal_action_idx').on(table.action),
   ],
 )

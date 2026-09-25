@@ -10,10 +10,10 @@ test('full Statistics specifications preserve each field release rather than sub
   const sqlite = new Database(':memory:')
   sqlite.exec(`CREATE TABLE datasets(id TEXT,code TEXT);
     CREATE TABLE sourceReleases(id TEXT,code TEXT);
-    CREATE TABLE releases(id TEXT,code TEXT,datasetId TEXT,sourceReleaseId TEXT,sourceVersion TEXT,cohortKey TEXT,sourceSchemaVersion TEXT,originalFileName TEXT);
+    CREATE TABLE resourceReleases(id TEXT,code TEXT,datasetId TEXT,sourceReleaseId TEXT,sourceVersion TEXT,cohortKey TEXT,sourceSchemaVersion TEXT,originalFileName TEXT);
     INSERT INTO datasets VALUES('dataset','ds-statistic');
     INSERT INTO sourceReleases VALUES('source-old','old-source'),('source-new','new-source');
-    INSERT INTO releases VALUES('old','old-resource','dataset','source-old','2024','2024','v1','old.zip'),('new','new-resource','dataset','source-new','2026','2026','v2','new.zip');`)
+    INSERT INTO resourceReleases VALUES('old','old-resource','dataset','source-old','2024','2024','v1','old.zip'),('new','new-resource','dataset','source-new','2026','2026','v2','new.zip');`)
   const document = {
     data: [
       {
@@ -67,11 +67,11 @@ test('Planning geometry references use the selected snapshot release specificati
   const sqlite = new Database(':memory:')
   sqlite.exec(`CREATE TABLE datasets(id TEXT,code TEXT);
     CREATE TABLE sourceReleases(id TEXT,code TEXT);
-    CREATE TABLE releases(id TEXT,code TEXT,datasetId TEXT,sourceReleaseId TEXT,sourceVersion TEXT,cohortKey TEXT,sourceSchemaVersion TEXT,originalFileName TEXT);
+    CREATE TABLE resourceReleases(id TEXT,code TEXT,datasetId TEXT,sourceReleaseId TEXT,sourceVersion TEXT,cohortKey TEXT,sourceSchemaVersion TEXT,originalFileName TEXT);
     CREATE TABLE snapshotSourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
     INSERT INTO datasets VALUES('dataset','ds-hk-hkgov-pland-division-area-pu');
     INSERT INTO sourceReleases VALUES('source','planning-source');
-    INSERT INTO releases VALUES('release','planning-resource','dataset','source','2024','2024','v1','planning.zip');
+    INSERT INTO resourceReleases VALUES('release','planning-resource','dataset','source','2024','2024','v1','planning.zip');
     INSERT INTO snapshotSourceReleases VALUES('selected','dataset','release','primary');`)
   const document = {
     data: {

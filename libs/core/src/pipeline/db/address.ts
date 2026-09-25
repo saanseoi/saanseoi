@@ -132,7 +132,7 @@ type CurrentAddressVersionLookupRow = Pick<
 >
 
 export type AddressVersionInsertContext = {
-  releaseId: string
+  resourceReleaseId: string
   releaseRole: 'primary' | 'enrichment'
   snapshotId: string
   cohortKey: string
@@ -760,9 +760,9 @@ export async function prepareAddressVersionInsertContext(
   message: DatasetProcessingMessage,
   environment: 'preview' | 'production',
 ): Promise<AddressVersionInsertContext> {
-  const dataset = message.releaseId?.trim()
+  const dataset = message.resourceReleaseId?.trim()
     ? await waitForDatasetRecord(metaDb, {
-        releaseId: message.releaseId,
+        resourceReleaseId: message.resourceReleaseId,
       })
     : await waitForDatasetRecord(metaDb, {
         releaseCode: message.releaseCode,
@@ -770,7 +770,7 @@ export async function prepareAddressVersionInsertContext(
 
   if (!dataset) {
     throw new Error(
-      `Release not found: ${message.releaseId ?? message.releaseCode ?? message.datasetId}`,
+      `Release not found: ${message.resourceReleaseId ?? message.releaseCode ?? message.datasetId}`,
     )
   }
 
@@ -780,7 +780,7 @@ export async function prepareAddressVersionInsertContext(
     cohortKey: dataset.cohortKey,
     datasetCode: lineageDataset.datasetCode,
     datasetId: lineageDataset.datasetId,
-    sourceReleaseId: dataset.releaseId,
+    sourceReleaseId: dataset.resourceReleaseId,
     variant: 'default',
   })
 
@@ -820,10 +820,10 @@ export async function prepareAddressVersionInsertContext(
     metaDb,
     snapshot.id,
     dataset.datasetId,
-    dataset.releaseId,
+    dataset.resourceReleaseId,
     releaseRole,
     {
-      anchorReleaseId: releaseRole === 'primary' ? dataset.releaseId : null,
+      anchorReleaseId: releaseRole === 'primary' ? dataset.resourceReleaseId : null,
       selectedByRule: 'snapshot-assembly-address-v1',
       selectionMode: 'exact_ref',
       sourceCohortKey: dataset.cohortKey,
@@ -832,20 +832,20 @@ export async function prepareAddressVersionInsertContext(
   await recordSnapshotAssembly(metaDb, {
     snapshotId: snapshot.id,
     resourceType: 'address',
-    anchorReleaseId: releaseRole === 'primary' ? dataset.releaseId : null,
+    anchorReleaseId: releaseRole === 'primary' ? dataset.resourceReleaseId : null,
     anchorCohortKey: dataset.cohortKey,
     detailsJson: {
       releaseRole,
-      sourceReleaseId: dataset.releaseId,
+      sourceReleaseId: dataset.resourceReleaseId,
       sourceVersion: dataset.sourceVersion,
     },
   })
-  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
-  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id)
+  await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, historyShard.id)
+  await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, sourceShard.id)
   await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)
 
   return {
-    releaseId: dataset.releaseId,
+    resourceReleaseId: dataset.resourceReleaseId,
     releaseRole,
     snapshotId: snapshot.id,
     cohortKey: message.cohortKey,
@@ -1681,7 +1681,7 @@ export async function insertAddressVersionRows(
           chunk.map(row => ({
             id: row.id,
             versionHash: row.versionHash,
-            sourceReleaseId: context.releaseId,
+            sourceReleaseId: context.resourceReleaseId,
             snapshotId: context.snapshotId,
             isCurrent: true,
             streetId: row.streetId,
@@ -1709,7 +1709,7 @@ export async function insertAddressVersionRows(
           target: [historySchema.address2d.id, historySchema.address2d.versionHash],
           set: {
             isCurrent: true,
-            sourceReleaseId: context.releaseId,
+            sourceReleaseId: context.resourceReleaseId,
             snapshotId: context.snapshotId,
             updatedAt: excluded('updatedAt'),
           },
@@ -1720,7 +1720,7 @@ export async function insertAddressVersionRows(
 
   await recordSnapshotVersionChanges(historyDb, {
     snapshotId: context.snapshotId,
-    sourceReleaseId: context.releaseId,
+    sourceReleaseId: context.resourceReleaseId,
     recordType: 'address2d',
     operation: 'upsert',
     changes: baseRows.map(row => ({
@@ -1741,7 +1741,7 @@ export async function insertAddressVersionRows(
         {
           ...row,
           versionHash,
-          sourceReleaseId: context.releaseId,
+          sourceReleaseId: context.resourceReleaseId,
           snapshotId: context.snapshotId,
           isCurrent: true,
           createdAt: new Date().toISOString(),
@@ -1752,7 +1752,7 @@ export async function insertAddressVersionRows(
     await insertAddressBuildingNumberLookupVersionsInChunks(historyDb, lookupRows)
     await recordSnapshotVersionChanges(historyDb, {
       snapshotId: context.snapshotId,
-      sourceReleaseId: context.releaseId,
+      sourceReleaseId: context.resourceReleaseId,
       recordType: 'address2dI18n',
       operation: 'upsert',
       changes: i18nRows.map(row => ({

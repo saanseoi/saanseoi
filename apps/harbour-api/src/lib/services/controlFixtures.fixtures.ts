@@ -59,17 +59,17 @@ export function initDb(dbPath: string) {
       dataset.code,
       JSON.stringify(dataset.processingRules),
     )
-  db.exec(`CREATE TRIGGER fixture_capture_release_rules AFTER INSERT ON releases
+  db.exec(`CREATE TRIGGER fixture_capture_release_rules AFTER INSERT ON resourceReleases
     WHEN NEW.processingRules IS NULL
-    BEGIN UPDATE releases SET processingRules = (SELECT p.processingRules FROM fixturePolicies p JOIN datasets d ON d.code = p.datasetCode WHERE d.id = NEW.datasetId) WHERE id = NEW.id; END;`)
+    BEGIN UPDATE resourceReleases SET processingRules = (SELECT p.processingRules FROM fixturePolicies p JOIN datasets d ON d.code = p.datasetCode WHERE d.id = NEW.datasetId) WHERE id = NEW.id; END;`)
   seedCompletedAudits(db)
   return db
 }
 
 export function seedCompletedAudits(db: Database) {
   db.exec(`INSERT OR IGNORE INTO releaseProvenance
-    (releaseId, manifestHash, byteLength, applicationCount, attemptStatus)
-    SELECT id, 'sha256:${'0'.repeat(64)}', 1, 0, 'completed' FROM releases`)
+    (resourceReleaseId, manifestHash, byteLength, applicationCount, attemptStatus)
+    SELECT id, 'sha256:${'0'.repeat(64)}', 1, 0, 'completed' FROM resourceReleases`)
 }
 
 export function seedSnapshot(
@@ -79,8 +79,8 @@ export function seedSnapshot(
     cohortKey = 'fixture-cohort',
     datasetId = 'overture-hk-division',
     resourceType = 'division',
-    releaseId,
-    snapshotId = `snapshot-${releaseId}`,
+    resourceReleaseId,
+    snapshotId = `snapshot-${resourceReleaseId}`,
     status = 'draft',
     timestamp = 1761264000000,
   }: {
@@ -88,7 +88,7 @@ export function seedSnapshot(
     cohortKey?: string
     datasetId?: string
     resourceType?: string
-    releaseId: string
+    resourceReleaseId: string
     snapshotId?: string
     status?: 'draft' | 'published'
     timestamp?: number
@@ -119,7 +119,7 @@ export function seedSnapshot(
     ) VALUES (
       '${snapshotId}',
       '${datasetId}',
-      '${releaseId}',
+      '${resourceReleaseId}',
       'primary',
       ${timestamp}
     );
@@ -188,7 +188,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         '2024', '2024', 'published'
       );
 
-    INSERT OR IGNORE INTO releases (
+    INSERT OR IGNORE INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion,
       cohortKey, rawObjectKey, originalFileName, status, ingestedAt, createdAt,
       updatedAt
@@ -257,10 +257,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 
   for (const release of companionReleases) {
     const releaseCode = `dr-hk-${release.source}-${release.type === 'divisionArea' && release.source !== 'overture' ? 'division-area-district' : release.type === 'divisionBoundary' ? 'division-boundary' : 'division-area'}-${release.sourceVersion}`
-    const releaseId = `release-${releaseCode}`
+    const resourceReleaseId = `release-${releaseCode}`
     insertFixtureRelease(sqlite, {
       datasetCode: release.datasetCode,
-      releaseId,
+      resourceReleaseId,
       source: release.source,
       regionCode: 'hk',
       cohortKey: sourceVersion.slice(0, 7),
@@ -274,15 +274,15 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       updatedAt: '2026-06-05T00:00:00.000Z',
     })
     sqlite
-      .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
-      .run(release.schemaVersion, releaseId)
+      .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
+      .run(release.schemaVersion, resourceReleaseId)
     const datasetId = sqlite
-      .query('SELECT datasetId FROM releases WHERE id = ?')
-      .get(releaseId) as { datasetId: string }
+      .query('SELECT datasetId FROM resourceReleases WHERE id = ?')
+      .get(resourceReleaseId) as { datasetId: string }
     sqlite
       .query(
         'INSERT INTO snapshotSourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
       )
-      .run(snapshotId, datasetId.datasetId, releaseId, 'supporting')
+      .run(snapshotId, datasetId.datasetId, resourceReleaseId, 'supporting')
   }
 }

@@ -89,7 +89,7 @@ export function validateManifest(value: unknown): asserts value is ProcessingMan
   const m = value as ProcessingManifest
   if (m?.schemaVersion !== 1 || m.kind !== 'processing-result')
     throw new Error('Unsupported processing manifest schema.')
-  text(m.releaseId)
+  text(m.resourceReleaseId)
   integer(m.applicationCount)
   if (![m.collections, m.chunks, m.summaries].every(Array.isArray))
     throw new Error('Missing manifest arrays.')
@@ -97,7 +97,7 @@ export function validateManifest(value: unknown): asserts value is ProcessingMan
   for (const c of m.collections) {
     text(c.id)
     text(c.datasetCode)
-    text(c.releaseId)
+    text(c.resourceReleaseId)
     text(c.schema)
     if (ids.has(c.id)) throw new Error('Duplicate collection.')
     ids.add(c.id)

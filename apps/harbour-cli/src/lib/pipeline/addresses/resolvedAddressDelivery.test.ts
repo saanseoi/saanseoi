@@ -120,7 +120,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
     const message = {
       source: 'hkgov-dpo',
       sourceVersion: '2026-01-01.0',
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       datasetId: 'dataset',
       cohortKey: '2026-01-01.0',
       regionCode: 'hk',
@@ -140,7 +140,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
       rowEnd: 1,
       totalRows: 1,
       processingRunStartedAt: now,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       unchangedRows: 0,
       rows: [
         {
@@ -300,7 +300,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
         )
       ).values(),
     ]
-    message.releaseId = 'release2'
+    message.resourceReleaseId = 'release2'
     artefact.rows[0]!.changed = false
     artefact.rows[0]!.base.snapshotId = 'snapshot2'
     artefact.rows[0]!.i18n[0]!.snapshotId = 'snapshot2'
@@ -335,7 +335,7 @@ test('combined Address planning seals only final changes and rejects incomplete 
       capture: async () => {},
     })
     expect(unchanged.mutationSummary.statements).toBe(0)
-    message.releaseId = 'release3'
+    message.resourceReleaseId = 'release3'
     artefact.rows[0]!.changed = true
     artefact.rows[0]!.changedExistingId = 'a'
     artefact.rows[0]!.versionHash = 'v3'

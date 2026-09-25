@@ -19,7 +19,7 @@ test('SQL imports retain and clear parent links in current and versioned history
     resourceType: 'address',
     source: 'hkgov-dpo',
     regionCode: 'hk',
-    releaseId: 'address-release',
+    resourceReleaseId: 'address-release',
     sourceVersion: '2026-09-06.0',
   } as DatasetProcessingMessage
   try {
@@ -54,7 +54,7 @@ test('SQL imports retain and clear parent links in current and versioned history
     ] as const) {
       const artefact: ResolvedAddressChunkArtefact = {
         kind: 'address.resolved.v1',
-        releaseId: 'address-release',
+        resourceReleaseId: 'address-release',
         processingRunStartedAt: timestamp,
         rowStart: 0,
         rowEnd: 1,

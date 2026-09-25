@@ -71,14 +71,14 @@ export const collectionSchema = object({
   id: string,
   layer: { enum: ['source', 'canonical'] },
   datasetCode: string,
-  releaseId: string,
+  resourceReleaseId: string,
   snapshotId: nullable(string),
   schema: string,
 })
 export const manifestSchema = object({
   schemaVersion: { const: 1 },
   kind: { const: 'processing-result' },
-  releaseId: string,
+  resourceReleaseId: string,
   collections: array(collectionSchema),
   chunks: array(
     object({

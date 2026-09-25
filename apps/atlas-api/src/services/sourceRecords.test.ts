@@ -53,11 +53,11 @@ function metaDatabase(input?: {
           bind(...values: unknown[]) {
             return {
               all: async () => {
-                expect(query).toContain('FROM releases')
+                expect(query).toContain('FROM resourceReleases')
                 expect(query).toContain(
                   "sourceReleases.status IN ('published', 'superseded')",
                 )
-                expect(query).toContain('releases.revokedAt IS NULL')
+                expect(query).toContain('resourceReleases.revokedAt IS NULL')
                 expect(query).toContain('datasets.regionCode = ?')
                 expect(values).toEqual([sourceReleaseCode, sourceReleaseCode, 'hk'])
                 return {
@@ -69,7 +69,7 @@ function metaDatabase(input?: {
                             bindingName,
                             datasetCode:
                               input?.datasetCode ?? 'ds-hk-overture-division',
-                            releaseId: 'source-release-id',
+                            resourceReleaseId: 'source-release-id',
                             datasetReleaseIdsJson: JSON.stringify([
                               'source-release-id',
                               'older-release-id',
@@ -162,10 +162,10 @@ describe('source records', () => {
       CREATE TABLE publishers(id, code);
       CREATE TABLE datasets(id, code, publisherId, regionCode, sourceVariant);
       CREATE TABLE sourceReleases(id, code, status, revokedAt);
-      CREATE TABLE releases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
-      CREATE TABLE releaseShardAssignments(releaseId, dataShardId);
+      CREATE TABLE resourceReleases(id, code, sourceReleaseId, datasetId, resourceType, sourceVersion, status, revokedAt);
+      CREATE TABLE releaseShardAssignments(resourceReleaseId, dataShardId);
       CREATE TABLE dataShards(id, bindingName, shardType, status);
-      CREATE TABLE hkgovCenstatdStatistics(sources, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, releaseId);
+      CREATE TABLE hkgovCenstatdStatistics(sources, sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, resourceReleaseId);
       INSERT INTO publishers VALUES('publisher', 'hkgov-censtatd');
       INSERT INTO dataShards VALUES('shard', 'DB_SOURCE_HK_2026', 'source', 'active');
       INSERT INTO releaseShardAssignments VALUES('area', 'shard'), ('statistic', 'shard');
@@ -186,7 +186,7 @@ describe('source records', () => {
       ['area', 'divisionArea'],
       ['statistic', 'divisionStatistic'],
     ]) {
-      sqlite.run('INSERT INTO releases VALUES(?, ?, ?, ?, ?, ?, ?, NULL)', [
+      sqlite.run('INSERT INTO resourceReleases VALUES(?, ?, ?, ?, ?, ?, ?, NULL)', [
         id!,
         `${code}::${type}`,
         'parent',
@@ -197,7 +197,7 @@ describe('source records', () => {
       ])
     }
     sqlite.run(
-      "INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, releaseId) VALUES(?, ?, ?, ?, ?, NULL, 'statistic')",
+      "INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, sourceGeometry, validFromRelease, validToRelease, resourceReleaseId) VALUES(?, ?, ?, ?, ?, NULL, 'statistic')",
       [
         'record',
         'hash',
@@ -250,11 +250,11 @@ describe('source records', () => {
     const sqlite = new Database(':memory:')
     sqlite.exec(`CREATE TABLE hkgovCenstatdStatistics (
       sources TEXT, sourceRecordId TEXT, versionHash TEXT, properties TEXT,
-      validFromRelease TEXT, validToRelease TEXT, releaseId TEXT
+      validFromRelease TEXT, validToRelease TEXT, resourceReleaseId TEXT
     )`)
     const code = 'dr-hk-hkgov-censtatd-division-statistic-new-towns-2021'
     const insert = sqlite.query(
-      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, validFromRelease, validToRelease, releaseId) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO hkgovCenstatdStatistics (sourceRecordId, versionHash, properties, validFromRelease, validToRelease, resourceReleaseId) VALUES (?, ?, ?, ?, ?, ?)',
     )
     insert.run('old', 'v1', '{"obsolete":true}', '2016', '2021', 'older-release-id')
     insert.run(
@@ -480,8 +480,10 @@ describe('source records', () => {
       })
 
       expect(queries[0]).toContain("apiReleaseSets.status <> 'draft'")
-      expect(queries[1]).toContain("releases.status IN ('published', 'superseded')")
-      expect(queries[1]).toContain('releases.revokedAt IS NULL')
+      expect(queries[1]).toContain(
+        "resourceReleases.status IN ('published', 'superseded')",
+      )
+      expect(queries[1]).toContain('resourceReleases.revokedAt IS NULL')
       expect(queries[1]).toContain(
         "sourceReleases.status IN ('published', 'superseded')",
       )

@@ -220,7 +220,7 @@ async function fixture(previous = true) {
       sourceVersion: name,
       status: 'published',
     })
-    insert(meta, 'releases', {
+    insert(meta, 'resourceReleases', {
       id: `release-${name}`,
       sourceReleaseId: `source-${name}`,
       datasetId,
@@ -274,7 +274,7 @@ async function fixture(previous = true) {
   }
   if (previous)
     meta.exec(
-      "UPDATE releases SET supersededByReleaseId='release-new' WHERE id='release-old'",
+      "UPDATE resourceReleases SET supersededByResourceReleaseId='release-new' WHERE id='release-old'",
     )
   insert(meta, 'apiCatalogRevisions', {
     id: 'catalogue',
@@ -362,7 +362,7 @@ async function fixture(previous = true) {
   insert(source, 'hkgovCenstatdStatistics', {
     sourceRecordId: 'native/revised',
     versionHash: 'raw',
-    releaseId: 'release-old',
+    resourceReleaseId: 'release-old',
     validFromRelease: '2021',
     validToRelease: null,
     isCurrent: 1,
@@ -407,14 +407,14 @@ async function fixture(previous = true) {
       directory,
       ownershipDirectory: root,
       files,
-      releaseId: 'release-new',
+      resourceReleaseId: 'release-new',
       phase: 'rollback-reconstruction',
       inputs: { operation: 'rollback' },
       generate: append => {
         generations++
         return prepareReconstructedRollback({
           context,
-          releaseId: 'release-new',
+          resourceReleaseId: 'release-new',
           append,
         })
       },
@@ -527,7 +527,7 @@ test('sealed Statistics rollback restores exact-period packs and missing diction
       { apiReleaseSetId: 'set-other' },
     ])
     expect(
-      f.meta.query('SELECT status FROM releases WHERE id=?').get('release-new'),
+      f.meta.query('SELECT status FROM resourceReleases WHERE id=?').get('release-new'),
     ).toEqual({ status: 'revoked' })
     expect(
       f.history.query('SELECT rowid,* FROM statsRecords ORDER BY id').all(),
@@ -702,7 +702,7 @@ test('an intervening exact-period Statistics publication blocks sealed rollback 
       updatedAt: '2026-02-01T00:00:00.000Z',
     })
     expect(
-      f.meta.query('SELECT status FROM releases WHERE id=?').get('release-new'),
+      f.meta.query('SELECT status FROM resourceReleases WHERE id=?').get('release-new'),
     ).toEqual({ status: 'published' })
   } finally {
     await f.close()

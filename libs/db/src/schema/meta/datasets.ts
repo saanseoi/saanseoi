@@ -159,8 +159,8 @@ export const metaSourceReleases = sqliteTable(
  * and division-area resources while retaining a single upstream archive,
  * version, changelog, and source-release code.
  */
-export const metaReleases = sqliteTable(
-  'releases',
+export const metaResourceReleases = sqliteTable(
+  'resourceReleases',
   {
     id: primaryUuid('id'),
     sourceReleaseId: text('sourceReleaseId')
@@ -185,7 +185,7 @@ export const metaReleases = sqliteTable(
     status: text('status', { enum: releaseStatuses }).notNull(),
     revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
-    supersededByReleaseId: text('supersededByReleaseId'),
+    supersededByResourceReleaseId: text('supersededByResourceReleaseId'),
     // Copied from the dataset when this immutable source release is created.
     // Do not rebuild a historic audit from later dataset metadata or later
     // merge-ruleset revisions.
@@ -194,19 +194,24 @@ export const metaReleases = sqliteTable(
     ...timestamps,
   },
   table => [
-    index('releases_sourceReleaseId_idx').on(table.sourceReleaseId),
-    uniqueIndex('releases_datasetId_resourceType_sourceVersion_unique_idx').on(
+    index('resourceReleases_sourceReleaseId_idx').on(table.sourceReleaseId),
+    uniqueIndex('resourceReleases_datasetId_resourceType_sourceVersion_unique_idx').on(
       table.datasetId,
       table.resourceType,
       table.sourceVersion,
     ),
-    uniqueIndex('releases_id_datasetId_unique_idx').on(table.id, table.datasetId),
+    uniqueIndex('resourceReleases_id_datasetId_unique_idx').on(
+      table.id,
+      table.datasetId,
+    ),
     foreignKey({
-      columns: [table.supersededByReleaseId],
+      columns: [table.supersededByResourceReleaseId],
       foreignColumns: [table.id],
-      name: 'releases_supersededByReleaseId_releases_id_fk',
+      name: 'resourceReleases_supersededByResourceReleaseId_resourceReleases_id_fk',
     }).onDelete('set null'),
-    index('releases_status_idx').on(table.status),
-    index('releases_supersededByReleaseId_idx').on(table.supersededByReleaseId),
+    index('resourceReleases_status_idx').on(table.status),
+    index('resourceReleases_supersededByResourceReleaseId_idx').on(
+      table.supersededByResourceReleaseId,
+    ),
   ],
 )

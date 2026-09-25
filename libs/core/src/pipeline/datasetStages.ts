@@ -7,7 +7,7 @@ import {
 } from '../lib/db/metaRegistry'
 
 export type DatasetStageRequest = {
-  releaseId: string
+  resourceReleaseId: string
   phase: string
   stats?: Record<string, unknown>
   error?: string
@@ -18,16 +18,24 @@ export async function recordDatasetStage(
   request: DatasetStageRequest,
   status: 'running' | 'completed' | 'error',
 ) {
-  const { releaseId, phase } = request
+  const { resourceReleaseId, phase } = request
   const now = new Date().toISOString()
   const stats = request.stats ?? null
   if (status === 'running') {
     if (phase === 'processDataset')
-      await updateDatasetStatus(db, releaseId, 'processing')
+      await updateDatasetStatus(db, resourceReleaseId, 'processing')
     if (reopensCompletedPhase(phase)) {
-      await upsertIngestRunStatus(db, releaseId, phase, status, now, null, stats)
+      await upsertIngestRunStatus(
+        db,
+        resourceReleaseId,
+        phase,
+        status,
+        now,
+        null,
+        stats,
+      )
     } else {
-      await ensureIngestRunStarted(db, releaseId, phase, stats, now)
+      await ensureIngestRunStarted(db, resourceReleaseId, phase, stats, now)
     }
     return
   }
@@ -36,10 +44,10 @@ export async function recordDatasetStage(
     status === 'error'
       ? JSON.stringify({ message: request.error || 'Unknown processing error.' })
       : null
-  if (status === 'error') await updateDatasetStatus(db, releaseId, 'failed')
+  if (status === 'error') await updateDatasetStatus(db, resourceReleaseId, 'failed')
   const updated = await updateLatestOpenIngestRun(
     db,
-    releaseId,
+    resourceReleaseId,
     phase,
     status,
     now,
@@ -47,7 +55,16 @@ export async function recordDatasetStage(
     error,
   )
   if (!updated) {
-    await upsertIngestRunStatus(db, releaseId, phase, status, now, now, stats, error)
+    await upsertIngestRunStatus(
+      db,
+      resourceReleaseId,
+      phase,
+      status,
+      now,
+      now,
+      stats,
+      error,
+    )
   }
 }
 

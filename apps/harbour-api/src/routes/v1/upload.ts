@@ -298,12 +298,13 @@ export const deleteManagedSourceAssetRoute = defineOpenAPIRoute<
   handler: async c => {
     try {
       const assetId = c.req.param('assetId')
-      const releaseId = c.req.query('releaseId')
-      if (!assetId || !releaseId) throw new Error('assetId and releaseId are required.')
+      const resourceReleaseId = c.req.query('resourceReleaseId')
+      if (!assetId || !resourceReleaseId)
+        throw new Error('assetId and resourceReleaseId are required.')
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const result = await deleteManagedSourceAsset(db, c.env.R2_ASSETS, {
         assetId,
-        releaseId,
+        resourceReleaseId,
       })
       return c.json(
         { ...result, assetUrl: `${c.env.ATLAS_BASE_URL}/v0/assets/${result.assetId}` },

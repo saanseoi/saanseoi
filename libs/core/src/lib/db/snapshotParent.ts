@@ -63,7 +63,7 @@ export async function resolveAcceptedSnapshotParent(
         eligible,
         sql`NOT EXISTS (
       SELECT 1 FROM snapshotSourceReleases source
-      JOIN releases release ON release.id=source.resourceReleaseId
+      JOIN resourceReleases release ON release.id=source.resourceReleaseId
       WHERE source.snapshotId=${snapshots.id} AND source.role<>'lookup' AND release.status='revoked'
     )`,
         catalogued

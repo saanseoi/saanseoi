@@ -47,19 +47,19 @@ type StatisticSnapshotMeta = {
  * rows, preserving snapshot, API-release-set, and processing statistics.
  */
 export function buildReleaseStatsMetaSqlBatches(
-  releaseId: string,
+  resourceReleaseId: string,
   rows: readonly ReleaseStatsRow[],
 ) {
   const statements = [
-    `DELETE FROM "stats" WHERE "releaseId" = ${sqlValue(releaseId)} AND "metric" != 'processing';`,
+    `DELETE FROM "stats" WHERE "resourceReleaseId" = ${sqlValue(resourceReleaseId)} AND "metric" != 'processing';`,
     ...[...rows]
       .sort((left, right) => left.id.localeCompare(right.id))
       .map(
         row =>
-          'INSERT INTO "stats" ("id", "releaseId", "apiReleaseSetId", "dimension", "metric", "metricUnit", "value", "groupBy", "groupValue", "createdAt", "updatedAt") VALUES (' +
+          'INSERT INTO "stats" ("id", "resourceReleaseId", "apiReleaseSetId", "dimension", "metric", "metricUnit", "value", "groupBy", "groupValue", "createdAt", "updatedAt") VALUES (' +
           [
             row.id,
-            row.releaseId,
+            row.resourceReleaseId,
             row.apiReleaseSetId,
             row.dimension,
             row.metric,
@@ -82,7 +82,7 @@ export function buildReleaseStatsMetaSqlBatches(
 export async function replayReleaseStatsMetaToRemote(
   target: UploadTarget,
   context: MetaContext,
-  releaseId: string,
+  resourceReleaseId: string,
   rows: readonly ReleaseStatsRow[],
   options: {
     delivery?: SqlDeliveryPhase
@@ -92,7 +92,7 @@ export async function replayReleaseStatsMetaToRemote(
 ) {
   if (target.remote && options.delivery) {
     await deliverSqlPhase(options.delivery, () =>
-      replayReleaseStatsMetaToRemote(target, context, releaseId, rows, {
+      replayReleaseStatsMetaToRemote(target, context, resourceReleaseId, rows, {
         ...options,
         delivery: undefined,
       }),
@@ -122,22 +122,22 @@ export async function replayReleaseStatsMetaToRemote(
     databaseId: databaseId ?? null,
     name: 'meta',
   }
-  for (const sql of buildReleaseStatsMetaSqlBatches(releaseId, rows)) {
+  for (const sql of buildReleaseStatsMetaSqlBatches(resourceReleaseId, rows)) {
     await execute(destination, sql, { accountId, apiToken, isLocal: false })
   }
 }
 
 export function buildReleaseProcessingActionsMetaSqlBatches(
-  releaseId: string,
+  resourceReleaseId: string,
   materialised: MaterialisedReleaseProcessingActions,
 ) {
-  return buildAuditReplaySql(releaseId, materialised)
+  return buildAuditReplaySql(resourceReleaseId, materialised)
 }
 
 export async function replayReleaseProcessingActionsMetaToRemote(
   target: UploadTarget,
   context: MetaContext,
-  releaseId: string,
+  resourceReleaseId: string,
   materialised: MaterialisedReleaseProcessingActions,
   options: {
     delivery?: SqlDeliveryPhase
@@ -150,7 +150,7 @@ export async function replayReleaseProcessingActionsMetaToRemote(
       replayReleaseProcessingActionsMetaToRemote(
         target,
         context,
-        releaseId,
+        resourceReleaseId,
         materialised,
         { ...options, delivery: undefined },
       ),
@@ -179,7 +179,7 @@ export async function replayReleaseProcessingActionsMetaToRemote(
     name: 'meta',
   }
   for (const sql of buildReleaseProcessingActionsMetaSqlBatches(
-    releaseId,
+    resourceReleaseId,
     materialised,
   )) {
     await execute(destination, sql, { accountId, apiToken, isLocal: false })
@@ -191,7 +191,7 @@ export async function replayStatisticSnapshotMetaToRemote(
   target: UploadTarget,
   context: MetaContext,
   metaDb: HarbourReadableDb & HarbourWritableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   snapshotIds: readonly string[],
   options: {
     delivery?: SqlDeliveryPhase
@@ -205,7 +205,7 @@ export async function replayStatisticSnapshotMetaToRemote(
         target,
         context,
         metaDb,
-        releaseId,
+        resourceReleaseId,
         snapshotIds,
         { ...options, delivery: undefined },
       ),
@@ -227,7 +227,9 @@ export async function replayStatisticSnapshotMetaToRemote(
     )
   ).flat()
   if (snapshots.length !== uniqueSnapshotIds.length) {
-    throw new Error(`Statistic snapshot metadata is incomplete for ${releaseId}.`)
+    throw new Error(
+      `Statistic snapshot metadata is incomplete for ${resourceReleaseId}.`,
+    )
   }
 
   const snapshotLineageIds = [
@@ -269,16 +271,23 @@ export async function replayStatisticSnapshotMetaToRemote(
       metaDb
         .select()
         .from(metaSchema.metaReleaseShardAssignments)
-        .where(eq(metaSchema.metaReleaseShardAssignments.releaseId, releaseId))
+        .where(
+          eq(
+            metaSchema.metaReleaseShardAssignments.resourceReleaseId,
+            resourceReleaseId,
+          ),
+        )
         .all(),
     ])
   if (
-    !sources.some(source => source.resourceReleaseId === releaseId) ||
+    !sources.some(source => source.resourceReleaseId === resourceReleaseId) ||
     snapshotAssignments.length < uniqueSnapshotIds.length ||
     releaseAssignments.length === 0 ||
     lineages.length !== snapshotLineageIds.length
   ) {
-    throw new Error(`Statistic snapshot metadata is incomplete for ${releaseId}.`)
+    throw new Error(
+      `Statistic snapshot metadata is incomplete for ${resourceReleaseId}.`,
+    )
   }
 
   await replayMetaSql(
@@ -359,7 +368,7 @@ export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshot
     ),
     ...buildMetaInsertStatements(
       'releaseShardAssignments',
-      ['releaseId', 'dataShardId'],
+      ['resourceReleaseId', 'dataShardId'],
       metadata.releaseAssignments,
       [],
     ),

@@ -137,7 +137,7 @@ describe('harbour control client', () => {
 
       return calls.length === 1
         ? new Response(null, { status: 500 })
-        : Response.json({ releaseId: 'release-id', status: 'published' })
+        : Response.json({ resourceReleaseId: 'release-id', status: 'published' })
     }) as unknown as typeof fetch
 
     const client = createHarbourControlClient({
@@ -149,7 +149,7 @@ describe('harbour control client', () => {
       client.publishDataset('release-id', undefined, {
         deferStatsReleaseSet: true,
       }),
-    ).resolves.toMatchObject({ releaseId: 'release-id', status: 'published' })
+    ).resolves.toMatchObject({ resourceReleaseId: 'release-id', status: 'published' })
 
     expect(calls).toHaveLength(2)
     expect(calls.map(call => call.url)).toEqual([
@@ -166,7 +166,7 @@ describe('harbour control client', () => {
       calls += 1
       return calls === 1
         ? Response.json({ error: 'Network connection lost.' }, { status: 500 })
-        : Response.json({ releaseId: 'release-id', status: 'published' })
+        : Response.json({ resourceReleaseId: 'release-id', status: 'published' })
     }) as unknown as typeof fetch
 
     const client = createHarbourControlClient({ environment: 'dev', remote: false })
@@ -175,7 +175,7 @@ describe('harbour control client', () => {
       client.publishDataset('release-id', undefined, {
         deferSourcePublish: true,
       }),
-    ).resolves.toMatchObject({ releaseId: 'release-id', status: 'published' })
+    ).resolves.toMatchObject({ resourceReleaseId: 'release-id', status: 'published' })
     expect(calls).toBe(2)
   })
 

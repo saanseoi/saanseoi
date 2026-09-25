@@ -146,7 +146,7 @@ export async function resolvePlaceSnapshots(
   currentDb: HarbourReadableDb,
   plan: PlaceUploadPlan,
   datasetId: string,
-  releaseId: string,
+  resourceReleaseId: string,
   dependencies?: { prepare(snapshotId: string): Promise<HarbourReadableDb> },
 ) {
   const place = await ensureDraftSnapshotForRelease(metaDb, 'place', {
@@ -154,7 +154,7 @@ export async function resolvePlaceSnapshots(
     datasetCode: plan.datasetCode,
     datasetId,
     regionCode: plan.regionCode,
-    sourceReleaseId: releaseId,
+    sourceReleaseId: resourceReleaseId,
     variant: 'default',
   })
   const recordedAddressId = (await readSnapshotDependencies(metaDb, place.id)).address
@@ -210,7 +210,7 @@ export async function resolvePlaceSnapshots(
     await recordPlaceAddressAssembly(metaDb, {
       snapshotId: place.id,
       resourceType: 'place',
-      anchorReleaseId: releaseId,
+      anchorReleaseId: resourceReleaseId,
       anchorCohortKey: plan.cohortKey,
       dependencies: {
         address: address.id,

@@ -37,7 +37,7 @@ type NativeTarget = { path: string; identity: string }
 export async function prepareNativeSqlDelivery(input: {
   directory: string
   ownershipDirectory: string
-  releaseId: string
+  resourceReleaseId: string
   phase: string
   inputs: Record<string, unknown>
   files: Record<string, string>
@@ -50,7 +50,7 @@ export async function prepareNativeSqlDelivery(input: {
       // Reserve the mirror as soon as a plan is sealed, not only when replay starts.
       await registerPendingSqlDelivery(
         input.ownershipDirectory,
-        input.releaseId,
+        input.resourceReleaseId,
         input.directory,
       )
       return plan
@@ -61,7 +61,10 @@ export async function prepareNativeSqlDelivery(input: {
 async function prepareNativeSqlDeliveryLocked(
   input: Parameters<typeof prepareNativeSqlDelivery>[0],
 ) {
-  await assertSqlDeliveryPlanningAllowed(input.ownershipDirectory, input.releaseId)
+  await assertSqlDeliveryPlanningAllowed(
+    input.ownershipDirectory,
+    input.resourceReleaseId,
+  )
   const targets: Record<string, NativeTarget> = {}
   for (const [binding, path] of Object.entries(input.files).sort(([a], [b]) =>
     a.localeCompare(b),
@@ -108,14 +111,14 @@ async function prepareNativeSqlDeliveryLocked(
     input.directory,
     {
       environment: 'local',
-      releaseId: input.releaseId,
+      resourceReleaseId: input.resourceReleaseId,
       phase: input.phase,
       inputs: {
         ...input.inputs,
         nativeTargets: targets,
         resetGeneration: await readSqlDeliveryGeneration(
           input.ownershipDirectory,
-          input.releaseId,
+          input.resourceReleaseId,
         ),
       },
       cacheDir: resolve(input.ownershipDirectory),
@@ -149,7 +152,7 @@ export async function runNativeSqlDelivery(
       async () => {
         await assertSqlDeliveryGeneration(
           plan.context.cacheDir,
-          plan.context.releaseId,
+          plan.context.resourceReleaseId,
           plan.context.inputs.resetGeneration,
         )
         const progress = await readDeliveryProgress(directory, plan)
@@ -194,7 +197,7 @@ export async function runNativeSqlDelivery(
         }
         await registerPendingSqlDelivery(
           plan.context.cacheDir,
-          plan.context.releaseId,
+          plan.context.resourceReleaseId,
           directory,
         )
         let completed = 0

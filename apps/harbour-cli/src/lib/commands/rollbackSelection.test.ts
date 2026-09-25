@@ -44,7 +44,7 @@ for (const [label, mutation] of [
   ],
   [
     'predecessor release state',
-    "UPDATE releases SET status='revoked' WHERE id='release-old'",
+    "UPDATE resourceReleases SET status='revoked' WHERE id='release-old'",
   ],
 ] as const)
   test(`sealed rollback rejects changed ${label} before claiming current rows`, async () => {
@@ -66,7 +66,9 @@ for (const [label, mutation] of [
         publicationToken: 'token-lineage',
       })
       expect(
-        f.meta.query("SELECT status FROM releases WHERE id='release-new'").get(),
+        f.meta
+          .query("SELECT status FROM resourceReleases WHERE id='release-new'")
+          .get(),
       ).toEqual({ status: 'published' })
     } finally {
       await f.close()

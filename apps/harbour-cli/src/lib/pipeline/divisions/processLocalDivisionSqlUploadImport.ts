@@ -133,10 +133,10 @@ export async function replayDivisionSqlIntoRemoteCache(
 export async function refreshRemoteMetaCacheAfterReplay(
   targetName: 'preview' | 'production',
   cacheDir: string,
-  releaseId: string,
+  resourceReleaseId: string,
 ) {
   try {
-    await refreshRemoteMetaCache(targetName, cacheDir, releaseId)
+    await refreshRemoteMetaCache(targetName, cacheDir, resourceReleaseId)
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
 
@@ -446,7 +446,7 @@ function resolveShardScope(shardYear: string) {
 }
 
 export function buildDivisionSqlRunId(message: DatasetProcessingMessage) {
-  const releaseId = message.releaseId ?? message.datasetId
+  const resourceReleaseId = message.resourceReleaseId ?? message.datasetId
   const shard = message.shardYear ?? message.sourceVersion.slice(0, 4)
 
   return [
@@ -454,7 +454,7 @@ export function buildDivisionSqlRunId(message: DatasetProcessingMessage) {
     message.source,
     message.regionCode,
     shard,
-    releaseId,
+    resourceReleaseId,
     message.sourceVersion,
   ]
     .join('-')

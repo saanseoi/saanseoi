@@ -105,7 +105,7 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
   const result = normaliseRoadCentrelineFeatures({
     districts: resolvedCanonical.districts ?? [],
     features: archive.features,
-    releaseId: input.sourceVersion,
+    resourceReleaseId: input.sourceVersion,
     streets: resolvedCanonical.streets ?? [],
   })
   const summary = summariseRoadCentrelineMatching(archive.sourceFeatureCount, result)

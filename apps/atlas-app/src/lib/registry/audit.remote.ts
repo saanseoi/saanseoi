@@ -54,12 +54,12 @@ async function readAuditManifests<
   return audits
 }
 
-async function manifestFor(releaseId: string, hash?: string) {
+async function manifestFor(resourceReleaseId: string, hash?: string) {
   const table = metaSchema.releaseProvenance
   const row = await getMetaDb()
     .select()
     .from(table)
-    .where(eq(table.releaseId, releaseId))
+    .where(eq(table.resourceReleaseId, resourceReleaseId))
     .get()
   if (!row) throw new Error('Release has no audit.')
   if (hash && hash !== row.manifestHash)
@@ -77,7 +77,7 @@ export const getSourceAudit = query(
   async input => {
     const {
       releaseProvenance: p,
-      metaReleases: r,
+      metaResourceReleases: r,
       metaSourceReleases: s,
       metaDatasets: d,
       metaPublishers: publishers,
@@ -85,7 +85,7 @@ export const getSourceAudit = query(
     const rows = await runWithReadRetry(() =>
       getMetaDb()
         .select({
-          releaseId: r.id,
+          resourceReleaseId: r.id,
           code: r.code,
           resourceType: r.resourceType,
           sourcePublisherName: sql<string>`coalesce(json_extract(${publishers.i18n}, '$.en.name'), (select json_extract(value, '$.name') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), ${publishers.code})`,
@@ -95,7 +95,7 @@ export const getSourceAudit = query(
           byteLength: p.byteLength,
         })
         .from(p)
-        .innerJoin(r, eq(r.id, p.releaseId))
+        .innerJoin(r, eq(r.id, p.resourceReleaseId))
         .innerJoin(s, eq(s.id, r.sourceReleaseId))
         .innerJoin(d, eq(d.id, s.datasetId))
         .innerJoin(publishers, eq(d.publisherId, publishers.id))
@@ -111,7 +111,7 @@ export const getApiAudit = query(
   async input => {
     const {
       releaseProvenance: p,
-      metaReleases: r,
+      metaResourceReleases: r,
       metaSnapshotSourceReleases: sources,
       metaApiReleaseSetSnapshots: members,
       metaApiReleaseSets: sets,
@@ -123,7 +123,7 @@ export const getApiAudit = query(
     const rows = await runWithReadRetry(() =>
       getMetaDb()
         .select({
-          releaseId: r.id,
+          resourceReleaseId: r.id,
           code: r.code,
           resourceType: r.resourceType,
           apiReleaseSetRole: sql<string>`coalesce((select ${members.role} from ${sources} inner join ${members} on ${members.snapshotId} = ${sources.snapshotId} inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId} inner join ${versions} on ${versions.id} = ${sets.apiVersionId} where ${sources.resourceReleaseId} = ${r.id} and ${sources.role} <> 'lookup' and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode} limit 1), 'supporting')`,
@@ -135,7 +135,7 @@ export const getApiAudit = query(
           byteLength: p.byteLength,
         })
         .from(p)
-        .innerJoin(r, eq(p.releaseId, r.id))
+        .innerJoin(r, eq(p.resourceReleaseId, r.id))
         .innerJoin(sourceReleases, eq(r.sourceReleaseId, sourceReleases.id))
         .innerJoin(datasets, eq(sourceReleases.datasetId, datasets.id))
         .innerJoin(publishers, eq(datasets.publisherId, publishers.id))
@@ -160,7 +160,7 @@ export const getApiAudit = query(
 
 export const getAuditPage = query(
   z.object({
-    releaseId: z.string(),
+    resourceReleaseId: z.string(),
     hash: z.string(),
     q: z.string().max(300).default(''),
     offset: z.number().int().min(0).default(0),
@@ -170,7 +170,7 @@ export const getAuditPage = query(
     countOnly: z.boolean().default(false),
   }),
   async input => {
-    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     const fixture =
       input.fixtureIndex === undefined
         ? undefined
@@ -196,13 +196,13 @@ export const getAuditPage = query(
 
 export const getRetainedBulkFixture = query(
   z.object({
-    releaseId: z.string(),
+    resourceReleaseId: z.string(),
     hash: z.string(),
     bulkId: z.string(),
     index: z.number().int().min(0),
   }),
   async input => {
-    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     const fixture =
       input.bulkId === 'individual-fixtures'
         ? manifest.individualFixtures?.[input.index]
@@ -212,12 +212,12 @@ export const getRetainedBulkFixture = query(
   },
 )
 
-const auditScope = z.object({ releaseId: z.string(), hash: z.string() })
+const auditScope = z.object({ resourceReleaseId: z.string(), hash: z.string() })
 
 export const getAuditFixtureCatalogue = query(
   auditScope.extend({ releaseCode: z.string() }),
   async input => {
-    await manifestFor(input.releaseId, input.hash)
+    await manifestFor(input.resourceReleaseId, input.hash)
     return cachedAuditData(
       `fixtures/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
       () => readAuditFixtureCatalogue(store(), input.hash),
@@ -232,7 +232,7 @@ export const getAuditFixtureGroup = query(
     q: z.string().max(300).default(''),
   }),
   async input => {
-    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     const bulk = manifest.bulk.find(b => b.id === input.bulkId)
     if (!bulk) throw new Error('Rule is not declared by this release.')
     const fixtures = bulk.fixtures.filter(f => f.type === input.type)
@@ -260,7 +260,7 @@ export const getAuditAlsDecisions = query(
     all: z.boolean().default(false),
   }),
   async input => {
-    await manifestFor(input.releaseId, input.hash)
+    await manifestFor(input.resourceReleaseId, input.hash)
     const catalogue = await cachedAuditData(
       `fixtures/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
       () => readAuditFixtureCatalogue(store(), input.hash),
@@ -278,9 +278,9 @@ export const getAuditAlsDecisions = query(
 )
 
 export const getRetainedRuleDeclaration = query(
-  z.object({ releaseId: z.string(), hash: z.string(), bulkId: z.string() }),
+  z.object({ resourceReleaseId: z.string(), hash: z.string(), bulkId: z.string() }),
   async input => {
-    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     const bulk = manifest.bulk.find(b => b.id === input.bulkId)
     if (!bulk) throw new Error('Rule is not declared by this release.')
     return readObject(store(), bulk.definition)
@@ -288,9 +288,13 @@ export const getRetainedRuleDeclaration = query(
 )
 
 export const getAuditDecision = query(
-  z.object({ releaseId: z.string(), hash: z.string(), actionId: z.string().max(2048) }),
+  z.object({
+    resourceReleaseId: z.string(),
+    hash: z.string(),
+    actionId: z.string().max(2048),
+  }),
   async input => {
-    const { manifest } = await manifestFor(input.releaseId, input.hash)
+    const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     return readAuditDecision(store(), manifest, input.actionId)
   },
 )

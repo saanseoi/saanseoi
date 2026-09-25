@@ -18,7 +18,7 @@ test('unknown operations cannot silently disappear into normalisation counters',
   for (const action of ['new_operation', 'unknown_name_human_translated']) {
     await expect(
       retainDivisionProvenance(store, {
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         datasetCode: 'division',
         inputCount: 1,
         outputCount: 1,
@@ -68,7 +68,7 @@ test('retains synthetic Hong Kong area rows as individual patches', async () => 
   }))
 
   const retained = await retainDivisionProvenance(store, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'overture-hk-division-area',
     inputCount: 141,
     outputCount: 141,
@@ -107,7 +107,7 @@ test('bulk geometry rules require explicit counts before retaining audit objects
     id: 'derive-area-geometry',
   }
   const input = {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'overture-hk-division-area',
     inputCount: 170,
     outputCount: 170,
@@ -191,7 +191,7 @@ test('retains Lantau classification and cohort hierarchy decisions as distinct a
   ]
   expect(actions[0]!.action).toBe('overture_hong_kong_lantau_reclassified')
   const retained = await retainDivisionProvenance(store, {
-    releaseId: 'review',
+    resourceReleaseId: 'review',
     datasetCode: 'divisions',
     inputCount: 2,
     outputCount: 2,

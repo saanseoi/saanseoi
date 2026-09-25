@@ -35,7 +35,7 @@ test('Statistics migrations retain publisher payloads and canonical reference pe
         Population: 123,
       })
       sqlite
-        .query(`INSERT INTO "${table}" (sourceRecordId, versionHash, releaseId, validFromRelease, isCurrent, properties, sourceGeometry)
+        .query(`INSERT INTO "${table}" (sourceRecordId, versionHash, resourceReleaseId, validFromRelease, isCurrent, properties, sourceGeometry)
         VALUES ('record', 'hash', 'release', '2021', 1, ?, 'null')`)
         .run(payload)
       expect(sqlite.query(`SELECT properties FROM "${table}"`).get()).toEqual({
@@ -62,7 +62,7 @@ test('release statistics have one owner and use metric without kind', () => {
     expect(columns).not.toContain('kind')
     expect(columns).not.toContain('type')
     const insert = sqlite.query(
-      "INSERT INTO stats (id, releaseId, apiReleaseSetId, dimension, metric, metricUnit, value) VALUES (?, ?, ?, 'rows', 'processing', 'count', 1)",
+      "INSERT INTO stats (id, resourceReleaseId, apiReleaseSetId, dimension, metric, metricUnit, value) VALUES (?, ?, ?, 'rows', 'processing', 'count', 1)",
     )
     expect(() => insert.run('no-owner', null, null)).toThrow()
     expect(() => insert.run('two-owners', 'release', 'api')).toThrow()

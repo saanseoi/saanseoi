@@ -4,9 +4,9 @@ export type ReleaseStatsRow = typeof stats.$inferSelect
 export type NewReleaseStatsRow = typeof stats.$inferInsert
 export type ReleaseScopedStatsRow = Omit<
   NewReleaseStatsRow,
-  'apiReleaseSetId' | 'id' | 'releaseId'
+  'apiReleaseSetId' | 'id' | 'resourceReleaseId'
 >
 export type ApiReleaseSetScopedStatsRow = Omit<
   NewReleaseStatsRow,
-  'apiReleaseSetId' | 'id' | 'releaseId'
+  'apiReleaseSetId' | 'id' | 'resourceReleaseId'
 >

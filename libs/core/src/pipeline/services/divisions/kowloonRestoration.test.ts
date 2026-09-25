@@ -80,7 +80,7 @@ test('retains a searchable individual restoration only when ingestion supplied e
   )
   for (const retainedActions of [actions, []]) {
     const result = await retainDivisionProvenance(store, {
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       datasetCode: 'ds-hk-overture-division',
       inputCount: 18,
       outputCount: 21,

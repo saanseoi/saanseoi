@@ -88,7 +88,7 @@ export async function importPlandSqlArtefacts(
   targets: PlandImportTargets,
   options: SqlImportExecutionOptions,
   client: HarbourClient,
-  releaseId: string,
+  resourceReleaseId: string,
   releaseCode: string,
   progress: OperationProgress,
 ) {
@@ -104,7 +104,7 @@ export async function importPlandSqlArtefacts(
       formatRunningPhaseLabel(colorTeal('Import'), colorRed(importTarget.name)),
       { current: 0, max: 1 },
     )
-    await client.stageRunning(releaseId, phase, undefined, releaseCode)
+    await client.stageRunning(resourceReleaseId, phase, undefined, releaseCode)
     try {
       const stats = await importSqlArtefactKeys(
         bucket,
@@ -129,11 +129,16 @@ export async function importPlandSqlArtefacts(
             ),
             max: totalFiles,
           })
-          await client.stageRunning(releaseId, phase, importProgress, releaseCode)
+          await client.stageRunning(
+            resourceReleaseId,
+            phase,
+            importProgress,
+            releaseCode,
+          )
         },
       )
       await client.stageCompleted(
-        releaseId,
+        resourceReleaseId,
         phase,
         { ...stats, durationMs: Date.now() - importStartedAt },
         releaseCode,
@@ -147,7 +152,7 @@ export async function importPlandSqlArtefacts(
     } catch (error) {
       progress.fail()
       await client.stageFailed(
-        releaseId,
+        resourceReleaseId,
         phase,
         error instanceof Error ? error.message : String(error),
         { durationMs: Date.now() - importStartedAt },

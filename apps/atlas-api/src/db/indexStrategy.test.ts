@@ -179,7 +179,7 @@ test('Place division filtering uses the reverse index and preserves scope, count
       INSERT INTO placePublicationState(scopeId,snapshotId,status,publicationToken,preparedAt)
       VALUES ('scope','publication','current','token','2026-09-23'),
              ('other','other-publication','current','other-token','2026-09-23');
-      INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth,basicCategory)
+      INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,basicCategory)
       VALUES ('scope','a','release',114,22,'2026-01','2026-01','shop'),
              ('scope','b','release',114,22,'2026-01','2026-01','shop'),
              ('scope','c','release',114,22,'2026-01','2026-01','shop'),
@@ -298,7 +298,7 @@ test('SOURCE partial indexes support active scans, reconciliation and multiple o
   const sqlite = migratedDatabase('source')
   try {
     sqlite.exec(`INSERT INTO hkgovAlsAddresses2d
-      (sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent)
+      (sourceRecordId,versionHash,resourceReleaseId,validFromRelease,isCurrent)
       VALUES ('a','v1','r1','1',0),('a','v2','r2','2',1),('a','v3','r2','2',1)`)
     const scan = 'SELECT sourceRecordId FROM hkgovAlsAddresses2d WHERE isCurrent = ?'
     const lookup = `${scan} AND sourceRecordId = ?`

@@ -6,7 +6,7 @@ export type IngestRunReportRow = {
   finishedAt: string | null
   phase: string
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   runId: string
   cohortKey: string | null
   source: string
@@ -26,7 +26,7 @@ export type StatReportRow = {
   metric: string
   metricUnit: string
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   source: string
   resourceType: string
   updatedAt: string
@@ -42,7 +42,7 @@ export type ProcessingActionReportRow = {
   id: string
   mode: 'automatic' | 'manual'
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   source: string
   summary: string
   resourceType: string
@@ -63,7 +63,7 @@ export type ProcessingActionQueryRow = Omit<
 }
 
 export type ListStatsOptions = ReportFilters & {
-  releaseId?: string
+  resourceReleaseId?: string
 }
 
 export type ReleaseReportRow = {
@@ -77,7 +77,7 @@ export type ReleaseReportRow = {
   publicationDate: string | null
   rawObjectKey: string | null
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   revocationReason: string | null
   revokedAt: string | null
   rowCounts: ReportRowCount[]
@@ -85,7 +85,7 @@ export type ReleaseReportRow = {
   source: string
   sourceVersion: string
   status: string
-  supersededByReleaseId: string | null
+  supersededByResourceReleaseId: string | null
   resourceType: string
   updatedAt: string
 }
@@ -102,7 +102,7 @@ export type ReleaseQueryRow = Omit<ReleaseReportRow, 'rowCounts'> & {
 export type CountTarget = {
   bindings: D1Database[]
   kind: 'history' | 'source'
-  releaseId: string
+  resourceReleaseId: string
   sourceVersion: string
   specs: CountSpec[]
 }

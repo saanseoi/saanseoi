@@ -368,8 +368,10 @@ ${mutedBar}  `)
             typeof uploadResult?.rawObjectKey === 'string'
               ? uploadResult.rawObjectKey
               : '-',
-          releaseId:
-            typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : '-',
+          resourceReleaseId:
+            typeof uploadResult?.resourceReleaseId === 'string'
+              ? uploadResult.resourceReleaseId
+              : '-',
           datasetId:
             typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : '-',
           schemaVersion: sourceSchemaVersion,
@@ -380,22 +382,24 @@ ${mutedBar}  `)
       )
 
       const sourceArchive = sourceArchiveReference(args)
-      const releaseId =
-        typeof uploadResult?.releaseId === 'string' ? uploadResult.releaseId : null
+      const resourceReleaseId =
+        typeof uploadResult?.resourceReleaseId === 'string'
+          ? uploadResult.resourceReleaseId
+          : null
       if (sourceArchive) {
-        if (!releaseId) {
+        if (!resourceReleaseId) {
           throw new Error('Source archive linkage requires a registered release.')
         }
         await linkManagedSourceAssetToRelease(target, {
           assetKey: sourceArchive.key,
-          releaseId,
+          resourceReleaseId,
         })
       }
 
       if (previewResult.plan.source === 'overture') {
         const datasetId =
           typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : null
-        if (!datasetId || !releaseId) {
+        if (!datasetId || !resourceReleaseId) {
           throw new Error('Overture source retention requires release identifiers.')
         }
         const sourceAsset = await uploadSourceReleaseAsset(target, {
@@ -404,14 +408,14 @@ ${mutedBar}  `)
           filePath: registerOptions.filePath,
           publisherCode: 'overture',
           releaseCode: previewResult.plan.releaseCode,
-          releaseId,
+          resourceReleaseId,
           sourceVersion: previewResult.plan.sourceVersion,
         })
         log.message(`Retained Overture source: ${sourceAsset.url}`)
       } else if (!sourceArchive) {
         const datasetId =
           typeof uploadResult?.datasetId === 'string' ? uploadResult.datasetId : null
-        if (!datasetId || !releaseId) {
+        if (!datasetId || !resourceReleaseId) {
           throw new Error('Source retention requires release identifiers.')
         }
         const sourceAsset = await uploadSourceReleaseAsset(target, {
@@ -421,7 +425,7 @@ ${mutedBar}  `)
           filePath: sourceArtefactPath,
           publisherCode: previewResult.plan.source,
           releaseCode: previewResult.plan.releaseCode,
-          releaseId,
+          resourceReleaseId,
           sourceVersion: previewResult.plan.sourceVersion,
         })
         log.message(`Retained published source artefact: ${sourceAsset.url}`)

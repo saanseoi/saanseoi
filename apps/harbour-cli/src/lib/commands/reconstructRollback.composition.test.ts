@@ -28,7 +28,7 @@ async function composedFixture() {
     versionHash: 'address-assembly',
   })
   for (const name of ['old', 'new']) {
-    insert(f.meta, 'releases', {
+    insert(f.meta, 'resourceReleases', {
       id: `release-address-${name}`,
       sourceReleaseId: `source-${name}`,
       datasetId: 'dataset',

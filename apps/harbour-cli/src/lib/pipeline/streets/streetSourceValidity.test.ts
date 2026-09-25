@@ -84,21 +84,21 @@ test.each(['baseline', 'notice', 'historical-notice'] as const)(
         expect(
           sqlite
             .query(
-              `SELECT versionHash, releaseId, validFromRelease, validToRelease, isCurrent
+              `SELECT versionHash, resourceReleaseId, validFromRelease, validToRelease, isCurrent
                FROM ${table} ORDER BY validFromRelease`,
             )
             .all(),
         ).toEqual([
           {
             versionHash: 'original-hash',
-            releaseId: 'release-1',
+            resourceReleaseId: 'release-1',
             validFromRelease: firstVersion,
             validToRelease: secondVersion,
             isCurrent: 0,
           },
           {
             versionHash: 'changed-hash',
-            releaseId: 'release-2',
+            resourceReleaseId: 'release-2',
             validFromRelease: secondVersion,
             validToRelease: null,
             isCurrent: 1,

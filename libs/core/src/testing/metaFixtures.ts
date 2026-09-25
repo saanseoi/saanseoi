@@ -397,7 +397,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
           PRIMARY KEY (snapshotId, resourceReleaseId),
           FOREIGN KEY (snapshotId) REFERENCES snapshots(id) ON DELETE CASCADE,
           FOREIGN KEY (datasetId) REFERENCES datasets(id) ON DELETE RESTRICT,
-          FOREIGN KEY (sourceReleaseId, datasetId) REFERENCES releases(id, datasetId) ON DELETE RESTRICT
+          FOREIGN KEY (sourceReleaseId, datasetId) REFERENCES resourceReleases(id, datasetId) ON DELETE RESTRICT
         );
       `,
       `
@@ -410,10 +410,10 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
     )
   }
 
-  addColumnIfMissing(db, 'releases', 'cohortKey', "cohortKey TEXT DEFAULT ''")
-  if (hasColumn(db, 'releases', 'snapshotMonth')) {
+  addColumnIfMissing(db, 'resourceReleases', 'cohortKey', "cohortKey TEXT DEFAULT ''")
+  if (hasColumn(db, 'resourceReleases', 'snapshotMonth')) {
     db.exec(`
-      UPDATE releases
+      UPDATE resourceReleases
       SET cohortKey = COALESCE(NULLIF(cohortKey, ''), snapshotMonth, sourceVersion)
       WHERE cohortKey IS NULL OR cohortKey = '';
     `)
@@ -1295,7 +1295,7 @@ type FixtureRelease = {
   ingestedAt: string
   createdAt: string
   updatedAt: string
-  releaseId?: string
+  resourceReleaseId?: string
   releaseCode?: string
   revokedAt?: string | null
   revocationReason?: string | null
@@ -1315,12 +1315,12 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
       release.sourceVersion,
       release.resourceType,
     )
-  const releaseId = release.releaseId ?? `release-${releaseCode}`
-  const supersededByReleaseId = release.supersededByReleaseCode
+  const resourceReleaseId = release.resourceReleaseId ?? `release-${releaseCode}`
+  const supersededByResourceReleaseId = release.supersededByReleaseCode
     ? `release-${release.supersededByReleaseCode}`
     : null
 
-  const sourceReleaseId = `source-${releaseId}`
+  const sourceReleaseId = `source-${resourceReleaseId}`
   db.query(
     `INSERT OR IGNORE INTO sourceReleases (
       id, datasetId, code, sourceVersion, cohortKey, rawObjectKey,
@@ -1348,7 +1348,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
 
   db.query(
     `
-      INSERT INTO releases (
+      INSERT INTO resourceReleases (
         id,
         sourceReleaseId,
         datasetId,
@@ -1361,7 +1361,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
         status,
         revokedAt,
         revocationReason,
-        supersededByReleaseId,
+        supersededByResourceReleaseId,
         ingestedAt,
         createdAt,
         updatedAt
@@ -1390,7 +1390,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
       )
     `,
   ).run(
-    releaseId,
+    resourceReleaseId,
     publisherCode,
     datasetCode,
     release.resourceType,
@@ -1402,7 +1402,7 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
     release.status,
     release.revokedAt ?? null,
     release.revocationReason ?? null,
-    supersededByReleaseId,
+    supersededByResourceReleaseId,
     release.ingestedAt,
     release.createdAt,
     release.updatedAt,
@@ -1412,6 +1412,6 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
   return {
     datasetCode,
     releaseCode,
-    releaseId,
+    resourceReleaseId,
   }
 }

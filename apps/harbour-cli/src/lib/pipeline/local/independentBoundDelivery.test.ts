@@ -21,7 +21,7 @@ test('native independent targets combine 260 collections into six batches and re
       directory,
       ownershipDirectory: root,
       files,
-      releaseId: 'grouped',
+      resourceReleaseId: 'grouped',
       phase: 'address3d-data',
       inputs: { independentBoundTargets: true },
     }

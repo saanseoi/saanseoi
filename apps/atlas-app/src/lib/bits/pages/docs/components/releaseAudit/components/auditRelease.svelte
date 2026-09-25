@@ -65,13 +65,13 @@ let fixtureCountsFailed = $state(false)
 let fixtureRetry = $state(0)
 $effect(() => {
   fixtureRetry
-  const releaseId = manifest.releaseId
+  const resourceReleaseId = manifest.resourceReleaseId
   const currentHash = hash
   let current = true
   fixtureCountsLoading = true
   fixtureCountsFailed = false
   catalogue = { groups: {}, als: [] }
-  getAuditFixtureCatalogue({ releaseId, hash: currentHash, releaseCode })
+  getAuditFixtureCatalogue({ resourceReleaseId, hash: currentHash, releaseCode })
     .then(result => {
       if (current) catalogue = result
     })
@@ -110,7 +110,7 @@ $effect(() => {
   searchLoading = true
   searchFailure = ''
   getAuditPage({
-    releaseId: manifest.releaseId,
+    resourceReleaseId: manifest.resourceReleaseId,
     hash,
     q: effectiveQuery,
     countOnly: true,
@@ -226,7 +226,7 @@ $effect(() => {
 
 <section
   class="space-y-1"
-  data-audit-release={manifest.releaseId}
+  data-audit-release={manifest.resourceReleaseId}
   aria-label={m.source_audit_title()}
 >
   {#if showControls}
@@ -267,14 +267,14 @@ $effect(() => {
       <Bulk
         query={effectiveQuery}
         {bulk}
-        releaseId={manifest.releaseId}
+        resourceReleaseId={manifest.resourceReleaseId}
         {hash}
         evidence={auditBulkEvidence(bulk, manifest.bulk)}
         groups={catalogue.groups[auditBulkEvidence(bulk, manifest.bulk).id]}
       />
     {/each}
     <Applications
-      releaseId={manifest.releaseId}
+      resourceReleaseId={manifest.resourceReleaseId}
       {hash}
       category="patches"
       query={effectiveQuery}
@@ -295,14 +295,14 @@ $effect(() => {
         <span class="text-sm font-normal opacity-60">{m.source_audit_custom()}</span>
       </h3>
       <Applications
-        releaseId={manifest.releaseId}
+        resourceReleaseId={manifest.resourceReleaseId}
         {hash}
         category="curations"
         query={effectiveQuery}
       />
       <AlsCurations
         rows={catalogue.als}
-        releaseId={manifest.releaseId}
+        resourceReleaseId={manifest.resourceReleaseId}
         {releaseCode}
         {hash}
         query={effectiveQuery}
@@ -321,7 +321,7 @@ $effect(() => {
           <Bulk
             query={effectiveQuery}
             {bulk}
-            releaseId={manifest.releaseId}
+            resourceReleaseId={manifest.resourceReleaseId}
             {hash}
             evidence={auditBulkEvidence(bulk, manifest.bulk)}
             groups={catalogue.groups[auditBulkEvidence(bulk, manifest.bulk).id]}
@@ -353,7 +353,7 @@ $effect(() => {
         {#if bulk.id === 'normalise-divisions'}
           <DivisionRules
             {bulk}
-            releaseId={manifest.releaseId}
+            resourceReleaseId={manifest.resourceReleaseId}
             {hash}
             query={effectiveQuery}
             bind:matching={divisionRulesMatching}
@@ -362,7 +362,7 @@ $effect(() => {
           <Bulk
             query={effectiveQuery}
             {bulk}
-            releaseId={manifest.releaseId}
+            resourceReleaseId={manifest.resourceReleaseId}
             {hash}
             evidence={auditBulkEvidence(bulk, manifest.bulk)}
             groups={catalogue.groups[auditBulkEvidence(bulk, manifest.bulk).id]}
@@ -370,7 +370,7 @@ $effect(() => {
         {/if}
       {/each}
       <Applications
-        releaseId={manifest.releaseId}
+        resourceReleaseId={manifest.resourceReleaseId}
         {hash}
         category="rules"
         query={effectiveQuery}

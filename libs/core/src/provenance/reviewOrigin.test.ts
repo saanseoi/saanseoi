@@ -41,7 +41,7 @@ test('review origin survives retention and cannot contradict the rule', async ()
     context: {},
   }
   const input = {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'dataset',
     attempt: { id: 'attempt', status: 'completed' as const },
     bulk: [],

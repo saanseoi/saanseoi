@@ -398,7 +398,7 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       cohortKey: '2026',
       status: 'published',
     })
-    insert(f.meta, 'releases', {
+    insert(f.meta, 'resourceReleases', {
       id: 'release',
       sourceReleaseId: 'source',
       datasetId: 'als',

@@ -13,7 +13,7 @@ import ScrollArea from './auditScrollArea.svelte'
 let {
   entries,
   references,
-  releaseId,
+  resourceReleaseId,
   hash,
   fixtureIndex,
   query = '',
@@ -21,7 +21,7 @@ let {
 }: {
   entries: Json[]
   references?: Array<{ fixtureIndex: number; entryIndex: number }>
-  releaseId?: string
+  resourceReleaseId?: string
   hash?: string
   fixtureIndex?: number
   query?: string
@@ -177,11 +177,11 @@ async function toggle(side: 'source' | 'target', value: string) {
     >
       {#snippet children()}
         {#each matching.slice(0, visible) as { entry, index } (index)}
-          {@const row = object(entry)}
-          {@const parentName = translationParentName(row.context, getLocale())}
-          {@const reference =
+          {@const (row = object(entry))}
+          {@const (parentName = translationParentName(row.context, getLocale()))}
+          {@const (reference =
   references?.[index] ??
-  (fixtureIndex !== undefined ? { fixtureIndex, entryIndex: index } : undefined)}
+  (fixtureIndex !== undefined ? { fixtureIndex, entryIndex: index } : undefined))}
           <details
             class="border-b border-current/10 last:border-b-0"
             open={expanded.includes(index)}
@@ -240,9 +240,9 @@ async function toggle(side: 'source' | 'target', value: string) {
               </span>
             </summary>
             <div class="border-t border-current/10 bg-current/2.5 p-4">
-              {#if expanded.includes(index) && releaseId && hash && reference}
+              {#if expanded.includes(index) && resourceReleaseId && hash && reference}
                 <Applications
-                  {releaseId}
+                  {resourceReleaseId}
                   {hash}
                   fixtureIndex={reference.fixtureIndex}
                   entryIndex={reference.entryIndex}

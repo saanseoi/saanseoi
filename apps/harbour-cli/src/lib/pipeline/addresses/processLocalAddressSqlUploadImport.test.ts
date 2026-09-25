@@ -15,7 +15,7 @@ test('an empty Address import keeps its release-level Division selection without
     {
       datasetId: 'dataset',
       datasetCode: 'ds-hk-hkgov-dpo-address',
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       source: 'hkgov-dpo',
       resourceType: 'address',
       regionCode: 'hk',

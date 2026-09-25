@@ -71,7 +71,7 @@ export async function readAddressPreparationAudit(
 export async function retainAddressProvenance(
   store: ProvenanceStore,
   input: {
-    releaseId: string
+    resourceReleaseId: string
     datasetCode: string
     preparation: AddressPreparationAudit
     outputCount: number
@@ -136,7 +136,7 @@ export async function retainAddressProvenance(
     automatic.map(action => [action.action, action.affectedRecordCount]),
   )
   return retainProducerAudit(store, {
-    releaseId: input.releaseId,
+    resourceReleaseId: input.resourceReleaseId,
     datasetCode: input.datasetCode,
     apiFields,
     individuals,

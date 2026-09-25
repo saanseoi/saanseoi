@@ -104,7 +104,7 @@ export function auditActionCategory(action: IndividualAudit) {
 export type AuditManifest = {
   kind: 'processing-audit'
   schemaVersion: 1
-  releaseId: string
+  resourceReleaseId: string
   datasetCode: string
   attempt: { id: string; status: 'completed' | 'failed' }
   bulk: BulkAudit[]

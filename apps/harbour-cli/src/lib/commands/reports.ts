@@ -81,6 +81,6 @@ function resolveReportReleaseFilter(args: ParsedArgs) {
   }
 
   return isReleaseId(releaseSpecifier)
-    ? { releaseId: releaseSpecifier }
+    ? { resourceReleaseId: releaseSpecifier }
     : { releaseCode: releaseSpecifier }
 }

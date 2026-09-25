@@ -59,7 +59,7 @@ export type OfficialAddressInitManifest = {
   identityFiles: { history: FileBeforeImage }
   owned?: {
     apiReleaseSetIds: string[]
-    assetIds: Array<{ assetKey: string; id: string; releaseId: string | null }>
+    assetIds: Array<{ assetKey: string; id: string; resourceReleaseId: string | null }>
     materialisedDivisionScopeIds: string[]
     releaseCodes: string[]
     releaseIds: string[]
@@ -112,18 +112,18 @@ export async function getOfficialAddressInitialisationStatus(target: UploadTarge
     try {
       const [release, snapshot, apiReleaseSet] = await Promise.all([
         context.metaDb
-          .select({ id: metaSchema.metaReleases.id })
-          .from(metaSchema.metaReleases)
+          .select({ id: metaSchema.metaResourceReleases.id })
+          .from(metaSchema.metaResourceReleases)
           .innerJoin(
             metaSchema.metaDatasets,
-            eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+            eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
           )
           .where(
             and(
               eq(metaSchema.metaDatasets.code, DATASET_CODE),
               or(
-                eq(metaSchema.metaReleases.status, 'published'),
-                eq(metaSchema.metaReleases.status, 'superseded'),
+                eq(metaSchema.metaResourceReleases.status, 'published'),
+                eq(metaSchema.metaResourceReleases.status, 'superseded'),
               ),
             ),
           )
@@ -427,11 +427,11 @@ async function assertCleanAddressBaseline(
 ) {
   const [release, snapshot] = await Promise.all([
     context.metaDb
-      .select({ id: metaSchema.metaReleases.id })
-      .from(metaSchema.metaReleases)
+      .select({ id: metaSchema.metaResourceReleases.id })
+      .from(metaSchema.metaResourceReleases)
       .innerJoin(
         metaSchema.metaDatasets,
-        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+        eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
       )
       .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
       .limit(1)
@@ -492,11 +492,14 @@ async function adoptFailedAddressResetState(
     throw new Error('--adopt-failed only supports the local target.')
   }
   const releases = await context.metaDb
-    .select({ id: metaSchema.metaReleases.id, status: metaSchema.metaReleases.status })
-    .from(metaSchema.metaReleases)
+    .select({
+      id: metaSchema.metaResourceReleases.id,
+      status: metaSchema.metaResourceReleases.status,
+    })
+    .from(metaSchema.metaResourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -559,14 +562,14 @@ async function collectOwnedRecords(
 ) {
   const releases = await context.metaDb
     .select({
-      id: metaSchema.metaReleases.id,
-      code: metaSchema.metaReleases.code,
-      sourceReleaseId: metaSchema.metaReleases.sourceReleaseId,
+      id: metaSchema.metaResourceReleases.id,
+      code: metaSchema.metaResourceReleases.code,
+      sourceReleaseId: metaSchema.metaResourceReleases.sourceReleaseId,
     })
-    .from(metaSchema.metaReleases)
+    .from(metaSchema.metaResourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -611,10 +614,10 @@ async function collectOwnedRecords(
     .select({
       id: metaSchema.metaAssets.id,
       assetKey: metaSchema.metaAssets.assetKey,
-      releaseId: metaSchema.metaAssets.releaseId,
+      resourceReleaseId: metaSchema.metaAssets.resourceReleaseId,
     })
     .from(metaSchema.metaAssets)
-    .where(inArray(metaSchema.metaAssets.releaseId, releaseIds))
+    .where(inArray(metaSchema.metaAssets.resourceReleaseId, releaseIds))
     .all()
   const currentDivisionScopeIds = await readCurrentDivisionScopeIds(context)
   return {
@@ -652,7 +655,7 @@ async function collectOwnedRecordsFromRemoteMeta(
   current: RemoteD1QueryClient,
 ): Promise<NonNullable<OfficialAddressInitManifest['owned']>> {
   const releases = (await client.query(
-    `SELECT r.id, r.code, r.sourceReleaseId FROM releases r JOIN datasets d ON d.id = r.datasetId WHERE d.code = ${literal(DATASET_CODE)}`,
+    `SELECT r.id, r.code, r.sourceReleaseId FROM resourceReleases r JOIN datasets d ON d.id = r.datasetId WHERE d.code = ${literal(DATASET_CODE)}`,
   )) as Array<{ id: string; code: string; sourceReleaseId: string }>
   if (releases.length === 0)
     throw new Error('Official-address initialisation produced no address releases.')
@@ -673,12 +676,12 @@ async function collectOwnedRecordsFromRemoteMeta(
   const assets = await queryRemoteInChunks<{
     id: string
     assetKey: string
-    releaseId: string | null
+    resourceReleaseId: string | null
   }>(
     client,
     releaseIds,
     values =>
-      `SELECT id, assetKey, releaseId FROM assets WHERE releaseId IN (${sqlList(values)})`,
+      `SELECT id, assetKey, resourceReleaseId FROM assets WHERE resourceReleaseId IN (${sqlList(values)})`,
   )
   const currentRows = (await current.query(
     'SELECT DISTINCT snapshotId FROM divisions ORDER BY snapshotId',
@@ -715,7 +718,7 @@ async function readRemoteDocsState(client: RemoteD1QueryClient): Promise<DocsSta
       'apiReleaseSets',
       'id, notes, guide',
     )) as DocsState['apiReleaseSets'],
-    releases: (await read('releases', 'id, notes')) as DocsState['releases'],
+    releases: (await read('resourceReleases', 'id, notes')) as DocsState['releases'],
   }
 }
 
@@ -771,11 +774,11 @@ async function assertResetStillSafe(
   if (dependencies.length)
     throw new Error(`Refusing reset: ${dependencies.join('; ')}.`)
   const releases = await context.metaDb
-    .select({ id: metaSchema.metaReleases.id })
-    .from(metaSchema.metaReleases)
+    .select({ id: metaSchema.metaResourceReleases.id })
+    .from(metaSchema.metaResourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -854,11 +857,16 @@ async function assertResetStillSafe(
   }
   for (const target of context.sourceTargets) {
     const unexpectedSource = await (target.db as typeof context.sourceDb)
-      .select({ releaseId: sourceSchema.sourceHkgovAlsAddresses2d.releaseId })
+      .select({
+        resourceReleaseId: sourceSchema.sourceHkgovAlsAddresses2d.resourceReleaseId,
+      })
       .from(sourceSchema.sourceHkgovAlsAddresses2d)
       .where(
         not(
-          inArray(sourceSchema.sourceHkgovAlsAddresses2d.releaseId, owned.releaseIds),
+          inArray(
+            sourceSchema.sourceHkgovAlsAddresses2d.resourceReleaseId,
+            owned.releaseIds,
+          ),
         ),
       )
       .limit(1)
@@ -871,7 +879,7 @@ async function assertResetStillSafe(
   const assets = await context.metaDb
     .select({ id: metaSchema.metaAssets.id })
     .from(metaSchema.metaAssets)
-    .where(inArray(metaSchema.metaAssets.releaseId, owned.releaseIds))
+    .where(inArray(metaSchema.metaAssets.resourceReleaseId, owned.releaseIds))
     .all()
   if (
     assets.some(asset => !owned.assetIds.some(ownedAsset => ownedAsset.id === asset.id))
@@ -906,15 +914,15 @@ async function absorbAbandonedStagedAddressReleases(
   const owned = requireOwned(manifest)
   const releases = await context.metaDb
     .select({
-      code: metaSchema.metaReleases.code,
-      id: metaSchema.metaReleases.id,
-      sourceReleaseId: metaSchema.metaReleases.sourceReleaseId,
-      status: metaSchema.metaReleases.status,
+      code: metaSchema.metaResourceReleases.code,
+      id: metaSchema.metaResourceReleases.id,
+      sourceReleaseId: metaSchema.metaResourceReleases.sourceReleaseId,
+      status: metaSchema.metaResourceReleases.status,
     })
-    .from(metaSchema.metaReleases)
+    .from(metaSchema.metaResourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .where(eq(metaSchema.metaDatasets.code, DATASET_CODE))
     .all()
@@ -941,7 +949,7 @@ async function absorbAbandonedStagedAddressReleases(
       context.metaDb
         .select({ status: metaSchema.ingestRuns.status })
         .from(metaSchema.ingestRuns)
-        .where(eq(metaSchema.ingestRuns.releaseId, release.id))
+        .where(eq(metaSchema.ingestRuns.resourceReleaseId, release.id))
         .all(),
     ])
     if (
@@ -968,10 +976,10 @@ async function absorbAbandonedStagedAddressReleases(
       .select({
         assetKey: metaSchema.metaAssets.assetKey,
         id: metaSchema.metaAssets.id,
-        releaseId: metaSchema.metaAssets.releaseId,
+        resourceReleaseId: metaSchema.metaAssets.resourceReleaseId,
       })
       .from(metaSchema.metaAssets)
-      .where(eq(metaSchema.metaAssets.releaseId, release.id))
+      .where(eq(metaSchema.metaAssets.resourceReleaseId, release.id))
       .all()
     owned.assetIds.push(...assets)
     owned.releaseCodes.push(release.code)
@@ -995,7 +1003,7 @@ async function buildResetSql(
     sourceReleases = sqlList(owned.sourceReleaseIds),
     apiSets = sqlList(owned.apiReleaseSetIds),
     assets = sqlList(owned.assetIds.map(asset => asset.id))
-  const sourceSql = `DELETE FROM hkgovAlsAddresses2d WHERE releaseId IN (${ids});`
+  const sourceSql = `DELETE FROM hkgovAlsAddresses2d WHERE resourceReleaseId IN (${ids});`
   const historySql = `DELETE FROM address2dBuildingNumberLookup WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2dI18n WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM address2d WHERE sourceReleaseId IN (${ids}) OR snapshotId IN (${snapshots});\nDELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});\nDELETE FROM sourceResolutions WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${ids});`
   const scopeIds: string[] = []
   for (const ids of chunkArray(owned.snapshotIds, getMaxItemsPerInClause())) {
@@ -1014,10 +1022,10 @@ async function buildResetSql(
     ),
     ...manifest.baseline.docs.releases.map(
       row =>
-        `UPDATE releases SET notes=${literal(row.notes)} WHERE id=${literal(row.id)};`,
+        `UPDATE resourceReleases SET notes=${literal(row.notes)} WHERE id=${literal(row.id)};`,
     ),
   ].join('\n')
-  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE releaseId IN (${ids});\nDELETE FROM stats WHERE releaseId IN (${ids}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE releaseId IN (${ids}) OR relatedReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM releases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
+  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE resourceReleaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE resourceReleaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId IN (${ids});\nDELETE FROM stats WHERE resourceReleaseId IN (${ids}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE resourceReleaseId IN (${ids}) OR relatedResourceReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM resourceReleases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
   const source = context.sourceTargets.map(target => ({
     sql: sourceSql,
     target: {
@@ -1069,8 +1077,11 @@ async function readDocsState(
       .from(metaSchema.metaApiReleaseSets)
       .all(),
     context.metaDb
-      .select({ id: metaSchema.metaReleases.id, notes: metaSchema.metaReleases.notes })
-      .from(metaSchema.metaReleases)
+      .select({
+        id: metaSchema.metaResourceReleases.id,
+        notes: metaSchema.metaResourceReleases.notes,
+      })
+      .from(metaSchema.metaResourceReleases)
       .all(),
   ])
   return { apiReleaseSets: apiReleaseSets.sort(byId), releases: releases.sort(byId) }

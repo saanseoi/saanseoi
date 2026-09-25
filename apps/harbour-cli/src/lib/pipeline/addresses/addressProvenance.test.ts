@@ -66,7 +66,7 @@ test('ALS retains reviewed documents, individual identity decisions and automati
     },
   }
   const result = await retainAddressProvenance(store, {
-    releaseId: 'address-release',
+    resourceReleaseId: 'address-release',
     datasetCode: 'als-addresses',
     outputCount: 1,
     preparation: {

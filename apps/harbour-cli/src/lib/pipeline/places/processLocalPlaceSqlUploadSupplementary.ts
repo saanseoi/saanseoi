@@ -79,7 +79,7 @@ import { readStagedJsonLines } from './processLocalPlaceSqlUploadPreparation.ts'
 type PrepareSupplementaryAddressesInput = {
   recordCache?: PlaceRecordCache
   retainAudit: (
-    releaseId: string,
+    resourceReleaseId: string,
     datasetCode: string,
     audit: import('./placeProvenance').PlaceAddressAuditInput,
   ) => Promise<void>
@@ -99,7 +99,7 @@ type PrepareSupplementaryAddressesInput = {
   historyRows: PlaceHistoryState[]
   releaseRoot: string
   plan: PlaceUploadPlan
-  releaseId: string
+  resourceReleaseId: string
   datasetId: string
   targets: Awaited<ReturnType<typeof placeTargets>>
   importOptions: SqlImportExecutionOptions
@@ -121,7 +121,7 @@ export async function prepareSupplementaryAddresses(
   const lock = await acquireSupplementaryAddressLock(lockPath)
   try {
     await lock.writeFile(
-      JSON.stringify({ pid: process.pid, releaseId: input.releaseId }),
+      JSON.stringify({ pid: process.pid, resourceReleaseId: input.resourceReleaseId }),
     )
     return await prepareSupplementaryAddressesLocked(input)
   } finally {
@@ -141,7 +141,7 @@ async function acquireSupplementaryAddressLock(lockPath: string) {
     const owner = await readSupplementaryAddressLock(lockPath)
     if (owner.pid && isLiveProcess(owner.pid)) {
       throw new Error(
-        `Supplementary Address preparation is already running for ${owner.releaseId ?? 'an unknown release'} (PID ${owner.pid}).`,
+        `Supplementary Address preparation is already running for ${owner.resourceReleaseId ?? 'an unknown release'} (PID ${owner.pid}).`,
       )
     }
     if (owner.initialising) {
@@ -197,23 +197,24 @@ async function writeSupplementaryEntryLedger(
 async function readSupplementaryAddressLock(lockPath: string) {
   try {
     const contents = await readFile(lockPath, 'utf8')
-    const value = JSON.parse(contents) as { pid?: unknown; releaseId?: unknown }
+    const value = JSON.parse(contents) as { pid?: unknown; resourceReleaseId?: unknown }
     const pid = Number(value.pid)
     return {
       initialising: false,
       pid: Number.isSafeInteger(pid) && pid > 0 ? pid : null,
-      releaseId: typeof value.releaseId === 'string' ? value.releaseId : null,
+      resourceReleaseId:
+        typeof value.resourceReleaseId === 'string' ? value.resourceReleaseId : null,
     }
   } catch (error) {
     if (errorCode(error) === 'ENOENT')
-      return { initialising: false, pid: null, releaseId: null }
+      return { initialising: false, pid: null, resourceReleaseId: null }
     const metadata = await stat(lockPath).catch(() => null)
     return {
       initialising:
         metadata !== null &&
         Date.now() - metadata.mtimeMs < LOCK_INITIALISATION_GRACE_MS,
       pid: null,
-      releaseId: null,
+      resourceReleaseId: null,
     }
   }
 }
@@ -358,14 +359,14 @@ async function prepareSupplementaryAddressesLocked(
         createdAt: historySchema.places.createdAt,
         id: historySchema.places.id,
         lastSeenMonth: historySchema.places.lastSeenMonth,
-        releaseId: historySchema.places.releaseId,
+        resourceReleaseId: historySchema.places.resourceReleaseId,
       })
       .from(historySchema.places)
       .where(
         and(
           isNotNull(historySchema.places.address2dId),
           lte(historySchema.places.lastSeenMonth, input.plan.sourceVersion.slice(0, 7)),
-          ne(historySchema.places.releaseId, input.releaseId),
+          ne(historySchema.places.resourceReleaseId, input.resourceReleaseId),
         ),
       )
       .all()) as PlaceHistoryRow[]
@@ -446,7 +447,7 @@ async function prepareSupplementaryAddressesLocked(
   await writeSupplementaryReviewArtefact({
     addressSnapshotId: input.snapshots.addressSnapshotId,
     authority: fixture.authority,
-    placeReleaseId: input.releaseId,
+    placeReleaseId: input.resourceReleaseId,
     policies: fixture.policies,
     resolutionPath,
     reviewCount,
@@ -490,9 +491,9 @@ async function prepareSupplementaryAddressesLocked(
     .get()) as typeof metaSchema.metaDatasets.$inferSelect | undefined
   const parentRelease = (await db
     .select()
-    .from(metaSchema.metaReleases)
-    .where(eq(metaSchema.metaReleases.id, input.releaseId))
-    .get()) as typeof metaSchema.metaReleases.$inferSelect | undefined
+    .from(metaSchema.metaResourceReleases)
+    .where(eq(metaSchema.metaResourceReleases.id, input.resourceReleaseId))
+    .get()) as typeof metaSchema.metaResourceReleases.$inferSelect | undefined
   if (!parentDataset || !parentRelease)
     throw new Error('Missing Place source registration.')
   const datasetCode = parentDataset.code
@@ -501,10 +502,10 @@ async function prepareSupplementaryAddressesLocked(
   const releaseCode = `dr-${input.plan.regionCode}-overture-place-address-${input.plan.sourceVersion}`
   const existingRelease = (await db
     .select()
-    .from(metaSchema.metaReleases)
-    .where(eq(metaSchema.metaReleases.code, releaseCode))
-    .get()) as typeof metaSchema.metaReleases.$inferSelect | undefined
-  const releaseId =
+    .from(metaSchema.metaResourceReleases)
+    .where(eq(metaSchema.metaResourceReleases.code, releaseCode))
+    .get()) as typeof metaSchema.metaResourceReleases.$inferSelect | undefined
+  const resourceReleaseId =
     existingRelease?.id ?? buildDeterministicUuidV5(namespace, releaseCode)
   const sourceReleaseId = parentRelease.sourceReleaseId
   if (!sourceReleaseId) throw new Error('Missing shared Overture source release.')
@@ -529,7 +530,7 @@ async function prepareSupplementaryAddressesLocked(
     .run()
   const release = {
     ...parentRelease,
-    id: releaseId,
+    id: resourceReleaseId,
     datasetId,
     sourceReleaseId,
     code: releaseCode,
@@ -543,13 +544,13 @@ async function prepareSupplementaryAddressesLocked(
     updatedAt: now,
   }
   if (!existingRelease) {
-    await db.insert(metaSchema.metaReleases).values(release).run()
+    await db.insert(metaSchema.metaResourceReleases).values(release).run()
   }
   const snapshot = await ensureDraftSnapshotForRelease(db, 'address', {
     cohortKey: input.plan.cohortKey,
     datasetCode,
     datasetId,
-    sourceReleaseId: releaseId,
+    sourceReleaseId: resourceReleaseId,
     regionCode: input.plan.regionCode,
     rootSnapshot: true,
     variant: SUPPLEMENTARY_ADDRESS_VARIANT,
@@ -571,8 +572,8 @@ async function prepareSupplementaryAddressesLocked(
     officialAddresses: officialById,
     snapshotId: snapshot.id,
     divisionSnapshotId: input.snapshots.divisionSnapshotId,
-    sourceReleaseId: releaseId,
-    placeSourceReleaseId: input.releaseId,
+    sourceReleaseId: resourceReleaseId,
+    placeSourceReleaseId: input.resourceReleaseId,
     sourceVersion: input.plan.sourceVersion,
     datasetId,
   })
@@ -671,7 +672,7 @@ async function prepareSupplementaryAddressesLocked(
   const materialisationHash = await createHash({
     addresses,
     policies,
-    placeReleaseId: input.releaseId,
+    placeReleaseId: input.resourceReleaseId,
     addressSnapshotId: input.snapshots.addressSnapshotId,
     revokedAddressIds,
   })
@@ -694,7 +695,7 @@ async function prepareSupplementaryAddressesLocked(
     }
     await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
     await writeSupplementaryEntryLedger(entryLedgerPath, nextEntryLedger)
-    await input.retainAudit(releaseId, datasetCode, {
+    await input.retainAudit(resourceReleaseId, datasetCode, {
       materialisationHash,
       fixture,
       resolutionPath,
@@ -703,15 +704,22 @@ async function prepareSupplementaryAddressesLocked(
     })
   } else {
     // Each supplementary snapshot is a complete map, including an empty accepted set.
-    await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary', {
-      anchorReleaseId: input.releaseId,
-      selectedByRule: 'overture-place-address-curation',
-      selectionMode: 'exact_ref',
-      sourceCohortKey: input.plan.cohortKey,
-    })
+    await upsertSnapshotSource(
+      db,
+      snapshot.id,
+      datasetId,
+      resourceReleaseId,
+      'primary',
+      {
+        anchorReleaseId: input.resourceReleaseId,
+        selectedByRule: 'overture-place-address-curation',
+        selectionMode: 'exact_ref',
+        sourceCohortKey: input.plan.cohortKey,
+      },
+    )
     await recordSnapshotLookupDependency(db, {
       snapshotId: snapshot.id,
-      anchorReleaseId: input.releaseId,
+      anchorReleaseId: input.resourceReleaseId,
       lookupSnapshotId: input.snapshots.addressSnapshotId,
       selectedByRule: 'overture-place-address:selected-als',
       selectionMode: 'address_snapshot_reference',
@@ -719,7 +727,7 @@ async function prepareSupplementaryAddressesLocked(
     await recordPlaceAddressAssembly(db, {
       snapshotId: snapshot.id,
       resourceType: 'address',
-      anchorReleaseId: input.releaseId,
+      anchorReleaseId: input.resourceReleaseId,
       anchorCohortKey: input.plan.cohortKey,
       dependencies: { address: input.snapshots.addressSnapshotId },
       reviewRequired: 0,
@@ -749,11 +757,12 @@ async function prepareSupplementaryAddressesLocked(
     )
     if (historyShard)
       await upsertSnapshotShardAssignment(db, snapshot.id, historyShard.id)
-    if (historyShard) await upsertReleaseShardAssignment(db, releaseId, historyShard.id)
+    if (historyShard)
+      await upsertReleaseShardAssignment(db, resourceReleaseId, historyShard.id)
     await deliverResolvedAddressSqlPhase(
       {
         context: input.context,
-        releaseId: input.releaseId,
+        resourceReleaseId: input.resourceReleaseId,
         phase: 'places-address-publication-data',
         nativeLocal: true,
         scopeId: currentScopeId,
@@ -770,7 +779,7 @@ async function prepareSupplementaryAddressesLocked(
           scopeId: currentScopeId,
           scopeSnapshotIds,
           snapshotId: snapshot.id,
-          releaseId,
+          resourceReleaseId,
           historyBinding: historyShard.bindingName,
           revokedAddressIds,
           now,
@@ -799,8 +808,8 @@ async function prepareSupplementaryAddressesLocked(
             input.targets.meta,
             [
               `UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = ${lit(datasetId)} AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');`,
-              insertSql('releases', release),
-              await buildPlaceMetadataSql(db, snapshot.id, releaseId),
+              insertSql('resourceReleases', release),
+              await buildPlaceMetadataSql(db, snapshot.id, resourceReleaseId),
             ].join('\n'),
             input.importOptions,
           )
@@ -809,7 +818,7 @@ async function prepareSupplementaryAddressesLocked(
     )
     input.onStage?.('verify supplementary Address rows')
     await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
-    await input.retainAudit(releaseId, datasetCode, {
+    await input.retainAudit(resourceReleaseId, datasetCode, {
       materialisationHash,
       fixture,
       resolutionPath,
@@ -819,9 +828,9 @@ async function prepareSupplementaryAddressesLocked(
     // Publication follows successful imports. A retry of a published snapshot must reproduce its hash.
     await publishSnapshot(db, snapshot.id)
     await db
-      .update(metaSchema.metaReleases)
+      .update(metaSchema.metaResourceReleases)
       .set({ status: 'published', updatedAt: now })
-      .where(eq(metaSchema.metaReleases.id, releaseId))
+      .where(eq(metaSchema.metaResourceReleases.id, resourceReleaseId))
       .run()
     // The shared source is finalised by Places publication after both outputs succeed.
   }
@@ -831,7 +840,7 @@ async function prepareSupplementaryAddressesLocked(
     await deliverSqlPhase(
       {
         context: input.context,
-        releaseId: input.releaseId,
+        resourceReleaseId: input.resourceReleaseId,
         phase: 'places-address-metadata',
         nativeLocal: true,
         inputs: { materialisationHash, snapshotId: snapshot.id },
@@ -840,8 +849,8 @@ async function prepareSupplementaryAddressesLocked(
         executeSqlText(
           input.targets.meta,
           [
-            await buildPlaceMetadataSql(db, snapshot.id, releaseId),
-            `UPDATE releases SET status = 'published' WHERE id = ${lit(releaseId)};`,
+            await buildPlaceMetadataSql(db, snapshot.id, resourceReleaseId),
+            `UPDATE resourceReleases SET status = 'published' WHERE id = ${lit(resourceReleaseId)};`,
           ].join('\n'),
           input.importOptions,
         ),
@@ -849,7 +858,7 @@ async function prepareSupplementaryAddressesLocked(
   }
   await recordSnapshotLookupDependency(db, {
     snapshotId: input.snapshots.snapshotId,
-    anchorReleaseId: input.releaseId,
+    anchorReleaseId: input.resourceReleaseId,
     lookupSnapshotId: snapshot.id,
     selectedByRule:
       'api-composition:places/overture:place/default->address/overture-places',
@@ -864,7 +873,7 @@ async function prepareSupplementaryAddressesLocked(
       supplementaryCount: addresses.length,
     },
     resolutionPath,
-    releaseId,
+    resourceReleaseId,
     releaseCode,
     snapshotId: snapshot.id,
     addresses,

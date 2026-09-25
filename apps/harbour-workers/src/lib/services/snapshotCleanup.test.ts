@@ -58,7 +58,7 @@ function fixture(beforeQuery?: (sqlite: Database, query: string) => void) {
       address:
         "INSERT INTO address2d(snapshotId,id,divisionSnapshotId) VALUES ('scope','address','division-scope')",
       place:
-        "INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth) VALUES ('scope','place','release',114,22,'2026-01','2026-01')",
+        "INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth) VALUES ('scope','place','release',114,22,'2026-01','2026-01')",
     }[family]
     sqlite.exec(insert)
   }
@@ -145,7 +145,7 @@ test.each(['obsolete', 'scope'])(
       }
       f.sqlite
         .query(
-          "INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',114,22,'2026-01','2026-01',?)",
+          "INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,addressSnapshotId) VALUES ('dependent','place','release',114,22,'2026-01','2026-01',?)",
         )
         .run(logicalSnapshotId)
       const definition = JSON.stringify({

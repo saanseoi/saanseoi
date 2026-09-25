@@ -17,7 +17,7 @@ export type ApiFieldInput =
 
 export type ApiFieldRulePin = {
   ruleId: string
-  releaseId: string
+  resourceReleaseId: string
   rulesetVersion: string
   rulesetVersionHash: string
   definitionHash: string
@@ -89,7 +89,7 @@ export function validateApiFieldInputs(
 /** Resolve exclusively against the immutable definitions captured by selected releases. */
 export function pinApiFieldRules(
   field: { resolverCode: string; processingRuleIds?: string[] },
-  releases: Array<{ releaseId: string; processingRules: unknown }>,
+  releases: Array<{ resourceReleaseId: string; processingRules: unknown }>,
 ): ApiFieldRulePin[] {
   const ids = [
     ...new Set([
@@ -119,7 +119,7 @@ export function pinApiFieldRules(
             throw new Error(`Unpinned ruleset for ${ruleId}`)
           const pin = {
             ruleId,
-            releaseId: release.releaseId,
+            resourceReleaseId: release.resourceReleaseId,
             rulesetVersion: ruleset.rulesetVersion,
             rulesetVersionHash: ruleset.rulesetVersionHash,
             definitionHash: computeVersionHash(definition),
@@ -138,7 +138,7 @@ export function pinApiFieldRules(
     }
     for (const id of ids) {
       const matches = [...pins.values()].filter(
-        pin => pin.ruleId === id && pin.releaseId === release.releaseId,
+        pin => pin.ruleId === id && pin.resourceReleaseId === release.resourceReleaseId,
       )
       if (
         matches.length > 0 &&

@@ -20,10 +20,11 @@ import {
  */
 export async function replaceDatasetStats(
   metaDb: HarbourReadableDb & HarbourWritableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   rows: ReleaseScopedStatsRow[],
 ) {
-  return (await replaceDatasetStatsAndReturnRows(metaDb, releaseId, rows)).length
+  return (await replaceDatasetStatsAndReturnRows(metaDb, resourceReleaseId, rows))
+    .length
 }
 
 /**
@@ -33,13 +34,13 @@ export async function replaceDatasetStats(
  */
 export async function replaceDatasetStatsAndReturnRows(
   metaDb: HarbourReadableDb & HarbourWritableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   rows: ReleaseScopedStatsRow[],
 ): Promise<ReleaseStatsRow[]> {
-  const dataset = await getDatasetRecordByReleaseId(metaDb, releaseId)
+  const dataset = await getDatasetRecordByReleaseId(metaDb, resourceReleaseId)
 
   if (!dataset) {
-    throw new Error(`Release not found: ${releaseId}`)
+    throw new Error(`Release not found: ${resourceReleaseId}`)
   }
 
   await runStatementBatchWithWriteRetry(metaDb, [
@@ -47,7 +48,7 @@ export async function replaceDatasetStatsAndReturnRows(
       .delete(metaSchema.stats)
       .where(
         and(
-          eq(metaSchema.stats.releaseId, dataset.releaseId),
+          eq(metaSchema.stats.resourceReleaseId, dataset.resourceReleaseId),
           sql`${metaSchema.stats.metric} != 'processing'`,
         ),
       ),
@@ -64,7 +65,7 @@ export async function replaceDatasetStatsAndReturnRows(
       groupBy: row.groupBy ?? null,
       groupValue: row.groupValue ?? null,
       id: crypto.randomUUID(),
-      releaseId: dataset.releaseId,
+      resourceReleaseId: dataset.resourceReleaseId,
 
       updatedAt: row.updatedAt ?? timestamp,
     }
@@ -85,19 +86,19 @@ export async function replaceDatasetStatsAndReturnRows(
 /** Replaces one release-stat dimension while preserving all other release facts. */
 export async function replaceReleaseStatsDimension(
   metaDb: HarbourReadableDb & HarbourWritableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   dimension: string,
   rows: ReleaseScopedStatsRow[],
 ) {
-  const dataset = await getDatasetRecordByReleaseId(metaDb, releaseId)
-  if (!dataset) throw new Error(`Release not found: ${releaseId}`)
+  const dataset = await getDatasetRecordByReleaseId(metaDb, resourceReleaseId)
+  if (!dataset) throw new Error(`Release not found: ${resourceReleaseId}`)
 
   await runStatementBatchWithWriteRetry(metaDb, [
     metaDb
       .delete(metaSchema.stats)
       .where(
         and(
-          eq(metaSchema.stats.releaseId, dataset.releaseId),
+          eq(metaSchema.stats.resourceReleaseId, dataset.resourceReleaseId),
           sql`${metaSchema.stats.metric} != 'processing'`,
           eq(metaSchema.stats.dimension, dimension),
         ),
@@ -111,7 +112,7 @@ export async function replaceReleaseStatsDimension(
       metaDb.insert(metaSchema.stats).values(
         chunk.map(row => ({
           ...row,
-          releaseId: dataset.releaseId,
+          resourceReleaseId: dataset.resourceReleaseId,
           id: crypto.randomUUID(),
         })),
       ),

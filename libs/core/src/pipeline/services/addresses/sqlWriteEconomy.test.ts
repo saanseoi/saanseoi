@@ -14,7 +14,7 @@ import type { ResolvedAddressChunkArtefact } from './types'
 const message = {
   source: 'hkgov-dpo',
   sourceVersion: '2026-09-01.0',
-  releaseId: 'release',
+  resourceReleaseId: 'release',
   datasetId: 'dataset',
   cohortKey: '2026-09-01.0',
   regionCode: 'hk',
@@ -34,7 +34,7 @@ function fixture(snapshotId: string, changed = true): ResolvedAddressChunkArtefa
     rowEnd: 1,
     totalRows: 1,
     processingRunStartedAt: now,
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     unchangedRows: +!changed,
     rows: [
       {

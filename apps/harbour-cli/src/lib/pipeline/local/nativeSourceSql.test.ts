@@ -42,7 +42,7 @@ test('native source fingerprints remain stable when properties are renamed', asy
     '8cf1286f8e3ffe81064622da57a9b3d0b14b02bb3db2330efa6fa52a31273c98',
   )
   expect(withProvenance?.validFromRelease).toBe('2026-07-22.0')
-  expect(withProvenance?.releaseId).toBe('release-id')
+  expect(withProvenance?.resourceReleaseId).toBe('release-id')
   expect(withProvenance?.properties).toEqual({ streetCode: 7, name: 'Road' })
   expect(
     Object.keys(withProvenance ?? {}).filter(key => /properties$/i.test(key)),
@@ -122,7 +122,7 @@ test('replays native polygon values and duplicate assertions without losing hist
     sourceRecordId TEXT NOT NULL, versionHash TEXT NOT NULL,
     sourceGeometry TEXT NOT NULL, properties TEXT NOT NULL,
     createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, isCurrent INTEGER NOT NULL,
-    releaseId TEXT NOT NULL, validFromRelease TEXT NOT NULL, validToRelease TEXT,
+    resourceReleaseId TEXT NOT NULL, validFromRelease TEXT NOT NULL, validToRelease TEXT,
     PRIMARY KEY(sourceRecordId, versionHash)
   )`)
   const original = {

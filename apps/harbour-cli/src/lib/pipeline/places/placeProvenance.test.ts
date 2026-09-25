@@ -77,7 +77,7 @@ test.each([false, true])(
     )
     const store = new LocalPipelineBucket(directory)
     const result = await retainPlaceProvenance(store, {
-      releaseId: 'place-release',
+      resourceReleaseId: 'place-release',
       datasetCode: 'places',
       addresses: {
         fixture,
@@ -158,7 +158,7 @@ test('automatic Place matching grows counts without generating per-record audit 
       },
     }
     const result = await retainPlaceProvenance(store, {
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       datasetCode: 'places',
       addresses: {
         fixture,

@@ -489,7 +489,7 @@ function publicChangelogEntry(value: {
     noticeRef: value.noticeRef,
     source: {
       recordKey: value.recordKey,
-      releaseId: value.sourceReleaseId,
+      resourceReleaseId: value.sourceReleaseId,
       shardId: value.sourceShardId,
     },
   }

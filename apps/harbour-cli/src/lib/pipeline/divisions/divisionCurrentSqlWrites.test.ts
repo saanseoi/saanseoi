@@ -22,7 +22,7 @@ test('Division SQL delivers only changed current records and localisations acros
     regionCode: 'hk',
     resourceType: 'division',
     sourceVersion: '2026-01-01.0',
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetId: 'dataset',
   } as DatasetProcessingMessage
   const record = (id: string): DivisionPreparedRecord => ({

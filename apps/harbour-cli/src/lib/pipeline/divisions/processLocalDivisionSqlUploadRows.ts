@@ -43,7 +43,7 @@ export async function buildDivisionSourceSqlFile(
     )
   }
 
-  const releaseId = buildSourceReleaseId(message)
+  const resourceReleaseId = buildSourceReleaseId(message)
   const changedBaseRows: Record<string, SqlValue>[] = []
   const changedIds: string[] = []
 
@@ -58,7 +58,7 @@ export async function buildDivisionSourceSqlFile(
           properties: jsonText(overtureSourcePayload(record.raw).properties),
           sourceGeometry: jsonText(overtureSourcePayload(record.raw).sourceGeometry),
           versionHash: record.sourcePayloadHash,
-          releaseId,
+          resourceReleaseId,
           validFromRelease: message.sourceVersion,
           validToRelease: null,
           isCurrent: true,
@@ -105,7 +105,7 @@ export async function buildDivisionSourceSqlFile(
         'properties',
         'sourceGeometry',
         'versionHash',
-        'releaseId',
+        'resourceReleaseId',
         'validFromRelease',
         'validToRelease',
         'isCurrent',
@@ -114,7 +114,7 @@ export async function buildDivisionSourceSqlFile(
       {
         suffix: `
 ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
-  releaseId = excluded.releaseId,
+  resourceReleaseId = excluded.resourceReleaseId,
   validFromRelease = excluded.validFromRelease,
   validToRelease = NULL,
   isCurrent = 1,
@@ -147,7 +147,7 @@ export async function buildDivisionHistorySqlFile(
         resolutionStatements.push(
           sourceResolutionSql({
             snapshotId: state.snapshotId,
-            sourceReleaseId: message.releaseId ?? message.datasetId,
+            sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
             sourceRecordId: record.id,
             sourceVersionHash: record.sourcePayloadHash,
             resolutions: { entities: resolvedEntities({ division: record.id }) },
@@ -166,7 +166,7 @@ export async function buildDivisionHistorySqlFile(
       baseRows.push({
         id: record.id,
         versionHash: record.versionHash,
-        sourceReleaseId: message.releaseId ?? message.datasetId,
+        sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
         snapshotId: state.snapshotId,
         isCurrent: true,
         divisionCode: record.base.divisionCode,
@@ -187,7 +187,7 @@ export async function buildDivisionHistorySqlFile(
         ...record.canonicalI18n.map(localised => ({
           divisionId: record.id,
           versionHash: record.baseChanged ? record.versionHash : record.i18nVersionHash,
-          sourceReleaseId: message.releaseId ?? message.datasetId,
+          sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
           snapshotId: state.snapshotId,
           isCurrent: true,
           locale: localised.locale,
@@ -307,7 +307,7 @@ ON CONFLICT(divisionId, versionHash, locale) DO UPDATE SET
           locale: '',
           versionHash: row.versionHash,
           operation: 'upsert',
-          sourceReleaseId: message.releaseId ?? message.datasetId,
+          sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
           createdAt: now,
           updatedAt: now,
         })),
@@ -318,7 +318,7 @@ ON CONFLICT(divisionId, versionHash, locale) DO UPDATE SET
           locale: row.locale,
           versionHash: row.versionHash,
           operation: 'upsert',
-          sourceReleaseId: message.releaseId ?? message.datasetId,
+          sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
           createdAt: now,
           updatedAt: now,
         })),
@@ -329,7 +329,7 @@ ON CONFLICT(divisionId, versionHash, locale) DO UPDATE SET
           locale: '',
           versionHash: null,
           operation: 'delete',
-          sourceReleaseId: message.releaseId ?? message.datasetId,
+          sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
           createdAt: now,
           updatedAt: now,
         })),

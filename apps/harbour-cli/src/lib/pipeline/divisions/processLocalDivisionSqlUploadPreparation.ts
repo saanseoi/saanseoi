@@ -456,7 +456,7 @@ export async function buildDivisionSqlState(
       message.sourceVersion,
       snapshotId,
       records,
-      message.releaseId ?? message.datasetId,
+      message.resourceReleaseId ?? message.datasetId,
     )
     for (const [index, resolution] of resolutions.entries()) {
       const record = records[index]

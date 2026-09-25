@@ -57,7 +57,7 @@ test('Address full reset protects logical Places history even after current Addr
   const f = fixture()
   try {
     expect(await officialAddressResetDependencyBlockers(f.context, f.owned)).toEqual([])
-    f.history.exec(`INSERT INTO places(id,versionHash,sourceReleaseId,releaseId,isCurrent,snapshotId,addressSnapshotId,lng,lat,firstSeenMonth,lastSeenMonth)
+    f.history.exec(`INSERT INTO places(id,versionHash,sourceReleaseId,resourceReleaseId,isCurrent,snapshotId,addressSnapshotId,lng,lat,firstSeenMonth,lastSeenMonth)
       VALUES ('place','hash','place-release','place-release',1,'place-history','address-204',114,22,'2025-01','2025-01')`)
     expect(await officialAddressResetDependencyBlockers(f.context, f.owned)).toEqual([
       'history: Places retain exact official Address dependencies',
@@ -76,7 +76,7 @@ test('Address full reset protects exact lookup metadata and external API/source 
       INSERT INTO publishers(id,code,versionHash) VALUES ('publisher','publisher','hash');
       INSERT INTO datasets(id,publisherId,code,regionCode,releaseType,releaseFrequency,theme,versionHash) VALUES ('als','publisher','als','hk','snapshot','daily','address','hash');
       INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES ('als-source','als','als-source','2026','2026','published');
-      INSERT INTO releases(id,sourceReleaseId,datasetId,resourceType,code,sourceVersion,cohortKey,status) VALUES ('als-release','als-source','als','address','als-release','2026','2026','published');
+      INSERT INTO resourceReleases(id,sourceReleaseId,datasetId,resourceType,code,sourceVersion,cohortKey,status) VALUES ('als-release','als-source','als','address','als-release','2026','2026','published');
       INSERT INTO apiVersions(id,code,familyType,version,status,versionHash) VALUES ('places-api','places-api','places','v0','current','hash');
       INSERT INTO apiReleaseSets(id,apiVersionId,code,schemaVersion,rulesetVersion,status,versionHash) VALUES ('places','places-api','places','v1','v1','current','hash');
       INSERT INTO snapshotRecipes(id,code,resourceType,version,status,versionHash) VALUES ('assembly','assembly','place',1,'scoped','hash');

@@ -35,15 +35,15 @@ const tables = {
   snapshotDependencies:
     'snapshotId TEXT REFERENCES snapshots(id), dependencySnapshotId TEXT REFERENCES snapshots(id), role TEXT, PRIMARY KEY(snapshotId,role)',
   releaseShardAssignments:
-    'releaseId TEXT, dataShardId TEXT, PRIMARY KEY(releaseId,dataShardId)',
+    'resourceReleaseId TEXT, dataShardId TEXT, PRIMARY KEY(resourceReleaseId,dataShardId)',
   snapshotShardAssignments:
     'snapshotId TEXT REFERENCES snapshots(id), dataShardId TEXT, PRIMARY KEY(snapshotId,dataShardId)',
   releaseProcessingActions:
-    'id TEXT PRIMARY KEY, releaseId TEXT, action TEXT, mode TEXT, generation TEXT, decisionCount INTEGER, affectedRecordCount INTEGER, createdAt TEXT, updatedAt TEXT',
+    'id TEXT PRIMARY KEY, resourceReleaseId TEXT, action TEXT, mode TEXT, generation TEXT, decisionCount INTEGER, affectedRecordCount INTEGER, createdAt TEXT, updatedAt TEXT',
   releaseProcessingActionChunks:
-    'id TEXT PRIMARY KEY, releaseId TEXT, actionId TEXT, generation TEXT, firstOrdinal INTEGER, decisionCount INTEGER, part INTEGER, parts INTEGER, encoding TEXT, checksum TEXT, payload BLOB CHECK(length(payload)<=32768)',
+    'id TEXT PRIMARY KEY, resourceReleaseId TEXT, actionId TEXT, generation TEXT, firstOrdinal INTEGER, decisionCount INTEGER, part INTEGER, parts INTEGER, encoding TEXT, checksum TEXT, payload BLOB CHECK(length(payload)<=32768)',
   stats:
-    'id TEXT PRIMARY KEY, releaseId TEXT, apiReleaseSetId TEXT, dimension TEXT, metric TEXT, metricUnit TEXT, value REAL, groupBy TEXT, groupValue TEXT, createdAt TEXT, updatedAt TEXT',
+    'id TEXT PRIMARY KEY, resourceReleaseId TEXT, apiReleaseSetId TEXT, dimension TEXT, metric TEXT, metricUnit TEXT, value REAL, groupBy TEXT, groupValue TEXT, createdAt TEXT, updatedAt TEXT',
 }
 
 function schema(db: Database) {
@@ -76,7 +76,7 @@ async function updateReport(
 ) {
   const summary: AuditSummary = {
     id: 'normalise',
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     action: 'normalise',
     mode: 'automatic',
     generation,
@@ -326,7 +326,7 @@ test('maximum-size audit chunks skip identical BLOBs and replay changed evidence
   schema(db)
   const row: AuditChunk = {
     id: 'chunk',
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     actionId: 'action',
     generation: 'generation',
     firstOrdinal: 0,

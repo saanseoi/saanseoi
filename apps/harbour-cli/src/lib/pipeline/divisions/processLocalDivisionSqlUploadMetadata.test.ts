@@ -25,7 +25,7 @@ test('division metadata replays current-schema statistics without duplicating pr
       INSERT INTO snapshotSourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES ('snapshot', 'dataset', 'release', 'primary');
       INSERT INTO releaseShardAssignments VALUES ('release', 'shard');
       INSERT INTO snapshotShardAssignments VALUES ('snapshot', 'shard');
-      INSERT INTO stats (id, releaseId, dimension, metric, metricUnit, value) VALUES
+      INSERT INTO stats (id, resourceReleaseId, dimension, metric, metricUnit, value) VALUES
       ('processing', 'release', 'rows', 'processing', 'count', 7),
       ('stale', 'release', 'rows', 'total', 'count', 99),
       ('other', 'other-release', 'rows', 'total', 'count', 42);`)
@@ -42,7 +42,7 @@ test('division metadata replays current-schema statistics without duplicating pr
     const result = await buildDivisionMetaSqlFile(
       db as never,
       {
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         datasetId: 'release',
         source: 'overture',
         sourceVersion: '2025-09-24.0',
@@ -54,18 +54,20 @@ test('division metadata replays current-schema statistics without duplicating pr
     sqlite.exec(result.sql)
     const planningSql = await buildPlandMetaSql(
       { metaDb: db } as never,
-      { snapshotId: 'snapshot', releaseId: 'release' } as never,
+      { snapshotId: 'snapshot', resourceReleaseId: 'release' } as never,
     )
     sqlite.exec(planningSql)
     sqlite.exec(planningSql)
     expect(
       sqlite
-        .query('SELECT releaseId, metric, value FROM stats ORDER BY releaseId, metric')
+        .query(
+          'SELECT resourceReleaseId, metric, value FROM stats ORDER BY resourceReleaseId, metric',
+        )
         .all(),
     ).toEqual([
-      { releaseId: 'other-release', metric: 'total', value: 42 },
-      { releaseId: 'release', metric: 'processing', value: 7 },
-      { releaseId: 'release', metric: 'total', value: 3 },
+      { resourceReleaseId: 'other-release', metric: 'total', value: 42 },
+      { resourceReleaseId: 'release', metric: 'processing', value: 7 },
+      { resourceReleaseId: 'release', metric: 'total', value: 3 },
     ])
   } finally {
     sqlite.close()

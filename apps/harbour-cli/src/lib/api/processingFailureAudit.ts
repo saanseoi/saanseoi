@@ -11,12 +11,12 @@ export async function retainProcessingFailure(input: {
   error: unknown
   store: ProvenanceStore
   target: UploadTarget
-  releaseId: string
+  resourceReleaseId: string
   datasetCode: string
 }) {
   if (!(input.error instanceof ProcessingGuardError)) return
   const result = await retainAuditResult(input.store, {
-    releaseId: input.releaseId,
+    resourceReleaseId: input.resourceReleaseId,
     datasetCode: input.datasetCode,
     attempt: { id: crypto.randomUUID(), status: 'failed' },
     bulk: [],

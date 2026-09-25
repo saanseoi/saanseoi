@@ -108,7 +108,7 @@ describe('LandsD Road Centreline matching', () => {
       expect(firstGeometry.coordinates[0]?.[1]).toBeGreaterThan(800000)
       const result = normaliseRoadCentrelineFeatures({
         features: archive.features,
-        releaseId: 'test-native-release',
+        resourceReleaseId: 'test-native-release',
         streets: [],
       })
       expect(result.records).toHaveLength(archive.sourceFeatureCount)
@@ -123,7 +123,7 @@ describe('LandsD Road Centreline matching', () => {
   test.each([0, 40050, '00400'])('preserves street code %s as text', streetCode => {
     const result = normaliseRoadCentrelineFeatures({
       features: [feature({ STREET_CODE: streetCode })],
-      releaseId: 'test',
+      resourceReleaseId: 'test',
       streets: [],
     })
     expect(result.records[0]?.streetCode).toBe(String(streetCode))
@@ -136,7 +136,7 @@ describe('LandsD Road Centreline matching', () => {
       expect(() =>
         normaliseRoadCentrelineFeatures({
           features: [feature({ STREET_CODE: streetCode })],
-          releaseId: 'test',
+          resourceReleaseId: 'test',
           streets: [],
         }),
       ).toThrow('Road Centreline feature requires STREET_CODE or STREETCODE.')
@@ -145,7 +145,7 @@ describe('LandsD Road Centreline matching', () => {
 
   test('retains native EPSG:2326 geometry and uses English plus derived district IDs to resolve a collision', () => {
     const result = normaliseRoadCentrelineFeatures({
-      releaseId: 'dr-hk-hkgov-landsd-road-centreline-2026-q2',
+      resourceReleaseId: 'dr-hk-hkgov-landsd-road-centreline-2026-q2',
       features: [feature()],
       districts,
       streets: [
@@ -182,7 +182,7 @@ describe('LandsD Road Centreline matching', () => {
 
   test('does not guess an ambiguous English-name match when the overlay cannot resolve it', () => {
     const result = normaliseRoadCentrelineFeatures({
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       features: [feature()],
       districts: [],
       streets: [
@@ -212,7 +212,7 @@ describe('LandsD Road Centreline matching', () => {
 
   test('retains an unnamed publisher segment as source-only evidence', () => {
     const result = normaliseRoadCentrelineFeatures({
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       features: [feature({ STREET_NAME_EN: '', STREET_NAME_TC: '' })],
       streets: [],
     })
@@ -231,7 +231,7 @@ describe('LandsD Road Centreline matching', () => {
 
   test('retains named unmatched source evidence while blocking canonical publication', () => {
     const result = normaliseRoadCentrelineFeatures({
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       features: [feature()],
       streets: [],
     })
@@ -259,7 +259,7 @@ describe('LandsD Road Centreline matching', () => {
 
   test('emits canonical district distribution metrics for the Stats map', () => {
     const result = normaliseRoadCentrelineFeatures({
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       features: [feature()],
       districts,
       streets: [
@@ -285,7 +285,7 @@ describe('LandsD Road Centreline matching', () => {
 
   test('keeps a publisher MultiLineString as a MultiLineString street aggregate', () => {
     const result = normaliseRoadCentrelineFeatures({
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       features: [
         {
           ...feature(),

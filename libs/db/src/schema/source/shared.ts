@@ -18,7 +18,7 @@ export const sourceReferences = () => jsonText<SourceReference[]>('sources')
 
 export const sourceVersioning = {
   versionHash: text('versionHash').notNull(),
-  releaseId: text('releaseId').notNull(),
+  resourceReleaseId: text('resourceReleaseId').notNull(),
   // Version components within the owning source dataset, never full release codes.
   validFromRelease: text('validFromRelease').notNull(),
   validToRelease: text('validToRelease'),
@@ -69,7 +69,7 @@ export function sourceSpatialAssertionColumns() {
 
 export const sourceVersionIndexes = <
   TTable extends {
-    releaseId: unknown
+    resourceReleaseId: unknown
     sourceRecordId: unknown
     validFromRelease: unknown
     validToRelease: unknown
@@ -79,7 +79,7 @@ export const sourceVersionIndexes = <
   table: TTable,
   prefix: string,
 ) => [
-  index(`${prefix}_releaseId_idx`).on(table.releaseId as never),
+  index(`${prefix}_resourceReleaseId_idx`).on(table.resourceReleaseId as never),
   // Ingestion scans open assertions and reconciles them by publisher identity.
   // The primary key already supports unfiltered sourceRecordId lookups.
   index(`${prefix}_open_records_idx`)

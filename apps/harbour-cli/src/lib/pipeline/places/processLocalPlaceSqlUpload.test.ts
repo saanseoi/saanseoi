@@ -153,12 +153,12 @@ describe('Places SQL materialisation', () => {
       PRAGMA foreign_keys = ON;
       CREATE TABLE overturePlaces (
         sourceRecordId TEXT, sourceLocator TEXT, properties TEXT, sourceGeometry TEXT, version INTEGER,
-        versionHash TEXT, releaseId TEXT, validFromRelease TEXT, validToRelease TEXT,
+        versionHash TEXT, resourceReleaseId TEXT, validFromRelease TEXT, validToRelease TEXT,
         isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)
       );
       CREATE TABLE places (
-        snapshotId TEXT, id TEXT, releaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT,
+        snapshotId TEXT, id TEXT, resourceReleaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT,
         address2dId TEXT, address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, lng REAL, lat REAL, bbox TEXT,
         operatingStatus TEXT, basicCategory TEXT, taxonomyPrimary TEXT,
         taxonomyHierarchy TEXT, taxonomyAlternates TEXT, wikidataId TEXT,
@@ -180,7 +180,7 @@ describe('Places SQL materialisation', () => {
     history.exec(`
       CREATE TABLE sourceResolutions (scopeId TEXT, snapshotId TEXT, sourceReleaseId TEXT, sourceRecordId TEXT, sourceVersionHash TEXT, resolutions TEXT, PRIMARY KEY(scopeId, sourceReleaseId, sourceRecordId, sourceVersionHash));
       CREATE TABLE places (
-        id TEXT, releaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT, address2dId TEXT,
+        id TEXT, resourceReleaseId TEXT, addressSnapshotId TEXT, addressDependencyHash TEXT, address2dId TEXT,
         address3dId TEXT, address3dUnitId TEXT, address3dMembership TEXT, lng REAL, lat REAL, bbox TEXT, operatingStatus TEXT,
         basicCategory TEXT, taxonomyPrimary TEXT, taxonomyHierarchy TEXT,
         taxonomyAlternates TEXT, wikidataId TEXT, websites TEXT, socials TEXT,
@@ -215,7 +215,7 @@ describe('Places SQL materialisation', () => {
         datasetId: 'dataset-place',
         rawObjectKey: 'raw/place.parquet',
         releaseCode: 'dr-hk-overture-place-2026-08-19.0',
-        releaseId: 'release-place-2026-08',
+        resourceReleaseId: 'release-place-2026-08',
         regionCode: 'hk',
         shardYear: '2026',
         cohortKey: '2026-08-19.0',

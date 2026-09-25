@@ -103,7 +103,7 @@ export async function buildPlaceSql(
       locale: state.row.locale,
       versionHash: null,
       operation: 'delete',
-      sourceReleaseId: input.message.releaseId,
+      sourceReleaseId: input.message.resourceReleaseId,
       createdAt: now,
       updatedAt: now,
     })
@@ -139,7 +139,7 @@ export async function buildPlaceSql(
       canonicalPlaceJson(priorResolution.resolutions) !==
         canonicalPlaceJson(resolutions)
     ) {
-      const sourceReleaseId = input.message.releaseId
+      const sourceReleaseId = input.message.resourceReleaseId
       if (!sourceReleaseId) throw new Error('Places require a source release ID.')
       historyStatements(input.activeHistoryBindingName).push(
         sourceResolutionSql({
@@ -187,7 +187,7 @@ export async function buildPlaceSql(
             properties: overtureSourcePayload(place.raw).properties,
             sourceGeometry: overtureSourcePayload(place.raw).sourceGeometry,
             versionHash: row.sourcePayloadHash,
-            releaseId: input.message.releaseId,
+            resourceReleaseId: input.message.resourceReleaseId,
             validFromRelease: input.message.sourceVersion,
             validToRelease: null,
             isCurrent: 1,
@@ -201,7 +201,9 @@ export async function buildPlaceSql(
     currentInserts.add('places', {
       snapshotId: scopeId,
       id: place.id,
-      releaseId: unchanged ? previous.row.releaseId : input.message.releaseId,
+      resourceReleaseId: unchanged
+        ? previous.row.resourceReleaseId
+        : input.message.resourceReleaseId,
       addressSnapshotId,
       addressDependencyHash: row.addressDependencyHash ?? null,
       address2dId: row.address2dId,
@@ -295,7 +297,7 @@ export async function buildPlaceSql(
               accessHint: localised.accessHint ?? null,
               searchDependencyText,
               versionHash: i18nVersionHash,
-              sourceReleaseId: input.message.releaseId,
+              sourceReleaseId: input.message.resourceReleaseId,
               snapshotId: input.snapshots.snapshotId,
               isCurrent: 1,
               createdAt: now,
@@ -311,7 +313,7 @@ export async function buildPlaceSql(
           locale: localised.locale,
           versionHash: i18nVersionHash,
           operation: 'upsert',
-          sourceReleaseId: input.message.releaseId,
+          sourceReleaseId: input.message.resourceReleaseId,
           createdAt: now,
           updatedAt: now,
         })
@@ -364,7 +366,7 @@ export async function buildPlaceSql(
           'places',
           {
             id: place.id,
-            releaseId: input.message.releaseId,
+            resourceReleaseId: input.message.resourceReleaseId,
             addressSnapshotId,
             addressDependencyHash: row.addressDependencyHash ?? null,
             address2dId: row.address2dId,
@@ -390,7 +392,7 @@ export async function buildPlaceSql(
             firstSeenMonth,
             lastSeenMonth: place.lastSeenMonth,
             versionHash: row.versionHash,
-            sourceReleaseId: input.message.releaseId,
+            sourceReleaseId: input.message.resourceReleaseId,
             snapshotId: input.snapshots.snapshotId,
             isCurrent: 1,
             createdAt: now,
@@ -406,7 +408,7 @@ export async function buildPlaceSql(
         locale: '',
         versionHash: row.versionHash,
         operation: 'upsert',
-        sourceReleaseId: input.message.releaseId,
+        sourceReleaseId: input.message.resourceReleaseId,
         createdAt: now,
         updatedAt: now,
       })
@@ -432,7 +434,7 @@ export async function buildPlaceSql(
         locale: '',
         versionHash: null,
         operation: 'delete',
-        sourceReleaseId: input.message.releaseId,
+        sourceReleaseId: input.message.resourceReleaseId,
         createdAt: now,
         updatedAt: now,
       })
@@ -440,7 +442,7 @@ export async function buildPlaceSql(
   }
 
   if (includeRemovedPlaces) {
-    // Also close omissions on a rebuild of the same release, where releaseId
+    // Also close omissions on a rebuild of the same release, where resourceReleaseId
     // alone cannot distinguish retained rows from removed rows.
     const seenSourceIds =
       options.seenSourceRecordIds ?? new Set(input.places.map(row => row.place.id))
@@ -449,7 +451,7 @@ export async function buildPlaceSql(
       const resolutions = { entities: {}, decisions: [{ type: 'source_omission' }] }
       if (canonicalPlaceJson(previous.resolutions) === canonicalPlaceJson(resolutions))
         continue
-      const sourceReleaseId = input.message.releaseId
+      const sourceReleaseId = input.message.resourceReleaseId
       if (!sourceReleaseId) throw new Error('Places require a source release ID.')
       historyStatements(input.activeHistoryBindingName).push(
         sourceResolutionSql({

@@ -32,7 +32,7 @@ export function validateAuditManifest(value: unknown): asserts value is AuditMan
   if (
     m?.kind !== 'processing-audit' ||
     m.schemaVersion !== 1 ||
-    !text(m.releaseId) ||
+    !text(m.resourceReleaseId) ||
     !text(m.datasetCode) ||
     !m.attempt ||
     !text(m.attempt.id) ||
@@ -46,7 +46,7 @@ export function validateAuditManifest(value: unknown): asserts value is AuditMan
   exact(m, [
     'kind',
     'schemaVersion',
-    'releaseId',
+    'resourceReleaseId',
     'datasetCode',
     'attempt',
     'bulk',

@@ -79,7 +79,7 @@ export type NormalisedAddressRecord = {
 export type NormalisedAddressChunkArtefact = {
   kind: 'address.normalised.v1'
   processingRunStartedAt: string
-  releaseId: string
+  resourceReleaseId: string
   rowEnd: number
   rowStart: number
   rows: NormalisedAddressRecord[]
@@ -105,7 +105,7 @@ export type ResolvedAddressChunkArtefact = {
   insertedVersions: number
   localisedRows: number
   processingRunStartedAt: string
-  releaseId: string
+  resourceReleaseId: string
   rowEnd: number
   rowStart: number
   rows: ResolvedAddressRecord[]

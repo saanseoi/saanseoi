@@ -260,7 +260,7 @@ describe('local import progress orchestration', () => {
         labelForProgress: current => `running ${current}`,
         phase: 'generate',
         releaseCode: 'release-code',
-        releaseId: 'release-id',
+        resourceReleaseId: 'release-id',
         totalUnits: 2,
         unitsForMessage: () => 1,
       },

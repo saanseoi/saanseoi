@@ -158,7 +158,7 @@ test.each(['sql', 'direct'] as const)(
       source: 'hkgov-dpo',
       sourceVersion: source.sourceVersion,
       datasetId: 'dataset-als',
-      releaseId: 'release-als',
+      resourceReleaseId: 'release-als',
       cohortKey: source.sourceVersion,
       regionCode: 'hk',
     } as DatasetProcessingMessage
@@ -170,7 +170,7 @@ test.each(['sql', 'direct'] as const)(
     const artefact = {
       kind: 'address.normalised.v1',
       processingRunStartedAt: '2026-09-06T00:00:00Z',
-      releaseId: 'release-als',
+      resourceReleaseId: 'release-als',
       rowStart: 0,
       rowEnd: 1,
       totalRows: 1,
@@ -179,7 +179,7 @@ test.each(['sql', 'direct'] as const)(
     const db = new Database(':memory:')
     try {
       db.exec(`CREATE TABLE hkgovAlsAddresses2d (
-      sourceRecordId TEXT, versionHash TEXT, releaseId TEXT, validFromRelease TEXT,
+      sourceRecordId TEXT, versionHash TEXT, resourceReleaseId TEXT, validFromRelease TEXT,
       validToRelease TEXT, isCurrent INTEGER, sourceLocator TEXT,
       properties TEXT, sourceGeometry TEXT, version INTEGER, createdAt TEXT, updatedAt TEXT,
       PRIMARY KEY (sourceRecordId, versionHash)

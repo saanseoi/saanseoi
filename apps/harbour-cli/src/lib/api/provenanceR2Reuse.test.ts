@@ -27,7 +27,7 @@ async function prepare(revision = 1) {
   }
   const fixture = await retainObject(store, { revision, decision: 'reviewed' })
   const { ref } = await retainAuditResult(store, {
-    releaseId: 'deterministic-release',
+    resourceReleaseId: 'deterministic-release',
     datasetCode: 'addresses',
     attempt: { id: 'deterministic-release', status: 'completed' },
     bulk: [],

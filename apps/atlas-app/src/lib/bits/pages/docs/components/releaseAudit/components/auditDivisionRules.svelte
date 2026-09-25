@@ -7,13 +7,13 @@ import { retainedBranchGroups } from './auditBranchRows'
 import { matchesAudit } from './auditSearch'
 let {
   bulk,
-  releaseId,
+  resourceReleaseId,
   hash,
   query = '',
   matching = $bindable(false),
 }: {
   bulk: BulkAudit
-  releaseId: string
+  resourceReleaseId: string
   hash: string
   query?: string
   matching?: boolean
@@ -51,14 +51,18 @@ async function load() {
   declaration = undefined
   failure = ''
   try {
-    const value = await getRetainedRuleDeclaration({ releaseId, hash, bulkId: bulk.id })
+    const value = await getRetainedRuleDeclaration({
+      resourceReleaseId,
+      hash,
+      bulkId: bulk.id,
+    })
     if (current === request) declaration = value
   } catch {
     if (current === request) failure = m.source_audit_load_rules_error()
   }
 }
 $effect(() => {
-  releaseId
+  resourceReleaseId
   hash
   bulk.id
   void load()
@@ -72,7 +76,7 @@ $effect(() => {
         title={group.title}
         explanation={group.explanation}
         rows={group.rows}
-        getRule={() => getRetainedRuleDeclaration({ releaseId, hash, bulkId: bulk.id })}
+        getRule={() => getRetainedRuleDeclaration({ resourceReleaseId, hash, bulkId: bulk.id })}
       />
     {/each}
   {:else}

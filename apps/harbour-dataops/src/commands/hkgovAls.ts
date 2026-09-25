@@ -400,17 +400,17 @@ async function listTargetCompletedAlsSourceVersions(
   })
   try {
     const rows = await dbContext.metaDb
-      .select({ sourceVersion: metaSchema.metaReleases.sourceVersion })
-      .from(metaSchema.metaReleases)
+      .select({ sourceVersion: metaSchema.metaResourceReleases.sourceVersion })
+      .from(metaSchema.metaResourceReleases)
       .innerJoin(
         metaSchema.metaDatasets,
-        eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+        eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
       )
       .where(
         and(
           eq(metaSchema.metaDatasets.code, 'ds-hk-hkgov-dpo-address'),
           inArray(
-            metaSchema.metaReleases.status,
+            metaSchema.metaResourceReleases.status,
             includeSuperseded ? ['published', 'superseded'] : ['published'],
           ),
         ),
@@ -990,14 +990,14 @@ async function resolveAlsSourceReleases(
       .select({ cohortKey: metaSchema.metaSnapshots.cohortKey })
       .from(metaSchema.metaSnapshotSourceReleases)
       .innerJoin(
-        metaSchema.metaReleases,
+        metaSchema.metaResourceReleases,
         and(
           eq(
-            metaSchema.metaReleases.id,
+            metaSchema.metaResourceReleases.id,
             metaSchema.metaSnapshotSourceReleases.resourceReleaseId,
           ),
           eq(
-            metaSchema.metaReleases.datasetId,
+            metaSchema.metaResourceReleases.datasetId,
             metaSchema.metaSnapshotSourceReleases.datasetId,
           ),
         ),
@@ -1022,7 +1022,7 @@ async function resolveAlsSourceReleases(
       )
       .where(
         and(
-          inArray(metaSchema.metaReleases.status, ['published', 'superseded']),
+          inArray(metaSchema.metaResourceReleases.status, ['published', 'superseded']),
           eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
           eq(metaSchema.metaDatasets.regionCode, 'hk'),
           eq(metaSchema.metaSnapshots.resourceType, 'division'),

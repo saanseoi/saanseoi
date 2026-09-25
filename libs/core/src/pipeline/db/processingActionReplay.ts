@@ -33,13 +33,13 @@ function insert(table: string, row: Record<string, unknown>, suffix = '') {
 
 /** Each chunk is its own bounded statement. The final entry is one commit unit. */
 export function buildAuditReplaySql(
-  releaseId: string,
+  resourceReleaseId: string,
   materialised: Pick<MaterialisedReleaseProcessingActions, 'actions' | 'chunks'> &
     Partial<Pick<MaterialisedReleaseProcessingActions, 'stats'>>,
 ) {
   if (
-    materialised.actions.some(row => row.releaseId !== releaseId) ||
-    materialised.chunks.some(row => row.releaseId !== releaseId)
+    materialised.actions.some(row => row.resourceReleaseId !== resourceReleaseId) ||
+    materialised.chunks.some(row => row.resourceReleaseId !== resourceReleaseId)
   )
     throw new Error('Audit replay release mismatch.')
   const guards: string[] = []
@@ -90,12 +90,12 @@ export function buildAuditReplaySql(
   )
   const commit = [
     AUDIT_COMMIT_START,
-    `UPDATE releases SET updatedAt = CASE WHEN status IN ('staged','processing') ${guards.length ? `AND ${guards.join(' AND ')}` : ''} THEN updatedAt ELSE json('Immutable release or incomplete audit') END WHERE id = ${literal(releaseId)};`,
-    `DELETE FROM "releaseProcessingActions" WHERE "releaseId" = ${literal(releaseId)};`,
+    `UPDATE resourceReleases SET updatedAt = CASE WHEN status IN ('staged','processing') ${guards.length ? `AND ${guards.join(' AND ')}` : ''} THEN updatedAt ELSE json('Immutable release or incomplete audit') END WHERE id = ${literal(resourceReleaseId)};`,
+    `DELETE FROM "releaseProcessingActions" WHERE "resourceReleaseId" = ${literal(resourceReleaseId)};`,
     ...materialised.actions.map(row => insert('releaseProcessingActions', row)),
     ...(materialised.stats
       ? [
-          `DELETE FROM "stats" WHERE "releaseId" = ${literal(releaseId)} AND "metric" = 'processing';`,
+          `DELETE FROM "stats" WHERE "resourceReleaseId" = ${literal(resourceReleaseId)} AND "metric" = 'processing';`,
           ...materialised.stats.map(row => insert('stats', row)),
         ]
       : []),
@@ -108,10 +108,10 @@ export function buildAuditReplaySql(
 
 export async function readAuditReplaySql(
   database: HarbourReadableDb | MetaDatabase,
-  releaseId: string,
+  resourceReleaseId: string,
 ) {
   const db = database as HarbourReadableDb
-  const actions = await listReleaseAuditSummaries(db, [releaseId])
+  const actions = await listReleaseAuditSummaries(db, [resourceReleaseId])
   await readAuditPages(db, actions)
   const chunks = await readReleaseAuditChunks(db, actions)
   const stats = (await db
@@ -119,10 +119,10 @@ export async function readAuditReplaySql(
     .from(metaSchema.stats)
     .where(
       and(
-        eq(metaSchema.stats.releaseId, releaseId),
+        eq(metaSchema.stats.resourceReleaseId, resourceReleaseId),
         eq(metaSchema.stats.metric, 'processing'),
       ),
     )
     .all()) as ReleaseStatsRow[]
-  return buildAuditReplaySql(releaseId, { actions, chunks, stats })
+  return buildAuditReplaySql(resourceReleaseId, { actions, chunks, stats })
 }

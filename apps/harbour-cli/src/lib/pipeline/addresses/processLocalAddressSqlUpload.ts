@@ -163,7 +163,10 @@ export async function processLocalAddressSqlUpload(
       )
     }
   }
-  const releaseId = requireString(uploadResult.releaseId, 'releaseId')
+  const resourceReleaseId = requireString(
+    uploadResult.resourceReleaseId,
+    'resourceReleaseId',
+  )
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const datasetId = requireString(uploadResult.datasetId, 'datasetId')
@@ -190,7 +193,7 @@ export async function processLocalAddressSqlUpload(
       retainedDelivery.context.inputs.preparedSha256 !== preparedSha256 ||
       retainedDelivery.context.inputs.address3dSha256 !==
         (prepared3d?.digest ?? null) ||
-      retainedDelivery.context.releaseId !== releaseId)
+      retainedDelivery.context.resourceReleaseId !== resourceReleaseId)
   ) {
     throw new Error(
       'Prepared ALS data does not match the retained SQL delivery. Resume its exact plan with sql:resume.',
@@ -215,7 +218,7 @@ export async function processLocalAddressSqlUpload(
       previewPlan.regionCode,
       shardYear,
       {
-        resumeSqlDeliveryReleaseId: releaseId,
+        resumeSqlDeliveryReleaseId: resourceReleaseId,
         onProgress(event) {
           updateDbCacheProgress(progress, event)
         },
@@ -244,7 +247,7 @@ export async function processLocalAddressSqlUpload(
       datasetCode,
       rawObjectKey,
       releaseCode,
-      releaseId,
+      resourceReleaseId,
     },
     previewPlan,
     { retainedDeliveryCacheDir: dbContext.state.dbCacheDir },
@@ -276,7 +279,7 @@ export async function processLocalAddressSqlUpload(
     datasetCode,
     rawObjectKey,
     releaseCode,
-    releaseId,
+    resourceReleaseId,
     regionCode: previewPlan.regionCode,
     shardYear,
     cohortKey: previewPlan.cohortKey,
@@ -333,7 +336,7 @@ export async function processLocalAddressSqlUpload(
     preparedAt: processingRunStartedAt,
     rawObjectKey,
     releaseCode,
-    releaseId,
+    resourceReleaseId,
     shardYear,
     sqlStatementByteTarget: SQL_STATEMENT_BYTE_TARGET,
     target: resolvedTargetName,
@@ -342,19 +345,19 @@ export async function processLocalAddressSqlUpload(
 
   try {
     await harbourClient.stageRunning(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       { resourceType: previewPlan.resourceType, sourceRows: previewPlan.rowCount },
       releaseCode,
     )
     await harbourClient.stageRunning(
-      releaseId,
+      resourceReleaseId,
       'extractAddresses',
       undefined,
       releaseCode,
     )
     await harbourClient.stageRunning(
-      releaseId,
+      resourceReleaseId,
       'extractAddressesI18n',
       undefined,
       releaseCode,
@@ -492,7 +495,7 @@ export async function processLocalAddressSqlUpload(
               },
               phase: 'normaliseAddressSql',
               releaseCode,
-              releaseId,
+              resourceReleaseId,
               totalUnits: previewPlan.rowCount,
               unitsForMessage(message) {
                 return Math.max(0, (message.rowEnd ?? 0) - (message.rowStart ?? 0))
@@ -556,7 +559,7 @@ export async function processLocalAddressSqlUpload(
           )
           await replaceDatasetStats(
             dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
-            releaseId,
+            resourceReleaseId,
             buildAddressReleaseStatsRows({
               ...addressStats,
               address3dCount: prepared3d?.collectionCount,
@@ -575,7 +578,7 @@ export async function processLocalAddressSqlUpload(
           identity: JSON.stringify({ preparedSha256, preparationAudit }),
           retain: store =>
             retainAddressProvenance(store, {
-              releaseId,
+              resourceReleaseId,
               datasetCode,
               preparation: preparationAudit,
               address3d: prepared3d,
@@ -667,7 +670,7 @@ export async function processLocalAddressSqlUpload(
         prepareReleaseSqlDelivery({
           directory: deliveryDirectory,
           context: dbContext,
-          releaseId,
+          resourceReleaseId,
           phase: 'address-data',
           inputs: resolvedDeliveryInputs,
           timings: {
@@ -681,7 +684,7 @@ export async function processLocalAddressSqlUpload(
       await timed('Deliver SQL', 'address', () =>
         runReportedSqlImportPhase(
           harbourClient,
-          releaseId,
+          resourceReleaseId,
           releaseCode,
           'deliverAddressSql',
           report =>
@@ -711,7 +714,7 @@ export async function processLocalAddressSqlUpload(
           directory: deliveryDirectory,
           files,
           ownershipDirectory: dbContext.state.dbCacheDir,
-          releaseId,
+          resourceReleaseId,
           phase: 'address-data',
           inputs: resolvedDeliveryInputs,
           generate: append =>
@@ -747,7 +750,7 @@ export async function processLocalAddressSqlUpload(
         await timed('Replay SQL', 'address', () =>
           runReportedSqlImportPhase(
             harbourClient,
-            releaseId,
+            resourceReleaseId,
             releaseCode,
             'replayAddressSql',
             () =>
@@ -776,24 +779,24 @@ export async function processLocalAddressSqlUpload(
         metaDb: dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
         progress,
         releaseCode,
-        releaseId,
+        resourceReleaseId,
         target: resolveApiReleaseSetStatsTarget(publishResult),
         addressQuality: options.quality,
       })
     }
     if (!target.remote)
-      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
+      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, resourceReleaseId)
   } catch (error) {
     await retainProcessingFailure({
       error,
       target,
-      releaseId,
+      resourceReleaseId,
       datasetCode,
       store: new LocalPipelineBucket(resolve(releaseRoot, 'provenance-address')),
     })
     progress.fail()
     await harbourClient.stageFailed(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       error instanceof Error ? error.message : String(error),
       undefined,
@@ -807,10 +810,13 @@ export async function processLocalAddressSqlUpload(
         await refreshRemoteMetaCacheAfterReplay(
           target.environment === 'production' ? 'production' : 'preview',
           dbContext.state.dbCacheDir,
-          releaseId,
+          resourceReleaseId,
         )
         if (!postPublishCacheError)
-          await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
+          await completeSqlDeliveryRelease(
+            dbContext.state.dbCacheDir,
+            resourceReleaseId,
+          )
       } catch (error) {
         postPublishCacheError = normaliseError(error)
       }

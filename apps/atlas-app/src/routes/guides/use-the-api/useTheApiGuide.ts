@@ -10,7 +10,10 @@ type ApiRelease = {
 }
 
 type ApiComposition = {
-  apiCompositionMembers?: Array<{ domainCode: string; i18n: DomainI18n[] }>
+  apiCompositionMembers?: Array<{
+    domainCode: string
+    i18n: Record<string, DomainI18n>
+  }>
   status: string
   version: number
 }
@@ -25,13 +28,12 @@ type ApiFamily = {
 type DomainI18n = {
   descriptionShort?: string | null
   description?: string | null
-  locale: string
   name: string
 }
 
 export type UseTheApiGuideDomain = {
   code: string
-  i18n: DomainI18n[]
+  i18n: Record<string, DomainI18n>
   latestReleaseCode: string | null
   latestReleaseHref: string | null
 }
@@ -102,7 +104,7 @@ export const buildUseTheApiGuideFamilies = (apis: ApiFamily[]) =>
           .sort((left, right) => left.localeCompare(right))
           .map(code => ({
             code,
-            i18n: domainI18n[code] ?? [],
+            i18n: domainI18n[code] ?? {},
             latestReleaseCode: latestReleaseByDomain.get(code)?.code ?? null,
             latestReleaseHref: latestReleaseByDomain.get(code)?.href ?? null,
           })),

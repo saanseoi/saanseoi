@@ -49,7 +49,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
     );
   `)
   const metaDb = createLocalHarbourDb(sqlite)
-  const releaseId = '746adfc8-d598-576e-9359-da45869bbc2d'
+  const resourceReleaseId = '746adfc8-d598-576e-9359-da45869bbc2d'
 
   await syncStagedReleaseIntoLocalMetaCache(
     metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
@@ -58,7 +58,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
       rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
       releaseCode:
         'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
-      releaseId,
+      resourceReleaseId,
     },
     {
       cohortKey: '2023-H2',
@@ -71,10 +71,12 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
   )
 
   await expect(
-    findPreviousComparableCenstatdReleaseStats(metaDb, releaseId),
+    findPreviousComparableCenstatdReleaseStats(metaDb, resourceReleaseId),
   ).resolves.toBeNull()
   expect(
-    sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+    sqlite
+      .query('SELECT status FROM resourceReleases WHERE id = ?')
+      .get(resourceReleaseId),
   ).toEqual({ status: 'staged' })
 
   sqlite.exec('UPDATE sourceReleases SET rawObjectKey = NULL')
@@ -85,7 +87,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
       rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
       releaseCode:
         'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
-      releaseId,
+      resourceReleaseId,
     },
     {
       cohortKey: '2023-H2',
@@ -107,7 +109,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
       rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
       releaseCode:
         'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
-      releaseId,
+      resourceReleaseId,
     },
     {
       cohortKey: '2023-H2',
@@ -123,7 +125,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
   })
 
   sqlite.exec(`
-    UPDATE releases SET status = 'processing' WHERE id = '${releaseId}';
+    UPDATE resourceReleases SET status = 'processing' WHERE id = '${resourceReleaseId}';
     UPDATE sourceReleases SET status = 'processing';
   `)
   const recoveryRoot = await mkdtemp(join(tmpdir(), 'staged-sync-recovery-'))
@@ -134,7 +136,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
     await prepareSqlDelivery(
       directory,
       {
-        releaseId,
+        resourceReleaseId,
         environment: 'production',
         phase: 'data',
         cacheDir: recoveryRoot,
@@ -148,8 +150,10 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
         )
       },
     )
-    await registerPendingSqlDelivery(recoveryRoot, releaseId, directory)
-    const before = sqlite.query('SELECT * FROM releases WHERE id = ?').get(releaseId)
+    await registerPendingSqlDelivery(recoveryRoot, resourceReleaseId, directory)
+    const before = sqlite
+      .query('SELECT * FROM resourceReleases WHERE id = ?')
+      .get(resourceReleaseId)
     await syncStagedReleaseIntoLocalMetaCache(
       metaDb as never,
       {
@@ -157,7 +161,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
           'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
         rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
         releaseCode,
-        releaseId,
+        resourceReleaseId,
       },
       {
         cohortKey: '2023-H2',
@@ -169,9 +173,11 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
       },
       { retainedDeliveryCacheDir: recoveryRoot },
     )
-    expect(sqlite.query('SELECT * FROM releases WHERE id = ?').get(releaseId)).toEqual(
-      before,
-    )
+    expect(
+      sqlite
+        .query('SELECT * FROM resourceReleases WHERE id = ?')
+        .get(resourceReleaseId),
+    ).toEqual(before)
   } finally {
     await rm(recoveryRoot, { recursive: true, force: true })
   }
@@ -184,7 +190,7 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
         rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-area.parquet',
         releaseCode:
           'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
-        releaseId,
+        resourceReleaseId,
       },
       {
         cohortKey: '2023-H2',
@@ -199,8 +205,8 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
   ).rejects.toThrow('belongs to divisionStatistic')
   expect(
     sqlite
-      .query('SELECT resourceType, status FROM releases WHERE id = ?')
-      .get(releaseId),
+      .query('SELECT resourceType, status FROM resourceReleases WHERE id = ?')
+      .get(resourceReleaseId),
   ).toEqual({ resourceType: 'divisionStatistic', status: 'processing' })
   expect(sqlite.query('SELECT status FROM sourceReleases').get()).toEqual({
     status: 'processing',

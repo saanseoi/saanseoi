@@ -22,7 +22,7 @@ async function load() {
         fixture.type.includes('translation')
           ? [
               getRetainedBulkFixture({
-                releaseId: manifest.releaseId,
+                resourceReleaseId: manifest.resourceReleaseId,
                 hash,
                 bulkId: 'individual-fixtures',
                 index: fixtureIndex,
@@ -75,7 +75,7 @@ $effect(() => {
   <Translations
     {entries}
     {references}
-    releaseId={manifest.releaseId}
+    resourceReleaseId={manifest.resourceReleaseId}
     {hash}
     {query}
     showHeader

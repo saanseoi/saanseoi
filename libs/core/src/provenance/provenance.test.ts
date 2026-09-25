@@ -49,7 +49,7 @@ const collections: Collection[] = [
     id: 'raw',
     layer: 'source',
     datasetCode: 'als',
-    releaseId: 'source-release',
+    resourceReleaseId: 'source-release',
     snapshotId: null,
     schema: 'als/3.2',
   },
@@ -57,7 +57,7 @@ const collections: Collection[] = [
     id: 'addresses',
     layer: 'canonical',
     datasetCode: 'als',
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     snapshotId: 'snapshot',
     schema: 'address/1',
   },
@@ -119,7 +119,7 @@ describe('retained processing effects', () => {
   test('explain, derive field lineage and reapply without producer code; leave source untouched', async () => {
     const f = await fixture()
     const { manifest, ref } = await retainProcessingResult(f.store, {
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       collections,
       applications: [f.a],
     })
@@ -142,7 +142,7 @@ describe('retained processing effects', () => {
     expect(f.state.size).toBe(1)
     const writes = f.writes()
     await retainProcessingResult(f.store, {
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       collections,
       applications: [f.a],
     })
@@ -228,7 +228,7 @@ describe('retained processing effects', () => {
     f.objects.delete(objectKey(requireDefined(f.a.evidence[0]).object.hash))
     await expect(
       retainProcessingResult(f.store, {
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         collections,
         applications: [f.a],
       }),
@@ -248,7 +248,7 @@ describe('retained processing effects', () => {
       id: String(i),
     }))
     const { manifest } = await retainProcessingResult(f.store, {
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       collections,
       applications,
     })
@@ -277,14 +277,14 @@ describe('retained processing effects', () => {
         operationVersion: 1,
         operation: 'curate-statistic-field',
         datasetCode: 'stats',
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         id: 'field:MYPOPN_LAND',
         schemaVersion: 1,
         kind: 'curation-definition',
         a: null,
       }),
     ).toBe(
-      '{"kind":"curation-definition","schemaVersion":1,"id":"field:MYPOPN_LAND","releaseId":"release","datasetCode":"stats","operation":"curate-statistic-field","operationVersion":1,"summary":"Review a field.","sourceField":"MYPOPN_LAND","a":null,"z":true}',
+      '{"kind":"curation-definition","schemaVersion":1,"id":"field:MYPOPN_LAND","resourceReleaseId":"release","datasetCode":"stats","operation":"curate-statistic-field","operationVersion":1,"summary":"Review a field.","sourceField":"MYPOPN_LAND","a":null,"z":true}',
     )
     for (const value of [
       undefined,
@@ -352,7 +352,7 @@ describe('retained processing effects', () => {
       ],
     }))
     const result = await retainProcessingResult(store, {
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       collections,
       applications: recordApplications(store, observed),
     })
@@ -378,7 +378,7 @@ describe('retained processing effects', () => {
   test('transfers a closed graph and reapplies it after the producer store is removed', async () => {
     const f = await fixture()
     const result = await retainProcessingResult(f.store, {
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       collections,
       applications: [f.a],
     })
@@ -413,7 +413,7 @@ describe('retained processing effects', () => {
       expect(() => validateApplication(value)).toThrow()
     await expect(
       retainProcessingResult(f.store, {
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         collections,
         applications: [
           {

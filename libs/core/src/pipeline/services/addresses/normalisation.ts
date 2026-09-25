@@ -285,7 +285,7 @@ const RELEASE_PROVENANCE_KEYS = new Set([
   'publicationDate',
   'releaseCode',
   'releaseDate',
-  'releaseId',
+  'resourceReleaseId',
   'sourceFile',
   'sourceVersion',
 ])

@@ -46,7 +46,7 @@ export async function listCompletedReleaseCodes(
 ) {
   const releases = meta
     .query<CompletedRelease, []>(
-      "SELECT code, datasetId, id, status, resourceType FROM releases WHERE status IN ('published', 'superseded') ORDER BY code",
+      "SELECT code, datasetId, id, status, resourceType FROM resourceReleases WHERE status IN ('published', 'superseded') ORDER BY code",
     )
     .all()
   const incomplete = await findIncompletePublishedReleases(
@@ -83,17 +83,17 @@ export async function readRemoteCachedCompletedReleaseCodes(
   return withRemoteCachedMetaDb(target, async (metaDb, metaSqlite, manifest) => {
     const rows = await metaDb
       .select({
-        code: metaSchema.metaReleases.code,
-        datasetId: metaSchema.metaReleases.datasetId,
-        id: metaSchema.metaReleases.id,
-        status: metaSchema.metaReleases.status,
-        resourceType: metaSchema.metaReleases.resourceType,
+        code: metaSchema.metaResourceReleases.code,
+        datasetId: metaSchema.metaResourceReleases.datasetId,
+        id: metaSchema.metaResourceReleases.id,
+        status: metaSchema.metaResourceReleases.status,
+        resourceType: metaSchema.metaResourceReleases.resourceType,
       })
-      .from(metaSchema.metaReleases)
+      .from(metaSchema.metaResourceReleases)
       .where(
         or(
-          eq(metaSchema.metaReleases.status, 'published'),
-          eq(metaSchema.metaReleases.status, 'superseded'),
+          eq(metaSchema.metaResourceReleases.status, 'published'),
+          eq(metaSchema.metaResourceReleases.status, 'superseded'),
         ),
       )
       .all()
@@ -209,7 +209,7 @@ export async function findIncompletePublishedReleases(
 
       const releaseShardCount = metaSqlite
         .query(
-          'SELECT COUNT(*) AS count FROM releaseShardAssignments WHERE releaseId = ?',
+          'SELECT COUNT(*) AS count FROM releaseShardAssignments WHERE resourceReleaseId = ?',
         )
         .get(release.id) as { count?: number }
       const snapshotShardCount = metaSqlite

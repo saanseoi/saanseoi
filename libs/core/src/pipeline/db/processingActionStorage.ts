@@ -13,7 +13,7 @@ const summaries = metaSchema.releaseProcessingActions
 const chunks = metaSchema.releaseProcessingActionChunks
 export const auditSummarySelection = {
   id: summaries.id,
-  releaseId: summaries.releaseId,
+  resourceReleaseId: summaries.resourceReleaseId,
   action: summaries.action,
   mode: summaries.mode,
   generation: summaries.generation,
@@ -24,7 +24,7 @@ export const auditSummarySelection = {
 }
 const chunkSelection = {
   id: chunks.id,
-  releaseId: chunks.releaseId,
+  resourceReleaseId: chunks.resourceReleaseId,
   actionId: chunks.actionId,
   generation: chunks.generation,
   firstOrdinal: chunks.firstOrdinal,
@@ -141,8 +141,12 @@ export async function listReleaseAuditSummaries(
       ...(await db
         .select(auditSummarySelection)
         .from(summaries)
-        .where(inArray(summaries.releaseId, ids))
-        .orderBy(asc(summaries.releaseId), asc(summaries.action), asc(summaries.mode))
+        .where(inArray(summaries.resourceReleaseId, ids))
+        .orderBy(
+          asc(summaries.resourceReleaseId),
+          asc(summaries.action),
+          asc(summaries.mode),
+        )
         .all()),
     )
   }

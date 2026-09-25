@@ -216,7 +216,7 @@ export async function runGeometryStatsBackfillCommand(
         .from(metaSchema.stats)
         .where(
           and(
-            eq(metaSchema.stats.releaseId, release.id),
+            eq(metaSchema.stats.resourceReleaseId, release.id),
             eq(metaSchema.stats.dimension, 'geometry'),
           ),
         )
@@ -311,19 +311,19 @@ async function listGeometryReleases(
 ): Promise<BackfillRelease[]> {
   const rows = await db
     .select({
-      code: metaSchema.metaReleases.code,
+      code: metaSchema.metaResourceReleases.code,
       datasetCode: metaSchema.metaDatasets.code,
-      id: metaSchema.metaReleases.id,
+      id: metaSchema.metaResourceReleases.id,
       regionCode: metaSchema.metaDatasets.regionCode,
-      resourceType: metaSchema.metaReleases.resourceType,
+      resourceType: metaSchema.metaResourceReleases.resourceType,
       sourceVariant: metaSchema.metaDatasets.sourceVariant,
-      sourceVersion: metaSchema.metaReleases.sourceVersion,
-      status: metaSchema.metaReleases.status,
+      sourceVersion: metaSchema.metaResourceReleases.sourceVersion,
+      status: metaSchema.metaResourceReleases.status,
     })
-    .from(metaSchema.metaReleases)
+    .from(metaSchema.metaResourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .all()
   return rows
@@ -590,19 +590,19 @@ function decodeGeometry(value: unknown): GeoJsonGeometry {
   throw new Error('Geometry value could not be decoded.')
 }
 
-function buildRemoteStatsSql(cacheDir: string, releaseId: string) {
+function buildRemoteStatsSql(cacheDir: string, resourceReleaseId: string) {
   const database = new Database(`${cacheDir}/DB_META.sqlite`, { readonly: true })
   try {
     const rows = database
-      .query('SELECT * FROM stats WHERE releaseId = ? AND dimension = ?')
-      .all(releaseId, 'geometry') as Array<Record<string, unknown>>
+      .query('SELECT * FROM stats WHERE resourceReleaseId = ? AND dimension = ?')
+      .all(resourceReleaseId, 'geometry') as Array<Record<string, unknown>>
     const values = rows
       .map(row => `(${Object.values(row).map(sqlLiteral).join(', ')})`)
       .join(', ')
     const columns = Object.keys(rows[0] ?? {})
       .map(column => `"${column}"`)
       .join(', ')
-    return `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND dimension = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
+    return `DELETE FROM stats WHERE resourceReleaseId = ${sqlLiteral(resourceReleaseId)} AND dimension = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
   } finally {
     database.close()
   }

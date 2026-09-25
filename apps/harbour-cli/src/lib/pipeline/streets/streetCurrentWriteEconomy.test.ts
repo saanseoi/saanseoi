@@ -82,8 +82,13 @@ test('Street native delivery preserves unchanged current rows and only writes ch
       count: number,
       locales: number,
     ) => {
-      const releaseId = `street-economy-${root.split('/').at(-1)}-${revision}`
-      const phase = { context, releaseId, phase: 'street-data', inputs: { revision } }
+      const resourceReleaseId = `street-economy-${root.split('/').at(-1)}-${revision}`
+      const phase = {
+        context,
+        resourceReleaseId,
+        phase: 'street-data',
+        inputs: { revision },
+      }
       directories.push(dirname(sqlDeliveryPhaseDirectory(phase)))
       const previous = await getPreparedPublication(
         context.currentDb as never,
@@ -95,7 +100,7 @@ test('Street native delivery preserves unchanged current rows and only writes ch
           table: 'streetPublicationState' as const,
           scopeId: 'street-scope',
           snapshotId: `snapshot-${revision}`,
-          publicationToken: releaseId,
+          publicationToken: resourceReleaseId,
           timestamp: `2026-09-${revision}`,
           previous,
         }
@@ -132,13 +137,18 @@ test('Street native delivery preserves unchanged current rows and only writes ch
           sourceRowsChanged: 0,
         }
       }
-      await deliverStreetWorkflow(context, releaseId, phase.inputs, generate)
+      await deliverStreetWorkflow(context, resourceReleaseId, phase.inputs, generate)
       const writes = current.query('SELECT count(*) AS n FROM audit').get()
-      await deliverStreetWorkflow(context, releaseId, phase.inputs, async () => {
-        throw new Error('Must resume exact delivery')
-      })
+      await deliverStreetWorkflow(
+        context,
+        resourceReleaseId,
+        phase.inputs,
+        async () => {
+          throw new Error('Must resume exact delivery')
+        },
+      )
       expect(current.query('SELECT count(*) AS n FROM audit').get()).toEqual(writes)
-      await completeSqlDeliveryRelease(root, releaseId)
+      await completeSqlDeliveryRelease(root, resourceReleaseId)
       for (const table of ['streets', 'streetsI18n', 'streetChangelog'])
         for (const operation of ['INSERT', 'UPDATE', 'DELETE'])
           current.exec(`DROP TRIGGER audit_${table}_${operation}`)

@@ -3,14 +3,16 @@
 - `datasets`
 - -> localised by
 - `datasets.i18n`
-- -> incremental snapshots are published as
-- `releases`
+- -> publisher versions are registered as
+- `sourceReleases`
+- -> materialised by resource type as
+- `resourceReleases`
 - -> owned by
 - `publishers`
 - -> made available under
 - `licenses`
 
-- `releases`
+- `resourceReleases`
 - -> grouped into canonical snapshots through
 - `snapshotSourceReleases`
   - -> and together form
@@ -48,7 +50,7 @@
 - -> source rows ultimately live in
 - `source{resourceType}Db`
 
-- `releases`
+- `resourceReleases`
 - -> routed to physical source/history databases through
 - `releaseShardAssignments`
 - -> target shard rows are in

@@ -37,7 +37,7 @@ async function createFixture() {
     }),
   )
   const context = {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     environment: 'preview' as const,
     phase: 'data',
     inputs: { snapshotId: 'snapshot' },

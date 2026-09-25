@@ -33,7 +33,7 @@ type UploadResponse = Record<string, unknown> & {
   datasetId?: string
   rawObjectKey?: string
   releaseCode?: string
-  releaseId?: string
+  resourceReleaseId?: string
 }
 
 type SnapshotCleanupResponse = {
@@ -53,7 +53,7 @@ export type ReconcileDraftReleaseSetsResponse = {
     cohortKey: string
     family: 'address' | 'division' | 'place' | 'statistics'
     releaseCode: string
-    releaseId: string
+    resourceReleaseId: string
     snapshotId: string
   }>
 }
@@ -167,22 +167,22 @@ export async function resumePendingSqlDeliveryForUpload(
     const plan = await readDeliveryPlan(directory)
     if (!plan) {
       throw new Error(
-        `SQL delivery for ${pending.releaseId} is missing its sealed plan at ${directory}. ` +
+        `SQL delivery for ${pending.resourceReleaseId} is missing its sealed plan at ${directory}. ` +
           'The pending ownership marker has been retained. Restore the matching plan and payloads only if the databases have not been reset; otherwise reconcile the completed reset before retrying.',
       )
     }
     if (
-      plan.context.releaseId !== pending.releaseId ||
+      plan.context.resourceReleaseId !== pending.resourceReleaseId ||
       resolve(plan.context.cacheDir) !== resolve(cacheDir) ||
       plan.context.environment !== environment
     ) {
       throw new Error(
-        `Pending SQL delivery plan at ${directory} does not belong to release ${pending.releaseId}, cache ${cacheDir} and target ${environment}; refusing to replay it.`,
+        `Pending SQL delivery plan at ${directory} does not belong to release ${pending.resourceReleaseId}, cache ${cacheDir} and target ${environment}; refusing to replay it.`,
       )
     }
   }
 
-  console.log(`Resuming retained SQL delivery for ${pending.releaseId}.`)
+  console.log(`Resuming retained SQL delivery for ${pending.resourceReleaseId}.`)
   for (const directory of pending.directories) {
     await (dependencies.runSqlDeliveryCommand ?? runSqlDeliveryCommand)(
       { command: 'sql:resume', positionals: [], options: { plan: directory } },
@@ -289,7 +289,7 @@ async function registerUploadLocally(
       resourceType: previewResult.plan.resourceType,
     })
 
-    if (!registered.datasetId || !registered.releaseId) {
+    if (!registered.datasetId || !registered.resourceReleaseId) {
       throw new Error(
         'Local upload registration returned incomplete release identifiers.',
       )
@@ -300,7 +300,7 @@ async function registerUploadLocally(
       datasetId: registered.datasetId,
       rawObjectKey: createRawObjectKey(registered.plan),
       releaseCode: registered.plan.releaseCode,
-      releaseId: registered.releaseId,
+      resourceReleaseId: registered.resourceReleaseId,
       rowCount: registered.plan.rowCount,
       source: registered.plan.source,
       sourceVersion: registered.plan.sourceVersion,
@@ -385,12 +385,12 @@ function createLocalSchemaFingerprintResolver(db: HarbourReadableDb) {
       .select({ stats: metaSchema.ingestRuns.stats })
       .from(metaSchema.ingestRuns)
       .innerJoin(
-        metaSchema.metaReleases,
-        eq(metaSchema.ingestRuns.releaseId, metaSchema.metaReleases.id),
+        metaSchema.metaResourceReleases,
+        eq(metaSchema.ingestRuns.resourceReleaseId, metaSchema.metaResourceReleases.id),
       )
       .where(
         and(
-          eq(metaSchema.metaReleases.code, releaseCode),
+          eq(metaSchema.metaResourceReleases.code, releaseCode),
           eq(metaSchema.ingestRuns.phase, 'registerDataset'),
         ),
       )

@@ -49,7 +49,7 @@ test('native Statistics adapter resumes source/history plans without regeneratin
   const historyPath = join(root, 'history.sqlite')
   const source = new Database(sourcePath)
   const history = new Database(historyPath)
-  const releaseId = `native-statistics-test-${crypto.randomUUID()}`
+  const resourceReleaseId = `native-statistics-test-${crypto.randomUUID()}`
   const context = {
     sourceBinding: createLocalExecBinding(source, 'DB_SOURCE_HK_BEFORE'),
     historyBinding: createLocalExecBinding(history, 'DB_HISTORY_HK_BEFORE'),
@@ -61,7 +61,7 @@ test('native Statistics adapter resumes source/history plans without regeneratin
   } as unknown as LocalAddressDbContext
   const delivery: SqlDeliveryPhase = {
     context,
-    releaseId,
+    resourceReleaseId,
     phase: 'statistics-source',
     nativeLocal: true,
     inputs: { sourceHash: 'frozen' },
@@ -146,7 +146,7 @@ test('native Statistics adapter resumes source/history plans without regeneratin
       { delivery: canonicalDelivery },
     )
     expect(source.query('SELECT n FROM counter').get()).toEqual({ n: 11 })
-    expect(await completeSqlDeliveryRelease(root, releaseId)).toBe(true)
+    expect(await completeSqlDeliveryRelease(root, resourceReleaseId)).toBe(true)
     await assertSqlDeliveryPlanningAllowed(root, 'another-release')
   } finally {
     source.close()

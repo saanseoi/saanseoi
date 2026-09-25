@@ -139,7 +139,7 @@ async function setup() {
       sourceBindingNames: ['DB_SOURCE_HK_2025'],
       datasetId: 'dataset',
       message: {
-        releaseId: snapshotId,
+        resourceReleaseId: snapshotId,
         sourceVersion: `2025-${revision}`,
       } as BuildPlaceSqlInput['message'],
       snapshots: {
@@ -240,7 +240,7 @@ test('native Places integration retries the retained final plan without generati
     const delivery = {
       directory: join(f.root, 'native-delivery'),
       context: f.context,
-      releaseId: 'revision-1',
+      resourceReleaseId: 'revision-1',
       inputs: { snapshotId: 'revision-1', inputDigest: 'sealed-fixture' },
     }
     const apply = () =>

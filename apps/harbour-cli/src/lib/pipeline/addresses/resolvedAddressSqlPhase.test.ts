@@ -25,7 +25,7 @@ test('supplementary Address native delivery resolves guarded net changes and res
   } as unknown as LocalAddressDbContext
   const phase = {
     context,
-    releaseId: `address-publication-test-${crypto.randomUUID()}`,
+    resourceReleaseId: `address-publication-test-${crypto.randomUUID()}`,
     phase: 'places-address-publication-data',
     inputs: { hash: 'fixed' },
     scopeId: 'scope',

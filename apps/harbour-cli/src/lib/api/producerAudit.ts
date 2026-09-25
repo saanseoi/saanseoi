@@ -14,7 +14,7 @@ import { retainRegisteredRule } from './retainedRule'
 export async function retainProducerAudit(
   store: ProvenanceStore,
   input: {
-    releaseId: string
+    resourceReleaseId: string
     datasetCode: string
     rules: Array<{
       declaration: RuleDeclaration
@@ -32,10 +32,10 @@ export async function retainProducerAudit(
   },
 ) {
   return retainAuditResult(store, {
-    releaseId: input.releaseId,
+    resourceReleaseId: input.resourceReleaseId,
     datasetCode: input.datasetCode,
     attempt: {
-      id: input.releaseId,
+      id: input.resourceReleaseId,
       status: input.guards.some(
         g => g.status === 'failed' && g.consequence === 'block-ingestion',
       )

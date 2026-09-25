@@ -84,7 +84,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
       )
       .run('area', 'v1', 'old', 'old-release', 'division', wrongGeometry)
     const input = {
-      releaseId: 'old-release',
+      resourceReleaseId: 'old-release',
       divisionId: 'division',
       metaDb: drizzle({ client: meta }) as never,
       currentDb: drizzle({ client: current }) as never,
@@ -105,7 +105,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
     `)
     expect(await readAuditGeometry(input)).toBeNull()
     expect(
-      await readAuditGeometry({ ...input, releaseId: 'lookup-release' }),
+      await readAuditGeometry({ ...input, resourceReleaseId: 'lookup-release' }),
     ).toBeNull()
   } finally {
     for (const sqlite of [meta, current, before, after]) sqlite.close()

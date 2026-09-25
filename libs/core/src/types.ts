@@ -34,7 +34,7 @@ export type DatasetRecord = {
   id: string
   datasetId: string
   datasetCode: string
-  releaseId: string
+  resourceReleaseId: string
   releaseCode: string
   regionCode: string
   cohortKey: string
@@ -51,7 +51,7 @@ export type DatasetRecord = {
   notes: string | null
   status: ReleaseStatus
   supersedesDatasetId: string | null
-  supersededByReleaseId: string | null
+  supersededByResourceReleaseId: string | null
   revokedAt: string | null
   revocationReason: string | null
   ingestedAt: string
@@ -158,14 +158,14 @@ export type RegisterUploadResult = {
   inspection: UploadInspection
   datasetId: string | null
   rawObjectKey: string | null
-  releaseId: string | null
+  resourceReleaseId: string | null
 }
 
 export type DatasetProcessingMessage = {
   jobType?: 'processDataset'
   datasetId: string
   datasetCode?: string
-  releaseId?: string
+  resourceReleaseId?: string
   releaseCode?: string
   rawObjectKey: string
   regionCode: RegionCode

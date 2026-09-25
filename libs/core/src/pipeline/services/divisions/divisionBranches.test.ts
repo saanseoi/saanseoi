@@ -102,7 +102,7 @@ test('bulk retention round-trips branch counts without individual record actions
     { branchCounts },
   )
   const input = {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'divisions',
     inputCount: 1,
     outputCount: 1,

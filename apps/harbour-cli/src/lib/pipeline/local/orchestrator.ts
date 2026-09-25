@@ -28,7 +28,7 @@ export type LocalGenerationPhase<TMessage> = {
   labelForProgress(current: number): string
   phase: string
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   totalUnits: number
   unitsForMessage(message: TMessage): number
 }
@@ -39,7 +39,7 @@ export type LocalStreamingPhase = {
   labelForProgress(current: number): string
   phase: string
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   totalUnits: number
 }
 
@@ -172,7 +172,7 @@ export async function runLocalGenerationPhase<TMessage>(
     max: phase.totalUnits,
   })
   await harbourClient.stageRunning(
-    phase.releaseId,
+    phase.resourceReleaseId,
     phase.phase,
     {
       processedRows: 0,
@@ -191,7 +191,7 @@ export async function runLocalGenerationPhase<TMessage>(
     })
     progressWrite = progressWrite.then(() =>
       harbourClient.stageRunning(
-        phase.releaseId,
+        phase.resourceReleaseId,
         phase.phase,
         {
           processedRows: current,
@@ -229,7 +229,7 @@ export async function runLocalStreamingPhase<TResult>(
     max: phase.totalUnits,
   })
   await harbourClient.stageRunning(
-    phase.releaseId,
+    phase.resourceReleaseId,
     phase.phase,
     {
       processedRows: 0,
@@ -243,7 +243,7 @@ export async function runLocalStreamingPhase<TResult>(
       label: phase.labelForProgress(currentUnits),
     })
     await harbourClient.stageRunning(
-      phase.releaseId,
+      phase.resourceReleaseId,
       phase.phase,
       {
         processedRows: currentUnits,
@@ -287,11 +287,11 @@ export function createLocalImportProgressClient(
 
   return {
     ...harbourClient,
-    async publishDataset(releaseId, releaseCode, options) {
-      return harbourClient.publishDataset(releaseId, releaseCode, options)
+    async publishDataset(resourceReleaseId, releaseCode, options) {
+      return harbourClient.publishDataset(resourceReleaseId, releaseCode, options)
     },
-    async stageCompleted(releaseId, phase, stats, releaseCode) {
-      await harbourClient.stageCompleted(releaseId, phase, stats, releaseCode)
+    async stageCompleted(resourceReleaseId, phase, stats, releaseCode) {
+      await harbourClient.stageCompleted(resourceReleaseId, phase, stats, releaseCode)
       const importPhase = importPhasesByName.get(phase)
       const completedDetails = formatCompletedStatsDetails(
         stats,
@@ -354,11 +354,17 @@ export function createLocalImportProgressClient(
         })
       }
     },
-    async stageFailed(releaseId, phase, error, stats, releaseCode) {
+    async stageFailed(resourceReleaseId, phase, error, stats, releaseCode) {
       progress.fail()
-      return harbourClient.stageFailed(releaseId, phase, error, stats, releaseCode)
+      return harbourClient.stageFailed(
+        resourceReleaseId,
+        phase,
+        error,
+        stats,
+        releaseCode,
+      )
     },
-    async stageRunning(releaseId, phase, stats, releaseCode) {
+    async stageRunning(resourceReleaseId, phase, stats, releaseCode) {
       const importPhase = importPhasesByName.get(phase)
       if (!phaseStartedAt.has(phase)) {
         phaseStartedAt.set(phase, Date.now())
@@ -420,7 +426,7 @@ export function createLocalImportProgressClient(
         }
       }
 
-      return harbourClient.stageRunning(releaseId, phase, stats, releaseCode)
+      return harbourClient.stageRunning(resourceReleaseId, phase, stats, releaseCode)
     },
   }
 }

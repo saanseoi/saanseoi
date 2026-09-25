@@ -101,7 +101,7 @@ export const auditManifestSchema = object(
   {
     kind: { const: 'processing-audit' },
     schemaVersion: { const: 1 },
-    releaseId: text,
+    resourceReleaseId: text,
     datasetCode: text,
     attempt: object({ id: text, status: { enum: ['completed', 'failed'] } }),
     bulk: array(

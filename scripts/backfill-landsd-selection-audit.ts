@@ -42,8 +42,8 @@ try {
   const { results: releases } = await db
     .prepare(`
     SELECT r.id, r.code, p.manifestHash, p.byteLength, p.applicationCount, p.attemptStatus
-    FROM releases r JOIN datasets d ON d.id = r.datasetId
-    LEFT JOIN releaseProvenance p ON p.releaseId = r.id
+    FROM resourceReleases r JOIN datasets d ON d.id = r.datasetId
+    LEFT JOIN releaseProvenance p ON p.resourceReleaseId = r.id
     WHERE d.code = 'ds-hk-hkgov-landsd-division' AND r.status = 'published'
     ORDER BY r.code
   `)
@@ -64,7 +64,7 @@ try {
     const manifest = await readObject(store, oldRef)
     validateAuditManifest(manifest)
     if (
-      manifest.releaseId !== release.id ||
+      manifest.resourceReleaseId !== release.id ||
       manifest.datasetCode !== 'ds-hk-hkgov-landsd-division'
     )
       throw new Error('Registered audit identity mismatch.')
@@ -148,9 +148,9 @@ try {
     const result = await db
       .prepare(`
       UPDATE releaseProvenance SET manifestHash = ?, byteLength = ?
-      WHERE releaseId = ? AND manifestHash = ? AND byteLength = ?
+      WHERE resourceReleaseId = ? AND manifestHash = ? AND byteLength = ?
       AND applicationCount = ? AND attemptStatus = 'completed'
-      AND EXISTS (SELECT 1 FROM releases WHERE id = ? AND status = 'published')
+      AND EXISTS (SELECT 1 FROM resourceReleases WHERE id = ? AND status = 'published')
     `)
       .bind(
         ref.hash,
@@ -166,7 +166,7 @@ try {
       throw new Error('Audit pointer changed concurrently; backfill was not applied.')
     const { results: readback } = await db
       .prepare(
-        'SELECT manifestHash, byteLength FROM releaseProvenance WHERE releaseId = ?',
+        'SELECT manifestHash, byteLength FROM releaseProvenance WHERE resourceReleaseId = ?',
       )
       .bind(release.id)
       .all<{ manifestHash: string; byteLength: number }>()

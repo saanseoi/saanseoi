@@ -176,7 +176,7 @@ const RESOLVED_BUILDING_LOOKUP_COLUMNS = [
 ] as const
 
 export function buildAddressSqlImportRunId(message: DatasetProcessingMessage) {
-  const releaseId = message.releaseId ?? message.datasetId
+  const resourceReleaseId = message.resourceReleaseId ?? message.datasetId
   const shard = message.shardYear ?? message.sourceVersion.slice(0, 4)
 
   return [
@@ -184,7 +184,7 @@ export function buildAddressSqlImportRunId(message: DatasetProcessingMessage) {
     message.source,
     message.regionCode,
     shard,
-    releaseId,
+    resourceReleaseId,
     message.sourceVersion,
   ]
     .join('-')
@@ -585,7 +585,7 @@ export function buildAddressRetirementSqlImportFiles(
   if (options.addressIds.length === 0) return []
   const now = sqlLiteral(message.processingRunStartedAt ?? new Date().toISOString())
   const snapshot = sqlLiteral(options.snapshotId)
-  const release = sqlLiteral(message.releaseId ?? message.datasetId)
+  const release = sqlLiteral(message.resourceReleaseId ?? message.datasetId)
   const scope = sqlLiteral(options.scopeId)
   const historyStatements: string[] = []
   const currentStatements: string[] = []
@@ -827,7 +827,7 @@ function buildAddressSourceApplySql(message: DatasetProcessingMessage, runId: st
 }
 
 function buildHkgovSourceApplySql(message: DatasetProcessingMessage, runId: string) {
-  const releaseId = sqlLiteral(buildSourceReleaseId(message))
+  const resourceReleaseId = sqlLiteral(buildSourceReleaseId(message))
   const sourceVersion = sqlLiteral(message.sourceVersion)
   const run = sqlLiteral(runId)
 
@@ -850,17 +850,17 @@ WHERE isCurrent = 1
       AND changed.sourceRecordId = hkgovAlsAddresses2d.sourceRecordId
   );
 INSERT INTO hkgovAlsAddresses2d (
-  sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent,
+  sourceRecordId, versionHash, resourceReleaseId, validFromRelease, validToRelease, isCurrent,
   sourceLocator, properties, sourceGeometry
 )
 SELECT
-  r.sourceRecordId, r.sourcePayloadHash, ${releaseId}, ${sourceVersion}, NULL, 1,
+  r.sourceRecordId, r.sourcePayloadHash, ${resourceReleaseId}, ${sourceVersion}, NULL, 1,
   r.sourceLocator, r.properties, r.sourceGeometry
 FROM ${NORMALIZED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND EXISTS (SELECT 1 FROM ${SOURCE_CHANGED_TABLE} changed WHERE changed.runId = r.runId AND changed.sourceRecordId = r.sourceRecordId)
 ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
-  releaseId = excluded.releaseId,
+  resourceReleaseId = excluded.resourceReleaseId,
   validFromRelease = excluded.validFromRelease,
   validToRelease = NULL,
   isCurrent = 1,
@@ -875,7 +875,7 @@ function buildAddressHistoryApplySql(
   snapshotId: string,
 ) {
   const run = sqlLiteral(runId)
-  const releaseId = sqlLiteral(message.releaseId ?? message.datasetId)
+  const resourceReleaseId = sqlLiteral(message.resourceReleaseId ?? message.datasetId)
   const snapshot = sqlLiteral(snapshotId)
   const now = sqlLiteral(message.processingRunStartedAt ?? new Date().toISOString())
 
@@ -884,7 +884,7 @@ INSERT INTO snapshotVersionChanges (
   snapshotId, recordType, recordId, locale, versionHash, operation,
   sourceReleaseId, createdAt, updatedAt
 )
-SELECT ${snapshot}, 'address2dI18n', old.addressId, old.locale, NULL, 'delete', ${releaseId}, ${now}, ${now}
+SELECT ${snapshot}, 'address2dI18n', old.addressId, old.locale, NULL, 'delete', ${resourceReleaseId}, ${now}, ${now}
 FROM address2dI18n old
 WHERE old.isCurrent = 1
   AND EXISTS (SELECT 1 FROM ${RESOLVED_ROWS_TABLE} r WHERE r.runId = ${run} AND r.changed = 1 AND r.addressId = old.addressId)
@@ -936,7 +936,7 @@ INSERT INTO address2d (
   districtId, landformId, areaId, countryId, geometry, bbox, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
 )
 SELECT
-  r.addressId, r.versionHash, ${releaseId}, r.snapshotId,
+  r.addressId, r.versionHash, ${resourceReleaseId}, r.snapshotId,
   1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
   r.neighbourhoodId, r.macrohoodId, r.townId, r.districtId, r.landformId, r.areaId, r.countryId,
   r.geometry, r.bbox, r.identifiers, r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
@@ -957,7 +957,7 @@ INSERT INTO address2dI18n (
   streetName, createdAt, updatedAt
 )
 SELECT
-  i.addressId, i.versionHash, ${releaseId}, i.snapshotId, 1,
+  i.addressId, i.versionHash, ${resourceReleaseId}, i.snapshotId, 1,
   i.locale, i.formattedAddress, i.buildingName, i.buildingNumberExpression,
   i.buildingNumberFrom, i.buildingNumberTo, i.buildingNumberConnector,
   i.blockExpression, i.blockType, i.blockRef, i.blockTypeBeforeNumber,
@@ -996,7 +996,7 @@ INSERT INTO address2dBuildingNumberLookup (
 SELECT
   lookup.addressId,
   lookup.versionHash,
-  ${releaseId},
+  ${resourceReleaseId},
   lookup.snapshotId,
   1,
   lookup.buildingNumber,
@@ -1025,7 +1025,7 @@ INSERT INTO snapshotVersionChanges (
 )
 SELECT
   ${snapshot}, 'address2d', r.addressId, '', r.versionHash, 'upsert',
-  ${releaseId}, ${now}, ${now}
+  ${resourceReleaseId}, ${now}, ${now}
 FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND r.changed = 1
@@ -1040,7 +1040,7 @@ INSERT INTO snapshotVersionChanges (
 )
 SELECT
   ${snapshot}, 'address2dI18n', i.addressId, i.locale, i.versionHash, 'upsert',
-  ${releaseId}, ${now}, ${now}
+  ${resourceReleaseId}, ${now}, ${now}
 FROM ${RESOLVED_ROWS_TABLE} r
 INNER JOIN ${RESOLVED_I18N_TABLE} i
   ON i.runId = r.runId AND i.addressId = r.addressId

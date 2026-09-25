@@ -27,7 +27,7 @@ export async function resumeRollbackDelivery(
   const terminal = plan.outputs?.terminal as RollbackTerminal | undefined
   if (
     terminal?.operation !== 'rollback' ||
-    terminal.releaseId !== plan.context.releaseId
+    terminal.resourceReleaseId !== plan.context.resourceReleaseId
   )
     throw new Error('Invalid sealed rollback completion contract.')
   let files: Record<string, string>
@@ -56,7 +56,10 @@ export async function resumeRollbackDelivery(
   }
   await verifyRollbackTerminal(files, terminal)
   if (
-    !(await completeSqlDeliveryRelease(plan.context.cacheDir, plan.context.releaseId))
+    !(await completeSqlDeliveryRelease(
+      plan.context.cacheDir,
+      plan.context.resourceReleaseId,
+    ))
   )
     throw new Error('Rollback recovery has unacknowledged batches.')
   console.log(

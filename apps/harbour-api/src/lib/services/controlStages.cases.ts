@@ -29,8 +29,8 @@ test('updates the running ingest run in place when a phase completes or fails', 
   const dbPath = join(tempDir, 'harbour-control.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const { releaseId } = insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
+  const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+    resourceReleaseId: 'release-dr-hk-overture-division-2025-09-24.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2025-09',
@@ -45,11 +45,11 @@ test('updates the running ingest run in place when a phase completes or fails', 
   })
 
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractDivisions',
   })
   await handleStageCompleted(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractDivisions',
     stats: {
       processedRows: 1810,
@@ -57,18 +57,18 @@ test('updates the running ingest run in place when a phase completes or fails', 
   })
 
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'publishDataset',
   })
   await handleStageFailed(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'publishDataset',
     error: 'Network connection lost.',
   })
 
   const ingestRuns = sqlite
     .query(
-      'SELECT ir.phase, ir.status, ir.stats, ir.error, ir.finishedAt FROM ingestRuns ir INNER JOIN releases r ON r.id = ir.releaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
+      'SELECT ir.phase, ir.status, ir.stats, ir.error, ir.finishedAt FROM ingestRuns ir INNER JOIN resourceReleases r ON r.id = ir.resourceReleaseId WHERE r.code = ? ORDER BY ir.startedAt ASC',
     )
     .all('dr-hk-overture-division-2025-09-24.0') as Array<{
     phase: string
@@ -78,7 +78,7 @@ test('updates the running ingest run in place when a phase completes or fails', 
     finishedAt: string | null
   }>
   const release = sqlite
-    .query('SELECT status FROM releases WHERE code = ?')
+    .query('SELECT status FROM resourceReleases WHERE code = ?')
     .get('dr-hk-overture-division-2025-09-24.0') as {
     status: string
   }
@@ -112,8 +112,8 @@ test('reopens completed address SQL generation phases on running progress', asyn
   const dbPath = join(tempDir, 'harbour-control-sql-generation.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const { releaseId } = insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-hkgov-dpo-address-2025-09.0',
+  const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+    resourceReleaseId: 'release-dr-hk-hkgov-dpo-address-2025-09.0',
     source: 'hkgov-dpo',
     regionCode: 'hk',
     cohortKey: '2025-09',
@@ -129,10 +129,10 @@ test('reopens completed address SQL generation phases on running progress', asyn
 
   sqlite.exec(`
     INSERT INTO ingestRuns (
-      runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+      runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
       'run-generate-current',
-      '${releaseId}',
+      '${resourceReleaseId}',
       'generateAddressSqlCurrent',
       'completed',
       '{"processedRows":1024,"sqlArtefactCount":2}',
@@ -145,7 +145,7 @@ test('reopens completed address SQL generation phases on running progress', asyn
   `)
 
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'generateAddressSqlCurrent',
     stats: {
       processedRows: 2048,
@@ -155,9 +155,9 @@ test('reopens completed address SQL generation phases on running progress', asyn
 
   const row = sqlite
     .query(
-      'SELECT status, stats, startedAt, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+      'SELECT status, stats, startedAt, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
-    .get(releaseId, 'generateAddressSqlCurrent') as {
+    .get(resourceReleaseId, 'generateAddressSqlCurrent') as {
     finishedAt: string | null
     startedAt: string
     stats: string | null
@@ -179,8 +179,8 @@ test('reopens a completed processing phase for the next shared resource', async 
   const dbPath = join(tempDir, 'harbour-control-shared-resource.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const { releaseId } = insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
+  const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+    resourceReleaseId: 'release-dr-hk-overture-division-2025-09-24.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2025-09',
@@ -195,10 +195,10 @@ test('reopens a completed processing phase for the next shared resource', async 
   })
   sqlite.exec(`
     INSERT INTO ingestRuns (
-      runId, releaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
+      runId, resourceReleaseId, phase, status, stats, error, startedAt, finishedAt, createdAt, updatedAt
     ) VALUES (
       'run-process-shared-resource',
-      '${releaseId}',
+      '${resourceReleaseId}',
       'processDataset',
       'completed',
       '{"resourceType":"divisionStatistic"}',
@@ -211,7 +211,7 @@ test('reopens a completed processing phase for the next shared resource', async 
   `)
 
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'processDataset',
     stats: { resourceType: 'divisionArea' },
   })
@@ -219,9 +219,9 @@ test('reopens a completed processing phase for the next shared resource', async 
   expect(
     sqlite
       .query(
-        'SELECT status, stats, startedAt, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+        'SELECT status, stats, startedAt, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
       )
-      .get(releaseId, 'processDataset'),
+      .get(resourceReleaseId, 'processDataset'),
   ).toEqual({
     finishedAt: null,
     startedAt: '2026-06-27T00:00:00.000Z',
@@ -236,8 +236,8 @@ test('preserves the original startedAt when a running phase completes', async ()
   const dbPath = join(tempDir, 'harbour-control-started-at.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const { releaseId } = insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
+  const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+    resourceReleaseId: 'release-dr-hk-overture-division-2025-09-24.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2025-09',
@@ -252,16 +252,16 @@ test('preserves the original startedAt when a running phase completes', async ()
   })
 
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractDivisions',
   })
 
   const startedRun = sqlite
-    .query('SELECT startedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?')
-    .get(releaseId, 'extractDivisions') as { startedAt: string } | null
+    .query('SELECT startedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?')
+    .get(resourceReleaseId, 'extractDivisions') as { startedAt: string } | null
 
   await handleStageCompleted(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractDivisions',
     stats: {
       processedRows: 1810,
@@ -270,9 +270,9 @@ test('preserves the original startedAt when a running phase completes', async ()
 
   const completedRun = sqlite
     .query(
-      'SELECT startedAt, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+      'SELECT startedAt, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
-    .get(releaseId, 'extractDivisions') as {
+    .get(resourceReleaseId, 'extractDivisions') as {
     finishedAt: string | null
     startedAt: string
   } | null
@@ -289,8 +289,8 @@ test('updates running phase stats in place when progress is reported again', asy
   const dbPath = join(tempDir, 'harbour-control-progress.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const { releaseId } = insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
+  const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+    resourceReleaseId: 'release-dr-hk-overture-division-2025-09-24.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2025-09',
@@ -305,14 +305,14 @@ test('updates running phase stats in place when progress is reported again', asy
   })
 
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractDivisions',
     stats: {
       processedRows: 64,
     },
   })
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractDivisions',
     stats: {
       processedRows: 128,
@@ -321,9 +321,9 @@ test('updates running phase stats in place when progress is reported again', asy
 
   const ingestRuns = sqlite
     .query(
-      'SELECT phase, status, stats, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+      'SELECT phase, status, stats, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
-    .all(releaseId, 'extractDivisions') as Array<{
+    .all(resourceReleaseId, 'extractDivisions') as Array<{
     finishedAt: string | null
     phase: string
     stats: string | null
@@ -346,8 +346,8 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
   const dbPath = join(tempDir, 'harbour-control-retries.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const { releaseId } = insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-hkgov-dpo-address-2025-09.0',
+  const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+    resourceReleaseId: 'release-dr-hk-hkgov-dpo-address-2025-09.0',
     source: 'hkgov-dpo',
     regionCode: 'hk',
     cohortKey: '2025-09',
@@ -362,22 +362,22 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
   })
 
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractAddresses',
   })
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractAddresses',
   })
   await handleStageCompleted(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractAddresses',
     stats: {
       processedRows: 12,
     },
   })
   await handleStageCompleted(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'extractAddresses',
     stats: {
       processedRows: 12,
@@ -386,9 +386,9 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
 
   const ingestRuns = sqlite
     .query(
-      'SELECT phase, status, stats, finishedAt FROM ingestRuns WHERE releaseId = ? ORDER BY startedAt ASC',
+      'SELECT phase, status, stats, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? ORDER BY startedAt ASC',
     )
-    .all(releaseId) as Array<{
+    .all(resourceReleaseId) as Array<{
     finishedAt: string | null
     phase: string
     stats: string | null
@@ -406,14 +406,14 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
   expect(ingestRuns[0]?.finishedAt).not.toBeNull()
 })
 
-test('falls back to releaseCode when the queued releaseId no longer resolves', async () => {
+test('falls back to releaseCode when the queued resourceReleaseId no longer resolves', async () => {
   const tempDir = createTempDir()
   const dbPath = join(tempDir, 'harbour-control-release-code.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
 
   insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2025-09-24.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2025-09',
@@ -429,12 +429,14 @@ test('falls back to releaseCode when the queued releaseId no longer resolves', a
 
   const result = await handleStageRunning(db, {
     releaseCode: 'dr-hk-overture-division-2025-09-24.0',
-    releaseId: '62f558b9-6fad-413f-8283-287a90febcac',
+    resourceReleaseId: '62f558b9-6fad-413f-8283-287a90febcac',
     phase: 'extractDivisions',
   })
 
   const ingestRun = sqlite
-    .query('SELECT phase, status FROM ingestRuns WHERE releaseId = ? AND phase = ?')
+    .query(
+      'SELECT phase, status FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
+    )
     .get('release-dr-hk-overture-division-2025-09-24.0', 'extractDivisions') as {
     phase: string
     status: string
@@ -445,7 +447,7 @@ test('falls back to releaseCode when the queued releaseId no longer resolves', a
   expect(result).toMatchObject({
     phase: 'extractDivisions',
     releaseCode: 'dr-hk-overture-division-2025-09-24.0',
-    releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2025-09-24.0',
     status: 'running',
   })
   expect(ingestRun).toEqual({
@@ -459,8 +461,8 @@ test('reopens a failed phase as running when processing is retried', async () =>
   const dbPath = join(tempDir, 'harbour-control-reopen.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const { releaseId } = insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2025-09-24.0',
+  const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+    resourceReleaseId: 'release-dr-hk-overture-division-2025-09-24.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2025-09',
@@ -475,32 +477,32 @@ test('reopens a failed phase as running when processing is retried', async () =>
   })
 
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'processDataset',
   })
   await handleStageFailed(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'processDataset',
     error: 'Shard mapping not found.',
   })
   await handleStageRunning(db, {
-    releaseId,
+    resourceReleaseId,
     phase: 'processDataset',
   })
 
   const ingestRun = sqlite
     .query(
-      'SELECT phase, status, error, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+      'SELECT phase, status, error, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
     )
-    .get(releaseId, 'processDataset') as {
+    .get(resourceReleaseId, 'processDataset') as {
     error: string | null
     finishedAt: string | null
     phase: string
     status: string
   } | null
   const release = sqlite
-    .query('SELECT status FROM releases WHERE id = ?')
-    .get(releaseId) as { status: string } | null
+    .query('SELECT status FROM resourceReleases WHERE id = ?')
+    .get(resourceReleaseId) as { status: string } | null
 
   sqlite.close()
 

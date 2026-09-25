@@ -71,7 +71,7 @@ test('Place reporting counts valid rows across all assigned source shards', asyn
   const target = {
     bindings: [old.binding, active.binding],
     kind: 'source',
-    releaseId: 'place-release-2026',
+    resourceReleaseId: 'place-release-2026',
     sourceVersion: '2026-09-01.0',
     specs: [
       {
@@ -84,7 +84,7 @@ test('Place reporting counts valid rows across all assigned source shards', asyn
 
   try {
     const counts = await collectCountRowsByRelease([
-      { history: null, releaseId: target.releaseId, source: target },
+      { history: null, resourceReleaseId: target.resourceReleaseId, source: target },
     ])
     expect(buildReportRowCounts(target, counts)).toEqual([
       {

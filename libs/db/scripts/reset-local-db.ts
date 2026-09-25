@@ -35,7 +35,8 @@ export async function resetLocalDb(
 
     if (dbFamily === 'all') {
       const pending = await readPendingSqlDelivery(cacheDir)
-      if (pending) await invalidateSqlDeliveryReleases(cacheDir, [pending.releaseId])
+      if (pending)
+        await invalidateSqlDeliveryReleases(cacheDir, [pending.resourceReleaseId])
     }
 
     await executeStep({

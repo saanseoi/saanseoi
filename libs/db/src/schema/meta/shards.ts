@@ -14,7 +14,7 @@ import {
 } from '../../constants/schema'
 import { primaryUuid, timestamps } from '../shared'
 import { metaSnapshots } from './api'
-import { metaReleases } from './datasets'
+import { metaResourceReleases } from './datasets'
 
 export const metaDataShards = sqliteTable(
   'dataShards',
@@ -56,16 +56,16 @@ export const metaDataShards = sqliteTable(
 export const metaReleaseShardAssignments = sqliteTable(
   'releaseShardAssignments',
   {
-    releaseId: text('releaseId')
+    resourceReleaseId: text('resourceReleaseId')
       .notNull()
-      .references(() => metaReleases.id, { onDelete: 'cascade' }),
+      .references(() => metaResourceReleases.id, { onDelete: 'cascade' }),
     dataShardId: text('dataShardId')
       .notNull()
       .references(() => metaDataShards.id, { onDelete: 'restrict' }),
   },
   table => [
     primaryKey({
-      columns: [table.releaseId, table.dataShardId],
+      columns: [table.resourceReleaseId, table.dataShardId],
     }),
   ],
 )

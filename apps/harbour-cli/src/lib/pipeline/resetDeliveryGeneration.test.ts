@@ -24,12 +24,12 @@ test('scoped reset invalidates only owned release plans and fresh plans cannot r
   const context = {
     state: { target: 'local', dbCacheDir: root, files },
   } as unknown as LocalAddressDbContext
-  const prepare = (directory: string, releaseId: string, increment: number) =>
+  const prepare = (directory: string, resourceReleaseId: string, increment: number) =>
     prepareNativeSqlDelivery({
       directory,
       ownershipDirectory: root,
       files,
-      releaseId,
+      resourceReleaseId,
       phase: 'data',
       inputs: {},
       generate: async append => {
@@ -104,7 +104,7 @@ test('a reset invalidates remote SQL before receipt lookup or network access', a
     const input = {
       directory: join(root, 'plan'),
       context,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'data',
       inputs: {},
       generate: async (

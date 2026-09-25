@@ -49,7 +49,7 @@ test('registers a local source asset after storing its immutable object', async 
       datasetId: upload.metadata.datasetId,
       id: assetId,
       mediaType: 'application/pdf',
-      releaseId: upload.metadata.releaseId,
+      resourceReleaseId: upload.metadata.resourceReleaseId,
       role: 'governmentNotice',
     })
   } finally {
@@ -74,7 +74,7 @@ test('retains an Overture release Parquet as a managed source asset', async () =
         filePath,
         publisherCode: 'overture',
         releaseCode: 'dr-hk-overture-division-2026-01-21.0',
-        releaseId: '00000000-0000-4000-8000-000000000002',
+        resourceReleaseId: '00000000-0000-4000-8000-000000000002',
         sourceVersion: '2026-01-21.0',
       },
       {
@@ -108,7 +108,7 @@ test('retains an Overture release Parquet as a managed source asset', async () =
           contentHash,
           datasetId: '00000000-0000-4000-8000-000000000001',
           mediaType: 'application/vnd.apache.parquet',
-          releaseId: '00000000-0000-4000-8000-000000000002',
+          resourceReleaseId: '00000000-0000-4000-8000-000000000002',
           role: 'sourceArchive',
         }),
       }),
@@ -151,7 +151,7 @@ test('retains a published source archive with its original filename and media ty
         filePath: archivePath,
         publisherCode: 'example',
         releaseCode: 'dr-hk-example-division-2026-08-22.0',
-        releaseId: 'release-id',
+        resourceReleaseId: 'release-id',
         sourceVersion: '2026-08-22.0',
       },
       {
@@ -196,7 +196,7 @@ test.each([
           filePath: sourcePath,
           publisherCode: 'example',
           releaseCode: 'dr-hk-example-division-2026-08-22.0',
-          releaseId: 'release-id',
+          resourceReleaseId: 'release-id',
           sourceVersion: '2026-08-22.0',
         },
         {
@@ -246,7 +246,7 @@ test('rejects a direct source asset that is neither ZIP nor Parquet', async () =
           filePath: sourcePath,
           publisherCode: 'example',
           releaseCode: 'dr-hk-example-division-2026-08-22.0',
-          releaseId: 'release-id',
+          resourceReleaseId: 'release-id',
           sourceVersion: '2026-08-22.0',
         },
       ),
@@ -341,7 +341,7 @@ async function writeUpload(root: string, bytes: Uint8Array, contentHash: string)
       datasetId: '00000000-0000-4000-8000-000000000001',
       mediaType: 'application/pdf',
       originalUrl: 'https://www.landsd.gov.hk/example/notice.pdf',
-      releaseId: '00000000-0000-4000-8000-000000000002',
+      resourceReleaseId: '00000000-0000-4000-8000-000000000002',
       retrievedAt: '2026-07-26T00:00:00.000Z',
       role: 'governmentNotice',
     },

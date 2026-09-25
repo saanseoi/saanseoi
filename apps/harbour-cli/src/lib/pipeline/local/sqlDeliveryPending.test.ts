@@ -23,9 +23,9 @@ test('malformed pending markers cannot be mistaken for an unowned cache', async 
     for (const marker of [
       null,
       {},
-      { releaseId: '', directories: ['plan'] },
-      { releaseId: 'release', directories: [] },
-      { releaseId: 'release', directories: [null] },
+      { resourceReleaseId: '', directories: ['plan'] },
+      { resourceReleaseId: 'release', directories: [] },
+      { resourceReleaseId: 'release', directories: [null] },
     ]) {
       await writeFile(join(root, 'pending-sql-delivery.json'), JSON.stringify(marker))
       await expect(assertSqlDeliveryPlanningAllowed(root, 'release')).rejects.toThrow(
@@ -48,7 +48,7 @@ test('completion cannot clear ownership while another phase holds the cache lock
       directory,
       {
         environment: 'local',
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         phase: 'empty',
         inputs: {},
         cacheDir: root,
@@ -61,7 +61,7 @@ test('completion cannot clear ownership while another phase holds the cache lock
       await expect(completeSqlDeliveryRelease(root, 'release')).rejects.toThrow(
         'locked',
       )
-      expect((await readPendingSqlDelivery(root))?.releaseId).toBe('release')
+      expect((await readPendingSqlDelivery(root))?.resourceReleaseId).toBe('release')
     })
     expect(await completeSqlDeliveryRelease(root, 'release')).toBe(true)
     expect(await readPendingSqlDelivery(root)).toBeNull()
@@ -78,7 +78,7 @@ test('recognises only a retained plan for the exact source release', async () =>
       directory,
       {
         environment: 'local',
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         phase: 'source',
         inputs: { version: { releaseCode: 'release-code' } },
         cacheDir: root,
@@ -100,12 +100,12 @@ test('recognises a retained plan whose exact deterministic release id has no rel
   try {
     const directory = join(root, 'plan')
     const releaseCode = 'dr-hk-hkgov-pland-division-pu-2016'
-    const releaseId = buildDeterministicReleaseId(releaseCode)
+    const resourceReleaseId = buildDeterministicReleaseId(releaseCode)
     await prepareSqlDelivery(
       directory,
       {
         environment: 'local',
-        releaseId,
+        resourceReleaseId,
         phase: 'planning-division-data',
         inputs: { preparedSha256: 'fixture' },
         cacheDir: root,
@@ -113,9 +113,11 @@ test('recognises a retained plan whose exact deterministic release id has no rel
       },
       async () => {},
     )
-    await registerPendingSqlDelivery(root, releaseId, directory)
+    await registerPendingSqlDelivery(root, resourceReleaseId, directory)
 
-    expect(await findPendingSqlDeliveryReleaseId(root, releaseCode)).toBe(releaseId)
+    expect(await findPendingSqlDeliveryReleaseId(root, releaseCode)).toBe(
+      resourceReleaseId,
+    )
     expect(
       await findPendingSqlDeliveryReleaseId(root, 'dr-hk-hkgov-pland-division-pu-2021'),
     ).toBeUndefined()
@@ -132,7 +134,7 @@ test('completion rejects a marker pointing to another release plan', async () =>
       directory,
       {
         environment: 'local',
-        releaseId: 'other',
+        resourceReleaseId: 'other',
         phase: 'empty',
         inputs: {},
         cacheDir: root,
@@ -142,12 +144,12 @@ test('completion rejects a marker pointing to another release plan', async () =>
     )
     await writeFile(
       join(root, 'pending-sql-delivery.json'),
-      JSON.stringify({ releaseId: 'release', directories: [directory] }),
+      JSON.stringify({ resourceReleaseId: 'release', directories: [directory] }),
     )
     await expect(completeSqlDeliveryRelease(root, 'release')).rejects.toThrow(
       'does not belong',
     )
-    expect((await readPendingSqlDelivery(root))?.releaseId).toBe('release')
+    expect((await readPendingSqlDelivery(root))?.resourceReleaseId).toBe('release')
   } finally {
     await rm(root, { recursive: true, force: true })
   }
@@ -163,7 +165,7 @@ test('missing, corrupt or incomplete payloads never establish acknowledged membe
       directory,
       {
         environment: 'production',
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         phase: 'data',
         inputs: {},
         cacheDir: root,
@@ -201,7 +203,7 @@ test('missing, corrupt or incomplete payloads never establish acknowledged membe
       else await rm(join(directory, '0.sql'))
       await expect(completeSqlDeliveryRelease(root, 'release')).rejects.toThrow()
       await expect(readFile(join(root, 'mirror.json'))).rejects.toThrow('ENOENT')
-      expect((await readPendingSqlDelivery(root))?.releaseId).toBe('release')
+      expect((await readPendingSqlDelivery(root))?.resourceReleaseId).toBe('release')
     }
     await writeFile(join(directory, '0.sql'), sql)
     expect(await completeSqlDeliveryRelease(root, 'release')).toBe(true)
@@ -223,7 +225,7 @@ test('partial mirror promotion retains ownership and retry completes exact membe
       directory,
       {
         environment: 'local',
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         phase: 'empty',
         inputs: {},
         cacheDir: root,
@@ -242,7 +244,7 @@ test('partial mirror promotion retains ownership and retry completes exact membe
     )
     await registerPendingSqlDelivery(root, 'release', directory)
     await expect(completeSqlDeliveryRelease(root, 'release')).rejects.toThrow()
-    expect((await readPendingSqlDelivery(root))?.releaseId).toBe('release')
+    expect((await readPendingSqlDelivery(root))?.resourceReleaseId).toBe('release')
     await expect(
       assertSqlDeliveryPlanningAllowed(root, 'next-release'),
     ).rejects.toThrow('unfinished')

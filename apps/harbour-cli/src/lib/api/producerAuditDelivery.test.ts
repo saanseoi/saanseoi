@@ -60,7 +60,7 @@ test('a failed registration retries the completed retained graph without rerunni
     retain: async store => {
       generated++
       return retainAuditResult(store, {
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         datasetCode: 'places',
         attempt: { id: 'release', status: 'completed' },
         bulk: [],

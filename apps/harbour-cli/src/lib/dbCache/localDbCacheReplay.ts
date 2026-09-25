@@ -23,10 +23,10 @@ import { readManifest } from './localDbCacheManifest.ts'
 export async function refreshRemoteMetaCache(
   target: 'preview' | 'production',
   cacheDir: string,
-  releaseId?: string,
+  resourceReleaseId?: string,
 ) {
   return withDeliveryLock(join(cacheDir, 'sql-delivery-lock'), () =>
-    refreshRemoteMetaCacheLocked(target, cacheDir, releaseId),
+    refreshRemoteMetaCacheLocked(target, cacheDir, resourceReleaseId),
   )
 }
 
@@ -34,10 +34,10 @@ export async function refreshRemoteMetaCache(
 export async function refreshRemoteMetaCacheLocked(
   target: 'preview' | 'production',
   cacheDir: string,
-  releaseId?: string,
+  resourceReleaseId?: string,
 ) {
   assertRemoteCacheDirectory(target, cacheDir)
-  await assertSqlDeliveryPlanningAllowed(cacheDir, releaseId)
+  await assertSqlDeliveryPlanningAllowed(cacheDir, resourceReleaseId)
   const targetRecord = (await resolveD1Targets(target)).find(
     record => record.bindingName === 'DB_META',
   )
@@ -87,7 +87,7 @@ export async function applyPublishMetadataDeltaToRemoteCache(
   publishResult: PublishDatasetResult,
 ) {
   return withDeliveryLock(join(cacheDir, 'sql-delivery-lock'), async () => {
-    await assertSqlDeliveryPlanningAllowed(cacheDir, publishResult.releaseId)
+    await assertSqlDeliveryPlanningAllowed(cacheDir, publishResult.resourceReleaseId)
     return applyPublishMetadataDeltaLocked(target, cacheDir, publishResult)
   })
 }
@@ -108,7 +108,7 @@ async function applyPublishMetadataDeltaLocked(
   try {
     sqlite.transaction(() => {
       const updateRelease = sqlite.prepare(
-        'UPDATE releases SET status = ?, updatedAt = ? WHERE id = ?',
+        'UPDATE resourceReleases SET status = ?, updatedAt = ? WHERE id = ?',
       )
       const updateReleaseSet = sqlite.prepare(
         `UPDATE apiReleaseSets SET

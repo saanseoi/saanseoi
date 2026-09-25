@@ -31,7 +31,7 @@ const message = {
   rawObjectKey: 'hk/hkgov-dpo/2025-09/address.parquet',
   regionCode: 'hk',
   releaseCode: 'dr-hk-hkgov-dpo-address-2025-09.0',
-  releaseId: 'release-address',
+  resourceReleaseId: 'release-address',
   shardYear: '2025',
   source: 'hkgov-dpo',
   sourceVersion: '2025-09.0',
@@ -46,7 +46,7 @@ const resolvedArtefact = {
   kind: 'address.resolved.v1',
   localisedRows: 0,
   processingRunStartedAt: '2026-07-03T00:00:00.000Z',
-  releaseId: 'release-address',
+  resourceReleaseId: 'release-address',
   rowEnd: 0,
   rowStart: 0,
   rows: [],
@@ -101,7 +101,7 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
         'address-assembly-run', 'address-snapshot', 'address-assembly', 'release-address',
         '2026-08-19.0', 'selected', '{}', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
-      INSERT INTO releaseShardAssignments (releaseId, dataShardId)
+      INSERT INTO releaseShardAssignments (resourceReleaseId, dataShardId)
       VALUES ('release-address', 'history-shard');
       INSERT INTO snapshotShardAssignments (snapshotId, dataShardId)
       VALUES ('address-snapshot', 'history-shard');
@@ -323,7 +323,7 @@ describe('HKGov ALS source SQL', () => {
       const files = buildAddressSourceSqlImportFiles(message, {
         kind: 'address.normalised.v1',
         processingRunStartedAt: '2026-09-08T00:00:00.000Z',
-        releaseId: 'release-address',
+        resourceReleaseId: 'release-address',
         rowStart: 0,
         rowEnd: inputs.length,
         totalRows: inputs.length,
@@ -363,7 +363,7 @@ describe('HKGov ALS source SQL', () => {
     const sourceFile = buildAddressSourceSqlImportFiles(message, {
       kind: 'address.normalised.v1',
       processingRunStartedAt: '2026-07-18T00:00:00.000Z',
-      releaseId: 'release-address',
+      resourceReleaseId: 'release-address',
       rowEnd: 0,
       rowStart: 0,
       rows: [],
@@ -382,7 +382,7 @@ describe('HKGov ALS source SQL', () => {
       {
         kind: 'address.normalised.v1',
         processingRunStartedAt: '2026-07-18T00:00:00.000Z',
-        releaseId: 'release-address',
+        resourceReleaseId: 'release-address',
         rowEnd: 2,
         rowStart: 0,
         rows: [
@@ -417,7 +417,7 @@ describe('HKGov ALS source SQL', () => {
     expect(sourceFile?.sql).toContain('source-changed')
     expect(sourceFile?.sql).not.toContain('unchanged-payload')
     expect(sourceFile?.sql).toContain('changed-payload')
-    expect(sourceFile?.sql).not.toContain('SET releaseId =')
+    expect(sourceFile?.sql).not.toContain('SET resourceReleaseId =')
   })
 })
 
@@ -433,7 +433,7 @@ describe('HKGov ALS identity alias SQL', () => {
     const artefact = {
       kind: 'address.normalised.v1',
       processingRunStartedAt: '2026-07-18T00:00:00.000Z',
-      releaseId: 'release-address',
+      resourceReleaseId: 'release-address',
       rowEnd: 1,
       rowStart: 0,
       rows: [
@@ -528,7 +528,7 @@ describe('address SQL string literals', () => {
       buildAddressSourceSqlImportFiles(message, {
         kind: 'address.normalised.v1',
         processingRunStartedAt: '2026-09-07',
-        releaseId: message.releaseId,
+        resourceReleaseId: message.resourceReleaseId,
         rowStart: 0,
         rowEnd: 1,
         totalRows: 1,
@@ -549,7 +549,7 @@ describe('address SQL string literals', () => {
     const artefact = {
       kind: 'address.normalised.v1',
       processingRunStartedAt: '2026-07-18T00:00:00.000Z',
-      releaseId: 'release-address',
+      resourceReleaseId: 'release-address',
       rowEnd: 1,
       rowStart: 0,
       rows: [

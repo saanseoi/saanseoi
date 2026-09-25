@@ -116,13 +116,13 @@ async function executeResetSqlArtefactsLocked(
 
   if (options.keepCache) return
 
-  for (const releaseId of options.cacheReleaseIds) {
+  for (const resourceReleaseId of options.cacheReleaseIds) {
     await rm(
       resolve(
         import.meta.dir,
         '../../../../../.local/harbour-sql/deliveries',
         options.target.remote ? options.target.environment : 'local',
-        `release-${encodeURIComponent(releaseId)}`,
+        `release-${encodeURIComponent(resourceReleaseId)}`,
       ),
       { force: true, recursive: true },
     )

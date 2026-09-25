@@ -18,7 +18,7 @@ vi.mock('#lib/registry/audit.remote.js', () => ({
 test('a complete empty category stays resolved while searching without more requests', async () => {
   vi.mocked(getAuditPage).mockClear()
   const screen = await render(Applications, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     hash: 'hash',
     category: 'patches',
   })

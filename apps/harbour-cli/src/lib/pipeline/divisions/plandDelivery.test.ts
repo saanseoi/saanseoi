@@ -36,7 +36,7 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
   } as unknown as LocalAddressDbContext
   const phase = {
     context,
-    releaseId: `pland-test-${crypto.randomUUID()}`,
+    resourceReleaseId: `pland-test-${crypto.randomUUID()}`,
     phase: 'planning-division-data',
     inputs: { source: 'fixed' },
   }
@@ -103,7 +103,7 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
           table: 'divisionPublicationState' as const,
           scopeId: 'snapshot',
           snapshotId: 'logical-snapshot',
-          publicationToken: phase.releaseId,
+          publicationToken: phase.resourceReleaseId,
           timestamp: '2026-09-12',
         }
         await beginSnapshotPublication(copy.currentDb, publication)

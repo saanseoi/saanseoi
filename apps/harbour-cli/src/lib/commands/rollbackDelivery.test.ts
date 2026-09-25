@@ -29,7 +29,7 @@ async function fixture() {
     ]),
   )
   meta.exec(
-    "CREATE TABLE releases(id TEXT PRIMARY KEY,status TEXT);INSERT INTO releases VALUES('release','published')",
+    "CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,status TEXT);INSERT INTO resourceReleases VALUES('release','published')",
   )
   current.exec(`INSERT INTO divisions(snapshotId,id,class,category,level,hierarchies) VALUES('scope','id','district','administrative',2,'{}'),('other','else','district','administrative',2,'{}');
     INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,nameProvenance,isLocaleInferred) VALUES('scope','id','en','New term','provided',0),('scope','id','zh-hant','保留','provided',0),('other','else','en','Other name','provided',0);
@@ -75,7 +75,7 @@ async function fixture() {
             )
             .run(change)
         const guard = {
-          sql: "SELECT CASE WHEN (SELECT status FROM releases WHERE id='release')='published' THEN 1 ELSE abs(-9223372036854775808) END",
+          sql: "SELECT CASE WHEN (SELECT status FROM resourceReleases WHERE id='release')='published' THEN 1 ELSE abs(-9223372036854775808) END",
           params: [],
         }
         const claims = [{ ...claim, snapshotId: remove ? null : 'old' }]
@@ -85,13 +85,13 @@ async function fixture() {
           metadata: [
             guard,
             {
-              sql: "UPDATE releases SET status='revoked' WHERE id='release'",
+              sql: "UPDATE resourceReleases SET status='revoked' WHERE id='release'",
               params: [],
             },
           ],
           terminal: {
             operation: 'rollback',
-            releaseId: 'release',
+            resourceReleaseId: 'release',
             catalogId: 'catalog',
             apiVersionId: 'api',
             regionCode: 'hk',
@@ -170,7 +170,7 @@ test('rollback emits one locale change, gates interrupted reads, restores FTS an
         .query("SELECT rowid FROM divisionSearchFts WHERE scopeId='other-search'")
         .get(),
     ).toEqual(before)
-    expect(f.meta.query('SELECT status FROM releases').get()).toEqual({
+    expect(f.meta.query('SELECT status FROM resourceReleases').get()).toEqual({
       status: 'revoked',
     })
   } finally {
@@ -264,7 +264,7 @@ test('sealed rollback reconciles lost local progress from receipts without repea
       directory,
       ownershipDirectory: f.root,
       files: f.files,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'rollback-reconstruction',
       inputs: { operation: 'rollback' },
       generate: append => f.capture(append),

@@ -9,7 +9,7 @@ import type { ReleaseSetPublication } from './releaseDiscord'
 
 export type StageRequest = {
   releaseCode?: string
-  releaseId?: string
+  resourceReleaseId?: string
   error?: string
   phase: string
   stats?: Record<string, unknown>
@@ -27,7 +27,7 @@ export type PublishRequest = {
   deferStatsReleaseSet?: boolean
   deferSourcePublish?: boolean
   releaseCode?: string
-  releaseId?: string
+  resourceReleaseId?: string
   skipSnapshotCleanup?: boolean
 }
 
@@ -63,7 +63,7 @@ export type ControlResult = {
     snapshots?: SnapshotMetadataDelta[]
   }
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   phase: string | null
   snapshotId?: string
   status: string
@@ -89,7 +89,7 @@ export type ReconcileDraftReleaseSetsResult = {
     cohortKey: string
     family: 'address' | 'division' | 'place' | 'statistics'
     releaseCode: string
-    releaseId: string
+    resourceReleaseId: string
     snapshotId: string
   }>
 }

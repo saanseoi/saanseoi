@@ -14,7 +14,7 @@ export type AuditBulkMapping = { from: string; to: string }
 export type AuditBulkRule = {
   condition?: string
   id?: string
-  i18n: Array<{ description: string; locale: string }>
+  i18n: Record<string, { description: string }>
   mappings?: AuditBulkMapping[]
   operationCode: string
   sourceFieldPath?: string

@@ -20,7 +20,7 @@ let failure = $state('')
 async function load(index: number) {
   try {
     documents[index] = await getRetainedBulkFixture({
-      releaseId: manifest.releaseId,
+      resourceReleaseId: manifest.resourceReleaseId,
       hash,
       bulkId: 'individual-fixtures',
       index,
@@ -46,7 +46,7 @@ async function load(index: number) {
       </summary>
       <div class="pt-3">
         {#if documents[index] !== undefined}
-          {@const document = documents[index]}
+          {@const (document = documents[index])}
           {#if translations &&
   document &&
   typeof document === 'object' &&
@@ -54,7 +54,7 @@ async function load(index: number) {
   Array.isArray(document.entries)}
             <Translations
               entries={document.entries}
-              releaseId={manifest.releaseId}
+              resourceReleaseId={manifest.resourceReleaseId}
               {hash}
               fixtureIndex={index}
               {query}

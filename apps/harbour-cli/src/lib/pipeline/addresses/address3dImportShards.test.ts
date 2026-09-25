@@ -196,7 +196,7 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
         sourceVersion,
         snapshotId: snapshot,
         currentSnapshotId: 'scope',
-        releaseId: snapshot,
+        resourceReleaseId: snapshot,
         expectedDigest: validated.digest,
         priorMembership,
         historyShards,
@@ -329,12 +329,12 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
     expect(
       sourceOld
         .query(
-          'SELECT properties,releaseId,validFromRelease,isCurrent FROM hkgovAlsAddresses3d',
+          'SELECT properties,resourceReleaseId,validFromRelease,isCurrent FROM hkgovAlsAddresses3d',
         )
         .get(),
     ).toEqual({
       properties: JSON.stringify(raw.properties),
-      releaseId: 's1',
+      resourceReleaseId: 's1',
       validFromRelease: '2025-12-01.0',
       isCurrent: 1,
     })

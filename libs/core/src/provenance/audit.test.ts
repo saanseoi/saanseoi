@@ -61,7 +61,7 @@ test('individual search reads indexes and only matching action chunks; transfer 
     }),
   )
   const result = await retainAuditResult(store, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'divisions',
     attempt: { id: 'attempt', status: 'completed' },
     bulk: [],
@@ -168,7 +168,7 @@ test('bulk search indexes retained fixture contents without reading fixtures dur
     fields: [{ sourceField: 'QTR_PRH_HS', name: 'Housing Society rental flats' }],
   })
   const result = await retainAuditResult(store, {
-    releaseId: 'r',
+    resourceReleaseId: 'r',
     datasetCode: 'stats',
     attempt: { id: 'a', status: 'completed' },
     guards: [],
@@ -216,7 +216,7 @@ test('bulk search bounds large retained fixture indexes', async () => {
     })),
   )
   const result = await retainAuditResult(store, {
-    releaseId: 'large-release',
+    resourceReleaseId: 'large-release',
     datasetCode: 'large',
     attempt: { id: 'large-attempt', status: 'completed' },
     guards: [],
@@ -244,7 +244,7 @@ test('bulk payloads and completed failed guards cannot pass audit validation', a
     basis: 'code',
   })
   const result = await retainAuditResult(store, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'stats',
     attempt: { id: 'attempt', status: 'failed' },
     individuals: [],
@@ -296,7 +296,7 @@ test('automatic rules cannot retain per-record actions or payload fixtures', asy
   })
   const fixture = await retainObject(store, { record: 'publisher-copy' })
   const input = {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'dataset',
     attempt: { id: 'attempt', status: 'completed' as const },
     guards: [],

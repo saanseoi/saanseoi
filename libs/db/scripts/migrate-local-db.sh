@@ -32,11 +32,23 @@ run_migration() {
   local database_name="$2"
 
   printf 'Applying local migrations for %s (%s)\n' "$binding_name" "$database_name"
-  bash "$script_dir/run-d1-migrations.sh" "$database_name" \
-    --config "$wrangler_config" \
-    --env "$wrangler_env" \
-    --local \
-    --persist-to "$persist_dir"
+  local target_fields sqlite_path
+  target_fields="$(bun -e '
+    const config = JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8"));
+    const entry = (config.env?.[process.argv[2]]?.d1_databases ?? config.d1_databases)
+      .find(entry => entry.binding === process.argv[3]);
+    if (!entry?.migrations_dir) throw new Error("Missing migration directory");
+    console.log([
+      entry.preview_database_id ?? entry.database_id ?? entry.binding,
+      require("node:path").resolve(require("node:path").dirname(process.argv[1]), entry.migrations_dir),
+      entry.migrations_table ?? "d1_migrations",
+    ].join("\t"));
+  ' "$wrangler_config" "$wrangler_env" "$binding_name")" || return
+  local local_id migrations_dir migrations_table
+  IFS=$'\t' read -r local_id migrations_dir migrations_table <<< "$target_fields"
+  sqlite_path="$(bash "$script_dir/lib/resolve-local-d1-sqlite-path.sh" "$local_id")" || return
+  python3 "$script_dir/migrate-local-sqlite.py" "$sqlite_path" "$migrations_dir" \
+    "$(dirname "$persist_dir")/migration-backups" --table "$migrations_table"
 }
 
 if [[ "${#database_names[@]}" -eq 1 ]]; then

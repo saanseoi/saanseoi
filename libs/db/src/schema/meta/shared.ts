@@ -12,16 +12,16 @@ import { sql } from 'drizzle-orm'
 
 import { ingestRunStatuses } from '../../constants/schema'
 import { metaApiReleaseSets } from './api'
-import { metaReleases } from './datasets'
+import { metaResourceReleases } from './datasets'
 import { jsonText, timestamps } from '../shared'
 
 export const ingestRuns = sqliteTable(
   'ingestRuns',
   {
     runId: text('runId').primaryKey(),
-    releaseId: text('releaseId')
+    resourceReleaseId: text('resourceReleaseId')
       .notNull()
-      .references(() => metaReleases.id),
+      .references(() => metaResourceReleases.id),
     phase: text('phase').notNull(),
     status: text('status', { enum: ingestRunStatuses }).notNull(),
     stats: jsonText('stats'),
@@ -31,7 +31,10 @@ export const ingestRuns = sqliteTable(
     ...timestamps,
   },
   table => [
-    uniqueIndex('ingestRuns_release_phase_unique_idx').on(table.releaseId, table.phase),
+    uniqueIndex('ingestRuns_release_phase_unique_idx').on(
+      table.resourceReleaseId,
+      table.phase,
+    ),
   ],
 )
 
@@ -39,7 +42,9 @@ export const stats = sqliteTable(
   'stats',
   {
     id: text('id').primaryKey(),
-    releaseId: text('releaseId').references(() => metaReleases.id),
+    resourceReleaseId: text('resourceReleaseId').references(
+      () => metaResourceReleases.id,
+    ),
     apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id, {
       onDelete: 'cascade',
     }),
@@ -52,7 +57,7 @@ export const stats = sqliteTable(
     ...timestamps,
   },
   table => [
-    index('stats_releaseId_idx').on(table.releaseId),
+    index('stats_resourceReleaseId_idx').on(table.resourceReleaseId),
     index('stats_apiReleaseSetId_idx').on(table.apiReleaseSetId),
     index('stats_dimension_idx').on(
       table.dimension,
@@ -62,7 +67,7 @@ export const stats = sqliteTable(
     ),
     check(
       'stats_owner_chk',
-      sql`(${table.releaseId} IS NOT NULL) != (${table.apiReleaseSetId} IS NOT NULL)`,
+      sql`(${table.resourceReleaseId} IS NOT NULL) != (${table.apiReleaseSetId} IS NOT NULL)`,
     ),
   ],
 )
@@ -71,9 +76,9 @@ export const releaseProcessingActions = sqliteTable(
   'releaseProcessingActions',
   {
     id: text('id').primaryKey(),
-    releaseId: text('releaseId')
+    resourceReleaseId: text('resourceReleaseId')
       .notNull()
-      .references(() => metaReleases.id, { onDelete: 'cascade' }),
+      .references(() => metaResourceReleases.id, { onDelete: 'cascade' }),
     action: text('action').notNull(),
     mode: text('mode', { enum: ['automatic', 'manual'] }).notNull(),
     generation: text('generation').notNull(),
@@ -82,7 +87,7 @@ export const releaseProcessingActions = sqliteTable(
     ...timestamps,
   },
   table => [
-    index('releaseProcessingActions_releaseId_idx').on(table.releaseId),
+    index('releaseProcessingActions_resourceReleaseId_idx').on(table.resourceReleaseId),
     index('releaseProcessingActions_action_idx').on(table.action, table.mode),
   ],
 )
@@ -99,9 +104,9 @@ export const releaseProcessingActionChunks = sqliteTable(
   'releaseProcessingActionChunks',
   {
     id: text('id').primaryKey(),
-    releaseId: text('releaseId')
+    resourceReleaseId: text('resourceReleaseId')
       .notNull()
-      .references(() => metaReleases.id, { onDelete: 'cascade' }),
+      .references(() => metaResourceReleases.id, { onDelete: 'cascade' }),
     actionId: text('actionId').notNull(),
     generation: text('generation').notNull(),
     firstOrdinal: integer('firstOrdinal').notNull(),
@@ -119,7 +124,7 @@ export const releaseProcessingActionChunks = sqliteTable(
       table.firstOrdinal,
       table.part,
     ),
-    index('releaseProcessingActionChunks_release_idx').on(table.releaseId),
+    index('releaseProcessingActionChunks_release_idx').on(table.resourceReleaseId),
     check(
       'releaseProcessingActionChunks_payload_chk',
       sql`length(${table.payload}) <= 32768`,

@@ -25,8 +25,8 @@ test.each([
       ).replaceAll('--> statement-breakpoint', ''),
     )
     seedFixtureCatalog(sqlite)
-    const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'stage-retry-test',
+    const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+      resourceReleaseId: 'stage-retry-test',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09',
@@ -47,22 +47,24 @@ test.each([
         async stageFailed() {},
       },
     })
-    await client.stageCompleted(releaseId, phase, { processedRows: 100 })
-    await client.stageRunning(releaseId, phase, { processedRows: 0 })
+    await client.stageCompleted(resourceReleaseId, phase, { processedRows: 100 })
+    await client.stageRunning(resourceReleaseId, phase, { processedRows: 0 })
     expect(
       sqlite
         .query(
-          'SELECT status, stats, finishedAt FROM ingestRuns WHERE releaseId = ? AND phase = ?',
+          'SELECT status, stats, finishedAt FROM ingestRuns WHERE resourceReleaseId = ? AND phase = ?',
         )
-        .get(releaseId, phase),
+        .get(resourceReleaseId, phase),
     ).toMatchObject({
       status: 'running',
       stats: JSON.stringify({ processedRows: 0 }),
       finishedAt: null,
     })
-    await client.stageFailed(releaseId, phase, 'retry failed')
+    await client.stageFailed(resourceReleaseId, phase, 'retry failed')
     expect(
-      sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+      sqlite
+        .query('SELECT status FROM resourceReleases WHERE id = ?')
+        .get(resourceReleaseId),
     ).toEqual({ status: 'published' })
   } finally {
     sqlite.close()

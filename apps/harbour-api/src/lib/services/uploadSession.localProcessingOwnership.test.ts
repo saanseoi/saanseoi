@@ -69,7 +69,7 @@ describe('local upload registration', () => {
   test('allows an authenticated force repair of a published dataset', async () => {
     const db = initHarness('harbour-local-registration-force.sqlite')
     await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
-    sqliteHandles.at(-1)?.exec("UPDATE releases SET status = 'published';")
+    sqliteHandles.at(-1)?.exec("UPDATE resourceReleases SET status = 'published';")
 
     await expect(
       registerFixtureUpload(db, '2026-05-20.0', '2026-05', true),
@@ -80,7 +80,7 @@ describe('local upload registration', () => {
     const db = initHarness('harbour-local-registration-published-companion.sqlite')
     await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
     sqliteHandles.at(-1)?.exec(`
-      UPDATE releases SET status = 'published';
+      UPDATE resourceReleases SET status = 'published';
       UPDATE sourceReleases SET status = 'published';
     `)
 
@@ -101,7 +101,7 @@ describe('local upload registration', () => {
       registerFixtureUpload(db, '2026-05-20.0', '2026-05', false, true),
     ).resolves.toMatchObject({ status: 'staged' })
 
-    sqliteHandles.at(-1)?.exec("UPDATE releases SET status = 'published';")
+    sqliteHandles.at(-1)?.exec("UPDATE resourceReleases SET status = 'published';")
 
     await expect(
       registerFixtureUpload(db, '2026-05-20.0', '2026-05', false, true),
@@ -112,7 +112,7 @@ describe('local upload registration', () => {
     const db = initHarness('harbour-local-registration-reuse.sqlite')
     await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
     sqliteHandles.at(-1)?.exec(`
-      UPDATE releases SET status = 'processing';
+      UPDATE resourceReleases SET status = 'processing';
       UPDATE sourceReleases SET status = 'processing';
     `)
 
@@ -129,7 +129,7 @@ describe('local upload registration', () => {
     const db = initHarness('harbour-local-registration-published-source.sqlite')
     await registerFixtureUpload(db, '2026-05-20.0', '2026-05')
     sqliteHandles.at(-1)?.exec(`
-      UPDATE releases SET status = 'failed';
+      UPDATE resourceReleases SET status = 'failed';
       UPDATE sourceReleases SET status = 'published';
     `)
 
@@ -137,7 +137,9 @@ describe('local upload registration', () => {
       registerFixtureUpload(db, '2026-05-20.0', '2026-05', true, false, true),
     ).resolves.toMatchObject({ status: 'staged' })
 
-    expect(sqliteHandles.at(-1)?.query('SELECT status FROM releases').get()).toEqual({
+    expect(
+      sqliteHandles.at(-1)?.query('SELECT status FROM resourceReleases').get(),
+    ).toEqual({
       status: 'staged',
     })
     expect(

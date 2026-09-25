@@ -28,7 +28,7 @@ export async function generateGeometryReplaySql(
   target: UploadTarget,
   context: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>,
   plan: GeometryUploadPlan,
-  releaseId: string,
+  resourceReleaseId: string,
   snapshotId: string,
   skipCanonicalMaterialisation: boolean,
   runProgressPhase: <T>(subject: string, operation: () => Promise<T>) => Promise<T>,
@@ -54,7 +54,7 @@ export async function generateGeometryReplaySql(
     const metaRows = readGeometryReplayMetadata(
       context.state.dbCacheDir,
       metaBindingName,
-      releaseId,
+      resourceReleaseId,
       snapshotId,
     )
     const currentTable =
@@ -110,7 +110,7 @@ export async function generateGeometryReplaySql(
       ? iterateGeometryCacheRows(
           context.state.dbCacheDir,
           sourceBindingName,
-          `SELECT * FROM "${sourceTable}" WHERE "releaseId" = ${geometrySqlLiteral(releaseId)}`,
+          `SELECT * FROM "${sourceTable}" WHERE "resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
         )
       : []
     const options: SqlImportExecutionOptions = {
@@ -202,7 +202,11 @@ export async function generateGeometryReplaySql(
             yield* geometryReplayStatements(
               sourceTable,
               sourceRows,
-              geometrySqlLiteralDelete(sourceTable, 'releaseId', releaseId),
+              geometrySqlLiteralDelete(
+                sourceTable,
+                'resourceReleaseId',
+                resourceReleaseId,
+              ),
             )
           }
           if (plan.source === 'hkgov-censtatd' && plan.transform === 'simplified') {
@@ -216,13 +220,17 @@ export async function generateGeometryReplaySql(
               ),
               ['sourceRecordId', 'inputVersionHash', 'transform', 'versionHash'],
             )
-            yield geometrySqlLiteralDelete(table, 'releaseId', releaseId)
+            yield geometrySqlLiteralDelete(
+              table,
+              'resourceReleaseId',
+              resourceReleaseId,
+            )
             yield* geometryIterateUpsertSql(
               table,
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT * FROM "${table}" WHERE "releaseId" = ${geometrySqlLiteral(releaseId)}`,
+                `SELECT * FROM "${table}" WHERE "resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
               ),
             )
           }
@@ -258,7 +266,7 @@ export async function replayGeometryIntoRemote(
     _target,
     context,
     plan,
-    releaseId,
+    resourceReleaseId,
     snapshotId,
     skipCanonicalMaterialisation,
     _progress,
@@ -276,7 +284,7 @@ export async function replayGeometryIntoRemote(
           'divisionAreaPublicationState',
           'divisionBoundaryPublicationState',
         ],
-        releaseId,
+        resourceReleaseId,
         phase: `division-geometry-${plan.resourceType.toLowerCase()}-${skipCanonicalMaterialisation ? 'source' : 'canonical'}-${String(
           plan.transform ?? 'exact',
         )
@@ -301,7 +309,7 @@ export async function replayGeometryIntoRemote(
 function readGeometryReplayMetadata(
   cacheDir: string,
   bindingName: string,
-  releaseId: string,
+  resourceReleaseId: string,
   snapshotId: string,
 ) {
   const snapshot = readGeometryCacheRows(
@@ -330,11 +338,20 @@ function readGeometryReplayMetadata(
     ['snapshotRecipeInputs', idList ? `"snapshotRecipeId" IN (${idList})` : '0'],
     ['snapshotAssemblies', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
     ['snapshotDependencies', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
-    ['releaseShardAssignments', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
+    [
+      'releaseShardAssignments',
+      `"resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
+    ],
     ['snapshotShardAssignments', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
-    ['releaseProcessingActions', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
-    ['releaseProcessingActionChunks', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
-    ['stats', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
+    [
+      'releaseProcessingActions',
+      `"resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
+    ],
+    [
+      'releaseProcessingActionChunks',
+      `"resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
+    ],
+    ['stats', `"resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`],
   ] as const
 
   return tables

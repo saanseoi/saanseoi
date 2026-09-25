@@ -14,7 +14,7 @@ import {
 export async function prepareReleaseSqlDelivery(input: {
   directory: string
   context: LocalAddressDbContext
-  releaseId: string
+  resourceReleaseId: string
   phase: string
   inputs: Record<string, unknown>
   timings?: { mirrorPreparationMs?: number; sqlGenerationMs?: number }
@@ -32,7 +32,7 @@ export async function prepareReleaseSqlDelivery(input: {
       const plan = await prepareReleaseSqlDeliveryLocked(input)
       await registerPendingSqlDelivery(
         input.context.state.dbCacheDir,
-        input.releaseId,
+        input.resourceReleaseId,
         input.directory,
       )
       return plan
@@ -45,7 +45,7 @@ async function prepareReleaseSqlDeliveryLocked(
 ) {
   await assertSqlDeliveryPlanningAllowed(
     input.context.state.dbCacheDir,
-    input.releaseId,
+    input.resourceReleaseId,
   )
   if (input.context.state.target === 'local')
     throw new Error('Remote SQL delivery requires a remote mirror.')
@@ -55,14 +55,14 @@ async function prepareReleaseSqlDeliveryLocked(
   return prepareSqlDelivery(
     input.directory,
     {
-      releaseId: input.releaseId,
+      resourceReleaseId: input.resourceReleaseId,
       environment: input.context.state.target,
       phase: input.phase,
       inputs: {
         ...input.inputs,
         resetGeneration: await readSqlDeliveryGeneration(
           input.context.state.dbCacheDir,
-          input.releaseId,
+          input.resourceReleaseId,
         ),
       },
       cacheDir: input.context.state.dbCacheDir,

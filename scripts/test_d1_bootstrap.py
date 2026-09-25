@@ -119,7 +119,7 @@ class BootstrapTests(unittest.TestCase):
                                 'database_id': f'00000000-0000-4000-8000-{i:012d}'})
                 with contextlib.closing(sqlite3.connect(path)) as db, db:
                     if binding == 'DB_META':
-                        for table in ('releases', 'sourceReleases', 'snapshots', 'apiReleaseSets', 'ingestRuns'):
+                        for table in ('resourceReleases', 'sourceReleases', 'snapshots', 'apiReleaseSets', 'ingestRuns'):
                             db.execute(f'CREATE TABLE {table}(status TEXT)')
                         db.execute('CREATE TABLE dataShards(id TEXT,bindingName TEXT,environment TEXT,databaseName TEXT,databaseId TEXT,versionHash TEXT)')
                         for name in paths.keys() | {'DB_CURRENT'}:
@@ -154,7 +154,7 @@ class BootstrapTests(unittest.TestCase):
             with contextlib.closing(sqlite3.connect(paths['DB_META'])) as source:
                 self.assertEqual(source.execute('SELECT DISTINCT environment FROM dataShards').fetchall(), [('preview',)])
             with contextlib.closing(sqlite3.connect(paths['DB_META'])) as source, source:
-                source.execute("INSERT INTO releases VALUES('processing')")
+                source.execute("INSERT INTO resourceReleases VALUES('processing')")
             with patch.object(bootstrap, 'local_paths', return_value=paths), self.assertRaises(ValueError):
                 bootstrap.prepare(root / 'not-ready', config)
             self.assertFalse((root / 'not-ready').exists())

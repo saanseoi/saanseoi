@@ -37,8 +37,8 @@ test('post-publication statistics failures retain superseded source release stat
     sqlite.run(
       "INSERT INTO datasets (id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, resourceTypes, versionHash) VALUES ('dataset', 'publisher', 'ds-hk-overture-division', 'hk', 'static', 'monthly', 'divisions', '[\"division\"]', 'hash')",
     )
-    const { releaseId } = insertFixtureRelease(sqlite, {
-      releaseId: 'published-division',
+    const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+      resourceReleaseId: 'published-division',
       source: 'overture',
       regionCode: 'hk',
       cohortKey: '2025-09-24.0',
@@ -54,17 +54,21 @@ test('post-publication statistics failures retain superseded source release stat
     await recordDatasetStage(
       db,
       {
-        releaseId,
+        resourceReleaseId,
         phase: 'calculateApiReleaseSetStats',
         error: 'Missing cached history',
       },
       'error',
     )
     expect(
-      sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+      sqlite
+        .query('SELECT status FROM resourceReleases WHERE id = ?')
+        .get(resourceReleaseId),
     ).toEqual({ status: 'superseded' })
     expect(
-      sqlite.query('SELECT status FROM ingestRuns WHERE releaseId = ?').get(releaseId),
+      sqlite
+        .query('SELECT status FROM ingestRuns WHERE resourceReleaseId = ?')
+        .get(resourceReleaseId),
     ).toEqual({ status: 'error' })
   } finally {
     sqlite.close()
@@ -107,8 +111,8 @@ for (const order of [types, [...types].reverse()]) {
     try {
       for (const [index, type] of order.entries()) {
         const releaseCode = `${sourceCode}::${type}`
-        const releaseId = buildDeterministicReleaseId(releaseCode)
-        ids.set(type, releaseId)
+        const resourceReleaseId = buildDeterministicReleaseId(releaseCode)
+        ids.set(type, resourceReleaseId)
         await insertDataset(
           db,
           {
@@ -123,19 +127,19 @@ for (const order of [types, [...types].reverse()]) {
           'source.zip',
           '2026-09-09T00:00:00Z',
         )
-        await updateDatasetStatus(db, releaseId, 'processing')
+        await updateDatasetStatus(db, resourceReleaseId, 'processing')
         await ensureIngestRunStarted(
           db,
-          releaseId,
+          resourceReleaseId,
           'process',
           null,
           '2026-09-09T00:00:00Z',
         )
         if (index === 1) {
-          await updateDatasetStatus(db, releaseId, 'failed')
+          await updateDatasetStatus(db, resourceReleaseId, 'failed')
           await upsertIngestRunStatus(
             db,
-            releaseId,
+            resourceReleaseId,
             'process',
             'error',
             '2026-09-09T00:00:00Z',
@@ -148,13 +152,15 @@ for (const order of [types, [...types].reverse()]) {
           })
           expect(
             sqlite
-              .query("SELECT count(*) AS n FROM releases WHERE status = 'published'")
+              .query(
+                "SELECT count(*) AS n FROM resourceReleases WHERE status = 'published'",
+              )
               .get(),
           ).toEqual({ n: 1 })
-          await updateDatasetStatus(db, releaseId, 'processing')
+          await updateDatasetStatus(db, resourceReleaseId, 'processing')
           await upsertIngestRunStatus(
             db,
-            releaseId,
+            resourceReleaseId,
             'process',
             'running',
             '2026-09-09T00:00:30Z',
@@ -163,7 +169,7 @@ for (const order of [types, [...types].reverse()]) {
           )
         }
         const audit = await retainAuditResult(store, {
-          releaseId,
+          resourceReleaseId,
           datasetCode,
           attempt: { id: `${type}-attempt`, status: 'completed' },
           bulk: [],
@@ -171,9 +177,9 @@ for (const order of [types, [...types].reverse()]) {
           guards: [],
         })
         hashes.set(type, audit.ref.hash)
-        await registerProcessingResult(db, store, releaseId, audit.ref)
+        await registerProcessingResult(db, store, resourceReleaseId, audit.ref)
         for (let retry = 0; retry < 2; retry++) {
-          await replaceDatasetStats(db, releaseId, [
+          await replaceDatasetStats(db, resourceReleaseId, [
             {
               dimension: 'records',
               metric: 'count',
@@ -181,30 +187,30 @@ for (const order of [types, [...types].reverse()]) {
               value: type === 'divisionStatistic' ? 241155 : 18,
             },
           ])
-          await registerProcessingResult(db, store, releaseId, audit.ref)
+          await registerProcessingResult(db, store, resourceReleaseId, audit.ref)
         }
         sqlite.run(
           `INSERT INTO snapshots (id, resourceType, code, cohortKey, status) VALUES (?, ?, ?, '2024', 'published')`,
           [type, type, type],
         )
-        await upsertSnapshotSource(db, type, 'dataset', releaseId, 'primary')
+        await upsertSnapshotSource(db, type, 'dataset', resourceReleaseId, 'primary')
         await upsertIngestRunStatus(
           db,
-          releaseId,
+          resourceReleaseId,
           'process',
           'completed',
           '2026-09-09T00:00:00Z',
           '2026-09-09T00:01:00Z',
           null,
         )
-        await updateDatasetStatus(db, releaseId, 'published')
+        await updateDatasetStatus(db, resourceReleaseId, 'published')
         expect(sqlite.query('SELECT status FROM sourceReleases').get()).toEqual({
           status: index === 0 ? 'processing' : 'published',
         })
         if (index === 0) {
           // Later fixture edits cannot remove an expected sibling from this release.
           sqlite.run(`UPDATE datasets SET resourceTypes = ?`, [JSON.stringify([type])])
-          await updateDatasetStatus(db, releaseId, 'published')
+          await updateDatasetStatus(db, resourceReleaseId, 'published')
           expect(sqlite.query('SELECT status FROM sourceReleases').get()).toEqual({
             status: 'processing',
           })
@@ -234,16 +240,18 @@ for (const order of [types, [...types].reverse()]) {
         const id = ids.get(type)!
         expect(
           sqlite
-            .query('SELECT resourceType, status FROM releases WHERE id = ?')
+            .query('SELECT resourceType, status FROM resourceReleases WHERE id = ?')
             .get(id),
         ).toEqual({ resourceType: type, status: 'published' })
         expect(
           sqlite
-            .query('SELECT manifestHash FROM releaseProvenance WHERE releaseId = ?')
+            .query(
+              'SELECT manifestHash FROM releaseProvenance WHERE resourceReleaseId = ?',
+            )
             .get(id),
         ).toEqual({ manifestHash: hashes.get(type) })
         expect(
-          sqlite.query('SELECT value FROM stats WHERE releaseId = ?').get(id),
+          sqlite.query('SELECT value FROM stats WHERE resourceReleaseId = ?').get(id),
         ).toEqual({ value: type === 'divisionStatistic' ? 241155 : 18 })
         expect(
           sqlite

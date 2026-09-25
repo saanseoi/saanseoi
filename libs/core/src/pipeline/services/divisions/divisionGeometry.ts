@@ -89,7 +89,7 @@ export type NormalisedDivisionBoundary = {
 type StagedSourceRow<T> = Omit<
   T,
   | 'versionHash'
-  | 'releaseId'
+  | 'resourceReleaseId'
   | 'validFromRelease'
   | 'validToRelease'
   | 'isCurrent'

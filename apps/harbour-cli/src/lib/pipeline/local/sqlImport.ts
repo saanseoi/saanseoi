@@ -72,7 +72,7 @@ export const REMOTE_IMPORT_BATCH_BYTES = 16 * 1024 * 1024
 
 export async function runReportedSqlImportPhase<T extends Record<string, unknown>>(
   harbourClient: HarbourClient,
-  releaseId: string,
+  resourceReleaseId: string,
   releaseCode: string | undefined,
   phase: string,
   operation: (
@@ -81,16 +81,16 @@ export async function runReportedSqlImportPhase<T extends Record<string, unknown
 ) {
   const startedAt = Date.now()
   const reportProgress = async (stats: Record<string, unknown>) => {
-    await harbourClient.stageRunning(releaseId, phase, stats, releaseCode)
+    await harbourClient.stageRunning(resourceReleaseId, phase, stats, releaseCode)
   }
 
-  await harbourClient.stageRunning(releaseId, phase, undefined, releaseCode)
+  await harbourClient.stageRunning(resourceReleaseId, phase, undefined, releaseCode)
 
   try {
     const stats = await operation(reportProgress)
 
     await harbourClient.stageCompleted(
-      releaseId,
+      resourceReleaseId,
       phase,
       {
         ...stats,
@@ -104,7 +104,7 @@ export async function runReportedSqlImportPhase<T extends Record<string, unknown
     const errorMessage = error instanceof Error ? error.message : String(error)
 
     await harbourClient.stageFailed(
-      releaseId,
+      resourceReleaseId,
       phase,
       errorMessage,
       {

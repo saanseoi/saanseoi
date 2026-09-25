@@ -9,7 +9,7 @@ export function sourceStatisticAssertion<
     sourceGeometry: unknown
     sources: unknown
     versionHash: string
-    releaseId: string
+    resourceReleaseId: string
     validFromRelease: string
     validToRelease: string | null
     isCurrent: boolean
@@ -23,7 +23,7 @@ export function sourceStatisticAssertion<
     sourceGeometry: row.sourceGeometry,
     sourceLocator: sourceLocatorFromReferences(row.sources),
     versionHash: row.versionHash,
-    releaseId: row.releaseId,
+    resourceReleaseId: row.resourceReleaseId,
     validFromRelease: row.validFromRelease,
     validToRelease: row.validToRelease,
     isCurrent: row.isCurrent,

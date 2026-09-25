@@ -206,7 +206,7 @@ export function formatUploadResult(
   summary: {
     datasetCode: string
     rawObjectKey: string
-    releaseId: string
+    resourceReleaseId: string
     datasetId: string
     schemaVersion: string
     status: string
@@ -218,7 +218,7 @@ export function formatUploadResult(
     formatField('dataset', summary.datasetCode),
     formatField('datasetId', formatMutedValue(summary.datasetId)),
     formatField('release', formatReleaseValue(result)),
-    formatField('releaseId', formatMutedValue(summary.releaseId)),
+    formatField('resourceReleaseId', formatMutedValue(summary.resourceReleaseId)),
     formatField('schemaVersion', summary.schemaVersion),
   ]
 }
@@ -422,7 +422,7 @@ function expandIngestRunRows(rows: IngestRunReportRow[]): TableCell[][] {
 
 function filterDisplayIngestionRows(rows: IngestRunReportRow[]) {
   const sqlReleaseIds = new Set(
-    rows.filter(row => isSqlReportPhase(row.phase)).map(row => row.releaseId),
+    rows.filter(row => isSqlReportPhase(row.phase)).map(row => row.resourceReleaseId),
   )
 
   if (sqlReleaseIds.size === 0) {
@@ -430,7 +430,10 @@ function filterDisplayIngestionRows(rows: IngestRunReportRow[]) {
   }
 
   return rows.filter(
-    row => !(sqlReleaseIds.has(row.releaseId) && isSqlHiddenUmbrellaPhase(row.phase)),
+    row =>
+      !(
+        sqlReleaseIds.has(row.resourceReleaseId) && isSqlHiddenUmbrellaPhase(row.phase)
+      ),
   )
 }
 

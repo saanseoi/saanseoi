@@ -184,7 +184,7 @@ function fixture() {
       await insertDivisionVersionRows(
         active as never,
         {
-          releaseId: `release-${input.snapshotId}`,
+          resourceReleaseId: `release-${input.snapshotId}`,
           snapshotId: input.snapshotId,
           cohortKey: '2026',
           snapshotLineageId: 'scope',

@@ -91,7 +91,7 @@ async function uploadProvenanceObject(
 async function registerProvenanceResult(
   baseUrl: string,
   headers: Record<string, string>,
-  releaseId: string,
+  resourceReleaseId: string,
   ref: ObjectRef,
 ) {
   let lastError: unknown
@@ -99,7 +99,7 @@ async function registerProvenanceResult(
   for (let attempt = 0; attempt <= PROVENANCE_UPLOAD_RETRY_LIMIT; attempt += 1) {
     try {
       const response = await fetch(
-        `${baseUrl}/v1/provenance/releases/${encodeURIComponent(releaseId)}`,
+        `${baseUrl}/v1/provenance/releases/${encodeURIComponent(resourceReleaseId)}`,
         {
           method: 'POST',
           headers: { ...headers, 'Content-Type': 'application/json' },
@@ -255,5 +255,5 @@ export async function deliverProcessingResult(
     concurrency: 4,
   })
   onProgress?.(`Registering provenance after ${uploaded} objects`, uploaded)
-  await registerProvenanceResult(baseUrl, headers, manifest.releaseId, ref)
+  await registerProvenanceResult(baseUrl, headers, manifest.resourceReleaseId, ref)
 }

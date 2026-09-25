@@ -492,7 +492,7 @@ export async function syncCurrentStreetChangelog(
 export async function insertHistoryRows(
   db: HarbourWritableDb,
   snapshotId: string,
-  releaseId: string,
+  resourceReleaseId: string,
   records: PreparedMaterialisedStreet[],
   now: string,
 ) {
@@ -512,7 +512,7 @@ export async function insertHistoryRows(
           createdAt: now,
           isCurrent: true,
           snapshotId,
-          sourceReleaseId: releaseId,
+          sourceReleaseId: resourceReleaseId,
           updatedAt: now,
           versionHash: record.versionHash,
         })),
@@ -522,7 +522,7 @@ export async function insertHistoryRows(
         set: {
           isCurrent: true,
           snapshotId,
-          sourceReleaseId: releaseId,
+          sourceReleaseId: resourceReleaseId,
           updatedAt: now,
         },
       })
@@ -530,7 +530,7 @@ export async function insertHistoryRows(
   }
   await recordSnapshotVersionChanges(db, {
     snapshotId,
-    sourceReleaseId: releaseId,
+    sourceReleaseId: resourceReleaseId,
     recordType: 'street',
     operation: 'upsert',
     changes: records.map(record => ({
@@ -543,7 +543,7 @@ export async function insertHistoryRows(
 export async function insertHistoryI18nRows(
   db: HarbourWritableDb,
   snapshotId: string,
-  releaseId: string,
+  resourceReleaseId: string,
   records: PreparedMaterialisedStreet[],
   now: string,
 ) {
@@ -560,7 +560,7 @@ export async function insertHistoryI18nRows(
       name: item.name,
       normalised: normaliseStreetName(item.name),
       snapshotId,
-      sourceReleaseId: releaseId,
+      sourceReleaseId: resourceReleaseId,
       streetId: record.id,
       updatedAt: now,
       versionHash: record.versionHash,
@@ -579,7 +579,7 @@ export async function insertHistoryI18nRows(
         set: {
           isCurrent: true,
           snapshotId,
-          sourceReleaseId: releaseId,
+          sourceReleaseId: resourceReleaseId,
           updatedAt: now,
         },
       })
@@ -587,7 +587,7 @@ export async function insertHistoryI18nRows(
   }
   await recordSnapshotVersionChanges(db, {
     snapshotId,
-    sourceReleaseId: releaseId,
+    sourceReleaseId: resourceReleaseId,
     recordType: 'streetI18n',
     operation: 'upsert',
     changes: rows.map(row => ({
@@ -651,7 +651,7 @@ export async function insertHistoryStreetChangelog(
 
 export async function insertSourceRows(
   db: HarbourWritableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   sourceVersion: string,
   records: PreparedStreet[],
   now: string,
@@ -679,7 +679,7 @@ export async function insertSourceRows(
             `${record.base.id} English Name`,
           ),
           isCurrent: true,
-          releaseId,
+          resourceReleaseId,
           sourceRecordId: record.base.id,
           sources: [{ dataset: 'hkgov-landsd', sourceKind: 'streetBaseline' }],
           updatedAt: now,
@@ -695,7 +695,7 @@ export async function insertSourceRows(
         ],
         set: {
           isCurrent: true,
-          releaseId,
+          resourceReleaseId,
           updatedAt: now,
           validFromRelease: sourceVersion,
           validToRelease: null,
@@ -737,7 +737,7 @@ export async function insertSourceRows(
           parserDiagnostics: record.parserDiagnostics,
           previousNoticeRefs: record.previousNoticeRefs,
           rawExtractedText: record.rawExtractedText,
-          releaseId,
+          resourceReleaseId,
           sourceRecordId: record.base.id,
           sources: [
             {
@@ -759,7 +759,7 @@ export async function insertSourceRows(
         ],
         set: {
           isCurrent: true,
-          releaseId,
+          resourceReleaseId,
           updatedAt: now,
           validFromRelease: sourceVersion,
           validToRelease: null,
@@ -777,7 +777,7 @@ export async function insertSourceRows(
             isCurrent: true,
             method: record.application?.method ?? 'automatic',
             nameChangeScope: record.application?.nameChangeScope ?? null,
-            releaseId,
+            resourceReleaseId,
             retainedDescriptions: record.application?.retainedDescriptions ?? null,
             sourceRecordId: record.base.id,
             updatedAt: now,
@@ -793,7 +793,7 @@ export async function insertSourceRows(
           ],
           set: {
             isCurrent: true,
-            releaseId,
+            resourceReleaseId,
             updatedAt: now,
             validFromRelease: sourceVersion,
             validToRelease: null,

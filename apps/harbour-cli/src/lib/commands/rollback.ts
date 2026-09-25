@@ -142,7 +142,7 @@ export async function runRollbackReleaseCommand(
     const metaDb = dbContext.metaDb as unknown as HarbourReadableDb
     const release = await resolveDatasetRecord(metaDb, {
       releaseCode: releaseSpecifier,
-      releaseId: releaseSpecifier,
+      resourceReleaseId: releaseSpecifier,
     })
 
     if (!release) {
@@ -156,7 +156,7 @@ export async function runRollbackReleaseCommand(
     })
     const snapshot = await resolveSnapshotForRelease(
       metaDb,
-      release.releaseId,
+      release.resourceReleaseId,
       resourceType,
     )
 
@@ -165,8 +165,11 @@ export async function runRollbackReleaseCommand(
     }
 
     const releaseSet =
-      (await resolveReleaseSetForRelease(metaDb, release.releaseId, resourceType)) ??
-      (await resolveDraftReleaseSetForSnapshot(metaDb, snapshot.id))
+      (await resolveReleaseSetForRelease(
+        metaDb,
+        release.resourceReleaseId,
+        resourceType,
+      )) ?? (await resolveDraftReleaseSetForSnapshot(metaDb, snapshot.id))
     const activeReleaseSet = await resolveActiveReleaseSetForType(metaDb, resourceType)
 
     if (!releaseSet) {
@@ -226,7 +229,7 @@ export async function runRollbackReleaseCommand(
       apiReleaseSetId: releaseSet.id,
       previousApiReleaseSetId: null,
       previousReleaseId: null,
-      releaseId: release.releaseId,
+      resourceReleaseId: release.resourceReleaseId,
       snapshotId: snapshot.id,
       source: releaseSource,
       sourceVersion: release.sourceVersion,
@@ -360,7 +363,7 @@ export async function runRollbackReleaseCommand(
 
         await verifyPurgeResult(dbContext, {
           apiReleaseSetId: releaseSet.id,
-          releaseId: release.releaseId,
+          resourceReleaseId: release.resourceReleaseId,
           resourceType,
           sourceVersion: release.sourceVersion,
           snapshotId: snapshot.id,

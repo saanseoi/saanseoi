@@ -45,7 +45,7 @@ export async function replayAddressSqlIntoRemoteCache(
     await replayRemoteCacheWithRetry(
       targetName,
       dbContext.state.dbCacheDir,
-      message.releaseCode ?? message.releaseId ?? 'unknown-release',
+      message.releaseCode ?? message.resourceReleaseId ?? 'unknown-release',
       () =>
         importAddressSqlDataArtefacts(
           createNoopHarbourClient(),
@@ -67,10 +67,10 @@ export async function replayAddressSqlIntoRemoteCache(
 export async function refreshRemoteMetaCacheAfterReplay(
   targetName: 'preview' | 'production',
   cacheDir: string,
-  releaseId: string,
+  resourceReleaseId: string,
 ) {
   try {
-    await refreshRemoteMetaCache(targetName, cacheDir, releaseId)
+    await refreshRemoteMetaCache(targetName, cacheDir, resourceReleaseId)
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error)
 

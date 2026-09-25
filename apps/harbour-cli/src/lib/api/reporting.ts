@@ -16,7 +16,7 @@ export type IngestRunReportRow = {
   finishedAt: string | null
   phase: string
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   runId: string
   cohortKey: string | null
   source: string
@@ -36,7 +36,7 @@ export type StatReportRow = {
   metric: string
   metricUnit: string
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   source: string
   resourceType: string
   updatedAt: string
@@ -52,7 +52,7 @@ export type ProcessingActionReportRow = {
   id: string
   mode: 'automatic' | 'manual'
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   source: string
   summary: string
   resourceType: string
@@ -70,7 +70,7 @@ export type ReleaseReportRow = {
   publicationDate: string | null
   rawObjectKey: string | null
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   revocationReason: string | null
   revokedAt: string | null
   rowCounts: ReportRowCount[]
@@ -78,7 +78,7 @@ export type ReleaseReportRow = {
   source: string
   sourceVersion: string
   status: string
-  supersededByReleaseId: string | null
+  supersededByResourceReleaseId: string | null
   resourceType: string
   updatedAt: string
 }
@@ -169,7 +169,7 @@ export async function fetchIngestRunReport(
   options?: {
     limit?: number
     releaseCode?: string
-    releaseId?: string
+    resourceReleaseId?: string
     source?: string
     resourceType?: string
   },
@@ -185,8 +185,8 @@ export async function fetchIngestRunReport(
     url.searchParams.set('releaseCode', options.releaseCode)
   }
 
-  if (options?.releaseId) {
-    url.searchParams.set('releaseId', options.releaseId)
+  if (options?.resourceReleaseId) {
+    url.searchParams.set('resourceReleaseId', options.resourceReleaseId)
   }
 
   if (options?.source) {
@@ -204,7 +204,7 @@ export async function fetchStatsReport(
   target: UploadTarget,
   options?: {
     limit?: number
-    releaseId?: string
+    resourceReleaseId?: string
     source?: string
     resourceType?: string
   },
@@ -216,8 +216,8 @@ export async function fetchStatsReport(
     url.searchParams.set('limit', String(parseLimit(options.limit)))
   }
 
-  if (options?.releaseId) {
-    url.searchParams.set('releaseId', options.releaseId)
+  if (options?.resourceReleaseId) {
+    url.searchParams.set('resourceReleaseId', options.resourceReleaseId)
   }
 
   if (options?.source) {
@@ -236,7 +236,7 @@ export async function fetchProcessingActionReport(
   options?: {
     limit?: number
     releaseCode?: string
-    releaseId?: string
+    resourceReleaseId?: string
     source?: string
     resourceType?: string
   },
@@ -247,7 +247,8 @@ export async function fetchProcessingActionReport(
   if (options?.limit != null)
     url.searchParams.set('limit', String(parseLimit(options.limit)))
   if (options?.releaseCode) url.searchParams.set('releaseCode', options.releaseCode)
-  if (options?.releaseId) url.searchParams.set('releaseId', options.releaseId)
+  if (options?.resourceReleaseId)
+    url.searchParams.set('resourceReleaseId', options.resourceReleaseId)
   if (options?.source) url.searchParams.set('source', options.source)
   if (options?.resourceType) url.searchParams.set('resourceType', options.resourceType)
 
@@ -263,7 +264,7 @@ export async function fetchReleaseReport(
     datasetCode?: string
     limit?: number
     releaseCode?: string
-    releaseId?: string
+    resourceReleaseId?: string
     source?: string
     resourceType?: string
   },
@@ -283,8 +284,8 @@ export async function fetchReleaseReport(
     url.searchParams.set('releaseCode', options.releaseCode)
   }
 
-  if (options?.releaseId) {
-    url.searchParams.set('releaseId', options.releaseId)
+  if (options?.resourceReleaseId) {
+    url.searchParams.set('resourceReleaseId', options.resourceReleaseId)
   }
 
   if (options?.source) {

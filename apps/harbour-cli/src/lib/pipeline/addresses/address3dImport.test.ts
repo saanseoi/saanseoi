@@ -182,7 +182,7 @@ test('writes large bound collections, replays idempotently and journals removed 
       path,
       sourceVersion: '2026-08-19.0',
       snapshotId: 'snapshot',
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       expectedDigest: validation.digest,
       priorMembership: [
         { recordType: 'address3d', recordId: 'removed', locale: '' },
@@ -200,7 +200,7 @@ test('writes large bound collections, replays idempotently and journals removed 
         directory: planDirectory,
         ownershipDirectory: directory,
         files,
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         phase: 'address3d-data',
         inputs: { digest: validation.digest },
         generate: async append => {
@@ -313,7 +313,7 @@ test('writes large bound collections, replays idempotently and journals removed 
       await importAddress3dCollections({
         ...args,
         sourceVersion,
-        releaseId: sourceVersion,
+        resourceReleaseId: sourceVersion,
         expectedDigest: validated.digest,
       })
     }

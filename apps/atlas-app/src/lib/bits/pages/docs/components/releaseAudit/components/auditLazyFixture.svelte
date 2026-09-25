@@ -12,7 +12,7 @@ import { loadedFixtures } from './auditLoadedFixtures'
 const retained = loadedFixtures()
 
 let {
-  releaseId,
+  resourceReleaseId,
   hash,
   bulkId,
   type,
@@ -20,7 +20,7 @@ let {
   label,
   group,
 }: {
-  releaseId: string
+  resourceReleaseId: string
   hash: string
   bulkId: string
   type: string
@@ -41,7 +41,7 @@ let filtered = $derived(
 $effect(() => {
   if (!open) return
   retry
-  const key = JSON.stringify([releaseId, hash, bulkId, type])
+  const key = JSON.stringify([resourceReleaseId, hash, bulkId, type])
   const cached = retained.get(key)
   if (cached !== undefined) {
     value = cached
@@ -51,7 +51,7 @@ $effect(() => {
   let current = true
   value = undefined
   failure = false
-  getAuditFixtureGroup({ releaseId, hash, bulkId, type, q: '' })
+  getAuditFixtureGroup({ resourceReleaseId, hash, bulkId, type, q: '' })
     .then(result => {
       retained.set(key, result)
       if (current) value = result

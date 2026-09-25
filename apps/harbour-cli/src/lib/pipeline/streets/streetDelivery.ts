@@ -24,14 +24,14 @@ export function readStreetDeliveryCounts(
 /** Resolve source, history and current locally before sealing final mutations. */
 export async function deliverStreetWorkflow(
   context: LocalAddressDbContext,
-  releaseId: string,
+  resourceReleaseId: string,
   inputs: Record<string, unknown>,
   generate: (context: LocalAddressDbContext) => Promise<StreetDeliveryCounts>,
 ) {
   const result = await deliverResolvedSqlPhase(
     {
       context,
-      releaseId,
+      resourceReleaseId,
       phase: 'street-data',
       inputs,
       targets: familyMutationTargets(context, 'street'),

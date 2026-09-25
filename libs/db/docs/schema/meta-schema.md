@@ -18,13 +18,19 @@ Tables:
 - `publishers`
 - `licenses`
 - `datasets`
-- `releases`
+- `sourceReleases`
+- `resourceReleases`
 
 Key points:
 
+- `sourceReleases` identifies one publisher dataset version, unique by dataset and
+  source version. `resourceReleases` identifies each processed resource, unique by
+  dataset, resource type and source version. Each resource references its parent through
+  `resourceReleases.sourceReleaseId`; resource foreign keys use `resourceReleaseId`.
+
 - `datasets.code` uses:
   - `ds-{region}-{publisherCode}-{resource-slug}[-{product-slug}]`
-- `releases.code` uses:
+- `resourceReleases.code` uses:
   - `dr-{region}-{publisherCode}-{resource-slug}[-{product-slug}]-{sourceVersion}`
 - Saanseoi-owned code segments are lowercase kebab-case; structured fields are never
   recovered by parsing a code.
@@ -105,16 +111,18 @@ streets, strategic streets and TD pedestrian streets also retain EPSG:2326 coord
 from their native FileGDB layers.
 
 `datasets.processingRules` contains the current resolved policy. `sourceReleases` and
-`releases` retain the policy at creation for reproducibility. These are intentional
-copies: dataset synchronisation must not rewrite historic release policy. Registered
-rule declarations supply exact definitions, interfaces, parameters and implementation
-references; processing actions retain the decisions and counts actually produced.
-Missing historical rules cannot be reconstructed by copying today's registry policy.
+`resourceReleases` retain the policy at creation for reproducibility. These are
+intentional copies: dataset synchronisation must not rewrite historic release policy.
+Registered rule declarations supply exact definitions, interfaces, parameters and
+implementation references; processing actions retain the decisions and counts actually
+produced. Missing historical rules cannot be reconstructed by copying today's registry
+policy.
 
 `sourceReleases.rawObjectKey` locates the retained publisher artefact or shared prepared
-input. `releases.rawObjectKey` locates the resource's ingestion input. A multi-resource
-source can own an archive while its resources point to different derived files. Complete
-missing staged source keys without replacing an existing archive reference.
+input. `resourceReleases.rawObjectKey` locates the resource's ingestion input. A
+multi-resource source can own an archive while its resources point to different derived
+files. Complete missing staged source keys without replacing an existing archive
+reference.
 
 `publicationDate` accepts a calendar date. A year or half-year cohort remains in
 `cohortKey` and `sourceVersion`; it does not imply a publication day.
@@ -125,12 +133,22 @@ publication state; table counts alone do not prove a broken published snapshot.
 `snapshots.notes` is optional free-text annotation. Validity closure updates `validTo`
 and does not automatically populate notes.
 
-Statistics have exactly one owner: `releaseId` or `apiReleaseSetId`. The owner is
-independent of `metric`, which describes the measurement. Processing-action counts use
-`metric: processing`; replacing ordinary release measurements preserves those counts.
-There is no `stats.kind` or snapshot-owned statistics producer.
+Statistics have exactly one owner: `resourceReleaseId` or `apiReleaseSetId`. The owner
+is independent of `metric`, which describes the measurement. Processing-action counts
+use `metric: processing`; replacing ordinary release measurements preserves those
+counts. There is no `stats.kind` or snapshot-owned statistics producer.
 
 ## Auditing and metadata repair
+
+`bun run db:migration:run:local` applies generated migrations directly to the configured
+local D1 SQLite files. Each database's pending migrations and migration receipts commit
+atomically. Foreign-key enforcement is disabled before the transaction so parent-table
+rebuilds preserve dependent rows; a foreign-key check must pass before commit. Backups
+include committed WAL contents and live under `.local/d1/migration-backups/`.
+
+The remote migration commands use Wrangler. D1's implicit transactions cannot disable
+foreign-key enforcement, so the local runner does not establish that a generated
+parent-table rebuild can run against a populated remote database.
 
 Run `bun scripts/audit-meta-schema.ts /path/to/META.sqlite /path/to/repair.sql` from the
 repository root. The command opens the target read-only, prints JSON findings and

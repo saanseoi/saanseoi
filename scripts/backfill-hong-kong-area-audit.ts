@@ -17,11 +17,11 @@ import {
 if (!process.argv.includes('--local'))
   throw new Error('Pass --local. Remote backfill is not supported.')
 const apply = process.argv.includes('--apply')
-const releaseId =
+const resourceReleaseId =
   process.argv
     .find(arg => arg.startsWith('--release-id='))
     ?.slice('--release-id='.length) ?? '5395feb9-cad3-5bcd-86cb-27ecbbefcdc0'
-if (!/^[a-f0-9-]{36}$/.test(releaseId)) throw new Error('Invalid release ID.')
+if (!/^[a-f0-9-]{36}$/.test(resourceReleaseId)) throw new Error('Invalid release ID.')
 type Db = {
   prepare(sql: string): {
     bind(...values: unknown[]): ReturnType<Db['prepare']>
@@ -45,12 +45,12 @@ try {
   const { results: releases } = await db
     .prepare(`
     SELECT r.id, s.code, r.status, r.sourceReleaseId, p.manifestHash, p.byteLength, p.applicationCount, p.attemptStatus
-    FROM releases r JOIN sourceReleases s ON s.id = r.sourceReleaseId JOIN datasets d ON d.id = s.datasetId
-    LEFT JOIN releaseProvenance p ON p.releaseId = r.id
+    FROM resourceReleases r JOIN sourceReleases s ON s.id = r.sourceReleaseId JOIN datasets d ON d.id = s.datasetId
+    LEFT JOIN releaseProvenance p ON p.resourceReleaseId = r.id
     WHERE r.id = ?
     ORDER BY r.code
   `)
-    .bind(releaseId)
+    .bind(resourceReleaseId)
     .all<{
       id: string
       code: string
@@ -76,7 +76,7 @@ try {
     const manifest = await readObject(store, oldRef)
     validateAuditManifest(manifest)
     if (
-      manifest.releaseId !== release.id ||
+      manifest.resourceReleaseId !== release.id ||
       manifest.datasetCode !== 'ds-hk-overture-division-area'
     )
       throw new Error('Registered audit identity mismatch.')
@@ -138,9 +138,9 @@ try {
     const result = await db
       .prepare(`
       UPDATE releaseProvenance SET manifestHash = ?, byteLength = ?
-      WHERE releaseId = ? AND manifestHash = ? AND byteLength = ?
+      WHERE resourceReleaseId = ? AND manifestHash = ? AND byteLength = ?
       AND applicationCount = ? AND attemptStatus = 'completed'
-      AND EXISTS (SELECT 1 FROM releases WHERE id = ? AND status = ?)
+      AND EXISTS (SELECT 1 FROM resourceReleases WHERE id = ? AND status = ?)
     `)
       .bind(
         ref.hash,
@@ -157,7 +157,7 @@ try {
       throw new Error('Audit pointer changed concurrently; backfill was not applied.')
     const { results: readback } = await db
       .prepare(
-        'SELECT manifestHash, byteLength FROM releaseProvenance WHERE releaseId = ?',
+        'SELECT manifestHash, byteLength FROM releaseProvenance WHERE resourceReleaseId = ?',
       )
       .bind(release.id)
       .all<{ manifestHash: string; byteLength: number }>()

@@ -76,20 +76,20 @@ const checkRoute = defineOpenAPIRoute<typeof check, AppEnv>({
 })
 const commit = createRoute({
   method: 'post',
-  path: '/v1/provenance/releases/{releaseId}',
+  path: '/v1/provenance/releases/{resourceReleaseId}',
   tags: ['Provenance'],
   request: {
-    params: z.object({ releaseId: z.string().min(1) }),
+    params: z.object({ resourceReleaseId: z.string().min(1) }),
     body: { required: true, content: { 'application/json': { schema: ref } } },
   },
   responses,
 })
 const get = createRoute({
   method: 'get',
-  path: '/v1/provenance/releases/{releaseId}',
+  path: '/v1/provenance/releases/{resourceReleaseId}',
   tags: ['Provenance'],
   request: {
-    params: z.object({ releaseId: z.string().min(1) }),
+    params: z.object({ resourceReleaseId: z.string().min(1) }),
     query: z.object({
       view: z
         .enum(['manifest', 'applications', 'audit', 'curations', 'api-fields'])
@@ -161,7 +161,7 @@ const commitRoute = defineOpenAPIRoute<typeof commit, AppEnv>({
         await registerProcessingResult(
           createPrimaryMetaRepoDb(c.env.DB_META),
           c.env.R2_ASSETS,
-          c.req.valid('param').releaseId,
+          c.req.valid('param').resourceReleaseId,
           { ...body, hash: body.hash as Digest },
         ),
         200,
@@ -180,7 +180,7 @@ const getRoute = defineOpenAPIRoute<typeof get, AppEnv>({
       const row = await db
         .select({ manifestHash: table.manifestHash, byteLength: table.byteLength })
         .from(table)
-        .where(eq(table.releaseId, c.req.valid('param').releaseId))
+        .where(eq(table.resourceReleaseId, c.req.valid('param').resourceReleaseId))
         .get()
       if (!row) throw new Error('Release has no retained processing result.')
       if (

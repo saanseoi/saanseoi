@@ -140,7 +140,10 @@ export async function processLocalDivisionGeometrySqlUpload(
     validateGeometry?: boolean
   } = {},
 ) {
-  const releaseId = requireString(uploadResult.releaseId, 'releaseId')
+  const resourceReleaseId = requireString(
+    uploadResult.resourceReleaseId,
+    'resourceReleaseId',
+  )
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const rawObjectKey = requireString(uploadResult.rawObjectKey, 'rawObjectKey')
@@ -172,7 +175,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       previewPlan.regionCode,
       historyShardYear,
       {
-        releaseId,
+        resourceReleaseId,
         resourceType: previewPlan.resourceType,
         preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
         sourceShardYear,
@@ -220,7 +223,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     if (!options.reuseRunningRelease) {
       await syncStagedReleaseIntoLocalMetaCache(
         dbContext.metaDb,
-        { datasetCode, rawObjectKey, releaseCode, releaseId },
+        { datasetCode, rawObjectKey, releaseCode, resourceReleaseId },
         {
           ...previewPlan,
           cohortKey: options.releaseCohortKey ?? previewPlan.cohortKey,
@@ -265,7 +268,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     controlClient = client
     if (!options.reuseRunningRelease) {
       await client.stageRunning(
-        releaseId,
+        resourceReleaseId,
         'processDataset',
         {
           resourceType: previewPlan.resourceType,
@@ -284,9 +287,9 @@ export async function processLocalDivisionGeometrySqlUpload(
       ),
     )
     const metaDb = dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
-    const dataset = await waitForDatasetRecord(metaDb, { releaseId })
+    const dataset = await waitForDatasetRecord(metaDb, { resourceReleaseId })
     if (!dataset) {
-      throw new Error(`Release not found: ${releaseId}`)
+      throw new Error(`Release not found: ${resourceReleaseId}`)
     }
     const [historyShard, sourceShard] = await Promise.all([
       resolveShardForTypeRegionYear(
@@ -310,8 +313,8 @@ export async function processLocalDivisionGeometrySqlUpload(
       )
     }
     await Promise.all([
-      upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id),
-      upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id),
+      upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, historyShard.id),
+      upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, sourceShard.id),
     ])
     const normalisationStartedAt = Date.now()
     progress.beginPhase(
@@ -518,7 +521,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     )
     const retainedVersion = await readNativeGeometryVersion(
       dbContext,
-      releaseId,
+      resourceReleaseId,
       previewPlan.resourceType,
       previewPlan.transform,
       previewPlan.cohortKey,
@@ -564,7 +567,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         datasetCode,
         datasetId: dataset.datasetId,
         regionCode: previewPlan.regionCode,
-        sourceReleaseId: dataset.releaseId,
+        sourceReleaseId: dataset.resourceReleaseId,
         geometryStatus: previewPlan.geometryStatus,
         variant: geometryVariant(previewPlan),
         reuseDraftSnapshotForVariant: isCenstatdGeometryCompanionPlan(previewPlan),
@@ -576,10 +579,10 @@ export async function processLocalDivisionGeometrySqlUpload(
         metaDb,
         snapshot.id,
         dataset.datasetId,
-        dataset.releaseId,
+        dataset.resourceReleaseId,
         'enrichment',
         {
-          anchorReleaseId: dataset.releaseId,
+          anchorReleaseId: dataset.resourceReleaseId,
           selectedByRule: 'verified-censtatd-geometry-materialisation-v1',
           selectionMode: 'verified_identical_geometry',
           sourceCohortKey: dataset.cohortKey,
@@ -621,10 +624,10 @@ export async function processLocalDivisionGeometrySqlUpload(
         metaDb,
         snapshot.id,
         dataset.datasetId,
-        dataset.releaseId,
+        dataset.resourceReleaseId,
         'primary',
         {
-          anchorReleaseId: dataset.releaseId,
+          anchorReleaseId: dataset.resourceReleaseId,
           selectedByRule: 'snapshot-assembly-division-geometry-v1',
           selectionMode: isCenstatdGeometryCompanionPlan(previewPlan)
             ? 'contributed_geometry'
@@ -637,17 +640,17 @@ export async function processLocalDivisionGeometrySqlUpload(
     await recordSnapshotAssembly(metaDb, {
       snapshotId: snapshot.id,
       resourceType: previewPlan.resourceType,
-      anchorReleaseId: dataset.releaseId,
+      anchorReleaseId: dataset.resourceReleaseId,
       anchorCohortKey: dataset.cohortKey,
       detailsJson: {
         releaseRole: reusesExistingGeometrySnapshot ? 'verified-identical' : 'primary',
-        sourceReleaseId: dataset.releaseId,
+        sourceReleaseId: dataset.resourceReleaseId,
         sourceVersion: dataset.sourceVersion,
       },
     })
     if (divisionLookup) {
       await recordSnapshotLookupDependency(metaDb, {
-        anchorReleaseId: dataset.releaseId,
+        anchorReleaseId: dataset.resourceReleaseId,
         lookupSnapshotId: divisionLookup.id,
         selectedByRule: divisionLookup.selectedByRule,
         selectionMode: divisionLookup.selectionMode,
@@ -678,7 +681,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         source: previewPlan.source,
         publisherRows,
         variant: geometryVariant(previewPlan),
-        releaseId,
+        resourceReleaseId,
         releaseCode,
         sourceVersion: previewPlan.sourceVersion,
         snapshotId: snapshot.id,
@@ -734,7 +737,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     if (shouldWriteExactGeometryReleaseStats(previewPlan.transform)) {
       await replaceDatasetStats(
         metaDb,
-        releaseId,
+        resourceReleaseId,
         await buildGeometryStats(
           dbContext.currentDb,
           dbContext.historyDb,
@@ -747,7 +750,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       )
     }
     const audit = await retainDivisionProvenance(bucket, {
-      releaseId,
+      resourceReleaseId,
       datasetCode,
       inputCount: previewPlan.rowCount,
       curationDocuments: curationDocumentsFor(providerBridgeRows),
@@ -782,7 +785,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         previewPlan.regionCode,
         historyShardYear,
         {
-          resumeSqlDeliveryReleaseId: releaseId,
+          resumeSqlDeliveryReleaseId: resourceReleaseId,
           sourceShardYear,
         },
       )
@@ -791,7 +794,7 @@ export async function processLocalDivisionGeometrySqlUpload(
           target,
           dbContext,
           previewPlan,
-          releaseId,
+          resourceReleaseId,
           snapshot.id,
           reusesExistingGeometrySnapshot,
           (subject, operation) =>
@@ -819,7 +822,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       formatTargetSubject("'completed'", target),
       () =>
         client.stageCompleted(
-          releaseId,
+          resourceReleaseId,
           'processDataset',
           {
             resourceType: previewPlan.resourceType,
@@ -835,7 +838,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       'Publish',
       'source release',
       () =>
-        client.publishDataset(releaseId, releaseCode, {
+        client.publishDataset(resourceReleaseId, releaseCode, {
           deferApiReleaseSet: options.deferApiReleaseSet,
           deferSourcePublish: options.deferSourcePublish,
           skipSnapshotCleanup: options.skipSnapshotCleanup,
@@ -865,7 +868,7 @@ export async function processLocalDivisionGeometrySqlUpload(
               refreshRemoteMetaCache(
                 target.environment === 'production' ? 'production' : 'preview',
                 publicationCacheDir,
-                releaseId,
+                resourceReleaseId,
               ),
           )
         }
@@ -882,13 +885,13 @@ export async function processLocalDivisionGeometrySqlUpload(
         )
       }
     }
-    await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
+    await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, resourceReleaseId)
     if (target.remote)
       await completeSqlDeliveryRelease(
         resolveRemoteCacheDir(
           target.environment === 'production' ? 'production' : 'preview',
         ),
-        releaseId,
+        resourceReleaseId,
       )
     return {
       snapshotId: snapshot.id,
@@ -901,7 +904,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       error,
       store: bucket,
       target,
-      releaseId,
+      resourceReleaseId,
       datasetCode,
     })
     progress.fail(error)
@@ -910,7 +913,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     if (!remotePublished) {
       await failureClient
         .stageFailed(
-          releaseId,
+          resourceReleaseId,
           'processDataset',
           error instanceof Error ? error.message : String(error),
           undefined,

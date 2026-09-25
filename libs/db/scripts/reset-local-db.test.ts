@@ -80,7 +80,7 @@ async function fixture() {
   }
   await writeFile(
     marker,
-    JSON.stringify({ releaseId: 'test', directories: [join(files[0], '..')] }),
+    JSON.stringify({ resourceReleaseId: 'test', directories: [join(files[0], '..')] }),
   )
   return { root, cacheDir, lock, marker, deliveries, files, remote }
 }

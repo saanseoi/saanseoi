@@ -40,7 +40,7 @@ bytes keep the same cohort across targets. No artificial historic date is used.
 Baseline records, notice records and notice applications retain only that release
 `sourceVersion` in `validFromRelease` and `validToRelease`, for example `2026-09-01.0`.
 The interval includes its starting version and excludes its closing version. The
-separate `releaseId` identifies the registered source release.
+separate `resourceReleaseId` identifies the registered source release.
 
 The current-release preflight requires:
 

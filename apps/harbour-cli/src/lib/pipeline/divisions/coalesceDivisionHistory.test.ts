@@ -113,7 +113,7 @@ async function fixture(
       `INSERT INTO sourceResolutions(scopeId,snapshotId,sourceReleaseId,sourceRecordId,sourceVersionHash,resolutions) VALUES('snapshot:old','old','release-old','source','raw','{"entities":{"division":["district"]}}')`,
     )
     requireDefined(before.DB_SOURCE).exec(
-      "INSERT INTO overtureDivisions(sourceRecordId,versionHash,releaseId,validFromRelease,isCurrent,sourceGeometry) VALUES('source','raw','release-old','2025',1,'{}')",
+      "INSERT INTO overtureDivisions(sourceRecordId,versionHash,resourceReleaseId,validFromRelease,isCurrent,sourceGeometry) VALUES('source','raw','release-old','2025',1,'{}')",
     )
     for (const [binding, path] of Object.entries(files)) {
       const candidatePath = join(root, `${binding}-candidate.sqlite`)

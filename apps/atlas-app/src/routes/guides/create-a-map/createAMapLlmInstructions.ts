@@ -13,6 +13,7 @@ import { createAMapLlmDecisionMatrixInstructions } from './createAMapLlmDecision
 const joinInstructions = (sections: string[]) =>
   [
     ...sections,
+    'When inspecting Place provenance, attributes.resourceReleaseId identifies the processed resource release; snapshotId identifies the canonical snapshot.',
     'For Places pagination, follow links.next until it is absent. Historical snapshots expose meta.page.hasMore instead of an exact meta.page.total; do not require a total to load subsequent pages.',
   ]
     .map(section => section.trim())

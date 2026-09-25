@@ -4,10 +4,10 @@ import { readAuditGeometry } from './auditGeometry'
 import { getCurrentDb, getHistoryDb, getMetaDb } from './server'
 
 export const getAuditGeometry = query(
-  z.object({ releaseId: z.string(), divisionId: z.string() }),
-  ({ releaseId, divisionId }) =>
+  z.object({ resourceReleaseId: z.string(), divisionId: z.string() }),
+  ({ resourceReleaseId, divisionId }) =>
     readAuditGeometry({
-      releaseId,
+      resourceReleaseId,
       divisionId,
       currentDb: getCurrentDb(),
       metaDb: getMetaDb(),

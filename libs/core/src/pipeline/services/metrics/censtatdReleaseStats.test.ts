@@ -239,7 +239,7 @@ describe('buildCenstatdReleaseStats', () => {
         groupBy: row.groupBy ?? null,
         groupValue: row.groupValue ?? null,
         id: `previous-${index}`,
-        releaseId: 'release-previous',
+        resourceReleaseId: 'release-previous',
         snapshotId: null,
         updatedAt: row.updatedAt ?? timestamp,
       }))

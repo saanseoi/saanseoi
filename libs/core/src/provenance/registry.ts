@@ -11,7 +11,7 @@ import { retainAuditSearchIndex } from './auditSearchIndex'
 export async function registerProcessingResult(
   db: HarbourReadableDb & HarbourWritableDb,
   store: ProvenanceStore,
-  releaseId: string,
+  resourceReleaseId: string,
   ref: ObjectRef,
 ) {
   const manifest = await readObject(store, ref)
@@ -26,9 +26,10 @@ export async function registerProcessingResult(
   const result = manifest as
     | import('./types').ProcessingManifest
     | import('./auditTypes').AuditManifest
-  if (result.releaseId !== releaseId) throw new Error('Provenance release mismatch.')
+  if (result.resourceReleaseId !== resourceReleaseId)
+    throw new Error('Provenance release mismatch.')
   const table = metaSchema.releaseProvenance
-  const releases = metaSchema.metaReleases
+  const releases = metaSchema.metaResourceReleases
   const release = await db
     .select({
       status: releases.status,
@@ -36,20 +37,22 @@ export async function registerProcessingResult(
       code: releases.code,
     })
     .from(releases)
-    .where(eq(releases.id, releaseId))
+    .where(eq(releases.id, resourceReleaseId))
     .get()
   if (!release) throw new Error('Unknown provenance release.')
   if (release.resourceType === 'street')
     throw new Error('Streets provenance is outside this implementation.')
   if (
     result.kind === 'processing-result' &&
-    result.collections.some(c => c.layer === 'canonical' && c.releaseId !== releaseId)
+    result.collections.some(
+      c => c.layer === 'canonical' && c.resourceReleaseId !== resourceReleaseId,
+    )
   )
     throw new Error('Canonical collection belongs to a different release.')
   const existing = await db
     .select()
     .from(table)
-    .where(eq(table.releaseId, releaseId))
+    .where(eq(table.resourceReleaseId, resourceReleaseId))
     .get()
   if (existing?.manifestHash === ref.hash && existing.byteLength === ref.byteLength) {
     if (result.kind === 'processing-audit')
@@ -68,7 +71,7 @@ export async function registerProcessingResult(
     .select(
       db
         .select({
-          releaseId: releases.id,
+          resourceReleaseId: releases.id,
           manifestHash: sql<string>`${ref.hash}`,
           byteLength: sql<number>`${ref.byteLength}`,
           applicationCount: sql<number>`${result.applicationCount}`,
@@ -79,13 +82,13 @@ export async function registerProcessingResult(
         .from(releases)
         .where(
           and(
-            eq(releases.id, releaseId),
+            eq(releases.id, resourceReleaseId),
             inArray(releases.status, ['staged', 'processing']),
           ),
         ),
     )
     .onConflictDoUpdate({
-      target: table.releaseId,
+      target: table.resourceReleaseId,
       set: {
         manifestHash: ref.hash,
         byteLength: ref.byteLength,
@@ -98,7 +101,7 @@ export async function registerProcessingResult(
   const saved = await db
     .select()
     .from(table)
-    .where(eq(table.releaseId, releaseId))
+    .where(eq(table.resourceReleaseId, resourceReleaseId))
     .get()
   if (saved?.manifestHash !== ref.hash || saved.byteLength !== ref.byteLength)
     throw new Error('Release changed while registering provenance.')

@@ -43,7 +43,7 @@ const title = (value: string) =>
   label(value).replace(/\b[a-z]/g, character => character.toUpperCase())
 let {
   bulk,
-  releaseId,
+  resourceReleaseId,
   hash,
   query = '',
   groups,
@@ -51,7 +51,7 @@ let {
 }: {
   bulk: BulkAudit
   evidence?: BulkAudit
-  releaseId: string
+  resourceReleaseId: string
   hash: string
   query?: string
   groups?: Record<string, FixtureSearchGroup>
@@ -64,14 +64,18 @@ let parameters = $derived(
     : null,
 )
 $effect(() => {
-  releaseId
+  resourceReleaseId
   hash
   bulk.id
   void loadDeclaration()
 })
 async function loadDeclaration() {
   try {
-    declaration = await getRetainedRuleDeclaration({ releaseId, hash, bulkId: bulk.id })
+    declaration = await getRetainedRuleDeclaration({
+      resourceReleaseId,
+      hash,
+      bulkId: bulk.id,
+    })
     failure = ''
   } catch {
     failure = m.source_audit_load_rules_error()
@@ -94,7 +98,7 @@ async function loadDeclaration() {
       {/if}
       <StatusBadge status={bulk.outcome} />
       <CopyRule
-        getRule={() => getRetainedRuleDeclaration({ releaseId, hash, bulkId: bulk.id })}
+        getRule={() => getRetainedRuleDeclaration({ resourceReleaseId, hash, bulkId: bulk.id })}
       />
     </div>
   </header>
@@ -175,7 +179,7 @@ async function loadDeclaration() {
     </details>
   {/if}
   {#each evidence.fixtures as fixture, index}
-    {@const group = groups?.[fixture.type]}
+    {@const (group = groups?.[fixture.type])}
     {#if evidence.fixtures.findIndex(part => part.type === fixture.type) === index &&
   group &&
   catalogueGroupMatches(group, query)}
@@ -189,7 +193,7 @@ async function loadDeclaration() {
       part.type === fixture.type
         ? [
             getRetainedBulkFixture({
-              releaseId,
+              resourceReleaseId,
               hash,
               bulkId: evidence.id,
               index: partIndex,
@@ -203,7 +207,7 @@ async function loadDeclaration() {
           />
         </div>
         <LazyFixture
-          {releaseId}
+          {resourceReleaseId}
           {hash}
           {query}
           {group}

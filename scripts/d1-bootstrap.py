@@ -98,7 +98,7 @@ def transient(name):
 
 def blockers(db):
     rules = {
-        'releases': ('uploading', 'staged', 'processing', 'failed'),
+        'resourceReleases': ('uploading', 'staged', 'processing', 'failed'),
         'sourceReleases': ('uploading', 'staged', 'processing', 'failed'),
         'snapshots': ('draft',),
         'apiReleaseSets': ('draft',),

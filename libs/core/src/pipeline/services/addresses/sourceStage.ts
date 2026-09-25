@@ -53,14 +53,14 @@ export async function writeAddressSourceChunkStage(
   )
   const changedIds = new Set<string>()
   const unchangedIds = new Set<string>()
-  const releaseId = buildSourceReleaseId(message)
+  const resourceReleaseId = buildSourceReleaseId(message)
 
   await writeHkgovSourceRows(
     sourceDb,
     message,
     uniqueRows,
     currentSourceRows,
-    releaseId,
+    resourceReleaseId,
     changedIds,
     unchangedIds,
   )
@@ -82,7 +82,7 @@ async function writeHkgovSourceRows(
       sourcePayloadHash: string | null
     }
   >,
-  releaseId: string,
+  resourceReleaseId: string,
   changedIds: Set<string>,
   unchangedIds: Set<string>,
 ) {
@@ -113,7 +113,7 @@ async function writeHkgovSourceRows(
     const hkgovSourceRow = {
       sourceRecordId: row.sourceId,
       versionHash: row.sourcePayloadHash,
-      releaseId,
+      resourceReleaseId,
       validFromRelease: message.sourceVersion,
       validToRelease: null,
       isCurrent: true,

@@ -33,7 +33,7 @@ test('backfill preserves immutable audit objects and serves search without evide
     fields: [{ sourceField: 'population', fieldName: 'Population' }],
   })
   const audit = await retainAuditResult(store, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'statistics',
     attempt: { id: 'attempt', status: 'completed' },
     bulk: [
@@ -88,7 +88,7 @@ test('large non-tabular evidence builds bounded search without merging its paylo
     actions: [{ evidence: `needle ${'retained evidence '.repeat(55000)}` }],
   })
   const audit = await retainAuditResult(store, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'addresses',
     attempt: { id: 'attempt', status: 'completed' },
     bulk: [

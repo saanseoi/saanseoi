@@ -105,7 +105,7 @@ describe('harbour-api', () => {
     expect(res.headers.get('location')).toBe('/openapi')
   })
 
-  test('GET /openapi documents control selectors as required releaseId or releaseCode', async () => {
+  test('GET /openapi documents control selectors as required resourceReleaseId or releaseCode', async () => {
     const res = await app.request('http://localhost/openapi')
     const document = (await res.json()) as {
       components: {
@@ -121,12 +121,12 @@ describe('harbour-api', () => {
       throw new Error('Missing control request schemas in OpenAPI document')
     }
     expect(controlStageSchema.anyOf).toEqual([
-      { required: ['releaseId'] },
+      { required: ['resourceReleaseId'] },
       { required: ['releaseCode'] },
     ])
     expect(controlStageSchema.required).toContain('phase')
     expect(publishDatasetSchema.anyOf).toEqual([
-      { required: ['releaseId'] },
+      { required: ['resourceReleaseId'] },
       { required: ['releaseCode'] },
     ])
   })

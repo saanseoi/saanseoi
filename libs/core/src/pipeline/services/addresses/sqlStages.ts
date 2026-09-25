@@ -328,7 +328,7 @@ export async function writeAddressReleaseMetaSqlFile(
     {
       snapshotId,
       lookupSnapshotId: pipelineMessage.addressDivisionSnapshotId,
-      anchorReleaseId: message.releaseId ?? message.datasetId,
+      anchorReleaseId: message.resourceReleaseId ?? message.datasetId,
       selectedByRule: 'address-preparation:exact-division',
       selectionMode: 'exact_ref',
     },
@@ -339,7 +339,7 @@ export async function writeAddressReleaseMetaSqlFile(
       {
         snapshotId,
         lookupSnapshotId: pipelineMessage.addressDivisionAreaSnapshotId,
-        anchorReleaseId: message.releaseId ?? message.datasetId,
+        anchorReleaseId: message.resourceReleaseId ?? message.datasetId,
         selectedByRule: 'address-preparation:exact-division-area',
         selectionMode: 'exact_ref',
       },
@@ -360,7 +360,7 @@ async function resolveAddressSnapshotId(
   metaDb: MetaDatabase,
   message: DatasetProcessingMessage,
 ) {
-  const releaseId = message.releaseId ?? message.datasetId
+  const resourceReleaseId = message.resourceReleaseId ?? message.datasetId
   const snapshot = await metaDb
     .select({ id: metaSchema.metaSnapshots.id })
     .from(metaSchema.metaSnapshots)
@@ -370,7 +370,7 @@ async function resolveAddressSnapshotId(
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, releaseId),
+        eq(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, resourceReleaseId),
         eq(metaSchema.metaSnapshotSourceReleases.role, 'primary'),
         eq(metaSchema.metaSnapshots.resourceType, 'address'),
       ),
@@ -379,7 +379,9 @@ async function resolveAddressSnapshotId(
     .get()
 
   if (!snapshot) {
-    throw new Error(`Address snapshot metadata missing for release ${releaseId}.`)
+    throw new Error(
+      `Address snapshot metadata missing for release ${resourceReleaseId}.`,
+    )
   }
 
   return snapshot.id
@@ -390,7 +392,7 @@ export async function buildAddressMetaSqlFile(
   message: DatasetProcessingMessage,
   snapshotIdValue: string,
 ): Promise<AddressSqlImportFile> {
-  const releaseId = message.releaseId ?? message.datasetId
+  const resourceReleaseId = message.resourceReleaseId ?? message.datasetId
   const {
     metaReleaseShardAssignments,
     metaSnapshotLineages,
@@ -459,9 +461,9 @@ export async function buildAddressMetaSqlFile(
     .where(eq(metaSnapshotSourceReleases.snapshotId, snapshotIdValue))
     .all()
 
-  if (!snapshotSourceRows.some(row => row.resourceReleaseId === releaseId)) {
+  if (!snapshotSourceRows.some(row => row.resourceReleaseId === resourceReleaseId)) {
     throw new Error(
-      `Address snapshot source metadata missing for release ${releaseId} and snapshot ${snapshotIdValue}.`,
+      `Address snapshot source metadata missing for release ${resourceReleaseId} and snapshot ${snapshotIdValue}.`,
     )
   }
 
@@ -487,11 +489,11 @@ export async function buildAddressMetaSqlFile(
     .all()
   const releaseShardAssignmentRows = await metaDb
     .select({
-      releaseId: metaReleaseShardAssignments.releaseId,
+      resourceReleaseId: metaReleaseShardAssignments.resourceReleaseId,
       dataShardId: metaReleaseShardAssignments.dataShardId,
     })
     .from(metaReleaseShardAssignments)
-    .where(eq(metaReleaseShardAssignments.releaseId, releaseId))
+    .where(eq(metaReleaseShardAssignments.resourceReleaseId, resourceReleaseId))
     .all()
   const snapshotShardAssignmentRows = await metaDb
     .select({
@@ -505,12 +507,12 @@ export async function buildAddressMetaSqlFile(
   const releaseStatsRows = await metaDb
     .select()
     .from(stats)
-    .where(eq(stats.releaseId, releaseId))
+    .where(eq(stats.resourceReleaseId, resourceReleaseId))
     .all()
 
   if (releaseShardAssignmentRows.length === 0) {
     throw new Error(
-      `Address release shard assignment missing from local meta cache: ${releaseId}.`,
+      `Address release shard assignment missing from local meta cache: ${resourceReleaseId}.`,
     )
   }
 
@@ -638,9 +640,9 @@ export async function buildAddressMetaSqlFile(
     ),
     buildInsertStatement(
       'releaseShardAssignments',
-      ['releaseId', 'dataShardId'],
+      ['resourceReleaseId', 'dataShardId'],
       releaseShardAssignmentRows,
-      'ON CONFLICT(releaseId, dataShardId) DO NOTHING',
+      'ON CONFLICT(resourceReleaseId, dataShardId) DO NOTHING',
     ),
     buildInsertStatement(
       'snapshotShardAssignments',
@@ -666,7 +668,7 @@ export function buildAddressStatsMetaSql(rows: Array<Record<string, unknown>>) {
     'stats',
     [
       'id',
-      'releaseId',
+      'resourceReleaseId',
       'apiReleaseSetId',
       'dimension',
       'metric',
@@ -679,7 +681,7 @@ export function buildAddressStatsMetaSql(rows: Array<Record<string, unknown>>) {
     ],
     rows.filter(row => row.metric !== 'processing'),
     `ON CONFLICT(id) DO UPDATE SET
-  releaseId = excluded.releaseId,
+  resourceReleaseId = excluded.resourceReleaseId,
   apiReleaseSetId = excluded.apiReleaseSetId,
   dimension = excluded.dimension,
   metric = excluded.metric,
@@ -724,7 +726,7 @@ async function writeSqlFiles(
       datasetId: message.datasetId,
       key,
       phase: 'addressSqlArtefact',
-      releaseId: message.releaseId ?? message.datasetId,
+      resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
       statementCount: file.statementCount,
       status: 'written',
       target: file.target,

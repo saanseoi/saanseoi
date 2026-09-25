@@ -99,7 +99,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     datasetCode?: string
     rawObjectKey?: string
     releaseCode?: string
-    releaseId?: string
+    resourceReleaseId?: string
   },
   prepared: PreparedUploadFile,
   options: {
@@ -109,7 +109,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     reuseExistingRelease?: boolean
   },
 ) {
-  const releaseId = required(upload.releaseId, 'releaseId')
+  const resourceReleaseId = required(upload.resourceReleaseId, 'resourceReleaseId')
   const releaseCode = required(upload.releaseCode, 'releaseCode')
   const progress = new OperationProgress()
   const cacheStartedAt = Date.now()
@@ -121,7 +121,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       'hk',
       plan.sourceVersion.slice(0, 4),
       {
-        resumeSqlDeliveryReleaseId: releaseId,
+        resumeSqlDeliveryReleaseId: resourceReleaseId,
 
         onProgress(event) {
           updateDbCacheProgress(progress, event)
@@ -151,7 +151,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       datasetCode,
       rawObjectKey: required(upload.rawObjectKey, 'rawObjectKey'),
       releaseCode,
-      releaseId,
+      resourceReleaseId,
     },
     plan,
     {
@@ -174,7 +174,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       : {}),
     nativeLocal: true,
     context,
-    releaseId,
+    resourceReleaseId,
     phase,
     inputs: {
       preparedSha256,
@@ -198,13 +198,14 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           inputs: {
             contract: 'censtatd-general-source-v4',
             preparedSha256,
-            releaseId,
+            resourceReleaseId,
             releaseCode,
             datasetCode,
             sourceVersion: plan.sourceVersion,
             rowCount: plan.rowCount,
           },
-          generate: () => readRows(prepared.filePath, releaseId, plan.sourceVersion),
+          generate: () =>
+            readRows(prepared.filePath, resourceReleaseId, plan.sourceVersion),
         }),
     )
     if (rows.length !== plan.rowCount)
@@ -263,7 +264,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         divisionId,
         properties,
         sourceFeatureRef,
-        sourceReleaseId: releaseId,
+        sourceReleaseId: resourceReleaseId,
         sourceVersion: plan.sourceVersion,
         ...(districtsBySourceCode
           ? {
@@ -314,7 +315,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     const batches = () =>
       buildStatisticSqlBatches({
         sourceVersion: plan.sourceVersion,
-        releaseId,
+        resourceReleaseId,
         source: {
           rows: rows.map(row =>
             sourceTable === 'hkgovCenstatdDivisionAreas'
@@ -351,7 +352,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       referencePeriods: referencePeriods.filter(referencePeriod =>
         changedReferencePeriods.has(referencePeriod.code),
       ),
-      releaseId,
+      resourceReleaseId,
       target,
     })
     const canonicalPlan = await planCanonicalStatistics({
@@ -359,7 +360,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       snapshots,
       metaDb,
       historyDbs,
-      sourceReleaseId: releaseId,
+      sourceReleaseId: resourceReleaseId,
     })
     progress.message(
       `Statistics: ${canonicalPlan.changedRecords.length} changed packs, ${canonicalPlan.unchangedRecords} unchanged packs`,
@@ -377,11 +378,11 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
               },
             ]),
           ),
-          releaseId,
+          resourceReleaseId,
         ),
       )
     await client.stageRunning(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       { resourceType: 'divisionStatistic', sourceRows: plan.rowCount },
       releaseCode,
@@ -436,7 +437,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     )
     const previousStats = await findPreviousComparableCenstatdReleaseStats(
       metaDb,
-      releaseId,
+      resourceReleaseId,
     )
     const { materialisedStats } = await runStatisticProgressStep(
       progress,
@@ -444,7 +445,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       async () => {
         const materialisedStats = await replaceDatasetStatsAndReturnRows(
           metaDb,
-          releaseId,
+          resourceReleaseId,
           [
             ...structuralStats,
             ...buildCenstatdStructuralChurnStats(structuralStats, previousStats),
@@ -453,7 +454,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         await replayReleaseStatsMetaToRemote(
           target,
           context,
-          releaseId,
+          resourceReleaseId,
           materialisedStats,
           { delivery: delivery('statistics-meta-stats') },
         )
@@ -461,7 +462,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       },
     )
     await client.stageCompleted(
-      releaseId,
+      resourceReleaseId,
       'processDataset',
       {
         resourceType: plan.resourceType,
@@ -475,7 +476,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       target,
       context,
       metaDb,
-      releaseId,
+      resourceReleaseId,
       snapshots.map(snapshot => snapshot.id),
       { delivery: delivery('statistics-meta-snapshots') },
     )
@@ -487,7 +488,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
         )
         const result = await retainStatisticProvenance(store, {
-          releaseId,
+          resourceReleaseId,
           datasetCode,
           source: canonicalInput,
           canonical,
@@ -513,7 +514,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       progress,
       { action: 'Publish', subject: 'statistic release' },
       async () => {
-        const published = await client.publishDataset(releaseId, releaseCode, {
+        const published = await client.publishDataset(resourceReleaseId, releaseCode, {
           deferStatsReleaseSet: options.deferStatsReleaseSet,
           deferSourcePublish: options.deferSourcePublish,
         })
@@ -533,7 +534,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
             await refreshRemoteMetaCache(
               targetName,
               context.state.dbCacheDir,
-              releaseId,
+              resourceReleaseId,
             )
           }
         }
@@ -556,18 +557,18 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           metaDb,
           progress,
           releaseCode,
-          releaseId,
+          resourceReleaseId,
         },
         published,
       )
     }
-    await completeSqlDeliveryRelease(context.state.dbCacheDir, releaseId)
+    await completeSqlDeliveryRelease(context.state.dbCacheDir, resourceReleaseId)
     return published
   } catch (error) {
     await retainProcessingFailure({
       error,
       target,
-      releaseId,
+      resourceReleaseId,
       datasetCode,
       store: new LocalPipelineBucket(
         sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
@@ -588,7 +589,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     if (processingStarted) {
       await client
         .stageFailed(
-          releaseId,
+          resourceReleaseId,
           'processDataset',
           error instanceof Error ? error.message : String(error),
           undefined,
@@ -602,7 +603,11 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
   }
 }
 
-async function* readRows(filePath: string, releaseId: string, sourceVersion: string) {
+async function* readRows(
+  filePath: string,
+  resourceReleaseId: string,
+  sourceVersion: string,
+) {
   for await (const batch of readParquetObjectsInBatches(
     await asyncBufferFromFile(filePath),
     2048,
@@ -641,7 +646,7 @@ async function* readRows(filePath: string, releaseId: string, sourceVersion: str
       yield {
         ...payload,
         sourceRecordId,
-        releaseId,
+        resourceReleaseId,
         validFromRelease: sourceVersion,
         validToRelease: null,
         isCurrent: true,

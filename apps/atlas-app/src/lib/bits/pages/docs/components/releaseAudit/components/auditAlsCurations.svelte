@@ -5,13 +5,13 @@ import { matchesAuditText } from './auditSearch'
 import Group from './auditAlsGroup.svelte'
 let {
   rows,
-  releaseId,
+  resourceReleaseId,
   releaseCode,
   hash,
   query = '',
 }: {
   rows: AlsSearchRow[]
-  releaseId: string
+  resourceReleaseId: string
   releaseCode: string
   hash: string
   query?: string
@@ -40,7 +40,7 @@ let types = $derived(
     all={group.all}
     visible={group.visible}
     {query}
-    {releaseId}
+    {resourceReleaseId}
     {releaseCode}
     {hash}
   />

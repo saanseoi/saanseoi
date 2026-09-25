@@ -489,9 +489,10 @@ lookup rows never enter delivered tables. Missing revision evidence fails prepar
 
 Final-difference delivery preserves unchanged Place content, cells, localisations and
 links without transmitting their candidate SQL. Complete replacement membership removes
-absent rows within that scope. The stored `releaseId` and `lastSeenMonth` retain the
-last real content change. Current API responses derive `lastSeenMonth` from the selected
-complete publication cohort; immutable history retains its recorded version values.
+absent rows within that scope. The stored `resourceReleaseId` and `lastSeenMonth` retain
+the last real content change. Current API responses derive `lastSeenMonth` from the
+selected complete publication cohort; immutable history retains its recorded version
+values.
 
 A newer Address revision with identical relevant base, selected unit and locale content
 reuses the Place's earlier reference. Changed dependency content advances that exact

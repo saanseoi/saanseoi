@@ -4,15 +4,15 @@ import type { Json } from '@repo/core/provenance'
 import { getAuditDecision } from '#lib/registry/audit.remote.js'
 import AuditFixture from './auditFixture.svelte'
 let {
-  releaseId,
+  resourceReleaseId,
   hash,
   actionId,
-}: { releaseId: string; hash: string; actionId: string } = $props()
+}: { resourceReleaseId: string; hash: string; actionId: string } = $props()
 let result = $state<{ declaration: Json; fixture: Json }>()
 let failure = $state('')
 async function load() {
   try {
-    result = await getAuditDecision({ releaseId, hash, actionId })
+    result = await getAuditDecision({ resourceReleaseId, hash, actionId })
     failure = ''
   } catch {
     failure = m.source_audit_load_decision_error()

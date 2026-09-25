@@ -29,7 +29,7 @@ test('native preparation excludes concurrent producers and reserves sealed plans
       directory: join(root, 'first'),
       ownershipDirectory: root,
       files: { DB_CURRENT: path },
-      releaseId: 'first',
+      resourceReleaseId: 'first',
       phase: 'data',
       inputs: {},
       generate: async (
@@ -51,7 +51,7 @@ test('native preparation excludes concurrent producers and reserves sealed plans
     const second = {
       ...input,
       directory: join(root, 'second'),
-      releaseId: 'second',
+      resourceReleaseId: 'second',
       generate: async () => {
         secondGenerated = true
       },
@@ -61,7 +61,7 @@ test('native preparation excludes concurrent producers and reserves sealed plans
     unblock()
     await first
     expect(await readPendingSqlDelivery(root)).toEqual({
-      releaseId: 'first',
+      resourceReleaseId: 'first',
       directories: [input.directory],
     })
     await expect(prepareNativeSqlDelivery(second)).rejects.toThrow(
@@ -91,7 +91,7 @@ test('failed native generation releases the cache lock without reserving an unse
       directory: join(root, 'plan'),
       ownershipDirectory: root,
       files: { DB_CURRENT: path },
-      releaseId: 'failed',
+      resourceReleaseId: 'failed',
       phase: 'data',
       inputs: {},
       generate: async () => {
@@ -102,7 +102,7 @@ test('failed native generation releases the cache lock without reserving an unse
     expect(await readPendingSqlDelivery(root)).toBeNull()
     await prepareNativeSqlDelivery({
       ...input,
-      releaseId: 'replacement',
+      resourceReleaseId: 'replacement',
       generate: async append => {
         await append(
           { bindingName: 'DB_CURRENT', databaseId: 'DB_CURRENT' },
@@ -133,7 +133,7 @@ test('native SQL receipts resume committed payloads without network credentials 
         directory,
         ownershipDirectory: root,
         files,
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         phase: 'data',
         inputs: { source: 'frozen' },
         generate: async append => {
@@ -219,7 +219,7 @@ test('native replay rejects reset identities and changed configured paths before
       directory,
       ownershipDirectory: root,
       files,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'data',
       inputs: {},
       generate: async append => {
@@ -256,7 +256,7 @@ test('preparation reads an existing database identity while an unrelated writer 
     const plan = await prepareNativeSqlDelivery({
       directory: join(root, 'plan'),
       ownershipDirectory: root,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'data',
       inputs: {},
       files: { DB_META: path },

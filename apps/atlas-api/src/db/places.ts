@@ -66,7 +66,7 @@ export type PlaceRecord = {
   place: {
     snapshotId: string
     id: string
-    releaseId: string
+    resourceReleaseId: string
     addressSnapshotId: string | null
     address2dId: string | null
     address3dId: string | null
@@ -212,7 +212,7 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
   return db
     .select({
       placeId: places.id,
-      releaseId: places.releaseId,
+      resourceReleaseId: places.resourceReleaseId,
       basicCategory: places.basicCategory,
       taxonomyPrimary: places.taxonomyPrimary,
       taxonomyHierarchy: places.taxonomyHierarchy,
@@ -255,7 +255,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
     const rows = await db
       .select({
         placeId: places.id,
-        releaseId: places.releaseId,
+        resourceReleaseId: places.resourceReleaseId,
         locale: placesFts.locale,
         nameText: placesFts.nameText,
         brandText: placesFts.brandText,
@@ -470,7 +470,7 @@ export async function listPlaceRecordsCurrent(
     .select({
       snapshotId: publicationLogicalSnapshot('place', places.snapshotId),
       id: places.id,
-      releaseId: places.releaseId,
+      resourceReleaseId: places.resourceReleaseId,
       addressSnapshotId: places.addressSnapshotId,
       address2dId: places.address2dId,
       address3dId: places.address3dId,

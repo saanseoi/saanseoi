@@ -43,7 +43,7 @@ function fixture() {
   const meta = new Database(inputs.meta)
   meta.exec(`
     CREATE TABLE datasets (id TEXT, code TEXT);
-    CREATE TABLE releases (id TEXT, code TEXT, sourceVersion TEXT);
+    CREATE TABLE resourceReleases (id TEXT, code TEXT, sourceVersion TEXT);
     CREATE TABLE snapshots (id TEXT, parentSnapshotId TEXT, cohortKey TEXT, resourceType TEXT, revision INTEGER, status TEXT, createdAt TEXT);
     CREATE TABLE snapshotSourceReleases (snapshotId TEXT, resourceReleaseId TEXT, datasetId TEXT, role TEXT);
     CREATE TABLE dataShards (id TEXT, bindingName TEXT);
@@ -65,7 +65,7 @@ function fixture() {
     const release = `release-${number}`
     const snapshot = `snapshot-${number}`
     meta
-      .query('INSERT INTO releases VALUES (?, ?, ?)')
+      .query('INSERT INTO resourceReleases VALUES (?, ?, ?)')
       .run(release, release, String(number))
     meta
       .query('INSERT INTO snapshots VALUES (?, ?, ?, ?, ?, ?, ?)')
@@ -337,7 +337,7 @@ test('Building Group preparation reads source validity using the complete publis
   const sourceVersion = '2023-H2'
   f.meta.query('UPDATE datasets SET code = ?').run(datasetCode)
   f.meta
-    .query('UPDATE releases SET code = ?, sourceVersion = ?')
+    .query('UPDATE resourceReleases SET code = ?, sourceVersion = ?')
     .run(
       `dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-${sourceVersion}::divisionStatistic`,
       sourceVersion,
@@ -361,7 +361,7 @@ test('Building Group preparation reads source validity using the complete publis
   const sourcePath = join(f.directory, 'source.sqlite')
   const source = new Database(sourcePath)
   source.exec(`CREATE TABLE hkgovCenstatdStatistics (
-    sourceRecordId TEXT, releaseId TEXT, properties TEXT,
+    sourceRecordId TEXT, resourceReleaseId TEXT, properties TEXT,
     validFromRelease TEXT, validToRelease TEXT
   )`)
   const insert = source.query(

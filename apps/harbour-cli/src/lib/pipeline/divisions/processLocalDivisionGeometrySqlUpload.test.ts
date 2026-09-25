@@ -599,7 +599,7 @@ describe('geometryBuildUpsertSql', () => {
     const sql = geometryBuildUpsertSql('overtureDivisionAreas', [
       {
         properties,
-        releaseId: 'release-1',
+        resourceReleaseId: 'release-1',
         sourceRecordId: 'area-1',
         versionHash: 'hash-1',
       },
@@ -614,7 +614,7 @@ describe('geometryBuildUpsertSql', () => {
 
     const database = new Database(':memory:')
     database.exec(
-      'CREATE TABLE overtureDivisionAreas (sourceRecordId TEXT NOT NULL, properties TEXT NOT NULL, releaseId TEXT NOT NULL, versionHash TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash));',
+      'CREATE TABLE overtureDivisionAreas (sourceRecordId TEXT NOT NULL, properties TEXT NOT NULL, resourceReleaseId TEXT NOT NULL, versionHash TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash));',
     )
     database.exec(sql)
 

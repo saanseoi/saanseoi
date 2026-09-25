@@ -131,14 +131,17 @@ const sourceMatchesSearch = (source: SourcesPageSource) => {
   if (!isSourceSearchActive) return true
 
   const terms = [
-    ...source.datasetI18n.flatMap(row => [row.name, row.description ?? '']),
-    ...(source.publisher?.publisherI18n ?? []).map(row => row.name),
+    ...Object.values(source.datasetI18n).flatMap(row => [
+      row.name,
+      row.description ?? '',
+    ]),
+    ...Object.values(source.publisher?.publisherI18n ?? {}).map(row => row.name),
   ]
 
   return terms.some(term => term.toLocaleLowerCase(locale).includes(sourceSearchQuery))
 }
 
-const domainLabel = (domain: string, i18n?: LocalisedRow[]) =>
+const domainLabel = (domain: string, i18n?: Record<string, LocalisedRow>) =>
   selectLocalisedRow(i18n, locale)?.name ??
   {
     geographic: 'GEOGRAPHICAL',

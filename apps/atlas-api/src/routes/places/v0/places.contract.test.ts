@@ -290,7 +290,7 @@ function seedCurrent(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO places
-        (snapshotId, id, releaseId, lng, lat, bbox, operatingStatus, basicCategory,
+        (snapshotId, id, resourceReleaseId, lng, lat, bbox, operatingStatus, basicCategory,
          taxonomyPrimary, taxonomyHierarchy, taxonomyAlternates, websites, confidence,
          sources, firstSeenMonth, lastSeenMonth, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -472,7 +472,7 @@ function seedHistory(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO places
-        (id, releaseId, addressSnapshotId, address2dId, lng, lat, bbox,
+        (id, resourceReleaseId, addressSnapshotId, address2dId, lng, lat, bbox,
          operatingStatus, basicCategory, taxonomyPrimary, taxonomyHierarchy,
          taxonomyAlternates, websites, confidence, sources, firstSeenMonth,
          lastSeenMonth, versionHash, sourceReleaseId, snapshotId, isCurrent,
@@ -855,7 +855,7 @@ describe('Places collection through the Worker route', () => {
       expect(response.status).toBe(200)
       expect(attributes).toMatchObject({
         snapshotId: PLACE_SNAPSHOT,
-        releaseId: 'release-overture-2026-08-19',
+        resourceReleaseId: 'release-overture-2026-08-19',
         sources: { overture: [expect.objectContaining({ dataset: 'overture' })] },
         geometry: { type: 'Point', coordinates: [114.155, 22.285] },
       })

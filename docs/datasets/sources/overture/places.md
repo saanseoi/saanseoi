@@ -616,10 +616,10 @@ unchanged Place, localisation, cell and link rows untouched, although their cand
 SQL can still be transmitted. Complete replacement membership removes absent components
 within the owned scope.
 
-The stored `releaseId` and `lastSeenMonth` retain the last real Place content change.
-Current API responses derive `lastSeenMonth` from the selected complete publication
-cohort; historical reads retain the recorded values. Publication assertions do not
-require updating every unchanged Place.
+The stored `resourceReleaseId` and `lastSeenMonth` retain the last real Place content
+change. Current API responses derive `lastSeenMonth` from the selected complete
+publication cohort; historical reads retain the recorded values. Publication assertions
+do not require updating every unchanged Place.
 
 Place delivery checks records, localisations, spatial cells and division links before
 completing its publication receipt. Import preparation may read an acknowledged ALS

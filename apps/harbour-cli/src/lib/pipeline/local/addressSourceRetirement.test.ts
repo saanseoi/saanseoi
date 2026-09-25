@@ -5,7 +5,7 @@ import { preRetireAddressSources } from './addressSourceRetirement.ts'
 const columns = [
   'sourceRecordId',
   'versionHash',
-  'releaseId',
+  'resourceReleaseId',
   'validFromRelease',
   'validToRelease',
   'isCurrent',
@@ -16,10 +16,10 @@ const columns = [
   'updatedAt',
 ]
 const closure = {
-  sql: 'UPDATE hkgovAlsAddresses2d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND releaseId <> ?',
+  sql: 'UPDATE hkgovAlsAddresses2d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND resourceReleaseId <> ?',
   params: ['new-version', 'now', 'new-release'],
 }
-const insertSql = `INSERT INTO "hkgovAlsAddresses2d" (${columns.map(column => `"${column}"`).join(',')}) VALUES (${columns.map(() => '?').join(',')}) ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET releaseId=excluded.releaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt`
+const insertSql = `INSERT INTO "hkgovAlsAddresses2d" (${columns.map(column => `"${column}"`).join(',')}) VALUES (${columns.map(() => '?').join(',')}) ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET resourceReleaseId=excluded.resourceReleaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt`
 const statements = [
   {
     sql: 'UPDATE hkgovAlsAddresses2d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE sourceRecordId = ? AND isCurrent = 1 AND versionHash <> ?',

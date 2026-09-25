@@ -34,6 +34,7 @@ DROP TABLE IF EXISTS `apiVersions`;
 DROP TABLE IF EXISTS `entityAliases`;
 DROP TABLE IF EXISTS `releaseProcessingActionChunks`;
 DROP TABLE IF EXISTS `releaseProcessingActions`;
+DROP TABLE IF EXISTS `resourceReleases`;
 DROP TABLE IF EXISTS `releases`;
 DROP TABLE IF EXISTS `sourceReleases`;
 DROP TABLE IF EXISTS `datasetTransforms`;

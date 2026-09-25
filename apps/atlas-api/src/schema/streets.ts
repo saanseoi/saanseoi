@@ -45,7 +45,7 @@ const StreetChangelogEntrySchema = z
     noticeRef: z.string().nullable(),
     source: z.object({
       recordKey: z.string(),
-      releaseId: z.string().nullable(),
+      resourceReleaseId: z.string().nullable(),
       shardId: z.string().nullable(),
     }),
   })

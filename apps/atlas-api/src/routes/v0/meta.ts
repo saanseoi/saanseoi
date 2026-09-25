@@ -95,7 +95,7 @@ export const healthRoute = defineOpenAPIRoute<typeof healthRouteConfig, AppEnv>(
       .prepare('SELECT 1 AS ok')
       .first<{ ok: number }>()
     const datasetCount = await c.var.metaDb.$client
-      .prepare('SELECT COUNT(*) AS "count" FROM "releases"')
+      .prepare('SELECT COUNT(*) AS "count" FROM "resourceReleases"')
       .first<{ count: number }>()
 
     return c.json(

@@ -4,7 +4,7 @@ import {
   metaAssets,
   metaDatasets,
   metaPublishers,
-  metaReleases,
+  metaResourceReleases,
   metaSourceReleases,
 } from '@repo/db'
 
@@ -55,10 +55,13 @@ export const managedAssetRoute = defineOpenAPIRoute<
         sourceReleaseId: metaSourceReleases.id,
       })
       .from(metaAssets)
-      .leftJoin(metaReleases, eq(metaAssets.releaseId, metaReleases.id))
+      .leftJoin(
+        metaResourceReleases,
+        eq(metaAssets.resourceReleaseId, metaResourceReleases.id),
+      )
       .leftJoin(
         metaSourceReleases,
-        eq(metaReleases.sourceReleaseId, metaSourceReleases.id),
+        eq(metaResourceReleases.sourceReleaseId, metaSourceReleases.id),
       )
       .leftJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
       .leftJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))

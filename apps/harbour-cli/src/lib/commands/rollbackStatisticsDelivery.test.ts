@@ -31,7 +31,7 @@ test('Statistics finalisation retains the sealed token and terminal verification
     }
     const terminal: RollbackTerminal = {
       operation: 'rollback',
-      releaseId: 'release-new',
+      resourceReleaseId: 'release-new',
       catalogId: 'catalogue',
       apiVersionId: 'api',
       regionCode: 'hk',
@@ -46,7 +46,7 @@ test('Statistics finalisation retains the sealed token and terminal verification
         metadataGuard: { sql: 'SELECT 1', params: [] },
         metadata: [
           {
-            sql: "UPDATE releases SET status='revoked' WHERE id='release-new'",
+            sql: "UPDATE resourceReleases SET status='revoked' WHERE id='release-new'",
             params: [],
           },
         ],

@@ -11,11 +11,11 @@ describe('getReleaseHeaderDomainOptions', () => {
           status: 'current',
           version: 1,
           apiCompositionMembers: [
-            { domainCode: 'overture', i18n: [] },
-            { domainCode: 'overture', i18n: [] },
-            { domainCode: 'hkgov-pland-pu', i18n: [] },
-            { domainCode: 'hkgov-pland-new-town', i18n: [] },
-            { domainCode: 'hkgov-landsd', i18n: [] },
+            { domainCode: 'overture', i18n: {} },
+            { domainCode: 'overture', i18n: {} },
+            { domainCode: 'hkgov-pland-pu', i18n: {} },
+            { domainCode: 'hkgov-pland-new-town', i18n: {} },
+            { domainCode: 'hkgov-landsd', i18n: {} },
           ],
         },
       ],
@@ -47,7 +47,7 @@ describe('getReleaseHeaderDomainOptions', () => {
         {
           status: 'current',
           version: 1,
-          apiCompositionMembers: [{ domainCode: 'overture', i18n: [] }],
+          apiCompositionMembers: [{ domainCode: 'overture', i18n: {} }],
         },
       ],
       releases: [

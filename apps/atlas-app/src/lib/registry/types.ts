@@ -59,7 +59,7 @@ export type ApiRelease = {
   }>
   processingActions?: Array<{
     id: string
-    releaseId: string
+    resourceReleaseId: string
     action: string
     mode: 'automatic' | 'manual'
     summary: string
@@ -185,7 +185,7 @@ export type SourceVersion = {
   }>
   processingActions?: Array<{
     id: string
-    releaseId: string
+    resourceReleaseId: string
     action: string
     mode: 'automatic' | 'manual'
     summary: string

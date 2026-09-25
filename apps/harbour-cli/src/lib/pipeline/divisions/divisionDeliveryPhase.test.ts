@@ -37,7 +37,7 @@ test('published division rebuilds use a resumable plan distinct from the origina
 test('a published division rebuild retains the completed original delivery plan', async () => {
   const root = await mkdtemp(join(tmpdir(), 'division-rebuild-plan-'))
   const dbPath = join(root, 'current.sqlite')
-  const releaseId = `division-rebuild-${crypto.randomUUID()}`
+  const resourceReleaseId = `division-rebuild-${crypto.randomUUID()}`
   const originalDirectory = join(root, 'division-data')
   const rebuildDirectory = join(
     root,
@@ -50,7 +50,7 @@ test('a published division rebuild retains the completed original delivery plan'
       directory: originalDirectory,
       ownershipDirectory: root,
       files: { DB_CURRENT: dbPath },
-      releaseId,
+      resourceReleaseId,
       phase: 'division-data',
       inputs: input,
       generate: async append => {
@@ -61,14 +61,14 @@ test('a published division rebuild retains the completed original delivery plan'
       },
     })
     await runNativeSqlDelivery(originalDirectory, { files: { DB_CURRENT: dbPath } })
-    expect(await completeSqlDeliveryRelease(root, releaseId)).toBe(true)
+    expect(await completeSqlDeliveryRelease(root, resourceReleaseId)).toBe(true)
     const originalPlan = await readDeliveryPlan(originalDirectory)
 
     await prepareNativeSqlDelivery({
       directory: rebuildDirectory,
       ownershipDirectory: root,
       files: { DB_CURRENT: dbPath },
-      releaseId,
+      resourceReleaseId,
       phase: rebuildDirectory.slice(root.length + 1),
       inputs: input,
       generate: async append => {

@@ -18,7 +18,7 @@ import {
 type SourceReleaseRow = {
   datasetReleaseIdsJson: string
   datasetCode: string
-  releaseId: string
+  resourceReleaseId: string
   resourceType: string
   sourceReleaseCode: string
   sourceVersion: string
@@ -64,7 +64,7 @@ export type SourceRecordPage = {
 
 export type SourceReleaseDiscoveryEntry = Omit<
   SourceReleaseRow,
-  'releaseId' | 'sourceVersion' | 'datasetReleaseIdsJson'
+  'resourceReleaseId' | 'sourceVersion' | 'datasetReleaseIdsJson'
 > & {
   apiReleaseSetCode: string | null
   recordsAvailable: boolean
@@ -160,28 +160,28 @@ async function resolveSourceRelease(
         `SELECT
           datasets.id AS datasetId,
           datasets.code AS datasetCode,
-          releases.id AS releaseId,
-          releases.resourceType AS resourceType,
+          resourceReleases.id AS resourceReleaseId,
+          resourceReleases.resourceType AS resourceType,
           sourceReleases.code AS sourceReleaseCode,
-          releases.sourceVersion AS sourceVersion,
+          resourceReleases.sourceVersion AS sourceVersion,
           datasets.sourceVariant AS sourceVariant,
           sourceReleases.id AS sourceReleaseId,
-          (SELECT json_group_array(ownedRelease.id) FROM releases AS ownedRelease
+          (SELECT json_group_array(ownedRelease.id) FROM resourceReleases AS ownedRelease
             WHERE ownedRelease.datasetId = datasets.id) AS datasetReleaseIdsJson,
           publishers.code AS publisherCode,
           dataShards.bindingName AS bindingName
-        FROM releases
+        FROM resourceReleases
         INNER JOIN sourceReleases
-          ON sourceReleases.id = releases.sourceReleaseId
-        INNER JOIN datasets ON datasets.id = releases.datasetId
+          ON sourceReleases.id = resourceReleases.sourceReleaseId
+        INNER JOIN datasets ON datasets.id = resourceReleases.datasetId
         INNER JOIN publishers ON publishers.id = datasets.publisherId
         INNER JOIN releaseShardAssignments
-          ON releaseShardAssignments.releaseId = releases.id
+          ON releaseShardAssignments.resourceReleaseId = resourceReleases.id
         INNER JOIN dataShards
           ON dataShards.id = releaseShardAssignments.dataShardId
-        WHERE (sourceReleases.code = ? OR releases.code = ?) AND datasets.regionCode = ?
-          AND releases.status IN ('published', 'superseded')
-          AND releases.revokedAt IS NULL
+        WHERE (sourceReleases.code = ? OR resourceReleases.code = ?) AND datasets.regionCode = ?
+          AND resourceReleases.status IN ('published', 'superseded')
+          AND resourceReleases.revokedAt IS NULL
           AND sourceReleases.status IN ('published', 'superseded')
           AND sourceReleases.revokedAt IS NULL
           AND dataShards.shardType = 'source'
@@ -208,7 +208,7 @@ async function resolveSourceRelease(
   const rows = [
     ...new Map(
       result.results
-        .filter(row => row.releaseId === preferred?.releaseId)
+        .filter(row => row.resourceReleaseId === preferred?.resourceReleaseId)
         .map(row => [row.bindingName, row]),
     ).values(),
   ]
@@ -392,7 +392,7 @@ async function readRandomOrderedSourceRecordPage(args: {
 
 function sourceDatasetCondition(entry: SourceRecordCatalogueEntry, prefix = '') {
   return entry.scopeByDataset
-    ? `${prefix}releaseId IN (SELECT value FROM json_each(?))`
+    ? `${prefix}resourceReleaseId IN (SELECT value FROM json_each(?))`
     : '1 = 1'
 }
 
@@ -401,7 +401,7 @@ function sourceValidityValues(args: {
   release: SourceReleaseRow
 }): string[] {
   const values = [args.release.sourceVersion, args.release.sourceVersion]
-  // Shared publisher tables retain dataset ownership through releaseId. Version
+  // Shared publisher tables retain dataset ownership through resourceReleaseId. Version
   // strings describe time only and cannot identify which dataset owns an assertion.
   if (args.entry.scopeByDataset) {
     const ids: unknown = JSON.parse(args.release.datasetReleaseIdsJson)
@@ -849,7 +849,7 @@ async function querySourceReleaseDiscoveryRows(
       .prepare(
         `SELECT DISTINCT
           datasets.code AS datasetCode,
-          releases.resourceType AS resourceType,
+          resourceReleases.resourceType AS resourceType,
           sourceReleases.code AS sourceReleaseCode,
           datasets.sourceVariant AS sourceVariant,
           apiReleaseSets.code AS apiReleaseSetCode,
@@ -860,7 +860,7 @@ async function querySourceReleaseDiscoveryRows(
             FROM releaseShardAssignments
             INNER JOIN dataShards
               ON dataShards.id = releaseShardAssignments.dataShardId
-            WHERE releaseShardAssignments.releaseId = releases.id
+            WHERE releaseShardAssignments.resourceReleaseId = resourceReleases.id
               AND dataShards.shardType = 'source'
               AND dataShards.status = 'active'
           ) AS hasSourceShard
@@ -870,18 +870,18 @@ async function querySourceReleaseDiscoveryRows(
         INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
         INNER JOIN snapshots ON snapshots.id = apiReleaseSetSnapshots.snapshotId
         INNER JOIN snapshotSourceReleases ON snapshotSourceReleases.snapshotId = snapshots.id
-        INNER JOIN releases ON releases.id = snapshotSourceReleases.resourceReleaseId
+        INNER JOIN resourceReleases ON resourceReleases.id = snapshotSourceReleases.resourceReleaseId
         INNER JOIN sourceReleases
-          ON sourceReleases.id = releases.sourceReleaseId
-        INNER JOIN datasets ON datasets.id = releases.datasetId
+          ON sourceReleases.id = resourceReleases.sourceReleaseId
+        INNER JOIN datasets ON datasets.id = resourceReleases.datasetId
         WHERE ${sourceCondition}
         AND datasets.regionCode = ?
-        AND releases.status IN ('published', 'superseded')
-        AND releases.revokedAt IS NULL
+        AND resourceReleases.status IN ('published', 'superseded')
+        AND resourceReleases.revokedAt IS NULL
         AND sourceReleases.status IN ('published', 'superseded')
         AND sourceReleases.revokedAt IS NULL
         ${datasetCondition}
-        ORDER BY datasets.code ASC, releases.code ASC, snapshots.code ASC`,
+        ORDER BY datasets.code ASC, resourceReleases.code ASC, snapshots.code ASC`,
       )
       .bind(...values)
       .all<SourceReleaseDiscoveryRow>(),

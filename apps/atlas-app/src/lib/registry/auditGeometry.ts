@@ -16,7 +16,7 @@ function decodeGeometry(value: unknown) {
 
 /** Audit geometry follows immutable snapshot membership after current cleanup. */
 export async function readAuditGeometry(input: {
-  releaseId: string
+  resourceReleaseId: string
   divisionId: string
   currentDb: CurrentDatabase
   metaDb: MetaDatabase
@@ -29,7 +29,7 @@ export async function readAuditGeometry(input: {
     .innerJoin(snapshots, eq(snapshots.id, sources.snapshotId))
     .where(
       and(
-        eq(sources.resourceReleaseId, input.releaseId),
+        eq(sources.resourceReleaseId, input.resourceReleaseId),
         ne(sources.role, 'lookup'),
         eq(snapshots.resourceType, 'divisionArea'),
       ),

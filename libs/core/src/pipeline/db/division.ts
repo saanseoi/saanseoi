@@ -56,7 +56,7 @@ export type DivisionVersionSnapshot = {
 }
 
 export type DivisionVersionInsertContext = {
-  releaseId: string
+  resourceReleaseId: string
   snapshotId: string
   cohortKey: string
   parentSnapshotId: string | null
@@ -328,9 +328,9 @@ export async function prepareDivisionVersionInsertContext(
   environment: 'preview' | 'production',
   options: { rebuildPublishedSnapshot?: boolean } = {},
 ): Promise<DivisionVersionInsertContext> {
-  const dataset = message.releaseId?.trim()
+  const dataset = message.resourceReleaseId?.trim()
     ? await waitForDatasetRecord(metaDb, {
-        releaseId: message.releaseId,
+        resourceReleaseId: message.resourceReleaseId,
       })
     : await waitForDatasetRecord(metaDb, {
         releaseCode: message.releaseCode,
@@ -338,7 +338,7 @@ export async function prepareDivisionVersionInsertContext(
 
   if (!dataset) {
     throw new Error(
-      `Release not found: ${message.releaseId ?? message.releaseCode ?? message.datasetId}`,
+      `Release not found: ${message.resourceReleaseId ?? message.releaseCode ?? message.datasetId}`,
     )
   }
 
@@ -347,7 +347,7 @@ export async function prepareDivisionVersionInsertContext(
     cohortKey: dataset.cohortKey,
     datasetCode: dataset.datasetCode,
     datasetId: dataset.datasetId,
-    sourceReleaseId: dataset.releaseId,
+    sourceReleaseId: dataset.resourceReleaseId,
     variant: datasetVariantForSource(message.resourceType, dataset.source, {
       cohortKey: dataset.cohortKey,
       datasetCode: dataset.datasetCode,
@@ -391,10 +391,10 @@ export async function prepareDivisionVersionInsertContext(
     metaDb,
     snapshot.id,
     dataset.datasetId,
-    dataset.releaseId,
+    dataset.resourceReleaseId,
     'primary',
     {
-      anchorReleaseId: dataset.releaseId,
+      anchorReleaseId: dataset.resourceReleaseId,
       selectedByRule: 'snapshot-assembly-division-v1',
       selectionMode: 'exact_ref',
       sourceCohortKey: dataset.cohortKey,
@@ -403,20 +403,20 @@ export async function prepareDivisionVersionInsertContext(
   await recordSnapshotAssembly(metaDb, {
     snapshotId: snapshot.id,
     resourceType: message.resourceType,
-    anchorReleaseId: dataset.releaseId,
+    anchorReleaseId: dataset.resourceReleaseId,
     anchorCohortKey: dataset.cohortKey,
     detailsJson: {
       releaseRole: 'primary',
-      sourceReleaseId: dataset.releaseId,
+      sourceReleaseId: dataset.resourceReleaseId,
       sourceVersion: dataset.sourceVersion,
     },
   })
-  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id)
-  await upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id)
+  await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, historyShard.id)
+  await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, sourceShard.id)
   await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)
 
   return {
-    releaseId: dataset.releaseId,
+    resourceReleaseId: dataset.resourceReleaseId,
     snapshotId: snapshot.id,
     cohortKey: message.cohortKey,
     parentSnapshotId: snapshot.parentSnapshotId,
@@ -898,7 +898,7 @@ export async function insertDivisionVersionRows(
       chunk.map(row => ({
         id: row.id,
         versionHash: row.versionHash,
-        sourceReleaseId: context.releaseId,
+        sourceReleaseId: context.resourceReleaseId,
         snapshotId: context.snapshotId,
         isCurrent: true,
         level: row.level,
@@ -934,7 +934,7 @@ export async function insertDivisionVersionRows(
   await runStatementsInGroupsWithWriteRetry(historyDb, baseStatements)
   await recordSnapshotVersionChanges(historyDb, {
     snapshotId: context.snapshotId,
-    sourceReleaseId: context.releaseId,
+    sourceReleaseId: context.resourceReleaseId,
     recordType: 'division',
     operation: 'upsert',
     changes: baseRows.map(row => ({
@@ -955,7 +955,7 @@ export async function insertDivisionVersionRows(
         nameAlts: row.nameAlts,
         nameRules: row.nameRules,
         nameVariant: row.nameVariant,
-        sourceReleaseId: context.releaseId,
+        sourceReleaseId: context.resourceReleaseId,
         snapshotId: context.snapshotId,
         isCurrent: true,
         versionHash: row.versionHash,
@@ -966,7 +966,7 @@ export async function insertDivisionVersionRows(
     )
     await recordSnapshotVersionChanges(historyDb, {
       snapshotId: context.snapshotId,
-      sourceReleaseId: context.releaseId,
+      sourceReleaseId: context.resourceReleaseId,
       recordType: 'divisionI18n',
       operation: 'upsert',
       changes: i18nRows.map(row => ({

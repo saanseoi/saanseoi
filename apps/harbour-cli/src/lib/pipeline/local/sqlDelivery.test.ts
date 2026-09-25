@@ -34,7 +34,7 @@ test('captured family SQL seals once and replays exact bytes remotely then local
             bindings: { DB_CURRENT: { databaseId: 'db' } },
           },
         } as unknown as LocalAddressDbContext,
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         phase: 'family',
         inputs: { sourceSha: 'frozen' },
         generate: capture =>
@@ -304,7 +304,7 @@ test('independent bound targets combine alternating collections without changing
           },
         },
       } as unknown as LocalAddressDbContext,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'address3d-data',
       inputs: { independentBoundTargets: true },
       generate: async capture => {
@@ -361,7 +361,7 @@ test('release capture coalesces adjacent bound collections without splitting or 
           bindings: { DB_CURRENT: { databaseId: 'db' } },
         },
       } as unknown as LocalAddressDbContext,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'data',
       inputs: {},
       generate: async capture => {
@@ -456,7 +456,7 @@ test('generated Places and search recover in phase order against the current sch
           sourceBindingNames: ['source'],
           datasetId: 'places',
           message: {
-            releaseId: 'release',
+            resourceReleaseId: 'release',
             sourceVersion: '2026-08-19.0',
           } as Parameters<typeof buildPlaceSql>[0]['message'],
           snapshots: {
@@ -560,7 +560,7 @@ for (const family of ['statistics', 'geometry'] as const) {
         family === 'geometry'
           ? 'CREATE TABLE divisionAreas (snapshotId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(snapshotId,id));'
           : `CREATE TABLE hkgovCenstatdStatistics (
-            createdAt TEXT, isCurrent INTEGER, properties TEXT, releaseId TEXT,
+            createdAt TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
             sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
             validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
             PRIMARY KEY(sourceRecordId,versionHash));`
@@ -570,7 +570,7 @@ for (const family of ['statistics', 'geometry'] as const) {
               { snapshotId: 'snapshot', id: 'area', geometry },
             ])
           : buildStatisticSqlBatches({
-              releaseId: 'release',
+              resourceReleaseId: 'release',
               sourceVersion: '2026-09-07.0',
               source: {
                 table: 'hkgovCenstatdStatistics',
@@ -582,7 +582,7 @@ for (const family of ['statistics', 'geometry'] as const) {
                     label: `香港 O'Brien; ${index}`,
                     value: 'x'.repeat(5000),
                   },
-                  releaseId: 'release',
+                  resourceReleaseId: 'release',
                   sourceRecordId: `row-${index}`,
                   sources: [],
                   sourceGeometry: null,

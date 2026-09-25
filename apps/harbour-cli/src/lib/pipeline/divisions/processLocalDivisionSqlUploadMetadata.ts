@@ -30,7 +30,7 @@ export async function buildDivisionMetaSqlFile(
   state: DivisionSqlState,
   reportProgress: (current: number) => Promise<void>,
 ) {
-  const releaseId = message.releaseId ?? message.datasetId
+  const resourceReleaseId = message.resourceReleaseId ?? message.datasetId
   const snapshotRow = await metaDb
     .select({
       id: metaSnapshots.id,
@@ -89,9 +89,9 @@ export async function buildDivisionMetaSqlFile(
     .where(eq(metaSnapshotSourceReleases.snapshotId, state.snapshotId))
     .all()
 
-  if (!snapshotSourceRows.some(row => row.resourceReleaseId === releaseId)) {
+  if (!snapshotSourceRows.some(row => row.resourceReleaseId === resourceReleaseId)) {
     throw new Error(
-      `Division snapshot source metadata missing for release ${releaseId} and snapshot ${state.snapshotId}.`,
+      `Division snapshot source metadata missing for release ${resourceReleaseId} and snapshot ${state.snapshotId}.`,
     )
   }
 
@@ -119,11 +119,11 @@ export async function buildDivisionMetaSqlFile(
 
   const releaseShardAssignmentRows = await metaDb
     .select({
-      releaseId: metaReleaseShardAssignments.releaseId,
+      resourceReleaseId: metaReleaseShardAssignments.resourceReleaseId,
       dataShardId: metaReleaseShardAssignments.dataShardId,
     })
     .from(metaReleaseShardAssignments)
-    .where(eq(metaReleaseShardAssignments.releaseId, releaseId))
+    .where(eq(metaReleaseShardAssignments.resourceReleaseId, resourceReleaseId))
     .all()
 
   const snapshotShardAssignmentRows = await metaDb
@@ -137,7 +137,7 @@ export async function buildDivisionMetaSqlFile(
 
   if (releaseShardAssignmentRows.length === 0) {
     throw new Error(
-      `Division release shard assignment missing from local meta cache: ${releaseId}.`,
+      `Division release shard assignment missing from local meta cache: ${resourceReleaseId}.`,
     )
   }
 
@@ -147,7 +147,7 @@ export async function buildDivisionMetaSqlFile(
     )
   }
 
-  const auditSql = await readAuditReplaySql(metaDb, releaseId)
+  const auditSql = await readAuditReplaySql(metaDb, resourceReleaseId)
 
   const rows: Record<string, SqlValue>[] = []
 
@@ -157,7 +157,7 @@ export async function buildDivisionMetaSqlFile(
     for (const row of batch) {
       rows.push({
         id: crypto.randomUUID(),
-        releaseId: message.releaseId ?? message.datasetId,
+        resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
         dimension: row.dimension,
         metric: row.metric,
         metricUnit: row.metricUnit,
@@ -297,10 +297,10 @@ ON CONFLICT(id) DO UPDATE SET
     ),
     ...buildInsertStatements(
       'releaseShardAssignments',
-      ['releaseId', 'dataShardId'],
+      ['resourceReleaseId', 'dataShardId'],
       releaseShardAssignmentRows,
       {
-        suffix: `ON CONFLICT(releaseId, dataShardId) DO NOTHING`,
+        suffix: `ON CONFLICT(resourceReleaseId, dataShardId) DO NOTHING`,
       },
     ),
     ...buildInsertStatements(
@@ -312,12 +312,12 @@ ON CONFLICT(id) DO UPDATE SET
       },
     ),
     ...auditSql,
-    `DELETE FROM stats WHERE releaseId = ${sqlLiteral(releaseId)} AND metric != 'processing';`,
+    `DELETE FROM stats WHERE resourceReleaseId = ${sqlLiteral(resourceReleaseId)} AND metric != 'processing';`,
     ...buildInsertStatements(
       'stats',
       [
         'id',
-        'releaseId',
+        'resourceReleaseId',
         'dimension',
         'metric',
         'metricUnit',

@@ -4,7 +4,7 @@ import {
   isNull,
   metaDatasets,
   metaPublishers,
-  metaReleases,
+  metaResourceReleases,
   metaSourceReleases,
   or,
   toIsoTimestamp,
@@ -38,7 +38,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     datasetCode: string
     rawObjectKey: string
     releaseCode: string
-    releaseId: string
+    resourceReleaseId: string
   },
   plan: StagedReleaseSyncPlan,
   options: { reuseExistingRelease?: boolean; retainedDeliveryCacheDir?: string } = {},
@@ -71,14 +71,14 @@ export async function syncStagedReleaseIntoLocalMetaCache(
 
   const existingRelease = await metaDb
     .select({
-      id: metaReleases.id,
-      datasetId: metaReleases.datasetId,
-      sourceVersion: metaReleases.sourceVersion,
-      status: metaReleases.status,
-      resourceType: metaReleases.resourceType,
+      id: metaResourceReleases.id,
+      datasetId: metaResourceReleases.datasetId,
+      sourceVersion: metaResourceReleases.sourceVersion,
+      status: metaResourceReleases.status,
+      resourceType: metaResourceReleases.resourceType,
     })
-    .from(metaReleases)
-    .where(eq(metaReleases.code, release.releaseCode))
+    .from(metaResourceReleases)
+    .where(eq(metaResourceReleases.code, release.releaseCode))
     .limit(1)
     .get()
   if (existingRelease && existingRelease.resourceType !== plan.resourceType) {
@@ -88,14 +88,14 @@ export async function syncStagedReleaseIntoLocalMetaCache(
   }
   if (
     existingRelease?.status === 'processing' &&
-    existingRelease.id === release.releaseId &&
+    existingRelease.id === release.resourceReleaseId &&
     existingRelease.datasetId === dataset.id &&
     existingRelease.sourceVersion === plan.sourceVersion &&
     options.retainedDeliveryCacheDir &&
     (await findPendingSqlDeliveryReleaseId(
       options.retainedDeliveryCacheDir,
       release.releaseCode,
-    )) === release.releaseId
+    )) === release.resourceReleaseId
   )
     return
   if (
@@ -172,9 +172,9 @@ export async function syncStagedReleaseIntoLocalMetaCache(
         .run()
 
       return tx
-        .insert(metaReleases)
+        .insert(metaResourceReleases)
         .values({
-          id: release.releaseId,
+          id: release.resourceReleaseId,
           sourceReleaseId,
           datasetId: dataset.id,
           code: release.releaseCode,
@@ -190,13 +190,13 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           status: 'staged',
           revokedAt: null,
           revocationReason: null,
-          supersededByReleaseId: null,
+          supersededByResourceReleaseId: null,
           ingestedAt: now,
           createdAt: now,
           updatedAt: now,
         })
         .onConflictDoUpdate({
-          target: metaReleases.code,
+          target: metaResourceReleases.code,
           set: {
             sourceReleaseId,
             datasetId: dataset.id,
@@ -211,17 +211,17 @@ export async function syncStagedReleaseIntoLocalMetaCache(
             status: 'staged',
             revokedAt: null,
             revocationReason: null,
-            supersededByReleaseId: null,
+            supersededByResourceReleaseId: null,
             ingestedAt: now,
             updatedAt: now,
           },
           where: or(
-            eq(metaReleases.status, 'staged'),
-            eq(metaReleases.status, 'failed'),
+            eq(metaResourceReleases.status, 'staged'),
+            eq(metaResourceReleases.status, 'failed'),
             ...(options.reuseExistingRelease
               ? [
-                  eq(metaReleases.status, 'processing'),
-                  eq(metaReleases.status, 'published'),
+                  eq(metaResourceReleases.status, 'processing'),
+                  eq(metaResourceReleases.status, 'published'),
                 ]
               : []),
           ),

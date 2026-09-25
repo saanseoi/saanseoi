@@ -359,7 +359,7 @@ const PlaceSchema = z
     id: IdSchema.openapi({
       description: openApiText('openapi_places_id_description'),
     }),
-    releaseId: z.string().openapi({
+    resourceReleaseId: z.string().openapi({
       description: openApiText('openapi_places_release_id_description'),
     }),
     referenceName: z
@@ -515,7 +515,7 @@ export const PlacesByCellResponseSchema = z
           placeId: IdSchema.openapi({
             description: openApiText('openapi_places_id_description'),
           }),
-          releaseId: z.string().openapi({
+          resourceReleaseId: z.string().openapi({
             description: openApiText('openapi_places_release_id_description'),
           }),
           basicCategory: z
@@ -562,7 +562,7 @@ export const SearchResponseSchema = z
       z
         .object({
           placeId: IdSchema,
-          releaseId: z.string(),
+          resourceReleaseId: z.string(),
           locale: z.string(),
           nameText: z
             .string()
@@ -809,7 +809,7 @@ const PlaceCollectionAttributesSchema = z
         description: openApiText('openapi_places_snapshot_id_description'),
         examples: ['997d6f2b-70a6-5806-af5d-0b973c2129da'],
       }),
-    releaseId: z
+    resourceReleaseId: z
       .string()
       .optional()
       .openapi({

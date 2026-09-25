@@ -27,7 +27,7 @@ export type RollbackClaim = {
 
 export type RollbackTerminal = {
   operation: 'rollback'
-  releaseId: string
+  resourceReleaseId: string
   catalogId: string
   apiVersionId: string
   regionCode: string

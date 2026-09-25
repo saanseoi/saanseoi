@@ -104,7 +104,7 @@ test.each(['scope-a', 'scope-b'] as const)(
           scopeId,
           scopeSnapshotIds,
           snapshotId,
-          releaseId: `release-${snapshotId}`,
+          resourceReleaseId: `release-${snapshotId}`,
           historyBinding,
           revokedAddressIds: selected.length ? [] : [identity.addressId],
           now: historyBinding.endsWith('2025')

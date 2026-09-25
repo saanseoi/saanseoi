@@ -59,7 +59,7 @@ export async function handleRegisterUploadRequest(
     resourceType: request.plan.type,
   })
 
-  if (!registered.datasetId || !registered.releaseId) {
+  if (!registered.datasetId || !registered.resourceReleaseId) {
     throw new Error(
       'Local upload registration returned incomplete release identifiers.',
     )
@@ -70,7 +70,7 @@ export async function handleRegisterUploadRequest(
     datasetId: registered.datasetId,
     rawObjectKey: createRawObjectKey(registered.plan),
     releaseCode: registered.plan.releaseCode,
-    releaseId: registered.releaseId,
+    resourceReleaseId: registered.resourceReleaseId,
     rowCount: registered.plan.rowCount,
     source: registered.plan.source,
     sourceVersion: registered.plan.sourceVersion,
@@ -100,12 +100,12 @@ async function getIngestRunStatsByReleaseCode(
     .select({ stats: metaSchema.ingestRuns.stats })
     .from(metaSchema.ingestRuns)
     .innerJoin(
-      metaSchema.metaReleases,
-      eq(metaSchema.ingestRuns.releaseId, metaSchema.metaReleases.id),
+      metaSchema.metaResourceReleases,
+      eq(metaSchema.ingestRuns.resourceReleaseId, metaSchema.metaResourceReleases.id),
     )
     .where(
       and(
-        eq(metaSchema.metaReleases.code, releaseCode),
+        eq(metaSchema.metaResourceReleases.code, releaseCode),
         eq(metaSchema.ingestRuns.phase, phase),
       ),
     )

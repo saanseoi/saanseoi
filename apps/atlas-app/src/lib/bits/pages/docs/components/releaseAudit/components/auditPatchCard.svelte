@@ -118,7 +118,7 @@ const display = (value: Json): string =>
         </p>
         {#if side.value === output && geometryReleaseId && id}
           <OutputGeometry
-            releaseId={geometryReleaseId}
+            resourceReleaseId={geometryReleaseId}
             divisionId={id}
             {title}
             {exclusion}

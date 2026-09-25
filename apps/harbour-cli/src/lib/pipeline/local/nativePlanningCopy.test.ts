@@ -45,7 +45,7 @@ test('WAL-safe planning copy retains read-after-write results without mutating t
     const plan = await prepareNativeSqlDelivery({
       directory,
       ownershipDirectory: root,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'data',
       inputs: {},
       files: { DB_CURRENT: path },

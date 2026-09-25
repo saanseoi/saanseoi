@@ -35,7 +35,7 @@ test('audit delivery failure retains the guard and lets the caller mark its stag
       error,
       store,
       target: { remote: false, environment: 'dev' },
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       datasetCode: 'dataset',
     })
     expect(objects.size).toBeGreaterThan(0)

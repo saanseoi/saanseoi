@@ -74,7 +74,7 @@ function setup() {
     'divisionBoundary',
     'place',
   ]) {
-    insert(meta, 'releases', {
+    insert(meta, 'resourceReleases', {
       id: resourceType,
       code: resourceType,
       datasetId: 'dataset',
@@ -142,8 +142,14 @@ describe('all-divisions reset', () => {
           : { sourceReleaseId: 'divisionBoundary', versionHash: 'v' }),
       })
     }
-    insert(source, 'overtureDivisions', { sourceRecordId: 'd', releaseId: 'division' })
-    insert(source, 'overturePlaces', { sourceRecordId: 'p', releaseId: 'place' })
+    insert(source, 'overtureDivisions', {
+      sourceRecordId: 'd',
+      resourceReleaseId: 'division',
+    })
+    insert(source, 'overturePlaces', {
+      sourceRecordId: 'p',
+      resourceReleaseId: 'place',
+    })
     insert(history, 'snapshotVersionChanges', {
       snapshotId: 'division',
       recordType: 'division',
@@ -156,7 +162,7 @@ describe('all-divisions reset', () => {
     })
     insert(meta, 'assets', {
       id: 'asset',
-      releaseId: 'division',
+      resourceReleaseId: 'division',
       assetKey: 'retained-evidence',
     })
     expect(await divisionResetBlockers(context)).toEqual([])
@@ -185,7 +191,9 @@ describe('all-divisions reset', () => {
         expect(db.query(`SELECT * FROM ${table}`).all()).toHaveLength(0)
       }
     }
-    expect(meta.query('SELECT id FROM releases').all()).toEqual([{ id: 'place' }])
+    expect(meta.query('SELECT id FROM resourceReleases').all()).toEqual([
+      { id: 'place' },
+    ])
     expect(meta.query('SELECT id FROM snapshots').all()).toEqual([{ id: 'place' }])
     expect(meta.query('SELECT id FROM apiReleaseSets').all()).toEqual([
       { id: 'places' },
@@ -196,8 +204,8 @@ describe('all-divisions reset', () => {
     expect(meta.query('SELECT id FROM sourceReleases').all()).toEqual([
       { id: 'shared-source' },
     ])
-    expect(meta.query('SELECT releaseId FROM assets').all()).toEqual([
-      { releaseId: null },
+    expect(meta.query('SELECT resourceReleaseId FROM assets').all()).toEqual([
+      { resourceReleaseId: null },
     ])
     expect(source.query('SELECT * FROM overtureDivisions').all()).toHaveLength(0)
     expect(source.query('SELECT * FROM overturePlaces').all()).toHaveLength(1)
@@ -207,7 +215,9 @@ describe('all-divisions reset', () => {
     expect(meta.query('PRAGMA foreign_key_check').all()).toEqual([])
     // An empty repeat is safe and keeps the retained unrelated family.
     meta.exec(buildDivisionResetSql(await collectDivisionResetPlan(context)).metaSql)
-    expect(meta.query('SELECT id FROM releases').all()).toEqual([{ id: 'place' }])
+    expect(meta.query('SELECT id FROM resourceReleases').all()).toEqual([
+      { id: 'place' },
+    ])
   })
 
   test('blocks other snapshot sources and API anchor dependencies', async () => {

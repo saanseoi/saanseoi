@@ -35,7 +35,7 @@ function memoryStore(): ProvenanceStore {
 async function processingResult() {
   const store = memoryStore()
   const { ref } = await retainProcessingResult(store, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     collections: [],
     applications: [],
   })
@@ -286,7 +286,7 @@ test('audit delivery drains parallel failures and registers only after every dep
     })),
   )
   const { ref } = await retainAuditResult(store, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'divisions',
     attempt: { id: 'attempt', status: 'completed' },
     bulk: [],

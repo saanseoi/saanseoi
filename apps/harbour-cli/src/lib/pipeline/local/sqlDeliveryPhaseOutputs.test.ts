@@ -14,7 +14,7 @@ test('native delivery phases retain workflow outputs without repeating artefact 
   const root = await mkdtemp(join(tmpdir(), 'phase-outputs-'))
   const path = join(root, 'current.sqlite')
   const db = new Database(path)
-  const releaseId = `phase-output-test-${crypto.randomUUID()}`
+  const resourceReleaseId = `phase-output-test-${crypto.randomUUID()}`
   const binding = createLocalExecBinding(db, 'DB_CURRENT')
   const context = {
     currentBinding: binding,
@@ -24,7 +24,7 @@ test('native delivery phases retain workflow outputs without repeating artefact 
   let outputsAccepted = false
   const phase = {
     context,
-    releaseId,
+    resourceReleaseId,
     phase: 'division-data',
     nativeLocal: true,
     inputs: { source: 'fixed' },
@@ -93,7 +93,7 @@ test('remote release preparation seals returned workflow outputs alongside SQL',
     const input = {
       directory: join(root, 'plan'),
       context,
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase: 'division-data',
       inputs: {},
     }
@@ -115,14 +115,14 @@ test('remote release preparation seals returned workflow outputs alongside SQL',
     })
     expect(plan.outputs).toEqual({ sqlArtefactCount: 4 })
     expect(await readPendingSqlDelivery(root)).toEqual({
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       directories: [input.directory],
     })
     let competingGenerated = false
     await expect(
       prepareReleaseSqlDelivery({
         ...input,
-        releaseId: 'competing',
+        resourceReleaseId: 'competing',
         directory: join(root, 'competing'),
         generate: async () => {
           competingGenerated = true

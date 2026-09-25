@@ -45,7 +45,7 @@ function input(places: EnrichedPlace[]): BuildPlaceSqlInput {
     datasetId: 'dataset',
     message: {
       sourceVersion: '2026-09-01.0',
-      releaseId: 'release-new',
+      resourceReleaseId: 'release-new',
     } as BuildPlaceSqlInput['message'],
     snapshots: {
       snapshotLineageId: 'place-lineage',
@@ -61,7 +61,7 @@ function input(places: EnrichedPlace[]): BuildPlaceSqlInput {
 function database() {
   const db = new Database(':memory:')
   db.exec(`CREATE TABLE overturePlaces (
-    sourceRecordId TEXT, versionHash TEXT, releaseId TEXT, validFromRelease TEXT,
+    sourceRecordId TEXT, versionHash TEXT, resourceReleaseId TEXT, validFromRelease TEXT,
     validToRelease TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
     sourceLocator TEXT, properties TEXT, sourceGeometry TEXT, version INTEGER,
     PRIMARY KEY (sourceRecordId, versionHash));`)
@@ -70,7 +70,7 @@ function database() {
 
 function seed(db: Database, id: string, hash = 'same', current = 1) {
   db.query(
-    'INSERT INTO overturePlaces (sourceRecordId, versionHash, releaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, sourceLocator, properties, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO overturePlaces (sourceRecordId, versionHash, resourceReleaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, sourceLocator, properties, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
   ).run(
     id,
     hash,
@@ -115,7 +115,7 @@ test('source deltas preserve unchanged assertions across shards, close changes a
     seed(old, 'changed', 'before')
     seed(old, 'removed')
     old
-      .query('UPDATE overturePlaces SET releaseId = ? WHERE sourceRecordId = ?')
+      .query('UPDATE overturePlaces SET resourceReleaseId = ? WHERE sourceRecordId = ?')
       .run('release-new', 'removed')
     seed(active, 'returning', 'same', 0)
     const data = input([
@@ -155,11 +155,11 @@ test('source deltas preserve unchanged assertions across shards, close changes a
       expect(
         active
           .query(
-            'SELECT releaseId, validFromRelease, createdAt, properties, isCurrent FROM overturePlaces WHERE sourceRecordId = ?',
+            'SELECT resourceReleaseId, validFromRelease, createdAt, properties, isCurrent FROM overturePlaces WHERE sourceRecordId = ?',
           )
           .get("unchanged'quoted"),
       ).toEqual({
-        releaseId: 'release-old',
+        resourceReleaseId: 'release-old',
         validFromRelease: '2025-01-01.0',
         createdAt: 'original',
         properties: '{"retained":true}',
@@ -219,7 +219,7 @@ test('unchanged canonical Places retain their content provenance across release 
         versionHash: row.versionHash,
         firstSeenMonth: '2026-07',
         lastSeenMonth: '2026-08',
-        releaseId: 'release-original',
+        resourceReleaseId: 'release-original',
         createdAt: 'original',
         address2dId: null,
         addressSnapshotId: null,
@@ -229,17 +229,21 @@ test('unchanged canonical Places retain their content provenance across release 
     const data = { ...input([row]), historyRows: [previous] }
     db.exec((await buildPlaceSql(data)).currentSql.join('\n'))
     expect(
-      db.query('SELECT releaseId,firstSeenMonth,lastSeenMonth FROM places').get(),
+      db
+        .query('SELECT resourceReleaseId,firstSeenMonth,lastSeenMonth FROM places')
+        .get(),
     ).toEqual({
-      releaseId: 'release-original',
+      resourceReleaseId: 'release-original',
       firstSeenMonth: '2026-07',
       lastSeenMonth: '2026-08',
     })
     row.versionHash = 'changed'
     row.place.operatingStatus = 'temporarily_closed'
     db.exec((await buildPlaceSql(data)).currentSql.join('\n'))
-    expect(db.query('SELECT releaseId,lastSeenMonth FROM places').get()).toEqual({
-      releaseId: 'release-new',
+    expect(
+      db.query('SELECT resourceReleaseId,lastSeenMonth FROM places').get(),
+    ).toEqual({
+      resourceReleaseId: 'release-new',
       lastSeenMonth: '2026-09',
     })
   } finally {
@@ -296,7 +300,7 @@ test('streamed source finalisation runs after all chunks even without removed hi
         .get(),
     ).toEqual({ count: 514 })
     await Bun.write(path, '')
-    data.message = { ...data.message, releaseId: 'empty-release' }
+    data.message = { ...data.message, resourceReleaseId: 'empty-release' }
     for await (const sql of buildPlaceSqlBatches(data, path, 'later')) {
       const sourceSql = (sql.sourceSqlByBinding.get('new') ?? []).join('')
       if (sourceSql) db.exec(sourceSql)

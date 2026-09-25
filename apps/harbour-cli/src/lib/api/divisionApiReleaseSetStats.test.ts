@@ -38,7 +38,7 @@ test('waits for required companion snapshots before calculating API stats', () =
   const result = {
     phase: null,
     releaseCode: 'source',
-    releaseId: 'source-id',
+    resourceReleaseId: 'source-id',
     status: 'published',
     apiReleaseSetId: 'api',
     snapshotId: 'snapshot',

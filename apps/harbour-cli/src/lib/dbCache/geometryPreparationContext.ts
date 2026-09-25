@@ -26,7 +26,7 @@ import type {
  */
 export async function prepareGeometryMirror(input: {
   context: LocalAddressDbContext
-  releaseId: string
+  resourceReleaseId: string
   phase: string
   inputs: Record<string, unknown>
   directory?: string
@@ -139,7 +139,7 @@ export async function resolveGeometryPreparationContext(
   regionCode: string,
   shardYear: string,
   options: {
-    releaseId: string
+    resourceReleaseId: string
     resourceType: string
     preparedSha256: string
     sourceShardYear?: string
@@ -147,7 +147,7 @@ export async function resolveGeometryPreparationContext(
   },
 ) {
   const baseline = await resolveCurrentWriteContext(target, regionCode, shardYear, {
-    resumeSqlDeliveryReleaseId: options.releaseId,
+    resumeSqlDeliveryReleaseId: options.resourceReleaseId,
     onProgress: options.onProgress,
     sourceShardYear: options.sourceShardYear,
   })
@@ -158,7 +158,7 @@ export async function resolveGeometryPreparationContext(
     const phaseSuffix = historyYear !== sourceYear ? `-${historyYear}` : ''
     const prepared = await prepareGeometryMirror({
       context: baseline,
-      releaseId: options.releaseId,
+      resourceReleaseId: options.resourceReleaseId,
       phase: `geometry-preparation-${options.resourceType.toLowerCase()}${phaseSuffix}`,
       inputs: {
         regionCode,
@@ -168,7 +168,7 @@ export async function resolveGeometryPreparationContext(
       },
     })
     return await resolveLocalAddressDbContext(target, regionCode, shardYear, {
-      resumeSqlDeliveryReleaseId: options.releaseId,
+      resumeSqlDeliveryReleaseId: options.resourceReleaseId,
       includeAllHistoryShardYears: true,
       includeAllSourceShardYears: true,
       sourceShardYear: options.sourceShardYear,

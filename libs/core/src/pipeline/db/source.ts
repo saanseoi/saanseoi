@@ -22,11 +22,11 @@ const tempSeenSourceRecordIds = sqliteTable('tempSeenSourceRecordIds', {
 })
 
 export function buildSourceReleaseId(message: DatasetProcessingMessage) {
-  return message.releaseId ?? message.datasetId
+  return message.resourceReleaseId ?? message.datasetId
 }
 
 export function buildSourceDatasetId(message: DatasetProcessingMessage) {
-  if (message.releaseId) {
+  if (message.resourceReleaseId) {
     return message.datasetId
   }
 
@@ -266,20 +266,20 @@ export async function deleteMissingCurrentSourceHkgovAlsAddresses2dBySeenTable(
 export async function deleteMissingCurrentSourceHkgovAlsAddresses2dByReleaseId(
   db: SourceDatabase,
   validToRelease: string,
-  releaseId: string,
+  resourceReleaseId: string,
 ) {
   return deleteMissingCurrentSourceRowsByReleaseId(
     db,
     sourceSchema.sourceHkgovAlsAddresses2d,
     validToRelease,
-    releaseId,
+    resourceReleaseId,
   )
 }
 
 async function deleteMissingCurrentSourceRowsByReleaseId<
   TBaseVersions extends {
     isCurrent: unknown
-    releaseId: unknown
+    resourceReleaseId: unknown
     sourceRecordId: unknown
     updatedAt: unknown
     validToRelease: unknown
@@ -294,7 +294,7 @@ async function deleteMissingCurrentSourceRowsByReleaseId<
   db: SourceDatabase,
   baseVersionsTable: TBaseVersions,
   validToRelease: string,
-  releaseId: string,
+  resourceReleaseId: string,
   i18nVersionsTable?: TI18nVersions,
 ) {
   let closedRows = 0
@@ -310,9 +310,9 @@ async function deleteMissingCurrentSourceRowsByReleaseId<
         and(
           eq(baseVersionsTable.isCurrent as never, true),
           gt(baseVersionsTable.sourceRecordId as never, lastSourceRecordId),
-          sql`(${baseVersionsTable.releaseId as never} IS NULL OR ${
-            baseVersionsTable.releaseId as never
-          } <> ${releaseId})`,
+          sql`(${baseVersionsTable.resourceReleaseId as never} IS NULL OR ${
+            baseVersionsTable.resourceReleaseId as never
+          } <> ${resourceReleaseId})`,
         ),
       )
       .orderBy(baseVersionsTable.sourceRecordId as never)
@@ -707,7 +707,7 @@ async function insertVersionRows<TTable>(
             setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
             set: {
               isCurrent: true,
-              releaseId: excluded('releaseId'),
+              resourceReleaseId: excluded('resourceReleaseId'),
               validToRelease: null,
               updatedAt: new Date().toISOString(),
             } as never,

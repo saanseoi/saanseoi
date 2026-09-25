@@ -16,7 +16,7 @@ export type SqlDeliveryPlan = {
   version: 1
   id: string
   context: {
-    releaseId: string
+    resourceReleaseId: string
     environment: 'local' | 'preview' | 'production'
     phase: string
     /** Frozen planning inputs, including selected snapshots and source checksums. */

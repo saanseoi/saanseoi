@@ -1,6 +1,6 @@
 type Statement = { sql: string; params: unknown[] }
 const closure =
-  /^UPDATE (hkgovAlsAddresses(?:2d|3d)) SET isCurrent = 0, validToRelease = \?, updatedAt = \? WHERE isCurrent = 1 AND releaseId <> \?$/
+  /^UPDATE (hkgovAlsAddresses(?:2d|3d)) SET isCurrent = 0, validToRelease = \?, updatedAt = \? WHERE isCurrent = 1 AND resourceReleaseId <> \?$/
 const quote = (value: string) => `'${value.replaceAll("'", "''")}'`
 
 /** Pre-retirement is monotonic; the sealed upserts then restore this release's rows. */
@@ -24,7 +24,7 @@ export async function preRetireAddressSources(
     const isUpsert =
       /^INSERT INTO "hkgovAlsAddresses(?:2d|3d)" /.test(statement.sql) &&
       statement.sql.endsWith(
-        'ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET releaseId=excluded.releaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt',
+        'ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET resourceReleaseId=excluded.resourceReleaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt',
       )
     if (
       (!isClosure && !isUpdate && !isUpsert) ||
@@ -46,7 +46,7 @@ export async function preRetireAddressSources(
     let cursor: number | undefined
     for (;;) {
       const rows = await query(
-        `UPDATE ${table} SET isCurrent=0, validToRelease=${quote(version as string)}, updatedAt=${quote(timestamp as string)} WHERE rowid IN (SELECT rowid FROM ${table} WHERE ${cursor === undefined ? '' : `rowid>${cursor} AND `}isCurrent=1 AND releaseId<>${quote(release as string)} ORDER BY rowid LIMIT 1024) RETURNING rowid`,
+        `UPDATE ${table} SET isCurrent=0, validToRelease=${quote(version as string)}, updatedAt=${quote(timestamp as string)} WHERE rowid IN (SELECT rowid FROM ${table} WHERE ${cursor === undefined ? '' : `rowid>${cursor} AND `}isCurrent=1 AND resourceReleaseId<>${quote(release as string)} ORDER BY rowid LIMIT 1024) RETURNING rowid`,
       )
       if (!rows.length) break
       // RETURNING has no ordering guarantee. Resume after the largest retired

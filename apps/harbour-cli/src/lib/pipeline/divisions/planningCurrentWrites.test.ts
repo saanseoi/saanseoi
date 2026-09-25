@@ -97,7 +97,7 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
     const file = await buildPlandCurrentSql({ currentDb: db } as never, {
       records: [record],
       snapshotId,
-      releaseId: snapshotId,
+      resourceReleaseId: snapshotId,
       releaseCode: snapshotId,
       changedHistoryIds: changed ? ['one'] : [],
       changedCurrentBaseIds: changed ? ['one'] : [],

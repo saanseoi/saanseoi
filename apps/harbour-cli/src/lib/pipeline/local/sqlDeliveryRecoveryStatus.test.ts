@@ -5,10 +5,10 @@ import { sqlDeliveryRecoveryStatusSql } from './sqlDeliveryRecoveryStatus.ts'
 test('recovery reopens only failed resources without published snapshots', () => {
   const db = new Database(':memory:')
   try {
-    db.exec(`CREATE TABLE releases (id TEXT PRIMARY KEY, status TEXT);
+    db.exec(`CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, status TEXT);
       CREATE TABLE snapshots (id TEXT, status TEXT);
       CREATE TABLE snapshotSourceReleases (snapshotId TEXT, resourceReleaseId TEXT);
-      INSERT INTO releases VALUES ('failed','failed'), ('published','published'), ('superseded','superseded'), ('poisoned','failed'), ('staged','staged'), ('quoted''id','failed');
+      INSERT INTO resourceReleases VALUES ('failed','failed'), ('published','published'), ('superseded','superseded'), ('poisoned','failed'), ('staged','staged'), ('quoted''id','failed');
       INSERT INTO snapshots VALUES ('snapshot','published');
       INSERT INTO snapshotSourceReleases VALUES ('snapshot','poisoned');`)
     for (const id of [
@@ -21,7 +21,7 @@ test('recovery reopens only failed resources without published snapshots', () =>
       'missing',
     ])
       db.exec(sqlDeliveryRecoveryStatusSql(id))
-    expect(db.query('SELECT * FROM releases ORDER BY id').all()).toEqual([
+    expect(db.query('SELECT * FROM resourceReleases ORDER BY id').all()).toEqual([
       { id: 'failed', status: 'processing' },
       { id: 'poisoned', status: 'failed' },
       { id: 'published', status: 'published' },

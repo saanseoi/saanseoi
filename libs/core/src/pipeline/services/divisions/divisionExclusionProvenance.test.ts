@@ -17,7 +17,7 @@ test('every reviewed exclusion retains its individual fixture and reason', async
   }
   const entries = divisionExclusionFixture.entries
   const result = await retainDivisionProvenance(store, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     datasetCode: 'ds-hk-overture-division',
     inputCount: entries.length,
     outputCount: 0,

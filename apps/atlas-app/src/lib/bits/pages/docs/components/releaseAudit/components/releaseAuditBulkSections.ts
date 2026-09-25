@@ -15,7 +15,7 @@ const searchableHeaderText = (rule: AuditBulkRule) =>
     rule.sourceFieldPath,
     rule.targetFieldPath,
     rule.condition,
-    ...rule.i18n.map(item => item.description),
+    ...Object.values(rule.i18n).map(item => item.description),
   ].join(' ')
 
 const searchableMappingText = (mapping: AuditBulkMapping) =>

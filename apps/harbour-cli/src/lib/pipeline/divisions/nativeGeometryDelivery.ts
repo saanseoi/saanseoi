@@ -29,7 +29,7 @@ export function nativeGeometryDeliveryPhase(
 
 export async function readNativeGeometryVersion(
   context: Parameters<typeof writeGeometryRows>[0],
-  releaseId: string,
+  resourceReleaseId: string,
   type: Parameters<typeof writeGeometryRows>[1],
   transform?: 'simplified',
   cohortKey?: string,
@@ -38,7 +38,7 @@ export async function readNativeGeometryVersion(
   const plan = await readDeliveryPlan(
     sqlDeliveryPhaseDirectory({
       context,
-      releaseId,
+      resourceReleaseId,
       phase: nativeGeometryDeliveryPhase(type, transform, cohortKey, sourceVersion),
       inputs: {},
     }),
@@ -49,9 +49,9 @@ export async function readNativeGeometryVersion(
     | undefined
   if (
     plan.context.environment !== 'local' ||
-    plan.context.releaseId !== releaseId ||
+    plan.context.resourceReleaseId !== resourceReleaseId ||
     !version ||
-    version.releaseId !== releaseId ||
+    version.resourceReleaseId !== resourceReleaseId ||
     typeof version.sourceVersion !== 'string' ||
     !version.sourceVersion ||
     typeof version.snapshotId !== 'string'
@@ -117,7 +117,7 @@ export async function writeGeometryRowsDurably(
   )
   const input = {
     context,
-    releaseId: version.releaseId,
+    resourceReleaseId: version.resourceReleaseId,
     phase,
     inputs: {
       version: retainedVersion,

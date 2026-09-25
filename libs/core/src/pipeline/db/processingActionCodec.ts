@@ -19,7 +19,7 @@ export type AuditRecord = ReleaseProcessingAction & {
 
 export type AuditChunk = {
   id: string
-  releaseId: string
+  resourceReleaseId: string
   actionId: string
   generation: string
   firstOrdinal: number
@@ -33,7 +33,7 @@ export type AuditChunk = {
 
 export type AuditSummary = {
   id: string
-  releaseId: string
+  resourceReleaseId: string
   action: string
   mode: 'automatic' | 'manual'
   generation: string
@@ -129,7 +129,7 @@ export async function encodeAuditGroup(
         throw new Error('Audit fragment exceeds BLOB limit.')
       chunks.push({
         id: await createHash([summary.id, summary.generation, firstOrdinal, part]),
-        releaseId: summary.releaseId,
+        resourceReleaseId: summary.resourceReleaseId,
         actionId: summary.id,
         generation: summary.generation,
         firstOrdinal,

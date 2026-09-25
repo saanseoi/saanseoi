@@ -103,7 +103,7 @@ export async function fixture(previous = true) {
       sourceVersion: name,
       status: 'published',
     })
-    insert(meta, 'releases', {
+    insert(meta, 'resourceReleases', {
       id: `release-${name}`,
       sourceReleaseId: `source-${name}`,
       datasetId: 'dataset',
@@ -157,7 +157,7 @@ export async function fixture(previous = true) {
   }
   if (previous)
     meta.exec(
-      "UPDATE releases SET supersededByReleaseId='release-new' WHERE id='release-old'",
+      "UPDATE resourceReleases SET supersededByResourceReleaseId='release-new' WHERE id='release-old'",
     )
   insert(meta, 'apiCatalogRevisions', {
     id: 'catalogue',
@@ -298,14 +298,14 @@ export async function fixture(previous = true) {
       directory,
       ownershipDirectory: root,
       files,
-      releaseId: 'release-new',
+      resourceReleaseId: 'release-new',
       phase: 'rollback',
       inputs: { operation: 'rollback' },
       generate: async append => {
         generations++
         return prepareReconstructedRollback({
           context,
-          releaseId: 'release-new',
+          resourceReleaseId: 'release-new',
           append,
         })
       },

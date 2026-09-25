@@ -42,7 +42,7 @@ export async function resumeAddressInitialisation(
   const message = primary?.context.inputs.message as Record<string, unknown> | undefined
   if (
     message?.datasetCode !== 'ds-hk-hkgov-dpo-address' ||
-    message.releaseId !== pending.releaseId
+    message.resourceReleaseId !== pending.resourceReleaseId
   )
     throw new Error(
       'Pending SQL delivery is not an official-address release; refusing automatic recovery.',
@@ -51,7 +51,7 @@ export async function resumeAddressInitialisation(
   for (const plan of plans) {
     if (
       !plan ||
-      plan.context.releaseId !== pending.releaseId ||
+      plan.context.resourceReleaseId !== pending.resourceReleaseId ||
       resolve(plan.context.cacheDir) !== resolve(cacheDir) ||
       plan.context.environment !== environment ||
       (plan !== primary &&
@@ -76,7 +76,7 @@ export async function resumeAddressInitialisation(
     'datasetId',
     'rawObjectKey',
     'releaseCode',
-    'releaseId',
+    'resourceReleaseId',
   ] as const) {
     if (typeof message[field] !== 'string' || !message[field])
       throw new Error(`Retained address SQL plan lacks ${field}.`)

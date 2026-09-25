@@ -24,7 +24,7 @@ import type {
 export async function retainStatisticProvenance(
   store: ProvenanceStore,
   input: {
-    releaseId: string
+    resourceReleaseId: string
     datasetCode: string
     source: HkgovCenstatdStatisticSourceRow[]
     canonical: CanonicalStatsRows
@@ -34,7 +34,7 @@ export async function retainStatisticProvenance(
     additionalRules?: Array<{ declaration: RuleDeclaration; count: number }>
   },
 ) {
-  const { releaseId, datasetCode, source, canonical } = input
+  const { resourceReleaseId, datasetCode, source, canonical } = input
   const apiFields = await retainObject(store, {
     kind: 'api-field-declarations',
     schemaVersion: 1,
@@ -197,9 +197,9 @@ export async function retainStatisticProvenance(
   const failed = guards.some(g => g.status === 'failed')
   return retainAuditResult(store, {
     apiFields,
-    releaseId,
+    resourceReleaseId,
     datasetCode,
-    attempt: { id: releaseId, status: failed ? 'failed' : 'completed' },
+    attempt: { id: resourceReleaseId, status: failed ? 'failed' : 'completed' },
     bulk,
     guards,
     individuals: await retainStatisticTranslations(store, {

@@ -173,7 +173,7 @@ export function roadCentrelineSchemaChanges(
  */
 export function normaliseRoadCentrelineFeatures(input: {
   features: RoadCentrelineFeature[]
-  releaseId: string
+  resourceReleaseId: string
   streets: RoadCentrelineStreet[]
   districts?: RoadCentrelineDistrict[]
   curations?: Readonly<Record<string, RoadCentrelineCuration>>
@@ -200,7 +200,7 @@ export function normaliseRoadCentrelineFeatures(input: {
     // street aggregate and therefore do not count as matching failures.
     if (!fields.englishName || curation?.exclude) {
       records.push({
-        sourceRecordId: `${input.releaseId}:${fields.objectId}`,
+        sourceRecordId: `${input.resourceReleaseId}:${fields.objectId}`,
         streetId: null,
         objectId: fields.objectId,
         streetCode: fields.streetCode,
@@ -223,7 +223,7 @@ export function normaliseRoadCentrelineFeatures(input: {
       curation?.streetId ?? (candidates.length === 1 ? candidates[0]?.id : undefined)
     if (!streetId) {
       records.push({
-        sourceRecordId: `${input.releaseId}:${fields.objectId}`,
+        sourceRecordId: `${input.resourceReleaseId}:${fields.objectId}`,
         streetId: null,
         objectId: fields.objectId,
         streetCode: fields.streetCode,
@@ -247,7 +247,7 @@ export function normaliseRoadCentrelineFeatures(input: {
       continue
     }
     records.push({
-      sourceRecordId: `${input.releaseId}:${fields.objectId}`,
+      sourceRecordId: `${input.resourceReleaseId}:${fields.objectId}`,
       streetId,
       objectId: fields.objectId,
       streetCode: fields.streetCode,

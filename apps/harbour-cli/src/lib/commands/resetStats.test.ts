@@ -88,7 +88,7 @@ function setup() {
   insert(meta, 'datasets', { id: 'dataset', publisherId: 'publisher', code: 'dataset' })
   insert(meta, 'sourceReleases', { id: 'shared-source', datasetId: 'dataset' })
   for (const resourceType of ['divisionStatistic', 'divisionArea', 'place']) {
-    insert(meta, 'releases', {
+    insert(meta, 'resourceReleases', {
       id: resourceType,
       code: resourceType,
       datasetId: 'dataset',
@@ -152,17 +152,20 @@ describe('all-statistics reset', () => {
     }
     insert(source, 'hkgovCenstatdStatistics', {
       sourceRecordId: 's',
-      releaseId: 'divisionStatistic',
+      resourceReleaseId: 'divisionStatistic',
     })
     insert(source, 'hkgovCenstatdDistrictLandAreaPopulationDensities', {
       sourceRecordId: 's',
-      releaseId: 'divisionStatistic',
+      resourceReleaseId: 'divisionStatistic',
     })
     insert(meta, 'apiReleaseSetSnapshots', {
       apiReleaseSetId: 'stats',
       snapshotId: 'divisionArea',
     })
-    insert(source, 'overturePlaces', { sourceRecordId: 'p', releaseId: 'place' })
+    insert(source, 'overturePlaces', {
+      sourceRecordId: 'p',
+      resourceReleaseId: 'place',
+    })
     insert(history, 'snapshotVersionChanges', {
       snapshotId: 'divisionStatistic',
       recordType: 'divisionStatistic',
@@ -175,7 +178,7 @@ describe('all-statistics reset', () => {
     })
     insert(meta, 'assets', {
       id: 'asset',
-      releaseId: 'divisionStatistic',
+      resourceReleaseId: 'divisionStatistic',
       assetKey: 'retained-evidence',
     })
     expect(await statsResetBlockers(context)).toEqual([])
@@ -213,7 +216,7 @@ describe('all-statistics reset', () => {
       }
       expect(db.query('SELECT id FROM divisions').all()).toEqual([{ id: 'd' }])
     }
-    expect(meta.query('SELECT id FROM releases').all()).toEqual([
+    expect(meta.query('SELECT id FROM resourceReleases').all()).toEqual([
       { id: 'divisionArea' },
       { id: 'place' },
     ])
@@ -230,8 +233,8 @@ describe('all-statistics reset', () => {
     expect(meta.query('SELECT id FROM sourceReleases').all()).toEqual([
       { id: 'shared-source' },
     ])
-    expect(meta.query('SELECT releaseId FROM assets').all()).toEqual([
-      { releaseId: null },
+    expect(meta.query('SELECT resourceReleaseId FROM assets').all()).toEqual([
+      { resourceReleaseId: null },
     ])
     expect(source.query('SELECT * FROM hkgovCenstatdStatistics').all()).toHaveLength(0)
     expect(
@@ -246,7 +249,7 @@ describe('all-statistics reset', () => {
     expect(meta.query('PRAGMA foreign_key_check').all()).toEqual([])
     // An empty repeat is safe and keeps the retained unrelated family.
     meta.exec(buildStatsResetSql(await collectStatsResetPlan(context)).metaSql)
-    expect(meta.query('SELECT id FROM releases').all()).toEqual([
+    expect(meta.query('SELECT id FROM resourceReleases').all()).toEqual([
       { id: 'divisionArea' },
       { id: 'place' },
     ])
@@ -323,7 +326,10 @@ describe('all-statistics reset', () => {
       'hkgovCenstatdDivisionAreas',
       'hkgovCenstatdDivisionAreaDerivatives',
     ]) {
-      insert(source, table, { sourceRecordId: 'geometry', releaseId: 'divisionArea' })
+      insert(source, table, {
+        sourceRecordId: 'geometry',
+        resourceReleaseId: 'divisionArea',
+      })
     }
     const plan = await collectStatsResetPlan(context)
     expect(plan.releases.map(row => row.id)).toEqual([
@@ -343,7 +349,9 @@ describe('all-statistics reset', () => {
     meta.exec(sql.metaSql)
     expect(current.query('SELECT * FROM divisions').all()).toHaveLength(0)
     expect(history.query('SELECT * FROM divisions').all()).toHaveLength(0)
-    expect(meta.query('SELECT id FROM releases').all()).toEqual([{ id: 'place' }])
+    expect(meta.query('SELECT id FROM resourceReleases').all()).toEqual([
+      { id: 'place' },
+    ])
     expect(meta.query('SELECT id FROM snapshots').all()).toEqual([{ id: 'place' }])
     expect(meta.query('PRAGMA foreign_key_check').all()).toEqual([])
     for (const db of [current, history]) {
@@ -452,7 +460,7 @@ describe('all-statistics reset', () => {
       code: 'geography-source',
       datasetId: 'geography',
     })
-    insert(meta, 'releases', {
+    insert(meta, 'resourceReleases', {
       id: 'geography',
       code: 'geography',
       datasetId: 'geography',
@@ -481,7 +489,7 @@ describe('all-statistics reset', () => {
     }
     insert(source, 'hkgovCenstatdDivisionAreas', {
       sourceRecordId: 'retained',
-      releaseId: 'geography',
+      resourceReleaseId: 'geography',
     })
     insert(meta, 'apiVersions', {
       id: 'divisions',
@@ -538,7 +546,7 @@ describe('all-statistics reset', () => {
         { id: 'unrelated' },
       ])
     }
-    expect(meta.query('SELECT id FROM releases ORDER BY id').all()).toEqual([
+    expect(meta.query('SELECT id FROM resourceReleases ORDER BY id').all()).toEqual([
       { id: 'geography' },
       { id: 'place' },
     ])
@@ -551,8 +559,8 @@ describe('all-statistics reset', () => {
       { id: 'unaffected' },
     ])
     expect(
-      source.query('SELECT releaseId FROM hkgovCenstatdDivisionAreas').all(),
-    ).toEqual([{ releaseId: 'geography' }])
+      source.query('SELECT resourceReleaseId FROM hkgovCenstatdDivisionAreas').all(),
+    ).toEqual([{ resourceReleaseId: 'geography' }])
     expect(meta.query('PRAGMA foreign_key_check').all()).toEqual([])
   })
 

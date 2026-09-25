@@ -185,7 +185,7 @@ function fixture(resourceType: ResourceType) {
         snapshotId,
         parentSnapshotId,
         snapshotLineageId: lineage(scope),
-        releaseId: `release-${snapshotId}`,
+        resourceReleaseId: `release-${snapshotId}`,
         releaseCode: snapshotId,
         sourceVersion: snapshotId,
         merge: options.merge,

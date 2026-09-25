@@ -23,7 +23,7 @@ export type UploadResult = {
   datasetId?: string
   rawObjectKey?: string
   releaseCode?: string
-  releaseId?: string
+  resourceReleaseId?: string
 }
 
 export type EnrichedPlace = {
@@ -69,7 +69,7 @@ export type PlaceHistoryRow = Pick<
   | 'createdAt'
   | 'firstSeenMonth'
   | 'lastSeenMonth'
-  | 'releaseId'
+  | 'resourceReleaseId'
   | 'versionHash'
 > &
   Partial<typeof historySchema.places.$inferSelect>

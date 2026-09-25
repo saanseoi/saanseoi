@@ -6,7 +6,7 @@ test('native metadata replays skip equal rows and preserve lifecycle and source 
   const db = new Database(':memory:')
   db.exec(`CREATE TABLE snapshots(id TEXT PRIMARY KEY,status TEXT,publishedAt TEXT,updatedAt TEXT);
     CREATE TABLE snapshotSourceReleases(snapshotId TEXT,resourceReleaseId TEXT,selectionMode TEXT,anchorReleaseId TEXT,PRIMARY KEY(snapshotId,resourceReleaseId));
-    CREATE TABLE releaseShardAssignments(releaseId TEXT,dataShardId TEXT,PRIMARY KEY(releaseId,dataShardId));`)
+    CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT,dataShardId TEXT,PRIMARY KEY(resourceReleaseId,dataShardId));`)
   const changes = () =>
     db.query<{ count: number }, []>('SELECT total_changes() AS count').get()?.count ?? 0
   const snapshot = {
@@ -38,8 +38,8 @@ test('native metadata replays skip equal rows and preserve lifecycle and source 
         ),
         ...buildMetaInsertStatements(
           'releaseShardAssignments',
-          ['releaseId', 'dataShardId'],
-          [{ releaseId: 'release', dataShardId: 'source' }],
+          ['resourceReleaseId', 'dataShardId'],
+          [{ resourceReleaseId: 'release', dataShardId: 'source' }],
           [],
         ),
       ].join('\n'),

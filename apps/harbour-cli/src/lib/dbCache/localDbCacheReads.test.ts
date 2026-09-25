@@ -24,7 +24,7 @@ test('completed geometry contributors can precede shared composition publication
       CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
       CREATE TABLE snapshotSourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
       CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
-      CREATE TABLE releaseShardAssignments(releaseId TEXT);
+      CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
       INSERT INTO snapshots VALUES ('snapshot','lineage','divisionArea','draft',0,'2026');
       INSERT INTO snapshotSourceReleases VALUES ('snapshot','contributor','release','contributed_geometry','snapshot-assembly-division-geometry-v1','release');
@@ -96,14 +96,14 @@ test('initialisation skips published divisions only after their exact delivery i
   const current = new Database(currentPath)
   try {
     meta.exec(`
-      CREATE TABLE releases(id TEXT, code TEXT, datasetId TEXT, resourceType TEXT, status TEXT);
+      CREATE TABLE resourceReleases(id TEXT, code TEXT, datasetId TEXT, resourceType TEXT, status TEXT);
       CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
       CREATE TABLE snapshotSourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
       CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
-      CREATE TABLE releaseShardAssignments(releaseId TEXT);
+      CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
-      INSERT INTO releases VALUES ('release','landsd','dataset','division','published');
-      INSERT INTO releases VALUES ('older','landsd-older','dataset','division','superseded');
+      INSERT INTO resourceReleases VALUES ('release','landsd','dataset','division','published');
+      INSERT INTO resourceReleases VALUES ('older','landsd-older','dataset','division','superseded');
       INSERT INTO snapshots VALUES ('snapshot','lineage','division','published',0,'2026');
       INSERT INTO snapshotSourceReleases VALUES ('snapshot','dataset','release',NULL,NULL,NULL);
       INSERT INTO snapshotLineages VALUES ('lineage','division','dataset');
@@ -150,13 +150,13 @@ test('curated division delivery proves completion of its retained native baselin
   const current = new Database(currentPath)
   try {
     meta.exec(`
-      CREATE TABLE releases(id TEXT, code TEXT, datasetId TEXT, resourceType TEXT, status TEXT);
+      CREATE TABLE resourceReleases(id TEXT, code TEXT, datasetId TEXT, resourceType TEXT, status TEXT);
       CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
       CREATE TABLE snapshotSourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
       CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
-      CREATE TABLE releaseShardAssignments(releaseId TEXT);
+      CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
-      INSERT INTO releases VALUES ('release','native','dataset','division','published');
+      INSERT INTO resourceReleases VALUES ('release','native','dataset','division','published');
       INSERT INTO snapshots VALUES ('native','native-lineage','division','published',1,'2026-08');
       INSERT INTO snapshots VALUES ('curated','curated-lineage','division','published',0,'2026-09');
       INSERT INTO snapshotSourceReleases VALUES ('native','dataset','release','exact_ref','snapshot-assembly-division-v1','release');
@@ -181,7 +181,7 @@ test('curated division delivery proves completion of its retained native baselin
     expect(await completed()).toEqual([])
     meta.exec(`
       UPDATE snapshotSourceReleases SET selectedByRule = 'saanseoi-curated-division-assembly-v1' WHERE snapshotId = 'curated';
-      INSERT INTO releases VALUES ('curated-release','curated','curated-dataset','division','published');
+      INSERT INTO resourceReleases VALUES ('curated-release','curated','curated-dataset','division','published');
       INSERT INTO snapshotSourceReleases VALUES ('curated','curated-dataset','curated-release','exact_ref','saanseoi-curated-division-assembly-v1',NULL);
     `)
     // Derived releases retain an archive and snapshot history, without a

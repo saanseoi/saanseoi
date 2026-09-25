@@ -18,7 +18,7 @@ function fixture() {
     CREATE TABLE datasets (
       id TEXT PRIMARY KEY, publisherId TEXT, code TEXT, regionCode TEXT, sourceVariant TEXT
     );
-    CREATE TABLE releases (
+    CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY, datasetId TEXT, resourceType TEXT, status TEXT
     );
     CREATE TABLE snapshotLineages (id TEXT PRIMARY KEY, variant TEXT);
@@ -47,13 +47,13 @@ function fixture() {
     resourceType = 'divisionArea',
   ) => {
     sqlite
-      .query('INSERT INTO releases VALUES (?, ?, ?, ?)')
+      .query('INSERT INTO resourceReleases VALUES (?, ?, ?, ?)')
       .run(id, dataset, resourceType, status)
   }
   const addSource = (snapshot: string, release: string, role = 'primary') => {
     sqlite
       .query(`INSERT INTO snapshotSourceReleases
-        SELECT ?, datasetId, id, ? FROM releases WHERE id = ?`)
+        SELECT ?, datasetId, id, ? FROM resourceReleases WHERE id = ?`)
       .run(snapshot, role, release)
   }
   const addSnapshot = (
@@ -76,7 +76,7 @@ function fixture() {
         .run(variant, variant)
     sqlite
       .query(`INSERT INTO snapshots
-        SELECT ?, ?, resourceType, ?, ?, ?, ?, ?, ? FROM releases WHERE id = ?`)
+        SELECT ?, ?, resourceType, ?, ?, ?, ?, ?, ? FROM resourceReleases WHERE id = ?`)
       .run(
         id,
         variant,

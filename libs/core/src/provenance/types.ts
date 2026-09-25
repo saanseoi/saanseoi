@@ -12,7 +12,7 @@ export type Collection = {
   id: string
   layer: 'source' | 'canonical'
   datasetCode: string
-  releaseId: string
+  resourceReleaseId: string
   snapshotId: string | null
   schema: string
 }
@@ -71,7 +71,7 @@ export type ApplicationChunk = {
 export type ProcessingManifest = {
   schemaVersion: 1
   kind: 'processing-result'
-  releaseId: string
+  resourceReleaseId: string
   collections: Collection[]
   /** Ordered chunks define execution order. No producer code is invoked on replay. */
   chunks: Array<ObjectRef & { firstOrdinal: number; count: number }>

@@ -19,17 +19,17 @@ test('asset links update both release rows atomically and cannot replace another
   const db = new Database(':memory:')
   try {
     db.exec(`CREATE TABLE sourceReleases (id TEXT PRIMARY KEY, rawObjectKey TEXT, originalFileName TEXT);
-      CREATE TABLE releases (id TEXT PRIMARY KEY, rawObjectKey TEXT, originalFileName TEXT);
+      CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, rawObjectKey TEXT, originalFileName TEXT);
       INSERT INTO sourceReleases (id) VALUES ('source');
-      INSERT INTO releases (id) VALUES ('release');`)
+      INSERT INTO resourceReleases (id) VALUES ('release');`)
     const input = {
       sourceReleaseId: 'source',
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       assetKey: 'archive',
       fileName: 'edition.zip',
     }
     linkCuratedReleaseAsset(db, input)
-    for (const table of ['sourceReleases', 'releases'])
+    for (const table of ['sourceReleases', 'resourceReleases'])
       expect(
         db.query(`SELECT rawObjectKey, originalFileName FROM ${table}`).get(),
       ).toEqual({ rawObjectKey: 'archive', originalFileName: 'edition.zip' })
@@ -40,7 +40,7 @@ test('asset links update both release rows atomically and cannot replace another
     expect(db.query('SELECT rawObjectKey FROM sourceReleases').get()).toEqual({
       rawObjectKey: null,
     })
-    expect(db.query('SELECT rawObjectKey FROM releases').get()).toEqual({
+    expect(db.query('SELECT rawObjectKey FROM resourceReleases').get()).toEqual({
       rawObjectKey: 'archive',
     })
   } finally {
@@ -105,7 +105,7 @@ test('upload verifies an existing edition, rejects changed bytes and propagates 
   const target = { environment: 'dev' as const, remote: false }
   const release = {
     datasetId: 'dataset',
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     existingObjectKeys: [null],
   }
   let uploads = 0
@@ -115,7 +115,7 @@ test('upload verifies an existing edition, rejects changed bytes and propagates 
   ) => {
     uploads++
     expect(actualTarget).toBe(target)
-    expect(input.metadata.releaseId).toBe('release')
+    expect(input.metadata.resourceReleaseId).toBe('release')
     expect(input.metadata.contentHash).toBe(asset.contentHash)
     return { assetId: 'asset', url: 'asset-url' }
   }

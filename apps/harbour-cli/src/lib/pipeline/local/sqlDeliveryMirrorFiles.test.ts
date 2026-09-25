@@ -17,7 +17,7 @@ test('all retained mirror files verify across plans before any baseline is promo
         directory,
         {
           environment: 'local',
-          releaseId: 'release',
+          resourceReleaseId: 'release',
           phase: `${index}`,
           inputs: {},
           cacheDir: root,
@@ -60,7 +60,7 @@ test('mirror metadata rejects malformed, conflicting and redirected destinations
       directory,
       {
         environment: 'local',
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         phase: 'data',
         inputs: {},
         cacheDir: root,

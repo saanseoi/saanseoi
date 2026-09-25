@@ -64,7 +64,7 @@ test('Places delivery writes only current content changes and removals, with rec
       } as unknown as Parameters<typeof importPlaceSqlBatches>[0]
       const initial = [place('a'), place('b')]
       const run = async (revision: number, rows: EnrichedPlace[]) => {
-        const releaseId = `release-${revision}`
+        const resourceReleaseId = `release-${revision}`
         const directory = join(f.root, `delivery-${revision}`)
         const path = join(f.root, `places-${revision}.jsonl`)
         await Bun.write(path, rows.map(row => JSON.stringify(row)).join('\n'))
@@ -80,7 +80,7 @@ test('Places delivery writes only current content changes and removals, with rec
           sourceBindingNames: [],
           datasetId: 'dataset',
           message: {
-            releaseId,
+            resourceReleaseId,
             sourceVersion: `2026-${revision}`,
           } as BuildPlaceSqlInput['message'],
           snapshots: {
@@ -94,7 +94,7 @@ test('Places delivery writes only current content changes and removals, with rec
         }
         await prepareSqlDelivery(
           directory,
-          { ...f.context, releaseId, inputs: { revision } },
+          { ...f.context, resourceReleaseId, inputs: { revision } },
           async append => {
             await importPlaceSqlBatches(
               targets,
@@ -123,7 +123,7 @@ test('Places delivery writes only current content changes and removals, with rec
         expect(
           [f.remote, local].map(db => db.query('SELECT * FROM audit').all()),
         ).toEqual(writes)
-        await completeSqlDeliveryRelease(f.root, releaseId)
+        await completeSqlDeliveryRelease(f.root, resourceReleaseId)
       }
       await run(1, initial)
       for (const db of [f.remote, local]) db.exec('DELETE FROM audit')

@@ -9,7 +9,7 @@ export function sourceReleasePublicationCondition(sourceReleaseId: string) {
     sql`NOT EXISTS (
       SELECT 1 FROM json_each(${metaSourceReleases.expectedResourceTypes}) AS expected
       WHERE NOT EXISTS (
-        SELECT 1 FROM releases AS child
+        SELECT 1 FROM resourceReleases AS child
         WHERE child.sourceReleaseId = ${metaSourceReleases.id}
           AND child.resourceType = expected.value
           AND child.status = 'published'

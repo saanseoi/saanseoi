@@ -54,7 +54,7 @@ function resetReadContext(
 
 const TYPES = "('divisionStatistic')"
 const GEOMETRY_TYPES = "('division', 'divisionArea', 'divisionBoundary')"
-const RELEASES = `SELECT id FROM releases WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND datasetId IN (SELECT id FROM datasets WHERE theme = 'stats'))`
+const RELEASES = `SELECT id FROM resourceReleases WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND datasetId IN (SELECT id FROM datasets WHERE theme = 'stats'))`
 // Lookup sources are dependencies, not contributions owned by the dataset.
 const SNAPSHOTS = `SELECT id FROM snapshots WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND id IN (SELECT snapshotId FROM snapshotSourceReleases WHERE resourceReleaseId IN (${RELEASES}) AND role <> 'lookup'))`
 const CANONICAL_TABLES = [
@@ -88,7 +88,7 @@ async function rows(binding: ReadBinding | undefined, sql: string) {
 export async function collectStatsResetPlan(context: ResetReadContext) {
   const releases = await rows(
     context.metaBinding,
-    `SELECT id, code, sourceReleaseId, resourceType, status, updatedAt FROM releases WHERE id IN (${RELEASES}) ORDER BY id`,
+    `SELECT id, code, sourceReleaseId, resourceType, status, updatedAt FROM resourceReleases WHERE id IN (${RELEASES}) ORDER BY id`,
   )
   const snapshots = await rows(
     context.metaBinding,
@@ -238,15 +238,15 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...deleteIds('sourceResolutions', 'sourceReleaseId', releaseIds),
   ].join('\n')
   const sourceSql = SOURCE_TABLES.flatMap(table =>
-    deleteIds(table, 'releaseId', releaseIds),
+    deleteIds(table, 'resourceReleaseId', releaseIds),
   ).join('\n')
   const metaSql = [
     ...deleteIds('apiFieldProvenance', 'apiReleaseSetId', setIds),
     ...deleteIds('apiCatalogRevisionReleaseSets', 'apiCatalogRevisionId', catalogIds),
     ...deleteIds('apiCatalogRevisions', 'id', catalogIds),
     ...deleteIds('apiReleaseSetSnapshots', 'apiReleaseSetId', setIds),
-    ...deleteIds('publishedDataJournal', 'releaseId', releaseIds),
-    ...deleteIds('stats', 'releaseId', releaseIds),
+    ...deleteIds('publishedDataJournal', 'resourceReleaseId', releaseIds),
+    ...deleteIds('stats', 'resourceReleaseId', releaseIds),
     ...deleteIds('stats', 'apiReleaseSetId', setIds),
     ...[
       'releaseProcessingActionChunks',
@@ -254,7 +254,7 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
       'ingestRuns',
       'releaseShardAssignments',
       'releaseProvenance',
-    ].map(table => `DELETE FROM ${table} WHERE releaseId IN (${RELEASES});`),
+    ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),
     ...deleteIds('snapshotDependencies', 'snapshotId', snapshotIds),
     ...deleteIds('snapshotAssemblies', 'snapshotId', snapshotIds),
     ...deleteIds('snapshotSourceReleases', 'snapshotId', snapshotIds),
@@ -264,12 +264,12 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ),
     ...deleteIds('apiReleaseSets', 'id', setIds),
     // Keep source evidence assets and fixture identities available for replay.
-    // assets.releaseId and journal references use ON DELETE SET NULL.
+    // assets.resourceReleaseId and journal references use ON DELETE SET NULL.
     ...deleteIds('snapshots', 'id', snapshotIds),
-    ...deleteIds('releases', 'id', releaseIds),
+    ...deleteIds('resourceReleases', 'id', releaseIds),
     ...sourceReleaseIds.map(
       id =>
-        `DELETE FROM sourceReleases WHERE id = ${literal(id)} AND NOT EXISTS (SELECT 1 FROM releases WHERE releases.sourceReleaseId = sourceReleases.id);`,
+        `DELETE FROM sourceReleases WHERE id = ${literal(id)} AND NOT EXISTS (SELECT 1 FROM resourceReleases WHERE resourceReleases.sourceReleaseId = sourceReleases.id);`,
     ),
   ].join('\n')
   return { currentSql, historySql, sourceSql, metaSql }

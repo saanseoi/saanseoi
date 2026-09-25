@@ -6,7 +6,7 @@ import type { HarbourReadableDb } from './types'
 const {
   metaDatasets,
   metaPublishers,
-  metaReleases,
+  metaResourceReleases,
   metaSnapshotLineages,
   metaSnapshots,
   metaSnapshotSourceReleases,
@@ -38,11 +38,11 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
       eq(metaSnapshotSourceReleases.snapshotId, metaSnapshots.id),
     )
     .innerJoin(
-      metaReleases,
+      metaResourceReleases,
       and(
-        eq(metaReleases.id, metaSnapshotSourceReleases.resourceReleaseId),
-        eq(metaReleases.datasetId, metaSnapshotSourceReleases.datasetId),
-        eq(metaReleases.resourceType, metaSnapshots.resourceType),
+        eq(metaResourceReleases.id, metaSnapshotSourceReleases.resourceReleaseId),
+        eq(metaResourceReleases.datasetId, metaSnapshotSourceReleases.datasetId),
+        eq(metaResourceReleases.resourceType, metaSnapshots.resourceType),
       ),
     )
     .innerJoin(metaDatasets, eq(metaDatasets.id, metaSnapshotSourceReleases.datasetId))
@@ -55,7 +55,7 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
       and(
         inArray(metaSnapshots.resourceType, ['divisionArea', 'divisionBoundary']),
         eq(metaSnapshots.status, 'published'),
-        eq(metaReleases.status, 'published'),
+        eq(metaResourceReleases.status, 'published'),
         ne(metaSnapshotSourceReleases.role, 'lookup'),
       ),
     )

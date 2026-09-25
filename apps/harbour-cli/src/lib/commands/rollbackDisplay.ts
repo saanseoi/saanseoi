@@ -58,10 +58,10 @@ export function formatRollbackResult(input: {
     formatField('operation', input.operation),
     formatField('dataset', input.release.datasetCode),
     formatField('release', input.release.releaseCode),
-    formatField('releaseId', input.release.releaseId),
+    formatField('resourceReleaseId', input.release.resourceReleaseId),
     '',
     formatField('latest release', input.previousRelease?.releaseCode ?? '-'),
-    formatField('releaseId', input.previousRelease?.releaseId ?? '-'),
+    formatField('resourceReleaseId', input.previousRelease?.resourceReleaseId ?? '-'),
     formatField('schemaVersion', input.previousReleaseSet?.schemaVersion ?? '-'),
     formatField('artefacts', input.rollbackRoot),
   ]

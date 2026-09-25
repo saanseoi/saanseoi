@@ -56,8 +56,8 @@ evidence and release metadata have a small lifecycle cost. A source assertion co
 into a new year shard, with its preceding shard assertion closed, is an accepted
 exception to unchanged-source write economy.
 
-Place rows preserve the `releaseId` and stored `lastSeenMonth` of their last real
-content change. A complete published cohort asserts membership for all its current
+Place rows preserve the `resourceReleaseId` and stored `lastSeenMonth` of their last
+real content change. A complete published cohort asserts membership for all its current
 Places, so current API responses derive `lastSeenMonth` from the selected cohort.
 Historical responses preserve the recorded version values. Snapshot provenance records
 release assertions without touching every unchanged Place.

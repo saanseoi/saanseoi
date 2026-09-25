@@ -32,11 +32,12 @@ export function buildPipelineArtefactKey(
   rowStart: number,
   rowEnd: number,
 ) {
-  const releaseId = message.releaseCode ?? message.releaseId ?? message.datasetId
+  const resourceReleaseId =
+    message.releaseCode ?? message.resourceReleaseId ?? message.datasetId
   return [
     'processed',
     message.resourceType,
-    releaseId,
+    resourceReleaseId,
     stage,
     `${String(rowStart).padStart(12, '0')}-${String(rowEnd).padStart(12, '0')}.json`,
   ].join('/')
@@ -47,7 +48,8 @@ export function buildSqlPipelineArtefactKey(
   target: string,
   filename: string,
 ) {
-  const releaseCode = message.releaseCode ?? message.releaseId ?? message.datasetId
+  const releaseCode =
+    message.releaseCode ?? message.resourceReleaseId ?? message.datasetId
 
   return ['processed', releaseCode, 'sql', target, filename].join('/')
 }

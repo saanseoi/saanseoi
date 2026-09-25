@@ -140,7 +140,7 @@ const ReleaseIdSchema = z
   .string()
   .uuid()
   .openapi({
-    description: 'Release UUID from meta.releases.',
+    description: 'Release UUID from meta.resourceReleases.',
     examples: ['1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70'],
   })
 
@@ -186,7 +186,7 @@ export const UploadResponseSchema = z
     datasetCode: DatasetCodeSchema,
     rawObjectKey: RawObjectKeySchema,
     releaseCode: ReleaseCodeSchema,
-    releaseId: ReleaseIdSchema,
+    resourceReleaseId: ReleaseIdSchema,
     rowCount: z.number().openapi({
       description: 'Number of rows processed in the upload',
       examples: [1000, 25000],
@@ -281,7 +281,7 @@ export const LocalUploadRegistrationResponseSchema = z
         'Key of the prepared raw source object, used by the CLI during processing and retained in release metadata.',
     }),
     releaseCode: ReleaseCodeSchema,
-    releaseId: ReleaseIdSchema,
+    resourceReleaseId: ReleaseIdSchema,
     source: SourceSchema,
     status: StatusSchema,
     sourceVersion: z.string(),
@@ -324,7 +324,7 @@ export const ManagedSourceAssetPreflightResponseSchema = z
 export const LinkManagedSourceAssetRequestSchema = z
   .object({
     assetKey: z.string().min(1),
-    releaseId: ReleaseIdSchema,
+    resourceReleaseId: ReleaseIdSchema,
   })
   .openapi('HarbourLinkManagedSourceAssetRequest')
 
@@ -338,7 +338,7 @@ export const LinkManagedSourceAssetResponseSchema = z
 export const ControlStageRequestSchema = z
   .object({
     releaseCode: ReleaseCodeSchema.optional(),
-    releaseId: ReleaseIdSchema.optional(),
+    resourceReleaseId: ReleaseIdSchema.optional(),
     phase: z.string().openapi({
       examples: ['processDataset', 'extractDivisions', 'extractDivisionsI18n'],
     }),
@@ -346,12 +346,12 @@ export const ControlStageRequestSchema = z
     error: z.string().optional(),
   })
   .refine(
-    (value: { releaseCode?: string; releaseId?: string }) =>
-      Boolean(value.releaseId || value.releaseCode),
-    'Either releaseId or releaseCode is required.',
+    (value: { releaseCode?: string; resourceReleaseId?: string }) =>
+      Boolean(value.resourceReleaseId || value.releaseCode),
+    'Either resourceReleaseId or releaseCode is required.',
   )
   .openapi('HarbourControlStageRequest', {
-    anyOf: [{ required: ['releaseId'] }, { required: ['releaseCode'] }],
+    anyOf: [{ required: ['resourceReleaseId'] }, { required: ['releaseCode'] }],
   })
 
 export const PublishDatasetRequestSchema = z
@@ -370,16 +370,16 @@ export const PublishDatasetRequestSchema = z
     deferStatsReleaseSet: z.boolean().optional(),
     deferSourcePublish: z.boolean().optional(),
     releaseCode: ReleaseCodeSchema.optional(),
-    releaseId: ReleaseIdSchema.optional(),
+    resourceReleaseId: ReleaseIdSchema.optional(),
     skipSnapshotCleanup: z.boolean().optional(),
   })
   .refine(
-    (value: { releaseCode?: string; releaseId?: string }) =>
-      Boolean(value.releaseId || value.releaseCode),
-    'Either releaseId or releaseCode is required.',
+    (value: { releaseCode?: string; resourceReleaseId?: string }) =>
+      Boolean(value.resourceReleaseId || value.releaseCode),
+    'Either resourceReleaseId or releaseCode is required.',
   )
   .openapi('HarbourPublishDatasetRequest', {
-    anyOf: [{ required: ['releaseId'] }, { required: ['releaseCode'] }],
+    anyOf: [{ required: ['resourceReleaseId'] }, { required: ['releaseCode'] }],
   })
 
 export const ReconcileDraftReleaseSetsRequestSchema = z
@@ -421,7 +421,7 @@ export const ReconcileDraftReleaseSetsResponseSchema = z
         cohortKey: z.string(),
         family: z.enum(['address', 'division', 'place', 'statistics']),
         releaseCode: ReleaseCodeSchema,
-        releaseId: ReleaseIdSchema,
+        resourceReleaseId: ReleaseIdSchema,
         snapshotId: z.string().uuid(),
       }),
     ),
@@ -509,7 +509,7 @@ export const ControlResponseSchema = z
       })
       .optional(),
     releaseCode: ReleaseCodeSchema,
-    releaseId: ReleaseIdSchema,
+    resourceReleaseId: ReleaseIdSchema,
     phase: z
       .string()
       .nullable()
@@ -526,7 +526,7 @@ export const ReportQuerySchema = z
     datasetCode: DatasetCodeSchema.optional(),
     limit: z.coerce.number().int().min(1).max(100).default(10),
     releaseCode: ReleaseCodeSchema.optional(),
-    releaseId: ReleaseIdSchema.optional(),
+    resourceReleaseId: ReleaseIdSchema.optional(),
     source: SourceSchema.optional(),
     resourceType: DatasetTypeQuerySchema.optional(),
   })
@@ -535,7 +535,7 @@ export const ReportQuerySchema = z
 export const StatsReportQuerySchema = z
   .object({
     limit: z.coerce.number().int().min(1).max(100).default(1),
-    releaseId: ReleaseIdSchema.optional(),
+    resourceReleaseId: ReleaseIdSchema.optional(),
     source: SourceSchema.optional(),
     resourceType: DatasetTypeQuerySchema.optional(),
   })
@@ -557,7 +557,7 @@ export const IngestRunReportRowSchema = z
     finishedAt: z.string().nullable(),
     phase: z.string(),
     releaseCode: ReleaseCodeSchema,
-    releaseId: ReleaseIdSchema,
+    resourceReleaseId: ReleaseIdSchema,
     runId: z.string(),
     cohortKey: z.string().nullable(),
     source: SourceSchema,
@@ -585,7 +585,7 @@ export const StatReportRowSchema = z
     metric: z.string(),
     metricUnit: z.string(),
     releaseCode: ReleaseCodeSchema,
-    releaseId: ReleaseIdSchema,
+    resourceReleaseId: ReleaseIdSchema,
     source: SourceSchema,
     resourceType: z.string(),
     updatedAt: z.string(),
@@ -609,7 +609,7 @@ export const ProcessingActionReportRowSchema = z
     id: z.string(),
     mode: z.enum(['automatic', 'manual']),
     releaseCode: ReleaseCodeSchema,
-    releaseId: ReleaseIdSchema,
+    resourceReleaseId: ReleaseIdSchema,
     source: SourceSchema,
     summary: z.string(),
     resourceType: z.string(),
@@ -633,7 +633,7 @@ export const ReleaseReportRowSchema = z
     publicationDate: z.string().nullable(),
     rawObjectKey: RawObjectKeySchema,
     releaseCode: ReleaseCodeSchema,
-    releaseId: ReleaseIdSchema,
+    resourceReleaseId: ReleaseIdSchema,
     revocationReason: z.string().nullable(),
     revokedAt: z.string().nullable(),
     rowCounts: z.array(ReportRowCountSchema),
@@ -641,7 +641,7 @@ export const ReleaseReportRowSchema = z
     source: SourceSchema,
     sourceVersion: z.string(),
     status: z.string(),
-    supersededByReleaseId: ReleaseIdSchema.nullable(),
+    supersededByResourceReleaseId: ReleaseIdSchema.nullable(),
     resourceType: z.string(),
     updatedAt: z.string(),
   })

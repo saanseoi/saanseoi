@@ -20,7 +20,7 @@ import {
   metaApiReleaseSetSnapshots,
   metaApiVersions,
   metaDatasets,
-  metaReleases,
+  metaResourceReleases,
   metaSchema,
   metaSnapshotSourceReleases,
   or,
@@ -87,7 +87,7 @@ export async function handleReconcileDraftReleaseSets(
         db,
         {
           carriedSnapshots,
-          releaseId: primaryRelease.releaseId,
+          resourceReleaseId: primaryRelease.resourceReleaseId,
           skipSnapshotCleanup: true,
         },
         undefined,
@@ -120,7 +120,7 @@ export async function handleReconcileDraftReleaseSets(
                     ? 'statistics'
                     : 'place',
             releaseCode: result.releaseCode,
-            releaseId: result.releaseId,
+            resourceReleaseId: result.resourceReleaseId,
             snapshotId: result.snapshotId,
           })
         }
@@ -162,17 +162,20 @@ async function restoreMissingDivisionReleaseSets(
     await listCurrentApiCompositionMembersForType(db, 'division')
   ).filter(member => member.role === 'primary')
   const releases = await db
-    .select({ id: metaReleases.id })
-    .from(metaReleases)
-    .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+    .select({ id: metaResourceReleases.id })
+    .from(metaResourceReleases)
+    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
     .where(
       and(
-        eq(metaReleases.resourceType, 'division'),
-        or(eq(metaReleases.status, 'published'), eq(metaReleases.status, 'superseded')),
+        eq(metaResourceReleases.resourceType, 'division'),
+        or(
+          eq(metaResourceReleases.status, 'published'),
+          eq(metaResourceReleases.status, 'superseded'),
+        ),
         regionCode ? eq(metaDatasets.regionCode, regionCode) : undefined,
       ),
     )
-    .orderBy(metaReleases.cohortKey)
+    .orderBy(metaResourceReleases.cohortKey)
     .all()
   for (const release of releases) {
     const dataset = await getDatasetRecordByReleaseId(db, release.id)
@@ -205,7 +208,7 @@ async function restoreMissingDivisionReleaseSets(
     await handlePublishDataset(
       db,
       {
-        releaseId: release.id,
+        resourceReleaseId: release.id,
         deferApiReleaseSet: true,
         skipSnapshotCleanup: true,
       },
@@ -232,8 +235,8 @@ async function listCurrentReleaseSetStatsTargets(
     .select({
       apiReleaseSetId: metaApiReleaseSets.id,
       cohortKey: metaApiReleaseSets.cohortKey,
-      releaseCode: metaReleases.code,
-      releaseId: metaReleases.id,
+      releaseCode: metaResourceReleases.code,
+      resourceReleaseId: metaResourceReleases.id,
       snapshotId: metaApiReleaseSetSnapshots.snapshotId,
     })
     .from(metaApiReleaseSets)
@@ -256,8 +259,8 @@ async function listCurrentReleaseSetStatsTargets(
       ),
     )
     .innerJoin(
-      metaReleases,
-      eq(metaSnapshotSourceReleases.resourceReleaseId, metaReleases.id),
+      metaResourceReleases,
+      eq(metaSnapshotSourceReleases.resourceReleaseId, metaResourceReleases.id),
     )
     .where(
       and(
@@ -280,7 +283,10 @@ async function listCurrentReleaseSetStatsTargets(
         request.regionCode
           ? eq(metaApiReleaseSets.regionCode, request.regionCode)
           : undefined,
-        or(eq(metaReleases.status, 'published'), eq(metaReleases.status, 'superseded')),
+        or(
+          eq(metaResourceReleases.status, 'published'),
+          eq(metaResourceReleases.status, 'superseded'),
+        ),
       ),
     )
     .orderBy(metaApiReleaseSets.cohortKey, metaApiReleaseSets.revision)
@@ -324,7 +330,7 @@ async function listCurrentReleaseSetStatsTargets(
               ? 'statistics'
               : 'place',
       releaseCode: row.releaseCode,
-      releaseId: row.releaseId,
+      resourceReleaseId: row.resourceReleaseId,
       snapshotId: row.snapshotId,
     })
   }
@@ -353,14 +359,14 @@ export async function handleBootstrapStatsReleaseSets(
     // Select the source family here; the snapshot lookup below remains the
     // resource-type gate for the Statistics API release set.
     const sourceReleases = await db
-      .select({ id: metaReleases.id })
-      .from(metaReleases)
-      .innerJoin(metaDatasets, eq(metaReleases.datasetId, metaDatasets.id))
+      .select({ id: metaResourceReleases.id })
+      .from(metaResourceReleases)
+      .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
       .where(
         and(
           eq(metaDatasets.regionCode, regionCode),
           eq(metaDatasets.theme, 'stats'),
-          eq(metaReleases.status, 'published'),
+          eq(metaResourceReleases.status, 'published'),
         ),
       )
       .all()

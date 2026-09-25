@@ -22,7 +22,7 @@ export function applicationReferences(a: Application): ObjectRef[] {
 export async function retainProcessingResult(
   store: ProvenanceStore,
   input: {
-    releaseId: string
+    resourceReleaseId: string
     collections: Collection[]
     applications: AsyncIterable<Application> | Iterable<Application>
   },
@@ -30,7 +30,7 @@ export async function retainProcessingResult(
   const manifest: ProcessingManifest = {
     schemaVersion: 1,
     kind: 'processing-result',
-    releaseId: input.releaseId,
+    resourceReleaseId: input.resourceReleaseId,
     collections: input.collections,
     chunks: [],
     applicationCount: 0,

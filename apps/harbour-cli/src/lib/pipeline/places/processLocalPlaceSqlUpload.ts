@@ -84,7 +84,10 @@ export async function processLocalPlaceSqlUpload(
     skipSnapshotCleanup?: boolean
   } = {},
 ) {
-  const releaseId = required(uploadResult.releaseId, 'releaseId')
+  const resourceReleaseId = required(
+    uploadResult.resourceReleaseId,
+    'resourceReleaseId',
+  )
   const releaseCode = required(uploadResult.releaseCode, 'releaseCode')
   const datasetId = required(uploadResult.datasetId, 'datasetId')
   const datasetCode = required(uploadResult.datasetCode, 'datasetCode')
@@ -123,7 +126,7 @@ export async function processLocalPlaceSqlUpload(
       'Places data',
       () =>
         resolveCurrentWriteContext(target, previewPlan.regionCode, shardYear, {
-          resumeSqlDeliveryReleaseId: releaseId,
+          resumeSqlDeliveryReleaseId: resourceReleaseId,
         }),
     )
     const context = dbContext
@@ -141,7 +144,7 @@ export async function processLocalPlaceSqlUpload(
       datasetCode,
       rawObjectKey,
       releaseCode,
-      releaseId,
+      resourceReleaseId,
       regionCode: previewPlan.regionCode,
       shardYear,
       cohortKey: previewPlan.cohortKey,
@@ -155,7 +158,7 @@ export async function processLocalPlaceSqlUpload(
     await runPlaceProgressPhase(progress, 'Sync down', 'release metadata', () =>
       syncStagedReleaseIntoLocalMetaCache(
         metaDb as never,
-        { datasetCode, rawObjectKey, releaseCode, releaseId },
+        { datasetCode, rawObjectKey, releaseCode, resourceReleaseId },
         message,
         { retainedDeliveryCacheDir: context.state.dbCacheDir },
       ),
@@ -176,7 +179,7 @@ export async function processLocalPlaceSqlUpload(
     }
     await runPlaceProgressPhase(progress, 'Mark as', "'processing'", () =>
       processingClient.stageRunning(
-        releaseId,
+        resourceReleaseId,
         'processDataset',
         { resourceType: previewPlan.resourceType, sourceRows: previewPlan.rowCount },
         releaseCode,
@@ -192,7 +195,7 @@ export async function processLocalPlaceSqlUpload(
           context.currentDb as unknown as HarbourReadableDb,
           previewPlan,
           datasetId,
-          releaseId,
+          resourceReleaseId,
           dependencies,
         ),
     )
@@ -252,7 +255,7 @@ export async function processLocalPlaceSqlUpload(
           historyRows,
           releaseRoot,
           plan: previewPlan,
-          releaseId,
+          resourceReleaseId,
           datasetId,
           targets,
           importOptions,
@@ -260,7 +263,7 @@ export async function processLocalPlaceSqlUpload(
             deliverProducerAudit({
               target,
               directory: resolve(releaseRoot, `provenance-${auditReleaseId}`),
-              allowFailed: auditReleaseId === releaseId,
+              allowFailed: auditReleaseId === resourceReleaseId,
               identity:
                 addresses.materialisationHash ??
                 JSON.stringify({
@@ -269,10 +272,12 @@ export async function processLocalPlaceSqlUpload(
                 }),
               retain: store =>
                 retainPlaceProvenance(store, {
-                  releaseId: auditReleaseId,
+                  resourceReleaseId: auditReleaseId,
                   datasetCode: auditDatasetCode,
                   addresses,
-                  ...(auditReleaseId === releaseId ? { staged: stagedPlaces } : {}),
+                  ...(auditReleaseId === resourceReleaseId
+                    ? { staged: stagedPlaces }
+                    : {}),
                 }),
             }),
           onProgress: current => reportProgress(current, 'Place Address candidates'),
@@ -333,7 +338,7 @@ export async function processLocalPlaceSqlUpload(
       timings: { mirrorPreparationMs },
       directory: resolve(releaseRoot, 'sql-delivery-places'),
       context,
-      releaseId,
+      resourceReleaseId,
       inputs: {
         sourceSqlStrategy: 'cross-shard-source-continuity-v1',
         message,
@@ -351,7 +356,7 @@ export async function processLocalPlaceSqlUpload(
       () =>
         replaceDatasetStats(
           metaDb,
-          releaseId,
+          resourceReleaseId,
           buildPlaceReleaseStatsRowsFromAccumulator(stagedEnrichedPlaces.stats),
         ),
       stagedEnrichedPlaces.processedRows,
@@ -362,7 +367,7 @@ export async function processLocalPlaceSqlUpload(
         metaDb,
         { ...snapshots, supplementaryAddressSnapshotId: supplementary.snapshotId },
         datasetId,
-        releaseId,
+        resourceReleaseId,
         previewPlan,
         target,
         { sourceBindingNames: sourceShardNames },
@@ -373,13 +378,13 @@ export async function processLocalPlaceSqlUpload(
         deliverSqlPhase(
           {
             context,
-            releaseId,
+            resourceReleaseId,
             phase: 'places-metadata',
             inputs: sqlDelivery?.inputs ?? {},
           },
           () =>
-            buildPlaceMetadataSql(metaDb, snapshots.snapshotId, releaseId).then(sql =>
-              executeSqlText(targets.meta, sql, importOptions),
+            buildPlaceMetadataSql(metaDb, snapshots.snapshotId, resourceReleaseId).then(
+              sql => executeSqlText(targets.meta, sql, importOptions),
             ),
         ),
       )
@@ -411,7 +416,7 @@ export async function processLocalPlaceSqlUpload(
       "'completed'",
       () =>
         processingClient.stageCompleted(
-          releaseId,
+          resourceReleaseId,
           'extractPlaces',
           {
             processedRows: stagedEnrichedPlaces.processedRows,
@@ -428,7 +433,7 @@ export async function processLocalPlaceSqlUpload(
       "'completed'",
       () =>
         processingClient.stageCompleted(
-          releaseId,
+          resourceReleaseId,
           'extractPlacesI18n',
           {
             localisedRows: stagedEnrichedPlaces.stats.localisedRows,
@@ -444,7 +449,7 @@ export async function processLocalPlaceSqlUpload(
       async () =>
         deliverProducerAudit({
           target,
-          directory: resolve(releaseRoot, `provenance-${releaseId}`),
+          directory: resolve(releaseRoot, `provenance-${resourceReleaseId}`),
           identity: JSON.stringify({
             source: await deliveryFileSha256(stagedPlaces.path),
             enriched: sqlDelivery.inputs.enrichedSha256,
@@ -452,7 +457,7 @@ export async function processLocalPlaceSqlUpload(
           }),
           retain: store =>
             retainPlaceProvenance(store, {
-              releaseId,
+              resourceReleaseId,
               datasetCode,
               staged: stagedPlaces,
               addresses: supplementary.audit,
@@ -461,7 +466,7 @@ export async function processLocalPlaceSqlUpload(
     )
     await runPlaceProgressPhase(progress, 'Publish', 'curated Address collection', () =>
       processingClient.publishDataset(
-        supplementary.releaseId,
+        supplementary.resourceReleaseId,
         supplementary.releaseCode,
         {
           carriedSnapshots: [
@@ -487,7 +492,7 @@ export async function processLocalPlaceSqlUpload(
       'Publish',
       'source release',
       () =>
-        processingClient.publishDataset(releaseId, releaseCode, {
+        processingClient.publishDataset(resourceReleaseId, releaseCode, {
           carriedSnapshots: [
             {
               resourceType: 'address',
@@ -560,7 +565,7 @@ export async function processLocalPlaceSqlUpload(
         metaDb,
         progress,
         releaseCode,
-        releaseId,
+        resourceReleaseId,
         target: resolveApiReleaseSetStatsTarget(publishResult),
       })
     }
@@ -570,7 +575,7 @@ export async function processLocalPlaceSqlUpload(
       'Places processing',
       () =>
         processingClient.stageCompleted(
-          releaseId,
+          resourceReleaseId,
           'processDataset',
           {
             resourceType: previewPlan.resourceType,
@@ -588,14 +593,16 @@ export async function processLocalPlaceSqlUpload(
     await retainProcessingFailure({
       error,
       target,
-      releaseId,
+      resourceReleaseId,
       datasetCode,
-      store: new LocalPipelineBucket(resolve(releaseRoot, `provenance-${releaseId}`)),
+      store: new LocalPipelineBucket(
+        resolve(releaseRoot, `provenance-${resourceReleaseId}`),
+      ),
     })
     progress.fail(error)
     await client
       ?.stageFailed(
-        releaseId,
+        resourceReleaseId,
         'processDataset',
         error instanceof Error ? error.message : String(error),
         undefined,
@@ -613,17 +620,20 @@ export async function processLocalPlaceSqlUpload(
       recordCache.close()
     }
     if (!target.remote && completed && dbContext)
-      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
+      await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, resourceReleaseId)
     dbContext?.cleanup()
     if (shouldRefreshRemoteMetaCache && target.remote && dbContext) {
       try {
         await refreshRemoteMetaCache(
           target.environment === 'production' ? 'production' : 'preview',
           dbContext.state.dbCacheDir,
-          releaseId,
+          resourceReleaseId,
         )
         if (!postPublishCacheError)
-          await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, releaseId)
+          await completeSqlDeliveryRelease(
+            dbContext.state.dbCacheDir,
+            resourceReleaseId,
+          )
       } catch (error) {
         postPublishCacheError = normaliseError(error)
       }

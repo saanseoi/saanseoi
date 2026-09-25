@@ -78,24 +78,31 @@ test('publishes a dataset snapshot without finalising a shared source release', 
   const dataset = sqlite
     .query('SELECT id FROM datasets WHERE code = ?')
     .get(datasetCode) as { id: string }
-  const releaseId = 'release-hkgov-censtatd-district-statistic-2022'
+  const resourceReleaseId = 'release-hkgov-censtatd-district-statistic-2022'
   sqlite
     .query(
       `INSERT INTO sourceReleases
        (id, datasetId, code, sourceVersion, cohortKey, status)
        VALUES (?, ?, ?, ?, ?, ?)`,
     )
-    .run(releaseId, dataset.id, `sr-${releaseId}`, '2022', '2022', 'processing')
+    .run(
+      resourceReleaseId,
+      dataset.id,
+      `sr-${resourceReleaseId}`,
+      '2022',
+      '2022',
+      'processing',
+    )
   sqlite
     .query(
-      `INSERT INTO releases (
+      `INSERT INTO resourceReleases (
         id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
         rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
-      releaseId,
-      releaseId,
+      resourceReleaseId,
+      resourceReleaseId,
       dataset.id,
       'divisionStatistic',
       'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022',
@@ -113,46 +120,50 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     datasetCode,
     datasetId: dataset.id,
     regionCode: 'hk',
-    sourceReleaseId: releaseId,
+    sourceReleaseId: resourceReleaseId,
     variant: datasetCode,
   })
   sqlite
     .query(
-      'INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount) VALUES (?, ?, ?, ?)',
+      'INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount) VALUES (?, ?, ?, ?)',
     )
-    .run(releaseId, `sha256:${'0'.repeat(64)}`, 1, 1)
-  await upsertSnapshotSource(db, snapshot.id, dataset.id, releaseId, 'primary')
+    .run(resourceReleaseId, `sha256:${'0'.repeat(64)}`, 1, 1)
+  await upsertSnapshotSource(db, snapshot.id, dataset.id, resourceReleaseId, 'primary')
 
   sqlite
-    .query("UPDATE releaseProvenance SET attemptStatus = 'failed' WHERE releaseId = ?")
-    .run(releaseId)
+    .query(
+      "UPDATE releaseProvenance SET attemptStatus = 'failed' WHERE resourceReleaseId = ?",
+    )
+    .run(resourceReleaseId)
   const beforeFailedPublish = sqlite
-    .query('SELECT status FROM releases WHERE id = ?')
-    .get(releaseId)
+    .query('SELECT status FROM resourceReleases WHERE id = ?')
+    .get(resourceReleaseId)
   await expect(
-    handlePublishDataset(db, { deferSourcePublish: true, releaseId }),
+    handlePublishDataset(db, { deferSourcePublish: true, resourceReleaseId }),
   ).rejects.toThrow('failed processing audit attempt')
   expect(
-    sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+    sqlite
+      .query('SELECT status FROM resourceReleases WHERE id = ?')
+      .get(resourceReleaseId),
   ).toEqual(beforeFailedPublish)
   sqlite
     .query(
-      "UPDATE releaseProvenance SET attemptStatus = 'completed' WHERE releaseId = ?",
+      "UPDATE releaseProvenance SET attemptStatus = 'completed' WHERE resourceReleaseId = ?",
     )
-    .run(releaseId)
+    .run(resourceReleaseId)
 
   const result = await handlePublishDataset(db, {
     deferSourcePublish: true,
-    releaseId,
+    resourceReleaseId,
   })
   const release = sqlite
-    .query('SELECT status FROM releases WHERE id = ?')
-    .get(releaseId) as { status: string }
+    .query('SELECT status FROM resourceReleases WHERE id = ?')
+    .get(resourceReleaseId) as { status: string }
 
   expect(result).toMatchObject({
     apiReleaseSetCode: 'data-hk-stats-2022',
     apiReleaseSetStatus: 'current',
-    releaseId,
+    resourceReleaseId,
     snapshotId: snapshot.id,
     metadataDelta: {
       releases: [],
@@ -182,7 +193,7 @@ test('publishes every annual snapshot attached to fallback C&SD geometry', async
   const datasetId = 'dataset-censtatd-annual-district'
   const datasetCode =
     'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
-  const releaseId = 'release-censtatd-annual-district-2026-q2-area'
+  const resourceReleaseId = 'release-censtatd-annual-district-2026-q2-area'
   sqlite.exec(`
     INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt)
     VALUES ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher-fallback', 1761264000000, 1761264000000);
@@ -207,14 +218,14 @@ test('publishes every annual snapshot attached to fallback C&SD geometry', async
     );
     INSERT INTO sourceReleases (id, datasetId, code, sourceVersion, cohortKey, status)
     VALUES (
-      '${releaseId}', '${datasetId}', 'sr-censtatd-annual-district-2026-q2',
+      '${resourceReleaseId}', '${datasetId}', 'sr-censtatd-annual-district-2026-q2',
       '2026-Q2', '2026-Q2', 'processing'
     );
-    INSERT INTO releases (
+    INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       geometryStatus, rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
-      '${releaseId}', '${releaseId}', '${datasetId}', 'divisionArea',
+      '${resourceReleaseId}', '${resourceReleaseId}', '${datasetId}', 'divisionArea',
       'dr-hk-hkgov-censtatd-annual-district-2026-q2-area', '2026-Q2', '2026-Q2',
       'fallback', 'hk/hkgov-censtatd/2026-Q2/area.parquet', 'area.parquet',
       'processing', '2026-09-13T00:00:00.000Z', '2026-09-13T00:00:00.000Z',
@@ -229,16 +240,22 @@ test('publishes every annual snapshot attached to fallback C&SD geometry', async
         datasetCode,
         datasetId,
         regionCode: 'hk',
-        sourceReleaseId: releaseId,
+        sourceReleaseId: resourceReleaseId,
         variant,
       })
-      await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary')
+      await upsertSnapshotSource(
+        db,
+        snapshot.id,
+        datasetId,
+        resourceReleaseId,
+        'primary',
+      )
       snapshotIds.push(snapshot.id)
     }
   }
   seedCompletedAudits(sqlite)
 
-  const result = await handlePublishDataset(db, { releaseId })
+  const result = await handlePublishDataset(db, { resourceReleaseId })
 
   expect(
     sqlite
@@ -248,7 +265,7 @@ test('publishes every annual snapshot attached to fallback C&SD geometry', async
   expect(
     (result.metadataDelta?.snapshots ?? []).map(snapshot => snapshot.id).sort(),
   ).toEqual([...snapshotIds].sort())
-  expect(result).toMatchObject({ status: 'published', releaseId })
+  expect(result).toMatchObject({ status: 'published', resourceReleaseId })
   sqlite.close()
 })
 
@@ -283,8 +300,8 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
 
   for (const [index, datasetCode] of datasetCodes.entries()) {
     const datasetId = `dataset-${index}`
-    const releaseId = `release-${index}`
-    releaseIds.push(releaseId)
+    const resourceReleaseId = `release-${index}`
+    releaseIds.push(resourceReleaseId)
     sqlite.exec(`
       INSERT INTO datasets (
         id, publisherId, code, regionCode, releaseType, releaseFrequency,
@@ -305,30 +322,30 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
       INSERT INTO sourceReleases
         (id, datasetId, code, sourceVersion, cohortKey, status)
       VALUES (
-        '${releaseId}', '${datasetId}', 'sr-${releaseId}', '2026-Q2', '2026-Q2',
+        '${resourceReleaseId}', '${datasetId}', 'sr-${resourceReleaseId}', '2026-Q2', '2026-Q2',
         'processing'
       );
-      INSERT INTO releases (
+      INSERT INTO resourceReleases (
         id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
         rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
-        '${releaseId}', '${releaseId}', '${datasetId}', 'divisionStatistic', 'dr-hk-test-${index}-2026-Q2',
+        '${resourceReleaseId}', '${resourceReleaseId}', '${datasetId}', 'divisionStatistic', 'dr-hk-test-${index}-2026-Q2',
         '2026-Q2', '2026-Q2', 'hk/test/2026-Q2/${index}.parquet', '${index}.parquet',
         'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
         '2026-08-25T00:00:00.000Z'
       );
-      INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount)
-      VALUES ('${releaseId}', 'sha256:${'0'.repeat(64)}', 1, 1);
+      INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount)
+      VALUES ('${resourceReleaseId}', 'sha256:${'0'.repeat(64)}', 1, 1);
     `)
     const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
       cohortKey: '2026-Q2',
       datasetCode,
       datasetId,
       regionCode: 'hk',
-      sourceReleaseId: releaseId,
+      sourceReleaseId: resourceReleaseId,
       variant: datasetCode,
     })
-    await upsertSnapshotSource(db, snapshot.id, datasetId, releaseId, 'primary')
+    await upsertSnapshotSource(db, snapshot.id, datasetId, resourceReleaseId, 'primary')
   }
 
   const sharedReleaseId = releaseIds[0]
@@ -336,28 +353,32 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   const deferredSharedRelease = await handlePublishDataset(db, {
     deferSourcePublish: true,
     deferStatsReleaseSet: true,
-    releaseId: sharedReleaseId,
+    resourceReleaseId: sharedReleaseId,
   })
   expect(deferredSharedRelease).toMatchObject({
     metadataDelta: { releases: [] },
     status: 'processing',
   })
   expect(
-    sqlite.query('SELECT status FROM releases WHERE id = ?').get(sharedReleaseId),
+    sqlite
+      .query('SELECT status FROM resourceReleases WHERE id = ?')
+      .get(sharedReleaseId),
   ).toEqual({ status: 'processing' })
 
-  for (const releaseId of releaseIds) {
-    await handlePublishDataset(db, { deferStatsReleaseSet: true, releaseId })
+  for (const resourceReleaseId of releaseIds) {
+    await handlePublishDataset(db, { deferStatsReleaseSet: true, resourceReleaseId })
   }
   const firstReleaseId = releaseIds[0]
   if (!firstReleaseId) throw new Error('Expected a Statistics source release.')
   await handleStageFailed(db, {
     error: 'Late worker failure after deferred publication.',
     phase: 'processDataset',
-    releaseId: firstReleaseId,
+    resourceReleaseId: firstReleaseId,
   })
   expect(
-    sqlite.query(`SELECT status FROM releases WHERE id = ?`).get(firstReleaseId),
+    sqlite
+      .query(`SELECT status FROM resourceReleases WHERE id = ?`)
+      .get(firstReleaseId),
   ).toEqual({ status: 'published' })
   // A C&SD source can materialise both geometry and Statistics snapshots. The
   // source release may be classified as geometry, but its linked Statistics
@@ -380,7 +401,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   )
   sqlite.exec(`
     UPDATE snapshots SET status = 'published' WHERE id = '${geometrySnapshot.id}';
-    UPDATE releases SET resourceType = 'divisionArea' WHERE id = '${firstReleaseId}';
+    UPDATE resourceReleases SET resourceType = 'divisionArea' WHERE id = '${firstReleaseId}';
   `)
   expect(
     sqlite
@@ -415,7 +436,9 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   ).toEqual({ count: 1 })
   expect(
     sqlite
-      .query(`SELECT count(*) AS count FROM releases WHERE status = 'published'`)
+      .query(
+        `SELECT count(*) AS count FROM resourceReleases WHERE status = 'published'`,
+      )
       .get(),
   ).toEqual({ count: 1 })
 
@@ -463,7 +486,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
       'legacy-release-2022', 'dataset-0', 'sr-legacy-release-2022',
       '2022', '2022', 'processing'
     );
-    INSERT INTO releases (
+    INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
@@ -495,7 +518,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
       'staged-release-2023', 'dataset-0', 'sr-staged-release-2023',
       '2023', '2023', 'staged'
     );
-    INSERT INTO releases (
+    INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
@@ -527,10 +550,14 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
     skippedCohortKeys: ['2026-Q2'],
   })
   expect(
-    sqlite.query(`SELECT status FROM releases WHERE id = 'legacy-release-2022'`).get(),
+    sqlite
+      .query(`SELECT status FROM resourceReleases WHERE id = 'legacy-release-2022'`)
+      .get(),
   ).toEqual({ status: 'processing' })
   expect(
-    sqlite.query(`SELECT status FROM releases WHERE id = 'staged-release-2023'`).get(),
+    sqlite
+      .query(`SELECT status FROM resourceReleases WHERE id = 'staged-release-2023'`)
+      .get(),
   ).toEqual({ status: 'staged' })
   expect(
     sqlite.query(`SELECT status FROM snapshots WHERE id = ?`).get(legacySnapshot.id),
@@ -549,11 +576,11 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   ).toEqual({ count: 0 })
 
   sqlite.exec(
-    `INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount, attemptStatus)
+    `INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount, attemptStatus)
       VALUES ('legacy-release-2022', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed')`,
   )
   await handlePublishDataset(db, {
-    releaseId: 'legacy-release-2022',
+    resourceReleaseId: 'legacy-release-2022',
     deferStatsReleaseSet: true,
   })
   const legacyReleaseSet = await ensureDraftReleaseSetForRelease(

@@ -46,7 +46,7 @@ export type PlandSqlState = {
   missingNativeIds: string[]
   records: PreparedDivision[]
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   snapshotId: string
   publication: PublicationPreparation
 }
@@ -70,7 +70,7 @@ export async function writePlandSqlArtefacts(
     plan.source,
     plan.regionCode,
     plan.sourceVersion.slice(0, 4),
-    state.releaseId,
+    state.resourceReleaseId,
   ]
     .join('-')
     .replace(/[^A-Za-z0-9._:-]+/g, '-')
@@ -78,11 +78,11 @@ export async function writePlandSqlArtefacts(
     buildSqlPipelineArtefactKey(
       {
         cohortKey: plan.cohortKey,
-        datasetId: state.releaseId,
+        datasetId: state.resourceReleaseId,
         rawObjectKey: '',
         regionCode: plan.regionCode,
         releaseCode: state.releaseCode,
-        releaseId: state.releaseId,
+        resourceReleaseId: state.resourceReleaseId,
         source: plan.source,
         sourceVersion: plan.sourceVersion,
         theme: plan.theme,

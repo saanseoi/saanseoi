@@ -51,7 +51,8 @@ Instead:
 
 - `datasets` are stable logical feeds such as `hkgov-dpo/hk-address` or
   `overture/hk-division`
-- `releases` are individual uploaded snapshots for a dataset
+- `sourceReleases` identify publisher dataset versions
+- `resourceReleases` identify the processed resource types from each source release
 
 Examples from seed data:
 
@@ -71,13 +72,13 @@ Relevant release fields are:
 - `rawObjectKey`
 - `originalFileName`
 - `status`
-- `supersededByReleaseId`
+- `supersededByResourceReleaseId`
 - `revokedAt`
 - `revocationReason`
 - `ingestedAt`
 
-The active/public state is modelled on `releases.status`, not on a month-scoped dataset
-row.
+The active/public state is modelled on `resourceReleases.status`, not on a month-scoped
+dataset row.
 
 ### Current And History Split
 
@@ -89,7 +90,7 @@ Canonical entities use:
 History rows carry validity metadata:
 
 - `versionHash`
-- `releaseId`
+- `resourceReleaseId`
 - `validFromReleaseSetId`
 - `validToReleaseSetId`
 - `validFromCohortKey`
@@ -99,7 +100,7 @@ History rows carry validity metadata:
 Localised history tables use the same pattern, except they omit month bounds and keep:
 
 - `versionHash`
-- `releaseId`
+- `resourceReleaseId`
 - `validFromReleaseSetId`
 - `validToReleaseSetId`
 - `isCurrent`
@@ -162,13 +163,21 @@ Primary key:
 
 - `(datasetId, locale)`
 
-### `releases`
+### `sourceReleases`
 
-One uploaded release per source version.
+One publisher dataset version, unique by `(datasetId, sourceVersion)`. It retains the
+shared input archive, expected resource types and source-level publication lifecycle.
+
+### `resourceReleases`
+
+One processed resource per dataset, resource type and source version. `sourceReleaseId`
+references its parent in `sourceReleases`.
 
 Fields:
 
 - `id`
+- `sourceReleaseId`
+- `resourceType`
 - `datasetId`
 - `code`
 - `sourceVersion`
@@ -180,14 +189,14 @@ Fields:
 - `status`
 - `revokedAt`
 - `revocationReason`
-- `supersededByReleaseId`
+- `supersededByResourceReleaseId`
 - `ingestedAt`
 - timestamps
 
 Constraints:
 
 - unique `code`
-- unique `(datasetId, sourceVersion)`
+- unique `(datasetId, resourceType, sourceVersion)`
 
 ### `ingestRuns`
 
@@ -196,7 +205,7 @@ Per-release phase tracking.
 Fields:
 
 - `runId`
-- `releaseId`
+- `resourceReleaseId`
 - `phase`
 - `status`
 - `stats`
@@ -207,7 +216,7 @@ Fields:
 
 Constraint:
 
-- unique `(releaseId, phase)`
+- unique `(resourceReleaseId, phase)`
 
 Statuses:
 
@@ -225,7 +234,7 @@ Fields:
 
 - `id`
 - `type`
-- `releaseId`
+- `resourceReleaseId`
 - `snapshotId`
 - `apiReleaseSetId`
 - `dimension`
@@ -332,7 +341,7 @@ Fields:
 
 - `id`
 - `regionCode`
-- `releaseId`
+- `resourceReleaseId`
 - `address2dId`
 - `address3dId`
 - `lng`
@@ -357,7 +366,7 @@ Fields:
 
 Notes:
 
-- `releaseId` exists on current `places`
+- `resourceReleaseId` exists on current `places`
 - `address2dId` and `address3dId` are nullable
 - place ingestion is not implemented yet, but the canonical schema and Atlas API queries
   exist
@@ -436,7 +445,7 @@ Fields:
 
 Notes:
 
-- current `divisions` does not store `regionCode` or `releaseId`
+- current `divisions` does not store `regionCode` or `resourceReleaseId`
 - those exist in `divisions`
 
 ### `divisionsI18n`

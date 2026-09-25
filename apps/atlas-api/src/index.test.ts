@@ -1392,7 +1392,7 @@ describe('atlas-api', () => {
             kind: string
             source: {
               recordKey: string
-              releaseId: string | null
+              resourceReleaseId: string | null
               shardId: string | null
             }
           }>
@@ -1439,7 +1439,7 @@ describe('atlas-api', () => {
         kind: 'gazette',
         source: {
           recordKey: 'landsd-street-notice-example',
-          releaseId: 'release-1',
+          resourceReleaseId: 'release-1',
           shardId: 'history-shard-1',
         },
       }),
@@ -2323,7 +2323,7 @@ describe('atlas-api', () => {
       'createdAt',
       'updatedAt',
       'snapshotId',
-      'releaseId',
+      'resourceReleaseId',
       'addressSnapshotId',
       'address2dId',
       'address3dId',

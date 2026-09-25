@@ -45,14 +45,14 @@ export async function materialiseStatisticSnapshots(args: {
   datasetCode: string
   metaDb: HarbourReadableDb & HarbourWritableDb
   referencePeriods: Array<{ code: string; endYear: string }>
-  releaseId: string
+  resourceReleaseId: string
   target: UploadTarget
 }) {
   const dataset = await waitForDatasetRecord(args.metaDb, {
-    releaseId: args.releaseId,
+    resourceReleaseId: args.resourceReleaseId,
   })
   if (!dataset) {
-    throw new Error(`Release not found: ${args.releaseId}`)
+    throw new Error(`Release not found: ${args.resourceReleaseId}`)
   }
 
   assertReferencePeriodsDoNotPostdateRelease(
@@ -75,7 +75,11 @@ export async function materialiseStatisticSnapshots(args: {
       `Source shard mapping not found for ${dataset.regionCode}/${dataset.sourceVersion}.`,
     )
   }
-  await upsertReleaseShardAssignment(args.metaDb, dataset.releaseId, sourceShard.id)
+  await upsertReleaseShardAssignment(
+    args.metaDb,
+    dataset.resourceReleaseId,
+    sourceShard.id,
+  )
 
   const snapshots = []
   for (const referencePeriod of args.referencePeriods) {
@@ -90,7 +94,7 @@ export async function materialiseStatisticSnapshots(args: {
         // the preceding revision of this period, never another year's values.
         identityMode: 'cohort_scoped',
         regionCode: dataset.regionCode,
-        sourceReleaseId: dataset.releaseId,
+        sourceReleaseId: dataset.resourceReleaseId,
         variant: args.datasetCode,
       },
     )
@@ -98,10 +102,10 @@ export async function materialiseStatisticSnapshots(args: {
       args.metaDb,
       snapshot.id,
       dataset.datasetId,
-      dataset.releaseId,
+      dataset.resourceReleaseId,
       'primary',
       {
-        anchorReleaseId: dataset.releaseId,
+        anchorReleaseId: dataset.resourceReleaseId,
         selectedByRule: 'stats-reference-period-exact-release-v1',
         selectionMode: 'exact_ref',
         sourceCohortKey: referencePeriod.code,
@@ -111,7 +115,7 @@ export async function materialiseStatisticSnapshots(args: {
     await recordSnapshotAssembly(args.metaDb, {
       snapshotId: snapshot.id,
       resourceType: 'divisionStatistic',
-      anchorReleaseId: dataset.releaseId,
+      anchorReleaseId: dataset.resourceReleaseId,
       anchorCohortKey: referencePeriod.code,
     })
 
@@ -129,7 +133,11 @@ export async function materialiseStatisticSnapshots(args: {
     }
 
     await Promise.all([
-      upsertReleaseShardAssignment(args.metaDb, dataset.releaseId, historyShard.id),
+      upsertReleaseShardAssignment(
+        args.metaDb,
+        dataset.resourceReleaseId,
+        historyShard.id,
+      ),
       upsertSnapshotShardAssignment(args.metaDb, snapshot.id, historyShard.id),
     ])
     snapshots.push(snapshot)

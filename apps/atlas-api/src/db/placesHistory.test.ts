@@ -133,7 +133,7 @@ test('replays Place text and spatial divisions from the selected version without
       run(
         history,
         `INSERT INTO places (
-          id, releaseId, addressSnapshotId, address2dId, lng, lat, bbox,
+          id, resourceReleaseId, addressSnapshotId, address2dId, lng, lat, bbox,
           basicCategory, sources, firstSeenMonth, lastSeenMonth, versionHash,
           sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -238,7 +238,7 @@ test('replays Place text and spatial divisions from the selected version without
       run(
         history,
         `INSERT INTO places (
-          id, releaseId, lng, lat, firstSeenMonth, lastSeenMonth, versionHash,
+          id, resourceReleaseId, lng, lat, firstSeenMonth, lastSeenMonth, versionHash,
           sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -330,7 +330,7 @@ test('replays Place text and spatial divisions from the selected version without
       place: {
         id: 'place-1',
         snapshotId: 'place-snapshot-old',
-        releaseId: 'release-old',
+        resourceReleaseId: 'release-old',
       },
       i18n: {
         en: {
@@ -388,7 +388,7 @@ test('historical Places resolve independently inherited locales across years and
     for (const id of ['place', 'same-hash-neighbour'])
       run(
         old,
-        'INSERT INTO places(id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+        'INSERT INTO places(id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth,versionHash,sourceReleaseId,snapshotId,isCurrent,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
         [
           id,
           'source-base',

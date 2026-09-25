@@ -21,7 +21,7 @@ function fixture() {
   opened.push(sqlite)
   sqlite.exec(`CREATE TABLE ingestRuns (
     runId TEXT PRIMARY KEY,
-    releaseId TEXT NOT NULL,
+    resourceReleaseId TEXT NOT NULL,
     phase TEXT NOT NULL,
     status TEXT NOT NULL,
     stats TEXT,
@@ -30,7 +30,7 @@ function fixture() {
     finishedAt TEXT,
     createdAt TEXT NOT NULL,
     updatedAt TEXT NOT NULL,
-    UNIQUE(releaseId, phase)
+    UNIQUE(resourceReleaseId, phase)
   )`)
   const db = createLocalHarbourDb(sqlite)
   return {
@@ -53,7 +53,7 @@ describe('ingest phase write economy', () => {
     expect(writes()).toBe(1)
     expect(row()).toEqual({
       runId: expect.any(String),
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       phase,
       status: 'running',
       stats: '{"rowCount":1}',
@@ -152,7 +152,7 @@ describe('ingest phase write economy', () => {
     await report()
     await recordDatasetStage(
       db,
-      { releaseId: 'release', phase, stats: { rowCount: 2 } },
+      { resourceReleaseId: 'release', phase, stats: { rowCount: 2 } },
       'completed',
     )
     const completed = row()
@@ -181,7 +181,7 @@ describe('ingest phase write economy', () => {
     )
     await recordDatasetStage(
       db,
-      { releaseId: 'release', phase: reopeningPhase, stats: { rowCount: 3 } },
+      { resourceReleaseId: 'release', phase: reopeningPhase, stats: { rowCount: 3 } },
       'running',
     )
     expect(writes()).toBe(2)

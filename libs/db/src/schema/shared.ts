@@ -498,7 +498,7 @@ export const canonicalAddress3d = {
 
 export const canonicalPlace = {
   id: text('id').notNull(),
-  releaseId: text('releaseId').notNull(),
+  resourceReleaseId: text('resourceReleaseId').notNull(),
   /** Content identity of the referenced Address, selected unit and their localisations. */
   addressDependencyHash: text('addressDependencyHash'),
   addressSnapshotId: text('addressSnapshotId'),

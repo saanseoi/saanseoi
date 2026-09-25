@@ -46,7 +46,7 @@ test('retirements batch historical writes and preserve locale tombstones across 
         message: {
           datasetId: 'dataset',
           sourceVersion: '2026-04-03.0',
-          releaseId: 'release',
+          resourceReleaseId: 'release',
           processingRunStartedAt: 'now',
         } as never,
         context: { historyBinding: { bindingName: 'DB_HISTORY_HK_2026' } } as never,

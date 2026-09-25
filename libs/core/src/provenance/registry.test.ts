@@ -14,7 +14,7 @@ test('failed guard attempts remain registered and cannot masquerade as completed
   const f = await fixture()
   try {
     const result = await retainAuditResult(f.store, {
-      releaseId: 'r',
+      resourceReleaseId: 'r',
       datasetCode: 'divisions',
       attempt: { id: 'failed-attempt', status: 'failed' },
       bulk: [],
@@ -51,9 +51,9 @@ test('failed guard attempts remain registered and cannot masquerade as completed
 
 async function fixture() {
   const sqlite = new Database(':memory:')
-  sqlite.exec(`CREATE TABLE releases (id TEXT PRIMARY KEY, status TEXT NOT NULL, resourceType TEXT NOT NULL);
-    CREATE TABLE releaseProvenance (releaseId TEXT PRIMARY KEY REFERENCES releases(id), manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL, attemptStatus TEXT NOT NULL DEFAULT 'completed');
-    INSERT INTO releases VALUES ('r', 'processing', 'address');`)
+  sqlite.exec(`CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, status TEXT NOT NULL, resourceType TEXT NOT NULL);
+    CREATE TABLE releaseProvenance (resourceReleaseId TEXT PRIMARY KEY REFERENCES resourceReleases(id), manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL, attemptStatus TEXT NOT NULL DEFAULT 'completed');
+    INSERT INTO resourceReleases VALUES ('r', 'processing', 'address');`)
   const db = createLocalHarbourDb(sqlite)
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {
@@ -66,7 +66,7 @@ async function fixture() {
     },
   }
   const result = await retainProcessingResult(store, {
-    releaseId: 'r',
+    resourceReleaseId: 'r',
     collections: [],
     applications: [],
   })
@@ -82,7 +82,7 @@ test('registry uses guarded SQL and identical registration writes no D1 rows', a
     const before = f.sqlite.query('SELECT total_changes() AS n').get()
     await registerProcessingResult(f.db, f.store, 'r', f.ref)
     expect(f.sqlite.query('SELECT total_changes() AS n').get()).toEqual(before)
-    f.sqlite.exec("UPDATE releases SET status='published'")
+    f.sqlite.exec("UPDATE resourceReleases SET status='published'")
     await registerProcessingResult(f.db, f.store, 'r', f.ref)
     const changed = await retainObject(f.store, {
       ...f.manifest,
@@ -91,7 +91,7 @@ test('registry uses guarded SQL and identical registration writes no D1 rows', a
           id: 's',
           layer: 'source',
           datasetCode: 'als',
-          releaseId: 'r',
+          resourceReleaseId: 'r',
           snapshotId: null,
           schema: '1',
         },
@@ -134,7 +134,7 @@ test('identical registration does not re-read an already verified closure', asyn
       fields: [],
     }
     const result = await retainProcessingResult(f.store, {
-      releaseId: 'r',
+      resourceReleaseId: 'r',
       collections: [],
       applications: [application],
     })
@@ -165,7 +165,7 @@ test('publication racing registration cannot insert or replace provenance', asyn
       get(target, key, receiver) {
         if (key === 'insert')
           return (...args: Parameters<typeof f.db.insert>) => {
-            f.sqlite.exec("UPDATE releases SET status='published'")
+            f.sqlite.exec("UPDATE resourceReleases SET status='published'")
             return target.insert(...args)
           }
         return Reflect.get(target, key, receiver)
@@ -192,7 +192,7 @@ test('registry rejects mismatched ownership and Streets', async () => {
           id: 'c',
           layer: 'canonical',
           datasetCode: 'als',
-          releaseId: 'other',
+          resourceReleaseId: 'other',
           snapshotId: 's',
           schema: '1',
         },
@@ -204,7 +204,7 @@ test('registry rejects mismatched ownership and Streets', async () => {
     await expect(
       registerProcessingResult(f.db, f.store, 'other', f.ref),
     ).rejects.toThrow('mismatch')
-    f.sqlite.exec("UPDATE releases SET resourceType='street'")
+    f.sqlite.exec("UPDATE resourceReleases SET resourceType='street'")
     await expect(registerProcessingResult(f.db, f.store, 'r', f.ref)).rejects.toThrow(
       'Streets',
     )

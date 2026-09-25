@@ -6,7 +6,7 @@ test('address extraction and dataset summary report actual churn and source coun
   const reports = new Map<string, Record<string, unknown> | undefined>()
   const message: DatasetProcessingMessage = {
     datasetId: 'dataset',
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     rawObjectKey: 'address.parquet',
     regionCode: 'hk',
     cohortKey: '2026-09',

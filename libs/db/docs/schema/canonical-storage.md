@@ -70,7 +70,7 @@ name, building-number and statistical list filters belong to CURRENT. HISTORY
 
 SOURCE retains three shared operational indexes:
 
-- `releaseId` for release inspection and maintenance;
+- `resourceReleaseId` for release inspection and maintenance;
 - `(validFromRelease, validToRelease)` for source validity selection;
 - a non-unique `sourceRecordId` index restricted to `isCurrent = 1` for open-assertion
   scans and reconciliation. Multiple assertions for one publisher ID may remain open.

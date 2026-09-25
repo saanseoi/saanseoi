@@ -98,7 +98,10 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     skipSnapshotCleanup?: boolean
   } = {},
 ) {
-  const releaseId = requireString(uploadResult.releaseId, 'releaseId')
+  const resourceReleaseId = requireString(
+    uploadResult.resourceReleaseId,
+    'resourceReleaseId',
+  )
   const releaseCode = requireString(uploadResult.releaseCode, 'releaseCode')
   const datasetCode = requireString(uploadResult.datasetCode, 'datasetCode')
   const rawObjectKey = requireString(uploadResult.rawObjectKey, 'rawObjectKey')
@@ -114,7 +117,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       previewPlan.regionCode,
       previewPlan.sourceVersion,
       {
-        resumeSqlDeliveryReleaseId: releaseId,
+        resumeSqlDeliveryReleaseId: resourceReleaseId,
       },
     ),
   )
@@ -136,7 +139,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       async () => {
         await syncStagedReleaseIntoLocalMetaCache(
           context.metaDb,
-          { datasetCode, rawObjectKey, releaseCode, releaseId },
+          { datasetCode, rawObjectKey, releaseCode, resourceReleaseId },
           previewPlan,
           {
             retainedDeliveryCacheDir: target.remote
@@ -147,14 +150,14 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           },
         )
         await client.stageRunning(
-          releaseId,
+          resourceReleaseId,
           'processDataset',
           { resourceType: 'division', sourceRows: previewPlan.rowCount },
           releaseCode,
         )
 
-        const dataset = await waitForDatasetRecord(metaDb, { releaseId })
-        if (!dataset) throw new Error(`Release not found: ${releaseId}`)
+        const dataset = await waitForDatasetRecord(metaDb, { resourceReleaseId })
+        if (!dataset) throw new Error(`Release not found: ${resourceReleaseId}`)
         const snapshot = await ensureDraftSnapshotForRelease(metaDb, 'division', {
           cohortKey: previewPlan.cohortKey,
           datasetCode,
@@ -164,17 +167,17 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               ? 'cohort_scoped'
               : 'persistent',
           regionCode: previewPlan.regionCode,
-          sourceReleaseId: dataset.releaseId,
+          sourceReleaseId: dataset.resourceReleaseId,
           variant: previewPlan.source,
         })
         await upsertSnapshotSource(
           metaDb,
           snapshot.id,
           dataset.datasetId,
-          dataset.releaseId,
+          dataset.resourceReleaseId,
           PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
           {
-            anchorReleaseId: dataset.releaseId,
+            anchorReleaseId: dataset.resourceReleaseId,
             selectedByRule: `snapshot-assembly-${previewPlan.source}-division-v1`,
             selectionMode: 'exact_ref',
             sourceCohortKey: dataset.cohortKey,
@@ -183,11 +186,11 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         await recordSnapshotAssembly(metaDb, {
           snapshotId: snapshot.id,
           resourceType: 'division',
-          anchorReleaseId: dataset.releaseId,
+          anchorReleaseId: dataset.resourceReleaseId,
           anchorCohortKey: dataset.cohortKey,
           detailsJson: {
             releaseRole: PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
-            sourceReleaseId: dataset.releaseId,
+            sourceReleaseId: dataset.resourceReleaseId,
             sourceVersion: dataset.sourceVersion,
           },
         })
@@ -213,8 +216,16 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           )
         }
         await Promise.all([
-          upsertReleaseShardAssignment(metaDb, dataset.releaseId, historyShard.id),
-          upsertReleaseShardAssignment(metaDb, dataset.releaseId, sourceShard.id),
+          upsertReleaseShardAssignment(
+            metaDb,
+            dataset.resourceReleaseId,
+            historyShard.id,
+          ),
+          upsertReleaseShardAssignment(
+            metaDb,
+            dataset.resourceReleaseId,
+            sourceShard.id,
+          ),
           upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id),
         ])
         return { dataset, snapshot }
@@ -226,7 +237,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       completionCounts = await deliverPlandWorkflow(
         {
           context: deliveryContext,
-          releaseId,
+          resourceReleaseId,
           phase: 'planning-division-data',
           inputs: {
             preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
@@ -260,7 +271,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             table: 'divisionPublicationState',
             scopeId: snapshot.snapshotLineageId,
             snapshotId: snapshot.id,
-            publicationToken: releaseId,
+            publicationToken: resourceReleaseId,
             timestamp: now,
           }
           const publicationDb = context.currentDb
@@ -449,7 +460,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               await insertHistoryRows(
                 context.historyDb as unknown as HarbourWritableDb,
                 snapshot.id,
-                releaseId,
+                resourceReleaseId,
                 previewPlan.cohortKey,
                 changedHistoryRecords,
                 compressedGeometryByDivisionId,
@@ -459,7 +470,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
               await insertHistoryI18nRows(
                 context.historyDb as unknown as HarbourWritableDb,
                 snapshot.id,
-                releaseId,
+                resourceReleaseId,
                 previewPlan.cohortKey,
                 changedHistoryRecords,
                 now,
@@ -485,7 +496,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             reportProgress =>
               insertSourceRows(
                 context.sourceDb as unknown as HarbourWritableDb,
-                releaseId,
+                resourceReleaseId,
                 previewPlan.sourceVersion,
                 changedNativeRecords,
                 previewPlan.source,
@@ -503,7 +514,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 wasPlanningGeometryRepaired,
               )
               const audit = await retainDivisionProvenance(bucket, {
-                releaseId,
+                resourceReleaseId,
                 datasetCode,
                 inputCount: records.length,
                 outputCount: records.length,
@@ -543,7 +554,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                     : [],
               })
               await deliverProcessingResult(target, bucket, audit.ref)
-              await replaceDatasetStats(metaDb, releaseId, [
+              await replaceDatasetStats(metaDb, resourceReleaseId, [
                 ...(previewPlan.source === 'hkgov-pland-new-town'
                   ? []
                   : [3, 4, 5, 6]
@@ -623,7 +634,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     }
     await runPlandProgressPhase(progress, 'Complete', 'Planning processing', () =>
       client.stageCompleted(
-        releaseId,
+        resourceReleaseId,
         'processDataset',
         {
           resourceType: 'division',
@@ -640,7 +651,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       'Publish',
       'division snapshot',
       () =>
-        client.publishDataset(releaseId, releaseCode, {
+        client.publishDataset(resourceReleaseId, releaseCode, {
           deferApiReleaseSet: options.deferApiReleaseSet,
           skipSnapshotCleanup: options.skipSnapshotCleanup,
         }),
@@ -652,7 +663,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         refreshRemoteMetaCache(
           target.environment === 'production' ? 'production' : 'preview',
           deliveryContext.state.dbCacheDir,
-          releaseId,
+          resourceReleaseId,
         ),
       )
     }
@@ -663,7 +674,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             previewPlan.regionCode,
             previewPlan.sourceVersion,
             {
-              resumeSqlDeliveryReleaseId: releaseId,
+              resumeSqlDeliveryReleaseId: resourceReleaseId,
             },
           )
         : context
@@ -678,14 +689,17 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             HarbourWritableDb,
           progress,
           releaseCode,
-          releaseId,
+          resourceReleaseId,
           target: resolveApiReleaseSetStatsTarget(publishResult),
         })
       } finally {
         if (statsContext !== context) statsContext.cleanup()
       }
     }
-    await completeSqlDeliveryRelease(deliveryContext.state.dbCacheDir, releaseId)
+    await completeSqlDeliveryRelease(
+      deliveryContext.state.dbCacheDir,
+      resourceReleaseId,
+    )
     return {
       importedRows: completionCounts.importedRows,
       publishResult,
@@ -696,14 +710,14 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
       error,
       store: bucket,
       target,
-      releaseId,
+      resourceReleaseId,
       datasetCode,
     })
     progress.fail()
     if (!published) {
       await client
         .stageFailed(
-          releaseId,
+          resourceReleaseId,
           'processDataset',
           error instanceof Error ? error.message : String(error),
           undefined,

@@ -7,6 +7,10 @@ solely because it compiles or an LLM generated the wording.
 
 ## Objective coverage
 
+Place provenance uses `attributes.resourceReleaseId` for the processed resource release
+and `snapshotId` for the canonical snapshot. The hand-over instructions describe these
+identifiers; marker rendering does not require either identifier.
+
 Places pagination follows `links.next` until absent. Materialised snapshots provide
 `meta.page.total`; historical snapshots provide `meta.page.hasMore` without scanning the
 whole release for an exact count. Tutorial clients must not require `total`.

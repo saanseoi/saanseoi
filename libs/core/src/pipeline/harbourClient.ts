@@ -50,7 +50,7 @@ export type PublishDatasetResult = {
   }
   phase: string | null
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   snapshotId?: string
   status: string
 }
@@ -60,7 +60,7 @@ export type PublishDatasetResult = {
  */
 export type HarbourClient = {
   publishDataset(
-    releaseId: string,
+    resourceReleaseId: string,
     releaseCode?: string,
     options?: {
       /** Preserve the exact reference snapshots selected by a family adapter. */
@@ -81,20 +81,20 @@ export type HarbourClient = {
     },
   ): Promise<PublishDatasetResult | void>
   stageCompleted(
-    releaseId: string,
+    resourceReleaseId: string,
     phase: string,
     stats?: Record<string, unknown>,
     releaseCode?: string,
   ): Promise<void>
   stageFailed(
-    releaseId: string,
+    resourceReleaseId: string,
     phase: string,
     error: string,
     stats?: Record<string, unknown>,
     releaseCode?: string,
   ): Promise<void>
   stageRunning(
-    releaseId: string,
+    resourceReleaseId: string,
     phase: string,
     stats?: Record<string, unknown>,
     releaseCode?: string,

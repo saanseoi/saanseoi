@@ -26,7 +26,7 @@ test('Place releases retain every active source shard containing their assertion
          'source-2025', 'DB_SOURCE_HK_2025', 'active', 'hash-2025'),
         ('source-2026', 'source', 'hk', '2026', 'preview', 'source-2026',
          'source-2026', 'DB_SOURCE_HK_2026', 'active', 'hash-2026');
-      INSERT INTO releases
+      INSERT INTO resourceReleases
         (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, status)
       VALUES
         ('place-release', 'source-release', 'place-dataset',
@@ -45,7 +45,7 @@ test('Place releases retain every active source shard containing their assertion
     expect(
       database
         .query(
-          'SELECT dataShardId FROM releaseShardAssignments WHERE releaseId = ? ORDER BY dataShardId',
+          'SELECT dataShardId FROM releaseShardAssignments WHERE resourceReleaseId = ? ORDER BY dataShardId',
         )
         .all('place-release'),
     ).toEqual([{ dataShardId: 'source-2025' }, { dataShardId: 'source-2026' }])

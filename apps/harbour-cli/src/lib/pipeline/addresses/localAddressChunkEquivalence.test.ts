@@ -90,7 +90,7 @@ test('chunk memory and retained JSON produce identical history and current SQL f
     } as AddressPipelineMessage
     const artefact = {
       kind: 'address.normalised.v1',
-      releaseId: release.releaseId,
+      resourceReleaseId: release.resourceReleaseId,
       processingRunStartedAt: timestamp,
       rowStart: 0,
       rowEnd: rows.length,
@@ -182,7 +182,7 @@ test('one-window local normalisation preserves the worker result across Parquet 
     await bucket.seedRawObject('addresses.parquet', path)
     const message = {
       rawObjectKey: 'addresses.parquet',
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       datasetId: 'dataset',
       source: 'hkgov-dpo',
       resourceType: 'address',

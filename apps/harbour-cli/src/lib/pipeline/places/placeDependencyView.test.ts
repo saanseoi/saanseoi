@@ -431,7 +431,7 @@ test('exact historical Place dependencies replay independent locale shards and s
     insert(current, 'places', {
       snapshotId: 'place-scope',
       id: 'shop',
-      releaseId: 'release',
+      resourceReleaseId: 'release',
       addressSnapshotId: 'a1',
       address2dId: 'building',
       addressDependencyHash: dependencies.addressDependencyHash,

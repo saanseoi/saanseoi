@@ -76,7 +76,7 @@ export type ManagedSourceAssetUpload = {
     manifest?: unknown
     mediaType: string
     originalUrl?: string
-    releaseId?: string
+    resourceReleaseId?: string
     retrievedAt: string
     role: SourceAssetRole
     sourcePageLocale?: 'en' | 'zh-Hant'
@@ -92,7 +92,7 @@ export type SourceReleaseAssetInput = {
   mediaType?: string
   publisherCode: string
   releaseCode: string
-  releaseId: string
+  resourceReleaseId: string
   sourceVersion: string
 }
 
@@ -367,7 +367,7 @@ export async function uploadSourceReleaseAsset(
           },
         },
         mediaType: retained.mediaType,
-        releaseId: input.releaseId,
+        resourceReleaseId: input.resourceReleaseId,
         retrievedAt,
         role: 'sourceArchive',
       },
@@ -535,7 +535,7 @@ export async function uploadManagedSourceAsset(
 
 export async function linkManagedSourceAssetToRelease(
   target: UploadTarget,
-  input: { assetKey: string; releaseId: string },
+  input: { assetKey: string; resourceReleaseId: string },
   localOptions: Pick<LocalSourceAssetUploadOptions, 'withMetaDb'> = {},
 ) {
   if (target.remote) {
@@ -573,13 +573,13 @@ export async function linkManagedSourceAssetToRelease(
 /** Delete an asset that is still linked to the exact release recorded by reset. */
 export async function deleteManagedSourceAsset(
   target: UploadTarget,
-  input: { assetKey: string; id: string; releaseId: string | null },
+  input: { assetKey: string; id: string; resourceReleaseId: string | null },
 ) {
-  if (!input.releaseId)
+  if (!input.resourceReleaseId)
     throw new Error(`Cannot prove ownership of source asset ${input.id}.`)
   if (target.remote) {
     const response = await fetch(
-      `${resolveHarbourApiUrl(target)}/v1/assets/${input.id}?releaseId=${encodeURIComponent(input.releaseId)}`,
+      `${resolveHarbourApiUrl(target)}/v1/assets/${input.id}?resourceReleaseId=${encodeURIComponent(input.resourceReleaseId)}`,
       { headers: getAuthHeaders(), method: 'DELETE' },
     )
     if (!response.ok) {
@@ -686,7 +686,7 @@ export async function registerLocalManagedSourceAsset(
       sourcePageUrl: input.metadata.sourcePageUrl ?? null,
       sourceRecordId: null,
       datasetId: input.metadata.datasetId ?? null,
-      releaseId: input.metadata.releaseId ?? null,
+      resourceReleaseId: input.metadata.resourceReleaseId ?? null,
     })
     .onConflictDoNothing()
     .run()

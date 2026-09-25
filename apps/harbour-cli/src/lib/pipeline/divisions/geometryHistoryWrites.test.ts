@@ -118,7 +118,7 @@ function fixture(kind: DivisionGeometryKind) {
     const result = await writeGeometryRows(selectContext(binding), kind, rows, {
       source: 'overture',
       variant: 'overture',
-      releaseId: snapshotId,
+      resourceReleaseId: snapshotId,
       releaseCode: snapshotId,
       sourceVersion: snapshotId,
       snapshotId,

@@ -49,7 +49,7 @@ for (const target of ['local', 'preview'] as const)
       INSERT INTO snapshots VALUES('old',NULL);
       INSERT INTO dataShards VALUES('history','DB_HISTORY');
       INSERT INTO snapshotShardAssignments VALUES('old','history');`)
-    const releaseId = `native-geometry-test-${crypto.randomUUID()}`
+    const resourceReleaseId = `native-geometry-test-${crypto.randomUUID()}`
     const historyDb = drizzle({ client: history, schema: historySchema })
     const context = {
       currentDb: drizzle({ client: current, schema: currentSchema }),
@@ -64,7 +64,7 @@ for (const target of ['local', 'preview'] as const)
     } as unknown as LocalAddressDbContext
     const directory = sqlDeliveryPhaseDirectory({
       context,
-      releaseId,
+      resourceReleaseId,
       phase: 'native-geometry-divisionarea-exact',
       inputs: {},
     })
@@ -107,7 +107,7 @@ for (const target of ['local', 'preview'] as const)
       const version = {
         source: 'overture' as const,
         variant: 'overture',
-        releaseId,
+        resourceReleaseId,
         releaseCode: 'dr-hk-overture-division-area-2026-02-18.0',
         sourceVersion: '2026-02-18.0',
         snapshotId: 'new',
@@ -121,7 +121,7 @@ for (const target of ['local', 'preview'] as const)
         [row('changed', 115), row('removed', 115)],
         {
           ...version,
-          releaseId: 'old',
+          resourceReleaseId: 'old',
           releaseCode: 'dr-hk-overture-division-area-2026-01-21.0',
           sourceVersion: '2026-01-21.0',
           snapshotId: 'old',
@@ -150,9 +150,9 @@ for (const target of ['local', 'preview'] as const)
           .get(),
       ).toEqual({ status: 'publishing', preparedAt: null })
       expect(
-        await readNativeGeometryVersion(context, releaseId, 'divisionArea'),
+        await readNativeGeometryVersion(context, resourceReleaseId, 'divisionArea'),
       ).toEqual(version)
-      expect(await completeSqlDeliveryRelease(root, releaseId)).toBe(false)
+      expect(await completeSqlDeliveryRelease(root, resourceReleaseId)).toBe(false)
       history.exec('DROP TRIGGER interrupt_geometry')
       const result = await writeGeometryRowsDurably(
         context,
@@ -188,16 +188,16 @@ for (const target of ['local', 'preview'] as const)
       expect(
         source
           .query(
-            "SELECT count(*) AS n FROM overtureDivisionAreas WHERE releaseId='old' AND validFromRelease='2026-01-21.0' AND validToRelease='2026-02-18.0'",
+            "SELECT count(*) AS n FROM overtureDivisionAreas WHERE resourceReleaseId='old' AND validFromRelease='2026-01-21.0' AND validToRelease='2026-02-18.0'",
           )
           .get(),
       ).toEqual({ n: 2 })
       expect(
         source
           .query(
-            'SELECT count(*) AS n FROM overtureDivisionAreas WHERE releaseId=? AND validFromRelease=? AND validToRelease IS NULL',
+            'SELECT count(*) AS n FROM overtureDivisionAreas WHERE resourceReleaseId=? AND validFromRelease=? AND validToRelease IS NULL',
           )
-          .get(releaseId, '2026-02-18.0'),
+          .get(resourceReleaseId, '2026-02-18.0'),
       ).toEqual({ n: 2 })
       expect(
         history
@@ -209,7 +209,7 @@ for (const target of ['local', 'preview'] as const)
       expect(
         source
           .query(
-            "SELECT count(*) AS n FROM overtureDivisionAreas WHERE releaseId='old' AND isCurrent=1",
+            "SELECT count(*) AS n FROM overtureDivisionAreas WHERE resourceReleaseId='old' AND isCurrent=1",
           )
           .get(),
       ).toEqual({ n: 0 })
@@ -225,7 +225,7 @@ for (const target of ['local', 'preview'] as const)
         version,
       )
       expect(again).toEqual(result)
-      expect(await completeSqlDeliveryRelease(root, releaseId)).toBe(true)
+      expect(await completeSqlDeliveryRelease(root, resourceReleaseId)).toBe(true)
     } finally {
       current.close()
       history.close()
@@ -288,7 +288,7 @@ test('canonical replacement retains only real publisher geometry and resolves it
       {
         source: 'overture',
         variant: 'overture',
-        releaseId: 'release',
+        resourceReleaseId: 'release',
         releaseCode: 'release',
         sourceVersion: '2026-01-21.0',
         snapshotId: 'snapshot',

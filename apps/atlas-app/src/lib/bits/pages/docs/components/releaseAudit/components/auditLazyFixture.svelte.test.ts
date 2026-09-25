@@ -14,7 +14,7 @@ vi.mock('#lib/registry/audit.remote.js', () => ({
 test('closed fixture groups use search metadata without requesting evidence', async () => {
   vi.mocked(getAuditFixtureGroup).mockClear()
   const screen = await render(LazyFixture, {
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     hash: 'hash',
     bulkId: 'bulk',
     type: 'entries',
@@ -29,7 +29,7 @@ test('closed fixture groups use search metadata without requesting evidence', as
   await screen.getByText('Retained evidence', { exact: false }).click()
   await expect.element(screen.getByText('Lazy evidence', { exact: true })).toBeVisible()
   expect(getAuditFixtureGroup).toHaveBeenCalledExactlyOnceWith({
-    releaseId: 'release',
+    resourceReleaseId: 'release',
     hash: 'hash',
     bulkId: 'bulk',
     type: 'entries',

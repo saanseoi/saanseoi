@@ -52,9 +52,9 @@ counts independently; observations, divisions and areas are not summed.
 Publisher [schemas and samples](../source-record-access.md) use the Statistics source
 catalogue and the exact source release. Every shard holding retained assertions must
 have a source-shard assignment for that release. A missing assignment can be restored
-from matching source rows whose `releaseId` identifies the published release and whose
-`validFromRelease` matches its source version; the records and canonical observations
-remain intact.
+from matching source rows whose `resourceReleaseId` identifies the published release and
+whose `validFromRelease` matches its source version; the records and canonical
+observations remain intact.
 
 C&SD source-assertion normalisation and district identity bridging have executable
 JSON-backed rules in `fixtures/meta/processing-rules/`. Both merge rulesets reference

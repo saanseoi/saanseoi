@@ -35,7 +35,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       const meta = local.DB_META
       if (!meta) throw new Error('Missing meta')
       meta.exec(
-        "CREATE TABLE snapshots(id,snapshotLineageId); INSERT INTO snapshots VALUES('new',NULL); CREATE TABLE snapshotLineages(id); CREATE TABLE snapshotAssemblies(snapshotId,snapshotRecipeId); CREATE TABLE snapshotRecipes(id); CREATE TABLE snapshotRecipeInputs(snapshotRecipeId); CREATE TABLE snapshotSourceReleases(snapshotId); CREATE TABLE snapshotDependencies(snapshotId,dependencySnapshotId,role); CREATE TABLE releaseShardAssignments(releaseId); CREATE TABLE snapshotShardAssignments(snapshotId); CREATE TABLE releaseProcessingActions(releaseId); CREATE TABLE releaseProcessingActionChunks(releaseId); CREATE TABLE stats(releaseId);",
+        "CREATE TABLE snapshots(id,snapshotLineageId); INSERT INTO snapshots VALUES('new',NULL); CREATE TABLE snapshotLineages(id); CREATE TABLE snapshotAssemblies(snapshotId,snapshotRecipeId); CREATE TABLE snapshotRecipes(id); CREATE TABLE snapshotRecipeInputs(snapshotRecipeId); CREATE TABLE snapshotSourceReleases(snapshotId); CREATE TABLE snapshotDependencies(snapshotId,dependencySnapshotId,role); CREATE TABLE releaseShardAssignments(resourceReleaseId); CREATE TABLE snapshotShardAssignments(snapshotId); CREATE TABLE releaseProcessingActions(resourceReleaseId); CREATE TABLE releaseProcessingActionChunks(resourceReleaseId); CREATE TABLE stats(resourceReleaseId);",
       )
       for (const db of [local.DB_CURRENT, remote.current])
         db?.exec(
@@ -47,11 +47,11 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         )
       for (const db of [local[sourceBinding], remote.source]) {
         db?.exec(
-          `CREATE TABLE "${sourceTable}"(releaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry,PRIMARY KEY(sourceRecordId,versionHash)); INSERT INTO "${sourceTable}" VALUES('old','changed','v1',1,NULL,'old',X'00FF'),('old','removed','v1',1,NULL,'old',X'01');`,
+          `CREATE TABLE "${sourceTable}"(resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry,PRIMARY KEY(sourceRecordId,versionHash)); INSERT INTO "${sourceTable}" VALUES('old','changed','v1',1,NULL,'old',X'00FF'),('old','removed','v1',1,NULL,'old',X'01');`,
         )
         if (sourceName === 'hkgov-censtatd')
           db?.exec(
-            "CREATE TABLE hkgovCenstatdDivisionAreaDerivatives(releaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt,PRIMARY KEY(sourceRecordId,inputVersionHash,transform,versionHash)); INSERT INTO hkgovCenstatdDivisionAreaDerivatives VALUES('old','changed','exact','simplified','d1',1,NULL,'old'),('other','changed','other-exact','simplified','d1',1,NULL,'old');",
+            "CREATE TABLE hkgovCenstatdDivisionAreaDerivatives(resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt,PRIMARY KEY(sourceRecordId,inputVersionHash,transform,versionHash)); INSERT INTO hkgovCenstatdDivisionAreaDerivatives VALUES('old','changed','exact','simplified','d1',1,NULL,'old'),('other','changed','other-exact','simplified','d1',1,NULL,'old');",
           )
       }
       local.DB_CURRENT?.exec(

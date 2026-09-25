@@ -21,7 +21,7 @@ test('every resource release requires an audit, including deferred publication',
   const sqlite = initDb(join(createTempDir(), 'mandatory-audits.sqlite'))
   const db = createLocalHarbourDb(sqlite)
   const fixture = insertFixtureRelease(sqlite, {
-    releaseId: 'mandatory-audit-release',
+    resourceReleaseId: 'mandatory-audit-release',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-06',
@@ -34,8 +34,10 @@ test('every resource release requires an audit, including deferred publication',
     createdAt: '2026-06-24T00:00:00.000Z',
     updatedAt: '2026-06-24T00:00:00.000Z',
   })
-  const release = { id: fixture.releaseId }
-  sqlite.query('DELETE FROM releaseProvenance WHERE releaseId = ?').run(release.id)
+  const release = { id: fixture.resourceReleaseId }
+  sqlite
+    .query('DELETE FROM releaseProvenance WHERE resourceReleaseId = ?')
+    .run(release.id)
   for (const type of [
     'division',
     'divisionArea',
@@ -46,13 +48,18 @@ test('every resource release requires an audit, including deferred publication',
     'street',
   ]) {
     sqlite
-      .query("UPDATE releases SET resourceType = ?, status = 'staged' WHERE id = ?")
+      .query(
+        "UPDATE resourceReleases SET resourceType = ?, status = 'staged' WHERE id = ?",
+      )
       .run(type, release.id)
     await expect(
-      handlePublishDataset(db, { releaseId: release.id, deferApiReleaseSet: true }),
+      handlePublishDataset(db, {
+        resourceReleaseId: release.id,
+        deferApiReleaseSet: true,
+      }),
     ).rejects.toThrow('requires a verified retained processing result')
     expect(
-      sqlite.query('SELECT status FROM releases WHERE id = ?').get(release.id),
+      sqlite.query('SELECT status FROM resourceReleases WHERE id = ?').get(release.id),
     ).toEqual({ status: 'staged' })
   }
   sqlite.close()
@@ -68,8 +75,8 @@ test('requires retained processing audits for Addresses and Places before publis
     const datasetId =
       datasetType === 'address' ? 'hkgov-dpo-hk-address' : 'overture-hk-place'
     const releaseCode = `dr-hk-${source}-${datasetType}-2026-06-24.0`
-    const releaseId = `release-${releaseCode}`
-    const snapshotId = `snapshot-${releaseId}`
+    const resourceReleaseId = `release-${releaseCode}`
+    const snapshotId = `snapshot-${resourceReleaseId}`
     let supplementarySnapshotCode: string | null = null
 
     if (datasetType === 'address') {
@@ -112,7 +119,7 @@ test('requires retained processing audits for Addresses and Places before publis
     }
 
     insertFixtureRelease(sqlite, {
-      releaseId,
+      resourceReleaseId,
       source,
       regionCode: 'hk',
       cohortKey: '2026-06',
@@ -126,46 +133,55 @@ test('requires retained processing audits for Addresses and Places before publis
       updatedAt: '2026-06-05T00:01:00.000Z',
     })
     sqlite
-      .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
-      .run('1.17.0', releaseId)
-    await expect(handlePublishDataset(db, { releaseId })).rejects.toThrow(
+      .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
+      .run('1.17.0', resourceReleaseId)
+    await expect(handlePublishDataset(db, { resourceReleaseId })).rejects.toThrow(
       'requires a verified retained processing result',
     )
     sqlite
       .query(
-        'INSERT INTO releaseProvenance (releaseId, manifestHash, byteLength, applicationCount, attemptStatus) VALUES (?, ?, 1, 0, ?)',
+        'INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount, attemptStatus) VALUES (?, ?, 1, 0, ?)',
       )
-      .run(releaseId, `sha256:${'0'.repeat(64)}`, 'failed')
-    await expect(handlePublishDataset(db, { releaseId })).rejects.toThrow(
+      .run(resourceReleaseId, `sha256:${'0'.repeat(64)}`, 'failed')
+    await expect(handlePublishDataset(db, { resourceReleaseId })).rejects.toThrow(
       'failed processing audit attempt',
     )
     expect(
-      sqlite.query('SELECT status FROM releases WHERE id = ?').get(releaseId),
+      sqlite
+        .query('SELECT status FROM resourceReleases WHERE id = ?')
+        .get(resourceReleaseId),
     ).toEqual({ status: 'staged' })
     sqlite
       .query(
-        "UPDATE releaseProvenance SET attemptStatus = 'completed' WHERE releaseId = ?",
+        "UPDATE releaseProvenance SET attemptStatus = 'completed' WHERE resourceReleaseId = ?",
       )
-      .run(releaseId)
+      .run(resourceReleaseId)
     if (datasetType === 'address') {
       sqlite
-        .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
-        .run('3.2', releaseId)
+        .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
+        .run('3.2', resourceReleaseId)
     }
     seedSnapshot(sqlite, {
       code: `ss-hk-${datasetType}-2026-06-24.0`,
       datasetId,
       resourceType: datasetType,
-      releaseId,
+      resourceReleaseId,
       snapshotId,
       status: 'draft',
       timestamp: 1762300860000,
     })
-    await upsertSnapshotSource(db, snapshotId, datasetId, releaseId, 'primary', {
-      selectedByRule: `snapshot-assembly-${datasetType}-v1`,
-      selectionMode: 'exact_ref',
-      sourceCohortKey: '2026-06',
-    })
+    await upsertSnapshotSource(
+      db,
+      snapshotId,
+      datasetId,
+      resourceReleaseId,
+      'primary',
+      {
+        selectedByRule: `snapshot-assembly-${datasetType}-v1`,
+        selectionMode: 'exact_ref',
+        sourceCohortKey: '2026-06',
+      },
+    )
 
     if (datasetType === 'address') {
       sqlite.exec(`
@@ -187,7 +203,7 @@ test('requires retained processing audits for Addresses and Places before publis
       `)
       const divisionReleaseId = 'release-dr-hk-overture-division-2026-06-17.0'
       insertFixtureRelease(sqlite, {
-        releaseId: divisionReleaseId,
+        resourceReleaseId: divisionReleaseId,
         source: 'overture',
         regionCode: 'hk',
         cohortKey: '2026-06',
@@ -201,13 +217,13 @@ test('requires retained processing audits for Addresses and Places before publis
         updatedAt: '2026-06-05T00:01:00.000Z',
       })
       const divisionDataset = sqlite
-        .query('SELECT datasetId FROM releases WHERE id = ?')
+        .query('SELECT datasetId FROM resourceReleases WHERE id = ?')
         .get(divisionReleaseId) as { datasetId: string }
       seedSnapshot(sqlite, {
         code: 'ss-hk-division-2026-06-17.0',
         cohortKey: '2026-06',
         datasetId: divisionDataset.datasetId,
-        releaseId: divisionReleaseId,
+        resourceReleaseId: divisionReleaseId,
         status: 'published',
         timestamp: 1762300800000,
       })
@@ -230,14 +246,14 @@ test('requires retained processing audits for Addresses and Places before publis
         datasetCode: 'ds-hk-overture-place',
         datasetId: 'overture-hk-place',
         regionCode: 'hk',
-        sourceReleaseId: supplementaryRelease.releaseId,
+        sourceReleaseId: supplementaryRelease.resourceReleaseId,
         variant: 'overture-places',
       })
       await upsertSnapshotSource(
         db,
         supplementarySnapshot.id,
         'overture-hk-place',
-        supplementaryRelease.releaseId,
+        supplementaryRelease.resourceReleaseId,
         'primary',
       )
       await publishSnapshot(db, supplementarySnapshot.id)
@@ -269,7 +285,7 @@ test('requires retained processing audits for Addresses and Places before publis
               code: 'ss-hk-address-historical-selection',
               cohortKey: '2026-01',
               datasetId: 'hkgov-dpo-hk-address',
-              releaseId,
+              resourceReleaseId,
               resourceType: 'address',
               snapshotId: 'snapshot-address-historical-selection',
               status: 'published',
@@ -277,7 +293,7 @@ test('requires retained processing audits for Addresses and Places before publis
             const divisionSnapshotId = seedSnapshot(sqlite, {
               code: 'ss-hk-division-historical-selection',
               cohortKey: '2026-01',
-              releaseId,
+              resourceReleaseId,
               resourceType: 'division',
               snapshotId: 'snapshot-division-historical-selection',
               status: 'published',
@@ -295,13 +311,13 @@ test('requires retained processing audits for Addresses and Places before publis
 
     if (datasetType === 'place') {
       await expect(
-        handlePublishDataset(db, { releaseId, deferApiReleaseSet: true }),
+        handlePublishDataset(db, { resourceReleaseId, deferApiReleaseSet: true }),
       ).rejects.toThrow('supplementary Address analysis')
-      const supplementaryReleaseId = `supplementary-${releaseId}`
+      const supplementaryReleaseId = `supplementary-${resourceReleaseId}`
       sqlite
-        .query(`INSERT INTO releases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, cohortKey, status, createdAt, updatedAt)
-        SELECT ?, sourceReleaseId, datasetId, ?, 'address', sourceVersion, sourceSchemaVersion, cohortKey, 'published', createdAt, updatedAt FROM releases WHERE id = ?`)
-        .run(supplementaryReleaseId, `supplementary-${releaseCode}`, releaseId)
+        .query(`INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, cohortKey, status, createdAt, updatedAt)
+        SELECT ?, sourceReleaseId, datasetId, ?, 'address', sourceVersion, sourceSchemaVersion, cohortKey, 'published', createdAt, updatedAt FROM resourceReleases WHERE id = ?`)
+        .run(supplementaryReleaseId, `supplementary-${releaseCode}`, resourceReleaseId)
       const supplementary = await ensureDraftSnapshotForRelease(db, 'address', {
         cohortKey: '2026-06',
         datasetId,
@@ -316,7 +332,7 @@ test('requires retained processing audits for Addresses and Places before publis
         datasetId,
         supplementaryReleaseId,
         'primary',
-        { anchorReleaseId: releaseId },
+        { anchorReleaseId: resourceReleaseId },
       )
       await publishSnapshot(db, supplementary.id)
       await upsertSnapshotSource(
@@ -334,7 +350,7 @@ test('requires retained processing audits for Addresses and Places before publis
       await recordPlaceAddressAssembly(db, {
         snapshotId,
         resourceType: 'place',
-        anchorReleaseId: releaseId,
+        anchorReleaseId: resourceReleaseId,
         anchorCohortKey: '2026-06',
         dependencies: { supplementaryAddress: supplementary.id },
         reviewRequired: 0,
@@ -348,7 +364,7 @@ test('requires retained processing audits for Addresses and Places before publis
     const result = await handlePublishDataset(db, {
       ...(carriedSnapshots ? { carriedSnapshots } : {}),
       ...(datasetType === 'place' ? { deferApiReleaseSet: true } : {}),
-      releaseId,
+      resourceReleaseId,
     })
 
     if (datasetType === 'place') {
@@ -358,7 +374,7 @@ test('requires retained processing audits for Addresses and Places before publis
         code: 'ss-hk-address-newer-selection',
         cohortKey: '2026-07',
         datasetId: 'hkgov-dpo-hk-address',
-        releaseId,
+        resourceReleaseId,
         resourceType: 'address',
         snapshotId: 'snapshot-address-newer-selection',
         status: 'published',
@@ -366,7 +382,7 @@ test('requires retained processing audits for Addresses and Places before publis
       seedSnapshot(sqlite, {
         code: 'ss-hk-division-newer-selection',
         cohortKey: '2026-07',
-        releaseId,
+        resourceReleaseId,
         resourceType: 'division',
         snapshotId: 'snapshot-division-newer-selection',
         status: 'published',
@@ -384,8 +400,8 @@ test('requires retained processing audits for Addresses and Places before publis
     }
 
     const releaseRow = sqlite
-      .query('SELECT status FROM releases WHERE id = ?')
-      .get(releaseId) as { status: string }
+      .query('SELECT status FROM resourceReleases WHERE id = ?')
+      .get(resourceReleaseId) as { status: string }
     const snapshotRow = sqlite
       .query('SELECT status, publishedAt FROM snapshots WHERE id = ?')
       .get(snapshotId) as {
@@ -440,9 +456,9 @@ test('requires retained processing audits for Addresses and Places before publis
       apiReleaseSetId: publishedReleaseSet.apiReleaseSetId,
       datasetId: releaseCode,
       releaseCode,
-      releaseId,
+      resourceReleaseId,
       phase: null,
-      snapshotId: `snapshot-${releaseId}`,
+      snapshotId: `snapshot-${resourceReleaseId}`,
       status: 'current',
     })
     if (datasetType === 'address') {
@@ -485,8 +501,8 @@ test('publishes LandsD divisions in their own API domain', async () => {
   const dbPath = join(tempDir, 'harbour-publish-landsd-division.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const { releaseId } = insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-hkgov-landsd-division-2026-06-10.0',
+  const { resourceReleaseId } = insertFixtureRelease(sqlite, {
+    resourceReleaseId: 'release-dr-hk-hkgov-landsd-division-2026-06-10.0',
     source: 'hkgov-landsd',
     regionCode: 'hk',
     cohortKey: '2026-06',
@@ -503,11 +519,11 @@ test('publishes LandsD divisions in their own API domain', async () => {
     code: 'ss-hk-division-2026-06-10.0',
     cohortKey: '2026-06',
     datasetId: 'hkgov-landsd-hk-division',
-    releaseId,
+    resourceReleaseId,
     status: 'draft',
   })
 
-  const result = await handlePublishDataset(db, { releaseId })
+  const result = await handlePublishDataset(db, { resourceReleaseId })
   if (!result.apiReleaseSetId) {
     throw new Error(
       'Expected the LandsD division publish result to include a release set.',
@@ -522,7 +538,7 @@ test('publishes LandsD divisions in their own API domain', async () => {
 
   sqlite.close()
 
-  expect(result).toMatchObject({ releaseId, snapshotId, status: 'current' })
+  expect(result).toMatchObject({ resourceReleaseId, snapshotId, status: 'current' })
   expect(releaseSet).toEqual({
     domainCode: 'hkgov-landsd',
     status: 'current',

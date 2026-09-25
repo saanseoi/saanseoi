@@ -361,7 +361,7 @@ function resolveExpectedTablesForBinding(
       'dataShards',
       'apiVersions',
       'apiReleaseSets',
-      'releases',
+      'resourceReleases',
       'snapshots',
       'snapshotSourceReleases',
       'snapshotRecipes',

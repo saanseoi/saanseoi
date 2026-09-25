@@ -34,7 +34,7 @@ test('source inputs resolve through the dataset publisher mapping', () => {
 test('processing references pin the selected release definition, not a current rule with the same ID', () => {
   const definition = { id: 'normalise-example', parameters: { multiplier: 1000 } }
   const release = {
-    releaseId: 'retained-release',
+    resourceReleaseId: 'retained-release',
     processingRules: {
       rulesets: [
         {
@@ -50,7 +50,7 @@ test('processing references pin the selected release definition, not a current r
   expect(pins).toEqual([
     {
       ruleId: definition.id,
-      releaseId: 'retained-release',
+      resourceReleaseId: 'retained-release',
       rulesetVersion: 'rules-v1',
       rulesetVersionHash: 'retained-ruleset-hash',
       definitionHash: computeVersionHash(definition),
@@ -66,7 +66,7 @@ test('processing references pin the selected release definition, not a current r
   expect(
     pinApiFieldRules(field, [
       release,
-      { releaseId: 'unrelated-derived-release', processingRules: null },
+      { resourceReleaseId: 'unrelated-derived-release', processingRules: null },
     ]),
   ).toEqual(pins)
   const conflicting = structuredClone(release)

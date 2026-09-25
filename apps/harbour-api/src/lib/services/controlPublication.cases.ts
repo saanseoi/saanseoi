@@ -18,7 +18,7 @@ test('retains a dataset source variant when reading a release for publication', 
   const tempDir = createTempDir()
   const sqlite = initDb(join(tempDir, 'harbour-control-source-variant.sqlite'))
   const db = createLocalHarbourDb(sqlite)
-  const releaseId = 'release-hkgov-censtatd-hma-2021'
+  const resourceReleaseId = 'release-hkgov-censtatd-hma-2021'
   sqlite.exec(`
     INSERT OR IGNORE INTO publishers (id, code, versionHash, createdAt, updatedAt)
     VALUES ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher-hkgov-censtatd', 1761264000000, 1761264000000);
@@ -36,23 +36,23 @@ test('retains a dataset source variant when reading a release for publication', 
     INSERT INTO sourceReleases
       (id, datasetId, code, sourceVersion, cohortKey, status)
     SELECT
-      '${releaseId}', id, 'sr-${releaseId}', '2021', '2021', 'staged'
+      '${resourceReleaseId}', id, 'sr-${resourceReleaseId}', '2021', '2021', 'staged'
     FROM datasets
     WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
 
-    INSERT INTO releases (
+    INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
       rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
     )
     SELECT
-      '${releaseId}', '${releaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021', '2021', '2021',
+      '${resourceReleaseId}', '${resourceReleaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021', '2021', '2021',
       'hk/hkgov-censtatd/2021/division-area.parquet', 'division-area.parquet', 'staged',
       '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z'
     FROM datasets
     WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
   `)
 
-  const release = await getDatasetRecordByReleaseId(db, releaseId)
+  const release = await getDatasetRecordByReleaseId(db, resourceReleaseId)
   sqlite.close()
 
   expect(release?.sourceVariant).toBe('hkgov-censtatd-hma')
@@ -65,7 +65,7 @@ test('marks the superseded monthly dataset historic when publishing a new curren
   const db = createLocalHarbourDb(sqlite)
 
   insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2026-01-21.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-01-21.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-01',
@@ -80,12 +80,12 @@ test('marks the superseded monthly dataset historic when publishing a new curren
   })
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-01-21.0',
-    releaseId: 'release-dr-hk-overture-division-2026-01-21.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-01-21.0',
     status: 'published',
     timestamp: 1762300800000,
   })
   insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-02',
@@ -100,7 +100,7 @@ test('marks the superseded monthly dataset historic when publishing a new curren
   })
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-02-18.0',
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
     status: 'draft',
     timestamp: 1762300860000,
   })
@@ -111,13 +111,13 @@ test('marks the superseded monthly dataset historic when publishing a new curren
   })
 
   const result = await handlePublishDataset(db, {
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
   })
 
   const rows = sqlite
     .query(
       `SELECT code AS datasetId, status, revokedAt, revocationReason
-       FROM releases
+       FROM resourceReleases
        WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
     )
@@ -155,7 +155,7 @@ test('marks the superseded monthly dataset historic when publishing a new curren
     apiReleaseSetId: publishedReleaseSet.apiReleaseSetId,
     datasetId: 'dr-hk-overture-division-2026-02-18.0',
     releaseCode: 'dr-hk-overture-division-2026-02-18.0',
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
     phase: null,
     snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
     status: 'current',
@@ -193,10 +193,10 @@ test('waits briefly for imported snapshot metadata before publishing', async () 
   const dbPath = join(tempDir, 'harbour-publish-delayed-snapshot.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const releaseId = 'release-dr-hk-overture-division-2026-02-18.0'
+  const resourceReleaseId = 'release-dr-hk-overture-division-2026-02-18.0'
 
   insertFixtureRelease(sqlite, {
-    releaseId,
+    resourceReleaseId,
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-02',
@@ -214,7 +214,7 @@ test('waits briefly for imported snapshot metadata before publishing', async () 
   setTimeout(() => {
     seedSnapshot(sqlite, {
       code: 'ss-hk-division-2026-02-18.0',
-      releaseId,
+      resourceReleaseId,
       status: 'draft',
       timestamp: 1762300860000,
     })
@@ -226,7 +226,7 @@ test('waits briefly for imported snapshot metadata before publishing', async () 
   }, 25)
 
   const result = await handlePublishDataset(db, {
-    releaseId,
+    resourceReleaseId,
   })
 
   sqlite.close()
@@ -235,7 +235,7 @@ test('waits briefly for imported snapshot metadata before publishing', async () 
     apiReleaseSetId: expect.any(String),
     datasetId: 'dr-hk-overture-division-2026-02-18.0',
     releaseCode: 'dr-hk-overture-division-2026-02-18.0',
-    releaseId,
+    resourceReleaseId,
     phase: null,
     snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
     status: 'current',
@@ -249,7 +249,7 @@ test('revokes the superseded dataset only for corrected same-release publishes',
   const db = createLocalHarbourDb(sqlite)
 
   insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-02',
@@ -264,12 +264,12 @@ test('revokes the superseded dataset only for corrected same-release publishes',
   })
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-02-18.0',
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
     status: 'published',
     timestamp: 1762300800000,
   })
   insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.1',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.1',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-02',
@@ -283,11 +283,11 @@ test('revokes the superseded dataset only for corrected same-release publishes',
     updatedAt: '2026-06-05T00:01:00.000Z',
   })
   sqlite
-    .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
+    .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
     .run('1.16.0', 'release-dr-hk-overture-division-2026-02-18.1')
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-02-18.1',
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.1',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.1',
     status: 'draft',
     timestamp: 1762300860000,
   })
@@ -298,13 +298,13 @@ test('revokes the superseded dataset only for corrected same-release publishes',
   })
 
   const result = await handlePublishDataset(db, {
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.1',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.1',
   })
 
   const rows = sqlite
     .query(
       `SELECT code AS datasetId, status, revokedAt, revocationReason
-       FROM releases
+       FROM resourceReleases
        WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
     )
@@ -321,7 +321,7 @@ test('revokes the superseded dataset only for corrected same-release publishes',
     apiReleaseSetId: expect.any(String),
     datasetId: 'dr-hk-overture-division-2026-02-18.1',
     releaseCode: 'dr-hk-overture-division-2026-02-18.1',
-    releaseId: 'release-dr-hk-overture-division-2026-02-18.1',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.1',
     phase: null,
     snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.1',
     status: 'current',
@@ -346,12 +346,12 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
   const dbPath = join(tempDir, 'harbour-publish-rebuild.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const releaseId = 'release-dr-hk-overture-division-2026-02-18.0'
+  const resourceReleaseId = 'release-dr-hk-overture-division-2026-02-18.0'
   const firstSnapshotId = 'snapshot-release-dr-hk-overture-division-2026-02-18.0'
   const rebuiltSnapshotId = `${firstSnapshotId}-r1`
 
   insertFixtureRelease(sqlite, {
-    releaseId,
+    resourceReleaseId,
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-02',
@@ -366,7 +366,7 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
   })
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-02-18.0',
-    releaseId,
+    resourceReleaseId,
     snapshotId: firstSnapshotId,
     status: 'draft',
     timestamp: 1762300800000,
@@ -377,11 +377,11 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
     overtureSchemaVersion: '1.16.0',
   })
 
-  const firstPublication = await handlePublishDataset(db, { releaseId })
+  const firstPublication = await handlePublishDataset(db, { resourceReleaseId })
 
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-02-18.0-r1',
-    releaseId,
+    resourceReleaseId,
     snapshotId: rebuiltSnapshotId,
     status: 'draft',
     timestamp: 1762300860000,
@@ -400,7 +400,7 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
 
   const rebuiltPublication = await handlePublishDataset(db, {
     rebuildPublishedSnapshot: true,
-    releaseId,
+    resourceReleaseId,
   })
 
   const snapshotRows = sqlite
@@ -418,7 +418,7 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
   expect(rebuiltPublication).toMatchObject({
     apiReleaseSetStatus: 'current',
     datasetId: 'dr-hk-overture-division-2026-02-18.0',
-    releaseId,
+    resourceReleaseId,
     snapshotId: rebuiltSnapshotId,
     status: 'current',
   })
@@ -443,7 +443,7 @@ test('marks the superseded dataset historic for same-cohort releases with differ
   const db = createLocalHarbourDb(sqlite)
 
   insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2026-06-17.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-06-17.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-06',
@@ -458,12 +458,12 @@ test('marks the superseded dataset historic for same-cohort releases with differ
   })
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-06-17.0',
-    releaseId: 'release-dr-hk-overture-division-2026-06-17.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-06-17.0',
     status: 'published',
     timestamp: 1762300800000,
   })
   insertFixtureRelease(sqlite, {
-    releaseId: 'release-dr-hk-overture-division-2026-06-24.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-06-24.0',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-06',
@@ -477,11 +477,11 @@ test('marks the superseded dataset historic for same-cohort releases with differ
     updatedAt: '2026-06-05T00:01:00.000Z',
   })
   sqlite
-    .query('UPDATE releases SET sourceSchemaVersion = ? WHERE id = ?')
+    .query('UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?')
     .run('1.17.0', 'release-dr-hk-overture-division-2026-06-24.0')
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-2026-06-24.0',
-    releaseId: 'release-dr-hk-overture-division-2026-06-24.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-06-24.0',
     status: 'draft',
     timestamp: 1762300860000,
   })
@@ -492,13 +492,13 @@ test('marks the superseded dataset historic for same-cohort releases with differ
   })
 
   await handlePublishDataset(db, {
-    releaseId: 'release-dr-hk-overture-division-2026-06-24.0',
+    resourceReleaseId: 'release-dr-hk-overture-division-2026-06-24.0',
   })
 
   const rows = sqlite
     .query(
       `SELECT code AS datasetId, status, revokedAt, revocationReason
-       FROM releases
+       FROM resourceReleases
        WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
     )
@@ -532,9 +532,9 @@ test('publishes an Overture baseline independently of the curated geographic API
   const db = createLocalHarbourDb(sqlite)
   sqlite.exec(`UPDATE apiCompositionMembers SET variant='saanseoi'
     WHERE domainCode='geographic' AND resourceType='division' AND role='primary'`)
-  const releaseId = 'release-curated-baseline'
+  const resourceReleaseId = 'release-curated-baseline'
   insertFixtureRelease(sqlite, {
-    releaseId,
+    resourceReleaseId,
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-08-19.0',
@@ -548,7 +548,7 @@ test('publishes an Overture baseline independently of the curated geographic API
     updatedAt: '2026-09-23T00:00:00.000Z',
   })
   insertFixtureRelease(sqlite, {
-    releaseId: 'previous-baseline',
+    resourceReleaseId: 'previous-baseline',
     source: 'overture',
     regionCode: 'hk',
     cohortKey: '2026-07-22.0',
@@ -561,29 +561,33 @@ test('publishes an Overture baseline independently of the curated geographic API
     createdAt: '2026-08-01T00:00:00.000Z',
     updatedAt: '2026-08-01T00:00:00.000Z',
   })
-  const snapshotId = seedSnapshot(sqlite, { code: 'ss-baseline', releaseId })
+  const snapshotId = seedSnapshot(sqlite, { code: 'ss-baseline', resourceReleaseId })
   const before = sqlite.query('SELECT count(*) n FROM apiReleaseSets').get()
   const deferred = await handlePublishDataset(db, {
-    releaseId,
+    resourceReleaseId,
     deferSourcePublish: true,
   })
   expect(deferred.status).toBe('processing')
   expect(
     sqlite.query('SELECT status FROM snapshots WHERE id=?').get(snapshotId),
   ).toEqual({ status: 'draft' })
-  const result = await handlePublishDataset(db, { releaseId })
+  const result = await handlePublishDataset(db, { resourceReleaseId })
   expect(result.status).toBe('published')
   expect(
     sqlite.query('SELECT status FROM snapshots WHERE id=?').get(snapshotId),
   ).toEqual({ status: 'published' })
-  expect(sqlite.query('SELECT status FROM releases WHERE id=?').get(releaseId)).toEqual(
-    { status: 'published' },
-  )
+  expect(
+    sqlite
+      .query('SELECT status FROM resourceReleases WHERE id=?')
+      .get(resourceReleaseId),
+  ).toEqual({ status: 'published' })
   expect(sqlite.query('SELECT count(*) n FROM apiReleaseSets').get()).toEqual(before)
   expect(
     sqlite
-      .query('SELECT status, supersededByReleaseId FROM releases WHERE id=?')
+      .query(
+        'SELECT status, supersededByResourceReleaseId FROM resourceReleases WHERE id=?',
+      )
       .get('previous-baseline'),
-  ).toEqual({ status: 'superseded', supersededByReleaseId: releaseId })
+  ).toEqual({ status: 'superseded', supersededByResourceReleaseId: resourceReleaseId })
   sqlite.close()
 })

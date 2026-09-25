@@ -47,7 +47,7 @@ export async function runSqlDelivery(
       async () => {
         await assertSqlDeliveryGeneration(
           plan.context.cacheDir,
-          plan.context.releaseId,
+          plan.context.resourceReleaseId,
           plan.context.inputs.resetGeneration,
         )
         for (const batch of plan.batches) {
@@ -59,7 +59,7 @@ export async function runSqlDelivery(
         const progress = await readDeliveryProgress(directory, plan)
         await registerPendingSqlDelivery(
           plan.context.cacheDir,
-          plan.context.releaseId,
+          plan.context.resourceReleaseId,
           directory,
         )
         let saving = Promise.resolve()

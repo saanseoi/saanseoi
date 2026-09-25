@@ -225,7 +225,7 @@ describe('upload helpers', () => {
       await writeFile(
         join(root, 'pending-sql-delivery.json'),
         JSON.stringify({
-          releaseId: 'retained-release',
+          resourceReleaseId: 'retained-release',
           directories: [join(root, 'first'), join(root, 'second')],
         }),
       )
@@ -258,7 +258,7 @@ describe('upload helpers', () => {
       const calls: string[] = []
       try {
         const pending = {
-          releaseId: 'retained-release',
+          resourceReleaseId: 'retained-release',
           directories: [join(root, 'first'), join(root, 'second')],
         }
         for (const phase of ['first', 'second']) {
@@ -299,7 +299,7 @@ describe('upload helpers', () => {
     const calls: string[] = []
     try {
       const pending = {
-        releaseId: 'retained-release',
+        resourceReleaseId: 'retained-release',
         directories: [join(root, 'first'), join(root, 'second')],
       }
       for (const phase of ['first', 'second']) {
@@ -342,13 +342,13 @@ describe('upload helpers', () => {
       const calls: string[] = []
       try {
         const pending = {
-          releaseId: 'retained-release',
+          resourceReleaseId: 'retained-release',
           directories: [join(root, 'first'), join(root, 'second')],
         }
         for (const phase of ['first', 'second']) {
           const context = recoveryContext(root, phase)
           if (phase === 'second') {
-            if (mismatch === 'owner') context.releaseId = 'another-release'
+            if (mismatch === 'owner') context.resourceReleaseId = 'another-release'
             if (mismatch === 'cache') context.cacheDir = join(root, 'another-cache')
             if (mismatch === 'environment') context.environment = 'production'
           }
@@ -424,7 +424,7 @@ describe('upload helpers', () => {
         datasetId: '960b3f6f-437f-49e3-bd72-44e87d1cd5b9',
         rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
         releaseCode: 'dr-hk-overture-division-2025-09-24.0',
-        releaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
+        resourceReleaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
         rowCount: 1810,
         source: 'overture',
         sourceVersion: '2025-09-24.0',
@@ -457,7 +457,7 @@ describe('upload helpers', () => {
         datasetId: '960b3f6f-437f-49e3-bd72-44e87d1cd5b9',
         rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
         releaseCode: 'dr-hk-overture-division-2025-09-24.0',
-        releaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
+        resourceReleaseId: '1ab6a8d2-5ec6-4faa-bd89-c0b3021bba70',
         rowCount: 1810,
         source: 'overture',
         sourceVersion: '2025-09-24.0',
@@ -555,7 +555,7 @@ function recoveryContext(
     environment: 'preview',
     inputs: {},
     phase,
-    releaseId: 'retained-release',
+    resourceReleaseId: 'retained-release',
   }
 }
 

@@ -23,7 +23,7 @@ describe('Overture source payload boundary', () => {
           'properties',
           'sourceGeometry',
           'versionHash',
-          'releaseId',
+          'resourceReleaseId',
           'validFromRelease',
           'validToRelease',
           'isCurrent',
@@ -37,8 +37,8 @@ describe('Overture source payload boundary', () => {
       ])
       expect(config.indexes.map(index => index.config.name).sort()).toEqual([
         `${config.name}_open_records_idx`,
-        `${config.name}_releaseId_idx`,
         `${config.name}_release_validity_idx`,
+        `${config.name}_resourceReleaseId_idx`,
       ])
     })
   }

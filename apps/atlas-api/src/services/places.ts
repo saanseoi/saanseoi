@@ -261,7 +261,7 @@ function createPlaceResource(args: {
   if (args.routeState.profile === 'full') {
     Object.assign(attributes, {
       snapshotId: place.snapshotId,
-      releaseId: place.releaseId,
+      resourceReleaseId: place.resourceReleaseId,
       addressSnapshotId: place.addressSnapshotId,
       address2dId: place.address2dId,
       address3dId: place.address3dId,

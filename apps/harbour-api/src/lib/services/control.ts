@@ -51,7 +51,7 @@ import {
 export async function assertPlaceAddressDependencies(
   db: HarbourReadableDb,
   snapshotId: string,
-  releaseId: string,
+  resourceReleaseId: string,
 ) {
   const assembly = await db
     .select({ reviewRequired: metaSchema.metaSnapshotAssemblies.reviewRequired })
@@ -87,7 +87,7 @@ export async function assertPlaceAddressDependencies(
         eq(metaSnapshots.resourceType, 'address'),
         eq(metaSchema.metaSnapshotLineages.variant, 'overture-places'),
         eq(metaSnapshotSourceReleases.role, 'primary'),
-        eq(metaSnapshotSourceReleases.anchorReleaseId, releaseId),
+        eq(metaSnapshotSourceReleases.anchorReleaseId, resourceReleaseId),
       ),
     )
     .get()
@@ -135,7 +135,9 @@ export async function handlePublishDataset(
     const failedAudit = await db
       .select({ status: metaSchema.releaseProvenance.attemptStatus })
       .from(metaSchema.releaseProvenance)
-      .where(eq(metaSchema.releaseProvenance.releaseId, dataset.releaseId))
+      .where(
+        eq(metaSchema.releaseProvenance.resourceReleaseId, dataset.resourceReleaseId),
+      )
       .get()
     if (failedAudit?.status === 'failed')
       throw new ControlRequestError(
@@ -147,7 +149,7 @@ export async function handlePublishDataset(
       )
     const materialisedSnapshots = await listSnapshotsForRelease(
       db,
-      dataset.releaseId,
+      dataset.resourceReleaseId,
       datasetType,
     )
     const datasetVariant =
@@ -184,7 +186,7 @@ export async function handlePublishDataset(
     if (isCuratedDivisionBaseline) {
       const snapshots = await waitForSnapshotsForRelease(
         db,
-        dataset.releaseId,
+        dataset.resourceReleaseId,
         datasetType,
         datasetVariant,
       )
@@ -192,22 +194,22 @@ export async function handlePublishDataset(
       if (!firstSnapshot)
         throw new ControlRequestError(`Snapshot not found for ${dataset.releaseCode}.`)
       if (!request.deferSourcePublish) {
-        await updateDatasetStatus(db, dataset.releaseId, 'published')
+        await updateDatasetStatus(db, dataset.resourceReleaseId, 'published')
         for (const snapshot of snapshots)
           if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
         await db
-          .update(metaSchema.metaReleases)
+          .update(metaSchema.metaResourceReleases)
           .set({
             status: 'superseded',
-            supersededByReleaseId: dataset.releaseId,
+            supersededByResourceReleaseId: dataset.resourceReleaseId,
             updatedAt: new Date().toISOString(),
           })
           .where(
             and(
-              eq(metaSchema.metaReleases.datasetId, dataset.datasetId),
-              eq(metaSchema.metaReleases.resourceType, datasetType),
-              eq(metaSchema.metaReleases.status, 'published'),
-              lt(metaSchema.metaReleases.cohortKey, dataset.cohortKey),
+              eq(metaSchema.metaResourceReleases.datasetId, dataset.datasetId),
+              eq(metaSchema.metaResourceReleases.resourceType, datasetType),
+              eq(metaSchema.metaResourceReleases.status, 'published'),
+              lt(metaSchema.metaResourceReleases.cohortKey, dataset.cohortKey),
             ),
           )
           .run()
@@ -215,12 +217,12 @@ export async function handlePublishDataset(
       return {
         datasetId: dataset.releaseCode,
         releaseCode: dataset.releaseCode,
-        releaseId: dataset.releaseId,
+        resourceReleaseId: dataset.resourceReleaseId,
         snapshotId: firstSnapshot.id,
         status: request.deferSourcePublish ? 'processing' : 'published',
         phase: null,
         metadataDelta: publishMetadataDelta(
-          request.deferSourcePublish ? null : dataset.releaseId,
+          request.deferSourcePublish ? null : dataset.resourceReleaseId,
           undefined,
           request.deferSourcePublish
             ? []
@@ -274,7 +276,7 @@ export async function handlePublishDataset(
             db,
             dataset.datasetId,
             datasetType,
-            dataset.releaseId,
+            dataset.resourceReleaseId,
           )
     const existingReleaseSet =
       isCenstatdGeographicGeometry || rebuildPublishedSnapshot
@@ -284,7 +286,7 @@ export async function handlePublishDataset(
           : (options.releaseSet ??
             (await resolveReleaseSetForRelease(
               db,
-              dataset.releaseId,
+              dataset.resourceReleaseId,
               datasetType,
               domainCode,
             )))
@@ -299,19 +301,23 @@ export async function handlePublishDataset(
         : []
     const snapshots = await waitForSnapshotsForRelease(
       db,
-      dataset.releaseId,
+      dataset.resourceReleaseId,
       datasetType,
       datasetVariant,
     )
     const firstSnapshot = snapshots[0]
     if (!firstSnapshot) {
       throw new ControlRequestError(
-        `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.releaseId}).`,
+        `Snapshot not found for ${dataset.releaseCode} (${datasetType}/${dataset.resourceReleaseId}).`,
       )
     }
 
     if (datasetType === 'place') {
-      await assertPlaceAddressDependencies(db, firstSnapshot.id, dataset.releaseId)
+      await assertPlaceAddressDependencies(
+        db,
+        firstSnapshot.id,
+        dataset.resourceReleaseId,
+      )
     }
 
     if (request.deferStatsReleaseSet) {
@@ -321,7 +327,7 @@ export async function handlePublishDataset(
         )
       }
       if (!request.deferSourcePublish) {
-        await updateDatasetStatus(db, dataset.releaseId, 'published')
+        await updateDatasetStatus(db, dataset.resourceReleaseId, 'published')
         for (const snapshot of materialisedSnapshots) {
           if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
         }
@@ -329,7 +335,7 @@ export async function handlePublishDataset(
       return {
         datasetId: dataset.releaseCode,
         metadataDelta: publishMetadataDelta(
-          request.deferSourcePublish ? null : dataset.releaseId,
+          request.deferSourcePublish ? null : dataset.resourceReleaseId,
           undefined,
           request.deferSourcePublish
             ? []
@@ -340,7 +346,7 @@ export async function handlePublishDataset(
         ),
         phase: null,
         releaseCode: dataset.releaseCode,
-        releaseId: dataset.releaseId,
+        resourceReleaseId: dataset.resourceReleaseId,
         snapshotId: firstSnapshot.id,
         status: request.deferSourcePublish ? 'processing' : 'published',
       }
@@ -354,7 +360,7 @@ export async function handlePublishDataset(
       (isCenstatdGeographicGeometry && censtatdReleaseSetCohorts.length === 0)
     ) {
       if (!request.deferSourcePublish) {
-        await updateDatasetStatus(db, dataset.releaseId, 'published')
+        await updateDatasetStatus(db, dataset.resourceReleaseId, 'published')
         for (const snapshot of materialisedSnapshots) {
           if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
         }
@@ -362,7 +368,7 @@ export async function handlePublishDataset(
       return {
         datasetId: dataset.releaseCode,
         metadataDelta: publishMetadataDelta(
-          request.deferSourcePublish ? null : dataset.releaseId,
+          request.deferSourcePublish ? null : dataset.resourceReleaseId,
           undefined,
           request.deferSourcePublish
             ? []
@@ -373,7 +379,7 @@ export async function handlePublishDataset(
         ),
         phase: null,
         releaseCode: dataset.releaseCode,
-        releaseId: dataset.releaseId,
+        resourceReleaseId: dataset.resourceReleaseId,
         snapshotId: firstSnapshot.id,
         status: request.deferSourcePublish ? 'processing' : 'published',
       }
@@ -460,16 +466,16 @@ export async function handlePublishDataset(
               })()
     if (releaseSets.length === 0) {
       if (!request.deferSourcePublish) {
-        await updateDatasetStatus(db, dataset.releaseId, 'published')
+        await updateDatasetStatus(db, dataset.resourceReleaseId, 'published')
       }
       return {
         datasetId: dataset.releaseCode,
         metadataDelta: publishMetadataDelta(
-          request.deferSourcePublish ? null : dataset.releaseId,
+          request.deferSourcePublish ? null : dataset.resourceReleaseId,
         ),
         phase: null,
         releaseCode: dataset.releaseCode,
-        releaseId: dataset.releaseId,
+        resourceReleaseId: dataset.resourceReleaseId,
         snapshotId: firstSnapshot.id,
         status: request.deferSourcePublish ? 'processing' : 'published',
       }
@@ -691,7 +697,7 @@ export async function handlePublishDataset(
       } catch (error) {
         console.error('Failed to schedule current snapshot cleanup after publish', {
           error: error instanceof Error ? error.message : String(error),
-          releaseId: dataset.releaseId,
+          resourceReleaseId: dataset.resourceReleaseId,
           type: datasetType,
         })
       }
@@ -711,7 +717,7 @@ export async function handlePublishDataset(
       apiReleaseSetPublications,
       datasetId: dataset.releaseCode,
       metadataDelta: publishMetadataDelta(
-        request.deferSourcePublish ? null : dataset.releaseId,
+        request.deferSourcePublish ? null : dataset.resourceReleaseId,
         apiReleaseSetMetadata,
         await resolvePublishedSnapshotMetadataDeltas(
           db,
@@ -719,7 +725,7 @@ export async function handlePublishDataset(
         ),
       ),
       releaseCode: dataset.releaseCode,
-      releaseId: dataset.releaseId,
+      resourceReleaseId: dataset.resourceReleaseId,
       phase: null,
       snapshotId: publicationTargets.at(-1)?.snapshot.id,
       status: request.deferSourcePublish ? 'processing' : 'current',

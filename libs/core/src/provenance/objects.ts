@@ -13,7 +13,7 @@ const identifyingKeys = [
   'kind',
   'schemaVersion',
   'id',
-  'releaseId',
+  'resourceReleaseId',
   'datasetCode',
   'sourceVersion',
   'operation',

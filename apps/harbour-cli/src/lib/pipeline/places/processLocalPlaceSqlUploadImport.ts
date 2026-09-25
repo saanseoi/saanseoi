@@ -85,7 +85,7 @@ export async function importPlaceSqlBatches(
   delivery?: {
     directory: string
     context: LocalAddressDbContext
-    releaseId: string
+    resourceReleaseId: string
     inputs: Record<string, unknown>
     accountId?: string
     apiToken?: string
@@ -159,7 +159,7 @@ export async function importPlaceSqlBatches(
     table: 'placePublicationState',
     scopeId: input.snapshots.snapshotLineageId,
     snapshotId: input.snapshots.snapshotId,
-    publicationToken: required(input.message.releaseId, 'releaseId'),
+    publicationToken: required(input.message.resourceReleaseId, 'resourceReleaseId'),
     timestamp,
     previous: input.publicationPrevious ?? null,
   }
@@ -324,7 +324,7 @@ export function insertSqlParts(
               table,
               entries.map(([key]) => key),
               table === 'places'
-                ? ['createdAt', 'updatedAt', 'releaseId', 'lastSeenMonth']
+                ? ['createdAt', 'updatedAt', 'resourceReleaseId', 'lastSeenMonth']
                 : undefined,
             )}`
           : ''

@@ -11,7 +11,7 @@ import {
   replayReleaseStatsMetaToRemote,
 } from './releaseStatsMetaReplay.ts'
 
-const releaseId = 'release-censtatd-2024'
+const resourceReleaseId = 'release-censtatd-2024'
 const stats = [
   {
     apiReleaseSetId: null,
@@ -22,7 +22,7 @@ const stats = [
     id: 'b-stat',
     metric: 'count',
     metricUnit: 'count',
-    releaseId,
+    resourceReleaseId,
 
     updatedAt: '2026-08-18T00:00:00.000Z',
     value: 18,
@@ -36,7 +36,7 @@ const stats = [
     id: 'a-stat',
     metric: 'count',
     metricUnit: 'count',
-    releaseId,
+    resourceReleaseId,
 
     updatedAt: '2026-08-18T00:00:00.000Z',
     value: 18,
@@ -45,10 +45,10 @@ const stats = [
 
 describe('release statistics metadata replay', () => {
   test('deletes only this release’s release facts and replays exact materialised rows', () => {
-    const sql = buildReleaseStatsMetaSqlBatches(releaseId, stats).join('\n')
+    const sql = buildReleaseStatsMetaSqlBatches(resourceReleaseId, stats).join('\n')
 
     expect(sql).toContain(
-      `DELETE FROM "stats" WHERE "releaseId" = '${releaseId}' AND "metric" != 'processing';`,
+      `DELETE FROM "stats" WHERE "resourceReleaseId" = '${resourceReleaseId}' AND "metric" != 'processing';`,
     )
     expect(sql).not.toContain('apiReleaseSetId =')
     expect(sql.indexOf("'a-stat'")).toBeLessThan(sql.indexOf("'b-stat'"))
@@ -60,7 +60,7 @@ describe('release statistics metadata replay', () => {
     await replayReleaseStatsMetaToRemote(
       { environment: 'preview', remote: true },
       { state: { bindings: { DB_META: { databaseId: 'meta-d1' } } } },
-      releaseId,
+      resourceReleaseId,
       stats,
       {
         executeSql: async (target, sql, options) => {
@@ -85,7 +85,7 @@ describe('release statistics metadata replay', () => {
       replayReleaseStatsMetaToRemote(
         { environment: 'production', remote: true },
         { state: { bindings: { DB_META: { databaseId: 'meta-d1' } } } },
-        releaseId,
+        resourceReleaseId,
         stats,
         {
           executeSql: async () => {
@@ -106,10 +106,10 @@ describe('release statistics metadata replay', () => {
       decisionCount: 1,
       id: 'audit-1',
       mode: 'automatic',
-      releaseId,
+      resourceReleaseId,
       updatedAt: '2026-08-18T00:00:00.000Z',
     }
-    const sql = buildReleaseProcessingActionsMetaSqlBatches(releaseId, {
+    const sql = buildReleaseProcessingActionsMetaSqlBatches(resourceReleaseId, {
       actions: [action],
       chunks: await encodeAuditGroup(action, [
         {
@@ -154,7 +154,7 @@ describe('release statistics metadata replay', () => {
           versionHash: 'lineage-hash',
         },
       ],
-      releaseAssignments: [{ dataShardId: 'source-2021', releaseId }],
+      releaseAssignments: [{ dataShardId: 'source-2021', resourceReleaseId }],
       snapshotAssignments: [{ dataShardId: 'history-2021', snapshotId: 'snapshot' }],
       snapshots: [
         {
@@ -176,7 +176,7 @@ describe('release statistics metadata replay', () => {
       ],
       sources: [
         {
-          anchorReleaseId: releaseId,
+          anchorReleaseId: resourceReleaseId,
           createdAt: '2026-08-18T00:00:00.000Z',
           datasetId: 'dataset',
           role: 'primary',
@@ -184,7 +184,7 @@ describe('release statistics metadata replay', () => {
           selectionMode: 'exact_ref',
           snapshotId: 'snapshot',
           sourceCohortKey: '2021',
-          resourceReleaseId: releaseId,
+          resourceReleaseId: resourceReleaseId,
         },
       ],
     }).join('\n')

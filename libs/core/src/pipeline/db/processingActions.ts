@@ -65,11 +65,15 @@ function declaredOperationCodes(processingRules: unknown) {
  */
 export async function replaceReleaseProcessingActions(
   metaDb: HarbourReadableDb & HarbourWritableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   actions: ReleaseProcessingAction[],
 ) {
   return (
-    await replaceReleaseProcessingActionsAndReturnRows(metaDb, releaseId, actions)
+    await replaceReleaseProcessingActionsAndReturnRows(
+      metaDb,
+      resourceReleaseId,
+      actions,
+    )
   ).actions.reduce((count, action) => count + action.decisionCount, 0)
 }
 
@@ -79,25 +83,27 @@ export async function replaceReleaseProcessingActions(
  */
 export async function replaceReleaseProcessingActionsAndReturnRows(
   metaDb: HarbourReadableDb & HarbourWritableDb,
-  releaseId: string,
+  resourceReleaseId: string,
   actions: ReleaseProcessingAction[],
 ): Promise<MaterialisedReleaseProcessingActions> {
   const release = await metaDb
     .select({
-      status: metaSchema.metaReleases.status,
-      processingRules: metaSchema.metaReleases.processingRules,
+      status: metaSchema.metaResourceReleases.status,
+      processingRules: metaSchema.metaResourceReleases.processingRules,
     })
-    .from(metaSchema.metaReleases)
-    .where(eq(metaSchema.metaReleases.id, releaseId))
+    .from(metaSchema.metaResourceReleases)
+    .where(eq(metaSchema.metaResourceReleases.id, resourceReleaseId))
     .limit(1)
     .get()
 
   if (!release) {
-    throw new Error(`Cannot replace processing actions: unknown release ${releaseId}.`)
+    throw new Error(
+      `Cannot replace processing actions: unknown release ${resourceReleaseId}.`,
+    )
   }
   if (release.status !== 'staged' && release.status !== 'processing') {
     throw new Error(
-      `Cannot replace processing actions for ${releaseId}: ${release.status} releases are immutable.`,
+      `Cannot replace processing actions for ${resourceReleaseId}: ${release.status} releases are immutable.`,
     )
   }
 
@@ -108,14 +114,14 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
       .filter(action => !operationCodes.has(action))
     if (undeclaredActions.length > 0) {
       throw new Error(
-        `Processing actions are not declared in processing rules for ${releaseId}: ${[...new Set(undeclaredActions)].join(', ')}.`,
+        `Processing actions are not declared in processing rules for ${resourceReleaseId}: ${[...new Set(undeclaredActions)].join(', ')}.`,
       )
     }
   }
 
   const normalised = normaliseAuditActions(actions)
   const generation = await createHash(normalised)
-  const previous = await listReleaseAuditSummaries(metaDb, [releaseId])
+  const previous = await listReleaseAuditSummaries(metaDb, [resourceReleaseId])
   if (previous.length && previous.every(row => row.generation === generation)) {
     // Verify persisted evidence before treating a retry as complete.
     await readAuditPages(metaDb, previous)
@@ -127,7 +133,7 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
         .from(metaSchema.stats)
         .where(
           and(
-            eq(metaSchema.stats.releaseId, releaseId),
+            eq(metaSchema.stats.resourceReleaseId, resourceReleaseId),
             eq(metaSchema.stats.metric, 'processing'),
           ),
         )
@@ -140,7 +146,7 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
       .from(metaSchema.stats)
       .where(
         and(
-          eq(metaSchema.stats.releaseId, releaseId),
+          eq(metaSchema.stats.resourceReleaseId, resourceReleaseId),
           eq(metaSchema.stats.metric, 'processing'),
         ),
       )
@@ -160,8 +166,8 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
   const chunks: AuditChunk[] = []
   for (const [key, records] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
     const summary: AuditSummary = {
-      id: await createHash([releaseId, key]),
-      releaseId,
+      id: await createHash([resourceReleaseId, key]),
+      resourceReleaseId,
       action: requireDefined(records[0]).action,
       mode: requireDefined(records[0]).mode,
       generation,
@@ -197,7 +203,7 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
     id: `processing-${action.id}`,
     metric: 'processing',
     metricUnit: 'count',
-    releaseId,
+    resourceReleaseId,
 
     updatedAt: timestamp,
     value: Math.max(0, Math.floor(action.affectedRecordCount)),
@@ -207,26 +213,26 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
     metaDb.insert(metaSchema.stats).values(chunk),
   )
   const table = metaSchema.releaseProcessingActions
-  const releases = metaSchema.metaReleases
+  const releases = metaSchema.metaResourceReleases
   // Fail inside the transaction if publication or another replacement won the race.
   const expected = previous[0]?.generation ?? ''
   const guard = metaDb
     .update(releases)
     .set({
       updatedAt: sql`case when ${releases.status} in ('staged', 'processing')
-      and (select count(*) from ${table} where ${table.releaseId} = ${releaseId}) = ${previous.length}
-      and not exists (select 1 from ${table} where ${table.releaseId} = ${releaseId} and ${table.generation} != ${expected})
+      and (select count(*) from ${table} where ${table.resourceReleaseId} = ${resourceReleaseId}) = ${previous.length}
+      and not exists (select 1 from ${table} where ${table.resourceReleaseId} = ${resourceReleaseId} and ${table.generation} != ${expected})
       then ${releases.updatedAt} else json('Audit replacement conflict or immutable release') end`,
     })
-    .where(eq(releases.id, releaseId))
+    .where(eq(releases.id, resourceReleaseId))
   await commitAuditStatements(metaDb, [
     guard,
-    metaDb.delete(table).where(eq(table.releaseId, releaseId)),
+    metaDb.delete(table).where(eq(table.resourceReleaseId, resourceReleaseId)),
     metaDb
       .delete(metaSchema.stats)
       .where(
         and(
-          eq(metaSchema.stats.releaseId, releaseId),
+          eq(metaSchema.stats.resourceReleaseId, resourceReleaseId),
           eq(metaSchema.stats.metric, 'processing'),
         ),
       ),

@@ -221,7 +221,7 @@ export function buildDivisionImportProgressConfig(
 }
 
 export function buildStreamingPhase(
-  releaseId: string,
+  resourceReleaseId: string,
   releaseCode: string,
   phase: string,
   totalUnits: number,
@@ -244,7 +244,7 @@ export function buildStreamingPhase(
     },
     phase,
     releaseCode,
-    releaseId,
+    resourceReleaseId,
     totalUnits,
   } as const
 }

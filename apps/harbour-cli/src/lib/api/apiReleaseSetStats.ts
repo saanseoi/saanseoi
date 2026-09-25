@@ -71,7 +71,7 @@ type CalculateApiReleaseSetStatsOptions = {
   metaDb: HarbourReadableDb & HarbourWritableDb
   progress: OperationProgress
   releaseCode?: string
-  releaseId: string
+  resourceReleaseId: string
   target: ApiReleaseSetStatsTarget
   addressQuality?: AddressDivisionQualityCounts
 }
@@ -155,7 +155,7 @@ export async function calculateAndStoreApiReleaseSetStats(
     },
   )
   await options.harbourClient.stageRunning(
-    options.releaseId,
+    options.resourceReleaseId,
     API_RELEASE_SET_STATS_PHASE,
     {
       apiReleaseSetId,
@@ -196,14 +196,17 @@ export async function calculateAndStoreApiReleaseSetStats(
             : await buildPlaceStatsRows(
                 options.currentDb,
                 snapshotId,
-                await readPlaceLocaleConflicts(options.metaDb, options.releaseId),
+                await readPlaceLocaleConflicts(
+                  options.metaDb,
+                  options.resourceReleaseId,
+                ),
               )
 
     options.progress.update(1, {
       label: formatRunningPhaseLabel(colorTeal('Calculate'), colorRed('stats'), 1, 2),
     })
     await options.harbourClient.stageRunning(
-      options.releaseId,
+      options.resourceReleaseId,
       API_RELEASE_SET_STATS_PHASE,
       {
         apiReleaseSetId,
@@ -242,7 +245,7 @@ export async function calculateAndStoreApiReleaseSetStats(
       ),
     )
     await options.harbourClient.stageCompleted(
-      options.releaseId,
+      options.resourceReleaseId,
       API_RELEASE_SET_STATS_PHASE,
       stats,
       options.releaseCode,
@@ -253,7 +256,7 @@ export async function calculateAndStoreApiReleaseSetStats(
     const errorMessage = error instanceof Error ? error.message : String(error)
 
     await options.harbourClient.stageFailed(
-      options.releaseId,
+      options.resourceReleaseId,
       API_RELEASE_SET_STATS_PHASE,
       errorMessage,
       {
@@ -659,10 +662,13 @@ async function buildPlaceStatsRows(
   return rows
 }
 
-async function readPlaceLocaleConflicts(metaDb: HarbourReadableDb, releaseId: string) {
+async function readPlaceLocaleConflicts(
+  metaDb: HarbourReadableDb,
+  resourceReleaseId: string,
+) {
   const rows = await readReleaseAuditDecisions(
     metaDb,
-    [releaseId],
+    [resourceReleaseId],
     'overture_place_locale_conflict',
   )
   const conflictsByPlace = new Map<string, PlaceLocaleConflict[]>()
@@ -850,7 +856,7 @@ function buildStatsSql(apiReleaseSetId: string, rows: ApiReleaseSetScopedStatsRo
     `DELETE FROM stats WHERE apiReleaseSetId = ${sqlLiteral(apiReleaseSetId)};`,
     ...rows.map(row =>
       [
-        'INSERT INTO stats (id, releaseId, apiReleaseSetId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt) VALUES (',
+        'INSERT INTO stats (id, resourceReleaseId, apiReleaseSetId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt) VALUES (',
         [
           crypto.randomUUID(),
           null,

@@ -11,20 +11,20 @@ export async function requireDataset(
   db: HarbourReadableDb,
   {
     releaseCode,
-    releaseId,
+    resourceReleaseId,
   }: {
     releaseCode?: string
-    releaseId?: string
+    resourceReleaseId?: string
   },
 ) {
   const dataset = await waitForDatasetRecord(db, {
     releaseCode,
-    releaseId,
+    resourceReleaseId,
   })
 
   if (!dataset) {
     throw new ControlRequestError(
-      `Release not found: ${releaseId ?? releaseCode ?? 'unknown'}`,
+      `Release not found: ${resourceReleaseId ?? releaseCode ?? 'unknown'}`,
     )
   }
 

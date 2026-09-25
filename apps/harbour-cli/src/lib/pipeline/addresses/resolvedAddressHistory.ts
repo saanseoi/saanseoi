@@ -12,7 +12,7 @@ export function closeResolvedAddressHistory(input: {
   prior: ResolvedSnapshotVersion[]
   snapshotId: string
   scopeId: string
-  releaseId: string
+  resourceReleaseId: string
   now: string
 }) {
   const history = input.candidates[input.historyBinding]!.db
@@ -58,7 +58,7 @@ export function closeResolvedAddressHistory(input: {
           prior.recordType,
           prior.recordId,
           prior.locale,
-          input.releaseId,
+          input.resourceReleaseId,
           input.now,
           input.now,
         )
@@ -96,7 +96,7 @@ export function coalesceAddressSourceResolutions(input: {
   parentPlan: SnapshotReplayStep[]
   membership: AlsMembership
   snapshotId: string
-  releaseId: string
+  resourceReleaseId: string
 }) {
   const history = input.candidates[input.historyBinding]!.db
   history.exec(`CREATE TEMP TABLE priorAddressResolutions(sourceRecordId TEXT PRIMARY KEY,sourceVersionHash TEXT NOT NULL,resolutions TEXT NOT NULL,comparison TEXT NOT NULL);
@@ -159,7 +159,7 @@ export function coalesceAddressSourceResolutions(input: {
         insert.run(
           `snapshot:${input.snapshotId}`,
           input.snapshotId,
-          input.releaseId,
+          input.resourceReleaseId,
           source.id,
           version.sourceVersionHash,
           JSON.stringify({
@@ -177,7 +177,7 @@ export function coalesceAddressSourceResolutions(input: {
         insert.run(
           `snapshot:${input.snapshotId}`,
           input.snapshotId,
-          input.releaseId,
+          input.resourceReleaseId,
           omitted.sourceRecordId,
           omitted.sourceVersionHash,
           JSON.stringify({ entities: {}, decisions: [{ type: 'source_omission' }] }),
@@ -202,7 +202,7 @@ export function coalesceAddressSourceResolutions(input: {
         if (canonicalJson(JSON.parse(row.resolutions)) === row.comparison)
           remove.run(
             `snapshot:${input.snapshotId}`,
-            input.releaseId,
+            input.resourceReleaseId,
             row.sourceRecordId,
             row.sourceVersionHash,
           )

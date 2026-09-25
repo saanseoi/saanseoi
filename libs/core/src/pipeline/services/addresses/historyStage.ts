@@ -55,7 +55,7 @@ export async function writeAddressHistoryChunkStage(
       [...changedExistingIds],
       versionInsertContext.snapshotId,
       message.cohortKey,
-      versionInsertContext.releaseId,
+      versionInsertContext.resourceReleaseId,
     )
   }
   await insertAddressVersionRows(
@@ -209,7 +209,7 @@ export async function buildResolvedAddressChunkArtefact(
         ? {
             sourceResolution: {
               snapshotId: versionInsertContext.snapshotId,
-              sourceReleaseId: versionInsertContext.releaseId,
+              sourceReleaseId: versionInsertContext.resourceReleaseId,
               sourceRecordId: publisherSource.sourceRecordId,
               sourceVersionHash: publisherSource.versionHash,
               resolutions: {
@@ -285,7 +285,7 @@ export async function buildResolvedAddressChunkArtefact(
         phaseRef: localised.phaseRef ?? null,
         estateName: localised.estateName ?? null,
         streetName: localised.streetName ?? null,
-        sourceReleaseId: versionInsertContext.releaseId,
+        sourceReleaseId: versionInsertContext.resourceReleaseId,
         snapshotId: localised.snapshotId ?? row.base.snapshotId,
         isCurrent: true,
         versionHash: row.versionHash,
@@ -307,7 +307,7 @@ export async function buildResolvedAddressChunkArtefact(
       insertedVersions,
       localisedRows,
       processingRunStartedAt: artefact.processingRunStartedAt,
-      releaseId: artefact.releaseId,
+      resourceReleaseId: artefact.resourceReleaseId,
       rowStart: artefact.rowStart,
       rowEnd: artefact.rowEnd,
       rows: resolvedRows,

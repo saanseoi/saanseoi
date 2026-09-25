@@ -10,7 +10,7 @@ import PatchCard from './auditPatchCard.svelte'
 import { auditApplicationComparison } from './auditApplicationComparison'
 import ApplicationSkeleton from './auditApplicationSkeleton.svelte'
 let {
-  releaseId,
+  resourceReleaseId,
   hash,
   category,
   fixtureIndex,
@@ -19,7 +19,7 @@ let {
   onLoading,
   onResult,
 }: {
-  releaseId: string
+  resourceReleaseId: string
   hash: string
   category?: 'translations' | 'patches' | 'curations' | 'rules'
   fixtureIndex?: number
@@ -39,7 +39,7 @@ let resolved = $state(false)
 async function load(reset = false) {
   const request = ++generation
   const currentScope = JSON.stringify([
-    releaseId,
+    resourceReleaseId,
     hash,
     category,
     fixtureIndex,
@@ -69,7 +69,7 @@ async function load(reset = false) {
   onLoading?.(true)
   try {
     const page = await getAuditPage({
-      releaseId,
+      resourceReleaseId,
       hash,
       category,
       fixtureIndex,
@@ -96,7 +96,7 @@ async function load(reset = false) {
 }
 $effect(() => {
   query
-  releaseId
+  resourceReleaseId
   hash
   category
   fixtureIndex
@@ -112,13 +112,13 @@ $effect(() => {
 
 <div class="space-y-5" aria-busy={loading}>
   {#each rows as row (row.id)}
-    {@const comparison = auditApplicationComparison(row)}
-    {@const areaGeometry = row.operation === 'overture_hong_kong_area_geometry_restored'}
-    {@const areaName = row.record.names[0] || row.record.id}
-    {@const areaIdentity = row.operation === 'overture_hong_kong_area_identities_restored'}
+    {@const (comparison = auditApplicationComparison(row))}
+    {@const (areaGeometry = row.operation === 'overture_hong_kong_area_geometry_restored')}
+    {@const (areaName = row.record.names[0] || row.record.id)}
+    {@const (areaIdentity = row.operation === 'overture_hong_kong_area_identities_restored')}
     {#if category === 'patches' || comparison}
       <PatchCard
-        geometryReleaseId={areaGeometry ? releaseId : undefined}
+        geometryReleaseId={areaGeometry ? resourceReleaseId : undefined}
         exclusion={areaGeometry && areaName === 'New Territories' ? row.context.geometryRule : null}
         title={row.operation === 'overture_hong_kong_lok_ma_chau_loop_reclassified'
   ? m.source_audit_patch_lok_ma_chau_title()

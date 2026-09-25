@@ -31,7 +31,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
   scopeId: string
   scopeSnapshotIds: string[]
   snapshotId: string
-  releaseId: string
+  resourceReleaseId: string
   historyBinding: string
   revokedAddressIds: string[]
   now: string
@@ -77,7 +77,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
         locale,
         versionHash,
         operation: versionHash ? 'upsert' : 'delete',
-        sourceReleaseId: input.releaseId,
+        sourceReleaseId: input.resourceReleaseId,
         ...timestamp,
       }),
     )
@@ -214,7 +214,7 @@ export async function materialiseSupplementaryAddressHistory(input: {
           insertSql(policy.table, {
             ...row,
             snapshotId: input.snapshotId,
-            sourceReleaseId: input.releaseId,
+            sourceReleaseId: input.resourceReleaseId,
             isCurrent: 1,
             ...timestamp,
           }),

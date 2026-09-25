@@ -64,7 +64,7 @@ export async function uploadCuratedReleaseAsset(
   asset: Awaited<ReturnType<typeof prepareCuratedReleaseAsset>>,
   release: {
     datasetId: string
-    releaseId: string
+    resourceReleaseId: string
     existingObjectKeys: (string | null)[]
   },
   upload = uploadManagedSourceAsset,
@@ -80,7 +80,7 @@ export async function uploadCuratedReleaseAsset(
       assetKey: asset.assetKey,
       contentHash: asset.contentHash,
       datasetId: release.datasetId,
-      releaseId: release.releaseId,
+      resourceReleaseId: release.resourceReleaseId,
       mediaType: 'application/zip',
       role: 'sourceArchive',
       retrievedAt: new Date().toISOString(),
@@ -94,7 +94,7 @@ export function linkCuratedReleaseAsset(
   db: Database,
   input: {
     sourceReleaseId: string
-    releaseId: string
+    resourceReleaseId: string
     assetKey: string
     fileName: string
   },
@@ -102,7 +102,7 @@ export function linkCuratedReleaseAsset(
   db.transaction(() => {
     const targets = [
       ['sourceReleases', input.sourceReleaseId],
-      ['releases', input.releaseId],
+      ['resourceReleases', input.resourceReleaseId],
     ] as const
     for (const [table, id] of targets) {
       const row = db.query(`SELECT rawObjectKey FROM ${table} WHERE id=?`).get(id) as {

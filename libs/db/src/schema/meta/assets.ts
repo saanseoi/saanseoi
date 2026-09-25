@@ -1,7 +1,7 @@
 import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
 
 import { jsonText, primaryUuid, timestamps } from '../shared'
-import { metaDatasets, metaReleases } from './datasets'
+import { metaDatasets, metaResourceReleases } from './datasets'
 
 /**
  * A private-R2 object that has been registered for public delivery through
@@ -15,9 +15,12 @@ export const metaAssets = sqliteTable(
     datasetId: text('datasetId').references(() => metaDatasets.id, {
       onDelete: 'restrict',
     }),
-    releaseId: text('releaseId').references(() => metaReleases.id, {
-      onDelete: 'set null',
-    }),
+    resourceReleaseId: text('resourceReleaseId').references(
+      () => metaResourceReleases.id,
+      {
+        onDelete: 'set null',
+      },
+    ),
     sourceRecordId: text('sourceRecordId'),
     assetKey: text('assetKey').notNull(),
     contentHash: text('contentHash').notNull(),
@@ -35,7 +38,7 @@ export const metaAssets = sqliteTable(
     uniqueIndex('assets_assetKey_unique_idx').on(table.assetKey),
     index('assets_contentHash_idx').on(table.contentHash),
     index('assets_datasetId_idx').on(table.datasetId),
-    index('assets_releaseId_idx').on(table.releaseId),
+    index('assets_resourceReleaseId_idx').on(table.resourceReleaseId),
     index('assets_sourceRecordId_idx').on(table.sourceRecordId),
   ],
 )

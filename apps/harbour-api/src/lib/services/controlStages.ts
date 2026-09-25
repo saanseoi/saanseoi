@@ -11,13 +11,13 @@ export async function handleStageRunning(
     const dataset = await requireDataset(db, request)
     await recordDatasetStage(
       db,
-      { ...request, releaseId: dataset.releaseId },
+      { ...request, resourceReleaseId: dataset.resourceReleaseId },
       'running',
     )
     return {
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
-      releaseId: dataset.releaseId,
+      resourceReleaseId: dataset.resourceReleaseId,
       phase: request.phase,
       status: 'running',
     }
@@ -32,13 +32,13 @@ export async function handleStageCompleted(
     const dataset = await requireDataset(db, request)
     await recordDatasetStage(
       db,
-      { ...request, releaseId: dataset.releaseId },
+      { ...request, resourceReleaseId: dataset.resourceReleaseId },
       'completed',
     )
     return {
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
-      releaseId: dataset.releaseId,
+      resourceReleaseId: dataset.resourceReleaseId,
       phase: request.phase,
       status: 'completed',
     }
@@ -51,11 +51,15 @@ export async function handleStageFailed(
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
-    await recordDatasetStage(db, { ...request, releaseId: dataset.releaseId }, 'error')
+    await recordDatasetStage(
+      db,
+      { ...request, resourceReleaseId: dataset.resourceReleaseId },
+      'error',
+    )
     return {
       datasetId: dataset.releaseCode,
       releaseCode: dataset.releaseCode,
-      releaseId: dataset.releaseId,
+      resourceReleaseId: dataset.resourceReleaseId,
       phase: request.phase,
       status: 'error',
     }

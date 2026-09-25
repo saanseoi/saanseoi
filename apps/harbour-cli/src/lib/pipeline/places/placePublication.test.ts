@@ -34,9 +34,10 @@ test('streamed empty Places delivery validates every projection table before pre
         activeSourceBindingName: 'source',
         sourceBindingNames: [],
         datasetId: 'dataset',
-        message: { releaseId: 'release', sourceVersion: '2026-09' } as Parameters<
-          typeof importPlaceSqlBatches
-        >[1]['message'],
+        message: {
+          resourceReleaseId: 'release',
+          sourceVersion: '2026-09',
+        } as Parameters<typeof importPlaceSqlBatches>[1]['message'],
         snapshots: {
           snapshotId: 'snapshot',
           snapshotLineageId: 'lineage',

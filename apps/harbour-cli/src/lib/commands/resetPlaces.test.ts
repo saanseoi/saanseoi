@@ -64,7 +64,7 @@ function createPlacesResetCurrentDb() {
       .query('INSERT INTO placeSearchScopes(scopeId,snapshotId) VALUES(?,?)')
       .run(scope, snapshot)
     sqlite
-      .query(`INSERT INTO places(snapshotId,id,releaseId,lng,lat,firstSeenMonth,lastSeenMonth)
+      .query(`INSERT INTO places(snapshotId,id,resourceReleaseId,lng,lat,firstSeenMonth,lastSeenMonth)
       VALUES(?,'place','release',114,22,'2026-09','2026-09')`)
       .run(scope)
     sqlite
@@ -92,7 +92,7 @@ function createPlacesOwnershipDb() {
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL
     );
-    CREATE TABLE releases (
+    CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY,
       datasetId TEXT NOT NULL,
       sourceReleaseId TEXT NOT NULL,
@@ -108,7 +108,7 @@ function createPlacesOwnershipDb() {
     );
     CREATE TABLE ingestRuns (
       runId TEXT PRIMARY KEY,
-      releaseId TEXT NOT NULL,
+      resourceReleaseId TEXT NOT NULL,
       phase TEXT NOT NULL,
       status TEXT NOT NULL,
       stats TEXT,
@@ -117,7 +117,7 @@ function createPlacesOwnershipDb() {
       finishedAt TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL,
-      UNIQUE (releaseId, phase)
+      UNIQUE (resourceReleaseId, phase)
     );
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
@@ -138,14 +138,14 @@ function createPlacesOwnershipDb() {
     );
     CREATE TABLE assets (
       id TEXT PRIMARY KEY,
-      releaseId TEXT,
+      resourceReleaseId TEXT,
       assetKey TEXT NOT NULL
     );
 
     INSERT INTO datasets (id, code) VALUES
       ('places-dataset', 'ds-hk-overture-place'),
       ('other-dataset', 'ds-hk-other-place');
-    INSERT INTO releases (
+    INSERT INTO resourceReleases (
       id, datasetId, sourceReleaseId, resourceType, code, status
     ) VALUES
       (
@@ -195,7 +195,7 @@ function createPlacesOwnershipDb() {
         'draft'
       ),
       ('other-draft', 'other-lineage', 'place', 'other-place', 'draft');
-    INSERT INTO assets (id, releaseId, assetKey) VALUES
+    INSERT INTO assets (id, resourceReleaseId, assetKey) VALUES
       ('places-asset', 'places-release', 'places.parquet');
   `)
 
@@ -334,7 +334,7 @@ describe('Overture Places initialisation ownership', () => {
         {
           assetKey: 'places.parquet',
           id: 'places-asset',
-          releaseId: 'places-release',
+          resourceReleaseId: 'places-release',
         },
       ],
       placeReleaseIds: ['places-release'],
@@ -355,7 +355,7 @@ describe('Overture Places initialisation ownership', () => {
     const { db, sqlite } = createPlacesOwnershipDb()
     sqlite.exec(`
       INSERT INTO ingestRuns (
-        runId, releaseId, phase, status, startedAt, createdAt, updatedAt
+        runId, resourceReleaseId, phase, status, startedAt, createdAt, updatedAt
       ) VALUES
         (
           'abandoned', 'places-release', 'processDataset', 'running',
@@ -380,7 +380,9 @@ describe('Overture Places initialisation ownership', () => {
       status: 'error',
     })
     expect(
-      sqlite.query('SELECT status FROM releases WHERE id = ?').get('places-release'),
+      sqlite
+        .query('SELECT status FROM resourceReleases WHERE id = ?')
+        .get('places-release'),
     ).toEqual({ status: 'failed' })
     expect(
       sqlite.query('SELECT status FROM ingestRuns WHERE runId = ?').get('newer'),
@@ -393,7 +395,7 @@ describe('Overture Places initialisation ownership', () => {
     const { db, sqlite } = createPlacesOwnershipDb()
     sqlite.exec(`
       INSERT INTO ingestRuns (
-        runId, releaseId, phase, status, startedAt, createdAt, updatedAt
+        runId, resourceReleaseId, phase, status, startedAt, createdAt, updatedAt
       ) VALUES (
         'abandoned', 'places-release', 'processDataset', 'running',
         '2026-09-06T00:00:00.000Z', '2026-09-06T00:00:00.000Z',
@@ -444,7 +446,7 @@ describe('Overture Places initialisation ownership', () => {
       /Overture Places release .* is staged/,
     )
 
-    sqlite.exec("UPDATE releases SET status = 'published';")
+    sqlite.exec("UPDATE resourceReleases SET status = 'published';")
     await expect(assertPlacesInitialisationComplete(db, owned)).rejects.toThrow(
       /Overture Places snapshot .* is draft/,
     )

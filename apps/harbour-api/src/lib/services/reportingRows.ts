@@ -13,7 +13,7 @@ export const {
   metaDatasets,
   metaPublishers,
   metaReleaseShardAssignments,
-  metaReleases,
+  metaResourceReleases,
   releaseProcessingActions,
   stats,
 } = metaSchema
@@ -33,14 +33,14 @@ export type ReportFilters = {
   datasetCode?: string
   limit?: number
   releaseCode?: string
-  releaseId?: string
+  resourceReleaseId?: string
   source?: string
   resourceType?: DatasetType
 }
 
 export type ReleaseContext = {
   regionCode: string
-  releaseId: string
+  resourceReleaseId: string
   source: string
   sourceUrl: string | null
   sourceVersion: string
@@ -80,7 +80,7 @@ export type CountSpec = {
 
 type ReleaseCountPlan = {
   history: CountTarget | null
-  releaseId: string
+  resourceReleaseId: string
   source: CountTarget | null
 }
 
@@ -92,11 +92,11 @@ export function buildReportFilterWhereClause(options: ReportFilters) {
   }
 
   if (options.releaseCode) {
-    conditions.push(eq(metaReleases.code, options.releaseCode))
+    conditions.push(eq(metaResourceReleases.code, options.releaseCode))
   }
 
-  if (options.releaseId) {
-    conditions.push(eq(metaReleases.id, options.releaseId))
+  if (options.resourceReleaseId) {
+    conditions.push(eq(metaResourceReleases.id, options.resourceReleaseId))
   }
 
   if (options.source) {
@@ -104,7 +104,7 @@ export function buildReportFilterWhereClause(options: ReportFilters) {
   }
 
   if (options.resourceType) {
-    conditions.push(eq(metaReleases.resourceType, options.resourceType))
+    conditions.push(eq(metaResourceReleases.resourceType, options.resourceType))
   }
 
   if (conditions.length === 0) {
@@ -126,9 +126,9 @@ export async function buildReleaseCountPlans(
   ])
 
   return releases.map(release => ({
-    history: historyPlans.get(release.releaseId) ?? null,
-    releaseId: release.releaseId,
-    source: sourcePlans.get(release.releaseId) ?? null,
+    history: historyPlans.get(release.resourceReleaseId) ?? null,
+    resourceReleaseId: release.resourceReleaseId,
+    source: sourcePlans.get(release.resourceReleaseId) ?? null,
   }))
 }
 
@@ -138,7 +138,7 @@ async function buildHistoryCountTargets(
   environment: 'preview' | 'production',
   releases: ReleaseContext[],
 ) {
-  const releaseIds = releases.map(release => release.releaseId)
+  const releaseIds = releases.map(release => release.resourceReleaseId)
   const assignedHistoryBindings = releaseIds.length
     ? ((
         await Promise.all(
@@ -146,7 +146,7 @@ async function buildHistoryCountTargets(
             db
               .select({
                 bindingName: metaDataShards.bindingName,
-                releaseId: metaReleaseShardAssignments.releaseId,
+                resourceReleaseId: metaReleaseShardAssignments.resourceReleaseId,
               })
               .from(metaReleaseShardAssignments)
               .innerJoin(
@@ -155,7 +155,7 @@ async function buildHistoryCountTargets(
               )
               .where(
                 and(
-                  inArray(metaReleaseShardAssignments.releaseId, ids),
+                  inArray(metaReleaseShardAssignments.resourceReleaseId, ids),
                   eq(metaDataShards.shardType, 'history'),
                   eq(metaDataShards.environment, environment),
                   eq(metaDataShards.status, 'active'),
@@ -164,7 +164,7 @@ async function buildHistoryCountTargets(
               .all(),
           ),
         )
-      ).flat() as Array<{ bindingName: string; releaseId: string }>)
+      ).flat() as Array<{ bindingName: string; resourceReleaseId: string }>)
     : []
   const assignedHistoryBindingsByReleaseId = groupShardBindings(assignedHistoryBindings)
   const fallbackShards = await resolveFallbackShardsByRelease(
@@ -172,25 +172,27 @@ async function buildHistoryCountTargets(
     'history',
     environment,
     releases.filter(release => {
-      return !assignedHistoryBindingsByReleaseId.has(release.releaseId)
+      return !assignedHistoryBindingsByReleaseId.has(release.resourceReleaseId)
     }),
   )
 
   return new Map(
     releases.map((release): [string, CountTarget] => {
       const assignedBindingNames = assignedHistoryBindingsByReleaseId.get(
-        release.releaseId,
+        release.resourceReleaseId,
       )
-      const fallbackBindingName = fallbackShards.get(release.releaseId)?.bindingName
+      const fallbackBindingName = fallbackShards.get(
+        release.resourceReleaseId,
+      )?.bindingName
       const bindingNames =
         assignedBindingNames ?? (fallbackBindingName ? [fallbackBindingName] : [])
 
       return [
-        release.releaseId,
+        release.resourceReleaseId,
         {
           bindings: resolveD1Bindings(bindings, bindingNames),
           kind: 'history',
-          releaseId: release.releaseId,
+          resourceReleaseId: release.resourceReleaseId,
           sourceVersion: release.sourceVersion,
           specs: resolveHistoryCountSpecs(release.resourceType),
         } satisfies CountTarget,
@@ -205,7 +207,7 @@ async function buildSourceCountTargets(
   environment: 'preview' | 'production',
   releases: ReleaseContext[],
 ) {
-  const releaseIds = releases.map(release => release.releaseId)
+  const releaseIds = releases.map(release => release.resourceReleaseId)
   const assignedSourceBindings = releaseIds.length
     ? ((
         await Promise.all(
@@ -213,7 +215,7 @@ async function buildSourceCountTargets(
             db
               .select({
                 bindingName: metaDataShards.bindingName,
-                releaseId: metaReleaseShardAssignments.releaseId,
+                resourceReleaseId: metaReleaseShardAssignments.resourceReleaseId,
               })
               .from(metaReleaseShardAssignments)
               .innerJoin(
@@ -222,7 +224,7 @@ async function buildSourceCountTargets(
               )
               .where(
                 and(
-                  inArray(metaReleaseShardAssignments.releaseId, ids),
+                  inArray(metaReleaseShardAssignments.resourceReleaseId, ids),
                   eq(metaDataShards.shardType, 'source'),
                   eq(metaDataShards.environment, environment),
                   eq(metaDataShards.status, 'active'),
@@ -231,7 +233,7 @@ async function buildSourceCountTargets(
               .all(),
           ),
         )
-      ).flat() as Array<{ bindingName: string; releaseId: string }>)
+      ).flat() as Array<{ bindingName: string; resourceReleaseId: string }>)
     : []
   const assignedSourceBindingsByReleaseId = groupShardBindings(assignedSourceBindings)
   const fallbackSourceShards = await resolveFallbackShardsByRelease(
@@ -239,27 +241,27 @@ async function buildSourceCountTargets(
     'source',
     environment,
     releases.filter(release => {
-      return !assignedSourceBindingsByReleaseId.has(release.releaseId)
+      return !assignedSourceBindingsByReleaseId.has(release.resourceReleaseId)
     }),
   )
 
   return new Map(
     releases.map((release): [string, CountTarget] => {
       const assignedBindingNames = assignedSourceBindingsByReleaseId.get(
-        release.releaseId,
+        release.resourceReleaseId,
       )
       const fallbackBindingName = fallbackSourceShards.get(
-        release.releaseId,
+        release.resourceReleaseId,
       )?.bindingName
       const bindingNames =
         assignedBindingNames ?? (fallbackBindingName ? [fallbackBindingName] : [])
 
       return [
-        release.releaseId,
+        release.resourceReleaseId,
         {
           bindings: resolveD1Bindings(bindings, bindingNames),
           kind: 'source',
-          releaseId: release.releaseId,
+          resourceReleaseId: release.resourceReleaseId,
           sourceVersion: release.sourceVersion,
           specs: resolveSourceCountSpecs(release),
         } satisfies CountTarget,
@@ -316,7 +318,7 @@ async function resolveFallbackShardsByRelease(
         ? null
         : (shardsByKey.get(`${release.regionCode}:${year}`) ?? null)
 
-      return [release.releaseId, shard]
+      return [release.resourceReleaseId, shard]
     }),
   )
 }
@@ -345,13 +347,16 @@ export async function collectCountRowsByRelease(plans: ReleaseCountPlan[]) {
         const existingGroup = bindingGroups.get(key)
 
         if (existingGroup) {
-          existingGroup.releaseVersions.set(target.releaseId, target.sourceVersion)
+          existingGroup.releaseVersions.set(
+            target.resourceReleaseId,
+            target.sourceVersion,
+          )
           continue
         }
 
         bindingGroups.set(key, {
           kind: target.kind,
-          releaseVersions: new Map([[target.releaseId, target.sourceVersion]]),
+          releaseVersions: new Map([[target.resourceReleaseId, target.sourceVersion]]),
           spec,
         })
       }
@@ -367,8 +372,8 @@ export async function collectCountRowsByRelease(plans: ReleaseCountPlan[]) {
           ? await countSourceRowsBySourceVersions(
               binding,
               group.spec,
-              [...group.releaseVersions].map(([releaseId, sourceVersion]) => ({
-                releaseId,
+              [...group.releaseVersions].map(([resourceReleaseId, sourceVersion]) => ({
+                resourceReleaseId,
                 sourceVersion,
               })),
             )
@@ -376,8 +381,8 @@ export async function collectCountRowsByRelease(plans: ReleaseCountPlan[]) {
               ...group.releaseVersions.keys(),
             ])
 
-      for (const [releaseId, count] of counts) {
-        const key = buildReleaseSpecKey(releaseId, group.kind, group.spec)
+      for (const [resourceReleaseId, count] of counts) {
+        const key = buildReleaseSpecKey(resourceReleaseId, group.kind, group.spec)
         countsByReleaseSpec.set(key, (countsByReleaseSpec.get(key) ?? 0) + count)
       }
     }
@@ -405,7 +410,7 @@ export function buildReportRowCounts(
     label: spec.label,
     rowCount:
       countsByReleaseSpec.get(
-        buildReleaseSpecKey(target.releaseId, target.kind, spec),
+        buildReleaseSpecKey(target.resourceReleaseId, target.kind, spec),
       ) ?? 0,
     tableName: spec.tableName,
   }))
@@ -422,7 +427,7 @@ async function countReleaseRowsByReleaseIds(
   }
 
   const placeholders = releaseIds.map((_, index) => `?${index + 1}`).join(', ')
-  const releaseColumn = kind === 'history' ? 'sourceReleaseId' : 'releaseId'
+  const releaseColumn = kind === 'history' ? 'sourceReleaseId' : 'resourceReleaseId'
   const joinConditions =
     spec.strategy === 'join'
       ? [
@@ -438,11 +443,11 @@ async function countReleaseRowsByReleaseIds(
   }
   const query =
     spec.strategy === 'direct'
-      ? `SELECT "${releaseColumn}" AS releaseId, COUNT(*) AS count
+      ? `SELECT "${releaseColumn}" AS resourceReleaseId, COUNT(*) AS count
          FROM "${spec.tableName}"
          WHERE "${releaseColumn}" IN (${placeholders})
          GROUP BY "${releaseColumn}"`
-      : `SELECT parent."${releaseColumn}" AS releaseId, COUNT(*) AS count
+      : `SELECT parent."${releaseColumn}" AS resourceReleaseId, COUNT(*) AS count
          FROM "${spec.tableName}" child
          INNER JOIN "${spec.parentTableName}" parent
            ON ${joinConditions}
@@ -453,14 +458,16 @@ async function countReleaseRowsByReleaseIds(
     .bind(...releaseIds)
     .all<{
       count: number | string
-      releaseId: string
+      resourceReleaseId: string
     }>()
   const rows = normaliseCountRows(result)
 
   return new Map(
-    releaseIds.map(releaseId => {
-      const row = rows.find(candidate => candidate.releaseId === releaseId)
-      return [releaseId, Number(row?.count ?? 0)]
+    releaseIds.map(resourceReleaseId => {
+      const row = rows.find(
+        candidate => candidate.resourceReleaseId === resourceReleaseId,
+      )
+      return [resourceReleaseId, Number(row?.count ?? 0)]
     }),
   )
 }
@@ -468,7 +475,7 @@ async function countReleaseRowsByReleaseIds(
 async function countSourceRowsBySourceVersions(
   binding: D1Database,
   spec: Extract<CountSpec, { strategy: 'source-validity' }>,
-  releases: Array<{ releaseId: string; sourceVersion: string }>,
+  releases: Array<{ resourceReleaseId: string; sourceVersion: string }>,
 ) {
   const counts = await Promise.all(
     releases.map(async release => {
@@ -482,7 +489,7 @@ async function countSourceRowsBySourceVersions(
         .bind(release.sourceVersion, release.sourceVersion)
         .all<{ count: number | string }>()
       const rows = Array.isArray(result) ? result : (result.results ?? [])
-      return [release.releaseId, Number(rows[0]?.count ?? 0)] as const
+      return [release.resourceReleaseId, Number(rows[0]?.count ?? 0)] as const
     }),
   )
 
@@ -493,12 +500,12 @@ function normaliseCountRows(
   result:
     | Array<{
         count: number | string
-        releaseId: string
+        resourceReleaseId: string
       }>
     | {
         results?: Array<{
           count: number | string
-          releaseId: string
+          resourceReleaseId: string
         }> | null
       },
 ) {
@@ -523,11 +530,11 @@ function buildCountSpecKey(spec: CountSpec) {
 }
 
 function buildReleaseSpecKey(
-  releaseId: string,
+  resourceReleaseId: string,
   kind: 'history' | 'source',
   spec: CountSpec,
 ) {
-  return `${releaseId}:${kind}:${buildCountSpecKey(spec)}`
+  return `${resourceReleaseId}:${kind}:${buildCountSpecKey(spec)}`
 }
 
 function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
@@ -699,12 +706,14 @@ function resolveD1Bindings(bindings: ReportBindings, bindingNames: string[]) {
   })
 }
 
-function groupShardBindings(rows: Array<{ bindingName: string; releaseId: string }>) {
+function groupShardBindings(
+  rows: Array<{ bindingName: string; resourceReleaseId: string }>,
+) {
   const bindingsByReleaseId = new Map<string, string[]>()
   for (const row of rows) {
-    const bindingNames = bindingsByReleaseId.get(row.releaseId) ?? []
+    const bindingNames = bindingsByReleaseId.get(row.resourceReleaseId) ?? []
     if (!bindingNames.includes(row.bindingName)) bindingNames.push(row.bindingName)
-    bindingsByReleaseId.set(row.releaseId, bindingNames)
+    bindingsByReleaseId.set(row.resourceReleaseId, bindingNames)
   }
   return bindingsByReleaseId
 }
