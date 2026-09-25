@@ -207,3 +207,116 @@ function normaliseOptionalJsonText(
     return value
   }
 }
+
+export type ProcessingRunOwner =
+  | { resourceReleaseId: string; snapshotId?: never; apiReleaseSetId?: never }
+  | { snapshotId: string; resourceReleaseId?: never; apiReleaseSetId?: never }
+  | { apiReleaseSetId: string; resourceReleaseId?: never; snapshotId?: never }
+
+export type ProcessingCheckpoint = {
+  version: 1
+  /** Hash of exact inputs, rules and target identity; never a cohort label alone. */
+  identityHash: string
+  /** Reference to acknowledged durable work, not a copy of its receipts. */
+  artefact: string
+}
+
+/** One current task row; retries increment a counter instead of duplicating logs. */
+export async function recordProcessingRun(
+  db: HarbourReadableDb & HarbourWritableDb,
+  input: ProcessingRunOwner & {
+    stage: ProcessingStage
+    phase: string
+    status: ProcessingRunStatus
+    results?: Record<string, unknown> | null
+    checkpoint?: ProcessingCheckpoint | null
+    error?: string | null
+    now?: string
+  },
+) {
+  const owner = input.apiReleaseSetId
+    ? 'apiReleaseSetId'
+    : input.snapshotId
+      ? 'snapshotId'
+      : 'resourceReleaseId'
+  if (!input[owner]) throw new Error('Processing run requires an owner.')
+  if ((input.stage === 'composition') !== (owner === 'apiReleaseSetId'))
+    throw new Error('Composition runs belong to API release sets.')
+  const now = input.now ?? toIsoTimestamp()
+  const checkpoint = input.checkpoint ?? null
+  if (
+    checkpoint &&
+    (checkpoint.version !== 1 || !checkpoint.identityHash || !checkpoint.artefact)
+  )
+    throw new Error('Invalid processing checkpoint.')
+  const running = input.status === 'running'
+  const results = input.results ?? null
+  await db
+    .insert(processingRuns)
+    .values({
+      runId: crypto.randomUUID(),
+      [owner]: input[owner],
+      stage: input.stage,
+      phase: input.phase,
+      status: input.status,
+      results,
+      checkpoint,
+      error: input.error ?? null,
+      startedAt: now,
+      finishedAt: running ? null : now,
+      createdAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: [processingRuns[owner], processingRuns.phase],
+      set: {
+        stage: input.stage,
+        status: input.status,
+        results: terminalProcessingRunResults(input.status, results),
+        checkpoint:
+          input.checkpoint === undefined
+            ? sql`${processingRuns.checkpoint}`
+            : checkpoint,
+        error: input.error ?? null,
+        attempt: running
+          ? sql`${processingRuns.attempt} + CASE WHEN ${processingRuns.status} != 'running' THEN 1 ELSE 0 END`
+          : sql`${processingRuns.attempt}`,
+        startedAt: running
+          ? sql`CASE WHEN ${processingRuns.status} != 'running' THEN excluded.startedAt ELSE ${processingRuns.startedAt} END`
+          : sql`${processingRuns.startedAt}`,
+        finishedAt: running ? null : now,
+        updatedAt: now,
+      },
+      setWhere: sql`${processingRuns.status} != excluded.status
+      OR ${processingRuns.results} IS NOT excluded.results
+      OR ${processingRuns.error} IS NOT excluded.error
+      OR (${input.checkpoint !== undefined ? 1 : 0} = 1 AND ${processingRuns.checkpoint} IS NOT excluded.checkpoint)
+      OR (excluded.status = 'running' AND ${processingRuns.updatedAt} <= ${new Date(Date.parse(now) - PROCESSING_RUN_HEARTBEAT_INTERVAL_MS).toISOString()})`,
+    })
+    .run()
+}
+
+export async function readProcessingCheckpoint(
+  db: HarbourReadableDb,
+  owner: ProcessingRunOwner,
+  phase: string,
+  identityHash: string,
+): Promise<ProcessingCheckpoint | null> {
+  const key = owner.apiReleaseSetId
+    ? 'apiReleaseSetId'
+    : owner.snapshotId
+      ? 'snapshotId'
+      : 'resourceReleaseId'
+  const row = await db
+    .select({ checkpoint: processingRuns.checkpoint })
+    .from(processingRuns)
+    .where(and(eq(processingRuns[key], owner[key]!), eq(processingRuns.phase, phase)))
+    .get()
+  const checkpoint = row?.checkpoint as ProcessingCheckpoint | null
+  if (!checkpoint) return null
+  if (checkpoint.version !== 1 || checkpoint.identityHash !== identityHash)
+    throw new Error(
+      'Processing checkpoint belongs to different inputs, rules or target.',
+    )
+  return checkpoint
+}

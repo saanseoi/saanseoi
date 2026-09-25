@@ -111,6 +111,6 @@ export type AuditManifest = {
   guards: AuditGuard[]
   individualFixtures?: Array<{ type: string; object: ObjectRef }>
   apiFields?: ObjectRef
-  chunks: Array<ObjectRef & { firstOrdinal: number; count: number; index: ObjectRef }>
+  chunks: Array<ObjectRef & { firstOrdinal: number; count: number }>
   applicationCount: number
 }

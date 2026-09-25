@@ -140,7 +140,6 @@ export const auditManifestSchema = object(
         byteLength: ref.properties!.byteLength!,
         firstOrdinal: count,
         count: { type: 'integer', minimum: 1, maximum: 256 },
-        index: ref,
       }),
     ),
     applicationCount: count,
@@ -149,6 +148,20 @@ export const auditManifestSchema = object(
 )
 export const auditObjectSchemas = [
   auditManifestSchema,
+  object({
+    kind: { const: 'curation-applications' },
+    schemaVersion: { const: 1 },
+    applications: {
+      ...array(
+        object({
+          definition: ref,
+          fixture: object({ object: ref, pointer: string }),
+          applicationCount: count,
+        }),
+      ),
+      maxItems: 256,
+    },
+  }),
   ruleDeclarationSchema,
   object({
     kind: { const: 'individual-actions' },

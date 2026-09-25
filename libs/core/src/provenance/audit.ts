@@ -1,4 +1,10 @@
-import { packAuditActions, unpackAuditActions } from './auditActionStorage'
+import {
+  collectCurationApplication,
+  resolveCurationApplication,
+  validateCurationApplications,
+  curationApplicationId,
+  type CurationApplication,
+} from './curationApplications'
 import {
   MAX_OBJECT_BYTES,
   readObject,
@@ -140,13 +146,10 @@ export function validateAuditManifest(value: unknown): asserts value is AuditMan
   let total = 0
   for (const c of m.chunks) {
     validateRef(c)
-    validateRef(c.index)
     if (c.firstOrdinal !== total || !count(c.count) || c.count === 0 || c.count > 256)
       throw new Error('Invalid audit chunk range.')
     total += c.count
   }
-  if (total !== m.applicationCount)
-    throw new Error('Incorrect individual action count.')
 }
 
 function validateIndividual(a: IndividualAudit) {
@@ -223,14 +226,22 @@ async function bulkSearchText(store: ProvenanceStore, bulk: BulkAudit) {
   return text.text()
 }
 
+/** Retain definitions once and only reference/count reviewed applications. */
 export async function retainAuditResult(
   store: ProvenanceStore,
   input: Omit<
     AuditManifest,
     'kind' | 'schemaVersion' | 'chunks' | 'applicationCount'
-  > & { individuals: Iterable<IndividualAudit> | AsyncIterable<IndividualAudit> },
+  > & {
+    individuals: Iterable<IndividualAudit> | AsyncIterable<IndividualAudit>
+  },
 ) {
   const { individuals, ...metadata } = input
+  const applications = new Map<string, CurationApplication>()
+  for await (const action of individuals) {
+    validateIndividual(action)
+    collectCurationApplication(applications, action)
+  }
   const manifest: AuditManifest = {
     kind: 'processing-audit',
     schemaVersion: 1,
@@ -238,62 +249,35 @@ export async function retainAuditResult(
     chunks: [],
     applicationCount: 0,
   }
-  let pending: IndividualAudit[] = []
-  for (const bulk of manifest.bulk)
-    bulk.search = await retainObject(store, {
-      kind: 'bulk-search',
+  // Search and presentation are read-time work, never publication artefacts.
+  for (const bulk of manifest.bulk) delete bulk.search
+  const rows = [...applications.values()].sort((a, b) =>
+    curationApplicationId(a).localeCompare(curationApplicationId(b)),
+  )
+  for (let offset = 0; offset < rows.length; offset += 256) {
+    const entries = rows.slice(offset, offset + 256)
+    const ref = await retainObject(store, {
+      kind: 'curation-applications',
       schemaVersion: 1,
-      text: await bulkSearchText(store, bulk),
+      applications: entries,
     })
-  const ids = new Set<string>()
-  const envelope = packAuditActions
-  const index = (actions: IndividualAudit[]) => ({
-    kind: 'individual-search',
-    schemaVersion: 1,
-    entries: actions.map(a => ({ id: a.id, text: searchText(a) })),
-  })
-  const byteLength = (value: unknown) =>
-    new TextEncoder().encode(serialise(value)).length
-  let pendingBytes = 0
-  async function retainChunk(actions: IndividualAudit[]): Promise<void> {
-    const payload = envelope(actions)
-    const search = index(actions)
-    if ([payload, search].some(value => byteLength(value) > MAX_OBJECT_BYTES)) {
-      if (actions.length === 1)
-        throw new Error('Individual action exceeds retention limit.')
-      const middle = Math.floor(actions.length / 2)
-      await retainChunk(actions.slice(0, middle))
-      await retainChunk(actions.slice(middle))
-      return
-    }
-    manifest.chunks.push({
-      ...(await retainObject(store, payload)),
-      firstOrdinal: manifest.applicationCount,
-      count: actions.length,
-      index: await retainObject(store, search),
-    })
-    manifest.applicationCount += actions.length
+    manifest.chunks.push({ ...ref, firstOrdinal: offset, count: entries.length })
+    manifest.applicationCount += entries.reduce(
+      (sum, row) => sum + row.applicationCount,
+      0,
+    )
   }
-  async function flush() {
-    if (!pending.length) return
-    await retainChunk(pending)
-    pending = []
-    pendingBytes = 0
-  }
-  for await (const a of individuals) {
-    validateIndividual(a)
-    if (ids.has(a.id)) throw new Error('Duplicate individual action.')
-    ids.add(a.id)
-    const size = byteLength(a)
-    if (size > MAX_OBJECT_BYTES)
-      throw new Error('Individual action exceeds retention limit.')
-    if (pending.length === 256 || pendingBytes + size > MAX_OBJECT_BYTES) await flush()
-    pending.push(a)
-    pendingBytes += size
-  }
-  await flush()
   await verifyAuditResult(store, manifest)
   return { manifest, ref: await retainObject(store, manifest) }
+}
+
+export async function readCurationChunk(store: ProvenanceStore, ref: ObjectRef) {
+  const entries = validateCurationApplications(await readObject(store, ref))
+  return {
+    actions: await Promise.all(
+      entries.map(entry => resolveCurationApplication(store, entry)),
+    ),
+  }
 }
 
 export async function readAuditPage(
@@ -317,69 +301,44 @@ export async function readAuditPage(
     .split(/\s+/)
     .filter(Boolean)
   const rows: IndividualAudit[] = []
-  const bulkIds: string[] = []
-  if (terms.length)
-    for (const bulk of manifest.bulk) {
-      const search = bulk.search
-        ? ((await readObject(store, bulk.search)) as unknown as { text: string })
-        : { text: `${bulk.id} ${bulk.summary}`.toLowerCase() }
-      if (terms.every(term => search.text.includes(term))) bulkIds.push(bulk.id)
-    }
-  else bulkIds.push(...manifest.bulk.map(b => b.id))
-  let matched = 0
+  let total = 0
   for (const ref of manifest.chunks) {
-    let matches: Set<string> | null = null
-    if (terms.length && !filter?.category && !filter?.fixture) {
-      const index = (await readObject(store, ref.index)) as unknown as {
-        entries: SearchEntry[]
-      }
-      matches = new Set(
-        index.entries.filter(e => terms.every(t => e.text.includes(t))).map(e => e.id),
+    for (const action of (await readCurationChunk(store, ref)).actions) {
+      if (filter?.category && auditActionCategory(action) !== filter.category) continue
+      if (
+        filter?.fixture &&
+        (action.fixture?.object.hash !== filter.fixture.hash ||
+          action.fixture.pointer !== filter.fixture.pointer)
       )
-    }
-    const size = matches?.size ?? ref.count
-    if (filter?.category || filter?.fixture) {
-      if (matches?.size === 0) continue
-      const chunk = unpackAuditActions(await readObject(store, ref))
-      for (const action of chunk.actions) {
-        if (matches && !matches.has(action.id)) continue
-        if (filter.category && auditActionCategory(action) !== filter.category) continue
-        const searchable =
-          `${searchText(action)} ${action.reason} ${serialise(action.context)} ${auditActionCategory(action)}`
-            .normalize('NFKC')
-            .toLowerCase()
-        if (!terms.every(term => searchable.includes(term))) continue
-        if (
-          filter.fixture &&
-          (action.fixture?.object.hash !== filter.fixture.hash ||
-            action.fixture.pointer !== filter.fixture.pointer)
-        )
-          continue
-        if (matched >= offset && rows.length < limit) rows.push(action)
-        matched++
-      }
-      continue
-    }
-    if (matched + size <= offset || matched >= offset + limit) {
-      matched += size
-      continue
-    }
-    const chunk = unpackAuditActions(await readObject(store, ref))
-    for (const a of chunk.actions) {
-      if (matches && !matches.has(a.id)) continue
-      if (matched >= offset && rows.length < limit) rows.push(a)
-      matched++
+        continue
+      const searchable =
+        `${searchText(action)} ${action.reason} ${serialise(action.context)}`
+          .normalize('NFKC')
+          .toLowerCase()
+      if (!terms.every(term => searchable.includes(term))) continue
+      if (total >= offset && rows.length < limit) rows.push(action)
+      total++
     }
   }
+  const bulkIds: string[] = []
+  for (const bulk of manifest.bulk)
+    if (
+      !terms.length ||
+      terms.every(term => `${bulk.id} ${bulk.summary}`.toLowerCase().includes(term))
+    ) {
+      bulkIds.push(bulk.id)
+    } else {
+      const searchable = await bulkSearchText(store, bulk)
+      if (terms.every(term => searchable.includes(term))) bulkIds.push(bulk.id)
+    }
   return {
     rows,
     bulkIds,
-    total: matched,
-    nextOffset: offset + rows.length < matched ? offset + rows.length : null,
+    total,
+    nextOffset: offset + rows.length < total ? offset + rows.length : null,
   }
 }
 
-/** Resolve an individual through its registered index, never an arbitrary object hash. */
 export async function readAuditDecision(
   store: ProvenanceStore,
   manifest: AuditManifest,
@@ -387,23 +346,16 @@ export async function readAuditDecision(
 ) {
   validateAuditManifest(manifest)
   for (const ref of manifest.chunks) {
-    const index = (await readObject(store, ref.index)) as unknown as {
-      entries: SearchEntry[]
-    }
-    if (!index.entries.some(entry => entry.id === id)) continue
-    const chunk = unpackAuditActions(await readObject(store, ref))
-    const action = chunk.actions.find(action => action.id === id)
-    if (!action)
-      throw new Error('Individual audit index does not resolve to its action.')
-    return {
-      declaration: await readObject(store, action.definition),
-      fixture: action.fixture
-        ? await readValue(store, {
-            ...action.fixture.object,
-            pointer: action.fixture.pointer,
-          })
-        : null,
-    }
+    const entries = validateCurationApplications(await readObject(store, ref))
+    const entry = entries.find(entry => curationApplicationId(entry) === id)
+    if (entry)
+      return {
+        declaration: await readObject(store, entry.definition),
+        fixture: await readValue(store, {
+          ...entry.fixture.object,
+          pointer: entry.fixture.pointer,
+        }),
+      }
   }
   throw new Error('Individual action is not declared by this release.')
 }
@@ -412,93 +364,57 @@ export async function verifyAuditResult(
   store: ProvenanceStore,
   manifest: AuditManifest,
 ) {
-  const reader = createProvenanceReader(store)
   validateAuditManifest(manifest)
-  const refs: ObjectRef[] = (manifest.individualFixtures ?? []).map(f => f.object)
-  if (manifest.apiFields) refs.push(manifest.apiFields)
-  for (const b of manifest.bulk) {
-    const definition = (await reader.read(b.definition)) as unknown as {
+  const reader = createProvenanceReader(store)
+  for (const fixture of manifest.individualFixtures ?? [])
+    await reader.read(fixture.object)
+  if (manifest.apiFields) await reader.read(manifest.apiFields)
+  for (const bulk of manifest.bulk) {
+    const definition = (await reader.read(bulk.definition)) as unknown as {
       id: string
       scope: string
       basis: string
       inputs?: string[]
     }
     if (
-      definition.id !== b.id ||
+      definition.id !== bulk.id ||
       definition.scope !== 'bulk' ||
-      definition.basis !== b.basis
+      definition.basis !== bulk.basis
     )
       throw new Error('Bulk rule declaration mismatch.')
     if (
-      b.basis === 'code' &&
-      b.fixtures.some(
-        fixture =>
-          fixture.type !== 'identity-mappings' ||
-          !definition.inputs?.includes(fixture.type),
+      bulk.basis === 'code' &&
+      bulk.fixtures.some(
+        f => f.type !== 'identity-mappings' || !definition.inputs?.includes(f.type),
       )
     )
       throw new Error(
         'Automatic audit rules retain declarations and counts, not record evidence fixtures.',
       )
-    refs.push(...b.fixtures.map(f => f.object))
-    if (b.search) {
-      const search = (await reader.read(b.search)) as unknown as {
-        kind: string
-        schemaVersion: number
-        text: string
-      }
-      if (
-        search.kind !== 'bulk-search' ||
-        search.schemaVersion !== 1 ||
-        search.text !== (await bulkSearchText(store, b))
-      )
-        throw new Error('Bulk search index mismatch.')
-    }
+    for (const fixture of bulk.fixtures) await reader.read(fixture.object)
   }
-  const ids = new Set<string>()
+  let count = 0
+  const seen = new Set<string>()
   for (const ref of manifest.chunks) {
-    const chunk = unpackAuditActions(await reader.read(ref))
-    const index = (await reader.read(ref.index)) as unknown as {
-      kind: string
-      schemaVersion: number
-      entries: SearchEntry[]
-    }
-    if (
-      chunk.kind !== 'individual-actions' ||
-      chunk.schemaVersion !== 1 ||
-      !Array.isArray(chunk.actions) ||
-      chunk.actions.length !== ref.count ||
-      index.kind !== 'individual-search' ||
-      index.schemaVersion !== 1
-    )
-      throw new Error('Invalid individual chunk.')
-    for (const a of chunk.actions) {
-      validateIndividual(a)
-      const definition = (await reader.read(a.definition)) as unknown as {
-        review?: unknown
-        basis?: string
+    const entries = validateCurationApplications(await reader.read(ref))
+    if (entries.length !== ref.count) throw new Error('Invalid curation chunk count.')
+    for (const entry of entries) {
+      validateRef(entry.definition)
+      validateRef(entry.fixture.object)
+      const key = curationApplicationId(entry)
+      if (seen.has(key)) throw new Error('Duplicate curation application.')
+      seen.add(key)
+      const definition = (await reader.read(entry.definition)) as unknown as {
+        basis: string
       }
       if (definition.basis !== 'fixture')
-        throw new Error(
-          'Individual audit decision must reference a fixture-based declaration.',
-        )
-      if (serialise(definition.review ?? null) !== serialise(a.review ?? null))
-        throw new Error('Individual review origin does not match its retained rule.')
-      if (ids.has(a.id)) throw new Error('Duplicate individual action.')
-      ids.add(a.id)
-      refs.push(a.definition)
-      if (a.fixture) {
-        refs.push(a.fixture.object)
-        await reader.value({ ...a.fixture.object, pointer: a.fixture.pointer })
-      }
+        throw new Error('Curation requires a fixture-based declaration.')
+      await reader.value({ ...entry.fixture.object, pointer: entry.fixture.pointer })
+      count += entry.applicationCount
     }
-    if (
-      serialise(index.entries) !==
-      serialise(chunk.actions.map(a => ({ id: a.id, text: searchText(a) })))
-    )
-      throw new Error('Audit search index mismatch.')
   }
-  for (const ref of refs) await reader.read(ref)
+  if (count !== manifest.applicationCount)
+    throw new Error('Incorrect curation application count.')
 }
 
 export async function transferAuditResult(
@@ -510,21 +426,14 @@ export async function transferAuditResult(
 ) {
   await verifyAuditResult(source, manifest)
   const dependencies: ObjectRef[] = []
-  for (const b of manifest.bulk) {
-    dependencies.push(b.definition)
-    if (b.search) dependencies.push(b.search)
-    for (const f of b.fixtures) dependencies.push(f.object)
-  }
-  for (const fixture of manifest.individualFixtures ?? [])
-    dependencies.push(fixture.object)
+  for (const bulk of manifest.bulk)
+    dependencies.push(bulk.definition, ...bulk.fixtures.map(f => f.object))
+  dependencies.push(...(manifest.individualFixtures ?? []).map(f => f.object))
   if (manifest.apiFields) dependencies.push(manifest.apiFields)
-  for (const c of manifest.chunks) {
-    const chunk = unpackAuditActions(await readObject(source, c))
-    for (const a of chunk.actions) {
-      dependencies.push(a.definition)
-      if (a.fixture) dependencies.push(a.fixture.object)
-    }
-    dependencies.push(c.index, c)
+  for (const chunk of manifest.chunks) {
+    dependencies.push(chunk)
+    for (const entry of validateCurationApplications(await readObject(source, chunk)))
+      dependencies.push(entry.definition, entry.fixture.object)
   }
   await transferObjects(source, destination, dependencies, options.concurrency ?? 1)
   await transferObjects(source, destination, [ref], 1)
