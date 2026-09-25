@@ -2,7 +2,7 @@ import dianapangLogo from '#lib/assets/sourcePublishers/dpang.png'
 import hkgovLogo from '#lib/assets/sourcePublishers/hkgov.webp'
 import overtureLogo from '#lib/assets/sourcePublishers/overture.png'
 import protomapsLogo from '#lib/assets/sourcePublishers/protomaps.png'
-import saanseoiLogo from '#lib/assets/logos/saanseoi-emblem-lilac-petrol-gold-square.svg'
+import saanseoiLogo from '#lib/assets/logos/saanseoi-emblem-deco-midnight-square.svg'
 
 const publisherLogos: Record<string, string> = {
   saanseoi: saanseoiLogo,

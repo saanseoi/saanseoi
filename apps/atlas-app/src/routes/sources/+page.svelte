@@ -191,6 +191,10 @@ const sourceFlowInput = (
     href: `/sources/${source.code}${release ? `/${release.code}` : ''}`,
     icon: getPublisherLogo(source.publisherCode),
     iconPadding: publisherLogoPadding(source.publisherCode),
+    cardTone:
+      source.publisherCode === 'saanseoi' || source.publisherCode === 'protomaps'
+        ? 'soft'
+        : undefined,
     iconTone:
       source.publisherCode === 'saanseoi'
         ? 'saanseoi'

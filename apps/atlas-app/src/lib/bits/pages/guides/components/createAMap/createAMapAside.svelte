@@ -85,6 +85,7 @@ let {
             title={link.label}
           >
             <Icon icon={link.icon} class="size-4.5" aria-hidden="true" />
+            <span class="sr-only">{link.label}</span>
           </a>
         {/each}
         <button

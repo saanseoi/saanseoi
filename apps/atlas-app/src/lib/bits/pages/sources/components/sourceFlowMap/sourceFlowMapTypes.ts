@@ -7,6 +7,7 @@ export type SourceFlowInput = {
   iconPadding?: 'none' | 'inset'
   fallbackIcon?: string
   accent: string
+  cardTone?: 'soft'
   iconTone?: 'saanseoi' | 'light' | 'hkgov' | 'diana' | 'protomaps'
   fields?: SourceFlowField[]
   planned?: boolean

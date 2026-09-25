@@ -86,7 +86,8 @@ onMount(() => {
     class="absolute inset-0 z-2 focus-visible:outline-none"
     href={`/basemaps/releases/${release.regionCode}/${release.version}`}
     aria-label={`View ${displayRegionName} release`}
-  ></a>
+    ><span class="sr-only">View {displayRegionName} release</span></a
+  >
   <span
     class={`pointer-events-none absolute inset-0 z-0 rounded-xl bg-(image:--basemap-preview) bg-center bg-no-repeat bg-size-(--basemap-preview-size) opacity-[0.7] filter-[saturate(1)_contrast(.98)] transition-[opacity,background-size] duration-500 group-hover:bg-size-(--basemap-preview-hover-size) group-hover:opacity-[0.85] group-focus-within:bg-size-(--basemap-preview-hover-size) group-focus-within:opacity-[0.85] ${isDragging ? 'bg-size-(--basemap-preview-hover-size) opacity-[0.85]' : ''}`}
     style={`--basemap-preview: url('${postcardPreviewUrl}'); --basemap-preview-size: auto 100%; --basemap-preview-hover-size: auto 106%;`}

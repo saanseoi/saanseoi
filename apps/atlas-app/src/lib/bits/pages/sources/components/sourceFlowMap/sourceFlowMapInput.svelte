@@ -12,7 +12,7 @@ let { input }: Props = $props()
 
 <svelte:element
   this={input.href ? 'a' : 'div'}
-  class="source-flow-input group"
+  class={`source-flow-input group ${input.cardTone === 'soft' ? 'source-flow-input-soft' : ''}`}
   style={`--source-accent: ${input.accent};`}
   href={input.href}
   aria-label={input.href ? `${input.publisher}: ${input.source}` : undefined}
@@ -101,6 +101,14 @@ let { input }: Props = $props()
     160deg,
     color-mix(in srgb, var(--source-accent) 72%, black),
     color-mix(in srgb, var(--source-accent) 88%, black)
+  );
+}
+
+:global(.dark) .source-flow-input-soft::before {
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--source-accent) 82%, white),
+    color-mix(in srgb, var(--source-accent) 70%, white)
   );
 }
 
@@ -202,10 +210,7 @@ let { input }: Props = $props()
   background: #dff0d6;
 }
 .source-flow-icon-protomaps {
-  background: #9999e8;
-}
-.source-flow-icon-protomaps img {
-  opacity: 0.52;
+  background: #3130d3;
 }
 
 .source-flow-icon img {

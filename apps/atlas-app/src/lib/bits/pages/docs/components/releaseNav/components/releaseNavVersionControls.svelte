@@ -45,6 +45,7 @@ let controls = $derived([
         onpointerenter={() => onVersionPreload?.(item.version)}
       >
         <Icon icon={item.icon} class="size-4" aria-hidden="true" />
+        <span class="sr-only">{item.label} release: {item.version.label}</span>
       </a>
     {:else}
       <span

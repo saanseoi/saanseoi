@@ -324,6 +324,7 @@ onMount(() => {
       bind:this={discordFloatIcon}
     >
       <Icon icon="simple-icons:discord" aria-hidden="true" />
+      <span class="sr-only">Join SaanSeoi on Discord</span>
     </a>
     <a
       class="community-space-float-icon community-space-float-icon-discussions"
@@ -334,6 +335,7 @@ onMount(() => {
       bind:this={discussionsFloatIcon}
     >
       <Icon icon="proicons:github" aria-hidden="true" />
+      <span class="sr-only">Visit SaanSeoi Discussions on GitHub</span>
     </a>
     <nav class="community-space-socials" aria-label="Socials">
       <span class="community-space-socials-label">And find us on</span>
@@ -346,6 +348,7 @@ onMount(() => {
         bind:this={instagramFloatIcon}
       >
         <Icon icon="simple-icons:instagram" aria-hidden="true" />
+        <span class="sr-only">Follow SaanSeoi on Instagram</span>
       </a>
       <a
         class="community-space-float-icon community-space-float-icon-social community-space-float-icon-linkedin"
@@ -356,6 +359,7 @@ onMount(() => {
         bind:this={linkedInFloatIcon}
       >
         <Icon icon="simple-icons:linkedin" aria-hidden="true" />
+        <span class="sr-only">Follow SaanSeoi on LinkedIn</span>
       </a>
       <a
         class="community-space-float-icon community-space-float-icon-social community-space-float-icon-threads"
@@ -366,6 +370,7 @@ onMount(() => {
         bind:this={threadsFloatIcon}
       >
         <Icon icon="simple-icons:threads" aria-hidden="true" />
+        <span class="sr-only">Follow SaanSeoi on Threads</span>
       </a>
     </nav>
   </div>
