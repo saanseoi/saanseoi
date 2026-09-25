@@ -38,7 +38,10 @@ for (const [label, mutation] of [
     'predecessor identity',
     "UPDATE snapshots SET cohortKey='2025' WHERE id='snapshot-old'",
   ],
-  ['source ownership', "DELETE FROM snapshotSources WHERE snapshotId='snapshot-new'"],
+  [
+    'source ownership',
+    "DELETE FROM snapshotSourceReleases WHERE snapshotId='snapshot-new'",
+  ],
   [
     'predecessor release state',
     "UPDATE releases SET status='revoked' WHERE id='release-old'",
@@ -95,7 +98,7 @@ test('rollback chooses a surviving default domain when removing the original dom
 test('rollback preserves an independent publication that only references the release as a lookup', async () => {
   const f = await fixture()
   try {
-    insert(f.meta, 'snapshotSources', {
+    insert(f.meta, 'snapshotSourceReleases', {
       snapshotId: 'snapshot-other',
       datasetId: 'dataset',
       resourceReleaseId: 'release-new',

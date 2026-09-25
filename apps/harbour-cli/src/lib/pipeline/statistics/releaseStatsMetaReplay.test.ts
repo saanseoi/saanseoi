@@ -191,7 +191,7 @@ describe('release statistics metadata replay', () => {
 
     expect(sql).toContain('INSERT INTO "snapshotLineages"')
     expect(sql).toContain('INSERT INTO "snapshots"')
-    expect(sql).toContain('INSERT INTO "snapshotSources"')
+    expect(sql).toContain('INSERT INTO "snapshotSourceReleases"')
     expect(sql).toContain('INSERT INTO "releaseShardAssignments"')
     expect(sql).toContain('INSERT INTO "snapshotShardAssignments"')
     expect(sql).toContain("'snapshot'")

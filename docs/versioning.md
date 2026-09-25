@@ -619,7 +619,7 @@ ss-hk-division-hkgov-pland-pu-2006
 Revision zero omits the `-r0` suffix. `-r1` means the same lineage and cohort were
 assembled again with different source membership or corrected content.
 
-A snapshot records all selected source releases in `snapshotSources`, including:
+A snapshot records all selected source releases in `snapshotSourceReleases`, including:
 
 - source dataset and release
 - role

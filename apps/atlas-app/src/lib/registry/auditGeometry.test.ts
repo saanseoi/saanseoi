@@ -23,7 +23,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
   try {
     createTables(meta, [
       metaSchema.metaSnapshots,
-      metaSchema.metaSnapshotSources,
+      metaSchema.metaSnapshotSourceReleases,
       metaSchema.metaSnapshotShardAssignments,
       metaSchema.metaDataShards,
     ])
@@ -38,7 +38,7 @@ test('audit replays cleaned geometry by its exact content version and owning sha
       INSERT INTO snapshots (id,parentSnapshotId,resourceType) VALUES
         ('base',NULL,'divisionArea'),('old','base','divisionArea'),
         ('new','old','divisionArea');
-      INSERT INTO snapshotSources (snapshotId,resourceReleaseId,role) VALUES
+      INSERT INTO snapshotSourceReleases (snapshotId,resourceReleaseId,role) VALUES
         ('old','old-release','primary'),('new','lookup-release','lookup');
       INSERT INTO dataShards (id,bindingName) VALUES
         ('before','DB_HISTORY_BEFORE'),('after','DB_HISTORY_AFTER');

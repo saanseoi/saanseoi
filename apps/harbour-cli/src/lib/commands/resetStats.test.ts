@@ -96,7 +96,7 @@ function setup() {
       resourceType,
     })
     insert(meta, 'snapshots', { id: resourceType, code: resourceType, resourceType })
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: resourceType,
       datasetId: 'dataset',
       resourceReleaseId: resourceType,
@@ -254,7 +254,7 @@ describe('all-statistics reset', () => {
 
   test('blocks other snapshot sources and API anchor dependencies', async () => {
     const { meta, context } = setup()
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: 'place',
       datasetId: 'dataset',
       resourceReleaseId: 'divisionStatistic',
@@ -279,6 +279,7 @@ describe('all-statistics reset', () => {
       releaseSets: [],
       catalogRevisions: [],
       dependencies: {
+        snapshotDependencies: [],
         publications: [],
         sources: [],
         assemblies: [],
@@ -300,7 +301,7 @@ describe('all-statistics reset', () => {
       code: 'simplified',
       resourceType: 'divisionArea',
     })
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: 'simplified',
       datasetId: 'dataset',
       resourceReleaseId: 'divisionArea',
@@ -378,7 +379,7 @@ describe('all-statistics reset', () => {
   test('blocks non-geographic lookup consumers and retains mixed-source inputs', async () => {
     const { meta, context } = setup()
     meta.exec("UPDATE datasets SET theme = 'stats' WHERE id = 'dataset'")
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: 'place',
       datasetId: 'dataset',
       resourceReleaseId: 'divisionArea',
@@ -390,7 +391,7 @@ describe('all-statistics reset', () => {
     expect(await statsResetBlockers(context)).toContain(
       'Other snapshot families use statistics releases',
     )
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: 'divisionArea',
       datasetId: 'dataset',
       resourceReleaseId: 'place',
@@ -417,18 +418,20 @@ describe('all-statistics reset', () => {
     expect(await statsResetBlockers(context)).toContain(
       'Places reference contributed divisions',
     )
-    insert(meta, 'snapshotAssembly', {
+    insert(meta, 'snapshotRecipes', {
       id: 'lookup',
       code: 'lookup',
       resourceType: 'place',
     })
-    insert(meta, 'snapshotAssemblyRuns', {
+    insert(meta, 'snapshotAssemblies', {
       id: 'lookup',
       snapshotId: 'place',
-      snapshotAssemblyId: 'lookup',
-      selectionSummaryJson: JSON.stringify({
-        lookupSnapshotIds: { division: 'divisionArea' },
-      }),
+      snapshotRecipeId: 'lookup',
+    })
+    insert(meta, 'snapshotDependencies', {
+      snapshotId: 'place',
+      role: 'division',
+      dependencySnapshotId: 'divisionArea',
     })
     expect(await statsResetBlockers(context)).toContain(
       'Other snapshots retain exact statistics lookup dependencies',
@@ -467,7 +470,7 @@ describe('all-statistics reset', () => {
         parentSnapshotId: parent,
         resourceType: 'divisionArea',
       })
-      insert(meta, 'snapshotSources', {
+      insert(meta, 'snapshotSourceReleases', {
         snapshotId: id,
         datasetId: 'geography',
         resourceReleaseId: 'geography',
@@ -560,7 +563,7 @@ describe('all-statistics reset', () => {
     for (const id of ['lookup', 'canonical']) {
       insert(meta, 'snapshots', { id, code: id, resourceType: 'divisionArea' })
     }
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: 'lookup',
       datasetId: 'dataset',
       resourceReleaseId: 'divisionArea',
@@ -580,7 +583,7 @@ describe('all-statistics reset', () => {
     ])
     expect(await statsResetBlockers(context)).toEqual([])
     meta.exec(
-      "UPDATE snapshotSources SET selectionMode = 'changed' WHERE snapshotId = 'lookup'",
+      "UPDATE snapshotSourceReleases SET selectionMode = 'changed' WHERE snapshotId = 'lookup'",
     )
     expect(await collectStatsResetPlan(context)).not.toEqual(first)
   })

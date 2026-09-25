@@ -21,7 +21,7 @@ import {
   upsertSnapshotSource,
   upsertSnapshotShardAssignment,
   publishSnapshot,
-  recordSnapshotAssemblyRun,
+  recordSnapshotAssembly,
 } from '@repo/core/db/metaRegistry'
 import { resolveLocalAddressDbContext } from '../../dbCache/localDbCache'
 import { pinLocalR2Mode } from '../../storage/localR2Mode'
@@ -424,7 +424,7 @@ export async function publishLocalCuratedDivisions(
       )
       for (const baselineSnapshot of [divisionBase, areaBase])
         for (const input of meta
-          .query('SELECT * FROM snapshotSources WHERE snapshotId=?')
+          .query('SELECT * FROM snapshotSourceReleases WHERE snapshotId=?')
           .all(baselineSnapshot.id) as any[]) {
           await upsertSnapshotSource(
             ctx.metaDb as never,
@@ -446,7 +446,7 @@ export async function publishLocalCuratedDivisions(
         )
         .get(`DB_HISTORY_HK_${hierarchy.cohort.slice(0, 4)}`) as any
       await upsertSnapshotShardAssignment(ctx.metaDb as never, snapshot.id, shard.id)
-      await recordSnapshotAssemblyRun(ctx.metaDb as never, {
+      await recordSnapshotAssembly(ctx.metaDb as never, {
         snapshotId: snapshot.id,
         resourceType,
         anchorReleaseId: source.resourceReleaseId,
@@ -478,7 +478,7 @@ export async function publishLocalCuratedDivisions(
       )
       const source = meta
         .query(
-          "SELECT resourceReleaseId FROM snapshotSources WHERE snapshotId=? AND role='primary'",
+          "SELECT resourceReleaseId FROM snapshotSourceReleases WHERE snapshotId=? AND role='primary'",
         )
         .get(snapshots[0].id) as any
       const dataset = await getDatasetRecordByReleaseId(

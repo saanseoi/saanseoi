@@ -3,9 +3,9 @@ import {
   eq,
   metaReleaseShardAssignments,
   metaSnapshotLineages,
-  metaSnapshotAssemblyRuns,
+  metaSnapshotAssemblies,
   metaSnapshotShardAssignments,
-  metaSnapshotSources,
+  metaSnapshotSourceReleases,
   metaSnapshots,
 } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
@@ -75,18 +75,18 @@ export async function buildDivisionMetaSqlFile(
 
   const snapshotSourceRows = await metaDb
     .select({
-      snapshotId: metaSnapshotSources.snapshotId,
-      datasetId: metaSnapshotSources.datasetId,
-      resourceReleaseId: metaSnapshotSources.resourceReleaseId,
-      role: metaSnapshotSources.role,
-      selectedByRule: metaSnapshotSources.selectedByRule,
-      selectionMode: metaSnapshotSources.selectionMode,
-      anchorReleaseId: metaSnapshotSources.anchorReleaseId,
-      sourceCohortKey: metaSnapshotSources.sourceCohortKey,
-      createdAt: metaSnapshotSources.createdAt,
+      snapshotId: metaSnapshotSourceReleases.snapshotId,
+      datasetId: metaSnapshotSourceReleases.datasetId,
+      resourceReleaseId: metaSnapshotSourceReleases.resourceReleaseId,
+      role: metaSnapshotSourceReleases.role,
+      selectedByRule: metaSnapshotSourceReleases.selectedByRule,
+      selectionMode: metaSnapshotSourceReleases.selectionMode,
+      anchorReleaseId: metaSnapshotSourceReleases.anchorReleaseId,
+      sourceCohortKey: metaSnapshotSourceReleases.sourceCohortKey,
+      createdAt: metaSnapshotSourceReleases.createdAt,
     })
-    .from(metaSnapshotSources)
-    .where(eq(metaSnapshotSources.snapshotId, state.snapshotId))
+    .from(metaSnapshotSourceReleases)
+    .where(eq(metaSnapshotSourceReleases.snapshotId, state.snapshotId))
     .all()
 
   if (!snapshotSourceRows.some(row => row.resourceReleaseId === releaseId)) {
@@ -96,24 +96,25 @@ export async function buildDivisionMetaSqlFile(
   }
 
   const assemblySql = await readSnapshotAssemblySql(metaDb, state.snapshotId)
-  const snapshotAssemblyRunRows = await metaDb
+  const snapshotAssemblyRows = await metaDb
     .select({
-      id: metaSnapshotAssemblyRuns.id,
-      snapshotId: metaSnapshotAssemblyRuns.snapshotId,
-      snapshotAssemblyId: metaSnapshotAssemblyRuns.snapshotAssemblyId,
-      anchorReleaseId: metaSnapshotAssemblyRuns.anchorReleaseId,
-      anchorCohortKey: metaSnapshotAssemblyRuns.anchorCohortKey,
-      status: metaSnapshotAssemblyRuns.status,
-      selectionSummaryJson: metaSnapshotAssemblyRuns.selectionSummaryJson,
-      createdAt: metaSnapshotAssemblyRuns.createdAt,
-      updatedAt: metaSnapshotAssemblyRuns.updatedAt,
+      id: metaSnapshotAssemblies.id,
+      snapshotId: metaSnapshotAssemblies.snapshotId,
+      snapshotRecipeId: metaSnapshotAssemblies.snapshotRecipeId,
+      anchorReleaseId: metaSnapshotAssemblies.anchorReleaseId,
+      anchorCohortKey: metaSnapshotAssemblies.anchorCohortKey,
+      status: metaSnapshotAssemblies.status,
+      reviewRequired: metaSnapshotAssemblies.reviewRequired,
+      detailsJson: metaSnapshotAssemblies.detailsJson,
+      createdAt: metaSnapshotAssemblies.createdAt,
+      updatedAt: metaSnapshotAssemblies.updatedAt,
     })
-    .from(metaSnapshotAssemblyRuns)
-    .where(eq(metaSnapshotAssemblyRuns.snapshotId, state.snapshotId))
+    .from(metaSnapshotAssemblies)
+    .where(eq(metaSnapshotAssemblies.snapshotId, state.snapshotId))
     .all()
-  const serialisedSnapshotAssemblyRunRows = snapshotAssemblyRunRows.map(row => ({
+  const serialisedSnapshotAssemblyRows = snapshotAssemblyRows.map(row => ({
     ...row,
-    selectionSummaryJson: jsonText(row.selectionSummaryJson),
+    detailsJson: jsonText(row.detailsJson),
   }))
 
   const releaseShardAssignmentRows = await metaDb
@@ -239,7 +240,7 @@ ON CONFLICT(id) DO UPDATE SET
       },
     ),
     ...buildInsertStatements(
-      'snapshotSources',
+      'snapshotSourceReleases',
       [
         'snapshotId',
         'datasetId',
@@ -266,28 +267,30 @@ ON CONFLICT(snapshotId, resourceReleaseId) DO UPDATE SET
     ),
     ...assemblySql,
     ...buildInsertStatements(
-      'snapshotAssemblyRuns',
+      'snapshotAssemblies',
       [
         'id',
         'snapshotId',
-        'snapshotAssemblyId',
+        'snapshotRecipeId',
         'anchorReleaseId',
         'anchorCohortKey',
         'status',
-        'selectionSummaryJson',
+        'reviewRequired',
+        'detailsJson',
         'createdAt',
         'updatedAt',
       ],
-      serialisedSnapshotAssemblyRunRows,
+      serialisedSnapshotAssemblyRows,
       {
         suffix: `
 ON CONFLICT(id) DO UPDATE SET
   snapshotId = excluded.snapshotId,
-  snapshotAssemblyId = excluded.snapshotAssemblyId,
+  snapshotRecipeId = excluded.snapshotRecipeId,
   anchorReleaseId = excluded.anchorReleaseId,
   anchorCohortKey = excluded.anchorCohortKey,
   status = excluded.status,
-  selectionSummaryJson = excluded.selectionSummaryJson,
+  reviewRequired = excluded.reviewRequired,
+  detailsJson = excluded.detailsJson,
   createdAt = excluded.createdAt,
   updatedAt = excluded.updatedAt`.trim(),
       },

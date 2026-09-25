@@ -1,5 +1,11 @@
 # Overture Places
 
+Place construction records its concrete source releases in `snapshotSourceReleases`, its
+effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact Address,
+Division, DivisionArea and supplementary Address selections in `snapshotDependencies`.
+Assembly `reviewRequired` must be zero before publication; `detailsJson` retains typed
+construction evidence without duplicating dependency IDs.
+
 The updater consumes the Hong Kong `place.division.intersects.clipSmart.parquet` file
 from `data/overture/<release>/divisions/China/Hong Kong`. A present, non-empty export is
 reused; otherwise the updater obtains the requested release through Overturist.

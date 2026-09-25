@@ -45,10 +45,10 @@ const datasetIdColumn = () =>
     .notNull()
     .references(() => metaDatasets.id, { onDelete: 'restrict' })
 
-const snapshotAssemblyIdColumn = (onDelete: ReferenceAction) =>
-  text('snapshotAssemblyId')
+const snapshotRecipeIdColumn = (onDelete: ReferenceAction) =>
+  text('snapshotRecipeId')
     .notNull()
-    .references(() => metaSnapshotAssembly.id, { onDelete })
+    .references(() => metaSnapshotRecipes.id, { onDelete })
 
 const apiCompositionIdColumn = () =>
   text('apiCompositionId')
@@ -157,8 +157,8 @@ export const metaSnapshots = sqliteTable(
   ],
 )
 
-export const metaSnapshotSources = sqliteTable(
-  'snapshotSources',
+export const metaSnapshotSourceReleases = sqliteTable(
+  'snapshotSourceReleases',
   {
     snapshotId: snapshotIdColumn('cascade'),
     datasetId: datasetIdColumn(),
@@ -177,10 +177,10 @@ export const metaSnapshotSources = sqliteTable(
     foreignKey({
       columns: [table.resourceReleaseId, table.datasetId],
       foreignColumns: [metaReleases.id, metaReleases.datasetId],
-      name: 'snapshotSources_resourceReleaseId_datasetId_releases_id_datasetId_fk',
+      name: 'snapshotSourceReleases_resourceReleaseId_datasetId_releases_id_datasetId_fk',
     }).onDelete('restrict'),
-    index('snapshotSources_datasetId_idx').on(table.datasetId),
-    index('snapshotSources_resourceReleaseId_idx').on(table.resourceReleaseId),
+    index('snapshotSourceReleases_datasetId_idx').on(table.datasetId),
+    index('snapshotSourceReleases_resourceReleaseId_idx').on(table.resourceReleaseId),
   ],
 )
 
@@ -289,8 +289,44 @@ export const metaPublishedDataJournal = sqliteTable(
   ],
 )
 
-export const metaSnapshotAssembly = sqliteTable(
-  'snapshotAssembly',
+/** Descriptive selection policy; transformation implementations live in the codebase. */
+export type SnapshotSelectionPolicy = {
+  rules: Array<{ selectedByRule: string; selectionMode: string }>
+}
+
+/** Construction context only. Source releases and snapshot dependencies are relational. */
+export type SnapshotAssemblyDetails = {
+  releaseRole?: string
+  sourceReleaseId?: string
+  sourceVersion?: string
+  materialisationHash?: string
+  policyVersion?: string
+  policies?: Record<string, unknown>
+  curationHash?: string
+  unreviewedAddressCases?: number
+  rowCount?: number
+}
+
+/** Each role pins one exact dependency; a snapshot may have several different roles. */
+export const metaSnapshotDependencies = sqliteTable(
+  'snapshotDependencies',
+  {
+    snapshotId: snapshotIdColumn('cascade'),
+    dependencySnapshotId: text('dependencySnapshotId')
+      .notNull()
+      .references(() => metaSnapshots.id, { onDelete: 'restrict' }),
+    role: text('role').notNull(),
+  },
+  table => [
+    primaryKey({ columns: [table.snapshotId, table.role] }),
+    index('snapshotDependencies_dependencySnapshotId_idx').on(
+      table.dependencySnapshotId,
+    ),
+  ],
+)
+
+export const metaSnapshotRecipes = sqliteTable(
+  'snapshotRecipes',
   {
     id: primaryUuid('id'),
     code: text('code').notNull().unique(),
@@ -302,48 +338,49 @@ export const metaSnapshotAssembly = sqliteTable(
     ...timestamps,
   },
   table => [
-    index('snapshotAssembly_resourceType_status_idx').on(
+    index('snapshotRecipes_resourceType_status_idx').on(
       table.resourceType,
       table.status,
     ),
   ],
 )
 
-export const metaSnapshotAssemblySources = sqliteTable(
-  'snapshotAssemblySources',
+export const metaSnapshotRecipeInputs = sqliteTable(
+  'snapshotRecipeInputs',
   {
-    snapshotAssemblyId: snapshotAssemblyIdColumn('cascade'),
+    snapshotRecipeId: snapshotRecipeIdColumn('cascade'),
     datasetId: datasetIdColumn(),
     role: text('role').notNull(),
     isRequired: integer('isRequired', { mode: 'boolean' }).notNull(),
-    selectorType: text('selectorType').notNull(),
     anchorDatasetId: text('anchorDatasetId').references(() => metaDatasets.id, {
       onDelete: 'restrict',
     }),
     maxLagDays: integer('maxLagDays'),
     priority: integer('priority').notNull().default(0),
-    selectionRulesJson: jsonText('selectionRulesJson'),
+    selectionPolicyJson:
+      jsonText<SnapshotSelectionPolicy>('selectionPolicyJson').notNull(),
   },
   table => [
     primaryKey({
-      columns: [table.snapshotAssemblyId, table.datasetId, table.role],
+      columns: [table.snapshotRecipeId, table.datasetId, table.role],
     }),
   ],
 )
 
-export const metaSnapshotAssemblyRuns = sqliteTable(
-  'snapshotAssemblyRuns',
+export const metaSnapshotAssemblies = sqliteTable(
+  'snapshotAssemblies',
   {
     id: primaryUuid('id'),
     snapshotId: snapshotIdColumn('cascade'),
-    snapshotAssemblyId: snapshotAssemblyIdColumn('restrict'),
+    snapshotRecipeId: snapshotRecipeIdColumn('restrict'),
     anchorReleaseId: text('anchorReleaseId'),
     anchorCohortKey: text('anchorCohortKey'),
     status: text('status').notNull(),
-    selectionSummaryJson: jsonText('selectionSummaryJson'),
+    reviewRequired: integer('reviewRequired'),
+    detailsJson: jsonText<SnapshotAssemblyDetails>('detailsJson'),
     ...timestamps,
   },
-  table => [index('snapshotAssemblyRuns_snapshotId_idx').on(table.snapshotId)],
+  table => [uniqueIndex('snapshotAssemblies_snapshotId_idx').on(table.snapshotId)],
 )
 
 export const metaApiComposition = sqliteTable(

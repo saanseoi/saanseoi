@@ -4,7 +4,7 @@ import {
   eq,
   metaDatasets,
   metaSnapshots,
-  metaSnapshotSources,
+  metaSnapshotSourceReleases,
 } from '@repo/db'
 import type { HarbourReadableDb } from '../../lib/db/types'
 import { listApiReleaseSetSnapshotsForRegistryRequest } from '../../lib/db/metaRegistry'
@@ -83,16 +83,19 @@ export async function resolvePublicationSelections(meta: HarbourReadableDb) {
       .select({ id: metaSnapshots.id })
       .from(metaSnapshots)
       .innerJoin(
-        metaSnapshotSources,
-        eq(metaSnapshots.id, metaSnapshotSources.snapshotId),
+        metaSnapshotSourceReleases,
+        eq(metaSnapshots.id, metaSnapshotSourceReleases.snapshotId),
       )
-      .innerJoin(metaDatasets, eq(metaDatasets.id, metaSnapshotSources.datasetId))
+      .innerJoin(
+        metaDatasets,
+        eq(metaDatasets.id, metaSnapshotSourceReleases.datasetId),
+      )
       .where(
         and(
           eq(metaSnapshots.resourceType, 'street'),
           eq(metaSnapshots.status, 'published'),
           eq(metaDatasets.regionCode, region),
-          eq(metaSnapshotSources.role, 'primary'),
+          eq(metaSnapshotSourceReleases.role, 'primary'),
         ),
       )
       .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))

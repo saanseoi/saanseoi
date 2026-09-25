@@ -2,28 +2,42 @@
 
 ## Snapshot assembly provenance
 
-Each ingestion records its effective source-selection recipe in `snapshotAssembly` and
-its dataset/role rules in `snapshotAssemblySources`. The recipe hash covers the resource
-type, recording version and sorted input rules; release IDs and cohort values belong to
-the run. Identical recipes can serve multiple snapshots. These records describe the
-selected inputs, rather than a catalogue of optional future inputs: `isRequired` means
-the input is needed to reproduce that effective selection.
+Each ingestion records its effective recipe in `snapshotRecipes` and its dataset/role
+inputs in `snapshotRecipeInputs`. Each input has a typed `selectionPolicyJson`
+containing selection rule identifiers and modes. These descriptions explain how datasets
+contribute; transformation implementations live in the codebase. The recipe hash covers
+the resource type, recording format and sorted input policies, so different snapshots
+can share a recipe without sharing release IDs or cohorts. `isRequired` describes
+participation in that effective recipe.
 
-Assembly codes use `sa-<resourceType>-v1-<versionHash>`, where `versionHash` includes
-its `sha256:` prefix. The code determines the assembly's UUID.
+Recipe codes use `sa-<resourceType>-v1-<versionHash>`, where `versionHash` includes its
+`sha256:` prefix. The code determines the recipe's UUID. This recording format does not
+represent a processing ruleset version.
 
-`snapshotAssemblyRuns` retains one evolving record per draft snapshot, including exact
-source releases, roles, selection rules, selection modes and source cohorts. Enrichment
-and lookup selection refresh the draft recipe and preserve specialised review and
-materialisation evidence. Places analysis can record a `planning` run before source
-selection; finalisation records `selected`. Missing source-selection rules fail
-ingestion. Published assembly records remain fixed, including when another release
-verifies an identical published geometry snapshot. That later association remains in
-`snapshotSources`.
+`snapshotSourceReleases` records concrete source releases, roles, selection rules, modes
+and source cohorts. `snapshotAssemblies` links each snapshot to its recipe, anchor and
+construction status. Each snapshot has one assembly, updated during draft preparation
+and retained when published. Places preparation can record a `planning` assembly before
+source selection; finalisation records `selected`. Missing source-selection rules fail
+ingestion. A later release verifying identical published geometry can retain a separate
+source association without replacing the published assembly.
 
-SQL delivery includes recipe and input rows before run rows, so a fresh target does not
-depend on pre-seeded assembly definitions. Assembly records describe sources producing
-one snapshot; API composition records describe snapshots belonging to a release set.
+`snapshotDependencies` pins exact logical snapshot inputs by role, including `division`,
+`divisionArea`, `street`, `address` and `supplementaryAddress`. Each role selects one
+snapshot. Foreign keys protect referenced snapshots; reset and rollback inspect these
+relationships directly. Dependency IDs and selected source lists are not duplicated in
+assembly JSON.
+
+Assembly `detailsJson` holds typed construction context such as materialisation and
+curation hashes and result counts. The nullable `reviewRequired` column records
+outstanding review counts: zero explicitly means review is complete; null does not.
+Places publication requires a supplementary Address dependency and zero outstanding
+reviews.
+
+SQL delivery includes recipe and input rows before assembly rows, and delivers exact
+snapshot dependencies once their referenced snapshots exist. Assembly records describe
+the construction of one snapshot; API composition records describe snapshots belonging
+to a release set.
 
 This is the working guide for adding a source dataset to SaanSeoi. Follow the stages in
 order. A source is not complete merely because a local import works: its public

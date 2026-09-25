@@ -853,7 +853,7 @@ async function querySourceReleaseDiscoveryRows(
           sourceReleases.code AS sourceReleaseCode,
           datasets.sourceVariant AS sourceVariant,
           apiReleaseSets.code AS apiReleaseSetCode,
-          snapshotSources.role AS role,
+          snapshotSourceReleases.role AS role,
           snapshots.code AS snapshotCode,
           EXISTS(
             SELECT 1
@@ -869,8 +869,8 @@ async function querySourceReleaseDiscoveryRows(
           ON apiReleaseSets.id = apiReleaseSetSnapshots.apiReleaseSetId
         INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
         INNER JOIN snapshots ON snapshots.id = apiReleaseSetSnapshots.snapshotId
-        INNER JOIN snapshotSources ON snapshotSources.snapshotId = snapshots.id
-        INNER JOIN releases ON releases.id = snapshotSources.resourceReleaseId
+        INNER JOIN snapshotSourceReleases ON snapshotSourceReleases.snapshotId = snapshots.id
+        INNER JOIN releases ON releases.id = snapshotSourceReleases.resourceReleaseId
         INNER JOIN sourceReleases
           ON sourceReleases.id = releases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = releases.datasetId

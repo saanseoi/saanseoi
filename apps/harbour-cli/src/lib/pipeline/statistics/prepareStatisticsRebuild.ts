@@ -253,7 +253,7 @@ function listRetainedSnapshots(meta: Database) {
   const rows = meta
     .query(`SELECT s.id, s.parentSnapshotId, s.cohortKey, s.status, s.createdAt,
     ss.resourceReleaseId AS sourceReleaseId, r.sourceVersion, r.code AS releaseCode, d.code AS datasetCode
-    FROM snapshots s JOIN snapshotSources ss ON ss.snapshotId = s.id
+    FROM snapshots s JOIN snapshotSourceReleases ss ON ss.snapshotId = s.id
     JOIN releases r ON r.id = ss.resourceReleaseId JOIN datasets d ON d.id = ss.datasetId
     WHERE s.resourceType = 'divisionStatistic' AND ss.role <> 'lookup'
     ORDER BY s.createdAt, s.revision, s.id`)

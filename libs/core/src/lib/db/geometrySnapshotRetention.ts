@@ -9,7 +9,7 @@ const {
   metaReleases,
   metaSnapshotLineages,
   metaSnapshots,
-  metaSnapshotSources,
+  metaSnapshotSourceReleases,
 } = metaSchema
 
 /**
@@ -34,18 +34,18 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
     })
     .from(metaSnapshots)
     .innerJoin(
-      metaSnapshotSources,
-      eq(metaSnapshotSources.snapshotId, metaSnapshots.id),
+      metaSnapshotSourceReleases,
+      eq(metaSnapshotSourceReleases.snapshotId, metaSnapshots.id),
     )
     .innerJoin(
       metaReleases,
       and(
-        eq(metaReleases.id, metaSnapshotSources.resourceReleaseId),
-        eq(metaReleases.datasetId, metaSnapshotSources.datasetId),
+        eq(metaReleases.id, metaSnapshotSourceReleases.resourceReleaseId),
+        eq(metaReleases.datasetId, metaSnapshotSourceReleases.datasetId),
         eq(metaReleases.resourceType, metaSnapshots.resourceType),
       ),
     )
-    .innerJoin(metaDatasets, eq(metaDatasets.id, metaSnapshotSources.datasetId))
+    .innerJoin(metaDatasets, eq(metaDatasets.id, metaSnapshotSourceReleases.datasetId))
     .innerJoin(metaPublishers, eq(metaPublishers.id, metaDatasets.publisherId))
     .leftJoin(
       metaSnapshotLineages,
@@ -56,7 +56,7 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
         inArray(metaSnapshots.resourceType, ['divisionArea', 'divisionBoundary']),
         eq(metaSnapshots.status, 'published'),
         eq(metaReleases.status, 'published'),
-        ne(metaSnapshotSources.role, 'lookup'),
+        ne(metaSnapshotSourceReleases.role, 'lookup'),
       ),
     )
     .orderBy(

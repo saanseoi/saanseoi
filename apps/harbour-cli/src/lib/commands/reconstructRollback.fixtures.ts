@@ -122,7 +122,7 @@ export async function fixture(previous = true) {
       revision: name === 'old' ? 0 : 1,
       status: 'published',
     })
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: `snapshot-${name}`,
       datasetId: 'dataset',
       resourceReleaseId: `release-${name}`,

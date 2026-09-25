@@ -2,7 +2,7 @@ import { eq, metaSchema } from '@repo/db'
 import type { HarbourReadableDb, HarbourWritableDb } from '../../../lib/db/types'
 import { recordEffectiveSnapshotAssembly } from '../../db/snapshotAssembly'
 
-/** Analysis and finalisation share the snapshot's effective assembly run. */
+/** Analysis and finalisation share the snapshot's effective assembly. */
 export async function recordPlaceAddressAssembly(
   db: HarbourReadableDb & HarbourWritableDb,
   input: {
@@ -10,7 +10,9 @@ export async function recordPlaceAddressAssembly(
     resourceType: 'place' | 'address'
     anchorReleaseId: string
     anchorCohortKey: string
-    selectionSummaryJson: Record<string, unknown>
+    detailsJson?: metaSchema.SnapshotAssemblyDetails
+    dependencies?: Record<string, string>
+    reviewRequired?: number | null
   },
 ) {
   const snapshot = await db

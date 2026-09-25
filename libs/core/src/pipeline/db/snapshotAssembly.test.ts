@@ -1,10 +1,14 @@
+import {
+  readSnapshotDependencies,
+  recordSnapshotDependencies,
+} from './snapshotDependencies'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { resolve } from 'node:path'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { loadMigrationSql } from '../../testing/metaFixtures'
 import {
-  recordSnapshotAssemblyRun,
+  recordSnapshotAssembly,
   recordSnapshotLookupDependency,
   upsertSnapshotSource,
 } from '../../lib/db/metaRegistry'
@@ -50,47 +54,49 @@ async function source(
   })
 }
 function run(sqlite: Database) {
-  return sqlite.query('SELECT * FROM snapshotAssemblyRuns').get() as {
+  return sqlite.query('SELECT * FROM snapshotAssemblies').get() as {
     id: string
-    snapshotAssemblyId: string
+    snapshotRecipeId: string
     anchorReleaseId: string
-    selectionSummaryJson: string
+    detailsJson: string
     status: string
+    reviewRequired: number | null
   }
 }
 
-test('fresh ingestion records all inputs, refreshes one draft run and replays its complete foreign-key closure', async () => {
+test('fresh ingestion records all inputs, refreshes one draft assembly and replays its complete foreign-key closure', async () => {
   const local = fixture()
   const target = fixture()
   try {
     await source(local.db, 'primary')
-    await recordSnapshotAssemblyRun(local.db, {
+    await recordSnapshotAssembly(local.db, {
       ...args,
-      selectionSummaryJson: { materialisationHash: 'retained' },
+      detailsJson: { materialisationHash: 'retained' },
     })
     const first = run(local.sqlite)
     await source(local.db, 'enrichment')
     await source(local.db, 'lookup')
-    await recordSnapshotAssemblyRun(local.db, {
+    await recordSnapshotAssembly(local.db, {
       ...args,
       anchorReleaseId: 'release-enrichment',
     })
     const final = run(local.sqlite)
     expect(final.id).toBe(first.id)
-    expect(final.snapshotAssemblyId).not.toBe(first.snapshotAssemblyId)
+    expect(final.snapshotRecipeId).not.toBe(first.snapshotRecipeId)
     expect(final.anchorReleaseId).toBe('release-primary')
-    expect(JSON.parse(final.selectionSummaryJson).materialisationHash).toBe('retained')
-    expect(JSON.parse(final.selectionSummaryJson).sources).toHaveLength(3)
-    expect(local.sqlite.query('SELECT * FROM snapshotAssemblyRuns').all()).toHaveLength(
-      1,
-    )
+    expect(JSON.parse(final.detailsJson).materialisationHash).toBe('retained')
+    expect(JSON.parse(final.detailsJson).sources).toBeUndefined()
+    expect(
+      local.sqlite.query('SELECT * FROM snapshotSourceReleases').all(),
+    ).toHaveLength(3)
+    expect(local.sqlite.query('SELECT * FROM snapshotAssemblies').all()).toHaveLength(1)
     expect(
       local.sqlite
-        .query('SELECT * FROM snapshotAssemblySources WHERE snapshotAssemblyId = ?')
-        .all(final.snapshotAssemblyId),
+        .query('SELECT * FROM snapshotRecipeInputs WHERE snapshotRecipeId = ?')
+        .all(final.snapshotRecipeId),
     ).toHaveLength(3)
-    await recordSnapshotAssemblyRun(local.db, args)
-    expect(run(local.sqlite).snapshotAssemblyId).toBe(final.snapshotAssemblyId)
+    await recordSnapshotAssembly(local.db, args)
+    expect(run(local.sqlite).snapshotRecipeId).toBe(final.snapshotRecipeId)
     const sql = (await readSnapshotAssemblySql(local.db, 'snapshot', true)).join('\n')
     target.sqlite.exec(sql)
     const changes = target.sqlite.query('SELECT total_changes() AS count').get()
@@ -98,13 +104,13 @@ test('fresh ingestion records all inputs, refreshes one draft run and replays it
     expect(target.sqlite.query('SELECT total_changes() AS count').get()).toEqual(
       changes,
     )
-    expect(run(target.sqlite).selectionSummaryJson).toBe(final.selectionSummaryJson)
+    expect(run(target.sqlite).detailsJson).toBe(final.detailsJson)
     expect(target.sqlite.query('PRAGMA foreign_key_check').all()).toEqual([])
     expect(
-      target.sqlite.query('SELECT * FROM snapshotAssemblySources').all(),
+      target.sqlite.query('SELECT * FROM snapshotRecipeInputs').all(),
     ).toHaveLength(3)
     local.sqlite.exec(
-      "UPDATE snapshotAssemblyRuns SET anchorReleaseId=NULL,status='planning'",
+      "UPDATE snapshotAssemblies SET anchorReleaseId=NULL,status='planning'",
     )
     const changedSql = (await readSnapshotAssemblySql(local.db, 'snapshot', true)).join(
       '\n',
@@ -127,37 +133,42 @@ test('published assembly evidence remains fixed when a later release verifies th
   const { db, sqlite } = fixture()
   try {
     await source(db, 'primary')
-    await recordSnapshotAssemblyRun(db, args)
+    await recordSnapshotAssembly(db, args)
     const before = run(sqlite)
     sqlite.exec("UPDATE snapshots SET status = 'published'")
     await source(db, 'enrichment')
-    await recordSnapshotAssemblyRun(db, args)
+    await recordSnapshotAssembly(db, args)
     expect(run(sqlite)).toEqual(before)
   } finally {
     sqlite.close()
   }
 })
 
-test('Places planning and finalisation retain review evidence in the same run', async () => {
+test('Places planning and finalisation retain review evidence in the same assembly', async () => {
   const { db, sqlite } = fixture()
   try {
+    sqlite.exec(
+      "INSERT INTO snapshots(id,code,resourceType,cohortKey,status) VALUES ('als','als','address','2026','published')",
+    )
     await recordPlaceAddressAssembly(db, {
       ...args,
-      selectionSummaryJson: { addressSnapshotId: 'als', reviewRequired: 2 },
+      dependencies: { address: 'als' },
+      reviewRequired: 2,
     })
     expect(run(sqlite).status).toBe('planning')
     await source(db, 'primary')
     await recordPlaceAddressAssembly(db, {
       ...args,
-      selectionSummaryJson: { reviewRequired: 0, materialisationHash: 'hash' },
+      reviewRequired: 0,
+      detailsJson: { materialisationHash: 'hash' },
     })
     expect(run(sqlite).status).toBe('selected')
-    expect(JSON.parse(run(sqlite).selectionSummaryJson)).toMatchObject({
-      addressSnapshotId: 'als',
-      reviewRequired: 0,
+    expect(run(sqlite).reviewRequired).toBe(0)
+    expect(await readSnapshotDependencies(db, 'snapshot')).toEqual({ address: 'als' })
+    expect(JSON.parse(run(sqlite).detailsJson)).toMatchObject({
       materialisationHash: 'hash',
     })
-    expect(sqlite.query('SELECT * FROM snapshotAssemblyRuns').all()).toHaveLength(1)
+    expect(sqlite.query('SELECT * FROM snapshotAssemblies').all()).toHaveLength(1)
   } finally {
     sqlite.close()
   }
@@ -167,9 +178,12 @@ test('lookup assembly retains exact revisions and merges independently selected 
   const { db, sqlite } = fixture()
   try {
     await source(db, 'primary')
-    await recordSnapshotAssemblyRun(db, {
+    sqlite.exec(
+      "INSERT INTO snapshots(id,code,resourceType,cohortKey,status) VALUES ('street-revision','street-revision','street','2026','published')",
+    )
+    await recordSnapshotAssembly(db, {
       ...args,
-      selectionSummaryJson: { lookupSnapshotIds: { street: 'street-revision' } },
+      dependencies: { street: 'street-revision' },
     })
     sqlite.exec(`INSERT INTO snapshots (id,code,resourceType,cohortKey,status,createdAt,updatedAt)
       VALUES ('division-revision','division-revision','division','2026','published','${now}','${now}');`)
@@ -192,14 +206,14 @@ test('lookup assembly retains exact revisions and merges independently selected 
       selectedByRule: 'address-division',
       selectionMode: 'exact_ref',
     })
-    expect(JSON.parse(run(sqlite).selectionSummaryJson).lookupSnapshotIds).toEqual({
+    expect(await readSnapshotDependencies(db, 'snapshot')).toEqual({
       street: 'street-revision',
       division: 'division-revision',
     })
-    await recordSnapshotAssemblyRun(db, args)
-    expect(
-      JSON.parse(run(sqlite).selectionSummaryJson).lookupSnapshotIds.division,
-    ).toBe('division-revision')
+    await recordSnapshotAssembly(db, args)
+    expect((await readSnapshotDependencies(db, 'snapshot')).division).toBe(
+      'division-revision',
+    )
   } finally {
     sqlite.close()
   }
@@ -209,14 +223,62 @@ test('missing selection rules fail explicitly instead of recording invented prov
   const { db, sqlite } = fixture()
   try {
     await upsertSnapshotSource(db, 'snapshot', 'primary', 'release-primary', 'primary')
-    await expect(recordSnapshotAssemblyRun(db, args)).rejects.toThrow(
+    await expect(recordSnapshotAssembly(db, args)).rejects.toThrow(
       'selection rule is missing',
     )
-    expect(sqlite.query('SELECT * FROM snapshotAssemblyRuns').all()).toHaveLength(0)
+    expect(sqlite.query('SELECT * FROM snapshotAssemblies').all()).toHaveLength(0)
     await expect(readSnapshotAssemblySql(db, 'snapshot', true)).rejects.toThrow(
       'assembly run is missing',
     )
   } finally {
     sqlite.close()
+  }
+})
+
+test('dependency roles are unique, replay exactly, and protect published inputs', async () => {
+  const local = fixture()
+  const target = fixture()
+  try {
+    for (const { sqlite } of [local, target])
+      sqlite.exec(`INSERT INTO snapshots(id,code,resourceType,cohortKey,status)
+        VALUES ('old','old','division','2025','published'),('new','new','division','2026','published');`)
+    await source(local.db, 'primary')
+    await recordSnapshotAssembly(local.db, {
+      ...args,
+      dependencies: { division: 'old' },
+    })
+    const recipe = run(local.sqlite).snapshotRecipeId
+    await recordSnapshotAssembly(local.db, {
+      ...args,
+      dependencies: { division: 'new' },
+    })
+    expect(run(local.sqlite).snapshotRecipeId).toBe(recipe)
+    expect(await readSnapshotDependencies(local.db, 'snapshot')).toEqual({
+      division: 'new',
+    })
+    const sql = (await readSnapshotAssemblySql(local.db, 'snapshot', true)).join('\n')
+    target.sqlite.exec(sql)
+    const before = target.sqlite.query('SELECT total_changes() AS count').get()
+    target.sqlite.exec(sql)
+    expect(target.sqlite.query('SELECT total_changes() AS count').get()).toEqual(before)
+    expect(await readSnapshotDependencies(target.db, 'snapshot')).toEqual({
+      division: 'new',
+    })
+    expect(() =>
+      target.sqlite.query("DELETE FROM snapshots WHERE id='new'").run(),
+    ).toThrow()
+    local.sqlite.exec("UPDATE snapshots SET status='published' WHERE id='snapshot'")
+    await expect(
+      recordSnapshotDependencies(local.db, 'snapshot', { division: 'old' }),
+    ).rejects.toThrow('published snapshot')
+    expect(await readSnapshotDependencies(local.db, 'snapshot')).toEqual({
+      division: 'new',
+    })
+    target.sqlite.query("DELETE FROM snapshots WHERE id='snapshot'").run()
+    expect(await readSnapshotDependencies(target.db, 'snapshot')).toEqual({})
+    expect(target.sqlite.query('PRAGMA foreign_key_check').all()).toEqual([])
+  } finally {
+    local.sqlite.close()
+    target.sqlite.close()
   }
 })

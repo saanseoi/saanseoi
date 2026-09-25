@@ -7,10 +7,10 @@ test('recovery reopens only failed resources without published snapshots', () =>
   try {
     db.exec(`CREATE TABLE releases (id TEXT PRIMARY KEY, status TEXT);
       CREATE TABLE snapshots (id TEXT, status TEXT);
-      CREATE TABLE snapshotSources (snapshotId TEXT, resourceReleaseId TEXT);
+      CREATE TABLE snapshotSourceReleases (snapshotId TEXT, resourceReleaseId TEXT);
       INSERT INTO releases VALUES ('failed','failed'), ('published','published'), ('superseded','superseded'), ('poisoned','failed'), ('staged','staged'), ('quoted''id','failed');
       INSERT INTO snapshots VALUES ('snapshot','published');
-      INSERT INTO snapshotSources VALUES ('snapshot','poisoned');`)
+      INSERT INTO snapshotSourceReleases VALUES ('snapshot','poisoned');`)
     for (const id of [
       'failed',
       'published',

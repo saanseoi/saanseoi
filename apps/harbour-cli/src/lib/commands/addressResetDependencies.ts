@@ -18,7 +18,7 @@ export async function officialAddressResetDependencyBlockers(
   const outside = (column: unknown, ids: string[]) =>
     sql`${column} NOT IN (SELECT value FROM json_each(${JSON.stringify(ids)}))`
   const blockers: string[] = []
-  const source = metaSchema.metaSnapshotSources
+  const source = metaSchema.metaSnapshotSourceReleases
   if (
     await context.metaDb
       .select({ id: source.snapshotId })
@@ -69,23 +69,31 @@ export async function officialAddressResetDependencyBlockers(
       .get()
   )
     blockers.push('Other snapshots retain official Address parents')
-  const assembly = metaSchema.metaSnapshotAssemblyRuns
-  if (
-    await context.metaDb
-      .select({ id: assembly.snapshotId })
-      .from(assembly)
-      .where(
-        and(
-          outside(assembly.snapshotId, owned.snapshotIds),
-          or(
-            member(assembly.anchorReleaseId, owned.releaseIds),
-            sql`EXISTS (SELECT 1 FROM json_each(${assembly.selectionSummaryJson}, '$.lookupSnapshotIds') AS dependency WHERE ${member(sql`dependency.value`, owned.snapshotIds)})`,
-          ),
-        ),
-      )
-      .limit(1)
-      .get()
-  )
+  const assembly = metaSchema.metaSnapshotAssemblies
+  const dependency = metaSchema.metaSnapshotDependencies
+  const retainedAnchor = await context.metaDb
+    .select({ id: assembly.snapshotId })
+    .from(assembly)
+    .where(
+      and(
+        outside(assembly.snapshotId, owned.snapshotIds),
+        member(assembly.anchorReleaseId, owned.releaseIds),
+      ),
+    )
+    .limit(1)
+    .get()
+  const retainedDependency = await context.metaDb
+    .select({ id: dependency.snapshotId })
+    .from(dependency)
+    .where(
+      and(
+        outside(dependency.snapshotId, owned.snapshotIds),
+        member(dependency.dependencySnapshotId, owned.snapshotIds),
+      ),
+    )
+    .limit(1)
+    .get()
+  if (retainedAnchor || retainedDependency)
     blockers.push('Other snapshots retain official Address assembly dependencies')
   for (const [label, db, places] of [
     ['current', context.currentDb, currentSchema.places],

@@ -1,3 +1,4 @@
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import type { Database } from 'bun:sqlite'
 import { latLngToCell } from 'h3-js'
 import { and, eq, historySchema, metaSchema, sql } from '@repo/db'
@@ -262,16 +263,7 @@ async function restoreDivisionLinks(
     ].sort()
     const next = new Map<string, Link>()
     if (divisionIds.length) {
-      const assembly = await input.metaDb
-        .select({ summary: metaSchema.metaSnapshotAssemblyRuns.selectionSummaryJson })
-        .from(metaSchema.metaSnapshotAssemblyRuns)
-        .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, step.snapshotId))
-        .get()
-      const selected = (
-        assembly?.summary as
-          | { lookupSnapshotIds?: { address?: string; division?: string } }
-          | undefined
-      )?.lookupSnapshotIds
+      const selected = await readSnapshotDependencies(input.metaDb, step.snapshotId)
       if (!selected?.address || !selected.division)
         throw new Error(
           `Place snapshot ${step.snapshotId} has no exact Address/Division assembly selection.`,

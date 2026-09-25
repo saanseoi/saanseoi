@@ -16,7 +16,7 @@ import { deliverStreetWorkflow } from './streetDelivery.ts'
 import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
 import {
   ensureDraftSnapshotForRelease,
-  recordSnapshotAssemblyRun,
+  recordSnapshotAssembly,
   resolveShardForTypeRegionYear,
   upsertReleaseShardAssignment,
   upsertSnapshotShardAssignment,
@@ -159,12 +159,12 @@ export async function processLocalStreetSqlUpload(
         sourceCohortKey: dataset.cohortKey,
       },
     )
-    await recordSnapshotAssemblyRun(metaDb, {
+    await recordSnapshotAssembly(metaDb, {
       snapshotId: snapshot.id,
       resourceType: 'street',
       anchorReleaseId: dataset.releaseId,
       anchorCohortKey: dataset.cohortKey,
-      selectionSummaryJson: {
+      detailsJson: {
         releaseRole: LANDSD_STREET_SNAPSHOT_SOURCE_ROLE,
         sourceReleaseId: dataset.releaseId,
         sourceVersion: dataset.sourceVersion,

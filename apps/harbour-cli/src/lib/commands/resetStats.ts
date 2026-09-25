@@ -56,7 +56,7 @@ const TYPES = "('divisionStatistic')"
 const GEOMETRY_TYPES = "('division', 'divisionArea', 'divisionBoundary')"
 const RELEASES = `SELECT id FROM releases WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND datasetId IN (SELECT id FROM datasets WHERE theme = 'stats'))`
 // Lookup sources are dependencies, not contributions owned by the dataset.
-const SNAPSHOTS = `SELECT id FROM snapshots WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND id IN (SELECT snapshotId FROM snapshotSources WHERE resourceReleaseId IN (${RELEASES}) AND role <> 'lookup'))`
+const SNAPSHOTS = `SELECT id FROM snapshots WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND id IN (SELECT snapshotId FROM snapshotSourceReleases WHERE resourceReleaseId IN (${RELEASES}) AND role <> 'lookup'))`
 const CANONICAL_TABLES = [
   'statsValuesI18n',
   'statsFieldsI18n',
@@ -122,7 +122,7 @@ export async function statsResetBlockers(context: ResetReadContext) {
   await check(
     context.metaBinding,
     'Other snapshot families use statistics releases',
-    `SELECT 1 FROM snapshotSources WHERE snapshotId NOT IN (${snapshotSelection}) AND (resourceReleaseId IN (${RELEASES}) OR anchorReleaseId IN (${RELEASES})) LIMIT 1`,
+    `SELECT 1 FROM snapshotSourceReleases WHERE snapshotId NOT IN (${snapshotSelection}) AND (resourceReleaseId IN (${RELEASES}) OR anchorReleaseId IN (${RELEASES})) LIMIT 1`,
   )
   await check(
     context.metaBinding,
@@ -132,12 +132,12 @@ export async function statsResetBlockers(context: ResetReadContext) {
   await check(
     context.metaBinding,
     'Other snapshots retain statistics parents or assembly anchors',
-    `SELECT 1 FROM snapshots WHERE id NOT IN (${snapshotSelection}) AND parentSnapshotId IN (${snapshotSelection}) UNION ALL SELECT 1 FROM snapshotAssemblyRuns WHERE snapshotId NOT IN (${snapshotSelection}) AND anchorReleaseId IN (${RELEASES}) LIMIT 1`,
+    `SELECT 1 FROM snapshots WHERE id NOT IN (${snapshotSelection}) AND parentSnapshotId IN (${snapshotSelection}) UNION ALL SELECT 1 FROM snapshotAssemblies WHERE snapshotId NOT IN (${snapshotSelection}) AND anchorReleaseId IN (${RELEASES}) LIMIT 1`,
   )
   await check(
     context.metaBinding,
     'Other snapshots retain exact statistics lookup dependencies',
-    `SELECT 1 FROM snapshotAssemblyRuns, json_each(selectionSummaryJson, '$.lookupSnapshotIds') AS dependency WHERE snapshotId NOT IN (${snapshotSelection}) AND dependency.value IN (${snapshotSelection}) LIMIT 1`,
+    `SELECT 1 FROM snapshotDependencies WHERE snapshotId NOT IN (${snapshotSelection}) AND dependencySnapshotId IN (${snapshotSelection}) LIMIT 1`,
   )
   const geometryIds = plan.snapshots
     .filter(row => row.resourceType !== 'divisionStatistic')
@@ -255,8 +255,9 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
       'releaseShardAssignments',
       'releaseProvenance',
     ].map(table => `DELETE FROM ${table} WHERE releaseId IN (${RELEASES});`),
-    ...deleteIds('snapshotAssemblyRuns', 'snapshotId', snapshotIds),
-    ...deleteIds('snapshotSources', 'snapshotId', snapshotIds),
+    ...deleteIds('snapshotDependencies', 'snapshotId', snapshotIds),
+    ...deleteIds('snapshotAssemblies', 'snapshotId', snapshotIds),
+    ...deleteIds('snapshotSourceReleases', 'snapshotId', snapshotIds),
     ...setIds.map(
       id =>
         `UPDATE apiReleaseSets SET supersedesApiReleaseSetId = NULL WHERE supersedesApiReleaseSetId = ${literal(id)};`,

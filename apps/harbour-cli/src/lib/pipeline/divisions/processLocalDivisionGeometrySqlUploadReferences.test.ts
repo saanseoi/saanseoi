@@ -38,7 +38,7 @@ test('historical C&SD geometry validates against later Overture history without 
         ('early','lineage',NULL,'division','overture-2025','2025-01-01.0','published'),
         ('complete','lineage','early','division','overture-2026-01','2026-01-01.0','published'),
         ('latest','lineage','complete','division','overture-2026-08','2026-08-19.0','published');
-      INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId,role) VALUES
+      INSERT INTO snapshotSourceReleases(snapshotId,datasetId,resourceReleaseId,role) VALUES
         ('early','divisions','release-2025','primary'),
         ('complete','divisions','release-2026-01','primary'),
         ('latest','divisions','release-2026-08','primary');

@@ -8,7 +8,7 @@ import { hashValue } from '@repo/core/provenance'
 import {
   ensureDraftSnapshotForRelease,
   recordSnapshotLookupDependency,
-  recordSnapshotAssemblyRun,
+  recordSnapshotAssembly,
   resolveShardForTypeRegionYear,
   upsertReleaseShardAssignment,
   upsertSnapshotShardAssignment,
@@ -70,7 +70,7 @@ import {
   normaliseHkgovPlandNewTownInputRow,
   requireString,
   resolveProviderBridgeConfig,
-  selectCenstatdInheritedSnapshotSources,
+  selectCenstatdInheritedSnapshotSourceReleases,
   simplifyHkgovDivisionAreas,
 } from './processLocalDivisionGeometrySqlUploadPreparation.ts'
 import { LOCAL_RELEASE_ROOT } from './processLocalDivisionGeometrySqlUploadConfig.ts'
@@ -589,16 +589,21 @@ export async function processLocalDivisionGeometrySqlUpload(
       if (isCenstatdGeometryCompanionPlan(previewPlan) && snapshot.parentSnapshotId) {
         const inheritedSources = await metaDb
           .select({
-            datasetId: metaSchema.metaSnapshotSources.datasetId,
-            role: metaSchema.metaSnapshotSources.role,
-            sourceReleaseId: metaSchema.metaSnapshotSources.resourceReleaseId,
+            datasetId: metaSchema.metaSnapshotSourceReleases.datasetId,
+            role: metaSchema.metaSnapshotSourceReleases.role,
+            sourceReleaseId: metaSchema.metaSnapshotSourceReleases.resourceReleaseId,
           })
-          .from(metaSchema.metaSnapshotSources)
+          .from(metaSchema.metaSnapshotSourceReleases)
           .where(
-            eq(metaSchema.metaSnapshotSources.snapshotId, snapshot.parentSnapshotId),
+            eq(
+              metaSchema.metaSnapshotSourceReleases.snapshotId,
+              snapshot.parentSnapshotId,
+            ),
           )
           .all()
-        for (const source of selectCenstatdInheritedSnapshotSources(inheritedSources)) {
+        for (const source of selectCenstatdInheritedSnapshotSourceReleases(
+          inheritedSources,
+        )) {
           await upsertSnapshotSource(
             metaDb,
             snapshot.id,
@@ -629,12 +634,12 @@ export async function processLocalDivisionGeometrySqlUpload(
       )
       await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)
     }
-    await recordSnapshotAssemblyRun(metaDb, {
+    await recordSnapshotAssembly(metaDb, {
       snapshotId: snapshot.id,
       resourceType: previewPlan.resourceType,
       anchorReleaseId: dataset.releaseId,
       anchorCohortKey: dataset.cohortKey,
-      selectionSummaryJson: {
+      detailsJson: {
         releaseRole: reusesExistingGeometrySnapshot ? 'verified-identical' : 'primary',
         sourceReleaseId: dataset.releaseId,
         sourceVersion: dataset.sourceVersion,
@@ -925,7 +930,7 @@ export { geometryBuildUpsertSql } from './processLocalDivisionGeometrySqlUploadR
 
 export {
   divisionReferenceVariant,
-  selectCenstatdInheritedSnapshotSources,
+  selectCenstatdInheritedSnapshotSourceReleases,
   hasIdenticalGeometryMaterialisation,
   simplifyHkgovDivisionAreas,
   asOptionalInteger,

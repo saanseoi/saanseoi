@@ -678,13 +678,13 @@ async function prepareSupplementaryAddressesLocked(
   if (snapshot.status === 'published') {
     const runs = await db
       .select()
-      .from(metaSchema.metaSnapshotAssemblyRuns)
-      .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, snapshot.id))
+      .from(metaSchema.metaSnapshotAssemblies)
+      .where(eq(metaSchema.metaSnapshotAssemblies.snapshotId, snapshot.id))
       .all()
     if (
       !runs.some(
         run =>
-          (run.selectionSummaryJson as { materialisationHash?: string } | null)
+          (run.detailsJson as { materialisationHash?: string } | null)
             ?.materialisationHash === materialisationHash,
       )
     ) {
@@ -721,7 +721,9 @@ async function prepareSupplementaryAddressesLocked(
       resourceType: 'address',
       anchorReleaseId: input.releaseId,
       anchorCohortKey: input.plan.cohortKey,
-      selectionSummaryJson: {
+      dependencies: { address: input.snapshots.addressSnapshotId },
+      reviewRequired: 0,
+      detailsJson: {
         materialisationHash,
         policyVersion: fixture.activePolicy,
         policies,
@@ -733,8 +735,6 @@ async function prepareSupplementaryAddressesLocked(
             entries: fixture.entries,
           },
         }),
-        addressSnapshotId: input.snapshots.addressSnapshotId,
-        reviewRequired: 0,
         unreviewedAddressCases: reviewCount,
         rowCount: addresses.length,
       },

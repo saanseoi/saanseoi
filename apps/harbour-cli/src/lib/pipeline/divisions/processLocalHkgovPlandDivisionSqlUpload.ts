@@ -29,7 +29,7 @@ import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
 import { refreshRemoteMetaCache } from '../../dbCache/localDbCache.ts'
 import {
   ensureDraftSnapshotForRelease,
-  recordSnapshotAssemblyRun,
+  recordSnapshotAssembly,
   resolveShardForTypeRegionYear,
   upsertReleaseShardAssignment,
   upsertSnapshotShardAssignment,
@@ -180,12 +180,12 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             sourceCohortKey: dataset.cohortKey,
           },
         )
-        await recordSnapshotAssemblyRun(metaDb, {
+        await recordSnapshotAssembly(metaDb, {
           snapshotId: snapshot.id,
           resourceType: 'division',
           anchorReleaseId: dataset.releaseId,
           anchorCohortKey: dataset.cohortKey,
-          selectionSummaryJson: {
+          detailsJson: {
             releaseRole: PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
             sourceReleaseId: dataset.releaseId,
             sourceVersion: dataset.sourceVersion,

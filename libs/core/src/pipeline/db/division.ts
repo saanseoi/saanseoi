@@ -5,7 +5,7 @@ import type { DatasetProcessingMessage } from '../../types'
 import { datasetVariantForSource, identityModeForSource } from '../../codes'
 import {
   ensureDraftSnapshotForRelease,
-  recordSnapshotAssemblyRun,
+  recordSnapshotAssembly,
   resolveShardForTypeRegionYear,
   upsertSnapshotSource,
   upsertReleaseShardAssignment,
@@ -400,12 +400,12 @@ export async function prepareDivisionVersionInsertContext(
       sourceCohortKey: dataset.cohortKey,
     },
   )
-  await recordSnapshotAssemblyRun(metaDb, {
+  await recordSnapshotAssembly(metaDb, {
     snapshotId: snapshot.id,
     resourceType: message.resourceType,
     anchorReleaseId: dataset.releaseId,
     anchorCohortKey: dataset.cohortKey,
-    selectionSummaryJson: {
+    detailsJson: {
       releaseRole: 'primary',
       sourceReleaseId: dataset.releaseId,
       sourceVersion: dataset.sourceVersion,

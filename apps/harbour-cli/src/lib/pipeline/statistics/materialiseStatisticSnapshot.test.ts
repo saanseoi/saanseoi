@@ -95,12 +95,12 @@ test.each(['2026-Q2', '2023-H2'])(
     expect(sqlite.query('SELECT DISTINCT geometryStatus FROM snapshots').all()).toEqual(
       [{ geometryStatus: null }],
     )
-    expect(sqlite.query('SELECT * FROM snapshotAssembly').all()).toHaveLength(1)
-    expect(sqlite.query('SELECT * FROM snapshotAssemblySources').all()).toHaveLength(1)
+    expect(sqlite.query('SELECT * FROM snapshotRecipes').all()).toHaveLength(1)
+    expect(sqlite.query('SELECT * FROM snapshotRecipeInputs').all()).toHaveLength(1)
     expect(
       sqlite
         .query(
-          'SELECT anchorCohortKey FROM snapshotAssemblyRuns ORDER BY anchorCohortKey',
+          'SELECT anchorCohortKey FROM snapshotAssemblies ORDER BY anchorCohortKey',
         )
         .all(),
     ).toEqual([{ anchorCohortKey: '2016' }, { anchorCohortKey: '2024/25' }])

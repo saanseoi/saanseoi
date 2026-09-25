@@ -267,7 +267,7 @@ test('refuses to cascade a Division removal into another Address serving scope',
 test('restores Address2D/3D, localisations and derived number ranges using exact serving dependencies', async () => {
   const f = fixture('address')
   try {
-    insert(f.meta, 'snapshotAssembly', {
+    insert(f.meta, 'snapshotRecipes', {
       id: 'assembly',
       code: 'assembly',
       resourceType: 'address',
@@ -275,12 +275,23 @@ test('restores Address2D/3D, localisations and derived number ranges using exact
       status: 'scoped',
       versionHash: 'assembly',
     })
-    insert(f.meta, 'snapshotAssemblyRuns', {
+    insert(f.meta, 'snapshotAssemblies', {
       id: 'assembly-b',
       snapshotId: 'b',
-      snapshotAssemblyId: 'assembly',
+      snapshotRecipeId: 'assembly',
       status: 'selected',
-      selectionSummaryJson: { lookupSnapshotIds: { division: 'division-old' } },
+    })
+    insert(f.meta, 'snapshots', {
+      id: 'division-old',
+      code: 'division-old',
+      resourceType: 'division',
+      cohortKey: '2026',
+      status: 'published',
+    })
+    insert(f.meta, 'snapshotDependencies', {
+      snapshotId: 'b',
+      role: 'division',
+      dependencySnapshotId: 'division-old',
     })
     historyRow(f.first, 'address2d', {
       id: 'home',
@@ -364,6 +375,11 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
   const f = fixture('address')
   const cacheDir = mkdtempSync(join(tmpdir(), 'rollback-membership-'))
   try {
+    insert(f.meta, 'publishers', {
+      id: 'publisher',
+      code: 'publisher',
+      versionHash: 'hash',
+    })
     insert(f.meta, 'datasets', {
       id: 'als',
       publisherId: 'publisher',
@@ -374,13 +390,31 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       theme: 'addresses',
       versionHash: 'als',
     })
-    insert(f.meta, 'snapshotSources', {
+    insert(f.meta, 'sourceReleases', {
+      id: 'source',
+      datasetId: 'als',
+      code: 'source',
+      sourceVersion: '2026',
+      cohortKey: '2026',
+      status: 'published',
+    })
+    insert(f.meta, 'releases', {
+      id: 'release',
+      sourceReleaseId: 'source',
+      datasetId: 'als',
+      resourceType: 'address',
+      code: 'release',
+      sourceVersion: '2026',
+      cohortKey: '2026',
+      status: 'published',
+    })
+    insert(f.meta, 'snapshotSourceReleases', {
       snapshotId: 'b',
       datasetId: 'als',
       resourceReleaseId: 'release',
       role: 'primary',
     })
-    insert(f.meta, 'snapshotAssembly', {
+    insert(f.meta, 'snapshotRecipes', {
       id: 'assembly',
       code: 'assembly',
       resourceType: 'address',
@@ -388,12 +422,23 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       status: 'scoped',
       versionHash: 'assembly',
     })
-    insert(f.meta, 'snapshotAssemblyRuns', {
+    insert(f.meta, 'snapshotAssemblies', {
       id: 'assembly-b',
       snapshotId: 'b',
-      snapshotAssemblyId: 'assembly',
+      snapshotRecipeId: 'assembly',
       status: 'selected',
-      selectionSummaryJson: { lookupSnapshotIds: { division: 'division-old' } },
+    })
+    insert(f.meta, 'snapshots', {
+      id: 'division-old',
+      code: 'division-old',
+      resourceType: 'division',
+      cohortKey: '2026',
+      status: 'published',
+    })
+    insert(f.meta, 'snapshotDependencies', {
+      snapshotId: 'b',
+      role: 'division',
+      dependencySnapshotId: 'division-old',
     })
     insert(f.current, 'divisionPublicationState', {
       scopeId: 'division-scope',

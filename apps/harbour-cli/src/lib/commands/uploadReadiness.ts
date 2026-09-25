@@ -369,12 +369,18 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
           ),
         )
         .innerJoin(
-          metaSchema.metaSnapshotSources,
-          eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+          metaSchema.metaSnapshotSourceReleases,
+          eq(
+            metaSchema.metaSnapshots.id,
+            metaSchema.metaSnapshotSourceReleases.snapshotId,
+          ),
         )
         .innerJoin(
           metaSchema.metaDatasets,
-          eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
+          eq(
+            metaSchema.metaSnapshotSourceReleases.datasetId,
+            metaSchema.metaDatasets.id,
+          ),
         )
         .where(
           and(
@@ -383,7 +389,7 @@ async function resolveLocalPublishedDivisionSnapshotForGeometryPlan(
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
             matchesDivisionDomain(plan.source, plan.datasetCode),
-            eq(metaSchema.metaSnapshotSources.role, 'primary'),
+            eq(metaSchema.metaSnapshotSourceReleases.role, 'primary'),
           ),
         )
         .limit(1)
@@ -420,12 +426,18 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
           ),
         )
         .innerJoin(
-          metaSchema.metaSnapshotSources,
-          eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+          metaSchema.metaSnapshotSourceReleases,
+          eq(
+            metaSchema.metaSnapshots.id,
+            metaSchema.metaSnapshotSourceReleases.snapshotId,
+          ),
         )
         .innerJoin(
           metaSchema.metaDatasets,
-          eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
+          eq(
+            metaSchema.metaSnapshotSourceReleases.datasetId,
+            metaSchema.metaDatasets.id,
+          ),
         )
         .where(
           and(
@@ -434,7 +446,7 @@ async function resolveRemotePublishedSnapshotForGeometryPlan(
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
             matchesDivisionDomain(plan.source, plan.datasetCode),
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
-            eq(metaSchema.metaSnapshotSources.role, 'primary'),
+            eq(metaSchema.metaSnapshotSourceReleases.role, 'primary'),
           ),
         )
         .limit(1)
@@ -583,12 +595,18 @@ async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
           ),
         )
         .innerJoin(
-          metaSchema.metaSnapshotSources,
-          eq(metaSchema.metaSnapshots.id, metaSchema.metaSnapshotSources.snapshotId),
+          metaSchema.metaSnapshotSourceReleases,
+          eq(
+            metaSchema.metaSnapshots.id,
+            metaSchema.metaSnapshotSourceReleases.snapshotId,
+          ),
         )
         .innerJoin(
           metaSchema.metaDatasets,
-          eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
+          eq(
+            metaSchema.metaSnapshotSourceReleases.datasetId,
+            metaSchema.metaDatasets.id,
+          ),
         )
         .where(
           and(
@@ -597,7 +615,7 @@ async function resolveRemotePublishedDivisionSnapshotForAddressPlan(
             eq(metaSchema.metaSnapshots.cohortKey, plan.cohortKey),
             eq(metaSchema.metaDatasets.regionCode, plan.regionCode),
             matchesDivisionDomain('overture'),
-            eq(metaSchema.metaSnapshotSources.role, 'primary'),
+            eq(metaSchema.metaSnapshotSourceReleases.role, 'primary'),
           ),
         )
         .limit(1)

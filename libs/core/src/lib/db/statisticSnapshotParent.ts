@@ -31,19 +31,19 @@ export async function resolveAcceptedStatisticSnapshotParent(
             ORDER BY latest.publishedAt DESC,latest.revision DESC LIMIT 1)
       )`,
       completed: sql<number>`EXISTS (
-        SELECT 1 FROM snapshotSources source
+        SELECT 1 FROM snapshotSourceReleases source
         JOIN releases release ON release.id=source.resourceReleaseId
         JOIN releaseProvenance audit ON audit.releaseId=release.id
         WHERE source.snapshotId=snapshots.id AND source.role='primary'
           AND release.status='published' AND audit.attemptStatus='completed'
       ) AND NOT EXISTS (
-        SELECT 1 FROM snapshotSources source
+        SELECT 1 FROM snapshotSourceReleases source
         JOIN releases release ON release.id=source.resourceReleaseId
         WHERE source.snapshotId=snapshots.id AND source.role<>'lookup'
           AND release.status NOT IN ('published','superseded')
       )`,
       revoked: sql<number>`EXISTS (
-        SELECT 1 FROM snapshotSources source
+        SELECT 1 FROM snapshotSourceReleases source
         JOIN releases release ON release.id=source.resourceReleaseId
         WHERE source.snapshotId=snapshots.id AND source.role<>'lookup' AND release.status='revoked'
       )`,

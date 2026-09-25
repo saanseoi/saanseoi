@@ -1,3 +1,4 @@
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { and, currentSchema, eq, metaSchema, sql } from '@repo/db'
 
@@ -5,15 +6,8 @@ export async function readAddressDivisionSnapshotId(
   metaDb: HarbourReadableDb,
   addressSnapshotId: string,
 ) {
-  const assembly = await metaDb
-    .select({ summary: metaSchema.metaSnapshotAssemblyRuns.selectionSummaryJson })
-    .from(metaSchema.metaSnapshotAssemblyRuns)
-    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, addressSnapshotId))
-    .get()
-  const summary = assembly?.summary as
-    | { lookupSnapshotIds?: { division?: string } }
-    | undefined
-  const divisionSnapshotId = summary?.lookupSnapshotIds?.division
+  const divisionSnapshotId = (await readSnapshotDependencies(metaDb, addressSnapshotId))
+    .division
   if (!divisionSnapshotId)
     throw new Error(
       `Address snapshot ${addressSnapshotId} has no recorded exact Division dependency.`,
@@ -86,15 +80,7 @@ export async function readAddressDivisionAreaSnapshotId(
   metaDb: HarbourReadableDb,
   addressSnapshotId: string,
 ) {
-  const assembly = await metaDb
-    .select({ summary: metaSchema.metaSnapshotAssemblyRuns.selectionSummaryJson })
-    .from(metaSchema.metaSnapshotAssemblyRuns)
-    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, addressSnapshotId))
-    .get()
-  const summary = assembly?.summary as
-    | { lookupSnapshotIds?: { divisionArea?: string } }
-    | undefined
-  const id = summary?.lookupSnapshotIds?.divisionArea
+  const id = (await readSnapshotDependencies(metaDb, addressSnapshotId)).divisionArea
   if (!id)
     throw new Error(
       `Address snapshot ${addressSnapshotId} has no recorded exact DivisionArea dependency.`,

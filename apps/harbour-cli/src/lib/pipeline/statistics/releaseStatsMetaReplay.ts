@@ -243,8 +243,8 @@ export async function replayStatisticSnapshotMetaToRemote(
         uniqueSnapshotIds.map(snapshotId =>
           metaDb
             .select()
-            .from(metaSchema.metaSnapshotSources)
-            .where(eq(metaSchema.metaSnapshotSources.snapshotId, snapshotId))
+            .from(metaSchema.metaSnapshotSourceReleases)
+            .where(eq(metaSchema.metaSnapshotSourceReleases.snapshotId, snapshotId))
             .all(),
         ),
       ).then(rows => rows.flat()),
@@ -342,7 +342,7 @@ export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshot
     ),
     ...(metadata.assemblySql ?? []),
     ...buildMetaInsertStatements(
-      'snapshotSources',
+      'snapshotSourceReleases',
       [
         'snapshotId',
         'datasetId',

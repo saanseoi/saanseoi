@@ -247,7 +247,9 @@ for (const order of [types, [...types].reverse()]) {
         ).toEqual({ value: type === 'divisionStatistic' ? 241155 : 18 })
         expect(
           sqlite
-            .query('SELECT resourceReleaseId FROM snapshotSources WHERE snapshotId = ?')
+            .query(
+              'SELECT resourceReleaseId FROM snapshotSourceReleases WHERE snapshotId = ?',
+            )
             .get(type),
         ).toEqual({ resourceReleaseId: id })
       }

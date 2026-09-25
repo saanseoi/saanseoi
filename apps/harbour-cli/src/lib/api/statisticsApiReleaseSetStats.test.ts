@@ -126,7 +126,7 @@ test('frozen history follows sparse ancestry for no-op reissues and exact defini
     createTables(meta, [
       metaSchema.metaApiReleaseSetSnapshots,
       metaSchema.metaSnapshots,
-      metaSchema.metaSnapshotSources,
+      metaSchema.metaSnapshotSourceReleases,
       metaSchema.metaDatasets,
       metaSchema.metaSnapshotShardAssignments,
       metaSchema.metaDataShards,
@@ -140,7 +140,7 @@ test('frozen history follows sparse ancestry for no-op reissues and exact defini
     meta.exec(`INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId,snapshotId,role) VALUES ('api','reissue','primary');
       INSERT INTO snapshots (id,resourceType,parentSnapshotId) VALUES ('base','divisionStatistic',NULL),('reissue','divisionStatistic','base');
       INSERT INTO datasets (id,code) VALUES ('dataset','a');
-      INSERT INTO snapshotSources (snapshotId,datasetId,resourceReleaseId,role) VALUES ('reissue','dataset','new-source','primary');`)
+      INSERT INTO snapshotSourceReleases (snapshotId,datasetId,resourceReleaseId,role) VALUES ('reissue','dataset','new-source','primary');`)
     history.exec(`INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,referencePeriodCode,"values",geography,isCurrent,versionHash,fieldDefinitionHashes,fieldSources) VALUES
       ('yes','a','old-source','2025','{"population":"1"}','{"kind":"district","code":"one"}',0,'v1','{"population":"f1"}','{}'),
       ('yes','a','later-source','2025','{"population":"2"}','{"kind":"district","code":"one"}',1,'v2','{"population":"f2"}','{}'),

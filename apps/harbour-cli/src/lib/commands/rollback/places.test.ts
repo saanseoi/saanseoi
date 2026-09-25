@@ -67,7 +67,7 @@ async function fixture() {
     insert(meta, 'snapshotShardAssignments', { snapshotId: id, dataShardId: shard })
   }
   const assembly = (id: string, kind: string, selection: Record<string, unknown>) => {
-    insert(meta, 'snapshotAssembly', {
+    insert(meta, 'snapshotRecipes', {
       id,
       code: id,
       resourceType: kind,
@@ -75,13 +75,18 @@ async function fixture() {
       status: 'scoped',
       versionHash: id,
     })
-    insert(meta, 'snapshotAssemblyRuns', {
+    insert(meta, 'snapshotAssemblies', {
       id,
       snapshotId: id,
-      snapshotAssemblyId: id,
+      snapshotRecipeId: id,
       status: 'selected',
-      selectionSummaryJson: { lookupSnapshotIds: selection },
     })
+    for (const [role, dependencySnapshotId] of Object.entries(selection))
+      insert(meta, 'snapshotDependencies', {
+        snapshotId: id,
+        role,
+        dependencySnapshotId,
+      })
   }
   const journal = (
     db: Database,
@@ -485,7 +490,7 @@ test.each([
         f.meta.exec("DELETE FROM snapshotShardAssignments WHERE snapshotId='d0'")
       if (failure === 'address-content') f.old.exec('DELETE FROM address2d')
       if (failure === 'assembly')
-        f.meta.exec("DELETE FROM snapshotAssemblyRuns WHERE snapshotId='p0'")
+        f.meta.exec("DELETE FROM snapshotDependencies WHERE snapshotId='p0'")
       if (failure === 'source') f.old.exec('DELETE FROM sourceResolutions')
       if (failure === 'text') {
         f.current.exec('UPDATE placesI18n SET searchDependencyText=NULL')

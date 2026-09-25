@@ -27,11 +27,15 @@ export async function collectStatsResetDependencies(
   const allSnapshots = await resetRows(meta, 'SELECT * FROM snapshots ORDER BY id')
   const sources = await resetRows(
     meta,
-    'SELECT * FROM snapshotSources ORDER BY snapshotId, resourceReleaseId',
+    'SELECT * FROM snapshotSourceReleases ORDER BY snapshotId, resourceReleaseId',
   )
   const assemblies = await resetRows(
     meta,
-    'SELECT * FROM snapshotAssemblyRuns ORDER BY id',
+    'SELECT * FROM snapshotAssemblies ORDER BY id',
+  )
+  const snapshotDependencies = await resetRows(
+    meta,
+    'SELECT * FROM snapshotDependencies ORDER BY snapshotId, role',
   )
   const publications = await resetRows(
     context.currentBinding,
@@ -136,6 +140,11 @@ export async function collectStatsResetDependencies(
     // Retain dependency edges in the plan so confirmation revalidation detects
     // changed compositions even when their selected IDs remain the same.
     dependencies: {
+      snapshotDependencies: snapshotDependencies.filter(
+        row =>
+          selected.has(String(row.snapshotId)) ||
+          selected.has(String(row.dependencySnapshotId)),
+      ),
       publications: publications.filter(row => selected.has(String(row.snapshotId))),
       sources: sources.filter(
         row =>

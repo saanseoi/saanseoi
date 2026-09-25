@@ -67,10 +67,10 @@ export async function resolveApiReleaseSetAccessAttribution(
        FROM apiReleaseSets
        INNER JOIN apiReleaseSetSnapshots
          ON apiReleaseSetSnapshots.apiReleaseSetId = apiReleaseSets.id
-       INNER JOIN snapshotSources
-         ON snapshotSources.snapshotId = apiReleaseSetSnapshots.snapshotId
+       INNER JOIN snapshotSourceReleases
+         ON snapshotSourceReleases.snapshotId = apiReleaseSetSnapshots.snapshotId
        INNER JOIN releases
-         ON releases.id = snapshotSources.resourceReleaseId
+         ON releases.id = snapshotSourceReleases.resourceReleaseId
        INNER JOIN sourceReleases
          ON sourceReleases.id = releases.sourceReleaseId
        INNER JOIN datasets
@@ -79,7 +79,7 @@ export async function resolveApiReleaseSetAccessAttribution(
          ON publishers.id = datasets.publisherId
        WHERE (apiReleaseSets.id = ? OR apiReleaseSets.code = ?)
          AND apiReleaseSets.status <> 'draft'
-         AND snapshotSources.role <> 'lookup'
+         AND snapshotSourceReleases.role <> 'lookup'
          AND releases.status IN ('published', 'superseded')
          AND releases.revokedAt IS NULL
          AND sourceReleases.status IN ('published', 'superseded')

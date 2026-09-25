@@ -1,3 +1,4 @@
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import { statisticDefinitionSet } from '@repo/db'
 import type { Database, SQLQueryBindings } from 'bun:sqlite'
 import { join } from 'node:path'
@@ -128,18 +129,7 @@ export function insertProjectionRow(
 }
 
 async function addressDependencies(input: RestoreSnapshotProjectionInput) {
-  const assembly = await input.metaDb
-    .select({ summary: metaSchema.metaSnapshotAssemblyRuns.selectionSummaryJson })
-    .from(metaSchema.metaSnapshotAssemblyRuns)
-    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, input.snapshotId))
-    .all()
-  if (assembly.length !== 1)
-    throw new Error(
-      `Address snapshot ${input.snapshotId} requires one exact assembly selection.`,
-    )
-  const lookup = (
-    assembly[0]?.summary as { lookupSnapshotIds?: Record<string, string> } | undefined
-  )?.lookupSnapshotIds
+  const lookup = await readSnapshotDependencies(input.metaDb, input.snapshotId)
   if (!lookup?.division)
     throw new Error(
       `Address snapshot ${input.snapshotId} has no recorded exact Division dependency.`,
@@ -167,12 +157,12 @@ async function addressDependencies(input: RestoreSnapshotProjectionInput) {
 async function addressMembership(input: RestoreSnapshotProjectionInput) {
   const sources = await input.metaDb
     .select({ code: metaSchema.metaDatasets.code })
-    .from(metaSchema.metaSnapshotSources)
+    .from(metaSchema.metaSnapshotSourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaSnapshotSources.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaSnapshotSourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
-    .where(eq(metaSchema.metaSnapshotSources.snapshotId, input.snapshotId))
+    .where(eq(metaSchema.metaSnapshotSourceReleases.snapshotId, input.snapshotId))
     .all()
   if (!sources.some(source => source.code === 'ds-hk-hkgov-dpo-address')) return null
   if (!input.cacheDir)

@@ -22,7 +22,7 @@ export async function readAuditGeometry(input: {
   metaDb: MetaDatabase
   getHistoryDb: (bindingName: string) => HistoryDatabase
 }) {
-  const { metaSnapshotSources: sources, metaSnapshots: snapshots } = metaSchema
+  const { metaSnapshotSourceReleases: sources, metaSnapshots: snapshots } = metaSchema
   const references = await input.metaDb
     .select({ snapshotId: sources.snapshotId })
     .from(sources)

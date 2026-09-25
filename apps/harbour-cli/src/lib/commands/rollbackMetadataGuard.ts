@@ -32,7 +32,8 @@ export function buildRollbackMetadataGuard(
     ['apiReleaseSets', `id IN (${sets})`],
     ['apiReleaseSetSnapshots', `apiReleaseSetId IN (${sets})`],
     ['snapshots', `id IN (${snapshots})`],
-    ['snapshotSources', `snapshotId IN (${snapshots})`],
+    ['snapshotSourceReleases', `snapshotId IN (${snapshots})`],
+    ['snapshotDependencies', `snapshotId IN (${snapshots})`],
   ]) {
     const columns = meta
       .query<{ name: string; pk: number }, []>(`PRAGMA table_info("${table}")`)

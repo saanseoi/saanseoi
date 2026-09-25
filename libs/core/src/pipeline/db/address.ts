@@ -4,7 +4,7 @@ import { sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import type { DatasetProcessingMessage } from '../../types'
 import {
   ensureDraftSnapshotForRelease,
-  recordSnapshotAssemblyRun,
+  recordSnapshotAssembly,
   resolveSnapshotReplayPlan,
   type SnapshotReplayStep,
   resolveShardForTypeRegionYear,
@@ -829,12 +829,12 @@ export async function prepareAddressVersionInsertContext(
       sourceCohortKey: dataset.cohortKey,
     },
   )
-  await recordSnapshotAssemblyRun(metaDb, {
+  await recordSnapshotAssembly(metaDb, {
     snapshotId: snapshot.id,
     resourceType: 'address',
     anchorReleaseId: releaseRole === 'primary' ? dataset.releaseId : null,
     anchorCohortKey: dataset.cohortKey,
-    selectionSummaryJson: {
+    detailsJson: {
       releaseRole,
       sourceReleaseId: dataset.releaseId,
       sourceVersion: dataset.sourceVersion,

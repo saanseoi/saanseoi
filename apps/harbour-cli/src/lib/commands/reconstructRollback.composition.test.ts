@@ -19,7 +19,7 @@ async function composedFixture() {
     primaryDatasetId: 'dataset',
     versionHash: 'address-lineage',
   })
-  insert(f.meta, 'snapshotAssembly', {
+  insert(f.meta, 'snapshotRecipes', {
     id: 'address-assembly',
     code: 'address-assembly',
     resourceType: 'address',
@@ -48,7 +48,7 @@ async function composedFixture() {
       revision: name === 'new' ? 1 : 0,
       status: 'published',
     })
-    insert(f.meta, 'snapshotSources', {
+    insert(f.meta, 'snapshotSourceReleases', {
       snapshotId: `address-a-${name}`,
       datasetId: 'dataset',
       resourceReleaseId: `release-address-${name}`,
@@ -65,12 +65,16 @@ async function composedFixture() {
       isRequired: 1,
       cohortMatchingMode: 'exact',
     })
-    insert(f.meta, 'snapshotAssemblyRuns', {
+    insert(f.meta, 'snapshotAssemblies', {
       id: `assembly-${name}`,
       snapshotId: `address-a-${name}`,
-      snapshotAssemblyId: 'address-assembly',
+      snapshotRecipeId: 'address-assembly',
       status: 'selected',
-      selectionSummaryJson: { lookupSnapshotIds: { division: `snapshot-${name}` } },
+    })
+    insert(f.meta, 'snapshotDependencies', {
+      snapshotId: `address-a-${name}`,
+      role: 'division',
+      dependencySnapshotId: `snapshot-${name}`,
     })
   }
   f.current.exec('PRAGMA foreign_keys=OFF')

@@ -143,7 +143,7 @@ Datasets with a cohort before 2025 use the region-scoped `DB_SOURCE_<REGION>_BEF
 not fall back to the 2025 shard. Year-rollover cache preparation also includes the
 `BEFORE` shard when previous shard continuity is requested.
 
-The uploaded release is linked to the snapshot through `snapshotSources`.
+The uploaded release is linked to the snapshot through `snapshotSourceReleases`.
 Snapshot-to-release membership is tracked at the snapshot level rather than by writing
 per-record provenance during local SQL ingestion.
 

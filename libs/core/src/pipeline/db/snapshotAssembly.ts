@@ -1,4 +1,4 @@
-import { requireDefined } from '../../requireDefined'
+import { recordSnapshotDependencies } from './snapshotDependencies'
 import {
   buildDeterministicUuidV5,
   computeVersionHash,
@@ -14,15 +14,15 @@ import { currentRowChangedSqlText } from '../services/publication/currentWrites'
 const namespace = '747dc748-4086-5dc5-a0de-7d1fefcd0c51'
 const {
   metaSnapshots,
-  metaSnapshotSources,
-  metaSnapshotAssembly,
-  metaSnapshotAssemblySources,
-  metaSnapshotAssemblyRuns,
+  metaSnapshotSourceReleases,
+  metaSnapshotRecipes,
+  metaSnapshotRecipeInputs,
+  metaSnapshotAssemblies,
 } = metaSchema
 
 /** Records the effective input recipe, not a catalogue of hypothetical inputs.
- * Recipes are content addressed; a draft run follows its evolving selection.
- * Published runs retain the recipe that produced the published snapshot. */
+ * Recipes are content addressed; a draft assembly follows its evolving selection.
+ * Published assemblies retain the recipe that produced the published snapshot. */
 export async function recordEffectiveSnapshotAssembly(
   db: HarbourReadableDb & HarbourWritableDb,
   args: {
@@ -30,7 +30,9 @@ export async function recordEffectiveSnapshotAssembly(
     resourceType: ResourceType
     anchorCohortKey: string
     anchorReleaseId?: string | null
-    selectionSummaryJson?: Record<string, unknown> | null
+    detailsJson?: metaSchema.SnapshotAssemblyDetails | null
+    dependencies?: Record<string, string>
+    reviewRequired?: number | null
     allowPlanning?: boolean
   },
 ) {
@@ -48,27 +50,32 @@ export async function recordEffectiveSnapshotAssembly(
       `Assembly snapshot is missing or has the wrong resource type: ${args.snapshotId}.`,
     )
   const existing = await db
-    .select()
-    .from(metaSnapshotAssemblyRuns)
-    .where(eq(metaSnapshotAssemblyRuns.snapshotId, args.snapshotId))
+    .select({
+      id: metaSnapshotAssemblies.id,
+      snapshotRecipeId: metaSnapshotAssemblies.snapshotRecipeId,
+      detailsJson: metaSnapshotAssemblies.detailsJson,
+      reviewRequired: metaSnapshotAssemblies.reviewRequired,
+    })
+    .from(metaSnapshotAssemblies)
+    .where(eq(metaSnapshotAssemblies.snapshotId, args.snapshotId))
     .get()
   if (snapshot.status !== 'draft') {
     if (!existing)
       throw new Error(`Published snapshot has no assembly record: ${args.snapshotId}.`)
-    return { id: String(existing.snapshotAssemblyId) }
+    return { id: String(existing.snapshotRecipeId) }
   }
   const sources = await db
     .select({
-      datasetId: metaSnapshotSources.datasetId,
-      sourceReleaseId: metaSnapshotSources.resourceReleaseId,
-      role: metaSnapshotSources.role,
-      selectedByRule: metaSnapshotSources.selectedByRule,
-      selectionMode: metaSnapshotSources.selectionMode,
-      anchorReleaseId: metaSnapshotSources.anchorReleaseId,
-      sourceCohortKey: metaSnapshotSources.sourceCohortKey,
+      datasetId: metaSnapshotSourceReleases.datasetId,
+      sourceReleaseId: metaSnapshotSourceReleases.resourceReleaseId,
+      role: metaSnapshotSourceReleases.role,
+      selectedByRule: metaSnapshotSourceReleases.selectedByRule,
+      selectionMode: metaSnapshotSourceReleases.selectionMode,
+      anchorReleaseId: metaSnapshotSourceReleases.anchorReleaseId,
+      sourceCohortKey: metaSnapshotSourceReleases.sourceCohortKey,
     })
-    .from(metaSnapshotSources)
-    .where(eq(metaSnapshotSources.snapshotId, args.snapshotId))
+    .from(metaSnapshotSourceReleases)
+    .where(eq(metaSnapshotSourceReleases.snapshotId, args.snapshotId))
     .all()
   sources.sort((a, b) =>
     `${a.datasetId}:${a.role}:${a.sourceReleaseId}`.localeCompare(
@@ -123,7 +130,7 @@ export async function recordEffectiveSnapshotAssembly(
   const assemblyId = buildDeterministicUuidV5(namespace, code)
   const now = toIsoTimestamp()
   await db
-    .insert(metaSnapshotAssembly)
+    .insert(metaSnapshotRecipes)
     .values({
       id: assemblyId,
       code,
@@ -132,7 +139,7 @@ export async function recordEffectiveSnapshotAssembly(
       status: 'scoped',
       versionHash,
       notes:
-        'Effective source selection recipe; required inputs reproduce this recorded selection.',
+        'Effective dataset inputs and selection policies used to construct snapshots.',
       createdAt: now,
       updatedAt: now,
     })
@@ -140,49 +147,25 @@ export async function recordEffectiveSnapshotAssembly(
     .run()
   for (const input of inputs.values()) {
     await db
-      .insert(metaSnapshotAssemblySources)
+      .insert(metaSnapshotRecipeInputs)
       .values({
-        snapshotAssemblyId: assemblyId,
+        snapshotRecipeId: assemblyId,
         datasetId: input.datasetId,
         role: input.role,
         isRequired: true,
-        selectorType:
-          input.rules.length === 1
-            ? requireDefined(input.rules[0]).selectionMode
-            : 'multiple',
         anchorDatasetId: null,
         maxLagDays: null,
         priority: 0,
-        selectionRulesJson: { rules: input.rules },
+        selectionPolicyJson: { rules: input.rules },
       })
       .onConflictDoNothing()
       .run()
   }
-  const previousSummary = existing?.selectionSummaryJson as
-    | Record<string, unknown>
-    | null
-    | undefined
-  const summary = {
-    ...(previousSummary && typeof previousSummary === 'object' ? previousSummary : {}),
-    ...args.selectionSummaryJson,
-    ...(previousSummary?.lookupSnapshotIds ||
-    args.selectionSummaryJson?.lookupSnapshotIds
-      ? {
-          lookupSnapshotIds: {
-            ...(previousSummary?.lookupSnapshotIds as
-              | Record<string, string>
-              | undefined),
-            ...(args.selectionSummaryJson?.lookupSnapshotIds as
-              | Record<string, string>
-              | undefined),
-          },
-        }
-      : {}),
-    sources,
-  }
+  const details = { ...existing?.detailsJson, ...args.detailsJson }
+  await recordSnapshotDependencies(db, args.snapshotId, args.dependencies ?? {})
   const primary = sources.find(source => source.role === 'primary')
   const values = {
-    snapshotAssemblyId: assemblyId,
+    snapshotRecipeId: assemblyId,
     anchorReleaseId:
       primary?.anchorReleaseId ??
       primary?.sourceReleaseId ??
@@ -190,11 +173,15 @@ export async function recordEffectiveSnapshotAssembly(
       null,
     anchorCohortKey: snapshot.cohortKey ?? args.anchorCohortKey,
     status: sources.length ? 'selected' : 'planning',
-    selectionSummaryJson: summary,
+    detailsJson: details,
+    reviewRequired:
+      args.reviewRequired === undefined
+        ? (existing?.reviewRequired ?? null)
+        : args.reviewRequired,
     updatedAt: now,
   }
   await db
-    .insert(metaSnapshotAssemblyRuns)
+    .insert(metaSnapshotAssemblies)
     .values({
       id:
         existing?.id ??
@@ -203,7 +190,7 @@ export async function recordEffectiveSnapshotAssembly(
       ...values,
       createdAt: now,
     })
-    .onConflictDoUpdate({ target: metaSnapshotAssemblyRuns.id, set: values })
+    .onConflictDoUpdate({ target: metaSnapshotAssemblies.id, set: values })
     .run()
   return { id: assemblyId, code }
 }
@@ -212,39 +199,51 @@ export async function recordEffectiveSnapshotAssembly(
 export async function readSnapshotAssemblySql(
   database: HarbourReadableDb | MetaDatabase,
   snapshotId: string,
-  includeRuns = false,
+  includeAssemblies = false,
 ) {
   const db = database as HarbourReadableDb
   const runs = await db
     .select()
-    .from(metaSnapshotAssemblyRuns)
-    .where(eq(metaSnapshotAssemblyRuns.snapshotId, snapshotId))
+    .from(metaSnapshotAssemblies)
+    .where(eq(metaSnapshotAssemblies.snapshotId, snapshotId))
     .all()
   if (!runs.length) throw new Error(`Snapshot assembly run is missing: ${snapshotId}.`)
   const statements: string[] = []
-  for (const id of new Set(runs.map(run => String(run.snapshotAssemblyId)))) {
+  for (const id of new Set(runs.map(run => String(run.snapshotRecipeId)))) {
     const assembly = await db
       .select()
-      .from(metaSnapshotAssembly)
-      .where(eq(metaSnapshotAssembly.id, id))
+      .from(metaSnapshotRecipes)
+      .where(eq(metaSnapshotRecipes.id, id))
       .get()
     if (!assembly) throw new Error(`Snapshot assembly recipe is missing: ${id}.`)
-    statements.push(insertSql('snapshotAssembly', assembly))
+    statements.push(insertSql('snapshotRecipes', assembly))
     const sources = await db
       .select()
-      .from(metaSnapshotAssemblySources)
-      .where(eq(metaSnapshotAssemblySources.snapshotAssemblyId, id))
+      .from(metaSnapshotRecipeInputs)
+      .where(eq(metaSnapshotRecipeInputs.snapshotRecipeId, id))
       .all()
-    statements.push(
-      ...sources.map(source => insertSql('snapshotAssemblySources', source)),
-    )
+    statements.push(...sources.map(source => insertSql('snapshotRecipeInputs', source)))
   }
-  if (includeRuns)
-    statements.push(...runs.map(run => insertSql('snapshotAssemblyRuns', run, 'id')))
+  if (includeAssemblies)
+    statements.push(...runs.map(run => insertSql('snapshotAssemblies', run, 'id')))
+  const dependencies = await db
+    .select()
+    .from(metaSchema.metaSnapshotDependencies)
+    .where(eq(metaSchema.metaSnapshotDependencies.snapshotId, snapshotId))
+    .all()
+  statements.push(
+    ...dependencies.map(dependency =>
+      insertSql('snapshotDependencies', dependency, ['snapshotId', 'role']),
+    ),
+  )
   return statements
 }
 
-function insertSql(table: string, row: Record<string, unknown>, updateKey?: string) {
+function insertSql(
+  table: string,
+  row: Record<string, unknown>,
+  updateKey?: string | string[],
+) {
   const quote = (value: string) => `"${value.replaceAll('"', '""')}"`
   const literal = (value: unknown): string => {
     if (value === null || value === undefined) return 'NULL'
@@ -254,9 +253,10 @@ function insertSql(table: string, row: Record<string, unknown>, updateKey?: stri
     return `'${text.replaceAll("'", "''")}'`
   }
   const columns = Object.keys(row)
-  const conflict = updateKey
-    ? `ON CONFLICT (${quote(updateKey)}) DO UPDATE SET ${columns
-        .filter(key => key !== updateKey)
+  const updateKeys = typeof updateKey === 'string' ? [updateKey] : updateKey
+  const conflict = updateKeys
+    ? `ON CONFLICT (${updateKeys.map(quote).join(', ')}) DO UPDATE SET ${columns
+        .filter(key => !updateKeys.includes(key))
         .map(key => `${quote(key)} = excluded.${quote(key)}`)
         .join(', ')} WHERE ${currentRowChangedSqlText(table, columns, [])}`
     : 'ON CONFLICT DO NOTHING'

@@ -1,7 +1,7 @@
 import {
   buildDeterministicSnapshotLineageId,
   ensureDraftSnapshotForRelease,
-  recordSnapshotAssemblyRun,
+  recordSnapshotAssembly,
   resolveAcceptedStatisticSnapshotParent,
   resolveShardForTypeRegionYear,
   upsertReleaseShardAssignment,
@@ -108,7 +108,7 @@ export async function materialiseStatisticSnapshots(args: {
       },
     )
 
-    await recordSnapshotAssemblyRun(args.metaDb, {
+    await recordSnapshotAssembly(args.metaDb, {
       snapshotId: snapshot.id,
       resourceType: 'divisionStatistic',
       anchorReleaseId: dataset.releaseId,

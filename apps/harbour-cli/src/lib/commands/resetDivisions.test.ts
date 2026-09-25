@@ -82,7 +82,7 @@ function setup() {
       resourceType,
     })
     insert(meta, 'snapshots', { id: resourceType, code: resourceType, resourceType })
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: resourceType,
       datasetId: 'dataset',
       resourceReleaseId: resourceType,
@@ -212,7 +212,7 @@ describe('all-divisions reset', () => {
 
   test('blocks other snapshot sources and API anchor dependencies', async () => {
     const { meta, context } = setup()
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: 'place',
       datasetId: 'dataset',
       resourceReleaseId: 'division',
@@ -247,18 +247,20 @@ describe('all-divisions reset', () => {
 
   test('blocks exact metadata lookup dependencies without requiring current materialisations', async () => {
     const { meta, context } = setup()
-    insert(meta, 'snapshotAssembly', {
+    insert(meta, 'snapshotRecipes', {
       id: 'lookup',
       code: 'lookup',
       resourceType: 'place',
     })
-    insert(meta, 'snapshotAssemblyRuns', {
+    insert(meta, 'snapshotAssemblies', {
       id: 'lookup',
       snapshotId: 'place',
-      snapshotAssemblyId: 'lookup',
-      selectionSummaryJson: JSON.stringify({
-        lookupSnapshotIds: { division: 'division' },
-      }),
+      snapshotRecipeId: 'lookup',
+    })
+    insert(meta, 'snapshotDependencies', {
+      snapshotId: 'place',
+      role: 'division',
+      dependencySnapshotId: 'division',
     })
     expect(await divisionResetBlockers(context)).toEqual([
       'Other snapshots retain exact division lookup dependencies',

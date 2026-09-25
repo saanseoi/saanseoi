@@ -166,6 +166,11 @@ function fixture() {
         },
       },
     }) as unknown as ReturnType<typeof createLocalHarbourDb>
+  insert(meta, 'publishers', {
+    id: 'publisher',
+    code: 'publisher',
+    versionHash: 'publisher',
+  })
   insert(meta, 'datasets', {
     id: 'dataset',
     code: datasetCode,
@@ -188,7 +193,25 @@ function fixture() {
       status: 'published',
       parentSnapshotId: parent,
     })
-    insert(meta, 'snapshotSources', {
+    insert(meta, 'sourceReleases', {
+      id: `${id}-source`,
+      datasetId: 'dataset',
+      code: `${id}-source`,
+      sourceVersion: `${period}-${id}`,
+      cohortKey: period,
+      status: 'published',
+    })
+    insert(meta, 'releases', {
+      id: `${id}-release`,
+      sourceReleaseId: `${id}-source`,
+      datasetId: 'dataset',
+      resourceType: 'divisionStatistic',
+      code: `${id}-release`,
+      sourceVersion: `${period}-${id}`,
+      cohortKey: period,
+      status: 'published',
+    })
+    insert(meta, 'snapshotSourceReleases', {
       snapshotId: id,
       datasetId: 'dataset',
       resourceReleaseId: `${id}-release`,

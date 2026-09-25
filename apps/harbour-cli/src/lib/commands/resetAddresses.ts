@@ -575,11 +575,11 @@ async function collectOwnedRecords(
   const releaseIds = releases.map(row => row.id)
   const snapshotRows = await context.metaDb
     .select({
-      id: metaSchema.metaSnapshotSources.snapshotId,
-      role: metaSchema.metaSnapshotSources.role,
+      id: metaSchema.metaSnapshotSourceReleases.snapshotId,
+      role: metaSchema.metaSnapshotSourceReleases.role,
     })
-    .from(metaSchema.metaSnapshotSources)
-    .where(inArray(metaSchema.metaSnapshotSources.resourceReleaseId, releaseIds))
+    .from(metaSchema.metaSnapshotSourceReleases)
+    .where(inArray(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, releaseIds))
     .all()
   const snapshotIds = selectOwnedOfficialAddressSnapshotIds(snapshotRows)
   const apiRows =
@@ -661,7 +661,7 @@ async function collectOwnedRecordsFromRemoteMeta(
     client,
     releaseIds,
     values =>
-      `SELECT snapshotId AS id, role FROM snapshotSources WHERE resourceReleaseId IN (${sqlList(values)})`,
+      `SELECT snapshotId AS id, role FROM snapshotSourceReleases WHERE resourceReleaseId IN (${sqlList(values)})`,
   )
   const snapshotIds = selectOwnedOfficialAddressSnapshotIds(snapshotRows)
   const apiRows = await queryRemoteInChunks<{ id: string; familyType: string }>(
@@ -924,15 +924,18 @@ async function absorbAbandonedStagedAddressReleases(
     const [snapshot, runs] = await Promise.all([
       context.metaDb
         .select({
-          id: metaSchema.metaSnapshotSources.snapshotId,
+          id: metaSchema.metaSnapshotSourceReleases.snapshotId,
           status: metaSchema.metaSnapshots.status,
         })
-        .from(metaSchema.metaSnapshotSources)
+        .from(metaSchema.metaSnapshotSourceReleases)
         .innerJoin(
           metaSchema.metaSnapshots,
-          eq(metaSchema.metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
+          eq(
+            metaSchema.metaSnapshotSourceReleases.snapshotId,
+            metaSchema.metaSnapshots.id,
+          ),
         )
-        .where(eq(metaSchema.metaSnapshotSources.resourceReleaseId, release.id))
+        .where(eq(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, release.id))
         .limit(1)
         .get(),
       context.metaDb
@@ -1014,7 +1017,7 @@ async function buildResetSql(
         `UPDATE releases SET notes=${literal(row.notes)} WHERE id=${literal(row.id)};`,
     ),
   ].join('\n')
-  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE releaseId IN (${ids});\nDELETE FROM stats WHERE releaseId IN (${ids}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE releaseId IN (${ids}) OR relatedReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM releases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
+  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM ingestRuns WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE releaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE releaseId IN (${ids});\nDELETE FROM stats WHERE releaseId IN (${ids}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM publishedDataJournal WHERE releaseId IN (${ids}) OR relatedReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM releases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
   const source = context.sourceTargets.map(target => ({
     sql: sourceSql,
     target: {

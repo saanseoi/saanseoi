@@ -313,22 +313,23 @@ function readGeometryReplayMetadata(
     throw new Error(`Local meta cache is missing snapshot ${snapshotId}.`)
   }
   const lineageId = snapshot[0]?.snapshotLineageId
-  const assemblyRuns = readGeometryCacheRows(
+  const assemblies = readGeometryCacheRows(
     cacheDir,
     bindingName,
-    `SELECT * FROM "snapshotAssemblyRuns" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
+    `SELECT * FROM "snapshotAssemblies" WHERE "snapshotId" = ${geometrySqlLiteral(snapshotId)}`,
   )
-  const assemblyIds = assemblyRuns
-    .map(row => row.snapshotAssemblyId)
+  const assemblyIds = assemblies
+    .map(row => row.snapshotRecipeId)
     .filter((value): value is string => typeof value === 'string')
   const idList = assemblyIds.map(geometrySqlLiteral).join(', ')
   const tables = [
     ['snapshotLineages', lineageId ? `"id" = ${geometrySqlLiteral(lineageId)}` : '0'],
     ['snapshots', `"id" = ${geometrySqlLiteral(snapshotId)}`],
-    ['snapshotSources', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
-    ['snapshotAssembly', idList ? `"id" IN (${idList})` : '0'],
-    ['snapshotAssemblySources', idList ? `"snapshotAssemblyId" IN (${idList})` : '0'],
-    ['snapshotAssemblyRuns', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
+    ['snapshotSourceReleases', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
+    ['snapshotRecipes', idList ? `"id" IN (${idList})` : '0'],
+    ['snapshotRecipeInputs', idList ? `"snapshotRecipeId" IN (${idList})` : '0'],
+    ['snapshotAssemblies', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
+    ['snapshotDependencies', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
     ['releaseShardAssignments', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],
     ['snapshotShardAssignments', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
     ['releaseProcessingActions', `"releaseId" = ${geometrySqlLiteral(releaseId)}`],

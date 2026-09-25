@@ -114,7 +114,7 @@ export async function divisionResetBlockers(context: ResetReadContext) {
   await check(
     context.metaBinding,
     'Other snapshot families use division releases',
-    `SELECT 1 FROM snapshotSources WHERE snapshotId NOT IN (${SNAPSHOTS}) AND (resourceReleaseId IN (${RELEASES}) OR anchorReleaseId IN (${RELEASES})) LIMIT 1`,
+    `SELECT 1 FROM snapshotSourceReleases WHERE snapshotId NOT IN (${SNAPSHOTS}) AND (resourceReleaseId IN (${RELEASES}) OR anchorReleaseId IN (${RELEASES})) LIMIT 1`,
   )
   await check(
     context.metaBinding,
@@ -129,12 +129,12 @@ export async function divisionResetBlockers(context: ResetReadContext) {
   await check(
     context.metaBinding,
     'Other snapshots retain division parents or assembly anchors',
-    `SELECT 1 FROM snapshots WHERE resourceType NOT IN ${TYPES} AND parentSnapshotId IN (${SNAPSHOTS}) UNION ALL SELECT 1 FROM snapshotAssemblyRuns WHERE snapshotId NOT IN (${SNAPSHOTS}) AND anchorReleaseId IN (${RELEASES}) LIMIT 1`,
+    `SELECT 1 FROM snapshots WHERE resourceType NOT IN ${TYPES} AND parentSnapshotId IN (${SNAPSHOTS}) UNION ALL SELECT 1 FROM snapshotAssemblies WHERE snapshotId NOT IN (${SNAPSHOTS}) AND anchorReleaseId IN (${RELEASES}) LIMIT 1`,
   )
   await check(
     context.metaBinding,
     'Other snapshots retain exact division lookup dependencies',
-    `SELECT 1 FROM snapshotAssemblyRuns, json_each(selectionSummaryJson, '$.lookupSnapshotIds') AS dependency WHERE snapshotId NOT IN (${SNAPSHOTS}) AND dependency.value IN (${SNAPSHOTS}) LIMIT 1`,
+    `SELECT 1 FROM snapshotDependencies WHERE snapshotId NOT IN (${SNAPSHOTS}) AND dependencySnapshotId IN (${SNAPSHOTS}) LIMIT 1`,
   )
   // These references do not all have database foreign keys. A family reset
   // cannot leave their canonical identities or geometry companions dangling.
@@ -220,8 +220,9 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
       'releaseShardAssignments',
       'releaseProvenance',
     ].map(table => `DELETE FROM ${table} WHERE releaseId IN (${RELEASES});`),
-    `DELETE FROM snapshotAssemblyRuns WHERE snapshotId IN (${SNAPSHOTS});`,
-    `DELETE FROM snapshotSources WHERE snapshotId IN (${SNAPSHOTS});`,
+    `DELETE FROM snapshotDependencies WHERE snapshotId IN (${SNAPSHOTS});`,
+    `DELETE FROM snapshotAssemblies WHERE snapshotId IN (${SNAPSHOTS});`,
+    `DELETE FROM snapshotSourceReleases WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM apiReleaseSets WHERE id IN (${SETS});`,
     // Keep source evidence assets and fixture identities available for replay.
     // assets.releaseId and journal references use ON DELETE SET NULL.

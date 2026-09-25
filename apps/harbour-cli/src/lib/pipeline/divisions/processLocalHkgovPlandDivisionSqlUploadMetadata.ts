@@ -17,7 +17,7 @@ export async function buildPlandMetaSql(
   const [
     snapshots,
     sources,
-    assemblyRuns,
+    assemblies,
     releaseAssignments,
     snapshotAssignments,
     auditSql,
@@ -30,13 +30,13 @@ export async function buildPlandMetaSql(
       .all(),
     context.metaDb
       .select()
-      .from(metaSchema.metaSnapshotSources)
-      .where(eq(metaSchema.metaSnapshotSources.snapshotId, state.snapshotId))
+      .from(metaSchema.metaSnapshotSourceReleases)
+      .where(eq(metaSchema.metaSnapshotSourceReleases.snapshotId, state.snapshotId))
       .all(),
     context.metaDb
       .select()
-      .from(metaSchema.metaSnapshotAssemblyRuns)
-      .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, state.snapshotId))
+      .from(metaSchema.metaSnapshotAssemblies)
+      .where(eq(metaSchema.metaSnapshotAssemblies.snapshotId, state.snapshotId))
       .all(),
     context.metaDb
       .select()
@@ -114,14 +114,15 @@ export async function buildPlandMetaSql(
     'sourceCohortKey',
     'createdAt',
   ]
-  const assemblyRunColumns = [
+  const assemblyColumns = [
     'id',
     'snapshotId',
-    'snapshotAssemblyId',
+    'snapshotRecipeId',
     'anchorReleaseId',
     'anchorCohortKey',
     'status',
-    'selectionSummaryJson',
+    'reviewRequired',
+    'detailsJson',
     'createdAt',
     'updatedAt',
   ]
@@ -146,12 +147,12 @@ export async function buildPlandMetaSql(
     ...buildInsertStatements('snapshots', snapshotColumns, snapshots, {
       suffix: buildUpdateSuffix(snapshotColumns, ['id']),
     }),
-    ...buildInsertStatements('snapshotSources', sourceColumns, sources, {
+    ...buildInsertStatements('snapshotSourceReleases', sourceColumns, sources, {
       suffix: buildUpdateSuffix(sourceColumns, ['snapshotId', 'resourceReleaseId']),
     }),
     ...assemblySql,
-    ...buildInsertStatements('snapshotAssemblyRuns', assemblyRunColumns, assemblyRuns, {
-      suffix: buildUpdateSuffix(assemblyRunColumns, ['id']),
+    ...buildInsertStatements('snapshotAssemblies', assemblyColumns, assemblies, {
+      suffix: buildUpdateSuffix(assemblyColumns, ['id']),
     }),
     ...buildInsertStatements(
       'releaseShardAssignments',

@@ -72,15 +72,21 @@ test('Address full reset protects exact lookup metadata and external API/source 
   const f = fixture()
   try {
     f.meta.exec(`
-      INSERT INTO snapshotAssembly(id,code,resourceType,version,status,versionHash) VALUES ('assembly','assembly','place',1,'scoped','hash');
-      INSERT INTO snapshotAssemblyRuns(id,snapshotId,snapshotAssemblyId,status,selectionSummaryJson)
-        VALUES ('lookup','place','assembly','selected','{"lookupSnapshotIds":{"address":"address-204"}}');
+      INSERT INTO snapshots(id,code,resourceType,cohortKey,status) VALUES ('place','place','place','2026','draft'),('address-204','address-204','address','2026','published');
+      INSERT INTO publishers(id,code,versionHash) VALUES ('publisher','publisher','hash');
+      INSERT INTO datasets(id,publisherId,code,regionCode,releaseType,releaseFrequency,theme,versionHash) VALUES ('als','publisher','als','hk','snapshot','daily','address','hash');
+      INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES ('als-source','als','als-source','2026','2026','published');
+      INSERT INTO releases(id,sourceReleaseId,datasetId,resourceType,code,sourceVersion,cohortKey,status) VALUES ('als-release','als-source','als','address','als-release','2026','2026','published');
+      INSERT INTO apiVersions(id,code,familyType,version,status,versionHash) VALUES ('places-api','places-api','places','v0','current','hash');
+      INSERT INTO apiReleaseSets(id,apiVersionId,code,schemaVersion,rulesetVersion,status,versionHash) VALUES ('places','places-api','places','v1','v1','current','hash');
+      INSERT INTO snapshotRecipes(id,code,resourceType,version,status,versionHash) VALUES ('assembly','assembly','place',1,'scoped','hash');
+      INSERT INTO snapshotDependencies(snapshotId,dependencySnapshotId,role) VALUES ('place','address-204','address');
     `)
     expect(await officialAddressResetDependencyBlockers(f.context, f.owned)).toEqual([
       'Other snapshots retain official Address assembly dependencies',
     ])
     f.meta.exec(`
-      INSERT INTO snapshotSources(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
+      INSERT INTO snapshotSourceReleases(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
         VALUES ('place','als','als-release','lookup','rule','exact_ref');
       INSERT INTO apiReleaseSetSnapshots(apiReleaseSetId,snapshotId,role,variant,cohortMatchingMode,isRequired)
         VALUES ('places','address-204','lookup','default','exact',1);

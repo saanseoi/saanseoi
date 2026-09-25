@@ -209,7 +209,8 @@ async function countMetaRollbackRows(
     processingActionRows,
     processingChunkRows,
     shardAssignmentRows,
-    assemblyRunRows,
+    dependencyRows,
+    assemblyRows,
     snapshotSourceRows,
     releaseSetRows,
     snapshotRows,
@@ -276,13 +277,18 @@ async function countMetaRollbackRows(
     ),
     countRows(
       db,
-      metaSchema.metaSnapshotAssemblyRuns,
-      eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, input.snapshotId),
+      metaSchema.metaSnapshotDependencies,
+      eq(metaSchema.metaSnapshotDependencies.snapshotId, input.snapshotId),
     ),
     countRows(
       db,
-      metaSchema.metaSnapshotSources,
-      sql`${metaSchema.metaSnapshotSources.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSources.resourceReleaseId} = ${input.release.releaseId}`,
+      metaSchema.metaSnapshotAssemblies,
+      eq(metaSchema.metaSnapshotAssemblies.snapshotId, input.snapshotId),
+    ),
+    countRows(
+      db,
+      metaSchema.metaSnapshotSourceReleases,
+      sql`${metaSchema.metaSnapshotSourceReleases.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSourceReleases.resourceReleaseId} = ${input.release.releaseId}`,
     ),
     countRows(
       db,
@@ -325,7 +331,8 @@ async function countMetaRollbackRows(
     processingActionRows +
     processingChunkRows +
     shardAssignmentRows +
-    assemblyRunRows +
+    dependencyRows +
+    assemblyRows +
     snapshotSourceRows +
     releaseSetRows +
     snapshotRows +
@@ -507,8 +514,8 @@ export async function verifyPurgeResult(
     ),
     countRows(
       dbContext.metaDb,
-      metaSchema.metaSnapshotSources,
-      sql`${metaSchema.metaSnapshotSources.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSources.resourceReleaseId} = ${input.releaseId}`,
+      metaSchema.metaSnapshotSourceReleases,
+      sql`${metaSchema.metaSnapshotSourceReleases.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotSourceReleases.resourceReleaseId} = ${input.releaseId}`,
     ),
     countRows(
       dbContext.metaDb,

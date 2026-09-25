@@ -1,3 +1,4 @@
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import { createDivisionMembership } from '../divisions/divisionMembership'
 import { createRecordEnrichmentReuse } from './placeRecordEnrichment.ts'
 import { recordCacheKey, type PlaceRecordCache } from './placeRecordCache.ts'
@@ -156,18 +157,7 @@ export async function resolvePlaceSnapshots(
     sourceReleaseId: releaseId,
     variant: 'default',
   })
-  const previousRuns = await metaDb
-    .select()
-    .from(metaSchema.metaSnapshotAssemblyRuns)
-    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, place.id))
-    .all()
-  const recordedAddressId = previousRuns
-    .map(
-      run =>
-        (run.selectionSummaryJson as { addressSnapshotId?: string } | null)
-          ?.addressSnapshotId,
-    )
-    .find(Boolean)
+  const recordedAddressId = (await readSnapshotDependencies(metaDb, place.id)).address
   const address = recordedAddressId
     ? await metaDb
         .select({ id: metaSchema.metaSnapshots.id })
@@ -222,13 +212,12 @@ export async function resolvePlaceSnapshots(
       resourceType: 'place',
       anchorReleaseId: releaseId,
       anchorCohortKey: plan.cohortKey,
-      selectionSummaryJson: {
-        addressSnapshotId: address.id,
-        divisionSnapshotId: division.id,
-        divisionAreaSnapshotId,
-        lookupSnapshotIds: { divisionArea: divisionAreaSnapshotId },
-        addressReviewRequired: null,
+      dependencies: {
+        address: address.id,
+        division: division.id,
+        divisionArea: divisionAreaSnapshotId,
       },
+      reviewRequired: null,
     })
   return {
     addressSnapshotId: address.id,

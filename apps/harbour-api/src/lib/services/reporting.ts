@@ -1,4 +1,4 @@
-import { and, desc, eq, metaSnapshots, metaSnapshotSources } from '@repo/db'
+import { and, desc, eq, metaSnapshots, metaSnapshotSourceReleases } from '@repo/db'
 import { inArray, sql } from 'drizzle-orm'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import { chunkArray, getMaxItemsPerInClause } from '@repo/core/pipeline/utils.ts'
@@ -215,10 +215,10 @@ export async function listReleases(
       publicationDate: metaReleases.publicationDate,
       rawObjectKey: metaReleases.rawObjectKey,
       hasStatisticsSnapshot: sql<boolean>`EXISTS (
-        SELECT 1 FROM ${metaSnapshotSources}
-        JOIN ${metaSnapshots} ON ${metaSnapshots.id} = ${metaSnapshotSources.snapshotId}
-        WHERE ${metaSnapshotSources.resourceReleaseId} = ${metaReleases.id}
-          AND ${metaSnapshotSources.role} <> 'lookup'
+        SELECT 1 FROM ${metaSnapshotSourceReleases}
+        JOIN ${metaSnapshots} ON ${metaSnapshots.id} = ${metaSnapshotSourceReleases.snapshotId}
+        WHERE ${metaSnapshotSourceReleases.resourceReleaseId} = ${metaReleases.id}
+          AND ${metaSnapshotSourceReleases.role} <> 'lookup'
           AND ${metaSnapshots.resourceType} = 'divisionStatistic'
           AND ${metaSnapshots.status} IN ('draft', 'published')
       )`.mapWith(Boolean),

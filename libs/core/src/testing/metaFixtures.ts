@@ -382,9 +382,9 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
   if (snapshotsRebuilt) {
     rebuildTable(
       db,
-      'snapshotSources',
+      'snapshotSourceReleases',
       `
-        CREATE TABLE snapshotSources (
+        CREATE TABLE snapshotSourceReleases (
           snapshotId TEXT NOT NULL,
           datasetId TEXT NOT NULL,
           resourceReleaseId TEXT NOT NULL,
@@ -401,7 +401,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
         );
       `,
       `
-        INSERT INTO snapshotSources (
+        INSERT INTO snapshotSourceReleases (
           snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode, anchorReleaseId, sourceCohortKey, createdAt
         )
         SELECT snapshotId, datasetId, sourceReleaseId, role, null, null, null, null, createdAt
@@ -660,13 +660,33 @@ id TEXT PRIMARY KEY NOT NULL,
     'defaultDomainCode TEXT',
   )
 
-  addColumnIfMissing(db, 'snapshotSources', 'selectedByRule', 'selectedByRule TEXT')
-  addColumnIfMissing(db, 'snapshotSources', 'selectionMode', 'selectionMode TEXT')
-  addColumnIfMissing(db, 'snapshotSources', 'anchorReleaseId', 'anchorReleaseId TEXT')
-  addColumnIfMissing(db, 'snapshotSources', 'sourceCohortKey', 'sourceCohortKey TEXT')
+  addColumnIfMissing(
+    db,
+    'snapshotSourceReleases',
+    'selectedByRule',
+    'selectedByRule TEXT',
+  )
+  addColumnIfMissing(
+    db,
+    'snapshotSourceReleases',
+    'selectionMode',
+    'selectionMode TEXT',
+  )
+  addColumnIfMissing(
+    db,
+    'snapshotSourceReleases',
+    'anchorReleaseId',
+    'anchorReleaseId TEXT',
+  )
+  addColumnIfMissing(
+    db,
+    'snapshotSourceReleases',
+    'sourceCohortKey',
+    'sourceCohortKey TEXT',
+  )
 
   db.exec(`
-    CREATE TABLE IF NOT EXISTS snapshotAssembly (
+    CREATE TABLE IF NOT EXISTS snapshotRecipes (
       id TEXT PRIMARY KEY NOT NULL,
       code TEXT NOT NULL UNIQUE,
       resourceType TEXT NOT NULL,
@@ -678,27 +698,29 @@ id TEXT PRIMARY KEY NOT NULL,
       updatedAt INTEGER NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS snapshotAssemblySources (
-      snapshotAssemblyId TEXT NOT NULL,
+    CREATE TABLE IF NOT EXISTS snapshotRecipeInputs (
+      snapshotRecipeId TEXT NOT NULL,
       datasetId TEXT NOT NULL,
       role TEXT NOT NULL,
       isRequired INTEGER NOT NULL,
-      selectorType TEXT NOT NULL,
       anchorDatasetId TEXT,
       maxLagDays INTEGER,
       priority INTEGER NOT NULL DEFAULT 0,
-      selectionRulesJson TEXT,
-      PRIMARY KEY (snapshotAssemblyId, datasetId, role)
+      selectionPolicyJson TEXT,
+      PRIMARY KEY (snapshotRecipeId, datasetId, role)
     );
 
-    CREATE TABLE IF NOT EXISTS snapshotAssemblyRuns (
+    CREATE TABLE IF NOT EXISTS snapshotDependencies (snapshotId TEXT NOT NULL, dependencySnapshotId TEXT NOT NULL, role TEXT NOT NULL, PRIMARY KEY (snapshotId,role));
+
+    CREATE TABLE IF NOT EXISTS snapshotAssemblies (
       id TEXT PRIMARY KEY NOT NULL,
       snapshotId TEXT NOT NULL,
-      snapshotAssemblyId TEXT NOT NULL,
+      snapshotRecipeId TEXT NOT NULL,
       anchorReleaseId TEXT,
       anchorCohortKey TEXT,
       status TEXT NOT NULL,
-      selectionSummaryJson TEXT,
+      reviewRequired INTEGER,
+      detailsJson TEXT,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
     );
@@ -1048,7 +1070,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       maxLagDays = excluded.maxLagDays,
       priority = excluded.priority;
 
-    INSERT INTO snapshotAssembly (
+    INSERT INTO snapshotRecipes (
       id, code, resourceType, version, status, notes, versionHash, createdAt, updatedAt
     ) VALUES
       ('snapshot-assembly-address-v1', 'snapshot-assembly-address-v1', 'address', 1, 'current', null, 'vh-snapshot-assembly-address-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),

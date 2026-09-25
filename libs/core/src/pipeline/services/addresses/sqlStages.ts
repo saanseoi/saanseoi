@@ -365,13 +365,13 @@ async function resolveAddressSnapshotId(
     .select({ id: metaSchema.metaSnapshots.id })
     .from(metaSchema.metaSnapshots)
     .innerJoin(
-      metaSchema.metaSnapshotSources,
-      eq(metaSchema.metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
+      metaSchema.metaSnapshotSourceReleases,
+      eq(metaSchema.metaSnapshotSourceReleases.snapshotId, metaSchema.metaSnapshots.id),
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshotSources.resourceReleaseId, releaseId),
-        eq(metaSchema.metaSnapshotSources.role, 'primary'),
+        eq(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, releaseId),
+        eq(metaSchema.metaSnapshotSourceReleases.role, 'primary'),
         eq(metaSchema.metaSnapshots.resourceType, 'address'),
       ),
     )
@@ -394,10 +394,10 @@ export async function buildAddressMetaSqlFile(
   const {
     metaReleaseShardAssignments,
     metaSnapshotLineages,
-    metaSnapshotAssemblyRuns,
+    metaSnapshotAssemblies,
     metaSnapshotShardAssignments,
     metaSnapshots,
-    metaSnapshotSources,
+    metaSnapshotSourceReleases,
     stats,
   } = metaSchema
   const snapshotRow = await metaDb
@@ -445,18 +445,18 @@ export async function buildAddressMetaSqlFile(
 
   const snapshotSourceRows = await metaDb
     .select({
-      snapshotId: metaSnapshotSources.snapshotId,
-      datasetId: metaSnapshotSources.datasetId,
-      resourceReleaseId: metaSnapshotSources.resourceReleaseId,
-      role: metaSnapshotSources.role,
-      selectedByRule: metaSnapshotSources.selectedByRule,
-      selectionMode: metaSnapshotSources.selectionMode,
-      anchorReleaseId: metaSnapshotSources.anchorReleaseId,
-      sourceCohortKey: metaSnapshotSources.sourceCohortKey,
-      createdAt: metaSnapshotSources.createdAt,
+      snapshotId: metaSnapshotSourceReleases.snapshotId,
+      datasetId: metaSnapshotSourceReleases.datasetId,
+      resourceReleaseId: metaSnapshotSourceReleases.resourceReleaseId,
+      role: metaSnapshotSourceReleases.role,
+      selectedByRule: metaSnapshotSourceReleases.selectedByRule,
+      selectionMode: metaSnapshotSourceReleases.selectionMode,
+      anchorReleaseId: metaSnapshotSourceReleases.anchorReleaseId,
+      sourceCohortKey: metaSnapshotSourceReleases.sourceCohortKey,
+      createdAt: metaSnapshotSourceReleases.createdAt,
     })
-    .from(metaSnapshotSources)
-    .where(eq(metaSnapshotSources.snapshotId, snapshotIdValue))
+    .from(metaSnapshotSourceReleases)
+    .where(eq(metaSnapshotSourceReleases.snapshotId, snapshotIdValue))
     .all()
 
   if (!snapshotSourceRows.some(row => row.resourceReleaseId === releaseId)) {
@@ -469,20 +469,21 @@ export async function buildAddressMetaSqlFile(
     metaDb as unknown as HarbourReadableDb,
     snapshotIdValue,
   )
-  const snapshotAssemblyRunRows = await metaDb
+  const snapshotAssemblyRows = await metaDb
     .select({
-      id: metaSnapshotAssemblyRuns.id,
-      snapshotId: metaSnapshotAssemblyRuns.snapshotId,
-      snapshotAssemblyId: metaSnapshotAssemblyRuns.snapshotAssemblyId,
-      anchorReleaseId: metaSnapshotAssemblyRuns.anchorReleaseId,
-      anchorCohortKey: metaSnapshotAssemblyRuns.anchorCohortKey,
-      status: metaSnapshotAssemblyRuns.status,
-      selectionSummaryJson: metaSnapshotAssemblyRuns.selectionSummaryJson,
-      createdAt: metaSnapshotAssemblyRuns.createdAt,
-      updatedAt: metaSnapshotAssemblyRuns.updatedAt,
+      id: metaSnapshotAssemblies.id,
+      snapshotId: metaSnapshotAssemblies.snapshotId,
+      snapshotRecipeId: metaSnapshotAssemblies.snapshotRecipeId,
+      anchorReleaseId: metaSnapshotAssemblies.anchorReleaseId,
+      anchorCohortKey: metaSnapshotAssemblies.anchorCohortKey,
+      status: metaSnapshotAssemblies.status,
+      reviewRequired: metaSnapshotAssemblies.reviewRequired,
+      detailsJson: metaSnapshotAssemblies.detailsJson,
+      createdAt: metaSnapshotAssemblies.createdAt,
+      updatedAt: metaSnapshotAssemblies.updatedAt,
     })
-    .from(metaSnapshotAssemblyRuns)
-    .where(eq(metaSnapshotAssemblyRuns.snapshotId, snapshotIdValue))
+    .from(metaSnapshotAssemblies)
+    .where(eq(metaSnapshotAssemblies.snapshotId, snapshotIdValue))
     .all()
   const releaseShardAssignmentRows = await metaDb
     .select({
@@ -583,7 +584,7 @@ export async function buildAddressMetaSqlFile(
   updatedAt = excluded.updatedAt`,
     ),
     buildInsertStatement(
-      'snapshotSources',
+      'snapshotSourceReleases',
       [
         'snapshotId',
         'datasetId',
@@ -607,29 +608,31 @@ export async function buildAddressMetaSqlFile(
     ),
     ...assemblySql,
     buildInsertStatement(
-      'snapshotAssemblyRuns',
+      'snapshotAssemblies',
       [
         'id',
         'snapshotId',
-        'snapshotAssemblyId',
+        'snapshotRecipeId',
         'anchorReleaseId',
         'anchorCohortKey',
         'status',
-        'selectionSummaryJson',
+        'reviewRequired',
+        'detailsJson',
         'createdAt',
         'updatedAt',
       ],
-      snapshotAssemblyRunRows.map(row => ({
+      snapshotAssemblyRows.map(row => ({
         ...row,
-        selectionSummaryJson: jsonText(row.selectionSummaryJson),
+        detailsJson: jsonText(row.detailsJson),
       })),
       `ON CONFLICT(id) DO UPDATE SET
   snapshotId = excluded.snapshotId,
-  snapshotAssemblyId = excluded.snapshotAssemblyId,
+  snapshotRecipeId = excluded.snapshotRecipeId,
   anchorReleaseId = excluded.anchorReleaseId,
   anchorCohortKey = excluded.anchorCohortKey,
   status = excluded.status,
-  selectionSummaryJson = excluded.selectionSummaryJson,
+  reviewRequired = excluded.reviewRequired,
+  detailsJson = excluded.detailsJson,
   createdAt = excluded.createdAt,
   updatedAt = excluded.updatedAt`,
     ),

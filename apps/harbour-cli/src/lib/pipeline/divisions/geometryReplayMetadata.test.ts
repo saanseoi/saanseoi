@@ -25,13 +25,15 @@ const tables = {
   snapshotLineages: 'id TEXT PRIMARY KEY, variant TEXT, versionHash TEXT',
   snapshots:
     'id TEXT PRIMARY KEY, snapshotLineageId TEXT REFERENCES snapshotLineages(id), status TEXT, geometryStatus TEXT, updatedAt TEXT',
-  snapshotSources:
+  snapshotSourceReleases:
     'snapshotId TEXT REFERENCES snapshots(id), resourceReleaseId TEXT, selectionMode TEXT, PRIMARY KEY(snapshotId,resourceReleaseId)',
-  snapshotAssembly: 'id TEXT PRIMARY KEY, versionHash TEXT',
-  snapshotAssemblySources:
-    'snapshotAssemblyId TEXT REFERENCES snapshotAssembly(id), datasetId TEXT, PRIMARY KEY(snapshotAssemblyId,datasetId)',
-  snapshotAssemblyRuns:
-    'id TEXT PRIMARY KEY, snapshotId TEXT REFERENCES snapshots(id), snapshotAssemblyId TEXT REFERENCES snapshotAssembly(id), status TEXT, selectionSummaryJson TEXT, anchorReleaseId TEXT',
+  snapshotRecipes: 'id TEXT PRIMARY KEY, versionHash TEXT',
+  snapshotRecipeInputs:
+    'snapshotRecipeId TEXT REFERENCES snapshotRecipes(id), datasetId TEXT, PRIMARY KEY(snapshotRecipeId,datasetId)',
+  snapshotAssemblies:
+    'id TEXT PRIMARY KEY, snapshotId TEXT REFERENCES snapshots(id), snapshotRecipeId TEXT REFERENCES snapshotRecipes(id), status TEXT, detailsJson TEXT, anchorReleaseId TEXT',
+  snapshotDependencies:
+    'snapshotId TEXT REFERENCES snapshots(id), dependencySnapshotId TEXT REFERENCES snapshots(id), role TEXT, PRIMARY KEY(snapshotId,role)',
   releaseShardAssignments:
     'releaseId TEXT, dataShardId TEXT, PRIMARY KEY(releaseId,dataShardId)',
   snapshotShardAssignments:
@@ -57,11 +59,14 @@ async function populate(db: Database) {
   for (const variant of ['exact', 'simplified'])
     db.exec(`INSERT INTO snapshotLineages VALUES('${variant}','${variant}','lineage-hash');
       INSERT INTO snapshots VALUES('${variant}','${variant}','draft','complete','first');
-      INSERT INTO snapshotSources VALUES('${variant}','release','contributed_geometry');
-      INSERT INTO snapshotAssembly VALUES('${variant}','recipe-hash');
-      INSERT INTO snapshotAssemblySources VALUES('${variant}','dataset');
-      INSERT INTO snapshotAssemblyRuns VALUES('${variant}','${variant}','${variant}','selected','{"materialisationHash":"retained"}',NULL);
+      INSERT INTO snapshotSourceReleases VALUES('${variant}','release','contributed_geometry');
+      INSERT INTO snapshotRecipes VALUES('${variant}','recipe-hash');
+      INSERT INTO snapshotRecipeInputs VALUES('${variant}','dataset');
+      INSERT INTO snapshotAssemblies VALUES('${variant}','${variant}','${variant}','selected','{"materialisationHash":"retained"}',NULL);
       INSERT INTO snapshotShardAssignments VALUES('${variant}','history');`)
+  db.exec(
+    "INSERT INTO snapshotDependencies VALUES ('simplified','lookup','divisionArea')",
+  )
 }
 
 async function updateReport(
@@ -136,6 +141,10 @@ async function fixture(
   try {
     schema(local)
     schema(remote)
+    for (const db of [local, remote])
+      db.exec(
+        "INSERT INTO snapshots VALUES ('lookup',NULL,'published','complete','first')",
+      )
     await populate(local)
     const context = {
       state: {
@@ -196,7 +205,9 @@ for (const order of [
         const before = changes(remote) ?? 0
         executeNativeSqlStatements(remote, sql)
         // Seven snapshot/recipe rows per variant; five shared release rows only once.
-        expect((changes(remote) ?? 0) - before).toBe(variant === order[0] ? 12 : 7)
+        expect((changes(remote) ?? 0) - before).toBe(
+          (variant === order[0] ? 12 : 7) + (variant === 'simplified' ? 1 : 0),
+        )
         const after = changes(remote)
         executeNativeSqlStatements(remote, sql)
         expect(changes(remote)).toBe(after)
@@ -240,7 +251,7 @@ test('geometry metadata replay resumes a partial second variant and carries real
   await fixture(async ({ local, remote, capture }) => {
     executeNativeSqlStatements(remote, await capture('exact'))
     const second = await capture('simplified')
-    remote.exec(`CREATE TRIGGER interrupted_variant BEFORE INSERT ON snapshotSources
+    remote.exec(`CREATE TRIGGER interrupted_variant BEFORE INSERT ON snapshotSourceReleases
       WHEN NEW.snapshotId='simplified' BEGIN SELECT RAISE(ABORT,'interrupted variant'); END`)
     expect(() => executeNativeSqlStatements(remote, second)).toThrow(
       'interrupted variant',
@@ -253,13 +264,13 @@ test('geometry metadata replay resumes a partial second variant and carries real
     remote.exec('DROP TRIGGER interrupted_variant')
     const beforeResume = changes(remote) ?? 0
     executeNativeSqlStatements(remote, second)
-    expect((changes(remote) ?? 0) - beforeResume).toBe(5)
+    expect((changes(remote) ?? 0) - beforeResume).toBe(6)
     expect(contents(remote)).toEqual(contents(local))
 
     await updateReport(local, 'second', 13)
     local.exec(`UPDATE stats SET value=13,groupBy='type',groupValue='land';
-      UPDATE snapshotSources SET selectionMode='verified_identical_geometry' WHERE snapshotId='simplified';
-      UPDATE snapshotAssemblyRuns SET anchorReleaseId='release' WHERE snapshotId='simplified';`)
+      UPDATE snapshotSourceReleases SET selectionMode='verified_identical_geometry' WHERE snapshotId='simplified';
+      UPDATE snapshotAssemblies SET anchorReleaseId='release' WHERE snapshotId='simplified';`)
     const beforeChanges = changes(remote) ?? 0
     executeNativeSqlStatements(remote, await capture('simplified'))
     expect((changes(remote) ?? 0) - beforeChanges).toBe(5)
@@ -269,7 +280,7 @@ test('geometry metadata replay resumes a partial second variant and carries real
     local.exec(`UPDATE releaseProcessingActions SET updatedAt='recovered';
       UPDATE stats SET groupBy=NULL,groupValue=NULL;
       UPDATE snapshots SET status='published',updatedAt='published' WHERE id='exact';
-      UPDATE snapshotAssemblyRuns SET status='completed' WHERE snapshotId='exact';`)
+      UPDATE snapshotAssemblies SET status='completed' WHERE snapshotId='exact';`)
     const beforeRecovery = changes(remote) ?? 0
     executeNativeSqlStatements(remote, await capture('exact'))
     expect((changes(remote) ?? 0) - beforeRecovery).toBe(4)
@@ -284,17 +295,17 @@ test('geometry metadata replay resumes a partial second variant and carries real
 
 test('oversized metadata replay retains complete content when the existing chunk placeholder matches', () => {
   const db = new Database(':memory:')
-  db.exec(`CREATE TABLE snapshotAssemblyRuns(id TEXT PRIMARY KEY,snapshotId TEXT,selectionSummaryJson TEXT);
-    INSERT INTO snapshotAssemblyRuns VALUES('run','snapshot','');`)
+  db.exec(`CREATE TABLE snapshotAssemblies(id TEXT PRIMARY KEY,snapshotId TEXT,detailsJson TEXT);
+    INSERT INTO snapshotAssemblies VALUES('run','snapshot','');`)
   const row = {
     id: 'run',
     snapshotId: 'snapshot',
-    selectionSummaryJson: JSON.stringify({
+    detailsJson: JSON.stringify({
       evidence: '香港'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES),
     }),
   }
   try {
-    const sql = geometryBuildUpsertSql('snapshotAssemblyRuns', [row], {
+    const sql = geometryBuildUpsertSql('snapshotAssemblies', [row], {
       skipUnchanged: true,
     })
     for (const statement of sql.split('\n'))
@@ -302,9 +313,9 @@ test('oversized metadata replay retains complete content when the existing chunk
         MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
       )
     executeNativeSqlStatements(db, sql)
-    expect(db.query('SELECT * FROM snapshotAssemblyRuns').get()).toEqual(row)
+    expect(db.query('SELECT * FROM snapshotAssemblies').get()).toEqual(row)
     executeNativeSqlStatements(db, sql)
-    expect(db.query('SELECT * FROM snapshotAssemblyRuns').get()).toEqual(row)
+    expect(db.query('SELECT * FROM snapshotAssemblies').get()).toEqual(row)
   } finally {
     db.close()
   }

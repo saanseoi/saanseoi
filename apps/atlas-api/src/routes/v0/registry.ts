@@ -236,10 +236,10 @@ async function listRegistryReviewReleases(db: AppEnv['Variables']['metaDb']) {
         FROM rankedReleaseSets
         LEFT JOIN apiReleaseSetSnapshots
           ON apiReleaseSetSnapshots.apiReleaseSetId = rankedReleaseSets.id
-        LEFT JOIN snapshotSources
-          ON snapshotSources.snapshotId = apiReleaseSetSnapshots.snapshotId
+        LEFT JOIN snapshotSourceReleases
+          ON snapshotSourceReleases.snapshotId = apiReleaseSetSnapshots.snapshotId
         LEFT JOIN releases
-          ON releases.id = snapshotSources.resourceReleaseId
+          ON releases.id = snapshotSourceReleases.resourceReleaseId
           AND releases.status IN ('published', 'superseded')
           AND releases.revokedAt IS NULL
         LEFT JOIN sourceReleases

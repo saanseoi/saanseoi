@@ -50,14 +50,18 @@ export async function upsertPlaceMetadata(
     resourceType: 'place',
     anchorReleaseId: releaseId,
     anchorCohortKey: plan.cohortKey,
-    selectionSummaryJson: {
-      addressSnapshotId: snapshots.addressSnapshotId,
-      divisionSnapshotId: snapshots.divisionSnapshotId,
-      divisionAreaSnapshotId: snapshots.divisionAreaSnapshotId,
+    dependencies: {
+      address: snapshots.addressSnapshotId,
+      division: snapshots.divisionSnapshotId,
+      ...(snapshots.divisionAreaSnapshotId
+        ? { divisionArea: snapshots.divisionAreaSnapshotId }
+        : {}),
+      supplementaryAddress: snapshots.supplementaryAddressSnapshotId,
+    },
+    reviewRequired: 0,
+    detailsJson: {
       sourceReleaseId: releaseId,
       sourceVersion: plan.sourceVersion,
-      supplementaryAddressSnapshotId: snapshots.supplementaryAddressSnapshotId,
-      addressReviewRequired: 0,
     },
   })
   await recordSnapshotLookupDependency(metaDb, {
@@ -230,7 +234,7 @@ export async function buildPlaceMetadataSql(
     lineage,
     sources,
     shardAssignments,
-    assemblyRuns,
+    assemblies,
     releaseAssignments,
     releaseStats,
   ] = await Promise.all([
@@ -241,8 +245,8 @@ export async function buildPlaceMetadataSql(
       .all(),
     db
       .select()
-      .from(metaSchema.metaSnapshotSources)
-      .where(eq(metaSchema.metaSnapshotSources.snapshotId, snapshotId))
+      .from(metaSchema.metaSnapshotSourceReleases)
+      .where(eq(metaSchema.metaSnapshotSourceReleases.snapshotId, snapshotId))
       .all(),
     db
       .select()
@@ -251,8 +255,8 @@ export async function buildPlaceMetadataSql(
       .all(),
     db
       .select()
-      .from(metaSchema.metaSnapshotAssemblyRuns)
-      .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, snapshotId))
+      .from(metaSchema.metaSnapshotAssemblies)
+      .where(eq(metaSchema.metaSnapshotAssemblies.snapshotId, snapshotId))
       .all(),
     db
       .select()
@@ -268,10 +272,10 @@ export async function buildPlaceMetadataSql(
   return [
     ...lineage.map(row => insertSql('snapshotLineages', row)),
     insertSql('snapshots', snapshot),
-    ...sources.map(row => insertSql('snapshotSources', row)),
+    ...sources.map(row => insertSql('snapshotSourceReleases', row)),
     ...shardAssignments.map(row => insertSql('snapshotShardAssignments', row)),
     ...assemblySql,
-    ...assemblyRuns.map(row => insertSql('snapshotAssemblyRuns', row)),
+    ...assemblies.map(row => insertSql('snapshotAssemblies', row)),
     ...releaseAssignments.map(row => insertSql('releaseShardAssignments', row)),
     ...releaseStats.map(row => insertSql('stats', row)),
   ].join('\n')

@@ -417,10 +417,10 @@ async function resolveExactSnapshot(
       cohortKey: metaSchema.metaSnapshots.cohortKey,
       id: metaSchema.metaSnapshots.id,
     })
-    .from(metaSchema.metaSnapshotSources)
+    .from(metaSchema.metaSnapshotSourceReleases)
     .innerJoin(
       metaSchema.metaSnapshots,
-      eq(metaSchema.metaSnapshotSources.snapshotId, metaSchema.metaSnapshots.id),
+      eq(metaSchema.metaSnapshotSourceReleases.snapshotId, metaSchema.metaSnapshots.id),
     )
     .innerJoin(
       metaSchema.metaSnapshotLineages,
@@ -431,7 +431,7 @@ async function resolveExactSnapshot(
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshotSources.resourceReleaseId, release.id),
+        eq(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, release.id),
         eq(metaSchema.metaSnapshots.resourceType, release.resourceType),
         eq(metaSchema.metaSnapshots.status, 'published'),
         // Exact canonical variants are the only source of release facts.

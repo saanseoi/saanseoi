@@ -112,7 +112,7 @@ export const getApiAudit = query(
     const {
       releaseProvenance: p,
       metaReleases: r,
-      metaSnapshotSources: sources,
+      metaSnapshotSourceReleases: sources,
       metaApiReleaseSetSnapshots: members,
       metaApiReleaseSets: sets,
       metaApiVersions: versions,

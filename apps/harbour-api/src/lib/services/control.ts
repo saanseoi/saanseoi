@@ -1,3 +1,4 @@
+import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import { lt } from 'drizzle-orm'
 import {
   publishReleaseArtefacts,
@@ -19,7 +20,7 @@ import {
   eq,
   metaApiReleaseSets,
   metaSchema,
-  metaSnapshotSources,
+  metaSnapshotSourceReleases,
   metaSnapshots,
 } from '@repo/db'
 import {
@@ -52,21 +53,15 @@ export async function assertPlaceAddressDependencies(
   snapshotId: string,
   releaseId: string,
 ) {
-  const runs = await db
-    .select()
-    .from(metaSchema.metaSnapshotAssemblyRuns)
-    .where(eq(metaSchema.metaSnapshotAssemblyRuns.snapshotId, snapshotId))
-    .all()
-  const summary = runs
-    .map(
-      run =>
-        run.selectionSummaryJson as {
-          supplementaryAddressSnapshotId?: string
-          addressReviewRequired?: number
-        } | null,
-    )
-    .find(value => value?.supplementaryAddressSnapshotId)
-  if (!summary?.supplementaryAddressSnapshotId || summary.addressReviewRequired !== 0) {
+  const assembly = await db
+    .select({ reviewRequired: metaSchema.metaSnapshotAssemblies.reviewRequired })
+    .from(metaSchema.metaSnapshotAssemblies)
+    .where(eq(metaSchema.metaSnapshotAssemblies.snapshotId, snapshotId))
+    .get()
+  const supplementaryAddressSnapshotId = (
+    await readSnapshotDependencies(db, snapshotId)
+  ).supplementaryAddress
+  if (!supplementaryAddressSnapshotId || assembly?.reviewRequired !== 0) {
     throw new ControlRequestError(
       'Places publication requires completed supplementary Address analysis with no outstanding identity reviews.',
     )
@@ -74,12 +69,12 @@ export async function assertPlaceAddressDependencies(
   const supplementary = await db
     .select({
       id: metaSnapshots.id,
-      sourceReleaseId: metaSnapshotSources.resourceReleaseId,
+      sourceReleaseId: metaSnapshotSourceReleases.resourceReleaseId,
     })
     .from(metaSnapshots)
     .innerJoin(
-      metaSnapshotSources,
-      eq(metaSnapshotSources.snapshotId, metaSnapshots.id),
+      metaSnapshotSourceReleases,
+      eq(metaSnapshotSourceReleases.snapshotId, metaSnapshots.id),
     )
     .innerJoin(
       metaSchema.metaSnapshotLineages,
@@ -87,12 +82,12 @@ export async function assertPlaceAddressDependencies(
     )
     .where(
       and(
-        eq(metaSnapshots.id, summary.supplementaryAddressSnapshotId),
+        eq(metaSnapshots.id, supplementaryAddressSnapshotId),
         eq(metaSnapshots.status, 'published'),
         eq(metaSnapshots.resourceType, 'address'),
         eq(metaSchema.metaSnapshotLineages.variant, 'overture-places'),
-        eq(metaSnapshotSources.role, 'primary'),
-        eq(metaSnapshotSources.anchorReleaseId, releaseId),
+        eq(metaSnapshotSourceReleases.role, 'primary'),
+        eq(metaSnapshotSourceReleases.anchorReleaseId, releaseId),
       ),
     )
     .get()
@@ -102,8 +97,8 @@ export async function assertPlaceAddressDependencies(
     )
   const sources = await db
     .select()
-    .from(metaSnapshotSources)
-    .where(eq(metaSnapshotSources.snapshotId, snapshotId))
+    .from(metaSnapshotSourceReleases)
+    .where(eq(metaSnapshotSourceReleases.snapshotId, snapshotId))
     .all()
   if (
     !sources.some(

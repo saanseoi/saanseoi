@@ -336,10 +336,8 @@ test('requires retained processing audits for Addresses and Places before publis
         resourceType: 'place',
         anchorReleaseId: releaseId,
         anchorCohortKey: '2026-06',
-        selectionSummaryJson: {
-          supplementaryAddressSnapshotId: supplementary.id,
-          addressReviewRequired: 0,
-        },
+        dependencies: { supplementaryAddress: supplementary.id },
+        reviewRequired: 0,
       })
       carriedSnapshots?.push({
         resourceType: 'address',
@@ -399,7 +397,7 @@ test('requires retained processing audits for Addresses and Places before publis
         `
           SELECT arss.apiReleaseSetId AS apiReleaseSetId, ss.datasetId AS datasetId
           FROM apiReleaseSetSnapshots arss
-          INNER JOIN snapshotSources ss ON ss.snapshotId = arss.snapshotId
+          INNER JOIN snapshotSourceReleases ss ON ss.snapshotId = arss.snapshotId
           WHERE arss.snapshotId = ? AND ss.role = 'primary'
           LIMIT 1
         `,

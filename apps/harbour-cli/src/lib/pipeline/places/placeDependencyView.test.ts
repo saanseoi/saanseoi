@@ -67,7 +67,7 @@ test('empty exact Address dependencies resolve from metadata and reject missing 
     })
     for (const snapshotId of ['empty-address', 'empty-division', 'empty-area'])
       insert(meta, 'snapshotShardAssignments', { snapshotId, dataShardId: 'history' })
-    insert(meta, 'snapshotAssembly', {
+    insert(meta, 'snapshotRecipes', {
       id: 'assembly',
       code: 'assembly',
       resourceType: 'address',
@@ -75,15 +75,21 @@ test('empty exact Address dependencies resolve from metadata and reject missing 
       status: 'scoped',
       versionHash: 'assembly',
     })
-    insert(meta, 'snapshotAssemblyRuns', {
+    insert(meta, 'snapshotAssemblies', {
       id: 'empty',
       snapshotId: 'empty-address',
-      snapshotAssemblyId: 'assembly',
+      snapshotRecipeId: 'assembly',
       status: 'selected',
-      selectionSummaryJson: {
-        lookupSnapshotIds: { division: 'empty-division', divisionArea: 'empty-area' },
-      },
     })
+    for (const [role, dependencySnapshotId] of Object.entries({
+      division: 'empty-division',
+      divisionArea: 'empty-area',
+    }))
+      insert(meta, 'snapshotDependencies', {
+        snapshotId: 'empty-address',
+        role,
+        dependencySnapshotId,
+      })
     const metaDb = createLocalHarbourDb(meta)
     view = await PlaceDependencyView.create({
       metaDb,
@@ -199,7 +205,7 @@ test('exact historical Place dependencies replay independent locale shards and s
       ['g', 'old'],
     ])
       insert(meta, 'snapshotShardAssignments', { snapshotId: id, dataShardId: shard })
-    insert(meta, 'snapshotAssembly', {
+    insert(meta, 'snapshotRecipes', {
       id: 'assembly',
       code: 'assembly',
       resourceType: 'address',
@@ -208,15 +214,18 @@ test('exact historical Place dependencies replay independent locale shards and s
       versionHash: 'assembly',
     })
     for (const snapshotId of ['a1', 'a2'])
-      insert(meta, 'snapshotAssemblyRuns', {
+      insert(meta, 'snapshotAssemblies', {
         id: snapshotId,
         snapshotId,
-        snapshotAssemblyId: 'assembly',
+        snapshotRecipeId: 'assembly',
         status: 'selected',
-        selectionSummaryJson: {
-          lookupSnapshotIds: { division: 'd', divisionArea: 'g' },
-        },
       })
+    for (const snapshotId of ['a1', 'a2'])
+      for (const [role, dependencySnapshotId] of Object.entries({
+        division: 'd',
+        divisionArea: 'g',
+      }))
+        insert(meta, 'snapshotDependencies', { snapshotId, role, dependencySnapshotId })
     const history = (
       db: Database,
       table: string,

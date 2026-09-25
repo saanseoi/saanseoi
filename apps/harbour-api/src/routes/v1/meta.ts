@@ -511,7 +511,7 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
           arss.variant
         FROM apiReleaseSetSnapshots arss
         INNER JOIN snapshots s ON s.id = arss.snapshotId
-        INNER JOIN snapshotSources ss ON ss.snapshotId = arss.snapshotId
+        INNER JOIN snapshotSourceReleases ss ON ss.snapshotId = arss.snapshotId
         INNER JOIN releases r ON r.id = ss.resourceReleaseId
         INNER JOIN sourceReleases sr ON sr.id = r.sourceReleaseId
         INNER JOIN datasets d ON d.id = ss.datasetId

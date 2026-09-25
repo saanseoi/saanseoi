@@ -153,8 +153,8 @@ describe('Statistics API responses through the Worker route', () => {
       )
       run(
         fixture.meta,
-        `INSERT INTO snapshotSources (snapshotId, datasetId, resourceReleaseId, role, createdAt)
-        SELECT 'snapshot-statistics-revised', datasetId, resourceReleaseId, role, ? FROM snapshotSources WHERE snapshotId = 'snapshot-statistics'`,
+        `INSERT INTO snapshotSourceReleases (snapshotId, datasetId, resourceReleaseId, role, createdAt)
+        SELECT 'snapshot-statistics-revised', datasetId, resourceReleaseId, role, ? FROM snapshotSourceReleases WHERE snapshotId = 'snapshot-statistics'`,
         [newerAt],
       )
       run(
