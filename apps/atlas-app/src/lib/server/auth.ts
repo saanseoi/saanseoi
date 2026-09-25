@@ -19,6 +19,7 @@ import { getRequestEvent } from '$app/server'
 import { createMetaDb } from '@repo/db/client'
 import { createAuthEmail } from './auth-email'
 import { authCookieOptions } from './authCookies'
+import { authLocaleOptions } from './authLocale'
 
 const sendAuthEmail = (input: {
   to: string
@@ -106,9 +107,7 @@ const createAuthConfig = (baseURL: string, authEnv: AuthEnvironment) =>
         updateUserInfoOnLink: true,
       },
     },
-    user: {
-      additionalFields: { locale: { type: 'string', required: false, input: false } },
-    },
+    ...authLocaleOptions,
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
