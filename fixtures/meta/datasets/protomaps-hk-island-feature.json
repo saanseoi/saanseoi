@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:978e8746c43ef2bc9ca57981ba771aa2437507f59275edcab1bdb8b1d40765ac",
+  "versionHash": "sha256:496ba43e685f250f0ccd2bad78aa6625102cae0bb1b09992529063f6cf1a554d",
   "publisherCode": "protomaps",
   "code": "ds-hk-protomaps-island",
   "regionCode": "hk",
@@ -55,17 +55,17 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Island Features",
+      "name": "Islands",
       "description": "Reviewed island polygons extracted from SaanSeoi's selected Hong Kong Protomaps basemap release. They are source geometry assertions for the SaanSeoi geographic assembly."
     },
     {
       "locale": "zh-hant",
-      "name": "島嶼要素",
+      "name": "島嶼",
       "description": "從 SaanSeoi 選定的香港 Protomaps 底圖版本擷取並經審核的島嶼多邊形。它們是 SaanSeoi 地理組裝所用的來源幾何斷言。"
     },
     {
       "locale": "zh-hans",
-      "name": "岛屿要素",
+      "name": "岛屿",
       "description": "从 SaanSeoi 选定的香港 Protomaps 底图版本提取并经审核的岛屿多边形。它们是 SaanSeoi 地理组装所用的来源几何断言。"
     }
   ],
