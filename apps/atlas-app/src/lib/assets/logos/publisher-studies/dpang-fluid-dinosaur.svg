@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="800" height="800" role="img" aria-labelledby="title description">
+  <title id="title">Diana Pang — fluid dinosaur concept</title>
+  <desc id="description">A friendly green long-necked dinosaur, preserving the original left-hand upright neck, small right-facing head, broad body and tapering right-hand tail. Soft sculpted contours and restrained spots.</desc>
+  <rect width="240" height="240" fill="#243549"/>
+  <path id="dinosaur" fill="#90BE69" d="M49 170 C44 154 36 137 34 115 C30 93 31 65 42 44 C51 27 65 21 79 24 C89 26 97 34 96 42 C96 49 91 52 83 51 L69 50 C59 51 55 61 54 75 C52 92 56 107 65 111 C76 116 94 110 112 113 C139 116 153 126 164 147 C177 173 185 193 210 205 C215 208 214 213 208 213 C187 212 170 201 157 183 C156 193 159 204 163 212 C165 217 160 220 152 219 L139 219 C133 219 129 216 129 211 L128 185 C111 190 91 188 77 183 L81 210 C82 216 79 219 72 219 L60 219 C54 219 51 216 53 209 L55 185 C52 195 47 207 43 216 C41 220 35 220 29 219 C25 218 24 215 26 210 C32 194 39 181 49 170 Z"/>
+  <path id="neck-light" fill="#CAE291" d="M42 104 C37 80 41 55 51 41 C57 33 65 29 74 30 C62 32 54 43 49 56 C44 70 43 88 46 103 C47 111 45 114 42 104Z"/>
+  <circle id="eye" cx="81" cy="37" r="3.4" fill="#243549"/>
+  <g id="soft-spots" fill="#457A51">
+    <path d="M76 122 C70 120 66 125 69 130 C72 135 79 132 79 128 C80 125 78 123 76 122Z"/>
+    <path d="M92 119 C87 118 83 122 85 126 C88 131 95 129 96 125 C97 122 95 120 92 119Z"/>
+    <path d="M110 122 C105 119 100 123 101 127 C102 132 109 134 112 130 C115 127 114 124 110 122Z"/>
+    <path d="M127 128 C123 124 117 128 118 132 C119 137 125 139 128 135 C131 132 129 130 127 128Z"/>
+    <path d="M95 136 C91 133 86 136 88 141 C90 145 96 144 98 141 C99 139 97 137 95 136Z"/>
+    <path d="M144 140 C140 137 136 140 138 144 C140 148 145 149 147 145 C148 143 146 141 144 140Z"/>
+  </g>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 240" width="800" height="800" role="img" aria-labelledby="title"><title id="title">Overture — fluid concept</title><rect width="240" height="240" fill="#243549"/><defs><clipPath id="globe"><circle cx="120" cy="87" r="59"/></clipPath></defs>
+<g id="map-layers" stroke-linejoin="round">
+<path fill="#267E88" d="M28 176 Q20 180 29 185 L111 226 Q120 230 129 225 L214 184 Q223 180 213 175 L132 139 Q122 135 113 139Z"/>
+<path fill="#101E2C" d="M43 176 L120 211 L198 176 L120 144Z"/>
+<path fill="#62B7AE" d="M28 155 Q20 159 29 164 L112 204 Q120 208 129 204 L214 163 Q223 159 213 154 L132 119 Q122 115 113 119Z"/>
+<path fill="#101E2C" d="M43 155 L120 190 L198 155 L120 123Z"/>
+<path fill="#E8D4A0" d="M29 134 Q21 138 30 143 L112 182 Q120 186 129 182 L213 142 Q222 138 213 133 L130 98 Q120 94 111 98Z"/>
+<path fill="#243549" d="M45 137 L120 105 L195 137 L120 171Z"/>
+</g>
+<circle id="globe-sea" cx="120" cy="87" r="59" fill="#427EAA"/>
+<g id="continents" clip-path="url(#globe)" fill="#E8D4A0">
+<path d="M64 61 C77 48 82 58 91 45 C99 32 111 28 119 31 C127 37 117 45 112 48 C105 51 109 58 102 62 C94 66 85 62 84 71 C83 81 103 77 107 87 C110 97 101 100 106 107 C111 116 123 115 126 125 C128 133 118 144 113 151 C109 138 100 139 100 127 C101 114 87 110 85 97 C83 86 72 88 66 80Z"/>
+<path d="M144 29 C158 36 168 48 173 63 C163 60 157 56 150 64 C145 71 132 67 128 76 C125 87 140 86 145 95 C150 106 145 115 156 119 C166 119 169 103 180 100 L190 47Z"/>
+</g></svg>

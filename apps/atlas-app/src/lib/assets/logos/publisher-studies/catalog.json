@@ -1,0 +1,23 @@
+{
+  "status": "concept",
+  "style": "Fluid shapes inspired by the SaanSeoi emblem",
+  "preview": "publisher-fluid-comparison.png",
+  "treatments": [
+    {
+      "publisher": "protomaps",
+      "file": "protomaps-fluid-mosaic.svg"
+    },
+    {
+      "publisher": "overture",
+      "file": "overture-fluid-atlas.svg"
+    },
+    {
+      "publisher": "hkgov",
+      "file": "hong-kong-fluid-bauhinia.svg"
+    },
+    {
+      "publisher": "dpang",
+      "file": "dpang-fluid-dinosaur.svg"
+    }
+  ]
+}
