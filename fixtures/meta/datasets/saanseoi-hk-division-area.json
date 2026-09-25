@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:5d6b7c24e130624da4b1536bbb83754dcc42c858a1bf68b5bfdfc31eb76f8243",
+  "versionHash": "sha256:76bfe3b1a441d2e99ad206988e8f9dde76cae887b0cda6f92601fee02df65db6",
   "publisherCode": "saanseoi",
   "code": "ds-hk-saanseoi-division-area",
   "regionCode": "hk",
@@ -42,7 +42,7 @@
   "i18n": [
     {
       "locale": "en",
-      "name": "Handcrafted Division Areas",
+      "name": "Locality & Neighbourhood Areas",
       "description": "Handcrafted Hong Kong geography. Incomplete and experimental. Initial edition dated 1 September 2026, updated as needed."
     },
     {

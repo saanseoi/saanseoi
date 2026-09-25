@@ -6,7 +6,9 @@
   "releaseType": "static",
   "releaseFrequency": "as-needed",
   "theme": "streets",
-  "resourceTypes": ["street"],
+  "resourceTypes": [
+    "street"
+  ],
   "licenseCode": "odc-by-1.0",
   "attribution": "© Diana Pang",
   "schemaURL": null,

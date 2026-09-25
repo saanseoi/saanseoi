@@ -15,7 +15,11 @@
     }
   },
   "sourceCrs": "EPSG:2326",
-  "resourceTypes": ["divisionStatistic", "division", "divisionArea"],
+  "resourceTypes": [
+    "divisionStatistic",
+    "division",
+    "divisionArea"
+  ],
   "licenseCode": "hkgov-open-data",
   "attribution": "© Hong Kong Special Administrative Region Government, Census and Statistics Department",
   "sourceUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1728978338390_76872",
@@ -38,7 +42,9 @@
       },
       "archives": {
         "trigger": "on-discovery",
-        "discoveries": ["revision"],
+        "discoveries": [
+          "revision"
+        ],
         "includeInitialDownload": true
       }
     },
