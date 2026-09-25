@@ -922,5 +922,205 @@
       "reviewStatus": "reviewed",
       "purpose": "User-reviewed Ping Shan level-5 neighbourhood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
     }
+  },
+  {
+    "id": "15062812-a4d2-4d4a-b589-2f50bc31943f",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.150384,
+        22.334585
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5",
+    "names": {
+      "primary": "四小龍 West Kowloon Four Little Dragons",
+      "common": [
+        {
+          "language": "en",
+          "value": "West Kowloon Four Little Dragons"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "四小龍"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "west-kowloon-four-little-dragons"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-west-kowloon-four-little-dragons",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed level-6 microhood comprising four large private residential estates around Sham Mong Road and Lai Chi Kok Road; retains the Overture division ID. Representative point supplied by the user; boundary awaits local review."
+    }
+  },
+  {
+    "id": "043533a3-8e34-502a-8c68-9879e1c19cfd",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "microhood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.18271101914193,
+        22.284456546410052
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "a3f5d985-9d91-4629-a530-f66420a0be01",
+    "names": {
+      "primary": "奇力島 Kellett Island",
+      "common": [
+        {
+          "language": "en",
+          "value": "Kellett Island"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "奇力島"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "奇力岛"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "kellett-island"
+      },
+      {
+        "dataset": "Lands Department Place Name",
+        "record_id": "LANDSD:PLACE_NAME:691"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-kellett-island",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed level-6 microhood under Wan Chai District; LandsD representative point, reviewed boundary retained in stub-areas.json."
+    }
+  },
+  {
+    "id": "c81690db-fae9-4802-8745-fd6d96ca9f60",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "macrohood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.1383171,
+        22.3219132
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5",
+    "names": {
+      "primary": "昂船洲 Stonecutters Island",
+      "common": [
+        {
+          "language": "en",
+          "value": "Stonecutters Island"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "昂船洲"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "昂船洲"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "stonecutters-island"
+      },
+      {
+        "dataset": "Lands Department Place Name",
+        "record_id": "LANDSD:PLACE_NAME:5059"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-stonecutters-island",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed level-4 macrohood under Sham Shui Po District and Kwai Tsing District; retains the Overture identity and reviewed boundary."
+    }
+  },
+  {
+    "id": "5d03d001-c5a5-56a1-ba9c-530a4c262d7f",
+    "country": "HK",
+    "theme": "divisions",
+    "type": "division",
+    "subtype": "macrohood",
+    "class": null,
+    "admin_level": null,
+    "geometry": {
+      "type": "Point",
+      "coordinates": [
+        114.13645814715399,
+        22.253769490905007
+      ]
+    },
+    "bbox": null,
+    "parent_division_id": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a",
+    "names": {
+      "primary": "華富 Wah Fu",
+      "common": [
+        {
+          "language": "en",
+          "value": "Wah Fu"
+        },
+        {
+          "language": "zh-Hant",
+          "value": "華富"
+        },
+        {
+          "language": "zh-Hans",
+          "value": "华富"
+        }
+      ]
+    },
+    "hierarchies": [],
+    "sources": [
+      {
+        "dataset": "SaanSeoi reviewed division additions",
+        "record_id": "wah-fu"
+      },
+      {
+        "dataset": "Lands Department Place Name",
+        "record_id": "LANDSD:PLACE_NAME:2585"
+      }
+    ],
+    "fixture": {
+      "code": "saanseoi-hk-wah-fu",
+      "version": 1,
+      "reviewStatus": "reviewed",
+      "purpose": "User-reviewed level-4 macrohood under Southern District; LandsD representative point, reviewed boundary retained in stub-areas.json."
+    }
   }
 ]
