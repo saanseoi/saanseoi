@@ -1399,21 +1399,6 @@
       "reason": "Lamma Island is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
     },
     {
-      "id": "overture_hong_kong_stonecutters_island_macrohood_excluded",
-      "source": "overture",
-      "divisionId": "c81690db-fae9-4802-8745-fd6d96ca9f60",
-      "names": [
-        "Stonecutters Island",
-        "昂船洲"
-      ],
-      "expected": {
-        "adminLevel": null,
-        "class": null,
-        "subtype": "macrohood"
-      },
-      "reason": "Stonecutters Island is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
-    },
-    {
       "id": "overture_hong_kong_lantau_macrohood_excluded",
       "source": "overture",
       "divisionId": "d5ea5db9-fe81-4156-abeb-f00c0debb48a",
