@@ -72,7 +72,7 @@ $effect(() => {
         title={group.title}
         explanation={group.explanation}
         rows={group.rows}
-        getRule={() => getRetainedRuleDeclaration({releaseId, hash, bulkId: bulk.id})}
+        getRule={() => getRetainedRuleDeclaration({ releaseId, hash, bulkId: bulk.id })}
       />
     {/each}
   {:else}

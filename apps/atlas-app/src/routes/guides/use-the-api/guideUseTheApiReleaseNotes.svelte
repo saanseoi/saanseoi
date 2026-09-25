@@ -72,7 +72,7 @@ const familyTheme = (familyType: string) =>
     aria-label="API family sections"
   >
     {#each orderedApiFamilies as apiFamily (apiFamily.familyType)}
-      {@const theme = familyTheme(apiFamily.familyType)}
+      {@const (theme = familyTheme(apiFamily.familyType))}
       {#if theme}
         <GuideUseTheApiFamilyLink
           familyType={apiFamily.familyType as keyof typeof apiFamilyThemes}
@@ -85,7 +85,7 @@ const familyTheme = (familyType: string) =>
 
   <div class="mt-14 space-y-12 md:mt-18 md:space-y-16">
     {#each orderedApiFamilies as apiFamily (apiFamily.familyType)}
-      {@const theme = familyTheme(apiFamily.familyType)}
+      {@const (theme = familyTheme(apiFamily.familyType))}
       {#if theme}
         <section
           id={`api-family-${apiFamily.familyType}`}

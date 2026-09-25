@@ -108,7 +108,10 @@ const display = (value: Json): string =>
     {reason}
   </p>
   <div class="grid grid-cols-2 divide-x divide-current/10 border-t border-current/10">
-    {#each [{ title: m.source_audit_input(), value: input }, { title: m.source_audit_output(), value: output }] as side}
+    {#each [
+   { title: m.source_audit_input(), value: input },
+   { title: m.source_audit_output(), value: output },
+ ] as side}
       <div class="min-w-0 space-y-2 p-4">
         <p class="text-xs font-medium uppercase tracking-wide opacity-45">
           {side.title}

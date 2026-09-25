@@ -273,7 +273,9 @@ function setExpandedNodeState(path: string, expanded: boolean) {
 
   <p class="font-body text-body-md leading-relaxed text-foreground-alt">
     {m.source_record_schema_not_one_to_one_before()} <code>properties</code>
-    {family === 'streets' ? m.source_record_schema_not_one_to_one_after() : m.source_record_schema_native_envelope_description()}
+    {family === 'streets'
+  ? m.source_record_schema_not_one_to_one_after()
+  : m.source_record_schema_native_envelope_description()}
   </p>
 
   <p class="font-body text-body-md leading-relaxed text-foreground-alt">
@@ -283,8 +285,8 @@ function setExpandedNodeState(path: string, expanded: boolean) {
         class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
         href={sourceSchemaUrl}
         >{m.source_record_schema_upstream_specification_link({
-          version: sourceSchemaVersion ?? 'latest',
-        })}</a
+  version: sourceSchemaVersion ?? 'latest',
+})}</a
       >.
     {/if}
     {m.source_record_schema_examples()}

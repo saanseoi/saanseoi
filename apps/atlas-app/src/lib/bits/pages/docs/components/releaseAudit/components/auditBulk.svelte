@@ -100,13 +100,16 @@ async function loadDeclaration() {
   </header>
   <p class="border-t border-current/10 px-4 py-3 leading-relaxed opacity-65">
     {bulk.id === 'prepare-als-addresses'
-      ? m.source_audit_als_prepare_summary()
-      : bulk.id === 'normalise-als-addresses'
-        ? m.source_audit_als_normalise_summary()
-        : auditRuleCopy(bulk.id)?.summary ?? bulk.summary}
+  ? m.source_audit_als_prepare_summary()
+  : bulk.id === 'normalise-als-addresses'
+    ? m.source_audit_als_normalise_summary()
+    : (auditRuleCopy(bulk.id)?.summary ?? bulk.summary)}
   </p>
   <div class="grid grid-cols-2 border-t border-current/10">
-    {#each [{title: m.source_audit_input(), counts: bulk.counts.inputs}, {title: m.source_audit_output(), counts: bulk.counts.outputs}] as side}
+    {#each [
+   { title: m.source_audit_input(), counts: bulk.counts.inputs },
+   { title: m.source_audit_output(), counts: bulk.counts.outputs },
+ ] as side}
       <div class="space-y-2 px-4 py-3 first:border-r first:border-current/10">
         <p class="text-xs uppercase opacity-45">{side.title}</p>
         {#each Object.entries(side.counts) as [name, count]}
@@ -122,11 +125,21 @@ async function loadDeclaration() {
       </div>
     {/each}
   </div>
-  {#if parameters && typeof parameters === 'object' && !Array.isArray(parameters) && Object.keys(parameters).length}
+  {#if parameters &&
+  typeof parameters === 'object' &&
+  !Array.isArray(parameters) &&
+  Object.keys(parameters).length}
     <details
       class="border-t border-current/10 px-4 py-3 text-sm"
-      open={parameters.exclusion !== null && typeof parameters.exclusion === 'object' && !Array.isArray(parameters.exclusion) && (parameters.exclusion.type === 'Polygon' || parameters.exclusion.type === 'MultiPolygon') && Array.isArray(parameters.exclusion.coordinates)}
-      ontoggle={event => { if (event.currentTarget.open && declaration === undefined) void loadDeclaration() }}
+      open={parameters.exclusion !== null &&
+  typeof parameters.exclusion === 'object' &&
+  !Array.isArray(parameters.exclusion) &&
+  (parameters.exclusion.type === 'Polygon' ||
+    parameters.exclusion.type === 'MultiPolygon') &&
+  Array.isArray(parameters.exclusion.coordinates)}
+      ontoggle={event => {
+  if (event.currentTarget.open && declaration === undefined) void loadDeclaration()
+}}
     >
       <summary class="cursor-pointer text-xs opacity-50">
         <span>{m.source_audit_rule_parameters()}</span>
@@ -138,7 +151,10 @@ async function loadDeclaration() {
       </summary>
       <div class="pt-3">
         {#if declaration !== undefined}
-          {#if parameters && typeof parameters === 'object' && !Array.isArray(parameters) && Object.keys(parameters).length}
+          {#if parameters &&
+  typeof parameters === 'object' &&
+  !Array.isArray(parameters) &&
+  Object.keys(parameters).length}
             <RuleParameters {parameters} />
           {:else}
             <p class="text-sm opacity-65">{m.source_audit_no_parameters()}</p>
@@ -159,16 +175,31 @@ async function loadDeclaration() {
     </details>
   {/if}
   {#each evidence.fixtures as fixture, index}
-    {@const group = groups?.[fixture.type]}
-    {#if evidence.fixtures.findIndex(part => part.type === fixture.type) === index && group && catalogueGroupMatches(group, query)}
+    {@const (group = groups?.[fixture.type])}
+    {#if evidence.fixtures.findIndex(part => part.type === fixture.type) === index &&
+  group &&
+  catalogueGroupMatches(group, query)}
       <div class="relative border-t border-current/10">
         <div class="absolute right-4 top-2 z-10">
           <CopyRule
             kind="fixture"
             getRule={async () => {
-          const documents = await Promise.all(evidence.fixtures.flatMap((part, partIndex) => part.type === fixture.type ? [getRetainedBulkFixture({releaseId, hash, bulkId: evidence.id, index: partIndex})] : []))
-          return documents.length === 1 ? documents[0] : documents
-        }}
+  const documents = await Promise.all(
+    evidence.fixtures.flatMap((part, partIndex) =>
+      part.type === fixture.type
+        ? [
+            getRetainedBulkFixture({
+              releaseId,
+              hash,
+              bulkId: evidence.id,
+              index: partIndex,
+            }),
+          ]
+        : [],
+    ),
+  )
+  return documents.length === 1 ? documents[0] : documents
+}}
           />
         </div>
         <LazyFixture
@@ -178,7 +209,13 @@ async function loadDeclaration() {
           {group}
           bulkId={evidence.id}
           type={fixture.type}
-          label={fixture.type === 'statistic-fields' ? m.source_audit_statistical_fields() : fixture.type === 'statistic-measures' ? m.source_audit_statistical_measures() : fixture.type === 'identity-mappings' ? m.source_audit_identity_bridge() : label(fixture.type)}
+          label={fixture.type === 'statistic-fields'
+  ? m.source_audit_statistical_fields()
+  : fixture.type === 'statistic-measures'
+    ? m.source_audit_statistical_measures()
+    : fixture.type === 'identity-mappings'
+      ? m.source_audit_identity_bridge()
+      : label(fixture.type)}
         />
       </div>
     {/if}

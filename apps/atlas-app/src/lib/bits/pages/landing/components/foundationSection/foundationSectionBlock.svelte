@@ -44,9 +44,9 @@ const blockStyle = $derived(
 {#snippet content()}
   <span
     class={cn(
-      "absolute top-[1.05rem] left-0 z-1 inline-grid aspect-square w-(--mobile-marker-size) place-items-center rounded-full border border-current bg-[color-mix(in_srgb,currentColor_11%,var(--surface-container-lowest))] font-display text-[1.45rem] leading-none font-black text-(--label-accent) shadow-[0_0_0_0.34rem_color-mix(in_srgb,currentColor_7%,transparent),0_0.85rem_2rem_rgb(0_0_0/0.16)] before:absolute before:inset-[-0.34rem] before:-z-1 before:rounded-[inherit] before:border-2 before:border-current before:opacity-42 before:content-[''] before:scale-[0.94] min-[786px]:hidden",
-      label.tone === 'data' && 'max-[785px]:right-0 max-[785px]:left-auto',
-    )}
+  "absolute top-[1.05rem] left-0 z-1 inline-grid aspect-square w-(--mobile-marker-size) place-items-center rounded-full border border-current bg-[color-mix(in_srgb,currentColor_11%,var(--surface-container-lowest))] font-display text-[1.45rem] leading-none font-black text-(--label-accent) shadow-[0_0_0_0.34rem_color-mix(in_srgb,currentColor_7%,transparent),0_0.85rem_2rem_rgb(0_0_0/0.16)] before:absolute before:inset-[-0.34rem] before:-z-1 before:rounded-[inherit] before:border-2 before:border-current before:opacity-42 before:content-[''] before:scale-[0.94] min-[786px]:hidden",
+  label.tone === 'data' && 'max-[785px]:right-0 max-[785px]:left-auto',
+)}
   >
     {label.number}
   </span>
@@ -71,9 +71,9 @@ const blockStyle = $derived(
   </h3>
   <p
     class={cn(
-      'mt-[0.8rem] block max-w-88 bg-transparent font-body text-[clamp(0.9rem,1.1vw,1.05rem)] leading-[1.65] text-[color-mix(in_srgb,var(--foreground-alt)_82%,transparent)] text-balance max-[785px]:mt-[0.9rem] max-[785px]:w-[min(20.5rem,calc(100%+2rem))] max-[785px]:max-w-none dark:text-white/78',
-      label.align === 'right' && 'ml-auto',
-    )}
+  'mt-[0.8rem] block max-w-88 bg-transparent font-body text-[clamp(0.9rem,1.1vw,1.05rem)] leading-[1.65] text-[color-mix(in_srgb,var(--foreground-alt)_82%,transparent)] text-balance max-[785px]:mt-[0.9rem] max-[785px]:w-[min(20.5rem,calc(100%+2rem))] max-[785px]:max-w-none dark:text-white/78',
+  label.align === 'right' && 'ml-auto',
+)}
   >
     <span
       class="bg-[color-mix(in_srgb,var(--foundation-map-background)_90%,transparent)] px-[0.26rem] pt-[0.08rem] pb-[0.14rem] [-webkit-box-decoration-break:clone] [box-decoration-break:clone] dark:bg-[#131311db]"
@@ -83,9 +83,9 @@ const blockStyle = $derived(
   </p>
   <small
     class={cn(
-      'mt-[0.65rem] block w-fit bg-[color-mix(in_srgb,var(--foundation-map-background)_92%,transparent)] px-[0.3rem] pt-[0.12rem] pb-[0.16rem] font-body text-[0.82rem] font-extrabold uppercase tracking-[0.08em] text-on-tertiary-container transition-colors duration-200 max-[785px]:mt-[0.95rem] max-[785px]:bg-transparent max-[785px]:p-0 dark:bg-[#131311db] group-hover:text-(--label-accent) group-focus-visible:text-(--label-accent)',
-      label.align === 'right' && 'ml-auto',
-    )}
+  'mt-[0.65rem] block w-fit bg-[color-mix(in_srgb,var(--foundation-map-background)_92%,transparent)] px-[0.3rem] pt-[0.12rem] pb-[0.16rem] font-body text-[0.82rem] font-extrabold uppercase tracking-[0.08em] text-on-tertiary-container transition-colors duration-200 max-[785px]:mt-[0.95rem] max-[785px]:bg-transparent max-[785px]:p-0 dark:bg-[#131311db] group-hover:text-(--label-accent) group-focus-visible:text-(--label-accent)',
+  label.align === 'right' && 'ml-auto',
+)}
   >
     {#if label.tone === 'projects'}
       {m.foundation_community_apps_coming_soon()}

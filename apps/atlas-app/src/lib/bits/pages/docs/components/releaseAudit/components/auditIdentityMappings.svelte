@@ -26,7 +26,7 @@ const object = (v: Json) => (v && typeof v === 'object' && !Array.isArray(v) ? v
     </thead>
     <tbody>
       {#each mappings as mapping}
-        {@const row = object(mapping)}
+        {@const (row = object(mapping))}
         <tr class="[&_td]:border-b [&_td]:border-current/10">
           <td class="p-2">
             <code title={String(row.externalId ?? '—')} class="text-emerald-500"
@@ -41,8 +41,14 @@ const object = (v: Json) => (v && typeof v === 'object' && !Array.isArray(v) ? v
           <td class="p-2">
             <code
               class="rounded bg-emerald-500/10 px-1.5 py-0.5 text-emerald-500"
-              title={row.divisionCode ? m.source_audit_retained_division_code() : m.source_audit_current_division_code()}
-              >{String(row.divisionCode ?? auditDivisionCode(String(row.canonicalId)) ?? m.source_audit_not_recorded())}</code
+              title={row.divisionCode
+  ? m.source_audit_retained_division_code()
+  : m.source_audit_current_division_code()}
+              >{String(
+  row.divisionCode ??
+    auditDivisionCode(String(row.canonicalId)) ??
+    m.source_audit_not_recorded(),
+)}</code
             >
           </td>
           <td class="p-2">

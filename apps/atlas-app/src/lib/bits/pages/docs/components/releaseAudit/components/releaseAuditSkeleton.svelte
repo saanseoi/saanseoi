@@ -58,20 +58,10 @@ import ReleaseAuditControls from './releaseAuditControls.svelte'
         <div class="grid gap-4 bg-data-surface-container-low px-5 py-4 sm:grid-cols-2">
           <div class="min-w-0">
             <div
-              class="h-3 rounded-full bg-data-surface-container-high motion-safe:animate-pulse {index % 3 === 0
-                ? 'w-36'
-                : index % 3 === 1
-                  ? 'w-28'
-                  : 'w-32'}"
+              class="h-3 rounded-full bg-data-surface-container-high motion-safe:animate-pulse {index % 3 === 0 ? 'w-36' : index % 3 === 1 ? 'w-28' : 'w-32'}"
             ></div>
             <div
-              class="mt-2 h-4 rounded-full bg-data-primary/60 motion-safe:animate-pulse {index % 4 === 0
-                ? 'w-44'
-                : index % 4 === 1
-                  ? 'w-56'
-                  : index % 4 === 2
-                    ? 'w-64'
-                    : 'w-40'}"
+              class="mt-2 h-4 rounded-full bg-data-primary/60 motion-safe:animate-pulse {index % 4 === 0 ? 'w-44' : index % 4 === 1 ? 'w-56' : index % 4 === 2 ? 'w-64' : 'w-40'}"
             ></div>
           </div>
           <div class="flex min-w-0 items-start justify-between gap-4 sm:justify-end">
@@ -80,11 +70,7 @@ import ReleaseAuditControls from './releaseAuditControls.svelte'
                 class="ml-auto h-3 w-14 rounded-full bg-data-surface-container-high motion-safe:animate-pulse"
               ></div>
               <div
-                class="mt-2 ml-auto h-4 rounded-full bg-data-surface-container-high motion-safe:animate-pulse {index % 3 === 0
-                  ? 'w-16'
-                  : index % 3 === 1
-                    ? 'w-24'
-                    : 'w-20'}"
+                class="mt-2 ml-auto h-4 rounded-full bg-data-surface-container-high motion-safe:animate-pulse {index % 3 === 0 ? 'w-16' : index % 3 === 1 ? 'w-24' : 'w-20'}"
               ></div>
             </div>
             <span

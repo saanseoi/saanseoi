@@ -109,9 +109,9 @@ ${m.guide_publish_other_prompt()}`}
           <div class="mt-4">
             <GuideCodeBlock
               label={m.guide_setup_terminal_label({
-                action: m.guide_publish_cloudflare_build_command(),
-                path: terminalProjectPath,
-              })}
+  action: m.guide_publish_cloudflare_build_command(),
+  path: terminalProjectPath,
+})}
               code="bun run build"
               language="bash"
               copyLabel={m.common_copy()}

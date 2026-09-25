@@ -20,7 +20,9 @@ async function copy(id: string) {
 }
 </script>
 
-{#snippet render(item: Json)}
+{#snippet render(
+  item: Json,
+)}
   {#if Array.isArray(item)}
     <div class="space-y-1">
       {#each item as child, index}

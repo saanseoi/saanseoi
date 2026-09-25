@@ -118,12 +118,14 @@ const switchMode = (nextMode: AccountMode) => {
 }
 </script>
 
-{#snippet accessOptions(accountMode: AccountMode)}
+{#snippet accessOptions(
+  accountMode: AccountMode,
+)}
   <div class="min-w-0">
     <GuideParagraph>
       {accountMode === 'sign-up'
-        ? m.guide_basemap_account_options()
-        : m.guide_basemap_sign_in_options()}
+  ? m.guide_basemap_account_options()
+  : m.guide_basemap_sign_in_options()}
     </GuideParagraph>
     <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
       {#each providers as provider (provider.id)}
@@ -190,9 +192,9 @@ const switchMode = (nextMode: AccountMode) => {
       <form
         class="mt-5 grid gap-4 sm:grid-cols-2"
         onsubmit={event => {
-          event.preventDefault()
-          continueWithEmail(accountMode)
-        }}
+  event.preventDefault()
+  continueWithEmail(accountMode)
+}}
         transition:slide={{ duration: 200 }}
       >
         {#if accountMode === 'sign-up'}
@@ -242,12 +244,12 @@ const switchMode = (nextMode: AccountMode) => {
           type="submit"
         >
           {emailPending
-            ? accountMode === 'sign-up'
-              ? m.auth_creating()
-              : m.auth_signing_in()
-            : accountMode === 'sign-up'
-              ? m.auth_create_account()
-              : m.auth_sign_in_title()}
+  ? accountMode === 'sign-up'
+    ? m.auth_creating()
+    : m.auth_signing_in()
+  : accountMode === 'sign-up'
+    ? m.auth_create_account()
+    : m.auth_sign_in_title()}
         </button>
       </form>
     {/if}

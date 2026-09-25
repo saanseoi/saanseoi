@@ -109,7 +109,20 @@ async function toggle(side: 'source' | 'target', value: string) {
         >
           {#snippet children()}
             <div class="flex flex-wrap gap-x-6 gap-y-3">
-              {#each [{ side: 'source' as const, title: m.source_audit_translation_source(), locales: sourceLocales, excluded: excludedSource }, { side: 'target' as const, title: m.source_audit_target(), locales: targetLocales, excluded: excludedTarget }] as control}
+              {#each [
+   {
+     side: 'source' as const,
+     title: m.source_audit_translation_source(),
+     locales: sourceLocales,
+     excluded: excludedSource,
+   },
+   {
+     side: 'target' as const,
+     title: m.source_audit_target(),
+     locales: targetLocales,
+     excluded: excludedTarget,
+   },
+ ] as control}
                 <fieldset
                   class="flex flex-wrap items-center gap-2"
                   aria-label={control.title}
@@ -122,12 +135,20 @@ async function toggle(side: 'source' | 'target', value: string) {
                   {#each control.locales as value}
                     <button
                       type="button"
-                      class={['cursor-pointer rounded-md border px-2 py-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2', pendingToggle === `${control.side}:${value}` && 'motion-safe:animate-pulse', control.excluded.includes(value) ? 'border-current/10 bg-current/5 text-current/40 hover:text-current/65' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20']}
+                      class={[
+  'cursor-pointer rounded-md border px-2 py-1 text-xs transition-colors focus-visible:outline-2 focus-visible:outline-offset-2',
+  pendingToggle === `${control.side}:${value}` && 'motion-safe:animate-pulse',
+  control.excluded.includes(value)
+    ? 'border-current/10 bg-current/5 text-current/40 hover:text-current/65'
+    : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20',
+]}
                       aria-pressed={!control.excluded.includes(value)}
                       aria-label={m.source_audit_locale_filter({ side: control.title, locale: value })}
                       aria-busy={pendingToggle === `${control.side}:${value}`}
                       disabled={pendingToggle !== null}
-                      onclick={event => { if (event.detail < 2) void toggle(control.side, value) }}
+                      onclick={event => {
+  if (event.detail < 2) void toggle(control.side, value)
+}}
                     >
                       {value}
                     </button>
@@ -144,18 +165,32 @@ async function toggle(side: 'source' | 'target', value: string) {
       containerClass="overflow-hidden rounded-xl"
       viewportClass="max-h-[calc(48rem+10px)] overflow-y-auto overscroll-contain rounded-xl border border-current/15"
       ariaBusy={pendingToggle !== null}
-      onscroll={event => { const element = event.currentTarget; if (!pendingToggle && element.scrollHeight - element.scrollTop - element.clientHeight < 200) visible = Math.min(visible + 24, matching.length) }}
+      onscroll={event => {
+  const element = event.currentTarget
+  if (
+    !pendingToggle &&
+    element.scrollHeight - element.scrollTop - element.clientHeight < 200
+  )
+    visible = Math.min(visible + 24, matching.length)
+}}
       ariaLabel={m.source_audit_translation_entries()}
     >
       {#snippet children()}
         {#each matching.slice(0, visible) as { entry, index } (index)}
-          {@const row = object(entry)}
-          {@const parentName = translationParentName(row.context, getLocale())}
-          {@const reference = references?.[index] ?? (fixtureIndex !== undefined ? { fixtureIndex, entryIndex: index } : undefined)}
+          {@const (row = object(entry))}
+          {@const (parentName = translationParentName(row.context, getLocale()))}
+          {@const (reference =
+  references?.[index] ??
+  (fixtureIndex !== undefined ? { fixtureIndex, entryIndex: index } : undefined))}
           <details
             class="border-b border-current/10 last:border-b-0"
             open={expanded.includes(index)}
-            ontoggle={event => { if (event.currentTarget.open && !expanded.includes(index)) expanded = [...expanded, index]; else if (!event.currentTarget.open && expanded.includes(index)) expanded = expanded.filter(value => value !== index) }}
+            ontoggle={event => {
+  if (event.currentTarget.open && !expanded.includes(index))
+    expanded = [...expanded, index]
+  else if (!event.currentTarget.open && expanded.includes(index))
+    expanded = expanded.filter(value => value !== index)
+}}
           >
             <summary
               class="flex h-24 list-none cursor-pointer items-center gap-3 pl-4 pr-8 py-3 hover:bg-current/5 [&::-webkit-details-marker]:hidden"

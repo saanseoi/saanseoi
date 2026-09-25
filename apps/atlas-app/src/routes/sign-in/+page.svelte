@@ -147,7 +147,10 @@ const passkeySignIn = async () => {
     <form
       aria-busy={busy}
       class="mt-7 space-y-4"
-      onsubmit={event => { event.preventDefault(); signIn() }}
+      onsubmit={event => {
+  event.preventDefault()
+  signIn()
+}}
     >
       <label class="block font-body text-body-sm font-semibold text-foreground"
         >{m.common_email()}

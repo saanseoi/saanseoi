@@ -39,8 +39,8 @@ const toneClass: Record<Tone, string> = {
 
 <article
   class={`manifesto-card relative self-start ${featured ? 'overflow-visible' : 'overflow-hidden'} p-8 ${toneClass[tone]} ${tone === 'plain' ? 'manifesto-plain' : ''} ${
-    align === 'center' ? 'mx-auto max-w-4xl py-10 text-center md:py-14' : ''
-  } ${tone === 'highlight' ? 'text-center md:p-12 lg:p-18' : ''} ${featured ? 'md:p-12' : 'md:p-10'}`}
+  align === 'center' ? 'mx-auto max-w-4xl py-10 text-center md:py-14' : ''
+} ${tone === 'highlight' ? 'text-center md:p-12 lg:p-18' : ''} ${featured ? 'md:p-12' : 'md:p-10'}`}
 >
   {#if featured}
     <div
@@ -81,28 +81,28 @@ const toneClass: Record<Tone, string> = {
 
     <h2
       class={`font-display font-bold ${tone === 'plain' ? 'max-w-[15ch] mx-auto' : ''} ${
-        align === 'center'
-          ? 'mt-4 text-[2.5rem] leading-[0.97] tracking-tighter text-secondary sm:text-[3.6rem] md:text-[4.4rem]'
-          : featured
-            ? 'mt-4 text-[2.1rem] leading-[0.98] tracking-tighter text-primary sm:text-display-md md:text-[3.4rem]'
-            : tone === 'highlight'
-              ? 'mt-5 text-[2.9rem] leading-[0.92] tracking-[-0.06em] text-primary sm:text-[4.2rem] md:text-[5.1rem]'
-              : `mt-4 text-[1.8rem] leading-[1.04] tracking-display-lg ${emphasisedTitle ? 'text-secondary' : 'text-primary'} sm:text-[2.3rem]`
-      }`}
+  align === 'center'
+    ? 'mt-4 text-[2.5rem] leading-[0.97] tracking-tighter text-secondary sm:text-[3.6rem] md:text-[4.4rem]'
+    : featured
+      ? 'mt-4 text-[2.1rem] leading-[0.98] tracking-tighter text-primary sm:text-display-md md:text-[3.4rem]'
+      : tone === 'highlight'
+        ? 'mt-5 text-[2.9rem] leading-[0.92] tracking-[-0.06em] text-primary sm:text-[4.2rem] md:text-[5.1rem]'
+        : `mt-4 text-[1.8rem] leading-[1.04] tracking-display-lg ${emphasisedTitle ? 'text-secondary' : 'text-primary'} sm:text-[2.3rem]`
+}`}
     >
       {lead}
     </h2>
 
     <p
       class={`font-body ${
-        align === 'center'
-          ? 'mx-auto mt-8 max-w-4xl text-[1.12rem] leading-[1.8] text-primary italic sm:text-[1.55rem]'
-          : tone === 'highlight'
-            ? 'mx-auto mt-8 max-w-3xl text-[1.08rem] leading-[1.9] text-foreground-alt sm:text-[1.3rem]'
-            : featured
-              ? 'mt-6 text-[1.05rem] leading-[1.8] text-foreground-alt sm:text-[1.2rem]'
-              : 'mt-4 text-[0.98rem] leading-[1.8] text-foreground-alt sm:text-body-md'
-      }`}
+  align === 'center'
+    ? 'mx-auto mt-8 max-w-4xl text-[1.12rem] leading-[1.8] text-primary italic sm:text-[1.55rem]'
+    : tone === 'highlight'
+      ? 'mx-auto mt-8 max-w-3xl text-[1.08rem] leading-[1.9] text-foreground-alt sm:text-[1.3rem]'
+      : featured
+        ? 'mt-6 text-[1.05rem] leading-[1.8] text-foreground-alt sm:text-[1.2rem]'
+        : 'mt-4 text-[0.98rem] leading-[1.8] text-foreground-alt sm:text-body-md'
+}`}
     >
       {@html body}
     </p>

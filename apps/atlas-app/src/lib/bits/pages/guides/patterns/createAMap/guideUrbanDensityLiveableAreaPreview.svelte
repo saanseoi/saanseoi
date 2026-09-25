@@ -19,8 +19,8 @@ let { label, renderer, styleUrl, tilejsonUrl }: Props = $props()
       ariaLabel={label}
       center={[114.16, 22.32]}
       onMapReady={async map => {
-        await addUrbanDensityLiveableLand(map)
-      }}
+  await addUrbanDensityLiveableLand(map)
+}}
       {renderer}
       {styleUrl}
       {tilejsonUrl}

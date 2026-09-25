@@ -13,9 +13,9 @@ let { children, class: className = '' }: Props = $props()
 
 <section
   class={cn(
-    'landing-community-section flex min-h-[calc(100svh-var(--landing-header-height,4.5rem))] flex-col min-[901px]:min-h-0 min-[901px]:overflow-hidden',
-    className,
-  )}
+  'landing-community-section flex min-h-[calc(100svh-var(--landing-header-height,4.5rem))] flex-col min-[901px]:min-h-0 min-[901px]:overflow-hidden',
+  className,
+)}
 >
   {@render children?.()}
 </section>

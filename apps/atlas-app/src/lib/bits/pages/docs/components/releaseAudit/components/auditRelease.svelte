@@ -233,8 +233,8 @@ $effect(() => {
     <Controls
       bind:query
       filteredCount={fixtureCountsFailed || (effectiveQuery && searchFailure)
-          ? '—'
-          : filteredCount.toLocaleString()}
+  ? '—'
+  : filteredCount.toLocaleString()}
       totalCount={fixtureCountsFailed ? '—' : totalCount.toLocaleString()}
       loading={searchLoadingState}
       infoLabel={m.source_audit_search_info()}
@@ -340,7 +340,9 @@ $effect(() => {
       description={m.source_audit_rules_info_description()}
     />
     <div class="space-y-5">
-      {#if hierarchyCount !== undefined && hierarchyCount > 0 && matchesAudit(effectiveQuery, m.source_audit_rules(), hierarchy, hierarchyCount)}
+      {#if hierarchyCount !== undefined &&
+  hierarchyCount > 0 &&
+  matchesAudit(effectiveQuery, m.source_audit_rules(), hierarchy, hierarchyCount)}
         <ComparisonCard
           {...hierarchy}
           status="applied"

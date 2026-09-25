@@ -146,11 +146,11 @@ $effect(() => {
   bind:this={viewport}
   use:suppressDraggedClick
   class={cn(
-    scrollable
-      ? 'cursor-grab overflow-x-auto pb-4 select-none [scrollbar-color:transparent_transparent] scrollbar-thin [touch-action:pan-y] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[color-mix(in_srgb,var(--secondary)_55%,transparent)] [&::-webkit-scrollbar-thumb]:opacity-0 [&::-webkit-scrollbar-thumb]:transition-opacity [&::-webkit-scrollbar-thumb]:duration-220 hover:[scrollbar-color:color-mix(in_srgb,var(--secondary)_55%,transparent)_transparent] hover:[&::-webkit-scrollbar-thumb]:opacity-100 active:cursor-grabbing'
-      : 'cursor-default overflow-x-hidden select-none',
-    className,
-  )}
+  scrollable
+    ? 'cursor-grab overflow-x-auto pb-4 select-none [scrollbar-color:transparent_transparent] scrollbar-thin [touch-action:pan-y] [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[color-mix(in_srgb,var(--secondary)_55%,transparent)] [&::-webkit-scrollbar-thumb]:opacity-0 [&::-webkit-scrollbar-thumb]:transition-opacity [&::-webkit-scrollbar-thumb]:duration-220 hover:[scrollbar-color:color-mix(in_srgb,var(--secondary)_55%,transparent)_transparent] hover:[&::-webkit-scrollbar-thumb]:opacity-100 active:cursor-grabbing'
+    : 'cursor-default overflow-x-hidden select-none',
+  className,
+)}
   aria-label="Carousel"
   onpointerdown={handlePointerDown}
   onpointermove={handlePointerMove}

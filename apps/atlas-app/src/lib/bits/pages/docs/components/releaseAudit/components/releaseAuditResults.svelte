@@ -67,6 +67,8 @@ let props: Props = $props()
 
 {#if !props.sections.length && !props.visibleBulkSections.length}
   <ReleaseAuditEmptyState
-    message={props.visibleActionCount || props.bulkActions.length ? m.source_audit_no_matches() : m.source_audit_none()}
+    message={props.visibleActionCount || props.bulkActions.length
+  ? m.source_audit_no_matches()
+  : m.source_audit_none()}
   />
 {/if}

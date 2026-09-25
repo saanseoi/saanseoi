@@ -13,7 +13,10 @@ let { decision }: { decision: AlsDecision } = $props()
     <Copy kind="fixture" getRule={async () => decision.raw} />
   </header>
   <div class="grid grid-cols-1 border-t border-current/10 sm:grid-cols-2">
-    {#each [{ title: m.source_audit_input(), value: decision.input }, { title: m.source_audit_output(), value: decision.output }] as side}
+    {#each [
+   { title: m.source_audit_input(), value: decision.input },
+   { title: m.source_audit_output(), value: decision.output },
+ ] as side}
       <section
         class="min-w-0 space-y-3 px-4 py-3 first:border-b first:border-current/10 sm:first:border-b-0 sm:first:border-r"
       >

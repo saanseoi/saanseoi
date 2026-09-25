@@ -186,10 +186,10 @@ const sourceCountLabel = (count: number) =>
         </dt>
         <dd class="mt-2 font-mono text-sm font-semibold text-primary">
           {displayDate(
-            lastPublishedRelease?.publicationDate ??
-              lastPublishedRelease?.ingestedAt ??
-              lastPublishedRelease?.createdAt,
-          )}
+  lastPublishedRelease?.publicationDate ??
+    lastPublishedRelease?.ingestedAt ??
+    lastPublishedRelease?.createdAt,
+)}
         </dd>
       </div>
       <div class="min-w-0 max-w-full">

@@ -19,11 +19,11 @@
 
     <div class="grid grid-cols-2 gap-px bg-data-outline-variant/60 sm:grid-cols-4">
       {#each [
-        ['border-data-success', 'bg-data-success', 'w-14'],
-        ['border-data-warning', 'bg-data-warning', 'w-16'],
-        ['border-data-error', 'bg-data-error', 'w-14'],
-        ['border-data-neutral', 'bg-data-neutral', 'w-20'],
-      ] as metric}
+   ['border-data-success', 'bg-data-success', 'w-14'],
+   ['border-data-warning', 'bg-data-warning', 'w-16'],
+   ['border-data-error', 'bg-data-error', 'w-14'],
+   ['border-data-neutral', 'bg-data-neutral', 'w-20'],
+ ] as metric}
         <div class={`border-t-8 bg-data-surface-container-low px-5 py-6 ${metric[0]}`}>
           <div class="flex items-center gap-2">
             <span class={`size-2 rounded-full ${metric[1]}`}></span>

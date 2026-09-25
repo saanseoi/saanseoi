@@ -39,12 +39,12 @@ const containsActive = (node: OutlineNode): boolean =>
 
 <nav class={mobile ? 'px-3 py-2' : 'px-2 py-3 text-primary'} aria-label={ariaLabel}>
   {#snippet item(
-    node: OutlineNode,
-    nested: boolean,
-    isLast: boolean,
-    stem: StemState = 'inactive',
-  )}
-    {@const active = activeId === node.id}
+  node: OutlineNode,
+  nested: boolean,
+  isLast: boolean,
+  stem: StemState = 'inactive',
+)}
+    {@const (active = activeId === node.id)}
     <li class:ml-2={nested} class:pl-3={nested} class="relative">
       {#if nested}
         <span
@@ -68,26 +68,26 @@ const containsActive = (node: OutlineNode): boolean =>
         class={`relative z-10 flex items-center rounded-md px-2 font-body leading-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-secondary ${mobile ? 'min-h-10 py-1.5 text-label-md' : 'min-h-7 py-1 text-label-sm'} ${active ? 'bg-secondary-container text-foreground-alt dark:text-[#edf2ee]!' : 'text-foreground-alt hover:bg-black/5 hover:text-primary dark:hover:bg-white/10'}`}
         href={node.href ?? `#${node.id}`}
         onclick={event => {
-          void scrollToReleaseNavAnchor({ event, id: node.id, items, mobile, panel })
-          if (event.defaultPrevented) onSelect?.(node.id)
-        }}
+  void scrollToReleaseNavAnchor({ event, id: node.id, items, mobile, panel })
+  if (event.defaultPrevented) onSelect?.(node.id)
+}}
         aria-current={active ? 'location' : undefined}
         ><ReleaseNavInlineLabel emphasis={node.emphasis} label={node.label} /></a
       >
       {#if node.children.length}
-        {@const activeChildIndex = node.children.findIndex(containsActive)}
+        {@const (activeChildIndex = node.children.findIndex(containsActive))}
         <ol class="space-y-1 pt-1">
           {#each node.children as child, index}
             {@render item(
-              child,
-              true,
-              index === node.children.length - 1,
-              index < activeChildIndex
-                ? 'active'
-                : index === activeChildIndex
-                  ? 'active-end'
-                  : 'inactive',
-            )}
+  child,
+  true,
+  index === node.children.length - 1,
+  index < activeChildIndex
+    ? 'active'
+    : index === activeChildIndex
+      ? 'active-end'
+      : 'inactive',
+)}
           {/each}
         </ol>
       {/if}

@@ -56,13 +56,13 @@ let { actions = [], analyticsSurface }: Props = $props()
         href={action.href}
         download={action.download}
         onclick={() =>
-          action.download &&
-          trackClientProductUsage({
-            event: 'client.download_click',
-            surface: action.analyticsSurface ?? analyticsSurface,
-            entityType: 'asset',
-            entityId: action.href?.split('/').filter(Boolean).at(-1),
-          })}
+  action.download &&
+  trackClientProductUsage({
+    event: 'client.download_click',
+    surface: action.analyticsSurface ?? analyticsSurface,
+    entityType: 'asset',
+    entityId: action.href?.split('/').filter(Boolean).at(-1),
+  })}
         aria-label={action.label}
       >
         {#if action.icon}

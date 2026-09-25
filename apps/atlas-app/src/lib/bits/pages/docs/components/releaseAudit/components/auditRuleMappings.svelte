@@ -88,12 +88,12 @@ $effect(() => {
                     <tr class="bg-current/5 [&_th]:border-t [&_th]:border-current/15">
                       <th colspan="5" class="px-2 py-2 text-sm font-medium">
                         {row.locale === 'en'
-                        ? m.source_locale_en()
-                        : row.locale === 'zh-hant'
-                          ? m.source_locale_zh_hant()
-                          : row.locale === 'zh-hans'
-                            ? m.source_locale_zh_hans()
-                            : row.locale}
+  ? m.source_locale_en()
+  : row.locale === 'zh-hant'
+    ? m.source_locale_zh_hant()
+    : row.locale === 'zh-hans'
+      ? m.source_locale_zh_hans()
+      : row.locale}
                       </th>
                     </tr>
                   {/if}

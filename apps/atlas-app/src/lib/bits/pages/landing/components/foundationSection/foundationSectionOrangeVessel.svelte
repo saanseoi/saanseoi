@@ -31,12 +31,12 @@ let { isActive, vessel }: Props = $props()
     <g transform={`scale(${vessel.scale})`}>
       <path
         class={`stroke-[color-mix(in_srgb,#0e0e0c_82%,transparent)] stroke-[0.35] [shape-rendering:geometricPrecision] ${
-          vessel.tone === 'warm'
-            ? 'fill-tertiary-fixed-dim'
-            : vessel.tone === 'dim'
-              ? 'fill-[color-mix(in_srgb,var(--on-tertiary-container)_70%,transparent)]'
-              : 'fill-on-tertiary-container'
-        }`}
+  vessel.tone === 'warm'
+    ? 'fill-tertiary-fixed-dim'
+    : vessel.tone === 'dim'
+      ? 'fill-[color-mix(in_srgb,var(--on-tertiary-container)_70%,transparent)]'
+      : 'fill-on-tertiary-container'
+}`}
         d="M -9 -4.2 L 10 0 L -9 4.2 Z"
       />
     </g>

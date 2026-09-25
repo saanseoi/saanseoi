@@ -114,9 +114,9 @@ $effect(() => {
       <Node
         {expandAllToken}
         expandedNodeStates={{
-          [`${profileModel.name}.attributes`]: true,
-          ...expandedNodeStates,
-        }}
+  [`${profileModel.name}.attributes`]: true,
+  ...expandedNodeStates,
+}}
         name={profileModel.name}
         onExpandAll={expandAll}
         onExpandedNodeStateChange={setExpandedNodeState}

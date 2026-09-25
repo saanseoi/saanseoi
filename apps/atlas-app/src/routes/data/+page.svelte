@@ -615,7 +615,9 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         {m.data_description_before_apis()}
         <Popover.Root>
           <Popover.Trigger openOnHover openDelay={200}>
-            {#snippet child({ props })}
+            {#snippet child({
+  props,
+})}
               <button
                 {...props}
                 class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
@@ -639,7 +641,9 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         {m.data_description_after_apis()}
         <Popover.Root>
           <Popover.Trigger openOnHover openDelay={200}>
-            {#snippet child({ props })}
+            {#snippet child({
+  props,
+})}
               <button
                 {...props}
                 class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
@@ -687,7 +691,7 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
       class={`relative mt-6 h-143 isolate overflow-visible py-3 transition-[height] duration-500 before:absolute before:inset-0 before:-z-1 before:bg-[radial-gradient(var(--secondary)_1px,transparent_1px)] before:bg-size-[1.2rem_1.2rem] before:opacity-0 dark:before:opacity-[0.05] ${activeApiIndex !== null ? 'min-[901px]:h-220' : ''} max-[900px]:block max-[900px]:h-140 max-[900px]:pt-5 max-[900px]:pb-8`}
     >
       {#each apiDeckOrder as apiIndex, orderIndex (apiIndex)}
-        {@const api = apiDirectoryItem(apiIndex)}
+        {@const (api = apiDirectoryItem(apiIndex))}
         {#if isApiDeckVisible}
           <CardDeck.Card
             intro={{ y: 18, duration: 360, delay: orderIndex * 70 }}
@@ -714,8 +718,8 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
                 name={api.theme.name}
                 description={apiFamilyDescription(api.familyType)}
                 releasesHref={api.latestRelease
-                    ? `/apis/${api.familyType}/${api.latestRelease.code}`
-                    : `/apis/${api.familyType}`}
+  ? `/apis/${api.familyType}/${api.latestRelease.code}`
+  : `/apis/${api.familyType}`}
                 releasesLabel={m.data_releases()}
                 docsHref={docsUrlForFamily(api.familyType)}
                 docsLabel={m.data_docs()}
@@ -762,13 +766,11 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
               isSelected={activeBasemapCode === region.code}
               isShrunk={activeBasemapCode !== null && activeBasemapCode !== region.code}
               shrunkIndex={activeBasemapCode !== null && activeBasemapCode !== region.code
-                ? basemapInactiveIndex(region.code)
-                : null}
+  ? basemapInactiveIndex(region.code)
+  : null}
               isDragging={basemapDragState.isDragging && basemapDragState.draggedCode === region.code}
               isThrowing={basemapDragState.isThrowing && basemapDragState.throwingCode === region.code}
-              throwPhase={basemapDragState.throwingCode === region.code
-                ? basemapDragState.throwPhase
-                : null}
+              throwPhase={basemapDragState.throwingCode === region.code ? basemapDragState.throwPhase : null}
               dragX={basemapDragState.draggedCode === region.code ? basemapDragState.deltaX : 0}
               dragY={basemapDragState.draggedCode === region.code ? basemapDragState.deltaY : 0}
               flipDirection={basemapFlipDirection}

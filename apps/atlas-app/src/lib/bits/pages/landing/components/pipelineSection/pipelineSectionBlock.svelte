@@ -22,9 +22,9 @@ const tones = {
 
 <a
   class={cn(
-    'pipeline-stage group relative cursor-pointer py-8 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-6 focus-visible:outline-current',
-    `pipeline-stage-${tone}`,
-  )}
+  'pipeline-stage group relative cursor-pointer py-8 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-6 focus-visible:outline-current',
+  `pipeline-stage-${tone}`,
+)}
   {href}
 >
   {@render children?.()}
@@ -33,18 +33,18 @@ const tones = {
   >
     <span
       class={cn(
-        'pipeline-number transition-[scale] duration-200 group-hover:scale-105 group-focus-visible:scale-105',
-        `pipeline-number-${tone}`,
-        tones[tone],
-      )}
+  'pipeline-number transition-[scale] duration-200 group-hover:scale-105 group-focus-visible:scale-105',
+  `pipeline-number-${tone}`,
+  tones[tone],
+)}
       aria-hidden="true"
       >{number}</span
     >
     <p
       class={cn(
-        'mt-5 font-body text-label-md font-semibold uppercase tracking-[0.18em]',
-        tones[tone],
-      )}
+  'mt-5 font-body text-label-md font-semibold uppercase tracking-[0.18em]',
+  tones[tone],
+)}
     >
       {eyebrow}
     </p>

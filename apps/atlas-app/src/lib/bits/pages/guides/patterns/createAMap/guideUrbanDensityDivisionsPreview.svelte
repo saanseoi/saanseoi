@@ -138,12 +138,12 @@ const geometryPath = (geometry: Geometry) => {
         </div>
         <div class="mt-3 grid grid-cols-3 gap-2 min-[500px]:grid-cols-6">
           {#each divisions as division}
-            {@const code = division.attributes.divisionCode}
+            {@const (code = division.attributes.divisionCode)}
             <button
               type="button"
               class="border px-2 py-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-[#80e7c7] focus-visible:outline-none {selectedDivisionCode === code
-                ? 'border-[#80e7c7] bg-[#80e7c7] text-[#10151a]'
-                : 'border-white/15 bg-black/15 text-white/75 hover:border-[#80e7c7]/70 hover:text-[#80e7c7]'}"
+  ? 'border-[#80e7c7] bg-[#80e7c7] text-[#10151a]'
+  : 'border-white/15 bg-black/15 text-white/75 hover:border-[#80e7c7]/70 hover:text-[#80e7c7]'}"
               aria-label={`${division.attributes.i18n.en.name} (${code})`}
               aria-pressed={selectedDivisionCode === code}
               onclick={() => (selectedDivisionCode = code)}
@@ -212,8 +212,8 @@ const geometryPath = (geometry: Geometry) => {
             <button
               type="button"
               class="border px-2 py-3 text-center transition-colors focus-visible:ring-2 focus-visible:ring-[#80e7c7] focus-visible:outline-none {selectedIncludedId === resource.id
-                ? 'border-[#80e7c7] bg-[#80e7c7] text-[#10151a]'
-                : 'border-white/15 bg-black/15 text-white/75 hover:border-[#80e7c7]/70 hover:text-[#80e7c7]'}"
+  ? 'border-[#80e7c7] bg-[#80e7c7] text-[#10151a]'
+  : 'border-white/15 bg-black/15 text-white/75 hover:border-[#80e7c7]/70 hover:text-[#80e7c7]'}"
               aria-label={`${isGeometryResource(resource) ? divisionName(resource.attributes.divisionCode) : resource.attributes.i18n.en.name} (${includedLabel(resource)})`}
               aria-pressed={selectedIncludedId === resource.id}
               onclick={() => (selectedIncludedId = resource.id)}
@@ -240,8 +240,8 @@ const geometryPath = (geometry: Geometry) => {
               >
               <span class="mt-1 block truncate text-[10px] opacity-65">
                 {isGeometryResource(resource)
-                  ? divisionName(resource.attributes.divisionCode)
-                  : resource.attributes.i18n.en.name}
+  ? divisionName(resource.attributes.divisionCode)
+  : resource.attributes.i18n.en.name}
               </span>
             </button>
           {/each}
@@ -261,8 +261,8 @@ const geometryPath = (geometry: Geometry) => {
                 </p>
                 <p class="mt-1 text-white/55">
                   {isGeometryResource(selectedIncluded)
-                    ? divisionName(selectedIncluded.attributes.divisionCode)
-                    : selectedIncluded.attributes.i18n.en.name}
+  ? divisionName(selectedIncluded.attributes.divisionCode)
+  : selectedIncluded.attributes.i18n.en.name}
                 </p>
               </div>
               <span class="text-[10px] tracking-[0.08em] text-white/45 uppercase"

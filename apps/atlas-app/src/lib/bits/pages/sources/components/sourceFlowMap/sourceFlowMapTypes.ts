@@ -4,9 +4,10 @@ export type SourceFlowInput = {
   source: string
   href?: string
   icon?: string
+  iconPadding?: 'none' | 'inset'
   fallbackIcon?: string
   accent: string
-  iconTone?: 'light' | 'hkgov' | 'diana'
+  iconTone?: 'saanseoi' | 'light' | 'hkgov' | 'diana' | 'protomaps'
   fields?: SourceFlowField[]
   planned?: boolean
   variant?: string

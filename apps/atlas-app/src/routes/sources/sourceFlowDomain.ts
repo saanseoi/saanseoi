@@ -9,6 +9,15 @@ export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) 
   if (familyType === 'addresses') return 'saanseoi'
   if (familyType === 'stats') return 'government'
   if (familyType === 'streets') return 'saanseoi'
+  if (
+    familyType === 'divisions' &&
+    [
+      'ds-hk-protomaps-island',
+      'ds-hk-saanseoi-division',
+      'ds-hk-saanseoi-division-area',
+    ].includes(source.code)
+  )
+    return 'geographic'
 
   if (
     source.theme !== 'divisions' &&
@@ -51,8 +60,7 @@ export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) 
 /**
  * The source-flow card represents the API composition's primary dataset, not
  * simply the first source that happens to emit a division resource. In
- * Geographic, C&SD geometry sources also emit canonical-division artefacts,
- * but Overture Divisions remains the primary dataset.
+ * Geographic, SaanSeoi owns the curated divisions and their selected areas.
  */
 export const sourceFlowPriority = (
   source: SourcesPageSource,
@@ -63,9 +71,15 @@ export const sourceFlowPriority = (
   if (
     familyType === 'divisions' &&
     domain === 'geographic' &&
-    source.code === 'ds-hk-overture-division'
+    source.code === 'ds-hk-saanseoi-division'
   ) {
     return 0
+  }
+
+  if (familyType === 'divisions' && domain === 'geographic') {
+    if (source.code === 'ds-hk-saanseoi-division-area') return 1
+    if (source.code === 'ds-hk-overture-division') return 2
+    return source.resourceTypes.includes(primaryType) ? 3 : 4
   }
 
   return source.resourceTypes.includes(primaryType) ? 1 : 2

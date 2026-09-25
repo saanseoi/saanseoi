@@ -22,7 +22,9 @@ const colour = {
       />
       <InfoTooltip
         label="Value availability details"
-        description={rows.map(row => `${row.label}: ${row.value} (${row.percentageLabel}). ${row.description}`).join(' ')}
+        description={rows
+  .map(row => `${row.label}: ${row.value} (${row.percentageLabel}). ${row.description}`)
+  .join(' ')}
       />
     </div>
   </Header>

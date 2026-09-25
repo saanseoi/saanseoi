@@ -695,7 +695,10 @@ const resetRequirement = (requirement: number) => {
       <p
         class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
       >
-        {m.guide_publish_requirement({ current: gitDependenciesRequirement, total: requirementTotal })}
+        {m.guide_publish_requirement({
+  current: gitDependenciesRequirement,
+  total: requirementTotal,
+})}
       </p>
       <h3
         id="publish-git-dependencies-title"
@@ -755,7 +758,10 @@ const resetRequirement = (requirement: number) => {
             >
               <GuidePublishTerminalCommand
                 class="mt-0"
-                commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_git_dependencies_title(), path: terminalProjectPath })}
+                commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_git_dependencies_title(),
+  path: terminalProjectPath,
+})}
                 code={linuxInstallCode}
                 language={terminalLanguage}
                 copyLabel={m.common_copy()}
@@ -840,7 +846,10 @@ const resetRequirement = (requirement: number) => {
         {/if}
         <div class="mt-6 space-y-6">
           <GuidePublishTerminalCommand
-            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_check_git(), path: terminalProjectPath })}
+            commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_check_git(),
+  path: terminalProjectPath,
+})}
             description={m.guide_publish_check_git_description()}
             code="git --version"
             language={terminalLanguage}
@@ -850,7 +859,10 @@ const resetRequirement = (requirement: number) => {
             copiedLabel={m.common_copied()}
           />
           <GuidePublishTerminalCommand
-            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_check_github_cli(), path: terminalProjectPath })}
+            commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_check_github_cli(),
+  path: terminalProjectPath,
+})}
             description={m.guide_publish_check_github_cli_description()}
             code="gh --version"
             language={terminalLanguage}
@@ -901,7 +913,10 @@ const resetRequirement = (requirement: number) => {
       onReset={() => resetRequirement(clientRequirement)}
     >
       <GuidePublishTerminalCommand
-        commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_install_client({ client }), path: terminalProjectPath })}
+        commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_install_client({ client }),
+  path: terminalProjectPath,
+})}
         code={installCode}
         language={terminalLanguage}
         output={clientInstallOutput}
@@ -916,7 +931,10 @@ const resetRequirement = (requirement: number) => {
     <p
       class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
     >
-      {m.guide_publish_requirement({ current: authenticationRequirement, total: requirementTotal })}
+      {m.guide_publish_requirement({
+  current: authenticationRequirement,
+  total: requirementTotal,
+})}
     </p>
     <h3
       id="publish-authentication-title"
@@ -941,7 +959,10 @@ const resetRequirement = (requirement: number) => {
         {m.guide_publish_authentication_description({ host })}
       </p>
       <GuidePublishTerminalCommand
-        commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_authentication_command(), path: terminalProjectPath })}
+        commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_authentication_command(),
+  path: terminalProjectPath,
+})}
         code={authenticationCode}
         language={terminalLanguage}
         output={authenticationOutput}
@@ -976,10 +997,10 @@ const resetRequirement = (requirement: number) => {
       {:else if authenticationScreenshot}
         <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
           {@html hosting === 'github-pages'
-            ? m.guide_publish_github_authentication_browser()
-            : hosting === 'vercel'
-              ? m.guide_publish_vercel_authentication_browser()
-              : m.guide_publish_netlify_authentication_browser()}
+  ? m.guide_publish_github_authentication_browser()
+  : hosting === 'vercel'
+    ? m.guide_publish_vercel_authentication_browser()
+    : m.guide_publish_netlify_authentication_browser()}
         </p>
         <GuideScreenshot
           src={authenticationScreenshot}
@@ -1000,7 +1021,10 @@ const resetRequirement = (requirement: number) => {
       <p
         class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
       >
-        {m.guide_publish_requirement({ current: configurationRequirement, total: requirementTotal })}
+        {m.guide_publish_requirement({
+  current: configurationRequirement,
+  total: requirementTotal,
+})}
       </p>
       <h3
         id="publish-configuration-title"
@@ -1011,10 +1035,10 @@ const resetRequirement = (requirement: number) => {
       {#if hosting !== 'github-pages'}
         <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
           {@html hosting === 'cloudflare'
-            ? m.guide_publish_cloudflare_configuration_description()
-            : hosting === 'vercel'
-              ? m.guide_publish_vercel_configuration_description()
-              : m.guide_publish_netlify_configuration_description()}
+  ? m.guide_publish_cloudflare_configuration_description()
+  : hosting === 'vercel'
+    ? m.guide_publish_vercel_configuration_description()
+    : m.guide_publish_netlify_configuration_description()}
         </p>
       {/if}
       <GuidePublishRequirement
@@ -1035,7 +1059,10 @@ const resetRequirement = (requirement: number) => {
             {m.guide_publish_cloudflare_configuration_command_description()}
           </p>
           <GuidePublishTerminalCommand
-            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+            commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_configuration_command({ platform: host }),
+  path: terminalProjectPath,
+})}
             code={configurationCode}
             language={terminalLanguage}
             output={cloudflareSetupInitialOutput}
@@ -1067,7 +1094,10 @@ const resetRequirement = (requirement: number) => {
           />
         {:else if hosting === 'github-pages'}
           <GuidePublishTerminalCommand
-            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_github_identity_command(), path: terminalProjectPath })}
+            commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_github_identity_command(),
+  path: terminalProjectPath,
+})}
             description={m.guide_publish_github_identity_description()}
             code={githubIdentityCode}
             language={terminalLanguage}
@@ -1079,11 +1109,16 @@ const resetRequirement = (requirement: number) => {
               {@html m.guide_publish_github_configuration_command_description()}
             </p>
             <GuidePublishTerminalCommand
-              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+              commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_configuration_command({ platform: host }),
+  path: terminalProjectPath,
+})}
               code={configurationCode}
               language={terminalLanguage}
               output={configurationOutput}
-              outputLabel={m.guide_publish_command_output({ action: m.guide_publish_configuration_command({ platform: host }) })}
+              outputLabel={m.guide_publish_command_output({
+  action: m.guide_publish_configuration_command({ platform: host }),
+})}
               copyLabel={m.common_copy()}
               copiedLabel={m.common_copied()}
             />
@@ -1094,22 +1129,27 @@ const resetRequirement = (requirement: number) => {
         {:else}
           <p class="font-body text-body-lg leading-8 text-foreground-alt">
             {@html hosting === 'vercel'
-              ? m.guide_publish_vercel_configuration_command_description()
-              : m.guide_publish_netlify_configuration_command_description()}
+  ? m.guide_publish_vercel_configuration_command_description()
+  : m.guide_publish_netlify_configuration_command_description()}
           </p>
           <GuidePublishTerminalCommand
-            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_configuration_command({ platform: host }), path: terminalProjectPath })}
+            commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_configuration_command({ platform: host }),
+  path: terminalProjectPath,
+})}
             code={configurationCode}
             language={terminalLanguage}
             output={configurationOutput}
-            outputLabel={m.guide_publish_command_output({ action: m.guide_publish_configuration_command({ platform: host }) })}
+            outputLabel={m.guide_publish_command_output({
+  action: m.guide_publish_configuration_command({ platform: host }),
+})}
             copyLabel={m.common_copy()}
             copiedLabel={m.common_copied()}
           />
           <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
             {@html hosting === 'vercel'
-              ? m.guide_publish_vercel_configuration_complete()
-              : m.guide_publish_netlify_configuration_complete()}
+  ? m.guide_publish_vercel_configuration_complete()
+  : m.guide_publish_netlify_configuration_complete()}
           </p>
         {/if}
       </GuidePublishRequirement>
@@ -1166,7 +1206,10 @@ const resetRequirement = (requirement: number) => {
             {@html m.guide_publish_cloudflare_build_description()}
           </p>
           <GuidePublishTerminalCommand
-            commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_build_command(), path: terminalProjectPath })}
+            commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_cloudflare_build_command(),
+  path: terminalProjectPath,
+})}
             code="bun run build"
             language={terminalLanguage}
             output={cloudflareBuildOutput}
@@ -1193,7 +1236,10 @@ const resetRequirement = (requirement: number) => {
               {@html m.guide_publish_cloudflare_deploy_description()}
             </p>
             <GuidePublishTerminalCommand
-              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_deploy_command(), path: terminalProjectPath })}
+              commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_cloudflare_deploy_command(),
+  path: terminalProjectPath,
+})}
               code={deploymentCode}
               language={terminalLanguage}
               output={cloudflareDeploymentInitialOutput}
@@ -1233,7 +1279,10 @@ const resetRequirement = (requirement: number) => {
               {@html m.guide_publish_github_deploy_description()}
             </p>
             <GuidePublishTerminalCommand
-              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
+              commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_deployment_command(),
+  path: terminalProjectPath,
+})}
               code={deploymentCode}
               language={terminalLanguage}
               output={deploymentOutput}
@@ -1249,7 +1298,10 @@ const resetRequirement = (requirement: number) => {
               {@html m.guide_publish_platform_build_description({ host })}
             </p>
             <GuidePublishTerminalCommand
-              commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_cloudflare_build_command(), path: terminalProjectPath })}
+              commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_cloudflare_build_command(),
+  path: terminalProjectPath,
+})}
               code="bun run build"
               language={terminalLanguage}
               output={cloudflareBuildOutput}
@@ -1263,11 +1315,14 @@ const resetRequirement = (requirement: number) => {
             <div class="mt-6">
               <p class="font-body text-body-lg leading-8 text-foreground-alt">
                 {@html hosting === 'vercel'
-                  ? m.guide_publish_vercel_deploy_description()
-                  : m.guide_publish_netlify_deploy_description()}
+  ? m.guide_publish_vercel_deploy_description()
+  : m.guide_publish_netlify_deploy_description()}
               </p>
               <GuidePublishTerminalCommand
-                commandLabel={m.guide_setup_terminal_label({ action: m.guide_publish_deployment_command(), path: terminalProjectPath })}
+                commandLabel={m.guide_setup_terminal_label({
+  action: m.guide_publish_deployment_command(),
+  path: terminalProjectPath,
+})}
                 code={deploymentCode}
                 language={terminalLanguage}
                 output={deploymentOutput}
@@ -1278,8 +1333,8 @@ const resetRequirement = (requirement: number) => {
             </div>
             <p class="mt-5 font-body text-body-lg leading-8 text-foreground-alt">
               {@html hosting === 'vercel'
-                ? m.guide_publish_vercel_deploy_complete()
-                : m.guide_publish_netlify_deploy_complete()}
+  ? m.guide_publish_vercel_deploy_complete()
+  : m.guide_publish_netlify_deploy_complete()}
             </p>
             {#if hosting === 'netlify'}
               <GuideAdmonition
@@ -1322,7 +1377,10 @@ const resetRequirement = (requirement: number) => {
       <p
         class="font-body text-label-md font-semibold tracking-[0.12em] text-secondary uppercase"
       >
-        {m.guide_publish_requirement({ current: accessibilityRequirement, total: requirementTotal })}
+        {m.guide_publish_requirement({
+  current: accessibilityRequirement,
+  total: requirementTotal,
+})}
       </p>
       <h3
         id="publish-accessibility-title"
@@ -1334,12 +1392,12 @@ const resetRequirement = (requirement: number) => {
         class="mt-3 font-body text-body-lg leading-8 text-foreground-alt [&_a]:font-semibold [&_a]:text-secondary [&_a]:underline [&_a]:underline-offset-4 [&_code]:rounded-sm [&_code]:bg-black [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:text-white"
       >
         {@html visitUrl
-        ? m.guide_publish_visit_github({ url: visitUrl })
-        : hosting === 'cloudflare'
-          ? m.guide_publish_visit_cloudflare()
-          : hosting === 'vercel'
-            ? m.guide_publish_visit_vercel()
-            : m.guide_publish_visit_netlify()}
+  ? m.guide_publish_visit_github({ url: visitUrl })
+  : hosting === 'cloudflare'
+    ? m.guide_publish_visit_cloudflare()
+    : hosting === 'vercel'
+      ? m.guide_publish_visit_vercel()
+      : m.guide_publish_visit_netlify()}
       </p>
       <p class="mt-3 font-body text-body-lg leading-8 text-foreground-alt">
         {m.guide_publish_accessibility_description()}

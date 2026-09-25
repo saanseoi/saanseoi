@@ -41,7 +41,7 @@ let chartRows = $derived(
         <select
           aria-label="Localised field"
           value={field.code}
-          onchange={event => selected = event.currentTarget.value}
+          onchange={event => (selected = event.currentTarget.value)}
           class="rounded border border-data-outline-variant bg-data-surface-container-lowest px-3 py-2 text-primary focus-visible:outline-2 focus-visible:outline-data-primary"
         >
           {#each profile.fields as option}
@@ -105,7 +105,17 @@ let chartRows = $derived(
         <table class="w-full text-left text-label-md text-primary">
           <thead class="text-caption text-foreground-alt">
             <tr>
-              {#each ['Language', 'Coverage', 'Values', 'Provided', 'Inferred', 'AI translated', 'Human translated', 'Missing', 'Conflicts'] as label}
+              {#each [
+   'Language',
+   'Coverage',
+   'Values',
+   'Provided',
+   'Inferred',
+   'AI translated',
+   'Human translated',
+   'Missing',
+   'Conflicts',
+ ] as label}
                 <th class="px-2 py-2 font-medium whitespace-nowrap">{label}</th>
               {/each}
             </tr>
@@ -114,7 +124,16 @@ let chartRows = $derived(
             {#each field.rows as row}
               <tr class="border-t border-data-outline-variant/40">
                 <th class="px-2 py-3 font-medium whitespace-nowrap">{row.label}</th>
-                {#each [row.coverageLabel, row.count, row.provided, row.inferred, row.ai, row.human, row.missing, row.conflicts] as value}
+                {#each [
+   row.coverageLabel,
+   row.count,
+   row.provided,
+   row.inferred,
+   row.ai,
+   row.human,
+   row.missing,
+   row.conflicts,
+ ] as value}
                   <td class="px-2 py-3 font-mono tabular-nums whitespace-nowrap">
                     {value}
                   </td>

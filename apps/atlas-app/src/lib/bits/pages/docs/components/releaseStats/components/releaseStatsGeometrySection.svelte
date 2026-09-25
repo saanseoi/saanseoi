@@ -135,8 +135,8 @@ const sortedRows = $derived(
   <div class="overflow-x-auto">
     <table
       class={geometry.showFeatureCount
-        ? 'w-full min-w-190 border-collapse font-body text-label-md'
-        : 'w-full min-w-160 border-collapse font-body text-label-md'}
+  ? 'w-full min-w-190 border-collapse font-body text-label-md'
+  : 'w-full min-w-160 border-collapse font-body text-label-md'}
     >
       <thead
         class="bg-data-surface-container-low text-left text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
@@ -156,7 +156,11 @@ const sortedRows = $derived(
               <Icon
                 aria-hidden="true"
                 class="size-3"
-                icon={sortColumn === 'district' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
+                icon={sortColumn === 'district'
+  ? sortDirection === 'ascending'
+    ? 'proicons:arrow-up'
+    : 'proicons:arrow-down'
+  : 'proicons:arrow-sort'}
               />
             </button>
           </th>
@@ -175,7 +179,11 @@ const sortedRows = $derived(
                 <Icon
                   aria-hidden="true"
                   class="size-3"
-                  icon={sortColumn === 'featureCount' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
+                  icon={sortColumn === 'featureCount'
+  ? sortDirection === 'ascending'
+    ? 'proicons:arrow-up'
+    : 'proicons:arrow-down'
+  : 'proicons:arrow-sort'}
                 />
               </button>
             </th>
@@ -195,7 +203,11 @@ const sortedRows = $derived(
                 <Icon
                   aria-hidden="true"
                   class="size-3"
-                  icon={sortColumn === 'polygonCount' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
+                  icon={sortColumn === 'polygonCount'
+  ? sortDirection === 'ascending'
+    ? 'proicons:arrow-up'
+    : 'proicons:arrow-down'
+  : 'proicons:arrow-sort'}
                 />
               </button>
             </th>
@@ -214,7 +226,11 @@ const sortedRows = $derived(
               <Icon
                 aria-hidden="true"
                 class="size-3"
-                icon={sortColumn === 'boundarySegmentCount' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
+                icon={sortColumn === 'boundarySegmentCount'
+  ? sortDirection === 'ascending'
+    ? 'proicons:arrow-up'
+    : 'proicons:arrow-down'
+  : 'proicons:arrow-sort'}
               />
             </button>
           </th>
@@ -234,7 +250,11 @@ const sortedRows = $derived(
                 <Icon
                   aria-hidden="true"
                   class="size-3"
-                  icon={sortColumn === 'area' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
+                  icon={sortColumn === 'area'
+  ? sortDirection === 'ascending'
+    ? 'proicons:arrow-up'
+    : 'proicons:arrow-down'
+  : 'proicons:arrow-sort'}
                 />
               </button>
             </th>
@@ -254,7 +274,11 @@ const sortedRows = $derived(
               <Icon
                 aria-hidden="true"
                 class="size-3"
-                icon={sortColumn === 'boundaryLength' ? (sortDirection === 'ascending' ? 'proicons:arrow-up' : 'proicons:arrow-down') : 'proicons:arrow-sort'}
+                icon={sortColumn === 'boundaryLength'
+  ? sortDirection === 'ascending'
+    ? 'proicons:arrow-up'
+    : 'proicons:arrow-down'
+  : 'proicons:arrow-sort'}
               />
             </button>
           </th>

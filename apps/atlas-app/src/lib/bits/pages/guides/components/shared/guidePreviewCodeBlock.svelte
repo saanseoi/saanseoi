@@ -131,10 +131,10 @@ function closePreview() {
     aria-hidden={view !== 'code'}
     inert={view !== 'code'}
     class={`col-start-1 row-start-1 h-full min-h-0 w-full min-w-0 transition-[opacity,transform] duration-500 backface-hidden transform-3d motion-reduce:transition-none ${
-      view === 'code'
-        ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
-        : 'pointer-events-none opacity-0 transform-[rotateY(-180deg)]'
-    }`}
+  view === 'code'
+    ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
+    : 'pointer-events-none opacity-0 transform-[rotateY(-180deg)]'
+}`}
   >
     <GuideCodeBlock
       class="h-full"
@@ -176,17 +176,17 @@ function closePreview() {
     inert={view !== 'preview'}
     data-guide-map-expanded={expanded || undefined}
     style={expandable && viewTransitionName
-      ? `view-transition-name: ${viewTransitionName}`
-      : undefined}
+  ? `view-transition-name: ${viewTransitionName}`
+  : undefined}
     class={`${
-      expanded
-        ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
-        : 'col-start-1 row-start-1 h-full min-h-0 w-full'
-    } flex min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 backface-hidden contain-[size] transform-3d motion-reduce:transition-none ${
-      view === 'preview'
-        ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
-        : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
-    }`}
+  expanded
+    ? 'fixed top-1/2 left-1/2 z-100 h-[calc(100dvh-2rem)] max-h-[1080px] w-[calc(100dvw-2rem)] -translate-x-1/2 -translate-y-1/2'
+    : 'col-start-1 row-start-1 h-full min-h-0 w-full'
+} flex min-w-0 flex-col overflow-hidden border border-[#596074] bg-[#131722] shadow-card transition-[opacity,transform] duration-500 backface-hidden contain-[size] transform-3d motion-reduce:transition-none ${
+  view === 'preview'
+    ? 'pointer-events-auto opacity-100 transform-[rotateY(0deg)]'
+    : 'pointer-events-none opacity-0 transform-[rotateY(180deg)]'
+}`}
   >
     {#if expanded}
       <button

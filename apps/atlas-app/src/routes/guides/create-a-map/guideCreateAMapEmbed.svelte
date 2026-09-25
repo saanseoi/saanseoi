@@ -226,9 +226,9 @@ $effect(() => () => clearPreviewTimer())
     </GuideParagraph>
     <GuideParagraph>
       {@html m.guide_embed_section_platform_method({
-        element: elementName,
-        platform: platformLabel,
-      })}
+  element: elementName,
+  platform: platformLabel,
+})}
       {#if officialGuideUrl}
         <a
           class="font-semibold text-secondary underline underline-offset-4"
@@ -248,10 +248,10 @@ $effect(() => () => clearPreviewTimer())
       alignment="left"
       label={m.guide_embed_wordpress_kind_title()}
       marker={{
-        current: 1,
-        label: m.guide_prerequisites_requirement_label(),
-        total: embedRequirementTotal,
-      }}
+  current: 1,
+  label: m.guide_prerequisites_requirement_label(),
+  total: embedRequirementTotal,
+}}
       hint={m.guide_embed_wordpress_kind_description()}
       choices={wordpressKindChoices}
       bind:value={wordpressKind}
@@ -385,9 +385,9 @@ $effect(() => () => clearPreviewTimer())
           allowfullscreen
           onload={markPreviewLoaded}
           onerror={() => {
-            clearPreviewTimer()
-            previewState = 'error'
-          }}
+  clearPreviewTimer()
+  previewState = 'error'
+}}
         ></iframe>
       </div>
       <p
@@ -395,12 +395,12 @@ $effect(() => () => clearPreviewTimer())
         aria-live="polite"
       >
         {previewState === 'loaded'
-          ? m.guide_embed_preview_loaded()
-          : previewState === 'timeout'
-            ? m.guide_embed_preview_timeout()
-            : previewState === 'error'
-              ? m.guide_embed_preview_error()
-              : m.guide_embed_preview_loading()}
+  ? m.guide_embed_preview_loaded()
+  : previewState === 'timeout'
+    ? m.guide_embed_preview_timeout()
+    : previewState === 'error'
+      ? m.guide_embed_preview_error()
+      : m.guide_embed_preview_loading()}
       </p>
     {/if}
     <div class="mt-10 max-w-5xl">
@@ -439,14 +439,14 @@ $effect(() => () => clearPreviewTimer())
     {:else}
       <GuideParagraph class="mt-3">
         {platform === 'wordpress'
-          ? m.guide_embed_placement_wordpress()
-          : platform === 'squarespace'
-            ? m.guide_embed_placement_squarespace()
-            : platform === 'wix'
-              ? m.guide_embed_placement_wix()
-              : platform === 'webflow'
-                ? m.guide_embed_placement_webflow()
-                : m.guide_embed_placement_other()}
+  ? m.guide_embed_placement_wordpress()
+  : platform === 'squarespace'
+    ? m.guide_embed_placement_squarespace()
+    : platform === 'wix'
+      ? m.guide_embed_placement_wix()
+      : platform === 'webflow'
+        ? m.guide_embed_placement_webflow()
+        : m.guide_embed_placement_other()}
       </GuideParagraph>
       <div class="mt-5 max-w-232 border border-border-card bg-background p-5">
         <p
@@ -483,14 +483,14 @@ $effect(() => () => clearPreviewTimer())
         label={m.guide_embed_map_host_label()}
         title={m.guide_embed_map_host_title()}
         description={hosting === 'cloudflare'
-        ? m.guide_embed_host_cloudflare_help()
-        : hosting === 'github-pages'
-          ? m.guide_embed_host_github_help()
-          : hosting === 'vercel'
-            ? m.guide_embed_host_vercel_help()
-            : hosting === 'netlify'
-              ? m.guide_embed_host_netlify_help()
-              : m.guide_embed_host_other_help()}
+  ? m.guide_embed_host_cloudflare_help()
+  : hosting === 'github-pages'
+    ? m.guide_embed_host_github_help()
+    : hosting === 'vercel'
+      ? m.guide_embed_host_vercel_help()
+      : hosting === 'netlify'
+        ? m.guide_embed_host_netlify_help()
+        : m.guide_embed_host_other_help()}
       />
       <GuideInstructionCallout
         label={m.guide_embed_site_builder_label()}

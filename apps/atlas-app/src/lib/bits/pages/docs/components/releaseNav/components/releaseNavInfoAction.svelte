@@ -14,7 +14,9 @@ let { description, icon, label }: Props = $props()
 <Tooltip.Provider delayDuration={200}>
   <Tooltip.Root>
     <Tooltip.Trigger>
-      {#snippet child({ props })}
+      {#snippet child({
+  props,
+})}
         <button
           {...props}
           class="inline-flex size-10 cursor-pointer items-center justify-center font-body text-foreground-alt transition hover:bg-data-surface-container-high hover:text-data-primary md:size-8"

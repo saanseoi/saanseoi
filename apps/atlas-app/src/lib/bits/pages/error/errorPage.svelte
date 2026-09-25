@@ -26,8 +26,8 @@ let isStaleOptimisedDependency = $derived(
     </h1>
     <p class="text-lg leading-relaxed text-foreground-alt">
       {isStaleOptimisedDependency
-        ? m.error_stale_dependency_description()
-        : m.error_description()}
+  ? m.error_stale_dependency_description()
+  : m.error_description()}
     </p>
     {#if isStaleOptimisedDependency}
       <p

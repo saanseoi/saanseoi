@@ -449,22 +449,22 @@ $effect(() => {
 
 <div
   class={`${className} flex w-full min-w-0 flex-col ${width === 'content' ? 'max-w-232' : width === 'short' ? 'max-w-3xl' : 'max-w-178'} max-h-[min(1080px,calc(100dvh-4.5rem))] overflow-hidden border font-mono shadow-card ${variant === 'prompt' ? 'max-h-[640px]' : ''} ${
-    variant === 'prompt'
-      ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
-      : variant === 'editor' || variant === 'reference'
-        ? 'border-[#596074] bg-[#131722]'
+  variant === 'prompt'
+    ? 'border-[color-mix(in_srgb,var(--color-secondary)_55%,#5a4a85)] bg-[#171521]'
+    : variant === 'editor' || variant === 'reference'
+      ? 'border-[#596074] bg-[#131722]'
       : 'border-[#47605b] bg-[#101515]'
-  }`}
+}`}
 >
   <div
     data-guide-code-header
     class={`flex shrink-0 flex-wrap items-center justify-between gap-3 border-b px-4 py-2.5 ${
-    variant === 'prompt'
-      ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#211d32]'
-      : variant === 'editor' || variant === 'reference'
-        ? 'border-[#596074] bg-[#202633]'
+  variant === 'prompt'
+    ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#211d32]'
+    : variant === 'editor' || variant === 'reference'
+      ? 'border-[#596074] bg-[#202633]'
       : 'border-[#47605b] bg-[#182021]'
-    }`}
+}`}
   >
     <div data-guide-code-header-leading class="flex min-w-0 items-center gap-3">
       {#if variant === 'prompt'}
@@ -493,12 +493,12 @@ $effect(() => {
       <span
         data-guide-code-label
         class={`font-semibold ${
-          variant === 'prompt'
-            ? 'font-body tracking-[0.01em] text-[#eeeaff]'
-            : variant === 'editor' || variant === 'reference'
-              ? 'font-mono text-label-sm text-[#d6e4ff]'
-            : 'font-mono text-label-sm text-white/75'
-        }`}
+  variant === 'prompt'
+    ? 'font-body tracking-[0.01em] text-[#eeeaff]'
+    : variant === 'editor' || variant === 'reference'
+      ? 'font-mono text-label-sm text-[#d6e4ff]'
+      : 'font-mono text-label-sm text-white/75'
+}`}
         >{#if labelContent}
           {@render labelContent()}
         {:else}
@@ -545,12 +545,12 @@ $effect(() => {
     <div
       data-guide-code-subheader
       class={`shrink-0 border-b px-4 py-1.5 font-mono text-label-sm ${
-        variant === 'prompt'
-          ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#171521] text-[#eeeaff]/75'
-          : variant === 'editor' || variant === 'reference'
-            ? 'border-[#596074] bg-[#182021] text-[#d6e4ff]/75'
-            : 'border-[#47605b] bg-[#101515] text-white/75'
-      }`}
+  variant === 'prompt'
+    ? 'border-[color-mix(in_srgb,var(--color-secondary)_45%,#5a4a85)] bg-[#171521] text-[#eeeaff]/75'
+    : variant === 'editor' || variant === 'reference'
+      ? 'border-[#596074] bg-[#182021] text-[#d6e4ff]/75'
+      : 'border-[#47605b] bg-[#101515] text-white/75'
+}`}
     >
       {@render subheader()}
     </div>
@@ -561,18 +561,18 @@ $effect(() => {
       onscroll={reportVisibleLines}
       data-guide-code-scroll
       class={`m-0 min-h-0 min-w-0 max-w-full overflow-x-hidden overflow-y-auto whitespace-pre-wrap wrap-break-word p-4 ${
-      fillAvailableHeight
-        ? 'size-full'
-        : variant === 'prompt'
-          ? 'w-full max-h-[calc(min(640px,calc(100dvh-4.5rem))-3.25rem)]'
-          : 'w-full max-h-[calc(min(1080px,calc(100dvh-4.5rem))-3.25rem)]'
-    } ${
-      variant === 'prompt'
-        ? 'min-h-0 overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
-          : variant === 'editor' || variant === 'reference'
-          ? 'bg-[#131722] font-mono text-sm leading-6 text-[#d6e4ff]'
-        : 'bg-[#0c1111] font-mono text-sm leading-6 text-[#d6e4df]'
-      }`}
+  fillAvailableHeight
+    ? 'size-full'
+    : variant === 'prompt'
+      ? 'w-full max-h-[calc(min(640px,calc(100dvh-4.5rem))-3.25rem)]'
+      : 'w-full max-h-[calc(min(1080px,calc(100dvh-4.5rem))-3.25rem)]'
+} ${
+  variant === 'prompt'
+    ? 'min-h-0 overscroll-contain bg-[#14121e] font-body text-body-md leading-7 text-[#eeeaff]'
+    : variant === 'editor' || variant === 'reference'
+      ? 'bg-[#131722] font-mono text-sm leading-6 text-[#d6e4ff]'
+      : 'bg-[#0c1111] font-mono text-sm leading-6 text-[#d6e4df]'
+}`}
     ><code>{@html highlightedCode}</code></pre>
     {#if hiddenLinesAbove > 0}
       <span

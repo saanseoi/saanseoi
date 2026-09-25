@@ -17,7 +17,7 @@ let { guards }: { guards: AuditGuard[] } = $props()
   />
   <div class="space-y-5">
     {#each guards as guard (guard.id)}
-      {@const copy = guardCopy(guard)}
+      {@const (copy = guardCopy(guard))}
       <article
         class="grid grid-cols-[minmax(0,1fr)_7rem] overflow-hidden rounded-xl border border-current/15 text-sm sm:grid-cols-[minmax(0,1fr)_9rem]"
       >
@@ -53,14 +53,23 @@ let { guards }: { guards: AuditGuard[] } = $props()
           </div>
         </div>
         <div
-          class={['flex flex-col items-center justify-center gap-2 border-l border-current/10 px-3 py-4 text-center', guard.status === 'passed' ? 'bg-emerald-500/10 text-emerald-500' : guard.status === 'failed' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500']}
+          class={[
+  'flex flex-col items-center justify-center gap-2 border-l border-current/10 px-3 py-4 text-center',
+  guard.status === 'passed'
+    ? 'bg-emerald-500/10 text-emerald-500'
+    : guard.status === 'failed'
+      ? 'bg-red-500/10 text-red-500'
+      : 'bg-amber-500/10 text-amber-500',
+]}
         >
           <p class="text-base font-semibold capitalize sm:text-lg">
             {auditStatus(guard.status)}
           </p>
           <p class="text-xs">
             {#if guard.id === 'overture-division-source-assumptions'}
-              {guard.checked === 1 ? m.source_audit_file_check_count({ count: guard.checked.toLocaleString() }) : m.source_audit_file_checks_count({ count: guard.checked.toLocaleString() })}
+              {guard.checked === 1
+  ? m.source_audit_file_check_count({ count: guard.checked.toLocaleString() })
+  : m.source_audit_file_checks_count({ count: guard.checked.toLocaleString() })}
             {:else}
               {m.source_audit_checked_count({ count: guard.checked.toLocaleString() })}
             {/if}

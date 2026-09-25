@@ -11,7 +11,7 @@ let names = $derived(
   {#each ids as id}
     <li>
       <span title={id}
-        >{names.ready ? names.current.find(row => row.divisionId === id)?.name ?? id : id}</span
+        >{names.ready ? (names.current.find(row => row.divisionId === id)?.name ?? id) : id}</span
       >
     </li>
   {/each}

@@ -126,8 +126,8 @@ const areaDistrictLayers: LayerSpecification[] = [
             >
           {:else}
             {m.guide_data_urban_density_preview_density_for_area({
-              area: metric.landAreaSqKm.toFixed(1),
-            })}
+  area: metric.landAreaSqKm.toFixed(1),
+})}
           {/if}
         </span>
       </article>

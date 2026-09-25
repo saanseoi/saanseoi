@@ -149,7 +149,9 @@ onMount(() => {
 <fieldset
   bind:this={choiceGroupElement}
   class={`min-w-0 ${hideLabel && variant === 'illustrated' ? 'mt-0 mb-0' : 'mt-12 mb-0'} ${variant === 'illustrated' ? 'overflow-visible' : ''}`}
-  style={illustratedFullBleed ? `--illustrated-content-inset: ${illustratedContentInset}px` : undefined}
+  style={illustratedFullBleed
+  ? `--illustrated-content-inset: ${illustratedContentInset}px`
+  : undefined}
 >
   <legend class={`${hideLabel ? 'sr-only' : 'w-full'} font-bold`}>
     <span class="flex items-end justify-between gap-4">
@@ -176,10 +178,10 @@ onMount(() => {
         {/if}
       </span>
       {#if !hideLabel &&
-        (illustratedFullBleed || illustratedFitWhenPossible) &&
-        !illustratedCarouselFits &&
-        choices.length > 1 &&
-        illustratedLayout === 'carousel'}
+  (illustratedFullBleed || illustratedFitWhenPossible) &&
+  !illustratedCarouselFits &&
+  choices.length > 1 &&
+  illustratedLayout === 'carousel'}
         <span class="flex shrink-0 gap-2">
           <button
             class="grid size-9 place-items-center rounded border border-outline-variant text-secondary transition-colors hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:pointer-events-none disabled:opacity-40"
@@ -213,10 +215,10 @@ onMount(() => {
     <GuideParagraph class="mt-1"> {@html hint} </GuideParagraph>
   {/if}
   {#if hideLabel &&
-    (illustratedFullBleed || illustratedFitWhenPossible) &&
-    !illustratedCarouselFits &&
-    choices.length > 1 &&
-    illustratedLayout === 'carousel'}
+  (illustratedFullBleed || illustratedFitWhenPossible) &&
+  !illustratedCarouselFits &&
+  choices.length > 1 &&
+  illustratedLayout === 'carousel'}
     <div class="mt-4 flex justify-end gap-2">
       <button
         class="grid size-9 place-items-center rounded border border-outline-variant text-secondary transition-colors hover:bg-surface-container focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary disabled:pointer-events-none disabled:opacity-40"
@@ -261,7 +263,11 @@ onMount(() => {
               onchange={() => handleChoiceChange(choice.value)}
               disabled={choice.disabled}
             >
-            {#if choice.image || choice.imageSlices || choice.darkImageSlices || choice.icon || illustratedLayout === 'grid'}
+            {#if choice.image ||
+  choice.imageSlices ||
+  choice.darkImageSlices ||
+  choice.icon ||
+  illustratedLayout === 'grid'}
               <span class="relative flex h-64 items-center justify-center">
                 {#if choice.badge}
                   <span
@@ -356,8 +362,8 @@ onMount(() => {
         <div
           bind:this={illustratedChoicesElement}
           class={illustratedCarouselFits
-            ? 'flex w-full min-w-0 justify-center gap-4'
-            : `flex min-w-max snap-x snap-mandatory gap-4 ${illustratedFullBleed ? 'px-(--illustrated-content-inset)' : illustratedFitWhenPossible ? 'px-[250px]' : alignment === 'center' ? 'px-[max(1.5rem,calc((100vw-var(--spacing-container-max))/2+1.5rem))] md:px-[max(2rem,calc((100vw-var(--spacing-container-max))/2+2rem))]' : ''}`}
+  ? 'flex w-full min-w-0 justify-center gap-4'
+  : `flex min-w-max snap-x snap-mandatory gap-4 ${illustratedFullBleed ? 'px-(--illustrated-content-inset)' : illustratedFitWhenPossible ? 'px-[250px]' : alignment === 'center' ? 'px-[max(1.5rem,calc((100vw-var(--spacing-container-max))/2+1.5rem))] md:px-[max(2rem,calc((100vw-var(--spacing-container-max))/2+2rem))]' : ''}`}
         >
           {#each choices as choice}
             <label
@@ -469,16 +475,16 @@ onMount(() => {
   {:else}
     <div
       class={variant === 'tiles'
-          ? `mt-4 grid gap-3 ${
-              tileLayout === 'flow'
-                ? 'grid-cols-[repeat(auto-fit,minmax(10rem,11rem))]'
-                : tileLayout === 'five-across'
-                  ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
-                : tileLayout === 'six-across'
-                  ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6'
-                  : 'max-w-lg grid-cols-3'
-            }`
-          : 'mt-4 grid gap-3 sm:grid-cols-2'}
+  ? `mt-4 grid gap-3 ${
+      tileLayout === 'flow'
+        ? 'grid-cols-[repeat(auto-fit,minmax(10rem,11rem))]'
+        : tileLayout === 'five-across'
+          ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5'
+          : tileLayout === 'six-across'
+            ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-6'
+            : 'max-w-lg grid-cols-3'
+    }`
+  : 'mt-4 grid gap-3 sm:grid-cols-2'}
     >
       {#each choices as choice}
         <label

@@ -84,10 +84,10 @@ $effect(() => {
       </p>
       <p class="mt-1 font-body text-body-sm leading-6 text-foreground-alt">
         {m.guide_renderer_version_description({
-          library,
-          pinnedVersion: dependency.pinnedVersion,
-          currentVersion,
-        })}
+  library,
+  pinnedVersion: dependency.pinnedVersion,
+  currentVersion,
+})}
         {' '}
         {hasMajorUpdate ? majorDifference : minorDifference}
         {' '}

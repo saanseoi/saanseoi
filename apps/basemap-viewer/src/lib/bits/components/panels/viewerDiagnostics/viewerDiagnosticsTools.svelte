@@ -49,7 +49,7 @@ const items: readonly {
         <input
           checked={debug[item.key]}
           class={mobile ? 'm-0 size-5 accent-(--bar-accent)' : 'm-0'}
-          onchange={(event) => callbacks.onDebug(item.key, event.currentTarget.checked)}
+          onchange={event => callbacks.onDebug(item.key, event.currentTarget.checked)}
           type="checkbox"
         > <span>{text[item.label]}</span>
       </label>

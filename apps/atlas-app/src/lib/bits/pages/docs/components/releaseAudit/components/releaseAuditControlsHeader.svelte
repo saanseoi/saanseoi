@@ -36,7 +36,9 @@ $effect(() => {
   <div class="ml-auto flex items-center gap-4">
     <Tooltip.Root>
       <Tooltip.Trigger>
-        {#snippet child({ props })}
+        {#snippet child({
+  props,
+})}
           <button
             {...props}
             class="inline-flex size-5 items-center justify-center rounded-full text-foreground-alt transition hover:bg-data-surface-container-high hover:text-data-primary"

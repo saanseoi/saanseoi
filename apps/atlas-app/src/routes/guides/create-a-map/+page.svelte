@@ -2560,60 +2560,60 @@ const styleChoices = $derived.by(() =>
   modifiedTime="2026-08-16"
   noindex={page.url.searchParams.size > 0}
   structuredData={{
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'LearningResource',
-        '@id': 'https://saanseoi.hk/guides/create-a-map#resource',
-        name: m.guide_create_map_title(),
-        description: m.guide_create_map_meta_description(),
-        url: 'https://saanseoi.hk/guides/create-a-map',
-        image: 'https://saanseoi.hk/guides/build-a-map-dark.webp',
-        inLanguage: locale,
-        author: {
-          '@type': 'Person',
-          name: 'Mart van de Ven',
-          url: 'https://type.hk',
-        },
-        publisher: {
-          '@type': 'Organization',
-          name: 'SaanSeoi',
-          url: 'https://saanseoi.hk',
-        },
-        datePublished: '2026-08-08',
-        dateModified: '2026-08-16',
-        educationalLevel: 'Beginner',
-        teaches: [
-          'Creating a digital map',
-          'Using SaanSeoi basemap, styles and API data',
-          'Publishing a map online or embedding it in a site',
-        ],
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'LearningResource',
+      '@id': 'https://saanseoi.hk/guides/create-a-map#resource',
+      name: m.guide_create_map_title(),
+      description: m.guide_create_map_meta_description(),
+      url: 'https://saanseoi.hk/guides/create-a-map',
+      image: 'https://saanseoi.hk/guides/build-a-map-dark.webp',
+      inLanguage: locale,
+      author: {
+        '@type': 'Person',
+        name: 'Mart van de Ven',
+        url: 'https://type.hk',
       },
-      {
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Home',
-            item: 'https://saanseoi.hk/',
-          },
-          {
-            '@type': 'ListItem',
-            position: 2,
-            name: m.guide_title(),
-            item: 'https://saanseoi.hk/guides',
-          },
-          {
-            '@type': 'ListItem',
-            position: 3,
-            name: m.guide_create_map_title(),
-            item: 'https://saanseoi.hk/guides/create-a-map',
-          },
-        ],
+      publisher: {
+        '@type': 'Organization',
+        name: 'SaanSeoi',
+        url: 'https://saanseoi.hk',
       },
-    ],
-  }}
+      datePublished: '2026-08-08',
+      dateModified: '2026-08-16',
+      educationalLevel: 'Beginner',
+      teaches: [
+        'Creating a digital map',
+        'Using SaanSeoi basemap, styles and API data',
+        'Publishing a map online or embedding it in a site',
+      ],
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://saanseoi.hk/',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: m.guide_title(),
+          item: 'https://saanseoi.hk/guides',
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: m.guide_create_map_title(),
+          item: 'https://saanseoi.hk/guides/create-a-map',
+        },
+      ],
+    },
+  ],
+}}
 />
 
 <Main
@@ -2628,14 +2628,14 @@ const styleChoices = $derived.by(() =>
       {guideLinkCopyFailed}
       onCopyGuideLink={copyGuideLink}
       onOpenHandover={() => {
-        llmDialogOpen = true
-        trackClientProductUsage({
-          event: 'guide.handover',
-          surface: 'guide',
-          entityType: 'action',
-          entityId: 'open',
-        })
-      }}
+  llmDialogOpen = true
+  trackClientProductUsage({
+    event: 'guide.handover',
+    surface: 'guide',
+    entityType: 'action',
+    entityId: 'open',
+  })
+}}
       onShareGuide={shareGuide}
       onShareExternalLink={shareExternalLink}
       {shareLinks}
@@ -2785,8 +2785,7 @@ const styleChoices = $derived.by(() =>
                   option={selectedLlmOption}
                   {zedSetupContentExpanded}
                   {zedSetupExpanded}
-                  onZedSetupContentExpandedChange={(expanded: boolean) =>
-                    (zedSetupContentExpanded = expanded)}
+                  onZedSetupContentExpandedChange={(expanded: boolean) => (zedSetupContentExpanded = expanded)}
                 />
               {/if}
             {/if}
@@ -2909,7 +2908,10 @@ const styleChoices = $derived.by(() =>
               {terminalExperience}
               {viteReadyOutput}
             />
-          {:else if objective && llmMode === 'assisted' && setupReady && (aiAccess !== 'agentic' || isLlmReadinessComplete)}
+          {:else if objective &&
+  llmMode === 'assisted' &&
+  setupReady &&
+  (aiAccess !== 'agentic' || isLlmReadinessComplete)}
             <div class="mt-14 space-y-6">
               {#if aiAccess === 'agentic'}
                 <div>
@@ -2999,7 +3001,10 @@ const styleChoices = $derived.by(() =>
                   </div>
                 </div>
               {/if}
-              {#if showEditorProjectSetup && aiAccess === 'web' && objective !== 'notebook-embed' && objective !== 'mobile-embed'}
+              {#if showEditorProjectSetup &&
+  aiAccess === 'web' &&
+  objective !== 'notebook-embed' &&
+  objective !== 'mobile-embed'}
                 <GuideEditorProjectSetupSection editor={codeEditor} />
               {/if}
               {#if aiAccess === 'web' && isProjectEditorReady && isLlmReadinessComplete}
@@ -3066,11 +3071,14 @@ const styleChoices = $derived.by(() =>
         <GuideParagraph class="mt-3">
           {@html m.guide_render_description()}
         </GuideParagraph>
-        {#if showRenderEditorInstructions && promptEditor && objective !== 'mobile-embed' && objective !== 'notebook-embed'}
+        {#if showRenderEditorInstructions &&
+  promptEditor &&
+  objective !== 'mobile-embed' &&
+  objective !== 'notebook-embed'}
           <GuideParagraph class="mt-3">
             {@html m.guide_render_editor_intro({
-              editor: promptEditor ?? m.guide_setup_editor_your_editor(),
-            })}
+  editor: promptEditor ?? m.guide_setup_editor_your_editor(),
+})}
           </GuideParagraph>
           <GuideEditorCardExplainer
             code={editorCardExplainerCode}
@@ -3086,10 +3094,10 @@ const styleChoices = $derived.by(() =>
                 alignment="left"
                 label={m.guide_renderer_label()}
                 marker={{
-                  current: 1,
-                  label: m.guide_prerequisites_requirement_label(),
-                  total: 1,
-                }}
+  current: 1,
+  label: m.guide_prerequisites_requirement_label(),
+  total: 1,
+}}
                 choices={rendererChoices}
                 bind:value={renderer}
                 onchange={handleRendererChange}
@@ -3126,9 +3134,9 @@ const styleChoices = $derived.by(() =>
                 {#snippet rendererInstallCard()}
                   <GuideCodeBlock
                     label={m.guide_setup_terminal_label({
-                      action: m.guide_renderer_install(),
-                      path: terminalProjectPath,
-                    })}
+  action: m.guide_renderer_install(),
+  path: terminalProjectPath,
+})}
                     code={rendererInstallCode}
                     language={operatingSystem === 'windows' ? 'powershell' : 'bash'}
                     copyLabel={m.common_copy()}
@@ -3139,8 +3147,8 @@ const styleChoices = $derived.by(() =>
                   <GuideCardBlock
                     eyebrow={m.guide_renderer_prompt_none_eyebrow()}
                     title={m.guide_renderer_package_title({
-                      library: selectedRenderer?.label ?? '',
-                    })}
+  library: selectedRenderer?.label ?? '',
+})}
                     card={rendererInstallCard}
                   >
                     <GuideParagraph
@@ -3220,8 +3228,8 @@ const styleChoices = $derived.by(() =>
                   width="short"
                   eyebrow={rendererCodeLabel}
                   title={m.guide_renderer_code_title({
-                    library: selectedRenderer?.label ?? '',
-                  })}
+  library: selectedRenderer?.label ?? '',
+})}
                 >
                   <GuideParagraph
                     class="[&_code]:rounded-sm [&_code]:border [&_code]:border-border-card [&_code]:bg-surface-container-low [&_code]:px-1 [&_code]:font-mono [&_code]:text-[0.85em]"
@@ -3241,9 +3249,7 @@ const styleChoices = $derived.by(() =>
                   href={mobileDocsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  >{mobilePlatform === 'android'
-                    ? m.guide_mobile_android()
-                    : m.guide_mobile_ios()}</a
+                  >{mobilePlatform === 'android' ? m.guide_mobile_android() : m.guide_mobile_ios()}</a
                 >
               {/if}
             </GuideCallout>
@@ -3268,13 +3274,13 @@ const styleChoices = $derived.by(() =>
               />
               <GuideParagraph>
                 {@html renderer === 'mapbox'
-                  ? m.guide_renderer_prompt_mapbox_instruction({
-                      llm: selectedLlmOption?.label ?? '',
-                    })
-                  : m.guide_renderer_prompt_instruction({
-                      library: selectedMapLibrary.label,
-                      llm: selectedLlmOption?.label ?? '',
-                    })}
+  ? m.guide_renderer_prompt_mapbox_instruction({
+      llm: selectedLlmOption?.label ?? '',
+    })
+  : m.guide_renderer_prompt_instruction({
+      library: selectedMapLibrary.label,
+      llm: selectedLlmOption?.label ?? '',
+    })}
               </GuideParagraph>
               <div class="mt-6 max-w-232">
                 <GuideLlmPromptCard
@@ -3312,10 +3318,10 @@ const styleChoices = $derived.by(() =>
         <div class="mt-10 max-w-3xl">
           <GuideSubSectionHeader
             requirement={{
-              current: 1,
-              label: m.guide_prerequisites_requirement_label(),
-              total: 3,
-            }}
+  current: 1,
+  label: m.guide_prerequisites_requirement_label(),
+  total: 3,
+}}
             title={m.guide_basemap_account_requirement_title()}
           />
           {#if page.data.user}
@@ -3331,10 +3337,10 @@ const styleChoices = $derived.by(() =>
           <div id="basemap-api-key-requirement" class="mt-10 max-w-3xl scroll-mt-28">
             <GuideSubSectionHeader
               requirement={{
-                current: 2,
-                label: m.guide_prerequisites_requirement_label(),
-                total: 3,
-              }}
+  current: 2,
+  label: m.guide_prerequisites_requirement_label(),
+  total: 3,
+}}
               title={m.guide_basemap_api_key_requirement_title()}
             >
               {#snippet actions()}
@@ -3371,14 +3377,14 @@ const styleChoices = $derived.by(() =>
               {operatingSystem}
               {terminalProjectPath}
               onApiKeyCreated={key => {
-                if (!llmGuidanceEnabled) return
-                llmBasemapApiKey = key
-              }}
+  if (!llmGuidanceEnabled) return
+  llmBasemapApiKey = key
+}}
               onApiKeyConfirmed={confirmBasemapApiKey}
               onApiKeyReadyChange={ready => {
-                hasBasemapApiKey = ready
-                if (!ready) llmBasemapApiKey = undefined
-              }}
+  hasBasemapApiKey = ready
+  if (!ready) llmBasemapApiKey = undefined
+}}
               showHeading={false}
               showEnvironmentSetup={!llmGuidanceEnabled}
               bind:usingExistingKey={usingExistingBasemapApiKey}
@@ -3392,10 +3398,10 @@ const styleChoices = $derived.by(() =>
                 alignment="left"
                 label={m.guide_basemap_region_label()}
                 marker={{
-                  current: 3,
-                  label: m.guide_prerequisites_requirement_label(),
-                  total: 3,
-                }}
+  current: 3,
+  label: m.guide_prerequisites_requirement_label(),
+  total: 3,
+}}
                 hint={m.guide_basemap_region_hint()}
                 choices={regionChoices}
                 bind:value={region}
@@ -3511,10 +3517,10 @@ const styleChoices = $derived.by(() =>
             alignment="left"
             label={m.guide_style_label()}
             marker={{
-              current: 1,
-              label: m.guide_prerequisites_requirement_label(),
-              total: 1,
-            }}
+  current: 1,
+  label: m.guide_prerequisites_requirement_label(),
+  total: 1,
+}}
             choices={styleChoices}
             bind:value={style}
             illustratedCardSizing="fixed"
@@ -3631,10 +3637,10 @@ const styleChoices = $derived.by(() =>
             alignment="left"
             label={m.guide_data_label()}
             marker={{
-              current: 1,
-              label: m.guide_prerequisites_requirement_label(),
-              total: dataSource === 'existing' ? 3 : 1,
-            }}
+  current: 1,
+  label: m.guide_prerequisites_requirement_label(),
+  total: dataSource === 'existing' ? 3 : 1,
+}}
             choices={dataChoices}
             bind:value={dataSource}
             illustratedCardSizing="fixed"
@@ -3648,10 +3654,10 @@ const styleChoices = $derived.by(() =>
               alignment="left"
               label={m.guide_data_format_label()}
               marker={{
-                current: 2,
-                label: m.guide_prerequisites_requirement_label(),
-                total: 3,
-              }}
+  current: 2,
+  label: m.guide_prerequisites_requirement_label(),
+  total: 3,
+}}
               hint={m.guide_data_format_hint()}
               choices={dataFormatChoices}
               bind:value={dataFormat}
@@ -3663,13 +3669,13 @@ const styleChoices = $derived.by(() =>
             <div id="geojson" class="mt-12 max-w-232 scroll-mt-28">
               <GuideSubSectionHeader
                 requirement={{
-                    current: 3,
-                    label: m.guide_prerequisites_requirement_label(),
-                    total: 3,
-                  }}
+  current: 3,
+  label: m.guide_prerequisites_requirement_label(),
+  total: 3,
+}}
                 title={dataFormat === 'geojson'
-                    ? m.guide_data_geojson_title()
-                    : m.guide_data_convert_title({ format: selectedDataFormat.label })}
+  ? m.guide_data_geojson_title()
+  : m.guide_data_convert_title({ format: selectedDataFormat.label })}
               />
               <GuidePublishRequirement
                 complete={isDataPrepared}
@@ -3689,18 +3695,17 @@ const styleChoices = $derived.by(() =>
                     {#if dataFormat !== 'geojson'}
                       <GuideParagraph>
                         {@html m.guide_data_convert_description({
-                        fallback:
-                          dataFormat === 'other' ? m.guide_data_convert_other() : '',
-                        format: selectedDataFormat.label,
-                        target: geoJsonConversionTarget,
-                      })}
+  fallback: dataFormat === 'other' ? m.guide_data_convert_other() : '',
+  format: selectedDataFormat.label,
+  target: geoJsonConversionTarget,
+})}
                       </GuideParagraph>
                     {/if}
                     {#if dataFormat === 'geojson'}
                       <GuideParagraph>
                         {@html m.guide_data_geojson_editor_optional({
-                        assetLimit: dataImportLimit ? `<br><br>${dataImportLimit}` : '',
-                      })}
+  assetLimit: dataImportLimit ? `<br><br>${dataImportLimit}` : '',
+})}
                       </GuideParagraph>
                     {/if}
                     <ol
@@ -3773,11 +3778,11 @@ const styleChoices = $derived.by(() =>
                       class="mt-6"
                       src={geojsonImportScreenshot}
                       alt={m.guide_data_geojson_imported_screenshot_alt({
-                      region: selectedRegion?.label ?? '',
-                    })}
+  region: selectedRegion?.label ?? '',
+})}
                       caption={m.guide_data_geojson_imported_screenshot_caption({
-                      region: selectedRegion?.label ?? '',
-                    })}
+  region: selectedRegion?.label ?? '',
+})}
                       width="content"
                     />
                     <ol
@@ -3916,9 +3921,7 @@ const styleChoices = $derived.by(() =>
               />
               <div class="mt-6 space-y-3">
                 <GuideParagraph>
-                  {@html hosting
-                    ? m.guide_data_llm_continue_publish()
-                    : m.guide_data_llm_continue_refining()}
+                  {@html hosting ? m.guide_data_llm_continue_publish() : m.guide_data_llm_continue_refining()}
                 </GuideParagraph>
                 <GuideParagraph>{m.guide_data_llm_revisit()}</GuideParagraph>
               </div>
@@ -3929,15 +3932,15 @@ const styleChoices = $derived.by(() =>
             editorIcon={selectedCodeEditor?.icon}
             hasNonHongKongBasemap={Boolean(region && region !== 'hk')}
             hongKongBasemapNote={region && region !== 'hk'
-              ? m.guide_data_urban_density_hong_kong_note({
-                  region: selectedRegion?.label ?? '',
-                })
-              : undefined}
+  ? m.guide_data_urban_density_hong_kong_note({
+      region: selectedRegion?.label ?? '',
+    })
+  : undefined}
             mapReadyCode={urbanDensityMapReadyCode}
             showPublishLink={objective !== 'local'}
             mapPreviewLabel={m.guide_data_urban_density_map_preview_label({
-              style: selectedStyle.name,
-            })}
+  style: selectedStyle.name,
+})}
             mapAppearance={selectedStyle.appearance}
             renderer={guideRenderer}
             {styleUrl}
@@ -3988,15 +3991,15 @@ const styleChoices = $derived.by(() =>
                 onclick={event => scrollToGuideChoice(event, renderer ? 'style-choice' : 'map-library')}
               >
                 {@html renderer
-                    ? m.guide_data_urban_density_missing_style()
-                    : m.guide_data_urban_density_missing_renderer()}
+  ? m.guide_data_urban_density_missing_style()
+  : m.guide_data_urban_density_missing_renderer()}
               </a>
             </div>
             {#if region && region !== 'hk'}
               <GuideParagraph class="mt-4">
                 {@html m.guide_data_urban_density_missing_preferences_region({
-                    region: selectedRegion?.label ?? '',
-                  })}
+  region: selectedRegion?.label ?? '',
+})}
               </GuideParagraph>
             {/if}
           </GuidePrerequisiteBlocker>
@@ -4009,9 +4012,7 @@ const styleChoices = $derived.by(() =>
           number={7}
           showBorder={false}
           eyebrow={m.guide_setup_publish_title()}
-          description={objective === 'mobile-embed'
-              ? m.guide_publish_mobile_description()
-              : undefined}
+          description={objective === 'mobile-embed' ? m.guide_publish_mobile_description() : undefined}
         >
           {#if publishMissingRequirement}
             <GuideMissingSectionRequirement
@@ -4026,9 +4027,7 @@ const styleChoices = $derived.by(() =>
                 href={mobileDocsUrl}
                 target="_blank"
                 rel="noreferrer"
-                >{mobilePlatform === 'android'
-                  ? m.guide_mobile_android()
-                  : m.guide_mobile_ios()}</a
+                >{mobilePlatform === 'android' ? m.guide_mobile_android() : m.guide_mobile_ios()}</a
               >
             {:else}
               <GuideCallout>
@@ -4043,7 +4042,10 @@ const styleChoices = $derived.by(() =>
               </GuideCallout>
             {/if}
           {:else}
-            {#if hosting === 'cloudflare' || hosting === 'github-pages' || hosting === 'vercel' || hosting === 'netlify'}
+            {#if hosting === 'cloudflare' ||
+  hosting === 'github-pages' ||
+  hosting === 'vercel' ||
+  hosting === 'netlify'}
               <GuideCreateAMapPublish
                 {aiAccess}
                 completedRequirements={completedPublishRequirements}
@@ -4054,8 +4056,7 @@ const styleChoices = $derived.by(() =>
                 {operatingSystem}
                 {renderer}
                 {terminalProjectPath}
-                onCompletedRequirementsChange={requirements =>
-                  (completedPublishRequirements = requirements)}
+                onCompletedRequirementsChange={requirements => (completedPublishRequirements = requirements)}
                 onAccessibleChange={accessible => (isMapAccessible = accessible)}
               />
             {:else if hosting === 'other'}
@@ -4065,8 +4066,7 @@ const styleChoices = $derived.by(() =>
                 llmPrompt={progressiveSectionPrompts.publish}
                 llmPromptIcon={selectedLlmOption?.icon}
                 {terminalProjectPath}
-                onCompletedRequirementsChange={requirements =>
-                  (completedPublishRequirements = requirements)}
+                onCompletedRequirementsChange={requirements => (completedPublishRequirements = requirements)}
                 onAccessibleChange={accessible => (isMapAccessible = accessible)}
               />
             {/if}
@@ -4111,12 +4111,12 @@ const styleChoices = $derived.by(() =>
           >
             <GuideParagraph>
               {@html dataSource === 'api'
-                ? isMapAccessible
-                  ? m.guide_data_urban_density_conclusion_community_phewee_published()
-                  : m.guide_data_urban_density_conclusion_community_phewee()
-                : isMapAccessible
-                  ? m.guide_data_urban_density_conclusion_community_own_data_published()
-                  : m.guide_data_urban_density_conclusion_community_own_data()}
+  ? isMapAccessible
+    ? m.guide_data_urban_density_conclusion_community_phewee_published()
+    : m.guide_data_urban_density_conclusion_community_phewee()
+  : isMapAccessible
+    ? m.guide_data_urban_density_conclusion_community_own_data_published()
+    : m.guide_data_urban_density_conclusion_community_own_data()}
             </GuideParagraph>
             {#if dataSource === 'api'}
               <GuideParagraph>
@@ -4141,6 +4141,7 @@ const styleChoices = $derived.by(() =>
                   title={link.label}
                 >
                   <Icon icon={link.icon} class="size-4.5" aria-hidden="true" />
+                  <span class="sr-only">{link.label}</span>
                 </a>
               {/each}
             </nav>

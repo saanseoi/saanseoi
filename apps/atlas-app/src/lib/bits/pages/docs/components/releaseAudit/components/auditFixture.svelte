@@ -12,11 +12,15 @@ const label = (key: string) =>
   key.replaceAll(/([a-z])([A-Z])/g, '$1 $2').replaceAll(/[_-]/g, ' ')
 </script>
 
-{#snippet render(item: Json)}
+{#snippet render(
+  item: Json,
+)}
   {#if Array.isArray(item)}
     {#if item.length > 24}
       <VirtualList items={item}>
-        {#snippet children(entry)}
+        {#snippet children(
+  entry,
+)}
           {@render render(entry)}
         {/snippet}
       </VirtualList>
@@ -45,20 +49,45 @@ const label = (key: string) =>
   {/if}
 {/snippet}
 
-{#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.fields)}
+{#if value &&
+  typeof value === 'object' &&
+  !Array.isArray(value) &&
+  Array.isArray(value.fields)}
   <FieldMappings fields={value.fields} />
 {/if}
-{#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.mappings)}
+{#if value &&
+  typeof value === 'object' &&
+  !Array.isArray(value) &&
+  Array.isArray(value.mappings)}
   <IdentityMappings mappings={value.mappings} />
 {/if}
-{#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.measures)}
+{#if value &&
+  typeof value === 'object' &&
+  !Array.isArray(value) &&
+  Array.isArray(value.measures)}
   <Measures measures={value.measures} />
 {/if}
-{#if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.entries) && value.entries.some(e => e && typeof e === 'object' && !Array.isArray(e) && ('targetLocale' in e || 'sourceLocale' in e))}
+{#if value &&
+  typeof value === 'object' &&
+  !Array.isArray(value) &&
+  Array.isArray(value.entries) &&
+  value.entries.some(
+    e =>
+      e &&
+      typeof e === 'object' &&
+      !Array.isArray(e) &&
+      ('targetLocale' in e || 'sourceLocale' in e),
+  )}
   <Translations entries={value.entries} />
-{:else if value && typeof value === 'object' && !Array.isArray(value) && Array.isArray(value.entries)}
+{:else if value &&
+  typeof value === 'object' &&
+  !Array.isArray(value) &&
+  Array.isArray(value.entries)}
   {@render render(value.entries)}
 {/if}
-{#if !value || typeof value !== 'object' || Array.isArray(value) || !rowKeys.some(key => Array.isArray(value[key]))}
+{#if !value ||
+  typeof value !== 'object' ||
+  Array.isArray(value) ||
+  !rowKeys.some(key => Array.isArray(value[key]))}
   {@render render(value)}
 {/if}

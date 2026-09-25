@@ -41,7 +41,7 @@ const lightTheme = $derived(theme === 'light')
 >
   {#if menuOpen}
     <button
-      class={`h-10 cursor-pointer rounded-full px-4 text-[11px] font-bold uppercase transition-colors focus-visible:outline-2 focus-visible:outline-(--bar-accent) ${dirty ? (lightTheme ? 'bg-(--bar-active-background) text-(--bar-text) hover:text-[#0b1b21]' : 'bg-(--bar-active-background) text-(--bar-text) hover:text-white') : (lightTheme ? 'text-[#1e292f] hover:text-(--bar-accent)' : 'text-white hover:text-(--bar-accent)')}`}
+      class={`h-10 cursor-pointer rounded-full px-4 text-[11px] font-bold uppercase transition-colors focus-visible:outline-2 focus-visible:outline-(--bar-accent) ${dirty ? (lightTheme ? 'bg-(--bar-active-background) text-(--bar-text) hover:text-[#0b1b21]' : 'bg-(--bar-active-background) text-(--bar-text) hover:text-white') : lightTheme ? 'text-[#1e292f] hover:text-(--bar-accent)' : 'text-white hover:text-(--bar-accent)'}`}
       onclick={onMenu}
       type="button"
     >
@@ -60,7 +60,7 @@ const lightTheme = $derived(theme === 'light')
   {#if !menuOpen && panel && active}
     <button
       aria-pressed={panelOpen}
-      class={`flex h-10 cursor-pointer items-center gap-2 rounded-full px-3 text-[11px] font-bold uppercase transition-colors focus-visible:outline-2 focus-visible:outline-(--bar-accent) ${panelOpen ? (lightTheme ? 'bg-black/5 text-[#1e292f]' : 'bg-white/10 text-white') : (lightTheme ? 'text-[#1e292f]/45 hover:bg-black/10' : 'text-white/45 hover:bg-white/10')}`}
+      class={`flex h-10 cursor-pointer items-center gap-2 rounded-full px-3 text-[11px] font-bold uppercase transition-colors focus-visible:outline-2 focus-visible:outline-(--bar-accent) ${panelOpen ? (lightTheme ? 'bg-black/5 text-[#1e292f]' : 'bg-white/10 text-white') : lightTheme ? 'text-[#1e292f]/45 hover:bg-black/10' : 'text-white/45 hover:bg-white/10'}`}
       onclick={() => onPanel(active)}
       type="button"
     >

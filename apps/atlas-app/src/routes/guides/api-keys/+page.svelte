@@ -496,9 +496,7 @@ let requestSetupClass = $derived(
             copiedLabel={m.common_copied()}
             label={m.guide_api_keys_url_parameter()}
             language={requestExample.language}
-            variant={requestLibrary === 'curl' || requestLibrary === 'powershell'
-            ? 'code'
-            : 'editor'}
+            variant={requestLibrary === 'curl' || requestLibrary === 'powershell' ? 'code' : 'editor'}
           />
         </div>
         <div class="min-w-0 max-w-full">
@@ -508,9 +506,7 @@ let requestSetupClass = $derived(
             copiedLabel={m.common_copied()}
             label={m.guide_api_keys_header()}
             language={requestExample.language}
-            variant={requestLibrary === 'curl' || requestLibrary === 'powershell'
-            ? 'code'
-            : 'editor'}
+            variant={requestLibrary === 'curl' || requestLibrary === 'powershell' ? 'code' : 'editor'}
           />
         </div>
       </div>

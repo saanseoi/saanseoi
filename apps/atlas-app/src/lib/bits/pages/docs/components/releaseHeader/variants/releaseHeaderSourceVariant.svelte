@@ -1,10 +1,8 @@
 <script lang="ts">
-import dianapangLogo from '#lib/assets/sourcePublishers/dpang.png'
-import hkgovLogo from '#lib/assets/sourcePublishers/hkgov.webp'
-import overtureLogo from '#lib/assets/sourcePublishers/overture.png'
 import { m, selectLocalisedRow, type AppLocale } from '#lib/bits/internal/i18n.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 import { normaliseExternalUrl } from '#lib/externalUrl.js'
+import { getPublisherLogo } from '#lib/registry/publisherLogo.js'
 import { buildReleaseNotesPresentation } from '#lib/registry/releaseNotesPresentation.js'
 import type { RegistrySource, SourceVersion } from '#lib/registry/types.js'
 
@@ -137,15 +135,7 @@ let details = $derived.by((): Detail[] => {
   ]
   return rows
 })
-let publisherLogo = $derived(
-  source.publisherCode === 'overture'
-    ? overtureLogo
-    : source.publisherCode.startsWith('hkgov')
-      ? hkgovLogo
-      : source.publisherCode === 'dpang'
-        ? dianapangLogo
-        : overtureLogo,
-)
+let publisherLogo = $derived(getPublisherLogo(source.publisherCode))
 let publisher = $derived(selectLocalisedRow(source.publisher?.publisherI18n, locale))
 let publisherName = $derived(
   publisher?.name ?? source.publisher?.code ?? source.publisherCode,

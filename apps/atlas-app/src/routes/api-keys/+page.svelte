@@ -131,9 +131,9 @@ const formatLastUsed = (lastUsedAt: Date | string | null) => {
     <form
       class="mt-5 flex flex-col gap-3 sm:flex-row"
       onsubmit={event => {
-        event.preventDefault()
-        createKey()
-      }}
+  event.preventDefault()
+  createKey()
+}}
     >
       <input
         bind:value={name}
@@ -145,8 +145,8 @@ const formatLastUsed = (lastUsedAt: Date | string | null) => {
         type="submit"
         variant="primary"
         >{createApiKeyForCurrentUser.pending > 0
-          ? m.api_keys_creating()
-          : m.api_keys_create_button()}</Button
+  ? m.api_keys_creating()
+  : m.api_keys_create_button()}</Button
       >
     </form>
     {#if error}
@@ -176,9 +176,7 @@ const formatLastUsed = (lastUsedAt: Date | string | null) => {
           {keys.length === 0 ? m.api_keys_empty() : m.api_keys_no_active()}
         </p>
         <p class="mt-2 font-body text-body-md text-foreground-alt">
-          {keys.length === 0
-            ? m.api_keys_empty_description()
-            : m.api_keys_no_active_description()}
+          {keys.length === 0 ? m.api_keys_empty_description() : m.api_keys_no_active_description()}
         </p>
       </div>
     {:else}

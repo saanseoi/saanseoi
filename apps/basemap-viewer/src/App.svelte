@@ -244,10 +244,10 @@ function selectMobilePanel(panel: 'diff' | 'diagnostics' | 'inspection'): void {
       notice={$ui.notice}
       noticeId={$ui.noticeId}
       panelOpen={($appState.comparisonVersion !== null &&
-        $appState.comparisonMode === 'labels' &&
-        diffPanelOpen) ||
-      $ui.diagnostics.open ||
-      $ui.diagnostics.inspect}
+  $appState.comparisonMode === 'labels' &&
+  diffPanelOpen) ||
+  $ui.diagnostics.open ||
+  $ui.diagnostics.inspect}
       panelHeight={mobilePanelHeight}
       state={viewerState}
       suppressNotice={$ui.diagnostics.open}

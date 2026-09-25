@@ -18,13 +18,13 @@ let { code, promptIcon }: Props = $props()
   variant="prompt"
   {promptIcon}
   onCopy={outcome =>
-    trackClientProductUsage({
-      event: 'guide.prompt_copy',
-      surface: 'guide',
-      entityType: 'action',
-      entityId: 'prompt',
-      outcome,
-    })}
+  trackClientProductUsage({
+    event: 'guide.prompt_copy',
+    surface: 'guide',
+    entityType: 'action',
+    entityId: 'prompt',
+    outcome,
+  })}
   copyLabel={m.common_copy()}
   copiedLabel={m.common_copied()}
 />

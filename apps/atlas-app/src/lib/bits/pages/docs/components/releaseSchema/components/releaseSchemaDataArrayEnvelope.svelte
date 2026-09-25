@@ -95,7 +95,8 @@ let composition = $derived(getSchemaComposition(itemSchema))
           name={propertyName}
           {onExpandedNodeStateChange}
           {referencePath}
-          required={recordValueSchema?.required?.includes(propertyName) ?? itemSchema.required?.includes(propertyName)}
+          required={recordValueSchema?.required?.includes(propertyName) ??
+  itemSchema.required?.includes(propertyName)}
           schema={propertySchema}
           {schemas}
         />
@@ -107,8 +108,8 @@ let composition = $derived(getSchemaComposition(itemSchema))
         {expandAllToken}
         {expandedNodeStates}
         name={recordValueSchema
-          ? itemSchema['x-recordKeyName'] ?? 'property key'
-          : itemSchema['x-additionalPropertiesName'] ?? 'additional properties'}
+  ? (itemSchema['x-recordKeyName'] ?? 'property key')
+  : (itemSchema['x-additionalPropertiesName'] ?? 'additional properties')}
         {onExpandedNodeStateChange}
         {referencePath}
         schema={additionalProperties}

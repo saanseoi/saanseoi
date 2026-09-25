@@ -17,11 +17,11 @@ let { rows, labels }: { rows: LocaleCoveragePresentation; labels: ReleaseStatsLa
       <Legend
         label={labels.localeLegend}
         items={[
-          { label: labels.provided, tone: 'bg-data-success' },
-          { label: labels.inferred, tone: 'bg-data-inferred' },
-          { label: labels.aiTranslated, tone: 'bg-data-ai-translated' },
-          { label: labels.humanTranslated, tone: 'bg-data-human-translated' },
-        ]}
+  { label: labels.provided, tone: 'bg-data-success' },
+  { label: labels.inferred, tone: 'bg-data-inferred' },
+  { label: labels.aiTranslated, tone: 'bg-data-ai-translated' },
+  { label: labels.humanTranslated, tone: 'bg-data-human-translated' },
+]}
       />
       <InfoTooltip
         label={labels.completenessInfo}

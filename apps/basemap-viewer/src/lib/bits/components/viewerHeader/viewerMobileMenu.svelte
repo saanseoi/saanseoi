@@ -77,7 +77,7 @@ const actionClass =
             icon="color-palette"
             iconClass="size-5"
             items={themes.map(theme => ({ value: theme, label: text[theme] }))}
-            onValueChange={(value) => callbacks.onTheme(value as Theme)}
+            onValueChange={value => callbacks.onTheme(value as Theme)}
             placeholder={text.mapTheme}
             theme={$viewerState.theme}
             triggerClass="size-[37px]!"
@@ -90,7 +90,7 @@ const actionClass =
             icon="language"
             iconClass="size-5"
             items={[...locales]}
-            onValueChange={(value) => callbacks.onLocale(value as Locale)}
+            onValueChange={value => callbacks.onLocale(value as Locale)}
             placeholder={text.mapLabelLanguage}
             theme={$viewerState.theme}
             triggerClass="size-[37px]!"
@@ -143,7 +143,7 @@ const actionClass =
                 ariaLabel={text.compare}
                 disabled={!$ui.catalogueReady}
                 items={comparisonReleaseOptions($ui.versions, text)}
-                onValueChange={(value) => callbacks.onComparisonVersion(value === 'off' ? null : value)}
+                onValueChange={value => callbacks.onComparisonVersion(value === 'off' ? null : value)}
                 optionClass="font-mono"
                 placeholder={text.noComparison}
                 theme={$viewerState.theme}

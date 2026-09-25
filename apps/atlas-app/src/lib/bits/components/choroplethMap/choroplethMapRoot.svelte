@@ -194,19 +194,19 @@ function updateActiveFeature(event: {
         <FillLayer
           id="choropleth-district-fill"
           paint={{
-            'fill-color': fillColor,
-            'fill-opacity': 0.33,
-          }}
+  'fill-color': fillColor,
+  'fill-opacity': 0.33,
+}}
           onmousemove={updateActiveFeature}
           onmouseleave={() => (activeFeature = null)}
         />
         <LineLayer
           id="choropleth-district-outline"
           paint={{
-            'line-color': '#0f2624',
-            'line-opacity': 0.72,
-            'line-width': 1.25,
-          }}
+  'line-color': '#0f2624',
+  'line-opacity': 0.72,
+  'line-width': 1.25,
+}}
         />
       </GeoJSONSource>
       {#if exclusion}

@@ -37,14 +37,14 @@ function measure(node: HTMLElement) {
   {#each segments as segment, index}
     <span
       class={`absolute inset-y-0 ${
-        segment.tone === 'provided'
-          ? 'bg-data-success'
-          : segment.tone === 'inferred'
-            ? 'bg-data-inferred'
-            : segment.tone === 'ai-translated'
-              ? 'bg-data-ai-translated'
-              : 'bg-data-human-translated'
-      }`}
+  segment.tone === 'provided'
+    ? 'bg-data-success'
+    : segment.tone === 'inferred'
+      ? 'bg-data-inferred'
+      : segment.tone === 'ai-translated'
+        ? 'bg-data-ai-translated'
+        : 'bg-data-human-translated'
+}`}
       style={`left: ${segments.slice(0, index).reduce((total, item) => total + item.value, 0)}%; width: ${segment.value}%`}
     ></span>
   {/each}

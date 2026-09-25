@@ -20,7 +20,7 @@ let {
         <dd class="h-5 overflow-hidden bg-data-outline-variant/30" aria-hidden="true">
           <div
             class="h-full bg-data-success"
-            style:width={`${row.percentage / Math.max(...distribution.rows.map(item => item.percentage), 1) * 100}%`}
+            style:width={`${(row.percentage / Math.max(...distribution.rows.map(item => item.percentage), 1)) * 100}%`}
           ></div>
         </dd>
         <dd

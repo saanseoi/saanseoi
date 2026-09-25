@@ -26,7 +26,11 @@ let {
       <span class="ml-auto"
         ><InfoTooltip
           label={labels.changeSummary}
-          description={overview.churn.unavailable ? "Change counts are not available for this release." : overview.churn.baseline ? labels.comparisonBaseline : labels.comparisonPrevious}
+          description={overview.churn.unavailable
+  ? 'Change counts are not available for this release.'
+  : overview.churn.baseline
+    ? labels.comparisonBaseline
+    : labels.comparisonPrevious}
         /></span
       >
     {/if}

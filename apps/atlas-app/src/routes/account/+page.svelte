@@ -248,7 +248,7 @@ const providerDetails = (providerId: string) =>
       class="mt-6 divide-y divide-border-card border border-border-card bg-background-alt"
     >
       {#each accounts as account}
-        {@const provider = providerDetails(account.providerId)}
+        {@const (provider = providerDetails(account.providerId))}
         <article class="flex items-center justify-between gap-4 p-5">
           <div class="flex items-center gap-3">
             <div
@@ -328,7 +328,13 @@ const providerDetails = (providerId: string) =>
                 {passkey.name?.trim() || m.account_saved_passkey()}
               </p>
               <p class="mt-1 font-body text-sm text-foreground-alt">
-                {m.account_passkey_added_on({ date: new Intl.DateTimeFormat(getCurrentLocale(), { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Hong_Kong' }).format(new Date(passkey.createdAt)) })}
+                {m.account_passkey_added_on({
+  date: new Intl.DateTimeFormat(getCurrentLocale(), {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+    timeZone: 'Asia/Hong_Kong',
+  }).format(new Date(passkey.createdAt)),
+})}
               </p>
             </div>
           </div>
@@ -405,14 +411,21 @@ const providerDetails = (providerId: string) =>
     <Dialog.Content
       class="fixed top-1/2 left-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 border border-border-card bg-background-alt p-6 shadow-popover focus:outline-none"
       ><Dialog.Title class="font-display text-headline-sm font-bold text-primary"
-        >{passwordDialogMode === 'add' ? m.account_add_email_password() : m.account_change_password()}</Dialog.Title
+        >{passwordDialogMode === 'add'
+  ? m.account_add_email_password()
+  : m.account_change_password()}</Dialog.Title
       ><Dialog.Description
         class="mt-3 font-body text-body-md leading-7 text-foreground-alt"
-        >{passwordDialogMode === 'add' ? m.account_add_password_description() : m.account_change_password_description()}</Dialog.Description
+        >{passwordDialogMode === 'add'
+  ? m.account_add_password_description()
+  : m.account_change_password_description()}</Dialog.Description
       >
       <form
         class="mt-6"
-        onsubmit={event => { event.preventDefault(); passwordDialogMode === 'add' ? addPassword() : changePassword() }}
+        onsubmit={event => {
+  event.preventDefault()
+  passwordDialogMode === 'add' ? addPassword() : changePassword()
+}}
       >
         {#if passwordDialogMode === 'change'}
           <label class="font-body text-sm font-semibold text-foreground"

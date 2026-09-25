@@ -194,30 +194,30 @@ const handleViewportResize = () => {
   class:principles-deck-desktop-dragging={swipeState.isDragging && swipeState.dragMode === 'desktop'}
   class:principles-deck-dragging={swipeState.isDragging && swipeState.dragMode === 'mobile'}
   class:principles-deck-dragging-active={swipeState.isDragging &&
-    swipeState.dragMode === 'desktop' &&
-    swipeState.draggedPrincipleIndex === activePrincipleIndex}
+  swipeState.dragMode === 'desktop' &&
+  swipeState.draggedPrincipleIndex === activePrincipleIndex}
   class:principles-deck-throwing={swipeState.isThrowing}
   class={`principles-deck relative isolate my-auto h-126 w-screen overflow-visible py-3 transition-[height,opacity,translate] duration-500 ease-out ${
-    isRevealed
-      ? 'translate-y-0 opacity-100 delay-100'
-      : 'translate-y-4 opacity-0 motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none'
-  }`}
+  isRevealed
+    ? 'translate-y-0 opacity-100 delay-100'
+    : 'translate-y-4 opacity-0 motion-reduce:translate-y-0 motion-reduce:opacity-100 motion-reduce:transition-none'
+}`}
 >
   {#each principleDeckOrder as principleIndex, orderIndex (principleIndex)}
-    {@const principle = principles[principleIndex] ?? principles[0]}
+    {@const (principle = principles[principleIndex] ?? principles[0])}
     <FeatureSectionCard
       {principle}
       {principleIndex}
       {orderIndex}
       isActive={activePrincipleIndex === principleIndex}
       isDragCandidate={swipeState.dragMode === 'desktop' &&
-        swipeState.hasMoved &&
-        swipeState.draggedPrincipleIndex === principleIndex &&
-        activePrincipleIndex !== principleIndex}
+  swipeState.hasMoved &&
+  swipeState.draggedPrincipleIndex === principleIndex &&
+  activePrincipleIndex !== principleIndex}
       isThrowingAway={swipeState.throwingPrincipleIndex === principleIndex}
       swipeX={swipeState.draggedPrincipleIndex === principleIndex ? swipeState.deltaX : 0}
       swipeY={swipeState.draggedPrincipleIndex === principleIndex ? swipeState.deltaY : 0}
-      swipeRotate={swipeState.draggedPrincipleIndex === principleIndex ? swipeState.deltaX * .035 : 0}
+      swipeRotate={swipeState.draggedPrincipleIndex === principleIndex ? swipeState.deltaX * 0.035 : 0}
       onpointerdown={event => handlePointerDown(event, principleIndex, orderIndex)}
       onpointermove={handlePointerMove}
       onpointerup={handlePointerEnd}

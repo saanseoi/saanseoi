@@ -54,7 +54,7 @@ const stopCardInteraction = (event: Event) => event.stopPropagation()
 </script>
 
 <section
-  class={`absolute inset-0 overflow-hidden rounded-none bg-(image:--postcard-pattern) p-[0.65rem] text-[#213238] touch-none shadow-[0_0.8rem_2.2rem_rgb(0_0_0/0.15)] dark:bg-(image:--postcard-dark-pattern) ${isSelected ? isDragging ? 'pointer-events-auto cursor-grabbing backface-hidden max-[900px]:static' : 'pointer-events-auto cursor-grab backface-hidden max-[900px]:static' : 'pointer-events-none invisible'}`}
+  class={`absolute inset-0 overflow-hidden rounded-none bg-(image:--postcard-pattern) p-[0.65rem] text-[#213238] touch-none shadow-[0_0.8rem_2.2rem_rgb(0_0_0/0.15)] dark:bg-(image:--postcard-dark-pattern) ${isSelected ? (isDragging ? 'pointer-events-auto cursor-grabbing backface-hidden max-[900px]:static' : 'pointer-events-auto cursor-grab backface-hidden max-[900px]:static') : 'pointer-events-none invisible'}`}
   style={`transform: rotateY(${flipAngle}deg);`}
   aria-hidden={!isSelected}
 >

@@ -220,9 +220,7 @@ const sourceHeadingId = (releaseId: string) =>
   <div class="space-y-8" bind:this={panel}>
     <Controls
       bind:query
-      filteredCount={searchState?.failed
-          ? '—'
-          : (searchState?.filteredCount ?? 0).toLocaleString()}
+      filteredCount={searchState?.failed ? '—' : (searchState?.filteredCount ?? 0).toLocaleString()}
       totalCount={searchState?.failed ? '—' : (searchState?.totalCount ?? 0).toLocaleString()}
       loading={searchState === null || Boolean(searchState?.loading)}
       infoLabel={m.source_audit_search_info()}
@@ -232,10 +230,10 @@ const sourceHeadingId = (releaseId: string) =>
     {#each visibleResources as resource, index (resource.releaseId)}
       <section
         class={familyType
-          ? index === 0
-            ? 'space-y-1'
-            : 'space-y-1 border-t border-border-card/60 pt-8'
-          : ''}
+  ? index === 0
+    ? 'space-y-1'
+    : 'space-y-1 border-t border-border-card/60 pt-8'
+  : ''}
       >
         {#if familyType}
           <div>

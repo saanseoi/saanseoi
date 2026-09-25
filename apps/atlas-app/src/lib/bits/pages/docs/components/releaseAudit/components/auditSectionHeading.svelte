@@ -24,7 +24,9 @@ let { children, description, label, title, tocTitle }: Props = $props()
     {/if}
     <Tooltip.Root>
       <Tooltip.Trigger>
-        {#snippet child({ props })}
+        {#snippet child({
+  props,
+})}
           <button
             {...props}
             class="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-foreground-alt transition hover:bg-current/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2"

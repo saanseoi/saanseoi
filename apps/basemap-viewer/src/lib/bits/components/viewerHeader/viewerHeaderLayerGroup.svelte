@@ -32,7 +32,7 @@ let {
         checked={item.checked}
         class={`m-0 size-5 accent-(--bar-accent) focus-visible:outline-2 focus-visible:outline-(--bar-accent) focus-visible:outline-offset-2 ${item.disabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
         disabled={item.disabled}
-        onchange={(event) => onChange(item.key, event.currentTarget.checked)}
+        onchange={event => onChange(item.key, event.currentTarget.checked)}
         type="checkbox"
       >{item.label}
     </label>

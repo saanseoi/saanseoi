@@ -79,14 +79,12 @@ const layers = $derived(layerItems($viewerState, $ui.enabled, text))
             class="pb-2"
             items={layers.features}
             label={text.features}
-            onChange={(key, enabled) =>
-              callbacks.onFeature(asFeatureKey(key), enabled)}
+            onChange={(key, enabled) => callbacks.onFeature(asFeatureKey(key), enabled)}
           />
           <LayerGroup
             items={layers.labels}
             label={text.labels}
-            onChange={(key, enabled) =>
-              callbacks.onLabel(asLabelKey(key), enabled)}
+            onChange={(key, enabled) => callbacks.onLabel(asLabelKey(key), enabled)}
             separated
           />
         </Popover.Content>
@@ -125,8 +123,8 @@ const layers = $derived(layerItems($viewerState, $ui.enabled, text))
       buttonLabel={themeLabel($viewerState.theme)}
       disabled={!$ui.enabled}
       icon="color-palette"
-      items={themes.map((theme) => ({ value: theme, label: themeLabel(theme) }))}
-      onValueChange={(value) => callbacks.onTheme(value as Theme)}
+      items={themes.map(theme => ({ value: theme, label: themeLabel(theme) }))}
+      onValueChange={value => callbacks.onTheme(value as Theme)}
       placeholder={text.mapTheme}
       theme={$viewerState.theme}
       value={$viewerState.theme}
@@ -137,7 +135,7 @@ const layers = $derived(layerItems($viewerState, $ui.enabled, text))
       disabled={!$ui.enabled}
       icon="language"
       items={[...locales]}
-      onValueChange={(value) => callbacks.onLocale(value as Locale)}
+      onValueChange={value => callbacks.onLocale(value as Locale)}
       placeholder={text.mapLabelLanguage}
       theme={$viewerState.theme}
       value={$viewerState.locale}

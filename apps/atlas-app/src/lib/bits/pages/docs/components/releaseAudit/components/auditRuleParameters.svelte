@@ -6,7 +6,9 @@ let { parameters }: { parameters: Record<string, Json> } = $props()
 const label = (key: string) =>
   key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[_-]/g, ' ')
 </script>
-{#snippet value(item: Json)}
+{#snippet value(
+  item: Json,
+)}
   {#if Array.isArray(item)}
     <div class="space-y-1">
       {#each item as entry}
@@ -37,7 +39,12 @@ const label = (key: string) =>
         </dt>
       {/if}
       <dd>
-        {#if key === 'exclusion' && item && typeof item === 'object' && !Array.isArray(item) && (item.type === 'Polygon' || item.type === 'MultiPolygon') && Array.isArray(item.coordinates)}
+        {#if key === 'exclusion' &&
+  item &&
+  typeof item === 'object' &&
+  !Array.isArray(item) &&
+  (item.type === 'Polygon' || item.type === 'MultiPolygon') &&
+  Array.isArray(item.coordinates)}
           <ExclusionMap geometry={item as unknown as Polygon | MultiPolygon} />
         {:else}
           {@render value(item)}

@@ -70,7 +70,9 @@ let {
   {#if presentation.measures}
     <Measures measures={presentation.measures} />
   {/if}
-  {#each presentation.recordDistributions.filter(item => !presentation.statisticsProfile || item.groupBy !== 'structural') as distribution}
+  {#each presentation.recordDistributions.filter(
+   item => !presentation.statisticsProfile || item.groupBy !== 'structural',
+ ) as distribution}
     <TypeDistribution {distribution} {labels} />
   {/each}
   {#if presentation.processing}

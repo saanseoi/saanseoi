@@ -154,11 +154,11 @@ let displayedStackedGeometry = $derived(
     <path
       class="source-flow-path"
       d={connectorPath(
-        displayedGeometry.inputY[inputIndex] ?? displayedGeometry.outputY,
-        displayedGeometry.outputY,
-        displayedGeometry.lineEnd,
-        inputIndex === 0,
-      )}
+  displayedGeometry.inputY[inputIndex] ?? displayedGeometry.outputY,
+  displayedGeometry.outputY,
+  displayedGeometry.lineEnd,
+  inputIndex === 0,
+)}
     ></path>
   {/each}
 </svg>
@@ -173,23 +173,20 @@ let displayedStackedGeometry = $derived(
     <path
       class="source-flow-stacked-input"
       d={stackedInputPath(
-        displayedStackedGeometry.inputY[inputIndex] ?? displayedStackedGeometry.outputY,
-      )}
+  displayedStackedGeometry.inputY[inputIndex] ?? displayedStackedGeometry.outputY,
+)}
     ></path>
   {/each}
   <path
     class="source-flow-stacked-trunk"
     d={stackedTrunkPath(
-      displayedStackedGeometry.inputY[0] ?? displayedStackedGeometry.outputY,
-      displayedStackedGeometry.outputY,
-    )}
+  displayedStackedGeometry.inputY[0] ?? displayedStackedGeometry.outputY,
+  displayedStackedGeometry.outputY,
+)}
   ></path>
   <path
     class="source-flow-stacked-arrow"
-    d={stackedArrowPath(
-      displayedStackedGeometry.outputY,
-      stackedArrowHalfHeight,
-    )}
+    d={stackedArrowPath(displayedStackedGeometry.outputY, stackedArrowHalfHeight)}
   ></path>
 </svg>
 

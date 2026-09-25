@@ -36,7 +36,9 @@ async function load(index: number) {
   {#if fixture.type.includes('translation') === translations}
     <details
       class="rounded-lg border border-current/15 p-3"
-      ontoggle={event => { if (event.currentTarget.open && documents[index] === undefined) void load(index) }}
+      ontoggle={event => {
+  if (event.currentTarget.open && documents[index] === undefined) void load(index)
+}}
     >
       <summary class="cursor-pointer text-sm font-medium">
         {fixture.type.replaceAll('-', ' ')}
@@ -44,8 +46,12 @@ async function load(index: number) {
       </summary>
       <div class="pt-3">
         {#if documents[index] !== undefined}
-          {@const document = documents[index]}
-          {#if translations && document && typeof document === 'object' && !Array.isArray(document) && Array.isArray(document.entries)}
+          {@const (document = documents[index])}
+          {#if translations &&
+  document &&
+  typeof document === 'object' &&
+  !Array.isArray(document) &&
+  Array.isArray(document.entries)}
             <Translations
               entries={document.entries}
               releaseId={manifest.releaseId}

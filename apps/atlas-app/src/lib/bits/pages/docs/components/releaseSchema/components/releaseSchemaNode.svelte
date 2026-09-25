@@ -263,7 +263,8 @@ function toggleExpanded() {
               name={propertyName}
               {onExpandedNodeStateChange}
               referencePath={childReferencePath}
-              required={recordValueSchema?.required?.includes(propertyName) ?? childSchema.required?.includes(propertyName)}
+              required={recordValueSchema?.required?.includes(propertyName) ??
+  childSchema.required?.includes(propertyName)}
               schema={propertySchema}
               {schemas}
             />
@@ -279,8 +280,8 @@ function toggleExpanded() {
               {expandAllToken}
               {expandedNodeStates}
               name={recordValueSchema
-                ? childSchema['x-recordKeyName'] ?? 'property key'
-                : childSchema['x-additionalPropertiesName'] ?? 'additional properties'}
+  ? (childSchema['x-recordKeyName'] ?? 'property key')
+  : (childSchema['x-additionalPropertiesName'] ?? 'additional properties')}
               {onExpandedNodeStateChange}
               referencePath={childReferencePath}
               schema={additionalProperties}

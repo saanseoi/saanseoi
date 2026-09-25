@@ -15,7 +15,7 @@ import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n
 import { PageDescription, PageHeader, PageTitle } from '#lib/bits/pages/shared/index.js'
 import { apiFamilyThemes } from '#lib/registry/apiFamilyTheme.js'
 import type { SourcesPageSource } from '#lib/registry/meta.remote.js'
-import { getPublisherLogo } from '#lib/registry/publisherLogo.js'
+import { getPublisherLogo, publisherLogoPadding } from '#lib/registry/publisherLogo.js'
 import { publisherAccent } from '#lib/bits/pages/publishers/publisherPresentation.js'
 import {
   getMarkdownTransclusion,
@@ -190,14 +190,19 @@ const sourceFlowInput = (
     source: sourceName(source),
     href: `/sources/${source.code}${release ? `/${release.code}` : ''}`,
     icon: getPublisherLogo(source.publisherCode),
+    iconPadding: publisherLogoPadding(source.publisherCode),
     iconTone:
-      source.publisherCode === 'overture'
-        ? 'light'
-        : source.publisherCode.startsWith('hkgov')
-          ? 'hkgov'
-          : source.publisherCode === 'dpang'
-            ? 'diana'
-            : undefined,
+      source.publisherCode === 'saanseoi'
+        ? 'saanseoi'
+        : source.publisherCode === 'overture'
+          ? 'light'
+          : source.publisherCode.startsWith('hkgov')
+            ? 'hkgov'
+            : source.publisherCode === 'dpang'
+              ? 'diana'
+              : source.publisherCode === 'protomaps'
+                ? 'protomaps'
+                : undefined,
     accent: publisherAccent(source.publisherCode),
     fallbackIcon: publisherName(source)
       .split(/\s+/)

@@ -24,11 +24,15 @@ let { input }: Props = $props()
     <img class="source-flow-watermark" src={input.icon} alt="" aria-hidden="true">
   {/if}
   <span
-    class={`source-flow-icon ${input.iconTone ? `source-flow-icon-${input.iconTone}` : ''}`}
+    class={`source-flow-icon ${input.iconTone === 'saanseoi' ? 'border-logo-midnight-reflection!' : ''} ${input.iconTone ? `source-flow-icon-${input.iconTone}` : ''}`}
     aria-hidden="true"
   >
     {#if input.icon}
-      <img src={input.icon} alt="">
+      <img
+        class={input.iconPadding === 'none' ? 'h-full! w-full! object-cover' : ''}
+        src={input.icon}
+        alt=""
+      >
     {:else}
       <span>{input.fallbackIcon ?? input.publisher.slice(0, 2)}</span>
     {/if}
@@ -167,8 +171,8 @@ let { input }: Props = $props()
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--source-accent) 42%, transparent);
-  border-radius: 0.35rem;
+  border: 3px solid color-mix(in srgb, var(--source-accent) 28%, white);
+  border-radius: 0.5rem;
   background: color-mix(in srgb, var(--surface-container-high) 82%, #000 18%);
   color: var(--source-accent);
   font-family: var(--font-display);
@@ -180,10 +184,28 @@ let { input }: Props = $props()
   background: color-mix(in srgb, #fff 78%, var(--source-accent) 22%);
 }
 .source-flow-icon-hkgov {
-  background: #fff7f4;
+  background: #e72c21;
+}
+.source-flow-icon-hkgov::before {
+  position: absolute;
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 50%;
+  background: white;
+  content: "";
+}
+.source-flow-icon-hkgov img {
+  position: relative;
+  z-index: 1;
 }
 .source-flow-icon-diana {
   background: #dff0d6;
+}
+.source-flow-icon-protomaps {
+  background: #9999e8;
+}
+.source-flow-icon-protomaps img {
+  opacity: 0.52;
 }
 
 .source-flow-icon img {
@@ -297,6 +319,10 @@ let { input }: Props = $props()
     height: 3.8rem;
   }
   .source-flow-icon img {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+  .source-flow-icon-hkgov::before {
     width: 2.6rem;
     height: 2.6rem;
   }

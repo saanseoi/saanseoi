@@ -16,11 +16,17 @@ let explanation = $derived(
 <Tooltip.Provider delayDuration={150}>
   <Tooltip.Root>
     <Tooltip.Trigger>
-      {#snippet child({ props })}
+      {#snippet child({
+  props,
+})}
         <button
           {...props}
           type="button"
-          aria-label={origin === 'human-translated' ? m.source_audit_human_translation_origin() : origin === 'ai-translated' ? m.source_audit_ai_translation_origin() : m.source_audit_unrecorded_translation_origin()}
+          aria-label={origin === 'human-translated'
+  ? m.source_audit_human_translation_origin()
+  : origin === 'ai-translated'
+    ? m.source_audit_ai_translation_origin()
+    : m.source_audit_unrecorded_translation_origin()}
           class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg text-current/60 hover:bg-current/10 hover:text-current"
           onclick={event => event.stopPropagation()}
         >
