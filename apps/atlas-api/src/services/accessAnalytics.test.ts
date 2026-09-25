@@ -76,7 +76,7 @@ test('attributes an API ReleaseSet to distinct publishers and keeps source linea
     publisherCodes: ['hkgov', 'overture'],
     surface: 'api_release_set',
   })
-  expect(queries[0]).toContain("snapshotSourceReleases.role <> 'lookup'")
+  expect(queries[0]).toContain("snapshotResourceReleases.role <> 'lookup'")
 })
 
 test('retries optional attribution reads and fails open when they remain unavailable', async () => {

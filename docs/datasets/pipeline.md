@@ -14,13 +14,14 @@ Recipe codes use `sa-<resourceType>-v1-<versionHash>`, where `versionHash` inclu
 `sha256:` prefix. The code determines the recipe's UUID. This recording format does not
 represent a processing ruleset version.
 
-`snapshotSourceReleases` records concrete source releases, roles, selection rules, modes
-and source cohorts. `snapshotAssemblies` links each snapshot to its recipe, anchor and
-construction status. Each snapshot has one assembly, updated during draft preparation
-and retained when published. Places preparation can record a `planning` assembly before
-source selection; finalisation records `selected`. Missing source-selection rules fail
-ingestion. A later release verifying identical published geometry can retain a separate
-source association without replacing the published assembly.
+`snapshotResourceReleases` records concrete source releases, roles, selection rules,
+modes and source cohorts. `snapshotAssemblies` links each snapshot to its recipe, anchor
+and construction status. Each snapshot has one assembly, updated during draft
+preparation and retained when published. Places preparation can record a `planning`
+assembly before source selection; finalisation records `selected`. Missing
+source-selection rules fail ingestion. A later release verifying identical published
+geometry can retain a separate source association without replacing the published
+assembly.
 
 `snapshotDependencies` pins exact logical snapshot inputs by role, including `division`,
 `divisionArea`, `street`, `address` and `supplementaryAddress`. Each role selects one

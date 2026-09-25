@@ -81,7 +81,7 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
         'address-snapshot', 'address-lineage', NULL, 'address', 'ss-hk-address-2026-08-19.0', '2026-08-19.0',
         'authoritative', 0, 'draft', NULL, NULL, NULL, NULL, '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
-      INSERT INTO snapshotSourceReleases (
+      INSERT INTO snapshotResourceReleases (
         snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode,
         anchorReleaseId, sourceCohortKey, createdAt
       ) VALUES (
@@ -107,7 +107,7 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
       VALUES ('address-snapshot', 'history-shard');
       INSERT INTO snapshots(id,code,resourceType,cohortKey,status)
       VALUES ('division-snapshot','division-snapshot','division','2025','published'),('area-snapshot','area-snapshot','divisionArea','2025','published');
-      INSERT INTO snapshotSourceReleases(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
+      INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
       VALUES ('division-snapshot','dataset-division','release-division','primary','division-test','exact_ref'),('area-snapshot','dataset-area','release-area','primary','area-test','exact_ref');
     `)
     expect(
@@ -150,7 +150,7 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
     expect(
       delivered
         .query(
-          "SELECT resourceReleaseId FROM snapshotSourceReleases WHERE snapshotId='address-snapshot' AND role='lookup' ORDER BY resourceReleaseId",
+          "SELECT resourceReleaseId FROM snapshotResourceReleases WHERE snapshotId='address-snapshot' AND role='lookup' ORDER BY resourceReleaseId",
         )
         .all(),
     ).toEqual([

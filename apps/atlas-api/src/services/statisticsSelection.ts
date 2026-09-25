@@ -133,7 +133,7 @@ export async function getActiveStatisticSnapshot(
     .map(snapshot => snapshot.snapshotId)
   if (snapshotIds.length === 0) return null
   const sources = await runWithD1ReadRetry(() =>
-    dependencies.listSnapshotSourceReleases(metaDb as never, snapshotIds),
+    dependencies.listSnapshotResourceReleases(metaDb as never, snapshotIds),
   )
   const periodsBySnapshot = new Map(
     registry

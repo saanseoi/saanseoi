@@ -5,7 +5,7 @@ import { buildMetaInsertStatements } from './nativeSourceSql.ts'
 test('native metadata replays skip equal rows and preserve lifecycle and source selection changes', () => {
   const db = new Database(':memory:')
   db.exec(`CREATE TABLE snapshots(id TEXT PRIMARY KEY,status TEXT,publishedAt TEXT,updatedAt TEXT);
-    CREATE TABLE snapshotSourceReleases(snapshotId TEXT,resourceReleaseId TEXT,selectionMode TEXT,anchorReleaseId TEXT,PRIMARY KEY(snapshotId,resourceReleaseId));
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,resourceReleaseId TEXT,selectionMode TEXT,anchorReleaseId TEXT,PRIMARY KEY(snapshotId,resourceReleaseId));
     CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT,dataShardId TEXT,PRIMARY KEY(resourceReleaseId,dataShardId));`)
   const changes = () =>
     db.query<{ count: number }, []>('SELECT total_changes() AS count').get()?.count ?? 0
@@ -31,7 +31,7 @@ test('native metadata replays skip equal rows and preserve lifecycle and source 
           ['id'],
         ),
         ...buildMetaInsertStatements(
-          'snapshotSourceReleases',
+          'snapshotResourceReleases',
           Object.keys(source),
           [source],
           ['snapshotId', 'resourceReleaseId'],
@@ -60,7 +60,7 @@ test('native metadata replays skip equal rows and preserve lifecycle and source 
     replay()
     expect(changes()).toBe(5)
     expect(db.query('SELECT * FROM snapshots').get()).toEqual(snapshot)
-    expect(db.query('SELECT * FROM snapshotSourceReleases').get()).toEqual(source)
+    expect(db.query('SELECT * FROM snapshotResourceReleases').get()).toEqual(source)
     source.anchorReleaseId = null
     replay()
     expect(changes()).toBe(6)

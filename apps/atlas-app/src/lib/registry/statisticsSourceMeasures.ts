@@ -47,12 +47,15 @@ export async function readStatisticsSourceMeasures(input: {
     })
     .from(metaSchema.metaSnapshots)
     .innerJoin(
-      metaSchema.metaSnapshotSourceReleases,
-      eq(metaSchema.metaSnapshotSourceReleases.snapshotId, metaSchema.metaSnapshots.id),
+      metaSchema.metaSnapshotResourceReleases,
+      eq(
+        metaSchema.metaSnapshotResourceReleases.snapshotId,
+        metaSchema.metaSnapshots.id,
+      ),
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, release.id),
+        eq(metaSchema.metaSnapshotResourceReleases.resourceReleaseId, release.id),
         eq(metaSchema.metaSnapshots.resourceType, 'divisionStatistic'),
       ),
     )

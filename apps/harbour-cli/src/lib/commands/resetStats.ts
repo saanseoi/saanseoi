@@ -56,7 +56,7 @@ const TYPES = "('divisionStatistic')"
 const GEOMETRY_TYPES = "('division', 'divisionArea', 'divisionBoundary')"
 const RELEASES = `SELECT id FROM resourceReleases WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND datasetId IN (SELECT id FROM datasets WHERE theme = 'stats'))`
 // Lookup sources are dependencies, not contributions owned by the dataset.
-const SNAPSHOTS = `SELECT id FROM snapshots WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND id IN (SELECT snapshotId FROM snapshotSourceReleases WHERE resourceReleaseId IN (${RELEASES}) AND role <> 'lookup'))`
+const SNAPSHOTS = `SELECT id FROM snapshots WHERE resourceType IN ${TYPES} OR (resourceType IN ${GEOMETRY_TYPES} AND id IN (SELECT snapshotId FROM snapshotResourceReleases WHERE resourceReleaseId IN (${RELEASES}) AND role <> 'lookup'))`
 const CANONICAL_TABLES = [
   'statsValuesI18n',
   'statsFieldsI18n',
@@ -122,7 +122,7 @@ export async function statsResetBlockers(context: ResetReadContext) {
   await check(
     context.metaBinding,
     'Other snapshot families use statistics releases',
-    `SELECT 1 FROM snapshotSourceReleases WHERE snapshotId NOT IN (${snapshotSelection}) AND (resourceReleaseId IN (${RELEASES}) OR anchorReleaseId IN (${RELEASES})) LIMIT 1`,
+    `SELECT 1 FROM snapshotResourceReleases WHERE snapshotId NOT IN (${snapshotSelection}) AND (resourceReleaseId IN (${RELEASES}) OR anchorReleaseId IN (${RELEASES})) LIMIT 1`,
   )
   await check(
     context.metaBinding,
@@ -257,7 +257,7 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),
     ...deleteIds('snapshotDependencies', 'snapshotId', snapshotIds),
     ...deleteIds('snapshotAssemblies', 'snapshotId', snapshotIds),
-    ...deleteIds('snapshotSourceReleases', 'snapshotId', snapshotIds),
+    ...deleteIds('snapshotResourceReleases', 'snapshotId', snapshotIds),
     ...setIds.map(
       id =>
         `UPDATE apiReleaseSets SET supersedesApiReleaseSetId = NULL WHERE supersedesApiReleaseSetId = ${literal(id)};`,

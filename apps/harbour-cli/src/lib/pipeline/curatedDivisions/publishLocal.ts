@@ -424,7 +424,7 @@ export async function publishLocalCuratedDivisions(
       )
       for (const baselineSnapshot of [divisionBase, areaBase])
         for (const input of meta
-          .query('SELECT * FROM snapshotSourceReleases WHERE snapshotId=?')
+          .query('SELECT * FROM snapshotResourceReleases WHERE snapshotId=?')
           .all(baselineSnapshot.id) as any[]) {
           await upsertSnapshotSource(
             ctx.metaDb as never,
@@ -478,7 +478,7 @@ export async function publishLocalCuratedDivisions(
       )
       const source = meta
         .query(
-          "SELECT resourceReleaseId FROM snapshotSourceReleases WHERE snapshotId=? AND role='primary'",
+          "SELECT resourceReleaseId FROM snapshotResourceReleases WHERE snapshotId=? AND role='primary'",
         )
         .get(snapshots[0].id) as any
       const dataset = await getDatasetRecordByReleaseId(

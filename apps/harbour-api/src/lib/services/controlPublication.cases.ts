@@ -391,9 +391,9 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
     .run(firstSnapshotId, rebuiltSnapshotId)
   sqlite
     .query(
-      `INSERT INTO snapshotSourceReleases (snapshotId, datasetId, resourceReleaseId, role)
+      `INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role)
        SELECT ?, datasetId, resourceReleaseId, role
-       FROM snapshotSourceReleases
+       FROM snapshotResourceReleases
        WHERE snapshotId = ? AND role = 'supporting'`,
     )
     .run(rebuiltSnapshotId, firstSnapshotId)

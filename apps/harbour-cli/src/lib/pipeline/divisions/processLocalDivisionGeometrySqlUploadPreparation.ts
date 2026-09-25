@@ -140,7 +140,7 @@ export function divisionReferenceVariant(plan: GeometryUploadPlan) {
  * Carrying that lookup forward turns it into an API input and can combine it
  * with a later release of the same dataset.
  */
-export function selectCenstatdInheritedSnapshotSourceReleases<
+export function selectCenstatdInheritedSnapshotResourceReleases<
   T extends { role: 'primary' | 'geometry' | 'enrichment' | 'fallback' | 'lookup' },
 >(sources: readonly T[]) {
   return sources.filter(source => source.role !== 'lookup')

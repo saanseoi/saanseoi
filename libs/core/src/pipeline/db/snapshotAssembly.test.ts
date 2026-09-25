@@ -87,7 +87,7 @@ test('fresh ingestion records all inputs, refreshes one draft assembly and repla
     expect(JSON.parse(final.detailsJson).materialisationHash).toBe('retained')
     expect(JSON.parse(final.detailsJson).sources).toBeUndefined()
     expect(
-      local.sqlite.query('SELECT * FROM snapshotSourceReleases').all(),
+      local.sqlite.query('SELECT * FROM snapshotResourceReleases').all(),
     ).toHaveLength(3)
     expect(local.sqlite.query('SELECT * FROM snapshotAssemblies').all()).toHaveLength(1)
     expect(

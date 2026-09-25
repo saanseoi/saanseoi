@@ -48,7 +48,7 @@ async function composedFixture() {
       revision: name === 'new' ? 1 : 0,
       status: 'published',
     })
-    insert(f.meta, 'snapshotSourceReleases', {
+    insert(f.meta, 'snapshotResourceReleases', {
       snapshotId: `address-a-${name}`,
       datasetId: 'dataset',
       resourceReleaseId: `release-address-${name}`,

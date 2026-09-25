@@ -62,7 +62,7 @@ export async function resolveAcceptedSnapshotParent(
       and(
         eligible,
         sql`NOT EXISTS (
-      SELECT 1 FROM snapshotSourceReleases source
+      SELECT 1 FROM snapshotResourceReleases source
       JOIN resourceReleases release ON release.id=source.resourceReleaseId
       WHERE source.snapshotId=${snapshots.id} AND source.role<>'lookup' AND release.status='revoked'
     )`,

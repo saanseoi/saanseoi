@@ -250,8 +250,8 @@ export async function buildPlaceMetadataSql(
       .all(),
     db
       .select()
-      .from(metaSchema.metaSnapshotSourceReleases)
-      .where(eq(metaSchema.metaSnapshotSourceReleases.snapshotId, snapshotId))
+      .from(metaSchema.metaSnapshotResourceReleases)
+      .where(eq(metaSchema.metaSnapshotResourceReleases.snapshotId, snapshotId))
       .all(),
     db
       .select()
@@ -279,7 +279,7 @@ export async function buildPlaceMetadataSql(
   return [
     ...lineage.map(row => insertSql('snapshotLineages', row)),
     insertSql('snapshots', snapshot),
-    ...sources.map(row => insertSql('snapshotSourceReleases', row)),
+    ...sources.map(row => insertSql('snapshotResourceReleases', row)),
     ...shardAssignments.map(row => insertSql('snapshotShardAssignments', row)),
     ...assemblySql,
     ...assemblies.map(row => insertSql('snapshotAssemblies', row)),

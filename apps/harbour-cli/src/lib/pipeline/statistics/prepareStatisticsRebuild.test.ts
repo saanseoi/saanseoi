@@ -45,7 +45,7 @@ function fixture() {
     CREATE TABLE datasets (id TEXT, code TEXT);
     CREATE TABLE resourceReleases (id TEXT, code TEXT, sourceVersion TEXT);
     CREATE TABLE snapshots (id TEXT, parentSnapshotId TEXT, cohortKey TEXT, resourceType TEXT, revision INTEGER, status TEXT, createdAt TEXT);
-    CREATE TABLE snapshotSourceReleases (snapshotId TEXT, resourceReleaseId TEXT, datasetId TEXT, role TEXT);
+    CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT, datasetId TEXT, role TEXT);
     CREATE TABLE dataShards (id TEXT, bindingName TEXT);
     CREATE TABLE snapshotShardAssignments (snapshotId TEXT, dataShardId TEXT);
     CREATE TABLE apiVersions (id TEXT, familyType TEXT);
@@ -79,7 +79,7 @@ function fixture() {
         now,
       )
     meta
-      .query('INSERT INTO snapshotSourceReleases VALUES (?, ?, ?, ?)')
+      .query('INSERT INTO snapshotResourceReleases VALUES (?, ?, ?, ?)')
       .run(snapshot, release, 'dataset', 'primary')
     meta
       .query('INSERT INTO snapshotShardAssignments VALUES (?, ?)')

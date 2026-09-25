@@ -382,9 +382,9 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
   if (snapshotsRebuilt) {
     rebuildTable(
       db,
-      'snapshotSourceReleases',
+      'snapshotResourceReleases',
       `
-        CREATE TABLE snapshotSourceReleases (
+        CREATE TABLE snapshotResourceReleases (
           snapshotId TEXT NOT NULL,
           datasetId TEXT NOT NULL,
           resourceReleaseId TEXT NOT NULL,
@@ -401,7 +401,7 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
         );
       `,
       `
-        INSERT INTO snapshotSourceReleases (
+        INSERT INTO snapshotResourceReleases (
           snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode, anchorReleaseId, sourceCohortKey, createdAt
         )
         SELECT snapshotId, datasetId, sourceReleaseId, role, null, null, null, null, createdAt
@@ -662,25 +662,25 @@ id TEXT PRIMARY KEY NOT NULL,
 
   addColumnIfMissing(
     db,
-    'snapshotSourceReleases',
+    'snapshotResourceReleases',
     'selectedByRule',
     'selectedByRule TEXT',
   )
   addColumnIfMissing(
     db,
-    'snapshotSourceReleases',
+    'snapshotResourceReleases',
     'selectionMode',
     'selectionMode TEXT',
   )
   addColumnIfMissing(
     db,
-    'snapshotSourceReleases',
+    'snapshotResourceReleases',
     'anchorReleaseId',
     'anchorReleaseId TEXT',
   )
   addColumnIfMissing(
     db,
-    'snapshotSourceReleases',
+    'snapshotResourceReleases',
     'sourceCohortKey',
     'sourceCohortKey TEXT',
   )

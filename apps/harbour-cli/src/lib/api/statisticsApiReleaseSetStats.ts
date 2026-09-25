@@ -3,7 +3,7 @@ import { and, eq, inArray, historySchema, metaSchema } from '@repo/db'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import {
   listApiReleaseSetSnapshots,
-  listSnapshotSourceReleases,
+  listSnapshotResourceReleases,
 } from '@repo/core/db/metaRegistry'
 import { chunkArray } from '@repo/core/pipeline/utils'
 import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
@@ -58,7 +58,7 @@ export async function readStatisticsStatsData(
   const snapshots = (await listApiReleaseSetSnapshots(metaDb, release.id)).filter(
     row => row.snapshotResourceType === 'divisionStatistic',
   )
-  const sources = await listSnapshotSourceReleases(
+  const sources = await listSnapshotResourceReleases(
     metaDb,
     snapshots.map(row => row.snapshotId),
   )

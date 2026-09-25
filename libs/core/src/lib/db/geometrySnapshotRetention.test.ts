@@ -27,7 +27,7 @@ function fixture() {
       cohortKey TEXT, geometryStatus TEXT, revision INTEGER,
       status TEXT, publishedAt TEXT, createdAt TEXT
     );
-    CREATE TABLE snapshotSourceReleases (
+    CREATE TABLE snapshotResourceReleases (
       snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT
     );
     CREATE TABLE apiReleaseSets (id TEXT PRIMARY KEY, status TEXT);
@@ -52,7 +52,7 @@ function fixture() {
   }
   const addSource = (snapshot: string, release: string, role = 'primary') => {
     sqlite
-      .query(`INSERT INTO snapshotSourceReleases
+      .query(`INSERT INTO snapshotResourceReleases
         SELECT ?, datasetId, id, ? FROM resourceReleases WHERE id = ?`)
       .run(snapshot, role, release)
   }

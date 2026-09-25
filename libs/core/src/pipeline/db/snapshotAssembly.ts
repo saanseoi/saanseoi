@@ -14,7 +14,7 @@ import { currentRowChangedSqlText } from '../services/publication/currentWrites'
 const namespace = '747dc748-4086-5dc5-a0de-7d1fefcd0c51'
 const {
   metaSnapshots,
-  metaSnapshotSourceReleases,
+  metaSnapshotResourceReleases,
   metaSnapshotRecipes,
   metaSnapshotRecipeInputs,
   metaSnapshotAssemblies,
@@ -66,16 +66,16 @@ export async function recordEffectiveSnapshotAssembly(
   }
   const sources = await db
     .select({
-      datasetId: metaSnapshotSourceReleases.datasetId,
-      sourceReleaseId: metaSnapshotSourceReleases.resourceReleaseId,
-      role: metaSnapshotSourceReleases.role,
-      selectedByRule: metaSnapshotSourceReleases.selectedByRule,
-      selectionMode: metaSnapshotSourceReleases.selectionMode,
-      anchorReleaseId: metaSnapshotSourceReleases.anchorReleaseId,
-      sourceCohortKey: metaSnapshotSourceReleases.sourceCohortKey,
+      datasetId: metaSnapshotResourceReleases.datasetId,
+      sourceReleaseId: metaSnapshotResourceReleases.resourceReleaseId,
+      role: metaSnapshotResourceReleases.role,
+      selectedByRule: metaSnapshotResourceReleases.selectedByRule,
+      selectionMode: metaSnapshotResourceReleases.selectionMode,
+      anchorReleaseId: metaSnapshotResourceReleases.anchorReleaseId,
+      sourceCohortKey: metaSnapshotResourceReleases.sourceCohortKey,
     })
-    .from(metaSnapshotSourceReleases)
-    .where(eq(metaSnapshotSourceReleases.snapshotId, args.snapshotId))
+    .from(metaSnapshotResourceReleases)
+    .where(eq(metaSnapshotResourceReleases.snapshotId, args.snapshotId))
     .all()
   sources.sort((a, b) =>
     `${a.datasetId}:${a.role}:${a.sourceReleaseId}`.localeCompare(

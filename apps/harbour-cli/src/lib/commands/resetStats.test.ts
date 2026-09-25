@@ -96,7 +96,7 @@ function setup() {
       resourceType,
     })
     insert(meta, 'snapshots', { id: resourceType, code: resourceType, resourceType })
-    insert(meta, 'snapshotSourceReleases', {
+    insert(meta, 'snapshotResourceReleases', {
       snapshotId: resourceType,
       datasetId: 'dataset',
       resourceReleaseId: resourceType,
@@ -257,7 +257,7 @@ describe('all-statistics reset', () => {
 
   test('blocks other snapshot sources and API anchor dependencies', async () => {
     const { meta, context } = setup()
-    insert(meta, 'snapshotSourceReleases', {
+    insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'place',
       datasetId: 'dataset',
       resourceReleaseId: 'divisionStatistic',
@@ -304,7 +304,7 @@ describe('all-statistics reset', () => {
       code: 'simplified',
       resourceType: 'divisionArea',
     })
-    insert(meta, 'snapshotSourceReleases', {
+    insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'simplified',
       datasetId: 'dataset',
       resourceReleaseId: 'divisionArea',
@@ -387,7 +387,7 @@ describe('all-statistics reset', () => {
   test('blocks non-geographic lookup consumers and retains mixed-source inputs', async () => {
     const { meta, context } = setup()
     meta.exec("UPDATE datasets SET theme = 'stats' WHERE id = 'dataset'")
-    insert(meta, 'snapshotSourceReleases', {
+    insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'place',
       datasetId: 'dataset',
       resourceReleaseId: 'divisionArea',
@@ -399,7 +399,7 @@ describe('all-statistics reset', () => {
     expect(await statsResetBlockers(context)).toContain(
       'Other snapshot families use statistics releases',
     )
-    insert(meta, 'snapshotSourceReleases', {
+    insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'divisionArea',
       datasetId: 'dataset',
       resourceReleaseId: 'place',
@@ -478,7 +478,7 @@ describe('all-statistics reset', () => {
         parentSnapshotId: parent,
         resourceType: 'divisionArea',
       })
-      insert(meta, 'snapshotSourceReleases', {
+      insert(meta, 'snapshotResourceReleases', {
         snapshotId: id,
         datasetId: 'geography',
         resourceReleaseId: 'geography',
@@ -571,7 +571,7 @@ describe('all-statistics reset', () => {
     for (const id of ['lookup', 'canonical']) {
       insert(meta, 'snapshots', { id, code: id, resourceType: 'divisionArea' })
     }
-    insert(meta, 'snapshotSourceReleases', {
+    insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'lookup',
       datasetId: 'dataset',
       resourceReleaseId: 'divisionArea',
@@ -591,7 +591,7 @@ describe('all-statistics reset', () => {
     ])
     expect(await statsResetBlockers(context)).toEqual([])
     meta.exec(
-      "UPDATE snapshotSourceReleases SET selectionMode = 'changed' WHERE snapshotId = 'lookup'",
+      "UPDATE snapshotResourceReleases SET selectionMode = 'changed' WHERE snapshotId = 'lookup'",
     )
     expect(await collectStatsResetPlan(context)).not.toEqual(first)
   })

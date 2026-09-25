@@ -12,7 +12,7 @@ import {
   type RequestedApiLocaleSelection,
 } from '@repo/core/apiLocales'
 import {
-  listSnapshotSourceReleases,
+  listSnapshotResourceReleases,
   resolveApiReleaseSetSnapshotsForRequest,
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
@@ -733,7 +733,7 @@ async function getActiveAddressSnapshot(
     ),
   ]
   const sources = await runWithD1ReadRetry(() =>
-    listSnapshotSourceReleases(metaDb as never, addressSnapshotIds),
+    listSnapshotResourceReleases(metaDb as never, addressSnapshotIds),
   )
   const datasetBySnapshot = new Map<string, string>()
   for (const source of sources) {

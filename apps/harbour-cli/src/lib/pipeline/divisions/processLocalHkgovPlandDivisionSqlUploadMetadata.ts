@@ -30,8 +30,8 @@ export async function buildPlandMetaSql(
       .all(),
     context.metaDb
       .select()
-      .from(metaSchema.metaSnapshotSourceReleases)
-      .where(eq(metaSchema.metaSnapshotSourceReleases.snapshotId, state.snapshotId))
+      .from(metaSchema.metaSnapshotResourceReleases)
+      .where(eq(metaSchema.metaSnapshotResourceReleases.snapshotId, state.snapshotId))
       .all(),
     context.metaDb
       .select()
@@ -156,7 +156,7 @@ export async function buildPlandMetaSql(
     ...buildInsertStatements('snapshots', snapshotColumns, snapshots, {
       suffix: buildUpdateSuffix(snapshotColumns, ['id']),
     }),
-    ...buildInsertStatements('snapshotSourceReleases', sourceColumns, sources, {
+    ...buildInsertStatements('snapshotResourceReleases', sourceColumns, sources, {
       suffix: buildUpdateSuffix(sourceColumns, ['snapshotId', 'resourceReleaseId']),
     }),
     ...assemblySql,

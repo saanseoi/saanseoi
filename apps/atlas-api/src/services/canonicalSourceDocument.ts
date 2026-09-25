@@ -1,6 +1,6 @@
 import { hydrateCanonicalSourceReferences } from './canonicalSourceReferences'
 import { eq, sql, metaSchema } from '@repo/db'
-import { listSnapshotSourceReleases } from '@repo/core/db/metaRegistry'
+import { listSnapshotResourceReleases } from '@repo/core/db/metaRegistry'
 
 /** Resolve primary and included evidence together; compact responses have no sources. */
 export async function hydrateCanonicalSourceDocument(
@@ -81,7 +81,7 @@ export async function hydrateCanonicalSourceDocument(
       : []
   })
   if (native.length) {
-    const selections = await listSnapshotSourceReleases(databases.metaDb as never, [
+    const selections = await listSnapshotResourceReleases(databases.metaDb as never, [
       ...new Set(native.map(row => row.snapshotId)),
     ])
     for (const row of native) {

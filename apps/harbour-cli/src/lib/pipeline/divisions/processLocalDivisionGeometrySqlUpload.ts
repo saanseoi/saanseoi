@@ -70,7 +70,7 @@ import {
   normaliseHkgovPlandNewTownInputRow,
   requireString,
   resolveProviderBridgeConfig,
-  selectCenstatdInheritedSnapshotSourceReleases,
+  selectCenstatdInheritedSnapshotResourceReleases,
   simplifyHkgovDivisionAreas,
 } from './processLocalDivisionGeometrySqlUploadPreparation.ts'
 import { LOCAL_RELEASE_ROOT } from './processLocalDivisionGeometrySqlUploadConfig.ts'
@@ -592,19 +592,19 @@ export async function processLocalDivisionGeometrySqlUpload(
       if (isCenstatdGeometryCompanionPlan(previewPlan) && snapshot.parentSnapshotId) {
         const inheritedSources = await metaDb
           .select({
-            datasetId: metaSchema.metaSnapshotSourceReleases.datasetId,
-            role: metaSchema.metaSnapshotSourceReleases.role,
-            sourceReleaseId: metaSchema.metaSnapshotSourceReleases.resourceReleaseId,
+            datasetId: metaSchema.metaSnapshotResourceReleases.datasetId,
+            role: metaSchema.metaSnapshotResourceReleases.role,
+            sourceReleaseId: metaSchema.metaSnapshotResourceReleases.resourceReleaseId,
           })
-          .from(metaSchema.metaSnapshotSourceReleases)
+          .from(metaSchema.metaSnapshotResourceReleases)
           .where(
             eq(
-              metaSchema.metaSnapshotSourceReleases.snapshotId,
+              metaSchema.metaSnapshotResourceReleases.snapshotId,
               snapshot.parentSnapshotId,
             ),
           )
           .all()
-        for (const source of selectCenstatdInheritedSnapshotSourceReleases(
+        for (const source of selectCenstatdInheritedSnapshotResourceReleases(
           inheritedSources,
         )) {
           await upsertSnapshotSource(
@@ -933,7 +933,7 @@ export { geometryBuildUpsertSql } from './processLocalDivisionGeometrySqlUploadR
 
 export {
   divisionReferenceVariant,
-  selectCenstatdInheritedSnapshotSourceReleases,
+  selectCenstatdInheritedSnapshotResourceReleases,
   hasIdenticalGeometryMaterialisation,
   simplifyHkgovDivisionAreas,
   asOptionalInteger,

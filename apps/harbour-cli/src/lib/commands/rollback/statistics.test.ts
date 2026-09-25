@@ -211,7 +211,7 @@ function fixture() {
       cohortKey: period,
       status: 'published',
     })
-    insert(meta, 'snapshotSourceReleases', {
+    insert(meta, 'snapshotResourceReleases', {
       snapshotId: id,
       datasetId: 'dataset',
       resourceReleaseId: `${id}-release`,

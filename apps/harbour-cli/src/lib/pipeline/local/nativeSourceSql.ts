@@ -380,9 +380,9 @@ async function prepareNativeDivisionMetaSql(
         .all(),
       metaDb
         .select()
-        .from(metaSchema.metaSnapshotSourceReleases)
+        .from(metaSchema.metaSnapshotResourceReleases)
         .where(
-          eq(metaSchema.metaSnapshotSourceReleases.snapshotId, prepared.snapshotId),
+          eq(metaSchema.metaSnapshotResourceReleases.snapshotId, prepared.snapshotId),
         )
         .all(),
       metaDb
@@ -456,7 +456,7 @@ async function prepareNativeDivisionMetaSql(
       ['id'],
     ),
     ...buildMetaInsertStatements(
-      'snapshotSourceReleases',
+      'snapshotResourceReleases',
       [
         'snapshotId',
         'datasetId',

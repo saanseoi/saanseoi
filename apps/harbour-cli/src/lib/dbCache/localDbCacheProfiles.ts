@@ -363,7 +363,7 @@ function resolveExpectedTablesForBinding(
       'apiReleaseSets',
       'resourceReleases',
       'snapshots',
-      'snapshotSourceReleases',
+      'snapshotResourceReleases',
       'snapshotRecipes',
       'snapshotRecipeInputs',
       'snapshotAssemblies',

@@ -25,7 +25,7 @@ const tables = {
   snapshotLineages: 'id TEXT PRIMARY KEY, variant TEXT, versionHash TEXT',
   snapshots:
     'id TEXT PRIMARY KEY, snapshotLineageId TEXT REFERENCES snapshotLineages(id), status TEXT, geometryStatus TEXT, updatedAt TEXT',
-  snapshotSourceReleases:
+  snapshotResourceReleases:
     'snapshotId TEXT REFERENCES snapshots(id), resourceReleaseId TEXT, selectionMode TEXT, PRIMARY KEY(snapshotId,resourceReleaseId)',
   snapshotRecipes: 'id TEXT PRIMARY KEY, versionHash TEXT',
   snapshotRecipeInputs:
@@ -59,7 +59,7 @@ async function populate(db: Database) {
   for (const variant of ['exact', 'simplified'])
     db.exec(`INSERT INTO snapshotLineages VALUES('${variant}','${variant}','lineage-hash');
       INSERT INTO snapshots VALUES('${variant}','${variant}','draft','complete','first');
-      INSERT INTO snapshotSourceReleases VALUES('${variant}','release','contributed_geometry');
+      INSERT INTO snapshotResourceReleases VALUES('${variant}','release','contributed_geometry');
       INSERT INTO snapshotRecipes VALUES('${variant}','recipe-hash');
       INSERT INTO snapshotRecipeInputs VALUES('${variant}','dataset');
       INSERT INTO snapshotAssemblies VALUES('${variant}','${variant}','${variant}','selected','{"materialisationHash":"retained"}',NULL);
@@ -251,7 +251,7 @@ test('geometry metadata replay resumes a partial second variant and carries real
   await fixture(async ({ local, remote, capture }) => {
     executeNativeSqlStatements(remote, await capture('exact'))
     const second = await capture('simplified')
-    remote.exec(`CREATE TRIGGER interrupted_variant BEFORE INSERT ON snapshotSourceReleases
+    remote.exec(`CREATE TRIGGER interrupted_variant BEFORE INSERT ON snapshotResourceReleases
       WHEN NEW.snapshotId='simplified' BEGIN SELECT RAISE(ABORT,'interrupted variant'); END`)
     expect(() => executeNativeSqlStatements(remote, second)).toThrow(
       'interrupted variant',
@@ -269,7 +269,7 @@ test('geometry metadata replay resumes a partial second variant and carries real
 
     await updateReport(local, 'second', 13)
     local.exec(`UPDATE stats SET value=13,groupBy='type',groupValue='land';
-      UPDATE snapshotSourceReleases SET selectionMode='verified_identical_geometry' WHERE snapshotId='simplified';
+      UPDATE snapshotResourceReleases SET selectionMode='verified_identical_geometry' WHERE snapshotId='simplified';
       UPDATE snapshotAssemblies SET anchorReleaseId='release' WHERE snapshotId='simplified';`)
     const beforeChanges = changes(remote) ?? 0
     executeNativeSqlStatements(remote, await capture('simplified'))

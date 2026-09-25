@@ -365,13 +365,19 @@ async function resolveAddressSnapshotId(
     .select({ id: metaSchema.metaSnapshots.id })
     .from(metaSchema.metaSnapshots)
     .innerJoin(
-      metaSchema.metaSnapshotSourceReleases,
-      eq(metaSchema.metaSnapshotSourceReleases.snapshotId, metaSchema.metaSnapshots.id),
+      metaSchema.metaSnapshotResourceReleases,
+      eq(
+        metaSchema.metaSnapshotResourceReleases.snapshotId,
+        metaSchema.metaSnapshots.id,
+      ),
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, resourceReleaseId),
-        eq(metaSchema.metaSnapshotSourceReleases.role, 'primary'),
+        eq(
+          metaSchema.metaSnapshotResourceReleases.resourceReleaseId,
+          resourceReleaseId,
+        ),
+        eq(metaSchema.metaSnapshotResourceReleases.role, 'primary'),
         eq(metaSchema.metaSnapshots.resourceType, 'address'),
       ),
     )
@@ -399,7 +405,7 @@ export async function buildAddressMetaSqlFile(
     metaSnapshotAssemblies,
     metaSnapshotShardAssignments,
     metaSnapshots,
-    metaSnapshotSourceReleases,
+    metaSnapshotResourceReleases,
     stats,
   } = metaSchema
   const snapshotRow = await metaDb
@@ -447,18 +453,18 @@ export async function buildAddressMetaSqlFile(
 
   const snapshotSourceRows = await metaDb
     .select({
-      snapshotId: metaSnapshotSourceReleases.snapshotId,
-      datasetId: metaSnapshotSourceReleases.datasetId,
-      resourceReleaseId: metaSnapshotSourceReleases.resourceReleaseId,
-      role: metaSnapshotSourceReleases.role,
-      selectedByRule: metaSnapshotSourceReleases.selectedByRule,
-      selectionMode: metaSnapshotSourceReleases.selectionMode,
-      anchorReleaseId: metaSnapshotSourceReleases.anchorReleaseId,
-      sourceCohortKey: metaSnapshotSourceReleases.sourceCohortKey,
-      createdAt: metaSnapshotSourceReleases.createdAt,
+      snapshotId: metaSnapshotResourceReleases.snapshotId,
+      datasetId: metaSnapshotResourceReleases.datasetId,
+      resourceReleaseId: metaSnapshotResourceReleases.resourceReleaseId,
+      role: metaSnapshotResourceReleases.role,
+      selectedByRule: metaSnapshotResourceReleases.selectedByRule,
+      selectionMode: metaSnapshotResourceReleases.selectionMode,
+      anchorReleaseId: metaSnapshotResourceReleases.anchorReleaseId,
+      sourceCohortKey: metaSnapshotResourceReleases.sourceCohortKey,
+      createdAt: metaSnapshotResourceReleases.createdAt,
     })
-    .from(metaSnapshotSourceReleases)
-    .where(eq(metaSnapshotSourceReleases.snapshotId, snapshotIdValue))
+    .from(metaSnapshotResourceReleases)
+    .where(eq(metaSnapshotResourceReleases.snapshotId, snapshotIdValue))
     .all()
 
   if (!snapshotSourceRows.some(row => row.resourceReleaseId === resourceReleaseId)) {
@@ -586,7 +592,7 @@ export async function buildAddressMetaSqlFile(
   updatedAt = excluded.updatedAt`,
     ),
     buildInsertStatement(
-      'snapshotSourceReleases',
+      'snapshotResourceReleases',
       [
         'snapshotId',
         'datasetId',

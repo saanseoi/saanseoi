@@ -18,7 +18,7 @@ function fixture() {
     CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY,variant TEXT);
     CREATE TABLE snapshots(id TEXT PRIMARY KEY,snapshotLineageId TEXT,resourceType TEXT,
       cohortKey TEXT,geometryStatus TEXT,revision INTEGER,status TEXT,publishedAt TEXT,createdAt TEXT);
-    CREATE TABLE snapshotSourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
     CREATE TABLE apiVersions(id TEXT PRIMARY KEY,familyType TEXT);
     CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,apiVersionId TEXT,regionCode TEXT,status TEXT);
     CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT,snapshotId TEXT);
@@ -64,7 +64,7 @@ function fixture() {
       'authoritative', 0, 'published', '2026-09-11', '2026-09-11')`)
       .run(id, id)
     sqlite
-      .query("INSERT INTO snapshotSourceReleases VALUES (?,'geometry',?,'primary')")
+      .query("INSERT INTO snapshotResourceReleases VALUES (?,'geometry',?,'primary')")
       .run(id, id)
     const scopeId = JSON.stringify(['new-town', id])
     sqlite

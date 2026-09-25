@@ -142,7 +142,7 @@ function dependencies() {
       type: string,
       options?: { domainCode?: string },
     ) => releaseSelection(type, options?.domainCode),
-    listSnapshotSourceReleases: async () => [
+    listSnapshotResourceReleases: async () => [
       {
         datasetCode: statistic.datasetCode,
         snapshotId: 'snapshot-statistics-2021',
@@ -726,7 +726,7 @@ describe('Statistics service', () => {
       if (type === 'division') requestedDomains.push(options?.domainCode ?? '')
       return releaseSelection(type, options?.domainCode)
     }
-    mocks.listSnapshotSourceReleases = (async () => [
+    mocks.listSnapshotResourceReleases = (async () => [
       {
         datasetCode: newTownStatistic.datasetCode,
         snapshotId: 'snapshot-statistics-2021',

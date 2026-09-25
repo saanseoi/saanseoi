@@ -31,17 +31,17 @@ describe('reporting service', () => {
       metaSqlite.exec(`
         INSERT INTO snapshots (id, resourceType, code, cohortKey, status)
         VALUES ('stats-readiness', 'divisionStatistic', 'stats-readiness', '2026-06', 'draft');
-        INSERT INTO snapshotSourceReleases (snapshotId, datasetId, resourceReleaseId, role)
+        INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role)
         VALUES ('stats-readiness', 'hkgov-dpo-hk-address',
           'release-dr-hk-hkgov-dpo-address-2026-06-24.0', 'primary');
       `)
       expect(await ready()).toBe(true)
       metaSqlite.exec(
-        "UPDATE snapshotSourceReleases SET role = 'lookup' WHERE snapshotId = 'stats-readiness'",
+        "UPDATE snapshotResourceReleases SET role = 'lookup' WHERE snapshotId = 'stats-readiness'",
       )
       expect(await ready()).toBe(false)
       metaSqlite.exec(
-        "UPDATE snapshotSourceReleases SET role = 'primary' WHERE snapshotId = 'stats-readiness'; UPDATE snapshots SET status = 'archived' WHERE id = 'stats-readiness'",
+        "UPDATE snapshotResourceReleases SET role = 'primary' WHERE snapshotId = 'stats-readiness'; UPDATE snapshots SET status = 'archived' WHERE id = 'stats-readiness'",
       )
       expect(await ready()).toBe(false)
       metaSqlite.close()

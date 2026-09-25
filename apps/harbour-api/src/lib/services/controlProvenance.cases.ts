@@ -413,7 +413,7 @@ test('requires retained processing audits for Addresses and Places before publis
         `
           SELECT arss.apiReleaseSetId AS apiReleaseSetId, ss.datasetId AS datasetId
           FROM apiReleaseSetSnapshots arss
-          INNER JOIN snapshotSourceReleases ss ON ss.snapshotId = arss.snapshotId
+          INNER JOIN snapshotResourceReleases ss ON ss.snapshotId = arss.snapshotId
           WHERE arss.snapshotId = ? AND ss.role = 'primary'
           LIMIT 1
         `,

@@ -114,7 +114,7 @@ export function seedSnapshot(
       ${timestamp}
     );
 
-    INSERT INTO snapshotSourceReleases (
+    INSERT INTO snapshotResourceReleases (
       snapshotId, datasetId, resourceReleaseId, role, createdAt
     ) VALUES (
       '${snapshotId}',
@@ -214,7 +214,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
     );
 
-    INSERT OR IGNORE INTO snapshotSourceReleases (
+    INSERT OR IGNORE INTO snapshotResourceReleases (
       snapshotId, datasetId, resourceReleaseId, role
     ) VALUES
     (
@@ -281,7 +281,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       .get(resourceReleaseId) as { datasetId: string }
     sqlite
       .query(
-        'INSERT INTO snapshotSourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
+        'INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
       )
       .run(snapshotId, datasetId.datasetId, resourceReleaseId, 'supporting')
   }

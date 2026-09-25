@@ -82,7 +82,7 @@ function setup() {
       resourceType,
     })
     insert(meta, 'snapshots', { id: resourceType, code: resourceType, resourceType })
-    insert(meta, 'snapshotSourceReleases', {
+    insert(meta, 'snapshotResourceReleases', {
       snapshotId: resourceType,
       datasetId: 'dataset',
       resourceReleaseId: resourceType,
@@ -222,7 +222,7 @@ describe('all-divisions reset', () => {
 
   test('blocks other snapshot sources and API anchor dependencies', async () => {
     const { meta, context } = setup()
-    insert(meta, 'snapshotSourceReleases', {
+    insert(meta, 'snapshotResourceReleases', {
       snapshotId: 'place',
       datasetId: 'dataset',
       resourceReleaseId: 'division',

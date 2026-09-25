@@ -40,7 +40,7 @@ for (const [label, mutation] of [
   ],
   [
     'source ownership',
-    "DELETE FROM snapshotSourceReleases WHERE snapshotId='snapshot-new'",
+    "DELETE FROM snapshotResourceReleases WHERE snapshotId='snapshot-new'",
   ],
   [
     'predecessor release state',
@@ -100,7 +100,7 @@ test('rollback chooses a surviving default domain when removing the original dom
 test('rollback preserves an independent publication that only references the release as a lookup', async () => {
   const f = await fixture()
   try {
-    insert(f.meta, 'snapshotSourceReleases', {
+    insert(f.meta, 'snapshotResourceReleases', {
       snapshotId: 'snapshot-other',
       datasetId: 'dataset',
       resourceReleaseId: 'release-new',

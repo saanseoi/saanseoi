@@ -74,7 +74,7 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
     throw new Error('Rollback requires a published source release.')
   const candidates = meta
     .query<ReleaseSet, [string]>(
-      `SELECT DISTINCT r.id,r.apiVersionId,r.regionCode,r.domainCode,r.cohortKey,r.supersedesApiReleaseSetId,r.status FROM apiReleaseSets r JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id JOIN snapshotSourceReleases s ON s.snapshotId=m.snapshotId WHERE s.resourceReleaseId=? AND s.role<>'lookup' AND r.status<>'draft'`,
+      `SELECT DISTINCT r.id,r.apiVersionId,r.regionCode,r.domainCode,r.cohortKey,r.supersedesApiReleaseSetId,r.status FROM apiReleaseSets r JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id JOIN snapshotResourceReleases s ON s.snapshotId=m.snapshotId WHERE s.resourceReleaseId=? AND s.role<>'lookup' AND r.status<>'draft'`,
     )
     .all(resourceReleaseId)
   const catalogs = new Map<string, Catalog>()
@@ -101,7 +101,7 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
         snapshot.resourceType === release.resourceType &&
         meta
           .query(
-            "SELECT 1 FROM snapshotSourceReleases WHERE snapshotId=? AND resourceReleaseId=? AND role<>'lookup'",
+            "SELECT 1 FROM snapshotResourceReleases WHERE snapshotId=? AND resourceReleaseId=? AND role<>'lookup'",
           )
           .get(snapshot.id, resourceReleaseId),
     )

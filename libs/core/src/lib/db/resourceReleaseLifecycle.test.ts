@@ -256,7 +256,7 @@ for (const order of [types, [...types].reverse()]) {
         expect(
           sqlite
             .query(
-              'SELECT resourceReleaseId FROM snapshotSourceReleases WHERE snapshotId = ?',
+              'SELECT resourceReleaseId FROM snapshotResourceReleases WHERE snapshotId = ?',
             )
             .get(type),
         ).toEqual({ resourceReleaseId: id })

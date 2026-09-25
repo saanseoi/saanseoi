@@ -32,7 +32,7 @@ export function buildRollbackMetadataGuard(
     ['apiReleaseSets', `id IN (${sets})`],
     ['apiReleaseSetSnapshots', `apiReleaseSetId IN (${sets})`],
     ['snapshots', `id IN (${snapshots})`],
-    ['snapshotSourceReleases', `snapshotId IN (${snapshots})`],
+    ['snapshotResourceReleases', `snapshotId IN (${snapshots})`],
     ['snapshotDependencies', `snapshotId IN (${snapshots})`],
   ]) {
     const columns = meta

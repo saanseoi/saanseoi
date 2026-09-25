@@ -179,16 +179,16 @@ async function selectedVersions(input: Input, snapshotId: string) {
     )
   const source = await input.metaDb
     .select({ datasetCode: metaSchema.metaDatasets.code })
-    .from(metaSchema.metaSnapshotSourceReleases)
+    .from(metaSchema.metaSnapshotResourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaSnapshotSourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaSnapshotResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
     .where(
       and(
-        eq(metaSchema.metaSnapshotSourceReleases.snapshotId, snapshotId),
+        eq(metaSchema.metaSnapshotResourceReleases.snapshotId, snapshotId),
         eq(metaSchema.metaDatasets.code, input.datasetCode),
-        ne(metaSchema.metaSnapshotSourceReleases.role, 'lookup'),
+        ne(metaSchema.metaSnapshotResourceReleases.role, 'lookup'),
       ),
     )
     .limit(1)

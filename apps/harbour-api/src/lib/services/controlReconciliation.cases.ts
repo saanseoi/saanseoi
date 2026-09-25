@@ -469,7 +469,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     .run('lineage-censtatd-area-type', areaTypeSnapshotId)
   sqlite
     .query(
-      'INSERT INTO snapshotSourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
+      'INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
     )
     .run(
       areaTypeSnapshotId,

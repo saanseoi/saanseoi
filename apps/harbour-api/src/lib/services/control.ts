@@ -20,7 +20,7 @@ import {
   eq,
   metaApiReleaseSets,
   metaSchema,
-  metaSnapshotSourceReleases,
+  metaSnapshotResourceReleases,
   metaSnapshots,
 } from '@repo/db'
 import {
@@ -69,12 +69,12 @@ export async function assertPlaceAddressDependencies(
   const supplementary = await db
     .select({
       id: metaSnapshots.id,
-      sourceReleaseId: metaSnapshotSourceReleases.resourceReleaseId,
+      sourceReleaseId: metaSnapshotResourceReleases.resourceReleaseId,
     })
     .from(metaSnapshots)
     .innerJoin(
-      metaSnapshotSourceReleases,
-      eq(metaSnapshotSourceReleases.snapshotId, metaSnapshots.id),
+      metaSnapshotResourceReleases,
+      eq(metaSnapshotResourceReleases.snapshotId, metaSnapshots.id),
     )
     .innerJoin(
       metaSchema.metaSnapshotLineages,
@@ -86,8 +86,8 @@ export async function assertPlaceAddressDependencies(
         eq(metaSnapshots.status, 'published'),
         eq(metaSnapshots.resourceType, 'address'),
         eq(metaSchema.metaSnapshotLineages.variant, 'overture-places'),
-        eq(metaSnapshotSourceReleases.role, 'primary'),
-        eq(metaSnapshotSourceReleases.anchorReleaseId, resourceReleaseId),
+        eq(metaSnapshotResourceReleases.role, 'primary'),
+        eq(metaSnapshotResourceReleases.anchorReleaseId, resourceReleaseId),
       ),
     )
     .get()
@@ -97,8 +97,8 @@ export async function assertPlaceAddressDependencies(
     )
   const sources = await db
     .select()
-    .from(metaSnapshotSourceReleases)
-    .where(eq(metaSnapshotSourceReleases.snapshotId, snapshotId))
+    .from(metaSnapshotResourceReleases)
+    .where(eq(metaSnapshotResourceReleases.snapshotId, snapshotId))
     .all()
   if (
     !sources.some(

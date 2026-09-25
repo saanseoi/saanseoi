@@ -5,7 +5,7 @@ import {
   metaSnapshotLineages,
   metaSnapshotAssemblies,
   metaSnapshotShardAssignments,
-  metaSnapshotSourceReleases,
+  metaSnapshotResourceReleases,
   metaSnapshots,
 } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
@@ -75,18 +75,18 @@ export async function buildDivisionMetaSqlFile(
 
   const snapshotSourceRows = await metaDb
     .select({
-      snapshotId: metaSnapshotSourceReleases.snapshotId,
-      datasetId: metaSnapshotSourceReleases.datasetId,
-      resourceReleaseId: metaSnapshotSourceReleases.resourceReleaseId,
-      role: metaSnapshotSourceReleases.role,
-      selectedByRule: metaSnapshotSourceReleases.selectedByRule,
-      selectionMode: metaSnapshotSourceReleases.selectionMode,
-      anchorReleaseId: metaSnapshotSourceReleases.anchorReleaseId,
-      sourceCohortKey: metaSnapshotSourceReleases.sourceCohortKey,
-      createdAt: metaSnapshotSourceReleases.createdAt,
+      snapshotId: metaSnapshotResourceReleases.snapshotId,
+      datasetId: metaSnapshotResourceReleases.datasetId,
+      resourceReleaseId: metaSnapshotResourceReleases.resourceReleaseId,
+      role: metaSnapshotResourceReleases.role,
+      selectedByRule: metaSnapshotResourceReleases.selectedByRule,
+      selectionMode: metaSnapshotResourceReleases.selectionMode,
+      anchorReleaseId: metaSnapshotResourceReleases.anchorReleaseId,
+      sourceCohortKey: metaSnapshotResourceReleases.sourceCohortKey,
+      createdAt: metaSnapshotResourceReleases.createdAt,
     })
-    .from(metaSnapshotSourceReleases)
-    .where(eq(metaSnapshotSourceReleases.snapshotId, state.snapshotId))
+    .from(metaSnapshotResourceReleases)
+    .where(eq(metaSnapshotResourceReleases.snapshotId, state.snapshotId))
     .all()
 
   if (!snapshotSourceRows.some(row => row.resourceReleaseId === resourceReleaseId)) {
@@ -240,7 +240,7 @@ ON CONFLICT(id) DO UPDATE SET
       },
     ),
     ...buildInsertStatements(
-      'snapshotSourceReleases',
+      'snapshotResourceReleases',
       [
         'snapshotId',
         'datasetId',

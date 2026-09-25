@@ -1,10 +1,10 @@
 # Places dataset family
 
-Place construction records its concrete source releases in `snapshotSourceReleases`, its
-effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact Address,
-Division, DivisionArea and supplementary Address selections in `snapshotDependencies`.
-Assembly `reviewRequired` must be zero before publication; `detailsJson` retains typed
-construction evidence without duplicating dependency IDs.
+Place construction records its concrete source releases in `snapshotResourceReleases`,
+its effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact
+Address, Division, DivisionArea and supplementary Address selections in
+`snapshotDependencies`. Assembly `reviewRequired` must be zero before publication;
+`detailsJson` retains typed construction evidence without duplicating dependency IDs.
 
 Automatic Place normalisation and Address matching retain rules and aggregate counts.
 Individual audit entries require record-specific fixture decisions; matching additional

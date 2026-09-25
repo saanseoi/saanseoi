@@ -18,7 +18,7 @@ import {
 } from '@repo/core/apiLocales'
 import {
   listApiReleaseSetSnapshotsForRegistryRequest,
-  listSnapshotSourceReleases,
+  listSnapshotResourceReleases,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   resolveApiReleaseSetSnapshotsForRequest,
   resolveSnapshotReplayPlan,
@@ -126,7 +126,7 @@ export type StatisticServiceDependencies = StatisticGeometryDependencies & {
   isStatisticPublicationReady: typeof isStatisticPublicationReady
   listApiReleaseSetSnapshotsForRegistryRequest: typeof listApiReleaseSetSnapshotsForRegistryRequest
   resolveApiReleaseSetSnapshotsForRequest: typeof resolveApiReleaseSetSnapshotsForRequest
-  listSnapshotSourceReleases: typeof listSnapshotSourceReleases
+  listSnapshotResourceReleases: typeof listSnapshotResourceReleases
   resolvePublishedSnapshotForResourceTypeRegionCohortKey: typeof resolvePublishedSnapshotForResourceTypeRegionCohortKey
   listStatisticRecords: typeof listStatisticRecords
   listStatisticRecordsForGeography: typeof listStatisticRecordsForGeography
@@ -144,7 +144,7 @@ export const defaultDependencies: StatisticServiceDependencies = {
   resolveSnapshotReplayPlan,
   listApiReleaseSetSnapshotsForRegistryRequest,
   resolveApiReleaseSetSnapshotsForRequest,
-  listSnapshotSourceReleases,
+  listSnapshotResourceReleases,
   resolvePublishedSnapshotForResourceTypeRegionCohortKey,
   listStatisticRecords,
   listStatisticRecordsForGeography,

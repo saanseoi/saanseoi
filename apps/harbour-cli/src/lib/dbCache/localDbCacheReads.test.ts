@@ -22,12 +22,12 @@ test('completed geometry contributors can precede shared composition publication
     )
     meta.exec(`
       CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
-      CREATE TABLE snapshotSourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
+      CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
       CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
       CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
       INSERT INTO snapshots VALUES ('snapshot','lineage','divisionArea','draft',0,'2026');
-      INSERT INTO snapshotSourceReleases VALUES ('snapshot','contributor','release','contributed_geometry','snapshot-assembly-division-geometry-v1','release');
+      INSERT INTO snapshotResourceReleases VALUES ('snapshot','contributor','release','contributed_geometry','snapshot-assembly-division-geometry-v1','release');
       INSERT INTO snapshotLineages VALUES ('lineage','divisionArea','primary');
       INSERT INTO releaseShardAssignments VALUES ('release'),('release'),('release');
       INSERT INTO snapshotShardAssignments VALUES ('snapshot');
@@ -50,15 +50,15 @@ test('completed geometry contributors can precede shared composition publication
       )
     expect(await check()).toEqual([])
     meta.exec(
-      "UPDATE snapshotSourceReleases SET selectionMode='verified_identical_geometry', selectedByRule='verified-censtatd-geometry-materialisation-v1'",
+      "UPDATE snapshotResourceReleases SET selectionMode='verified_identical_geometry', selectedByRule='verified-censtatd-geometry-materialisation-v1'",
     )
     expect(await check()).toEqual([])
-    meta.exec("UPDATE snapshotSourceReleases SET selectedByRule='unrecognised'")
+    meta.exec("UPDATE snapshotResourceReleases SET selectedByRule='unrecognised'")
     expect(await check()).toEqual([
       'geometry: missing published snapshot lineage/source membership',
     ])
     meta.exec(
-      "UPDATE snapshotSourceReleases SET selectedByRule='verified-censtatd-geometry-materialisation-v1'",
+      "UPDATE snapshotResourceReleases SET selectedByRule='verified-censtatd-geometry-materialisation-v1'",
     )
     current.exec('DELETE FROM divisionAreas')
     expect(await check()).toEqual([])
@@ -71,7 +71,7 @@ test('completed geometry contributors can precede shared composition publication
     // receipt for this lineage/cohort; the old release remains complete.
     meta.exec(`
       INSERT INTO snapshots VALUES ('replacement','lineage','divisionArea','published',1,'2026');
-      INSERT INTO snapshotSourceReleases VALUES ('replacement','contributor','release','carried_forward_companion','inherited-censtatd-companion-provenance',NULL);
+      INSERT INTO snapshotResourceReleases VALUES ('replacement','contributor','release','carried_forward_companion','inherited-censtatd-companion-provenance',NULL);
       INSERT INTO snapshotShardAssignments VALUES ('replacement');
     `)
     current.exec(
@@ -98,14 +98,14 @@ test('initialisation skips published divisions only after their exact delivery i
     meta.exec(`
       CREATE TABLE resourceReleases(id TEXT, code TEXT, datasetId TEXT, resourceType TEXT, status TEXT);
       CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
-      CREATE TABLE snapshotSourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
+      CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
       CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
       CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
       INSERT INTO resourceReleases VALUES ('release','landsd','dataset','division','published');
       INSERT INTO resourceReleases VALUES ('older','landsd-older','dataset','division','superseded');
       INSERT INTO snapshots VALUES ('snapshot','lineage','division','published',0,'2026');
-      INSERT INTO snapshotSourceReleases VALUES ('snapshot','dataset','release',NULL,NULL,NULL);
+      INSERT INTO snapshotResourceReleases VALUES ('snapshot','dataset','release',NULL,NULL,NULL);
       INSERT INTO snapshotLineages VALUES ('lineage','division','dataset');
       INSERT INTO releaseShardAssignments VALUES ('release'),('release'),('release');
       INSERT INTO snapshotShardAssignments VALUES ('snapshot');
@@ -152,15 +152,15 @@ test('curated division delivery proves completion of its retained native baselin
     meta.exec(`
       CREATE TABLE resourceReleases(id TEXT, code TEXT, datasetId TEXT, resourceType TEXT, status TEXT);
       CREATE TABLE snapshots(id TEXT, snapshotLineageId TEXT, resourceType TEXT, status TEXT, revision INTEGER, cohortKey TEXT);
-      CREATE TABLE snapshotSourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
+      CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, selectionMode TEXT, selectedByRule TEXT, anchorReleaseId TEXT);
       CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
       CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
       INSERT INTO resourceReleases VALUES ('release','native','dataset','division','published');
       INSERT INTO snapshots VALUES ('native','native-lineage','division','published',1,'2026-08');
       INSERT INTO snapshots VALUES ('curated','curated-lineage','division','published',0,'2026-09');
-      INSERT INTO snapshotSourceReleases VALUES ('native','dataset','release','exact_ref','snapshot-assembly-division-v1','release');
-      INSERT INTO snapshotSourceReleases VALUES ('curated','dataset','release','exact_ref','saanseoi-curated-division-assembly-v1','curated-release');
+      INSERT INTO snapshotResourceReleases VALUES ('native','dataset','release','exact_ref','snapshot-assembly-division-v1','release');
+      INSERT INTO snapshotResourceReleases VALUES ('curated','dataset','release','exact_ref','saanseoi-curated-division-assembly-v1','curated-release');
       INSERT INTO snapshotLineages VALUES ('native-lineage','division','dataset'),('curated-lineage','division','curated-dataset');
       INSERT INTO releaseShardAssignments VALUES ('release'),('release'),('release');
       INSERT INTO snapshotShardAssignments VALUES ('native'),('curated');
@@ -176,13 +176,13 @@ test('curated division delivery proves completion of its retained native baselin
     expect(await completed()).toEqual([])
     current.exec("UPDATE divisionPublicationState SET preparedAt = 'complete'")
     meta.exec(
-      "UPDATE snapshotSourceReleases SET selectedByRule = 'unrecognised' WHERE snapshotId = 'curated'",
+      "UPDATE snapshotResourceReleases SET selectedByRule = 'unrecognised' WHERE snapshotId = 'curated'",
     )
     expect(await completed()).toEqual([])
     meta.exec(`
-      UPDATE snapshotSourceReleases SET selectedByRule = 'saanseoi-curated-division-assembly-v1' WHERE snapshotId = 'curated';
+      UPDATE snapshotResourceReleases SET selectedByRule = 'saanseoi-curated-division-assembly-v1' WHERE snapshotId = 'curated';
       INSERT INTO resourceReleases VALUES ('curated-release','curated','curated-dataset','division','published');
-      INSERT INTO snapshotSourceReleases VALUES ('curated','curated-dataset','curated-release','exact_ref','saanseoi-curated-division-assembly-v1',NULL);
+      INSERT INTO snapshotResourceReleases VALUES ('curated','curated-dataset','curated-release','exact_ref','saanseoi-curated-division-assembly-v1',NULL);
     `)
     // Derived releases retain an archive and snapshot history, without a
     // separately ingested source-row shard.

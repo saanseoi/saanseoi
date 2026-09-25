@@ -221,7 +221,7 @@ async function loadStatisticsRegistry(args: {
   )
   if (snapshotIds.length === 0) return null
   const sources = await runWithD1ReadRetry(() =>
-    args.dependencies.listSnapshotSourceReleases(args.metaDb as never, snapshotIds),
+    args.dependencies.listSnapshotResourceReleases(args.metaDb as never, snapshotIds),
   )
   const periodsBySnapshot = new Map(
     selection.releaseSets.flatMap(releaseSet =>

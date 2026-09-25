@@ -10,14 +10,14 @@ test('Place publication requires an exact supplementary dependency and explicit 
     CREATE TABLE snapshotDependencies(snapshotId TEXT, dependencySnapshotId TEXT, role TEXT, PRIMARY KEY(snapshotId,role));
     CREATE TABLE snapshots(id TEXT PRIMARY KEY, snapshotLineageId TEXT, resourceType TEXT, status TEXT);
     CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY, variant TEXT);
-    CREATE TABLE snapshotSourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT,
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT,
       selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT, createdAt TEXT);
     INSERT INTO snapshotAssemblies VALUES ('place',NULL);
     INSERT INTO snapshots VALUES ('supplementary','lineage','address','published');
     INSERT INTO snapshotLineages VALUES ('lineage','overture-places');
-    INSERT INTO snapshotSourceReleases(snapshotId,resourceReleaseId,role,anchorReleaseId)
+    INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role,anchorReleaseId)
       VALUES ('supplementary','address-release','primary','place-release');
-    INSERT INTO snapshotSourceReleases(snapshotId,resourceReleaseId,role,selectedByRule)
+    INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role,selectedByRule)
       VALUES ('place','address-release','lookup','api-composition:places/overture:place/default->address/overture-places');
   `)
   const db = createLocalHarbourDb(sqlite)
@@ -33,7 +33,7 @@ test('Place publication requires an exact supplementary dependency and explicit 
     sqlite.exec('UPDATE snapshotAssemblies SET reviewRequired=0')
     await check()
     sqlite.exec(
-      "UPDATE snapshotSourceReleases SET anchorReleaseId='different-release' WHERE snapshotId='supplementary'",
+      "UPDATE snapshotResourceReleases SET anchorReleaseId='different-release' WHERE snapshotId='supplementary'",
     )
     await expect(check()).rejects.toThrow('does not belong to this Place release')
   } finally {

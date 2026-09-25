@@ -18,7 +18,7 @@ export async function officialAddressResetDependencyBlockers(
   const outside = (column: unknown, ids: string[]) =>
     sql`${column} NOT IN (SELECT value FROM json_each(${JSON.stringify(ids)}))`
   const blockers: string[] = []
-  const source = metaSchema.metaSnapshotSourceReleases
+  const source = metaSchema.metaSnapshotResourceReleases
   if (
     await context.metaDb
       .select({ id: source.snapshotId })

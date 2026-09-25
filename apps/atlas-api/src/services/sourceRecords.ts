@@ -735,7 +735,7 @@ export async function listSourceReleases(args: {
   const catalogue = sourceCatalogueFor(args.family)
   const sourceRows =
     args.selector?.kind === 'snapshot'
-      ? await listSnapshotSourceReleases(args, args.selector.value)
+      ? await listSnapshotResourceReleases(args, args.selector.value)
       : await listReleaseSetSourceReleases(args, args.selector)
 
   return sourceRows.map(row => {
@@ -810,7 +810,7 @@ async function listReleaseSetSourceReleases(
   })
 }
 
-async function listSnapshotSourceReleases(
+async function listSnapshotResourceReleases(
   args: {
     datasetCode?: string
     family: SourceFamily
@@ -853,7 +853,7 @@ async function querySourceReleaseDiscoveryRows(
           sourceReleases.code AS sourceReleaseCode,
           datasets.sourceVariant AS sourceVariant,
           apiReleaseSets.code AS apiReleaseSetCode,
-          snapshotSourceReleases.role AS role,
+          snapshotResourceReleases.role AS role,
           snapshots.code AS snapshotCode,
           EXISTS(
             SELECT 1
@@ -869,8 +869,8 @@ async function querySourceReleaseDiscoveryRows(
           ON apiReleaseSets.id = apiReleaseSetSnapshots.apiReleaseSetId
         INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
         INNER JOIN snapshots ON snapshots.id = apiReleaseSetSnapshots.snapshotId
-        INNER JOIN snapshotSourceReleases ON snapshotSourceReleases.snapshotId = snapshots.id
-        INNER JOIN resourceReleases ON resourceReleases.id = snapshotSourceReleases.resourceReleaseId
+        INNER JOIN snapshotResourceReleases ON snapshotResourceReleases.snapshotId = snapshots.id
+        INNER JOIN resourceReleases ON resourceReleases.id = snapshotResourceReleases.resourceReleaseId
         INNER JOIN sourceReleases
           ON sourceReleases.id = resourceReleases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = resourceReleases.datasetId

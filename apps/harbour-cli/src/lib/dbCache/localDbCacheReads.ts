@@ -153,7 +153,7 @@ export async function findIncompletePublishedReleases(
               (ss.selectedByRule = 'saanseoi-curated-division-assembly-v1'
                 AND sl.primaryDatasetId = ss.datasetId) AS isCuratedPrimary
             FROM snapshots s
-            INNER JOIN snapshotSourceReleases ss ON ss.snapshotId = s.id
+            INNER JOIN snapshotResourceReleases ss ON ss.snapshotId = s.id
             LEFT JOIN snapshotLineages sl ON sl.id = s.snapshotLineageId
             WHERE ss.resourceReleaseId = ?
               AND ss.datasetId = ?

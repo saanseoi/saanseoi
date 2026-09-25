@@ -86,7 +86,7 @@ test('Address full reset protects exact lookup metadata and external API/source 
       'Other snapshots retain official Address assembly dependencies',
     ])
     f.meta.exec(`
-      INSERT INTO snapshotSourceReleases(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
+      INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId,role,selectedByRule,selectionMode)
         VALUES ('place','als','als-release','lookup','rule','exact_ref');
       INSERT INTO apiReleaseSetSnapshots(apiReleaseSetId,snapshotId,role,variant,cohortMatchingMode,isRequired)
         VALUES ('places','address-204','lookup','default','exact',1);

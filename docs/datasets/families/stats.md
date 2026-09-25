@@ -42,12 +42,13 @@ geography is requested. Statistics-only intake checks the Statistics resource al
 unchanged publisher archive does not make a missing companion resource current.
 
 Each child owns its processing phases, audit, statistics and snapshot associations.
-`snapshotSourceReleases.resourceReleaseId` references the resource child in `releases`.
-Retries replace only that child's results. The source release freezes its expected
-resource types at registration and becomes published only when every expected child is
-published; a missing or failed child blocks parent publication. Statistics and Divisions
-API release sets activate separately. Source pages label each resource and present its
-counts independently; observations, divisions and areas are not summed.
+`snapshotResourceReleases.resourceReleaseId` references the resource child in
+`resourceReleases`. Retries replace only that child's results. The source release
+freezes its expected resource types at registration and becomes published only when
+every expected child is published; a missing or failed child blocks parent publication.
+Statistics and Divisions API release sets activate separately. Source pages label each
+resource and present its counts independently; observations, divisions and areas are not
+summed.
 
 Publisher [schemas and samples](../source-record-access.md) use the Statistics source
 catalogue and the exact source release. Every shard holding retained assertions must

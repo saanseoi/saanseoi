@@ -27,7 +27,7 @@ export async function collectStatsResetDependencies(
   const allSnapshots = await resetRows(meta, 'SELECT * FROM snapshots ORDER BY id')
   const sources = await resetRows(
     meta,
-    'SELECT * FROM snapshotSourceReleases ORDER BY snapshotId, resourceReleaseId',
+    'SELECT * FROM snapshotResourceReleases ORDER BY snapshotId, resourceReleaseId',
   )
   const assemblies = await resetRows(
     meta,

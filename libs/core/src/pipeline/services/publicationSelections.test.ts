@@ -18,7 +18,7 @@ function fixture() {
     CREATE TABLE snapshotLineages(id TEXT PRIMARY KEY,variant TEXT);
     CREATE TABLE snapshots(id TEXT PRIMARY KEY,snapshotLineageId TEXT,parentSnapshotId TEXT,resourceType TEXT,
       cohortKey TEXT,geometryStatus TEXT,revision INTEGER,status TEXT,publishedAt TEXT,createdAt TEXT);
-    CREATE TABLE snapshotSourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
     CREATE TABLE apiVersions(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY,apiVersionId TEXT,code TEXT,regionCode TEXT,status TEXT,publishedAt TEXT,revision INTEGER);
     CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,code TEXT,effectiveFrom TEXT,revision INTEGER,schemaVersion TEXT,rulesetVersion TEXT,status TEXT);
@@ -59,7 +59,7 @@ function fixture() {
         options.publishedAt ?? '2026-09-01',
       )
     sqlite
-      .query("INSERT INTO snapshotSourceReleases VALUES (?,'geometry',?,'primary')")
+      .query("INSERT INTO snapshotResourceReleases VALUES (?,'geometry',?,'primary')")
       .run(id, id)
     if (options.receipt !== false)
       sqlite

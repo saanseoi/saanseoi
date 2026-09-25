@@ -44,7 +44,7 @@ import {
   MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
   selectOvertureHongKongAreasWithoutSourceGeometry,
   shouldCompressCanonicalGeometry,
-  selectCenstatdInheritedSnapshotSourceReleases,
+  selectCenstatdInheritedSnapshotResourceReleases,
   supportsDistrictGeometryStatistics,
   simplifyHkgovDivisionAreas,
   shouldWriteExactGeometryReleaseStats,
@@ -327,7 +327,7 @@ describe('C&SD geometry materialisation identity', () => {
 describe('C&SD companion provenance', () => {
   test('does not carry a parent snapshot lookup dependency into a new companion', () => {
     expect(
-      selectCenstatdInheritedSnapshotSourceReleases([
+      selectCenstatdInheritedSnapshotResourceReleases([
         {
           datasetId: 'dataset-censtatd',
           role: 'primary' as const,

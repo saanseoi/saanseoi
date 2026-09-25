@@ -35,7 +35,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       const meta = local.DB_META
       if (!meta) throw new Error('Missing meta')
       meta.exec(
-        "CREATE TABLE snapshots(id,snapshotLineageId); INSERT INTO snapshots VALUES('new',NULL); CREATE TABLE snapshotLineages(id); CREATE TABLE snapshotAssemblies(snapshotId,snapshotRecipeId); CREATE TABLE snapshotRecipes(id); CREATE TABLE snapshotRecipeInputs(snapshotRecipeId); CREATE TABLE snapshotSourceReleases(snapshotId); CREATE TABLE snapshotDependencies(snapshotId,dependencySnapshotId,role); CREATE TABLE releaseShardAssignments(resourceReleaseId); CREATE TABLE snapshotShardAssignments(snapshotId); CREATE TABLE releaseProcessingActions(resourceReleaseId); CREATE TABLE releaseProcessingActionChunks(resourceReleaseId); CREATE TABLE stats(resourceReleaseId);",
+        "CREATE TABLE snapshots(id,snapshotLineageId); INSERT INTO snapshots VALUES('new',NULL); CREATE TABLE snapshotLineages(id); CREATE TABLE snapshotAssemblies(snapshotId,snapshotRecipeId); CREATE TABLE snapshotRecipes(id); CREATE TABLE snapshotRecipeInputs(snapshotRecipeId); CREATE TABLE snapshotResourceReleases(snapshotId); CREATE TABLE snapshotDependencies(snapshotId,dependencySnapshotId,role); CREATE TABLE releaseShardAssignments(resourceReleaseId); CREATE TABLE snapshotShardAssignments(snapshotId); CREATE TABLE releaseProcessingActions(resourceReleaseId); CREATE TABLE releaseProcessingActionChunks(resourceReleaseId); CREATE TABLE stats(resourceReleaseId);",
       )
       for (const db of [local.DB_CURRENT, remote.current])
         db?.exec(

@@ -22,7 +22,7 @@ import {
   metaDatasets,
   metaResourceReleases,
   metaSchema,
-  metaSnapshotSourceReleases,
+  metaSnapshotResourceReleases,
   or,
 } from '@repo/db'
 import type { ReleaseSetPublication } from './releaseDiscord'
@@ -249,18 +249,18 @@ async function listCurrentReleaseSetStatsTargets(
       ),
     )
     .innerJoin(
-      metaSnapshotSourceReleases,
+      metaSnapshotResourceReleases,
       and(
         eq(
-          metaSnapshotSourceReleases.snapshotId,
+          metaSnapshotResourceReleases.snapshotId,
           metaApiReleaseSetSnapshots.snapshotId,
         ),
-        eq(metaSnapshotSourceReleases.role, 'primary'),
+        eq(metaSnapshotResourceReleases.role, 'primary'),
       ),
     )
     .innerJoin(
       metaResourceReleases,
-      eq(metaSnapshotSourceReleases.resourceReleaseId, metaResourceReleases.id),
+      eq(metaSnapshotResourceReleases.resourceReleaseId, metaResourceReleases.id),
     )
     .where(
       and(
@@ -407,13 +407,13 @@ export async function handleBootstrapStatsReleaseSets(
           ),
         )
         .innerJoin(
-          metaSnapshotSourceReleases,
-          eq(metaSnapshotSourceReleases.snapshotId, metaSchema.metaSnapshots.id),
+          metaSnapshotResourceReleases,
+          eq(metaSnapshotResourceReleases.snapshotId, metaSchema.metaSnapshots.id),
         )
         .where(
           and(
-            eq(metaSnapshotSourceReleases.resourceReleaseId, sourceRelease.id),
-            eq(metaSnapshotSourceReleases.role, 'primary'),
+            eq(metaSnapshotResourceReleases.resourceReleaseId, sourceRelease.id),
+            eq(metaSnapshotResourceReleases.role, 'primary'),
             eq(metaSchema.metaSnapshots.resourceType, 'divisionStatistic'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshotLineages.variant, variant),

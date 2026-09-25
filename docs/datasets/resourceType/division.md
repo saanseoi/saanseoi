@@ -24,7 +24,7 @@ There is no second division source in the current pipeline.
   `ensureDraftSnapshotForRelease`.
 - If an earlier published division snapshot exists for the same region, its current rows
   are bulk-cloned into the new draft snapshot before the upload delta is applied.
-- The uploaded release is linked to that snapshot through `snapshotSourceReleases`.
+- The uploaded release is linked to that snapshot through `snapshotResourceReleases`.
 - Division releases are recorded as `primary` sources for the division snapshot.
 
 The local pipeline imports SQL into:
@@ -176,7 +176,7 @@ Current behaviour:
 - missing source rows are closed by clearing `isCurrent` and setting `validToRelease`
 
 The local SQL importer does not write per-record provenance during division ingestion.
-Snapshot membership is tracked at the snapshot level through `snapshotSourceReleases`.
+Snapshot membership is tracked at the snapshot level through `snapshotResourceReleases`.
 
 ## Stats Produced
 

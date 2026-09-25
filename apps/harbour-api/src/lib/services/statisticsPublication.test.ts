@@ -318,13 +318,13 @@ describe('packed statistic publication', () => {
       CREATE TABLE apiVersions (id TEXT, familyType TEXT);
       CREATE TABLE apiReleaseSets (id TEXT, apiVersionId TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER, status TEXT);
       CREATE TABLE apiReleaseSetSnapshots (apiReleaseSetId TEXT, snapshotId TEXT);
-      CREATE TABLE snapshotSourceReleases (snapshotId TEXT, datasetId TEXT, role TEXT);
+      CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, role TEXT);
       CREATE TABLE datasets (id TEXT, code TEXT);
       INSERT INTO apiVersions VALUES ('stats', 'stats');
       INSERT INTO datasets VALUES ('dataset', '${datasetCode}');
       INSERT INTO apiReleaseSets VALUES ('published', 'stats', '${period}', 'government', 'hk', 0, 'draft');
       INSERT INTO apiReleaseSetSnapshots VALUES ('published', 'base');
-      INSERT INTO snapshotSourceReleases VALUES ('base', 'dataset', 'primary');
+      INSERT INTO snapshotResourceReleases VALUES ('base', 'dataset', 'primary');
     `)
     await f.finalise()
     expect(f.writes()).toEqual([])
@@ -350,7 +350,7 @@ describe('packed statistic publication', () => {
       CREATE TABLE apiReleaseSets (id TEXT, apiVersionId TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER, status TEXT);
       CREATE TABLE apiReleaseSetSnapshots (apiReleaseSetId TEXT, snapshotId TEXT);
       CREATE TABLE snapshots (id TEXT, cohortKey TEXT, resourceType TEXT);
-      CREATE TABLE snapshotSourceReleases (snapshotId TEXT, datasetId TEXT, role TEXT);
+      CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, role TEXT);
       CREATE TABLE datasets (id TEXT, code TEXT);
       INSERT INTO apiVersions VALUES ('stats', 'stats');
       INSERT INTO datasets VALUES ('dataset', '${datasetCode}');
@@ -361,7 +361,7 @@ describe('packed statistic publication', () => {
         ('2021-r0', 'stats', '2021', 'government', 'hk', 0, 'current');
       INSERT INTO apiReleaseSetSnapshots VALUES ('2020-r0', 'old'), ('2020-r1', 'corrected'), ('2020-r2', 'draft'), ('2021-r0', 'new-period');
       INSERT INTO snapshots VALUES ('old', '2020', 'divisionStatistic'), ('corrected', '2020', 'divisionStatistic'), ('draft', '2020', 'divisionStatistic'), ('new-period', '2021', 'divisionStatistic');
-      INSERT INTO snapshotSourceReleases VALUES ('old', 'dataset', 'primary'), ('corrected', 'dataset', 'primary'), ('draft', 'dataset', 'primary'), ('new-period', 'dataset', 'primary');
+      INSERT INTO snapshotResourceReleases VALUES ('old', 'dataset', 'primary'), ('corrected', 'dataset', 'primary'), ('draft', 'dataset', 'primary'), ('new-period', 'dataset', 'primary');
     `)
     expect(await listPublishedStatisticsTargets(createLocalHarbourDb(meta))).toEqual([
       { datasetCode, referencePeriodCode: '2020', snapshotId: 'corrected' },

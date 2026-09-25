@@ -157,12 +157,12 @@ async function addressDependencies(input: RestoreSnapshotProjectionInput) {
 async function addressMembership(input: RestoreSnapshotProjectionInput) {
   const sources = await input.metaDb
     .select({ code: metaSchema.metaDatasets.code })
-    .from(metaSchema.metaSnapshotSourceReleases)
+    .from(metaSchema.metaSnapshotResourceReleases)
     .innerJoin(
       metaSchema.metaDatasets,
-      eq(metaSchema.metaSnapshotSourceReleases.datasetId, metaSchema.metaDatasets.id),
+      eq(metaSchema.metaSnapshotResourceReleases.datasetId, metaSchema.metaDatasets.id),
     )
-    .where(eq(metaSchema.metaSnapshotSourceReleases.snapshotId, input.snapshotId))
+    .where(eq(metaSchema.metaSnapshotResourceReleases.snapshotId, input.snapshotId))
     .all()
   if (!sources.some(source => source.code === 'ds-hk-hkgov-dpo-address')) return null
   if (!input.cacheDir)

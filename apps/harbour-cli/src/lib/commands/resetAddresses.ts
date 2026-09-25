@@ -578,11 +578,13 @@ async function collectOwnedRecords(
   const releaseIds = releases.map(row => row.id)
   const snapshotRows = await context.metaDb
     .select({
-      id: metaSchema.metaSnapshotSourceReleases.snapshotId,
-      role: metaSchema.metaSnapshotSourceReleases.role,
+      id: metaSchema.metaSnapshotResourceReleases.snapshotId,
+      role: metaSchema.metaSnapshotResourceReleases.role,
     })
-    .from(metaSchema.metaSnapshotSourceReleases)
-    .where(inArray(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, releaseIds))
+    .from(metaSchema.metaSnapshotResourceReleases)
+    .where(
+      inArray(metaSchema.metaSnapshotResourceReleases.resourceReleaseId, releaseIds),
+    )
     .all()
   const snapshotIds = selectOwnedOfficialAddressSnapshotIds(snapshotRows)
   const apiRows =
@@ -664,7 +666,7 @@ async function collectOwnedRecordsFromRemoteMeta(
     client,
     releaseIds,
     values =>
-      `SELECT snapshotId AS id, role FROM snapshotSourceReleases WHERE resourceReleaseId IN (${sqlList(values)})`,
+      `SELECT snapshotId AS id, role FROM snapshotResourceReleases WHERE resourceReleaseId IN (${sqlList(values)})`,
   )
   const snapshotIds = selectOwnedOfficialAddressSnapshotIds(snapshotRows)
   const apiRows = await queryRemoteInChunks<{ id: string; familyType: string }>(
@@ -932,18 +934,20 @@ async function absorbAbandonedStagedAddressReleases(
     const [snapshot, runs] = await Promise.all([
       context.metaDb
         .select({
-          id: metaSchema.metaSnapshotSourceReleases.snapshotId,
+          id: metaSchema.metaSnapshotResourceReleases.snapshotId,
           status: metaSchema.metaSnapshots.status,
         })
-        .from(metaSchema.metaSnapshotSourceReleases)
+        .from(metaSchema.metaSnapshotResourceReleases)
         .innerJoin(
           metaSchema.metaSnapshots,
           eq(
-            metaSchema.metaSnapshotSourceReleases.snapshotId,
+            metaSchema.metaSnapshotResourceReleases.snapshotId,
             metaSchema.metaSnapshots.id,
           ),
         )
-        .where(eq(metaSchema.metaSnapshotSourceReleases.resourceReleaseId, release.id))
+        .where(
+          eq(metaSchema.metaSnapshotResourceReleases.resourceReleaseId, release.id),
+        )
         .limit(1)
         .get(),
       context.metaDb

@@ -114,7 +114,7 @@ export async function divisionResetBlockers(context: ResetReadContext) {
   await check(
     context.metaBinding,
     'Other snapshot families use division releases',
-    `SELECT 1 FROM snapshotSourceReleases WHERE snapshotId NOT IN (${SNAPSHOTS}) AND (resourceReleaseId IN (${RELEASES}) OR anchorReleaseId IN (${RELEASES})) LIMIT 1`,
+    `SELECT 1 FROM snapshotResourceReleases WHERE snapshotId NOT IN (${SNAPSHOTS}) AND (resourceReleaseId IN (${RELEASES}) OR anchorReleaseId IN (${RELEASES})) LIMIT 1`,
   )
   await check(
     context.metaBinding,
@@ -222,7 +222,7 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),
     `DELETE FROM snapshotDependencies WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId IN (${SNAPSHOTS});`,
-    `DELETE FROM snapshotSourceReleases WHERE snapshotId IN (${SNAPSHOTS});`,
+    `DELETE FROM snapshotResourceReleases WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM apiReleaseSets WHERE id IN (${SETS});`,
     // Keep source evidence assets and fixture identities available for replay.
     // assets.resourceReleaseId and journal references use ON DELETE SET NULL.

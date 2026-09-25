@@ -15,7 +15,7 @@ import {
   inArray,
   isStreetChangelogKind,
   metaDatasets,
-  metaSnapshotSourceReleases,
+  metaSnapshotResourceReleases,
   metaSnapshots,
   streetEvidenceAssetRoles,
   streetLocaleCodes,
@@ -220,16 +220,19 @@ async function getPublishedStreetSnapshot(metaDb: MetaDatabase, region?: ApiRegi
     .select({ id: metaSnapshots.id })
     .from(metaSnapshots)
     .innerJoin(
-      metaSnapshotSourceReleases,
-      eq(metaSnapshots.id, metaSnapshotSourceReleases.snapshotId),
+      metaSnapshotResourceReleases,
+      eq(metaSnapshots.id, metaSnapshotResourceReleases.snapshotId),
     )
-    .innerJoin(metaDatasets, eq(metaSnapshotSourceReleases.datasetId, metaDatasets.id))
+    .innerJoin(
+      metaDatasets,
+      eq(metaSnapshotResourceReleases.datasetId, metaDatasets.id),
+    )
     .where(
       and(
         eq(metaSnapshots.resourceType, 'street'),
         eq(metaSnapshots.status, 'published'),
         eq(metaDatasets.regionCode, resolveDataRegion(region)),
-        eq(metaSnapshotSourceReleases.role, 'primary'),
+        eq(metaSnapshotResourceReleases.role, 'primary'),
       ),
     )
     .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))

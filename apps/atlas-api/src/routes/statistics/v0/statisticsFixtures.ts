@@ -180,7 +180,7 @@ function seedMeta(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO snapshotSourceReleases (
+    `INSERT INTO snapshotResourceReleases (
       snapshotId, datasetId, resourceReleaseId, role, createdAt
     ) VALUES (?, ?, ?, ?, ?)`,
     ['snapshot-statistics', 'dataset-statistics', RELEASE_ID, 'primary', PUBLISHED_AT],
@@ -341,7 +341,7 @@ function seedMeta(sqlite: Database) {
   )
   run(
     sqlite,
-    `INSERT INTO snapshotSourceReleases (
+    `INSERT INTO snapshotResourceReleases (
       snapshotId, datasetId, resourceReleaseId, role, createdAt
     ) VALUES (?, ?, ?, ?, ?)`,
     [
@@ -817,7 +817,7 @@ function seedCurrentDivision(sqlite: Database) {
 function seedPackedPublication(current: Database, history: Database, meta: Database) {
   run(
     meta,
-    `INSERT INTO snapshotSourceReleases (snapshotId, datasetId, resourceReleaseId, role, createdAt) VALUES (?, ?, ?, 'primary', ?)`,
+    `INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role, createdAt) VALUES (?, ?, ?, 'primary', ?)`,
     ['snapshot-statistics-historical', 'dataset-statistics', RELEASE_ID, PUBLISHED_AT],
   )
   run(

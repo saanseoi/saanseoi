@@ -333,7 +333,7 @@ function readGeometryReplayMetadata(
   const tables = [
     ['snapshotLineages', lineageId ? `"id" = ${geometrySqlLiteral(lineageId)}` : '0'],
     ['snapshots', `"id" = ${geometrySqlLiteral(snapshotId)}`],
-    ['snapshotSourceReleases', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
+    ['snapshotResourceReleases', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
     ['snapshotRecipes', idList ? `"id" IN (${idList})` : '0'],
     ['snapshotRecipeInputs', idList ? `"snapshotRecipeId" IN (${idList})` : '0'],
     ['snapshotAssemblies', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],

@@ -1053,7 +1053,7 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM releaseShardAssignments WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId IN (${snapshots});`,
-    `DELETE FROM snapshotSourceReleases WHERE snapshotId IN (${snapshots}) OR resourceReleaseId IN (${releaseIds});`,
+    `DELETE FROM snapshotResourceReleases WHERE snapshotId IN (${snapshots}) OR resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM apiReleaseSets WHERE id IN (${apiReleaseSets});`,
     `DELETE FROM assets WHERE id IN (${assets});`,
     `DELETE FROM snapshots WHERE id IN (${snapshots});`,
