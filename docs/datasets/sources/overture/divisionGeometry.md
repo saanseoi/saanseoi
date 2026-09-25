@@ -109,13 +109,15 @@ When a new STAC release is found, `saanseoi update` invokes the sibling Overturi
 with the Hong Kong division id `b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d`, the release
 version, and the `divisions` theme. The resulting Hong Kong files are placed under
 `data/overture/<release>/divisions/China/Hong Kong` for the normal ingestion workflow.
-The exact Parquet file consumed for each source release is retained as that release's
-managed source asset. Its public download has a dataset-and-version filename; the
-pipeline's local `*.intersects.clipSmart.parquet` filename is never exposed. Overturist
-also exposes `releases`, which emits the currently S3-available versions as JSON. The
-updater uses that bounded catalogue to identify a displaced Overture release as an
-archive package whenever it discovers a new release; archive downloads do not hold up
-the current-release upload.
+If the requested Parquet file is already present there and non-empty, the updater uses
+that retained export without fetching it again. The exact Parquet file consumed for each
+source release is retained as that release's managed source asset. Its public download
+has a dataset-and-version filename; the pipeline's local
+`*.intersects.clipSmart.parquet` filename is never exposed. Overturist also exposes
+`releases`, which emits the currently S3-available versions as JSON. The updater uses
+that bounded catalogue to identify a displaced Overture release as an archive package
+whenever it discovers a new release; archive downloads do not hold up the
+current-release upload.
 
 For a target with no reported Overture release, this same bounded catalogue is the
 bootstrap set. The updater ignores the operator's saved source checks, selects the

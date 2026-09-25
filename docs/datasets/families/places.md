@@ -19,6 +19,10 @@ described in [SQL delivery](../sql-delivery.md) and
 [Minimal initialisation](../minimal-initialisation.md) selects the first two configured
 Overture versions and uses a separate completion manifest.
 
+The Overture updater reuses a non-empty Hong Kong Place Parquet export already retained
+under `data/overture/<release>/divisions/China/Hong Kong`; it downloads the requested
+file only when that local export is absent.
+
 Address decision lookup indexes both exact observations and per-Place decision history.
 Historical replay retains release ordering, fingerprint checks and first-match
 precedence without scanning unrelated decisions. Appending or replacing the ledger

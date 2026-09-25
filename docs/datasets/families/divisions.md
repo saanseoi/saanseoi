@@ -1258,3 +1258,7 @@ publisher archive.
 Publishing a later native Overture division baseline supersedes earlier published
 resource releases in that dataset. Retained snapshots and processing audits remain
 available for history and safe initialiser continuation.
+
+The Overture updater reuses a non-empty Hong Kong Parquet export already retained under
+`data/overture/<release>/divisions/China/Hong Kong`; it downloads the requested file
+only when that local export is absent.

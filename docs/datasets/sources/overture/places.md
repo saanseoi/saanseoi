@@ -1,5 +1,9 @@
 # Overture Places
 
+The updater consumes the Hong Kong `place.division.intersects.clipSmart.parquet` file
+from `data/overture/<release>/divisions/China/Hong Kong`. A present, non-empty export is
+reused; otherwise the updater obtains the requested release through Overturist.
+
 Automatic Place normalisation and Address matching retain rules and aggregate counts.
 Individual audit entries require record-specific fixture decisions; matching additional
 records does not create additional audit actions.
