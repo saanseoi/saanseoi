@@ -207,6 +207,7 @@ type DivisionListDocument = {
     catalogPublishedAt: string
     cohort: string
     domain: string
+    inventory?: string
     profile: DivisionProfile
     locales: ApiDocumentLocales
     filters: DivisionFilters
@@ -233,6 +234,7 @@ type DivisionDetailDocument = {
     catalogPublishedAt: string
     cohort: string
     domain: string
+    inventory?: string
     profile: DivisionProfile
     locales: ApiDocumentLocales
   }
@@ -260,6 +262,7 @@ export type ActiveDivisionSnapshot = {
   catalogPublishedAt: string
   cohortKey: string
   domainCode: string
+  inventory?: string
   effectiveFrom: string | null
   schemaVersion: string
   rulesetVersion: string
@@ -272,6 +275,8 @@ export type DivisionListQuery = {
   catalogRevision?: string
   cohort?: string
   domain?: string
+  inventory?: string
+  apiVersion?: string
   effectiveAt?: string
   knownAt?: string
   releaseSet?: string
@@ -292,6 +297,8 @@ export type DivisionDetailQuery = {
   catalogRevision?: string
   cohort?: string
   domain?: string
+  inventory?: string
+  apiVersion?: string
   effectiveAt?: string
   knownAt?: string
   releaseSet?: string
@@ -581,6 +588,9 @@ export function buildListDocument(args: {
       catalogPublishedAt: args.activeSnapshot.catalogPublishedAt,
       cohort: args.activeSnapshot.cohortKey,
       domain: args.activeSnapshot.domainCode,
+      ...(args.routeState.requestedApiVersion === '0.2'
+        ? { inventory: args.activeSnapshot.inventory }
+        : {}),
       locales: resolveApiMetaLocales(args.routeState.localeSelection),
       filters: args.filters,
       page: {
@@ -643,6 +653,9 @@ export function buildDetailDocument(args: {
       catalogPublishedAt: args.activeSnapshot.catalogPublishedAt,
       cohort: args.activeSnapshot.cohortKey,
       domain: args.activeSnapshot.domainCode,
+      ...(args.routeState.requestedApiVersion === '0.2'
+        ? { inventory: args.activeSnapshot.inventory }
+        : {}),
       locales: resolveApiMetaLocales(args.routeState.localeSelection),
     },
     permalink: buildDivisionPermalink({
@@ -675,6 +688,8 @@ function buildDivisionPermalink(args: {
   permalink.searchParams.set('releaseSet', args.activeSnapshot.apiReleaseSet)
   permalink.searchParams.set('cohort', args.activeSnapshot.cohortKey)
   permalink.searchParams.set('domain', args.activeSnapshot.domainCode)
+  if (args.routeState.requestedApiVersion === '0.2' && args.activeSnapshot.inventory)
+    permalink.searchParams.set('inventory', args.activeSnapshot.inventory)
   permalink.searchParams.set('profile', args.routeState.profile)
   permalink.searchParams.set(
     'locales',
@@ -687,8 +702,12 @@ function buildDivisionPermalink(args: {
   const normalisedIncludes = [...includes].map(include => {
     if (include === 'areas') {
       return `areas:${
-        requestedGeometryVariants('areas', args.activeSnapshot.domainCode).area ??
-        args.activeSnapshot.domainCode
+        requestedGeometryVariants(
+          'areas',
+          args.activeSnapshot.domainCode,
+          undefined,
+          args.activeSnapshot.inventory,
+        ).area ?? args.activeSnapshot.domainCode
       }`
     }
     if (include === 'boundaries') {
@@ -730,6 +749,7 @@ export function requestedGeometryVariants(
   value: string | undefined,
   domainCode: string,
   transform?: string,
+  inventory = 'overture',
 ) {
   const includes = requestedIncludes(value)
   const area = [...includes].find(item => item.startsWith('areas:'))
@@ -737,7 +757,7 @@ export function requestedGeometryVariants(
   const requestedArea = area?.slice('areas:'.length)
   const areaVariant =
     requestedArea?.split('@', 1)[0] ||
-    (domainCode === 'geographic' ? 'saanseoi' : undefined)
+    (domainCode === 'geographic' ? inventory : undefined)
   return {
     area:
       transform &&

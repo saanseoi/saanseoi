@@ -4,11 +4,17 @@ import { GeocodingQuerySchema, GeocodingResponseSchema } from '../../schema/geoc
 import { geocode } from '../../services/geocoding'
 import type { AppEnv } from '../../types'
 
-export const geocodingRoutes = (['divisions', 'addresses'] as const).map(family => {
+export const geocodingRoutes = (
+  [
+    { family: 'divisions', version: 'v1' },
+    { family: 'addresses', version: 'v1' },
+    { family: 'divisions', version: 'v0.2' },
+  ] as const
+).map(({ family, version }) => {
   const route = createRoute({
     method: 'get',
-    path: `/${family}/v1/geocode`,
-    operationId: `${family}GeocodeV1`,
+    path: `/${family}/${version}/geocode`,
+    operationId: `${family}Geocode${version === 'v0.2' ? 'V02' : 'V1'}`,
     summary: family === 'divisions' ? 'Geocode Division' : 'Geocode Address',
     tags: ['Geocoding'],
     description:
@@ -62,6 +68,7 @@ export const geocodingRoutes = (['divisions', 'addresses'] as const).map(family 
         historyDbsByBinding: c.var.historyDbsByBinding,
         family: family === 'divisions' ? 'division' : 'address',
         query: c.req.valid('query'),
+        apiVersion: version === 'v0.2' ? 'api-divisions-v0.2' : undefined,
         onResolved: attribution => c.set('accessAttribution', attribution),
       })
       if (result.status === 503)

@@ -30,6 +30,15 @@ import { sanitiseResponseUrl } from '../../../lib/api'
 
 const ROUTE_VARIANTS = [
   {
+    requestedVersionPath: 'divisions/v0.2' as const,
+    requestedApiVersion: '0.2' as const,
+    resolvedApiVersion: 'api-divisions-v0.2' as const,
+    listPath: '/divisions/v0.2',
+    detailPath: '/divisions/v0.2/{id}',
+    listOperationId: 'listDivisionsV02',
+    detailOperationId: 'getDivisionByIdV02',
+  },
+  {
     requestedVersionPath: 'divisions/v0' as const,
     requestedApiVersion: '0.1' as const,
     resolvedApiVersion: 'api-divisions-v0.1' as const,

@@ -47,6 +47,7 @@ const requestedNames = <T>(values: Record<string, T>, locales: string) =>
 
 export async function resolveGeocode(
   args: GeocodingDatabases & {
+    apiVersion?: string
     family: 'address' | 'division'
     query: GeocodingQuery
     onResolved?: (attribution: AccessAttribution) => void
@@ -59,6 +60,8 @@ export async function resolveGeocode(
     args.metaDb,
     args.family,
     query.apiReleaseSet,
+    undefined,
+    { apiVersion: args.apiVersion, inventory: query.inventory },
   )
   if (!release)
     return {

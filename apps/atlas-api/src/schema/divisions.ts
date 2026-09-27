@@ -450,6 +450,7 @@ const DivisionDocumentMetaSchema = z
     catalogPublishedAt: z.string(),
     cohort: z.string(),
     domain: z.string(),
+    inventory: z.string().optional(),
     profile: ProfileName,
     locales: RequestedLocalesMetadataSchema,
     filters: z
@@ -488,6 +489,13 @@ export const DivisionsListQuerySchema = z
       .openapi({
         description: openApiText('openapi_divisions_cohort_description'),
       }),
+    inventory: z
+      .string()
+      .min(1)
+      .optional()
+      .describe(
+        'Primary resource inventory within the selected domain; defaults to the release default.',
+      ),
     domain: z
       .enum([
         'geographic',
@@ -573,6 +581,13 @@ export const DivisionDetailQuerySchema = z
       .openapi({
         description: openApiText('openapi_divisions_cohort_description'),
       }),
+    inventory: z
+      .string()
+      .min(1)
+      .optional()
+      .describe(
+        'Primary resource inventory within the selected domain; defaults to the release default.',
+      ),
     domain: z
       .enum([
         'geographic',

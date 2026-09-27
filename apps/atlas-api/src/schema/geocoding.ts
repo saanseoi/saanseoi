@@ -14,6 +14,7 @@ const coordinate = (min: number, max: number) =>
 
 export const GeocodingQuerySchema = z
   .object({
+    inventory: z.string().min(1).optional(),
     profile: z.enum(['compact', 'default', 'map', 'full']).default('default'),
     lat: coordinate(-90, 90).optional(),
     lng: coordinate(-180, 180).optional(),

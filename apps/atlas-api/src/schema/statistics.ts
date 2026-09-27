@@ -277,7 +277,7 @@ const StatisticResourceSchema = z
             .object({
               type: z.literal('divisions').openapi({ examples: ['divisions'] }),
               id: IdSchema.openapi({
-                examples: ['25cec859-44f3-5e1d-a72b-952f804e56ab'],
+                examples: ['ss-25cec859-44f3-5e1d-a72b-952f804e56ab'],
               }),
             })
             .nullable()
@@ -411,7 +411,7 @@ export const StatisticsListQuerySchema = z
       }),
     'filter[division]': IdSchema.optional().openapi({
       description: openApiText('openapi_statistics_division_filter_description'),
-      examples: ['25cec859-44f3-5e1d-a72b-952f804e56ab'],
+      examples: ['ss-25cec859-44f3-5e1d-a72b-952f804e56ab'],
     }),
     'filter[referencePeriod]': z
       .string()
@@ -496,7 +496,7 @@ const StatisticsDocumentMetaSchema = z
             description: openApiText(
               'openapi_statistics_meta_filter_division_description',
             ),
-            examples: ['25cec859-44f3-5e1d-a72b-952f804e56ab'],
+            examples: ['ss-25cec859-44f3-5e1d-a72b-952f804e56ab'],
           }),
         referencePeriod: z
           .string()

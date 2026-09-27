@@ -73,9 +73,12 @@ export {
   type DivisionListResult,
 } from './divisionsPresentation'
 
-export type RequestedDivisionVersion = 'divisions/v0' | 'divisions/v0.1'
-export type RequestedDivisionApiVersion = '0.1'
-export type ResolvedDivisionApiVersion = 'api-divisions-v0.1'
+export type RequestedDivisionVersion =
+  | 'divisions/v0'
+  | 'divisions/v0.1'
+  | 'divisions/v0.2'
+export type RequestedDivisionApiVersion = '0.1' | '0.2'
+export type ResolvedDivisionApiVersion = 'api-divisions-v0.1' | 'api-divisions-v0.2'
 export type DivisionProfile = ApiProfileName
 
 export type DivisionServiceDependencies = {
@@ -122,12 +125,21 @@ async function getActiveDivisionSnapshot(
   variants: { area?: string; boundary?: string },
   selectors: Pick<
     DivisionListQuery,
-    'region' | 'catalogRevision' | 'cohort' | 'effectiveAt' | 'knownAt' | 'releaseSet'
+    | 'region'
+    | 'catalogRevision'
+    | 'cohort'
+    | 'effectiveAt'
+    | 'knownAt'
+    | 'releaseSet'
+    | 'inventory'
+    | 'apiVersion'
   >,
   resolveReleaseSet: DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'] = resolveApiReleaseSetSnapshotsForRequest,
 ): Promise<ActiveDivisionSnapshot | null> {
   const selection = await runWithD1ReadRetry(() =>
     resolveReleaseSet(metaDb as never, 'division', {
+      apiVersion: selectors.apiVersion,
+      inventory: selectors.inventory,
       catalogRevision: selectors.catalogRevision,
       cohortKey: selectors.cohort,
       domainCode,
@@ -169,6 +181,7 @@ async function getActiveDivisionSnapshot(
   )
 
   return {
+    inventory: primarySnapshot.variant,
     snapshotId: primarySnapshot.snapshotId,
     divisionSnapshotIds: [...new Set(divisionSnapshotIds)],
     apiReleaseSet: selection.releaseSet.code,
@@ -436,11 +449,14 @@ export async function listDivisions(args: {
   })
   const limit = args.query['page[limit]'] ?? 25
   const offset = args.query['page[offset]'] ?? 0
+  args.query = { ...args.query, apiVersion: args.resolvedApiVersion }
   const domainCode = args.query.domain ?? 'geographic'
   const geometryVariants = requestedGeometryVariants(
     args.query.include,
     domainCode,
     args.query.transform,
+    args.query.inventory ??
+      (args.requestedApiVersion === '0.2' ? 'saanseoi' : 'overture'),
   )
   const areaCohort = requestedAreaCohort(args.query.include)
   const requestedGeometry = requestedGeometryKinds(args.query.include)
@@ -713,11 +729,14 @@ export async function getDivisionDetail(args: {
     profile: args.query.profile,
     locales: args.query.locales,
   })
+  args.query = { ...args.query, apiVersion: args.resolvedApiVersion }
   const domainCode = args.query.domain ?? 'geographic'
   const geometryVariants = requestedGeometryVariants(
     args.query.include,
     domainCode,
     args.query.transform,
+    args.query.inventory ??
+      (args.requestedApiVersion === '0.2' ? 'saanseoi' : 'overture'),
   )
   const areaCohort = requestedAreaCohort(args.query.include)
   const requestedGeometry = requestedGeometryKinds(args.query.include)

@@ -1,3 +1,4 @@
+import { selectApiInventory } from '@repo/core/db/apiInventory'
 import { listDivisionAreasCurrentByDivisionIds } from '../db/divisions'
 import { listReplayedDivisionAreasByDivisionIds } from '../db/divisionGeometryReplay'
 import { and, desc, eq, sql, metaSchema } from '@repo/db'
@@ -34,6 +35,7 @@ export type GeocodingRelease = {
   domainCode: string
   schemaVersion: string
   rulesetVersion: string
+  inventory?: string
   snapshots: Awaited<ReturnType<typeof listApiReleaseSetSnapshots>>
 }
 const {
@@ -48,13 +50,14 @@ export async function resolveGeocodingRelease(
   family: 'address' | 'division',
   code?: string,
   divisionSnapshotIds?: string[],
+  selectionOptions: { apiVersion?: string; inventory?: string } = {},
 ): Promise<GeocodingRelease | null> {
   const domainCode = family === 'address' ? 'saanseoi' : 'geographic'
   if (!code && !divisionSnapshotIds) {
     const selected = await resolveApiReleaseSetSnapshotsForRequest(
       db as never,
       family,
-      { domainCode, regionCode: 'hk' },
+      { domainCode, regionCode: 'hk', ...selectionOptions },
     )
     return selected ? { ...selected.releaseSet, snapshots: selected.snapshots } : null
   }
@@ -73,7 +76,8 @@ export async function resolveGeocodingRelease(
       and(
         eq(
           versions.code,
-          family === 'address' ? 'api-addresses-v0.1' : 'api-divisions-v0.1',
+          selectionOptions.apiVersion ??
+            (family === 'address' ? 'api-addresses-v0.1' : 'api-divisions-v0.1'),
         ),
         eq(sets.regionCode, 'hk'),
         eq(sets.domainCode, domainCode),
@@ -88,9 +92,13 @@ export async function resolveGeocodingRelease(
     .limit(1)
     .get()
   if (!selected) return null
+  const snapshots = await listApiReleaseSetSnapshots(db as never, selected.id)
   return {
     ...selected,
-    snapshots: await listApiReleaseSetSnapshots(db as never, selected.id),
+    ...(family === 'division' &&
+    (selectionOptions.inventory || selectionOptions.apiVersion === 'api-divisions-v0.2')
+      ? selectApiInventory(snapshots, 'division', selectionOptions.inventory)
+      : { snapshots }),
   }
 }
 
@@ -187,11 +195,15 @@ export async function loadGeocodingDivisions(
   ]
   const areaSnapshot =
     release.snapshots.find(
-      s => s.snapshotResourceType === 'divisionArea' && s.variant === 'saanseoi',
+      s =>
+        s.snapshotResourceType === 'divisionArea' &&
+        s.variant === (release.inventory ?? 'saanseoi'),
     ) ??
-    release.snapshots.find(
-      s => s.snapshotResourceType === 'divisionArea' && s.variant === 'overture',
-    )
+    (!release.inventory
+      ? release.snapshots.find(
+          s => s.snapshotResourceType === 'divisionArea' && s.variant === 'overture',
+        )
+      : undefined)
   let areas: Awaited<ReturnType<typeof listDivisionAreasCurrentByDivisionIds>> = []
   if (areaSnapshot) {
     const lookup = {

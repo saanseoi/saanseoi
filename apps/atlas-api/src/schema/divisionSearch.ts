@@ -6,6 +6,7 @@ import { RegionFilterSchema } from './region'
 
 export const DivisionSearchQuerySchema = z
   .object({
+    inventory: z.string().min(1).optional(),
     access_token: z
       .string()
       .optional()

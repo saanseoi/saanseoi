@@ -1,3 +1,4 @@
+import { InventorySelectionError } from '@repo/core/db/apiInventory'
 import { geocodingJsonApiErrors } from './routes/geocoding/jsonApiErrors'
 import { OpenAPIHono } from '@hono/zod-openapi'
 import type { Context } from 'hono'
@@ -250,6 +251,8 @@ function scalarSourcesForProduct(product: ApiProduct | 'registry') {
 
 const apiRoutePaths = [
   '/divisions/v1/*',
+  '/divisions/v0.2/*',
+  '/divisions/v0.2',
   '/addresses/v1/*',
   '/v0.1/*',
   ...apiProducts.flatMap(product => [`/${product}/v0/*`, `/${product}/v0.1/*`]),
@@ -701,6 +704,8 @@ function isCompletedDownloadRequest(c: Context<AppEnv>) {
 }
 
 app.onError((error, c) => {
+  if (error instanceof InventorySelectionError)
+    return c.json({ httpStatus: 409, error: error.code, message: error.message }, 409)
   console.error(error)
   if (isTransientD1ReadError(error)) {
     return c.json(

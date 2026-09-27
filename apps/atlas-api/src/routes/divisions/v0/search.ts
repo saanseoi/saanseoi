@@ -12,11 +12,16 @@ import { resolveDataRegion } from '../../../schema/region'
 import type { AppEnv } from '../../../types'
 import { runWithD1ReadRetry } from '../../../lib/d1'
 
-export const divisionSearchRoutes = ['v0', 'v0.1'].map(version => {
+export const divisionSearchRoutes = ['v0', 'v0.1', 'v0.2'].map(version => {
   const route = createRoute({
     method: 'get',
     path: `/divisions/${version}/search`,
-    operationId: version === 'v0' ? 'searchDivisionsV0' : 'searchDivisionsV01',
+    operationId:
+      version === 'v0'
+        ? 'searchDivisionsV0'
+        : version === 'v0.2'
+          ? 'searchDivisionsV02'
+          : 'searchDivisionsV01',
     tags: ['Divisions'],
     summary: 'Search Divisions',
     description:
@@ -42,6 +47,8 @@ export const divisionSearchRoutes = ['v0', 'v0.1'].map(version => {
         resolvePublishedSearchScopes(c.var.metaDb as never, divisionSearchIndex, {
           regionCode: resolveDataRegion(query.region),
           domainCode: query.domain,
+          inventory: query.inventory,
+          apiVersion: version === 'v0.2' ? 'api-divisions-v0.2' : 'api-divisions-v0.1',
         }),
       )
       try {
