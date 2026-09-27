@@ -135,11 +135,6 @@ else
     end
 end
 
-# Reconcile curated output even when every native upload was skipped on resume.
-if test "$saanseoi_init_target" = local
-    init_run_step bun apps/harbour-cli/scripts/assemble-curated-divisions.ts
-end
-
 # A resumed initialiser may skip C&SD releases that are already published.
 # Re-evaluate the draft Overture sets after every dependency is available.
 init_reconcile_draft_release_sets ./bin/saanseoi release-sets:reconcile --target $saanseoi_init_target \
