@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:73722a0dff62350b186932b22983da31a3ee753c72c517345a5af29a4c1c24f8",
+  "versionHash": "sha256:de1ece8cbe8c092e41d1aea010c547c498ab7171f413cd6fe01fff68dea9ad0a",
   "publisherCode": "saanseoi",
   "code": "ds-hk-saanseoi-division",
   "regionCode": "hk",
   "releaseType": "static",
-  "releaseFrequency": "as-needed",
+  "releaseFrequency": "monthly",
   "theme": "divisions",
   "resourceTypes": [
     "division"
@@ -17,7 +17,7 @@
   },
   "releasePolicy": {
     "series": "rolling",
-    "schedule": "irregular",
+    "schedule": "regular",
     "revisionScope": "latest",
     "checks": {
       "newReleases": {
