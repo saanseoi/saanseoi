@@ -4,6 +4,14 @@ This is the source-neutral contract for adding geometry to the Divisions API fam
 Provider observations belong in `docs/datasets/sources/<provider>/`; this document
 defines the behaviour that every adapter must implement.
 
+## Inventory selection
+
+An **inventory** selects a domain's primary `division` records and hierarchy. Geometry
+variants select compatible representations of those identities. The
+[domain and inventory contract](divisions-inventories.md) defines the target API `0.2`
+selection and version boundary. Geometry availability and defaults are scoped to the
+selected inventory and release, not solely to the provider or domain.
+
 ## Logical resources and variants
 
 `divisionArea` and `divisionBoundary` are logical resource types. A provider variant is
