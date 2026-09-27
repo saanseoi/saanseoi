@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:09466bff592ebfe34a7a3ea73866d48983660954e46fd41065bd858a10dc9a8c",
+  "versionHash": "sha256:64cf70d243a961d61d9d6d8a2e2eb5014ea18964555e2c935579c426aba4438e",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -12,36 +12,28 @@
       "i18n": {
         "en": {
           "name": "Geographic",
-          "descriptionShort": "Reviewed 山水 geographical and administrative divisions.",
-          "description": "Reviewed 山水 hierarchy and areas, with Overture geometry fallback and selectable government area companions."
+          "descriptionShort": "Overture geographic and administrative divisions.",
+          "description": "Overture identities and hierarchy with compatible provider geometry."
         },
         "zh-hant": {
           "name": "地理分區",
-          "descriptionShort": "SaanSeoi 地理及行政分區。",
-          "description": "SaanSeoi 審核的層級及範圍，並提供 Overture 後備幾何及政府範圍配套。"
+          "descriptionShort": "Overture 地理及行政分區。",
+          "description": "Overture 地理分區、層級及相容範圍。"
         },
         "zh-hans": {
           "name": "地理分区",
-          "descriptionShort": "SaanSeoi 地理及行政分区。",
-          "description": "SaanSeoi 审核的层级及范围，并提供 Overture 后备几何及政府范围配套。"
+          "descriptionShort": "Overture 地理及行政分區。",
+          "description": "Overture 地理分區、層級及相容範圍。"
         }
       },
       "members": [
         {
           "resourceType": "division",
-          "variant": "saanseoi",
+          "variant": "overture",
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
           "priority": 0
-        },
-        {
-          "resourceType": "divisionArea",
-          "variant": "saanseoi",
-          "role": "geometry",
-          "isRequired": true,
-          "cohortMatchingMode": "exact_ref",
-          "priority": 5
         },
         {
           "resourceType": "divisionArea",

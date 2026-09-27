@@ -1,0 +1,41 @@
+{
+  "apiVersion": "api-divisions-v0.2",
+  "endpoints": [
+    {
+      "method": "GET",
+      "path": "/divisions/v0.2",
+      "operationId": "listDivisionsV02"
+    },
+    {
+      "method": "GET",
+      "path": "/divisions/v0.2/{id}",
+      "operationId": "getDivisionByIdV02"
+    },
+    {
+      "method": "GET",
+      "path": "/divisions/v0.2/search",
+      "operationId": "searchDivisionsV02"
+    },
+    {
+      "method": "GET",
+      "path": "/divisions/v0.2/geocode",
+      "operationId": "divisionsGeocodeV02"
+    },
+    {
+      "method": "GET",
+      "path": "/divisions/v0.2/inventories",
+      "operationId": "listDivisionInventoriesV02"
+    },
+    {
+      "method": "GET",
+      "path": "/divisions/v0.2/changes",
+      "operationId": "listDivisionChangesV02"
+    },
+    {
+      "method": "GET",
+      "path": "/divisions/v0.2/changes/definitions/{id}",
+      "operationId": "getDivisionChangeDefinitionV02"
+    }
+  ],
+  "versionHash": "sha256:7ecfd67527782228fc123d53b620eb61e72fd684f8a94ce578babc28a171b150"
+}
