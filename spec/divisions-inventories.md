@@ -1,7 +1,8 @@
 # Division domains, inventories and release contracts
 
-Status: agreed contract; API `0.2` implementation and publication are pending. The
-examples below specify the target interface and do not assert endpoint availability.
+Status: API `0.2` runtime and registry definitions are implemented. Data publication
+requires complete reviewed monthly ingredients; route availability alone does not imply
+a published edition.
 
 ## Vocabulary
 
@@ -43,10 +44,10 @@ there is no undifferentiated `hkgov` geometry choice.
 
 ## Selection and discovery
 
-The target request uses `domain=geographic&inventory=saanseoi`. Omitting `inventory`
-selects the default declared by the selected API release set. An explicit inventory
-selects only snapshots exposed as inventories by that release set, never whichever
-upstream snapshot happens to be current.
+The request uses `domain=geographic&inventory=saanseoi`. Omitting `inventory` selects
+the default declared by the selected API release set. An explicit inventory selects only
+snapshots exposed as inventories by that release set, never whichever upstream snapshot
+happens to be current.
 
 Illustrative requests:
 
@@ -61,7 +62,8 @@ reports what that release actually contains, rather than treating every source d
 in the registry as available. Responses identify the resolved inventory alongside the
 domain, release set and catalogue revision. Reproducible links retain the inventory.
 
-A minimal illustrative domain-discovery shape is:
+The `/divisions/v0.2/inventories` endpoint reports release-specific choices. A minimal
+illustrative response is:
 
 ```json
 {
