@@ -1,3 +1,4 @@
+import { expandReviewInventory } from '../../../libs/core/src/pipeline/services/divisions/reviewInventory'
 import { describe, it, expect } from 'vitest'
 import {
   calculatePencilRegions,
@@ -123,8 +124,9 @@ it('saves the retained browser crossing among real review boundaries', async () 
   const read = (path: string) =>
     JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'))
   const input = read('./pencilBrowserStroke.json')
-  const inventory = read(
-    '../../../fixtures/divisions/hk/geographic-review-inventory.json',
+  const inventory = expandReviewInventory(
+    read('../../../fixtures/divisions/hk/geographic-review-inventory.json'),
+    read('../../../fixtures/divisions/hk/geographic-hierarchies.json'),
   )
   const reference = read('../src/local-review/division-areas/reference-areas.json')
   const stubs = read('../../../fixtures/divisions/hk/stub-areas.json')

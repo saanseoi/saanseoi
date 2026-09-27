@@ -1,3 +1,4 @@
+import { expandReviewInventory } from '../../../libs/core/src/pipeline/services/divisions/reviewInventory'
 import { describe, it, expect } from 'vitest'
 import {
   expandPencilStroke,
@@ -126,8 +127,9 @@ it('expands the real Ma On Shan browser stroke', async () => {
       : result.geometry!.coordinates.flat(2)
   for (const intersection of result.intersections)
     expect(points).toContainEqual(intersection)
-  const inventory = read(
-    '../../../fixtures/divisions/hk/geographic-review-inventory.json',
+  const inventory = expandReviewInventory(
+    read('../../../fixtures/divisions/hk/geographic-review-inventory.json'),
+    read('../../../fixtures/divisions/hk/geographic-hierarchies.json'),
   )
   const reference = read('../src/local-review/division-areas/reference-areas.json')
   const ids = new Set(
