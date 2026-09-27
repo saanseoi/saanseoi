@@ -21,7 +21,7 @@ const error = (description: string) => ({
 })
 const route = createRoute({
   method: 'get',
-  path: '/divisions/v1/changes',
+  path: '/divisions/v1/changes' as string,
   operationId: 'listDivisionChangesV1',
   summary: 'List Division Changes',
   tags: ['Divisions'],
@@ -58,6 +58,7 @@ export const divisionChangesRoute = defineOpenAPIRoute<typeof route, AppEnv>({
       historyDbsByBinding: c.var.historyDbsByBinding,
       requestUrl: c.req.url,
       query: c.req.valid('query'),
+      apiVersion: c.req.path.includes('/v0.2/') ? 'api-divisions-v0.2' : undefined,
     })
     if (result.status === 200) return c.json(result.body, 200)
     if (result.status === 409) return c.json(result.body, 409)
@@ -68,7 +69,7 @@ export const divisionChangesRoute = defineOpenAPIRoute<typeof route, AppEnv>({
 
 const definitionRoute = createRoute({
   method: 'get',
-  path: '/divisions/v1/changes/definitions/{id}',
+  path: '/divisions/v1/changes/definitions/{id}' as string,
   operationId: 'getDivisionChangeDefinitionV1',
   summary: 'Get Division Change Definition',
   tags: ['Divisions'],
@@ -101,10 +102,28 @@ export const divisionChangeDefinitionRoute = defineOpenAPIRoute<
       requestUrl: c.req.url,
       id: c.req.valid('param').id,
       ...c.req.valid('query'),
+      apiVersion: c.req.path.includes('/v0.2/') ? 'api-divisions-v0.2' : undefined,
     })
     if (result.status === 200) return c.json(result.body, 200)
     if (result.status === 409) return c.json(result.body, 409)
     if (result.status === 422) return c.json(result.body, 422)
     return c.json(result.body, 503)
   },
+})
+
+export const divisionChangesV02Route = defineOpenAPIRoute({
+  route: createRoute({
+    ...route,
+    path: '/divisions/v0.2/changes' as string,
+    operationId: 'listDivisionChangesV02',
+  }),
+  handler: divisionChangesRoute.handler,
+})
+export const divisionChangeDefinitionV02Route = defineOpenAPIRoute({
+  route: createRoute({
+    ...definitionRoute,
+    path: '/divisions/v0.2/changes/definitions/{id}' as string,
+    operationId: 'getDivisionChangeDefinitionV02',
+  }),
+  handler: divisionChangeDefinitionRoute.handler,
 })

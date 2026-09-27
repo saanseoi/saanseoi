@@ -135,7 +135,8 @@ export async function resolveGeocode(
         )
       : null
     const meta = {
-      apiVersion: '1',
+      apiVersion: args.apiVersion === 'api-divisions-v0.2' ? '0.2' : '1',
+      ...(release.inventory ? { inventory: release.inventory } : {}),
       direction: reverse ? 'reverse' : 'forward',
       release: identity(release),
       ...(addressRelease ? { addressRelease: identity(addressRelease) } : {}),

@@ -1,3 +1,8 @@
+import { divisionInventoriesRoute } from './routes/divisions/v0/inventories'
+import {
+  divisionChangesV02Route,
+  divisionChangeDefinitionV02Route,
+} from './routes/divisions/changes'
 import { InventorySelectionError } from '@repo/core/db/apiInventory'
 import { geocodingJsonApiErrors } from './routes/geocoding/jsonApiErrors'
 import { OpenAPIHono } from '@hono/zod-openapi'
@@ -744,6 +749,9 @@ app.openapiRoutes([
   ...registryRoutes,
   ...identityBridgeRoutes,
   ...sourceRoutes,
+  divisionInventoriesRoute,
+  divisionChangesV02Route,
+  divisionChangeDefinitionV02Route,
   ...divisionRoutes,
   divisionChangesRoute,
   divisionChangeDefinitionRoute,

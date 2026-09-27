@@ -140,6 +140,7 @@ function descendantLookup(data: Definitions) {
 const CursorSchema = z
   .object({
     version: z.literal(1),
+    inventory: z.string().optional(),
     from: z.string().min(1),
     to: z.string().min(1),
     comparison: z.string().regex(/^[a-f0-9]{64}$/),
@@ -178,7 +179,15 @@ function decodeCursor(value?: string): Cursor | null {
 }
 function releaseReference(release: GeocodingRelease) {
   const { id, code, cohortKey, domainCode, schemaVersion, rulesetVersion } = release
-  return { id, code, cohortKey, domainCode, schemaVersion, rulesetVersion }
+  return {
+    id,
+    code,
+    cohortKey,
+    domainCode,
+    schemaVersion,
+    rulesetVersion,
+    ...(release.inventory ? { inventory: release.inventory } : {}),
+  }
 }
 function reference(
   id: string,
@@ -192,6 +201,12 @@ function reference(
     `/divisions/v1/changes/definitions/${encodeURIComponent(id)}`,
     origin,
   )
+  if (release.inventory) record.searchParams.set('inventory', release.inventory)
+  if (
+    (release as GeocodingRelease & { apiVersion?: string }).apiVersion ===
+    'api-divisions-v0.2'
+  )
+    record.pathname = record.pathname.replace('/v1/', '/v0.2/')
   record.searchParams.set('apiReleaseSet', release.id)
   record.searchParams.set('definitionHash', definition.hash)
   const { membershipGeometry, ...attributes } = definition.content
@@ -212,6 +227,8 @@ export async function getDivisionChangeDefinition(
   args: GeocodingDatabases & {
     id: string
     apiReleaseSet: string
+    inventory?: string
+    apiVersion?: string
     definitionHash: string
     requestUrl: string
     dependencies?: Partial<DivisionChangesDependencies>
@@ -223,7 +240,12 @@ export async function getDivisionChangeDefinition(
     ...args.dependencies,
   }
   try {
-    const release = await dependencies.resolveRelease(args.metaDb, args.apiReleaseSet)
+    const release = await dependencies.resolveRelease(
+      args.metaDb,
+      args.apiReleaseSet,
+      args.inventory,
+      args.apiVersion,
+    )
     const loaded = await dependencies.loadDefinitions(args, release)
     const data = await definitions({
       ...loaded,
@@ -256,6 +278,7 @@ export async function getDivisionChangeDefinition(
 
 export async function listDivisionChanges(
   args: GeocodingDatabases & {
+    apiVersion?: string
     query: DivisionChangesQuery
     requestUrl: string
     dependencies?: Partial<DivisionChangesDependencies>
@@ -273,19 +296,32 @@ export async function listDivisionChanges(
     const cursor = decodeCursor(args.query['page[cursor]'])
     // A cursor owns the target even when the caller omits toApiReleaseSet again.
     const [from, to] = await Promise.all([
-      dependencies.resolveRelease(args.metaDb, args.query.fromApiReleaseSet),
+      dependencies.resolveRelease(
+        args.metaDb,
+        args.query.fromApiReleaseSet,
+        args.query.inventory ?? cursor?.inventory,
+        args.apiVersion,
+      ),
       dependencies.resolveRelease(
         args.metaDb,
         args.query.toApiReleaseSet ?? cursor?.to,
+        args.query.inventory ?? cursor?.inventory,
+        args.apiVersion,
       ),
     ])
-    if (cursor && (cursor.from !== from.id || cursor.to !== to.id))
+    if (
+      cursor &&
+      (cursor.from !== from.id ||
+        cursor.to !== to.id ||
+        cursor.inventory !== from.inventory)
+    )
       throw new DivisionChangesError(
         422,
         'cursor_release_mismatch',
         'The cursor belongs to a different release pair.',
       )
     if (
+      from.inventory !== to.inventory ||
       from.domainCode !== to.domainCode ||
       from.schemaVersion !== to.schemaVersion ||
       from.rulesetVersion !== to.rulesetVersion
@@ -374,6 +410,7 @@ export async function listDivisionChanges(
         return {
           id: await hash({
             version: 1,
+            ...(from.inventory ? { inventory: from.inventory } : {}),
             comparisonId,
             divisionId,
             before: oldDefinition?.hash ?? null,
@@ -395,6 +432,7 @@ export async function listDivisionChanges(
     const makeCursor = (after: string | null) =>
       encodeCursor({
         version: 1,
+        ...(from.inventory ? { inventory: from.inventory } : {}),
         from: from.id,
         to: to.id,
         comparison: comparisonId,

@@ -3,6 +3,7 @@ import { z } from '@hono/zod-openapi'
 const releaseSelector = z.string().trim().min(1).max(200)
 export const DivisionChangesQuerySchema = z
   .object({
+    inventory: z.string().min(1).optional(),
     fromApiReleaseSet: releaseSelector.openapi({
       description: 'Required published geographic division release-set code or ID.',
       example: 'data-hk-divisions-2026-06-17.0',
@@ -59,6 +60,7 @@ const DivisionChangeReferenceSchema = DivisionChangeDefinitionSchema.extend({
 })
 export const DivisionChangeDefinitionQuerySchema = z
   .object({
+    inventory: z.string().min(1).optional(),
     apiReleaseSet: releaseSelector,
     definitionHash: z.string().regex(/^[a-f0-9]{64}$/),
   })
@@ -68,6 +70,7 @@ const release = z.object({
   code: z.string(),
   cohortKey: z.string().nullable(),
   domainCode: z.string(),
+  inventory: z.string().optional(),
   schemaVersion: z.string(),
   rulesetVersion: z.string(),
 })

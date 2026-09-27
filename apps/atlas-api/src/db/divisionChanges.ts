@@ -1,3 +1,4 @@
+import { selectApiInventory } from '@repo/core/db/apiInventory'
 import { eq, metaSchema, or } from '@repo/db'
 import {
   listApiReleaseSetSnapshots,
@@ -19,12 +20,16 @@ export class DivisionChangesError extends Error {
 export async function resolveDivisionChangesRelease(
   db: GeocodingDatabases['metaDb'],
   selector?: string,
+  inventory?: string,
+  apiVersion = 'api-divisions-v0.1',
 ): Promise<GeocodingRelease> {
   const { metaApiReleaseSets: sets, metaApiVersions: versions } = metaSchema
   const pin =
     selector ??
     (
       await resolveApiReleaseSetSnapshotsForRequest(db as never, 'division', {
+        apiVersion,
+        inventory,
         domainCode: 'geographic',
         regionCode: 'hk',
       })
@@ -63,7 +68,7 @@ export async function resolveDivisionChangesRelease(
     )
   const selected = published.find(
     row =>
-      row.apiVersion === 'api-divisions-v0.1' &&
+      row.apiVersion === apiVersion &&
       row.domainCode === 'geographic' &&
       row.regionCode === 'hk',
   )
@@ -71,7 +76,7 @@ export async function resolveDivisionChangesRelease(
     throw new DivisionChangesError(
       409,
       'incompatible_release_sets',
-      'Only Hong Kong geographic division release sets using api-divisions-v0.1 are supported.',
+      `Only Hong Kong geographic division release sets using ${apiVersion} are supported.`,
     )
   const snapshots = await listApiReleaseSetSnapshots(db as never, selected.id)
   if (
@@ -85,5 +90,10 @@ export async function resolveDivisionChangesRelease(
       'release_set_unavailable',
       `Release set ${pin} has no primary division snapshot.`,
     )
-  return { ...selected, snapshots }
+  return {
+    ...selected,
+    ...(inventory || apiVersion === 'api-divisions-v0.2'
+      ? selectApiInventory(snapshots, 'division', inventory)
+      : { snapshots }),
+  }
 }
