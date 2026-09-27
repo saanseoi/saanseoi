@@ -74,22 +74,37 @@ illustrative response is:
     {
       "code": "saanseoi",
       "defaultAreaVariant": "saanseoi",
-      "areaVariants": ["saanseoi", "overture"]
+      "areaVariants": [
+        { "code": "saanseoi", "snapshotId": "snapshot-reviewed-area" },
+        { "code": "overture", "snapshotId": "snapshot-overture-area" }
+      ],
+      "defaultBoundaryVariant": "overture",
+      "boundaryVariants": [
+        { "code": "overture", "snapshotId": "snapshot-overture-boundary" }
+      ]
     },
     {
       "code": "overture",
       "defaultAreaVariant": "overture",
-      "areaVariants": ["overture"]
+      "areaVariants": [{ "code": "overture", "snapshotId": "snapshot-overture-area" }],
+      "defaultBoundaryVariant": "overture",
+      "boundaryVariants": [
+        { "code": "overture", "snapshotId": "snapshot-overture-boundary" }
+      ]
     }
   ]
 }
 ```
 
-This example omits snapshot identities and additional evidenced government companions.
-The release-specific representation must pin snapshot identities and expose only
-validated combinations. `inventory=saanseoi` selects `division` here because that is the
-family's primary resource type; `include=areas:overture` selects a companion, not
-another inventory.
+This example omits the release-set code, inventory snapshot identities and additional
+evidenced government companions. Each area and boundary variant includes its exact
+snapshot identity. Defaults match bare `include=areas` and `include=boundaries`; a
+default is `null` when its geometry is unavailable. Variant lists are empty when no
+compatible snapshots exist. Availability describes the selected release and inventory,
+not a guarantee that every division has geometry. Only validated combinations are
+exposed. `inventory=saanseoi` selects `division` here because that is the family's
+primary resource type; `include=areas:overture` selects a companion, not another
+inventory.
 
 The selector applies consistently to lists, details, hierarchy traversal, search,
 geocoding and change comparisons. Pagination, response caches and search indexes must
