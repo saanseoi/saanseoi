@@ -13,6 +13,9 @@ import { disposeRemoteR2 } from '../../harbour-cli/src/lib/storage/remoteR2.ts'
 
 function printUsage() {
   console.log(`  Usage:
+  bun run dataops -- protomaps-islands:prepare --manifest PATH --source-version YYYY-MM-DD.revision --out-dir PATH
+  bun run dataops -- protomaps-islands:ingest <source.zip> --target local
+  bun run dataops -- saanseoi-divisions:assemble --target local --out-dir PATH
   bun run dataops -- hkgov-dpo:prepare <source-dir> [--target local|preview|production] --cohort-key DIVISION_COHORT [--source-version YYYY-MM-DD.NN] [--identity-history FILE] [--identity-decisions FILE] [--identity-drift-report FILE] [--db /path/to/local.sqlite]
   bun run dataops -- hkgov-dpo:ingest <ALS-source-root> --target local|preview|production --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--defer-api-release-set] [--dry-run] [--yes] [--skip-curation-checks] [--no-cache-artefacts]
   bun run dataops -- hkgov-dpo:backfill-local <ALS-source-root> --target local --cohort-key START_COHORT [--from-source-version YYYY-MM-DD.NNNN] [--identity-history FILE] [--identity-decisions FILE] [--release-notes-url URL] [--dry-run] [--yes] [--skip-curation-checks] [--continue]
@@ -60,6 +63,31 @@ async function main() {
   }
 
   switch (args.command) {
+    case 'protomaps-islands:prepare': {
+      const { prepareProtomapsIslands } = await import('./commands/protomapsIslands')
+      await prepareProtomapsIslands(args)
+      return
+    }
+    case 'protomaps-islands:ingest': {
+      const { ingestProtomapsIslands } = await import('./commands/protomapsIslands')
+      await ingestProtomapsIslands(args, target)
+      return
+    }
+    case 'saanseoi-divisions:assemble': {
+      const { buildReviewedDivisionRelease } = await import(
+        '../../harbour-cli/src/lib/pipeline/curatedDivisions/buildRelease'
+      )
+      const outputDirectory = args.options['out-dir']
+      if (typeof outputDirectory !== 'string') throw Error('Required --out-dir')
+      console.log(
+        JSON.stringify(
+          await buildReviewedDivisionRelease(target, { outputDirectory }),
+          null,
+          2,
+        ),
+      )
+      return
+    }
     case 'hkgov-dpo:prepare': {
       const { runHkgovAlsPrepCommand } = await import('./commands/hkgovAls.ts')
       await runHkgovAlsPrepCommand(args, target, printUsage)
