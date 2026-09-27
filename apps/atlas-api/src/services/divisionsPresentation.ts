@@ -183,6 +183,7 @@ export type DivisionRouteState = {
   requestedVersionPath: RequestedDivisionVersion
   requestedApiVersion: RequestedDivisionApiVersion
   requestedApiFamily: 'divisions'
+  selection?: { inventory: string; releaseSet: string; domain: string }
   resolvedApiVersion: ResolvedDivisionApiVersion
   profile: DivisionProfile
   localeSelection: DivisionLocaleSelection
@@ -374,6 +375,7 @@ export function buildDivisionRouteState(args: {
   )
 
   return {
+    selection: undefined as DivisionRouteState['selection'],
     requestedVersionPath: args.requestedVersionPath,
     requestedApiVersion: args.requestedApiVersion,
     requestedApiFamily: 'divisions',
@@ -512,7 +514,7 @@ export function createDivisionResource(args: {
         : {}),
     },
     links: {
-      self: `${baseUrl}/${routeState.requestedVersionPath}/${division.id}`,
+      self: `${baseUrl}/${routeState.requestedVersionPath}/${division.id}${routeState.selection ? `?${new URLSearchParams(routeState.selection)}` : ''}`,
     },
   }
 }

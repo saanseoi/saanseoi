@@ -418,7 +418,11 @@ async function isHistoricalDivisionSelection(args: {
     args.metaDb,
     args.query.domain ?? 'geographic',
     {},
-    { region: args.query.region },
+    {
+      region: args.query.region,
+      apiVersion: args.query.apiVersion,
+      inventory: args.query.inventory,
+    },
     args.dependencies.resolveApiReleaseSetSnapshotsForRequest,
   )
   return Boolean(latest && latest.apiReleaseSet !== args.snapshot.apiReleaseSet)
@@ -473,6 +477,17 @@ export async function listDivisions(args: {
       status: 503,
       body: buildSnapshotNotReadyDivisionResponse(),
     }
+  }
+  if (args.requestedApiVersion === '0.2' && activeDivisionSnapshot.inventory) {
+    routeState.selection = {
+      inventory: activeDivisionSnapshot.inventory,
+      releaseSet: activeDivisionSnapshot.apiReleaseSet,
+      domain: domainCode,
+    }
+    const pinnedUrl = new URL(args.requestUrl)
+    for (const [key, value] of Object.entries(routeState.selection))
+      pinnedUrl.searchParams.set(key, value)
+    args.requestUrl = pinnedUrl.toString()
   }
   const scopedAreaSnapshot = await resolveRequestedAreaSnapshot({
     region: args.query.region,
@@ -753,6 +768,17 @@ export async function getDivisionDetail(args: {
       status: 503,
       body: buildSnapshotNotReadyDivisionResponse(),
     }
+  }
+  if (args.requestedApiVersion === '0.2' && activeDivisionSnapshot.inventory) {
+    routeState.selection = {
+      inventory: activeDivisionSnapshot.inventory,
+      releaseSet: activeDivisionSnapshot.apiReleaseSet,
+      domain: domainCode,
+    }
+    const pinnedUrl = new URL(args.requestUrl)
+    for (const [key, value] of Object.entries(routeState.selection))
+      pinnedUrl.searchParams.set(key, value)
+    args.requestUrl = pinnedUrl.toString()
   }
   const scopedAreaSnapshot = await resolveRequestedAreaSnapshot({
     region: args.query.region,

@@ -243,9 +243,11 @@ function scalarSourcesForProduct(product: ApiProduct | 'registry') {
   }
 
   return (
-    product === 'addresses' || product === 'divisions'
-      ? (['v0', 'v0.1', 'v1'] as const)
-      : (['v0', 'v0.1'] as const)
+    product === 'divisions'
+      ? (['v0', 'v0.1', 'v0.2', 'v1'] as const)
+      : product === 'addresses'
+        ? (['v0', 'v0.1', 'v1'] as const)
+        : (['v0', 'v0.1'] as const)
   ).map((version, index) => ({
     title: `${apiProductTags[product]} ${version}`,
     slug: `${product}-${version}`,
@@ -394,6 +396,7 @@ app.all('/streets/v0/*', c => forwardMajorVersionAlias(c, '/streets/v0'))
 
 app.use('*', poweredBy())
 app.use('/divisions/v1/geocode', geocodingJsonApiErrors)
+app.use('/divisions/v0.2/geocode', geocodingJsonApiErrors)
 app.use('/addresses/v1/geocode', geocodingJsonApiErrors)
 for (const path of apiRoutePaths) {
   app.use(path, prettyJSON())
@@ -651,7 +654,9 @@ for (const family of [
   'stats',
   'streets',
 ] as const) {
-  for (const version of ['v0', 'v0.1'] as const) {
+  for (const version of family === 'divisions'
+    ? ['v0', 'v0.1', 'v0.2']
+    : ['v0', 'v0.1']) {
     app.use(`/${family}/${version}/sources`, (c, next) =>
       streamSourceRecordsMiddleware(family, c, next),
     )
@@ -768,7 +773,7 @@ app.openapiRoutes([
 function getOpenApiDocument(
   baseUrl: string,
   product: ApiProduct | 'registry' = 'registry',
-  productVersion?: 'v0' | 'v0.1' | 'v1',
+  productVersion?: 'v0' | 'v0.1' | 'v0.2' | 'v1',
   locale: OpenApiLocale = 'en',
 ) {
   const document = app.getOpenAPI31Document({
@@ -894,7 +899,7 @@ function openApiLocale(c: Context<AppEnv>) {
 function openApiDocumentResponse(
   c: Context<AppEnv>,
   product: ApiProduct | 'registry' = 'registry',
-  version?: 'v0' | 'v0.1' | 'v1',
+  version?: 'v0' | 'v0.1' | 'v0.2' | 'v1',
 ) {
   c.header('vary', 'accept-language')
   return c.json(
@@ -909,9 +914,11 @@ for (const version of ['v0', 'v0.1'] as const) {
   )
 }
 for (const product of apiProducts) {
-  for (const version of product === 'addresses' || product === 'divisions'
-    ? (['v0', 'v0.1', 'v1'] as const)
-    : (['v0', 'v0.1'] as const)) {
+  for (const version of product === 'divisions'
+    ? (['v0', 'v0.1', 'v0.2', 'v1'] as const)
+    : product === 'addresses'
+      ? (['v0', 'v0.1', 'v1'] as const)
+      : (['v0', 'v0.1'] as const)) {
     app.get(`/openapi/${product}/${version}`, c =>
       openApiDocumentResponse(c, product, version),
     )

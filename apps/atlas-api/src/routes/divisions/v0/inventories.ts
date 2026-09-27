@@ -5,7 +5,13 @@ import {
 } from '@repo/core/db/metaRegistry'
 import { selectApiInventory } from '@repo/core/db/apiInventory'
 import { RegionFilterSchema, resolveDataRegion } from '../../../schema/region'
+import { requestedGeometryVariants } from '../../../services/divisionsPresentation'
 import type { AppEnv } from '../../../types'
+
+const geometryVariantSchema = z.object({
+  code: z.string(),
+  snapshotId: z.string(),
+})
 
 const route = createRoute({
   method: 'get',
@@ -37,7 +43,9 @@ const route = createRoute({
                 code: z.string(),
                 snapshotId: z.string(),
                 defaultAreaVariant: z.string().nullable(),
-                areaVariants: z.array(z.string()),
+                areaVariants: z.array(geometryVariantSchema),
+                defaultBoundaryVariant: z.string().nullable(),
+                boundaryVariants: z.array(geometryVariantSchema),
               }),
             ),
           }),
@@ -73,23 +81,46 @@ export const divisionInventoriesRoute = defineOpenAPIRoute<typeof route, AppEnv>
         s.snapshotResourceType === 'division' &&
         ['primary', 'inventory'].includes(s.role),
     )
+    const primary = inventories.find(s => s.role === 'primary')
+    if (!primary) return c.json({ error: 'snapshot_not_ready' }, 503)
     return c.json(
       {
         domain: release.domainCode,
         primaryResourceType: 'division' as const,
-        defaultInventory: inventories.find(s => s.role === 'primary')!.variant,
+        defaultInventory: primary.variant,
         releaseSet: release.code,
         inventories: inventories.map(s => {
           const selected = selectApiInventory(snapshots, 'division', s.variant)
           const areas = selected.snapshots.filter(
             s => s.snapshotResourceType === 'divisionArea',
           )
+          const boundaries = selected.snapshots.filter(
+            s => s.snapshotResourceType === 'divisionBoundary',
+          )
+          const defaults = requestedGeometryVariants(
+            'areas,boundaries',
+            release.domainCode,
+            undefined,
+            s.variant,
+          )
           return {
             code: s.variant,
             snapshotId: s.snapshotId,
             defaultAreaVariant:
-              areas.find(a => a.variant === s.variant)?.variant ?? null,
-            areaVariants: areas.map(a => a.variant),
+              areas.find(a => !defaults.area || a.variant === defaults.area)?.variant ??
+              null,
+            areaVariants: areas.map(a => ({
+              code: a.variant,
+              snapshotId: a.snapshotId,
+            })),
+            defaultBoundaryVariant:
+              boundaries.find(
+                b => !defaults.boundary || b.variant === defaults.boundary,
+              )?.variant ?? null,
+            boundaryVariants: boundaries.map(b => ({
+              code: b.variant,
+              snapshotId: b.snapshotId,
+            })),
           }
         }),
       },

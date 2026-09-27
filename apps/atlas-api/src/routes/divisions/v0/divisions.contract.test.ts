@@ -879,3 +879,120 @@ describe('Divisions API responses through the Worker route', () => {
     })
   }
 })
+
+test('0.2 resolves its own catalogue, exposes inventories and rejects absent choices', async () => {
+  const fixture = createFixtureEnvironment()
+  const clone = (table: string, where: string, overrides: Record<string, unknown>) => {
+    const row = fixture.metaSqlite
+      .query(`SELECT * FROM ${table} WHERE ${where}`)
+      .get() as Record<string, SQLQueryBindings>
+    const value = { ...row, ...overrides }
+    const keys = Object.keys(value)
+    fixture.metaSqlite
+      .query(
+        `INSERT INTO ${table} (${keys.map(k => `"${k}"`).join(',')}) VALUES (${keys.map(() => '?').join(',')})`,
+      )
+      .run(...(Object.values(value) as SQLQueryBindings[]))
+  }
+  try {
+    clone('apiVersions', "code='api-divisions-v0.1'", {
+      id: 'api-v02',
+      code: 'api-divisions-v0.2',
+      version: '0.2',
+    })
+    clone('apiReleaseSets', "id='api-release-set-overture-2025'", {
+      id: 'release-v02',
+      code: 'reviewed-edition',
+      apiVersionId: 'api-v02',
+    })
+    clone('apiCatalogRevisions', "code='" + CATALOG_REVISION + "'", {
+      id: 'catalog-v02',
+      code: 'catalog-v02',
+      apiVersionId: 'api-v02',
+    })
+    clone(
+      'apiCatalogRevisionReleaseSets',
+      "apiReleaseSetId='api-release-set-overture-2025'",
+      {
+        apiCatalogRevisionId: 'catalog-v02',
+        apiReleaseSetId: 'release-v02',
+        isDefault: 1,
+      },
+    )
+    const members = fixture.metaSqlite
+      .query(
+        "SELECT * FROM apiReleaseSetSnapshots WHERE apiReleaseSetId='api-release-set-overture-2025'",
+      )
+      .all() as Array<Record<string, SQLQueryBindings>>
+    for (const member of members) {
+      const values = {
+        ...member,
+        apiReleaseSetId: 'release-v02',
+        variant: member.role === 'primary' ? 'saanseoi' : member.variant,
+      }
+      const keys = Object.keys(values)
+      fixture.metaSqlite
+        .query(
+          `INSERT INTO apiReleaseSetSnapshots (${keys.join(',')}) VALUES (${keys.map(() => '?').join(',')})`,
+        )
+        .run(...(Object.values(values) as SQLQueryBindings[]))
+    }
+    const response = await app.fetch(
+      new Request('http://localhost/divisions/v0.2?inventory=saanseoi'),
+      fixture.env,
+    )
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as {
+      meta: { inventory: string; apiReleaseSet: string }
+      links: { permalink: string }
+    }
+    expect(body.meta.inventory).toBe('saanseoi')
+    expect(body.links.permalink).toContain('inventory=saanseoi')
+    expect(body.links.permalink).toContain('releaseSet=reviewed-edition')
+    const unavailable = await app.fetch(
+      new Request('http://localhost/divisions/v0.2?inventory=overture'),
+      fixture.env,
+    )
+    expect(unavailable.status).toBe(409)
+    const discovery = await app.fetch(
+      new Request('http://localhost/divisions/v0.2/inventories'),
+      fixture.env,
+    )
+    expect(discovery.status).toBe(200)
+    expect(await discovery.json()).toMatchObject({
+      defaultInventory: 'saanseoi',
+      primaryResourceType: 'division',
+      releaseSet: 'reviewed-edition',
+      inventories: [
+        {
+          code: 'saanseoi',
+          defaultAreaVariant: null,
+          areaVariants: expect.arrayContaining([
+            { code: 'overture', snapshotId: 'snapshot-overture-2025-area-overture' },
+            { code: 'hkgov-had', snapshotId: 'snapshot-overture-2025-area-had' },
+            {
+              code: 'hkgov-censtatd:2021:simplified',
+              snapshotId: 'snapshot-overture-2025-area-censtatd',
+            },
+          ]),
+          defaultBoundaryVariant: 'overture',
+          boundaryVariants: [
+            {
+              code: 'overture',
+              snapshotId: 'snapshot-overture-2025-boundary-overture',
+            },
+          ],
+        },
+      ],
+    })
+    const historical = await app.fetch(
+      new Request('http://localhost/divisions/v0.1?releaseSet=' + OVERTURE_RELEASE_SET),
+      fixture.env,
+    )
+    expect(
+      ((await historical.json()) as { links: { permalink: string } }).links.permalink,
+    ).toContain(OVERTURE_RELEASE_SET)
+  } finally {
+    fixture.close()
+  }
+})
