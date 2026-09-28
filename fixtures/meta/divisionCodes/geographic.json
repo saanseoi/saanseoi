@@ -1,18 +1,18 @@
 {
-  "versionHash": "sha256:4e698f5459718f0b94cd5b0cb38e4d2e0f4c35bf92451df4e2fcc18b22dd2941",
+  "versionHash": "sha256:ce4de535afdb2b2a1de907887063c628ef5f8e1678ffd9a6f91445390d227dfc",
   "domainCode": "geographic",
   "assignments": [
     {
       "divisionCode": "HK",
-      "canonicalId": "25cec859-44f3-5e1d-a72b-952f804e56ab"
+      "canonicalId": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab"
     },
     {
       "divisionCode": "KL",
-      "canonicalId": "bb5c7e0a-fd09-5416-8bb8-9593c90280fb"
+      "canonicalId": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb"
     },
     {
       "divisionCode": "NT",
-      "canonicalId": "780c42b7-213b-5076-9d36-6ae0024e3bd3"
+      "canonicalId": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3"
     },
     {
       "divisionCode": "CW",

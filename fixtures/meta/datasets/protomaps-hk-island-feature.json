@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8a197dbe33206abce6ccabd024482973d5fc007280eeaafd5b60c2ca62abad8f",
+  "versionHash": "sha256:50e869537589ed01c6d4b77a9d61e5304ac90e4d58f345ae9560498833a7360b",
   "publisherCode": "protomaps",
   "code": "ds-hk-protomaps-island",
   "regionCode": "hk",
@@ -10,7 +10,6 @@
   "sourceVariant": "protomaps",
   "sourceCrs": "EPSG:4326",
   "resourceTypes": [
-    "division",
     "divisionArea"
   ],
   "licenseCode": "ODbL",
