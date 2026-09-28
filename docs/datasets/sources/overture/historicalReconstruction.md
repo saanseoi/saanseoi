@@ -10,7 +10,7 @@ Division base records and individual locales inherit independently through expli
 snapshot ancestry. Unchanged publisher reissues add no canonical history, version
 journal or source-interpretation rows. Changed source payloads retain their assertions
 even when canonical content is unchanged; absent sources carry an explicit omission
-assertion until they reappear. Reviewed supplementary Division fixtures supply the final
+assertion until they reappear. Curated supplementary Division fixtures supply the final
 canonical content for their identities while preserving the native publisher assertion,
 so transient source shapes do not create additional canonical versions.
 

@@ -33,7 +33,7 @@ divisions**, organised into four categories:
   settlements; they do not imply that every boundary is legally defined.
 - **Neighbourhoods:** 176 <black>Macrohoods</black>, 192 <black>Neighbourhoods</black>
   and 180 <black>Microhoods</black>. These describe places at different scales within
-  urban areas, with reviewed relationships where the evidence supports them.
+  urban areas, with curated relationships where the evidence supports them.
 - **Landforms:** 5 <black>Major Islands</black>, 106 <black>Minor Islands</black> and
   143 <black>Islets</black>, together with 5 <black>Island Groups</black>.
 
@@ -84,9 +84,9 @@ companion supplies territorial and land-clipped polygon coverage.
   fixture keys. Division, area and hierarchy references use the same canonical
   identifiers.
 - Available point `geometry`, `bbox`, `cartography`, `wikidata`, `identifiers` and
-  `sources` are carried forward subject to reviewed choices.
+  `sources` are carried forward subject to curated choices.
 
-### Reviewed and Enriched Fields
+### Curated and Enriched Fields
 
 - Curated names and aliases describe the selected identity. Publisher names and
   classifications remain source evidence; curated SaanSeoi classification determines
@@ -94,12 +94,12 @@ companion supplies territorial and land-clipped polygon coverage.
 - Administrative areas, cities and island landforms remain distinct identities even when
   names coincide. Hong Kong Island, Kowloon and New Territories are the three
   administrative areas; Lantau is an island landform.
-- `hierarchies` retains reviewed `administrative`, `locality`, `landform` and `full`
+- `hierarchies` retains curated `administrative`, `locality`, `landform` and `full`
   ancestor paths. Separate supported paths remain separate.
 - New island identities receive available English and Traditional Chinese names,
   representative points, inventory identifiers and provenance.
 - North Rock and Kap Ma Kum Tong are excluded. Ma Shi Chau retains its named island
-  outline; reviewed points outside it cannot assert that island as an ancestor.
+  outline; curated points outside it cannot assert that island as an ancestor.
 
 Ambiguous island identities, missing ancestors, conflicting classes and malformed rings
 block assembly. Classification or a shared name alone does not establish containment.
@@ -113,7 +113,7 @@ offered separately. Area-record counts therefore differ from the number of divis
 with polygons.
 
 A name or point does not imply polygon coverage. Ordinary islands and disconnected
-territorial parts remain included. Reviewed locality boundaries can overlap, and a
+territorial parts remain included. Curated locality boundaries can overlap, and a
 division can have more than one supported ancestry path. Drawn locality and
 neighbourhood boundaries are curated approximations, not statutory boundaries. This
 edition is not an exhaustive or authoritative catalogue of every named place or island

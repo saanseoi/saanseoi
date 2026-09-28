@@ -16,7 +16,7 @@
     "kind": "curation",
     "guard": {
       "id": "geography-identity-review",
-      "summary": "A source geography requires one reviewed canonical identity mapping.",
+      "summary": "A source geography requires one curated canonical identity mapping.",
       "consequence": "block-ingestion"
     }
   }

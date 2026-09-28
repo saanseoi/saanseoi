@@ -38,7 +38,7 @@ one inventory selects its complete published identity and hierarchy contract. It
 not mix primary rows or ancestry from the other inventory.
 
 LandsD settlement-name points remain a distinct domain because they do not define the
-same hierarchy. Reviewed LandsD name matches can also contribute evidence to SaanSeoi
+same hierarchy. Curated LandsD name matches can also contribute evidence to SaanSeoi
 records. Government area variants retain specific provider and vintage identifiers;
 there is no undifferentiated `hkgov` geometry choice.
 
@@ -175,7 +175,7 @@ dependencies, while domain discovery describes API choices.
 | API contract | Default geographic inventory | Edition series                                                                  |
 | ------------ | ---------------------------- | ------------------------------------------------------------------------------- |
 | `0.1`        | Overture                     | Preserve the September 2025–August 2026 editions and their recorded membership. |
-| `0.2`        | SaanSeoi                     | Begin with the first published reviewed edition, intended for September 2026.   |
+| `0.2`        | SaanSeoi                     | Begin with the first published curated edition, intended for September 2026.    |
 
 The default switch is an explicit API contract boundary because identity, ancestry,
 coverage and geocoding can change even when response fields retain the same shape. Each

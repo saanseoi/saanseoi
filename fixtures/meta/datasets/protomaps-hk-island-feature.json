@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:50e869537589ed01c6d4b77a9d61e5304ac90e4d58f345ae9560498833a7360b",
+  "versionHash": "sha256:3a443bb172f6c3732959399ebac7145c386b38209129f16f9e5f4590b3a93349",
   "publisherCode": "protomaps",
   "code": "ds-hk-protomaps-island",
   "regionCode": "hk",
@@ -54,7 +54,7 @@
   "i18n": {
     "en": {
       "name": "Islands",
-      "description": "Reviewed island polygons extracted from SaanSeoi's selected Hong Kong Protomaps basemap release. They are source geometry assertions for the SaanSeoi geographic assembly."
+      "description": "Curated island polygons extracted from SaanSeoi's selected Hong Kong Protomaps basemap release. They are source geometry assertions for the SaanSeoi geographic assembly."
     },
     "zh-hant": {
       "name": "島嶼",
@@ -69,7 +69,7 @@
     {
       "rulesetVersion": "rs-protomaps-island-assembly-v1",
       "operationCodes": [
-        "select_reviewed_protomaps_island_features",
+        "select_curated_protomaps_island_features",
         "materialise_saanseoi_island_divisions",
         "materialise_saanseoi_island_division_areas"
       ]

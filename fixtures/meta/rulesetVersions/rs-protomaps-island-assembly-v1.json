@@ -1,64 +1,64 @@
 {
-  "versionHash": "sha256:0e448f24065b6faa80def8a97f0d1b9cb5e7233556fee48eeb99c72b02999ebd",
+  "versionHash": "sha256:655b4729cb93044fe6af184465e2833a061ebb1553b951d4bb4579cbf8f21e3e",
   "code": "rs-protomaps-island-assembly-v1",
   "resourceType": "division",
   "strategy": "merge",
   "version": "1",
-  "notes": "Selects reviewed Protomaps island source assertions, then materialises the SaanSeoi landform identity and area companions.",
+  "notes": "Selects curated Protomaps island source assertions, then materialises the SaanSeoi landform identity and area companions.",
   "mergeRules": [
     {
-      "operationCode": "select_reviewed_protomaps_island_features",
+      "operationCode": "select_curated_protomaps_island_features",
       "kind": "record",
       "sourceFieldPath": "protomapsIslandFeatures.sourceGeometry, protomapsIslandFeatures.properties",
       "targetFieldPath": "SaanSeoi island geometry selection",
-      "condition": "Every selected island geometry must have an accepted reviewed decision in fixtures/meta/curations/saanseoi-island-review.json; new names and newly available geometry block assembly.",
+      "condition": "Every selected island geometry must have an accepted curation decision in fixtures/meta/curations/saanseoi-island-review.json; new names and newly available geometry block assembly.",
       "mappings": [
         {
-          "from": "reviewed Protomaps source assertion",
+          "from": "curated Protomaps source assertion",
           "to": "selected geometry contribution"
         },
         {
-          "from": "unreviewed name, geometry or ambiguous match",
-          "to": "block assembly and retain the review evidence"
+          "from": "uncurated name, geometry or ambiguous match",
+          "to": "block assembly and retain the curation evidence"
         }
       ],
       "i18n": {
         "en": {
-          "description": "Selects only reviewed Protomaps island features and blocks assembly when a name or geometry needs review."
+          "description": "Selects only curated Protomaps island features and blocks assembly when a name or geometry needs curation."
         },
         "zh-hant": {
-          "description": "只選取已審核的 Protomaps 島嶼要素；名稱或幾何需要審核時會停止組裝。"
+          "description": "只選取已整理的 Protomaps 島嶼要素；名稱或幾何需要整理時會停止組裝。"
         },
         "zh-hans": {
-          "description": "只选取已审核的 Protomaps 岛屿要素；名称或几何需要审核时会停止组装。"
+          "description": "只选取已整理的 Protomaps 岛屿要素；名称或几何需要整理时会停止组装。"
         }
       }
     },
     {
       "operationCode": "materialise_saanseoi_island_divisions",
       "kind": "bulk",
-      "sourceFieldPath": "reviewed Protomaps island selections, reviewed Overture and LandsD crosswalks",
+      "sourceFieldPath": "curated Protomaps island selections, curated Overture and LandsD crosswalks",
       "targetFieldPath": "divisions",
-      "condition": "Retain an Overture Division ID when a reviewed crosswalk exists; otherwise derive the stable SaanSeoi island ID.",
+      "condition": "Retain an Overture Division ID when a curated crosswalk exists; otherwise derive the stable SaanSeoi island ID.",
       "mappings": [
         {
-          "from": "reviewed Overture island crosswalk",
+          "from": "curated Overture island crosswalk",
           "to": "SaanSeoi Division identity and membership provenance"
         },
         {
-          "from": "reviewed LandsD place-name crosswalk",
+          "from": "curated LandsD place-name crosswalk",
           "to": "SaanSeoi Division official-name and alias provenance"
         }
       ],
       "i18n": {
         "en": {
-          "description": "Materialises each reviewed island as a SaanSeoi landform Division, retaining an Overture identity when available."
+          "description": "Materialises each curated island as a SaanSeoi landform Division, retaining an Overture identity when available."
         },
         "zh-hant": {
-          "description": "將每個已審核島嶼實體化為 SaanSeoi 地貌區劃，並在可用時保留 Overture 身分。"
+          "description": "將每個已整理島嶼實體化為 SaanSeoi 地貌區劃，並在可用時保留 Overture 身分。"
         },
         "zh-hans": {
-          "description": "将每个已审核岛屿实体化为 SaanSeoi 地貌区划，并在可用时保留 Overture 身份。"
+          "description": "将每个已整理岛屿实体化为 SaanSeoi 地貌区划，并在可用时保留 Overture 身份。"
         }
       }
     },
