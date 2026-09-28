@@ -13,7 +13,7 @@
         "en": {
           "name": "Geographic",
           "descriptionShort": "Curated superset of geographical and administrative divisions.",
-          "description": "Reviewed 山水 hierarchy and areas, with Overture geometry fallback and selectable government area companions."
+          "description": "Curated 山水 hierarchy and areas, with Overture geometry fallback and selectable government area companions."
         },
         "zh-hant": {
           "name": "地理分區",
@@ -40,7 +40,7 @@
           "variant": "overture",
           "role": "inventory",
           "isRequired": true,
-          "cohortMatchingMode": "reviewed_input",
+          "cohortMatchingMode": "curated_input",
           "priority": 1
         },
         {
@@ -56,7 +56,7 @@
           "variant": "overture",
           "role": "geometry",
           "isRequired": true,
-          "cohortMatchingMode": "reviewed_input",
+          "cohortMatchingMode": "curated_input",
           "priority": 10,
           "ingestDependencies": [
             {

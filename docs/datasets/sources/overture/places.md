@@ -1,5 +1,8 @@
 # Overture Places
 
+Processing retains shared rule definitions and curation application counts under the
+[shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).
+
 Place construction records its concrete source releases in `snapshotResourceReleases`,
 its effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact
 Address, Division, DivisionArea and supplementary Address selections in
@@ -577,7 +580,7 @@ Overture Places 的 `names`、`brand.names` 及地址 `freeform`
 `SAANSEOI_TRIAL_DEFER_PLACE_ADDRESS_REVIEWS` accepts exact comma-separated
 `environment:sourceVersion` scopes for explicitly authorised trials. Unresolved Address
 reviews retain their source text, candidates and original reason in the release-owned
-review file and provenance fixtures, but publish no Address link. Reviewed identity
+review file and provenance fixtures, but publish no Address link. Curated identity
 decisions remain unchanged and are not reported as applied to deferred rows. This option
 does not change existing ALS snapshots or backfill later premises into earlier history.
 Without the scoped option, identity review blocks publication.

@@ -74,10 +74,10 @@ although the dataset has other divisions without polygons.
 ## Geometry and evidence
 
 Containment reads the release's published SaanSeoi DivisionArea snapshot, or its
-Overture area companion when no SaanSeoi companion exists. Reviewed drawings override
+Overture area companion when no SaanSeoi companion exists. Curated drawings override
 island inventory polygons, which override Overture fallback during assembly. Requests do
 not read editor fixtures. See the
-[reviewed assembly contract](datasets/sources/saanseoi/divisionArea.md).
+[curated assembly contract](datasets/sources/saanseoi/divisionArea.md).
 
 A request-scoped bounding-box prefilter excludes irrelevant polygons before exact
 point-in-polygon tests. Multipolygon components are tested separately. Hole interiors

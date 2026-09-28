@@ -278,7 +278,7 @@ with the Hong Kong SAR.
 
 SaanSeoi uses `overturist` with that division identifier, the selected Overture release,
 and the `divisions` theme. SaanSeoi retains that extracted release as the source input.
-The scoped extract omits Overture's PRC country record, so SaanSeoi adds a reviewed
+The scoped extract omits Overture's PRC country record, so SaanSeoi adds a curated
 referent-only country anchor for hierarchy and boundary references. The anchor has names
 and identity but no country geometry, and does not add a PRC coverage claim.
 

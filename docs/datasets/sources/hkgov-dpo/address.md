@@ -1,12 +1,15 @@
 # HKGov DPO ALS addresses
 
+Processing retains shared rule definitions and curation application counts under the
+[shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).
+
 Publisher Point geometries without coordinates retain their source representation.
 Division membership uses the available district and bilingual locality evidence when
 point coordinates are absent; it does not infer a location.
 
 Automatic ALS audit operations retain one declaration and aggregate count per operation.
 Per-record publisher and canonical evidence is excluded from automatic audit entries;
-reviewed identity decisions retain individual fixture references.
+curated identity decisions retain individual fixture references.
 
 Canonical references and retained processing evidence follow the
 [source evidence contract](../../families/source-evidence.md).
@@ -443,7 +446,7 @@ hierarchy parents assign stable SaanSeoi-issued `ss-<uuid-v5>` address IDs; thes
 not GERS identifiers. One named `CHOI YING PLACE / 彩盈坊` record is retained in each
 release; the underspecified duplicate is suppressed wherever present and the corrected
 Chinese name is backfilled. Original components and discarded assertions are preserved
-as evidence. A reviewed identity spans the publisher's temporary CSU change; the rule
+as evidence. A curated identity spans the publisher's temporary CSU change; the rule
 does not generalise shared points or CSU values into permission to merge.
 
 `hkgov-dpo-address-school-reconciliations.json` keeps the exact 3 Tsing Luk Street Ho
@@ -589,7 +592,7 @@ reconstruction and its associated fallback classification. The existing shopping
 is not merged into the estate. These decisions are bounded to the retained releases and
 preserve their source evidence dates.
 
-Camellia House at So Uk retains its last 374-flat inventory and one reviewed identity
+Camellia House at So Uk retains its last 374-flat inventory and one curated identity
 across the source omission, continuing until revoked with explicit verification status.
 Sun Fong House's approved current coordinates are backfilled across retained history;
 its inventory remains intact. Sun Yee House retains its reviewed earlier point,
@@ -1085,7 +1088,7 @@ their original structure.
 ## Geographic membership
 
 Fresh ALS preparation selects the latest published SaanSeoi Division edition and the
-DivisionArea snapshot from the same reviewed assembly. Without a published curated
+DivisionArea snapshot from the same curated assembly. Without a published curated
 edition, both references use the requested Overture cohort. Their exact snapshot IDs are
 recorded in the release lookup dependencies and preparation audit.
 

@@ -127,7 +127,7 @@ variants are printed separately from exact feature duplicates.
 
 ## Processing audit trail
 
-At upload, each automatic consolidation and each reviewed identity-drift decision is
+At upload, each automatic consolidation and each curated identity-drift decision is
 stored against the release in the meta database. The `stats` table records aggregate
 counts under the `processing` metric; `releaseProcessingActions` stores action/mode
 summaries, while `releaseProcessingActionChunks` retains compressed JSON evidence per

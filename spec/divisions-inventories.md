@@ -1,8 +1,8 @@
 # Division domains, inventories and release contracts
 
 Status: API `0.2` runtime and registry definitions are implemented. Data publication
-requires complete reviewed monthly ingredients; route availability alone does not imply
-a published edition.
+requires complete curated monthly ingredients; route availability alone does not imply a
+published edition.
 
 ## Vocabulary
 
@@ -141,7 +141,7 @@ hierarchy.
 
 1. Raw archives retain exact upstream bytes and checksums.
 2. Source records preserve each publisher's assertions and release identity.
-3. The SaanSeoi builder combines pinned upstream evidence and reviewed fixtures into
+3. The SaanSeoi builder combines pinned upstream evidence and curated fixtures into
    independently versioned Division and DivisionArea archives.
 4. Ordinary ingestion turns each archive into canonical snapshots. Canonical means a
    common storage contract; it does not merge inventories or erase source assertions.

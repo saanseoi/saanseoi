@@ -1,7 +1,7 @@
 # Canonical division classes
 
 The `division-normalisation.json` processing fixture owns subtype/class mappings,
-hierarchy classifications, ordered level tokens, reviewed Hong Kong area identity
+hierarchy classifications, ordered level tokens, curated Hong Kong area identity
 recognition and fallbacks. The normaliser consumes these parameters directly.
 Level-token order and substring matching are significant; review both when editing
 taxonomy policy.
@@ -48,9 +48,9 @@ The country referent is a separate administrative level-0 anchor. Planning and
 statistical classes have no geographic category (`null`). Cities retain their source
 UUIDs. Administrative areas have separate identities, even when their geometry equals a
 city. Kowloon city retains `17009785-57fd-4e5b-af86-2d27352e4718`; Kowloon area uses
-`bb5c7e0a-fd09-5416-8bb8-9593c90280fb`.
+`ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb`.
 
-Lok Ma Chau Loop is a reviewed level-4 macrohood. Technology and science parks may be
+Lok Ma Chau Loop is a curated level-4 macrohood. Technology and science parks may be
 hoods without a locality ancestor. Source classification assertions remain in
 `properties`.
 

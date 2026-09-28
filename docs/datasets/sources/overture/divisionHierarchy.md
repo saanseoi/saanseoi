@@ -60,7 +60,7 @@ curated codes. Stored ancestor names participate only when the request sets
 stored projection after the upload sequence, so unchanged snapshot promotion writes only
 its scope mapping. See [Division text search](../../families/divisions.md#text-search).
 
-## Landforms and reviewed ancestry
+## Landforms and curated ancestry
 
 Landforms have no numeric level. `hierarchies.landform` retains physical island and
 island-group ancestry independently of administrative and locality paths. The full path
@@ -71,5 +71,5 @@ association. Cities remain excluded from the full display path.
 
 Lantau is guarded against its retained Overture `locality` classification with null
 class and administrative level. Its canonical class is `major_island`; its identity,
-source assertions and area association are retained. Reviewed cohort ancestry patches
+source assertions and area association are retained. Curated cohort ancestry patches
 preserve provisional evidence and do not rewrite publisher hierarchy fields.

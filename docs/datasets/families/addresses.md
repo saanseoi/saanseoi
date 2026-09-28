@@ -1,12 +1,15 @@
 # Addresses dataset family
 
+Processing runs, reusable rule mappings and counts-only curation evidence follow the
+[shared processing contract](../pipeline.md#processing-stages-and-retained-evidence).
+
 ALS Division membership accepts publisher Point geometries without coordinates and uses
 the available district and bilingual locality evidence. Missing coordinates do not
 prevent address preparation or create an inferred point.
 
 Automatic ALS audit operations retain one declaration and aggregate count per operation.
 Per-record publisher and canonical evidence is excluded from automatic audit entries;
-reviewed identity decisions retain individual fixture references.
+curated identity decisions retain individual fixture references.
 
 Canonical provenance follows the [source evidence contract](source-evidence.md).
 
@@ -460,7 +463,7 @@ retain a stable SaanSeoi-issued `ss-<uuid-v5>` address identity. The `ss-` prefi
 denotes SaanSeoi identity ownership, not instability or GERS backing. Named-premise
 retentions and derived hierarchy parents use the same prefix. Consolidation can also
 backfill a corrected display name while preserving every raw assertion. Choi Ying Place
-uses one reviewed identity across its temporary publisher CSU change; this does not
+uses one curated identity across its temporary publisher CSU change; this does not
 assign residential units to the shopping centre or authorise other same-point merges.
 
 Reviewed closures preserve the premises in earlier source releases and accept their
@@ -713,7 +716,7 @@ distinct. Sun Tin Wai's reviewed estate record is reconstructed across retained
 omissions only when no other estate identity exists; its granularity is `complex` and
 the shopping centre remains separate. Raw names and street assertions remain evidence.
 
-So Uk's Camellia House uses one reviewed identity and retains its 374-flat inventory
+So Uk's Camellia House uses one curated identity and retains its 374-flat inventory
 until revoked. Sun Fong House uses its approved current point throughout retained
 history. Empty aliases at Sheung Lok, Sheung Tak, Shui Pin Wai and Tai Hang Tung are
 suppressed under exact owner and source guards. Sheung Tak's houses remain separate, and

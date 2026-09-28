@@ -9,8 +9,8 @@ publisher's `subtype` and `class`. `filter[class]` selects a canonical class;
 `filter[category]` selects administrative, locality, hood or landform divisions. A level
 alone does not identify a class.
 
-Reviewed hierarchy entries can carry `full_containment` and `containment_geometry`.
-These are SaanSeoi-derived assertions about the owning division's entire area within an
+Curated hierarchy entries can carry `full_containment` and `containment_geometry`. These
+are SaanSeoi-derived assertions about the owning division's entire area within an
 ancestor; they are not publisher hierarchy assertions. The editor calculates them from
 polygons and curated assembly recalculates them after geometry replacements. Unknown
 coverage remains `null`. See
@@ -38,9 +38,9 @@ The country referent is a separate administrative level-0 anchor. Planning and
 statistical classes have no geographic category (`null`). Cities retain their source
 UUIDs. Administrative areas have separate identities, even when their geometry equals a
 city. Kowloon city retains `17009785-57fd-4e5b-af86-2d27352e4718`; Kowloon area uses
-`bb5c7e0a-fd09-5416-8bb8-9593c90280fb`.
+`ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb`.
 
-Lok Ma Chau Loop is a reviewed level-4 macrohood. Technology and science parks may be
+Lok Ma Chau Loop is a curated level-4 macrohood. Technology and science parks may be
 hoods without a locality ancestor. Source classification assertions remain in
 `properties`.
 

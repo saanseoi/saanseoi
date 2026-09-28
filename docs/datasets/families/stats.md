@@ -1,5 +1,8 @@
 # Statistics dataset family
 
+Processing runs, reusable rule mappings and counts-only curation evidence follow the
+[shared processing contract](../pipeline.md#processing-stages-and-retained-evidence).
+
 Field provenance and full-response source specifications follow the
 [source evidence contract](source-evidence.md). Each field retains its own contributing
 release; a later release for another field does not replace that evidence.
@@ -190,14 +193,14 @@ bridges, then records the canonical `divisionId`, canonical `districtCode`, refe
 year and measures. This prevents a publisher identifier from being mistaken for a
 SaanSeoi district code.
 
-These reviewed identity mappings live in `fixtures/meta/curations/identity/`. Ingestion
+These curated identity mappings live in `fixtures/meta/curations/identity/`. Ingestion
 reads the version-controlled curations directly and validates their content hashes;
 metadata synchronisation does not materialise identity mappings. Public identifier
 discovery uses the [release-scoped identity lookup](../../identity-bridge.md).
 
-Canonical Stats records expose that reviewed SaanSeoi `districtCode` as
-`geography.code`; the publisher's numeric `DC` remains only in source provenance and the
-constructed `sourceFeatureRef`.
+Canonical Stats records expose that curated SaanSeoi `districtCode` as `geography.code`;
+the publisher's numeric `DC` remains only in source provenance and the constructed
+`sourceFeatureRef`.
 
 When a reviewed statistic has an area companion, its dataset fixture declares
 `areaCompanionByReferencePeriod`. Ingestion resolves that declaration for each
@@ -306,7 +309,7 @@ cover analytical dimensions, statistical meaning, localisations and the linked m
 version. Localisations share their owning field or measure hash. Readers join these
 exact versions, independently of source-release markers or `isCurrent`.
 
-Source geometry stays in provenance until a reviewed geometry is released through the
+Source geometry stays in provenance until a curated geometry is released through the
 Divisions family. There is no multiplier column or separate statistical-geography
 registry.
 

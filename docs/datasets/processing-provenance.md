@@ -258,7 +258,7 @@ per-record copies. The source, current and history storage contracts remain sepa
 from this audit.
 
 Places retains normalisation, country selection and Address-analysis declarations,
-selected matching policies and entries, and individual reviewed identity decisions.
+selected matching policies and entries, and individual curated identity decisions.
 Places and supplementary Addresses register separate manifests before publication.
 Unresolved identity reviews retain failed blocking guards; supplementary dependency
 checks also remain required. Completed audit retries transfer the retained graph without

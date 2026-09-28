@@ -1,5 +1,8 @@
 # Places dataset family
 
+Processing runs, reusable rule mappings and counts-only curation evidence follow the
+[shared processing contract](../pipeline.md#processing-stages-and-retained-evidence).
+
 Place construction records its concrete source releases in `snapshotResourceReleases`,
 its effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact
 Address, Division, DivisionArea and supplementary Address selections in
@@ -78,7 +81,7 @@ evidence under the
 and finalisation share a draft run, preserving review and materialisation hashes.
 
 Processing audits retain registered normalisation, country-selection and Address
-analysis declarations, aggregate counts, matching policies and reviewed identity
+analysis declarations, aggregate counts, matching policies and curated identity
 decisions in R2. Places and supplementary Addresses register separate manifests before
 publication. Unresolved Address reviews retain their evidence with a null Place link;
 they do not select an identity or block ingestion. Publication requires the completed

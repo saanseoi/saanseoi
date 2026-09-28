@@ -189,10 +189,9 @@ Choi Ying Place retains one named shopping centre across all thirty releases und
 twenty-eight occurrences; retain the sole named record in December 2024 and
 January 2025. Backfill `彩盈坊` over the ten early `彩盈商場` canonical names. Both
 publisher CSUs and all suppressed raw components remain provenance, while one explicit
-reviewed identity spans the temporary CSU change. Exact per-release bilingual
-components, GeoAddress and geometry are guarded before identity resolution. The five
-residential buildings and their 3,995 units are untouched; no shopping-centre units are
-inferred.
+curated identity spans the temporary CSU change. Exact per-release bilingual components,
+GeoAddress and geometry are guarded before identity resolution. The five residential
+buildings and their 3,995 units are untouched; no shopping-centre units are inferred.
 
 Choi Wan (1) Estate is corroborated against Housing Authority's Choi Wan (I) Estate: all
 sixteen building names match and all thirty retained inventories contain the same 5,927
@@ -329,7 +328,7 @@ reconstructs the named February 2026 representation for the five-release April�
 omission. Both source records then disappear on 22 July, which is retained as a dated
 publisher removal rather than backfilled. The retention fixture guards the two observed
 named component sets, the unnamed components, both recorded points and every source
-occurrence. It assigns one reviewed identity and embeds discarded source evidence in
+occurrence. It assigns one curated identity and embeds discarded source evidence in
 provenance; no CSU-only merge rule is introduced.
 
 Fai Ming Estate's reviewed locality decision backfills FANLING / 粉嶺 for Sing Fai House
