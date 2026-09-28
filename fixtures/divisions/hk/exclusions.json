@@ -667,22 +667,6 @@
       "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
     },
     {
-      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
-      "names": [
-        "Po Toi Islands",
-        "蒲台群島"
-      ],
-      "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
-    },
-    {
-      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
-      "names": [
-        "Soko Islands",
-        "索罟群島"
-      ],
-      "reason": "Whole-island or island-group macrohood; excluded from reviewed coverage by curator."
-    },
-    {
       "divisionId": "2a938b4b-1803-4e35-97ca-f4c4ed2ed108",
       "names": [
         "Lamma Island",
@@ -785,6 +769,42 @@
         "赤鱲角"
       ],
       "reason": "Chek Lap Kok is represented by its curated island landform identity and is excluded as a duplicate macrohood."
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2948",
+      "names": [
+        "Chuk Yuen United Village",
+        "竹園聯合村"
+      ],
+      "reasonCode": "DEMOLISHED",
+      "reason": "Demolished; excluded by curator."
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1281",
+      "names": [
+        "Ngau Chi Wan Village",
+        "牛池灣村"
+      ],
+      "reasonCode": "DEMOLISHED",
+      "reason": "Demolished; excluded by curator."
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:3512",
+      "names": [
+        "Che Ting Tsuen",
+        "輋頂村"
+      ],
+      "reasonCode": "INSUFFICIENT_EVIDENCE",
+      "reason": "Insufficient evidence to distinguish this Lei Yue Mun settlement from surrounding villages; excluded by curator."
+    },
+    {
+      "divisionId": "c8488b42-3b2e-425b-8930-cce3fded69e2",
+      "names": [
+        "Lok Ma Chau Loop",
+        "落馬洲河套"
+      ],
+      "reasonCode": "REVIEWED_EXCLUSION",
+      "reason": "Level-6 microhood excluded by curator; the separate level-4 Lok Ma Chau Loop entry is retained."
     }
   ]
 }
