@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "authority": "User decisions, 2026-09-12: restore reviewed identity components while preserving raw ALS assertions, coordinates and source names.",
+  "authority": "User decisions, 2026-09-12: restore curated identity components while preserving raw ALS assertions, coordinates and source names.",
   "rules": [
     {
       "id": "shun-ting-terraced-home",

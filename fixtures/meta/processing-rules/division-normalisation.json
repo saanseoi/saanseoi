@@ -4,7 +4,7 @@
   "id": "normalise-divisions",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Preserve publisher identity and source assertions; use the reviewed SaanSeoi class and taxonomy for reviewed identities, and normalise unreviewed source rows for review. Materialise localised names and correlated hierarchy paths.",
+  "summary": "Preserve publisher identity and source assertions; use the curated SaanSeoi class and taxonomy for curated identities, and normalise native source rows for review. Materialise localised names and correlated hierarchy paths.",
   "inputs": ["source-divisions"],
   "outputs": ["divisions"],
   "parameters": {

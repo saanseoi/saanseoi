@@ -474,7 +474,7 @@
       "release": "20250225-1050-ALS-GeoJSON",
       "expectedFingerprint": "ca29239cd77e13eab113479b372e7a8f9291a16dcf182670446aab09d29a0104",
       "action": "reviewed_premise_consolidation",
-      "decision": "Suppress the returning underspecified duplicate and retain the named centre with the same reviewed identity. Keep all raw publisher assertions as provenance; no residential inventory change.",
+      "decision": "Suppress the returning underspecified duplicate and retain the named centre with the same curated identity. Keep all raw publisher assertions as provenance; no residential inventory change.",
       "authority": "User decision, 2026-09-07: remove the underspecified duplicate from all and backfill the correct name."
     },
     {

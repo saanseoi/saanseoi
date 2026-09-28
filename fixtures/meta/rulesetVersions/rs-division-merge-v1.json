@@ -4,7 +4,7 @@
   "resourceType": "division",
   "strategy": "merge",
   "version": "1",
-  "notes": "Materialises category, class, level and correlated administrative, locality and full hierarchy paths. Cities retain source identities; independent administrative areas and Kowloon city use district-union geometries. Hong Kong city is reconstructed only when absent. Retains reviewed identity, geometry and classification patch evidence.",
+  "notes": "Materialises category, class, level and correlated administrative, locality and full hierarchy paths. Cities retain source identities; independent administrative areas and Kowloon city use district-union geometries. Hong Kong city is reconstructed only when absent. Retains curated identity, geometry and classification patch evidence.",
   "mergeRules": [
     {
       "operationCode": "derive_division_type_from_overture_taxonomy",

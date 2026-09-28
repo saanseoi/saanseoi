@@ -49,7 +49,7 @@ Fields which retain the source data with certain additions:
   premise-normalisation evidence are wrapped under the <black>hkgovAls</black> key
 - `bbox` - [BBox](/docs#models/BBox) - derived from the retained point geometry
 - `id` - [Id](/docs#models/Id) - a stable <black>ss-</black> UUIDv5 derived from the
-  complete premise representation; a reviewed identity-drift decision may retain an
+  complete premise representation; a curated identity-drift decision may retain an
   earlier identity
 - division relationships - `country`, `area`, and `district` are resolved against the
   selected Overture division snapshot. The `town`, `macrohood`, `neighbourhood`,

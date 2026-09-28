@@ -88,8 +88,8 @@ companion supplies territorial and land-clipped polygon coverage.
 
 ### Reviewed and Enriched Fields
 
-- Reviewed names and aliases describe the selected identity. Publisher names and
-  classifications remain source evidence; reviewed SaanSeoi classification determines
+- Curated names and aliases describe the selected identity. Publisher names and
+  classifications remain source evidence; curated SaanSeoi classification determines
   `category`, `class` and `level` independently of publisher levels.
 - Administrative areas, cities and island landforms remain distinct identities even when
   names coincide. Hong Kong Island, Kowloon and New Territories are the three
@@ -115,7 +115,7 @@ with polygons.
 A name or point does not imply polygon coverage. Ordinary islands and disconnected
 territorial parts remain included. Reviewed locality boundaries can overlap, and a
 division can have more than one supported ancestry path. Drawn locality and
-neighbourhood boundaries are reviewed approximations, not statutory boundaries. This
+neighbourhood boundaries are curated approximations, not statutory boundaries. This
 edition is not an exhaustive or authoritative catalogue of every named place or island
 in Hong Kong.
 
