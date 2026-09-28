@@ -4,7 +4,7 @@
   "id": "apply-division-classification-patch",
   "scope": "individual",
   "basis": "fixture",
-  "summary": "Apply a reviewed type and level only to the division with the expected publisher record ID.",
+  "summary": "Apply a SaanSeoi classification decision by publisher identity, independently of publisher admin level, class and subtype.",
   "inputs": ["source-divisions", "division-classification-patches"],
   "outputs": ["divisions.type", "divisions.level"],
   "parameters": {},

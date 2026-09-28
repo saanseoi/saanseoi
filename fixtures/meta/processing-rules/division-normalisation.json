@@ -4,7 +4,7 @@
   "id": "normalise-divisions",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Create one SaanSeoi division from each publisher record, preserving its identity and source assertions while materialising category, class, level, localised names and correlated hierarchy paths.",
+  "summary": "Preserve publisher identity and source assertions; use the reviewed SaanSeoi class and taxonomy for reviewed identities, and normalise unreviewed source rows for review. Materialise localised names and correlated hierarchy paths.",
   "inputs": ["source-divisions"],
   "outputs": ["divisions"],
   "parameters": {
