@@ -1,3 +1,4 @@
+import { sourceSsDivision, sourceSsDivisionArea } from './saanseoi'
 import { describe, expect, test } from 'bun:test'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
 import {
@@ -7,8 +8,10 @@ import {
   sourceOverturePlaces,
 } from './overture'
 
-describe('Overture source payload boundary', () => {
+describe('publisher source payload boundary', () => {
   for (const table of [
+    sourceSsDivision,
+    sourceSsDivisionArea,
     sourceOvertureDivisions,
     sourceOvertureDivisionAreas,
     sourceOvertureDivisionBoundaries,

@@ -75,7 +75,7 @@ illustrative response is:
       "code": "saanseoi",
       "defaultAreaVariant": "saanseoi",
       "areaVariants": [
-        { "code": "saanseoi", "snapshotId": "snapshot-reviewed-area" },
+        { "code": "saanseoi", "snapshotId": "snapshot-curated-area" },
         { "code": "overture", "snapshotId": "snapshot-overture-area" }
       ],
       "defaultBoundaryVariant": "overture",
@@ -122,7 +122,7 @@ Geometry is selected after the inventory. Bare `areas` resolves the configured a
 default for that inventory in the selected release. Qualified includes retain the
 [geometry selection contract](divisions-geometry.md).
 
-Compatible geometry requires a shared, reviewed identity or an explicit crosswalk.
+Compatible geometry requires a shared, curated identity or an explicit crosswalk.
 Matching names alone are insufficient. Inventory selection and geometry selection are
 not an unrestricted Cartesian product. Defaults and available combinations are recorded
 in release metadata and validated before publication.
@@ -148,6 +148,17 @@ hierarchy.
 5. An API release set pins the exposed inventory snapshots, geometry compatibility,
    defaults and companion snapshots.
 6. A request selects one domain and inventory, then compatible companion geometry.
+
+SaanSeoi's assembly policy is a version-controlled fixture: it defines patches,
+selections, exclusions and explicit additions against pinned upstream inputs. Fixture
+edits use Git history and do not require a separate per-edit audit or source-release
+lifecycle. Each cut, versioned and archived monthly SaanSeoi release is the official
+source artefact. Ordinary ingestion validates and processes that immutable archive.
+
+Unmatched upstream records are candidates, not implicitly published additions. An
+addition becomes part of the SaanSeoi inventory when selected by its assembly policy.
+The fixture may attach a government name to curated geometry without rewriting either
+upstream source.
 
 Upstream sources retain their own source releases, resource releases and release notes.
 The SaanSeoi archive manifest records exact contributing versions and hashes. Its

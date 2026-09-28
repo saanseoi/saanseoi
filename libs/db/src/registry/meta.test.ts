@@ -415,7 +415,7 @@ describe('fixture version hashes', () => {
         sourceVariant: 'protomaps',
         releaseType: 'snapshot',
         releaseFrequency: 'monthly',
-        resourceTypes: ['division', 'divisionArea'],
+        resourceTypes: ['divisionArea'],
         processingRules: expect.objectContaining({
           rulesets: [
             expect.objectContaining({

@@ -214,7 +214,7 @@ export type CanonicalStatsGeography = {
   /** Disambiguates publisher geography codes that are only unique within a parent. */
   namespace?: string
   /**
-   * Reviewed geometry companion for `include=areas` and `include=divisions`.
+   * Curated geometry companion for `include=areas` and `include=divisions`.
    *
    * The cohort is deliberately explicit: a statistics record must never
    * silently acquire a newer (or unrelated) geometry merely because it is the

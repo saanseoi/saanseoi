@@ -180,3 +180,6 @@ DROP TABLE IF EXISTS `user`;
 DROP TABLE IF EXISTS `d1_migrations`;
 
 PRAGMA foreign_keys = ON;
+
+DROP TABLE IF EXISTS `ssDivisionArea`;
+DROP TABLE IF EXISTS `ssDivision`;
