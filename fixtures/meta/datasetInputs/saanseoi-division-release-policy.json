@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "schedule": {
+    "frequency": "monthly",
+    "day": 1,
+    "timezone": "Asia/Hong_Kong",
+    "selection": "latest-publisher-release-on-or-before-edition-date",
+    "carryForward": true
+  },
+  "inputs": [
+    {
+      "datasetCode": "ds-hk-protomaps-island",
+      "resourceType": "divisionArea"
+    },
+    {
+      "datasetCode": "ds-hk-hkgov-landsd-division",
+      "resourceType": "division"
+    },
+    {
+      "datasetCode": "ds-hk-hkgov-rvd-division",
+      "resourceType": "division"
+    }
+  ]
+}
