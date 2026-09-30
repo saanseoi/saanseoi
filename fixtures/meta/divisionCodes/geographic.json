@@ -1,90 +1,2616 @@
 {
-  "versionHash": "sha256:ce4de535afdb2b2a1de907887063c628ef5f8e1678ffd9a6f91445390d227dfc",
+  "versionHash": "sha256:ec5d2d16f78677e82bb34ffe07738b3e30c8a299fd0d8fd623a4849099048292",
   "domainCode": "geographic",
   "assignments": [
     {
+      "divisionCode": "HKSAR",
+      "canonicalId": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+      "divisionClass": "sar",
+      "divisionCategory": "administrative"
+    },
+    {
       "divisionCode": "HK",
-      "canonicalId": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab"
+      "canonicalId": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+      "divisionClass": "area",
+      "divisionCategory": "administrative"
     },
     {
       "divisionCode": "KL",
-      "canonicalId": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb"
+      "canonicalId": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "divisionClass": "area",
+      "divisionCategory": "administrative"
     },
     {
       "divisionCode": "NT",
-      "canonicalId": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3"
+      "canonicalId": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "divisionClass": "area",
+      "divisionCategory": "administrative"
     },
     {
       "divisionCode": "CW",
-      "canonicalId": "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d"
-    },
-    {
-      "divisionCode": "WC",
-      "canonicalId": "a3f5d985-9d91-4629-a530-f66420a0be01"
+      "canonicalId": "8d17afe0-5631-49c5-b86d-d53c5d4b2f9d",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
     },
     {
       "divisionCode": "EST",
-      "canonicalId": "01b58985-268d-4b8a-8e09-64604668b13e"
-    },
-    {
-      "divisionCode": "STH",
-      "canonicalId": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a"
-    },
-    {
-      "divisionCode": "YTM",
-      "canonicalId": "c8ca7da1-2688-402a-8eb9-199b69b5691c"
-    },
-    {
-      "divisionCode": "SSP",
-      "canonicalId": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5"
-    },
-    {
-      "divisionCode": "KLC",
-      "canonicalId": "94d17307-4085-457b-93a1-1f2f31f1b6c0"
-    },
-    {
-      "divisionCode": "WTS",
-      "canonicalId": "8cb650f2-5721-4c32-bb57-330ecc13987d"
-    },
-    {
-      "divisionCode": "KT",
-      "canonicalId": "cf79b69e-8575-4e9b-b15a-a4a8901e685b"
-    },
-    {
-      "divisionCode": "TW",
-      "canonicalId": "bfb5966d-812d-4eee-9303-b6abf899b81e"
-    },
-    {
-      "divisionCode": "TM",
-      "canonicalId": "a55585af-2cb4-41a5-93a9-2e22568c9839"
-    },
-    {
-      "divisionCode": "YL",
-      "canonicalId": "d70db334-3685-4475-a252-23bdd13650e8"
-    },
-    {
-      "divisionCode": "NTH",
-      "canonicalId": "e0c8872f-c29e-4ea3-8efd-88afccef2b08"
-    },
-    {
-      "divisionCode": "TP",
-      "canonicalId": "f20e26ca-8ab6-422d-bf31-d4648b931b8c"
-    },
-    {
-      "divisionCode": "SK",
-      "canonicalId": "c11cb4be-3b0b-405a-9c30-34677c6c4ab2"
-    },
-    {
-      "divisionCode": "ST",
-      "canonicalId": "e70ad27b-857b-45f9-b94f-2168550591da"
-    },
-    {
-      "divisionCode": "KTS",
-      "canonicalId": "106de92f-8a6d-44ba-b2c6-488d181a0deb"
+      "canonicalId": "01b58985-268d-4b8a-8e09-64604668b13e",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
     },
     {
       "divisionCode": "ILD",
-      "canonicalId": "5aa908d4-65c5-4aac-b6eb-bb7481c14a31"
+      "canonicalId": "5aa908d4-65c5-4aac-b6eb-bb7481c14a31",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "KLC",
+      "canonicalId": "94d17307-4085-457b-93a1-1f2f31f1b6c0",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "KTS",
+      "canonicalId": "106de92f-8a6d-44ba-b2c6-488d181a0deb",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "KT",
+      "canonicalId": "cf79b69e-8575-4e9b-b15a-a4a8901e685b",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "NTH",
+      "canonicalId": "e0c8872f-c29e-4ea3-8efd-88afccef2b08",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "SK",
+      "canonicalId": "c11cb4be-3b0b-405a-9c30-34677c6c4ab2",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "ST",
+      "canonicalId": "e70ad27b-857b-45f9-b94f-2168550591da",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "SSP",
+      "canonicalId": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "STH",
+      "canonicalId": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "TP",
+      "canonicalId": "f20e26ca-8ab6-422d-bf31-d4648b931b8c",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "TW",
+      "canonicalId": "bfb5966d-812d-4eee-9303-b6abf899b81e",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "TM",
+      "canonicalId": "a55585af-2cb4-41a5-93a9-2e22568c9839",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "WC",
+      "canonicalId": "a3f5d985-9d91-4629-a530-f66420a0be01",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "WTS",
+      "canonicalId": "8cb650f2-5721-4c32-bb57-330ecc13987d",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "YTM",
+      "canonicalId": "c8ca7da1-2688-402a-8eb9-199b69b5691c",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "YL",
+      "canonicalId": "d70db334-3685-4475-a252-23bdd13650e8",
+      "divisionClass": "district",
+      "divisionCategory": "administrative"
+    },
+    {
+      "divisionCode": "ABD",
+      "canonicalId": "47cb2a1b-5b9a-432f-bae9-d024c467fdd0",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "ALC",
+      "canonicalId": "cd4676ae-d87e-413a-8647-92936a5cf8cc",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "BCH",
+      "canonicalId": "e7ea56d9-890d-4904-9cf1-4b2fab0aa6bc",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "CWB",
+      "canonicalId": "af77229e-a369-422e-a664-7d97b4da08bb",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "C",
+      "canonicalId": "4ddde3cf-b6b2-47b7-8c0e-291a1e491c35",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "CW",
+      "canonicalId": "34eee784-7afc-41ec-aced-9f84eb92adec",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "CC",
+      "canonicalId": "44065987-e1d1-43ed-bbe9-14dfca238662",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "CSW",
+      "canonicalId": "334ba4df-eb17-452e-ade9-f42508ecf523",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "CLB",
+      "canonicalId": "33a3a221-2046-4fbd-a85b-4496ea198ff4",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "DH",
+      "canonicalId": "ad10bf29-f9cc-4af8-9d76-907c6b17632e",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "FT",
+      "canonicalId": "7dbd1f41-051a-428b-ae4b-8fc28f2f637a",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "HT",
+      "canonicalId": "c431c01e-43f6-4014-a5ba-1b59dbc5c5fb",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "HH",
+      "canonicalId": "4911c921-af9b-421a-ad31-cf0bed858435",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "HV",
+      "canonicalId": "9ec59a74-9e9e-4d25-893f-3cb78bfb0ac8",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "HMT",
+      "canonicalId": "82f63499-de52-45aa-9fc5-67fb83ed0c6b",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "HHM",
+      "canonicalId": "5a9fc647-a97e-4461-9ffa-00939f1df665",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "HSK",
+      "canonicalId": "4f935e56-a1de-46b5-b3c6-3cb3f54a6589",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KTK",
+      "canonicalId": "537c8fc4-5ea5-40e8-bdb1-825d93d45059",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KMT",
+      "canonicalId": "b2074221-f805-408c-8c76-352cdd9406c7",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KB",
+      "canonicalId": "c0d3598f-a8e2-4c36-8421-2caa54bb6931",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KLT",
+      "canonicalId": "3e8b3074-f6f0-470e-a571-b597084ec55e",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KT",
+      "canonicalId": "d73817ca-a5fd-4bb3-b526-5e9ed7543db5",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LCK",
+      "canonicalId": "aff9b907-9a05-44b2-adcf-e34ba059b436",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LMT",
+      "canonicalId": "716c8070-82e5-4d7a-b0a3-75f8aae9f986",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LT",
+      "canonicalId": "b57dcff3-f8d9-4e4d-ac7f-21d2f07cbd20",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LYM",
+      "canonicalId": "d3ec706f-f6f0-414d-9e8b-193e73c90c1c",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LMC",
+      "canonicalId": "3bcd7154-e8e5-4d62-92b4-b8314a1de64c",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LK",
+      "canonicalId": "cb37d97e-cb7b-4f55-99f2-1b36c6aa912f",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "MLS",
+      "canonicalId": "62fca143-077b-40f4-8aea-062ba61c2611",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "MYT",
+      "canonicalId": "11c19a3c-e351-4b1c-927d-4e7afb8d7a2c",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "MDL",
+      "canonicalId": "4ce57ea5-ebe4-4d08-bca3-5f0b4e6d473b",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "MK",
+      "canonicalId": "ad15c2a0-4ddc-4f5e-89ad-93d56b212af0",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "NCW",
+      "canonicalId": "994091e0-7fb8-44f4-9196-006a1f67b618",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "NTK",
+      "canonicalId": "e2466384-e08b-4790-8d43-b096762c07dc",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "NP",
+      "canonicalId": "450dca2a-9679-4a6d-89af-9fdec3edae59",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "PH",
+      "canonicalId": "b96bfbc7-6dbe-43e7-ae10-4be2142d6220",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "PC",
+      "canonicalId": "b071eb17-f0fb-4fe7-a3da-541d239aa54e",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "PFL",
+      "canonicalId": "96b06474-b337-488e-bb0b-bc166a6a953e",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "QB",
+      "canonicalId": "969c4519-b724-43ae-a043-30ffaf91d13c",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "RB",
+      "canonicalId": "f1941ea2-1413-4f69-b85c-13a7e268b67f",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SWX",
+      "canonicalId": "b2ab493b-e525-41df-b1f5-c38e33d420a7",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SNT",
+      "canonicalId": "c1b0fd1f-c76a-42be-aa1b-738ee8bc237a",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SMP",
+      "canonicalId": "8ef4dcfa-9953-4275-90c7-8403c66a7817",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SSP",
+      "canonicalId": "59ed906c-3f73-4fbf-8d29-a7f1e21a4c4c",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SMT",
+      "canonicalId": "89e13199-e3b7-4856-91cc-3f25ca0dcc19",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SPH",
+      "canonicalId": "c035a539-c06a-4c48-9a9c-1ddfe5f0755c",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SKK",
+      "canonicalId": "6417e0a2-b0b2-41da-b171-b98c89dd3b1c",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SO",
+      "canonicalId": "2b766c3a-5ea7-46cc-aa9f-e6dfed661137",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SW",
+      "canonicalId": "64a1b3b8-ee9e-4193-bc22-e5abca06cf1c",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SKF",
+      "canonicalId": "a8f4108c-ffc7-46ad-b8ec-0cd6ea5b96c0",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "STL",
+      "canonicalId": "b4543cde-f3b0-44ab-8178-6f076bb560b2",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SCI",
+      "canonicalId": "c81690db-fae9-4802-8745-fd6d96ca9f60",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SNYB",
+      "canonicalId": "c27a813d-ccbc-4386-a611-c554af638765",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TKT",
+      "canonicalId": "cedcc0c6-bead-4fac-adb1-f979de4ab38a",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TLC",
+      "canonicalId": "c8409dad-9a9e-444c-9df1-d3897fb1125e",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TMZ",
+      "canonicalId": "3941b4fa-25e0-4645-a7f3-4e7d3ed5b084",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TPK",
+      "canonicalId": "d347f595-b66b-4ed2-bd75-6422128a89a5",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TT",
+      "canonicalId": "8e8df960-8519-4b8f-b53e-224425178782",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TW",
+      "canonicalId": "85060198-7f18-4b97-9855-b1572782a1f6",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "P",
+      "canonicalId": "7deba44d-c609-424a-81dc-3b13d2b3a270",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TK",
+      "canonicalId": "38b51460-b776-4bc4-8a5a-eda565dbb3b5",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TKL",
+      "canonicalId": "39553fe5-bc20-4401-b550-9062e82a46ff",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TKW",
+      "canonicalId": "9a7dee8e-1749-40c1-9f74-c9de7b070904",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TST",
+      "canonicalId": "350665f7-3fcf-40cc-b071-aff42daec268",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TLT",
+      "canonicalId": "a862832c-a1ac-46f5-bc4a-63961320ff2c",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TWS",
+      "canonicalId": "e4a9bf93-e41e-4540-90fc-c3ba58d1c7f2",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "WC",
+      "canonicalId": "9019e553-d623-472b-bbae-d09fdbbe3ecb",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "WK",
+      "canonicalId": "c389923d-1dca-44af-8abe-4ac5a9d90b0b",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "WCH",
+      "canonicalId": "9c9969f6-4d49-4061-916d-bba3638cd1c6",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "WTS",
+      "canonicalId": "86823bb1-885a-409d-91e7-8f491a6f275d",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "WKS",
+      "canonicalId": "a2c25138-95bb-4faf-8dc1-bfd21102bfb9",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "YMT",
+      "canonicalId": "9117931b-7414-42cc-90d2-65afcc3a31ce",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "YT",
+      "canonicalId": "8fd6ed2d-6b97-4632-a5dd-e8b8a4fc589d",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LMI",
+      "canonicalId": "ss-e5d0f986-d8e7-585e-a535-8cd816c45a11",
+      "divisionClass": "major_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LTI",
+      "canonicalId": "3707878f-080b-42cf-aecf-89fef56a066a",
+      "divisionClass": "major_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CLH",
+      "canonicalId": "dd472098-9bbe-42fb-b4bb-12682d4b68a4",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "CMT",
+      "canonicalId": "01054257-4a31-4a95-9fd1-44b6e568ffff",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KLH",
+      "canonicalId": "ada42fb9-18b2-41b4-a222-60edc5d8dc1f",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KCX",
+      "canonicalId": "1aae385b-4843-4ea9-b8b3-d3726764daf3",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LWH",
+      "canonicalId": "51369fe0-7477-478f-ae0f-b028cb7c02e5",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "PS",
+      "canonicalId": "3faa142e-9926-43c8-af50-0432674c1218",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SMW",
+      "canonicalId": "cd521aae-5acd-4cca-8479-7713a584e1f2",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SKH",
+      "canonicalId": "0afa6a41-de36-47ca-819b-485fad623cf1",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SNW",
+      "canonicalId": "42e66e18-9a48-472a-bc59-7f298cdc4068",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TMT",
+      "canonicalId": "2703ce20-bfab-4aac-83ea-b3153ca189df",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TPM",
+      "canonicalId": "468d8a33-9fff-489c-8079-1f5fe05ab7f6",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "UC",
+      "canonicalId": "3b473eb5-f4dc-4822-ad20-5e045544afa7",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "ADM",
+      "canonicalId": "4edbae57-59b3-4757-8e2c-526d48fd1d44",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "BRT",
+      "canonicalId": "150262a5-0c61-489f-add3-081dd3565b3c",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "BMH",
+      "canonicalId": "727f042f-399e-4f10-a282-2ce3eeabe8a9",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "CHK",
+      "canonicalId": "b15871ff-6563-4c34-b333-a58fec032fd6",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "JL",
+      "canonicalId": "38c2dec8-4e8d-45ec-971d-621160fbaa80",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "JDN",
+      "canonicalId": "ss-fbd43b34-3972-58cd-82ce-d431f834af2e",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "JV",
+      "canonicalId": "45205c80-66bb-4b37-a728-410caa92d4c5",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KNT",
+      "canonicalId": "b56a6e1a-8519-4147-8dd4-342addf54c92",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KP",
+      "canonicalId": "fa7405e4-505c-499a-8114-9175bbaff368",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KLC",
+      "canonicalId": "cce58df1-e153-4c73-b68e-d83764b017ad",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LLH",
+      "canonicalId": "409d4a72-306c-40e6-948f-c173c820dc21",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "LF",
+      "canonicalId": "4c9c34ab-ef85-4821-ad92-5a9cf4735c36",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "MTC",
+      "canonicalId": "bf07573f-396b-4bfc-9a3f-60b61e083d6d",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "MTK",
+      "canonicalId": "5bc42e3a-b7de-485c-a651-57fb3b02957d",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "MTW",
+      "canonicalId": "4efceb9d-8751-4396-8a22-351bb90dd8fa",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "PSN",
+      "canonicalId": "ss-8b1c69bf-eff8-5bcd-acd7-3e5071bee1d6",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "PE",
+      "canonicalId": "ss-28506769-02c3-5edf-9e23-99999e25bfe8",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SWH",
+      "canonicalId": "ff8e1c52-ac5d-42a4-a411-454cfd71912e",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SYP",
+      "canonicalId": "0058e21e-a916-4762-8da1-ba6694204a35",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SPK",
+      "canonicalId": "21ed82b0-c4f1-42f6-b79f-5c94363e4239",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SKW",
+      "canonicalId": "5db55200-4e24-41bf-93e4-8b5610145dea",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SKM",
+      "canonicalId": "62e48e67-a079-4fa5-b76f-baf1ec109179",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "STT",
+      "canonicalId": "183013ef-20f3-417d-8881-16c1e9a9f7e2",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SH",
+      "canonicalId": "1f358117-47ce-45c7-90a4-9e5538d0b884",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SSW",
+      "canonicalId": "a60dba0a-41e2-4c84-ae70-05f647bd0e3a",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SKP",
+      "canonicalId": "4cc6dd9f-b978-4b45-ab50-cc2c8a268df1",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TH",
+      "canonicalId": "fc40613a-be4e-408f-9414-deae675850a7",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TPS",
+      "canonicalId": "f04eaa03-7f27-4475-9f51-34746e1a13aa",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TWP",
+      "canonicalId": "ffe094bc-3d49-4f8a-a1d4-4c625cc495f0",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TNH",
+      "canonicalId": "65a273eb-ce61-40db-ba4c-2f2f7fe496e0",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TWX",
+      "canonicalId": "d23375f4-b681-4899-8cb9-ce1a0454ac58",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TMX",
+      "canonicalId": "8eec17f4-34bb-4d4a-b69d-144849c3f473",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "WTH",
+      "canonicalId": "a0a99bd7-7336-4390-97cc-d61dd553697c",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "WFB",
+      "canonicalId": "ss-03386e65-c456-5b59-a1e7-3eac52cd3a97",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "YYT",
+      "canonicalId": "fe91108a-103f-4ebb-89fa-257114b47b24",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "FL",
+      "canonicalId": "633e949c-d0fa-429d-96f4-aef7a37ece7b",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "KWC",
+      "canonicalId": "c08d5a29-e6d4-4e99-a764-f60cfb0575fc",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "MOS",
+      "canonicalId": "123b305c-5032-4fa2-8358-687b85de4210",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "MW",
+      "canonicalId": "3a6cdf57-2a99-481a-994f-62f81bf1454e",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "SK",
+      "canonicalId": "38435a77-123f-4538-b286-5f952abb4631",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "STK",
+      "canonicalId": "eba716f2-180a-4f5b-9a5e-8c6965ac9bfd",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "ST",
+      "canonicalId": "7d627d50-f720-4e41-910e-95d0218daadf",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "SS",
+      "canonicalId": "4521cf02-f22f-4bb0-932f-a03b03ad567f",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "TP",
+      "canonicalId": "469b597a-0803-4010-a0be-c68e0cff0147",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "TSW",
+      "canonicalId": "93303cf6-e3da-4928-ab32-0a972001d199",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "TKO",
+      "canonicalId": "c8745e10-0c52-4f29-89e9-eab707d7783c",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "TY",
+      "canonicalId": "20bd679a-c47e-461a-9aed-59233a614323",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "TWN",
+      "canonicalId": "68cf1d63-6c88-4882-a898-80fdd5e4c857",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "TM",
+      "canonicalId": "644fad4e-78b0-44b8-b454-115b989381dc",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "TC",
+      "canonicalId": "b68a6a67-e7cc-4731-a36d-29f3b70e73dd",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "YL",
+      "canonicalId": "88085f1d-6f10-46d6-a4d0-b4a70801278a",
+      "divisionClass": "town",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "LFSV",
+      "canonicalId": "54cbcd4c-81f2-47c4-b68b-95fee2196960",
+      "divisionClass": "village",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "WKTV",
+      "canonicalId": "05d7efbf-5d9b-425a-95e4-29c3a87e6396",
+      "divisionClass": "village",
+      "divisionCategory": "locality"
+    },
+    {
+      "divisionCode": "MF",
+      "canonicalId": "ss-5afb2d5b-a7ad-58ad-9ba6-ca818f4dcc9f",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TGT",
+      "canonicalId": "d1e1327a-28ff-4487-9103-df158b9c94a0",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "STR",
+      "canonicalId": "ss-f717fc08-8be5-5037-a609-6aa415cca15c",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TKUL",
+      "canonicalId": "e6aca9b1-f8bd-4070-9aac-38e510960c62",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TKWL",
+      "canonicalId": "f660448e-636c-44aa-9224-a2c3bede13ee",
+      "divisionClass": "macrohood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "HKI",
+      "canonicalId": "ss-5999ed90-1c47-51e7-b79d-80f9251c1e01",
+      "divisionClass": "major_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CLK",
+      "canonicalId": "ss-2c0f3969-6bcd-5783-adfd-60d310fc5564",
+      "divisionClass": "major_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TY",
+      "canonicalId": "ss-bf882aeb-b3f2-52ae-833f-11312b162df4",
+      "divisionClass": "major_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KSC",
+      "canonicalId": "ss-3ed02e02-7232-5acf-834b-16db1ed223a5",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PT",
+      "canonicalId": "ss-3f19a265-9e4c-5f15-a183-f9de8cd8ded9",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CC",
+      "canonicalId": "ss-3bf8ebf4-c98d-5671-ac48-7d4fee80236e",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CRKI",
+      "canonicalId": "ss-38d0ef42-867d-50af-97a1-56c8d883c790",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TLC",
+      "canonicalId": "ss-63bb729a-60dc-5428-88bf-cebcccd71c9d",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "DBL",
+      "canonicalId": "ss-abe13ec2-3f3a-5ac2-8ad6-e74b88b1e255",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HLC",
+      "canonicalId": "ss-5f32c856-869d-5f44-b3e1-0786d94b5865",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "JIN",
+      "canonicalId": "ss-8c523c6c-1d96-5792-8020-12b7879b646b",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "GRSS",
+      "canonicalId": "ss-f4926924-32fe-5514-b07b-8d49e9f32874",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "ALC",
+      "canonicalId": "ss-f2d007da-3b22-5c19-896d-6e6b4a342ed9",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PIC",
+      "canonicalId": "ss-ec9d4635-4023-5414-871b-99dc9ffda248",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "BEAU",
+      "canonicalId": "ss-53c5c492-c255-5bdd-b13a-c93aac5e7164",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TAC",
+      "canonicalId": "ss-9ae1c6a3-a5e2-5693-90bb-469938843fe0",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SKC",
+      "canonicalId": "ss-527cb2f7-e252-5907-a052-787cbfbc5f29",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SHRP",
+      "canonicalId": "ss-7700d5d0-7d4d-50db-96be-45256d132ce2",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PEC",
+      "canonicalId": "ss-9ffedbbc-37d6-507b-8826-3b73e2388f87",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MW",
+      "canonicalId": "ss-8edbccc6-24cf-5e6c-aca3-f6449c138355",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CRSI",
+      "canonicalId": "ss-c9ca9574-3a1b-5b94-ba59-090bac86f3c7",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "BSLT",
+      "canonicalId": "ss-9f3fa40c-c4cd-5a81-a684-a6f052e578fa",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SAC",
+      "canonicalId": "ss-5032b3c5-8e1c-504d-8421-969d8acbb1f5",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "BLFF",
+      "canonicalId": "ss-c642bdef-5574-5775-92e4-0abddde20a94",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TOWN",
+      "canonicalId": "ss-6effc535-4b9d-50f7-b465-6005f71212f7",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SLTR",
+      "canonicalId": "ss-34cc99fd-a3fa-51b3-bc0f-6074f55a63c7",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SUNI",
+      "canonicalId": "ss-1a49b6f3-3d58-526e-8ae7-31b9d0c327a1",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TTC",
+      "canonicalId": "ss-9d94a4c6-1294-5bc4-ae81-f75cbb5c222f",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MSC",
+      "canonicalId": "ss-637c7de7-0305-58b6-abc6-bd205c816b61",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YTT",
+      "canonicalId": "ss-e96b1e29-bbc7-54d2-9bd2-21d35b7b8eea",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SK",
+      "canonicalId": "ss-c29a0ddb-cb2a-5fc0-984a-359fffc908ed",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PORT",
+      "canonicalId": "ss-8b4127e6-4901-5fe3-bf4a-5b1b469d0776",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LKC",
+      "canonicalId": "ss-54c71b65-ffa8-5bd9-909c-513da8269227",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NNI",
+      "canonicalId": "ss-b11accb4-5ca4-531b-afdd-6993ffee8507",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MID",
+      "canonicalId": "ss-072c83d2-2faf-5df3-b875-633caf051e27",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KYC",
+      "canonicalId": "ss-e8b80430-ec60-5a1f-82be-6c3fb144a3ad",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TC",
+      "canonicalId": "ss-4a824c63-2cdd-5a13-8145-50fd477fe24a",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SNI",
+      "canonicalId": "ss-ef15b82a-d215-5956-bc63-db7e31d6f069",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WC",
+      "canonicalId": "ss-05392afc-8906-5c6b-bfd9-33b4efbaa55d",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YC",
+      "canonicalId": "ss-c0c1d1f9-191c-5d1a-8d49-961b9fdc1d8a",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "RNDI",
+      "canonicalId": "ss-789ddf26-191c-5d91-a88d-7f9c65b00086",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "GRNI",
+      "canonicalId": "ss-2ea18d0c-3abe-5845-ac2f-cb9a68914ac6",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WBRO",
+      "canonicalId": "ss-5f79fef4-1590-5041-b62d-04809f792029",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SC",
+      "canonicalId": "ss-88b0726f-411d-5838-a126-38f136c1f943",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "EBRO",
+      "canonicalId": "ss-c3e8dd73-b0fe-53c5-9cb8-cb90640b98c2",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "ALP",
+      "canonicalId": "ss-575be06d-0b44-5360-8024-2a82cdaaa49c",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "STPI",
+      "canonicalId": "ss-2e75d09d-92da-590f-bc72-593242b2d92a",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WYC",
+      "canonicalId": "ss-ca36924a-977d-5fcf-a848-9b18881d7bb4",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LC",
+      "canonicalId": "ss-d3a5b969-222c-5cc6-a29a-8713cbf3c060",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YCX",
+      "canonicalId": "ss-516dfcf9-6aeb-5b4a-b7ce-cabc87609b1d",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PKDH",
+      "canonicalId": "ss-f6b7af4b-f6a4-5979-a2d6-1bd345b743e8",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "BAYI",
+      "canonicalId": "ss-6bb3cde2-49a9-527f-828b-5a0b5e4634f4",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KCW",
+      "canonicalId": "ss-dd77bfd8-0251-555a-8b1c-5623caccc054",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "FLAT",
+      "canonicalId": "ss-6c0945ef-f0ac-5a4e-9488-55dd10b880c7",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YEC",
+      "canonicalId": "ss-00291edc-3c67-5665-a22a-9500f8697ea3",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SSC",
+      "canonicalId": "ss-4eb2fd63-1d2f-555d-95cf-a38775992b34",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MC",
+      "canonicalId": "ss-98ce81d2-522f-5d3a-8f53-b57d358ef63a",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TTCX",
+      "canonicalId": "ss-69bf093f-84de-549a-95a7-3cd8502bb189",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "FWC",
+      "canonicalId": "ss-dde7a2ce-b566-5a1d-bc85-bf423d265078",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CST",
+      "canonicalId": "ss-fb11b5d5-22b7-5f9e-b7fc-9e08a26fe44c",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WAGL",
+      "canonicalId": "ss-a31d2ae1-b22e-5d11-9af8-85976959968c",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SKYC",
+      "canonicalId": "ss-008781db-8430-5278-937f-ed8b33bc4181",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CMT",
+      "canonicalId": "ss-9fd4ad85-b307-5919-bedb-d4ba9da4f06f",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "RNDX",
+      "canonicalId": "ss-ec470b4c-e300-5ef2-a243-af75a697c7a4",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "AC",
+      "canonicalId": "ss-540cc763-b04e-5804-8ca0-1ee63852c35e",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TALC",
+      "canonicalId": "ss-bf11ebe0-e701-53bd-9b02-5d261e855056",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "FC",
+      "canonicalId": "ss-3bb676dc-6eea-59f0-9e46-a49d1f6c29b5",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WLT",
+      "canonicalId": "ss-b402681e-2e28-5ba9-971b-1fc6c10f9c46",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NFC",
+      "canonicalId": "ss-a893944c-55ef-5a63-aa4f-325c7e815c4d",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PSC",
+      "canonicalId": "ss-3788456b-2098-52c7-a0e2-4767e901885e",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CTRI",
+      "canonicalId": "ss-f19f2ccd-9e41-5416-8054-cda3e43ca90d",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CTC",
+      "canonicalId": "ss-e7eb15a2-1445-5214-8b29-e3c23ec8487c",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TCM",
+      "canonicalId": "ss-7a79153d-26e9-5b79-a221-b2edfb731789",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PRLI",
+      "canonicalId": "ss-6cd46d76-0293-5240-b62b-0fe4e6260d4a",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CS",
+      "canonicalId": "ss-4299916a-1259-5b3e-be01-54735b6cde39",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MAC",
+      "canonicalId": "ss-aae9a3d3-cb63-5d54-a867-81238fffc4bc",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TLUC",
+      "canonicalId": "ss-1a311fb7-be4a-5c43-9e5f-33deb534f84a",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YUC",
+      "canonicalId": "ss-94c3799c-4bae-5218-99a7-04d7e06b71e6",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TCX",
+      "canonicalId": "ss-399ead7a-e662-5892-9424-4f95be4d3ec6",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TL",
+      "canonicalId": "ss-1fdb1da1-e8b0-5f45-935b-59a2926e99c5",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WNC",
+      "canonicalId": "ss-8052c2f6-8712-52c0-8e9a-94f877d20e14",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CONI",
+      "canonicalId": "ss-da5b1c4e-f793-5c03-b0ab-1fa84fd2f2bf",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WMC",
+      "canonicalId": "ss-98822028-8460-53a2-8f1b-7fc229efdc8b",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TUTC",
+      "canonicalId": "ss-94a5aab8-09bf-5e36-8f43-ca8e9940d600",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KT",
+      "canonicalId": "ss-00a72f2b-b69d-593c-8653-7f36e0deda55",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WUC",
+      "canonicalId": "ss-b0018cd9-e330-526b-8165-fee74b756f4a",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PPC",
+      "canonicalId": "ss-207d3ec5-4703-5e69-a669-3560763a0601",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TRIO",
+      "canonicalId": "ss-4048ea02-7a6a-542e-9b21-14c91c7a41cb",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KC",
+      "canonicalId": "ss-e69f8c48-09ac-5d7a-b29a-9f36aa28565c",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YLK",
+      "canonicalId": "ss-03775667-6b71-5673-b109-27703ee4a1b6",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LGI",
+      "canonicalId": "ss-d4f4d058-0de3-5440-8ae3-4908ab2a6697",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MAG",
+      "canonicalId": "ss-6dd4c79e-5605-509e-b056-78d4735278af",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "ENI",
+      "canonicalId": "ss-02f40c88-a6d4-536f-8e68-fe6dfd9e037e",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HC",
+      "canonicalId": "ss-cd673f28-22c8-5c6a-ae0b-3621a2b55de4",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MOC",
+      "canonicalId": "ss-632abba2-e386-507a-ae52-21eaf9f926e7",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TATC",
+      "canonicalId": "ss-0992f783-b625-509f-96a0-7dc850fe95e3",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PINC",
+      "canonicalId": "ss-5c1dd048-c2b3-54d3-a930-0b95e32eaf20",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TSC",
+      "canonicalId": "ss-af1c1624-95e7-5ab3-b509-c9d7e3c2ba64",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YKC",
+      "canonicalId": "ss-af4f6d69-3fb1-56d3-aec2-d1c023f724cb",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TSIC",
+      "canonicalId": "ss-c51594fe-0d65-5834-8e13-5852be03f47d",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PMC",
+      "canonicalId": "ss-8f3ff3c0-3e14-5d5c-92c3-f2edae29dc32",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KPC",
+      "canonicalId": "ss-e969a0d6-b836-5307-9e74-f681f6ae5dc6",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LOC",
+      "canonicalId": "ss-462faa79-160d-5f90-8a9c-3ae17ed890d2",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CKC",
+      "canonicalId": "ss-c6cdfff4-9134-5064-b240-1105af5eb7f6",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MCT",
+      "canonicalId": "ss-cf0aa77a-8b40-540f-bd7c-3b27dc3563b2",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HSC",
+      "canonicalId": "ss-f1dd62e8-dd69-5f77-adf6-702e53a5f1df",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KUC",
+      "canonicalId": "ss-9ba52316-ab1a-5add-9b0c-eb5e68b9ec93",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CHC",
+      "canonicalId": "ss-ab4462d6-dd40-513c-b173-7520f4a81942",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TSINC",
+      "canonicalId": "ss-e83612df-98e8-5f63-ac4f-bcf30350cbfe",
+      "divisionClass": "minor_island",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SAAC",
+      "canonicalId": "ss-9164d5ff-a5c5-56df-8fae-bfdba6f1affa",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "ACX",
+      "canonicalId": "ss-e053640a-c216-5e06-8e94-520707287c7b",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YKCX",
+      "canonicalId": "ss-4620062e-2671-54b0-99ad-745a1b8926d8",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WCX",
+      "canonicalId": "ss-09c54bb3-42e7-5bc0-926a-6660406fe8e1",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TAIC",
+      "canonicalId": "ss-011ce4da-605b-5e66-9a8b-1eae6d3ad649",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CT",
+      "canonicalId": "ss-d2b1dcaa-561d-5b7b-a285-c8dd39ee0086",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SLC",
+      "canonicalId": "ss-fa05ff34-ae24-547f-92c5-ceacb9fa96c0",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PRMD",
+      "canonicalId": "ss-df42c7e0-3a91-5bf7-b632-bf019e4de27a",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SNC",
+      "canonicalId": "ss-67954f29-3169-54aa-bfa8-395d856452c7",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TMK",
+      "canonicalId": "ss-a7191a6a-c5ac-5202-a5fd-e0b4f1d296c1",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TAUC",
+      "canonicalId": "ss-9c4f84dc-071a-56ba-84e2-c132d9742a86",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HTC",
+      "canonicalId": "ss-fdef69e0-c971-58ba-95a3-057276362246",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HTP",
+      "canonicalId": "ss-d2122878-0c99-5fa6-8e64-d1b83dd7074f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TNC",
+      "canonicalId": "ss-a0422dbc-0cf7-561a-92de-764b9325aaa6",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WSC",
+      "canonicalId": "ss-3d7b5a89-7c35-5cba-bc53-c51e9c0f63ad",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KTP",
+      "canonicalId": "ss-5d554122-4867-556f-9478-903fa56dbecb",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SPC",
+      "canonicalId": "ss-add30720-6a39-5a0a-95fa-bf72da9df258",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LCPP",
+      "canonicalId": "ss-6586f9c8-df8e-5bd2-8034-f2091e6b18ed",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NAFC",
+      "canonicalId": "ss-14dd2a6c-f9e5-5b79-860d-0df10bd833c6",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SHC",
+      "canonicalId": "ss-5fe61659-07d8-560c-902d-906a28ea3272",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LCP",
+      "canonicalId": "ss-49630462-d997-5c83-a201-7f6bfc051c3e",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KCN",
+      "canonicalId": "ss-8a2f27fb-f3fa-5787-96da-16b3234d8ca0",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TP",
+      "canonicalId": "ss-a318eac4-1cb8-5f23-b745-c3f9d4b5e3f8",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WNCT",
+      "canonicalId": "ss-8e8ded75-2f1a-5177-86bd-75ac5066aa10",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NTP",
+      "canonicalId": "ss-834e7281-6b64-57ac-b746-465b1268ed3b",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MTP",
+      "canonicalId": "ss-a13a300c-6f08-525b-bef8-7e8124d3e9da",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "FURY",
+      "canonicalId": "ss-c8ab4339-9a97-5380-8459-ed3633ab3ed6",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TKP",
+      "canonicalId": "ss-eb0d1789-67a3-58ee-8c76-8c65f041efb8",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KP",
+      "canonicalId": "ss-3ab1cc78-ee73-57d2-8212-8035eafc94d8",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SCM",
+      "canonicalId": "ss-06fe837f-558b-5631-9be8-1ab0c848f861",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KOTP",
+      "canonicalId": "ss-8fc259a5-352a-5024-9adb-4b51efd4a955",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TUKP",
+      "canonicalId": "ss-ccdb8540-1e15-531e-8613-48b1b279bdb4",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LSC",
+      "canonicalId": "ss-a4b54056-f157-524c-b37d-cea52ea20129",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SINC",
+      "canonicalId": "ss-08757439-c826-5fa5-b13b-bd04f0232ff1",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KWT",
+      "canonicalId": "ss-aeba66aa-a7dd-5cfd-841d-c8361eef12a5",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LLM",
+      "canonicalId": "ss-0d6e7f22-0e59-56cb-b54d-f3b3624e5ddd",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NSP",
+      "canonicalId": "ss-e86889ba-0df0-56c6-b563-54108271693a",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SCTP",
+      "canonicalId": "ss-ab06d1ef-2b0b-5c47-a81f-70932dcc0e39",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CLP",
+      "canonicalId": "ss-f3a11eb6-eb1f-5f27-b988-5bc710e9c34b",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CHTC",
+      "canonicalId": "ss-ef8297b7-86c6-58cc-ba53-c889e1960800",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WLC",
+      "canonicalId": "ss-901bc7d8-9d72-52df-af53-dd533ce21d5d",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YP",
+      "canonicalId": "ss-44cc4b39-7a85-5406-a184-0699564978b0",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NYP",
+      "canonicalId": "ss-d466cc0d-118b-55fc-8979-77112b73dda6",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TLP",
+      "canonicalId": "ss-4e734aae-81cd-5fa8-a423-549f07c7ba9e",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TKC",
+      "canonicalId": "ss-d88ec44c-e69e-5dbf-a370-3d672bdfb38e",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "STC",
+      "canonicalId": "ss-150b4d90-2d6a-563b-89d9-9b5462b5812c",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "FTC",
+      "canonicalId": "ss-71f27fe8-a2b7-5bbd-9ae5-95f986b92541",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TYC",
+      "canonicalId": "ss-2de99704-8125-507b-9c2e-7672e8d7f55b",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HP",
+      "canonicalId": "ss-60a2be9e-acf4-5d82-860e-e3e39d45eb4a",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LTP",
+      "canonicalId": "ss-c71eca75-3da2-5b76-af90-8b43e28af904",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TCP",
+      "canonicalId": "ss-99246c4e-3326-53d4-bc58-dd5669073b24",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YAC",
+      "canonicalId": "ss-5ed90218-1866-5812-ab13-b181691aa614",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PYP",
+      "canonicalId": "ss-96598f1f-005a-5ec9-a4e4-c637d329e8c6",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PC",
+      "canonicalId": "ss-91199955-96c7-5206-92c1-92be30405b5d",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WHC",
+      "canonicalId": "ss-48a4a847-b87b-5109-8dba-700b760837cc",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NHS",
+      "canonicalId": "ss-ab6a5250-80d8-5724-ba51-8dd60fdf8859",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SPW",
+      "canonicalId": "ss-1f8e4b1b-50d2-5b88-8edc-6c421147fa1d",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TSS",
+      "canonicalId": "ss-bf0e4a44-8dbf-592c-9e60-88b1a4c373ac",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TIC",
+      "canonicalId": "ss-5fcc232e-1c05-5411-8524-5d1cee44139e",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LSP",
+      "canonicalId": "ss-68d80af9-49d3-50a4-95f5-470f8ffd0f9a",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LP",
+      "canonicalId": "ss-de1e2238-f343-5c74-8398-6b53197213f4",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WNCX",
+      "canonicalId": "ss-212f00b7-7ede-560a-ad39-3d287140f758",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NC",
+      "canonicalId": "ss-b3663bee-bc06-561e-b860-20ea3b2f2649",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SYC",
+      "canonicalId": "ss-0a4c0ae2-b4ff-504f-9d79-db667224e7f4",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WYP",
+      "canonicalId": "ss-4608ee4c-28b1-5981-9639-7e41d20b1182",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "APLC",
+      "canonicalId": "ss-0d4a5312-7add-5d40-915f-c89268bfd342",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HLT",
+      "canonicalId": "ss-ec74a70b-9fed-5995-a599-80e71f117f0e",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TALP",
+      "canonicalId": "ss-9e53faee-946e-57b1-8138-64d82640ca5f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LOP",
+      "canonicalId": "ss-b5be4571-1ab8-5891-9718-a80e72d564cc",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LLT",
+      "canonicalId": "ss-17f04e36-fa60-5885-805d-aafb7cb53eee",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WP",
+      "canonicalId": "ss-94195b9e-e876-54b1-9e15-07a0da3c198f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "BBC",
+      "canonicalId": "ss-89d42b99-85f8-5a36-91f0-7998860a200b",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SHLC",
+      "canonicalId": "ss-3cffea66-1029-5368-a990-6bd948311ed8",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LNYP",
+      "canonicalId": "ss-0c93d06f-01af-583a-ab50-27e027cbe2e4",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SLK",
+      "canonicalId": "ss-38f9f3cb-2a49-5960-be87-d34e2541d5a3",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TSUP",
+      "canonicalId": "ss-d38618e6-9332-5357-b2cd-4f5cb23de854",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SPM",
+      "canonicalId": "ss-5f1c1910-50df-55fe-9f92-450b87c7df1e",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KPN",
+      "canonicalId": "ss-3170f3c6-63b1-584b-a56d-d9fd7a42357e",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TUC",
+      "canonicalId": "ss-e086f035-eb5c-5a03-9618-8cb6817b3923",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TANC",
+      "canonicalId": "ss-a091f34e-4caf-5a99-a4be-5ec3c623df2e",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SCX",
+      "canonicalId": "ss-23061e40-b58c-50ef-9e15-d745cacf2d11",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CMC",
+      "canonicalId": "ss-ca4d5cec-08de-53ee-901f-6668d30b9a68",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "BSP",
+      "canonicalId": "ss-9b6cd505-25a7-5c00-888f-4593e872ab0f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PKC",
+      "canonicalId": "ss-9a09f93b-d665-5123-a984-3a3b86bc7898",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "ATP",
+      "canonicalId": "ss-9b03dfa1-d07b-5a84-8a91-cb90a780153c",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "FTP",
+      "canonicalId": "ss-e1c139ae-f602-59fd-8784-6fa8855e947c",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WONC",
+      "canonicalId": "ss-c800f574-e5db-5b2e-ac62-670c814642cc",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CTK",
+      "canonicalId": "ss-ef398b1a-79c9-5637-ba44-26dc1f181b05",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WUP",
+      "canonicalId": "ss-7184a6c8-7d5e-5a04-b612-967fc0e01f44",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PSS",
+      "canonicalId": "ss-bc5fee1f-b929-5f94-a578-cbd34ee3634f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YTH",
+      "canonicalId": "ss-c8a7cd48-1aa6-54d2-ba29-a68cc9f1a86a",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NYC",
+      "canonicalId": "ss-f269bb0b-ba0a-515d-bb31-fd23cc703e91",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HSP",
+      "canonicalId": "ss-720880cc-e943-5ebf-9fd0-48ac787e91d9",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YLM",
+      "canonicalId": "ss-4ad8d38b-bae7-58df-98a0-83bc82a8e97b",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TSP",
+      "canonicalId": "ss-36f47f9d-6717-52d4-a525-7483bdac4508",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SMTC",
+      "canonicalId": "ss-786a3bba-36fb-536a-89d5-b92b5b219cef",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CP",
+      "canonicalId": "ss-8e3f5e4a-466e-5627-97f3-a8e862ddab63",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SP",
+      "canonicalId": "ss-2f69109c-3a3c-527b-b602-953c43ae690f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MP",
+      "canonicalId": "ss-7b227058-ff45-5bb2-9332-022d762a5a65",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MCP",
+      "canonicalId": "ss-ab7a22dd-ae43-54cc-a3a7-c8cc2d65f9e3",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SPP",
+      "canonicalId": "ss-badd40fd-bd62-59a8-a466-adf9db8ab7d1",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PP",
+      "canonicalId": "ss-36e04708-53b7-531a-bab4-26f33ee3bdc6",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KASC",
+      "canonicalId": "ss-8f80d099-dc9f-5bce-b0d2-58fb4e895a3f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SMK",
+      "canonicalId": "ss-1bf1e2f8-6701-5b48-80cc-65cfb1d8c0a9",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LUSP",
+      "canonicalId": "ss-c8604b03-0856-5b18-aee3-a32d0656b083",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LFTP",
+      "canonicalId": "ss-d3bbc0b9-fea0-548c-bf33-a40d80c70b1f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LASP",
+      "canonicalId": "ss-f4795ec0-6769-5607-b81b-204e0c11738f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LSHP",
+      "canonicalId": "ss-bf790de2-6abf-59d3-b44d-1bcd483b82e1",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KYS",
+      "canonicalId": "ss-d8d7202a-c7c1-515a-9c1b-090740967df1",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KWTP",
+      "canonicalId": "ss-6747e5d7-c0f5-5759-9186-245f2b894a96",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "ACMPTP",
+      "canonicalId": "ss-27859983-5d81-5b57-b994-c2c916fdca42",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KTS",
+      "canonicalId": "ss-d699ed8f-624d-50c5-b13f-3b7bd3446f9f",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "YLP",
+      "canonicalId": "ss-c7b5208a-5265-5612-8071-99768ef0d740",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SLP",
+      "canonicalId": "ss-937c6c3a-61f9-5e4a-969c-242afecc5101",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NT",
+      "canonicalId": "ss-8a0dc273-0229-5dc9-a28c-3e6df8ab08c0",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MATP",
+      "canonicalId": "ss-ee9e4013-e7ef-58c3-b317-c65a1ecc60b1",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "FSP",
+      "canonicalId": "ss-ac6bfc8f-3877-5cd5-8993-51aab8fbfcf4",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LAKC",
+      "canonicalId": "ss-eda84b11-da9f-542a-bf74-80201322e378",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NCNP",
+      "canonicalId": "ss-ad9096de-aba0-5b67-af81-ca8abfc5dbcd",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SHP",
+      "canonicalId": "ss-e8f25043-2bee-5190-81b9-0fae18142e17",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LOAF",
+      "canonicalId": "ss-41a20de4-c42d-534e-a6ce-f380689ec908",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SAP",
+      "canonicalId": "ss-7b7ef5e7-6e1a-52db-80cf-c998bfddbd54",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SHAP",
+      "canonicalId": "ss-2a7a75c8-4398-5987-980d-3e066a60be89",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HOTP",
+      "canonicalId": "ss-86b943db-f197-55cb-a362-81a0b533fece",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KMS",
+      "canonicalId": "ss-55837a31-1d65-5344-9717-3239b2143b7d",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WKP",
+      "canonicalId": "ss-e95d2d4a-feb4-5493-92e3-61c6fd3e8fc1",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WFP",
+      "canonicalId": "ss-e35e614b-7d78-518c-b35a-3672ed2c8978",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "MYC",
+      "canonicalId": "ss-07676a14-1831-5378-864e-b297f8a9af7c",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CYP",
+      "canonicalId": "ss-1a9588bc-fdfc-5218-a806-89ed99a8c7cc",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "ACPTP",
+      "canonicalId": "ss-e136f5de-9821-5b29-8cd9-9612e2774405",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CUP",
+      "canonicalId": "ss-6b711c97-03e6-5ebe-aa3e-01e66953f747",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "THP",
+      "canonicalId": "ss-dafc5e29-ba62-5893-8e02-62db26723feb",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LACP",
+      "canonicalId": "ss-ef217a6f-5bc3-5224-9401-d8a570cea241",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HNP",
+      "canonicalId": "ss-a8a5e9e1-9da6-59d4-87e7-3ee80fd97347",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "LNH",
+      "canonicalId": "ss-37252424-bc9b-5968-a384-cc8f65841b07",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WKS",
+      "canonicalId": "ss-03b44901-a70a-51f6-b154-636ac16301c9",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "KLRK",
+      "canonicalId": "ss-8476d7e9-be60-534b-868d-595f23dc7394",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "TS",
+      "canonicalId": "ss-d26a9a83-6c68-5150-8603-4b85572c4d40",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "WAP",
+      "canonicalId": "ss-cfcd0824-9afb-548a-871a-93fe6fe9beb4",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CHS",
+      "canonicalId": "ss-d010103b-a652-503b-8b8f-e1c7058c1908",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "HIP",
+      "canonicalId": "ss-1153dae8-471f-52a9-b6e7-b1fd959b964c",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NCTP",
+      "canonicalId": "ss-52f82bce-7f7c-59e9-ab31-92a649e43b13",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SSP",
+      "canonicalId": "ss-8857457d-2e37-5fb9-bcc1-8d4b35ab15fe",
+      "divisionClass": "islet",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "PTG",
+      "canonicalId": "13363714-2649-4066-935d-c24757ff2a86",
+      "divisionClass": "island_group",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "SOKO",
+      "canonicalId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
+      "divisionClass": "island_group",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "UKG",
+      "canonicalId": "ss-1df48b7f-e05d-5529-8e89-3b3edbf77146",
+      "divisionClass": "island_group",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "BRO",
+      "canonicalId": "ss-735bf116-27f8-5888-b81a-4b1076329049",
+      "divisionClass": "island_group",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "NPG",
+      "canonicalId": "ss-8b76fa2a-3216-5845-9eae-3aa4b6936047",
+      "divisionClass": "island_group",
+      "divisionCategory": "landform"
+    },
+    {
+      "divisionCode": "CCOL",
+      "canonicalId": "ss-d8e22301-6c35-509e-aa53-9c437457891d",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "HMRH",
+      "canonicalId": "9313a020-4d76-4cba-8218-25d96b9b7954",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KLTB",
+      "canonicalId": "f8fc8f26-e57f-46d6-b2ea-8c2d0f2cbace",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "KLTI",
+      "canonicalId": "ss-7d7383e7-286b-52f2-b6ef-9859f3b56f56",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "MHNG",
+      "canonicalId": "cc911334-7897-4c13-99a1-89c69677b51a",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "MKLT",
+      "canonicalId": "351d9055-f8cc-4794-818d-d4a2f150c33c",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "PRPH",
+      "canonicalId": "58057840-f609-471e-bf72-00ea796e519d",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "SNDB",
+      "canonicalId": "4901c4fd-c5d4-473a-a374-8ee068a56acf",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "30H",
+      "canonicalId": "ss-dbc94110-6e0d-584b-ae9d-fe87eb7857a2",
+      "divisionClass": "microhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TTTK",
+      "canonicalId": "a0883d47-ea3d-48c0-ab37-feae33f4e969",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
+    },
+    {
+      "divisionCode": "TAIW",
+      "canonicalId": "c8286d1f-fc42-41ec-b87c-d22a0aae7ff6",
+      "divisionClass": "neighbourhood",
+      "divisionCategory": "hood"
     }
   ]
 }
