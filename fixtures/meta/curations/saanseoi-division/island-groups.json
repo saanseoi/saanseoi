@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Define island-group seed membership. Derive additional members within the fixed seed polygon bounds and union their land geometry; include and exclude contain explicit membership overrides.",
+  "entries": [
+    {
+      "divisionId": "ss-8b76fa2a-3216-5845-9eae-3aa4b6936047",
+      "seedMemberIds": [
+        "LANDSD:PLACE_NAME:1335",
+        "LANDSD:PLACE_NAME:2008",
+        "LANDSD:PLACE_NAME:315"
+      ],
+      "include": [],
+      "exclude": []
+    },
+    {
+      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
+      "seedMemberIds": [
+        "LANDSD:PLACE_NAME:1084",
+        "LANDSD:PLACE_NAME:1525",
+        "LANDSD:PLACE_NAME:2028",
+        "LANDSD:PLACE_NAME:2584",
+        "LANDSD:PLACE_NAME:53"
+      ],
+      "include": [],
+      "exclude": []
+    },
+    {
+      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
+      "seedMemberIds": [
+        "LANDSD:PLACE_NAME:1956",
+        "LANDSD:PLACE_NAME:2054"
+      ],
+      "include": [],
+      "exclude": []
+    },
+    {
+      "divisionId": "ss-735bf116-27f8-5888-b81a-4b1076329049",
+      "seedMemberIds": [
+        "LANDSD:PLACE_NAME:5061",
+        "LANDSD:PLACE_NAME:5070"
+      ],
+      "include": [],
+      "exclude": []
+    },
+    {
+      "divisionId": "ss-1df48b7f-e05d-5529-8e89-3b3edbf77146",
+      "seedMemberIds": [
+        "LANDSD:PLACE_NAME:2614",
+        "LANDSD:PLACE_NAME:47",
+        "LANDSD:PLACE_NAME:64"
+      ],
+      "include": [],
+      "exclude": []
+    }
+  ]
+}
