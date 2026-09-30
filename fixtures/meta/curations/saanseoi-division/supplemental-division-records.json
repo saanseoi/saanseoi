@@ -1,6 +1,6 @@
 [
   {
-    "id": "b74bf860-5daf-50fb-8382-84975c7c8be0",
+    "id": "ss-03386e65-c456-5b59-a1e7-3eac52cd3a97",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -26,7 +26,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed neighbourhood additions",
+        "dataset": "SaanSeoi curated neighbourhood additions",
         "record_id": "waterfall-bay"
       }
     ],
@@ -34,11 +34,11 @@
       "code": "saanseoi-hk-waterfall-bay",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Waterfall Bay neighbourhood addition; geometry awaits local review."
+      "purpose": "User-curated Waterfall Bay neighbourhood addition; geometry awaits local review."
     }
   },
   {
-    "id": "98d5760d-f07a-5c44-9ae4-847efd8dc408",
+    "id": "ss-28506769-02c3-5edf-9e23-99999e25bfe8",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -64,7 +64,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed neighbourhood additions",
+        "dataset": "SaanSeoi curated neighbourhood additions",
         "record_id": "prince-edward"
       }
     ],
@@ -72,11 +72,11 @@
       "code": "saanseoi-hk-prince-edward",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Prince Edward neighbourhood addition; geometry awaits local review."
+      "purpose": "User-curated Prince Edward neighbourhood addition; geometry awaits local review."
     }
   },
   {
-    "id": "b3809d1e-fdac-5cd5-9a06-9ab9a5859491",
+    "id": "ss-fbd43b34-3972-58cd-82ce-d431f834af2e",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -102,7 +102,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed neighbourhood additions",
+        "dataset": "SaanSeoi curated neighbourhood additions",
         "record_id": "jordan"
       }
     ],
@@ -110,11 +110,11 @@
       "code": "saanseoi-hk-jordan",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Jordan neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
+      "purpose": "User-curated Jordan neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
     }
   },
   {
-    "id": "2cfb80d9-7390-5474-962d-d33c6d08c04d",
+    "id": "ss-04e117cb-f696-51f4-abe2-709a52100253",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -140,7 +140,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed neighbourhood additions",
+        "dataset": "SaanSeoi curated neighbourhood additions",
         "record_id": "austin"
       }
     ],
@@ -148,49 +148,11 @@
       "code": "saanseoi-hk-austin",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Austin neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
+      "purpose": "User-curated Austin neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
     }
   },
   {
-    "id": "3fc693e1-2038-58e4-8ef3-8ce7b01e97a8",
-    "country": "HK",
-    "theme": "divisions",
-    "type": "division",
-    "subtype": "neighborhood",
-    "class": null,
-    "admin_level": null,
-    "geometry": null,
-    "bbox": null,
-    "parent_division_id": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5",
-    "names": {
-      "primary": "李鄭屋 Lei Cheng Uk",
-      "common": [
-        {
-          "language": "en",
-          "value": "Lei Cheng Uk"
-        },
-        {
-          "language": "zh-Hant",
-          "value": "李鄭屋"
-        }
-      ]
-    },
-    "hierarchies": [],
-    "sources": [
-      {
-        "dataset": "SaanSeoi reviewed neighbourhood additions",
-        "record_id": "lei-cheng-uk"
-      }
-    ],
-    "fixture": {
-      "code": "saanseoi-hk-lei-cheng-uk",
-      "version": 1,
-      "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Lei Cheng Uk neighbourhood addition; geometry awaits local review."
-    }
-  },
-  {
-    "id": "86e53121-284a-5640-aaa3-bc28a3703ff7",
+    "id": "ss-d574ef9f-1f94-5f55-b13f-0f287ec06440",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -222,7 +184,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "lan-kwai-fong"
       }
     ],
@@ -230,11 +192,11 @@
       "code": "saanseoi-hk-lan-kwai-fong",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Lan Kwai Fong microhood addition; its representative point is on Lan Kwai Fong and geometry awaits local review."
+      "purpose": "User-curated Lan Kwai Fong microhood addition; its representative point is on Lan Kwai Fong and geometry awaits local review."
     }
   },
   {
-    "id": "f6207b8e-e4a4-54a2-9c1b-0a9a6291447e",
+    "id": "ss-dbc94110-6e0d-584b-ae9d-fe87eb7857a2",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -283,7 +245,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "thirty-houses"
       }
     ],
@@ -295,7 +257,7 @@
     }
   },
   {
-    "id": "7a3c5e91-95c2-5c93-8e3c-7d5b5d3bb6e7",
+    "id": "ss-e0b47921-ffd5-5ee6-9d70-c29d74b7092e",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -332,7 +294,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "tai-tam-gap"
       }
     ],
@@ -344,7 +306,7 @@
     }
   },
   {
-    "id": "1105e168-19e9-5c1c-abda-588f9f15d84c",
+    "id": "ss-da8b4297-eee1-5acc-a731-743d590d4ebc",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -380,7 +342,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "tai-tam-tau"
       },
       {
@@ -396,7 +358,7 @@
     }
   },
   {
-    "id": "0ae98281-dc7d-52f3-861d-dd47af906fe1",
+    "id": "ss-d8e22301-6c35-509e-aa53-9c437457891d",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -432,7 +394,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "cape-collinson"
       },
       {
@@ -448,7 +410,7 @@
     }
   },
   {
-    "id": "182d0a4c-99b4-5811-bd28-15d5c3bc339d",
+    "id": "ss-59b37ac9-f5f5-5eef-937f-b99539820ac1",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -465,7 +427,7 @@
     "bbox": null,
     "parent_division_id": "1dff7a5f-afe1-4db2-8ca7-cda8bb25754a",
     "names": {
-      "primary": "鶴咀村 Hok Tsui Lower Village",
+      "primary": "鶴咀下村 Hok Tsui Lower Village",
       "common": [
         {
           "language": "en",
@@ -473,15 +435,7 @@
         },
         {
           "language": "zh-Hant",
-          "value": "鶴咀村"
-        },
-        {
-          "language": "zh-Hant",
           "value": "鶴咀下村"
-        },
-        {
-          "language": "zh-Hans",
-          "value": "鹤咀村"
         },
         {
           "language": "zh-Hans",
@@ -492,7 +446,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "hok-tsui-lower-village"
       },
       {
@@ -508,7 +462,7 @@
     }
   },
   {
-    "id": "7bf6763f-7384-5233-8568-a24c10789432",
+    "id": "ss-724d3274-b81e-5b55-8d8a-c11109d5ca40",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -544,7 +498,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "sandy-bay-gap"
       },
       {
@@ -560,7 +514,7 @@
     }
   },
   {
-    "id": "7a719ce4-ef50-5a85-9f9a-1d0375c3eeaa",
+    "id": "ss-17f64895-23b4-5b58-87e1-085b6991efd0",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -596,7 +550,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "kai-tak-sports-park"
       },
       {
@@ -608,11 +562,11 @@
       "code": "saanseoi-hk-kai-tak-sports-park",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Kai Tak Sports Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+      "purpose": "User-curated Kai Tak Sports Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
     }
   },
   {
-    "id": "f8470431-cc49-5c1a-9c97-7b75f809f125",
+    "id": "ss-4b0d5eea-5f94-59d1-8066-269e75c2c343",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -648,7 +602,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "kai-tak-metro-park"
       },
       {
@@ -660,11 +614,11 @@
       "code": "saanseoi-hk-kai-tak-metro-park",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Kai Tak Metro Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+      "purpose": "User-curated Kai Tak Metro Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
     }
   },
   {
-    "id": "c96f4670-4aba-566f-85e2-e7bfd905fa49",
+    "id": "ss-a8d56eb6-21ae-5745-b03a-3750530c1c71",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -700,7 +654,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "kai-tak-cruise-terminal"
       },
       {
@@ -712,11 +666,11 @@
       "code": "saanseoi-hk-kai-tak-cruise-terminal",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Kai Tak Cruise Terminal level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+      "purpose": "User-curated Kai Tak Cruise Terminal level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
     }
   },
   {
-    "id": "00c5bf41-782b-5eea-8e1f-9c3c94dfe6e9",
+    "id": "ss-f39f079d-ee2d-56c5-9071-3ec16421401a",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -752,7 +706,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "sheung-yuen-leng"
       },
       {
@@ -764,11 +718,11 @@
       "code": "saanseoi-hk-sheung-yuen-leng",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Sheung Yuen Leng level-5 neighbourhood addition; its representative point is the mapped locality and its boundary awaits local review."
+      "purpose": "User-curated Sheung Yuen Leng level-5 neighbourhood addition; its representative point is the mapped locality and its boundary awaits local review."
     }
   },
   {
-    "id": "5b8a5036-d099-53d2-81a3-7be83837766f",
+    "id": "ss-d988dc78-d63d-5deb-a4b9-7b596a748e39",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -804,7 +758,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "ha-yuen-leng"
       },
       {
@@ -816,11 +770,11 @@
       "code": "saanseoi-hk-ha-yuen-leng",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Ha Yuen Leng level-6 microhood addition; its representative point is the mapped locality and its boundary awaits local review."
+      "purpose": "User-curated Ha Yuen Leng level-6 microhood addition; its representative point is the mapped locality and its boundary awaits local review."
     }
   },
   {
-    "id": "3c8839d0-9013-5e3f-8669-0ad60ed5eeb4",
+    "id": "ss-cf671d96-6ff6-5e99-b5f4-d6ffc3133f2a",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -856,7 +810,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "cha-liu-au"
       },
       {
@@ -868,11 +822,11 @@
       "code": "saanseoi-hk-cha-liu-au",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Cha Liu Au level-4 macrohood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
+      "purpose": "User-curated Cha Liu Au level-4 macrohood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
     }
   },
   {
-    "id": "e4500843-e738-4b02-a64c-fa5f4af63263",
+    "id": "ss-8b1c69bf-eff8-5bcd-acd7-3e5071bee1d6",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -908,7 +862,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "ping-shan-kowloon"
       },
       {
@@ -920,55 +874,11 @@
       "code": "saanseoi-hk-ping-shan",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed Ping Shan level-5 neighbourhood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
+      "purpose": "User-curated Ping Shan level-5 neighbourhood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
     }
   },
   {
-    "id": "15062812-a4d2-4d4a-b589-2f50bc31943f",
-    "country": "HK",
-    "theme": "divisions",
-    "type": "division",
-    "subtype": "microhood",
-    "class": null,
-    "admin_level": null,
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        114.150384,
-        22.334585
-      ]
-    },
-    "bbox": null,
-    "parent_division_id": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5",
-    "names": {
-      "primary": "四小龍 West Kowloon Four Little Dragons",
-      "common": [
-        {
-          "language": "en",
-          "value": "West Kowloon Four Little Dragons"
-        },
-        {
-          "language": "zh-Hant",
-          "value": "四小龍"
-        }
-      ]
-    },
-    "hierarchies": [],
-    "sources": [
-      {
-        "dataset": "SaanSeoi reviewed division additions",
-        "record_id": "west-kowloon-four-little-dragons"
-      }
-    ],
-    "fixture": {
-      "code": "saanseoi-hk-west-kowloon-four-little-dragons",
-      "version": 1,
-      "reviewStatus": "reviewed",
-      "purpose": "User-reviewed level-6 microhood comprising four large private residential estates around Sham Mong Road and Lai Chi Kok Road; retains the Overture division ID. Representative point supplied by the user; boundary awaits local review."
-    }
-  },
-  {
-    "id": "043533a3-8e34-502a-8c68-9879e1c19cfd",
+    "id": "ss-7d7383e7-286b-52f2-b6ef-9859f3b56f56",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -1004,7 +914,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "kellett-island"
       },
       {
@@ -1016,63 +926,11 @@
       "code": "saanseoi-hk-kellett-island",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed level-6 microhood under Wan Chai District; LandsD representative point, reviewed boundary retained in stub-areas.json."
+      "purpose": "User-curated level-6 microhood under Wan Chai District; LandsD representative point, curated boundary retained in saanseoi-estimated-areas.json."
     }
   },
   {
-    "id": "c81690db-fae9-4802-8745-fd6d96ca9f60",
-    "country": "HK",
-    "theme": "divisions",
-    "type": "division",
-    "subtype": "macrohood",
-    "class": null,
-    "admin_level": null,
-    "geometry": {
-      "type": "Point",
-      "coordinates": [
-        114.1383171,
-        22.3219132
-      ]
-    },
-    "bbox": null,
-    "parent_division_id": "73e4cfa9-558b-4017-84a3-f5c0b3507aa5",
-    "names": {
-      "primary": "昂船洲 Stonecutters Island",
-      "common": [
-        {
-          "language": "en",
-          "value": "Stonecutters Island"
-        },
-        {
-          "language": "zh-Hant",
-          "value": "昂船洲"
-        },
-        {
-          "language": "zh-Hans",
-          "value": "昂船洲"
-        }
-      ]
-    },
-    "hierarchies": [],
-    "sources": [
-      {
-        "dataset": "SaanSeoi reviewed division additions",
-        "record_id": "stonecutters-island"
-      },
-      {
-        "dataset": "Lands Department Place Name",
-        "record_id": "LANDSD:PLACE_NAME:5059"
-      }
-    ],
-    "fixture": {
-      "code": "saanseoi-hk-stonecutters-island",
-      "version": 1,
-      "reviewStatus": "reviewed",
-      "purpose": "User-reviewed level-4 macrohood under Sham Shui Po District and Kwai Tsing District; retains the Overture identity and reviewed boundary."
-    }
-  },
-  {
-    "id": "5d03d001-c5a5-56a1-ba9c-530a4c262d7f",
+    "id": "ss-28896062-1b08-5a00-a13f-e79df54524fd",
     "country": "HK",
     "theme": "divisions",
     "type": "division",
@@ -1108,7 +966,7 @@
     "hierarchies": [],
     "sources": [
       {
-        "dataset": "SaanSeoi reviewed division additions",
+        "dataset": "SaanSeoi curated division additions",
         "record_id": "wah-fu"
       },
       {
@@ -1120,7 +978,7 @@
       "code": "saanseoi-hk-wah-fu",
       "version": 1,
       "reviewStatus": "reviewed",
-      "purpose": "User-reviewed level-4 macrohood under Southern District; LandsD representative point, reviewed boundary retained in stub-areas.json."
+      "purpose": "User-curated level-4 macrohood under Southern District; LandsD representative point, curated boundary retained in saanseoi-estimated-areas.json."
     }
   }
 ]
