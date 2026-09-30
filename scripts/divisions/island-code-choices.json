@@ -1,0 +1,207 @@
+[
+  {
+    "id": "ss-ec9d4635-4023-5414-871b-99dc9ffda248",
+    "name": "Ping Chau",
+    "code": "PIC"
+  },
+  {
+    "id": "ss-9ffedbbc-37d6-507b-8826-3b73e2388f87",
+    "name": "Peng Chau",
+    "code": "PEC"
+  },
+  {
+    "id": "ss-5c1dd048-c2b3-54d3-a930-0b95e32eaf20",
+    "name": "Pin Chau",
+    "code": "PINC"
+  },
+  {
+    "id": "ss-38d0ef42-867d-50af-97a1-56c8d883c790",
+    "name": "Crooked Island",
+    "code": "CRKI"
+  },
+  {
+    "id": "ss-c9ca9574-3a1b-5b94-ba59-090bac86f3c7",
+    "name": "Crescent Island",
+    "code": "CRSI"
+  },
+  {
+    "id": "ss-53c5c492-c255-5bdd-b13a-c93aac5e7164",
+    "name": "Beaufort Island",
+    "code": "BEAU"
+  },
+  {
+    "id": "ss-9f3fa40c-c4cd-5a81-a684-a6f052e578fa",
+    "name": "Basalt Island",
+    "code": "BSLT"
+  },
+  {
+    "id": "ss-7700d5d0-7d4d-50db-96be-45256d132ce2",
+    "name": "Sharp Island",
+    "code": "SHRP"
+  },
+  {
+    "id": "ss-abe13ec2-3f3a-5ac2-8ad6-e74b88b1e255",
+    "name": "Double Island",
+    "code": "DBL"
+  },
+  {
+    "id": "ss-f4926924-32fe-5514-b07b-8d49e9f32874",
+    "name": "Grass Island",
+    "code": "GRSS"
+  },
+  {
+    "id": "ss-c642bdef-5574-5775-92e4-0abddde20a94",
+    "name": "Bluff Island",
+    "code": "BLFF"
+  },
+  {
+    "id": "ss-6effc535-4b9d-50f7-b465-6005f71212f7",
+    "name": "Town Island",
+    "code": "TOWN"
+  },
+  {
+    "id": "ss-34cc99fd-a3fa-51b3-bc0f-6074f55a63c7",
+    "name": "Shelter Island",
+    "code": "SLTR"
+  },
+  {
+    "id": "ss-1a49b6f3-3d58-526e-8ae7-31b9d0c327a1",
+    "name": "Sunshine Island",
+    "code": "SUNI"
+  },
+  {
+    "id": "ss-8b4127e6-4901-5fe3-bf4a-5b1b469d0776",
+    "name": "Port Island",
+    "code": "PORT"
+  },
+  {
+    "id": "ss-072c83d2-2faf-5df3-b875-633caf051e27",
+    "name": "Middle Island",
+    "code": "MID"
+  },
+  {
+    "id": "ss-2ea18d0c-3abe-5845-ac2f-cb9a68914ac6",
+    "name": "Green Island",
+    "code": "GRNI"
+  },
+  {
+    "id": "ss-2e75d09d-92da-590f-bc72-593242b2d92a",
+    "name": "Steep Island",
+    "code": "STPI"
+  },
+  {
+    "id": "ss-f6b7af4b-f6a4-5979-a2d6-1bd345b743e8",
+    "name": "Peaked Hill",
+    "code": "PKDH"
+  },
+  {
+    "id": "ss-6c0945ef-f0ac-5a4e-9488-55dd10b880c7",
+    "name": "Flat Island",
+    "code": "FLAT"
+  },
+  {
+    "id": "ss-f19f2ccd-9e41-5416-8054-cda3e43ca90d",
+    "name": "Centre Island",
+    "code": "CTRI"
+  },
+  {
+    "id": "ss-6cd46d76-0293-5240-b62b-0fe4e6260d4a",
+    "name": "Pearl Island",
+    "code": "PRLI"
+  },
+  {
+    "id": "ss-da5b1c4e-f793-5c03-b0ab-1fa84fd2f2bf",
+    "name": "Conic Island",
+    "code": "CONI"
+  },
+  {
+    "id": "ss-4048ea02-7a6a-542e-9b21-14c91c7a41cb",
+    "name": "Trio Island",
+    "code": "TRIO"
+  },
+  {
+    "id": "ss-6dd4c79e-5605-509e-b056-78d4735278af",
+    "name": "Magazine Island",
+    "code": "MAG"
+  },
+  {
+    "id": "ss-df42c7e0-3a91-5bf7-b632-bf019e4de27a",
+    "name": "Pyramid Rock",
+    "code": "PRMD"
+  },
+  {
+    "id": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
+    "name": "Soko Islands",
+    "code": "SOKO"
+  },
+  {
+    "id": "ss-1df48b7f-e05d-5529-8e89-3b3edbf77146",
+    "name": "Ung Kong Group",
+    "code": "UKG"
+  },
+  {
+    "id": "ss-735bf116-27f8-5888-b81a-4b1076329049",
+    "name": "The Brothers",
+    "code": "BRO"
+  },
+  {
+    "id": "ss-8b76fa2a-3216-5845-9eae-3aa4b6936047",
+    "name": "Ninepin Group",
+    "code": "NPG"
+  },
+  {
+    "id": "ss-789ddf26-191c-5d91-a88d-7f9c65b00086",
+    "name": "Round Island",
+    "code": "RNDI"
+  },
+  {
+    "id": "ss-ec470b4c-e300-5ef2-a243-af75a697c7a4",
+    "name": "Round Island",
+    "code": "RNDX"
+  },
+  {
+    "id": "ss-8c523c6c-1d96-5792-8020-12b7879b646b",
+    "name": "Jin Island",
+    "code": "JIN"
+  },
+  {
+    "id": "ss-a31d2ae1-b22e-5d11-9af8-85976959968c",
+    "name": "Waglan Island",
+    "code": "WAGL"
+  },
+  {
+    "id": "ss-6bb3cde2-49a9-527f-828b-5a0b5e4634f4",
+    "name": "Bay Islet",
+    "code": "BAYI"
+  },
+  {
+    "id": "ss-d4f4d058-0de3-5440-8ae3-4908ab2a6697",
+    "name": "Little Green Island",
+    "code": "LGI"
+  },
+  {
+    "id": "ss-5f79fef4-1590-5041-b62d-04809f792029",
+    "name": "West Brother",
+    "code": "WBRO"
+  },
+  {
+    "id": "ss-c3e8dd73-b0fe-53c5-9cb8-cb90640b98c2",
+    "name": "East Brother",
+    "code": "EBRO"
+  },
+  {
+    "id": "ss-c8ab4339-9a97-5380-8459-ed3633ab3ed6",
+    "name": "Fury Rocks",
+    "code": "FURY"
+  },
+  {
+    "id": "ss-41a20de4-c42d-534e-a6ce-f380689ec908",
+    "name": "Loaf Rock",
+    "code": "LOAF"
+  },
+  {
+    "id": "ss-8476d7e9-be60-534b-868d-595f23dc7394",
+    "name": "Kowloon Rock",
+    "code": "KLRK"
+  }
+]
