@@ -2422,6 +2422,24 @@
       "note": "no geometry",
       "ai": true,
       "rejectionCode": "no-geometry"
+    },
+    {
+      "id": "BASEMAP:ISLAND:3e36831ef0f2190b",
+      "decision": "accepted",
+      "note": "Named islet north of South Ninepin, identified in the missing-outline review. Separate from the same-named LandsD island farther north.",
+      "ai": true
+    },
+    {
+      "id": "BASEMAP:ISLAND:3d530eda4773e010",
+      "decision": "accepted",
+      "note": "Named islet north of South Ninepin, identified in the missing-outline review. Separate from the same-named LandsD island farther north.",
+      "ai": true
+    },
+    {
+      "id": "BASEMAP:ISLAND:894d8b8b2b2b6020",
+      "decision": "accepted",
+      "note": "Named islet north of South Ninepin, identified in the missing-outline review. Separate from the same-named LandsD island farther north.",
+      "ai": true
     }
   ],
   "islandActions": [
