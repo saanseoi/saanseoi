@@ -208,3 +208,29 @@ older revisions replayed from history. See the
 
 Canonical area IDs are stable `ss-` UUIDs. Identifiers use `HAD:OBJECTID`,
 `HAD:CSDI_ADMIN_AREA_ID`, `HAD:AREA_ID` and `HAD:AREA_CODE`.
+
+## Local district comparison
+
+The division editor offers all 18 unsimplified HAD district polygons from the retained
+2025-Q3 native FGDB package as **HAD 2022 · native district extent**. Projection to
+WGS84 uses the source adapter; no coastline clipping or display simplification is
+applied. The archive checksum and publisher area identifier accompany each candidate.
+
+The editor also offers C&SD's retained `Density_2024` district extents and the detailed
+2021 census boundaries. Archive, statistical and boundary edition dates are distinct:
+the retained density file named `2021.0.gml` actually contains `Density_2024`. HAD has
+17,453 coordinate positions, the 2024 density layer 17,649, and the detailed 2021 census
+layer 590,181 across 18 districts. More vertices indicate detail, not a newer
+administrative boundary. At WGS84 `[113.92, 22.33]`, both HAD and the 2024 density layer
+include the point in Tuen Mun. This comparison does not establish the current statutory
+boundary.
+
+## Coordinate transformation
+
+Native `DCD` coordinates use Hong Kong 1980 Grid (EPSG:2326). Delivery applies the
+seven-parameter Hong Kong 1980 to WGS 84 datum operation as well as the inverse grid
+projection, through `hkgov/hk1980.ts`. The FGDB embedded WKT identifies the source datum
+but supplies no `TOWGS84` operation; generic `fgdb` inverse projection alone is
+unsuitable for canonical WGS84 delivery. Native coordinates remain unchanged in
+`sourceGeometry`. Native metre-based bounding boxes are omitted from projected GeoJSON.
+Regression controls use independently evaluated PROJ EPSG transformations.

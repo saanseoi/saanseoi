@@ -150,11 +150,55 @@ The retained `2026-06-10.0` source includes 156 Topographic `Island` points and 
 `Islands` group points, each with official English and Traditional Chinese names. These
 are available outside the settlement projection as candidate naming evidence for
 SaanSeoi Islands. The island projection combines this evidence with named island and
-islet features from the Hong Kong basemap, then applies the reviewed policy in
-`fixtures/meta/curations/saanseoi-island-review.json`. Gazetteer membership belongs in
-the resulting source evidence rather than in a separate `hkgov-landsd` island domain.
-See the [island inventory review](../../internal/island-inventory-review.md) for
-coverage, geometry inputs and the release gate.
+islet features from the Hong Kong basemap, then applies the curated policy in the
+identity, exclusion and geometry files under
+`fixtures/meta/curations/saanseoi-division/`. Gazetteer membership belongs in the
+resulting source evidence rather than in a separate `hkgov-landsd` island domain. See
+the [island inventory review](../../internal/island-inventory-review.md) for coverage,
+geometry inputs and the release gate.
 
 Constructed canonical divisions use stable `ss-` UUIDs and expose `LANDSD:GEO_NAME_ID`;
 native source record IDs remain unchanged.
+
+## SaanSeoi inventory membership
+
+The curated monthly SaanSeoi edition includes the latest retained LandsD settlement
+release preceding the edition month. The native FileGDB `GEO_NAME_ID` joins geometry
+with official and alias names. Canonical LandsD division IDs are deterministic from that
+publisher key, and source references use `LANDSD:PLACE_NAME:<GEO_NAME_ID>`. Row indexes
+are diagnostic positions only.
+
+A curated `identifiers.hkgovLandsd.geoNameId`, or unique matching English and
+Traditional Chinese primary names or aliases within 5,000 metres, establishes positive
+settlement membership. The matching rule requires a one-to-one match; ambiguous
+candidates remain unresolved. SaanSeoi records retain the native key in `identifiers`
+and the exact ingredient release and membership contribution in `sources`. No match
+means unresolved membership, not a claim that LandsD excludes the place. Native LandsD
+remains a separate settlement-name inventory/domain; using it as an ingredient does not
+merge its rows into the geographic inventory.
+
+The SaanSeoi dataops assembly reads the full native Place Names ledger at its pinned
+release, including terrain features such as islands. The settlement-only canonical
+projection remains independent. Naming an island from LandsD evidence and choosing its
+Protomaps geometry are curated assembly decisions; neither modifies the native source
+records.
+
+Explicit LandsD exclusions in
+`fixtures/meta/curations/saanseoi-division/division-exclusions.json` use the native
+`LANDSD:PLACE_NAME:<GEO_NAME_ID>` identity and a reason code, such as `DEMOLISHED` or
+`INSUFFICIENT_EVIDENCE`. These exclusions take precedence over automatic and explicit
+membership matching during SaanSeoi assembly; the native LandsD records are retained.
+
+The shared `GEO_PLACE_NAME` layer is retained once in the META native import receipt's
+`tables[].locatorDefaults`. Each source record carries its native ID and attributes; no
+repeated layer locator is required. A positive cross-dataset match supplies the LandsD
+external identifier. Contribution attribution is reserved for data actually used in the
+resulting record.
+
+## Coordinate transformation
+
+The native Place Name adapter projects EPSG:2326 easting/northing through the shared
+`hkgov/hk1980.ts` seven-parameter Hong Kong 1980 to WGS 84 operation. Embedded FGDB WKT
+alone does not supply the datum shift. `sourceGeometry` retains publisher coordinates;
+projected geometry uses WGS84 and excludes native metre-based bounding boxes.
+Independent PROJ controls verify both longitude and latitude.

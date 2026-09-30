@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:655b4729cb93044fe6af184465e2833a061ebb1553b951d4bb4579cbf8f21e3e",
+  "versionHash": "sha256:26d1187a180d50984a9591171000a24fd3b295b1a379b9991436b4f18dbd7bba",
   "code": "rs-protomaps-island-assembly-v1",
   "resourceType": "division",
   "strategy": "merge",
@@ -11,7 +11,7 @@
       "kind": "record",
       "sourceFieldPath": "protomapsIslandFeatures.sourceGeometry, protomapsIslandFeatures.properties",
       "targetFieldPath": "SaanSeoi island geometry selection",
-      "condition": "Every selected island geometry must have an accepted curation decision in fixtures/meta/curations/saanseoi-island-review.json; new names and newly available geometry block assembly.",
+      "condition": "Every selected island geometry must have an accepted curation decision in fixtures/meta/curations/saanseoi-division/division-exclusions.json; new names and newly available geometry block assembly.",
       "mappings": [
         {
           "from": "curated Protomaps source assertion",

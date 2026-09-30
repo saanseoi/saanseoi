@@ -1,5 +1,31 @@
 # Divisions dataset family
 
+An **inventory** selects the primary `division` resource within a domain: its
+identities, attributes, names and hierarchy. Area and boundary variants are compatible
+geometry companions. Sources describe provenance and can contribute to an inventory
+without becoming independently selectable inventories. The agreed
+[domain and inventory contract](../../../spec/divisions-inventories.md) specifies the
+API `0.2` boundary. Runtime selection is version-scoped; publication requires complete
+curated monthly ingredients.
+
+Curated classification belongs to SaanSeoi: the inventory selects the class and the
+SaanSeoi taxonomy supplies its category and level. Overture IDs are retained for matched
+identities without adopting or validating against publisher levels. Raw publisher
+classification and names remain source evidence.
+
+SaanSeoi additions use deterministic `ss-` IDs from stable fixture keys. Generated
+administrative areas, Hong Kong city and unmatched island identities also use `ss-` IDs.
+Native ingestion flags new primary/common-name matches for GERS upgrade review.
+Confirmed matches adopt the GERS ID throughout the curated fixtures; matching aliases
+alone never merges places. Jordan and Kwun Chung are distinct, as are Hok Tsui Lower
+Village (鶴咀下村) and Hok Tsui Tsuen (鶴咀村). Lei Cheng Uk retains its GERS ID and “Li
+Cheng Uk” as an English alias.
+
+Division localisation history versions hash the locale row independently of the base
+division. Names and their provenance therefore retain distinct versions when a base
+division returns to an earlier state. Initialisation defers curated API publication
+until required companion datasets have been ingested.
+
 Division audit actions retain repeated field values in bounded column dictionaries. R2
 delivery uploads independent objects concurrently and registers the release audit only
 after all dependencies and its manifest are verified. The Audit page expands the
@@ -12,8 +38,8 @@ curated snapshot records the exact source release through the registered SaanSeo
 assembly rule and has a complete delivery receipt with the matching publication scope.
 Derived curated releases require their snapshot history assignment; source-row shard
 assignments apply to the ingested native releases rather than the derived archives.
-Curated assembly can replay published native baseline membership from immutable history
-when its current serving projection is no longer present.
+Curated assembly reads hash-pinned publisher archives directly and does not depend on
+CURRENT projections or a populated database.
 
 Canonical Division and geometry provenance follows the
 [source evidence contract](source-evidence.md).
@@ -73,9 +99,9 @@ ancestor resources, including cities, in `included`.
 Hong Kong Island, Kowloon and New Territories administrative areas have deterministic
 SaanSeoi UUIDs and district-union geometry. Kowloon city retains its source UUID
 `17009785-57fd-4e5b-af86-2d27352e4718`; Kowloon area uses
-`bb5c7e0a-fd09-5416-8bb8-9593c90280fb`. The `KL` statistical code identifies the area,
-not the city. Kowloon city and area share the same district-union geometry. Hong Kong
-city retains its source identity and geometry when present; its missing identity or
+`ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb`. The `KL` statistical code identifies the
+area, not the city. Kowloon city and area share the same district-union geometry. Hong
+Kong city retains its source identity and geometry when present; its missing identity or
 geometry is reconstructed from Central and Western, Wan Chai and Eastern districts. Hong
 Kong Island area also includes Southern District. Publisher assertions remain unchanged
 and reconstruction evidence is retained separately.
@@ -99,31 +125,44 @@ and Lok Ma Chau Loop, then removes the configured Shenzhen Bay Port exclusion.
 versions while retaining the configured companion geometry prerequisites.
 
 Lantau retains its Overture Division identity as `landform / major_island`, while its
-SaanSeoi area uses the reviewed Protomaps island polygon. A guarded fixture excludes it
+SaanSeoi area uses the curated Protomaps island polygon. A guarded fixture excludes it
 from administrative ancestry. The three administrative Areas are Hong Kong Island,
 Kowloon and New Territories. Source assertions remain unchanged. See the
 [internal geographic review workflow](../internal/geographic-review.md) for
 cohort-scoped ancestry decisions and local area drawing.
 
-Curated SaanSeoi Division and DivisionArea releases archive their assembled records and
-curation provenance as checksum-verified ZIP assets before publication. Both source and
-resource release `rawObjectKey` fields identify the retained archive. Identical replays
-verify the same asset; changed content requires a new edition. See the
-[SaanSeoi assembly contract](../sources/saanseoi/divisionArea.md) for archive contents.
+SaanSeoi Division and DivisionArea are independently versioned source datasets. A
+read-only builder combines purpose-specific editorial decisions, authored drawings and
+hash-pinned upstream archives into immutable ZIPs. The ordinary uploader handles both
+resource types on local and remote targets. Each contributing source retains its own
+source release, resource release, archive hash and release notes; the synthetic release
+records their exact identities in its manifest and snapshot membership. See the
+[SaanSeoi archive contract](../sources/saanseoi/divisionArea.md).
+
+Each curation file has a root `purpose`. The shared loader generates identities and
+reference geometry from pinned archives. Names, classifications, identity matches,
+exclusions, authored geometry, source-geometry selections, independent point/bounds
+overrides and explicit parent decisions have separate owners. Category and level are
+derived from class; hierarchy labels and containment are generated. Unique original
+drawings and pencil linework remain with authored geometry. Editable recovery state is
+optional local cache under `.local/division-review/`. Published Division records retain
+complete materialised hierarchy paths. See the
+[curation ownership table](../sources/saanseoi/divisionArea.md#curation-ownership).
 
 Named islands are curated as geographic landforms in a separate SaanSeoi assembly. The
-native Overture Division source remains independently selectable. Where a reviewed
+native Overture Division source remains independently selectable. Where a curated
 crosswalk exists, the assembled division retains the Overture ID; otherwise the assembly
 uses a stable SaanSeoi fallback ID. LandsD Place Name records provide official names and
 aliases, while `protomapsIslandFeatures` retains the selected native polygon. The
 assembly never unions Overture and island polygons. Each canonical record exposes its
-provider membership and contribution role in `sources`: Overture `identity` and
-`membership`, LandsD `official-name` and `alias`, Protomaps `geometry`, and SaanSeoi
+ingredient identifiers in `identifiers` and contribution roles in `sources`: Overture
+`identity`, LandsD `official-name` and `alias`, Protomaps `geometry`, and SaanSeoi
 `geometry-selection`. The local curation processor emits the review artefact at
 `.local/harbour/islands/curated-review.json`, sorted by area, with English, Traditional
 Chinese and alias names. Explicit exclusions and island groups are omitted from the
-island output, and the SaanSeoi assembly stops when a new basemap name or new geometry
-for a previously no-geometry candidate needs review.
+individual-island polygon output. Curated island-group identities remain in the Division
+inventory, and the SaanSeoi assembly stops when a new basemap name or new geometry for a
+previously no-geometry candidate needs review.
 
 ## API release statistics
 
@@ -176,7 +215,7 @@ command with `--target preview` or `--target production`.
 
 The reset removes division releases, snapshots, API release sets and catalogue
 revisions, canonical current and history rows, and release-owned source rows across all
-configured Hong Kong annual shards. Dataset definitions, reviewed identities and source
+configured Hong Kong annual shards. Dataset definitions, curated identities and source
 evidence assets remain available for reinitialisation. Source releases shared with
 another resource family remain. Generated delivery and release caches are removed unless
 `--keep-cache` is specified; delivery generations are invalidated in either case.
@@ -199,7 +238,7 @@ ancestors, and blocks unresolved mappings for review. Non-district branches do n
 acquire invented district parents. Audit retains checked/failed counts separately from
 the rule's assignment count.
 
-Reviewed supplemental replacements are resolved before row processing. For an identity
+Curated supplemental replacements are resolved before row processing. For an identity
 being replaced, the hierarchy guard checks the final replacement after normalisation;
 the intermediate source row remains available for source provenance.
 
@@ -213,7 +252,7 @@ preconditions, not triggers for requesting review. Area and boundary normalisers
 the `division-geometry-exclusions.json` executable policy, retained as a resolved
 dependency in both declarations. WKB decoding has a shared registered rule too.
 
-The reviewed Hong Kong hierarchy excludes level-6 squares, plazas, promenades and East
+The curated Hong Kong hierarchy excludes level-6 squares, plazas, promenades and East
 Wing Forecourt. These named public spaces and building plazas remain in publisher source
 evidence but do not become canonical geographic divisions.
 
@@ -221,7 +260,7 @@ South Bay Garden (南灣花園) is excluded by a guarded Overture division patch
 is a residential development rather than a geographic division. The publisher source
 assertion remains retained.
 
-Shek Pai Wan (石排灣) is excluded from the reviewed hierarchy by a guarded Overture
+Shek Pai Wan (石排灣) is excluded from the curated hierarchy by a guarded Overture
 division patch. The publisher source assertion remains retained.
 
 Division, area, boundary, classification, translation, Planning and synthetic-area
@@ -302,7 +341,7 @@ formats.
 
 The `/v0.1/identityBridge` endpoint derives source-to-canonical mappings from the
 selected API release set. Planning keys include their level; subunit values include
-their TPU. Reviewed mappings needed by ingestion live in
+their TPU. Curated mappings needed by ingestion live in
 `fixtures/meta/curations/identity/` and are not metadata database rows. See
 [identity lookups](../../identity-bridge.md) for selectors and pagination.
 
@@ -369,6 +408,12 @@ references and independently retained geometry remain protected. The cleanup wor
 removes obsolete completed projections and their publication receipts together; source
 records and immutable history remain available for archived releases.
 
+Initialiser continuation recognises an unselected native Division snapshot after its
+CURRENT receipt is removed when the latest recorded Division SQL delivery and subsequent
+publication both completed. Current and draft API members still require their exact
+prepared receipt. Failed or unfinished rebuilds cannot use an older successful run to
+claim completion; this check reuses processing runs without additional audit writes.
+
 C&SD statistics archives use a combined intake path. The `hkgov-censtatd:statistics`
 command includes available `division` and `divisionArea` companions by default,
 alongside `divisionStatistic`. `--defer-stats-release-set` selects Statistics-only
@@ -407,7 +452,7 @@ Overture available as an explicit native variant. If Overture omits Hong Kong Is
 Kowloon, or the New Territories, ingestion restores their level-1 `area` identities from
 the configured district members. Every one of those recognised areas receives an
 individual Overture `divisionArea` geometry patch when Overture omits its own area
-geometry, even if Overture does provide the division identity itself. Those reviewed
+geometry, even if Overture does provide the division identity itself. Those curated
 identities retain their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon
 (`Q239143`) and the New Territories (`Q596660`). This rule is applied independently to
 every Overture cohort, so a missing area is not limited to the newest release. Kowloon
@@ -422,7 +467,7 @@ creating parallel divisions. The separate `hkgov-censtatd-hma` domain publishes 
 centroids remain source history for a future buildings projection.
 
 When ingestion emits a supplemental area row, it retains an individual identity-patch
-application with the reviewed fixture, affected identity, observed source classification
+application with the curated fixture, affected identity, observed source classification
 and geometry type, replacement row and district identities. The area geometry processor
 retains one individual geometry-patch application per restored area. Historical releases
 without that retained ingestion evidence do not receive inferred applications.
@@ -595,21 +640,20 @@ journal and history shards after its current materialisation is removed.
 
 For Overture, locale inference, API-locale fallbacks and `CN-GD` geometry exclusions
 contribute aggregate counters to registered processor declarations, without affected
-record lists. Reviewed area geometry retains its fixture-backed union/exclusion patch
-and parameters. AI and human name translations are individual fixture curations with
-source text, resulting text, target locale and available parent names. The retained
-fixture preserves unused entries as well as applied instructions. Translation
-applications are captured for every source using the shared Division processor,
-including C&SD. Lok Ma Chau Loop uses a guarded classification fixture in both direct
-normalisation and hierarchy lookup. The same fixture can retain reviewed English and
-Traditional Chinese alternate names in canonical locale rows. The local curated assembly
-applies the same aliases when it rebuilds from an already normalised Overture snapshot.
-The admin-level expectation permits an omitted field only when the accepted
-source-release schema has no `admin_level` column; supplied values must match the
-fixture. Translation preparation passes the source-release context through the same
-normalisation guard. Identity, class and subtype checks remain mandatory, and source
-drift blocks ingestion. Audit shows bulk summaries first and loads declarations,
-fixtures and individual pages on request.
+record lists. Curated area geometry retains its fixture-backed union/exclusion patch and
+parameters. AI and human name translations are individual fixture curations with source
+text, resulting text, target locale and available parent names. The retained fixture
+preserves unused entries as well as applied instructions. Translation applications are
+captured for every source using the shared Division processor, including C&SD. Lok Ma
+Chau Loop uses a guarded classification fixture in both direct normalisation and
+hierarchy lookup. The same fixture can retain curated English and Traditional Chinese
+alternate names in canonical locale rows. The local curated assembly applies the same
+aliases when it rebuilds from an already normalised Overture snapshot. The admin-level
+expectation permits an omitted field only when the accepted source-release schema has no
+`admin_level` column; supplied values must match the fixture. Translation preparation
+passes the source-release context through the same normalisation guard. Identity, class
+and subtype checks remain mandatory, and source drift blocks ingestion. Audit shows bulk
+summaries first and loads declarations, fixtures and individual pages on request.
 
 For Hong Kong Overture divisions, locale-less Chinese names—including alternate name
 rules—are inferred as `zh-hant`; an explicit source `zh` tag is also normalised to
@@ -695,7 +739,7 @@ flattening preserve upstream values; corrections and resolved identities remain 
 `properties`.
 
 A recognised Hong Kong Area identity supplied as a point can have source ancestry
-through one of its own districts. When that district belongs to the same reviewed Area,
+through one of its own districts. When that district belongs to the same curated Area,
 canonical ancestry ends at the Hong Kong SAR. The Area is never inserted into its own
 ancestry. The original source row, identity, names and geometry remain retained, and the
 hierarchy normalisation is recorded in the release audit.
@@ -961,10 +1005,11 @@ markers at those coordinates.
 
 Simplification is an explicit later operation on shared internal chains, with its own
 tolerance and retained unsimplified geometry. The review map can preview the selected
-result in detailed, simplified or comparison display without changing saved stubs. It
-validates unchanged coverage and shared topology before saving. Cleanup restores that
-retained geometry before rebuilding; edited simplified results require source recovery
-to avoid discarding edits. Neither operation publishes fixtures automatically.
+result in detailed, simplified or comparison display without changing saved estimated
+areas. It validates unchanged coverage and shared topology before saving. Cleanup
+restores that retained geometry before rebuilding; edited simplified results require
+source recovery to avoid discarding edits. Neither operation publishes fixtures
+automatically.
 
 ## Canonical identities and identifiers
 
@@ -980,7 +1025,7 @@ Planning subunits carry the complete root-to-parent `PPU → SPU → TPU` path i
 Empty `administrative`, `locality` and `landform` categories are omitted. A root has
 `full: []`; hierarchy labels are present only where source names are available.
 
-Waterfall Bay (瀑布灣) is a reviewed SaanSeoi supplemental neighbourhood at level 5,
+Waterfall Bay (瀑布灣) is a curated SaanSeoi supplemental neighbourhood at level 5,
 retained in the Hong Kong Overture division import with explicit SaanSeoi provenance.
 Its provisional administrative ancestry is Southern District, Hong Kong Island and Hong
 Kong SAR. Its point and boundary await geometry review.
@@ -994,44 +1039,44 @@ import; its original microhood subtype remains in source provenance.
 West Kowloon (西九龍) uses a guarded level-4 macrohood patch in the Overture division
 import; its original neighbourhood subtype remains in source provenance.
 
-Prince Edward (太子) is a reviewed SaanSeoi supplemental neighbourhood at level 5,
+Prince Edward (太子) is a curated SaanSeoi supplemental neighbourhood at level 5,
 retained in the Hong Kong Overture import with explicit SaanSeoi provenance. Its
 provisional administrative ancestry is Yau Tsim Mong District, Kowloon and Hong Kong
 SAR. Its point and boundary await geometry review.
 
-Jordan (佐敦) is a reviewed SaanSeoi supplemental neighbourhood at level 5, retained in
+Jordan (佐敦) is a curated SaanSeoi supplemental neighbourhood at level 5, retained in
 the Hong Kong Overture import with explicit SaanSeoi provenance and Yau Tsim Mong
 District, Kowloon and Hong Kong SAR ancestry. Its point and boundary await geometry
 review.
 
-Austin (柯士甸) is a reviewed SaanSeoi supplemental neighbourhood at level 5, retained
-in the Hong Kong Overture import with explicit SaanSeoi provenance and Yau Tsim Mong
+Austin (柯士甸) is a curated SaanSeoi supplemental neighbourhood at level 5, retained in
+the Hong Kong Overture import with explicit SaanSeoi provenance and Yau Tsim Mong
 District, Kowloon and Hong Kong SAR ancestry. Its point and boundary await geometry
 review.
 
 Shek Kip Mei (石硤尾) uses a guarded level-5 neighbourhood patch, retaining its Overture
-macrohood subtype in source provenance. Lei Cheng Uk (李鄭屋) is a reviewed SaanSeoi
+macrohood subtype in source provenance. Lei Cheng Uk (李鄭屋) is a curated SaanSeoi
 supplemental level-5 neighbourhood with provisional Sham Shui Po District, Kowloon and
 Hong Kong SAR ancestry. Its point and boundary await geometry review.
 
-Thirty Houses (卅間, also 三十間 and 30 Houses) is a reviewed SaanSeoi supplemental
+Thirty Houses (卅間, also 三十間 and 30 Houses) is a curated SaanSeoi supplemental
 level-6 microhood in Sheung Wan. Its representative point and Wikidata identity are
 retained while its boundary awaits geometry review.
 
-Tai Tam Gap (大潭峽) is a reviewed SaanSeoi supplemental level-5 neighbourhood. Its
+Tai Tam Gap (大潭峽) is a curated SaanSeoi supplemental level-5 neighbourhood. Its
 mountain-pass point and Wikidata identity are retained with provisional Eastern
 District, Hong Kong Island and Hong Kong SAR ancestry while its boundary awaits geometry
 review.
 
-Tai Tam Tau (大潭頭) is a reviewed SaanSeoi supplemental level-6 microhood beside Bluff
+Tai Tam Tau (大潭頭) is a curated SaanSeoi supplemental level-6 microhood beside Bluff
 Head. Its mapped cape point and provisional Southern District, Hong Kong Island and Hong
 Kong SAR ancestry are retained while its boundary awaits geometry review.
 
-Cape Collinson (歌連臣角) is a reviewed SaanSeoi supplemental level-5 neighbourhood. Its
+Cape Collinson (歌連臣角) is a curated SaanSeoi supplemental level-5 neighbourhood. Its
 mapped locality point and provisional Eastern District, Hong Kong Island and Hong Kong
 SAR ancestry are retained while its boundary awaits geometry review.
 
-Sandy Bay Gap (沙灣坳) is a reviewed SaanSeoi supplemental level-6 microhood. Its mapped
+Sandy Bay Gap (沙灣坳) is a curated SaanSeoi supplemental level-6 microhood. Its mapped
 mountain-pass point and provisional Central and Western District, Hong Kong Island and
 Hong Kong SAR ancestry are retained while its boundary awaits geometry review.
 
@@ -1048,8 +1093,8 @@ existing Overture identity with a guarded level-6 hamlet classification and reta
 Tsui Village” as an English alias. Publisher classifications and names remain in source
 provenance.
 
-Hok Tsui Lower Village (鶴咀村, source spelling 鶴咀下村) is a distinct reviewed
-SaanSeoi supplemental level-6 hamlet. Its mapped locality point and provisional Southern
+Hok Tsui Lower Village (鶴咀村, source spelling 鶴咀下村) is a distinct curated SaanSeoi
+supplemental level-6 hamlet. Its mapped locality point and provisional Southern
 District, Hong Kong Island and Hong Kong SAR ancestry are retained while its boundary
 awaits geometry review.
 
@@ -1090,18 +1135,19 @@ division import; its original microhood subtype remains in source provenance.
 
 Kai Tak City Centre (啟德城中心) is a level-5 neighbourhood. Kai Tak Runway Precinct
 (啟德跑道區) and Kai Tak South Apron (啟德南停機坪區) are level-6 microhoods with
-reviewed English names. Their original Overture classifications and names remain in
+curated English names. Their original Overture classifications and names remain in
 source provenance. Kai Tak Sports Park (啟德體育園), Kai Tak Metro Park (啟德都會公園)
-and Kai Tak Cruise Terminal (啟德郵輪碼頭) are reviewed supplemental level-6 microhood
+and Kai Tak Cruise Terminal (啟德郵輪碼頭) are curated supplemental level-6 microhood
 markers under the Kai Tak macrohood; their boundaries await geometry review. Kai Tak
-North (啟德北) is excluded from reviewed coverage through a guarded Overture source
+North (啟德北) is excluded from curated coverage through a guarded Overture source
 assertion; its publisher record remains in source storage.
 
-Whole-island and island-group source macrohoods are excluded from reviewed coverage:
-High Island (糧船灣), Po Toi Islands (蒲台群島), Soko Islands (索罟群島), Lamma Island
-(南丫島), Stonecutters Island (昂船洲), and the duplicate Lantau (大嶼山) macrohood.
-Their island landforms remain independently available. Named settlement divisions such
-as Cheung Chau and Ap Lei Chau remain separate locality identities.
+Whole-island source macrohoods are excluded from curated coverage: High Island (糧船灣),
+Lamma Island (南丫島), and the duplicate Lantau (大嶼山) macrohood. Po Toi Islands
+(蒲台群島) and Soko Islands (索罟群島) retain their Overture identities with the curated
+`island_group` classification. Their island landforms remain independently available.
+Named settlement divisions such as Cheung Chau and Ap Lei Chau remain separate locality
+identities.
 
 Ma Tau Wai (馬頭圍), Ma Tau Kok (馬頭角) and Tai Wo Ping (大窩坪) use guarded level-5
 neighbourhood patches in the Overture division import, retaining their publisher
@@ -1111,21 +1157,24 @@ Hom (橫頭磡) uses a guarded level-5 neighbourhood patch, retaining its publis
 macrohood classification in source provenance.
 
 Chuk Yuen and Chuk Un, with the Traditional Chinese name 竹園, are retained as aliases
-of Wong Tai Sin (黃大仙). The duplicate Chuk Yuen marker is excluded from reviewed
+of Wong Tai Sin (黃大仙). The duplicate Chuk Yuen marker is excluded from curated
 coverage through a guarded Overture source assertion.
 
-Chuk Yuen United Village (竹園聯合村) is excluded from current reviewed coverage because
+Chuk Yuen United Village (竹園聯合村) is excluded from current curated coverage because
 the settlement has been demolished; the guarded Overture assertion remains in source
 provenance.
 
-Ngau Chi Wan Village (牛池灣村) is excluded from current reviewed coverage through a
+Ngau Chi Wan Village (牛池灣村) is excluded from current curated coverage through a
 guarded Overture source assertion.
 
-Nga Tsin Wai (衙前圍) is excluded from current reviewed coverage through a guarded
-Overture source assertion.
+Nga Tsin Wai (衙前圍) uses Overture identity `ac162f33-9966-4d6e-9d53-8a6df575775f` with
+the curated level-6 microhood classification and reviewed SaanSeoi geometry. Its LandsD
+name identifier is retained, and its publisher classification remains in source
+provenance.
 
-Tung Tau (東頭) is excluded from current reviewed coverage through a guarded Overture
-source assertion.
+Tung Tau (東頭) uses Overture identity `d1e1327a-28ff-4487-9103-df158b9c94a0` with the
+curated level-6 microhood classification, reviewed SaanSeoi geometry and RVD list
+membership. Its publisher classification is retained in source provenance.
 
 Fung Wong New Village (鳳凰新村) uses a guarded level-6 microhood patch, retaining its
 publisher neighbourhood classification in source provenance.
@@ -1136,8 +1185,8 @@ macrohood classification in source provenance.
 Kai Tak Grid Neighbourhood (啟德坊) uses a guarded level-6 microhood patch, retaining
 its publisher neighbourhood classification in source provenance.
 
-Sheung Yuen Leng (上元嶺) is a reviewed level-5 neighbourhood and Ha Yuen Leng (下元嶺)
-is a reviewed level-6 microhood, both under Wong Tai Sin District. Their OSM locality
+Sheung Yuen Leng (上元嶺) is a curated level-5 neighbourhood and Ha Yuen Leng (下元嶺)
+is a curated level-6 microhood, both under Wong Tai Sin District. Their OSM locality
 points are retained while their boundaries await local review.
 
 The level-6 Tsim Sha Tsui (尖沙咀) microhood is excluded as a duplicate of the retained
@@ -1152,15 +1201,15 @@ Avenue of Comic Stars (香港漫畫星光大道), Sculpture Walk (雕塑廊), Ne
 as visitor-attraction or campus-walkway POIs rather than geographic divisions. Publisher
 assertions remain in source provenance.
 
-## Reviewed SaanSeoi hierarchy and areas
+## Curated SaanSeoi hierarchy and areas
 
 The geographic composition uses the SaanSeoi Division and DivisionArea assembly for
-reviewed L4/L5 hierarchy, drawings and island coverage. Drawings take precedence over
+curated L4/L5 hierarchy, drawings and island coverage. Drawings take precedence over
 island inventory geometry and Overture fallback, with exact coordinates retained. See
-[SaanSeoi reviewed DivisionArea](../sources/saanseoi/divisionArea.md) for local
-assembly, cohort constraints, provenance, coverage limitations and geocoding examples.
+[SaanSeoi curated DivisionArea](../sources/saanseoi/divisionArea.md) for local assembly,
+cohort constraints, provenance, coverage limitations and geocoding examples.
 
-Reviewed hierarchy ancestor entries include a geometry-derived `full_containment` flag
+Curated hierarchy ancestor entries include a geometry-derived `full_containment` flag
 (`true`, `false`, or `null` for unknown). The editor generates whole-area coverage
 evidence and assembly recomputes it against the final polygons. The geocoder can skip an
 ancestor point check after a child spatial match only when the stored child and ancestor
@@ -1183,59 +1232,58 @@ per cent of the principal polygon; administrative coverage retains all component
 an individual island retains only its principal land polygon. The preceding collection
 is retained in Undo and backup history.
 
-East Tsim Sha Tsui (尖沙咀東) uses neighbourhood level 5 in the reviewed geographic
+East Tsim Sha Tsui (尖沙咀東) uses neighbourhood level 5 in the curated geographic
 hierarchy, inventory and curated assembly.
 
-### Reviewed release cadence
+### Curated release cadence
 
 The independent SaanSeoi Division and DivisionArea edition starts at `2026-09-01.0` with
 an **as-needed** cadence. Edition metadata comes from `fixtures/meta/releases/` and
 cadence from `fixtures/meta/datasets/`. The hierarchy and drawing fixtures retain the
-reviewed Overture input cohort. Monthly source updates do not require redrawing
-polygons. See [reviewed DivisionArea](../sources/saanseoi/divisionArea.md) for local
+selected Overture input cohort. Monthly source updates do not require redrawing
+polygons. See [curated DivisionArea](../sources/saanseoi/divisionArea.md) for local
 ingestion, retained geometry, exclusions and island coastline cleanup.
 
 Point-only island records with unknown land area retain `minor_island` until a measured
 outline supports size classification; a stored zero area is not evidence that an island
 is an islet.
 
-Island assembly evaluates `saanseoi-island-review.json` before creating divisions. Only
+Island assembly evaluates `division-exclusions.json` before creating divisions. Only
 eligible canonical islands are emitted; excluded and no-geometry candidates remain
 review evidence and do not create divisions or areas. Merged aliases resolve to their
 canonical island in ancestry. Unresolved curation blocks assembly. Size classification
 requires a finite, positive land area.
 
-Curated island publication uses the reviewed polygon and its measured area for geometry
+Curated island publication uses the curated polygon and its measured area for geometry
 and island classification. Acceptance filtering alone is insufficient: geometry
 corrections, including the separate Ap Lei Chau and Ap Lei Pai polygons, are applied
 before Division and DivisionArea snapshots are assembled.
 
-Lai Chi Kok Hill (荔枝角山) is excluded from current reviewed coverage through a guarded
-Overture source assertion. Lai Wan (荔灣) remains a level-6 microhood, using its
-reviewed English name while retaining the Overture source name in provenance.
+Lai Chi Kok Hill (荔枝角山) is excluded from current curated coverage through a guarded
+Overture source assertion. Lai Wan (荔灣) remains a level-6 microhood, using its curated
+English name while retaining the Overture source name in provenance.
 
 Kowloon Bay Business Area (九龍灣商貿區) uses a guarded level-5 neighbourhood patch,
 retaining its publisher microhood classification in source provenance.
 
-Ngau Tau Kok Industrial Area (牛頭角工業區) is excluded from current reviewed coverage
+Ngau Tau Kok Industrial Area (牛頭角工業區) is excluded from current curated coverage
 through a guarded Overture source assertion.
 
 Lower Ngau Tau Kok (牛頭角下) and Upper Ngau Tau Kok (牛頭角上) are housing estates, not
-geographic divisions, and are excluded from current reviewed coverage through guarded
+geographic divisions, and are excluded from current curated coverage through guarded
 Overture source assertions.
 
-Yue Man Square (裕民坊) and Lok Wah Shan (樂華山) are excluded from current reviewed
+Yue Man Square (裕民坊) and Lok Wah Shan (樂華山) are excluded from current curated
 coverage as a square and housing estate respectively, through guarded Overture source
-assertions. Cha Liu Au (茶寮坳) is a reviewed level-4 macrohood under Kwun Tong
-District, and Ping Shan (平山) is a reviewed level-5 neighbourhood under the same
-district; their representative points are sourced from OpenStreetMap. Jordan Valley
-(佐敦谷), Sai Tso Wan (晒草灣), and Cha Kwo Ling (茶果嶺) are reviewed level-5
-neighbourhoods; Crocodile Hill (鱷魚山) is a reviewed level-6 microhood. Tai Chi Area
-(太極區) is a square and is excluded from reviewed coverage. The eastern duplicate of Ma
-Wan Tsuen (馬環村) is excluded; the western locality record remains canonical. Che Ting
-Tsuen (輋頂村) is excluded because surrounding villages have subsumed it. Lei Yue Mun
-Villages (鯉魚門村) is retained as an alias of Lei Yue Mun (鯉魚門), without its own
-marker.
+assertions. Cha Liu Au (茶寮坳) is a curated level-4 macrohood under Kwun Tong District,
+and Ping Shan (平山) is a curated level-5 neighbourhood under the same district; their
+representative points are sourced from OpenStreetMap. Jordan Valley (佐敦谷), Sai Tso
+Wan (晒草灣), and Cha Kwo Ling (茶果嶺) are curated level-5 neighbourhoods; Crocodile
+Hill (鱷魚山) is a curated level-6 microhood. Tai Chi Area (太極區) is a square and is
+excluded from curated coverage. The eastern duplicate of Ma Wan Tsuen (馬環村) is
+excluded; the western locality record remains canonical. Che Ting Tsuen (輋頂村) is
+excluded because surrounding villages have subsumed it. Lei Yue Mun Villages (鯉魚門村)
+is retained as an alias of Lei Yue Mun (鯉魚門), without its own marker.
 
 Exclusion guards for Che Ting Tsuen, eastern Ma Wan Tsuen and Chuk Yuen United Village
 require the publisher subtype `locality` and class `hamlet`. Ngau Chi Wan Village
@@ -1243,14 +1291,14 @@ requires subtype `locality` and class `village`. These expectations apply to the
 retained Overture cohorts from September 2025 through August 2026.
 
 Each applied exclusion retains an individual patch audit with its source identity,
-reviewed names, reason and exact exclusion fixture.
+curated names, reason and exact exclusion fixture.
 
 When the geographic API composition selects SaanSeoi divisions, Overture division
 releases publish their native baseline snapshots independently. Curated assembly
 consumes these published baselines; baseline publication does not create an API release
 set.
 
-Area selection excludes every identity in the reviewed Overture division-exclusion
+Area selection excludes every identity in the curated Overture division-exclusion
 fixture. The geometry exclusion policy retains these IDs explicitly so its audit
 definition matches the selected rows. Original geometry remains in the retained
 publisher archive.
@@ -1262,3 +1310,240 @@ available for history and safe initialiser continuation.
 The Overture updater reuses a non-empty Hong Kong Parquet export already retained under
 `data/overture/<release>/divisions/China/Hong Kong`; it downloads the requested file
 only when that local export is absent.
+
+Kellett Island (奇力島) is a level-6 microhood in Wan Chai District. Wah Fu (華富) is a
+level-4 macrohood in Southern District. Both retain LandsD representative points and
+curated boundaries. Stonecutters Island (昂船洲) is a level-4 macrohood with its curated
+boundary and separate administrative paths through Sham Shui Po District in Kowloon and
+Kwai Tsing District in the New Territories. These are locality identities, not island
+landforms.
+
+## Monthly curated inventory editions
+
+SaanSeoi Division and DivisionArea editions use `YYYY-MM-01.revision`, scheduled for the
+first of each month in Hong Kong. The builder selects the latest retained publisher
+release dated on or before the edition date, carrying forward slower sources. The
+edition lock in `fixtures/meta/datasetInputs/saanseoi-division/releases/` fixes release
+identities, checksums and the exact Overture inventory/area snapshots. Corrections use a
+new edition revision. Island extraction evidence must agree with the pinned Protomaps
+version.
+
+LandsD Settlement records are required ingredients. Native `GEO_NAME_ID` identifies each
+source feature; input row positions are never identities. Curated identifiers or unique
+matching English and Traditional Chinese primary names or aliases within 5,000 metres
+establish positive membership. Ambiguous and unmatched records remain unresolved.
+`sources` records the source reference, release and membership rule;
+`identifiers.hkgovLandsd` retains `geoNameId`. Retaining an Overture GERS ID as the
+canonical ID does not eliminate the corresponding release-specific `sources.overture`
+membership evidence.
+
+Protomaps preparation and native ingestion are separate dataops commands:
+`protomaps-islands:prepare` and `protomaps-islands:ingest`. Source ingestion retains all
+extracted island features, available locale-tagged names and coastline land components
+without applying SaanSeoi review decisions. LandsD remains a separate full Place Names
+source ledger, including terrain names outside its settlement projection.
+
+`saanseoi-divisions:assemble` reads pinned source evidence and applies curated
+crosswalks, names, hierarchy and geometry choices. It emits versioned Division and
+DivisionArea archives for the ordinary uploader. Source counts are not canonical island
+counts. Curated releases carry their own fixture changelog.
+
+Explicit LandsD exclusions in
+`fixtures/meta/curations/saanseoi-division/division-exclusions.json` use the native
+`LANDSD:PLACE_NAME:<GEO_NAME_ID>` identity and a reason code, such as `DEMOLISHED` or
+`INSUFFICIENT_EVIDENCE`. These exclusions take precedence over automatic and explicit
+membership matching during SaanSeoi assembly; the native LandsD records are retained.
+
+SaanSeoi administrative geometry uses pinned native Overture SAR and District
+territorial polygons. Its three Area territories are unions of constituent districts.
+Each territory also supplies a separate land-clipped record using the pinned Protomaps
+coastline land mask. Administrative editor drawings do not override either record;
+source record IDs and release identities remain attached to each derived geometry.
+Disconnected territorial parts and islands are retained.
+
+Protomaps island releases declare only the `divisionArea` resource. This resource
+retains native geometry and naming evidence, including point labels; it does not publish
+a canonical Division inventory. Parent source publication requires that resource to be
+published. SaanSeoi assembly produces the resolved divisions.
+
+## Curated island groups
+
+The curated inventory contains five `landform / island_group` identities, all with
+`level: null`. LandsD Place Names `2026-06-10.0` supplies official names and native
+HK1980 points for Ninepin Group (果洲群島, `GEO_NAME_ID=3180`), Po Toi Islands
+(蒲台群島, `3181`), Soko Islands (索罟群島, `3182`) and The Brothers (大小磨刀, `3183`).
+Ninepin Group retains the English alias Kwo Chau Islands. Ung Kong Group (甕缸群島) uses
+the curated OpenStreetMap archipelago entry `BASEMAP:ISLAND:00e285208161a7e1`; it is
+absent from that LandsD release.
+
+Po Toi and Soko retain GERS IDs `13363714-2649-4066-935d-c24757ff2a86` and
+`15de4c83-f54a-4eaa-b002-c88de1f8c310`. Other group IDs derive from stable source keys.
+Additions, class/name modifications and official identifier matches have separate
+curation owners. `island-groups.json` contains seed member IDs and empty optional
+membership overrides.
+
+Group geometry is generated by taking the fixed bounding box of the seed-member union,
+selecting all eligible islands wholly within it, and unioning their land polygons.
+Boundary contact is included; crossing polygons are excluded. The bounding box does not
+expand during selection. Group land geometry preserves sea gaps; each member keeps its
+own polygon. Missing seed geometry blocks assembly. Derived membership and geometry are
+frozen into the release archives. See the
+[group geometry contract](../sources/saanseoi/divisionArea.md#island-group-geometry).
+
+## SaanSeoi SOURCE retention
+
+The curated ZIPs are publisher source archives. Ordinary ingestion retains Division
+assertions in `ssDivision` and DivisionArea assertions in `ssDivisionArea` in the
+release's SOURCE shard. Each table uses `(sourceRecordId, versionHash)` identity,
+`resourceReleaseId`, release-validity bounds and `isCurrent`. `properties` retains the
+archive attributes, including locale-keyed names, curated hierarchy and provenance;
+`sourceGeometry` retains the archive geometry. Parquet transport fields and geometry
+adapter aliases do not become source attributes.
+
+Unchanged assertions retain their existing version. Changed and removed assertions close
+the preceding version; changed assertions open a new one. HISTORY `sourceResolutions`
+links each retained assertion to the canonical Division or DivisionArea it produced. The
+SOURCE write must succeed before publication completes. Delivery cache inputs include
+the curated-source retention policy so an earlier SQL plan without source writes cannot
+satisfy this contract. Local SOURCE schema migration is additive; replaying existing
+releases and resetting databases are separate operations.
+
+Curated DivisionArea ingestion validates division references against SOURCE records
+whose validity interval contains the primary Division release's source version.
+Unchanged records retain their original release ID and remain valid in later editions;
+retired and future records are excluded from the selected edition.
+
+The SaanSeoi
+[curated record and map display contract](../sources/saanseoi/divisionArea.md#curated-record-contract)
+resolves correlated spatial branches across administrative boundaries, places landforms
+under their administrative ancestors, and assigns classification-based cartographic
+hints. Names in its source archive use structured arrays and omit null optional keys.
+External dataset matches are identifiers, separate from contribution attribution.
+
+## Curated short codes and list membership
+
+Reviewed island codes share one collision-free namespace across major islands, minor
+islands, islets and island groups. The assignments live in
+`fixtures/meta/divisionCodes/geographic.json`; explicit naming choices live in
+`scripts/divisions/island-code-choices.json`. The island code generator reserves
+assigned codes before suggesting new ones. See the
+[island code review](../internal/reviews/island-code-proposals.md) for the full
+inventory.
+
+Monthly editions sharing an effective date are ordered by their numeric edition revision
+before their release-set revision. The newest edition is the catalogue default; older
+editions remain discoverable.
+
+Geographic division codes must be unique within `(domain, category)`: administrative,
+hood, locality and landform. Classes within a category share the code namespace. Numeric
+levels are not code namespaces. Codes such as `CW` may identify both a district and a
+macrohood because these belong to different categories. Callers retain the category or
+canonical Division ID.
+
+`scripts/divisions/check-code-categories.py` checks explicit assignments together with
+optional proposal and edited review files, without applying them. Its report identifies
+the assignment or proposal status of each conflicting division.
+
+`fixtures/meta/divisionCodes/geographic.json` declares `divisionCategory` and
+`divisionClass` for each explicit assignment. Validation requires the category to match
+the class taxonomy and enforces code uniqueness across the category. Assembly also
+checks both values against the target division. SQL category indexes enforce the same
+namespace across classes. Recommendations do not become assignments automatically.
+Prefer recognisable word initials; expand a distinguishing word for initial collisions.
+Use `X` for identical names, and insert it before the final `V` for villages and
+hamlets. Those classes always end in `V`, including names ending in Tsuen or Village.
+Repeated homonyms can require a district qualifier; these proposals require geographic
+review.
+
+The [RVD ingredient](../sources/hkgov-rvd/division.md) contributes historical list
+membership. Membership is separate from identifiers, current ancestry and record
+contributions. China bounds are a curated OSM relation assertion in
+`division-geometry.json`; the bounding rectangle is not used as a polygon or invented
+representative point. Geometry-less divisions retain null bounds until evidence exists.
+
+Reviewed division name aliases are defined in
+`fixtures/meta/curations/saanseoi-division/division-names.json`. Its locale-keyed
+decisions contain `aliases` additions and `removeAliases` exclusions; `nameAliasRules`
+defines suffix-derived variants such as English `Tsuen` to `Village`. Curated assembly
+applies these decisions after canonical name overrides and records the dedicated
+curation in name provenance. Publisher aliases remain source evidence; island identity
+merges belong to `division-identity-matches.json`.
+
+Authored divisions without a source point derive an interior point from their active
+curated polygon. An explicit polygon core point takes precedence; generated coordinates
+are not copied into the identity additions fixture.
+
+### Yim Tin Tsai geometry selection
+
+The Sai Kung island `LANDSD:PLACE_NAME:2820` uses the named basemap polygon whose
+coordinate centre lies within 500 metres of its LandsD point. Exactly one candidate must
+satisfy this constraint. The same-named island near Tai Po is a separate geometry
+candidate and must not supply this island outline. The constraint is stored in
+`division-geometry-selections.json` and applies to assembly and the local review map.
+
+### Detached island coverage
+
+Waglan Island selects the complete named `OSM:a25867861` MultiPolygon, including its
+southern component and detached rocks. The South Ninepin islets Tai Pai, Yi Pai and Sam
+Pai retain separate identities backed by `OSM:a217838696`, `OSM:a217838700` and
+`OSM:a217838710`. They are distinct from the same-named LandsD islands farther north. An
+unnamed source islet east of South Ninepin remains outside the named inventory.
+
+In the local editor, reviewed island outlines use saved geometry in preference to source
+geometry. The Islands Custom and Proto controls determine which island outlines are
+visible. Government district overlays have separate C&SD 2024 and HAD 2022 controls.
+
+### Island-group peripheral membership
+
+Group membership uses the fixed envelope of `island-groups.json` seed polygons, with
+whole-island containment and explicit membership overrides. Ninepin seeds include Sai
+Chau Mei, Tai Chau Mei, Hok Tsai Pai, Hok Tsai Chau, Fo Siu Pai and Wang Pai alongside
+the three main islands. Soko seeds include Ma Chau, Cheung Muk Tau, Tau Lo Chau, Ko Pai,
+Siu Ko Pai and Tsim Shek Pai alongside Tai A Chau and Siu A Chau. The pinned review
+inputs derive 22 Ninepin and 14 Soko member records; these are identity counts, not
+independent physical-island counts.
+
+Ung Kong retains Basalt Island, Bluff Island and Wang Chau as its seed envelope.
+Explicit members Kong Tau Pai
+(`LANDSD:PLACE_NAME:732`), 四排尾 (`BASEMAP:ISLAND:20237d751b5fe16d`) and Kam Chung Ngam
+(`BASEMAP:ISLAND:ad777e9a7bc9fd4c`) are supported by the retained Protomaps
+`OSM:a31915135` archipelago MultiPolygon from `2026-09-01.1`. Their selected polygons
+have more than 80% area overlap with that source geometry. Explicit membership keeps
+nearby Town Island outside the group without enlarging the automatic envelope. The
+resulting Ung Kong union has 14 member records. No source names, reviewed identities or
+member polygons are merged or modified by these membership rules.
+
+Research references, checked 30 September 2026:
+
+- [Hong Kong UNESCO Global Geopark: Sai Kung boat tour](https://www.geopark.gov.hk/en/discover/attractions/sai-kung-boat-tour)
+  identifies Ung Kong and Ninepin as separate geosite groups; its tourism description is
+  not treated as an exhaustive list of small-islet membership.
+- [Ninepin Group island list](https://en.wikipedia.org/wiki/Ninepin_Group) corroborates
+  peripheral Sai Chau Mei, Hok Tsai Pai and Tai Chau Mei. Its aggregate island count is
+  not a target for inventing unnamed identities.
+- [Soko Islands island list](https://en.wikipedia.org/wiki/Soko_Islands) corroborates Ma
+  Chau, Cheung Muk Tau, Ko Pai and Tau Lo Chau. Source polygons and retained identity
+  records determine the geometry, rather than names alone.
+
+### Government district review candidates
+
+`prepare-review.ts` exposes separate government geometry candidates for all 18
+districts: C&SD 2024 district extents, HAD 2022 native district extents, and detailed
+C&SD 2021 census boundaries. `government-review.ts` verifies retained file hashes and
+resolves publisher district identifiers through the reviewed identity bridge. Candidate
+geometry is projected to WGS84 without simplification or clipping. Provenance includes
+the source file, checksum, edition and area identifier.
+
+Candidates appear in the local editor's geometry-source selector, independently of the
+active reference collection. Previewing them does not change map coverage, hierarchy,
+estimated areas or publication. Explicit copying retains their source provenance in the
+editor project; administrative editor drawings remain review material. See the
+[HAD comparison](../sources/hkgov-had/divisionArea.md#local-district-comparison) for
+edition and coastline-detail differences.
+
+HAD native district and LandsD native Place Name adapters use the shared HK1980 datum
+transformation also used by C&SD GML. Source-grid coordinates are preserved separately
+from WGS84 delivery coordinates. Native FGDB WKT identifies the projection but does not
+supply the datum operation; inverse projection alone is insufficient. Regression
+controls verify actual coordinates against independent PROJ results, in addition to
+feature counts and topology.

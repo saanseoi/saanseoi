@@ -142,6 +142,13 @@ describe('HAD district GeoJSON preparation', () => {
     }
 
     expect(nativeFeatures).toHaveLength(18)
+    // Independent PROJ control; catches missing datum shifts, not just topology.
+    const first = nativeFeatures[0]?.geometry?.coordinates as number[][][]
+    expect(first[0]![0]![0]).toBeCloseTo(114.1633839870595, 7)
+    expect(first[0]![0]![1]).toBeCloseTo(22.258822297319306, 7)
+    expect(native).not.toHaveProperty('bbox')
+    expect(native.features.every(feature => !('bbox' in feature))).toBe(true)
+
     expect(new Set(nativeFeatures.map(feature => feature.properties?.AREA_ID))).toEqual(
       new Set(historical.features.map(feature => feature.properties.AREA_ID)),
     )

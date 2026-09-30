@@ -1,3 +1,4 @@
+import { projectHk80Geometry } from '../hk1980'
 import { requireDefined } from '@repo/core/requireDefined'
 import { readFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
@@ -246,13 +247,16 @@ export async function readHkgovHadDistrictArchive(archiveBytes: Uint8Array) {
   if (nativeById.size !== nativeLayer.features.length)
     throw new Error('Duplicate HAD native area identity.')
   return {
-    ...layer,
+    type: 'FeatureCollection',
     features: layer.features.map((feature, index) => {
       const native = nativeById.get((feature.properties as HkgovHadProperties).AREA_ID)
       if (!native) throw new Error('HAD projected record has no native geometry.')
+      const sourceGeometry = requireDistrictGeometry(native.geometry, index, true)
       return {
-        ...feature,
-        sourceGeometry: requireDistrictGeometry(native.geometry, index, true),
+        type: 'Feature',
+        properties: feature.properties,
+        geometry: projectHk80Geometry(sourceGeometry),
+        sourceGeometry,
       }
     }),
   } as HkgovHadFeatureCollection & { features: HkgovHadFeature[] }

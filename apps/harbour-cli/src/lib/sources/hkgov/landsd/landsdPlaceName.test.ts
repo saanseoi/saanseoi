@@ -70,6 +70,10 @@ describe('LandsD native Place Name FileGDB intake', () => {
     )
 
     expect(features).toHaveLength(2706)
+    const point = features[0]!.geometry as { coordinates: number[] }
+    expect(point.coordinates[0]).toBeCloseTo(114.08924430073009, 7)
+    expect(point.coordinates[1]).toBeCloseTo(22.497186746725173, 7)
+
     expect(features[0]?.sourceGeometry).not.toEqual(features[0]?.geometry)
     const firstFeature = features[0]
     if (!firstFeature?.sourceGeometry)

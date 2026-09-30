@@ -1469,6 +1469,21 @@
       "id": "BASEMAP:ISLAND:20b1ab86f2fddb31",
       "matches": [],
       "coverage": "basemap-only"
+    },
+    {
+      "id": "BASEMAP:ISLAND:3e36831ef0f2190b",
+      "matches": [],
+      "coverage": "basemap-only"
+    },
+    {
+      "id": "BASEMAP:ISLAND:3d530eda4773e010",
+      "matches": [],
+      "coverage": "basemap-only"
+    },
+    {
+      "id": "BASEMAP:ISLAND:894d8b8b2b2b6020",
+      "matches": [],
+      "coverage": "basemap-only"
     }
   ],
   "aliasGroups": [

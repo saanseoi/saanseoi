@@ -419,3 +419,14 @@ a complete snapshot while retaining the new publisher assertion separately.
 Canonical areas and constructed statistical divisions use stable `ss-` UUIDs. Area
 identifiers retain `CENSTATD:dcClass` and `CENSTATD:dcCode`; regional lookup codes are
 explicit identifiers rather than part of the canonical ID.
+
+## Local district comparison
+
+The division editor exposes retained `Density_2024` district extents and detailed
+`DC_21C_SDU` census boundaries as separate, unsimplified review candidates for all 18
+districts. Source checksums, publisher district codes and layer editions are retained;
+projection uses the existing EPSG:2326 GML adapter. The density file's `2021.0.gml`
+filename is not its layer edition: its records identify 2024. The detailed census
+polygons have substantially more coastline vertices, which does not establish greater
+administrative currency. See the
+[government district comparison](../hkgov-had/divisionArea.md#local-district-comparison).

@@ -1331,7 +1331,7 @@
     },
     {
       "divisionId": "LANDSD:PLACE_NAME:2584",
-      "sourceRecordId": "PROTOMAPS:LAND:d54579557e8911ff9d492fa3e811ee12cdcb76d46c2aca3d42a6101589f853ec",
+      "sourceRecordId": "OSM:a25867861",
       "options": [
         {
           "label": "Basemap named geometry 1. MultiPolygon",
@@ -5786,6 +5786,36 @@
         }
       ],
       "sourceRecordId": "OSM:n3208589245"
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:3e36831ef0f2190b",
+      "sourceRecordId": "OSM:a217838696",
+      "options": [
+        {
+          "label": "Named South Ninepin islet",
+          "sourceRecordId": "OSM:a217838696"
+        }
+      ]
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:3d530eda4773e010",
+      "sourceRecordId": "OSM:a217838700",
+      "options": [
+        {
+          "label": "Named South Ninepin islet",
+          "sourceRecordId": "OSM:a217838700"
+        }
+      ]
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:894d8b8b2b2b6020",
+      "sourceRecordId": "OSM:a217838710",
+      "options": [
+        {
+          "label": "Named South Ninepin islet",
+          "sourceRecordId": "OSM:a217838710"
+        }
+      ]
     }
   ],
   "corrections": [
@@ -5829,7 +5859,8 @@
       "id": "LANDSD:PLACE_NAME:2820",
       "action": "geometry-correction",
       "operation": "use-named-basemap-geometry",
-      "reason": "Remove piers from the island geometry."
+      "maxDistanceMetres": 500,
+      "reason": "Use the Sai Kung island near the publisher point and remove piers; exclude the namesake near Tai Po."
     },
     {
       "id": "LANDSD:PLACE_NAME:2059",

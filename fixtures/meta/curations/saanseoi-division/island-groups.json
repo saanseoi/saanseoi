@@ -7,7 +7,13 @@
       "seedMemberIds": [
         "LANDSD:PLACE_NAME:1335",
         "LANDSD:PLACE_NAME:2008",
-        "LANDSD:PLACE_NAME:315"
+        "LANDSD:PLACE_NAME:315",
+        "LANDSD:PLACE_NAME:1582",
+        "LANDSD:PLACE_NAME:2060",
+        "LANDSD:PLACE_NAME:532",
+        "BASEMAP:ISLAND:c90503aaaf585437",
+        "BASEMAP:ISLAND:fa764e4e02ddebb7",
+        "BASEMAP:ISLAND:387b9080e374c7c7"
       ],
       "include": [],
       "exclude": []
@@ -28,7 +34,13 @@
       "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
       "seedMemberIds": [
         "LANDSD:PLACE_NAME:1956",
-        "LANDSD:PLACE_NAME:2054"
+        "LANDSD:PLACE_NAME:2054",
+        "LANDSD:PLACE_NAME:1010",
+        "LANDSD:PLACE_NAME:159",
+        "LANDSD:PLACE_NAME:2291",
+        "LANDSD:PLACE_NAME:714",
+        "BASEMAP:ISLAND:cf27eadac7abc115",
+        "BASEMAP:ISLAND:a2830036f4cd6eda"
       ],
       "include": [],
       "exclude": []
@@ -49,7 +61,11 @@
         "LANDSD:PLACE_NAME:47",
         "LANDSD:PLACE_NAME:64"
       ],
-      "include": [],
+      "include": [
+        "LANDSD:PLACE_NAME:732",
+        "BASEMAP:ISLAND:20237d751b5fe16d",
+        "BASEMAP:ISLAND:ad777e9a7bc9fd4c"
+      ],
       "exclude": []
     }
   ]

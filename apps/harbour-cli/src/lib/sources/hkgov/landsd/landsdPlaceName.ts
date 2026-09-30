@@ -1,3 +1,4 @@
+import { projectHk80Geometry } from '../hk1980'
 import { canonicalGeometryId } from '@repo/db'
 import { readFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
@@ -134,7 +135,8 @@ export async function readLandsdPlaceNameArchive(
       )
     }
     return {
-      ...feature,
+      type: 'Feature',
+      geometry: projectHk80Geometry(sourceGeometry),
       id: geoNameId,
       placeNames,
       sourceGeometry,
