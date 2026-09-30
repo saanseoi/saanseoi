@@ -61,7 +61,7 @@
         "class": null,
         "subtype": "microhood"
       },
-      "reason": "Culture Plaza is excluded from the reviewed Hong Kong division hierarchy while retaining publisher source evidence."
+      "reason": "Culture Plaza is excluded from the curated Hong Kong division coverage while retaining publisher source evidence."
     },
     {
       "id": "overture_hong_kong_happy_valley_microhood_excluded",
@@ -76,7 +76,7 @@
         "class": null,
         "subtype": "microhood"
       },
-      "reason": "This duplicate Happy Valley microhood is excluded from the reviewed Hong Kong division hierarchy while retaining publisher source evidence."
+      "reason": "This duplicate Happy Valley microhood is excluded from the curated Hong Kong division coverage while retaining publisher source evidence."
     },
     {
       "id": "overture_hong_kong_chai_wan_neighbourhood_excluded",
@@ -91,7 +91,7 @@
         "class": null,
         "subtype": "macrohood"
       },
-      "reason": "This Chai Wan neighbourhood is excluded from the reviewed Hong Kong division hierarchy while retaining publisher source evidence."
+      "reason": "This Chai Wan neighbourhood is excluded from the curated Hong Kong division coverage while retaining publisher source evidence."
     },
     {
       "id": "overture_hong_kong_ocean_square_06f5c76f_excluded",
@@ -1174,36 +1174,6 @@
       "reason": "Ngau Chi Wan Village is excluded from current canonical coverage while retaining the publisher source assertion."
     },
     {
-      "id": "overture_hong_kong_tung_tau_excluded",
-      "source": "overture",
-      "divisionId": "d1e1327a-28ff-4487-9103-df158b9c94a0",
-      "names": [
-        "Tung Tau",
-        "東頭"
-      ],
-      "expected": {
-        "adminLevel": null,
-        "class": null,
-        "subtype": "neighborhood"
-      },
-      "reason": "Tung Tau is excluded from current canonical coverage while retaining the publisher source assertion."
-    },
-    {
-      "id": "overture_hong_kong_nga_tsin_wai_excluded",
-      "source": "overture",
-      "divisionId": "ac162f33-9966-4d6e-9d53-8a6df575775f",
-      "names": [
-        "Nga Tsin Wai",
-        "衙前圍"
-      ],
-      "expected": {
-        "adminLevel": null,
-        "class": null,
-        "subtype": "neighborhood"
-      },
-      "reason": "Nga Tsin Wai is excluded from current canonical coverage while retaining the publisher source assertion."
-    },
-    {
       "id": "overture_hong_kong_tai_hang_microhood_excluded",
       "source": "overture",
       "divisionId": "a21076d4-1c2c-4a79-94d8-90c582a9bc5c",
@@ -1352,36 +1322,6 @@
         "subtype": "macrohood"
       },
       "reason": "High Island is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
-    },
-    {
-      "id": "overture_hong_kong_po_toi_islands_macrohood_excluded",
-      "source": "overture",
-      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
-      "names": [
-        "Po Toi Islands",
-        "蒲台群島"
-      ],
-      "expected": {
-        "adminLevel": null,
-        "class": null,
-        "subtype": "macrohood"
-      },
-      "reason": "Po Toi Islands is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
-    },
-    {
-      "id": "overture_hong_kong_soko_islands_macrohood_excluded",
-      "source": "overture",
-      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
-      "names": [
-        "Soko Islands",
-        "索罟群島"
-      ],
-      "expected": {
-        "adminLevel": null,
-        "class": null,
-        "subtype": "macrohood"
-      },
-      "reason": "Soko Islands is a whole-island or island-group macrohood. Exclude it from canonical coverage while retaining the publisher source assertion."
     },
     {
       "id": "overture_hong_kong_lamma_island_macrohood_excluded",
