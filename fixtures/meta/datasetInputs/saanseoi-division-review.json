@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Pin exact source archives used to generate editor identities and reference geometry. Refresh explicitly; API and local-cache fallbacks must verify these hashes.",
+  "cohort": "2026-08-19.0",
+  "releaseSet": "data-hk-divisions-2026-08-19.0",
+  "sourceReleases": [
+    {
+      "snapshotId": "0b3f31ef-9583-570e-941b-7900b2babdf9",
+      "datasetCode": "ds-hk-overture-division",
+      "releaseCode": "dr-hk-overture-division-2026-08-19.0",
+      "sourceVersion": "2026-08-19.0",
+      "resourceType": "division",
+      "rawObjectKey": "by-source/hk/overture/ds-hk-overture-division/dr-hk-overture-division-2026-08-19.0/17e1ee223e0d0c5705c83e2e1b697bf123ab9b3aa55e38d6cb6597eb30357cb0-ds-hk-overture-division-2026-08-19.0.parquet",
+      "contentHash": "17e1ee223e0d0c5705c83e2e1b697bf123ab9b3aa55e38d6cb6597eb30357cb0",
+      "releaseNotesUrl": "https://docs.overturemaps.org/blog/2026/08/19/release-notes/#divisions"
+    },
+    {
+      "snapshotId": "aeefc085-03d2-55e4-9d4e-3012ee48bea3",
+      "datasetCode": "ds-hk-overture-division-area",
+      "releaseCode": "dr-hk-overture-division-area-2026-08-19.0",
+      "sourceVersion": "2026-08-19.0",
+      "resourceType": "divisionArea",
+      "rawObjectKey": "by-source/hk/overture/ds-hk-overture-division-area/dr-hk-overture-division-area-2026-08-19.0/d169c9e05514d1b7b574cf916b3ce51102914809bb4c11323951a751c71bcf73-ds-hk-overture-division-area-2026-08-19.0.parquet",
+      "contentHash": "d169c9e05514d1b7b574cf916b3ce51102914809bb4c11323951a751c71bcf73",
+      "releaseNotesUrl": "https://docs.overturemaps.org/blog/2026/08/19/release-notes/#divisions"
+    },
+    {
+      "datasetCode": "ds-hk-protomaps-island",
+      "releaseCode": "dr-hk-protomaps-island-2026-09-01.1::divisionArea",
+      "sourceVersion": "2026-09-01.1",
+      "resourceType": "divisionArea",
+      "rawObjectKey": "by-source/hk/protomaps/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-09-01.1/881c1776d88b4312ea403367b0976e1c3eea6c281594c8075b0e8f30828f74fc-dr-hk-protomaps-island-2026-09-01.1.zip",
+      "contentHash": "881c1776d88b4312ea403367b0976e1c3eea6c281594c8075b0e8f30828f74fc",
+      "releaseNotesUrl": "https://tiles.saanseoi.hk/releases/hk/2026-09-01.json"
+    },
+    {
+      "datasetCode": "ds-hk-hkgov-landsd-division",
+      "releaseCode": "dr-hk-hkgov-landsd-division-2026-06-10.0",
+      "sourceVersion": "2026-06-10.0",
+      "resourceType": "division",
+      "rawObjectKey": "by-source/hk/hkgov-csdi/landsd_rcd_1648571595120_89752/cf340ddceea2bbb60b54e366db7e09c752cece053a51963022a918a4c4d69c71-source.zip",
+      "contentHash": "cf340ddceea2bbb60b54e366db7e09c752cece053a51963022a918a4c4d69c71",
+      "releaseNotesUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1648571595120_89752"
+    },
+    {
+      "datasetCode": "ds-hk-hkgov-rvd-division",
+      "releaseCode": "dr-hk-hkgov-rvd-division-2015-04-30.0",
+      "sourceVersion": "2015-04-30.0",
+      "resourceType": "division",
+      "rawObjectKey": "by-source/hk/hkgov-rvd/ds-hk-hkgov-rvd-division/dr-hk-hkgov-rvd-division-2015-04-30.0/8f993b9aff73d6a6b67bcc25226dc9222f94dec66f57a1d185ccfa7f6b67d25d-dr-hk-hkgov-rvd-division-2015-04-30.0.zip",
+      "contentHash": "8f993b9aff73d6a6b67bcc25226dc9222f94dec66f57a1d185ccfa7f6b67d25d",
+      "releaseNotesUrl": "https://www.info.gov.hk/gia/general/201504/30/P201504300318.htm"
+    }
+  ]
+}
