@@ -1,0 +1,1112 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Own explicit representative-point corrections that differ from retained source points. Polygon core points belong to division-geometry.json; derivable points are generated.",
+  "entries": [
+    {
+      "divisionId": "ac162f33-9966-4d6e-9d53-8a6df575775f",
+      "point": [
+        114.1933860492098,
+        22.334949921742464
+      ]
+    },
+    {
+      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
+      "point": [
+        114.26590656294401,
+        22.18035758923254
+      ]
+    },
+    {
+      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
+      "point": [
+        113.91238696912907,
+        22.17492958052954
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1030",
+      "point": [
+        114.22984244758044,
+        22.45445184267817
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:838",
+      "point": [
+        113.9327004011974,
+        22.25876568842789
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:539",
+      "point": [
+        114.19678268260378,
+        22.260753981368325
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:141",
+      "point": [
+        113.93038509862205,
+        22.306651328743335
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:829",
+      "point": [
+        114.12384411005937,
+        22.20791705725186
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2446",
+      "point": [
+        114.09855224239043,
+        22.34517252236969
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:662",
+      "point": [
+        114.31407834773294,
+        22.359582160518862
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1525",
+      "point": [
+        114.26269989980155,
+        22.169070876321733
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:146",
+      "point": [
+        114.02947865870888,
+        22.209123292019775
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:291",
+      "point": [
+        114.295233152422,
+        22.542029884870765
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2524",
+      "point": [
+        114.2895229878619,
+        22.248253820569293
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:310",
+      "point": [
+        114.30936961480234,
+        22.51301339010169
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:478",
+      "point": [
+        114.03845504335808,
+        22.253020239795916
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:575",
+      "point": [
+        114.32434245756798,
+        22.333790933719538
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:403",
+      "point": [
+        114.36083474386098,
+        22.476931653537115
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:28",
+      "point": [
+        114.15526157515274,
+        22.240434768049564
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:30",
+      "point": [
+        114.1605979217298,
+        22.231224087705492
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1487",
+      "point": [
+        114.43056728371208,
+        22.543227921712067
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:53",
+      "point": [
+        114.25039484177398,
+        22.18515162409679
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2054",
+      "point": [
+        113.90795225950515,
+        22.16155690489654
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1780",
+      "point": [
+        114.29427701094102,
+        22.364925749048705
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:703",
+      "point": [
+        114.2862170451961,
+        22.36312528902995
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1476",
+      "point": [
+        114.03966460305196,
+        22.286073373161962
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1043",
+      "point": [
+        114.05903803553292,
+        22.349573578438434
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:287",
+      "point": [
+        114.31599289561275,
+        22.52707709302261
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:47",
+      "point": [
+        114.36600793512795,
+        22.314648030046676
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1956",
+      "point": [
+        113.91169334959771,
+        22.182875451438036
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:64",
+      "point": [
+        114.350729009923,
+        22.320625308124715
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2386",
+      "point": [
+        114.3641412595469,
+        22.33406589035206
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1866",
+      "point": [
+        114.29676907557177,
+        22.32717621800322
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2033",
+      "point": [
+        114.05156413404782,
+        22.261068148293244
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2210",
+      "point": [
+        114.32632454142282,
+        22.371943131591717
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2028",
+      "point": [
+        114.28627217313797,
+        22.18449932007447
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1541",
+      "point": [
+        114.35892208271657,
+        22.50041279780295
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:985",
+      "point": [
+        113.88336424184604,
+        22.37626132380001
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2820",
+      "point": [
+        114.30331805785417,
+        22.377742278076983
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1335",
+      "point": [
+        114.3480626506159,
+        22.267167026626993
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1110",
+      "point": [
+        114.186108838344,
+        22.23447568055849
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:677",
+      "point": [
+        114.07675341646289,
+        22.284023431023776
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2008",
+      "point": [
+        114.34948685181828,
+        22.257593052454148
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2059",
+      "point": [
+        114.35074684039425,
+        22.25659833900443
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2614",
+      "point": [
+        114.37335702234552,
+        22.329900926780102
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2791",
+      "point": [
+        114.30715930594089,
+        22.539835326746502
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1573",
+      "point": [
+        114.18533169071485,
+        22.215601562268553
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:405",
+      "point": [
+        114.11294711831951,
+        22.284944770028147
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:5070",
+      "point": [
+        113.96654884757585,
+        22.330696412438478
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1688",
+      "point": [
+        113.8896230619451,
+        22.345072292361067
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:5061",
+      "point": [
+        113.9819638439091,
+        22.337145423507835
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2017",
+      "point": [
+        114.314064558682,
+        22.27598610966499
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2743",
+      "point": [
+        114.31633771866971,
+        22.386039643081983
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:959",
+      "point": [
+        114.13508912101564,
+        22.22480775004159
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2793",
+      "point": [
+        114.28147260366012,
+        22.38046703481986
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1471",
+      "point": [
+        113.83675585411939,
+        22.216420456214696
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:48",
+      "point": [
+        114.33414853352362,
+        22.335632974892672
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:780",
+      "point": [
+        114.30099419071716,
+        22.374158962661173
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:346",
+      "point": [
+        114.33117110108836,
+        22.478732730093878
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2792",
+      "point": [
+        114.2216837695612,
+        22.461317449439765
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1010",
+      "point": [
+        113.9010963412692,
+        22.17229197296853
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2211",
+      "point": [
+        114.25895400833174,
+        22.229939865282926
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:365",
+      "point": [
+        114.28653423873435,
+        22.519667879747676
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:181",
+      "point": [
+        114.26079223926816,
+        22.545645616257048
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2584",
+      "point": [
+        114.3045983622734,
+        22.18394413397907
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1970",
+      "point": [
+        114.05918614025198,
+        22.28870757251597
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:159",
+      "point": [
+        113.92508171028156,
+        22.178832879788114
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1572",
+      "point": [
+        114.33049207039278,
+        22.54134989269503
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:4831",
+      "point": [
+        114.26925432992904,
+        22.551962209444223
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2291",
+      "point": [
+        113.92292375167973,
+        22.154834966022456
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:379",
+      "point": [
+        114.27595869401823,
+        22.53285905522179
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1240",
+      "point": [
+        114.25739977141572,
+        22.22596713918087
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1414",
+      "point": [
+        114.28551719849422,
+        22.374603561874288
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:98",
+      "point": [
+        114.22216242806928,
+        22.43937332950133
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:112",
+      "point": [
+        114.28865723620123,
+        22.37933341436269
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2060",
+      "point": [
+        114.3465334329945,
+        22.254182582930973
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1472",
+      "point": [
+        113.98975027604189,
+        22.365266621294094
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:185",
+      "point": [
+        114.02371679035845,
+        22.33491455611979
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1084",
+      "point": [
+        114.25044020303591,
+        22.160533774817953
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2280",
+      "point": [
+        114.06273482187093,
+        22.340076083014957
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2841",
+      "point": [
+        113.9049523234229,
+        22.17381560494153
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2057",
+      "point": [
+        114.38579390662518,
+        22.403258181766677
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2106",
+      "point": [
+        114.03298517485356,
+        22.289318611140285
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2723",
+      "point": [
+        114.36949483583452,
+        22.344805952556474
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:285",
+      "point": [
+        114.39141479907603,
+        22.363832779079463
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2717",
+      "point": [
+        114.39499338409566,
+        22.44835302876138
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2505",
+      "point": [
+        114.2954763490889,
+        22.370966297182232
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2747",
+      "point": [
+        114.2730556946806,
+        22.425444113904277
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1522",
+      "point": [
+        114.37839696566711,
+        22.35843120518876
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2388",
+      "point": [
+        114.31969797610398,
+        22.30069802889423
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:584",
+      "point": [
+        114.32447448468571,
+        22.366978044963965
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2776",
+      "point": [
+        114.29564379439053,
+        22.373774666757754
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:889",
+      "point": [
+        114.11681855493369,
+        22.28563257502479
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1060",
+      "point": [
+        114.13954596935858,
+        22.243321741653453
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2498",
+      "point": [
+        114.36988077419755,
+        22.26540868375364
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:315",
+      "point": [
+        114.36928958296815,
+        22.265878977379582
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1121",
+      "point": [
+        114.33386400356783,
+        22.479876990024355
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2220",
+      "point": [
+        114.29011071826058,
+        22.37558473843655
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1485",
+      "point": [
+        114.36848934479629,
+        22.326502238675882
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2529",
+      "point": [
+        114.36810965007633,
+        22.325662845842487
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2847",
+      "point": [
+        113.91677271640492,
+        22.162654894901085
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2418",
+      "point": [
+        114.38632575035932,
+        22.401722315299647
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1495",
+      "point": [
+        114.3186416794175,
+        22.311806580988897
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:659",
+      "point": [
+        114.2603454797977,
+        22.204608040441055
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:894",
+      "point": [
+        114.22286326172026,
+        22.206925788348613
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:99",
+      "point": [
+        113.94607338559747,
+        22.21484217217455
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1131",
+      "point": [
+        114.30126350288892,
+        22.37127801977714
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:754",
+      "point": [
+        114.37133777949632,
+        22.48324059259744
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:206",
+      "point": [
+        114.31342799017452,
+        22.389564021474456
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:5001",
+      "point": [
+        114.28042037475538,
+        22.53263048696189
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1581",
+      "point": [
+        114.26157366940002,
+        22.5516955292474
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1",
+      "point": [
+        114.2108863124197,
+        22.527756731171397
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2846",
+      "point": [
+        114.36693529197355,
+        22.32574550224599
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2746",
+      "point": [
+        114.30445058313433,
+        22.501323033723448
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2058",
+      "point": [
+        114.28410162269127,
+        22.38994734918098
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:128",
+      "point": [
+        114.3506725799411,
+        22.353406249963488
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1911",
+      "point": [
+        114.36696227017073,
+        22.266784779826303
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1557",
+      "point": [
+        114.36596950637889,
+        22.32214344054732
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1830",
+      "point": [
+        114.42795839594896,
+        22.46591435064309
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2290",
+      "point": [
+        114.19183083656546,
+        22.224451182968863
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:532",
+      "point": [
+        114.35066828296172,
+        22.27154411013662
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2139",
+      "point": [
+        114.26569941626788,
+        22.542075997509006
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2680",
+      "point": [
+        114.40191910131381,
+        22.435700946789225
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:732",
+      "point": [
+        114.37497136168035,
+        22.33892047071954
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1623",
+      "point": [
+        114.27192413331296,
+        22.43263303332445
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:895",
+      "point": [
+        114.23695099534467,
+        22.175286536244556
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1187",
+      "point": [
+        114.35182376172473,
+        22.342342606774388
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1794",
+      "point": [
+        113.90724121171834,
+        22.173467210304796
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:897",
+      "point": [
+        114.27274113859959,
+        22.53290615634371
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2152",
+      "point": [
+        114.37071140354718,
+        22.31193330558763
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2724",
+      "point": [
+        114.31458805773582,
+        22.38425310284691
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1309",
+      "point": [
+        114.30161790113351,
+        22.322205742253846
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:714",
+      "point": [
+        113.92482376071241,
+        22.176674146808857
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1582",
+      "point": [
+        114.34522433257177,
+        22.26279013947501
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:841",
+      "point": [
+        114.2821565988708,
+        22.386155814183773
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1978",
+      "point": [
+        114.26739828507063,
+        22.538417762268992
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:784",
+      "point": [
+        114.27964012284298,
+        22.264967081867407
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1301",
+      "point": [
+        114.4018671825489,
+        22.43362402312792
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:191",
+      "point": [
+        114.40610745480913,
+        22.41302868266021
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2809",
+      "point": [
+        114.37173065828891,
+        22.312067542430455
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1254",
+      "point": [
+        114.28069091125514,
+        22.242660690916793
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2490",
+      "point": [
+        113.97873559915297,
+        22.32727112802695
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1988",
+      "point": [
+        114.28792672054871,
+        22.376489304483165
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2767",
+      "point": [
+        114.28780312289612,
+        22.526304322066743
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:4943",
+      "point": [
+        113.87457123303514,
+        22.35637814525129
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2604",
+      "point": [
+        113.91044200077297,
+        22.17799684480568
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2722",
+      "point": [
+        114.31163319968516,
+        22.54199892037732
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1269",
+      "point": [
+        114.04875925814143,
+        22.283507077241495
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:812",
+      "point": [
+        114.31693503359453,
+        22.303590228596207
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:74",
+      "point": [
+        114.3678333367635,
+        22.336590132608162
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1756",
+      "point": [
+        114.35201422744802,
+        22.261563825063384
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:4990",
+      "point": [
+        114.25784732976618,
+        22.44654121445657
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1793",
+      "point": [
+        114.29936791938451,
+        22.379831366366744
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:117",
+      "point": [
+        114.29459722304816,
+        22.51433427168994
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1377",
+      "point": [
+        114.28844016842845,
+        22.532805732727038
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:2721",
+      "point": [
+        114.27329121180405,
+        22.52712640288801
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1252",
+      "point": [
+        114.31593266781049,
+        22.38884847750496
+      ]
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1617",
+      "point": [
+        114.372622888272,
+        22.311587847779165
+      ]
+    }
+  ]
+}
