@@ -200,13 +200,10 @@ function init_release_needs_island_reprocessing
         return 0
     end
 
-    set -l fixture "$saanseoi_init_repo/fixtures/meta/curations/saanseoi-island-review.json"
-    set -l inventory "$saanseoi_init_repo/apps/basemap-viewer/src/local-review/islands/inventory.json"
-    if test -f "$fixture"; and test "$fixture" -nt "$marker"
-        return 0
-    end
-    if test -f "$inventory"; and test "$inventory" -nt "$marker"
-        return 0
+    for fixture in "$saanseoi_init_repo"/fixtures/meta/curations/saanseoi-division/*.json "$saanseoi_init_repo/fixtures/meta/datasetInputs/saanseoi-division-review.json"
+        if test -f "$fixture"; and test "$fixture" -nt "$marker"
+            return 0
+        end
     end
     return 1
 end
