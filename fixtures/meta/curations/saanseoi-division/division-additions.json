@@ -1,0 +1,544 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Define identities absent from the pinned source inventory, retaining stable IDs and the names, class and point authored for each addition.",
+  "entries": [
+    {
+      "id": "17009785-57fd-4e5b-af86-2d27352e4718",
+      "class": "city",
+      "names": {
+        "en": "Kowloon",
+        "zh-hans": "九龙",
+        "zh-hant": "九龍"
+      },
+      "point": [
+        114.1767885,
+        22.3116452
+      ]
+    },
+    {
+      "id": "fb68fc73-3ac6-41c9-a692-22fcf20cb5be",
+      "class": "country",
+      "names": {
+        "en": "China",
+        "zh-hans": "中国",
+        "zh-hant": "中國"
+      },
+      "point": null
+    },
+    {
+      "id": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab",
+      "class": "area",
+      "names": {
+        "en": "Hong Kong Island",
+        "zh-hans": "香港岛",
+        "zh-hant": "香港島"
+      },
+      "point": null
+    },
+    {
+      "id": "ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb",
+      "class": "area",
+      "names": {
+        "en": "Kowloon",
+        "zh-hans": "九龙",
+        "zh-hant": "九龍"
+      },
+      "point": null
+    },
+    {
+      "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+      "class": "area",
+      "names": {
+        "en": "New Territories",
+        "zh-hans": "新界",
+        "zh-hant": "新界"
+      },
+      "point": null
+    },
+    {
+      "id": "ss-03386e65-c456-5b59-a1e7-3eac52cd3a97",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Waterfall Bay",
+        "zh-hant": "瀑布灣"
+      },
+      "point": null,
+      "key": "saanseoi-hk-waterfall-bay",
+      "evidence": {
+        "code": "saanseoi-hk-waterfall-bay",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Waterfall Bay neighbourhood addition; geometry awaits local review."
+      }
+    },
+    {
+      "id": "ss-28506769-02c3-5edf-9e23-99999e25bfe8",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Prince Edward",
+        "zh-hant": "太子"
+      },
+      "point": null,
+      "key": "saanseoi-hk-prince-edward",
+      "evidence": {
+        "code": "saanseoi-hk-prince-edward",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Prince Edward neighbourhood addition; geometry awaits local review."
+      }
+    },
+    {
+      "id": "ss-fbd43b34-3972-58cd-82ce-d431f834af2e",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Jordan",
+        "zh-hant": "佐敦"
+      },
+      "point": [
+        114.17174656896447,
+        22.305460235856685
+      ],
+      "key": "saanseoi-hk-jordan",
+      "evidence": {
+        "code": "saanseoi-hk-jordan",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Jordan neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
+      }
+    },
+    {
+      "id": "ss-04e117cb-f696-51f4-abe2-709a52100253",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Austin",
+        "zh-hant": "柯士甸"
+      },
+      "point": null,
+      "key": "saanseoi-hk-austin",
+      "evidence": {
+        "code": "saanseoi-hk-austin",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Austin neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
+      }
+    },
+    {
+      "id": "ss-d574ef9f-1f94-5f55-b13f-0f287ec06440",
+      "class": "microhood",
+      "names": {
+        "en": "Lan Kwai Fong",
+        "zh-hant": "蘭桂坊"
+      },
+      "point": [
+        114.1556,
+        22.2808
+      ],
+      "key": "saanseoi-hk-lan-kwai-fong",
+      "evidence": {
+        "code": "saanseoi-hk-lan-kwai-fong",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Lan Kwai Fong microhood addition; its representative point is on Lan Kwai Fong and geometry awaits local review."
+      }
+    },
+    {
+      "id": "ss-dbc94110-6e0d-584b-ae9d-fe87eb7857a2",
+      "class": "microhood",
+      "names": {
+        "en": "Thirty Houses",
+        "zh-hans": "卅间",
+        "zh-hant": "卅間"
+      },
+      "point": [
+        114.1511702,
+        22.2833691
+      ],
+      "key": "saanseoi-hk-thirty-houses",
+      "evidence": {
+        "code": "saanseoi-hk-thirty-houses",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-requested Thirty Houses level-6 microhood addition; its representative point is within the historic community and geometry awaits local review."
+      }
+    },
+    {
+      "id": "ss-e0b47921-ffd5-5ee6-9d70-c29d74b7092e",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Tai Tam Gap",
+        "zh-hans": "大潭峡",
+        "zh-hant": "大潭峽"
+      },
+      "point": [
+        114.2281758,
+        22.2574719
+      ],
+      "key": "saanseoi-hk-tai-tam-gap",
+      "evidence": {
+        "code": "saanseoi-hk-tai-tam-gap",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-requested Tai Tam Gap level-5 neighbourhood addition; its representative point is the mapped mountain pass and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-da8b4297-eee1-5acc-a731-743d590d4ebc",
+      "class": "microhood",
+      "names": {
+        "en": "Tai Tam Tau",
+        "zh-hans": "大潭头",
+        "zh-hant": "大潭頭"
+      },
+      "point": [
+        114.2187883,
+        22.1951389
+      ],
+      "key": "saanseoi-hk-tai-tam-tau",
+      "evidence": {
+        "code": "saanseoi-hk-tai-tam-tau",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-requested Tai Tam Tau level-6 microhood addition beside Bluff Head; its representative point is the mapped cape and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-d8e22301-6c35-509e-aa53-9c437457891d",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Cape Collinson",
+        "zh-hans": "歌连臣角",
+        "zh-hant": "歌連臣角"
+      },
+      "point": [
+        114.2453662,
+        22.2582498
+      ],
+      "key": "saanseoi-hk-cape-collinson",
+      "evidence": {
+        "code": "saanseoi-hk-cape-collinson",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-requested Cape Collinson level-5 neighbourhood addition; its representative point is the mapped locality and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-59b37ac9-f5f5-5eef-937f-b99539820ac1",
+      "class": "hamlet",
+      "names": {
+        "en": "Hok Tsui Lower Village",
+        "zh-hans": "鹤咀下村",
+        "zh-hant": "鶴咀下村"
+      },
+      "point": [
+        114.2420554,
+        22.2101577
+      ],
+      "key": "saanseoi-hk-hok-tsui-lower-village",
+      "evidence": {
+        "code": "saanseoi-hk-hok-tsui-lower-village",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-requested Hok Tsui Lower Village level-6 hamlet addition; its representative point is the mapped locality and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-724d3274-b81e-5b55-8d8a-c11109d5ca40",
+      "class": "microhood",
+      "names": {
+        "en": "Sandy Bay Gap",
+        "zh-hans": "沙湾坳",
+        "zh-hant": "沙灣坳"
+      },
+      "point": [
+        114.1293839,
+        22.2758724
+      ],
+      "key": "saanseoi-hk-sandy-bay-gap",
+      "evidence": {
+        "code": "saanseoi-hk-sandy-bay-gap",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-requested Sandy Bay Gap level-6 microhood addition; its representative point is the mapped mountain pass and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-17f64895-23b4-5b58-87e1-085b6991efd0",
+      "class": "microhood",
+      "names": {
+        "en": "Kai Tak Sports Park",
+        "zh-hans": "启德体育园",
+        "zh-hant": "啟德體育園"
+      },
+      "point": [
+        114.1978125,
+        22.3236344
+      ],
+      "key": "saanseoi-hk-kai-tak-sports-park",
+      "evidence": {
+        "code": "saanseoi-hk-kai-tak-sports-park",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Kai Tak Sports Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-4b0d5eea-5f94-59d1-8066-269e75c2c343",
+      "class": "microhood",
+      "names": {
+        "en": "Kai Tak Metro Park",
+        "zh-hans": "启德都会公园",
+        "zh-hant": "啟德都會公園"
+      },
+      "point": [
+        114.1996688,
+        22.318758
+      ],
+      "key": "saanseoi-hk-kai-tak-metro-park",
+      "evidence": {
+        "code": "saanseoi-hk-kai-tak-metro-park",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Kai Tak Metro Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-a8d56eb6-21ae-5745-b03a-3750530c1c71",
+      "class": "microhood",
+      "names": {
+        "en": "Kai Tak Cruise Terminal",
+        "zh-hans": "启德邮轮码头",
+        "zh-hant": "啟德郵輪碼頭"
+      },
+      "point": [
+        114.2120721,
+        22.3070126
+      ],
+      "key": "saanseoi-hk-kai-tak-cruise-terminal",
+      "evidence": {
+        "code": "saanseoi-hk-kai-tak-cruise-terminal",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Kai Tak Cruise Terminal level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-f39f079d-ee2d-56c5-9071-3ec16421401a",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Sheung Yuen Leng",
+        "zh-hans": "上元岭",
+        "zh-hant": "上元嶺"
+      },
+      "point": [
+        114.2059129,
+        22.3415699
+      ],
+      "key": "saanseoi-hk-sheung-yuen-leng",
+      "evidence": {
+        "code": "saanseoi-hk-sheung-yuen-leng",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Sheung Yuen Leng level-5 neighbourhood addition; its representative point is the mapped locality and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-d988dc78-d63d-5deb-a4b9-7b596a748e39",
+      "class": "microhood",
+      "names": {
+        "en": "Ha Yuen Leng",
+        "zh-hans": "下元岭",
+        "zh-hant": "下元嶺"
+      },
+      "point": [
+        114.204061,
+        22.338932
+      ],
+      "key": "saanseoi-hk-ha-yuen-leng",
+      "evidence": {
+        "code": "saanseoi-hk-ha-yuen-leng",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Ha Yuen Leng level-6 microhood addition; its representative point is the mapped locality and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-cf671d96-6ff6-5e99-b5f4-d6ffc3133f2a",
+      "class": "macrohood",
+      "names": {
+        "en": "Cha Liu Au",
+        "zh-hans": "茶寮坳",
+        "zh-hant": "茶寮坳"
+      },
+      "point": [
+        114.2250772,
+        22.3341772
+      ],
+      "key": "saanseoi-hk-cha-liu-au",
+      "evidence": {
+        "code": "saanseoi-hk-cha-liu-au",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Cha Liu Au level-4 macrohood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "ss-8b1c69bf-eff8-5bcd-acd7-3e5071bee1d6",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Ping Shan",
+        "zh-hans": "平山",
+        "zh-hant": "平山"
+      },
+      "point": [
+        114.2188153,
+        22.3307477
+      ],
+      "key": "saanseoi-hk-ping-shan",
+      "evidence": {
+        "code": "saanseoi-hk-ping-shan",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated Ping Shan level-5 neighbourhood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
+      }
+    },
+    {
+      "id": "15062812-a4d2-4d4a-b589-2f50bc31943f",
+      "class": "microhood",
+      "names": {
+        "en": "West Kowloon Four Little Dragons",
+        "zh-hant": "四小龍"
+      },
+      "point": [
+        114.150384,
+        22.334585
+      ]
+    },
+    {
+      "id": "ss-7d7383e7-286b-52f2-b6ef-9859f3b56f56",
+      "class": "microhood",
+      "names": {
+        "en": "Kellett Island",
+        "zh-hant": "奇力島",
+        "zh-hans": "奇力岛"
+      },
+      "point": [
+        114.18271101914193,
+        22.284456546410052
+      ],
+      "key": "saanseoi-hk-kellett-island",
+      "evidence": {
+        "code": "saanseoi-hk-kellett-island",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated level-6 microhood under Wan Chai District; LandsD representative point, curated boundary retained in division-geometry.json."
+      }
+    },
+    {
+      "id": "ss-28896062-1b08-5a00-a13f-e79df54524fd",
+      "class": "macrohood",
+      "names": {
+        "en": "Wah Fu",
+        "zh-hant": "華富",
+        "zh-hans": "华富"
+      },
+      "point": [
+        114.13645814715399,
+        22.253769490905007
+      ],
+      "key": "saanseoi-hk-wah-fu",
+      "evidence": {
+        "code": "saanseoi-hk-wah-fu",
+        "version": 1,
+        "reviewStatus": "reviewed",
+        "purpose": "User-curated level-4 macrohood under Southern District; LandsD representative point, curated boundary retained in division-geometry.json."
+      }
+    },
+    {
+      "id": "ss-c6a6fa05-5065-59c8-b29d-9d2183f50b0e",
+      "class": "microhood",
+      "names": {
+        "en": "Pak Kan",
+        "zh-hant": "八間",
+        "zh-hans": "八间"
+      },
+      "point": [
+        114.21345858231945,
+        22.216898082936954
+      ]
+    },
+    {
+      "id": "ss-a7102279-c138-57f4-aeb8-fa9d1507dfe7",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Nam Shan Mei",
+        "zh-hant": "南山尾"
+      },
+      "point": [
+        114.2116093058603,
+        22.347589832312963
+      ]
+    },
+    {
+      "id": "ss-8b76fa2a-3216-5845-9eae-3aa4b6936047",
+      "class": "island_group",
+      "names": {
+        "en": "Ninepin Group",
+        "zh-hant": "果洲群島",
+        "zh-hans": "果洲群岛"
+      },
+      "point": [
+        114.35776935226464,
+        22.26302047914145
+      ]
+    },
+    {
+      "id": "ss-735bf116-27f8-5888-b81a-4b1076329049",
+      "class": "island_group",
+      "names": {
+        "en": "The Brothers",
+        "zh-hant": "大小磨刀",
+        "zh-hans": "大小磨刀"
+      },
+      "point": [
+        113.97459979913585,
+        22.334589789469923
+      ]
+    },
+    {
+      "id": "ss-1df48b7f-e05d-5529-8e89-3b3edbf77146",
+      "class": "island_group",
+      "names": {
+        "en": "Ung Kong Group",
+        "zh-hant": "甕缸群島",
+        "zh-hans": "瓮缸群岛"
+      },
+      "point": [
+        114.35033025,
+        22.32304985
+      ]
+    },
+    {
+      "id": "ss-5afb2d5b-a7ad-58ad-9ba6-ca818f4dcc9f",
+      "class": "neighbourhood",
+      "names": {
+        "en": "Mei Foo",
+        "zh-hant": "美孚",
+        "zh-hans": "美孚"
+      },
+      "point": null
+    },
+    {
+      "id": "ss-f717fc08-8be5-5037-a609-6aa415cca15c",
+      "class": "microhood",
+      "names": {
+        "en": "Starstreet",
+        "zh-hant": "星街",
+        "zh-hans": "星街"
+      },
+      "point": [
+        114.1683894,
+        22.2765703
+      ]
+    }
+  ]
+}
