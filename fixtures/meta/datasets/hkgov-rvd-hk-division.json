@@ -1,0 +1,67 @@
+{
+  "versionHash": "sha256:5cb36e7d9d9246b44693011858fb543ed2c523a05de9fe9fb07ce700496abaf7",
+  "publisherCode": "hkgov-rvd",
+  "code": "ds-hk-hkgov-rvd-division",
+  "regionCode": "hk",
+  "releaseType": "snapshot",
+  "releaseFrequency": "annual",
+  "theme": "divisions",
+  "sourceVariant": "hkgov-rvd",
+  "resourceTypes": [
+    "division"
+  ],
+  "licenseCode": "hkgov-open-data",
+  "attribution": "© Hong Kong Special Administrative Region Government, Rating and Valuation Department",
+  "sourceUrl": "https://www.rvd.gov.hk/doc/tc/hkpr15/06.pdf",
+  "schemaURL": null,
+  "updatePolicy": {
+    "allowUpdates": false
+  },
+  "releasePolicy": {
+    "series": "rolling",
+    "schedule": "irregular",
+    "revisionScope": "none",
+    "checks": {
+      "newReleases": {
+        "trigger": "never"
+      },
+      "revisions": {
+        "trigger": "never"
+      },
+      "archives": {
+        "trigger": "never"
+      }
+    },
+    "archives": {
+      "availability": "full"
+    }
+  },
+  "versionPolicy": {
+    "scheme": "release-date",
+    "releaseField": "sourceVersion",
+    "correctionSuffixSource": "generated"
+  },
+  "releases": [
+    {
+      "sourceVersion": "2015-04-30.0",
+      "releaseDate": "2015-04-30",
+      "sourceUrl": "https://www.rvd.gov.hk/doc/tc/hkpr15/06.pdf"
+    }
+  ],
+  "category": "administrative",
+  "i18n": {
+    "en": {
+      "name": "Property Review Areas and Districts",
+      "description": "Areas, districts and subdistricts listed in the Hong Kong Property Review 2015 appendix. Historical list membership, not statutory boundaries."
+    },
+    "zh-hant": {
+      "name": "《香港物業檢討》2015年附錄所列區域及分區",
+      "description": "《香港物業檢討》2015年附錄所列的區域、分區及次分區，反映歷史名錄收錄情況，並非法定界線。"
+    },
+    "zh-hans": {
+      "name": "《香港物业检讨》2015年附录所列区域及分区",
+      "description": "《香港物业检讨》2015年附录所列的区域、分区及次分区，反映历史名录收录情况，并非法定界线。"
+    }
+  },
+  "mergeRules": []
+}
