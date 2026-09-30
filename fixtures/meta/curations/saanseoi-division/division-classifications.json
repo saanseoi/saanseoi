@@ -1,0 +1,351 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Override publisher classifications with reviewed SaanSeoi classes. Category and level are derived from the shared taxonomy.",
+  "entries": [
+    {
+      "divisionId": "0058e21e-a916-4762-8da1-ba6694204a35",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "04ad160c-ba32-44b8-8ab6-b7eaf7f5afe3",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "04b38a49-a2ae-4d50-af49-b740a7611563",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "04c3eff2-3582-495f-8408-061b6e5485f5",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "08ee37c9-4104-4e04-a7f4-efd5fc96f471",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "0a047469-9d4f-4101-ab9c-75560584888e",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "183013ef-20f3-417d-8881-16c1e9a9f7e2",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "1aae385b-4843-4ea9-b8b3-d3726764daf3",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "1f358117-47ce-45c7-90a4-9e5538d0b884",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "21ed82b0-c4f1-42f6-b79f-5c94363e4239",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "222b7818-970a-491d-98b6-b88d8c6f0161",
+      "class": "macrohood"
+    },
+    {
+      "divisionId": "36ba2e79-8bae-45a5-8814-6499842f5ca2",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "38c2dec8-4e8d-45ec-971d-621160fbaa80",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "3b473eb5-f4dc-4822-ad20-5e045544afa7",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "3ba4e85e-0bae-43cc-9590-3dbdb3ed977b",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "3dba1059-d30d-47e9-8a19-89d43c7db8d0",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "3faa142e-9926-43c8-af50-0432674c1218",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "4042756d-e611-41b6-8094-2d38b4e613c3",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "45205c80-66bb-4b37-a728-410caa92d4c5",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "45285648-a223-4780-af58-129b6f3b3540",
+      "class": "hamlet"
+    },
+    {
+      "divisionId": "4901c4fd-c5d4-473a-a374-8ee068a56acf",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "4cc6dd9f-b978-4b45-ab50-cc2c8a268df1",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "4edbae57-59b3-4757-8e2c-526d48fd1d44",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "4efceb9d-8751-4396-8a22-351bb90dd8fa",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "53ed173c-c379-4ff0-b9bc-5fc1842ed773",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "567176ef-d8f0-4209-a06f-90530d4b7eb2",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "593026eb-279a-4755-ab5d-9c7c685f4501",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "5bc42e3a-b7de-485c-a651-57fb3b02957d",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "5db55200-4e24-41bf-93e4-8b5610145dea",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "5e1896d8-af25-40eb-9c89-36e490d830ed",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "610d1e88-0cfe-476b-ae6a-b20c56037c23",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "62e48e67-a079-4fa5-b76f-baf1ec109179",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "65a273eb-ce61-40db-ba4c-2f2f7fe496e0",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "6f7286f2-2eb0-4a6a-b3f1-c994471545d9",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "727f042f-399e-4f10-a282-2ce3eeabe8a9",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "84768e85-9a98-442f-896c-ccc9a8d2314c",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "88c81c19-2b74-4e32-8ad8-bbf1a7912cd9",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "8da0dec7-a8dc-493d-b291-893fae29fc59",
+      "class": "hamlet"
+    },
+    {
+      "divisionId": "9313a020-4d76-4cba-8218-25d96b9b7954",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "94acd951-b94c-4a0f-8b5d-85a95d45063f",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "95528b81-7107-41c5-9a49-7d45a37b2b4b",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "9879ebb4-1171-4b2f-8125-bc60a256ed52",
+      "class": "hamlet"
+    },
+    {
+      "divisionId": "a0883d47-ea3d-48c0-ab37-feae33f4e969",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "a0a99bd7-7336-4390-97cc-d61dd553697c",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "a1a26b21-3c2a-46f6-82fa-d65cc55a1622",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "a60dba0a-41e2-4c84-ae70-05f647bd0e3a",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "ae137810-8767-4c1d-a1d0-5adff0b633c8",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "b15871ff-6563-4c34-b333-a58fec032fd6",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "b56a6e1a-8519-4147-8dd4-342addf54c92",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "b5f8964d-ed2e-4e3e-9708-038c79db43ea",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "bf07573f-396b-4bfc-9a3f-60b61e083d6d",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "c1a8152b-ebb8-4ac4-92ec-9a1d27bf6421",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "c389923d-1dca-44af-8abe-4ac5a9d90b0b",
+      "class": "macrohood"
+    },
+    {
+      "divisionId": "cc911334-7897-4c13-99a1-89c69677b51a",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "cce58df1-e153-4c73-b68e-d83764b017ad",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "cd1f2665-d2d3-4a05-b386-e992030cbd5c",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "cd521aae-5acd-4cca-8479-7713a584e1f2",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "cf5e7340-5d2d-47a3-b2df-c1136901b146",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "d23375f4-b681-4899-8cb9-ce1a0454ac58",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "d37b7c80-ac49-4082-8d0c-50eb262ee03d",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "d39ae65a-e6cc-4dcd-9186-3b041c3d1b9c",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "d6412be6-0272-4678-8270-2290161920b5",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "dd472098-9bbe-42fb-b4bb-12682d4b68a4",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "df80bddb-9acd-4d5c-b93a-281ab352141b",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "e5322b23-24d0-46d7-affb-cae30cc883a8",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "e80a2e43-618a-4431-a2f1-bd9e30e6158e",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "ec7ed368-a99d-4665-b330-ebf83fee2db0",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "f3a5d2ab-5e5c-4217-a72c-f736bc04d0d6",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "f47dbbad-7211-4f2c-8bb0-4425d5d83e3e",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "f4b61c53-a9ea-4585-8f06-c9302e61777c",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "f9caa794-68b4-4e8d-92c7-44ebafa5352f",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "fa7405e4-505c-499a-8114-9175bbaff368",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "fbeb1745-0047-4831-b70e-d637decda7f7",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "fc40613a-be4e-408f-9414-deae675850a7",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "ff6d6244-3136-4bee-8373-ace44a01e3a5",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "ff78bc6d-3d7d-42df-80ec-350b21728027",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "ffe094bc-3d49-4f8a-a1d4-4c625cc495f0",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "fff6ed27-1d9b-4e7f-a9f8-eff55d7f3f05",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "ff8e1c52-ac5d-42a4-a411-454cfd71912e",
+      "class": "neighbourhood"
+    },
+    {
+      "divisionId": "3707878f-080b-42cf-aecf-89fef56a066a",
+      "class": "major_island"
+    },
+    {
+      "divisionId": "b14eba1a-b366-461d-a3ce-1d4c878fb997",
+      "class": "village"
+    },
+    {
+      "divisionId": "ac162f33-9966-4d6e-9d53-8a6df575775f",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
+      "class": "island_group"
+    },
+    {
+      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
+      "class": "island_group"
+    },
+    {
+      "divisionId": "d1e1327a-28ff-4487-9103-df158b9c94a0",
+      "class": "microhood"
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1581",
+      "class": "islet",
+      "reason": "Retain the reviewed island classification independently of measured polygon area."
+    }
+  ]
+}
