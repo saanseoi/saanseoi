@@ -71,3 +71,35 @@ it('uses the selected corrected geometry and removes excluded and merged aliases
   expect(state[1]?.name).toBe('Corrected')
   expect(state[1]?.geometry).toEqual(polygon(114.2))
 })
+
+it('keeps the Sai Kung Yim Tin Tsai separate from its island-tagged namesake', async () => {
+  const selections = await import(
+    '../../../fixtures/meta/curations/saanseoi-division/division-geometry-selections.json'
+  )
+  const action = selections.corrections.find(
+    row => row.id === 'LANDSD:PLACE_NAME:2820',
+  )!
+  const nearby = polygon(114.303)
+  const distant = polygon(114.21)
+  const rows = publishedIslandRows(
+    [
+      {
+        id: action.id,
+        name: 'Yim Tin Tsai',
+        point: [114.303, 22],
+        areaKm2: 0.3,
+        geometry: nearby,
+        geometryOptions: [
+          { geometry: nearby, sourceTags: { place: 'islet' } },
+          { geometry: distant, sourceTags: { place: 'island' } },
+        ],
+      },
+    ],
+    {
+      entries: [{ id: action.id, name: 'Yim Tin Tsai', decision: 'rejected' }],
+      curationPolicy: { actions: [action], aliasGroups: [] },
+    },
+  )
+  expect(rows).toHaveLength(1)
+  expect(rows[0]?.geometry).toEqual(nearby)
+})

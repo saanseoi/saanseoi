@@ -1,4 +1,3 @@
-import { expandReviewInventory } from '../../../libs/core/src/pipeline/services/divisions/reviewInventory'
 import { describe, it, expect } from 'vitest'
 import {
   calculatePencilRegions,
@@ -124,12 +123,11 @@ it('saves the retained browser crossing among real review boundaries', async () 
   const read = (path: string) =>
     JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'))
   const input = read('./pencilBrowserStroke.json')
-  const inventory = expandReviewInventory(
-    read('../../../fixtures/divisions/hk/geographic-review-inventory.json'),
-    read('../../../fixtures/divisions/hk/geographic-hierarchies.json'),
-  )
+  const inventory = read('../../../.local/division-review/editor.json').inventory
   const reference = read('../src/local-review/division-areas/reference-areas.json')
-  const stubs = read('../../../fixtures/divisions/hk/stub-areas.json')
+  const estimatedAreas = read(
+    '../../../fixtures/meta/curations/saanseoi-division/division-geometry.json',
+  )
   const ids = new Set(
     inventory.divisions
       .filter((d: { level: number }) => d.level === 3)
@@ -138,7 +136,7 @@ it('saves the retained browser crossing among real review boundaries', async () 
   const records = new Map<string, any>(
     reference.features.map((f: any) => [f.properties.divisionId, f]),
   )
-  for (const f of stubs.features) records.set(f.properties.divisionId, f)
+  for (const f of estimatedAreas.features) records.set(f.properties.divisionId, f)
   const boundaries = [...records.values()]
     .filter(f => ids.has(f.properties.divisionId))
     .map(f => ({

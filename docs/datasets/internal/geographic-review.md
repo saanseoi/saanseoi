@@ -1,4 +1,4 @@
-# Geographic hierarchy and stub-area review
+# Geographic hierarchy and SaanSeoi estimated-area review
 
 The local drawing map is served at <http://localhost:5174/local-review/> by the basemap
 viewer (`bun run --cwd apps/basemap-viewer dev`). Its page and modules live in
@@ -6,12 +6,24 @@ viewer (`bun run --cwd apps/basemap-viewer dev`). Its page and modules live in
 `apps/basemap-viewer/src/local-review/division-areas/`. These local review directories
 are ignored by Git and excluded from the deployed viewer.
 
-The review inventory in `fixtures/divisions/hk/geographic-review-inventory.json`
-contains 1,759 retained geographic divisions from `data-hk-divisions-2026-08-19.0`,
-their retained source points, names and provisional ancestry. Nine divisions have no
-source point. Reviewed exclusions, including level-6 squares, plazas, promenades and
-East Wing Forecourt, are omitted. The local reference-area file contains the selected
-release's existing polygons; these remain distinct from drawn stubs.
+The editor generates its identity inventory and reference geometry from the pinned
+archives in `fixtures/meta/datasetInputs/saanseoi-division-review.json`, then applies
+the purpose-specific files in `fixtures/meta/curations/saanseoi-division/`. Class
+determines category and level; names and ancestry labels are resolved by ID. No full
+publisher inventory or expanded hierarchy catalogue needs to be committed.
+
+Run `bun scripts/divisions/prepare-review.ts` to populate the ignored
+`.local/division-review/editor.json` cache. The local viewer also invokes this generator
+through its development-only `/__division-review/inputs` endpoint. It works without a
+populated database. `SAANSEOI_REVIEW_API_URL` selects an asset API for pins carrying
+`assetId`; `SAANSEOI_REVIEW_ARCHIVE_URL` selects an R2 archive origin. The optional
+`SAANSEOI_REVIEW_OPTIONS` file supplies loader options such as `paths` keyed by dataset
+code or source pins with deployment-specific asset IDs. Every fallback verifies the same
+pinned hash; source refreshes must be explicit.
+
+Curated exclusions, including level-6 squares, plazas, promenades and East Wing
+Forecourt, are omitted. The local reference-area file contains the selected release's
+existing polygons; these remain distinct from drawn estimated areas.
 
 ## Drawing and retaining decisions
 
@@ -20,27 +32,32 @@ release's existing polygons; these remain distinct from drawn stubs.
 2. Click vertices on the map. Lower-level points inside the draft are highlighted.
    Choose **Finish** to close it. Vertices can be dragged; **Undo vertex** removes the
    latest vertex. **Cancel** discards the current edit.
-3. Use **Edit stub** to adjust the first exterior ring, or **Add polygon part** for a
-   disconnected area. Imported holes and other parts are retained during editing. Stubs
-   use valid closed polygon rings with at most 2,000 distinct vertices per ring.
-   **Adjoin boundary** copies the shortest boundary path between two selected nodes from
-   a nearby polygon. **Adjoin street** replaces the nearest active-ring path with the
-   shortest connected route through the local street-centreline graph.
+3. Use **Edit area** to adjust the first exterior ring, or **Add polygon part** for a
+   disconnected area. Imported holes and other parts are retained during editing.
+   Estimated areas use valid closed polygon rings with at most 2,000 distinct vertices
+   per ring. **Adjoin boundary** copies the shortest boundary path between two selected
+   nodes from a nearby polygon. **Adjoin street** replaces the nearest active-ring path
+   with the shortest connected route through the local street-centreline graph.
 4. Choose **Derive hierarchy** to inspect point membership and competing parents.
    Level-6 divisions are points only: draw level-5 parents instead. A point in multiple
    same-tier polygons receives the smallest containing polygon; division ID breaks ties.
    Competing IDs remain in the decision for review.
-5. **Download fixtures** produces `stub-areas.json` (GeoJSON) and
-   `geographic-hierarchy-patch.json` (one entry per division). Place both files under
-   `fixtures/divisions/hk/`. Downloads do not apply ingestion or publish a release.
+5. **Download drawings** exports `division-geometry.json` and
+   `division-editor-project.json`. Save the geometry file in
+   `fixtures/meta/curations/saanseoi-division/` and the optional editor cache in
+   `.local/division-review/`. The geometry export retains active and withheld drawings,
+   unique original drawings, pencil linework and reviewed core points. The editor cache
+   retains working baselines, cleanup stages and recovery history. Hierarchy derivation
+   produces a preview; explicit parent edits belong in `division-hierarchy.json`.
+   Downloads do not ingest or publish a release.
 
-Browser storage retains drawings for the selected cohort. **Import stubs** validates
-cohort and identity, replaces matching drawn divisions and retains other saved drawings.
-Download fixtures to keep a durable copy outside browser storage. Reference polygons are
-never overwritten.
+Browser storage retains drawings for the selected cohort. **Import estimated areas**
+validates cohort and identity, replaces matching drawn divisions and retains other saved
+drawings. Download fixtures to keep a durable copy outside browser storage. Reference
+polygons are never overwritten.
 
-The **Geometry cleanup** controls apply to saved level-3, level-4 and level-5 stubs.
-Each selected level is clipped to the retained
+The **Geometry cleanup** controls apply to saved level-3, level-4 and level-5 estimated
+areas. Each selected level is clipped to the retained
 `hongkong-2026-09-01.coastline-land.geojson` layer, simplifies the coastline to
 five-metre detail (three metres for L4), snaps existing boundary vertices to local
 street centrelines within five metres, closes seams up to five metres, and assigns the
@@ -57,14 +74,14 @@ needed for interactive cleanup.
 
 ## Derivation and application
 
-The shared `geographicReview.ts` implementation is used by the map and tests. Stub
+The shared `geographicReview.ts` implementation is used by the map and tests. Saanseoi
 geometry takes precedence for the same division; reference providers then prefer HAD,
 Overture and remaining providers. Point-on-boundary membership is included; hole
 interiors are excluded. Numeric parent tiers must be smaller than the child tier.
 Landforms use their category and class instead of numeric levels.
 
 Point inference applies to localities and hoods at levels 3–6. Administrative divisions,
-cities and landforms retain reviewed ancestry; a label point cannot establish the
+cities and landforms retain curated ancestry; a label point cannot establish the
 administrative coverage of an island or city spanning multiple districts. Polygon
 containment and intersection evidence for those features require a separate review.
 
@@ -75,22 +92,20 @@ same uncertainty when **Retain provisional ancestry** is disabled. Polygon match
 overlap alternatives remain explicit. A geometric match is point-membership evidence,
 not a claim that the child has its own polygon or that its entire extent is contained.
 
-The cohort-scoped hierarchy patch checks division identity and canonical class during
-Overture normalisation, after classification and source ancestry processing. Unresolved
-entries block application. It changes canonical hierarchy paths, not retained publisher
-assertions. Reingestion is required to materialise changes; this review does not mutate
-published snapshots.
+The cohort-scoped hierarchy decisions validate canonical identity and class during
+SaanSeoi archive assembly. They determine the synthetic dataset's ancestry; native
+Overture ingestion retains its own normalised ancestry. Building an archive does not
+mutate published snapshots. Upload its Division and DivisionArea archives through the
+ordinary ingestion pipeline to publish a curated edition.
 
-## Internal geometry variant
+## Published and working geometry
 
-`stub-areas.json` belongs to the Hong Kong geographic domain and its explicit cohort.
-The API accepts `include=areas:stub` only for that active cohort. Empty coverage returns
-empty geometry relationships. Other domains and cohorts cannot use the fixture.
-
-The variant is intentionally absent from public dataset/source registrations, public
-variant enumerations, OpenAPI examples and default geometry selection. It is an explicit
-review overlay, not an authoritative published geometry source. No source catalogue
-entry or provider attribution is invented for hand-drawn geometry.
+`division-geometry.json` contains the evolving authored geometry. The editor overlays it
+on pinned source geometry; API requests receive published archive records. Working edits
+become published geometry only after building and ingesting a new immutable
+Division/DivisionArea edition. `.local/division-review/division-editor-project.json` is
+ignored local editor state and does not enter ingestion records. A fresh editor session
+needs no recovery cache: authored drawing inputs remain in `division-geometry.json`.
 
 ## Cross-domain geometry and building suggestions
 
@@ -110,4 +125,66 @@ metres. The preview records its seed, parameters, source date and method version
 This estimates connected building coverage, not the named settlement extent. It may
 cross roads or water and omit undeveloped land, large separated buildings or missing OSM
 footprints. Expansion above 5,000 buildings is rejected. Review and explicitly copy the
-preview before it becomes a stub; published data is unaffected.
+preview before it becomes a saanseoi; published data is unaffected.
+
+## Curated additions awaiting drawings
+
+Mei Foo (`MF`) is a level-5 neighbourhood awaiting a drawn boundary and core point. Tung
+Tau (`TGT`) and Starstreet (`STR`) are level-6 microhoods with OSM locality points.
+Starstreet Precinct and 星街社區 are aliases of Starstreet. Lei Muk Shue is an estate
+and is excluded from Division list membership. Jordan uses its exported polygon and core
+point.
+
+New short-code proposals are restricted to divisions with Hong Kong Island or Kowloon
+administrative ancestry. Supplied and explicitly accepted codes outside those areas
+remain assigned and reserve their codes within their classes. Other outside-area
+identities are held for later review. Run `scripts/divisions/recommend-codes.py` with
+`--hk-kowloon-only` to apply that review scope.
+
+The island editor exports decisions to `division-exclusions.json` and source references
+to `division-geometry-selections.json`. Replacing an authored island correction also
+exports the updated `division-geometry.json`. Independent point and bounds corrections
+belong in `division-point-overrides.json` and `division-bounds-overrides.json`; ordinary
+source points, polygon core points and derived bounds are not repeated there.
+
+## Versioned local division editor
+
+The division editor page at `apps/basemap-viewer/local-review/index.html` and its
+modules under `apps/basemap-viewer/src/local-review/division-areas/` are application
+source in version control. Other temporary review pages remain ignored.
+
+Run `bun run --cwd apps/basemap-viewer dev` and open
+<http://localhost:5174/local-review/>. The default `development` mode registers the
+input-generation and local-asset endpoints. Retain the pinned ingredient archives needed
+by `scripts/divisions/prepare-review.ts`; it builds
+`.local/division-review/editor.json`. The government comparison also requires the
+retained HAD and C&SD files listed in `scripts/divisions/government-review.ts`. Missing
+required inputs produce an explicit error, not a substitute source edition.
+
+Optional catalogue, building and road exports live in `.local/division-review/assets/`
+as `catalogue.json`, `buildings.json` and `road-centrelines.geojson`. They are served
+through an allowlisted development endpoint, not shipped as application assets. To
+prepare these from retained division-area deliveries and exported building/road
+FeatureCollections, run from the repository root:
+
+```sh
+uv run --with duckdb --with shapely python \
+  apps/basemap-viewer/src/local-review/division-areas/prepareGeometryInputs.py \
+  --buildings /path/to/buildings.geojson --roads /path/to/road-centrelines.geojson
+```
+
+The catalogue preparation reads locally retained division-area Parquet deliveries with
+`geometry`, `i18n` and `division_id` fields. Missing optional data disables catalogue
+search or reports an error when the corresponding geometry tool is used. Coastline
+cleanup uses the retained
+`.local/tiles/data/hk/hongkong-2026-09-01.coastline-land.geojson` export. Browser
+drawings, backups and `.local/division-review/division-editor-project.json` remain local
+working state. The checked-in Tseung Kwan O recovery fixture supports the editor's
+existing once-per-browser restore; it is not published by the viewer.
+
+Preview and production builds use only the public `index.html` entry and exclude
+`src/local-review` from the deployment type-check entry set. The build boundary rejects
+any accidental import of a local review module or dataset. Preview serving and
+non-development Vite modes return 404 for review pages and endpoints. Deployment assets
+contain neither the editor nor its geometry inputs; the editor is not enabled with a
+client-side visibility toggle.

@@ -1,3 +1,5 @@
+import { blockLocalReview, localReviewBoundary } from './localReviewBoundary.ts'
+import { reviewInputsPlugin } from './reviewInputsPlugin.ts'
 import { defineConfig } from 'vitest/config'
 import { svelte } from '@sveltejs/vite-plugin-svelte'
 import tailwindcss from '@tailwindcss/vite'
@@ -33,8 +35,16 @@ function localReviewRoutes() {
   }
 }
 
-export default defineConfig({
-  plugins: [localReviewRoutes(), tailwindcss(), svelte()],
+export default defineConfig(({ command, mode, isPreview }) => ({
+  plugins: [
+    ...(command === 'serve' && !isPreview && mode === 'development'
+      ? [reviewInputsPlugin(), localReviewRoutes()]
+      : [blockLocalReview()]),
+    localReviewBoundary(),
+    tailwindcss(),
+    svelte(),
+  ],
+  build: { rolldownOptions: { input: 'index.html' } },
   // Keep the renderer and its separately served worker on the same package version.
   optimizeDeps: { exclude: ['maplibre-gl'] },
   server: {
@@ -46,4 +56,4 @@ export default defineConfig({
   },
   preview: { port: 4173, strictPort: true },
   test: { environment: 'node' },
-})
+}))

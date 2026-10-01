@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { Polygon } from 'geojson'
 import {
-  cleanTownStubGeometries,
+  cleanTownEstimatedAreaGeometries,
   TOWN_GEOMETRY_CLEANUP_VERSION,
 } from '../src/local-review/division-areas/geometryTools'
 import type {
   ReviewInventory,
-  StubAreas,
+  SaanseoiEstimatedAreas,
 } from '../../../libs/core/src/pipeline/services/divisions/geographicReview'
 
 const rectangle = (west: number, east: number): Polygon => ({
@@ -47,20 +47,20 @@ describe('town cleanup reruns', () => {
         },
       ],
     }
-    const stubs: StubAreas = {
+    const estimatedAreas: SaanseoiEstimatedAreas = {
       type: 'FeatureCollection',
       schemaVersion: 1,
       region: 'hk',
       domain: 'geographic',
       cohort: 'test',
-      variant: 'stub',
+      variant: 'saanseoi',
       features: [
         {
           type: 'Feature',
-          id: 'stub:town',
+          id: 'saanseoi:town',
           properties: {
             divisionId: 'town',
-            variant: 'stub',
+            variant: 'saanseoi',
             geometryCleanup: TOWN_GEOMETRY_CLEANUP_VERSION,
           },
           geometry: rectangle(0, 1),
@@ -69,7 +69,7 @@ describe('town cleanup reruns', () => {
     }
 
     expect(() =>
-      cleanTownStubGeometries(stubs, inventory, {
+      cleanTownEstimatedAreaGeometries(estimatedAreas, inventory, {
         type: 'FeatureCollection',
         features: [],
       }),

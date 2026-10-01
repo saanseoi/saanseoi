@@ -31,8 +31,15 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .playwright-cli
 .cache
 .local/
-apps/basemap-viewer/local-review/
-apps/basemap-viewer/src/local-review
+# Versioned division editor; other temporary review pages remain local.
+apps/basemap-viewer/local-review/*
+!apps/basemap-viewer/local-review/index.html
+apps/basemap-viewer/src/local-review/*
+!apps/basemap-viewer/src/local-review/division-areas/
+# Optional generated geometry inputs are not application source.
+apps/basemap-viewer/src/local-review/division-areas/*.json
+!apps/basemap-viewer/src/local-review/division-areas/tseungKwanORestore.json
+apps/basemap-viewer/src/local-review/division-areas/*.geojson
 scripts/review/
 scripts/verification/
 scripts/benchmarks/

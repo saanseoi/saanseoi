@@ -4,8 +4,8 @@ import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
 import type { Polygon, Position } from 'geojson'
 import {
-  cleanStubGeometriesForLevel,
-  cleanTownStubGeometries,
+  cleanEstimatedAreaGeometriesForLevel,
+  cleanTownEstimatedAreaGeometries,
   GeometryCleanupError,
   LEVEL_4_GEOMETRY_CLEANUP_VERSION,
   TOWN_GEOMETRY_CLEANUP_VERSION,
@@ -13,7 +13,7 @@ import {
 import type {
   ReviewDivision,
   ReviewInventory,
-  StubAreas,
+  SaanseoiEstimatedAreas,
 } from '../../../libs/core/src/pipeline/services/divisions/geographicReview'
 
 type Shape = import('jsts/org/locationtech/jts/geom/Geometry.js').default & {
@@ -43,16 +43,16 @@ const division = (id: string, level: number): ReviewDivision => ({
   hierarchies: { administrative: [], locality: [], full: [], landform: [] },
 })
 
-const stub = (id: string, geometry: Polygon) => ({
+const estimatedArea = (id: string, geometry: Polygon) => ({
   type: 'Feature' as const,
-  id: `stub:${id}`,
-  properties: { divisionId: id, variant: 'stub' },
+  id: `saanseoi:${id}`,
+  properties: { divisionId: id, variant: 'saanseoi' },
   geometry,
 })
 
 const positions = (geometry: Polygon): Position[] => geometry.coordinates.flat(1)
 
-describe('town stub geometry cleanup', () => {
+describe('town estimated geometry cleanup', () => {
   it('extracts failing nodes from a JTS non-noded intersection', () => {
     const error = new GeometryCleanupError(
       4,
@@ -82,25 +82,25 @@ describe('town stub geometry cleanup', () => {
         division('district', 2),
       ],
     }
-    const unchanged = stub('district', rectangle(4, 5))
-    const stubs: StubAreas = {
+    const unchanged = estimatedArea('district', rectangle(4, 5))
+    const estimatedAreas: SaanseoiEstimatedAreas = {
       type: 'FeatureCollection',
       schemaVersion: 1,
       region: 'hk',
       domain: 'geographic',
       cohort: 'test',
-      variant: 'stub',
+      variant: 'saanseoi',
       features: [
-        stub('town-a', rectangle(-0.1, 1.01)),
-        stub('town-b', rectangle(0.99, 2.1)),
+        estimatedArea('town-a', rectangle(-0.1, 1.01)),
+        estimatedArea('town-b', rectangle(0.99, 2.1)),
         unchanged,
       ],
     }
-    const result = cleanTownStubGeometries(stubs, inventory, {
+    const result = cleanTownEstimatedAreaGeometries(estimatedAreas, inventory, {
       type: 'FeatureCollection',
       features: [{ type: 'Feature', properties: {}, geometry: rectangle(0, 2) }],
     })
-    const towns = result.stubs.features.filter(feature =>
+    const towns = result.estimatedAreas.features.filter(feature =>
       feature.properties.divisionId.startsWith('town'),
     )
     const a = towns.find(feature => feature.properties.divisionId === 'town-a')!
@@ -138,7 +138,7 @@ describe('town stub geometry cleanup', () => {
     ).toBe(true)
     expect(a.properties.geometryCleanup).toBe(TOWN_GEOMETRY_CLEANUP_VERSION)
     expect(
-      result.stubs.features.find(
+      result.estimatedAreas.features.find(
         feature => feature.properties.divisionId === 'district',
       ),
     ).toEqual(unchanged)
@@ -155,15 +155,15 @@ describe('town stub geometry cleanup', () => {
         releaseSet: 'test',
         divisions: [division(id, level)],
       }
-      const result = cleanStubGeometriesForLevel(
+      const result = cleanEstimatedAreaGeometriesForLevel(
         {
           type: 'FeatureCollection',
           schemaVersion: 1,
           region: 'hk',
           domain: 'geographic',
           cohort: 'test',
-          variant: 'stub',
-          features: [stub(id, rectangle(-0.1, 1.1))],
+          variant: 'saanseoi',
+          features: [estimatedArea(id, rectangle(-0.1, 1.1))],
         },
         inventory,
         {
@@ -174,10 +174,12 @@ describe('town stub geometry cleanup', () => {
       )
       expect(result.levelCount).toBe(1)
       expect(result.changedCount).toBe(1)
-      expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
+      expect(result.estimatedAreas.features[0]?.properties.geometryCleanup).toBe(
         level === 4 ? LEVEL_4_GEOMETRY_CLEANUP_VERSION : TOWN_GEOMETRY_CLEANUP_VERSION,
       )
-      expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(level)
+      expect(result.estimatedAreas.features[0]?.properties.geometryCleanupLevel).toBe(
+        level,
+      )
     }
   })
 
@@ -190,16 +192,16 @@ describe('town stub geometry cleanup', () => {
       releaseSet: 'test',
       divisions: [division('hood', 4)],
     }
-    const result = cleanStubGeometriesForLevel(
+    const result = cleanEstimatedAreaGeometriesForLevel(
       {
         type: 'FeatureCollection',
         schemaVersion: 1,
         region: 'hk',
         domain: 'geographic',
         cohort: 'test',
-        variant: 'stub',
+        variant: 'saanseoi',
         features: [
-          stub('hood', {
+          estimatedArea('hood', {
             type: 'Polygon',
             coordinates: [
               [
@@ -228,15 +230,16 @@ describe('town stub geometry cleanup', () => {
       4,
     )
     const ring =
-      result.stubs.features[0]!.geometry.type === 'Polygon'
-        ? result.stubs.features[0]!.geometry.coordinates[0]!
-        : result.stubs.features[0]!.geometry.coordinates[0]![0]!
+      result.estimatedAreas.features[0]!.geometry.type === 'Polygon'
+        ? result.estimatedAreas.features[0]!.geometry.coordinates[0]!
+        : result.estimatedAreas.features[0]!.geometry.coordinates[0]![0]!
     expect(ring).toHaveLength(12)
-    expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
+    expect(result.estimatedAreas.features[0]?.properties.geometryCleanup).toBe(
       LEVEL_4_GEOMETRY_CLEANUP_VERSION,
     )
     expect(
-      result.stubs.features[0]?.properties.geometryCleanupCoastlineDetailMetres,
+      result.estimatedAreas.features[0]?.properties
+        .geometryCleanupCoastlineDetailMetres,
     ).toBe(0)
   })
 
@@ -249,15 +252,15 @@ describe('town stub geometry cleanup', () => {
       releaseSet: 'test',
       divisions: [division('town', 3)],
     }
-    const result = cleanStubGeometriesForLevel(
+    const result = cleanEstimatedAreaGeometriesForLevel(
       {
         type: 'FeatureCollection',
         schemaVersion: 1,
         region: 'hk',
         domain: 'geographic',
         cohort: 'test',
-        variant: 'stub',
-        features: [stub('town', rectangle(0.50003, 1))],
+        variant: 'saanseoi',
+        features: [estimatedArea('town', rectangle(0.50003, 1))],
       },
       inventory,
       {
@@ -282,13 +285,15 @@ describe('town stub geometry cleanup', () => {
         ],
       },
     )
-    const geometry = result.stubs.features[0]!.geometry
+    const geometry = result.estimatedAreas.features[0]!.geometry
     const coordinates =
       geometry.type === 'Polygon'
         ? geometry.coordinates.flat(1)
         : geometry.coordinates.flat(2)
     expect(Math.min(...coordinates.map(point => point[0]!))).toBeCloseTo(0.50003, 7)
-    expect(result.stubs.features[0]?.properties.geometryCleanupRoadSnapMetres).toBe(0)
+    expect(
+      result.estimatedAreas.features[0]?.properties.geometryCleanupRoadSnapMetres,
+    ).toBe(0)
   })
 
   it('leaves a boundary unchanged when the nearest street is beyond five metres', () => {
@@ -300,15 +305,15 @@ describe('town stub geometry cleanup', () => {
       releaseSet: 'test',
       divisions: [division('town', 3)],
     }
-    const result = cleanStubGeometriesForLevel(
+    const result = cleanEstimatedAreaGeometriesForLevel(
       {
         type: 'FeatureCollection',
         schemaVersion: 1,
         region: 'hk',
         domain: 'geographic',
         cohort: 'test',
-        variant: 'stub',
-        features: [stub('town', rectangle(0.5001, 1))],
+        variant: 'saanseoi',
+        features: [estimatedArea('town', rectangle(0.5001, 1))],
       },
       inventory,
       {
@@ -333,7 +338,7 @@ describe('town stub geometry cleanup', () => {
         ],
       },
     )
-    const geometry = result.stubs.features[0]!.geometry
+    const geometry = result.estimatedAreas.features[0]!.geometry
     const coordinates =
       geometry.type === 'Polygon'
         ? geometry.coordinates.flat(1)
@@ -350,16 +355,16 @@ describe('town stub geometry cleanup', () => {
       releaseSet: 'test',
       divisions: [division('hood', 4)],
     }
-    const result = cleanStubGeometriesForLevel(
+    const result = cleanEstimatedAreaGeometriesForLevel(
       {
         type: 'FeatureCollection',
         schemaVersion: 1,
         region: 'hk',
         domain: 'geographic',
         cohort: 'test',
-        variant: 'stub',
+        variant: 'saanseoi',
         features: [
-          stub('hood', {
+          estimatedArea('hood', {
             type: 'Polygon',
             coordinates: [
               [
@@ -398,7 +403,7 @@ describe('town stub geometry cleanup', () => {
       },
     )
     expect(result.levelCount).toBe(1)
-    expect(result.stubs.features[0]?.properties.geometryCleanupLevel).toBe(4)
+    expect(result.estimatedAreas.features[0]?.properties.geometryCleanupLevel).toBe(4)
   })
 
   it('keeps every ordered exterior vertex near a street', () => {
@@ -410,16 +415,16 @@ describe('town stub geometry cleanup', () => {
       releaseSet: 'test',
       divisions: [division('hood', 4)],
     }
-    const result = cleanStubGeometriesForLevel(
+    const result = cleanEstimatedAreaGeometriesForLevel(
       {
         type: 'FeatureCollection',
         schemaVersion: 1,
         region: 'hk',
         domain: 'geographic',
         cohort: 'test',
-        variant: 'stub',
+        variant: 'saanseoi',
         features: [
-          stub('hood', {
+          estimatedArea('hood', {
             type: 'Polygon',
             coordinates: [
               [
@@ -459,7 +464,7 @@ describe('town stub geometry cleanup', () => {
         ],
       },
     )
-    const geometry = result.stubs.features[0]!.geometry
+    const geometry = result.estimatedAreas.features[0]!.geometry
     const ring =
       geometry.type === 'Polygon'
         ? geometry.coordinates[0]!
@@ -471,12 +476,12 @@ describe('town stub geometry cleanup', () => {
           Math.abs(position[1]! - 0.5) < 1e-12,
       ),
     ).toBe(true)
-    expect(result.stubs.features[0]?.properties.geometryCleanup).toBe(
+    expect(result.estimatedAreas.features[0]?.properties.geometryCleanup).toBe(
       LEVEL_4_GEOMETRY_CLEANUP_VERSION,
     )
   })
 
-  it('repartitions a level when a new stub is added after cleanup', () => {
+  it('repartitions a level when a new saanseoi is added after cleanup', () => {
     const inventory: ReviewInventory = {
       schemaVersion: 1,
       region: 'hk',
@@ -491,29 +496,35 @@ describe('town stub geometry cleanup', () => {
         { type: 'Feature' as const, properties: {}, geometry: rectangle(0, 3) },
       ],
     }
-    const first = cleanTownStubGeometries(
+    const first = cleanTownEstimatedAreaGeometries(
       {
         type: 'FeatureCollection',
         schemaVersion: 1,
         region: 'hk',
         domain: 'geographic',
         cohort: 'test',
-        variant: 'stub',
-        features: [stub('town-a', rectangle(0, 1)), stub('town-b', rectangle(1, 2))],
+        variant: 'saanseoi',
+        features: [
+          estimatedArea('town-a', rectangle(0, 1)),
+          estimatedArea('town-b', rectangle(1, 2)),
+        ],
       },
       inventory,
       land,
     )
-    const second = cleanTownStubGeometries(
+    const second = cleanTownEstimatedAreaGeometries(
       {
-        ...first.stubs,
-        features: [...first.stubs.features, stub('town-c', rectangle(1.5, 2.5))],
+        ...first.estimatedAreas,
+        features: [
+          ...first.estimatedAreas.features,
+          estimatedArea('town-c', rectangle(1.5, 2.5)),
+        ],
       },
       inventory,
       land,
     )
     const reader = new GeoJSONReader(new GeometryFactory())
-    const cleaned = second.stubs.features
+    const cleaned = second.estimatedAreas.features
     for (let left = 0; left < cleaned.length; left += 1) {
       for (let right = left + 1; right < cleaned.length; right += 1) {
         const overlap = (

@@ -1,4 +1,3 @@
-import { expandReviewInventory } from '../../../libs/core/src/pipeline/services/divisions/reviewInventory'
 import { describe, it, expect } from 'vitest'
 import {
   expandPencilStroke,
@@ -115,7 +114,9 @@ it('expands the real Ma On Shan browser stroke', async () => {
   const read = (path: string) =>
     JSON.parse(readFileSync(new URL(path, import.meta.url), 'utf8'))
   const input = read('./pencilExpansionStroke.json').features[0]
-  const seed = read('../../../fixtures/divisions/hk/stub-areas.json')
+  const seed = read(
+    '../../../fixtures/meta/curations/saanseoi-division/division-geometry.json',
+  )
   const source = seed.features.find(
     (f: any) => f.properties.divisionId === input.properties.divisionId,
   )
@@ -127,10 +128,7 @@ it('expands the real Ma On Shan browser stroke', async () => {
       : result.geometry!.coordinates.flat(2)
   for (const intersection of result.intersections)
     expect(points).toContainEqual(intersection)
-  const inventory = expandReviewInventory(
-    read('../../../fixtures/divisions/hk/geographic-review-inventory.json'),
-    read('../../../fixtures/divisions/hk/geographic-hierarchies.json'),
-  )
+  const inventory = read('../../../.local/division-review/editor.json').inventory
   const reference = read('../src/local-review/division-areas/reference-areas.json')
   const ids = new Set(
     inventory.divisions.filter((d: any) => d.level === 3).map((d: any) => d.id),

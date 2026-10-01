@@ -4,9 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "svelte-check --tsconfig ./tsconfig.json && vite build",
-    "build:preview": "bun run build",
-    "build:production": "bun run build",
+    "build": "svelte-check --tsconfig ./tsconfig.build.json && vite build",
+    "build:preview": "svelte-check --tsconfig ./tsconfig.build.json && vite build --mode preview",
+    "build:production": "svelte-check --tsconfig ./tsconfig.build.json && vite build --mode production",
     "deploy": "bun run build:production && wrangler deploy --env production",
     "deploy:preview": "bun run build:preview && wrangler deploy --env preview",
     "deploy:production": "bun run build:production && wrangler deploy --env production",

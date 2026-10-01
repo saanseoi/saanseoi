@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="icon" href="/favicon.svg">
+    <title>Division areas · local review</title>
+  </head>
+  <body>
+    <main id="map" aria-label="Division review map"></main>
+    <aside class="panel inventory">
+      <header>
+        <span class="eyebrow">SAANSEOI · LOCAL REVIEW</span>
+        <h1>Division areas</h1>
+        <p id="coverage">Loading geographic inventory…</p>
+      </header>
+      <input id="search" aria-label="Find division" placeholder="Find a division…">
+      <div class="filters">
+        <label class="check-control"
+          ><input id="only-visible-layers" type="checkbox">
+          Only visible layers</label
+        ><label class="check-control"
+          ><input id="missing-area" type="checkbox">
+          Missing Area</label
+        >
+      </div>
+      <button id="overview" type="button">Overview</button>
+      <ul id="results" aria-label="Divisions"></ul>
+      <p id="result-count" class="muted"></p>
+    </aside>
+    <aside class="panel inspector">
+      <span class="eyebrow">SELECTED DIVISION</span>
+      <h2 id="name">Select a point or search</h2>
+      <p id="classification" class="muted"></p>
+      <p id="ancestry"></p>
+      <p id="evidence" class="muted"></p>
+      <details>
+        <summary>Search other domains and cohorts</summary>
+        <input
+          id="catalogue-search"
+          placeholder="Search e.g. Ma On Shan"
+          aria-label="Search geometry catalogue"
+        ><select id="catalogue-results" aria-label="Catalogue geometry"></select
+        ><button id="catalogue-preview" type="button">
+          Preview catalogue geometry
+        </button>
+      </details>
+      <details>
+        <summary>Suggest built-up extent</summary>
+        <label
+          >Building gap (m)<input
+            id="building-gap"
+            type="number"
+            value="100"
+            min="10"
+            max="500"
+          ></label
+        ><label
+          >Maximum radius (m)<input
+            id="building-radius"
+            type="number"
+            value="1500"
+            min="100"
+            max="5000"
+          ></label
+        ><button id="suggest-built" type="button">Suggest extent</button
+        ><small
+          >Connects building centres within the gap. May cross roads or water; review
+          the preview.</small
+        >
+      </details>
+      <button id="copy-preview" type="button" disabled>
+        Copy preview into estimated area
+      </button><label for="geometry-source">Geometry source</label
+      ><select id="geometry-source" aria-label="Geometry source"></select>
+      <div class="buttons">
+        <button id="expand-pencil" type="button" disabled>Expand area · pencil</button
+        ><button id="pencil" type="button" disabled>Draw area · follow roads</button>
+        <details>
+          <summary>Straight-line drawing · no snapping</summary>
+          <button id="draw" type="button" disabled>Draw straight edges</button>
+        </details>
+        <button id="edit" type="button" disabled>Edit estimated area</button
+        ><button id="copy" type="button" disabled>Copy existing area</button
+        ><button id="part" type="button" disabled>Add polygon part</button
+        ><button id="adjoin" type="button" disabled>Adjoin boundary</button
+        ><button id="adjoin-street" type="button" disabled>Adjoin street</button
+        ><button id="remove" type="button" disabled>Remove estimated area</button>
+      </div>
+      <div id="drawing" hidden>
+        <p id="draw-help">
+          Click map to add vertices. Click Finish to close. Drag vertices to adjust.
+        </p>
+        <div class="buttons">
+          <button id="undo" type="button">Undo vertex</button
+          ><button id="finish" type="button">Finish</button
+          ><button id="cancel" type="button">Cancel</button>
+        </div>
+      </div>
+    </aside>
+    <footer class="panel toolbar">
+      <div class="toolbar-grid">
+        <section class="control-section" aria-labelledby="layer-controls-title">
+          <h3 id="layer-controls-title" class="section-title">Map layers</h3>
+          <div class="legend">
+            <span><i class="existing"></i>Existing / published island area</span>
+            <span><i class="estimated-area"></i>Drawn estimated area</span>
+            <span><i class="missing"></i>Point without area</span>
+          </div>
+          <div id="level-toggles" class="layer-groups"></div>
+          <label class="check-control"
+            ><input id="show-polygon-display" type="checkbox">
+            High viz</label
+          >
+          <div id="polygon-display-legend" hidden></div>
+        </section>
+        <section class="control-section" aria-labelledby="cleanup-controls-title">
+          <h3 id="cleanup-controls-title" class="section-title">Geometry cleanup</h3>
+          <p class="section-note">
+            Select drawn divisions, then clean the selected level. Street snap: shared
+            edges only, ≤5 m; endpoints and outer coverage stay fixed.
+          </p>
+          <label class="check-control"
+            ><input id="cleanup-select-mode" type="checkbox">
+            Select divisions for cleanup</label
+          ><span id="cleanup-selection-count">0 selected</span
+          ><button id="cleanup-clear-selection" type="button">Clear selection</button>
+          <div class="buttons cleanup-actions">
+            <button id="clean-town" type="button">L3 towns</button>
+            <button id="clean-level-4" type="button">L4 hoods</button>
+            <button id="clean-level-5" type="button">L5 villages</button>
+            <button id="clean-level-6" type="button">L6 areas</button>
+            <button id="undo-geometry-cleanup" type="button" disabled>
+              Undo last operation
+            </button>
+            <button id="download-cleanup-diagnostics" type="button" disabled>
+              Download diagnostics
+            </button>
+          </div>
+          <details class="simplification-tools">
+            <summary>Simplification · after cleanup</summary>
+            <p class="section-note">
+              Separate operation on shared internal borders. Retains the unsimplified
+              source; coastline and coverage stay fixed.
+            </p>
+            <div class="buttons">
+              <label
+                >Level
+                <select id="simplify-level">
+                  <option value="3">L3</option>
+                  <option value="4">L4</option>
+                  <option value="5">L5</option>
+                  <option value="6">L6</option>
+                </select></label
+              >
+              <label
+                >Tolerance (m)
+                <input
+                  id="simplify-metres"
+                  type="number"
+                  min="0.1"
+                  max="5"
+                  step="0.1"
+                  value="1"
+                ></label
+              >
+              <button id="preview-simplification" type="button">
+                Preview simplified
+              </button>
+              <label
+                >View
+                <select id="simplification-display" disabled>
+                  <option value="detailed">Detailed</option>
+                  <option value="simplified">Simplified</option>
+                  <option value="compare">Compare both</option>
+                </select></label
+              >
+              <button id="simplify-geometry" type="button">Simplify separately</button>
+            </div>
+            <p class="section-note">
+              Preview does not change the saved estimated area. Compare draws the
+              simplified boundary in amber over the detailed boundary.
+            </p>
+          </details>
+        </section>
+        <section class="control-section" aria-labelledby="review-controls-title">
+          <h3 id="review-controls-title" class="section-title">Review &amp; export</h3>
+          <div class="buttons review-actions">
+            <label class="check-control"
+              ><input id="provisional" type="checkbox" checked>
+              Retain provisional ancestry</label
+            >
+            <button id="derive" type="button">Derive hierarchy</button>
+            <button id="download" type="button">Download fixtures</button>
+            <label class="button file-control"
+              >Import estimated areas<input
+                id="import"
+                type="file"
+                accept=".geojson,.json"
+                hidden
+              ></label
+            >
+          </div>
+        </section>
+      </div>
+      <output id="status" aria-live="polite">Loading…</output>
+    </footer>
+    <script type="module" src="/src/local-review/division-areas/main.ts"></script>
+  </body>
+</html>

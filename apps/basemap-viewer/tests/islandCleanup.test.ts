@@ -13,7 +13,7 @@ const rect = (a: number, b: number) => ({
   ],
 })
 it('clips a null-level reference island without changing inputs or other drawings', () => {
-  const stubs: any = {
+  const estimatedAreas: any = {
     schemaVersion: 1,
     features: [
       { type: 'Feature', properties: { divisionId: 'other' }, geometry: rect(4, 5) },
@@ -25,22 +25,24 @@ it('clips a null-level reference island without changing inputs or other drawing
   const references: any = [
     { type: 'Feature', properties: { divisionId: 'island' }, geometry: rect(0, 2) },
   ]
-  const before = structuredClone({ stubs, inventory, references })
+  const before = structuredClone({ estimatedAreas, inventory, references })
   const land: any = {
     type: 'FeatureCollection',
     features: [{ type: 'Feature', properties: {}, geometry: rect(0, 1) }],
   }
   const result = cleanIslandGeometries(
-    stubs,
+    estimatedAreas,
     inventory,
     references,
     land,
     new Set(['island']),
   )
   expect(result.count).toBe(1)
-  expect(result.stubs.features[0]).toEqual(stubs.features[0])
+  expect(result.estimatedAreas.features[0]).toEqual(estimatedAreas.features[0])
   expect(
-    Math.max(...(result.stubs.features[1]!.geometry.coordinates.flat(2) as number[])),
+    Math.max(
+      ...(result.estimatedAreas.features[1]!.geometry.coordinates.flat(2) as number[]),
+    ),
   ).toBe(1)
-  expect({ stubs, inventory, references }).toEqual(before)
+  expect({ estimatedAreas, inventory, references }).toEqual(before)
 })
