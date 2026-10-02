@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:13345db94d6921573dd621ca3dbbedd84aceb273f427f305678e2f8ae34bd032",
+  "versionHash": "sha256:578b931c12d6c3237130d6672827ff737811a6bc412e0f73a35fa6e5854a1feb",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 1,
@@ -1886,7 +1886,7 @@
             },
             {
               "origin": "curation",
-              "fieldPath": "divisionGeometryCurations.stubAreas"
+              "fieldPath": "divisionGeometryCurations.saanseoiEstimatedAreas"
             },
             {
               "origin": "curation",
