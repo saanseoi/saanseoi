@@ -99,6 +99,41 @@ function fixture(beforeQuery?: (sqlite: Database, sql: string) => void) {
   return { sqlite, add, scopes, sync, search }
 }
 
+test('a current curated release indexes its pinned older Overture inventory independently', async () => {
+  const f = fixture()
+  try {
+    f.sqlite.exec(
+      "INSERT INTO divisionPublicationState VALUES ('august-overture','august-overture','current','verified-replay','prepared','updated')",
+    )
+    f.add('latest', 'curated', 'Curated Central')
+    f.add('august-overture', 'upstream', 'Overture Central')
+    const curated = {
+      scopeId: 'hk:geographic:api-divisions-v0.2:saanseoi:curated',
+      snapshotId: 'latest',
+    }
+    const overture = {
+      scopeId: 'hk:geographic:api-divisions-v0.2:overture:upstream',
+      snapshotId: 'august-overture',
+    }
+    f.sync([curated, overture])
+    expect(
+      (await f.search('Central', {}, [curated])).map(row => row.divisionId),
+    ).toEqual(['curated'])
+    expect(
+      (await f.search('Central', {}, [overture])).map(row => row.divisionId),
+    ).toEqual(['upstream'])
+    f.sqlite.exec(
+      "UPDATE divisionPublicationState SET preparedAt=NULL WHERE snapshotId='august-overture'",
+    )
+    await expect(f.search('Central', {}, [overture])).rejects.toThrow()
+    expect(
+      (await f.search('Central', {}, [curated])).map(row => row.divisionId),
+    ).toEqual(['curated'])
+  } finally {
+    f.sqlite.close()
+  }
+})
+
 test('all-domain typeahead finds names, aliases, codes and Chinese substrings; ancestors are opt-in', async () => {
   const f = fixture()
   try {

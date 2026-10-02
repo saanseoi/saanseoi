@@ -14,14 +14,18 @@ export async function finalisePublishedSearch(
     /** Omit for reconciliation, including a retry after a failed finalisation. */
     publishedFamilies?: readonly string[]
   } = {},
+  dependencies = { synchroniseSearchIndexes },
 ) {
-  if (options.deferred || options.pendingReleaseSetCodes?.length) return
+  // Drafts are not serving selections. An unrelated incomplete cohort must not
+  // suppress indexes for published inventories; synchronisation checks every
+  // selected snapshot's complete delivery receipt in the same batch as FTS.
+  if (options.deferred) return
   const families = options.publishedFamilies
   const places = !families || families.includes('places')
   // Places publication also completes the curated supplementary Address collection.
   const addresses = places || families?.includes('addresses')
   const divisions = !families || families.includes('divisions')
-  await synchroniseSearchIndexes(db, current, [
+  await dependencies.synchroniseSearchIndexes(db, current, [
     ...(addresses ? [addressSearchIndex] : []),
     ...(places ? [placeSearchIndex] : []),
     ...(divisions ? [divisionSearchIndex] : []),

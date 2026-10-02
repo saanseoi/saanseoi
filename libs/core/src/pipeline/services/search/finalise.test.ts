@@ -1,7 +1,25 @@
 import { expect, test } from 'bun:test'
 import { finalisePublishedSearch } from './finalise'
 
-test('deferred publication, pending sequence and unrelated families perform no index work', async () => {
+test('a pending historical draft does not suppress published Division inventory indexes', async () => {
+  const families: string[] = []
+  await finalisePublishedSearch(
+    {} as never,
+    {} as never,
+    {
+      pendingReleaseSetCodes: ['data-hk-divisions-2022'],
+      publishedFamilies: ['divisions'],
+    },
+    {
+      async synchroniseSearchIndexes(_meta, _current, definitions) {
+        families.push(...definitions.map(definition => definition.resourceType))
+      },
+    },
+  )
+  expect(families).toEqual(['division'])
+})
+
+test('deferred publication and unrelated families perform no index work', async () => {
   const forbidden = new Proxy(
     {},
     {
@@ -12,7 +30,6 @@ test('deferred publication, pending sequence and unrelated families perform no i
   )
   for (const options of [
     { deferred: true, publishedFamilies: ['places'] },
-    { pendingReleaseSetCodes: ['pending'], publishedFamilies: ['places'] },
     { publishedFamilies: ['streets'] },
   ]) {
     await expect(

@@ -98,6 +98,37 @@ function fixture() {
 }
 
 describe('publication completion', () => {
+  test('a curated current selection requires its retained older Overture inventory delivery', async () => {
+    const f = fixture()
+    try {
+      f.add('october-curated', { lineage: 'saanseoi', current: true })
+      f.add('august-overture', { lineage: 'overture', prepared: false })
+      await expect(f.finalise()).rejects.toThrow(
+        'complete delivery receipts: august-overture.',
+      )
+      expect(
+        f.current
+          .query(
+            "SELECT status FROM divisionPublicationState WHERE snapshotId='october-curated'",
+          )
+          .get(),
+      ).toEqual({ status: 'current' })
+      f.current.exec(
+        "UPDATE divisionPublicationState SET preparedAt='verified-replay' WHERE snapshotId='august-overture'",
+      )
+      await f.finalise()
+      expect(
+        f.current
+          .query(
+            "SELECT snapshotId FROM divisionPublicationState WHERE status='current' ORDER BY snapshotId",
+          )
+          .all(),
+      ).toEqual([{ snapshotId: 'august-overture' }, { snapshotId: 'october-curated' }])
+    } finally {
+      f.close()
+    }
+  })
+
   test('publishing an API composition also completes its deferred geometry companions', async () => {
     const f = fixture()
     try {
