@@ -8,7 +8,11 @@ import { basename, dirname, extname, join, resolve } from 'node:path'
 import { packageSourceReleaseFile } from './sourceReleasePackaging.ts'
 
 import { resolveAtlasBaseUrl } from '@repo/core'
-import { linkManagedSourceAssetToRelease as linkManagedSourceAssetToReleaseInDb } from '@repo/core/sourceAssets'
+import {
+  assertSourceAssetManifestLink,
+  linkSourceAssetManifest,
+  linkManagedSourceAssetToRelease as linkManagedSourceAssetToReleaseInDb,
+} from '@repo/core/sourceAssets'
 import { runWithWriteRetry } from '@repo/core/pipeline/utils'
 import { eq, metaAssets } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
@@ -73,7 +77,7 @@ export type ManagedSourceAssetUpload = {
     assetKey: string
     contentHash: string
     datasetId?: string
-    manifest?: unknown
+    sourceAssetId?: string
     mediaType: string
     originalUrl?: string
     resourceReleaseId?: string
@@ -238,36 +242,35 @@ export async function uploadPreparedSourceAsset(
   target: UploadTarget,
   asset: PreparedSourceAsset,
 ) {
-  const [source, manifest] = await Promise.all([
-    uploadManagedSourceAsset(target, {
-      fileName: asset.fileName,
-      filePath: asset.filePath,
-      metadata: {
-        assetKey: asset.objectKey,
-        contentHash: asset.manifest.artefact.sha256,
-        mediaType: asset.manifest.artefact.mediaType,
-        originalUrl: asset.manifest.original.url,
-        retrievedAt: asset.manifest.downloadedAt,
-        role: asset.manifest.artefact.role,
-        sourcePageLocale: asset.manifest.provenance.sourcePageLocale,
-        sourcePageUrl: asset.manifest.provenance.sourcePageUrl,
-      },
-    }),
-    uploadManagedSourceAsset(target, {
-      fileName: basename(asset.manifestFilePath),
-      filePath: asset.manifestFilePath,
-      metadata: {
-        assetKey: asset.manifestObjectKey,
-        contentHash: hash(await readFile(asset.manifestFilePath)),
-        mediaType: 'application/json; charset=utf-8',
-        originalUrl: asset.manifest.original.url,
-        retrievedAt: asset.manifest.downloadedAt,
-        role: 'manifest',
-        sourcePageLocale: asset.manifest.provenance.sourcePageLocale,
-        sourcePageUrl: asset.manifest.provenance.sourcePageUrl,
-      },
-    }),
-  ])
+  const source = await uploadManagedSourceAsset(target, {
+    fileName: asset.fileName,
+    filePath: asset.filePath,
+    metadata: {
+      assetKey: asset.objectKey,
+      contentHash: asset.manifest.artefact.sha256,
+      mediaType: asset.manifest.artefact.mediaType,
+      originalUrl: asset.manifest.original.url,
+      retrievedAt: asset.manifest.downloadedAt,
+      role: asset.manifest.artefact.role,
+      sourcePageLocale: asset.manifest.provenance.sourcePageLocale,
+      sourcePageUrl: asset.manifest.provenance.sourcePageUrl,
+    },
+  })
+  const manifest = await uploadManagedSourceAsset(target, {
+    fileName: basename(asset.manifestFilePath),
+    filePath: asset.manifestFilePath,
+    metadata: {
+      assetKey: asset.manifestObjectKey,
+      contentHash: hash(await readFile(asset.manifestFilePath)),
+      mediaType: 'application/json; charset=utf-8',
+      originalUrl: asset.manifest.original.url,
+      retrievedAt: asset.manifest.downloadedAt,
+      role: 'manifest',
+      sourceAssetId: source.assetId,
+      sourcePageLocale: asset.manifest.provenance.sourcePageLocale,
+      sourcePageUrl: asset.manifest.provenance.sourcePageUrl,
+    },
+  })
 
   return { manifest, source }
 }
@@ -342,36 +345,69 @@ export async function uploadSourceReleaseAsset(
     const retrievedAt = (options.now ?? (() => new Date()))().toISOString()
     const upload = options.upload ?? uploadManagedSourceAsset
 
-    return await upload(target, {
+    const manifest = {
+      schemaVersion: 1,
+      artefact: {
+        byteLength: retained.byteLength,
+        mediaType: retained.mediaType,
+        objectKey: assetKey,
+        role: 'sourceArchive',
+        sha256: contentHash,
+      },
+      dataset: { code: input.datasetCode },
+      ...(retained.original ? { original: retained.original } : {}),
+      ...(retained.packaging ? { packaging: retained.packaging } : {}),
+      provenance: {
+        releaseCode: input.releaseCode,
+        sourceVersion: input.sourceVersion,
+      },
+    }
+
+    const asset = await upload(target, {
       fileName: retained.fileName,
       filePath: retained.filePath,
       metadata: {
         assetKey,
         contentHash,
         datasetId: input.datasetId,
-        manifest: {
-          schemaVersion: 1,
-          artefact: {
-            byteLength: retained.byteLength,
-            mediaType: retained.mediaType,
-            objectKey: assetKey,
-            role: 'sourceArchive',
-            sha256: contentHash,
-          },
-          dataset: { code: input.datasetCode },
-          ...(retained.original ? { original: retained.original } : {}),
-          ...(retained.packaging ? { packaging: retained.packaging } : {}),
-          provenance: {
-            releaseCode: input.releaseCode,
-            sourceVersion: input.sourceVersion,
-          },
-        },
         mediaType: retained.mediaType,
         resourceReleaseId: input.resourceReleaseId,
         retrievedAt,
         role: 'sourceArchive',
       },
     })
+    const manifestBytes = new TextEncoder().encode(
+      `${JSON.stringify(manifest, null, 2)}\n`,
+    )
+    const manifestHash = hash(manifestBytes)
+    const manifestKey = buildSourceReleaseAssetObjectKey({
+      datasetCode: input.datasetCode,
+      fileName: 'manifest.json',
+      publisherCode: input.publisherCode,
+      releaseCode: input.releaseCode,
+      sha256: manifestHash,
+    })
+    await mkdir(SOURCE_PACKAGE_CACHE_ROOT, { recursive: true })
+    const manifestPath = join(
+      SOURCE_PACKAGE_CACHE_ROOT,
+      `${manifestHash}-manifest.json`,
+    )
+    await writeFile(manifestPath, manifestBytes)
+    const sidecar = await upload(target, {
+      fileName: 'manifest.json',
+      filePath: manifestPath,
+      metadata: {
+        assetKey: manifestKey,
+        contentHash: manifestHash,
+        datasetId: input.datasetId,
+        mediaType: 'application/json; charset=utf-8',
+        resourceReleaseId: input.resourceReleaseId,
+        retrievedAt,
+        role: 'manifest',
+        sourceAssetId: asset.assetId,
+      },
+    })
+    return { ...asset, assetKey, manifest: sidecar }
   } finally {
     await retained.cleanup()
   }
@@ -640,6 +676,7 @@ export async function registerLocalManagedSourceAsset(
   options: { putObject: LocalSourceAssetObjectUpload },
 ) {
   assertSourceAssetMetadata(input.metadata)
+  await assertSourceAssetManifestLink(metaDb, input.metadata)
   const file = await inspectSourceAssetFile(input.filePath)
   const contentHash = file.sha256
   if (contentHash !== input.metadata.contentHash) {
@@ -667,7 +704,10 @@ export async function registerLocalManagedSourceAsset(
     objectKey: input.metadata.assetKey,
   })
 
-  if (existing) return existing.id
+  if (existing) {
+    await linkSourceAssetManifest(metaDb, existing.id, input.metadata)
+    return existing.id
+  }
 
   const assetId = crypto.randomUUID()
   await metaDb
@@ -677,7 +717,7 @@ export async function registerLocalManagedSourceAsset(
       byteLength: file.byteLength,
       contentHash,
       id: assetId,
-      manifest: input.metadata.manifest ?? null,
+      sourceAssetId: input.metadata.sourceAssetId ?? null,
       mediaType: input.metadata.mediaType,
       originalUrl: input.metadata.originalUrl ?? null,
       retrievedAt: input.metadata.retrievedAt,
@@ -695,6 +735,7 @@ export async function registerLocalManagedSourceAsset(
   if (!registered || registered.contentHash !== contentHash) {
     throw new Error(`Could not register source asset ${input.metadata.assetKey}.`)
   }
+  await linkSourceAssetManifest(metaDb, registered.id, input.metadata)
   return registered.id
 }
 

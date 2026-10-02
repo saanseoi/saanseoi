@@ -1,5 +1,10 @@
 # Census and Statistics Department division statistics
 
+Retained source evidence uses the
+[managed manifest contract](../../families/source-evidence.md#managed-source-manifests).
+Manifest JSON is a downloadable R2 sidecar; its META asset row links to the described
+source object through `sourceAssetId`.
+
 C&SD statistic tables retain populated acquisition coordinates in `sourceLocator`.
 District geometry assertions use the retained archive and publisher identity and omit
 that column.

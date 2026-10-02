@@ -1,5 +1,10 @@
 # Overture Places
 
+Retained source evidence uses the
+[managed manifest contract](../../families/source-evidence.md#managed-source-manifests).
+Manifest JSON is a downloadable R2 sidecar; its META asset row links to the described
+source object through `sourceAssetId`.
+
 Processing retains shared rule definitions and curation application counts under the
 [shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).
 

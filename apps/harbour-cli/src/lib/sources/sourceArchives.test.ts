@@ -90,7 +90,8 @@ describe('CSDI source archives', () => {
       sourceUrl: 'https://publisher.example/archive',
     }
     await writeFile(inputPath, '{"type":"FeatureCollection","features":[]}', 'utf8')
-    const uploads: Array<{ assetKey: string; role: string }> = []
+    const uploads: Array<{ assetKey: string; role: string; sourceAssetId?: string }> =
+      []
 
     try {
       const prepared = await prepareCsdiSourceArchive({
@@ -107,6 +108,7 @@ describe('CSDI source archives', () => {
             uploads.push({
               assetKey: input.metadata.assetKey,
               role: input.metadata.role,
+              sourceAssetId: input.metadata.sourceAssetId,
             })
             const assetId = `00000000-0000-4000-8000-00000000000${uploads.length}`
             return { assetId, url: `https://assets.example/${assetId}` }
@@ -119,6 +121,7 @@ describe('CSDI source archives', () => {
         'manifest',
         'sourceArchive',
       ])
+      expect(uploads[1]?.sourceAssetId).toBe('00000000-0000-4000-8000-000000000001')
       expect(mirrored).toEqual({
         manifestUrl:
           'http://localhost:8787/v0/assets/00000000-0000-4000-8000-000000000002',

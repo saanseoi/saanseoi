@@ -4,8 +4,12 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
 import { expect, test } from 'bun:test'
+import { Database } from 'bun:sqlite'
+import { resolve } from 'node:path'
+import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 import type { MetaDatabase } from '@repo/db'
 import { unzipSync } from 'fflate'
+import { loadMigrationSql } from '../../../../../libs/core/src/testing/metaFixtures'
 
 import type { withLocalMetaDb } from '../dbCache/localDbCache.ts'
 import {
@@ -93,7 +97,7 @@ test('retains an Overture release Parquet as a managed source asset', async () =
       datasetCode: 'ds-hk-overture-division',
       sourceVersion: '2026-01-21.0',
     })
-    expect(uploads).toEqual([
+    expect(uploads[0]).toEqual(
       expect.objectContaining({
         fileName,
         filePath,
@@ -112,7 +116,22 @@ test('retains an Overture release Parquet as a managed source asset', async () =
           role: 'sourceArchive',
         }),
       }),
-    ])
+    )
+    expect(uploads).toHaveLength(2)
+    expect(uploads[1]?.metadata).toMatchObject({
+      role: 'manifest',
+      sourceAssetId: 'asset-id',
+      resourceReleaseId: '00000000-0000-4000-8000-000000000002',
+    })
+    const sidecarBytes = await readFile(uploads[1]!.filePath)
+    expect(uploads[1]?.metadata.contentHash).toBe(hash(sidecarBytes))
+    expect(uploads[1]?.metadata.assetKey).toContain(
+      `${hash(sidecarBytes)}-manifest.json`,
+    )
+    expect(JSON.parse(sidecarBytes.toString()).artefact.objectKey).toBe(
+      uploads[0]?.metadata.assetKey,
+    )
+    expect(uploads[0]?.metadata).not.toHaveProperty('manifest')
   } finally {
     await rm(root, { force: true, recursive: true })
   }
@@ -162,10 +181,10 @@ test('retains a published source archive with its original filename and media ty
       },
     )
 
-    expect(uploads).toHaveLength(1)
+    expect(uploads).toHaveLength(2)
     expect(uploads[0]?.fileName).toBe('published-boundaries.zip')
     expect(uploads[0]?.metadata.mediaType).toBe('application/zip')
-    expect(uploads[0]?.metadata.manifest).toMatchObject({
+    expect(JSON.parse(await readFile(uploads[1]!.filePath, 'utf8'))).toMatchObject({
       artefact: { mediaType: 'application/zip', role: 'sourceArchive' },
     })
   } finally {
@@ -201,17 +220,18 @@ test.each([
         },
         {
           upload: async (_target, input) => {
-            retainedBytes = await readFile(input.filePath)
+            if (input.metadata.role === 'sourceArchive')
+              retainedBytes = await readFile(input.filePath)
             uploads.push(input)
             return { assetId: 'asset-id', url: 'https://example.test/asset-id' }
           },
         },
       )
 
-      expect(uploads).toHaveLength(1)
+      expect(uploads).toHaveLength(2)
       expect(uploads[0]?.fileName).toBe(`${sourceFileName}.zip`)
       expect(uploads[0]?.metadata.mediaType).toBe('application/zip')
-      expect(uploads[0]?.metadata.manifest).toMatchObject({
+      expect(JSON.parse(await readFile(uploads[1]!.filePath, 'utf8'))).toMatchObject({
         artefact: { mediaType: 'application/zip', role: 'sourceArchive' },
         original: {
           byteLength: sourceBytes.byteLength,
@@ -324,6 +344,123 @@ test('refuses a local source asset whose bytes differ from its declared hash', a
         },
       }),
     ).rejects.toThrow('SHA-256 does not match')
+  } finally {
+    await rm(root, { force: true, recursive: true })
+  }
+})
+
+test('local registration retains a linked sidecar and reuses the same asset IDs', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-sidecar-'))
+  const sqlite = new Database(':memory:')
+  sqlite.exec(
+    loadMigrationSql(resolve(import.meta.dir, '../../../../../libs/db/migrations'), [
+      'meta',
+    ]),
+  )
+  sqlite.exec('PRAGMA foreign_keys = ON')
+  const db = createLocalHarbourDb(sqlite) as unknown as MetaDatabase
+  const objects = new Map<string, Uint8Array>()
+  const options = {
+    putObject: async (input: { objectKey: string; filePath: string }) => {
+      objects.set(input.objectKey, await readFile(input.filePath))
+    },
+  }
+  try {
+    const bytes = new TextEncoder().encode('publisher evidence')
+    const source = await writeUpload(root, bytes, hash(bytes))
+    const sourceInput = {
+      ...source,
+      metadata: {
+        ...source.metadata,
+        datasetId: undefined,
+        resourceReleaseId: undefined,
+      },
+    }
+    const sourceAssetId = await registerLocalManagedSourceAsset(
+      db,
+      sourceInput,
+      options,
+    )
+    const manifestBytes = new TextEncoder().encode(
+      JSON.stringify({
+        artefact: { objectKey: source.metadata.assetKey, sha256: hash(bytes) },
+      }),
+    )
+    const filePath = join(root, 'manifest.json')
+    await writeFile(filePath, manifestBytes)
+    const manifest: ManagedSourceAssetUpload = {
+      fileName: 'manifest.json',
+      filePath,
+      metadata: {
+        assetKey: buildSourceAssetObjectKey(hash(manifestBytes), 'manifest.json'),
+        contentHash: hash(manifestBytes),
+        mediaType: 'application/json',
+        retrievedAt: source.metadata.retrievedAt,
+        role: 'manifest',
+        sourceAssetId,
+      },
+    }
+    const manifestId = await registerLocalManagedSourceAsset(db, manifest, options)
+    expect(await registerLocalManagedSourceAsset(db, manifest, options)).toBe(
+      manifestId,
+    )
+    expect(
+      sqlite.query('SELECT sourceAssetId FROM assets WHERE id = ?').get(manifestId),
+    ).toEqual({ sourceAssetId })
+    expect(objects.get(manifest.metadata.assetKey)).toEqual(manifestBytes)
+    expect(sqlite.query('PRAGMA foreign_key_check').all()).toEqual([])
+    expect(objects.size).toBe(2)
+  } finally {
+    sqlite.close()
+    await rm(root, { force: true, recursive: true })
+  }
+})
+
+test('a failed sidecar upload resumes with the same immutable manifest despite a later retrieval time', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'saanseoi-source-retry-'))
+  const filePath = join(root, 'publisher.zip')
+  await writeFile(filePath, 'publisher ZIP bytes')
+  const uploads: ManagedSourceAssetUpload[] = []
+  let failSidecar = true
+  const input = {
+    datasetCode: 'ds-hk-example-division',
+    datasetId: 'dataset-id',
+    fileName: 'publisher.zip',
+    filePath,
+    publisherCode: 'example',
+    releaseCode: 'dr-hk-example-division-2026-10-02.0',
+    resourceReleaseId: 'release-id',
+    sourceVersion: '2026-10-02.0',
+  }
+  const upload = async (_target: unknown, asset: ManagedSourceAssetUpload) => {
+    uploads.push(asset)
+    if (asset.metadata.role === 'manifest' && failSidecar)
+      throw new Error('sidecar transfer interrupted')
+    return {
+      assetId: asset.metadata.role === 'manifest' ? 'manifest-id' : 'source-id',
+      url: 'https://example.test/asset',
+    }
+  }
+  try {
+    await expect(
+      uploadSourceReleaseAsset({ environment: 'dev', remote: false }, input, {
+        upload,
+        now: () => new Date('2026-10-02'),
+      }),
+    ).rejects.toThrow('sidecar transfer interrupted')
+    failSidecar = false
+    const result = await uploadSourceReleaseAsset(
+      { environment: 'dev', remote: false },
+      input,
+      { upload, now: () => new Date('2026-10-03') },
+    )
+    expect(result.assetId).toBe('source-id')
+    expect(result.manifest.assetId).toBe('manifest-id')
+    expect(uploads[1]?.metadata.assetKey).toBe(uploads[3]?.metadata.assetKey)
+    expect(uploads[3]?.metadata.sourceAssetId).toBe('source-id')
+    expect(await readFile(uploads[3]!.filePath)).toEqual(
+      await readFile(uploads[1]!.filePath),
+    )
   } finally {
     await rm(root, { force: true, recursive: true })
   }

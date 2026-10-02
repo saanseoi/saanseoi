@@ -39,6 +39,30 @@ Unchanged source-resolution retries do not update stored interpretations. Addres
 current materialisation removes only omitted collections and writes only changed
 inventories or localisations. Source interpretations retain all collection owners.
 
+## Managed source manifests
+
+Retained source objects and their manifests are separate immutable R2 objects registered
+in META `assets`. Each manifest has `role=manifest` and `sourceAssetId` referencing the
+source asset it describes. The indexed relationship supports several provenance
+manifests for the same byte-identical archive, including distinct CSDI archive slots.
+Manifest JSON is stored only in the sidecar, not copied into the database.
+
+Both objects use their own SHA-256 content hash in the object key and have independently
+downloadable asset IDs. Register the source object before its manifest. Retries verify
+retained bytes, reuse existing IDs and retain the source relationship. A manifest cannot
+describe another manifest or be reassigned to a different source object.
+
+Source-release retention creates sidecars for publisher ZIPs, Parquet and losslessly
+packaged GML or GeoJSON. CSDI sidecars retain the publisher filename, archive members,
+source URL and archive slot; inspected layers and semantic fingerprints are included
+when available. Retrieval timestamps belong to asset metadata and do not alter the
+source-release sidecar's immutable content.
+
+The generated META schema migration removes inline manifest JSON. Populated stores must
+retain those bodies as managed sidecars and establish their source links before applying
+the migration, or use a separately authorised rebuild. Schema migration alone does not
+copy database JSON into R2.
+
 ## Address ID reconciliation candidates
 
 Run the following with every current/history SQLite file and a new output directory:

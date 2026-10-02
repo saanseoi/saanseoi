@@ -177,32 +177,31 @@ export async function mirrorCsdiSourceArchive(
     },
     'manifest.json',
   )
-  const [source, manifest] = await Promise.all([
-    upload(target, {
-      fileName: 'source.zip',
-      filePath: prepared.sourcePath,
-      metadata: {
-        assetKey: sourceKey,
-        contentHash: prepared.manifest.archive.sha256,
-        mediaType: 'application/zip',
-        originalUrl: archive.sourceUrl,
-        retrievedAt,
-        role: 'sourceArchive',
-      },
-    }),
-    upload(target, {
-      fileName: 'manifest.json',
-      filePath: prepared.manifestPath,
-      metadata: {
-        assetKey: manifestKey,
-        contentHash: manifestSha256,
-        mediaType: 'application/json; charset=utf-8',
-        originalUrl: archive.sourceUrl,
-        retrievedAt,
-        role: 'manifest',
-      },
-    }),
-  ])
+  const source = await upload(target, {
+    fileName: 'source.zip',
+    filePath: prepared.sourcePath,
+    metadata: {
+      assetKey: sourceKey,
+      contentHash: prepared.manifest.archive.sha256,
+      mediaType: 'application/zip',
+      originalUrl: archive.sourceUrl,
+      retrievedAt,
+      role: 'sourceArchive',
+    },
+  })
+  const manifest = await upload(target, {
+    fileName: 'manifest.json',
+    filePath: prepared.manifestPath,
+    metadata: {
+      assetKey: manifestKey,
+      contentHash: manifestSha256,
+      mediaType: 'application/json; charset=utf-8',
+      originalUrl: archive.sourceUrl,
+      retrievedAt,
+      role: 'manifest',
+      sourceAssetId: source.assetId,
+    },
+  })
 
   return {
     manifestUrl: buildManagedAssetUrl(target, manifest.assetId),

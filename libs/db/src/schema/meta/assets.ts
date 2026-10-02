@@ -1,6 +1,13 @@
-import { index, integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core'
+import {
+  index,
+  integer,
+  sqliteTable,
+  text,
+  uniqueIndex,
+  type AnySQLiteColumn,
+} from 'drizzle-orm/sqlite-core'
 
-import { jsonText, primaryUuid, timestamps } from '../shared'
+import { primaryUuid, timestamps } from '../shared'
 import { metaDatasets, metaResourceReleases } from './datasets'
 
 /**
@@ -31,8 +38,14 @@ export const metaAssets = sqliteTable(
     sourcePageLocale: text('sourcePageLocale'),
     sourcePageUrl: text('sourcePageUrl'),
     retrievedAt: text('retrievedAt').notNull(),
-    manifest: jsonText('manifest'),
     ...timestamps,
+    /** The retained source object described by this downloadable manifest. */
+    sourceAssetId: text('sourceAssetId').references(
+      (): AnySQLiteColumn => metaAssets.id,
+      {
+        onDelete: 'set null',
+      },
+    ),
   },
   table => [
     uniqueIndex('assets_assetKey_unique_idx').on(table.assetKey),
@@ -40,5 +53,6 @@ export const metaAssets = sqliteTable(
     index('assets_datasetId_idx').on(table.datasetId),
     index('assets_resourceReleaseId_idx').on(table.resourceReleaseId),
     index('assets_sourceRecordId_idx').on(table.sourceRecordId),
+    index('assets_sourceAssetId_idx').on(table.sourceAssetId),
   ],
 )

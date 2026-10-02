@@ -1,6 +1,10 @@
 import { and, eq, metaAssets } from '@repo/db'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import {
+  assertSourceAssetManifestLink,
+  linkSourceAssetManifest,
+} from '@repo/core/sourceAssets'
 
 export { linkManagedSourceAssetToRelease } from '@repo/core/sourceAssets'
 
@@ -21,7 +25,7 @@ export type SourceAssetMetadata = {
   mediaType: string
   role: string
   retrievedAt: string
-  manifest?: unknown
+  sourceAssetId?: string
   originalUrl?: string
   resourceReleaseId?: string
   sourcePageLocale?: string
@@ -34,6 +38,7 @@ export async function preflightManagedSourceAsset(
   input: { byteLength: number; metadata: SourceAssetMetadata },
 ) {
   assertMetadata(input.metadata)
+  await assertSourceAssetManifestLink(db, input.metadata)
   if (!Number.isSafeInteger(input.byteLength) || input.byteLength < 0) {
     throw new Error('Source asset byteLength must be a non-negative integer.')
   }
@@ -67,6 +72,7 @@ export async function registerManagedSourceAsset(
   },
 ) {
   assertMetadata(input.metadata)
+  await assertSourceAssetManifestLink(db, input.metadata)
   const status = await completeSourceAssetTransfer(bucket, {
     ...input.metadata,
     fileName: input.fileName,
@@ -129,6 +135,7 @@ async function registerSourceAssetMetadata(
         `Registered source asset conflict for ${metadata.assetKey}; existing hash differs.`,
       )
     }
+    await linkSourceAssetManifest(db, existingAsset.id, metadata)
     return existingAsset.id
   }
 
@@ -140,7 +147,7 @@ async function registerSourceAssetMetadata(
       byteLength,
       contentHash: metadata.contentHash,
       id: assetId,
-      manifest: metadata.manifest ?? null,
+      sourceAssetId: metadata.sourceAssetId ?? null,
       mediaType: metadata.mediaType,
       originalUrl: metadata.originalUrl ?? null,
       retrievedAt: metadata.retrievedAt,
@@ -163,6 +170,7 @@ async function registerSourceAssetMetadata(
     throw new Error(`Could not register source asset ${metadata.assetKey}.`)
   }
 
+  await linkSourceAssetManifest(db, registeredAsset.id, metadata)
   return registeredAsset.id
 }
 

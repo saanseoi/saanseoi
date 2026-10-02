@@ -1,5 +1,10 @@
 # LandsD street names
 
+Retained source evidence uses the
+[managed manifest contract](../../families/source-evidence.md#managed-source-manifests).
+Manifest JSON is a downloadable R2 sidecar; its META asset row links to the described
+source object through `sourceAssetId`.
+
 Canonical Street content hashes exclude the lifecycle version counter. Gazette dates,
 effective dates and deletion dates remain significant lifecycle content.
 

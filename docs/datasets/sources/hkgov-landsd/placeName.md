@@ -1,5 +1,10 @@
 # LandsD Place Name database
 
+Retained source evidence uses the
+[managed manifest contract](../../families/source-evidence.md#managed-source-manifests).
+Manifest JSON is a downloadable R2 sidecar; its META asset row links to the described
+source object through `sourceAssetId`.
+
 Canonical source references follow the
 [source evidence contract](../../families/source-evidence.md). Original publisher
 properties remain in retained source assertions. The release identifies the retained
