@@ -1,3 +1,9 @@
+import { selectApiInventory } from './apiInventory'
+import {
+  retainProcessingRules,
+  processingRulesSelection,
+} from './processingRuleDefinitions'
+import { buildFieldLineageDefinition } from '@repo/db'
 import { recordProcessingRun } from './processingRuns'
 import type { SnapshotAssemblyDetails } from '@repo/db/metaSchema'
 import {
@@ -72,7 +78,7 @@ const {
   metaApiCatalogRevisions,
   metaApiEndpoints,
   metaApiFieldProvenance,
-  metaApiFieldProvenanceGroups,
+  metaFieldLineageDefinitions,
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
   metaApiVersions,
@@ -110,7 +116,7 @@ function releaseAsRole({
   // A source can support a primary snapshot, or a snapshot can support an API
   // release. Either case is supporting use of the source release.
   return apiReleaseSetRole !== 'primary' ||
-    compositionRole === 'supporting' ||
+    (compositionRole !== null && compositionRole !== 'primary') ||
     (assemblySourceRole !== null && assemblySourceRole !== 'primary') ||
     sourceRole !== 'primary'
     ? 'supporting'
@@ -427,7 +433,9 @@ export async function listRegistryReleases(
             sourceVersion: metaResourceReleases.sourceVersion,
             kind: metaDatasets.kind,
             ingestedAt: metaResourceReleases.ingestedAt,
-            processingRules: metaResourceReleases.processingRules,
+            processingRules: processingRulesSelection(
+              metaResourceReleases.processingRules,
+            ),
             resourceTypes: metaDatasets.resourceTypes,
           })
           .from(metaResourceReleases)
@@ -1095,11 +1103,26 @@ export async function listRegistrySourceReleaseProcessingActions(
   )
 }
 
+const apiFieldLineageSelection = {
+  id: metaApiFieldProvenance.apiReleaseSetId,
+  definitionId: metaApiFieldProvenance.definitionId,
+  definition: metaFieldLineageDefinitions.definition,
+  compositionId: metaApiReleaseSets.apiCompositionId,
+}
+
 export async function listRegistryApiFields(db: MetaDatabase, limit?: number) {
   return db
-    .select()
+    .select(apiFieldLineageSelection)
     .from(metaApiFieldProvenance)
-    .orderBy(desc(metaApiFieldProvenance.createdAt))
+    .innerJoin(
+      metaFieldLineageDefinitions,
+      eq(metaApiFieldProvenance.definitionId, metaFieldLineageDefinitions.id),
+    )
+    .innerJoin(
+      metaApiReleaseSets,
+      eq(metaApiFieldProvenance.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .orderBy(metaApiFieldProvenance.apiReleaseSetId)
     .limit(registryLimit(limit))
     .all()
 }
@@ -1107,10 +1130,17 @@ export async function listRegistryApiFields(db: MetaDatabase, limit?: number) {
 export async function getRegistryApiField(db: MetaDatabase, id: string) {
   return (
     (await db
-      .select()
+      .select(apiFieldLineageSelection)
       .from(metaApiFieldProvenance)
-      .where(eq(metaApiFieldProvenance.id, id))
-      .limit(1)
+      .innerJoin(
+        metaFieldLineageDefinitions,
+        eq(metaApiFieldProvenance.definitionId, metaFieldLineageDefinitions.id),
+      )
+      .innerJoin(
+        metaApiReleaseSets,
+        eq(metaApiFieldProvenance.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .where(eq(metaApiFieldProvenance.apiReleaseSetId, id))
       .get()) ?? null
   )
 }
@@ -1480,7 +1510,7 @@ export async function getRegistrySourceReleaseShell(
           publicationDate: metaSourceReleases.publicationDate,
           releaseNotesUrl: metaSourceReleases.releaseNotesUrl,
           status: metaSourceReleases.status,
-          processingRules: metaSourceReleases.processingRules,
+          processingRules: processingRulesSelection(metaSourceReleases.processingRules),
           ingestedAt: metaSourceReleases.ingestedAt,
           createdAt: metaSourceReleases.createdAt,
           updatedAt: metaSourceReleases.updatedAt,
@@ -1581,7 +1611,7 @@ async function queryRegistrySourceVersions(
       code: metaSourceReleases.code,
       sourceVersion: metaSourceReleases.sourceVersion,
       sourceSchemaVersion: metaSourceReleases.sourceSchemaVersion,
-      processingRules: metaSourceReleases.processingRules,
+      processingRules: processingRulesSelection(metaSourceReleases.processingRules),
       publicationDate: metaSourceReleases.publicationDate,
       cohortKey: metaSourceReleases.cohortKey,
       rawObjectKey: metaSourceReleases.rawObjectKey,
@@ -2377,6 +2407,7 @@ export async function insertDataset(
   status: ReleaseStatus = 'staged',
 ) {
   const dataset = await requireDatasetDefinition(db, plan)
+  const processingRules = await retainProcessingRules(db, dataset.processingRules)
   const now = toIsoTimestamp(ingestedAt)
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
@@ -2402,10 +2433,10 @@ export async function insertDataset(
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
       notes: null,
       status,
+      processingRules,
       revokedAt: null,
       revocationReason: null,
       supersededBySourceReleaseId: null,
-      processingRules: dataset.processingRules,
       ingestedAt: now,
       createdAt: now,
       updatedAt: now,
@@ -2423,7 +2454,7 @@ export async function insertDataset(
       resourceType: plan.resourceType,
       sourceVersion: plan.sourceVersion,
       sourceSchemaVersion,
-      processingRules: dataset.processingRules,
+      processingRules,
       publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
       geometryStatus: isGeometryResourceType(plan.resourceType)
@@ -2513,234 +2544,31 @@ export function buildDeterministicApiFieldProvenanceId(args: {
   )
 }
 
-type ApiFieldProvenanceRow = {
-  apiField: string
-  apiReleaseSetId: string
-  confidence: number | null
-  contributionType: string
-  createdAt: string
-  id: string
-  inputs: ApiFieldInput[]
-  priority: number
-  resolverCode: string
-  resolverRules: unknown
-  resourceType: string
-  sourceDatasetId: string
-  updatedAt: string
-  variant: string | null
-  versionHash: string
-}
-
-type ApiFieldProvenanceGroup = {
-  apiField: string
-  isDeleted: boolean
-  resourceType: string
-  rows: ApiFieldProvenanceRow[]
-  sourceReleaseSetId: string
-  variant: string
-  versionHash: string
-}
-
-type ApiFieldProvenanceGroupRow = {
-  apiField: string
-  isDeleted: boolean
-  resourceType: string
-  variant: string
-  versionHash: string
-}
-
-type ApiFieldPublisherFieldsByDatasetId = ReadonlyMap<
-  string,
-  Record<string, string | string[]>
->
-
-function apiFieldProvenanceGroupKey(
-  resourceType: string,
-  apiField: string,
-  variant: string | null | undefined,
-) {
-  return `${resourceType}:${apiField}:${variant ?? 'default'}`
-}
-
-function apiFieldProvenanceGroupVersionHash(
-  rows: readonly ApiFieldProvenanceRow[],
-  publisherFieldsByDatasetId: ApiFieldPublisherFieldsByDatasetId | null,
-) {
-  return computeVersionHash({
-    rows: rows
-      .map(row => ({
-        apiField: row.apiField,
-        confidence: row.confidence,
-        contributionType: row.contributionType,
-        inputs: row.inputs,
-        // Scope fixture dependencies to paths this group actually consumes.
-        publisherPaths: publisherFieldsByDatasetId
-          ? row.inputs.flatMap(input => {
-              if (input.origin !== 'source') return []
-
-              const publisherFields = publisherFieldsByDatasetId.get(
-                row.sourceDatasetId,
-              )
-              if (!publisherFields) {
-                throw new Error(
-                  `Publisher field mappings not found for API provenance dataset ${row.sourceDatasetId}`,
-                )
-              }
-
-              return [
-                {
-                  fieldPath: input.fieldPath,
-                  publisherPaths: resolvePublisherFieldPaths(
-                    input.fieldPath,
-                    publisherFields,
-                  ),
-                },
-              ]
-            })
-          : null,
-        priority: row.priority,
-        resolverCode: row.resolverCode,
-        resolverRules: row.resolverRules,
-        resourceType: row.resourceType,
-        sourceDatasetId: row.sourceDatasetId,
-        variant: row.variant,
-      }))
-      .sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right))),
-  })
-}
-
-function groupApiFieldProvenanceRows(
-  rows: readonly ApiFieldProvenanceRow[],
-  publisherFieldsByDatasetId: ApiFieldPublisherFieldsByDatasetId | null,
-) {
-  const groupedRows = new Map<string, ApiFieldProvenanceRow[]>()
-
-  for (const row of rows) {
-    const key = apiFieldProvenanceGroupKey(row.resourceType, row.apiField, row.variant)
-    const current = groupedRows.get(key)
-    if (current) current.push(row)
-    else groupedRows.set(key, [row])
-  }
-
-  return new Map(
-    [...groupedRows].map(([key, groupRows]) => [
-      key,
-      {
-        apiField: groupRows[0]!.apiField,
-        isDeleted: false,
-        resourceType: groupRows[0]!.resourceType,
-        rows: groupRows,
-        sourceReleaseSetId: groupRows[0]!.apiReleaseSetId,
-        variant: groupRows[0]!.variant ?? 'default',
-        versionHash: apiFieldProvenanceGroupVersionHash(
-          groupRows,
-          publisherFieldsByDatasetId,
-        ),
-      } satisfies ApiFieldProvenanceGroup,
-    ]),
-  )
-}
-
-/** Resolve field groups through the immutable API release-set predecessor chain. */
-async function resolveEffectiveApiFieldProvenanceGroups(
+/** Resolve the pinned reusable rules and all three field-lineage boundaries. */
+export async function getApiFieldLineageForReleaseSet(
   db: HarbourReadableDb,
-  releaseSetId: string | null,
+  releaseSetId: string,
 ) {
-  const resolved = new Map<string, ApiFieldProvenanceGroup>()
-  let candidateReleaseSetId = releaseSetId
-
-  while (candidateReleaseSetId) {
-    const releaseSet = await db
-      .select({
-        id: metaApiReleaseSets.id,
-        supersedesApiReleaseSetId: metaApiReleaseSets.supersedesApiReleaseSetId,
-      })
-      .from(metaApiReleaseSets)
-      .where(eq(metaApiReleaseSets.id, candidateReleaseSetId))
-      .limit(1)
-      .get()
-    if (!releaseSet) {
-      throw new Error(`API release set not found: ${candidateReleaseSetId}`)
-    }
-
-    const groups = (await db
-      .select()
-      .from(metaApiFieldProvenanceGroups)
-      .where(eq(metaApiFieldProvenanceGroups.apiReleaseSetId, releaseSet.id))
-      .all()) as ApiFieldProvenanceGroupRow[]
-
-    if (groups.length) {
-      for (const group of groups) {
-        const key = apiFieldProvenanceGroupKey(
-          group.resourceType,
-          group.apiField,
-          group.variant,
-        )
-        if (resolved.has(key)) continue
-        resolved.set(key, {
-          apiField: group.apiField,
-          isDeleted: group.isDeleted,
-          resourceType: group.resourceType,
-          rows: [],
-          sourceReleaseSetId: releaseSet.id,
-          variant: group.variant,
-          versionHash: group.versionHash,
-        })
-      }
-    } else {
-      // Existing release sets predate field groups. Their rows form a complete
-      // baseline; the next publication writes only changed groups.
-      const rows = (await db
-        .select()
-        .from(metaApiFieldProvenance)
-        .where(eq(metaApiFieldProvenance.apiReleaseSetId, releaseSet.id))
-        .all()) as ApiFieldProvenanceRow[]
-      for (const [key, group] of groupApiFieldProvenanceRows(rows, null)) {
-        if (!resolved.has(key)) resolved.set(key, group)
-      }
-    }
-
-    candidateReleaseSetId = releaseSet.supersedesApiReleaseSetId
-  }
-
-  return resolved
+  return db
+    .select({
+      id: metaFieldLineageDefinitions.id,
+      definition: metaFieldLineageDefinitions.definition,
+    })
+    .from(metaApiFieldProvenance)
+    .innerJoin(
+      metaFieldLineageDefinitions,
+      eq(metaApiFieldProvenance.definitionId, metaFieldLineageDefinitions.id),
+    )
+    .where(eq(metaApiFieldProvenance.apiReleaseSetId, releaseSetId))
+    .get()
 }
 
-/** Materialise the effective field rows without duplicating inherited groups. */
 export async function listApiFieldProvenanceForReleaseSet(
   db: HarbourReadableDb,
   releaseSetId: string,
 ) {
-  const groups = await resolveEffectiveApiFieldProvenanceGroups(db, releaseSetId)
-  const rows: ApiFieldProvenanceRow[] = []
-
-  for (const group of groups.values()) {
-    if (group.isDeleted) continue
-    rows.push(
-      ...((await db
-        .select()
-        .from(metaApiFieldProvenance)
-        .where(
-          and(
-            eq(metaApiFieldProvenance.apiReleaseSetId, group.sourceReleaseSetId),
-            eq(metaApiFieldProvenance.resourceType, group.resourceType),
-            eq(metaApiFieldProvenance.apiField, group.apiField),
-            group.variant === 'default'
-              ? isNull(metaApiFieldProvenance.variant)
-              : eq(metaApiFieldProvenance.variant, group.variant),
-          ),
-        )
-        .all()) as ApiFieldProvenanceRow[]),
-    )
-  }
-
-  return rows.sort(
-    (left, right) =>
-      left.resourceType.localeCompare(right.resourceType) ||
-      left.apiField.localeCompare(right.apiField) ||
-      (left.variant ?? '').localeCompare(right.variant ?? '') ||
-      left.id.localeCompare(right.id),
-  )
+  const lineage = await getApiFieldLineageForReleaseSet(db, releaseSetId)
+  return lineage?.definition.fields ?? []
 }
 
 export async function resetFailedDataset(
@@ -2752,6 +2580,7 @@ export async function resetFailedDataset(
   options: { preservePublishedSourceRelease?: boolean } = {},
 ) {
   const dataset = await requireDatasetDefinition(db, plan)
+  const processingRules = await retainProcessingRules(db, dataset.processingRules)
   const now = toIsoTimestamp(ingestedAt)
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
@@ -2774,7 +2603,7 @@ export async function resetFailedDataset(
       sourceVersion: plan.sourceVersion,
       resourceType: plan.resourceType,
       sourceSchemaVersion,
-      processingRules: dataset.processingRules,
+      processingRules,
       publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
       geometryStatus: isGeometryResourceType(plan.resourceType)
@@ -2797,7 +2626,7 @@ export async function resetFailedDataset(
     .update(metaSourceReleases)
     .set({
       sourceSchemaVersion,
-      processingRules: dataset.processingRules,
+      processingRules,
       publicationDate: releasePublicationDate(plan.sourceVersion),
       cohortKey: plan.cohortKey,
       rawObjectKey,
@@ -3054,11 +2883,9 @@ async function listApiCompositionMembersSafely(
 export async function listCurrentApiCompositionMembersForType(
   db: HarbourReadableDb,
   resourceType: ResourceType,
+  apiVersionCode = getApiVersionCodeForType(resourceType),
 ) {
-  const composition = await resolveCurrentApiComposition(
-    db,
-    getApiVersionCodeForType(resourceType),
-  )
+  const composition = await resolveCurrentApiComposition(db, apiVersionCode)
 
   return composition ? listApiCompositionMembers(db, composition.id) : []
 }
@@ -4110,9 +3937,8 @@ export async function resolveLatestReleaseSetForTypeDomainCohort(
   domainCode: string,
   regionCode: RegionCode,
   cohortKey: string,
+  apiVersionCode = getApiVersionCodeForType(resourceType),
 ) {
-  const apiVersionCode = getApiVersionCodeForType(resourceType)
-
   return (
     (await db
       .select({
@@ -4345,11 +4171,12 @@ export async function ensureDraftReleaseSetForRelease(
   resourceType: ResourceType,
   release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
   options: {
+    apiVersion?: string
     domainCode?: string
     forceNew?: boolean
   } = {},
 ) {
-  const apiVersionCode = getApiVersionCodeForType(resourceType)
+  const apiVersionCode = options.apiVersion ?? getApiVersionCodeForType(resourceType)
   const apiVersion = await db
     .select({
       id: metaApiVersions.id,
@@ -4459,6 +4286,7 @@ export async function ensureDraftReleaseSetForRelease(
       nextRevision,
     ),
     domainCode === (composition?.defaultDomainCode ?? 'default') ? null : domainCode,
+    apiVersionCode === getApiVersionCodeForType(resourceType) ? null : apiVersionCode,
   ]
     .filter((segment): segment is string => segment !== null)
     .join('--')
@@ -4531,8 +4359,8 @@ export async function resolveReleaseSetForRelease(
   resourceReleaseId: string,
   resourceType: ResourceType,
   domainCode?: string,
+  apiVersionCode = getApiVersionCodeForType(resourceType),
 ) {
-  const apiVersionCode = getApiVersionCodeForType(resourceType)
   const resolvedDomainCode = await resolveDomainCodeForType(
     db,
     resourceType,
@@ -4631,6 +4459,17 @@ function catalogMemberSortKey(
 ) {
   return (
     member.effectiveFrom ?? cohortKeyEffectiveFrom(member.cohortKey) ?? member.cohortKey
+  )
+}
+
+export function compareCatalogMembers(
+  left: Pick<CatalogReleaseSetMember, 'cohortKey' | 'effectiveFrom' | 'revision'>,
+  right: Pick<CatalogReleaseSetMember, 'cohortKey' | 'effectiveFrom' | 'revision'>,
+) {
+  return (
+    catalogMemberSortKey(left).localeCompare(catalogMemberSortKey(right)) ||
+    compareReleaseVersions(left.cohortKey, right.cohortKey) ||
+    left.revision - right.revision
   )
 }
 
@@ -4734,12 +4573,7 @@ async function prepareApiCatalogRevision(
   const latestMemberByDomain = new Map<string, CatalogReleaseSetMember>()
   for (const member of members) {
     const latest = latestMemberByDomain.get(member.domainCode)
-    if (
-      !latest ||
-      catalogMemberSortKey(member) > catalogMemberSortKey(latest) ||
-      (catalogMemberSortKey(member) === catalogMemberSortKey(latest) &&
-        member.revision > latest.revision)
-    ) {
+    if (!latest || compareCatalogMembers(member, latest) > 0) {
       latestMemberByDomain.set(member.domainCode, member)
     }
   }
@@ -4966,7 +4800,9 @@ export async function publishReleaseArtefacts(
           snapshot.variant ?? 'default',
         ),
         {
-          role: member?.role ?? 'supporting',
+          role:
+            member?.role ??
+            (snapshot.resourceType === args.resourceType ? 'supplementary' : 'lookup'),
           isRequired: member?.isRequired ?? true,
           cohortMatchingMode: member?.cohortMatchingMode ?? 'carry_forward_optional',
           anchorSnapshotId: null,
@@ -5059,7 +4895,8 @@ export async function publishReleaseArtefacts(
       latestPublishedReleaseSet === null ||
       latestPublishedReleaseSet === undefined ||
       releaseSetCohortKey === null ||
-      releaseSetCohortKey > latestPublishedReleaseSet.cohortKey ||
+      compareReleaseVersions(releaseSetCohortKey, latestPublishedReleaseSet.cohortKey) >
+        0 ||
       (releaseSetCohortKey === latestPublishedReleaseSet.cohortKey &&
         releaseSet.revision > latestPublishedReleaseSet.revision)
     const activeReleaseSetId = shouldActivateReleaseSet
@@ -5111,7 +4948,9 @@ export async function publishReleaseArtefacts(
             datasetCode: metaDatasets.code,
             source: metaPublishers.code,
             resourceReleaseId: metaResourceReleases.id,
-            processingRules: metaResourceReleases.processingRules,
+            processingRules: processingRulesSelection(
+              metaResourceReleases.processingRules,
+            ),
             sourceSchemaVersion: metaResourceReleases.sourceSchemaVersion,
             sourceVersion: metaResourceReleases.sourceVersion,
           })
@@ -5156,7 +4995,9 @@ export async function publishReleaseArtefacts(
                 datasetCode: metaDatasets.code,
                 source: metaPublishers.code,
                 resourceReleaseId: metaResourceReleases.id,
-                processingRules: metaResourceReleases.processingRules,
+                processingRules: processingRulesSelection(
+                  metaResourceReleases.processingRules,
+                ),
                 sourceSchemaVersion: metaResourceReleases.sourceSchemaVersion,
                 sourceVersion: metaResourceReleases.sourceVersion,
               })
@@ -5328,6 +5169,7 @@ export async function publishReleaseArtefacts(
                 variant: field.variant ?? null,
                 sourceDatasetId,
                 inputs: field.inputs,
+                canonicalInputs: field.canonicalInputs,
                 resolverRules,
                 resolverCode: field.resolverCode,
                 contributionType: field.contributionType,
@@ -5355,29 +5197,30 @@ export async function publishReleaseArtefacts(
           })()
         : { apiFieldProvenanceRows: [], publisherFieldsByDatasetId: null }
 
-    const apiFieldProvenanceGroups = groupApiFieldProvenanceRows(
-      apiFieldProvenanceRows,
-      publisherFieldsByDatasetId,
-    )
-    const inheritedApiFieldProvenanceGroups = deferApiReleaseSet
-      ? new Map<string, ApiFieldProvenanceGroup>()
-      : await resolveEffectiveApiFieldProvenanceGroups(
-          db,
-          releaseSet.supersedesApiReleaseSetId,
+    const lineage = resolvedApiFieldFixture
+      ? buildFieldLineageDefinition(
+          apiFieldProvenanceRows.map(row => ({
+            apiField: row.apiField,
+            resourceType: row.resourceType,
+            variant: row.variant,
+            sourceDatasetId: row.sourceDatasetId,
+            inputs: row.inputs,
+            canonicalInputs: row.canonicalInputs,
+            resolverRules: row.resolverRules,
+            resolverCode: row.resolverCode,
+            contributionType: row.contributionType,
+            priority: row.priority,
+            confidence: row.confidence,
+          })),
+          publisherFieldsByDatasetId ?? new Map(),
+          sourceSchemaRows
+            .filter(row => row.processingRules)
+            .map(row => ({
+              datasetCode: row.datasetCode,
+              definitionId: computeVersionHash(row.processingRules),
+            })),
         )
-    const changedApiFieldProvenanceGroups = [...apiFieldProvenanceGroups].filter(
-      ([key, group]) => {
-        const inherited = inheritedApiFieldProvenanceGroups.get(key)
-        return (
-          !inherited ||
-          inherited.isDeleted ||
-          inherited.versionHash !== group.versionHash
-        )
-      },
-    )
-    const deletedApiFieldProvenanceGroups = [
-      ...inheritedApiFieldProvenanceGroups.entries(),
-    ].filter(([key, group]) => !group.isDeleted && !apiFieldProvenanceGroups.has(key))
+      : null
 
     await runAtomicWriteStatements(db as AtomicWritableDb, tx => {
       const statements: WriteStatement[] = chunkArray(
@@ -5395,14 +5238,6 @@ export async function publishReleaseArtefacts(
           })
           .where(inArray(metaSnapshots.id, ids)),
       )
-
-      if (resolvedApiFieldFixture)
-        statements.push(
-          tx
-            .update(metaApiReleaseSets)
-            .set({ publisherFields: resolvedApiFieldFixture.publisherFields })
-            .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
-        )
 
       statements.push(
         tx
@@ -5468,9 +5303,6 @@ export async function publishReleaseArtefacts(
           tx
             .delete(metaApiFieldProvenance)
             .where(eq(metaApiFieldProvenance.apiReleaseSetId, args.releaseSetId)),
-          tx
-            .delete(metaApiFieldProvenanceGroups)
-            .where(eq(metaApiFieldProvenanceGroups.apiReleaseSetId, args.releaseSetId)),
         )
 
         if (!shouldActivateReleaseSet) {
@@ -5491,6 +5323,16 @@ export async function publishReleaseArtefacts(
 
       if (apiCatalogRevision) {
         statements.push(
+          tx
+            .update(metaApiCatalogRevisions)
+            .set({ status: 'archived', updatedAt: publishedAt })
+            .where(
+              and(
+                eq(metaApiCatalogRevisions.apiVersionId, releaseSet.apiVersionId),
+                eq(metaApiCatalogRevisions.regionCode, releaseSetRegionCode),
+                eq(metaApiCatalogRevisions.status, 'current'),
+              ),
+            ),
           tx.insert(metaApiCatalogRevisions).values({
             id: apiCatalogRevision.id,
             apiVersionId: releaseSet.apiVersionId,
@@ -5551,37 +5393,13 @@ export async function publishReleaseArtefacts(
         )
       }
 
-      if (!deferApiReleaseSet) {
-        for (const [, group] of changedApiFieldProvenanceGroups) {
-          statements.push(
-            tx.insert(metaApiFieldProvenanceGroups).values({
-              apiReleaseSetId: args.releaseSetId,
-              resourceType: group.resourceType,
-              apiField: group.apiField,
-              variant: group.variant,
-              isDeleted: false,
-              versionHash: group.versionHash,
-              createdAt: publishedAt,
-            }),
-          )
-          for (const row of group.rows) {
-            statements.push(tx.insert(metaApiFieldProvenance).values(row))
-          }
-        }
-
-        for (const [, group] of deletedApiFieldProvenanceGroups) {
-          statements.push(
-            tx.insert(metaApiFieldProvenanceGroups).values({
-              apiReleaseSetId: args.releaseSetId,
-              resourceType: group.resourceType,
-              apiField: group.apiField,
-              variant: group.variant,
-              isDeleted: true,
-              versionHash: group.versionHash,
-              createdAt: publishedAt,
-            }),
-          )
-        }
+      if (!deferApiReleaseSet && lineage) {
+        statements.push(
+          tx.insert(metaFieldLineageDefinitions).values(lineage).onConflictDoNothing(),
+          tx
+            .insert(metaApiFieldProvenance)
+            .values({ apiReleaseSetId: args.releaseSetId, definitionId: lineage.id }),
+        )
       }
 
       if (updateDatasetRelease && args.currentRelease) {
@@ -6043,7 +5861,7 @@ export async function upsertApiReleaseSetSnapshot(
       apiReleaseSetId: releaseSetId,
       snapshotId,
       variant: options.variant ?? 'default',
-      role: options.role ?? 'supporting',
+      role: options.role ?? 'lookup',
       isRequired: options.isRequired ?? true,
       cohortMatchingMode: options.cohortMatchingMode ?? 'carry_forward_optional',
       anchorSnapshotId: options.anchorSnapshotId ?? null,
@@ -6057,7 +5875,7 @@ export async function upsertApiReleaseSetSnapshot(
       ],
       set: {
         variant: options.variant ?? 'default',
-        role: options.role ?? 'supporting',
+        role: options.role ?? 'lookup',
         isRequired: options.isRequired ?? true,
         cohortMatchingMode: options.cohortMatchingMode ?? 'carry_forward_optional',
         anchorSnapshotId: options.anchorSnapshotId ?? null,
@@ -6331,13 +6149,13 @@ export async function resolveActiveSnapshotForType(
   )
 }
 
-/** A pinned Statistics revision may belong to an earlier published catalogue. */
-function statisticsReleaseSetCatalogCondition(
-  resourceType: ResourceType,
-  args: { catalogRevision?: string; releaseSet?: string; domainCode: string },
-) {
-  if (resourceType !== 'divisionStatistic' || !args.releaseSet || args.catalogRevision)
-    return undefined
+/** A pinned release set may belong to an archived catalogue checkpoint. */
+function releaseSetCatalogCondition(args: {
+  catalogRevision?: string
+  releaseSet?: string
+  domainCode: string
+}) {
+  if (!args.releaseSet || args.catalogRevision) return undefined
   return sql`exists (
     select 1 from ${metaApiCatalogRevisionReleaseSets} as membership
     join ${metaApiReleaseSets} as release_set on release_set.id = membership.apiReleaseSetId
@@ -6347,10 +6165,24 @@ function statisticsReleaseSetCatalogCondition(
   )`
 }
 
+/** Historical selectors may resolve retained catalogue checkpoints. */
+function apiCatalogRevisionStatusCondition(args: {
+  catalogRevision?: string
+  knownAt?: string
+  releaseSet?: string
+}) {
+  return args.catalogRevision || args.knownAt || args.releaseSet
+    ? ne(metaApiCatalogRevisions.status, 'draft')
+    : eq(metaApiCatalogRevisions.status, 'current')
+}
+
 export async function resolveApiReleaseSetForRequest(
   db: HarbourReadableDb,
   resourceType: ResourceType,
   args: {
+    apiVersion?: string
+    inventory?: string
+    allInventories?: boolean
     catalogRevision?: string
     cohortKey?: string
     domainCode: string
@@ -6360,7 +6192,7 @@ export async function resolveApiReleaseSetForRequest(
     releaseSet?: string
   },
 ) {
-  const apiVersionCode = getApiVersionCodeForType(resourceType)
+  const apiVersionCode = args.apiVersion ?? getApiVersionCodeForType(resourceType)
   const apiVersion = await db
     .select({ id: metaApiVersions.id })
     .from(metaApiVersions)
@@ -6381,8 +6213,8 @@ export async function resolveApiReleaseSetForRequest(
       and(
         eq(metaApiCatalogRevisions.apiVersionId, apiVersion.id),
         eq(metaApiCatalogRevisions.regionCode, args.regionCode),
-        eq(metaApiCatalogRevisions.status, 'current'),
-        statisticsReleaseSetCatalogCondition(resourceType, args),
+        apiCatalogRevisionStatusCondition(args),
+        releaseSetCatalogCondition(args),
         args.catalogRevision
           ? eq(metaApiCatalogRevisions.code, args.catalogRevision)
           : undefined,
@@ -6453,6 +6285,17 @@ export async function resolveApiReleaseSetSnapshotsForRequest(
   if (!releaseSet) return null
 
   const snapshots = await listApiReleaseSetSnapshots(db, releaseSet.id)
+  if (
+    !args.allInventories &&
+    resourceType === 'division' &&
+    (args.inventory || args.apiVersion === 'api-divisions-v0.2')
+  ) {
+    const selected = selectApiInventory(snapshots, resourceType, args.inventory)
+    return {
+      releaseSet: { ...releaseSet, inventory: selected.inventory },
+      snapshots: selected.snapshots,
+    }
+  }
   return { releaseSet, snapshots }
 }
 
@@ -6490,8 +6333,8 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
       and(
         eq(metaApiCatalogRevisions.apiVersionId, apiVersion.id),
         eq(metaApiCatalogRevisions.regionCode, args.regionCode),
-        eq(metaApiCatalogRevisions.status, 'current'),
-        statisticsReleaseSetCatalogCondition(resourceType, args),
+        apiCatalogRevisionStatusCondition(args),
+        releaseSetCatalogCondition(args),
         args.catalogRevision
           ? eq(metaApiCatalogRevisions.code, args.catalogRevision)
           : undefined,

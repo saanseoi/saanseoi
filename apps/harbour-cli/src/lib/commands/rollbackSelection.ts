@@ -297,6 +297,10 @@ export function prepareRollbackMetadata(
   const metadata: NetStatement[] = [
     guard,
     {
+      sql: "UPDATE apiCatalogRevisions SET status='archived',updatedAt=? WHERE apiVersionId=? AND regionCode=? AND status='current'",
+      params: [timestamp, catalog.apiVersionId, catalog.regionCode],
+    },
+    {
       sql: "INSERT INTO apiCatalogRevisions(id,apiVersionId,code,regionCode,publicationDate,revision,defaultDomainCode,status,publishedAt,versionHash,createdAt,updatedAt) VALUES(?,?,?,?,?,?,?,'current',?,?,?,?)",
       params: [
         catalogId,

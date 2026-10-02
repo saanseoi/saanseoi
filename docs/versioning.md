@@ -892,6 +892,12 @@ Publishing a richer revision of an old domain cohort creates a new catalogue rev
 that replaces only that `(domain, cohort)` entry. The earlier catalogue continues to
 point at the earlier domain-release revision.
 
+For each API version and region, only the latest published catalogue revision has
+`status=current`. Publishing another checkpoint archives the previous current
+checkpoint. Archived catalogue revisions remain immutable and can still be selected by
+`catalogRevision`, `knownAt`, or an explicit release-set code; the status controls the
+default active checkpoint rather than deleting historical knowledge.
+
 Catalogue membership is metadata only. It does not duplicate entity rows.
 
 ### API version
