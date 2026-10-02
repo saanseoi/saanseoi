@@ -106,16 +106,14 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO apiVersions (
-      id, code, familyType, version, status, publishedAt,
-      versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      id, code, familyType, version, status, versionHash, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       'api-version-stats',
       'api-stats-v0.1',
       'stats',
       '0.1',
       'current',
-      PUBLISHED_AT,
       'api-version-hash',
       PUBLISHED_AT,
       PUBLISHED_AT,
@@ -678,16 +676,14 @@ function seedSelectedDivision(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO apiVersions (
-      id, code, familyType, version, status, publishedAt,
-      versionHash, createdAt, updatedAt
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      id, code, familyType, version, status, versionHash, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       'api-version-divisions',
       'api-divisions-v0.1',
       'divisions',
       '0.1',
       'current',
-      PUBLISHED_AT,
       'api-version-divisions-hash',
       PUBLISHED_AT,
       PUBLISHED_AT,

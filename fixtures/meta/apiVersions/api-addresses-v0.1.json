@@ -1,10 +1,14 @@
 {
-  "versionHash": "sha256:b4408788b53a0b9c25e6131969d20290665b8d128b451cbd4c6e10626cb873f6",
+  "versionHash": "sha256:b3542e025a9f07f54ebb6d1577d0bcb254debd1a6d021909fbdfdc88d762d4ad",
   "code": "api-addresses-v0.1",
   "familyType": "addresses",
   "version": "0.1",
   "status": "current",
-  "publishedAt": "2026-06-01T00:00:00.000Z",
-  "deprecatedAt": null,
-  "retiredAt": null
+  "lifecycleEvents": [
+    {
+      "statusFrom": "draft",
+      "statusTo": "current",
+      "occurredAt": "2026-06-01T00:00:00.000Z"
+    }
+  ]
 }

@@ -8,6 +8,7 @@ import {
   inArray,
   metaApiComposition,
   metaApiCompositionMembers,
+  metaApiLifecycleJournal,
   metaApiReleaseSets,
   metaApiVersions,
   sql,
@@ -252,7 +253,15 @@ async function loadDataPageApis(): Promise<DataPageApi[]> {
         version: metaApiVersions.version,
       })
       .from(metaApiVersions)
-      .orderBy(desc(metaApiVersions.publishedAt), desc(metaApiVersions.createdAt))
+      .orderBy(
+        desc(sql`(
+          SELECT MIN(${metaApiLifecycleJournal.occurredAt})
+          FROM ${metaApiLifecycleJournal}
+          WHERE ${metaApiLifecycleJournal.apiVersionId} = ${metaApiVersions.id}
+            AND ${metaApiLifecycleJournal.statusTo} = 'current'
+        )`),
+        desc(metaApiVersions.createdAt),
+      )
       .limit(100)
       .all(),
     db

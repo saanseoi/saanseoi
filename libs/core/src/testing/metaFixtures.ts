@@ -327,15 +327,23 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
     'version',
     "version TEXT NOT NULL DEFAULT '0.1'",
   )
-  addColumnIfMissing(db, 'apiVersions', 'publishedAt', 'publishedAt INTEGER')
-  addColumnIfMissing(db, 'apiVersions', 'deprecatedAt', 'deprecatedAt INTEGER')
-  addColumnIfMissing(db, 'apiVersions', 'retiredAt', 'retiredAt INTEGER')
   addColumnIfMissing(
     db,
     'apiVersions',
     'versionHash',
     "versionHash TEXT NOT NULL DEFAULT ''",
   )
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS apiLifecycleJournal (
+      id TEXT PRIMARY KEY NOT NULL,
+      apiVersionId TEXT NOT NULL,
+      statusFrom TEXT,
+      statusTo TEXT NOT NULL,
+      reason TEXT,
+      metadataJson TEXT,
+      occurredAt TEXT NOT NULL
+    )
+  `)
   if (hasColumn(db, 'snapshots', 'family')) {
     const snapshotResourceTypeExpression = hasColumn(db, 'snapshots', 'resourceType')
       ? 'COALESCE(resourceType, family)'
@@ -659,6 +667,12 @@ id TEXT PRIMARY KEY NOT NULL,
     'defaultDomainCode',
     'defaultDomainCode TEXT',
   )
+  addColumnIfMissing(
+    db,
+    'apiComposition',
+    'rulesetVersions',
+    "rulesetVersions TEXT NOT NULL DEFAULT '{}'",
+  )
 
   addColumnIfMissing(
     db,
@@ -925,14 +939,13 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division') WHERE id = 'hkgov-landsd-hk-division' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'division');
 UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address') WHERE id = 'hkgov-dpo-hk-address' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'address');
 
-    INSERT INTO apiVersions (id, code, familyType, version, status, publishedAt, versionHash, createdAt, updatedAt) VALUES
+    INSERT INTO apiVersions (id, code, familyType, version, status, versionHash, createdAt, updatedAt) VALUES
       (
         'api-version-api-divisions-v0.1',
         'api-divisions-v0.1',
         'divisions',
         '0.1',
         'current',
-        ${FIXTURE_TIMESTAMP_MS},
         'vh-api-version-divisions-v0.1-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
@@ -943,7 +956,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         'addresses',
         '0.1',
         'current',
-        ${FIXTURE_TIMESTAMP_MS},
         'vh-api-version-addresses-v0.1-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
@@ -954,7 +966,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         'places',
         '0.1',
         'current',
-        ${FIXTURE_TIMESTAMP_MS},
         'vh-api-version-places-v0.1-v1',
         ${FIXTURE_TIMESTAMP_MS},
         ${FIXTURE_TIMESTAMP_MS}
@@ -964,10 +975,15 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       familyType = excluded.familyType,
       version = excluded.version,
       status = excluded.status,
-      publishedAt = excluded.publishedAt,
       versionHash = excluded.versionHash,
       updatedAt = excluded.updatedAt
     WHERE apiVersions.versionHash <> excluded.versionHash;
+
+    INSERT INTO apiLifecycleJournal (id, apiVersionId, statusFrom, statusTo, occurredAt) VALUES
+      ('api-lifecycle-divisions-v0.1-current', 'api-version-api-divisions-v0.1', 'draft', 'current', ${FIXTURE_TIMESTAMP_MS}),
+      ('api-lifecycle-addresses-v0.1-current', 'api-version-api-addresses-v0.1', 'draft', 'current', ${FIXTURE_TIMESTAMP_MS}),
+      ('api-lifecycle-places-v0.1-current', 'api-version-api-places-v0.1', 'draft', 'current', ${FIXTURE_TIMESTAMP_MS})
+    ON CONFLICT(id) DO NOTHING;
 
     INSERT INTO apiReleaseSets (
       id,

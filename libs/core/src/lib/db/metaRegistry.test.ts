@@ -1196,7 +1196,7 @@ id TEXT PRIMARY KEY,
       PRIMARY KEY (apiReleaseSetId, resourceType, apiField, variant)
     );
 
-    CREATE TABLE publishedDataJournal (
+    CREATE TABLE releaseSetLifecycleJournal (
       id TEXT PRIMARY KEY,
       resourceReleaseId TEXT NOT NULL,
       relatedResourceReleaseId TEXT,
@@ -3607,7 +3607,7 @@ describe('publishReleaseArtefacts', () => {
 
     const journalRows = sqlite
       .query(
-        'SELECT resourceReleaseId, relatedResourceReleaseId, snapshotId, apiReleaseSetId, action, statusFrom, statusTo FROM publishedDataJournal ORDER BY createdAt',
+        'SELECT resourceReleaseId, relatedResourceReleaseId, snapshotId, apiReleaseSetId, action, statusFrom, statusTo FROM releaseSetLifecycleJournal ORDER BY createdAt',
       )
       .all() as Array<{
       action: string

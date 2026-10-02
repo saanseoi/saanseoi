@@ -238,8 +238,8 @@ async function countMetaRollbackRows(
     ),
     countRows(
       db,
-      metaSchema.metaPublishedDataJournal,
-      sql`${metaSchema.metaPublishedDataJournal.resourceReleaseId} = ${input.release.resourceReleaseId} OR ${metaSchema.metaPublishedDataJournal.relatedResourceReleaseId} = ${input.release.resourceReleaseId}`,
+      metaSchema.metaReleaseSetLifecycleJournal,
+      sql`${metaSchema.metaReleaseSetLifecycleJournal.resourceReleaseId} = ${input.release.resourceReleaseId} OR ${metaSchema.metaReleaseSetLifecycleJournal.relatedResourceReleaseId} = ${input.release.resourceReleaseId}`,
     ),
     countRows(
       db,
@@ -502,8 +502,8 @@ export async function verifyPurgeResult(
     ),
     countRows(
       dbContext.metaDb,
-      metaSchema.metaPublishedDataJournal,
-      sql`${metaSchema.metaPublishedDataJournal.resourceReleaseId} = ${input.resourceReleaseId} OR ${metaSchema.metaPublishedDataJournal.relatedResourceReleaseId} = ${input.resourceReleaseId}`,
+      metaSchema.metaReleaseSetLifecycleJournal,
+      sql`${metaSchema.metaReleaseSetLifecycleJournal.resourceReleaseId} = ${input.resourceReleaseId} OR ${metaSchema.metaReleaseSetLifecycleJournal.relatedResourceReleaseId} = ${input.resourceReleaseId}`,
     ),
     countRows(
       dbContext.metaDb,

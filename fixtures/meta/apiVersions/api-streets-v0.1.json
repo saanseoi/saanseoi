@@ -1,10 +1,8 @@
 {
-  "versionHash": "sha256:85f72fc5adb909b47c6342c9c8f1f9cc9bc2e46f91e46005c8d64b30d30fc86a",
+  "versionHash": "sha256:dda1a28c6ee0a096b2466a01e84deb309b47b614f198c4ea6a0f842a07a96063",
   "code": "api-streets-v0.1",
   "familyType": "streets",
   "version": "0.1",
   "status": "draft",
-  "publishedAt": null,
-  "deprecatedAt": null,
-  "retiredAt": null
+  "lifecycleEvents": []
 }

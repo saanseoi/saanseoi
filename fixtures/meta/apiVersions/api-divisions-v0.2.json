@@ -1,10 +1,14 @@
 {
-  "versionHash": "sha256:a30a5ad7cb8ffda73bd9bc45e76ca6199fe6d78e204b87b1c2aa61f2ec604c4d",
+  "versionHash": "sha256:c80bcaffca1f0b8b36f8e58731700351dfced1802c82da781f54b4f9ac95bcfa",
   "code": "api-divisions-v0.2",
   "familyType": "divisions",
   "version": "0.2",
   "status": "current",
-  "publishedAt": null,
-  "deprecatedAt": null,
-  "retiredAt": null
+  "lifecycleEvents": [
+    {
+      "statusFrom": "draft",
+      "statusTo": "current",
+      "occurredAt": "2026-09-01T00:00:00.000Z"
+    }
+  ]
 }

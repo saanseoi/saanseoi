@@ -78,6 +78,7 @@ const {
   metaApiCatalogRevisions,
   metaApiEndpoints,
   metaApiFieldProvenance,
+  metaApiLifecycleJournal,
   metaFieldLineageDefinitions,
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
@@ -88,7 +89,7 @@ const {
   metaLicenses,
   metaPublishers,
   metaDataShards,
-  metaPublishedDataJournal,
+  metaReleaseSetLifecycleJournal,
   metaReleaseShardAssignments,
   metaSourceReleases,
   metaSnapshotShardAssignments,
@@ -678,11 +679,19 @@ export async function listRegistryApis(db: MetaDatabase, limit?: number) {
   const apis = await db
     .select()
     .from(metaApiVersions)
-    .orderBy(desc(metaApiVersions.publishedAt), desc(metaApiVersions.createdAt))
+    .orderBy(desc(metaApiVersions.createdAt))
     .limit(registryLimit(limit))
     .all()
 
   const apiIds = apis.map(api => api.id)
+  const lifecycleEvents = await queryInBatches(apiIds, ids =>
+    db
+      .select()
+      .from(metaApiLifecycleJournal)
+      .where(inArray(metaApiLifecycleJournal.apiVersionId, ids))
+      .orderBy(asc(metaApiLifecycleJournal.occurredAt))
+      .all(),
+  )
   const compositions = await queryInBatches(apiIds, ids =>
     db
       .select()
@@ -721,26 +730,41 @@ export async function listRegistryApis(db: MetaDatabase, limit?: number) {
   )
   const releases = await listRegistryReleases(db)
 
-  return apis.map(api => ({
-    ...api,
-    apiComposition: compositions
-      .filter(composition => composition.apiVersionId === api.id)
-      .map(composition => ({
-        ...composition,
-        apiCompositionMembers: members.filter(
-          member => member.apiCompositionId === composition.id,
-        ),
-      })),
-    apiCatalogRevisions: catalogRevisions
-      .filter(revision => revision.apiVersionId === api.id)
-      .map(revision => ({
-        ...revision,
-        releases: catalogReleaseSets.filter(
-          release => release.apiCatalogRevisionId === revision.id,
-        ),
-      })),
-    releases: releases.filter(release => release.apiVersionId === api.id),
-  }))
+  const firstCurrentAt = new Map<string, string>()
+  for (const event of lifecycleEvents) {
+    if (event.statusTo === 'current' && !firstCurrentAt.has(event.apiVersionId)) {
+      firstCurrentAt.set(event.apiVersionId, event.occurredAt)
+    }
+  }
+
+  return apis
+    .sort((left, right) =>
+      (firstCurrentAt.get(right.id) ?? right.createdAt).localeCompare(
+        firstCurrentAt.get(left.id) ?? left.createdAt,
+      ),
+    )
+    .map(api => ({
+      ...api,
+      publishedAt: firstCurrentAt.get(api.id) ?? null,
+      lifecycleEvents: lifecycleEvents.filter(event => event.apiVersionId === api.id),
+      apiComposition: compositions
+        .filter(composition => composition.apiVersionId === api.id)
+        .map(composition => ({
+          ...composition,
+          apiCompositionMembers: members.filter(
+            member => member.apiCompositionId === composition.id,
+          ),
+        })),
+      apiCatalogRevisions: catalogRevisions
+        .filter(revision => revision.apiVersionId === api.id)
+        .map(revision => ({
+          ...revision,
+          releases: catalogReleaseSets.filter(
+            release => release.apiCatalogRevisionId === revision.id,
+          ),
+        })),
+      releases: releases.filter(release => release.apiVersionId === api.id),
+    }))
 }
 
 /**
@@ -762,7 +786,15 @@ export async function listRegistryApiCompositions(db: MetaDatabase, limit?: numb
         status: metaApiVersions.status,
       })
       .from(metaApiVersions)
-      .orderBy(desc(metaApiVersions.publishedAt), desc(metaApiVersions.createdAt))
+      .orderBy(
+        desc(sql`(
+          SELECT MIN(${metaApiLifecycleJournal.occurredAt})
+          FROM ${metaApiLifecycleJournal}
+          WHERE ${metaApiLifecycleJournal.apiVersionId} = ${metaApiVersions.id}
+            AND ${metaApiLifecycleJournal.statusTo} = 'current'
+        )`),
+        desc(metaApiVersions.createdAt),
+      )
       .limit(registryLimit(limit))
       .all(),
     db
@@ -2498,8 +2530,14 @@ export function buildDeterministicSnapshotLineageId(lineageCode: string) {
   return buildDeterministicUuidV5(SNAPSHOT_LINEAGE_ID_NAMESPACE, lineageCode)
 }
 
-export function buildDeterministicApiReleaseSetId(releaseSetCode: string) {
-  return buildDeterministicUuidV5(API_RELEASE_SET_ID_NAMESPACE, releaseSetCode)
+export function buildDeterministicApiReleaseSetId(
+  apiVersionCode: string,
+  releaseSetCode: string,
+) {
+  return buildDeterministicUuidV5(
+    API_RELEASE_SET_ID_NAMESPACE,
+    `${apiVersionCode}--${releaseSetCode}`,
+  )
 }
 
 export function buildDeterministicApiCatalogRevisionId(catalogRevisionCode: string) {
@@ -2805,6 +2843,7 @@ async function resolveCurrentApiComposition(
         version: metaApiComposition.version,
         primaryResourceType: metaApiComposition.primaryResourceType,
         defaultDomainCode: metaApiComposition.defaultDomainCode,
+        rulesetVersions: metaApiComposition.rulesetVersions,
         status: metaApiComposition.status,
       })
       .from(metaApiComposition)
@@ -4181,6 +4220,7 @@ export async function ensureDraftReleaseSetForRelease(
     .select({
       id: metaApiVersions.id,
       familyType: metaApiVersions.familyType,
+      status: metaApiVersions.status,
     })
     .from(metaApiVersions)
     .where(eq(metaApiVersions.code, apiVersionCode))
@@ -4189,6 +4229,12 @@ export async function ensureDraftReleaseSetForRelease(
 
   if (!apiVersion) {
     throw new Error(`API version not found for type: ${resourceType}`)
+  }
+
+  if (apiVersion.status === 'archived' || apiVersion.status === 'retired') {
+    throw new Error(
+      `Cannot create an API release for ${apiVersionCode} while its status is ${apiVersion.status}.`,
+    )
   }
 
   const composition = await resolveCurrentApiCompositionSafely(db, apiVersionCode)
@@ -4286,12 +4332,11 @@ export async function ensureDraftReleaseSetForRelease(
       nextRevision,
     ),
     domainCode === (composition?.defaultDomainCode ?? 'default') ? null : domainCode,
-    apiVersionCode === getApiVersionCodeForType(resourceType) ? null : apiVersionCode,
   ]
     .filter((segment): segment is string => segment !== null)
     .join('--')
   const now = toIsoTimestamp()
-  const releaseSetId = buildDeterministicApiReleaseSetId(releaseSetCode)
+  const releaseSetId = buildDeterministicApiReleaseSetId(apiVersionCode, releaseSetCode)
   const resourceCode = resourceTypeCodeSlug(resourceType)
   // Statistics are materialised from `divisionStatistic` resources, while the
   // public API contract deliberately uses the broader Statistics schema name.
@@ -4301,6 +4346,7 @@ export async function ensureDraftReleaseSetForRelease(
   const rulesetDomainSegment =
     domainCode === (composition?.defaultDomainCode ?? 'default') ? '' : `-${domainCode}`
   const rulesetVersion =
+    composition?.rulesetVersions[domainCode] ??
     latestReleaseSet?.rulesetVersion ??
     `rs-${resourceCode}${rulesetDomainSegment}-merge-v1`
   const versionHash = computeVersionHash({
@@ -5408,7 +5454,7 @@ export async function publishReleaseArtefacts(
           : `Replaced by release ${args.dataset.releaseCode}.`
 
         statements.push(
-          tx.insert(metaPublishedDataJournal).values({
+          tx.insert(metaReleaseSetLifecycleJournal).values({
             id: crypto.randomUUID(),
             resourceReleaseId: args.dataset.resourceReleaseId,
             relatedResourceReleaseId: args.currentRelease.resourceReleaseId,
@@ -5424,7 +5470,7 @@ export async function publishReleaseArtefacts(
             },
             createdAt: publishedAt,
           }),
-          tx.insert(metaPublishedDataJournal).values({
+          tx.insert(metaReleaseSetLifecycleJournal).values({
             id: crypto.randomUUID(),
             resourceReleaseId: args.currentRelease.resourceReleaseId,
             relatedResourceReleaseId: args.dataset.resourceReleaseId,
@@ -5478,7 +5524,7 @@ export async function publishReleaseArtefacts(
         }
       } else if (updateDatasetRelease) {
         statements.push(
-          tx.insert(metaPublishedDataJournal).values({
+          tx.insert(metaReleaseSetLifecycleJournal).values({
             id: crypto.randomUUID(),
             resourceReleaseId: args.dataset.resourceReleaseId,
             relatedResourceReleaseId: null,

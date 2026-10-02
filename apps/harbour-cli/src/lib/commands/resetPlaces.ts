@@ -1045,7 +1045,7 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
   const metaSql = [
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${apiReleaseSets});`,
-    `DELETE FROM publishedDataJournal WHERE resourceReleaseId IN (${releaseIds}) OR relatedResourceReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
+    `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${releaseIds}) OR relatedResourceReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM stats WHERE resourceReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM releaseProcessingActions WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId IN (${releaseIds});`,

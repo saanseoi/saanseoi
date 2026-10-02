@@ -102,7 +102,13 @@ export const processingRunStatuses = [
   'error',
 ] as const
 
-export const apiVersionStatuses = ['draft', 'current', 'deprecated', 'retired'] as const
+export const apiVersionStatuses = [
+  'draft',
+  'current',
+  'deprecated',
+  'archived',
+  'retired',
+] as const
 
 export const apiReleaseSetStatuses = ['draft', 'current', 'archived'] as const
 export const apiFamilyTypes = [

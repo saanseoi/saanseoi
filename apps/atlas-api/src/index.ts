@@ -1,3 +1,4 @@
+import { apiVersionLifecycleMiddleware } from './services/apiVersionLifecycle'
 import { divisionInventoriesRoute } from './routes/divisions/v0/inventories'
 import {
   divisionChangesV02Route,
@@ -419,12 +420,16 @@ app.use(
     allowHeaders: ['Content-Type'],
   }),
 )
+for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
+
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     await next()
     if (!isPublicMetadataPath(c.req.path)) c.header('cache-control', 'no-store')
   })
 }
+for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
+
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     c.set('metaDb', createMetaDb(c.env.DB_META))
@@ -453,6 +458,8 @@ for (const path of apiRoutePaths) {
     }
   })
 }
+
+for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
 
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
@@ -529,6 +536,8 @@ for (const path of apiRoutePaths) {
 // source release or API ReleaseSet. This middleware runs after the
 // key/rate-limit gate and the product-status middleware so an analytics
 // acknowledgement failure is visible as the final 503 response.
+for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
+
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     await next()
@@ -568,6 +577,8 @@ for (const path of apiRoutePaths) {
     return c.res
   })
 }
+for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
+
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     if (

@@ -1,0 +1,26 @@
+{
+  "code": "rs-division-merge-v2",
+  "resourceType": "division",
+  "strategy": "merge",
+  "version": "2",
+  "notes": "Uses SaanSeoi-curated divisions and identities as the primary geographic hierarchy. Overture divisions remain inventory evidence; SaanSeoi area geometry is primary, with the composition's selected Overture and government geometry inputs retained as companions or fallbacks.",
+  "mergeRules": [
+    {
+      "operationCode": "resolve_curated_saanseoi_division_identity",
+      "ruleFixture": "geography-identities"
+    },
+    {
+      "operationCode": "normalise_curated_saanseoi_division_hierarchy",
+      "ruleFixture": "division-normalisation"
+    },
+    {
+      "operationCode": "select_curated_saanseoi_area_geometry",
+      "ruleFixture": "division-area-geometry"
+    },
+    {
+      "operationCode": "retain_overture_division_inventory",
+      "ruleFixture": "geography-identities"
+    }
+  ],
+  "versionHash": "sha256:63a64c679494afbb3235bbdcaea6ecb58831215832ca7f206650f9852ca0bb75"
+}

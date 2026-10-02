@@ -1,0 +1,1 @@
+ALTER TABLE `apiComposition` ADD `rulesetVersions` text DEFAULT '{}' NOT NULL;

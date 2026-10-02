@@ -203,7 +203,7 @@ function buildPurgeMetaSql(input: DraftReleasePurgeInput) {
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM apiFieldProvenanceGroups WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
-    `DELETE FROM publishedDataJournal WHERE resourceReleaseId = ${literal(input.resourceReleaseId)} OR relatedResourceReleaseId = ${literal(input.resourceReleaseId)};`,
+    `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId = ${literal(input.resourceReleaseId)} OR relatedResourceReleaseId = ${literal(input.resourceReleaseId)};`,
     `DELETE FROM stats WHERE resourceReleaseId = ${literal(input.resourceReleaseId)} OR apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM processingRuns WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
     `DELETE FROM releaseProcessingActions WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,

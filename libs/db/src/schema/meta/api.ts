@@ -73,14 +73,31 @@ export const metaApiVersions = sqliteTable(
     familyType: text('familyType', { enum: apiFamilyTypes }).notNull(),
     version: text('version').notNull(),
     status: text('status', { enum: apiVersionStatuses }).notNull(),
-    publishedAt: isoTimestamp('publishedAt'),
-    deprecatedAt: isoTimestamp('deprecatedAt'),
-    retiredAt: isoTimestamp('retiredAt'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
   table => [
     index('apiVersions_familyType_status_idx').on(table.familyType, table.status),
+  ],
+)
+
+export const metaApiLifecycleJournal = sqliteTable(
+  'apiLifecycleJournal',
+  {
+    id: primaryUuid('id'),
+    apiVersionId: apiVersionIdColumn('cascade'),
+    statusFrom: text('statusFrom', { enum: apiVersionStatuses }),
+    statusTo: text('statusTo', { enum: apiVersionStatuses }).notNull(),
+    reason: text('reason'),
+    metadataJson: jsonText('metadataJson'),
+    occurredAt: isoTimestamp('occurredAt').notNull(),
+  },
+  table => [
+    index('apiLifecycleJournal_apiVersionId_occurredAt_idx').on(
+      table.apiVersionId,
+      table.occurredAt,
+    ),
+    index('apiLifecycleJournal_statusTo_idx').on(table.statusTo),
   ],
 )
 
@@ -258,8 +275,8 @@ export const metaApiCatalogRevisions = sqliteTable(
   ],
 )
 
-export const metaPublishedDataJournal = sqliteTable(
-  'publishedDataJournal',
+export const metaReleaseSetLifecycleJournal = sqliteTable(
+  'releaseSetLifecycleJournal',
   {
     id: primaryUuid('id'),
     resourceReleaseId: text('resourceReleaseId')
@@ -285,11 +302,13 @@ export const metaPublishedDataJournal = sqliteTable(
     createdAt: timestamps.createdAt,
   },
   table => [
-    index('publishedDataJournal_resourceReleaseId_idx').on(table.resourceReleaseId),
-    index('publishedDataJournal_relatedReleaseId_idx').on(
+    index('releaseSetLifecycleJournal_resourceReleaseId_idx').on(
+      table.resourceReleaseId,
+    ),
+    index('releaseSetLifecycleJournal_relatedReleaseId_idx').on(
       table.relatedResourceReleaseId,
     ),
-    index('publishedDataJournal_action_idx').on(table.action),
+    index('releaseSetLifecycleJournal_action_idx').on(table.action),
   ],
 )
 
@@ -402,6 +421,9 @@ export const metaApiComposition = sqliteTable(
     notes: text('notes'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
+    rulesetVersions: jsonText<Record<string, string>>('rulesetVersions')
+      .notNull()
+      .default({}),
   },
   table => [
     uniqueIndex('apiComposition_apiVersionId_version_unique_idx').on(

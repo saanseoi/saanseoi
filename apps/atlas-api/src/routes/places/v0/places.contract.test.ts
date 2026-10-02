@@ -82,15 +82,14 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO apiVersions
-      (id, code, familyType, version, status, publishedAt, versionHash, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, code, familyType, version, status, versionHash, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       'api-version-places-v0.1',
       'api-places-v0.1',
       'places',
       '0.1',
       'current',
-      PUBLISHED_AT,
       'api-version-hash',
       PUBLISHED_AT,
       PUBLISHED_AT,

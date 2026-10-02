@@ -833,6 +833,10 @@ It binds:
 - domain ruleset version
 - field provenance
 
+The API version is not part of the human-readable code. The API catalogue identifies
+which version serves a release set; separate API-version rows may use the same cohort
+code while pinning their own schema and ruleset versions.
+
 The composition's default domain is implicit. For divisions this is Geographic, so
 `data-hk-divisions-2025-10-22.0` means the Geographic domain; non-default domains retain
 their `--{domain}` suffix.
@@ -934,6 +938,10 @@ For stable versions, use semantic versioning:
 
 v0 is intentionally mutable and provides no long-term compatibility guarantee while the
 platform is built.
+
+`apiVersions.status` is the current routing state. `apiLifecycleJournal` records each
+API version status transition and when it occurred. Dataset and API release-set
+publication events remain in `releaseSetLifecycleJournal`.
 
 ### Endpoint and handler version
 
@@ -1212,6 +1220,20 @@ They should be added before making `version:promote` perform writes automaticall
 
 ## Change-impact matrix
 
+### API version lifecycle
+
+API version status applies to every endpoint declared for that version. At most one
+version per API family is `current`; it is preferred for new integrations and accepts
+new release sets. `deprecated` versions remain accessible and may continue receiving
+release sets during their support window. `archived` versions are read-only: their
+published data and schema remain accessible, but no new release sets may be created.
+`retired` versions return `410 Gone` for their endpoints. `draft` versions are not
+published for clients.
+
+This lifecycle is separate from `apiReleaseSets.status`: that status tracks publication
+within a version, region, and domain. An archived API version may therefore still have
+current release sets within its own historical catalogue.
+
 Legend:
 
 - **New**: create a new immutable record/version.
@@ -1246,6 +1268,7 @@ Legend:
 | Correct provenance metadata without changing response data            | Same                                                      | Same                                                | Field-map/provenance correction                                                       | Same                                           | New domain-release revision because provenance is part of the immutable manifest    | New                                                 | Same                                                                                                               |
 | Add a new region under existing generic routing                       | New region datasets/releases                              | New regional lineages/snapshots                     | Existing schema/rules may be reused                                                   | Same or Bump if region-specific members differ | New regional releases                                                               | New region-scoped catalogue                         | Same if region syntax was already generic; otherwise minor                                                         |
 | Deprecate an API version                                              | Same                                                      | Same                                                | Same                                                                                  | Same                                           | Existing releases remain                                                            | Existing catalogues remain                          | Mark API deprecated; direct requests and permalinks continue during support window                                 |
+| Archive an API version                                                | Same                                                      | Same                                                | Same                                                                                  | Same                                           | Existing releases remain; no new release sets                                       | Existing catalogues remain                          | Keep the endpoints readable with their pinned schema and data                                                      |
 | Retire an API version                                                 | Same                                                      | Same                                                | Same                                                                                  | Same                                           | Metadata retained                                                                   | Metadata retained                                   | Mark retired; replay availability follows published retention policy                                               |
 | Change only the generated STAC representation                         | Same                                                      | Same                                                | Same                                                                                  | Same                                           | Same                                                                                | Same authoritative catalogue; regenerate projection | Same unless STAC is itself a separately versioned public contract                                                  |
 

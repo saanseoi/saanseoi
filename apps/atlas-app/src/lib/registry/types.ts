@@ -132,8 +132,13 @@ export type RegistryApi = {
   version: string
   status: string
   publishedAt?: string | null
-  deprecatedAt?: string | null
-  retiredAt?: string | null
+  lifecycleEvents?: Array<{
+    statusFrom: string | null
+    statusTo: string
+    reason: string | null
+    metadataJson: unknown
+    occurredAt: string
+  }>
   apiComposition?: Array<{
     id: string
     defaultDomainCode?: string | null

@@ -145,6 +145,39 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
+  test('seeds API lifecycle transitions as append-only journal events', () => {
+    const archivedVersion = initialApiVersions.find(
+      apiVersion => apiVersion.code === 'api-divisions-v0.1',
+    )
+    const statements = buildMetaRegistrySyncStatements('preview')
+    const lifecycleStatements = statements.filter(statement =>
+      statement.startsWith('INSERT INTO apiLifecycleJournal'),
+    )
+    const apiVersionStatement = statements.find(statement =>
+      statement.startsWith('INSERT INTO apiVersions'),
+    )
+
+    expect(archivedVersion?.lifecycleEvents).toEqual([
+      {
+        statusFrom: 'draft',
+        statusTo: 'current',
+        occurredAt: '2026-06-01T00:00:00.000Z',
+      },
+      {
+        statusFrom: 'current',
+        statusTo: 'archived',
+        occurredAt: '2026-09-01T00:00:00.000Z',
+        reason: 'No further releases are planned for this API version.',
+      },
+    ])
+    expect(lifecycleStatements.length).toBeGreaterThanOrEqual(7)
+    expect(
+      lifecycleStatements.every(statement => statement.includes('DO NOTHING')),
+    ).toBe(true)
+    expect(apiVersionStatement).not.toContain('publishedAt')
+    expect(apiVersionStatement).not.toContain('archivedAt')
+  })
+
   test('loads product-scoped endpoints for seeded API families', () => {
     const addressPaths = initialApiEndpoints
       .filter(endpoint => endpoint.apiVersion === 'api-addresses-v0.1')

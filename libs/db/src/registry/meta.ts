@@ -26,10 +26,12 @@ import { buildDeterministicUuidV5, computeVersionHash } from '../versioning'
 
 const fixturesDir = new URL('../../../../fixtures/meta/', import.meta.url)
 const nowSql = "cast(unixepoch('subsecond') * 1000 as integer)"
+const nowIsoSql = "strftime('%Y-%m-%dT%H:%M:%fZ', 'now')"
 const PUBLISHER_ID_NAMESPACE = '9b7e6c3a-1ef4-5ba5-9b64-36f0b8b41ef1'
 const LICENSE_ID_NAMESPACE = '76409a70-86d3-5277-8ab9-f8482fddad43'
 const DATASET_ID_NAMESPACE = '8c8ab30f-3c0f-42c6-bef2-98c3e615f4a6'
 const API_VERSION_ID_NAMESPACE = 'c289d557-af8a-59ef-a7d0-2861a00fc8bc'
+const API_LIFECYCLE_EVENT_ID_NAMESPACE = '0a73fe32-c211-51c2-a741-a61b1b5449a7'
 const API_COMPOSITION_ID_NAMESPACE = 'ba6a345f-d57a-51d8-9256-bcda2275e6d3'
 const API_ENDPOINT_ID_NAMESPACE = 'f27eaf73-6d20-578d-80d7-5e515447aa62'
 const DATA_SHARD_ID_NAMESPACE = 'e7956160-6b36-521f-a0cb-ac3c0769b5c7'
@@ -42,6 +44,7 @@ export const metaRegistryRequiredTables = [
   'datasets',
   'datasetTransforms',
   'apiVersions',
+  'apiLifecycleJournal',
   'apiComposition',
   'apiCompositionMembers',
   'apiEndpoints',
@@ -135,9 +138,12 @@ type ApiVersionFixture = {
   familyType: ApiFamilyType
   version: string
   status: ApiVersionStatus
-  publishedAt?: string | null
-  deprecatedAt?: string | null
-  retiredAt?: string | null
+  lifecycleEvents: Array<{
+    statusFrom: ApiVersionStatus | null
+    statusTo: ApiVersionStatus
+    occurredAt: string | null
+    reason?: string | null
+  }>
 }
 
 type ApiEndpointFileFixture = {
@@ -177,6 +183,7 @@ type ApiCompositionFixture = {
   domains?: Array<{
     code: string
     isDefault?: boolean
+    rulesetVersion?: string
     i18n: LocaleMap<{
       name: string
       descriptionShort?: string
@@ -292,6 +299,7 @@ type InitialApiCompositionSeed = VersionedFixture<{
   version: number
   primaryResourceType: ResourceType
   defaultDomainCode?: string
+  rulesetVersions: Record<string, string>
   status: string
   notes?: string
 }>
@@ -439,10 +447,6 @@ function sqlDeterministicId(namespace: string, name: string) {
   return sqlString(buildDeterministicUuidV5(namespace, name.trim()))
 }
 
-function sqlTimestampMs(value: string) {
-  return `cast(unixepoch(${sqlString(value)}, 'subsecond') * 1000 as integer)`
-}
-
 const publisherFixtures = readFixtureDir<PublisherFixture>('dataPublishers')
 const unitFixtures = readFixtureDir<UnitFixture>('units')
 const datasetFixtures = readFixtureDir<DatasetFixture>('datasets')
@@ -503,6 +507,16 @@ const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersion
   fixture => resolveMergeRulesetDefinitions(fixture),
 )
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
+const mergeRulesetCodes = new Set(mergeRulesetFixtures.map(fixture => fixture.code))
+for (const composition of apiCompositionFixtures) {
+  for (const domain of composition.domains ?? []) {
+    if (domain.rulesetVersion && !mergeRulesetCodes.has(domain.rulesetVersion)) {
+      throw new Error(
+        `API composition ${composition.code} references unknown ruleset ${domain.rulesetVersion} for domain ${domain.code}.`,
+      )
+    }
+  }
+}
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
 const divisionCodeFixtures = readFixtureDir<DivisionCodeFixture>('divisionCodes')
@@ -608,6 +622,18 @@ export const initialDatasetTransforms: InitialDatasetTransformSeed[] =
 
 export const initialApiVersions = readFixtureDir<InitialApiVersionSeed>('apiVersions')
 
+const currentApiVersionsByFamily = new Map<ApiFamilyType, string>()
+for (const apiVersion of initialApiVersions) {
+  if (apiVersion.status !== 'current') continue
+  const current = currentApiVersionsByFamily.get(apiVersion.familyType)
+  if (current) {
+    throw new Error(
+      `Multiple current API versions for ${apiVersion.familyType}: ${current}, ${apiVersion.code}.`,
+    )
+  }
+  currentApiVersionsByFamily.set(apiVersion.familyType, apiVersion.code)
+}
+
 export const initialApiCompositions: InitialApiCompositionSeed[] =
   apiCompositionFixtures.map(fixture => ({
     apiVersion: fixture.apiVersion,
@@ -615,6 +641,11 @@ export const initialApiCompositions: InitialApiCompositionSeed[] =
     version: fixture.version,
     primaryResourceType: fixture.primaryResourceType,
     defaultDomainCode: fixture.domains?.find(domain => domain.isDefault)?.code,
+    rulesetVersions: Object.fromEntries(
+      (fixture.domains ?? []).flatMap(domain =>
+        domain.rulesetVersion ? [[domain.code, domain.rulesetVersion]] : [],
+      ),
+    ),
     status: fixture.status,
     notes: fixture.notes,
     versionHash: fixture.versionHash,
@@ -926,16 +957,13 @@ WHERE datasetTransforms.versionHash <> excluded.versionHash;`.trim(),
     statements.push(
       `
 INSERT INTO apiVersions (
-  id, code, familyType, version, status, publishedAt, deprecatedAt, retiredAt, versionHash, createdAt, updatedAt
+  id, code, familyType, version, status, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDeterministicId(API_VERSION_ID_NAMESPACE, apiVersion.code)},
   ${sqlString(apiVersion.code)},
   ${sqlString(apiVersion.familyType)},
   ${sqlString(apiVersion.version)},
   ${sqlString(apiVersion.status)},
-  ${apiVersion.publishedAt ? sqlTimestampMs(apiVersion.publishedAt) : 'NULL'},
-  ${apiVersion.deprecatedAt ? sqlTimestampMs(apiVersion.deprecatedAt) : 'NULL'},
-  ${apiVersion.retiredAt ? sqlTimestampMs(apiVersion.retiredAt) : 'NULL'},
   ${sqlString(apiVersion.versionHash)},
   ${nowSql},
   ${nowSql}
@@ -944,20 +972,40 @@ ON CONFLICT(code) DO UPDATE SET
   familyType = excluded.familyType,
   version = excluded.version,
   status = excluded.status,
-  publishedAt = excluded.publishedAt,
-  deprecatedAt = excluded.deprecatedAt,
-  retiredAt = excluded.retiredAt,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE apiVersions.versionHash <> excluded.versionHash;`.trim(),
     )
+
+    const lifecycleEvents = apiVersion.lifecycleEvents.length
+      ? apiVersion.lifecycleEvents
+      : apiVersion.status === 'draft'
+        ? [{ statusFrom: null, statusTo: 'draft' as const, occurredAt: null }]
+        : []
+    for (const event of lifecycleEvents) {
+      const eventKey = `${apiVersion.code}:${event.statusFrom ?? 'initial'}:${event.statusTo}:${event.occurredAt ?? 'created'}`
+      statements.push(
+        `
+INSERT INTO apiLifecycleJournal (
+  id, apiVersionId, statusFrom, statusTo, reason, occurredAt
+) VALUES (
+  ${sqlDeterministicId(API_LIFECYCLE_EVENT_ID_NAMESPACE, eventKey)},
+  (SELECT id FROM apiVersions WHERE code = ${sqlString(apiVersion.code)}),
+  ${sqlNullable(event.statusFrom)},
+  ${sqlString(event.statusTo)},
+  ${sqlNullable(event.reason ?? null)},
+  ${event.occurredAt ? sqlString(event.occurredAt) : nowIsoSql}
+)
+ON CONFLICT(id) DO NOTHING;`.trim(),
+      )
+    }
   }
 
   for (const composition of initialApiCompositions) {
     statements.push(
       `
 INSERT INTO apiComposition (
-  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
+  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, rulesetVersions, status, notes, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDeterministicId(API_COMPOSITION_ID_NAMESPACE, composition.code)},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(composition.apiVersion)}),
@@ -965,6 +1013,7 @@ INSERT INTO apiComposition (
   ${composition.version},
   ${sqlString(composition.primaryResourceType)},
   ${sqlNullable(composition.defaultDomainCode)},
+  ${sqlString(JSON.stringify(composition.rulesetVersions))},
   ${sqlString(composition.status)},
   ${sqlNullable(composition.notes)},
   ${sqlString(composition.versionHash)},
@@ -976,6 +1025,7 @@ ON CONFLICT(code) DO UPDATE SET
   version = excluded.version,
   primaryResourceType = excluded.primaryResourceType,
   defaultDomainCode = excluded.defaultDomainCode,
+  rulesetVersions = excluded.rulesetVersions,
   status = excluded.status,
   notes = excluded.notes,
   versionHash = excluded.versionHash,

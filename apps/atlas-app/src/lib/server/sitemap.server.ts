@@ -6,11 +6,13 @@ import {
   eq,
   inArray,
   isNull,
+  metaApiLifecycleJournal,
   metaApiReleaseSets,
   metaApiVersions,
   metaDatasets,
   metaPublishers,
   metaSourceReleases,
+  sql,
 } from '@repo/db'
 import { getRequestEvent } from '$app/server'
 import type { SitemapEntry } from './sitemap.js'
@@ -122,8 +124,23 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
           familyType: metaApiVersions.familyType,
         })
         .from(metaApiVersions)
-        .where(inArray(metaApiVersions.status, ['current', 'deprecated', 'retired']))
-        .orderBy(desc(metaApiVersions.publishedAt), desc(metaApiVersions.createdAt))
+        .where(
+          inArray(metaApiVersions.status, [
+            'current',
+            'deprecated',
+            'archived',
+            'retired',
+          ]),
+        )
+        .orderBy(
+          desc(sql`(
+            SELECT MIN(${metaApiLifecycleJournal.occurredAt})
+            FROM ${metaApiLifecycleJournal}
+            WHERE ${metaApiLifecycleJournal.apiVersionId} = ${metaApiVersions.id}
+              AND ${metaApiLifecycleJournal.statusTo} = 'current'
+          )`),
+          desc(metaApiVersions.createdAt),
+        )
         .all(),
       db
         .select({

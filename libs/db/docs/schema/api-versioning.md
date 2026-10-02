@@ -68,15 +68,18 @@ That allows:
 - `familyType`
 - `version`
 - `status`
-- `publishedAt`
-- `deprecatedAt`
-- `retiredAt`
+
+`apiLifecycleJournal` stores each status transition with its timestamp, previous and
+resulting status, and optional reason or metadata. `apiVersions.status` remains the
+current-state projection used for routing. Publication lifecycle for datasets and API
+release sets is recorded separately in `releaseSetLifecycleJournal`.
 
 Recommended status flow:
 
 - `draft`
 - `current`
 - `deprecated`
+- `archived`
 - `retired`
 
 ## Relationship To Data Versioning

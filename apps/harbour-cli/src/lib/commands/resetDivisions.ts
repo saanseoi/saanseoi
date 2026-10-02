@@ -211,7 +211,7 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     `DELETE FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId IN (SELECT id FROM apiCatalogRevisions WHERE apiVersionId IN (${VERSIONS}));`,
     `DELETE FROM apiCatalogRevisions WHERE apiVersionId IN (${VERSIONS});`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${SETS});`,
-    `DELETE FROM publishedDataJournal WHERE resourceReleaseId IN (${RELEASES});`,
+    `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${RELEASES});`,
     `DELETE FROM stats WHERE resourceReleaseId IN (${RELEASES}) OR apiReleaseSetId IN (${SETS});`,
     ...[
       'releaseProcessingActionChunks',
