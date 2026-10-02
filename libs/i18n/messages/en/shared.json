@@ -3168,5 +3168,8 @@
   "source_audit_landsd_settlements_title": "Filter for Settlements",
   "source_audit_rule_no_matches": "No matches",
   "source_samples_include": "Include",
-  "source_samples_include_none": "None"
+  "source_samples_include_none": "None",
+  "source_audit_input_interfaces": "Input interfaces",
+  "source_audit_output_interfaces": "Output interfaces",
+  "source_audit_snapshot": "Snapshot"
 }

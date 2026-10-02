@@ -3171,5 +3171,8 @@
   "source_audit_landsd_settlements_title": "筛选聚居地",
   "source_audit_rule_no_matches": "没有符合项目",
   "source_samples_include": "包含",
-  "source_samples_include_none": "无"
+  "source_samples_include_none": "无",
+  "source_audit_input_interfaces": "输入接口",
+  "source_audit_output_interfaces": "输出接口",
+  "source_audit_snapshot": "快照"
 }
