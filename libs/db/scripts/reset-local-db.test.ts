@@ -111,9 +111,9 @@ test('full reset holds the delivery lock and clears ownership after all database
     expect(await Bun.file(f.remote).exists()).toBe(true)
     await assertSqlDeliveryPlanningAllowed(f.cacheDir, 'new-release')
     await withDeliveryLock(f.lock, async () => {})
-    await expect(assertSqlDeliveryGeneration(f.cacheDir, 'test', null)).rejects.toThrow(
-      'invalidated',
-    )
+    await expect(
+      assertSqlDeliveryGeneration(f.cacheDir, 'test', null),
+    ).resolves.toBeUndefined()
   } finally {
     await rm(f.root, { recursive: true, force: true })
   }

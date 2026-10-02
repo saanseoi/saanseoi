@@ -1,3 +1,4 @@
+import { geographicDivisionClassification } from '../divisionTaxonomy'
 import { requireDefined } from '../../../core/src/requireDefined'
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
@@ -65,7 +66,14 @@ describe('fixture version hashes', () => {
   test('validates curated Division code fixtures directly', () => {
     const valid = {
       domainCode: 'geographic',
-      assignments: [{ divisionCode: 'HK', canonicalId: 'division-hk' }],
+      assignments: [
+        {
+          divisionCode: 'HK',
+          divisionClass: 'area',
+          divisionCategory: 'administrative',
+          canonicalId: 'division-hk',
+        },
+      ],
     }
     expect(() =>
       validateDivisionCodeFixtures([valid], new Set(['division-hk'])),
@@ -405,7 +413,7 @@ describe('fixture version hashes', () => {
     )
   })
 
-  test('registers the reviewed Protomaps island geometry source separately from Overture', () => {
+  test('registers the curated Protomaps island geometry source separately from Overture', () => {
     expect(initialDatasets).toContainEqual(
       expect.objectContaining({
         code: 'ds-hk-protomaps-island',
@@ -422,7 +430,7 @@ describe('fixture version hashes', () => {
               rulesetVersion: 'rs-protomaps-island-assembly-v1',
               rules: expect.arrayContaining([
                 expect.objectContaining({
-                  operationCode: 'select_reviewed_protomaps_island_features',
+                  operationCode: 'select_curated_protomaps_island_features',
                   kind: 'record',
                 }),
                 expect.objectContaining({
@@ -490,13 +498,13 @@ describe('buildMetaRegistrySyncStatements', () => {
     const db = new Database(':memory:')
     try {
       db.exec(`CREATE TABLE divisionCodes (
-        domainCode TEXT, divisionCode TEXT, canonicalId TEXT,
+        domainCode TEXT, divisionClass TEXT, divisionCode TEXT, canonicalId TEXT,
         versionHash TEXT, createdAt INTEGER, updatedAt INTEGER,
-        PRIMARY KEY (domainCode, divisionCode)
+        PRIMARY KEY (domainCode, divisionClass, divisionCode)
       )`)
       db.exec(`INSERT INTO divisionCodes VALUES (
-        'hkgov-pland-new-town', 'tseung-kwan-o',
-        '9598a407-bc95-5bce-84e1-d284b6322315', 'old', 0, 0
+        'hkgov-pland-new-town', '', 'tseung-kwan-o',
+        'ss-9598a407-bc95-5bce-84e1-d284b6322315', 'old', 0, 0
       )`)
       const statements = buildMetaRegistrySyncStatements('preview').filter(statement =>
         /^(INSERT INTO|DELETE FROM) divisionCodes\b/.test(statement.trim()),
@@ -506,7 +514,7 @@ describe('buildMetaRegistrySyncStatements', () => {
         expect(
           db
             .query(`SELECT divisionCode FROM divisionCodes
-          WHERE canonicalId = '9598a407-bc95-5bce-84e1-d284b6322315'`)
+          WHERE canonicalId = 'ss-9598a407-bc95-5bce-84e1-d284b6322315'`)
             .all(),
         ).toEqual([{ divisionCode: 'TSEUNG_KWAN_O' }])
         expect(db.query('SELECT * FROM divisionCodes').all()).toHaveLength(
@@ -714,4 +722,92 @@ test('official source datasets retain executable processing definitions and conf
     initialDatasets.find(dataset => dataset.code === 'ds-hk-hkgov-pland-division-pu')
       ?.kind,
   ).toBe('pu')
+})
+
+test('Division codes are unique within category and may repeat between categories', () => {
+  const fixture = {
+    domainCode: 'geographic',
+    assignments: [
+      {
+        divisionCode: 'CW',
+        divisionClass: 'district',
+        divisionCategory: 'administrative',
+        canonicalId: 'central-western',
+      },
+      {
+        divisionCode: 'CW',
+        divisionClass: 'macrohood',
+        divisionCategory: 'hood',
+        canonicalId: 'chai-wan',
+      },
+    ],
+  }
+  expect(() => validateDivisionCodeFixtures([fixture])).not.toThrow()
+  expect(() =>
+    validateDivisionCodeFixtures([
+      {
+        ...fixture,
+        assignments: [
+          ...fixture.assignments,
+          {
+            divisionCode: 'CW',
+            divisionClass: 'macrohood',
+            divisionCategory: 'hood',
+            canonicalId: 'another',
+          },
+        ],
+      },
+    ]),
+  ).toThrow('Duplicate Division code')
+})
+
+test.each([
+  ['area', 'district'],
+  ['city', 'town'],
+  ['village', 'hamlet'],
+  ['macrohood', 'microhood'],
+  ['minor_island', 'island_group'],
+])('rejects geographic code reuse between %s and %s', (left, right) => {
+  expect(() =>
+    validateDivisionCodeFixtures([
+      {
+        domainCode: 'geographic',
+        assignments: [
+          {
+            divisionCode: 'TEST',
+            divisionClass: left,
+            divisionCategory: geographicDivisionClassification(left)!.category,
+            canonicalId: 'a',
+          },
+          {
+            divisionCode: 'TEST',
+            divisionClass: right,
+            divisionCategory: geographicDivisionClassification(right)!.category,
+            canonicalId: 'b',
+          },
+        ],
+      },
+    ]),
+  ).toThrow('Duplicate Division code')
+})
+
+test('geographic code assignments declare their actual category', () => {
+  const assignment = {
+    divisionCode: 'TEST',
+    divisionClass: 'microhood',
+    canonicalId: 'test',
+  }
+  expect(() =>
+    validateDivisionCodeFixtures([
+      { domainCode: 'geographic', assignments: [assignment] },
+    ]),
+  ).toThrow('category mismatch')
+  expect(() =>
+    validateDivisionCodeFixtures([
+      {
+        domainCode: 'geographic',
+        assignments: [{ ...assignment, divisionCategory: 'locality' }],
+      },
+    ]),
+  ).toThrow('category mismatch')
 })

@@ -71,3 +71,5 @@ PRAGMA foreign_keys = ON;
 
 DROP TABLE IF EXISTS `ssDivisionArea`;
 DROP TABLE IF EXISTS `ssDivision`;
+
+DROP TABLE IF EXISTS `hkgovRvdAreas`;

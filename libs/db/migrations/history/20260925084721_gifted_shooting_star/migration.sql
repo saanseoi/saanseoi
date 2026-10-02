@@ -1,1 +1,0 @@
-ALTER TABLE `places` RENAME COLUMN `releaseId` TO `resourceReleaseId`;

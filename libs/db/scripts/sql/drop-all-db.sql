@@ -162,6 +162,8 @@ DROP TABLE IF EXISTS `address2d`;
 DROP TABLE IF EXISTS `divisionsI18n`;
 DROP TABLE IF EXISTS `divisions`;
 DROP TABLE IF EXISTS `divisionBoundaries`;
+DROP TABLE IF EXISTS `divisionGeographicMemberships`;
+DROP TABLE IF EXISTS `divisionGeographicCrosswalks`;
 DROP TABLE IF EXISTS `divisionAreas`;
 DROP TABLE IF EXISTS `entityAliases`;
 DROP TABLE IF EXISTS `apiKeyUsage`;
@@ -183,3 +185,5 @@ PRAGMA foreign_keys = ON;
 
 DROP TABLE IF EXISTS `ssDivisionArea`;
 DROP TABLE IF EXISTS `ssDivision`;
+
+DROP TABLE IF EXISTS `hkgovRvdAreas`;

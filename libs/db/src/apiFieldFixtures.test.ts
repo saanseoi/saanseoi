@@ -387,7 +387,12 @@ describe('api field fixtures', () => {
   test('loads only domain-scoped fixtures with explicit lineage anchors', () => {
     const fixtures = listApiFieldFixtures()
 
-    expect(fixtures).toHaveLength(13)
+    expect(
+      fixtures.filter(fixture => fixture.apiVersion !== 'api-divisions-v0.2'),
+    ).toHaveLength(14)
+    expect(
+      fixtures.filter(fixture => fixture.apiVersion === 'api-divisions-v0.2'),
+    ).toHaveLength(10)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
       expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
@@ -981,6 +986,51 @@ test('anchors are unique and compositions cannot be borrowed from another branch
       ...fixture,
       sourceSchemas,
       lineageSnapshotVersions: [unrelated.snapshotVersion],
+    }),
+  ).toBeNull()
+})
+
+test('September curated releases resolve their retained ingredient composition for API 0.2', () => {
+  const sourceSchemas: Record<string, string> = {
+    ...overtureSourceSchemas,
+    'ds-hk-overture-division': '1.18.0',
+    'ds-hk-overture-division-area': '1.18.0',
+    'ds-hk-overture-division-boundary': '1.18.0',
+    'ds-hk-hkgov-landsd-division': '1.0',
+    'ds-hk-hkgov-rvd-division': '1.0',
+    'ds-hk-protomaps-island': '1.0',
+    'ds-hk-saanseoi-division': '1.0',
+    'ds-hk-saanseoi-division-area': '1.0',
+  }
+  delete sourceSchemas[
+    'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
+  ]
+  const lookup = {
+    apiVersion: 'api-divisions-v0.2',
+    domainCode: 'geographic',
+    schemaVersion: 'sv-division-v1',
+    rulesetVersion: 'rs-division-merge-v1',
+    lineageSnapshotVersions: ['ss-hk-division-saanseoi-2026-09-01.6'],
+    sourceSchemas,
+  }
+  for (const edition of ['2026-09-01.0', '2026-09-01.6', '2026-09-01.9']) {
+    expect(
+      resolveApiFieldFixture({
+        ...lookup,
+        lineageSnapshotVersions: [`ss-hk-division-saanseoi-${edition}`],
+      })?.mappingVersion,
+    ).toBe(3)
+  }
+  expect(
+    resolveApiFieldFixture({
+      ...lookup,
+      lineageSnapshotVersions: ['unrelated-branch'],
+    }),
+  ).toBeNull()
+  expect(
+    resolveApiFieldFixture({
+      ...lookup,
+      sourceSchemas: { ...sourceSchemas, 'ds-hk-saanseoi-division': '2.0' },
     }),
   ).toBeNull()
 })

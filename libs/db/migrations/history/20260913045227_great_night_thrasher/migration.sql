@@ -1,1 +1,0 @@
-ALTER TABLE `address2d` ADD `landformId` text;

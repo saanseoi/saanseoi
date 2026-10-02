@@ -85,6 +85,12 @@ export async function resetLocalDb(
     for (const result of cleanup) {
       if (result.status === 'rejected') throw result.reason
     }
+    // All local delivery plans have been removed, so their reset generations
+    // must not survive into the new database set.
+    await rm(resolve(cacheDir, 'sql-delivery-generations'), {
+      force: true,
+      recursive: true,
+    })
     // Completed family manifests describe the database that was just removed.
     // Clear them only after a successful full reset so focused initialisers
     // cannot mistake an empty database for a completed run.

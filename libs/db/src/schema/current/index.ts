@@ -12,3 +12,5 @@ export * from './divisionGeometry.types'
 export * from './divisionStatistics'
 export * from './statistics'
 export * from './publicationState'
+
+export * from './divisionGeographicCrosswalk'

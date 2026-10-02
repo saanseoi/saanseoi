@@ -1,1 +1,0 @@
-ALTER TABLE `apiCompositionMembers` DROP COLUMN `configJson`;

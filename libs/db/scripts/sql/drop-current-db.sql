@@ -58,6 +58,8 @@ DROP TABLE IF EXISTS `address2d`;
 DROP TABLE IF EXISTS `divisionsI18n`;
 DROP TABLE IF EXISTS `divisions`;
 DROP TABLE IF EXISTS `divisionBoundaries`;
+DROP TABLE IF EXISTS `divisionGeographicMemberships`;
+DROP TABLE IF EXISTS `divisionGeographicCrosswalks`;
 DROP TABLE IF EXISTS `divisionAreas`;
 DROP TABLE IF EXISTS `d1_migrations`;
 

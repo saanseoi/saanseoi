@@ -1,3 +1,4 @@
+import { geographicDivisionClassification } from '../divisionTaxonomy'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -322,6 +323,8 @@ type InitialDataShardSeed = {
 }
 
 export type DivisionCodeFixtureAssignment = {
+  divisionCategory?: string
+  divisionClass?: string
   divisionCode: string
   canonicalId: string
 }
@@ -355,7 +358,25 @@ export function validateDivisionCodeFixtures(
           `Division code=${assignment.divisionCode} targets unknown canonical Division ${assignment.canonicalId}.`,
         )
       }
-      const codeKey = `${fixture.domainCode}\u0000${assignment.divisionCode}`
+      const category = geographicDivisionClassification(
+        assignment.divisionClass ?? '',
+      )?.category
+      if (fixture.domainCode === 'geographic' && !category)
+        throw new Error(
+          `Unknown geographic Division class=${assignment.divisionClass}.`,
+        )
+      if (
+        fixture.domainCode === 'geographic' &&
+        assignment.divisionCategory !== category
+      )
+        throw new Error(
+          `Division code category mismatch: ${assignment.canonicalId}; expected ${category}.`,
+        )
+      const namespace =
+        fixture.domainCode === 'geographic'
+          ? assignment.divisionCategory
+          : (assignment.divisionClass ?? '')
+      const codeKey = `${fixture.domainCode}\u0000${namespace}\u0000${assignment.divisionCode}`
       const targetKey = `${fixture.domainCode}\u0000${assignment.canonicalId}`
       if (codes.has(codeKey))
         throw new Error(`Duplicate Division code=${assignment.divisionCode}.`)
@@ -687,6 +708,7 @@ export const initialDataShards: InitialDataShardSeed[] = dataShardFixtures.flatM
 export const initialDivisionCodes = divisionCodeFixtures.flatMap(fixture =>
   fixture.assignments.map(assignment => ({
     ...assignment,
+    divisionClass: assignment.divisionClass ?? '',
     domainCode: fixture.domainCode,
     versionHash: fixture.versionHash,
   })),
@@ -792,21 +814,22 @@ WHERE units.versionHash <> excluded.versionHash OR units.i18n IS NOT excluded.i1
       `DELETE FROM divisionCodes
 WHERE domainCode = ${sqlString(divisionCode.domainCode)}
   AND canonicalId = ${sqlString(divisionCode.canonicalId)}
-  AND divisionCode <> ${sqlString(divisionCode.divisionCode)};`,
+  AND (divisionCode <> ${sqlString(divisionCode.divisionCode)} OR divisionClass <> ${sqlString(divisionCode.divisionClass)});`,
     )
     statements.push(
       `
 INSERT INTO divisionCodes (
-  domainCode, divisionCode, canonicalId, versionHash, createdAt, updatedAt
+  domainCode, divisionClass, divisionCode, canonicalId, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlString(divisionCode.domainCode)},
+  ${sqlString(divisionCode.divisionClass)},
   ${sqlString(divisionCode.divisionCode)},
   ${sqlString(divisionCode.canonicalId)},
   ${sqlString(divisionCode.versionHash)},
   ${nowSql},
   ${nowSql}
 )
-ON CONFLICT(domainCode, divisionCode) DO UPDATE SET
+ON CONFLICT(domainCode, divisionClass, divisionCode) DO UPDATE SET
   canonicalId = excluded.canonicalId,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt

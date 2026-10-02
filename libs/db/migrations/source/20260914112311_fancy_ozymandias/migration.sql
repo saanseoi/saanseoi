@@ -1,1 +1,0 @@
-ALTER TABLE `hkgovLandsdPlaceNames` DROP COLUMN `placeNames`;

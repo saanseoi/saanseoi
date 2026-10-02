@@ -1,1 +1,0 @@
-ALTER TABLE `placesI18n` ADD `searchDependencyText` text;

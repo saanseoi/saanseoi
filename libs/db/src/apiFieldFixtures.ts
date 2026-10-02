@@ -1,3 +1,5 @@
+import curatedDivisionDocument from '../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v3.json'
+import { canonicalResponseInputs, resolveApiResponseFields } from './apiResponseFields'
 import {
   validateApiFieldInputs,
   type ApiFieldInput,
@@ -49,13 +51,16 @@ export type ApiFieldFixture = {
   lineageAnchors: ApiFieldFixtureLineageAnchor[]
   schemaVersion: string
   rulesetVersion: string
-  responseFields: Record<string, Record<string, string[]>>
+  responseFieldsVersionHash: string
   publisherFields: PublisherFields
   fields: ApiFieldFixtureField[]
 }
 
 /** Authored fixtures declare resource scope once, outside individual fields. */
-export type ApiFieldFixtureDocument = Omit<ApiFieldFixture, 'fields'> &
+export type ApiFieldFixtureDocument = Omit<
+  ApiFieldFixture,
+  'fields' | 'responseFieldsVersionHash'
+> &
   (
     | {
         resourceType: string
@@ -118,7 +123,12 @@ export function expandApiFieldFixture(
     new Set(groups.map(group => group.resourceType)).size !== groups.length
   )
     throw new Error('API field fixture requires unique resource groups.')
+  const responseFields = resolveApiResponseFields(
+    document.apiVersion,
+    document.schemaVersion,
+  )
   const expanded = {
+    responseFieldsVersionHash: responseFields.versionHash,
     ...metadata,
     fields: groups.flatMap(group => {
       if (!group.resourceType || !Array.isArray(group.fields))
@@ -128,8 +138,11 @@ export function expandApiFieldFixture(
           throw new Error('Declare resourceType on the fixture or resource group.')
         return {
           ...field,
-          canonicalInputs:
-            document.responseFields[group.resourceType]?.[field.apiField] ?? [],
+          canonicalInputs: canonicalResponseInputs(
+            responseFields,
+            group.resourceType,
+            field.apiField,
+          ),
           resourceType: group.resourceType,
         }
       })
@@ -279,11 +292,11 @@ function deriveCuratedAddressFixture(): ApiFieldFixture {
         apiField => ({
           apiField,
           resourceType: 'address',
-          canonicalInputs: [
-            apiField === 'relationships.divisions'
-              ? 'address.divisions'
-              : `address.${apiField.replace(/^attributes\./, '')}`,
-          ],
+          canonicalInputs: canonicalResponseInputs(
+            resolveApiResponseFields(official.apiVersion, official.schemaVersion),
+            'address',
+            apiField,
+          ),
           sourceDatasetCode: 'ds-hk-overture-place',
           inputs: [
             {
@@ -322,10 +335,24 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
   apiAddressesV01FixtureOfficialLineage as ApiFieldFixture,
+  expandApiFieldFixture(curatedDivisionDocument as unknown as ApiFieldFixtureDocument),
   deriveCuratedAddressFixture(),
   apiPlacesV01FixtureOverture112To118 as ApiFieldFixture,
   apiStatisticsV01FixtureCenstatd as unknown as ApiFieldFixture,
 ]
+
+for (const fixture of [...apiFieldFixtures]) {
+  if (fixture.apiVersion !== 'api-divisions-v0.1') continue
+  const derived = {
+    ...fixture,
+    apiVersion: 'api-divisions-v0.2',
+    responseFieldsVersionHash: resolveApiResponseFields(
+      'api-divisions-v0.2',
+      fixture.schemaVersion,
+    ).versionHash,
+  }
+  apiFieldFixtures.push({ ...derived, versionHash: computeVersionHash(derived) })
+}
 
 function cloneApiFieldFixtureField(field: ApiFieldFixtureField): ApiFieldFixtureField {
   return {
@@ -362,7 +389,6 @@ function cloneApiFieldFixture(fixture: ApiFieldFixture): ApiFieldFixture {
   return {
     ...fixture,
     publisherFields: structuredClone(fixture.publisherFields),
-    responseFields: structuredClone(fixture.responseFields),
     publisherSchemaRanges: structuredClone(fixture.publisherSchemaRanges),
     lineageAnchors: structuredClone(fixture.lineageAnchors),
     sourceCompositions: structuredClone(fixture.sourceCompositions),
