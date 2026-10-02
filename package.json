@@ -134,17 +134,17 @@
   },
   "dependencies": {
     "@inlang/paraglide-js": "^2.25.4",
-    "bits-ui": "^2.19.3",
+    "bits-ui": "^2.19.4",
     "bun-types": "^1.4.2",
     "drizzle-orm": "1.0.0-rc.4-5d5b77c",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.14",
+    "@biomejs/biome": "2.5.15",
     "@changesets/cli": "^3.0.3",
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
-    "@iconify-json/simple-icons": "^1.2.97",
+    "@iconify-json/simple-icons": "^1.2.98",
     "@iconify/svelte": "^5.2.2",
     "@tailwindcss/upgrade": "^4.3.3",
     "@types/bun": "1.4.2",
@@ -155,8 +155,8 @@
     "husky": "^9.1.7",
     "prettier": "^3.9.9",
     "tailwindcss-animate": "^1.0.7",
-    "turbo": "^2.11.4",
-    "wrangler": "^4.140.0"
+    "turbo": "^2.11.6",
+    "wrangler": "^4.146.0"
   },
   "peerDependencies": {
     "typescript": "^6.0.3"
