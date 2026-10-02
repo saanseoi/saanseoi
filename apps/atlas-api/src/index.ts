@@ -1,4 +1,6 @@
+import { GeographicCrosswalkUnavailableError } from './lib/geographicFilterContext'
 import { apiVersionLifecycleMiddleware } from './services/apiVersionLifecycle'
+import { geographicCodeFilterMiddleware } from './services/geographicCodeFilters'
 import { divisionInventoriesRoute } from './routes/divisions/v0/inventories'
 import {
   divisionChangesV02Route,
@@ -420,16 +422,12 @@ app.use(
     allowHeaders: ['Content-Type'],
   }),
 )
-for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
-
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     await next()
     if (!isPublicMetadataPath(c.req.path)) c.header('cache-control', 'no-store')
   })
 }
-for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
-
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     c.set('metaDb', createMetaDb(c.env.DB_META))
@@ -536,8 +534,6 @@ for (const path of apiRoutePaths) {
 // source release or API ReleaseSet. This middleware runs after the
 // key/rate-limit gate and the product-status middleware so an analytics
 // acknowledgement failure is visible as the final 503 response.
-for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
-
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     await next()
@@ -577,8 +573,6 @@ for (const path of apiRoutePaths) {
     return c.res
   })
 }
-for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
-
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     if (
@@ -725,6 +719,11 @@ function isCompletedDownloadRequest(c: Context<AppEnv>) {
 }
 
 app.onError((error, c) => {
+  if (error instanceof GeographicCrosswalkUnavailableError)
+    return c.json(
+      { error: 'geographic_crosswalk_not_ready', message: error.message },
+      503,
+    )
   if (error instanceof InventorySelectionError)
     return c.json({ httpStatus: 409, error: error.code, message: error.message }, 409)
   console.error(error)
@@ -758,6 +757,9 @@ app.notFound(c =>
 )
 
 app.get('/', c => c.redirect('/openapi', 302))
+
+for (const family of ['divisions', 'addresses', 'places', 'stats', 'streets'])
+  app.use(`/${family}/*`, geographicCodeFilterMiddleware)
 
 app.openapiRoutes([
   ...metaRoutes,

@@ -241,6 +241,12 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     deleteIds(table, 'resourceReleaseId', releaseIds),
   ).join('\n')
   const metaSql = [
+    ...setIds.map(
+      id => `DELETE FROM processingRuns WHERE apiReleaseSetId = ${literal(id)};`,
+    ),
+    ...snapshotIds.map(
+      id => `DELETE FROM processingRuns WHERE snapshotId = ${literal(id)};`,
+    ),
     ...deleteIds('apiFieldProvenance', 'apiReleaseSetId', setIds),
     ...deleteIds('apiCatalogRevisionReleaseSets', 'apiCatalogRevisionId', catalogIds),
     ...deleteIds('apiCatalogRevisions', 'id', catalogIds),

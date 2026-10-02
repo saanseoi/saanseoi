@@ -201,7 +201,6 @@ async function countMetaRollbackRows(
 ) {
   const [
     provenanceRows,
-    provenanceGroupRows,
     releaseSetSnapshotRows,
     journalRows,
     statsRows,
@@ -222,14 +221,6 @@ async function countMetaRollbackRows(
       db,
       metaSchema.metaApiFieldProvenance,
       eq(metaSchema.metaApiFieldProvenance.apiReleaseSetId, input.apiReleaseSetId),
-    ),
-    countRows(
-      db,
-      metaSchema.metaApiFieldProvenanceGroups,
-      eq(
-        metaSchema.metaApiFieldProvenanceGroups.apiReleaseSetId,
-        input.apiReleaseSetId,
-      ),
     ),
     countRows(
       db,
@@ -329,7 +320,6 @@ async function countMetaRollbackRows(
 
   return (
     provenanceRows +
-    provenanceGroupRows +
     releaseSetSnapshotRows +
     journalRows +
     statsRows +
@@ -437,6 +427,10 @@ function resolveSourceTable(tableName: string) {
   switch (tableName) {
     case 'hkgovAlsAddresses2d':
       return sourceSchema.sourceHkgovAlsAddresses2d
+    case 'ssDivision':
+      return sourceSchema.sourceSsDivision
+    case 'ssDivisionArea':
+      return sourceSchema.sourceSsDivisionArea
     case 'overtureDivisions':
       return sourceSchema.sourceOvertureDivisions
     case 'hkgovPlandPlanningCells':
@@ -471,7 +465,6 @@ export async function verifyPurgeResult(
     statsRows,
     journalRows,
     provenanceRows,
-    provenanceGroupRows,
     snapshotSourceRows,
     processingRunRows,
     processingActionRows,
@@ -512,14 +505,6 @@ export async function verifyPurgeResult(
     ),
     countRows(
       dbContext.metaDb,
-      metaSchema.metaApiFieldProvenanceGroups,
-      eq(
-        metaSchema.metaApiFieldProvenanceGroups.apiReleaseSetId,
-        input.apiReleaseSetId,
-      ),
-    ),
-    countRows(
-      dbContext.metaDb,
       metaSchema.metaSnapshotResourceReleases,
       sql`${metaSchema.metaSnapshotResourceReleases.snapshotId} = ${input.snapshotId} OR ${metaSchema.metaSnapshotResourceReleases.resourceReleaseId} = ${input.resourceReleaseId}`,
     ),
@@ -555,7 +540,6 @@ export async function verifyPurgeResult(
     statsRows +
     journalRows +
     provenanceRows +
-    provenanceGroupRows +
     snapshotSourceRows +
     processingRunRows +
     processingActionRows +

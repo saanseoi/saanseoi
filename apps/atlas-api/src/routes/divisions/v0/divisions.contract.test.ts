@@ -995,3 +995,46 @@ test('0.2 resolves its own catalogue, exposes inventories and rejects absent cho
     fixture.close()
   }
 })
+
+test('geographic code requests filter before pagination and pin the selected geography', async () => {
+  const fixture = createFixtureEnvironment()
+  try {
+    fixture.currentSqlite.run(
+      "UPDATE divisions SET divisionCode='EST', class='district' WHERE id='division-east'",
+    )
+    const path = `/divisions/v0.1?releaseSet=${OVERTURE_RELEASE_SET}&filter[adminCode]=EST&page[limit]=1`
+    const response = await app.fetch(
+      new Request(`http://localhost${path}`),
+      fixture.env,
+    )
+    expect(response.status).toBe(200)
+    const body = (await response.json()) as any
+    expect(body.meta.page.total).toBe(2)
+    expect(body.data).toHaveLength(1)
+    expect(new URL(body.links.next).searchParams.get('geographicReleaseSet')).toBe(
+      OVERTURE_RELEASE_SET,
+    )
+    expect(response.headers.get('X-Geographic-Release-Set')).toBe(OVERTURE_RELEASE_SET)
+    const excluded = await app.fetch(
+      new Request(
+        `http://localhost/divisions/v0.1/division-country-cn?releaseSet=${OVERTURE_RELEASE_SET}&filter[adminCode]=EST`,
+      ),
+      fixture.env,
+    )
+    expect(excluded.status).toBe(404)
+    for (const alias of ['areaCode', 'districtCode', 'villageCode']) {
+      const unsupported = await app.fetch(
+        new Request(`http://localhost${path.replace('adminCode', alias)}`),
+        fixture.env,
+      )
+      expect(unsupported.status).toBe(422)
+    }
+    const invalid = await app.fetch(
+      new Request(`http://localhost${path.replace('adminCode', 'hoodCode')}`),
+      fixture.env,
+    )
+    expect(invalid.status).toBe(422)
+  } finally {
+    fixture.close()
+  }
+})

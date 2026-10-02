@@ -1,0 +1,1778 @@
+{
+  "versionHash": "sha256:f2ed2f848567989edd686e3aa2f2f9cb2cfd88e8d913fd5595f6600dcb613ca4",
+  "apiVersion": "api-divisions-v0.1",
+  "domainCode": "geographic",
+  "mappingVersion": 3,
+  "schemaVersion": "sv-division-v1",
+  "rulesetVersion": "rs-division-merge-v1",
+  "publisherSchemaRanges": {
+    "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-censtatd-division-statistic-population-households-district": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-had-division-area-district": {
+      "min": "1.2",
+      "max": "1.2"
+    },
+    "ds-hk-overture-division": {
+      "min": "1.16.0",
+      "max": "2.0.0"
+    },
+    "ds-hk-overture-division-area": {
+      "min": "1.16.0",
+      "max": "2.0.0"
+    },
+    "ds-hk-overture-division-boundary": {
+      "min": "1.16.0",
+      "max": "2.0.0"
+    },
+    "ds-hk-saanseoi-division": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-saanseoi-division-area": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-protomaps-island": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-landsd-division": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-rvd-division": {
+      "min": "1.0",
+      "max": "1.0"
+    }
+  },
+  "publisherFields": {
+    "ds-hk-overture-division": {
+      "sourceRecordId": "id",
+      "geometry": "geometry",
+      "properties.adminLevel": "admin_level",
+      "properties.cartography": "cartography",
+      "properties.class": "class",
+      "properties.hierarchies": "hierarchies",
+      "properties.names.common": "names.common",
+      "properties.names.primary": "names.primary",
+      "properties.names.rules": "names.rules",
+      "properties.parentDivisionId": "parent_division_id",
+      "properties.sources": "sources",
+      "properties.subtype": "subtype",
+      "properties.wikidata": "wikidata"
+    },
+    "ds-hk-overture-division-area": {
+      "sourceRecordId": "id",
+      "geometry": "geometry",
+      "properties.class": "class",
+      "properties.divisionId": "division_id",
+      "properties.isLand": "is_land",
+      "properties.isTerritorial": "is_territorial",
+      "properties.sources": "sources"
+    },
+    "ds-hk-overture-division-boundary": {
+      "sourceRecordId": "id",
+      "geometry": "geometry",
+      "properties.class": "class",
+      "properties.divisionIds": "division_ids",
+      "properties.isLand": "is_land",
+      "properties.isTerritorial": "is_territorial",
+      "properties.sources": "sources"
+    },
+    "ds-hk-hkgov-had-division-area-district": {
+      "geometry": "geometry",
+      "properties.areaCode": "properties.AREA_CODE",
+      "properties.areaId": "properties.AREA_ID",
+      "properties.csdiAdminAreaId": "properties.CSDI_ADMIN_AREA_ID",
+      "properties.objectId": "properties.OBJECTID"
+    },
+    "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": {
+      "geometry": "geometry"
+    },
+    "ds-hk-hkgov-censtatd-division-statistic-population-households-district": {
+      "geometry": "geometry"
+    },
+    "ds-hk-saanseoi-division": {
+      "sourceRecordId": "rows[].id",
+      "properties.class": "rows[].class",
+      "geometry": "rows[].geometry",
+      "properties.bbox": "rows[].bbox",
+      "properties.wikidata": "rows[].wikidata",
+      "properties.hierarchies": "rows[].hierarchies",
+      "properties.sources": "rows[].sources",
+      "properties.cartography": "rows[].cartography",
+      "properties.names.en.name": "rows[].names.en.name",
+      "properties.names.zh-hant.name": "rows[].names.zh-hant.name",
+      "properties.names.zh-hans.name": "rows[].names.zh-hans.name",
+      "properties.names.*.nameVariant": "rows[].names.*.nameVariant",
+      "properties.names.*.nameAlts": "rows[].names.*.nameAlts",
+      "properties.names.*.nameRules": "rows[].names.*.nameRules",
+      "properties.level": "rows[].level",
+      "properties.category": "rows[].category"
+    },
+    "ds-hk-saanseoi-division-area": {
+      "sourceRecordId": "rows[].id",
+      "geometry": "rows[].geometry",
+      "properties.divisionId": "rows[].divisionId",
+      "properties.type": "rows[].type",
+      "properties.isLand": "rows[].isLand",
+      "properties.isTerritorial": "rows[].isTerritorial",
+      "properties.sources": "rows[].sources"
+    }
+  },
+  "sourceCompositions": [
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+        "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-hkgov-landsd-division",
+        "ds-hk-hkgov-rvd-division",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary",
+        "ds-hk-protomaps-island",
+        "ds-hk-saanseoi-division",
+        "ds-hk-saanseoi-division-area"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-saanseoi-2026-09-01.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-hkgov-landsd-division",
+        "ds-hk-hkgov-rvd-division",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary",
+        "ds-hk-protomaps-island",
+        "ds-hk-saanseoi-division",
+        "ds-hk-saanseoi-division-area"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-saanseoi-2026-09-01.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-hkgov-landsd-division",
+        "ds-hk-hkgov-rvd-division",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary",
+        "ds-hk-protomaps-island",
+        "ds-hk-saanseoi-division",
+        "ds-hk-saanseoi-division-area"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-saanseoi-2026-09-01.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
+        "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+        "ds-hk-hkgov-had-division-area-district",
+        "ds-hk-hkgov-landsd-division",
+        "ds-hk-hkgov-rvd-division",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-division-boundary",
+        "ds-hk-protomaps-island",
+        "ds-hk-saanseoi-division",
+        "ds-hk-saanseoi-division-area"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-saanseoi-2026-09-01.0"
+      ]
+    }
+  ],
+  "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-division-saanseoi-2026-09-01.0"
+    }
+  ],
+  "resources": [
+    {
+      "resourceType": "division",
+      "fields": [
+        {
+          "apiField": "id",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "sourceRecordId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.level",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.level"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.category",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.category"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.class",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.class"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.bbox"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.wikidataId",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.wikidata"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.hierarchies",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.hierarchies"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.cartography",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.cartography"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.i18n.en.name",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.names.en.name"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.i18n.zh-hant.name",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.names.zh-hant.name"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.i18n.zh-hans.name",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.names.zh-hans.name"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.i18n.*.nameVariant",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.names.*.nameVariant"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.i18n.*.nameAlts",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.names.*.nameAlts"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.i18n.*.nameRules",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.names.*.nameRules"
+            }
+          ]
+        },
+        {
+          "apiField": "relationships.areas",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "lookup_fk",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.divisionId"
+            }
+          ]
+        },
+        {
+          "apiField": "relationships.boundaries",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "lookup_fk",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.divisionIds"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resourceType": "divisionArea",
+      "fields": [
+        {
+          "apiField": "id",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "sourceRecordId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "derive_bbox_from_geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionId",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.divisionId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.type",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.class"
+            },
+            {
+              "origin": "source",
+              "fieldPath": "properties.isLand"
+            },
+            {
+              "origin": "source",
+              "fieldPath": "properties.isTerritorial"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.isLand"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.isTerritorial"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "overture",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "derive_variant_from_source",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "derive_variant_from_source",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "derive_variant_from_source",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "derive_variant_from_source",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "derive_variant_from_source",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "derive_variant_from_source",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "wrap_publisher_sources",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "id",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.canonicalId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "derive_bbox_from_geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionId",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "lookup_fk",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.divisionId"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "geographyIdentityBridges"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.type",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": "mixed"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.identifiers",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.objectId"
+            },
+            {
+              "origin": "source",
+              "fieldPath": "properties.csdiAdminAreaId"
+            },
+            {
+              "origin": "source",
+              "fieldPath": "properties.areaId"
+            },
+            {
+              "origin": "source",
+              "fieldPath": "properties.areaCode"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "variant": "hkgov-had",
+          "sourceDatasetCode": "ds-hk-hkgov-had-division-area-district",
+          "resolverCode": "wrap_publisher_sources",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "id",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.canonicalId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "derive_bbox_from_geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionId",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "lookup_fk",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.divisionId"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "geographyIdentityBridges"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.type",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": "mixed"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.identifiers",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.identifiers"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "variant": "hkgov-censtatd-landclipped",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "wrap_publisher_sources",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "id",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.canonicalId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "derive_bbox_from_geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionId",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "lookup_fk",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.divisionId"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "geographyIdentityBridges"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.type",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": "mixed"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.identifiers",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.identifiers"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "variant": "hkgov-censtatd-landclipped:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
+          "resolverCode": "wrap_publisher_sources",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "id",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.canonicalId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "derive_bbox_from_geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionId",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "lookup_fk",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.divisionId"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "geographyIdentityBridges"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.type",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": "mixed"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.identifiers",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.identifiers"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "variant": "hkgov-censtatd",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "wrap_publisher_sources",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "id",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.canonicalId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "derive_bbox_from_geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionId",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "lookup_fk",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.divisionId"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "geographyIdentityBridges"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.type",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": "mixed"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "constant_value",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "constant",
+              "value": true
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.identifiers",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "normalise-division-area-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.identifiers"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "variant": "hkgov-censtatd:simplified",
+          "sourceDatasetCode": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
+          "resolverCode": "wrap_publisher_sources",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "saanseoi",
+          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "resolverCode": "derive_variant_from_source",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations.saanseoiEstimatedAreas"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations.islandAreas"
+            }
+          ]
+        },
+        {
+          "apiField": "id",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "sourceRecordId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionId",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.divisionId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.type",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.type"
+            },
+            {
+              "origin": "source",
+              "fieldPath": "properties.isLand"
+            },
+            {
+              "origin": "source",
+              "fieldPath": "properties.isTerritorial"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.isLand"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.isTerritorial"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "overture",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.sources"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.variant",
+          "variant": "saanseoi",
+          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "dataset.sourceVariant"
+            },
+            {
+              "origin": "intermediate",
+              "fieldPath": "geometry.variant"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations.saanseoiEstimatedAreas"
+            },
+            {
+              "origin": "curation",
+              "fieldPath": "divisionGeometryCurations.islandAreas"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "resourceType": "divisionBoundary",
+      "fields": [
+        {
+          "apiField": "id",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "sourceRecordId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "normalise-division-boundary-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "derive_bbox_from_geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.leftDivisionId",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.divisionIds[0]"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.rightDivisionId",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.divisionIds[1]"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.type",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "normalise-division-boundary-geometry",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.class"
+            },
+            {
+              "origin": "source",
+              "fieldPath": "properties.isLand"
+            },
+            {
+              "origin": "source",
+              "fieldPath": "properties.isTerritorial"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isLand",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.isLand"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.isTerritorial",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.isTerritorial"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "resolverCode": "wrap_publisher_sources",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.sources"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

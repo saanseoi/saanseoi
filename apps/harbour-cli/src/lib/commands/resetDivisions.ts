@@ -67,6 +67,10 @@ const CANONICAL_TABLES = [
   'divisions',
 ]
 const SOURCE_TABLES = [
+  'ssDivision',
+  'ssDivisionArea',
+  'protomapsIslandFeatures',
+  'hkgovRvdAreas',
   'overtureDivisions',
   'overtureDivisionAreas',
   'overtureDivisionBoundaries',
@@ -195,9 +199,14 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
   const sourceReleaseIds = [
     ...new Set(plan.releases.map(row => String(row.sourceReleaseId))),
   ]
-  const currentSql = CANONICAL_TABLES.map(table => `DELETE FROM ${table};`).join('\n')
+  const currentSql = [
+    ...['division', 'divisionArea', 'divisionBoundary'].map(
+      family => `DELETE FROM ${family}PublicationState;`,
+    ),
+    ...CANONICAL_TABLES.map(table => `DELETE FROM ${table};`),
+  ].join('\n')
   const historySql = [
-    currentSql,
+    ...CANONICAL_TABLES.map(table => `DELETE FROM ${table};`),
     ...deleteIds('snapshotVersionChanges', 'snapshotId', snapshotIds),
     ...deleteIds('snapshotVersionChanges', 'sourceReleaseId', releaseIds),
     ...deleteIds('sourceResolutions', 'snapshotId', snapshotIds),
@@ -207,6 +216,8 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     deleteIds(table, 'resourceReleaseId', releaseIds),
   ).join('\n')
   const metaSql = [
+    `DELETE FROM processingRuns WHERE apiReleaseSetId IN (${SETS});`,
+    `DELETE FROM processingRuns WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId IN (${SETS});`,
     `DELETE FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId IN (SELECT id FROM apiCatalogRevisions WHERE apiVersionId IN (${VERSIONS}));`,
     `DELETE FROM apiCatalogRevisions WHERE apiVersionId IN (${VERSIONS});`,

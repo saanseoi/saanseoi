@@ -86,6 +86,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
     historyTables: [{ table: 'divisionsI18n' }, { table: 'divisions' }],
     sources: {
       overture: ['overtureDivisions'],
+      saanseoi: ['ssDivision'],
       'hkgov-pland-pu': ['hkgovPlandPlanningCells'],
       'hkgov-pland-new-town': ['hkgovPlandNewTowns'],
     },
@@ -96,7 +97,7 @@ const rollbackPlans: Partial<Record<ResourceType, RollbackResourcePlan>> = {
       { table: 'divisionAreaPublicationState' },
     ],
     historyTables: [{ table: 'divisionAreas' }],
-    sources: { overture: ['overtureDivisionAreas'] },
+    sources: { overture: ['overtureDivisionAreas'], saanseoi: ['ssDivisionArea'] },
   },
   divisionBoundary: {
     currentTables: [
@@ -201,7 +202,6 @@ function buildPurgeSourceSql(input: DraftReleasePurgeInput, plan: RollbackPlan) 
 function buildPurgeMetaSql(input: DraftReleasePurgeInput) {
   return joinStatements([
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
-    `DELETE FROM apiFieldProvenanceGroups WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId = ${literal(input.resourceReleaseId)} OR relatedResourceReleaseId = ${literal(input.resourceReleaseId)};`,
     `DELETE FROM stats WHERE resourceReleaseId = ${literal(input.resourceReleaseId)} OR apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,

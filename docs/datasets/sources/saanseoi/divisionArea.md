@@ -14,12 +14,11 @@ primary and DivisionArea companion together.
 The geographic Division initialiser assembles both curated archives from their pinned
 source assets after the Overture and C&SD inputs are available. It uploads both releases
 with API-set publication deferred, then reconciles the complete geographic composition.
-For a clean bootstrap, it explicitly selects the initial `2026-09-01.0` edition even
-when fixtures for later revisions are present. Later editions are assembled and uploaded
-as deliberate revisions.
+It selects the initial `2026-09-01.0` edition. During pre-release development, curation
+and release metadata are edited directly in this initial revision.
 
-The initial edition lock includes the RVD Division archive. Its API field mapping uses
-that complete retained ingredient signature at the `2026-09-01.0` lineage anchor.
+The source pins include the RVD Division archive. The API field mapping uses that
+complete retained ingredient signature at the `2026-09-01.0` lineage anchor.
 
 ## Curation ownership
 
@@ -147,9 +146,10 @@ Overture territorial assertions and the pinned Protomaps coastline land mask.
 
 `fixtures/meta/datasetInputs/saanseoi-division-review.json` pins exact source release
 codes, archive keys and SHA-256 hashes. Refreshing source inputs is an explicit review
-operation. Edition locks in `fixtures/meta/datasetInputs/saanseoi-division/releases/`
-select the immutable inputs for assembly; inputs must be dated on or before the edition
-cutoff. A registered source asset ID may accompany a pin for API downloads.
+operation. Assembly reads these maintained pins directly; inputs must be dated on or
+before the edition cutoff. It retains the exact inputs and curation hashes in generated
+reports and archive manifests. Assembly does not write fixture files. A registered
+source asset ID may accompany a pin for API downloads.
 
 The shared loader first tries a configured asset API, then the exact local archive or
 content-addressed cache, then a configured R2 archive origin. It verifies SHA-256 on

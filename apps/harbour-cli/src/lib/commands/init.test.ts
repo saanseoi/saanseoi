@@ -414,7 +414,7 @@ describe('initialisation commands', () => {
     )
     const block = script.slice(
       script.indexOf('set -l censtatd_area_release_code'),
-      script.indexOf('# A resumed initialiser'),
+      script.indexOf('# Do not delay the final summary'),
     )
     expect(block).toContain('init_skip_completed_release')
     const result = Bun.spawnSync({
@@ -461,10 +461,12 @@ describe('initialisation commands', () => {
         function init_run_step
           if test "$argv[2]" = docs:publish
             echo docs
-          else
+          else if test "$argv[1]" = ./bin/saanseoi; and string match -qr '^init:' -- "$argv[2]"
             echo $argv[2]
-            init_publish_docs
           end
+        end
+        function init_skip_completed_release
+          return 0
         end
         ${script.slice(script.indexOf('init_configure'))}
         init_publish_docs
@@ -498,6 +500,99 @@ describe('initialisation commands', () => {
     expect(source.indexOf('init_complete')).toBeLessThan(
       source.indexOf('init:places:overture:complete'),
     )
+  })
+
+  test('publishes curated Division releases after every pinned input is ingested', () => {
+    const source = readFileSync(
+      resolve(repoRoot, 'scripts/init/divisions.fish'),
+      'utf8',
+    )
+    const geography = source.indexOf('init:divisions:geographic')
+    const landsd = source.indexOf('init:divisions:hkgov-landsd')
+    const protomaps = source.indexOf('protomaps-islands:ingest')
+    const rvd = source.indexOf('hkgov-rvd:areas')
+    const curatedAssembly = source.indexOf('saanseoi-divisions:assemble')
+    const curatedDivisionUpload = source.indexOf('dr-hk-saanseoi-division-*.zip')
+    const reconciliation = source.indexOf('init_reconcile_draft_release_sets')
+
+    expect(geography).toBeGreaterThanOrEqual(0)
+    expect(landsd).toBeGreaterThan(geography)
+    expect(protomaps).toBeGreaterThan(landsd)
+    expect(rvd).toBeGreaterThan(protomaps)
+    expect(curatedAssembly).toBeGreaterThan(rvd)
+    expect(curatedDivisionUpload).toBeGreaterThan(curatedAssembly)
+    expect(reconciliation).toBeGreaterThan(curatedDivisionUpload)
+    expect(source).toContain('--yes --defer-api-release-set')
+    expect(source).toContain('--edition 2026-09-01.0')
+    expect(source).toContain(
+      'set -l curated_release_dir "$saanseoi_init_repo/.local/curated-divisions/init/2026-09-01.0"',
+    )
+    expect(source).toContain(
+      'for archive in "$curated_release_dir"/dr-hk-saanseoi-division-*.zip',
+    )
+    expect(source).toContain(
+      "string match -qr '^dr-hk-saanseoi-division(-area)?-[0-9]'",
+    )
+    expect(source).not.toContain('[0-9]*.zip')
+
+    const geographic = readFileSync(
+      resolve(repoRoot, 'scripts/init/divisions-overture.fish'),
+      'utf8',
+    )
+    expect(geographic).not.toContain('saanseoi-divisions:assemble')
+  })
+
+  test('Fish curated archive glob selects Division and DivisionArea ZIPs', () => {
+    const directory = mkdtempSync(resolve(tmpdir(), 'saanseoi-division-glob-'))
+    try {
+      for (const file of [
+        'dr-hk-saanseoi-division-2026-09-01.0.zip',
+        'dr-hk-saanseoi-division-area-2026-09-01.0.zip',
+        'dr-hk-saanseoi-division-scratch.zip',
+      ])
+        writeFileSync(resolve(directory, file), '')
+
+      const result = Bun.spawnSync({
+        cmd: [
+          'fish',
+          '--no-config',
+          '-c',
+          `set directory '${directory}'; for archive in "$directory"/dr-hk-saanseoi-division-*.zip; set release_code (string replace -r '\\.zip$' '' -- (path basename "$archive")); if string match -qr '^dr-hk-saanseoi-division(-area)?-[0-9]' -- "$release_code"; echo "$release_code"; end; end`,
+        ],
+        cwd: repoRoot,
+      })
+
+      expect(result.exitCode).toBe(0)
+      expect(result.stdout.toString().trim().split('\n').sort()).toEqual([
+        'dr-hk-saanseoi-division-2026-09-01.0',
+        'dr-hk-saanseoi-division-area-2026-09-01.0',
+      ])
+      expect(result.stderr.toString()).toBe('')
+    } finally {
+      rmSync(directory, { force: true, recursive: true })
+    }
+  })
+
+  test('does not replace the selected Division receipt with an unmapped Overture cohort', () => {
+    const source = readFileSync(
+      resolve(repoRoot, 'scripts/init/divisions-overture.fish'),
+      'utf8',
+    )
+    const skip = source.indexOf('# September has no Division API release set yet.')
+    const nextReleaseDirectory = source.indexOf('set -l dir "$root/$release/', skip)
+    const guard = source.slice(skip, nextReleaseDirectory)
+    const reconciliation = source.indexOf('release-sets:reconcile')
+    const historicalUploads = source.indexOf('for year in 2016 2021')
+
+    expect(source).toContain(
+      'set -g saanseoi_init_island_reprocess_release dr-hk-overture-division-2026-08-19.0',
+    )
+    expect(guard).toContain('test "$release" = 2026-09-23.0')
+    expect(guard).toContain('continue')
+    expect(skip).toBeLessThan(nextReleaseDirectory)
+    expect(source).toContain('for type in division division_area division_boundary')
+    expect(reconciliation).toBeGreaterThan(skip)
+    expect(reconciliation).toBeLessThan(historicalUploads)
   })
 
   test('interrupts the complete detached initialisation process group', () => {

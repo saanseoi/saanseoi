@@ -1254,7 +1254,7 @@ selected Overture input cohort. Monthly source updates do not require redrawing
 polygons. See [curated DivisionArea](../sources/saanseoi/divisionArea.md) for local
 ingestion, retained geometry, exclusions and island coastline cleanup.
 
-Clean Division initialisation selects this initial edition explicitly. Its input lock
+Clean Division initialisation selects this initial edition explicitly. Its source pins
 and API field mapping both retain the RVD Division ingredient before the complete
 curated pair is reconciled.
 
@@ -1336,11 +1336,13 @@ landforms.
 
 SaanSeoi Division and DivisionArea editions use `YYYY-MM-01.revision`, scheduled for the
 first of each month in Hong Kong. The builder selects the latest retained publisher
-release dated on or before the edition date, carrying forward slower sources. The
-edition lock in `fixtures/meta/datasetInputs/saanseoi-division/releases/` fixes release
-identities, checksums and the exact Overture inventory/area snapshots. Corrections use a
-new edition revision. Island extraction evidence must agree with the pinned Protomaps
-version.
+release dated on or before the edition date, carrying forward slower sources. The source
+pins in `fixtures/meta/datasetInputs/saanseoi-division-review.json` fix release
+identities, checksums and the exact Overture inventory/area snapshots. During
+pre-release development, corrections edit the initial `2026-09-01.0` revision directly.
+Assembly retains inputs and curation hashes in generated reports and archive manifests
+without writing fixture files. Island extraction evidence must agree with the pinned
+Protomaps version.
 
 LandsD Settlement records are required ingredients. Native `GEO_NAME_ID` identifies each
 source feature; input row positions are never identities. Curated identifiers or unique

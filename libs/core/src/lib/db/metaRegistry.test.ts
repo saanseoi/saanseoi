@@ -1,3 +1,4 @@
+import { compareCatalogMembers } from './metaRegistry'
 import { initialDatasets } from '@repo/db/registry'
 import { describe, expect, test } from 'bun:test'
 
@@ -6,8 +7,9 @@ import { Database as SQLiteDatabase } from 'bun:sqlite'
 import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { encodeAuditGroup } from '../../pipeline/db/processingActionCodec'
-import { metaSchema } from '@repo/db'
+import { metaSchema, computeVersionHash } from '@repo/db'
 import {
+  buildDeterministicApiReleaseSetId,
   ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
   ensureProcessingRunStarted,
@@ -17,6 +19,7 @@ import {
   getLatestDatasetForRegionSourceDatasetType,
   insertDataset,
   listApiFieldProvenanceForReleaseSet,
+  getApiFieldLineageForReleaseSet,
   listRegistryApiReleaseProcessingActions,
   listRegistryApiReleaseProcessingActionSections,
   listRegistrySourceReleaseProcessingActions,
@@ -99,7 +102,8 @@ function createRegistryReleasesDb() {
     CREATE TABLE apiVersions (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
-      familyType TEXT NOT NULL
+      familyType TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'current'
     );
 
     CREATE TABLE apiReleaseSets (
@@ -221,7 +225,11 @@ id TEXT PRIMARY KEY,
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -359,18 +367,26 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         await db.insert(metaSchema.releaseProcessingActionChunks).values(chunk).run()
     }
 
+    for (const row of sqlite
+      .query(
+        'SELECT id, processingRules FROM resourceReleases WHERE processingRules IS NOT NULL',
+      )
+      .all() as Array<{ id: string; processingRules: string }>)
+      sqlite
+        .query('UPDATE resourceReleases SET processingRules=? WHERE id=?')
+        .run(captureFixtureRules(sqlite, JSON.parse(row.processingRules)), row.id)
     const [release] = await listRegistryReleases(db as never)
     if (!release) throw new Error('Expected API release to be returned.')
 
     expect(release.processingActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: 'action-a:g1:0',
+          id: 'action-a',
           sourceCode: 'hkgov-als',
           sourceReleaseCode: '2026-07-15',
         }),
         expect.objectContaining({
-          id: 'action-b:g1:0',
+          id: 'action-b',
           sourceCode: 'landsd-addresses',
           sourceReleaseCode: '2026-07-15',
         }),
@@ -458,8 +474,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         releaseCode: 'data-hk-addresses-2026-07-15.0',
       },
     )
-    expect(firstActionPage?.map(action => action.id)).toEqual(['action-b:g1:0'])
-    expect(secondActionPage?.map(action => action.id)).toEqual(['action-a:g1:0'])
+    expect(firstActionPage?.map(action => action.id)).toEqual(['action-b'])
+    expect(secondActionPage?.map(action => action.id)).toEqual(['action-a'])
 
     const sourceActionSections =
       await listRegistrySourceReleaseProcessingActionSections(db as never, {
@@ -484,7 +500,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         releaseCode: 'dr-hk-addresses-2026-07-15',
       },
     )
-    expect(sourceActionPage.map(action => action.id)).toEqual(['action-a:g1:0'])
+    expect(sourceActionPage.map(action => action.id)).toEqual(['action-a'])
     sqlite.close()
   })
 })
@@ -508,7 +524,11 @@ function createShardLookupDb() {
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -519,7 +539,7 @@ function createProcessingRunDb() {
     CREATE TABLE processingRuns (
       runId TEXT PRIMARY KEY,
       resourceReleaseId TEXT NOT NULL,
-      phase TEXT NOT NULL,
+      stage TEXT NOT NULL DEFAULT 'assembly', checkpoint TEXT, attempt INTEGER NOT NULL DEFAULT 1, snapshotId TEXT, apiReleaseSetId TEXT, phase TEXT NOT NULL,
       status TEXT NOT NULL,
       results TEXT,
       error TEXT,
@@ -533,7 +553,11 @@ function createProcessingRunDb() {
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -554,7 +578,11 @@ function createSnapshotLookupDb() {
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -610,7 +638,11 @@ function createDraftSnapshotDb() {
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -621,7 +653,8 @@ function createDraftReleaseSetDb() {
     CREATE TABLE apiVersions (
       id TEXT PRIMARY KEY,
       code TEXT NOT NULL,
-      familyType TEXT NOT NULL
+      familyType TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'current'
     );
 
     CREATE TABLE apiComposition (
@@ -631,6 +664,7 @@ function createDraftReleaseSetDb() {
       version INTEGER NOT NULL,
       primaryResourceType TEXT NOT NULL,
       defaultDomainCode TEXT,
+      rulesetVersions TEXT NOT NULL DEFAULT '{}',
       status TEXT NOT NULL,
       createdAt TEXT NOT NULL
     );
@@ -676,7 +710,8 @@ id TEXT PRIMARY KEY,
     );
 
     INSERT INTO apiVersions (id, code, familyType) VALUES
-      ('api-version-division', 'api-divisions-v0.1', 'division');
+      ('api-version-division', 'api-divisions-v0.1', 'division'),
+      ('api-version-division-v02', 'api-divisions-v0.2', 'division');
 
     INSERT INTO apiComposition (
       id, apiVersionId, code, version, primaryResourceType, status, createdAt
@@ -693,7 +728,11 @@ id TEXT PRIMARY KEY,
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -747,7 +786,11 @@ function createSnapshotAssemblyDb() {
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -795,7 +838,11 @@ function createRegionalSnapshotLookupDb() {
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -875,7 +922,11 @@ function createLatestDatasetLookupDb() {
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -940,7 +991,11 @@ id TEXT PRIMARY KEY,
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -1005,7 +1060,11 @@ id TEXT PRIMARY KEY,
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -1041,6 +1100,7 @@ function createPublishReleaseArtefactsDb() {
       version INTEGER NOT NULL,
       primaryResourceType TEXT NOT NULL,
       defaultDomainCode TEXT,
+      rulesetVersions TEXT NOT NULL DEFAULT '{}',
       status TEXT NOT NULL,
       createdAt INTEGER NOT NULL
     );
@@ -1167,34 +1227,10 @@ id TEXT PRIMARY KEY,
       PRIMARY KEY (apiReleaseSetId, snapshotId, variant)
     );
 
-    CREATE TABLE apiFieldProvenance (
-      resourceType TEXT NOT NULL,
-id TEXT PRIMARY KEY,
-      apiReleaseSetId TEXT NOT NULL,
-      apiField TEXT NOT NULL,
-      variant TEXT,
-      sourceDatasetId TEXT NOT NULL,
-      inputs TEXT NOT NULL,
-      resolverRules TEXT NOT NULL,
-      resolverCode TEXT NOT NULL,
-      contributionType TEXT NOT NULL,
-      priority INTEGER NOT NULL,
-      confidence REAL,
-      versionHash TEXT NOT NULL,
-      createdAt INTEGER NOT NULL,
-      updatedAt INTEGER NOT NULL
-    );
+    CREATE TABLE fieldLineageDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL);
+    CREATE TABLE apiFieldProvenance (apiReleaseSetId TEXT PRIMARY KEY, definitionId TEXT NOT NULL);
+    CREATE TABLE processingRuns (runId TEXT PRIMARY KEY, resourceReleaseId TEXT, snapshotId TEXT, apiReleaseSetId TEXT, stage TEXT NOT NULL, phase TEXT NOT NULL, status TEXT NOT NULL, attempt INTEGER NOT NULL DEFAULT 1, checkpoint TEXT, results TEXT, error TEXT, startedAt TEXT NOT NULL, finishedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, UNIQUE(resourceReleaseId,phase), UNIQUE(snapshotId,phase), UNIQUE(apiReleaseSetId,phase));
 
-    CREATE TABLE apiFieldProvenanceGroups (
-      apiReleaseSetId TEXT NOT NULL,
-      resourceType TEXT NOT NULL,
-      apiField TEXT NOT NULL,
-      variant TEXT NOT NULL DEFAULT 'default',
-      isDeleted INTEGER NOT NULL DEFAULT 0,
-      versionHash TEXT NOT NULL,
-      createdAt INTEGER NOT NULL,
-      PRIMARY KEY (apiReleaseSetId, resourceType, apiField, variant)
-    );
 
     CREATE TABLE releaseSetLifecycleJournal (
       id TEXT PRIMARY KEY,
@@ -1221,7 +1257,11 @@ id TEXT PRIMARY KEY,
 
   return {
     sqlite,
-    db: createLocalHarbourDb(sqlite),
+    db:
+      (sqlite.exec(
+        'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
+      ),
+      createLocalHarbourDb(sqlite)),
   }
 }
 
@@ -1259,8 +1299,17 @@ function seedCompleteOvertureFixtureSources(
       .query(
         `UPDATE resourceReleases SET processingRules = ? WHERE id IN (SELECT ss.resourceReleaseId FROM snapshotResourceReleases ss JOIN datasets d ON d.id = ss.datasetId WHERE d.code = ?)`,
       )
-      .run(JSON.stringify(dataset.processingRules), dataset.code)
+      .run(captureFixtureRules(sqlite, dataset.processingRules), dataset.code)
   }
+}
+
+function captureFixtureRules(sqlite: SQLiteDatabase, definition: unknown) {
+  if (!definition) return null
+  const id = computeVersionHash(definition)
+  sqlite
+    .query('INSERT OR IGNORE INTO processingRuleDefinitions VALUES (?,?)')
+    .run(id, JSON.stringify(definition))
+  return JSON.stringify({ definitionId: id })
 }
 
 function sortProvenanceRows(
@@ -1437,9 +1486,9 @@ describe('ensureProcessingRunStarted', () => {
     const { sqlite, db } = createProcessingRunDb()
 
     sqlite.exec(`
-      INSERT INTO processingRuns (
+      INSERT INTO processingRuns (stage,
         runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
-      ) VALUES (
+      ) VALUES ('assembly',
         'run-1',
         'release-1',
         'stageDataset',
@@ -1469,7 +1518,7 @@ describe('ensureProcessingRunStarted', () => {
       finishedAt: string | null
       runId: string
       startedAt: string
-      stats: string | null
+      results: string | null
       status: string
     }
 
@@ -1477,7 +1526,7 @@ describe('ensureProcessingRunStarted', () => {
       finishedAt: '2026-06-27T00:01:00.000Z',
       runId: 'run-1',
       startedAt: '2026-06-27T00:00:00.000Z',
-      stats: '{"rowCount":1}',
+      results: '{"rowCount":1}',
       status: 'completed',
     })
   })
@@ -2095,6 +2144,25 @@ describe('ensureDraftReleaseSetForRelease', () => {
     second.sqlite.close()
   })
 
+  test('reuses the cohort code across API versions without reusing its row identity', async () => {
+    const { sqlite, db } = createDraftReleaseSetDb()
+    const releaseSet = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      { cohortKey: '2026-09-01.0', regionCode: 'hk' },
+      { apiVersion: 'api-divisions-v0.2' },
+    )
+
+    expect(releaseSet.code).toBe('data-hk-division-2026-09-01.0')
+    expect(releaseSet.id).not.toBe(
+      buildDeterministicApiReleaseSetId(
+        'api-divisions-v0.1',
+        'data-hk-division-2026-09-01.0',
+      ),
+    )
+    sqlite.close()
+  })
+
   test('uses the declared default composition domain when none is specified', async () => {
     const { sqlite, db } = createDraftReleaseSetDb()
     sqlite
@@ -2111,6 +2179,45 @@ describe('ensureDraftReleaseSetForRelease', () => {
     })
 
     expect(releaseSet.code).toBe('data-hk-division-2026-01-21.0')
+    sqlite.close()
+  })
+
+  test('uses the current composition domain ruleset for new releases', async () => {
+    const { sqlite, db } = createDraftReleaseSetDb()
+    sqlite
+      .query(
+        `UPDATE apiComposition
+         SET rulesetVersions = '{"default":"rs-division-merge-v2"}'
+         WHERE id = 'api-composition-division'`,
+      )
+      .run()
+
+    const releaseSet = await ensureDraftReleaseSetForRelease(db as never, 'division', {
+      cohortKey: '2026-09-01.0',
+      regionCode: 'hk',
+    })
+
+    const row = sqlite
+      .query('SELECT rulesetVersion FROM apiReleaseSets WHERE id = ?')
+      .get(releaseSet.id) as { rulesetVersion: string }
+    expect(row.rulesetVersion).toBe('rs-division-merge-v2')
+    sqlite.close()
+  })
+
+  test('does not create releases for archived API versions', async () => {
+    const { sqlite, db } = createDraftReleaseSetDb()
+    sqlite
+      .query(
+        "UPDATE apiVersions SET status = 'archived' WHERE id = 'api-version-division'",
+      )
+      .run()
+
+    await expect(
+      ensureDraftReleaseSetForRelease(db as never, 'division', {
+        cohortKey: '2026-09-01.0',
+        regionCode: 'hk',
+      }),
+    ).rejects.toThrow('Cannot create an API release for api-divisions-v0.1')
     sqlite.close()
   })
 
@@ -3288,7 +3395,7 @@ id TEXT PRIMARY KEY,
 })
 
 describe('publishReleaseArtefacts', () => {
-  test('pins derived Address field rules from the exact Place release anchor', async () => {
+  test('records derived Address field rules from the selected Place release anchor', async () => {
     const { sqlite, db } = createPublishReleaseArtefactsDb()
 
     sqlite.exec(`
@@ -3362,7 +3469,7 @@ describe('publishReleaseArtefacts', () => {
       if (!processingRules) throw new Error(`Missing rules for ${datasetCode}.`)
       sqlite
         .query('UPDATE resourceReleases SET processingRules = ? WHERE id = ?')
-        .run(JSON.stringify(processingRules), resourceReleaseId)
+        .run(captureFixtureRules(sqlite, processingRules), resourceReleaseId)
     }
 
     await publishReleaseArtefacts(db, {
@@ -3381,23 +3488,27 @@ describe('publishReleaseArtefacts', () => {
       resourceType: 'address',
     })
 
-    const rows = sqlite
+    const lineageRow = sqlite
       .query(
-        `SELECT resolverRules
-         FROM apiFieldProvenance
-         WHERE apiReleaseSetId = ? AND sourceDatasetId = ?`,
+        `SELECT d.definition
+         FROM apiFieldProvenance p
+         JOIN fieldLineageDefinitions d ON d.id = p.definitionId
+         WHERE p.apiReleaseSetId = ?`,
       )
-      .all('release-set-addresses', 'dataset-place') as Array<{
-      resolverRules: string
-    }>
-    expect(rows.length).toBeGreaterThan(0)
-    expect(
-      rows.every(row =>
-        (JSON.parse(row.resolverRules) as Array<{ resourceReleaseId: string }>).every(
-          rule => rule.resourceReleaseId === 'release-place-anchor',
-        ),
+      .get('release-set-addresses') as { definition: string }
+    const lineage = JSON.parse(lineageRow.definition) as {
+      fields: Array<{ ruleIds: string[] }>
+      processingDefinitions: Array<{ datasetCode: string; definitionId: string }>
+    }
+    expect(lineage.fields.length).toBeGreaterThan(0)
+    expect(lineage.processingDefinitions).toContainEqual({
+      datasetCode: 'ds-hk-overture-place',
+      definitionId: computeVersionHash(
+        initialDatasets.find(dataset => dataset.code === 'ds-hk-overture-place')
+          ?.processingRules,
       ),
-    ).toBe(true)
+    })
+    expect(lineage.fields.some(field => field.ruleIds.length > 0)).toBe(true)
 
     sqlite.close()
   })
@@ -3574,22 +3685,21 @@ describe('publishReleaseArtefacts', () => {
 
     expect(linkedSnapshotIds).toEqual([{ snapshotId: 'snapshot-new' }])
 
-    const mapping = sqlite
-      .query('SELECT publisherFields FROM apiReleaseSets WHERE id = ?')
-      .get('release-set-1') as { publisherFields: string }
-    expect(JSON.parse(mapping.publisherFields)).toEqual(
-      divisionFixtureOverture116To118.publisherFields,
-    )
-
-    const provenanceRows = sqlite
-      .query(
-        'SELECT resourceType, apiField, inputs FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
-      )
-      .all('release-set-1') as Array<{
-      apiField: string
-      resourceType: string
-      inputs: string
-    }>
+    const mapping = await getApiFieldLineageForReleaseSet(db, 'release-set-1')
+    expect(
+      mapping?.definition.ingestion.some(
+        field =>
+          field.sourceField === 'properties.names.primary' &&
+          field.rawFields.includes('names.primary'),
+      ),
+    ).toBe(true)
+    const provenanceRows = (
+      await listApiFieldProvenanceForReleaseSet(db, 'release-set-1')
+    ).map(row => ({
+      apiField: row.apiField,
+      resourceType: row.resourceType,
+      inputs: JSON.stringify(row.inputs),
+    }))
 
     expect(sortProvenanceRows(provenanceRows)).toEqual(
       sortProvenanceRows(
@@ -3678,14 +3788,10 @@ describe('publishReleaseArtefacts', () => {
           'SELECT COUNT(*) AS count FROM apiFieldProvenance WHERE apiReleaseSetId = ?',
         )
         .get('release-set-2'),
-    ).toEqual({ count: 0 })
+    ).toEqual({ count: 1 })
     expect(
-      sqlite
-        .query(
-          'SELECT COUNT(*) AS count FROM apiFieldProvenanceGroups WHERE apiReleaseSetId = ?',
-        )
-        .get('release-set-2'),
-    ).toEqual({ count: 0 })
+      sqlite.query('SELECT COUNT(*) AS count FROM fieldLineageDefinitions').get(),
+    ).toEqual({ count: 1 })
     expect(
       sortProvenanceRows(
         (await listApiFieldProvenanceForReleaseSet(db, 'release-set-2')).map(row => ({
@@ -4037,6 +4143,29 @@ describe('publishReleaseArtefacts', () => {
       )
       .get('release-set-1') as { count: number }
 
-    expect(provenanceCount.count).toBeGreaterThan(20)
+    expect(provenanceCount.count).toBe(1)
+    expect(
+      (await listApiFieldProvenanceForReleaseSet(db, 'release-set-1')).length,
+    ).toBeGreaterThan(20)
   })
+})
+
+test('catalogue defaults select the newest numbered edition on the same effective date', () => {
+  const member = (cohortKey: string, revision = 0) => ({
+    cohortKey,
+    revision,
+    effectiveFrom: '2026-09-01T00:00:00.000Z',
+  })
+  expect(
+    compareCatalogMembers(member('2026-09-01.7'), member('2026-09-01.6')),
+  ).toBeGreaterThan(0)
+  expect(
+    compareCatalogMembers(member('2026-09-01.10'), member('2026-09-01.9')),
+  ).toBeGreaterThan(0)
+  expect(
+    compareCatalogMembers(member('2026-09-01.7', 1), member('2026-09-01.7')),
+  ).toBeGreaterThan(0)
+  expect(
+    compareCatalogMembers(member('2026-09-01.6'), member('2026-09-01.7')),
+  ).toBeLessThan(0)
 })

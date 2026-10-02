@@ -990,7 +990,7 @@ test('anchors are unique and compositions cannot be borrowed from another branch
   ).toBeNull()
 })
 
-test('September curated releases resolve their retained ingredient composition for API 0.2', () => {
+test('initial curated release resolves its retained ingredient composition for API 0.2', () => {
   const sourceSchemas: Record<string, string> = {
     ...overtureSourceSchemas,
     'ds-hk-overture-division': '1.18.0',
@@ -1010,17 +1010,19 @@ test('September curated releases resolve their retained ingredient composition f
     domainCode: 'geographic',
     schemaVersion: 'sv-division-v1',
     rulesetVersion: 'rs-division-merge-v1',
-    lineageSnapshotVersions: ['ss-hk-division-saanseoi-2026-09-01.6'],
+    lineageSnapshotVersions: ['ss-hk-division-saanseoi-2026-09-01.0'],
     sourceSchemas,
   }
-  for (const edition of ['2026-09-01.0', '2026-09-01.6', '2026-09-01.9']) {
-    expect(
-      resolveApiFieldFixture({
-        ...lookup,
-        lineageSnapshotVersions: [`ss-hk-division-saanseoi-${edition}`],
-      })?.mappingVersion,
-    ).toBe(3)
-  }
+  expect(resolveApiFieldFixture(lookup)?.mappingVersion).toBe(3)
+  expect(
+    resolveApiFieldFixture({
+      ...lookup,
+      lineageSnapshotVersions: ['ss-hk-division-saanseoi-2026-09-01.9'],
+    }),
+  ).toBeNull()
+  const { 'ds-hk-hkgov-rvd-division': rvd, ...withoutRvd } = sourceSchemas
+  expect(rvd).toBe('1.0')
+  expect(resolveApiFieldFixture({ ...lookup, sourceSchemas: withoutRvd })).toBeNull()
   expect(
     resolveApiFieldFixture({
       ...lookup,

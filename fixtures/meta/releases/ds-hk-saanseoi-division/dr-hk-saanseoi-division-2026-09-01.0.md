@@ -12,6 +12,16 @@ cohortKey: "2026-09-01.0"
 
 # EN
 
+## Changelog
+
+- Publishes the curated Hong Kong division inventory and companion geometry described
+  below.
+- Category-scoped division codes include HKSAR and reviewed island abbreviations.
+- Historical RVD list membership, West Kowloon aliases and attributed China bounds
+  retain their source evidence.
+- Curated Mei Foo, Tung Tau and Starstreet outlines accompany reviewed ancestry and
+  localised names. Geometry containment assertions identify polygon fingerprints.
+
 ## Introduction
 
 Hong Kong's everyday geography is only partly represented in existing datasets.
@@ -22,7 +32,7 @@ these sources together in a catalogue of <black>divisions</black>, adding places
 evidence supports their common use.
 
 A division represents a named geographic area. Its identity can be well established even
-when its boundaries are approximate or unavailable. This release contains **1,997
+when its boundaries are approximate or unavailable. This release contains **2,003
 divisions**, organised into four categories:
 
 - **Administrative:** Hong Kong SAR, its 3 <black>Areas</black> and 18
@@ -31,14 +41,14 @@ divisions**, organised into four categories:
 - **Localities:** 2 <black>Cities</black>, 19 <black>Towns</black>, 193
   <black>Villages</black> and 953 <black>Hamlets</black>. These classifications describe
   settlements; they do not imply that every boundary is legally defined.
-- **Neighbourhoods:** 176 <black>Macrohoods</black>, 192 <black>Neighbourhoods</black>
-  and 180 <black>Microhoods</black>. These describe places at different scales within
+- **Neighbourhoods:** 176 <black>Macrohoods</black>, 193 <black>Neighbourhoods</black>
+  and 182 <black>Microhoods</black>. These describe places at different scales within
   urban areas, with curated relationships where the evidence supports them.
 - **Landforms:** 5 <black>Major Islands</black>, 106 <black>Minor Islands</black> and
-  143 <black>Islets</black>, together with 5 <black>Island Groups</black>.
+  146 <black>Islets</black>, together with 5 <black>Island Groups</black>.
 
-The companion DivisionArea release provides polygons for **550 divisions**. The other
-**1,447 divisions** retain their identities and available point locations without
+The companion DivisionArea release provides polygons for **562 divisions**. The other
+**1,441 divisions** retain their identities and available point locations without
 asserting an area boundary. This will be improved in future releases.
 
 ## Sources and Coverage
@@ -47,8 +57,9 @@ This monthly edition is dated 1 September 2026. Editions are scheduled for the f
 each month in Hong Kong, using the latest upstream releases dated on or before the
 edition date and carrying forward slower sources. This edition uses data from
 <black>Overture</black> `2026-08-19.0`, <black>Protomaps</black> `2026-09-01.1` and
-<black>Lands Department</black> `2026-06-10.0`. Exact archive keys, checksums and input
-snapshot references are retained in the release manifest.
+<black>Lands Department</black> `2026-06-10.0`, with historical RVD list membership from
+`2015-04-30.0`. Exact archive keys, checksums and input snapshot references are retained
+in the release manifest.
 
 - <orange>Overture</orange> Hong Kong <black>Division</black> and
   <black>DivisionArea</black> projections supply baseline identities, localised names,
@@ -107,7 +118,7 @@ Raw Overture fields follow the source release's normalisation and retention rule
 
 ### Coverage Limits
 
-The companion release contains **577 area records covering 550 distinct divisions**. A
+The companion release contains **589 area records covering 562 distinct divisions**. A
 division can have several records because territorial and land-clipped coverage are
 offered separately. Area-record counts therefore differ from the number of divisions
 with polygons.
@@ -126,20 +137,20 @@ in Hong Kong.
 現有資料集未能完整呈現香港人在日常生活中認識的地方。Overture 採用包括 OpenStreetMap 在內的來源，但仍有遺漏，部分分類亦未能反映本地用法。政府地名記錄提供官方名稱證據，卻未能涵蓋居民使用的所有非正式地名。SaanSeoi 整合這些來源，建立經審核的<black>地理分區</black>目錄，並在有證據支持通行用法時加入地方。
 
 地理分區代表一個有名稱的地域。即使界線只有大概範圍或尚未確定，地方本身仍可明確識別。本版本共有
-**1,997 個地理分區**，分為四類：
+**2,003 個地理分區**，分為四類：
 
 - **行政地理：**香港特別行政區、3 個<black>地域</black>及 18 個<black>區</black>，另加作為層級起點的中國國家記錄，共 23 筆。
 - **聚落：**2 個<black>城市</black>、19 個<black>市鎮</black>、193 個<black>村落</black>及 953 個<black>小村</black>。這些分類描述聚落，並不表示每個地方均有法定界線。
-- **鄰里：**176 個<black>大型鄰里</black>、192 個<black>鄰里</black>及 180 個<black>微型鄰里</black>，描述城市內不同尺度的地方，並按證據建立經審核的關係。
-- **地貌：**5 個<black>主要島嶼</black>、106 個<black>小型島嶼</black>及 143 個<black>小島</black>，另有 5 個<black>島群</black>：果洲群島、蒲台群島、索罟群島、大小磨刀及甕缸群島。
+- **鄰里：**176 個<black>大型鄰里</black>、193 個<black>鄰里</black>及 182 個<black>微型鄰里</black>，描述城市內不同尺度的地方，並按證據建立經審核的關係。
+- **地貌：**5 個<black>主要島嶼</black>、106 個<black>小型島嶼</black>及 146 個<black>小島</black>，另有 5 個<black>島群</black>：果洲群島、蒲台群島、索罟群島、大小磨刀及甕缸群島。
 
-配套 DivisionArea 版本為 **550 個地理分區**提供多邊形。其餘
-**1,447 個**保留實體及可用的位置點，但不提供面域界線。
+配套 DivisionArea 版本為 **562 個地理分區**提供多邊形。其餘
+**1,441 個**保留實體及可用的位置點，但不提供面域界線。
 
 ## 更新紀錄
 
 - <orange>SaanSeoi</orange>
-  首個版本包含 1,997 個經審核的香港地理分區，以及雙語名稱及別名、分類、排除項目及層級。
+  首個版本包含 2,003 個經審核的香港地理分區，以及雙語名稱及別名、分類、排除項目及層級。
 - 包含衙前圍及九龍南山尾，以及經審核的幾何範圍。
 - 香港特別行政區及十八區的領土範圍採用 Overture；三大地域由所屬區的範圍合併。陸地裁切版本採用固定版本的 Protomaps 海岸線。
 - 大型行政範圍沿現有多邊形組成部分分成多筆記錄，保留座標、島嶼及不相連的領土部分。
@@ -197,7 +208,7 @@ schema
 ### 涵蓋限制
 
 配套版本共有
-**577 筆面域記錄，涵蓋 550 個不同的地理分區**。領土及陸地裁切範圍分別保留，而大型行政範圍沿現有多邊形組成部分分割，因此一個地理分區可有多筆面域記錄。面域記錄數目並不等於有多邊形的地理分區數目。
+**589 筆面域記錄，涵蓋 562 個不同的地理分區**。領土及陸地裁切範圍分別保留，而大型行政範圍沿現有多邊形組成部分分割，因此一個地理分區可有多筆面域記錄。面域記錄數目並不等於有多邊形的地理分區數目。
 
 具備名稱或位置點不表示已有多邊形覆蓋。保留一般島嶼及不相連的領土部分。經審核的地方界線可以重疊，同一地理分區亦可有多條獲證據支持的上層路徑。繪製的鄰里範圍屬審核近似值，並非法定界線。本版並非香港所有具名地方或島嶼的完整或權威目錄。
 
@@ -208,20 +219,20 @@ schema
 现有数据集未能完整呈现香港人在日常生活中认识的地方。Overture 采用包括 OpenStreetMap 在内的来源，但仍有遗漏，部分分类亦未能反映本地用法。政府地名记录提供官方名称证据，却未能覆盖居民使用的所有非正式地名。SaanSeoi 整合这些来源，建立经审核的<black>地理分区</black>目录，并在有证据支持通行用法时加入地方。
 
 地理分区代表一个有名称的地域。即使界线只有大概范围或尚未确定，地方本身仍可明确识别。本版本共有
-**1,997 个地理分区**，分为四类：
+**2,003 个地理分区**，分为四类：
 
 - **行政地理：**香港特别行政区、3 个<black>地域</black>及 18 个<black>区</black>，另加作为层级起点的中国国家记录，共 23 笔。
 - **聚落：**2 个<black>城市</black>、19 个<black>市镇</black>、193 个<black>村落</black>及 953 个<black>小村</black>。这些分类描述聚落，并不表示每个地方均有法定界线。
-- **邻里：**176 个<black>大型邻里</black>、192 个<black>邻里</black>及 180 个<black>微型邻里</black>，描述城市内不同尺度的地方，并按证据建立经审核的关系。
-- **地貌：**5 个<black>主要岛屿</black>、106 个<black>小型岛屿</black>及 143 个<black>小岛</black>，另有 5 个<black>岛群</black>：果洲群岛、蒲台群岛、索罟群岛、大小磨刀及瓮缸群岛。
+- **邻里：**176 个<black>大型邻里</black>、193 个<black>邻里</black>及 182 个<black>微型邻里</black>，描述城市内不同尺度的地方，并按证据建立经审核的关系。
+- **地貌：**5 个<black>主要岛屿</black>、106 个<black>小型岛屿</black>及 146 个<black>小岛</black>，另有 5 个<black>岛群</black>：果洲群岛、蒲台群岛、索罟群岛、大小磨刀及瓮缸群岛。
 
-配套 DivisionArea 版本为 **550 个地理分区**提供多边形。其余
-**1,447 个**保留实体及可用的位置点，但不提供面域界线。
+配套 DivisionArea 版本为 **562 个地理分区**提供多边形。其余
+**1,441 个**保留实体及可用的位置点，但不提供面域界线。
 
 ## 更新记录
 
 - <orange>SaanSeoi</orange>
-  首个版本包含 1,997 个经审核的香港地理分区，以及双语名称及别名、分类、排除项目及层级。
+  首个版本包含 2,003 个经审核的香港地理分区，以及双语名称及别名、分类、排除项目及层级。
 - 包含衙前围及九龙南山尾，以及经审核的几何范围。
 - 香港特别行政区及十八区的领土范围采用 Overture；三大地域由所属区的范围合并。陆地裁切版本采用固定版本的 Protomaps 海岸线。
 - 大型行政范围沿现有多边形组成部分分成多笔记录，保留坐标、岛屿及不相连的领土部分。
@@ -279,6 +290,6 @@ schema
 ### 覆盖限制
 
 配套版本共有
-**577 笔面域记录，覆盖 550 个不同的地理分区**。领土及陆地裁切范围分别保留，而大型行政范围沿现有多边形组成部分分割，因此一个地理分区可有多笔面域记录。面域记录数目并不等于有多边形的地理分区数目。
+**589 笔面域记录，覆盖 562 个不同的地理分区**。领土及陆地裁切范围分别保留，而大型行政范围沿现有多边形组成部分分割，因此一个地理分区可有多笔面域记录。面域记录数目并不等于有多边形的地理分区数目。
 
 具备名称或位置点不表示已有多边形覆盖。保留一般岛屿及不相连的领土部分。经审核的地方界线可以重叠，同一地理分区亦可有多条获证据支持的上层路径。绘制的邻里范围属审核近似值，并非法定界线。本版并非香港所有具名地方或岛屿的完整或权威目录。
