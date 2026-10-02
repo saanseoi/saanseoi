@@ -90,6 +90,7 @@ export async function handleReconcileDraftReleaseSets(
         db,
         {
           carriedSnapshots,
+          deferApiCatalogRevision: request.deferApiCatalogRevision,
           resourceReleaseId: primaryRelease.resourceReleaseId,
           skipSnapshotCleanup: true,
         },

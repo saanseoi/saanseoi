@@ -705,7 +705,8 @@ export async function handlePublishDataset(
         // Each statistic reference period is independently publishable. Other
         // families may still wait for required companion snapshots.
         deferApiReleaseSet: !shouldPublishReleaseSet,
-        publishApiCatalogRevision: shouldPublishReleaseSet,
+        publishApiCatalogRevision:
+          shouldPublishReleaseSet && !request.deferApiCatalogRevision,
         updateDatasetRelease:
           !request.deferSourcePublish &&
           !options.reconcileDraftReleaseSet &&

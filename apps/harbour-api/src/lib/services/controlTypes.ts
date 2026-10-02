@@ -24,6 +24,7 @@ export type PublishRequest = {
   /** Rebuild a published Overture Geographic snapshot and its API revision. */
   rebuildPublishedSnapshot?: boolean
   deferApiReleaseSet?: boolean
+  deferApiCatalogRevision?: boolean
   deferStatsReleaseSet?: boolean
   deferSourcePublish?: boolean
   releaseCode?: string
@@ -39,6 +40,7 @@ export type CleanupSnapshotsRequest = {
 }
 
 export type ReconcileDraftReleaseSetsRequest = {
+  deferApiCatalogRevision?: boolean
   apiFamily?: ApiFamilyType
   regionCode?: RegionCode
 }

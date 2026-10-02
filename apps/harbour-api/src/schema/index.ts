@@ -367,6 +367,7 @@ export const PublishDatasetRequestSchema = z
       .optional(),
     rebuildPublishedSnapshot: z.boolean().optional(),
     deferApiReleaseSet: z.boolean().optional(),
+    deferApiCatalogRevision: z.boolean().optional(),
     deferStatsReleaseSet: z.boolean().optional(),
     deferSourcePublish: z.boolean().optional(),
     releaseCode: ReleaseCodeSchema.optional(),
@@ -384,6 +385,7 @@ export const PublishDatasetRequestSchema = z
 
 export const ReconcileDraftReleaseSetsRequestSchema = z
   .object({
+    deferApiCatalogRevision: z.boolean().optional(),
     apiFamily: z.enum(apiFamilyTypes).optional(),
     regionCode: z.enum(['hk', 'mo']).optional(),
   })

@@ -455,6 +455,7 @@ export async function reconcileDraftReleaseSets(
   options: {
     apiFamily?: 'addresses' | 'divisions' | 'places' | 'stats' | 'streets'
     regionCode?: 'hk' | 'mo'
+    deferApiCatalogRevision?: boolean
   } = {},
   dependencies: ReconcileDraftReleaseSetsDependencies = {},
 ) {
@@ -473,7 +474,13 @@ export async function reconcileDraftReleaseSets(
         'content-type': 'application/json',
         ...getAuthHeaders(),
       },
-      body: JSON.stringify(options),
+      body: JSON.stringify({
+        ...options,
+        ...(options.apiFamily === 'divisions' &&
+        process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG === '1'
+          ? { deferApiCatalogRevision: true }
+          : {}),
+      }),
     })
 
     if (

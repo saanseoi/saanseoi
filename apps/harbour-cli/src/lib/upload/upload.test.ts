@@ -112,6 +112,38 @@ afterEach(() => {
 })
 
 describe('upload helpers', () => {
+  test.each(['divisions', 'stats'] as const)(
+    'initialiser catalogue deferral is scoped to %s reconciliation',
+    async apiFamily => {
+      const marker = process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG
+      process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG = '1'
+      process.env.HARBOUR_API_KEY = 'test-api-key'
+      try {
+        await reconcileDraftReleaseSets(
+          { environment: 'dev', remote: false },
+          { apiFamily, regionCode: 'hk' },
+          {
+            fetchImpl: async (_input, init) => {
+              expect(JSON.parse(String(init?.body))).toEqual({
+                apiFamily,
+                regionCode: 'hk',
+                ...(apiFamily === 'divisions' ? { deferApiCatalogRevision: true } : {}),
+              })
+              return Response.json({
+                inspected: 0,
+                pendingReleaseSetCodes: [],
+                publishedReleaseSetCodes: [],
+                publishedReleaseSetStatsTargets: [],
+              })
+            },
+          },
+        )
+      } finally {
+        if (marker == null) delete process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG
+        else process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG = marker
+      }
+    },
+  )
   test.each([
     ['an empty body', ''],
     ['a non-JSON body', 'Proxy connection failed'],

@@ -4,9 +4,15 @@ import { createHarbourControlClient } from './harbourControl.ts'
 
 const originalFetch = globalThis.fetch
 const originalApiKey = process.env.HARBOUR_API_KEY
+const originalCatalogDeferral = process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG
 
 afterEach(() => {
   globalThis.fetch = originalFetch
+  if (originalCatalogDeferral == null) {
+    delete process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG
+  } else {
+    process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG = originalCatalogDeferral
+  }
 
   if (originalApiKey == null) {
     delete process.env.HARBOUR_API_KEY
@@ -16,6 +22,31 @@ afterEach(() => {
 })
 
 describe('harbour control client', () => {
+  test.each(['1', '0', undefined])(
+    'forwards initialiser catalogue deferral=%s without deferring release sets',
+    async marker => {
+      if (marker == null) delete process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG
+      else process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG = marker
+      process.env.HARBOUR_API_KEY = 'test-api-key'
+      const requests: Record<string, unknown>[] = []
+      globalThis.fetch = (async (_input, init) => {
+        requests.push(JSON.parse(String(init?.body)))
+        return Response.json({ status: 'published' })
+      }) as typeof fetch
+      const client = createHarbourControlClient({ environment: 'dev', remote: false })
+      await client.publishDataset('release-id')
+      expect(requests).toEqual([
+        {
+          resourceReleaseId: 'release-id',
+          ...(marker === '1' ? { deferApiCatalogRevision: true } : {}),
+        },
+      ])
+      await client.publishDataset('explicit-release', undefined, {
+        deferApiCatalogRevision: true,
+      })
+      expect(requests[1]?.deferApiCatalogRevision).toBe(true)
+    },
+  )
   test('does not resend database lock responses', async () => {
     const calls: Array<{ body?: unknown; url: string }> = []
 

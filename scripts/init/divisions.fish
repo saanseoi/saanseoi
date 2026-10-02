@@ -19,7 +19,13 @@ for command in \
     init:divisions:hkgov-pland-pu \
     init:divisions:hkgov-pland-new-town \
     init:divisions:hkgov-landsd
-    SAANSEOI_INIT_DEFER_DOCS=1 init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
+    # Government domains finish their release sets without publishing an
+    # intermediate catalogue. The first curated edition includes those sets.
+    set -l defer_catalog 1
+    if test "$command" = init:divisions:geographic
+        set defer_catalog 0
+    end
+    SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG=$defer_catalog SAANSEOI_INIT_DEFER_DOCS=1 init_run_step ./bin/saanseoi $command --target $saanseoi_init_target \
         $continuation_args $cache_artefact_opt_out_args
 end
 

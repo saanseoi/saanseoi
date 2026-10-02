@@ -41,6 +41,13 @@ records when the catalogue was published; member cohort dates describe the data'
 effective chronology. Initialisation therefore creates separate `v0.1` and `v0.2`
 catalogue histories rather than backdating catalogue publication.
 
+The full Divisions initialiser publishes government-domain release sets while deferring
+their catalogue revisions. The September geographic edition publishes the first v0.2
+catalogue with those domains included; October publishes the second. Government imports
+use the process-scoped `SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG` marker, which forwards
+`deferApiCatalogRevision` to Harbour without deferring release-set or source
+publication. Standalone government initialisers publish their catalogues normally.
+
 Division audit actions retain repeated field values in bounded column dictionaries. R2
 delivery uploads independent objects concurrently and registers the release audit only
 after all dependencies and its manifest are verified. The Audit page expands the

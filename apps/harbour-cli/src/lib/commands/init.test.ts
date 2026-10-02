@@ -462,7 +462,9 @@ describe('initialisation commands', () => {
           if test "$argv[2]" = docs:publish
             echo docs
           else if test "$argv[1]" = ./bin/saanseoi; and string match -qr '^init:' -- "$argv[2]"
-            echo $argv[2]
+            echo "$argv[2]:$SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG"
+          else
+            test "$SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG" != 1; or exit 98
           end
         end
         function init_skip_completed_release
@@ -476,11 +478,11 @@ describe('initialisation commands', () => {
     })
     expect(result.exitCode).toBe(0)
     expect(result.stdout.toString().trim().split('\n')).toEqual([
-      'init:divisions:geographic',
-      'init:divisions:hkgov-censtatd-hma',
-      'init:divisions:hkgov-pland-pu',
-      'init:divisions:hkgov-pland-new-town',
-      'init:divisions:hkgov-landsd',
+      'init:divisions:geographic:0',
+      'init:divisions:hkgov-censtatd-hma:1',
+      'init:divisions:hkgov-pland-pu:1',
+      'init:divisions:hkgov-pland-new-town:1',
+      'init:divisions:hkgov-landsd:1',
       'docs',
       'docs',
     ])

@@ -21,6 +21,7 @@ type PublishPayload = {
   }>
   rebuildPublishedSnapshot?: boolean
   deferApiReleaseSet?: boolean
+  deferApiCatalogRevision?: boolean
   deferStatsReleaseSet?: boolean
   deferSourcePublish?: boolean
   releaseCode?: string
@@ -51,6 +52,7 @@ export function createHarbourControlClient(target: UploadTarget) {
           variant?: string
         }>
         deferApiReleaseSet?: boolean
+        deferApiCatalogRevision?: boolean
         rebuildPublishedSnapshot?: boolean
         deferStatsReleaseSet?: boolean
         deferSourcePublish?: boolean
@@ -71,6 +73,10 @@ export function createHarbourControlClient(target: UploadTarget) {
             ? { rebuildPublishedSnapshot: true }
             : {}),
           ...(publishOptions.deferApiReleaseSet ? { deferApiReleaseSet: true } : {}),
+          ...(publishOptions.deferApiCatalogRevision ||
+          process.env.SAANSEOI_INIT_DEFER_DIVISIONS_CATALOG === '1'
+            ? { deferApiCatalogRevision: true }
+            : {}),
           ...(publishOptions.deferStatsReleaseSet
             ? { deferStatsReleaseSet: true }
             : {}),

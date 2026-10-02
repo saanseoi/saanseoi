@@ -58,135 +58,154 @@ test('retains a dataset source variant when reading a release for publication', 
   expect(release?.sourceVariant).toBe('hkgov-censtatd-hma')
 })
 
-test('marks the superseded monthly dataset historic when publishing a new current dataset', async () => {
-  const tempDir = createTempDir()
-  const dbPath = join(tempDir, 'harbour-publish-historic.sqlite')
-  const sqlite = initDb(dbPath)
-  const db = createLocalHarbourDb(sqlite)
+test.each([false, true])(
+  'publishes release sets and source history with catalogue deferral=%s',
+  async deferApiCatalogRevision => {
+    const tempDir = createTempDir()
+    const dbPath = join(tempDir, 'harbour-publish-historic.sqlite')
+    const sqlite = initDb(dbPath)
+    const db = createLocalHarbourDb(sqlite)
 
-  insertFixtureRelease(sqlite, {
-    resourceReleaseId: 'release-dr-hk-overture-division-2026-01-21.0',
-    source: 'overture',
-    regionCode: 'hk',
-    cohortKey: '2026-01',
-    resourceType: 'division',
-    sourceVersion: '2026-01-21.0',
-    rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
-    originalFileName: 'division.parquet',
-    status: 'published',
-    ingestedAt: '2026-06-05T00:00:00.000Z',
-    createdAt: '2026-06-05T00:00:00.000Z',
-    updatedAt: '2026-06-05T00:00:00.000Z',
-  })
-  seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-01-21.0',
-    resourceReleaseId: 'release-dr-hk-overture-division-2026-01-21.0',
-    status: 'published',
-    timestamp: 1762300800000,
-  })
-  insertFixtureRelease(sqlite, {
-    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
-    source: 'overture',
-    regionCode: 'hk',
-    cohortKey: '2026-02',
-    resourceType: 'division',
-    sourceVersion: '2026-02-18.0',
-    rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
-    originalFileName: 'division.parquet',
-    status: 'staged',
-    ingestedAt: '2026-06-05T00:01:00.000Z',
-    createdAt: '2026-06-05T00:01:00.000Z',
-    updatedAt: '2026-06-05T00:01:00.000Z',
-  })
-  seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-02-18.0',
-    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
-    status: 'draft',
-    timestamp: 1762300860000,
-  })
-  seedCompleteDivisionSourceSignature(sqlite, {
-    snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
-    sourceVersion: '2026-02-18.0',
-    overtureSchemaVersion: '1.16.0',
-  })
+    insertFixtureRelease(sqlite, {
+      resourceReleaseId: 'release-dr-hk-overture-division-2026-01-21.0',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2026-01',
+      resourceType: 'division',
+      sourceVersion: '2026-01-21.0',
+      rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'published',
+      ingestedAt: '2026-06-05T00:00:00.000Z',
+      createdAt: '2026-06-05T00:00:00.000Z',
+      updatedAt: '2026-06-05T00:00:00.000Z',
+    })
+    seedSnapshot(sqlite, {
+      code: 'ss-hk-division-2026-01-21.0',
+      resourceReleaseId: 'release-dr-hk-overture-division-2026-01-21.0',
+      status: 'published',
+      timestamp: 1762300800000,
+    })
+    insertFixtureRelease(sqlite, {
+      resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+      source: 'overture',
+      regionCode: 'hk',
+      cohortKey: '2026-02',
+      resourceType: 'division',
+      sourceVersion: '2026-02-18.0',
+      rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
+      originalFileName: 'division.parquet',
+      status: 'staged',
+      ingestedAt: '2026-06-05T00:01:00.000Z',
+      createdAt: '2026-06-05T00:01:00.000Z',
+      updatedAt: '2026-06-05T00:01:00.000Z',
+    })
+    seedSnapshot(sqlite, {
+      code: 'ss-hk-division-2026-02-18.0',
+      resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+      status: 'draft',
+      timestamp: 1762300860000,
+    })
+    seedCompleteDivisionSourceSignature(sqlite, {
+      snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
+      sourceVersion: '2026-02-18.0',
+      overtureSchemaVersion: '1.16.0',
+    })
 
-  const result = await handlePublishDataset(db, {
-    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
-  })
+    const result = await handlePublishDataset(db, {
+      resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+      deferApiCatalogRevision,
+    })
 
-  const rows = sqlite
-    .query(
-      `SELECT code AS datasetId, status, revokedAt, revocationReason
+    const rows = sqlite
+      .query(
+        `SELECT code AS datasetId, status, revokedAt, revocationReason
        FROM resourceReleases
        WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
-    )
-    .all() as Array<{
-    datasetId: string
-    status: string
-    revokedAt: number | null
-    revocationReason: string | null
-  }>
-  const publishedReleaseSet = sqlite
-    .query(
-      `
+      )
+      .all() as Array<{
+      datasetId: string
+      status: string
+      revokedAt: number | null
+      revocationReason: string | null
+    }>
+    const publishedReleaseSet = sqlite
+      .query(
+        `
         SELECT ars.id AS apiReleaseSetId
         FROM apiReleaseSetSnapshots arss
         INNER JOIN apiReleaseSets ars ON ars.id = arss.apiReleaseSetId
         WHERE arss.snapshotId = ?
         LIMIT 1
       `,
-    )
-    .get('snapshot-release-dr-hk-overture-division-2026-02-18.0') as {
-    apiReleaseSetId: string
-  }
-  const provenanceRows = sqlite
-    .query(
-      `SELECT json_extract(f.value, '$.apiField') AS apiField, json_extract(f.value, '$.inputs') AS inputs FROM apiFieldProvenance p JOIN fieldLineageDefinitions d ON d.id=p.definitionId, json_each(d.definition, '$.fields') f WHERE p.apiReleaseSetId = ? ORDER BY apiField`,
-    )
-    .all(publishedReleaseSet.apiReleaseSetId) as Array<{
-    apiField: string
-    inputs: string
-  }>
+      )
+      .get('snapshot-release-dr-hk-overture-division-2026-02-18.0') as {
+      apiReleaseSetId: string
+    }
+    const provenanceRows = sqlite
+      .query(
+        `SELECT json_extract(f.value, '$.apiField') AS apiField, json_extract(f.value, '$.inputs') AS inputs FROM apiFieldProvenance p JOIN fieldLineageDefinitions d ON d.id=p.definitionId, json_each(d.definition, '$.fields') f WHERE p.apiReleaseSetId = ? ORDER BY apiField`,
+      )
+      .all(publishedReleaseSet.apiReleaseSetId) as Array<{
+      apiField: string
+      inputs: string
+    }>
 
-  sqlite.close()
+    expect(
+      sqlite.query('SELECT COUNT(*) AS count FROM apiCatalogRevisions').get(),
+    ).toEqual({
+      count: deferApiCatalogRevision ? 0 : 1,
+    })
+    expect(
+      sqlite
+        .query('SELECT status FROM apiVersionReleaseSets WHERE apiReleaseSetId = ?')
+        .get(publishedReleaseSet.apiReleaseSetId),
+    ).toEqual({ status: 'current' })
+    expect(
+      sqlite.query('SELECT status FROM snapshots WHERE id = ?').get(result.snapshotId!),
+    ).toEqual({ status: 'published' })
+    expect(Boolean(result.apiCatalogRevisionCode)).toBe(!deferApiCatalogRevision)
 
-  expect(result).toMatchObject({
-    apiReleaseSetId: publishedReleaseSet.apiReleaseSetId,
-    datasetId: 'dr-hk-overture-division-2026-02-18.0',
-    releaseCode: 'dr-hk-overture-division-2026-02-18.0',
-    resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
-    phase: null,
-    snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
-    status: 'current',
-  })
-  expect(rows).toEqual([
-    {
-      datasetId: 'dr-hk-overture-division-2026-01-21.0',
-      status: 'superseded',
-      revokedAt: null,
-      revocationReason: null,
-    },
-    {
+    sqlite.close()
+
+    expect(result).toMatchObject({
+      apiReleaseSetId: publishedReleaseSet.apiReleaseSetId,
       datasetId: 'dr-hk-overture-division-2026-02-18.0',
-      status: 'published',
-      revokedAt: null,
-      revocationReason: null,
-    },
-  ])
-  expect(sortProvenanceRows(provenanceRows)).toEqual(
-    sortProvenanceRows(
-      divisionFixtureOverture116To118.resources
-        .flatMap(group =>
-          group.fields.map(field => ({ ...field, resourceType: group.resourceType })),
-        )
-        .map(field => ({
-          apiField: field.apiField,
-          inputs: JSON.stringify(field.inputs),
-        })),
-    ),
-  )
-})
+      releaseCode: 'dr-hk-overture-division-2026-02-18.0',
+      resourceReleaseId: 'release-dr-hk-overture-division-2026-02-18.0',
+      phase: null,
+      snapshotId: 'snapshot-release-dr-hk-overture-division-2026-02-18.0',
+      status: 'current',
+    })
+    expect(rows).toEqual([
+      {
+        datasetId: 'dr-hk-overture-division-2026-01-21.0',
+        status: 'superseded',
+        revokedAt: null,
+        revocationReason: null,
+      },
+      {
+        datasetId: 'dr-hk-overture-division-2026-02-18.0',
+        status: 'published',
+        revokedAt: null,
+        revocationReason: null,
+      },
+    ])
+    expect(sortProvenanceRows(provenanceRows)).toEqual(
+      sortProvenanceRows(
+        divisionFixtureOverture116To118.resources
+          .flatMap(group =>
+            group.fields.map(field => ({ ...field, resourceType: group.resourceType })),
+          )
+          .map(field => ({
+            apiField: field.apiField,
+            inputs: JSON.stringify(field.inputs),
+          })),
+      ),
+    )
+  },
+)
 
 test('waits briefly for imported snapshot metadata before publishing', async () => {
   const tempDir = createTempDir()
