@@ -528,3 +528,12 @@ The `overture` Places domain uses `place/overture` as its `primary` member.
 `lookup`: they supply linked resources and matching context. The Address variants retain
 the same names when exposed through the Address domain; their role describes how the
 selected API collection uses them.
+
+## Processing policy ownership
+
+Overture ingestion retains publisher attributes and geometry in SOURCE. Place snapshot
+recipes own canonical normalisation, country selection, reference names and reviewed
+address matching. Supplementary Address recipes capture their Place normalisation
+prerequisite and address-analysis policy separately from publisher release policy.
+
+See the [processing policy contract](../pipeline.md#define-audit-processing-rules).

@@ -17,11 +17,17 @@ export type ApiFieldInput =
 
 export type ApiFieldRulePin = {
   ruleId: string
-  resourceReleaseId: string
   rulesetVersion: string
   rulesetVersionHash: string
   definitionHash: string
-}
+} & (
+  | { stage: 'ingestion'; resourceReleaseId: string }
+  | { stage: 'assembly'; snapshotRecipeId: string }
+)
+
+export type CapturedProcessingPolicy =
+  | { resourceReleaseId: string; processingRules: unknown }
+  | { snapshotRecipeId: string; processingRules: unknown }
 
 /** Resolve the most specific declared parent and preserve descendant keys and indices. */
 export function resolvePublisherFieldPaths(
@@ -89,7 +95,7 @@ export function validateApiFieldInputs(
 /** Resolve exclusively against the immutable definitions captured by selected releases. */
 export function pinApiFieldRules(
   field: { resolverCode: string; processingRuleIds?: string[] },
-  releases: Array<{ resourceReleaseId: string; processingRules: unknown }>,
+  releases: CapturedProcessingPolicy[],
 ): ApiFieldRulePin[] {
   const ids = [
     ...new Set([
@@ -101,6 +107,18 @@ export function pinApiFieldRules(
   ]
   const pins = new Map<string, ApiFieldRulePin>()
   for (const release of releases) {
+    const owner =
+      'resourceReleaseId' in release
+        ? { stage: 'ingestion' as const, resourceReleaseId: release.resourceReleaseId }
+        : { stage: 'assembly' as const, snapshotRecipeId: release.snapshotRecipeId }
+    const ownerKey = (pin: ApiFieldRulePin) =>
+      pin.stage === 'ingestion'
+        ? `release:${pin.resourceReleaseId}`
+        : `recipe:${pin.snapshotRecipeId}`
+    const key =
+      'resourceReleaseId' in release
+        ? `release:${release.resourceReleaseId}`
+        : `recipe:${release.snapshotRecipeId}`
     const captured = release.processingRules as {
       rulesets?: Array<{
         rulesetVersion: string
@@ -119,7 +137,7 @@ export function pinApiFieldRules(
             throw new Error(`Unpinned ruleset for ${ruleId}`)
           const pin = {
             ruleId,
-            resourceReleaseId: release.resourceReleaseId,
+            ...owner,
             rulesetVersion: ruleset.rulesetVersion,
             rulesetVersionHash: ruleset.rulesetVersionHash,
             definitionHash: computeVersionHash(definition),
@@ -138,7 +156,7 @@ export function pinApiFieldRules(
     }
     for (const id of ids) {
       const matches = [...pins.values()].filter(
-        pin => pin.ruleId === id && pin.resourceReleaseId === release.resourceReleaseId,
+        pin => pin.ruleId === id && ownerKey(pin) === key,
       )
       if (
         matches.length > 0 &&
@@ -150,7 +168,7 @@ export function pinApiFieldRules(
   for (const id of ids) {
     if (![...pins.values()].some(pin => pin.ruleId === id))
       throw new Error(
-        `API field processing rule is absent from selected releases: ${id}`,
+        `API field processing rule is absent from selected releases and snapshot recipes: ${id}`,
       )
   }
   return [...pins.values()].sort((a, b) =>

@@ -1,0 +1,30 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "retain-overture-source",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Retain the publisher ID, unchanged attribute values and native geometry; map attribute keys to the SOURCE storage convention and preserve release validity.",
+  "inputs": [
+    "publisher-feature"
+  ],
+  "outputs": [
+    "source-assertion"
+  ],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/sources/sourcePayload.ts",
+    "symbol": "overtureSourceRetentionRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Retain the publisher ID, unchanged attribute values and native geometry; map attribute keys to the SOURCE storage convention and preserve release validity."
+    },
+    "zh-hant": {
+      "description": "保留發布者識別碼、原始屬性值及來源幾何；按 SOURCE 儲存規約映射屬性鍵並保留版本有效期。"
+    },
+    "zh-hans": {
+      "description": "保留发布者识别码、原始属性值及来源几何；按 SOURCE 存储规约映射属性键并保留版本有效期。"
+    }
+  }
+}

@@ -5,8 +5,13 @@
   "scope": "individual",
   "basis": "fixture",
   "summary": "Apply curated names and descriptions for a statistic field or measure, including whether the translation has been checked.",
-  "inputs": ["statistic-localisation-curations"],
-  "outputs": ["statsFieldsI18n", "statsMeasuresI18n"],
+  "inputs": [
+    "statistic-localisation-curations"
+  ],
+  "outputs": [
+    "statsFieldsI18n",
+    "statsMeasuresI18n"
+  ],
   "parameters": {},
   "implementation": {
     "path": "apps/harbour-cli/src/lib/pipeline/statistics/statisticLocalisationRule.ts",
@@ -18,6 +23,17 @@
       "id": "statistic-measure-localisations",
       "summary": "A statistic measure requires a consistent reviewed localisation for each locale.",
       "consequence": "block-ingestion"
+    }
+  },
+  "i18n": {
+    "en": {
+      "description": "Apply curated names and descriptions for a statistic field or measure, including whether the translation has been checked."
+    },
+    "zh-hant": {
+      "description": "套用已審核的統計欄位及量度本地化資料。"
+    },
+    "zh-hans": {
+      "description": "应用已审核的统计字段及量度本地化资料。"
     }
   }
 }

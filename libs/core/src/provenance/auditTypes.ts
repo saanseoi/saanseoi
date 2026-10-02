@@ -20,6 +20,7 @@ export type RuleDeclaration = {
   basis: 'code' | 'fixture'
   review?: ReviewOrigin
   summary: string
+  i18n?: Record<string, { description: string }>
   inputs: string[]
   outputs: string[]
   parameters: JsonRecord
@@ -30,10 +31,11 @@ export type RuleDeclaration = {
 }
 
 /** The declaration and executor share the same immutable parameters. */
-export function registerRule<P extends JsonRecord, I, O>(
-  declaration: Omit<RuleDeclaration, 'parameters'> & { parameters: P },
-  execute: (input: I, parameters: Readonly<P>) => O,
-) {
+export function registerRule<
+  D extends Omit<RuleDeclaration, 'parameters'> & { parameters: JsonRecord },
+  I,
+  O,
+>(declaration: D, execute: (input: I, parameters: Readonly<D['parameters']>) => O) {
   const frozen = structuredClone(declaration)
   function freeze(value: object) {
     for (const item of Object.values(value))
@@ -43,7 +45,8 @@ export function registerRule<P extends JsonRecord, I, O>(
   freeze(frozen)
   return Object.freeze({
     declaration: frozen,
-    execute: (input: I) => execute(input, frozen.parameters),
+    execute: (input: I) =>
+      execute(input, frozen.parameters as Readonly<D['parameters']>),
   })
 }
 

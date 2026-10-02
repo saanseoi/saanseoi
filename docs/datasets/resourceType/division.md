@@ -1,6 +1,9 @@
 # Division ResourceType
 
-This document describes how the division resourceType is currently composed and used.
+The `division` resource type stores identities, names, classification and hierarchy. An
+**inventory** selects a coherent collection of these primary records within a domain.
+See the [inventory contract](../../../spec/divisions-inventories.md) for the target API
+selection and version boundary.
 
 Related source-specific docs:
 
@@ -8,11 +11,13 @@ Related source-specific docs:
 
 ## Scope
 
-The logical `ds-hk-overture-division` dataset is currently sourced from Overture only:
+Division datasets include native Overture records, curated SaanSeoi records and
+provider-specific division systems. Each retains its own dataset and release identity.
+Canonical storage uses a common schema without merging their inventories.
 
-- `publisherCode: overture`, `code: ds-hk-overture-division`
-
-There is no second division source in the current pipeline.
+The `geographic` domain can offer SaanSeoi and Overture inventories. Settlement names,
+planning units and housing market areas retain their distinct domain meanings. Area and
+boundary resource types provide geometry companions rather than primary inventories.
 
 ## Ingestion Model
 
@@ -70,8 +75,9 @@ and snapshots.
 
 ## Canonical Field Composition
 
-Because the division resourceType currently has only one source, canonical composition
-is straightforward:
+The following mappings describe native Overture ingestion. Curated SaanSeoi archives
+supply their own canonical identities, names, classification and ancestry; see the
+[SaanSeoi source contract](../sources/saanseoi/divisionArea.md).
 
 - `id`: Overture division `id`
 - `level`: derived from Overture subtype/class/admin hints, not copied raw
@@ -79,7 +85,7 @@ is straightforward:
 - `geometry`: decoded from Overture WKB when needed, otherwise passed through if already
   GeoJSON
 - `bbox`: copied from source when present
-- `identifiers`: genuine provider identifiers where a reviewed bridge exists
+- `identifiers`: genuine provider identifiers where a curated bridge exists
 - `wikidataId`: retained where present
 - `hierarchy`: normalised from Overture `hierarchies`; country/self entries are dropped,
   entries are mapped to canonical `level`/`type` using the matching division row when

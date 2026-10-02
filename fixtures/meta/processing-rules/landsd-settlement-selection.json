@@ -5,14 +5,33 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Select publisher Settlement records for the Divisions domain. Retain all other classes in the native source ledger.",
-  "inputs": ["native-place-name-records"],
-  "outputs": ["selected-settlements", "excluded-from-divisions"],
+  "inputs": [
+    "native-place-name-records"
+  ],
+  "outputs": [
+    "selected-settlements",
+    "excluded-from-divisions"
+  ],
   "parameters": {
     "includedClass": "Settlement",
-    "excludedClasses": ["Hydrographic", "Topographic"]
+    "excludedClasses": [
+      "Hydrographic",
+      "Topographic"
+    ]
   },
   "implementation": {
     "path": "apps/harbour-cli/src/lib/sources/hkgov/landsd/settlementSelection.ts",
     "symbol": "landsdSettlementSelectionRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Select publisher Settlement records for the Divisions domain. Retain all other classes in the native source ledger."
+    },
+    "zh-hant": {
+      "description": "按宣告分類從原生地名記錄選取聚落；其餘記錄保留為來源證據。"
+    },
+    "zh-hans": {
+      "description": "按声明分类从原生地名记录选取聚落；其余记录保留为来源证据。"
+    }
   }
 }

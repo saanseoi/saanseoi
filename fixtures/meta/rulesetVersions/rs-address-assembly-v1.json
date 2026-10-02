@@ -1,0 +1,30 @@
+{
+  "versionHash": "sha256:e126a15fdfde688a70c322536cea4311ad924fcec9adac614ad672b144a66998",
+  "code": "rs-address-assembly-v1",
+  "stage": "assembly",
+  "resourceType": "address",
+  "strategy": "assembly",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "curate-als-addresses",
+      "ruleFixture": "address-curation"
+    },
+    {
+      "operationCode": "normalise-als-addresses",
+      "ruleFixture": "address-normalisation"
+    },
+    {
+      "operationCode": "prepare-als-addresses",
+      "ruleFixture": "address-preparation"
+    },
+    {
+      "operationCode": "resolve-place-addresses",
+      "ruleFixture": "place-address-analysis"
+    },
+    {
+      "operationCode": "normalise-overture-places",
+      "ruleFixture": "place-normalisation"
+    }
+  ]
+}

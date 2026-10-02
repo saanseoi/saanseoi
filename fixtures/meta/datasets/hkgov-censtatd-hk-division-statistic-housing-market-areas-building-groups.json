@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8e008ab2110f7f8c9def08e5152efedb2d882f1a1f38e3dc73daf4b57b8a3d1e",
+  "versionHash": "sha256:1877f1f9fcd47805a079ecadf7171f4575072682e57b70a89d85673e66d92765",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
   "regionCode": "hk",
@@ -59,18 +59,6 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
-  "mergeRules": [
-    {
-      "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": [
-        "normalise_censtatd_statistic_source_assertion",
-        "curate_censtatd_measure_metadata",
-        "provenance_statistic_normalisation",
-        "provenance_statistic_localisation",
-        "provenance_division_area_geometry"
-      ]
-    }
-  ],
   "releases": [
     {
       "sourceVersion": "2021",
@@ -117,5 +105,13 @@
       "name": "人口普查：房屋市场分区及楼宇组别",
       "description": "政府统计处提供的房屋市场分区及楼宇组别人口普查统计和地理资料。"
     }
-  }
+  },
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-censtatd-division-statistic-housing-market-areas-building-groups"
+      ]
+    }
+  ]
 }

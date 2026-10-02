@@ -1,3 +1,5 @@
+import assemblyFixture from '../../../../../../../../fixtures/meta/processing-rules/landsd-street-assembly.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import type {
   LandsdStreetNameChangeScope,
   LandsdStreetNoticeApplicationDisposition,
@@ -94,7 +96,7 @@ export type LandsdStreetLifecycleResult = {
  * The reducer never resolves a street from `Previous G.N.`. Those references
  * are publisher provenance only; applications provide the reviewed target ID.
  */
-export function materialiseLandsdStreetLifecycle(input: {
+function materialiseLandsdStreetLifecycleInternal(input: {
   current: LandsdStreetMaterialisedStreet[]
   events: LandsdStreetLifecycleInput[]
 }): LandsdStreetLifecycleResult {
@@ -415,4 +417,14 @@ function cloneStreet(
 }
 function cloneI18n(items: LandsdStreetLifecycleI18n[]) {
   return items.map(item => ({ ...item }))
+}
+
+export const landsdStreetAssemblyRule = registerRule(
+  ruleDeclarationFromFixture(assemblyFixture),
+  materialiseLandsdStreetLifecycleInternal,
+)
+export function materialiseLandsdStreetLifecycle(
+  input: Parameters<typeof materialiseLandsdStreetLifecycleInternal>[0],
+) {
+  return landsdStreetAssemblyRule.execute(input)
 }

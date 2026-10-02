@@ -103,3 +103,13 @@ coordinates. The private FileGDB reader disables automatic WGS84 projection with
 changing other FileGDB consumers. Dataset `sourceCrs` is EPSG:2326; coordinate
 conversion belongs to a separately declared map derivative. Document-only street
 products retain a null CRS.
+
+## Processing policy ownership
+
+Native ingestion validates archive identity, references and counts and retains the
+nameplate, sensitive-street, strategic-street and pedestrian-street source assertions
+with native geometry. These SOURCE-only datasets do not claim canonical Street assembly
+or automatic identity matching.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

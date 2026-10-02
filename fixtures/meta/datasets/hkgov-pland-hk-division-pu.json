@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:68b4ccaff3610279e0079cde8ba49d7f80345276d2c68f1601fc91b5cb82e8c6",
+  "versionHash": "sha256:36601ab4e0109451834a74ab3cfff2364dc9c782beae9148f3e2bd053c7f71c6",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
@@ -159,13 +159,11 @@
       "description": "由规划署公布的第三级规划单位及分区边界格网衍生的规划区划。"
     }
   },
-  "mergeRules": [
+  "processingRules": [
     {
-      "rulesetVersion": "rs-division-hkgov-pland-pu-merge-v1",
+      "rulesetVersion": "rs-source-ingestion-v1",
       "operationCodes": [
-        "resolve-geography-identities",
-        "normalise-planning-divisions",
-        "provenance_division_area_geometry"
+        "ingest-hkgov-pland-division-pu"
       ]
     }
   ]

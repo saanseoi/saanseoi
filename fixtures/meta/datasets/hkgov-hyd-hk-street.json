@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:bbdd79730897697f63bdd7bfd8fa53c89bdd9896706842ab462b7164d0dc6644",
+  "versionHash": "sha256:cf914a5f20f16ee7cf24f65fd20b41b0beadd059a9bc4d634d23e12439ad2a4f",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-street",
   "regionCode": "hk",
@@ -71,5 +71,13 @@
       "description": "由路政署维修保养的街名牌点位置。ROAD_NAME 属性提供官方街道名称证据；点位并非街道中心线。"
     }
   },
-  "sourceCrs": "EPSG:2326"
+  "sourceCrs": "EPSG:2326",
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-hyd-street"
+      ]
+    }
+  ]
 }

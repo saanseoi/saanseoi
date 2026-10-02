@@ -5,7 +5,7 @@ import { registerRule } from './auditTypes'
 import { populationThousandsRule } from '../pipeline/services/statistics/statisticRules'
 
 test('JSON fixture declarations are validated and frozen with their execution parameters', () => {
-  expect(declaration).toEqual(populationThousandsRule.declaration)
+  expect<unknown>(declaration).toEqual(populationThousandsRule.declaration)
   expect(populationThousandsRule.execute('1.2345')).toBe('1234.5')
   const fixture = structuredClone(declaration)
   const rule = registerRule(

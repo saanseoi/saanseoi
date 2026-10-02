@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:886ea9951e9cb23bfa8b9f91606fb224973352e37bc38164dfedf13fd9f53dec",
+  "versionHash": "sha256:f7a25a924792be35ae340ae5626898f8e52610fa846f5905ef941509b854d10d",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters",
   "regionCode": "hk",
@@ -58,18 +58,6 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
-  "mergeRules": [
-    {
-      "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": [
-        "normalise_censtatd_statistic_source_assertion",
-        "curate_censtatd_measure_metadata",
-        "provenance_statistic_normalisation",
-        "provenance_statistic_localisation",
-        "provenance_division_area_geometry"
-      ]
-    }
-  ],
   "releases": [
     {
       "sourceVersion": "2023-H2",
@@ -104,5 +92,13 @@
       "name": "永久性居住屋宇单位",
       "description": "政府统计处提供的按地区及类型划分的永久性居住屋宇单位数目统计。"
     }
-  }
+  },
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-censtatd-division-statistic-permanent-living-quarters"
+      ]
+    }
+  ]
 }

@@ -1,0 +1,37 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "extract-protomaps-source",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Select native OSM island, islet and archipelago features and all coastline polygons; retain exact name locale suffixes, tags and geometry. Use native OSM IDs and geometry-content coastline IDs, rejecting conflicting duplicate identities.",
+  "inputs": [
+    "osm-features",
+    "coastline-features"
+  ],
+  "outputs": [
+    "prepared-protomaps-records"
+  ],
+  "parameters": {
+    "placeTags": [
+      "island",
+      "islet",
+      "archipelago"
+    ]
+  },
+  "implementation": {
+    "path": "apps/harbour-dataops/src/lib/protomapsIslands.ts",
+    "symbol": "protomapsSourceExtractionRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Select native OSM island, islet and archipelago features and all coastline polygons; retain exact name locale suffixes, tags and geometry. Use native OSM IDs and geometry-content coastline IDs, rejecting conflicting duplicate identities."
+    },
+    "zh-hant": {
+      "description": "選取原生 OSM 島嶼、小島、群島要素及所有海岸線多邊形；保留名稱的確切語言後綴、標籤及幾何。使用原生 OSM 識別碼及海岸線幾何內容識別碼，拒絕有衝突的重複識別碼。"
+    },
+    "zh-hans": {
+      "description": "选取原生 OSM 岛屿、小岛、群岛要素及所有海岸线多边形；保留名称的确切语言后缀、标签及几何。使用原生 OSM 识别码及海岸线几何内容识别码，拒绝有冲突的重复识别码。"
+    }
+  }
+}

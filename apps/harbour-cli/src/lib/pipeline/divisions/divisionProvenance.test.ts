@@ -203,3 +203,28 @@ test('retains Lantau classification and cohort hierarchy decisions as distinct a
   })
   expect(page.rows).toHaveLength(3)
 })
+
+test('translation summary separates record coverage, applied decisions and unused instructions', async () => {
+  const { divisionTranslationSummaryRule } = await import(
+    '@repo/core/pipeline/services/divisions/divisionProvenance'
+  )
+  const action = (id: string) => ({
+    action: 'division_name_human_translated',
+    mode: 'manual' as const,
+    affectedRecordCount: 1,
+    summary: 'Reviewed translation',
+    evidence: { canonicalDivision: { id } },
+  })
+  expect(
+    divisionTranslationSummaryRule.execute({
+      entries: 5,
+      selected: 2,
+      translations: [action('one'), action('one'), action('two')],
+    }),
+  ).toEqual({
+    inputs: { 'translation-instructions': 5 },
+    outputs: { 'translated-names': 3 },
+    recordsAffected: 2,
+    decisions: { applied: 3, selectedInstructions: 2, unusedInstructions: 3 },
+  })
+})

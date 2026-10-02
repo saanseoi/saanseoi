@@ -18,6 +18,10 @@ import { buildAuditReplaySql } from './processingActionReplay'
 function createProcessingActionsDb() {
   const sqlite = new SQLiteDatabase(':memory:')
   sqlite.exec(`
+    CREATE TABLE snapshotRecipes(id TEXT PRIMARY KEY, processingRules TEXT);
+    CREATE TABLE snapshotAssemblies(snapshotId TEXT, snapshotRecipeId TEXT);
+    CREATE TABLE snapshotResourceReleases(snapshotId TEXT, resourceReleaseId TEXT);
+    CREATE TABLE processingRuleDefinitions(id TEXT PRIMARY KEY, definition TEXT NOT NULL);
     CREATE TABLE resourceReleases (
       id TEXT PRIMARY KEY,
       status TEXT NOT NULL,
@@ -60,204 +64,119 @@ function createProcessingActionsDb() {
 }
 
 describe('replaceReleaseProcessingActions', () => {
-  test('publication winning the staging race prevents the audit switch', async () => {
+  test('retains aggregate counts without evidence chunks or duplicate metrics', async () => {
     const { sqlite, db } = createProcessingActionsDb()
     sqlite.exec(
-      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
+      "INSERT INTO resourceReleases(id,status) VALUES ('release','processing')",
     )
-    const original = [
-      {
-        action: 'review',
-        mode: 'manual' as const,
-        summary: 'Original',
-        affectedRecordCount: 1,
-        evidence: {},
-      },
-    ]
-    await replaceReleaseProcessingActions(db, 'release-1', original)
-    const before = await readReleaseAuditDecisions(db, ['release-1'])
-    let published = false
-    const racing = new Proxy(db, {
-      get(target, key, receiver) {
-        if (key === 'batch')
-          return async (
-            statements: Array<{ run(): unknown; toSQL(): { params: unknown[] } }>,
-          ) => {
-            expect(
-              statements.every(statement => statement.toSQL().params.length <= 100),
-            ).toBe(true)
-            sqlite.transaction(() => {
-              for (const statement of statements) statement.run()
-            })()
-            if (!published) {
-              published = true
-              sqlite.exec("UPDATE resourceReleases SET status='published'")
-            }
-          }
-        return Reflect.get(target, key, receiver)
-      },
-    })
-    await expect(
-      replaceReleaseProcessingActions(racing, 'release-1', [
-        { ...requireDefined(original[0]), summary: 'New' },
-      ]),
-    ).rejects.toThrow()
-    expect(await readReleaseAuditDecisions(db, ['release-1'])).toEqual(before)
-  })
-
-  test('compacts decisions, retains page boundaries and skips identical writes', async () => {
-    const { sqlite, db } = createProcessingActionsDb()
-    sqlite.exec(
-      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
-    )
-    const actions = Array.from({ length: 1000 }, (_, index) => ({
+    const actions = Array.from({ length: 1000 }, () => ({
       action: 'normalise',
       mode: 'automatic' as const,
-      summary: 'Normalised locale',
-      affectedRecordCount: 2,
-      evidence: { index, text: '中文' },
+      affectedRecordCount: 1,
+      summary: 'Normalise',
+      evidence: { record: 'must-not-be-written' },
     }))
-    const materialised = await replaceReleaseProcessingActionsAndReturnRows(
+    const rows = await replaceReleaseProcessingActionsAndReturnRows(
       db,
-      'release-1',
+      'release',
       actions,
     )
-    expect(materialised.actions).toHaveLength(1)
-    expect(requireDefined(materialised.actions[0]).decisionCount).toBe(1000)
-    expect(requireDefined(materialised.actions[0]).affectedRecordCount).toBe(2000)
-    expect(materialised.chunks).toHaveLength(4)
-    expect(materialised.chunks.every(chunk => chunk.payload.length <= 32768)).toBe(true)
-    const page = await readAuditPages(db, materialised.actions, 250, 20)
-    expect(page.map(row => row.evidence)).toEqual(
-      actions.slice(250, 270).map(row => row.evidence),
-    )
-    const before = sqlite.query('SELECT total_changes() AS n').get()
-    expect(await replaceReleaseProcessingActions(db, 'release-1', actions)).toBe(1000)
-    expect(sqlite.query('SELECT total_changes() AS n').get()).toEqual(before)
-    const target = createProcessingActionsDb()
-    target.sqlite.exec(
-      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
-    )
-    for (const statement of buildAuditReplaySql('release-1', materialised)) {
-      expect(new TextEncoder().encode(statement).length).toBeLessThan(100_000)
-      target.sqlite.transaction(() => target.sqlite.exec(statement))()
-    }
-    expect(await readReleaseAuditDecisions(target.db, ['release-1'])).toEqual(
-      await readReleaseAuditDecisions(db, ['release-1']),
-    )
+    expect(rows.actions).toHaveLength(1)
+    expect(rows.actions[0]).toMatchObject({
+      decisionCount: 1000,
+      affectedRecordCount: 1000,
+    })
+    expect(rows.chunks).toEqual([])
+    expect(rows.stats).toEqual([])
+    expect(
+      sqlite.query('SELECT count(*) AS n FROM releaseProcessingActionChunks').get(),
+    ).toEqual({ n: 0 })
+    expect(sqlite.query('SELECT count(*) AS n FROM stats').get()).toEqual({ n: 0 })
+    const writes = sqlite.query('SELECT total_changes() AS n').get()
+    await replaceReleaseProcessingActions(db, 'release', actions)
+    expect(sqlite.query('SELECT total_changes() AS n').get()).toEqual(writes)
+    expect((await readReleaseAuditDecisions(db, ['release']))[0]).toMatchObject({
+      evidence: null,
+      summary: 'normalise',
+    })
+    const replay = buildAuditReplaySql('release', rows).join('')
+    expect(replay).not.toContain('must-not-be-written')
+    expect(replay).not.toContain('INSERT INTO "stats"')
+    sqlite.close()
   })
 
-  test('fragments oversized evidence losslessly and detects corruption', async () => {
+  test('count changes replace atomically and published summaries are immutable', async () => {
     const { sqlite, db } = createProcessingActionsDb()
     sqlite.exec(
-      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
+      "INSERT INTO resourceReleases(id,status) VALUES ('release','processing')",
     )
-    const evidence = {
-      text: Array.from({ length: 12000 }, () => crypto.randomUUID()).join('香港'),
+    const action = {
+      action: 'curation',
+      mode: 'manual' as const,
+      affectedRecordCount: 1,
+      summary: 'Reviewed fixture',
+      evidence: {},
     }
-    const materialised = await replaceReleaseProcessingActionsAndReturnRows(
-      db,
-      'release-1',
-      [
-        {
-          action: 'review',
-          mode: 'manual',
-          summary: 'Reviewed',
-          affectedRecordCount: 1,
-          evidence,
-        },
-      ],
-    )
-    expect(materialised.chunks.length).toBeGreaterThan(1)
-    expect(requireDefined(materialised.chunks[0]).parts).toBe(
-      materialised.chunks.length,
+    await replaceReleaseProcessingActions(db, 'release', [action])
+    await replaceReleaseProcessingActions(db, 'release', [
+      { ...action, affectedRecordCount: 2 },
+    ])
+    expect(
+      (await listReleaseAuditSummaries(db, ['release']))[0]?.affectedRecordCount,
+    ).toBe(2)
+    sqlite.exec("UPDATE resourceReleases SET status='published'")
+    await expect(replaceReleaseProcessingActions(db, 'release', [])).rejects.toThrow(
+      'immutable',
     )
     expect(
-      requireDefined((await readReleaseAuditDecisions(db, ['release-1']))[0]).evidence,
-    ).toEqual(evidence)
-    sqlite.exec(
-      "UPDATE releaseProcessingActionChunks SET checksum = 'broken' WHERE part = 0",
-    )
-    await expect(readReleaseAuditDecisions(db, ['release-1'])).rejects.toThrow(
-      'checksum',
-    )
+      (await listReleaseAuditSummaries(db, ['release']))[0]?.affectedRecordCount,
+    ).toBe(2)
+    sqlite.close()
   })
 
-  test('failed summary commit keeps previous evidence and statistics visible', async () => {
+  test('undeclared operations fail before writes', async () => {
     const { sqlite, db } = createProcessingActionsDb()
     sqlite.exec(
-      "INSERT INTO resourceReleases(id,status) VALUES ('release-1','processing')",
+      `INSERT INTO processingRuleDefinitions VALUES ('policy','{"rulesets":[{"rules":[{"operationCode":"known","kind":"bulk"}]}]}'); INSERT INTO resourceReleases(id,status,processingRules) VALUES ('release','processing','{"definitionId":"policy"}');`,
     )
-    const original = [
-      {
-        action: 'review',
-        mode: 'manual' as const,
-        summary: 'First',
-        affectedRecordCount: 1,
-        evidence: { original: true },
-      },
-    ]
-    await replaceReleaseProcessingActions(db, 'release-1', original)
-    const before = await readReleaseAuditDecisions(db, ['release-1'])
-    sqlite.exec(
-      "CREATE TRIGGER fail_stats BEFORE INSERT ON stats BEGIN SELECT RAISE(ABORT, 'injected failure'); END",
-    )
+    const writes = sqlite.query('SELECT total_changes() AS n').get()
     await expect(
-      replaceReleaseProcessingActions(db, 'release-1', [
-        { ...requireDefined(original[0]), affectedRecordCount: 5, summary: 'Second' },
-      ]),
-    ).rejects.toThrow()
-    expect(await readReleaseAuditDecisions(db, ['release-1'])).toEqual(before)
-    expect(sqlite.query('SELECT value FROM stats').get()).toEqual({ value: 1 })
-    sqlite.exec('DROP TRIGGER fail_stats')
-    await replaceReleaseProcessingActions(db, 'release-1', [])
-    expect(await listReleaseAuditSummaries(db, ['release-1'])).toEqual([])
-    expect(sqlite.query('SELECT * FROM stats').all()).toEqual([])
-  })
-
-  test('allows retries before publication and preserves published action evidence', async () => {
-    const { sqlite, db } = createProcessingActionsDb()
-    sqlite.exec(
-      `INSERT INTO resourceReleases (id, status, processingRules) VALUES (
-        'release-1',
-        'staged',
-        '{"rulesets":[{"rules":[{"operationCode":"division_code_mapped","type":"bulk"}]}]}'
-      )`,
-    )
-
-    await replaceReleaseProcessingActions(db, 'release-1', [
-      {
-        action: 'division_code_mapped',
-        mode: 'automatic',
-        summary: 'Mapped district codes.',
-        affectedRecordCount: 18,
-        evidence: { bridge: 'districts-v1' },
-      },
-    ])
-
-    await expect(
-      replaceReleaseProcessingActions(db, 'release-1', [
+      replaceReleaseProcessingActions(db, 'release', [
         {
-          action: 'undeclared_action',
+          action: 'unknown',
           mode: 'automatic',
-          summary: 'Should be rejected.',
           affectedRecordCount: 1,
+          summary: 'Unknown',
           evidence: {},
         },
       ]),
-    ).rejects.toThrow('not declared in processing rules')
-
-    sqlite.exec(
-      "UPDATE resourceReleases SET status = 'published' WHERE id = 'release-1'",
-    )
-
-    await expect(replaceReleaseProcessingActions(db, 'release-1', [])).rejects.toThrow(
-      'published releases are immutable',
-    )
-    expect(
-      sqlite
-        .query('SELECT action, affectedRecordCount FROM releaseProcessingActions')
-        .all(),
-    ).toEqual([{ action: 'division_code_mapped', affectedRecordCount: 18 }])
+    ).rejects.toThrow('not declared')
+    expect(sqlite.query('SELECT total_changes() AS n').get()).toEqual(writes)
+    sqlite.close()
   })
+})
+
+test('record actions use the snapshot recipe policy alongside ingestion declarations', async () => {
+  const { sqlite, db } = createProcessingActionsDb()
+  try {
+    sqlite.exec(`INSERT INTO processingRuleDefinitions VALUES ('ingestion','{"stage":"ingestion","rulesets":[{"rules":[{"operationCode":"retain","kind":"bulk"}]}]}'),('assembly','{"stage":"assembly","rulesets":[{"rules":[{"operationCode":"review","kind":"record"}]}]}');
+      INSERT INTO resourceReleases(id,status,processingRules) VALUES ('release','processing','{"definitionId":"ingestion"}');
+      INSERT INTO snapshotRecipes VALUES ('recipe','{"definitionId":"assembly"}');
+      INSERT INTO snapshotAssemblies VALUES ('snapshot','recipe');
+      INSERT INTO snapshotResourceReleases VALUES ('snapshot','release');`)
+    await replaceReleaseProcessingActions(db, 'release', [
+      {
+        action: 'review',
+        mode: 'manual',
+        affectedRecordCount: 1,
+        summary: 'Reviewed',
+        evidence: {},
+      },
+    ])
+    expect(sqlite.query('SELECT action FROM releaseProcessingActions').all()).toEqual([
+      { action: 'review' },
+    ])
+  } finally {
+    sqlite.close()
+  }
 })

@@ -209,3 +209,12 @@ The native Place Name adapter projects EPSG:2326 easting/northing through the sh
 alone does not supply the datum shift. `sourceGeometry` retains publisher coordinates;
 projected geometry uses WGS84 and excludes native metre-based bounding boxes.
 Independent PROJ controls verify both longitude and latitude.
+
+## Processing policy ownership
+
+Native ingestion validates archive identity and source references and retains place-name
+properties and geometry. Settlement selection, identity matching and canonical Division
+assembly belong to the selected snapshot recipe.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

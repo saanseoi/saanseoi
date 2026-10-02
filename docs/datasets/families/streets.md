@@ -197,3 +197,13 @@ Road Centreline ingestion retains unmatched and ambiguous named segments as unre
 in `.cache/road-centreline-review/`. Publisher source rows and native geometry are
 ingested without guessing a canonical street identity. Existing reviewed matches remain
 effective. Later review can inform revised releases.
+
+## Processing policy ownership
+
+Native ingestion retains publisher assertions, geometry and release validity. LandsD PDF
+ingestion retains prepared baseline and notice evidence in its existing dedicated SOURCE
+columns. Reviewed lifecycle applications and canonical Streets/localisations belong to
+the Street snapshot recipe. Diana Pang has no implemented SOURCE importer and therefore
+has no declared processing policy.
+
+See the [processing policy contract](../pipeline.md#define-audit-processing-rules).

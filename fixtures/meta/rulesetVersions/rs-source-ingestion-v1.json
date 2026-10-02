@@ -1,0 +1,1603 @@
+{
+  "versionHash": "sha256:d425acde693e409c24a0da756a2d683bf5fc0bcdcdd9b1ed56c13f012018e116",
+  "code": "rs-source-ingestion-v1",
+  "stage": "ingestion",
+  "strategy": "ingestion",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "ingest-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
+      "ruleFixture": "censtatd-generic-source-assertion",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-censtatd-statistics",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceGeometry"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-censtatd-division-statistic-land-area-population-density-district",
+      "ruleFixture": "censtatd-source-assertion",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-censtatd-district-statistics",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-censtatd-division-statistic-major-housing-estates",
+      "ruleFixture": "censtatd-generic-source-assertion",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-censtatd-statistics",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-censtatd-division-statistic-new-towns",
+      "ruleFixture": "censtatd-generic-source-assertion",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-censtatd-statistics",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
+      "ruleFixture": "censtatd-generic-source-assertion",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-censtatd-statistics",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-censtatd-division-statistic-permanent-living-quarters",
+      "ruleFixture": "censtatd-generic-source-assertion",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-censtatd-statistics",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-censtatd-division-statistic-population-households-district",
+      "ruleFixture": "censtatd-generic-source-assertion",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-censtatd-statistics",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdStatistics",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-censtatd-division-statistic-subdivided-units-district",
+      "ruleFixture": "censtatd-generic-source-assertion",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-censtatd-statistics",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovCenstatdDivisionAreas",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-dpo-address",
+      "ruleFixture": "als-source-retention",
+      "sourceFields": [
+        {
+          "origin": "publisher",
+          "collection": "publisher-feature",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses2d",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses2d",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses2d",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses2d",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses2d",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses2d",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses3d",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses3d",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses3d",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses3d",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses3d",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses3d",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses2d",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses3d",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses2d",
+          "path": "sourceGeometry"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovAlsAddresses3d",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-had-division-area-district",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovHadDivisionAreas",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHadDivisionAreas",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHadDivisionAreas",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHadDivisionAreas",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHadDivisionAreas",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHadDivisionAreas",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHadDivisionAreas",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHadDivisionAreas",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-hyd-pedestrian-street",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovTdPedestrianStreets",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovTdPedestrianStreets",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovTdPedestrianStreets",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovTdPedestrianStreets",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovTdPedestrianStreets",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovTdPedestrianStreets",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovTdPedestrianStreets",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovTdPedestrianStreets",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-hyd-sensitive-street",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovHydSensitiveStreets",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydSensitiveStreets",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydSensitiveStreets",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydSensitiveStreets",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydSensitiveStreets",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydSensitiveStreets",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydSensitiveStreets",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydSensitiveStreets",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-hyd-strategic-street",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovHydStrategicStreets",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStrategicStreets",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStrategicStreets",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStrategicStreets",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStrategicStreets",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStrategicStreets",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStrategicStreets",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStrategicStreets",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-hyd-street",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovHydStreetNamePlates",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStreetNamePlates",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStreetNamePlates",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStreetNamePlates",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStreetNamePlates",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStreetNamePlates",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStreetNamePlates",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovHydStreetNamePlates",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-landsd-division",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdPlaceNames",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdPlaceNames",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdPlaceNames",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdPlaceNames",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdPlaceNames",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdPlaceNames",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdPlaceNames",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdPlaceNames",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-landsd-road-centreline",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdRoadCentrelines",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdRoadCentrelines",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdRoadCentrelines",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdRoadCentrelines",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdRoadCentrelines",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdRoadCentrelines",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdRoadCentrelines",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdRoadCentrelines",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-landsd-street",
+      "ruleFixture": "landsd-street-source-retention",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-street-evidence",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetNotices",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetNotices",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetNotices",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetNotices",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetNotices",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetNotices",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "nameEn"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "nameZhHant"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "districtCode"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovLandsdStreetBaselineRecords",
+          "path": "sources"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-pland-division-new-town",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovPlandNewTowns",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandNewTowns",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandNewTowns",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandNewTowns",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandNewTowns",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandNewTowns",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandNewTowns",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandNewTowns",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-pland-division-pu",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovPlandPlanningCells",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandPlanningCells",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandPlanningCells",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandPlanningCells",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandPlanningCells",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandPlanningCells",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandPlanningCells",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovPlandPlanningCells",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-hkgov-rvd-division",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "hkgovRvdAreas",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovRvdAreas",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovRvdAreas",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovRvdAreas",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovRvdAreas",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovRvdAreas",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "hkgovRvdAreas",
+          "path": "properties"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-overture-division-area",
+      "ruleFixture": "overture-source-retention",
+      "sourceFields": [
+        {
+          "origin": "publisher",
+          "collection": "publisher-feature",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "overtureDivisionAreas",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionAreas",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionAreas",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionAreas",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionAreas",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionAreas",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionAreas",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionAreas",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-overture-division-boundary",
+      "ruleFixture": "overture-source-retention",
+      "sourceFields": [
+        {
+          "origin": "publisher",
+          "collection": "publisher-feature",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "overtureDivisionBoundaries",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionBoundaries",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionBoundaries",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionBoundaries",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionBoundaries",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionBoundaries",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionBoundaries",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisionBoundaries",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-overture-division",
+      "ruleFixture": "overture-source-retention",
+      "sourceFields": [
+        {
+          "origin": "publisher",
+          "collection": "publisher-feature",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "overtureDivisions",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisions",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisions",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisions",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisions",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisions",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisions",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "overtureDivisions",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-overture-place",
+      "ruleFixture": "overture-source-retention",
+      "sourceFields": [
+        {
+          "origin": "publisher",
+          "collection": "publisher-feature",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "overturePlaces",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "overturePlaces",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "overturePlaces",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "overturePlaces",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "overturePlaces",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "overturePlaces",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "overturePlaces",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "overturePlaces",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-protomaps-island",
+      "ruleFixture": "native-source-import",
+      "sourceFields": [
+        {
+          "origin": "intermediate",
+          "collection": "publisher-records",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "protomapsIslandFeatures",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "protomapsIslandFeatures",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "protomapsIslandFeatures",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "protomapsIslandFeatures",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "protomapsIslandFeatures",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "protomapsIslandFeatures",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "protomapsIslandFeatures",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "protomapsIslandFeatures",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "extract-protomaps-source",
+      "ruleFixture": "protomaps-source-extraction",
+      "sourceFields": [
+        {
+          "origin": "publisher",
+          "collection": "osm-features",
+          "path": "properties.place"
+        },
+        {
+          "origin": "publisher",
+          "collection": "osm-features",
+          "path": "id"
+        },
+        {
+          "origin": "publisher",
+          "collection": "osm-features",
+          "path": "properties"
+        },
+        {
+          "origin": "publisher",
+          "collection": "osm-features",
+          "path": "geometry"
+        },
+        {
+          "origin": "publisher",
+          "collection": "coastline-features",
+          "path": "geometry"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "intermediate",
+          "collection": "prepared-protomaps-records",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "intermediate",
+          "collection": "prepared-protomaps-records",
+          "path": "properties"
+        },
+        {
+          "origin": "intermediate",
+          "collection": "prepared-protomaps-records",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-saanseoi-division-area",
+      "ruleFixture": "saanseoi-source-retention",
+      "sourceFields": [
+        {
+          "origin": "publisher",
+          "collection": "reviewed-source-record",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "ssDivisionArea",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivisionArea",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivisionArea",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivisionArea",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivisionArea",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivisionArea",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivisionArea",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivisionArea",
+          "path": "sourceGeometry"
+        }
+      ]
+    },
+    {
+      "operationCode": "ingest-saanseoi-division",
+      "ruleFixture": "saanseoi-source-retention",
+      "sourceFields": [
+        {
+          "origin": "publisher",
+          "collection": "reviewed-source-record",
+          "path": "*"
+        }
+      ],
+      "targetFields": [
+        {
+          "origin": "source",
+          "collection": "ssDivision",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivision",
+          "path": "versionHash"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivision",
+          "path": "resourceReleaseId"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivision",
+          "path": "validFromRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivision",
+          "path": "validToRelease"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivision",
+          "path": "isCurrent"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivision",
+          "path": "properties"
+        },
+        {
+          "origin": "source",
+          "collection": "ssDivision",
+          "path": "sourceGeometry"
+        }
+      ]
+    }
+  ]
+}

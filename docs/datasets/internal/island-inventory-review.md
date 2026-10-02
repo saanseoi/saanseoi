@@ -63,9 +63,11 @@ islets. A group label point does not establish that extent; retain reviewed grou
 membership or boundary evidence. Flag unmatched names, ambiguous matches, reclamation,
 bridge connections and missing small islands.
 
-The current review policy is recorded in
-`fixtures/meta/curations/saanseoi-island-review.json` as `geometryPolicy` version 1. It
-formalises the rejected examples: remove man-made attachments; separate separately named
+The review decisions are recorded in `division-exclusions.json`, source identity matches
+in `division-identity-matches.json`, source selections in
+`division-geometry-selections.json`, and authored corrections in
+`division-geometry.json`, under `fixtures/meta/curations/saanseoi-division/`. They
+formalise the rejected examples: remove man-made attachments; separate separately named
 landforms and tombolo-connected land; re-anchor a displaced source point; and merge
 aliases into one physical identity while retaining source assertions. Rejection codes
 are retained beside the human-readable review notes so later geometry extraction can

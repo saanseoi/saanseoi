@@ -1047,6 +1047,8 @@ const processingActionBelongsToApiRelease = (
         on ${metaApiReleaseSetSnapshots.snapshotId} = ${metaSnapshotResourceReleases.snapshotId}
       inner join ${metaApiReleaseSets}
         on ${metaApiReleaseSets.id} = ${metaApiReleaseSetSnapshots.apiReleaseSetId}
+      inner join ${metaApiVersionReleaseSets}
+        on ${metaApiVersionReleaseSets.apiReleaseSetId} = ${metaApiReleaseSets.id}
       inner join ${metaApiVersions}
         on ${metaApiVersions.id} = ${metaApiVersionReleaseSets.apiVersionId}
       where ${metaApiVersions.familyType} = ${input.familyType}
@@ -2195,7 +2197,12 @@ async function runAtomicWriteStatements(
   if (typeof db.transaction === 'function') {
     await db.transaction(async tx => {
       for (const statement of buildStatements(tx)) {
-        await statement.run()
+        try {
+          await statement.run()
+        } catch (error) {
+          console.error('FAILING STATEMENT', (statement as any).toSQL())
+          throw error
+        }
       }
     })
     return
@@ -4304,8 +4311,8 @@ export async function listOvertureReleaseSetCohortsAtOrAfterCohortKey(
   regionCode: RegionCode,
   cohortKey: string,
   domainCode = 'geographic',
+  apiVersionCode = getApiVersionCodeForType(resourceType),
 ) {
-  const apiVersionCode = getApiVersionCodeForType(resourceType)
   const rows = await db
     .select({
       cohortKey: metaApiReleaseSets.cohortKey,

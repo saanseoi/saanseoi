@@ -5,11 +5,26 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Check that each C&SD statistic has a valid reporting period, then keep its published fields, map shape, references and release details.",
-  "inputs": ["prepared-censtatd-district-statistics"],
-  "outputs": ["source-statistic-assertions"],
+  "inputs": [
+    "prepared-censtatd-district-statistics"
+  ],
+  "outputs": [
+    "source-statistic-assertions"
+  ],
   "parameters": {},
   "implementation": {
     "path": "apps/harbour-cli/src/lib/pipeline/statistics/processLocalHkgovCenstatdDistrictStatisticSqlUpload.ts",
     "symbol": "censtatdSourceAssertionRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Check that each C&SD statistic has a valid reporting period, then keep its published fields, map shape, references and release details."
+    },
+    "zh-hant": {
+      "description": "驗證統計處報告期並保留原始屬性、幾何、參照及版本有效期。"
+    },
+    "zh-hans": {
+      "description": "验证统计处报告期并保留原始属性、几何、参照及版本有效期。"
+    }
   }
 }

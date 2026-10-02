@@ -142,7 +142,7 @@ test('marks the superseded monthly dataset historic when publishing a new curren
   }
   const provenanceRows = sqlite
     .query(
-      'SELECT apiField, inputs FROM apiFieldProvenance WHERE apiReleaseSetId = ? ORDER BY apiField',
+      `SELECT json_extract(f.value, '$.apiField') AS apiField, json_extract(f.value, '$.inputs') AS inputs FROM apiFieldProvenance p JOIN fieldLineageDefinitions d ON d.id=p.definitionId, json_each(d.definition, '$.fields') f WHERE p.apiReleaseSetId = ? ORDER BY apiField`,
     )
     .all(publishedReleaseSet.apiReleaseSetId) as Array<{
     apiField: string
@@ -589,5 +589,53 @@ test('publishes an Overture baseline independently of the curated geographic API
       )
       .get('previous-baseline'),
   ).toEqual({ status: 'superseded', supersededByResourceReleaseId: resourceReleaseId })
+  sqlite.close()
+})
+
+test('native Division publication uses the current API when v0.1 is archived', async () => {
+  const sqlite = initDb(join(createTempDir(), 'current-division-api.sqlite'))
+  const db = createLocalHarbourDb(sqlite)
+  sqlite.exec(`
+    INSERT INTO apiVersions (id, code, familyType, version, status, versionHash, createdAt, updatedAt)
+      SELECT 'current-divisions-v02', 'api-divisions-v0.2', familyType, '0.2', 'current', versionHash, createdAt, updatedAt
+      FROM apiVersions WHERE code='api-divisions-v0.1';
+    UPDATE apiComposition SET apiVersionId='current-divisions-v02'
+      WHERE apiVersionId=(SELECT id FROM apiVersions WHERE code='api-divisions-v0.1');
+    UPDATE apiVersions SET status='archived' WHERE code='api-divisions-v0.1';
+    UPDATE apiCompositionMembers SET role='inventory'
+      WHERE domainCode='geographic' AND resourceType='division' AND variant='overture';
+    INSERT INTO apiCompositionMembers (apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, priority)
+      SELECT apiCompositionId, domainCode, resourceType, 'saanseoi', 'primary', 1, 'exact_ref', 0
+      FROM apiCompositionMembers WHERE domainCode='geographic' AND resourceType='division' AND variant='overture';
+  `)
+  const resourceReleaseId = 'native-division-current-api'
+  insertFixtureRelease(sqlite, {
+    resourceReleaseId,
+    source: 'overture',
+    regionCode: 'hk',
+    cohortKey: '2025-09-24.0',
+    resourceType: 'division',
+    sourceVersion: '2025-09-24.0',
+    rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
+    originalFileName: 'division.parquet',
+    status: 'processing',
+    ingestedAt: '2026-10-02T00:00:00.000Z',
+    createdAt: '2026-10-02T00:00:00.000Z',
+    updatedAt: '2026-10-02T00:00:00.000Z',
+  })
+  const snapshotId = seedSnapshot(sqlite, {
+    code: 'native-current-api',
+    resourceReleaseId,
+  })
+  const before = sqlite.query('SELECT count(*) n FROM apiReleaseSets').get()
+  const result = await handlePublishDataset(db, {
+    resourceReleaseId,
+    deferApiReleaseSet: true,
+  })
+  expect(result.status).toBe('published')
+  expect(
+    sqlite.query('SELECT status FROM snapshots WHERE id=?').get(snapshotId),
+  ).toEqual({ status: 'published' })
+  expect(sqlite.query('SELECT count(*) n FROM apiReleaseSets').get()).toEqual(before)
   sqlite.close()
 })

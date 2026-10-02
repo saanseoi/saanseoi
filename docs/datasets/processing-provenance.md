@@ -6,6 +6,26 @@ separately by `resourceReleases.sourceReleaseId`. Manifest fields are part of th
 content-addressed contract: SQL schema migrations do not rewrite R2 objects or retained
 local checkpoints. Artefacts must satisfy the producer and reader contract before reuse.
 
+## Captured processing policies
+
+Dataset and source/resource release policies describe publisher-to-SOURCE ingestion.
+Canonical assembly rules are retained on the snapshot's content-addressed recipe.
+Assembly hashes include exact declarations, parameters, dependencies and field
+references. Draft snapshots can acquire a revised recipe; published snapshots retain the
+recipe that produced them. SQL replay emits the immutable policy definition before its
+recipe and assembly rows. Missing historical policies remain unknown.
+
+API field provenance pins ingestion rules with `resourceReleaseId` and assembly rules
+with `snapshotRecipeId`, together with ruleset and definition hashes. It reads captured
+policies, never current dataset fixtures. Bulk audit summaries identify their source
+release or snapshot as appropriate. The existing audit manifests retain run evidence
+under their resource-release identifier; that evidence does not assign assembly policy
+ownership to the publisher dataset.
+
+Policy rules share a schema and use `kind: bulk | record` to group scope. Interfaces are
+arrays of identifiers; optional column references use `origin`, `collection` and one
+programmatic `path`. Localised descriptions explain processing but cannot act as paths.
+
 ## Reuse and reset controls
 
 R2 provenance reuse is automatic. Objects use their canonical JSON SHA-256 as the

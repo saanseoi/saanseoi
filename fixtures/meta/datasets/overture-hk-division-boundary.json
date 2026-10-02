@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:cb0f4db3058575c8ed06a71ebfe7053e715f876a9b9a157f690084c5f98e491f",
+  "versionHash": "sha256:9c83aa1c76a48f1c825ad95027fed12804bd6f5226ccb410a12b5c1fc4f9e75a",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-boundary",
   "regionCode": "hk",
@@ -49,14 +49,6 @@
     "correctionSuffixSource": "upstream"
   },
   "category": "places",
-  "mergeRules": [
-    {
-      "rulesetVersion": "rs-division-merge-v1",
-      "operationCodes": [
-        "overture_division_geometry_cn_gd_excluded"
-      ]
-    }
-  ],
   "i18n": {
     "en": {
       "name": "Division Boundaries",
@@ -71,5 +63,13 @@
       "description": "边界代表相同 subtype 区划之间的界线。在香港，只有区级区划具有边界，因为这些是特区内唯一的正式行政级别。"
     }
   },
-  "sourceCrs": "EPSG:4326"
+  "sourceCrs": "EPSG:4326",
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-overture-division-boundary"
+      ]
+    }
+  ]
 }

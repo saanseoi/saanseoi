@@ -1,0 +1,62 @@
+{
+  "versionHash": "sha256:ec51e30bea69edaa9dfbcc83ba9d8221543a817c8dceb7ec98352e97d061fa89",
+  "code": "rs-division-assembly-v1",
+  "stage": "assembly",
+  "resourceType": "division",
+  "strategy": "assembly",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "assemble-curated-divisions",
+      "ruleFixture": "curated-division-assembly"
+    },
+    {
+      "operationCode": "apply-division-classification-patch",
+      "ruleFixture": "division-classification"
+    },
+    {
+      "operationCode": "normalise-divisions",
+      "ruleFixture": "division-normalisation"
+    },
+    {
+      "operationCode": "apply-division-name-translation",
+      "ruleFixture": "division-translation"
+    },
+    {
+      "operationCode": "summarise-division-name-translations",
+      "ruleFixture": "division-translation-summary"
+    },
+    {
+      "operationCode": "apply-geographic-hierarchy-patch",
+      "ruleFixture": "geographic-hierarchy-patch"
+    },
+    {
+      "operationCode": "resolve-geography-identities",
+      "ruleFixture": "geography-identities"
+    },
+    {
+      "operationCode": "select-landsd-settlements",
+      "ruleFixture": "landsd-settlement-selection"
+    },
+    {
+      "operationCode": "normalise-planning-divisions",
+      "ruleFixture": "planning-division-normalisation"
+    },
+    {
+      "operationCode": "curate-statistic-fields",
+      "ruleFixture": "statistic-field-curation"
+    },
+    {
+      "operationCode": "apply-statistic-localisation",
+      "ruleFixture": "statistic-localisation"
+    },
+    {
+      "operationCode": "normalise-censtatd-statistics",
+      "ruleFixture": "statistic-normalisation"
+    },
+    {
+      "operationCode": "decode_wkb_geometry_to_geojson",
+      "ruleFixture": "wkb-geometry"
+    }
+  ]
+}

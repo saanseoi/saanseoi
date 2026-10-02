@@ -5,11 +5,27 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Keep usable Overture place records with their map point, names, categories, brand, contact details and published address. Leave out records without a publisher ID or map point.",
-  "inputs": ["publisher-places"],
-  "outputs": ["places", "placesI18n"],
+  "inputs": [
+    "publisher-places"
+  ],
+  "outputs": [
+    "places",
+    "placesI18n"
+  ],
   "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/places/place.ts",
     "symbol": "placeNormalisationRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Keep usable Overture place records with their map point, names, categories, brand, contact details and published address. Leave out records without a publisher ID or map point."
+    },
+    "zh-hant": {
+      "description": "建立可用的 Overture 地點及本地化名稱，保留座標、分類、品牌、聯絡方式及發布者地址。"
+    },
+    "zh-hans": {
+      "description": "建立可用的 Overture 地点及本地化名称，保留坐标、分类、品牌、联系方式及发布者地址。"
+    }
   }
 }

@@ -1,4 +1,5 @@
 import translationSummaryFixture from '../../../../../../fixtures/meta/processing-rules/division-translation-summary.json'
+import { registerRule } from '../../../provenance/auditTypes'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import {
   geographicHierarchyFixture,
@@ -101,6 +102,34 @@ function actionRegistry(
 }
 
 /** Bulk actions discard their transient row evidence at this boundary. */
+
+export const divisionTranslationSummaryRule = registerRule(
+  ruleDeclarationFromFixture(translationSummaryFixture),
+  ({
+    entries,
+    selected,
+    translations,
+  }: {
+    entries: number
+    selected: number
+    translations: ReleaseProcessingAction[]
+  }) => ({
+    inputs: { 'translation-instructions': entries },
+    outputs: { 'translated-names': translations.length },
+    recordsAffected: new Set(
+      translations.map(action => {
+        const evidence = record(action.evidence)
+        return String(record(evidence.canonicalDivision).id ?? evidence.divisionId)
+      }),
+    ).size,
+    decisions: {
+      applied: translations.length,
+      selectedInstructions: selected,
+      unusedInstructions: entries - selected,
+    },
+  }),
+)
+
 export async function retainDivisionProvenance(
   store: ProvenanceStore,
   input: {
@@ -442,7 +471,6 @@ export async function retainDivisionProvenance(
         },
         context: (classification
           ? {
-              expected: classification.expected,
               replacement: classification.replacement,
             }
           : translation) as JsonRecord,
@@ -454,28 +482,18 @@ export async function retainDivisionProvenance(
       const values = record(document.document).entries
       return total + (Array.isArray(values) ? values.length : 0)
     }, 0)
-    const declaration = ruleDeclarationFromFixture(translationSummaryFixture)
+    const declaration = divisionTranslationSummaryRule.declaration
     bulk.push({
       id: declaration.id,
       summary: declaration.summary,
       basis: declaration.basis,
       definition: await retainDeclaration(declaration),
       outcome: translations.length ? 'applied' : 'not-applicable',
-      counts: {
-        inputs: { 'translation-instructions': entries },
-        outputs: { 'translated-names': translations.length },
-        recordsAffected: new Set(
-          translations.map(action => {
-            const evidence = record(action.evidence)
-            return String(record(evidence.canonicalDivision).id ?? evidence.divisionId)
-          }),
-        ).size,
-        decisions: {
-          applied: translations.length,
-          selectedInstructions: usedTranslationEntries.size,
-          unusedInstructions: entries - usedTranslationEntries.size,
-        },
-      },
+      counts: divisionTranslationSummaryRule.execute({
+        entries,
+        selected: usedTranslationEntries.size,
+        translations,
+      }),
       fixtures: [],
     })
   }

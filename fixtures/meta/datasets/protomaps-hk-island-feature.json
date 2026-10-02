@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3a443bb172f6c3732959399ebac7145c386b38209129f16f9e5f4590b3a93349",
+  "versionHash": "sha256:78b23ac50cf1744fb211b3c7733886844a30e2720ef4325c3ce480ea9b9b9f2f",
   "publisherCode": "protomaps",
   "code": "ds-hk-protomaps-island",
   "regionCode": "hk",
@@ -54,24 +54,23 @@
   "i18n": {
     "en": {
       "name": "Islands",
-      "description": "Curated island polygons extracted from SaanSeoi's selected Hong Kong Protomaps basemap release. They are source geometry assertions for the SaanSeoi geographic assembly."
+      "description": "Native OSM island features and coastline land components extracted from the selected Hong Kong Protomaps basemap release. Publisher tags, explicit locale names and original geometry are retained as source evidence."
     },
     "zh-hant": {
       "name": "島嶼",
-      "description": "從 SaanSeoi 選定的香港 Protomaps 底圖版本擷取並經審核的島嶼多邊形。它們是 SaanSeoi 地理組裝所用的來源幾何斷言。"
+      "description": "從選定的香港 Protomaps 底圖版本擷取的原生 OSM 島嶼要素及海岸陸地部分。發布者標籤、明確語言名稱及原始幾何保留為來源證據。"
     },
     "zh-hans": {
       "name": "岛屿",
-      "description": "从 SaanSeoi 选定的香港 Protomaps 底图版本提取并经审核的岛屿多边形。它们是 SaanSeoi 地理组装所用的来源几何断言。"
+      "description": "从选定的香港 Protomaps 底图版本提取的原生 OSM 岛屿要素及海岸陆地部分。发布者标签、明确语言名称及原始几何保留为来源证据。"
     }
   },
-  "mergeRules": [
+  "processingRules": [
     {
-      "rulesetVersion": "rs-protomaps-island-assembly-v1",
+      "rulesetVersion": "rs-source-ingestion-v1",
       "operationCodes": [
-        "select_curated_protomaps_island_features",
-        "materialise_saanseoi_island_divisions",
-        "materialise_saanseoi_island_division_areas"
+        "extract-protomaps-source",
+        "ingest-protomaps-island"
       ]
     }
   ]

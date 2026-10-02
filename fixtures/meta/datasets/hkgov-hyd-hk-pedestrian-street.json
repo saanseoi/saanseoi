@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:7936d9d7faa3c68916c60993d21e2635679d3d167cb3d774891541a163ab8b09",
+  "versionHash": "sha256:7b27a8ca5235ee02f15e14ce2d23a9d16f92c65853faea27adb00bffc07c27a5",
   "publisherCode": "hkgov-hyd",
   "code": "ds-hk-hkgov-hyd-pedestrian-street",
   "regionCode": "hk",
@@ -77,5 +77,13 @@
       "description": "运输署提供的行人专用街道范围及生效时间地理信息，包含五个来源图层。数据集按要求归入 HighwayD 政府街道数据域，并保留运输署来源。"
     }
   },
-  "sourceCrs": "EPSG:2326"
+  "sourceCrs": "EPSG:2326",
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-hyd-pedestrian-street"
+      ]
+    }
+  ]
 }

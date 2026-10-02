@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:661f084f8a5491336cda7e55939b0fee38e6f522b525e74321b5a137c7f2688b",
+  "versionHash": "sha256:2a9b3cc69a4d68dc7d9896059949444220d8d826ed9f283e02840b0ca2b2228f",
   "publisherCode": "hkgov-landsd",
   "code": "ds-hk-hkgov-landsd-division",
   "regionCode": "hk",
@@ -64,13 +64,11 @@
     }
   },
   "sourceCrs": "EPSG:2326",
-  "mergeRules": [
+  "processingRules": [
     {
-      "rulesetVersion": "rs-official-division-processing-v1",
+      "rulesetVersion": "rs-source-ingestion-v1",
       "operationCodes": [
-        "select-landsd-settlements",
-        "resolve-geography-identities",
-        "provenance_division_area_geometry"
+        "ingest-hkgov-landsd-division"
       ]
     }
   ]

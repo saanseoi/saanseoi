@@ -28,6 +28,7 @@ export type FieldLineageDefinition = {
     rules: Record<string, string>
   }
   processingDefinitions: Array<{ datasetCode: string; definitionId: string }>
+  assemblyDefinitions: Array<{ resourceType: string; definitionId: string }>
   rulesets: Array<{ version: string; hash: string }>
   rules: Array<{ id: string; ruleset: string; definitionHash: string }>
   ingestion: Array<{
@@ -45,6 +46,7 @@ export function buildFieldLineageDefinition(
   >,
   publisherFields: ReadonlyMap<string, PublisherFields[string]>,
   processingDefinitions: FieldLineageDefinition['processingDefinitions'] = [],
+  assemblyDefinitions: FieldLineageDefinition['assemblyDefinitions'] = [],
 ) {
   const rulesets = new Map<string, FieldLineageDefinition['rulesets'][number]>()
   const rules = new Map<string, FieldLineageDefinition['rules'][number]>()
@@ -82,6 +84,9 @@ export function buildFieldLineageDefinition(
     rows.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
   const definition: FieldLineageDefinition = {
     version: 1,
+    assemblyDefinitions: sort([
+      ...new Map(assemblyDefinitions.map(pin => [JSON.stringify(pin), pin])).values(),
+    ]),
     processingDefinitions: sort([
       ...new Map(processingDefinitions.map(pin => [JSON.stringify(pin), pin])).values(),
     ]),

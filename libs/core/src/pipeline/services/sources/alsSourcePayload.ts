@@ -1,3 +1,6 @@
+import { registerRule } from '../../../provenance/auditTypes'
+import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
+import sourceFixture from '../../../../../../fixtures/meta/processing-rules/als-source-retention.json'
 import { retainedLocalePropertyName } from './retainedProperties'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import { createHash } from '../../utils'
@@ -102,7 +105,7 @@ export function remapAlsSourceProperties(raw: Record<string, unknown>) {
  * The fallback preserves newly introduced publisher fields without inventing a
  * meaning for them or silently dropping them.
  */
-export function alsSourcePayload(feature: {
+function alsSourcePayloadInternal(feature: {
   properties?: unknown
   geometry?: unknown
 }) {
@@ -282,4 +285,14 @@ export function readAlsPublisherSource(
     throw new Error('Invalid ALS publisher source envelope; prepare the release again.')
   }
   return value as AlsPublisherSource
+}
+
+export const alsSourceRetentionRule = registerRule(
+  ruleDeclarationFromFixture(sourceFixture),
+  alsSourcePayloadInternal,
+)
+export function alsSourcePayload(
+  feature: Parameters<typeof alsSourcePayloadInternal>[0],
+) {
+  return alsSourceRetentionRule.execute(feature)
 }

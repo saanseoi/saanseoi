@@ -92,3 +92,13 @@ Road Centreline ingestion retains unmatched and ambiguous named segments as unre
 in `.cache/road-centreline-review/`. Publisher source rows and native geometry are
 ingested without guessing a canonical street identity. Existing reviewed matches remain
 effective. Later review can inform revised releases.
+
+## Processing policy ownership
+
+Native ingestion retains road-centreline properties and EPSG:2326 source geometry,
+including unmatched and ambiguous source assertions. Canonical street matching and map
+derivatives are separate assembly decisions; no canonical identity is inferred by the
+SOURCE retention policy.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

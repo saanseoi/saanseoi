@@ -146,3 +146,38 @@ test('curation paths use named camelCase contexts while preserving registered id
     ]),
   ).toThrow('camelCase')
 })
+
+test('assembly field rules pin the frozen snapshot recipe independently of publisher releases', () => {
+  const definition = {
+    id: 'assembly-rule',
+    parameters: { selectedGeometry: 'protomaps' },
+  }
+  const policy = {
+    snapshotRecipeId: 'retained-recipe',
+    processingRules: {
+      stage: 'assembly',
+      rulesets: [
+        {
+          rulesetVersion: 'assembly-v1',
+          rulesetVersionHash: 'retained-hash',
+          rules: [{ definition }],
+        },
+      ],
+    },
+  }
+  expect(
+    pinApiFieldRules(
+      { resolverCode: 'direct_copy', processingRuleIds: [definition.id] },
+      [policy],
+    ),
+  ).toEqual([
+    {
+      ruleId: definition.id,
+      stage: 'assembly',
+      snapshotRecipeId: 'retained-recipe',
+      rulesetVersion: 'assembly-v1',
+      rulesetVersionHash: 'retained-hash',
+      definitionHash: computeVersionHash(definition),
+    },
+  ])
+})

@@ -1,0 +1,30 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "retain-als-source",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Flatten publisher attributes without changing their values; retain native geometry and each publisher occurrence before address reconstruction, deduplication or curation.",
+  "inputs": [
+    "publisher-feature"
+  ],
+  "outputs": [
+    "source-assertion"
+  ],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/sources/alsSourcePayload.ts",
+    "symbol": "alsSourceRetentionRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Flatten publisher attributes without changing their values; retain native geometry and each publisher occurrence before address reconstruction, deduplication or curation."
+    },
+    "zh-hant": {
+      "description": "在不更改值的情況下展平發布者屬性；在地址重建、去重或整理之前保留來源幾何及每次發布者記錄。"
+    },
+    "zh-hans": {
+      "description": "在不更改值的情况下展平发布者属性；在地址重建、去重或整理之前保留来源几何及每次发布者记录。"
+    }
+  }
+}

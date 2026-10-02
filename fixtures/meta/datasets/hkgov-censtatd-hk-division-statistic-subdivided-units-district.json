@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:507181815984c87a0ffb4de7b0c809a6ff67dcce61e88a99c42d2d81fb6f1265",
+  "versionHash": "sha256:0a9a42432de1166ab7cdadb81289a7b991c0e65aed94e1a3a1b63f0da4934880",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "regionCode": "hk",
@@ -64,19 +64,6 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
-  "mergeRules": [
-    {
-      "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": [
-        "normalise_censtatd_statistic_source_assertion",
-        "map_censtatd_district_code_to_canonical_division",
-        "curate_censtatd_measure_metadata",
-        "provenance_statistic_normalisation",
-        "provenance_statistic_localisation",
-        "provenance_division_area_geometry"
-      ]
-    }
-  ],
   "releases": [
     {
       "sourceVersion": "2016",
@@ -178,5 +165,13 @@
       "name": "人口普查：按区议会分区划分的分间楼宇单位",
       "description": "政府统计处提供的按区议会分区划分的分间楼宇单位人口统计。2016年中期人口统计及2021年人口普查版本各自保留所采用的统计地理界线版本。"
     }
-  }
+  },
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-censtatd-division-statistic-subdivided-units-district"
+      ]
+    }
+  ]
 }

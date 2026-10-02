@@ -5,11 +5,27 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Make the address fields consistent in both languages. Apply reviewed field corrections and identify whether each address describes a whole site, a building or a section.",
-  "inputs": ["prepared-addresses"],
-  "outputs": ["address2d", "address2dI18n"],
+  "inputs": [
+    "prepared-addresses"
+  ],
+  "outputs": [
+    "address2d",
+    "address2dI18n"
+  ],
   "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/addresses/normalisation.ts",
     "symbol": "addressNormalisationRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Make the address fields consistent in both languages. Apply reviewed field corrections and identify whether each address describes a whole site, a building or a section."
+    },
+    "zh-hant": {
+      "description": "從已準備的地址建立標準地址與本地化名稱，並保留來源證據。"
+    },
+    "zh-hans": {
+      "description": "从已准备的地址建立标准地址与本地化名称，并保留来源证据。"
+    }
   }
 }

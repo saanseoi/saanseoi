@@ -69,6 +69,14 @@ export function ruleDeclarationFromFixture<F extends { parameters: JsonRecord }>
     !text(implementation.symbol)
   )
     throw new Error('Invalid processing rule declaration fixture.')
+  if (value.i18n !== undefined) {
+    const i18n = value.i18n as Record<string, { description?: unknown }>
+    if (
+      !i18n ||
+      ['en', 'zh-hant', 'zh-hans'].some(locale => !text(i18n[locale]?.description))
+    )
+      throw new Error('Processing rule descriptions require en, zh-hant and zh-hans.')
+  }
   serialise(value)
   if (value.review !== undefined) {
     const review = value.review as {

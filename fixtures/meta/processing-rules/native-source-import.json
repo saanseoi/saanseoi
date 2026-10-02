@@ -1,0 +1,32 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "saanseoi.native-source-import.v1",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Validate SOURCE table and column identifiers; hash publisher assertions, preserve unchanged open versions, close omitted replacement members and compile replayable SOURCE mutations.",
+  "inputs": [
+    "publisher-records"
+  ],
+  "outputs": [
+    "native-source-records"
+  ],
+  "parameters": {
+    "sqlChunkByteLimit": 1000000
+  },
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/local/nativeSourceSql.ts",
+    "symbol": "nativeSourceImportRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Validate SOURCE table and column identifiers; hash publisher assertions, preserve unchanged open versions, close omitted replacement members and compile replayable SOURCE mutations."
+    },
+    "zh-hant": {
+      "description": "驗證 SOURCE 表格及欄位識別碼；計算發布者斷言雜湊、保留未變更的有效版本、關閉替代版本中省略的成員，並編譯可重播的 SOURCE 更新。"
+    },
+    "zh-hans": {
+      "description": "验证 SOURCE 表格及栏位识别码；计算发布者断言哈希、保留未变更的有效版本、关闭替代版本中省略的成员，并编译可重播的 SOURCE 更新。"
+    }
+  }
+}

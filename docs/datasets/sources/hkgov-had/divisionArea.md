@@ -236,3 +236,12 @@ but supplies no `TOWGS84` operation; generic `fgdb` inverse projection alone is
 unsuitable for canonical WGS84 delivery. Native coordinates remain unchanged in
 `sourceGeometry`. Native metre-based bounding boxes are omitted from projected GeoJSON.
 Regression controls use independently evaluated PROJ EPSG transformations.
+
+## Processing policy ownership
+
+Native ingestion validates archive identity and counts and retains publisher properties
+and geometry. Canonical area geometry selection is captured by the DivisionArea snapshot
+recipe rather than the dataset ingestion policy.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

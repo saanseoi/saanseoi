@@ -1,5 +1,10 @@
 # locale
 
+Division localisation history versions hash the locale row independently of the base
+division. Names and their provenance therefore retain distinct versions when a base
+division returns to an earlier state. Initialisation defers curated API publication
+until required companion datasets have been ingested.
+
 The `division-normalisation.json` processing rule supplies ordered API locale
 priorities. The processor reads the same frozen parameters retained in Audit. The
 `division-translation.json` rule declares how selected translation fixtures apply.

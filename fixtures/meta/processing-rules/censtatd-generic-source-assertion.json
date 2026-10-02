@@ -1,0 +1,30 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "retain-censtatd-source",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Validate prepared C&SD record identity and reporting metadata; retain publisher properties, geometry and references with release validity.",
+  "inputs": [
+    "prepared-censtatd-statistics"
+  ],
+  "outputs": [
+    "source-statistic-assertions"
+  ],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/statistics/processLocalHkgovCenstatdStatisticSqlUpload.ts",
+    "symbol": "censtatdGenericSourceRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Validate prepared C&SD record identity and reporting metadata; retain publisher properties, geometry and references with release validity."
+    },
+    "zh-hant": {
+      "description": "驗證已準備的統計處記錄識別及報告資料；保留發布者屬性、幾何、參照及版本有效期。"
+    },
+    "zh-hans": {
+      "description": "验证已准备的统计处记录识别及报告资料；保留发布者属性、几何、参照及版本有效期。"
+    }
+  }
+}

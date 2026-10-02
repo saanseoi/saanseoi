@@ -1,3 +1,5 @@
+import { retainIngestionProcessingRules } from '@repo/core/db/processingRuleDefinitions'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
   eq,
@@ -119,7 +121,10 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     sourceVersion: plan.sourceVersion,
     allowOlderMappedRelease: true,
   })
-  const processingRules = dataset.processingRules
+  const processingRules = await retainIngestionProcessingRules(
+    metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+    dataset.processingRules,
+  )
   const sourceReleaseCode = buildSourceReleaseCode(
     release.datasetCode,
     plan.sourceVersion,

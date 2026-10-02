@@ -26,13 +26,20 @@ division. Names and their provenance therefore retain distinct versions when a b
 division returns to an earlier state. Initialisation defers curated API publication
 until required companion datasets have been ingested. The full Divisions initialiser
 ingests the locked Protomaps and RVD source archives, then assembles and uploads the
-SaanSeoi Division and DivisionArea releases before reconciling API composition. The
-post-cutoff Overture snapshots remain native inputs.
+SaanSeoi Division and DivisionArea releases before reconciling API composition.
 
-An Overture cohort without a configured Division API release set is deferred as a whole.
-DivisionArea and DivisionBoundary uploads require the matching Division snapshot, and
-publishing that unselected snapshot would replace the receipt for the still-selected
-cohort in its shared lineage scope.
+The deprecated Divisions API `0.1` continues publishing Overture inventories with
+`rs-division-merge-v1`. Its catalogue retains the twelve cohorts from September 2025
+through August 2026 and the September 2026 Overture cohort. API `0.2` publishes the
+SaanSeoi monthly inventory with `rs-division-merge-v2`, starting with the September
+edition. Publication selects the API whose composition exposes the source variant as its
+primary inventory, including deprecated versions. Geometry companions follow that
+inventory. Reconciliation retains each draft's explicit API-version association.
+
+Catalogue revisions are scoped to an API version and region. Their publication date
+records when the catalogue was published; member cohort dates describe the data's
+effective chronology. Initialisation therefore creates separate `v0.1` and `v0.2`
+catalogue histories rather than backdating catalogue publication.
 
 Division audit actions retain repeated field values in bounded column dictionaries. R2
 delivery uploads independent objects concurrently and registers the release audit only
@@ -1254,9 +1261,9 @@ selected Overture input cohort. Monthly source updates do not require redrawing
 polygons. See [curated DivisionArea](../sources/saanseoi/divisionArea.md) for local
 ingestion, retained geometry, exclusions and island coastline cleanup.
 
-Clean Division initialisation selects this initial edition explicitly. Its source pins
-and API field mapping both retain the RVD Division ingredient before the complete
-curated pair is reconciled.
+Clean Division initialisation selects the September and October editions explicitly. Its
+source pins and API field mapping both retain the RVD Division ingredient before the
+complete curated pair is reconciled.
 
 Point-only island records with unknown land area retain `minor_island` until a measured
 outline supports size classification; a stored zero area is not evidence that an island
@@ -1307,10 +1314,11 @@ retained Overture cohorts from September 2025 through August 2026.
 Each applied exclusion retains an individual patch audit with its source identity,
 curated names, reason and exact exclusion fixture.
 
-When the geographic API composition selects SaanSeoi divisions, Overture division
-releases publish their native baseline snapshots independently. Curated assembly
-consumes these published baselines; baseline publication does not create an API release
-set.
+Overture Division, DivisionArea and DivisionBoundary releases publish through the
+compatible `0.1` composition while that API is current or deprecated. The same exact
+publisher archives and snapshot identities are ingredients for curated `0.2` editions.
+An archived or retired API cannot receive new release sets; native Overture snapshots
+can still be retained independently for curated assembly.
 
 Area selection excludes every identity in the curated Overture division-exclusion
 fixture. The geometry exclusion policy retains these IDs explicitly so its audit
@@ -1337,8 +1345,12 @@ landforms.
 SaanSeoi Division and DivisionArea editions use `YYYY-MM-01.revision`, scheduled for the
 first of each month in Hong Kong. The builder selects the latest retained publisher
 release dated on or before the edition date, carrying forward slower sources. The source
-pins in `fixtures/meta/datasetInputs/saanseoi-division-review.json` fix release
-identities, checksums and the exact Overture inventory/area snapshots. During
+pins in `fixtures/meta/datasetInputs/saanseoi-division-review.json` fix the editor's
+reference cohort. Additional publication candidates in
+`fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json` retain exact release
+identities, checksums and Overture inventory/area snapshots. Assembly selects the latest
+eligible pin for each dataset. The September edition selects August Overture; the
+October edition selects September Overture and carries forward slower sources. During
 pre-release development, corrections edit the initial `2026-09-01.0` revision directly.
 Assembly retains inputs and curation hashes in generated reports and archive manifests
 without writing fixture files. Island extraction evidence must agree with the pinned
@@ -1563,3 +1575,13 @@ from WGS84 delivery coordinates. Native FGDB WKT identifies the projection but d
 supply the datum operation; inverse projection alone is insufficient. Regression
 controls verify actual coordinates against independent PROJ results, in addition to
 feature counts and topology.
+
+## Processing policy ownership
+
+Ingestion policies retain publisher properties and native geometry in SOURCE. Division
+snapshot recipes select classification, names, identities and hierarchy processing.
+DivisionArea and DivisionBoundary recipes select their respective geometry executor,
+including its shared exclusion dependency. SaanSeoi curated assembly belongs to the
+SaanSeoi snapshot recipes; Protomaps source intake does not declare canonical assembly.
+
+See the [processing policy contract](../pipeline.md#define-audit-processing-rules).

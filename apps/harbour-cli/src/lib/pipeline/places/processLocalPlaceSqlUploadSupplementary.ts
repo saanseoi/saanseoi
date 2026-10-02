@@ -536,10 +536,7 @@ async function prepareSupplementaryAddressesLocked(
     code: releaseCode,
     resourceType: 'address' as const,
     status: 'processing' as const,
-    processingRules: {
-      policyVersion: fixture.activePolicy,
-      policy: fixture.policies[fixture.activePolicy],
-    },
+    processingRules: parentRelease.processingRules,
     createdAt: now,
     updatedAt: now,
   }

@@ -1112,3 +1112,13 @@ Address storage and version hashing.
 The ALS Address snapshot variant is `hkgov-dpo`. It is the `primary` member of the
 `saanseoi` Address domain and a `lookup` member of the `overture` Places domain. Both
 memberships refer to the same snapshot lineage.
+
+## Processing policy ownership
+
+Ingestion retains publisher attributes and native geometry for 2D and 3D ALS
+occurrences. Reconstruction, deduplication, curation and canonical Address normalisation
+are snapshot assembly policies. SOURCE retention remains independent of those reviewed
+canonical decisions.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

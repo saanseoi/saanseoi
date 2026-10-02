@@ -147,6 +147,13 @@ id TEXT PRIMARY KEY,
       updatedAt TEXT NOT NULL
     );
 
+    CREATE TRIGGER seedRegistryVersion AFTER INSERT ON apiReleaseSets BEGIN
+      INSERT INTO apiVersionReleaseSets (id,apiVersionId,apiReleaseSetId,status,publishedAt,validFrom,validTo,notes,guide,versionHash,createdAt,updatedAt)
+      VALUES (NEW.id || '-version',NEW.apiVersionId,NEW.id,NEW.status,NEW.publishedAt,NEW.validFrom,NEW.validTo,NEW.notes,NEW.guide,NEW.versionHash,NEW.createdAt,NEW.updatedAt);
+    END;
+    CREATE TABLE snapshotRecipes (id TEXT PRIMARY KEY, processingRules TEXT);
+    CREATE TABLE snapshotAssemblies (snapshotId TEXT, snapshotRecipeId TEXT);
+
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
       resourceType TEXT NOT NULL,
@@ -354,8 +361,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('source-version-c', 'dataset-c', 'dr-hk-overture-divisions-2026-07-15');
 
       INSERT INTO resourceReleases (id, datasetId, sourceReleaseId, code, sourceVersion, ingestedAt, processingRules) VALUES
-        ('source-release-a', 'dataset-a', 'source-version-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":{}}]}]}'),
-        ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","type":"bulk","i18n":{}}]}]}'),
+        ('source-release-a', 'dataset-a', 'source-version-a', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","kind":"bulk","i18n":{}}]}]}'),
+        ('source-release-b', 'dataset-b', 'source-version-b', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{"rulesets":[{"rulesetVersion":"v1","rules":[{"operationCode":"normalise_name","kind":"bulk","i18n":{}}]}]}'),
         ('source-release-c', 'dataset-c', 'source-version-c', '2026-07-15', '2026-07-15', '2026-07-15T00:00:00.000Z', '{}');
 
       INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
@@ -394,6 +401,27 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       sqlite
         .query('UPDATE resourceReleases SET processingRules=? WHERE id=?')
         .run(captureFixtureRules(sqlite, JSON.parse(row.processingRules)), row.id)
+    const assemblyRules = {
+      stage: 'assembly',
+      rulesets: [
+        {
+          rulesetVersion: 'assembly-v1',
+          rules: [
+            {
+              operationCode: 'assemble-addresses',
+              kind: 'bulk',
+              inputs: ['source-addresses'],
+              outputs: ['addresses'],
+              i18n: { en: { description: 'Assemble addresses' } },
+            },
+          ],
+        },
+      ],
+    }
+    sqlite
+      .query('INSERT INTO snapshotRecipes VALUES (?,?)')
+      .run('address-recipe', captureFixtureRules(sqlite, assemblyRules))
+    sqlite.exec("INSERT INTO snapshotAssemblies VALUES ('snapshot-a','address-recipe')")
     const [release] = await listRegistryReleases(db as never)
     if (!release) throw new Error('Expected API release to be returned.')
 
@@ -420,6 +448,11 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         expect.objectContaining({
           id: 'source-release-b:v1:0',
           sourceCode: 'landsd-addresses',
+        }),
+        expect.objectContaining({
+          id: 'address-recipe:assembly-v1:0',
+          snapshotCode: 'snapshot-a',
+          operationCode: 'assemble-addresses',
         }),
       ]),
     )
@@ -3559,11 +3592,17 @@ describe('listOvertureReleaseSetCohortsAtOrAfterCohortKey', () => {
       CREATE TABLE apiReleaseSets (
         publisherFields TEXT,
 id TEXT PRIMARY KEY,
-        apiVersionId TEXT NOT NULL,
         regionCode TEXT NOT NULL,
         domainCode TEXT NOT NULL,
         cohortKey TEXT NOT NULL,
         revision INTEGER NOT NULL,
+        status TEXT NOT NULL
+      );
+
+      CREATE TABLE apiVersionReleaseSets (
+        id TEXT PRIMARY KEY,
+        apiVersionId TEXT NOT NULL,
+        apiReleaseSetId TEXT NOT NULL,
         status TEXT NOT NULL
       );
 
@@ -3594,23 +3633,29 @@ id TEXT PRIMARY KEY,
         ('snapshot-had', 'dataset-had', 'release-had', 'primary');
 
       INSERT INTO apiVersions (id, code) VALUES
-        ('api-divisions', 'api-divisions-v0.1');
+        ('api-divisions', 'api-divisions-v0.1'),
+        ('api-divisions-v02', 'api-divisions-v0.2');
 
       INSERT INTO apiReleaseSets (
-        id, apiVersionId, regionCode, domainCode, cohortKey, revision, status
+        id, regionCode, domainCode, cohortKey, revision, status
       ) VALUES
-        ('release-set-2025-r0', 'api-divisions', 'hk', 'geographic', '2025-09-24.0', 0, 'archived'),
-        ('release-set-2025-r1', 'api-divisions', 'hk', 'geographic', '2025-09-24.0', 1, 'archived'),
-        ('release-set-2026', 'api-divisions', 'hk', 'geographic', '2026-06-17.0', 0, 'current'),
-        ('release-set-had', 'api-divisions', 'hk', 'geographic', '2026-07-01.0', 0, 'current'),
-        ('release-set-draft', 'api-divisions', 'hk', 'geographic', '2026-08-01.0', 0, 'draft');
+        ('release-set-2025-r0', 'hk', 'geographic', '2025-09-24.0', 0, 'archived'),
+        ('release-set-2025-r1', 'hk', 'geographic', '2025-09-24.0', 1, 'archived'),
+        ('release-set-2026', 'hk', 'geographic', '2026-06-17.0', 0, 'current'),
+        ('release-set-had', 'hk', 'geographic', '2026-07-01.0', 0, 'current'),
+        ('release-set-draft', 'hk', 'geographic', '2026-08-01.0', 0, 'draft'),
+        ('release-set-v02', 'hk', 'geographic', '2026-09-23.0', 0, 'draft');
+
+      INSERT INTO apiVersionReleaseSets (id, apiVersionId, apiReleaseSetId, status)
+        SELECT id || '-version', CASE WHEN id='release-set-v02' THEN 'api-divisions-v02' ELSE 'api-divisions' END, id, status FROM apiReleaseSets;
 
       INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId, role) VALUES
         ('release-set-2025-r0', 'snapshot-overture-2025-r0', 'primary'),
         ('release-set-2025-r1', 'snapshot-overture-2025-r1', 'primary'),
         ('release-set-2026', 'snapshot-overture-2026', 'primary'),
         ('release-set-had', 'snapshot-had', 'primary'),
-        ('release-set-draft', 'snapshot-overture-2026', 'primary');
+        ('release-set-draft', 'snapshot-overture-2026', 'primary'),
+        ('release-set-v02', 'snapshot-overture-2026', 'primary');
     `)
 
     await expect(
@@ -3621,6 +3666,17 @@ id TEXT PRIMARY KEY,
         '2025-09-24.0',
       ),
     ).resolves.toEqual(['2025-09-24.0', '2026-06-17.0', '2026-08-01.0'])
+
+    await expect(
+      listOvertureReleaseSetCohortsAtOrAfterCohortKey(
+        db as never,
+        'division',
+        'hk',
+        '2025-09-24.0',
+        'geographic',
+        'api-divisions-v0.2',
+      ),
+    ).resolves.toEqual(['2026-09-23.0'])
 
     sqlite.close()
   })

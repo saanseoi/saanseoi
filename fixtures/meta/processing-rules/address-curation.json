@@ -5,11 +5,26 @@
   "scope": "bulk",
   "basis": "fixture",
   "summary": "Apply the reviewed decisions about duplicate addresses, address parts, parent relationships, unit lists, records to retain and map points.",
-  "inputs": ["als-curations"],
-  "outputs": ["prepared-addresses"],
+  "inputs": [
+    "als-curations"
+  ],
+  "outputs": [
+    "prepared-addresses"
+  ],
   "parameters": {},
   "implementation": {
     "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts",
     "symbol": "alsCurationRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Apply the reviewed decisions about duplicate addresses, address parts, parent relationships, unit lists, records to retain and map points."
+    },
+    "zh-hant": {
+      "description": "套用已審核的 ALS 地址整理決定。"
+    },
+    "zh-hans": {
+      "description": "应用已审核的 ALS 地址整理决定。"
+    }
   }
 }

@@ -282,3 +282,71 @@ test('dependency roles are unique, replay exactly, and protect published inputs'
     target.sqlite.close()
   }
 })
+
+test('snapshot recipes freeze assembly policy, hash revisions and replay their immutable definition before parent rows', async () => {
+  const { resolveSnapshotProcessingRules } = await import(
+    '../../provenance/processingPolicyCatalogue'
+  )
+  const local = fixture()
+  const target = fixture()
+  try {
+    local.sqlite
+      .query('UPDATE datasets SET code = ? WHERE id = ?')
+      .run('ds-hk-hkgov-dpo-address', 'primary')
+    await source(local.db, 'primary')
+    await recordSnapshotAssembly(local.db, args)
+    const first = run(local.sqlite)
+    const saved = local.sqlite
+      .query(
+        "SELECT p.definition FROM snapshotRecipes r JOIN processingRuleDefinitions p ON p.id=json_extract(r.processingRules, '$.definitionId') WHERE r.id=?",
+      )
+      .get(first.snapshotRecipeId) as { definition: string }
+    const policy = JSON.parse(saved.definition)
+    expect(policy.stage).toBe('assembly')
+    expect(
+      policy.rulesets[0].rules
+        .map((rule: { operationCode: string }) => rule.operationCode)
+        .sort(),
+    ).toEqual([
+      'curate-als-addresses',
+      'normalise-als-addresses',
+      'prepare-als-addresses',
+    ])
+    const revised = structuredClone(
+      resolveSnapshotProcessingRules(['ds-hk-hkgov-dpo-address'], 'address'),
+    )
+    revised.rulesets[0]!.rules[0]!.definition!.summary = 'Revised reviewed policy'
+    const { recordEffectiveSnapshotAssembly } = await import('./snapshotAssembly')
+    await recordEffectiveSnapshotAssembly(local.db, {
+      ...args,
+      processingRules: revised,
+    })
+    const second = run(local.sqlite)
+    expect(second.snapshotRecipeId).not.toBe(first.snapshotRecipeId)
+    local.sqlite.exec("UPDATE snapshots SET status='published' WHERE id='snapshot'")
+    await recordEffectiveSnapshotAssembly(local.db, {
+      ...args,
+      processingRules: policy,
+    })
+    expect(run(local.sqlite).snapshotRecipeId).toBe(second.snapshotRecipeId)
+    const sql = await readSnapshotAssemblySql(local.db, 'snapshot', true)
+    const definitionIndex = sql.findIndex(statement =>
+      statement.startsWith('INSERT INTO "processingRuleDefinitions"'),
+    )
+    const recipeIndex = sql.findIndex(statement =>
+      statement.startsWith('INSERT INTO "snapshotRecipes"'),
+    )
+    expect(definitionIndex).toBeGreaterThanOrEqual(0)
+    expect(recipeIndex).toBeGreaterThan(definitionIndex)
+    for (const statement of sql) target.sqlite.exec(statement)
+    const replayed = target.sqlite
+      .query(
+        "SELECT p.definition FROM snapshotRecipes r JOIN processingRuleDefinitions p ON p.id=json_extract(r.processingRules, '$.definitionId') WHERE r.id=?",
+      )
+      .get(second.snapshotRecipeId) as { definition: string }
+    expect(JSON.parse(replayed.definition)).toEqual(revised)
+  } finally {
+    local.sqlite.close()
+    target.sqlite.close()
+  }
+})

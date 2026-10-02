@@ -1,0 +1,34 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "assemble-curated-divisions",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Assemble reviewed identities, names, classifications, correlated hierarchies and selected geometries from pinned source ingredients. Preserve curated island identity and geometry decisions and derive reviewed island-group geometry.",
+  "inputs": [
+    "selected-source-divisions",
+    "selected-source-names",
+    "selected-source-geometry",
+    "division-curations"
+  ],
+  "outputs": [
+    "reviewed-division-records",
+    "reviewed-division-area-records"
+  ],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/curatedDivisions/assemble.ts",
+    "symbol": "curatedDivisionAssemblyRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Assemble reviewed identities, names, classifications, correlated hierarchies and selected geometries from pinned source ingredients. Preserve curated island identity and geometry decisions and derive reviewed island-group geometry."
+    },
+    "zh-hant": {
+      "description": "從固定來源資料組裝已審核的識別碼、名稱、分類、相關階層及選定幾何。保留已整理島嶼識別與幾何決定，並推導已審核群島幾何。"
+    },
+    "zh-hans": {
+      "description": "从固定来源资料组装已审核的识别码、名称、分类、相关层级及选定几何。保留已整理岛屿识别与几何决定，并推导已审核群岛几何。"
+    }
+  }
+}

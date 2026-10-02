@@ -1,0 +1,30 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "retain-landsd-street-source",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Retain extracted bilingual baseline names, district codes and immutable notice evidence with source identities and release validity. Canonical street lifecycle decisions belong to assembly.",
+  "inputs": [
+    "prepared-street-evidence"
+  ],
+  "outputs": [
+    "street-source-assertions"
+  ],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/pipeline/streets/processLocalStreetSqlUploadRows.ts",
+    "symbol": "landsdStreetSourceRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Retain extracted bilingual baseline names, district codes and immutable notice evidence with source identities and release validity. Canonical street lifecycle decisions belong to assembly."
+    },
+    "zh-hant": {
+      "description": "以來源識別碼及版本有效期保留擷取的雙語基準名稱、區域代碼及不可變的公告證據。標準街道生命週期決定屬於組裝。"
+    },
+    "zh-hans": {
+      "description": "以来源识别码及版本有效期保留提取的双语基准名称、区域代码及不可变的公告证据。标准街道生命周期决定属于组装。"
+    }
+  }
+}

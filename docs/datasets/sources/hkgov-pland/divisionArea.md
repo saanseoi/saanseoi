@@ -453,3 +453,12 @@ fingerprints and exact source/geographic Division and DivisionArea snapshots. Th
 documents preparation, tolerances and atomic delivery. A new geometry release requires a
 new crosswalk selection. Boundary contact and sub-square-metre slivers do not imply
 membership; overlap fractions are not population weights.
+
+## Processing policy ownership
+
+Native ingestion retains Planning Department properties and native source geometry.
+Planning Division normalisation and Area geometry processing are selected by their
+respective snapshot recipes. Ingestion definitions do not claim canonical field writes.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

@@ -122,3 +122,14 @@ Research references, checked 30 September 2026:
 - [Soko Islands island list](https://en.wikipedia.org/wiki/Soko_Islands) corroborates Ma
   Chau, Cheung Muk Tau, Ko Pai and Tau Lo Chau. Source polygons and retained identity
   records determine the geometry, rather than names alone.
+
+## Processing policy ownership
+
+Protomaps ingestion declares OSM island/islet extraction, coastline geometry selection
+and native SOURCE import into `protomapsIslandFeatures`. These rules preserve source
+assertions and geometry without materialising canonical Divisions. Reviewed island
+selection and SaanSeoi Division/DivisionArea materialisation are captured by SaanSeoi
+snapshot recipes, including the registered curated assembler.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

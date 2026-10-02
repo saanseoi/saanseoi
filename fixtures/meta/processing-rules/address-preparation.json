@@ -5,11 +5,27 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Read published English and Chinese addresses; resolve duplicate records and reviewed exceptions; locate each address within its district; and link floor and unit lists to it.",
-  "inputs": ["publisher-occurrences", "als-curations"],
-  "outputs": ["prepared-addresses"],
+  "inputs": [
+    "publisher-occurrences",
+    "als-curations"
+  ],
+  "outputs": [
+    "prepared-addresses"
+  ],
   "parameters": {},
   "implementation": {
     "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts",
     "symbol": "alsPreparationRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Read published English and Chinese addresses; resolve duplicate records and reviewed exceptions; locate each address within its district; and link floor and unit lists to it."
+    },
+    "zh-hant": {
+      "description": "讀取發布者的雙語地址、重建地址結構、整理重複及已審核例外，並連結樓層、單位及區域。"
+    },
+    "zh-hans": {
+      "description": "读取发布者的双语地址、重建地址结构、整理重复及已审核例外，并连接楼层、单位及区域。"
+    }
   }
 }

@@ -1,10 +1,10 @@
 {
-  "versionHash": "sha256:1b36a78625687be4451c51cd21b61d8f2790cc0f55618cd9e37eaf1d59b0b895",
+  "versionHash": "sha256:c8e61d6d427bb591b1a648316e2fb489b2fe70e392acb5c60fe1798a02d3c692",
   "publisherCode": "hkgov-rvd",
   "code": "ds-hk-hkgov-rvd-division",
   "regionCode": "hk",
-  "releaseType": "snapshot",
-  "releaseFrequency": "annual",
+  "releaseType": "statis",
+  "releaseFrequency": "as-needed",
   "theme": "divisions",
   "sourceVariant": "hkgov-rvd",
   "resourceTypes": [
@@ -63,5 +63,12 @@
       "description": "《香港物业检讨》2015年附录所列的区域、分区及次分区，反映历史名录收录情况，并非法定界线。"
     }
   },
-  "mergeRules": []
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-rvd-division"
+      ]
+    }
+  ]
 }

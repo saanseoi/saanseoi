@@ -389,3 +389,13 @@ Each territory also supplies a separate land-clipped record using the pinned Pro
 coastline land mask. Administrative editor drawings do not override either record;
 source record IDs and release identities remain attached to each derived geometry.
 Disconnected territorial parts and islands are retained.
+
+## Processing policy ownership
+
+Ingestion retains native Overture geometry and publisher attributes in SOURCE.
+DivisionArea and DivisionBoundary snapshot recipes select only their own geometry
+executor, with the shared exclusion declaration retained as a dependency.
+Classification, translation and hierarchy processing are selected on Division recipes.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

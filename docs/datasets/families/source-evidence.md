@@ -119,3 +119,13 @@ Local family resets remove publication-owned processing runs and CURRENT deliver
 receipts along with the selected resources. Source archives remain available for replay.
 Reingestion explicitly relinks retained archives to the recreated release; an existing
 asset registration alone does not prove that release linkage survived a reset.
+
+## Processing policy ownership
+
+Dataset processing policies cover extraction and SOURCE retention, with explicit
+prepared-record inputs where archive preparation precedes intake. Snapshot recipes own
+canonical processing. Each stage captures its exact immutable definition; a field
+reference identifies its origin, collection and programmatic path, while descriptions
+remain separate localised prose.
+
+See the [processing policy contract](../pipeline.md#define-audit-processing-rules).

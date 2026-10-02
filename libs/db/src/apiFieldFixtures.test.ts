@@ -1066,7 +1066,7 @@ test('initial curated release resolves its retained ingredient composition for A
     apiVersion: 'api-divisions-v0.2',
     domainCode: 'geographic',
     schemaVersion: 'sv-division-v1',
-    rulesetVersion: 'rs-division-merge-v1',
+    rulesetVersion: 'rs-division-merge-v2',
     lineageSnapshotVersions: ['ss-hk-division-saanseoi-2026-09-01.0'],
     sourceSchemas,
   }

@@ -124,5 +124,16 @@
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
     "symbol": "divisionGeometryExclusionRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Leave out configured areas beyond Hong Kong and shapes attached only as references."
+    },
+    "zh-hant": {
+      "description": "按宣告的區域及參照排除規則選取區劃幾何。"
+    },
+    "zh-hans": {
+      "description": "按声明的区域及参照排除规则选取区划几何。"
+    }
   }
 }

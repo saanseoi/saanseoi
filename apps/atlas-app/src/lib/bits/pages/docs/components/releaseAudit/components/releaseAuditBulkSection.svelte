@@ -15,9 +15,10 @@ let { description, rule, title }: Props = $props()
     {description}
     condition={rule.condition}
     headingId={bulkSectionHeadingId(rule)}
-    sourceFieldPath={rule.sourceFieldPath}
+    inputs={rule.inputs}
+    snapshotCode={rule.snapshotCode}
     sourceReleaseCode={rule.sourceReleaseCode}
-    targetFieldPath={rule.targetFieldPath}
+    outputs={rule.outputs}
     {title}
   />
   <ReleaseAuditBulkSectionMappings mappings={rule.mappings} />

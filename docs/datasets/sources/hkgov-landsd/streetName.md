@@ -150,3 +150,13 @@ baseline resolves a complete active inventory; notice releases apply reviewed li
 events to that inventory. Only final keyed current, history and source mutations are
 delivered. Unchanged canonical names, descriptions and publisher evidence retain their
 rows and timestamps.
+
+## Processing policy ownership
+
+Ingestion retains parsed baseline and notice evidence in the dedicated LandsD SOURCE
+tables, preserving native identities, document evidence and validity. Reviewed lifecycle
+applications, canonical Street names and changelog production are selected by the Street
+snapshot recipe. SOURCE payload consolidation remains a separate deferred task.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

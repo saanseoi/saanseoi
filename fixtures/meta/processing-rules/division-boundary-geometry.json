@@ -5,12 +5,29 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Keep each division’s published boundary and publisher record ID. Leave out parts outside Hong Kong while retaining reference boundaries.",
-  "inputs": ["source-geometry"],
-  "outputs": ["divisionBoundaries"],
+  "inputs": [
+    "source-geometry"
+  ],
+  "outputs": [
+    "divisionBoundaries"
+  ],
   "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
     "symbol": "divisionBoundaryGeometryRule"
   },
-  "dependencyIds": ["exclude-division-geometry"]
+  "dependencyIds": [
+    "exclude-division-geometry"
+  ],
+  "i18n": {
+    "en": {
+      "description": "Keep each division’s published boundary and publisher record ID. Leave out parts outside Hong Kong while retaining reference boundaries."
+    },
+    "zh-hant": {
+      "description": "建立區劃邊界幾何，保留發布者記錄識別並排除宣告的不適用幾何。"
+    },
+    "zh-hans": {
+      "description": "建立区划边界几何，保留发布者记录识别并排除声明的不适用几何。"
+    }
+  }
 }

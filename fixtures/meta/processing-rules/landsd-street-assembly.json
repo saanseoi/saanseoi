@@ -1,0 +1,34 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "assemble-landsd-streets",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Apply reviewed baseline and notice events to persistent street identities; preserve immutable history, bilingual names and lifecycle changelog entries.",
+  "inputs": [
+    "street-source-assertions",
+    "reviewed-street-applications",
+    "current-streets"
+  ],
+  "outputs": [
+    "streets",
+    "streetsI18n",
+    "street-changelog"
+  ],
+  "parameters": {},
+  "implementation": {
+    "path": "apps/harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetLifecycle.ts",
+    "symbol": "landsdStreetAssemblyRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Apply reviewed baseline and notice events to persistent street identities; preserve immutable history, bilingual names and lifecycle changelog entries."
+    },
+    "zh-hant": {
+      "description": "將已審核的基準及公告事件套用至持久街道識別碼，保留不可變歷史、雙語名稱及生命週期變更記錄。"
+    },
+    "zh-hans": {
+      "description": "将已审核的基准及公告事件应用至持久街道识别码，保留不可变历史、双语名称及生命周期变更记录。"
+    }
+  }
+}

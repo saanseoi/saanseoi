@@ -74,14 +74,15 @@ export type ApiRelease = {
   bulkActions?: Array<{
     id: string
     operationCode: string
+    snapshotCode?: string
     kind: 'bulk'
-    sourceFieldPath?: string
-    targetFieldPath?: string
+    inputs?: string[]
+    outputs?: string[]
     condition?: string
     mappings?: Array<{ from: string; to: string }>
     i18n: Record<string, { description: string }>
-    sourceCode: string
-    sourceReleaseCode: string
+    sourceCode?: string
+    sourceReleaseCode?: string
   }>
   contributingSources?: Array<{
     sourceCode: string
@@ -280,8 +281,8 @@ export type ReleaseMergeRules = {
     rules: Array<{
       operationCode: string
       kind: 'bulk' | 'record'
-      sourceFieldPath?: string
-      targetFieldPath?: string
+      inputs?: string[]
+      outputs?: string[]
       condition?: string
       mappings?: Array<{ from: string; to: string }>
       i18n: Record<string, { description: string }>

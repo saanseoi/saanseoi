@@ -682,3 +682,13 @@ Combined Statistics and Geography uploads pass geometry status only to area reso
 Division identity uploads share the source archive and cohort without a geometry-status
 option. Geographic area companions can publish their source snapshots before a curated
 geographic API release set is available.
+
+## Processing policy ownership
+
+Ingestion validates prepared C&SD identities, reporting periods and source evidence.
+Statistic recipes select canonical normalisation, measure and field curation,
+localisation and population unit conversion. Geography identity bridges and geometry
+processing are selected only for the resource outputs that use them.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

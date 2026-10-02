@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:06958e84b6aa3c58e99bdad755f19af1eb126d311f1bdf98b5fb644ea8f4c562",
+  "versionHash": "sha256:67ffdfed4b04b3b4bbcd4ead554fd5802701570a9e182752768120af78272911",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
   "regionCode": "hk",
@@ -62,20 +62,6 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
-  "mergeRules": [
-    {
-      "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": [
-        "normalise_censtatd_statistic_source_assertion",
-        "map_censtatd_district_code_to_canonical_division",
-        "normalise_censtatd_population_thousands_to_persons",
-        "curate_censtatd_measure_metadata",
-        "provenance_statistic_normalisation",
-        "provenance_statistic_localisation",
-        "provenance_division_area_geometry"
-      ]
-    }
-  ],
   "releases": [
     {
       "sourceVersion": "2022",
@@ -155,5 +141,13 @@
       "name": "分区陆地面积、人口及人口密度",
       "description": "政府统计处提供的区议会分区陆地面积、年中人口及人口密度统计。"
     }
-  }
+  },
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-censtatd-division-statistic-land-area-population-density-district"
+      ]
+    }
+  ]
 }

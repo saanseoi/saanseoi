@@ -1,3 +1,7 @@
+import { registerRule } from '../../../provenance/auditTypes'
+import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
+import overtureFixture from '../../../../../../fixtures/meta/processing-rules/overture-source-retention.json'
+import saanseoiFixture from '../../../../../../fixtures/meta/processing-rules/saanseoi-source-retention.json'
 import { recordContent } from './recordContent'
 import { retainSourceProperties } from './retainedProperties'
 /**
@@ -5,7 +9,7 @@ import { retainSourceProperties } from './retainedProperties'
  * envelope. This is a storage mapping, not canonical normalisation: values are
  * neither corrected nor inferred here.
  */
-export function overtureSourcePayload(row: Record<string, unknown>) {
+function overtureSourcePayloadInternal(row: Record<string, unknown>) {
   const { id: _id, geometry, ...properties } = row
   const { sources } = row
   if (
@@ -109,7 +113,7 @@ export function sourceLocatorFromReferences(
 }
 
 /** Preserve the reviewed publisher record, not its Parquet transport envelope. */
-export function saanseoiSourcePayload(row: Record<string, unknown>) {
+function saanseoiSourcePayloadInternal(row: Record<string, unknown>) {
   const record = typeof row.record === 'string' ? JSON.parse(row.record) : row.record
   if (
     !record ||
@@ -124,4 +128,19 @@ export function saanseoiSourcePayload(row: Record<string, unknown>) {
     sourceGeometry:
       typeof geometry === 'string' ? JSON.parse(geometry) : (geometry ?? null),
   }
+}
+
+export const overtureSourceRetentionRule = registerRule(
+  ruleDeclarationFromFixture(overtureFixture),
+  overtureSourcePayloadInternal,
+)
+export const saanseoiSourceRetentionRule = registerRule(
+  ruleDeclarationFromFixture(saanseoiFixture),
+  saanseoiSourcePayloadInternal,
+)
+export function overtureSourcePayload(row: Record<string, unknown>) {
+  return overtureSourceRetentionRule.execute(row)
+}
+export function saanseoiSourcePayload(row: Record<string, unknown>) {
+  return saanseoiSourceRetentionRule.execute(row)
 }

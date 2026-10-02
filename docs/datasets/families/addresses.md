@@ -1103,3 +1103,12 @@ The `saanseoi` Address domain uses `address/hkgov-dpo` as its `primary` member a
 to the collection. `division/overture` has role `lookup` and supplies geographic
 relationships. Variants identify the materialised collection; the domain identifies the
 combined API collection.
+
+## Processing policy ownership
+
+ALS publisher occurrences are retained by ingestion rules before reconstruction,
+deduplication or curation. Address snapshot recipes select preparation, curation and
+canonical normalisation. Supplementary Overture Address recipes also retain Place
+normalisation and reviewed address analysis, with exact policy and curation evidence.
+
+See the [processing policy contract](../pipeline.md#define-audit-processing-rules).

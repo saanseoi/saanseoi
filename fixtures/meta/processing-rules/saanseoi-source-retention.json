@@ -1,0 +1,30 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "retain-saanseoi-source",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Validate the reviewed SaanSeoi record identity and retain its attributes and geometry as a versioned source assertion.",
+  "inputs": [
+    "reviewed-source-record"
+  ],
+  "outputs": [
+    "source-assertion"
+  ],
+  "parameters": {},
+  "implementation": {
+    "path": "libs/core/src/pipeline/services/sources/sourcePayload.ts",
+    "symbol": "saanseoiSourceRetentionRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Validate the reviewed SaanSeoi record identity and retain its attributes and geometry as a versioned source assertion."
+    },
+    "zh-hant": {
+      "description": "驗證已審核 SaanSeoi 記錄的識別碼，並將屬性及幾何保留為具版本的來源斷言。"
+    },
+    "zh-hans": {
+      "description": "验证已审核 SaanSeoi 记录的识别码，并将属性及几何保留为具版本的来源断言。"
+    }
+  }
+}

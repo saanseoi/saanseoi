@@ -71,6 +71,14 @@
       "description": "本数据以土地信息系统（“LIS”）1:1000 地形数据集为基础，亦可在 iB1000 数据集的 Street Centre Lines 要素类及 iRG1000 数据集的 Road Centreline 获取。地政总署道路中心线主要用于大概位置查询及地图注记标注。"
     }
   },
-  "versionHash": "sha256:ed1440e90cfdd6f7a6d438ab373f1a0a7696ed5c6598ee985e2c4775cce95a78",
-  "sourceCrs": "EPSG:2326"
+  "versionHash": "sha256:ce353870c7cb9c03115293cb68d99e4a2b682ba2233c42e4a99c1495ffd8cc32",
+  "sourceCrs": "EPSG:2326",
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-landsd-road-centreline"
+      ]
+    }
+  ]
 }

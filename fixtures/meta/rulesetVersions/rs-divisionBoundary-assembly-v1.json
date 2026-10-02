@@ -1,0 +1,14 @@
+{
+  "versionHash": "sha256:c56aea5062a2589008fbbc8eb78d6ff556441079c759a360282cf28670fcdf42",
+  "code": "rs-divisionBoundary-assembly-v1",
+  "stage": "assembly",
+  "resourceType": "divisionBoundary",
+  "strategy": "assembly",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "normalise-division-boundary-geometry",
+      "ruleFixture": "division-boundary-geometry"
+    }
+  ]
+}

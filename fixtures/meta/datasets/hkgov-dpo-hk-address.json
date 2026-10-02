@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:0e1ad5f3b6100d437bc1a6f6b2c4c944d8209a13a710cb56d3f954262690eed3",
+  "versionHash": "sha256:4f8a0d86b5bf3e86e29276e7a0a9c9e15de7c9270983358ba997fa9de2bc1418",
   "publisherCode": "hkgov-dpo",
   "code": "ds-hk-hkgov-dpo-address",
   "regionCode": "hk",
@@ -60,13 +60,11 @@
     }
   },
   "sourceCrs": "EPSG:4326",
-  "mergeRules": [
+  "processingRules": [
     {
-      "rulesetVersion": "rs-als-processing-v1",
+      "rulesetVersion": "rs-source-ingestion-v1",
       "operationCodes": [
-        "prepare-als-addresses",
-        "normalise-als-addresses",
-        "curate-als-addresses"
+        "ingest-hkgov-dpo-address"
       ]
     }
   ]

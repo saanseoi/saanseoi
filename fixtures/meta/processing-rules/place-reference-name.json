@@ -5,11 +5,26 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Combine distinct Traditional Chinese and English place names when their scripts differ; otherwise select Traditional Chinese, English or the first available localised name.",
-  "inputs": ["place-localisations"],
-  "outputs": ["place-reference-name"],
+  "inputs": [
+    "place-localisations"
+  ],
+  "outputs": [
+    "place-reference-name"
+  ],
   "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/places/place.ts",
     "symbol": "placeReferenceNameRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Combine distinct Traditional Chinese and English place names when their scripts differ; otherwise select Traditional Chinese, English or the first available localised name."
+    },
+    "zh-hant": {
+      "description": "按宣告的語言優先次序，從地點本地化名稱建立參照名稱。"
+    },
+    "zh-hans": {
+      "description": "按声明的语言优先顺序，从地点本地化名称建立参照名称。"
+    }
   }
 }

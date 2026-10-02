@@ -12,8 +12,8 @@ const searchableHeaderText = (rule: AuditBulkRule) =>
   [
     rule.operationCode,
     formatAuditOperationCode(rule.operationCode),
-    rule.sourceFieldPath,
-    rule.targetFieldPath,
+    rule.inputs?.join(' '),
+    rule.outputs?.join(' '),
     rule.condition,
     ...Object.values(rule.i18n).map(item => item.description),
   ].join(' ')

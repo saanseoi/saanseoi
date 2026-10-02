@@ -1,3 +1,5 @@
+import sourceFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-generic-source-assertion.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
@@ -613,48 +615,7 @@ async function* readRows(
     2048,
   )) {
     for (const row of batch) {
-      if (!Object.hasOwn(row, 'properties'))
-        throw new Error(
-          'C&SD source properties are missing; prepare the release again.',
-        )
-      const sourceRecordId = requiredString(row.id, 'id')
-      const properties = json(row.properties, 'properties')
-      const source = json(row.sources, 'sources')
-      const payload = {
-        datasetCode: requiredString(row.dataset_code, 'dataset_code'),
-        featureId: requiredString(row.feature_id, 'feature_id'),
-        layerName: requiredString(row.layer_name, 'layer_name'),
-        referencePeriodCode: requiredString(
-          row.reference_period_code,
-          'reference_period_code',
-        ),
-        referencePeriodEnd: optionalString(row.reference_period_end),
-        referencePeriodEndYear: requiredString(
-          row.reference_period_end_year,
-          'reference_period_end_year',
-        ),
-        referencePeriodGranularity: requiredString(
-          row.reference_period_granularity,
-          'reference_period_granularity',
-        ),
-        referencePeriodStart: optionalString(row.reference_period_start),
-        sourceGeometry: json(row.source_geometry, 'source_geometry'),
-        sources: source,
-        properties,
-      }
-      const now = new Date().toISOString()
-      yield {
-        ...payload,
-        sourceRecordId,
-        resourceReleaseId,
-        validFromRelease: sourceVersion,
-        validToRelease: null,
-        isCurrent: true,
-        version: 1,
-        versionHash: hashStatisticContent(nativeSourcePayloadHashInput(payload)),
-        createdAt: now,
-        updatedAt: now,
-      }
+      yield censtatdGenericSourceRule.execute({ row, resourceReleaseId, sourceVersion })
     }
   }
 }
@@ -783,3 +744,58 @@ function uniqueReferencePeriods(
   ]
 }
 import { statisticSourceResolutions } from './sourceResolutions'
+
+function retainCenstatdSource({
+  row,
+  resourceReleaseId,
+  sourceVersion,
+}: {
+  row: Record<string, unknown>
+  resourceReleaseId: string
+  sourceVersion: string
+}) {
+  if (!Object.hasOwn(row, 'properties'))
+    throw new Error('C&SD source properties are missing; prepare the release again.')
+  const sourceRecordId = requiredString(row.id, 'id')
+  const properties = json(row.properties, 'properties')
+  const source = json(row.sources, 'sources')
+  const payload = {
+    datasetCode: requiredString(row.dataset_code, 'dataset_code'),
+    featureId: requiredString(row.feature_id, 'feature_id'),
+    layerName: requiredString(row.layer_name, 'layer_name'),
+    referencePeriodCode: requiredString(
+      row.reference_period_code,
+      'reference_period_code',
+    ),
+    referencePeriodEnd: optionalString(row.reference_period_end),
+    referencePeriodEndYear: requiredString(
+      row.reference_period_end_year,
+      'reference_period_end_year',
+    ),
+    referencePeriodGranularity: requiredString(
+      row.reference_period_granularity,
+      'reference_period_granularity',
+    ),
+    referencePeriodStart: optionalString(row.reference_period_start),
+    sourceGeometry: json(row.source_geometry, 'source_geometry'),
+    sources: source,
+    properties,
+  }
+  const now = new Date().toISOString()
+  return {
+    ...payload,
+    sourceRecordId,
+    resourceReleaseId,
+    validFromRelease: sourceVersion,
+    validToRelease: null,
+    isCurrent: true,
+    version: 1,
+    versionHash: hashStatisticContent(nativeSourcePayloadHashInput(payload)),
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+export const censtatdGenericSourceRule = registerRule(
+  ruleDeclarationFromFixture(sourceFixture),
+  retainCenstatdSource,
+)

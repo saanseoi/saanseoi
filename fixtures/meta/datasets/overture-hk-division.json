@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:50805b9ca1e69f9d3cca513899058b8f01ad87b057f419c19066606479b8e417",
+  "versionHash": "sha256:0fa86efadf1f26d7f39c6a2fab64fe6d719298d2ac75ebc3baab3fe41b22943e",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division",
   "regionCode": "hk",
@@ -49,23 +49,6 @@
     "correctionSuffixSource": "upstream"
   },
   "category": "places",
-  "mergeRules": [
-    {
-      "rulesetVersion": "rs-division-merge-v1",
-      "operationCodes": [
-        "derive_division_type_from_overture_taxonomy",
-        "derive_division_level_from_overture_taxonomy",
-        "normalise_overture_division_hierarchy",
-        "overture_division_hong_kong_area_hierarchy_assigned",
-        "overture_hong_kong_lok_ma_chau_loop_reclassified",
-        "decode_wkb_geometry_to_geojson",
-        "overture_division_locale_inferred",
-        "overture_division_api_locale_fallback_added",
-        "overture_division_name_ai_translated",
-        "overture_division_name_human_translated"
-      ]
-    }
-  ],
   "i18n": {
     "en": {
       "name": "Divisions",
@@ -80,5 +63,13 @@
       "description": "「division」是一种要素类型，表示从某个政治视角所见的官方或非官方人群组织：国家、地区、省、市、社区等。它具有 Point 几何，提供与该要素最常关联位置的大致位置。"
     }
   },
-  "sourceCrs": "EPSG:4326"
+  "sourceCrs": "EPSG:4326",
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-overture-division"
+      ]
+    }
+  ]
 }

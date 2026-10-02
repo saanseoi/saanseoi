@@ -5,11 +5,29 @@
   "scope": "bulk",
   "basis": "fixture",
   "summary": "Match each place to an official address using the selected policy, approved extra addresses and reviewed decisions.",
-  "inputs": ["places", "official-addresses", "place-address-curations"],
-  "outputs": ["place-address-links", "supplementary-addresses"],
+  "inputs": [
+    "places",
+    "official-addresses",
+    "place-address-curations"
+  ],
+  "outputs": [
+    "place-address-links",
+    "supplementary-addresses"
+  ],
   "parameters": {},
   "implementation": {
     "path": "apps/harbour-cli/src/lib/pipeline/places/supplementaryPlaceAddress.ts",
     "symbol": "placeAddressAnalysisRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Match each place to an official address using the selected policy, approved extra addresses and reviewed decisions."
+    },
+    "zh-hant": {
+      "description": "使用正式地址及已審核整理決定，連結地點地址並建立補充地址。"
+    },
+    "zh-hans": {
+      "description": "使用正式地址及已审核整理决定，连接地点地址并建立补充地址。"
+    }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:731ed73566358f6db76fad20bc8588f846ae44880611a9a648d6c38370fd65a4",
+  "versionHash": "sha256:281c8309a1e1c6cce01a02b2e5d42bfe9cc6ae39dc8f6a835e55e3476087f293",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -57,19 +57,6 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
-  "mergeRules": [
-    {
-      "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": [
-        "normalise_censtatd_statistic_source_assertion",
-        "map_censtatd_district_code_to_canonical_division",
-        "curate_censtatd_measure_metadata",
-        "provenance_statistic_normalisation",
-        "provenance_statistic_localisation",
-        "provenance_division_area_geometry"
-      ]
-    }
-  ],
   "releases": [
     {
       "sourceVersion": "2024",
@@ -133,5 +120,13 @@
       "name": "按区议会分区划分的人口及住户统计",
       "description": "政府统计处提供的陆上非住院人口、住户及社会经济指标的每年统计。"
     }
-  }
+  },
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-censtatd-division-statistic-population-households-district"
+      ]
+    }
+  ]
 }

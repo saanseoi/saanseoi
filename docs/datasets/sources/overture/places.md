@@ -672,3 +672,13 @@ addresses continue to apply. Later review can resolve these cases in revised rel
 The Place division projection includes point-in-polygon island membership alongside
 administrative and locality references. `filter[division]` accepts island IDs even when
 no Address is linked. Historical reads use the Place version's recorded membership.
+
+## Processing policy ownership
+
+The ingestion policy retains Overture attributes, attribution and source geometry
+without canonical corrections. Place recipes own normalisation, country selection,
+reference names and address analysis. Supplementary Address recipes also select Place
+normalisation as an explicit prerequisite of reviewed address derivation.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

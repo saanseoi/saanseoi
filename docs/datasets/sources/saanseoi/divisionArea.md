@@ -207,6 +207,13 @@ drawings remain review evidence and do not enter the archive. The editor's
 coast-clipping tools, undo history and fixture export preserve the distinction between
 review work and published editions.
 
+Monthly assembly selects the latest exact publisher pin on or before the edition date
+from the editorial review pins and
+`fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json`. The September
+SaanSeoi edition uses August Overture; October uses September Overture. Slower sources
+carry forward, and the archive manifest records the selected hashes and snapshots. The
+editor's reference cohort does not advance implicitly with publication.
+
 ## Geocoding and coverage
 
 `/divisions/v1/geocode` reads the selected published SaanSeoi area snapshot, with
@@ -428,3 +435,13 @@ display hints, not changes to geometry or identity.
 | Minor island   |           12 |         60 |
 | Islet          |           15 |         35 |
 | Island group   |           11 |         65 |
+
+## Processing policy ownership
+
+SaanSeoi ingestion retains reviewed publisher records in `ssDivisionArea` and
+`ssDivision`. Curated assembly, identities, names and canonical geometry processing are
+selected by the resource-specific snapshot recipes. These recipes retain exact assembly
+declarations independently of the ingestion policy.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

@@ -49,6 +49,7 @@ export const ruleDeclarationSchema = object(
     scope: { enum: ['bulk', 'individual'] },
     basis,
     summary: text,
+    i18n: { type: 'object', additionalProperties: object({ description: text }) },
     inputs: array(text),
     outputs: array(text),
     parameters: { type: 'object' },
@@ -65,7 +66,7 @@ export const ruleDeclarationSchema = object(
     ),
     implementation: object({ path: text, symbol: text, revision: text }, ['revision']),
   },
-  ['branches', 'dependencyIds', 'dependencies', 'review'],
+  ['branches', 'dependencyIds', 'dependencies', 'review', 'i18n'],
 )
 export const individualAuditSchema = object(
   {

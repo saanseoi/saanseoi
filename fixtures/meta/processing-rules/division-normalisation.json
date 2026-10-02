@@ -5,8 +5,12 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Preserve publisher identity and source assertions; use the curated SaanSeoi class and taxonomy for curated identities, and normalise native source rows for review. Materialise localised names and correlated hierarchy paths.",
-  "inputs": ["source-divisions"],
-  "outputs": ["divisions"],
+  "inputs": [
+    "source-divisions"
+  ],
+  "outputs": [
+    "divisions"
+  ],
   "parameters": {
     "levelTokens": [
       {
@@ -88,8 +92,15 @@
     ],
     "apiLocaleFallbacks": {
       "en": [],
-      "zh-hant": ["zh-hk", "zh-mo", "zh-tw"],
-      "zh-hans": ["zh-cn", "zh-sg"]
+      "zh-hant": [
+        "zh-hk",
+        "zh-mo",
+        "zh-tw"
+      ],
+      "zh-hans": [
+        "zh-cn",
+        "zh-sg"
+      ]
     },
     "hongKongArea": {
       "level": 1,
@@ -143,15 +154,22 @@
     ],
     "hoodClasses": [
       {
-        "tokens": ["macrohood"],
+        "tokens": [
+          "macrohood"
+        ],
         "class": "macrohood"
       },
       {
-        "tokens": ["neighborhood", "neighbourhood"],
+        "tokens": [
+          "neighborhood",
+          "neighbourhood"
+        ],
         "class": "neighbourhood"
       },
       {
-        "tokens": ["microhood"],
+        "tokens": [
+          "microhood"
+        ],
         "class": "microhood"
       }
     ],
@@ -204,5 +222,16 @@
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisions/division.ts",
     "symbol": "divisionNormalisationRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Preserve publisher identity and source assertions; use the curated SaanSeoi class and taxonomy for curated identities, and normalise native source rows for review. Materialise localised names and correlated hierarchy paths."
+    },
+    "zh-hant": {
+      "description": "保留來源識別，建立已整理的區劃分類、本地化名稱及相關階層路徑。"
+    },
+    "zh-hans": {
+      "description": "保留来源识别，建立已整理的区划分类、本地化名称及相关层级路径。"
+    }
   }
 }

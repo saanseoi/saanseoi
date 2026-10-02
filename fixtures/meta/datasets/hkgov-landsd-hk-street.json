@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:96725efb59e6830170412bafd6ff6608dfc45ad232a58af3a39b160f8599d4b6",
+  "versionHash": "sha256:414994704e06d983391a660b646b7daf6b64b4e7e6e03abe551a9fb79fc138f0",
   "publisherCode": "hkgov-landsd",
   "code": "ds-hk-hkgov-landsd-street",
   "regionCode": "hk",
@@ -57,5 +57,13 @@
       "name": "地政总署街道名称",
       "description": "来自地政总署刊宪街道名称清单的香港官方现行街道名称数据集；历史政府公告证据可在后续发布修订加入。"
     }
-  }
+  },
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-landsd-street"
+      ]
+    }
+  ]
 }

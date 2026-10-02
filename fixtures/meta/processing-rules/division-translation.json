@@ -5,8 +5,13 @@
   "scope": "individual",
   "basis": "fixture",
   "summary": "Add a missing English or Traditional Chinese name from a reviewed fixture, retaining its provenance. Simplified Chinese translations are not applied.",
-  "inputs": ["division-i18n", "division-translations"],
-  "outputs": ["division-i18n"],
+  "inputs": [
+    "division-i18n",
+    "division-translations"
+  ],
+  "outputs": [
+    "division-i18n"
+  ],
   "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisions/divisionTranslationRule.ts",
@@ -18,6 +23,17 @@
       "id": "division-required-locales",
       "summary": "Required division name locales are missing from the source.",
       "consequence": "block-ingestion"
+    }
+  },
+  "i18n": {
+    "en": {
+      "description": "Add a missing English or Traditional Chinese name from a reviewed fixture, retaining its provenance. Simplified Chinese translations are not applied."
+    },
+    "zh-hant": {
+      "description": "套用具有來源及上下文檢查的已審核區劃名稱翻譯。"
+    },
+    "zh-hans": {
+      "description": "应用具有来源及上下文检查的已审核区划名称翻译。"
     }
   }
 }

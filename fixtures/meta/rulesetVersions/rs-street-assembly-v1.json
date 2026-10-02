@@ -1,0 +1,14 @@
+{
+  "versionHash": "sha256:56a6e8fb395f654c39c7ccaca583187654a4c15ab9fcbf1fc6f5c83ba7233238",
+  "code": "rs-street-assembly-v1",
+  "stage": "assembly",
+  "resourceType": "street",
+  "strategy": "assembly",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "assemble-landsd-streets",
+      "ruleFixture": "landsd-street-assembly"
+    }
+  ]
+}

@@ -5,11 +5,27 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Count translation applications and distinct selected instructions. Match each applied translation to its retained instruction by context hash, source locale, source-text hash, target locale and translated text. Count unselected instructions without creating per-record skipped actions; an unused instruction does not prove a failed match or a missing source record.",
-  "inputs": ["translation-instructions", "translation-applications"],
-  "outputs": ["translated-names"],
+  "inputs": [
+    "translation-instructions",
+    "translation-applications"
+  ],
+  "outputs": [
+    "translated-names"
+  ],
   "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisions/divisionProvenance.ts",
-    "symbol": "retainDivisionProvenance"
+    "symbol": "divisionTranslationSummaryRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Count translation applications and distinct selected instructions. Match each applied translation to its retained instruction by context hash, source locale, source-text hash, target locale and translated text. Count unselected instructions without creating per-record skipped actions; an unused instruction does not prove a failed match or a missing source record."
+    },
+    "zh-hant": {
+      "description": "按保留的指令及上下文計算翻譯應用、已選指令及未使用指令；不為未使用指令建立記錄決定。"
+    },
+    "zh-hans": {
+      "description": "按保留的指令及上下文计算翻译应用、已选指令及未使用指令；不为未使用指令建立记录决定。"
+    }
   }
 }

@@ -5,7 +5,10 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Choose the published fields to use, read their values and reporting periods, then pack every reviewed category into one record per dataset, place and exact period.",
-  "inputs": ["publisher-properties", "statistic-field-curations"],
+  "inputs": [
+    "publisher-properties",
+    "statistic-field-curations"
+  ],
   "outputs": [
     "statsRecords",
     "statsFields",
@@ -18,5 +21,16 @@
   "implementation": {
     "path": "apps/harbour-cli/src/lib/pipeline/statistics/normaliseHkgovCenstatdStatistics.ts",
     "symbol": "statisticNormalisationRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Choose the published fields to use, read their values and reporting periods, then pack every reviewed category into one record per dataset, place and exact period."
+    },
+    "zh-hant": {
+      "description": "按發布者屬性及已審核的欄位定義建立標準統計記錄、欄位、量度及本地化值。"
+    },
+    "zh-hans": {
+      "description": "按发布者属性及已审核的字段定义建立标准统计记录、字段、量度及本地化值。"
+    }
   }
 }

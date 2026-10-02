@@ -5,11 +5,26 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Convert the publisher’s map shape into GeoJSON. Keep GeoJSON that is already readable, and leave an absent shape empty.",
-  "inputs": ["source-geometry"],
-  "outputs": ["GeoJSON"],
+  "inputs": [
+    "source-geometry"
+  ],
+  "outputs": [
+    "GeoJSON"
+  ],
   "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisions/division.ts",
     "symbol": "wkbGeometryRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Convert the publisher’s map shape into GeoJSON. Keep GeoJSON that is already readable, and leave an absent shape empty."
+    },
+    "zh-hant": {
+      "description": "將 WKB 幾何解碼為 GeoJSON，保留原始幾何座標。"
+    },
+    "zh-hans": {
+      "description": "将 WKB 几何解码为 GeoJSON，保留原始几何坐标。"
+    }
   }
 }

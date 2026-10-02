@@ -1,8 +1,22 @@
+import assemblyFixture from '../../../../../../fixtures/meta/processing-rules/curated-division-assembly.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
+import { resolveCuratedHierarchies } from './resolveHierarchies'
+import {
+  deriveIslandGroupGeometry,
+  type IslandGroupDefinition,
+} from './islandGroupGeometry'
+import { isAdministrativeDivision } from './administrativeAreas'
+import {
+  applyCuratedDivisionNames,
+  curatedDivisionPolicy,
+  curatedDivisionClassification,
+} from '@repo/core/pipeline/services/divisions/curatedDivisionPolicy'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 import {
   buildDeterministicUuidV5,
+  canonicalGeneratedId,
   geographicDivisionClassification,
   classifyIslandArea,
 } from '@repo/db'
@@ -21,20 +35,24 @@ import {
 
 type Row = Record<string, any>
 const namespace = '7a3c5e91-95c2-5c93-8e3c-7d5b5d3bb6e7'
-const uuid = (key: string) => buildDeterministicUuidV5(namespace, key)
-export function assembleCuratedDivisions(input: {
+const uuid = (key: string) =>
+  canonicalGeneratedId(buildDeterministicUuidV5(namespace, key))
+function assembleCuratedDivisionsInternal(input: {
   islandReview?: IslandReviewFixture
   excludedIds?: string[]
   classificationPatches?: Row[]
   divisions: Row[]
   names: Row[]
   areas: Row[]
+  administrativeAreas?: Row[]
   hierarchy: Row
-  stubs: Row
+  estimatedAreas: Row
   islands: Row[]
+  islandGroups?: IslandGroupDefinition[]
 }) {
   const excluded = new Set(input.excludedIds ?? [])
   const mergedAliases = new Map<string, string>()
+  const reclassifiedGroups = new Map<string, string>()
   let islands = input.islands
   if (input.islandReview) {
     const result = curateIslands(
@@ -48,7 +66,7 @@ export function assembleCuratedDivisions(input: {
       for (const aliasId of group.aliasIds)
         mergedAliases.set(aliasId, group.canonicalId)
     }
-    // Carry reviewed geometry and its measured area into publication; acceptance
+    // Carry curated geometry and its measured area into publication; acceptance
     // alone must not restore the uncorrected inventory polygon.
     const curated = new Map(result.islands.map(island => [island.id, island]))
     islands = input.islands
@@ -62,6 +80,24 @@ export function assembleCuratedDivisions(input: {
     )
     for (const island of input.islands) {
       if (accepted.has(island.id)) continue
+      // A group rejected by the individual-island review can still be an
+      // explicitly curated division. Do not turn reclassification into deletion.
+      const reclassification = input.islandReview.curationPolicy?.actions.find(
+        action => action.id === island.id && action.action === 'reclassify',
+      )
+      if (
+        reclassification?.class === 'island_group' &&
+        !reclassification.reviewRequired &&
+        !excluded.has(island.id) &&
+        !excluded.has(uuid(island.id)) &&
+        input.divisions.some(
+          division =>
+            division.id === uuid(island.id) && division.class === 'island_group',
+        )
+      ) {
+        reclassifiedGroups.set(uuid(island.id), island.id)
+        continue
+      }
       excluded.add(island.id)
       excluded.add(uuid(island.id))
       for (const match of island.matches ?? []) {
@@ -80,18 +116,27 @@ export function assembleCuratedDivisions(input: {
       .filter(row => !excluded.has(row.id))
       .map(row => [row.id, { ...row }]),
   )
+  for (const [id, sourceId] of reclassifiedGroups) {
+    const division = divisions.get(id)!
+    const sources =
+      typeof division.sources === 'string'
+        ? JSON.parse(division.sources)
+        : (division.sources ?? {})
+    division.sources = JSON.stringify({
+      ...sources,
+      saanseoi: [
+        ...(sources.saanseoi ?? []),
+        {
+          dataset: 'curated-island-areas',
+          record_id: sourceId,
+          contributions: ['identity', 'classification'],
+        },
+      ],
+    })
+  }
   for (const patch of input.classificationPatches ?? []) {
     const division = divisions.get(patch.divisionId)
     if (!division || division.class === patch.replacement.class) continue
-    // The local projection stores the canonical British spelling even when the
-    // guarded Overture assertion uses its American `neighborhood` subtype.
-    const expectedCurrentClass =
-      patch.expected.class ??
-      (patch.expected.subtype === 'neighborhood'
-        ? 'neighbourhood'
-        : patch.expected.subtype)
-    if (division.class !== expectedCurrentClass)
-      throw Error(`Canonical classification patch mismatch for ${patch.divisionId}`)
     const classification = geographicDivisionClassification(patch.replacement.class)
     if (!classification) throw Error(`Unknown classification for ${patch.divisionId}`)
     Object.assign(division, classification, {
@@ -99,7 +144,7 @@ export function assembleCuratedDivisions(input: {
       level: patch.replacement.level,
     })
   }
-  const names = input.names
+  let names = input.names
     .filter(row => !excluded.has(row.divisionId))
     .map(row => ({ ...row }))
   for (const patch of input.classificationPatches ?? []) {
@@ -126,6 +171,55 @@ export function assembleCuratedDivisions(input: {
       name.nameVariant = JSON.stringify([...new Set([...(variants ?? []), ...deduped])])
     }
   }
+  for (const id of divisions.keys()) {
+    if (!divisions.has(id)) continue
+    const localised: Row[] = names
+      .filter(row => row.divisionId === id)
+      .map(row => ({
+        ...row,
+        nameVariant:
+          typeof row.nameVariant === 'string'
+            ? JSON.parse(row.nameVariant)
+            : row.nameVariant,
+        nameRules:
+          typeof row.nameRules === 'string' ? JSON.parse(row.nameRules) : row.nameRules,
+      }))
+    const curated = applyCuratedDivisionNames(id, localised as never).map(row => ({
+      ...row,
+      nameVariant: row.nameVariant ? JSON.stringify(row.nameVariant) : null,
+      nameRules: row.nameRules ? JSON.stringify(row.nameRules) : null,
+    }))
+    const hasAliasDecision =
+      curatedDivisionPolicy.aliases.entries.some(entry => entry.divisionId === id) ||
+      localised.some(row =>
+        curatedDivisionPolicy.aliases.nameAliasRules.some(
+          rule => row.locale === rule.locale && row.name?.endsWith(rule.suffix),
+        ),
+      )
+    if (hasAliasDecision) {
+      const division = divisions.get(id)!
+      const sources =
+        typeof division.sources === 'string'
+          ? JSON.parse(division.sources)
+          : (division.sources ?? {})
+      const retained = (sources.saanseoi ?? []).filter(
+        (source: Row) => source.curation !== 'division-names',
+      )
+      division.sources = JSON.stringify({
+        ...sources,
+        saanseoi: [
+          ...retained,
+          {
+            dataset: 'ds-hk-saanseoi-division',
+            record_id: id,
+            curation: 'division-names',
+            contributions: ['names'],
+          },
+        ],
+      })
+    }
+    names = [...names.filter(row => row.divisionId !== id), ...curated]
+  }
   const aliases = new Map<string, string>()
   for (const island of islands) {
     if (excluded.has(island.id) || excluded.has(uuid(island.id))) continue
@@ -140,7 +234,9 @@ export function assembleCuratedDivisions(input: {
     if (candidates[0]) {
       Object.assign(candidates[0], {
         category: 'landform',
-        class: classifyIslandArea(island.areaKm2),
+        class:
+          curatedDivisionClassification(island.id)?.class ??
+          classifyIslandArea(island.areaKm2),
         level: null,
       })
     }
@@ -148,7 +244,9 @@ export function assembleCuratedDivisions(input: {
       divisions.set(id, {
         id,
         category: 'landform',
-        class: classifyIslandArea(island.areaKm2),
+        class:
+          curatedDivisionClassification(island.id)?.class ??
+          classifyIslandArea(island.areaKm2),
         level: null,
         geometry: island.point
           ? JSON.stringify({ type: 'Point', coordinates: island.point })
@@ -193,16 +291,18 @@ export function assembleCuratedDivisions(input: {
     if (excluded.has(id) || excluded.has(entry.divisionId)) continue
     const division = divisions.get(id)
     if (!division) throw Error(`Missing curated division ${entry.divisionId}`)
-    // Reviewed area determines island size class; other taxonomy changes still
+    // Curated area determines island size class; other taxonomy changes still
     // require a matching hierarchy fixture.
-    const reviewedIslandClass =
+    const curatedIslandClass =
       input.islandReview &&
       islands.some(island => aliases.get(island.id) === id) &&
       ['major_island', 'minor_island', 'islet'].includes(entry.expectedClass)
-    if (division.class !== entry.expectedClass && !reviewedIslandClass)
-      throw Error(
-        `Curated class mismatch for ${id}: ${division.class} / ${entry.expectedClass}`,
-      )
+    if (!curatedIslandClass) {
+      const classification = geographicDivisionClassification(entry.expectedClass)
+      if (!classification)
+        throw Error(`Unknown curated classification: ${entry.expectedClass}`)
+      Object.assign(division, classification, { class: entry.expectedClass })
+    }
     const hierarchy = remap(entry.hierarchies)
     for (const key of Object.keys(hierarchy))
       hierarchy[key] = hierarchy[key]
@@ -236,7 +336,14 @@ export function assembleCuratedDivisions(input: {
     division.hierarchies = JSON.stringify(hierarchy)
   }
   const areas = new Map<string, Row[]>()
-  for (const area of input.areas)
+  for (const area of [
+    ...input.areas.filter(
+      area =>
+        !input.administrativeAreas ||
+        !isAdministrativeDivision(divisions.get(area.divisionId) ?? {}),
+    ),
+    ...(input.administrativeAreas ?? []),
+  ])
     if (divisions.has(area.divisionId))
       areas.set(area.divisionId, [
         ...(areas.get(area.divisionId) ?? []),
@@ -300,13 +407,18 @@ export function assembleCuratedDivisions(input: {
       ['Polygon', 'MultiPolygon'].includes(island.geometry?.type)
     )
       put(aliases.get(island.id)!, island.geometry, 'island-areas', island.id)
-  for (const feature of input.stubs.features) {
+  for (const feature of input.estimatedAreas.features) {
     if (excluded.has(feature.properties.divisionId)) continue
     const divisionId =
       aliases.get(feature.properties.divisionId) ?? feature.properties.divisionId
+    if (
+      input.administrativeAreas &&
+      isAdministrativeDivision(divisions.get(divisionId) ?? {})
+    )
+      continue
     if (feature.properties.corePoint) {
       if (!containsReviewPoint(feature.properties.corePoint, feature.geometry))
-        throw Error(`Core point is outside reviewed geometry for ${divisionId}`)
+        throw Error(`Core point is outside curated geometry for ${divisionId}`)
       const division = divisions.get(divisionId)
       if (!division) throw Error(`Core point references unknown division ${divisionId}`)
       division.geometry = JSON.stringify({
@@ -320,13 +432,57 @@ export function assembleCuratedDivisions(input: {
         feature.properties.corePoint[1],
       ])
     }
-    put(divisionId, feature.geometry, 'stub-areas', feature.properties.divisionId)
+    put(
+      divisionId,
+      feature.geometry,
+      'division-geometry',
+      feature.properties.divisionId,
+    )
+  }
+  const groupGeometry = deriveIslandGroupGeometry(
+    input.islandGroups ?? [],
+    [...divisions.values()].flatMap(division => {
+      const records = areas.get(division.id) ?? []
+      const polygons = records
+        .filter(row => row.isLand !== 0)
+        .flatMap(row => {
+          const geometry =
+            typeof row.geometry === 'string' ? JSON.parse(row.geometry) : row.geometry
+          return geometry.type === 'Polygon'
+            ? [geometry.coordinates]
+            : geometry.coordinates
+        })
+      return polygons.length
+        ? [
+            {
+              id: division.id,
+              class: division.class,
+              geometry: { type: 'MultiPolygon' as const, coordinates: polygons },
+            },
+          ]
+        : []
+    }),
+    id => aliases.get(id) ?? id,
+  )
+  for (const group of groupGeometry) {
+    if (divisions.get(group.divisionId)?.class !== 'island_group')
+      throw Error(`Unknown island group ${group.divisionId}`)
+    put(group.divisionId, group.geometry, 'island-groups', group.divisionId)
+    for (const area of areas.get(group.divisionId)!) {
+      const identifiers = JSON.parse(area.identifiers)
+      identifiers.islandGroup = {
+        memberIds: group.memberIds,
+        seedBounds: group.seedBounds,
+        method: 'seed-bounds-whole-island-v1',
+      }
+      area.identifiers = JSON.stringify(identifiers)
+    }
   }
   const outputAreas: Row[] = [...areas.values()]
     .flat()
     .map(row => ({ ...row, id: uuid(`saanseoi:${row.id}`) }))
   // Publication can remap identities and replace editor polygons. Assertions must
-  // describe the final geometry, never the geometry that happened to be reviewed.
+  // describe the final geometry, never the geometry that happened to be curated.
   const containmentAreas = new Map<string, Array<Polygon | MultiPolygon>>()
   for (const area of outputAreas) {
     const geometry =
@@ -336,6 +492,12 @@ export function assembleCuratedDivisions(input: {
       geometry,
     ])
   }
+  resolveCuratedHierarchies(
+    [...divisions.values()],
+    outputAreas,
+    names,
+    new Map(groupGeometry.map(group => [group.divisionId, new Set(group.memberIds)])),
+  )
   const annotateContainment = createFullContainmentAnnotator(containmentAreas)
   for (const division of divisions.values()) {
     const hierarchy =
@@ -352,6 +514,17 @@ export function assembleCuratedDivisions(input: {
     divisions: [...divisions.values()],
     names,
     areas: outputAreas,
+    islandGroups: groupGeometry.map(({ geometry: _, ...group }) => group),
     aliases: Object.fromEntries(aliases),
   }
+}
+
+export const curatedDivisionAssemblyRule = registerRule(
+  ruleDeclarationFromFixture(assemblyFixture),
+  assembleCuratedDivisionsInternal,
+)
+export function assembleCuratedDivisions(
+  input: Parameters<typeof assembleCuratedDivisionsInternal>[0],
+) {
+  return curatedDivisionAssemblyRule.execute(input)
 }

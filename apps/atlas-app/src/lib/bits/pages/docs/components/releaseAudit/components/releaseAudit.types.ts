@@ -17,10 +17,11 @@ export type AuditBulkRule = {
   i18n: Record<string, { description: string }>
   mappings?: AuditBulkMapping[]
   operationCode: string
-  sourceFieldPath?: string
+  snapshotCode?: string
+  inputs?: string[]
   sourceCode?: string
   sourceReleaseCode?: string
-  targetFieldPath?: string
+  outputs?: string[]
   kind: 'bulk' | 'record'
 }
 

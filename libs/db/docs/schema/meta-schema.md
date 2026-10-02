@@ -110,13 +110,24 @@ use EPSG:2326. Overture geometry uses EPSG:4326. HyD street-name plates, sensiti
 streets, strategic streets and TD pedestrian streets also retain EPSG:2326 coordinates
 from their native FileGDB layers.
 
-`datasets.processingRules` contains the current resolved policy. `sourceReleases` and
-`resourceReleases` retain the policy at creation for reproducibility. These are
-intentional copies: dataset synchronisation must not rewrite historic release policy.
-Registered rule declarations supply exact definitions, interfaces, parameters and
-implementation references; processing actions retain the decisions and counts actually
-produced. Missing historical rules cannot be reconstructed by copying today's registry
-policy.
+`datasets.processingRules` contains the current resolved ingestion policy, with
+`stage: "ingestion"`. `sourceReleases.processingRules` and
+`resourceReleases.processingRules` retain `{ definitionId }` references to that exact
+policy in `processingRuleDefinitions` at creation. Dataset synchronisation does not
+rewrite captured release definitions.
+
+`snapshotRecipes.processingRules` retains `{ definitionId }` for the resolved
+`stage: "assembly"` policy. The effective recipe hash includes those rules as well as
+its selected input policies. `snapshotAssemblies.snapshotRecipeId` pins the recipe used
+by a snapshot; draft revisions can select another content-addressed recipe, while
+published snapshots keep their existing recipe. Null historical references remain
+unknown rather than acquiring today's rules.
+
+Registered declarations supply exact definitions, interfaces, parameters and
+implementation references. Rule `kind` groups bulk and record scope within one schema.
+Structured field references identify an origin, collection and programmatic field path.
+API field rule pins identify either an ingestion resource release or an assembly recipe;
+shared lineage definitions retain both ingestion and assembly definition hashes.
 
 `sourceReleases.rawObjectKey` locates the retained publisher artefact or shared prepared
 input. `resourceReleases.rawObjectKey` locates the resource's ingestion input. A

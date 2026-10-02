@@ -515,3 +515,12 @@ geographies. Publication state remains outside ordinary content diffs.
 
 C&SD combined uploads attach geometry status to Division Area resources only; Division
 identity resources do not accept this option.
+
+## Processing policy ownership
+
+C&SD ingestion policies validate prepared identities, reporting metadata and source
+assertions. Statistic snapshot recipes select canonical measures, field curation,
+localisation and unit conversion. Area and geography outputs select their own assembly
+policies; a Statistic recipe does not acquire area geometry processing.
+
+See the [processing policy contract](../pipeline.md#define-audit-processing-rules).

@@ -5,8 +5,14 @@
   "scope": "individual",
   "basis": "fixture",
   "summary": "Apply a SaanSeoi classification decision by publisher identity, independently of publisher admin level, class and subtype.",
-  "inputs": ["source-divisions", "division-classification-patches"],
-  "outputs": ["divisions.type", "divisions.level"],
+  "inputs": [
+    "source-divisions",
+    "division-classification-patches"
+  ],
+  "outputs": [
+    "divisions.class",
+    "divisions.level"
+  ],
   "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisions/divisionClassificationPatch.ts",
@@ -14,5 +20,16 @@
   },
   "review": {
     "kind": "patch"
+  },
+  "i18n": {
+    "en": {
+      "description": "Apply a SaanSeoi classification decision by publisher identity, independently of publisher admin level, class and subtype."
+    },
+    "zh-hant": {
+      "description": "按發布者識別套用獨立審核的區劃分類修正。"
+    },
+    "zh-hans": {
+      "description": "按发布者识别应用独立审核的区划分类修正。"
+    }
   }
 }

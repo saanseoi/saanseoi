@@ -1,3 +1,9 @@
+import {
+  metaSnapshotAssemblies,
+  metaSnapshotRecipes,
+  metaSnapshotResourceReleases,
+} from '@repo/db'
+import { processingRulesSelection } from '../../lib/db/processingRuleDefinitions'
 import { requireDefined } from '../../requireDefined'
 import { and, eq, inArray, sql } from 'drizzle-orm'
 
@@ -45,11 +51,11 @@ function declaredOperationCodes(processingRules: unknown) {
     if (!Array.isArray(rules)) continue
     for (const rule of rules) {
       if (!rule || typeof rule !== 'object') continue
-      const { operationCode, type } = rule as {
+      const { operationCode, kind } = rule as {
         operationCode?: unknown
-        type?: unknown
+        kind?: unknown
       }
-      if ((type === 'record' || type === 'bulk') && typeof operationCode === 'string') {
+      if ((kind === 'record' || kind === 'bulk') && typeof operationCode === 'string') {
         operationCodes.add(operationCode)
       }
     }
@@ -89,7 +95,9 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
   const release = await metaDb
     .select({
       status: metaSchema.metaResourceReleases.status,
-      processingRules: metaSchema.metaResourceReleases.processingRules,
+      processingRules: processingRulesSelection(
+        metaSchema.metaResourceReleases.processingRules,
+      ),
     })
     .from(metaSchema.metaResourceReleases)
     .where(eq(metaSchema.metaResourceReleases.id, resourceReleaseId))
@@ -107,7 +115,26 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
     )
   }
 
+  const snapshotPolicies = await metaDb
+    .select({
+      processingRules: processingRulesSelection(metaSnapshotRecipes.processingRules),
+    })
+    .from(metaSnapshotResourceReleases)
+    .innerJoin(
+      metaSnapshotAssemblies,
+      eq(metaSnapshotResourceReleases.snapshotId, metaSnapshotAssemblies.snapshotId),
+    )
+    .innerJoin(
+      metaSnapshotRecipes,
+      eq(metaSnapshotAssemblies.snapshotRecipeId, metaSnapshotRecipes.id),
+    )
+    .where(eq(metaSnapshotResourceReleases.resourceReleaseId, resourceReleaseId))
+    .all()
   const operationCodes = declaredOperationCodes(release.processingRules)
+  for (const policy of snapshotPolicies) {
+    for (const code of declaredOperationCodes(policy.processingRules) ?? [])
+      operationCodes?.add(code)
+  }
   if (operationCodes) {
     const undeclaredActions = actions
       .map(action => action.action)
@@ -119,102 +146,51 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
     }
   }
 
-  const normalised = normaliseAuditActions(actions)
-  const generation = await createHash(normalised)
-  const previous = await listReleaseAuditSummaries(metaDb, [resourceReleaseId])
-  if (previous.length && previous.every(row => row.generation === generation)) {
-    // Verify persisted evidence before treating a retry as complete.
-    await readAuditPages(metaDb, previous)
-    return {
-      actions: previous,
-      chunks: await readReleaseAuditChunks(metaDb, previous),
-      stats: (await metaDb
-        .select()
-        .from(metaSchema.stats)
-        .where(
-          and(
-            eq(metaSchema.stats.resourceReleaseId, resourceReleaseId),
-            eq(metaSchema.stats.metric, 'processing'),
-          ),
-        )
-        .all()) as ReleaseStatsRow[],
+  const grouped = new Map<
+    string,
+    {
+      action: string
+      mode: 'automatic' | 'manual'
+      affectedRecordCount: number
+      decisionCount: number
     }
+  >()
+  for (const action of normaliseAuditActions(actions)) {
+    const key = `${action.mode}:${action.action}`
+    const entry = grouped.get(key) ?? {
+      action: action.action,
+      mode: action.mode,
+      affectedRecordCount: 0,
+      decisionCount: 0,
+    }
+    entry.affectedRecordCount += action.affectedRecordCount
+    entry.decisionCount += 1
+    grouped.set(key, entry)
   }
-  if (!previous.length && !actions.length) {
-    const statistic = await metaDb
-      .select({ id: metaSchema.stats.id })
-      .from(metaSchema.stats)
-      .where(
-        and(
-          eq(metaSchema.stats.resourceReleaseId, resourceReleaseId),
-          eq(metaSchema.stats.metric, 'processing'),
-        ),
-      )
-      .limit(1)
-      .get()
-    if (!statistic) return { actions: [], chunks: [], stats: [] }
-  }
+  // Fixture decisions are retained by the provenance writer. D1 stores counts only.
+  const counts = [...grouped.values()].sort((a, b) =>
+    `${a.mode}:${a.action}`.localeCompare(`${b.mode}:${b.action}`),
+  )
+  const generation = await createHash(counts)
+  const previous = await listReleaseAuditSummaries(metaDb, [resourceReleaseId])
+  if (
+    previous.length === counts.length &&
+    previous.every(row => row.generation === generation)
+  )
+    return { actions: previous, chunks: [], stats: [] }
   const timestamp = toIsoTimestamp()
-  const groups = new Map<string, ReleaseProcessingAction[]>()
-  for (const action of normalised) {
-    const key = `${action.mode}\u0000${action.action}`
-    const group = groups.get(key) ?? []
-    group.push(action)
-    groups.set(key, group)
-  }
-  const materialisedActions: AuditSummary[] = []
-  const chunks: AuditChunk[] = []
-  for (const [key, records] of [...groups].sort(([a], [b]) => a.localeCompare(b))) {
-    const summary: AuditSummary = {
-      id: await createHash([resourceReleaseId, key]),
+  const summaries: AuditSummary[] = await Promise.all(
+    counts.map(async count => ({
+      ...count,
+      id: await createHash([resourceReleaseId, count.mode, count.action]),
       resourceReleaseId,
-      action: requireDefined(records[0]).action,
-      mode: requireDefined(records[0]).mode,
       generation,
-      decisionCount: records.length,
-      affectedRecordCount: records.reduce(
-        (sum, record) => sum + record.affectedRecordCount,
-        0,
-      ),
       createdAt: timestamp,
       updatedAt: timestamp,
-    }
-    materialisedActions.push(summary)
-    chunks.push(...(await encodeAuditGroup(summary, records)))
-  }
-  // Eleven bound columns per chunk; one BLOB per statement also bounds request size.
-  await runStatementsInGroupsWithWriteRetry(
-    metaDb,
-    chunks.map(chunk =>
-      metaDb
-        .insert(metaSchema.releaseProcessingActionChunks)
-        .values(chunk)
-        .onConflictDoNothing(),
-    ),
-    10,
-  )
-  await readAuditPages(metaDb, materialisedActions)
-  const materialisedStats: ReleaseStatsRow[] = materialisedActions.map(action => ({
-    apiReleaseSetId: null,
-    createdAt: timestamp,
-    dimension: 'processing',
-    groupBy: 'action',
-    groupValue: `${action.mode}:${action.action}`,
-    id: `processing-${action.id}`,
-    metric: 'processing',
-    metricUnit: 'count',
-    resourceReleaseId,
-
-    updatedAt: timestamp,
-    value: Math.max(0, Math.floor(action.affectedRecordCount)),
-  }))
-  const statsChunkSize = getMaxRowsPerInsert(13)
-  const statsStatements = chunkArray(materialisedStats, statsChunkSize).map(chunk =>
-    metaDb.insert(metaSchema.stats).values(chunk),
+    })),
   )
   const table = metaSchema.releaseProcessingActions
   const releases = metaSchema.metaResourceReleases
-  // Fail inside the transaction if publication or another replacement won the race.
   const expected = previous[0]?.generation ?? ''
   const guard = metaDb
     .update(releases)
@@ -228,48 +204,9 @@ export async function replaceReleaseProcessingActionsAndReturnRows(
   await commitAuditStatements(metaDb, [
     guard,
     metaDb.delete(table).where(eq(table.resourceReleaseId, resourceReleaseId)),
-    metaDb
-      .delete(metaSchema.stats)
-      .where(
-        and(
-          eq(metaSchema.stats.resourceReleaseId, resourceReleaseId),
-          eq(metaSchema.stats.metric, 'processing'),
-        ),
-      ),
-    ...chunkArray(materialisedActions, getMaxRowsPerInsert(9)).map(rows =>
+    ...chunkArray(summaries, getMaxRowsPerInsert(9)).map(rows =>
       metaDb.insert(table).values(rows),
     ),
-    ...statsStatements,
   ])
-  // Only collect generations observed before this write, never another writer's staging.
-  const oldChunks: Array<{ id: string }> = []
-  for (const parent of previous) {
-    oldChunks.push(
-      ...(await metaDb
-        .select({ id: metaSchema.releaseProcessingActionChunks.id })
-        .from(metaSchema.releaseProcessingActionChunks)
-        .where(
-          and(
-            eq(metaSchema.releaseProcessingActionChunks.actionId, parent.id),
-            eq(metaSchema.releaseProcessingActionChunks.generation, parent.generation),
-          ),
-        )
-        .all()),
-    )
-  }
-  for (const batch of chunkArray(oldChunks, 90)) {
-    await metaDb
-      .delete(metaSchema.releaseProcessingActionChunks)
-      .where(
-        and(
-          inArray(
-            metaSchema.releaseProcessingActionChunks.id,
-            batch.map(chunk => chunk.id),
-          ),
-          sql`not exists (select 1 from ${table} where ${table.id} = ${metaSchema.releaseProcessingActionChunks.actionId} and ${table.generation} = ${metaSchema.releaseProcessingActionChunks.generation})`,
-        ),
-      )
-      .run()
-  }
-  return { actions: materialisedActions, chunks, stats: materialisedStats }
+  return { actions: summaries, chunks: [], stats: [] }
 }

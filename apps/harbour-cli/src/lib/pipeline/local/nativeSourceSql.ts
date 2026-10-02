@@ -1,3 +1,5 @@
+import importFixture from '../../../../../../fixtures/meta/processing-rules/native-source-import.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { nativeSourceLocatorDefaults } from './nativeSourceLocators'
 import { linkManagedSourceAssetToRelease } from '../../sources/sourceAssets'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
@@ -52,26 +54,16 @@ const HARBOUR_WORKERS_WRANGLER_PATH = resolve(
   REPO_ROOT,
   'apps/harbour-workers/wrangler.jsonc',
 )
-const SQL_CHUNK_BYTE_LIMIT = 1_000_000
+const SQL_CHUNK_BYTE_LIMIT = importFixture.parameters.sqlChunkByteLimit
 const SQL_STATEMENT_BYTE_LIMIT = 96 * 1024
 const RELEASE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/releases')
 
 /** The native source ledger is an audited import, even when no curation runs. */
-export const nativeSourceImportRule: RuleDeclaration = {
-  kind: 'processing-rule',
-  schemaVersion: 1,
-  id: 'saanseoi.native-source-import.v1',
-  scope: 'bulk',
-  basis: 'code',
-  summary: 'Import validated publisher assertions into the native source ledger.',
-  inputs: ['publisher-records'],
-  outputs: ['native-source-records'],
-  parameters: { sqlChunkByteLimit: SQL_CHUNK_BYTE_LIMIT },
-  implementation: {
-    path: 'apps/harbour-cli/src/lib/pipeline/local/nativeSourceSql.ts',
-    symbol: 'nativeSourceImportRule',
-  },
-}
+export const nativeSourceImportRule = registerRule(
+  ruleDeclarationFromFixture(importFixture),
+  (args: Parameters<typeof buildNativeSourceSqlInternal>) =>
+    buildNativeSourceSqlInternal(...args),
+)
 
 export type NativeSourceRow = Record<string, unknown> & {
   sourceRecordId: string
@@ -588,7 +580,7 @@ async function retainNativeSourceAudit(
         rules: [
           ...selectionRules,
           {
-            declaration: nativeSourceImportRule,
+            declaration: nativeSourceImportRule.declaration,
             inputs: { 'publisher-records': input.rowCount },
             outputs: { 'native-source-records': input.rowCount },
             recordsAffected: input.rowCount,
@@ -808,7 +800,7 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
   )
 }
 
-export async function buildNativeSourceSql(
+async function buildNativeSourceSqlInternal(
   tables: NativeSourceTable[],
   resourceReleaseId: string,
   sourceVersion: string,
@@ -864,6 +856,12 @@ export async function buildNativeSourceSql(
     }
   }
   return chunkSql(statements)
+}
+
+export function buildNativeSourceSql(
+  ...args: Parameters<typeof buildNativeSourceSqlInternal>
+) {
+  return nativeSourceImportRule.execute(args)
 }
 
 function nativeRowStatements(table: string, row: Record<string, unknown>) {

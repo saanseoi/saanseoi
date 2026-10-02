@@ -5,11 +5,29 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Multiply population figures given in thousands by 1,000.",
-  "inputs": ["publisher-properties.MYPOPN_LAND"],
-  "outputs": ["statsRecords.values"],
-  "parameters": { "sourceField": "MYPOPN_LAND", "factor": 1000 },
+  "inputs": [
+    "publisher-properties.MYPOPN_LAND"
+  ],
+  "outputs": [
+    "statsRecords.values"
+  ],
+  "parameters": {
+    "sourceField": "MYPOPN_LAND",
+    "factor": 1000
+  },
   "implementation": {
     "path": "libs/core/src/pipeline/services/statistics/statisticRules.ts",
     "symbol": "populationThousandsRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Multiply population figures given in thousands by 1,000."
+    },
+    "zh-hant": {
+      "description": "按宣告的縮放因子將發布者以千人表示的人口值轉換為人數。"
+    },
+    "zh-hans": {
+      "description": "按声明的缩放因子将发布者以千人表示的人口值转换为人数。"
+    }
   }
 }

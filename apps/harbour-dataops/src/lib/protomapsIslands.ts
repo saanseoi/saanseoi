@@ -1,3 +1,5 @@
+import sourceFixture from '../../../../fixtures/meta/processing-rules/protomaps-source-extraction.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { createHash } from 'node:crypto'
 
 export type SourceFeature = {
@@ -19,11 +21,12 @@ export function sourceNames(tags: Record<string, unknown>) {
   )
 }
 
-export function protomapsSourceRecords(named: SourceFeature[], land: SourceFeature[]) {
+function extractSourceRecords(
+  { named, land }: { named: SourceFeature[]; land: SourceFeature[] },
+  parameters: Readonly<typeof sourceFixture.parameters>,
+) {
   const records = named
-    .filter(feature =>
-      ['island', 'islet', 'archipelago'].includes(String(feature.properties?.place)),
-    )
+    .filter(feature => parameters.placeTags.includes(String(feature.properties?.place)))
     .map(feature => {
       if (!feature.id || !feature.geometry)
         throw Error('Named source features require their native OSM ID and geometry.')
@@ -59,4 +62,12 @@ export function protomapsSourceRecords(named: SourceFeature[], land: SourceFeatu
   return [...unique.values()].sort((a, b) =>
     a.sourceRecordId.localeCompare(b.sourceRecordId),
   )
+}
+
+export const protomapsSourceExtractionRule = registerRule(
+  ruleDeclarationFromFixture(sourceFixture),
+  extractSourceRecords,
+)
+export function protomapsSourceRecords(named: SourceFeature[], land: SourceFeature[]) {
+  return protomapsSourceExtractionRule.execute({ named, land })
 }

@@ -1,0 +1,46 @@
+{
+  "versionHash": "sha256:3babcc2a00b06865b96b1de3e8d7d6a5498f8e1a7584c05f9a575fd09fde7534",
+  "code": "rs-divisionArea-assembly-v1",
+  "stage": "assembly",
+  "resourceType": "divisionArea",
+  "strategy": "assembly",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "map_censtatd_district_code_to_canonical_division",
+      "ruleFixture": "censtatd-district-identity"
+    },
+    {
+      "operationCode": "normalise_censtatd_population_thousands_to_persons",
+      "ruleFixture": "censtatd-population-thousands-to-persons"
+    },
+    {
+      "operationCode": "assemble-curated-divisions",
+      "ruleFixture": "curated-division-assembly"
+    },
+    {
+      "operationCode": "normalise-division-area-geometry",
+      "ruleFixture": "division-area-geometry"
+    },
+    {
+      "operationCode": "resolve-geography-identities",
+      "ruleFixture": "geography-identities"
+    },
+    {
+      "operationCode": "normalise-planning-divisions",
+      "ruleFixture": "planning-division-normalisation"
+    },
+    {
+      "operationCode": "curate-statistic-fields",
+      "ruleFixture": "statistic-field-curation"
+    },
+    {
+      "operationCode": "apply-statistic-localisation",
+      "ruleFixture": "statistic-localisation"
+    },
+    {
+      "operationCode": "normalise-censtatd-statistics",
+      "ruleFixture": "statistic-normalisation"
+    }
+  ]
+}

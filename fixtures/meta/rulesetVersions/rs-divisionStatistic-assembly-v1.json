@@ -1,0 +1,30 @@
+{
+  "versionHash": "sha256:fc6e194be7aa3ce271e5c33ed577ec61cb88a45c7978a4706c30af03666dd0e0",
+  "code": "rs-divisionStatistic-assembly-v1",
+  "stage": "assembly",
+  "resourceType": "divisionStatistic",
+  "strategy": "assembly",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "map_censtatd_district_code_to_canonical_division",
+      "ruleFixture": "censtatd-district-identity"
+    },
+    {
+      "operationCode": "normalise_censtatd_population_thousands_to_persons",
+      "ruleFixture": "censtatd-population-thousands-to-persons"
+    },
+    {
+      "operationCode": "curate-statistic-fields",
+      "ruleFixture": "statistic-field-curation"
+    },
+    {
+      "operationCode": "apply-statistic-localisation",
+      "ruleFixture": "statistic-localisation"
+    },
+    {
+      "operationCode": "normalise-censtatd-statistics",
+      "ruleFixture": "statistic-normalisation"
+    }
+  ]
+}

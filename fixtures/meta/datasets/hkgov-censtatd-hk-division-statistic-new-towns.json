@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ffa5b62bd565d03fb7a2c2df45b2e0dd024eb24e942170f8325c942f2115d44f",
+  "versionHash": "sha256:04da083db2bc5a732baf7f3302f4fa4993a19839e921d2ca6428719147be734f",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
   "regionCode": "hk",
@@ -56,18 +56,6 @@
     "releaseField": "sourceVersion",
     "correctionSuffixSource": "generated"
   },
-  "mergeRules": [
-    {
-      "rulesetVersion": "rs-division-statistic-merge-v1",
-      "operationCodes": [
-        "normalise_censtatd_statistic_source_assertion",
-        "curate_censtatd_measure_metadata",
-        "provenance_statistic_normalisation",
-        "provenance_statistic_localisation",
-        "provenance_division_area_geometry"
-      ]
-    }
-  ],
   "releases": [
     {
       "sourceVersion": "2021",
@@ -99,5 +87,13 @@
       "name": "人口普查：新市镇",
       "description": "政府统计处提供的2021年人口普查统计，涵盖13个新市镇地区。"
     }
-  }
+  },
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-hkgov-censtatd-division-statistic-new-towns"
+      ]
+    }
+  ]
 }

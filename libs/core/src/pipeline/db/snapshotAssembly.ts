@@ -1,3 +1,6 @@
+import { resolveSnapshotProcessingRules } from '../../provenance/processingPolicyCatalogue'
+import type { ProcessingRules } from '../../provenance/processingPolicy'
+import { retainProcessingRules } from '../../lib/db/processingRuleDefinitions'
 import { recordSnapshotDependencies } from './snapshotDependencies'
 import {
   buildDeterministicUuidV5,
@@ -33,6 +36,7 @@ export async function recordEffectiveSnapshotAssembly(
     detailsJson?: metaSchema.SnapshotAssemblyDetails | null
     dependencies?: Record<string, string>
     reviewRequired?: number | null
+    processingRules?: ProcessingRules
     allowPlanning?: boolean
   },
 ) {
@@ -67,6 +71,7 @@ export async function recordEffectiveSnapshotAssembly(
   const sources = await db
     .select({
       datasetId: metaSnapshotResourceReleases.datasetId,
+      datasetCode: metaSchema.metaDatasets.code,
       sourceReleaseId: metaSnapshotResourceReleases.resourceReleaseId,
       role: metaSnapshotResourceReleases.role,
       selectedByRule: metaSnapshotResourceReleases.selectedByRule,
@@ -75,6 +80,10 @@ export async function recordEffectiveSnapshotAssembly(
       sourceCohortKey: metaSnapshotResourceReleases.sourceCohortKey,
     })
     .from(metaSnapshotResourceReleases)
+    .innerJoin(
+      metaSchema.metaDatasets,
+      eq(metaSnapshotResourceReleases.datasetId, metaSchema.metaDatasets.id),
+    )
     .where(eq(metaSnapshotResourceReleases.snapshotId, args.snapshotId))
     .all()
   sources.sort((a, b) =>
@@ -120,10 +129,20 @@ export async function recordEffectiveSnapshotAssembly(
     input.rules.sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
     inputs.set(key, input)
   }
+  const processingRules =
+    args.processingRules ??
+    resolveSnapshotProcessingRules(
+      [...new Set(sources.map(source => source.datasetCode))],
+      args.resourceType,
+    )
+  if (processingRules.stage !== 'assembly')
+    throw new Error('Snapshot recipes require assembly rules.')
+  const retainedRules = await retainProcessingRules(db, processingRules)
   const recipe = {
     version: 1,
     resourceType: args.resourceType,
     inputs: [...inputs.values()],
+    processingRules,
   }
   const versionHash = computeVersionHash(recipe)
   const code = `sa-${args.resourceType}-v1-${versionHash}`
@@ -138,6 +157,7 @@ export async function recordEffectiveSnapshotAssembly(
       version: 1,
       status: 'scoped',
       versionHash,
+      processingRules: retainedRules,
       notes:
         'Effective dataset inputs and selection policies used to construct snapshots.',
       createdAt: now,
@@ -216,6 +236,21 @@ export async function readSnapshotAssemblySql(
       .where(eq(metaSnapshotRecipes.id, id))
       .get()
     if (!assembly) throw new Error(`Snapshot assembly recipe is missing: ${id}.`)
+    if (assembly.processingRules) {
+      const definition = await db
+        .select()
+        .from(metaSchema.metaProcessingRuleDefinitions)
+        .where(
+          eq(
+            metaSchema.metaProcessingRuleDefinitions.id,
+            (assembly.processingRules as { definitionId: string }).definitionId,
+          ),
+        )
+        .get()
+      if (!definition)
+        throw new Error(`Snapshot assembly processing policy is missing: ${id}.`)
+      statements.push(insertSql('processingRuleDefinitions', definition))
+    }
     statements.push(insertSql('snapshotRecipes', assembly))
     const sources = await db
       .select()

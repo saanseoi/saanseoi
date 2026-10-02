@@ -430,3 +430,12 @@ filename is not its layer edition: its records identify 2024. The detailed censu
 polygons have substantially more coastline vertices, which does not establish greater
 administrative currency. See the
 [government district comparison](../hkgov-had/divisionArea.md#local-district-comparison).
+
+## Processing policy ownership
+
+Ingestion retains publisher properties and source geometry. Area snapshot recipes
+capture geometry processing and any required district identity bridge. Statistic
+field/measure processing belongs to the Statistic recipe rather than the Area policy.
+
+The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
+separates captured ingestion and snapshot assembly definitions.

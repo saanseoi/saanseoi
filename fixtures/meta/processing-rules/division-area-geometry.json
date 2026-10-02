@@ -5,12 +5,29 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Keep each division’s published area shape and publisher record ID. Leave out parts outside Hong Kong and shapes that are only references, not areas.",
-  "inputs": ["source-geometry"],
-  "outputs": ["divisionAreas"],
+  "inputs": [
+    "source-geometry"
+  ],
+  "outputs": [
+    "divisionAreas"
+  ],
   "parameters": {},
   "implementation": {
     "path": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
     "symbol": "divisionAreaGeometryRule"
   },
-  "dependencyIds": ["exclude-division-geometry"]
+  "dependencyIds": [
+    "exclude-division-geometry"
+  ],
+  "i18n": {
+    "en": {
+      "description": "Keep each division’s published area shape and publisher record ID. Leave out parts outside Hong Kong and shapes that are only references, not areas."
+    },
+    "zh-hant": {
+      "description": "建立區劃面積幾何，保留發布者記錄識別並排除宣告的不適用幾何。"
+    },
+    "zh-hans": {
+      "description": "建立区划面积几何，保留发布者记录识别并排除声明的不适用几何。"
+    }
+  }
 }

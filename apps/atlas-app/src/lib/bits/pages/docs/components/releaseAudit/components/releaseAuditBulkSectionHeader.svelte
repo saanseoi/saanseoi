@@ -7,9 +7,10 @@ type Props = {
   condition?: string
   description?: string
   headingId: string
-  sourceFieldPath?: string
+  inputs?: string[]
+  snapshotCode?: string
   sourceReleaseCode?: string
-  targetFieldPath?: string
+  outputs?: string[]
   title: string
 }
 
@@ -17,50 +18,46 @@ let {
   condition,
   description,
   headingId,
-  sourceFieldPath,
+  inputs,
+  snapshotCode,
   sourceReleaseCode,
-  targetFieldPath,
+  outputs,
   title,
 }: Props = $props()
 
-const formatFieldPath = (value: string) =>
-  value
-    .split(',')
-    .map(path => path.trim())
-    .filter(Boolean)
-    .join(' / ')
+const formatInterfaces = (values: string[]) => values.join(' / ')
 </script>
 
 {#snippet aside()}
-  {#if sourceFieldPath || targetFieldPath}
+  {#if inputs || outputs}
     <div
       class="flex flex-col items-start gap-3 text-left sm:flex-row sm:flex-wrap sm:justify-end sm:gap-x-8 sm:gap-y-3 sm:text-right"
     >
-      {#if sourceFieldPath}
+      {#if inputs}
         <div class="min-w-0">
           <p
             class="font-mono text-caption font-medium tracking-[0.06em] whitespace-nowrap text-foreground-alt/75"
           >
-            {m.source_audit_source_field()}
+            {m.source_audit_input_interfaces()}
           </p>
           <p
             class="mt-1 wrap-break-word font-mono text-label-md leading-5 font-semibold text-data-primary"
           >
-            {formatFieldPath(sourceFieldPath)}
+            {formatInterfaces(inputs)}
           </p>
         </div>
       {/if}
-      {#if targetFieldPath}
+      {#if outputs}
         <div class="min-w-0">
           <p
             class="font-mono text-caption font-medium tracking-[0.06em] whitespace-nowrap text-foreground-alt/75"
           >
-            {m.source_audit_canonical_field()}
+            {m.source_audit_output_interfaces()}
           </p>
           <p
             class="mt-1 wrap-break-word font-mono text-label-md leading-5 font-semibold text-primary"
           >
-            {formatFieldPath(targetFieldPath)}
+            {formatInterfaces(outputs)}
           </p>
         </div>
       {/if}
@@ -103,6 +100,11 @@ const formatFieldPath = (value: string) =>
       </p>
     {/if}
     <p class="mt-2 font-body text-label-md leading-6 text-primary">{description}</p>
+  {/if}
+  {#if snapshotCode}
+    <p class="mt-4 font-mono text-caption text-foreground-alt">
+      {m.source_audit_snapshot()}: {snapshotCode}
+    </p>
   {/if}
   {#if sourceReleaseCode}
     <p class="mt-4 font-mono text-caption text-foreground-alt">

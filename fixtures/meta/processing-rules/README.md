@@ -33,3 +33,25 @@ not copy mappings or parameter values into a parallel ruleset description.
 When editing a rule, update its processor validation and behaviour tests as needed. The
 fixture/executor parity test covers every JSON declaration in this directory. Keep
 reviewed record decisions in their own input fixtures.
+
+## Policy ownership and field references
+
+Dataset fixtures select ingestion rules through `processingRules`. SOURCE retention and
+publisher extraction are ingestion; canonical reconstruction, identity matching,
+curation, translation and geometry selection are assembly. Resource-specific assembly
+selections live in `fixtures/meta/snapshotProcessingRules.json` and are retained on
+`snapshotRecipes.processingRules`. Both stages capture exact content-addressed
+`processingRuleDefinitions`; synchronisation does not rewrite captured definitions.
+
+Resolved rules use `kind: bulk | record` because both groups share the declaration
+schema. `type` identifies a different schema. `inputs` and `outputs` are interface
+identifiers, never substitutes for field paths. Optional `sourceFields` and
+`targetFields` use `{ origin, collection, path }`, for example
+`{ "origin": "source", "collection": "protomapsIslandFeatures", "path": "sourceGeometry" }`.
+Paths reject prose and comma lists; SOURCE/canonical table and root-column names are
+validated against Drizzle. Descriptions remain in locale-keyed `i18n` objects.
+
+The declarations describe the registered code, rather than replacing it with a rule
+interpreter. A prepared-record input states the ingestion boundary explicitly; archive
+readers and retained raw-object manifests supply acquisition and preparation evidence.
+Diana Pang's street dataset has no implemented importer, so its policy is null.

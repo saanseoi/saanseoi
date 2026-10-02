@@ -5,11 +5,31 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Leave out places whose published address is in Mainland China or Macao. Keep places with no country code for review.",
-  "inputs": ["normalised-places"],
-  "outputs": ["included-places"],
-  "parameters": { "excludedCountries": ["CN", "MO"] },
+  "inputs": [
+    "normalised-places"
+  ],
+  "outputs": [
+    "included-places"
+  ],
+  "parameters": {
+    "excludedCountries": [
+      "CN",
+      "MO"
+    ]
+  },
   "implementation": {
     "path": "apps/harbour-cli/src/lib/pipeline/places/processLocalPlaceSqlUploadPreparation.ts",
     "symbol": "placeCountryRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Leave out places whose published address is in Mainland China or Macao. Keep places with no country code for review."
+    },
+    "zh-hant": {
+      "description": "按發布者地址國家代碼選取香港地點；排除 CN 和 MO，保留缺失代碼的地點。"
+    },
+    "zh-hans": {
+      "description": "按发布者地址国家代码选取香港地点；排除 CN 和 MO，保留缺失代码的地点。"
+    }
   }
 }

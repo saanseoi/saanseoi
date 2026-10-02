@@ -5,8 +5,12 @@
   "scope": "bulk",
   "basis": "fixture",
   "summary": "Use the reviewed list to choose each dataset field’s name, grouping, unit, calculation and language versions.",
-  "inputs": ["statistic-field-curations"],
-  "outputs": ["statsFields"],
+  "inputs": [
+    "statistic-field-curations"
+  ],
+  "outputs": [
+    "statsFields"
+  ],
   "parameters": {},
   "implementation": {
     "path": "apps/harbour-cli/src/lib/pipeline/statistics/statisticFieldCurationRule.ts",
@@ -18,6 +22,17 @@
       "id": "statistic-measure-registration",
       "summary": "Every reviewed statistic field must reference a registered measure.",
       "consequence": "block-ingestion"
+    }
+  },
+  "i18n": {
+    "en": {
+      "description": "Use the reviewed list to choose each dataset field’s name, grouping, unit, calculation and language versions."
+    },
+    "zh-hant": {
+      "description": "套用已審核的統計欄位、量度及單位資料。"
+    },
+    "zh-hans": {
+      "description": "应用已审核的统计字段、量度及单位资料。"
     }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8943bcbe175c4722d028a067e57cfb98bea434a7d5c2054d0ebb405cc3453eee",
+  "versionHash": "sha256:37f2c8c082fe8bf99308de38f540f9696374547d18bec5964a3b43032c085f0a",
   "publisherCode": "saanseoi",
   "code": "ds-hk-saanseoi-division-area",
   "regionCode": "hk",
@@ -53,5 +53,13 @@
       "description": "手工绘制的香港地理资料。资料尚未完整，属实验性质。首版日期为2026年9月1日，按需要更新。"
     }
   },
-  "sourceCrs": "EPSG:4326"
+  "sourceCrs": "EPSG:4326",
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-saanseoi-division-area"
+      ]
+    }
+  ]
 }

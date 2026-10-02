@@ -1,0 +1,26 @@
+{
+  "versionHash": "sha256:5721fcf34bb19a6261f087de977227b7f0973a027a8d95521aff36ff944d6cbc",
+  "code": "rs-place-assembly-v1",
+  "stage": "assembly",
+  "resourceType": "place",
+  "strategy": "assembly",
+  "version": "1",
+  "mergeRules": [
+    {
+      "operationCode": "resolve-place-addresses",
+      "ruleFixture": "place-address-analysis"
+    },
+    {
+      "operationCode": "select-place-countries",
+      "ruleFixture": "place-country-selection"
+    },
+    {
+      "operationCode": "normalise-overture-places",
+      "ruleFixture": "place-normalisation"
+    },
+    {
+      "operationCode": "compose-place-reference-name",
+      "ruleFixture": "place-reference-name"
+    }
+  ]
+}

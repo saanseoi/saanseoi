@@ -5,8 +5,13 @@
   "scope": "bulk",
   "basis": "code",
   "summary": "Match each selected C&SD district code with its corresponding Home Affairs Department district.",
-  "inputs": ["identity-mappings", "district-cohort"],
-  "outputs": ["canonical-district-identities"],
+  "inputs": [
+    "identity-mappings",
+    "district-cohort"
+  ],
+  "outputs": [
+    "canonical-district-identities"
+  ],
   "parameters": {
     "sourceAuthority": "hkgov-censtatd",
     "targetAuthority": "hkgov-had",
@@ -16,5 +21,16 @@
   "implementation": {
     "path": "apps/harbour-cli/src/lib/pipeline/statistics/censtatdDistrictBridge.ts",
     "symbol": "censtatdDistrictIdentityRule"
+  },
+  "i18n": {
+    "en": {
+      "description": "Match each selected C&SD district code with its corresponding Home Affairs Department district."
+    },
+    "zh-hant": {
+      "description": "按固定報告期的識別對照將統計處區域代碼連結至標準區劃。"
+    },
+    "zh-hans": {
+      "description": "按固定报告期的识别对照将统计处区域代码连接至标准区划。"
+    }
   }
 }

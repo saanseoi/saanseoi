@@ -1,3 +1,5 @@
+import sourceFixture from '../../../../../../fixtures/meta/processing-rules/landsd-street-source-retention.json'
+import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import { recordSnapshotVersionChanges } from '@repo/core/pipeline/db/snapshotVersionChanges'
@@ -649,7 +651,7 @@ export async function insertHistoryStreetChangelog(
   })
 }
 
-export async function insertSourceRows(
+async function insertSourceRowsInternal(
   db: HarbourWritableDb,
   resourceReleaseId: string,
   sourceVersion: string,
@@ -816,4 +818,13 @@ export function parsePartialRetainedDescriptions(value: unknown, field: string) 
     descriptions[locale] = description.trim()
   }
   return descriptions as Record<(typeof locales)[number], string>
+}
+
+export const landsdStreetSourceRule = registerRule(
+  ruleDeclarationFromFixture(sourceFixture),
+  (args: Parameters<typeof insertSourceRowsInternal>) =>
+    insertSourceRowsInternal(...args),
+)
+export function insertSourceRows(...args: Parameters<typeof insertSourceRowsInternal>) {
+  return landsdStreetSourceRule.execute(args)
 }

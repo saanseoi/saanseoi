@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:4254b46b7407f5495f90ca67bf73025f6fb73b4940307ed0d7b6cfe301669102",
+  "versionHash": "sha256:d73f5bb165b45febbe1f259b9ba728fb26e28ee600614d017ea68bcd051d6662",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division-area",
   "regionCode": "hk",
@@ -49,14 +49,6 @@
     "correctionSuffixSource": "upstream"
   },
   "category": "places",
-  "mergeRules": [
-    {
-      "rulesetVersion": "rs-division-merge-v1",
-      "operationCodes": [
-        "overture_division_geometry_cn_gd_excluded"
-      ]
-    }
-  ],
   "i18n": {
     "en": {
       "name": "Division Areas",
@@ -71,5 +63,13 @@
       "description": "区划范围是代表区划所涵盖陆地或海事范围的多边形。每个区划范围通过 ID 关联所属区划，并为该区划提供范围多边形。"
     }
   },
-  "sourceCrs": "EPSG:4326"
+  "sourceCrs": "EPSG:4326",
+  "processingRules": [
+    {
+      "rulesetVersion": "rs-source-ingestion-v1",
+      "operationCodes": [
+        "ingest-overture-division-area"
+      ]
+    }
+  ]
 }

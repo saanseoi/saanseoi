@@ -279,6 +279,10 @@ for (const fixture of [...apiFieldFixtures]) {
   const derived = {
     ...fixture,
     apiVersion: 'api-divisions-v0.2',
+    rulesetVersion:
+      fixture.domainCode === 'geographic' && fixture.mappingVersion === 3
+        ? 'rs-division-merge-v2'
+        : fixture.rulesetVersion,
     responseFieldsVersionHash: resolveApiResponseFields(
       'api-divisions-v0.2',
       fixture.schemaVersion,
