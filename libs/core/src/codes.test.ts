@@ -73,7 +73,7 @@ describe('registry code construction', () => {
     expect(datasetVariantForSource('division', 'hkgov-pland-new-town')).toBe(
       'hkgov-pland-new-town',
     )
-    expect(datasetVariantForSource('address', 'hkgov-dpo')).toBe('default')
+    expect(datasetVariantForSource('address', 'hkgov-dpo')).toBe('hkgov-dpo')
     expect(
       datasetVariantForSource('address', 'overture', {
         datasetCode: 'ds-hk-overture-place',
@@ -83,7 +83,7 @@ describe('registry code construction', () => {
       datasetVariantForSource('place', 'overture', {
         datasetCode: 'ds-hk-overture-place',
       }),
-    ).toBe('default')
+    ).toBe('overture')
     expect(
       datasetVariantForSource('divisionStatistic', 'hkgov-censtatd', {
         datasetCode:

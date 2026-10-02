@@ -381,7 +381,7 @@ defers review, while **Skip as Unlinked** remains effective until the source's 2
 address changes.
 
 To remove the bounded Overture Places initialisation from a target, use the
-family-specific reset command. It owns both `place/default` and
+family-specific reset command. It owns both `place/overture` and
 `address/overture-places`, removes their current and historical rows, and rebuilds
 Address search while preserving ALS snapshots. It reports its release-owned rows first
 and keeps a dry-run and confirmation boundary:
@@ -520,3 +520,11 @@ remains available with a null address link; candidate evidence and the original 
 are retained in the release review artefact and provenance. Ingestion does not select an
 identity or record a curation decision. Reviewed links and approved supplementary
 addresses continue to apply. Later review can resolve these cases in revised releases.
+
+## Composition member roles
+
+The `overture` Places domain uses `place/overture` as its `primary` member.
+`address/hkgov-dpo`, `address/overture-places` and `division/overture` have role
+`lookup`: they supply linked resources and matching context. The Address variants retain
+the same names when exposed through the Address domain; their role describes how the
+selected API collection uses them.

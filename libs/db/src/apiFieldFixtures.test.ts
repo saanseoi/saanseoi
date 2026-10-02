@@ -56,7 +56,7 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
         domainCode: 'saanseoi',
-        lineageSnapshotVersions: ['ss-hk-address-2026-07-22.0'],
+        lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2026-07-22.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: {
@@ -740,7 +740,7 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
         domainCode: 'saanseoi',
-        lineageSnapshotVersions: ['ss-hk-address-2025-08-20.0'],
+        lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2025-08-20.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: currentSourceSchemas,
@@ -751,14 +751,14 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
         domainCode: 'saanseoi',
-        lineageSnapshotVersions: ['ss-hk-address-2025-09-24.0'],
+        lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2025-09-24.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: historicalSourceSchemas,
       })?.lineageAnchors,
     ).toContainEqual(
       expect.objectContaining({
-        snapshotVersion: 'ss-hk-address-2025-09-24.0',
+        snapshotVersion: 'ss-hk-address-hkgov-dpo-2025-09-24.0',
       }),
     )
   })
@@ -768,7 +768,7 @@ describe('api field fixtures', () => {
       resolveApiFieldFixture({
         apiVersion: 'api-addresses-v0.1',
         domainCode: 'saanseoi',
-        lineageSnapshotVersions: ['ss-hk-address-2025-01-23.0'],
+        lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2025-01-23.0'],
         schemaVersion: 'sv-address-v1',
         rulesetVersion: 'rs-address-merge-v1',
         sourceSchemas: {
@@ -778,30 +778,30 @@ describe('api field fixtures', () => {
       })?.lineageAnchors,
     ).toContainEqual(
       expect.objectContaining({
-        snapshotVersion: 'ss-hk-address-2025-01-23.0',
+        snapshotVersion: 'ss-hk-address-hkgov-dpo-2025-01-23.0',
       }),
     )
   })
 
   test('maps every supported ALS release to its selected Overture division schema', () => {
     const expectedDivisionSchemas = {
-      'ss-hk-address-2025-01-23.0': '1.12.0',
-      'ss-hk-address-2025-02-25.0': '1.12.0',
-      'ss-hk-address-2025-03-21.0': '1.12.0',
-      'ss-hk-address-2025-04-26.0': '1.12.0',
-      'ss-hk-address-2025-05-22.0': '1.12.0',
-      'ss-hk-address-2025-06-20.0': '1.12.0',
-      'ss-hk-address-2025-08-13.0': '1.12.0',
-      'ss-hk-address-2025-09-03.0': '1.12.0',
-      'ss-hk-address-2025-11-04.0': '1.13.0',
-      'ss-hk-address-2025-12-16.0': '1.14.0',
-      'ss-hk-address-2026-02-04.0': '1.15.0',
-      'ss-hk-address-2026-04-03.0': '1.16.0',
-      'ss-hk-address-2026-04-22.0': '1.16.0',
-      'ss-hk-address-2026-04-25.0': '1.16.0',
-      'ss-hk-address-2026-07-08.0': '1.17.0',
-      'ss-hk-address-2026-07-10.0': '1.17.0',
-      'ss-hk-address-2026-07-22.0': '1.18.0',
+      'ss-hk-address-hkgov-dpo-2025-01-23.0': '1.12.0',
+      'ss-hk-address-hkgov-dpo-2025-02-25.0': '1.12.0',
+      'ss-hk-address-hkgov-dpo-2025-03-21.0': '1.12.0',
+      'ss-hk-address-hkgov-dpo-2025-04-26.0': '1.12.0',
+      'ss-hk-address-hkgov-dpo-2025-05-22.0': '1.12.0',
+      'ss-hk-address-hkgov-dpo-2025-06-20.0': '1.12.0',
+      'ss-hk-address-hkgov-dpo-2025-08-13.0': '1.12.0',
+      'ss-hk-address-hkgov-dpo-2025-09-03.0': '1.12.0',
+      'ss-hk-address-hkgov-dpo-2025-11-04.0': '1.13.0',
+      'ss-hk-address-hkgov-dpo-2025-12-16.0': '1.14.0',
+      'ss-hk-address-hkgov-dpo-2026-02-04.0': '1.15.0',
+      'ss-hk-address-hkgov-dpo-2026-04-03.0': '1.16.0',
+      'ss-hk-address-hkgov-dpo-2026-04-22.0': '1.16.0',
+      'ss-hk-address-hkgov-dpo-2026-04-25.0': '1.16.0',
+      'ss-hk-address-hkgov-dpo-2026-07-08.0': '1.17.0',
+      'ss-hk-address-hkgov-dpo-2026-07-10.0': '1.17.0',
+      'ss-hk-address-hkgov-dpo-2026-07-22.0': '1.18.0',
     }
 
     for (const [snapshotVersion, divisionSchemaVersion] of Object.entries(

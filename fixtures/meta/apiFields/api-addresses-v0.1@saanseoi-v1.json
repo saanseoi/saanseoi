@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3a5a9f52cd59f82d7f3ee7da3bd82ee15aeecd2553073e9abd291dbe1067559d",
+  "versionHash": "sha256:8e57817d5ea5024a4c02f2838b75a24b67e8dac951433013c9275d7da4ee87ef",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -81,93 +81,93 @@
         "ds-hk-overture-division"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-address-2024-07-25.0",
-        "ss-hk-address-2025-01-23.0",
-        "ss-hk-address-2025-02-25.0",
-        "ss-hk-address-2025-03-21.0",
-        "ss-hk-address-2025-04-26.0",
-        "ss-hk-address-2025-05-22.0",
-        "ss-hk-address-2025-06-20.0",
-        "ss-hk-address-2025-08-13.0",
-        "ss-hk-address-2025-09-03.0",
-        "ss-hk-address-2025-09-24.0",
-        "ss-hk-address-2025-11-04.0",
-        "ss-hk-address-2025-12-16.0",
-        "ss-hk-address-2026-02-04.0",
-        "ss-hk-address-2026-04-03.0",
-        "ss-hk-address-2026-04-22.0",
-        "ss-hk-address-2026-04-25.0",
-        "ss-hk-address-2026-06-04.0",
-        "ss-hk-address-2026-06-24.0",
-        "ss-hk-address-2026-07-08.0",
-        "ss-hk-address-2026-07-10.0",
-        "ss-hk-address-2026-07-22.0"
+        "ss-hk-address-hkgov-dpo-2024-07-25.0",
+        "ss-hk-address-hkgov-dpo-2025-01-23.0",
+        "ss-hk-address-hkgov-dpo-2025-02-25.0",
+        "ss-hk-address-hkgov-dpo-2025-03-21.0",
+        "ss-hk-address-hkgov-dpo-2025-04-26.0",
+        "ss-hk-address-hkgov-dpo-2025-05-22.0",
+        "ss-hk-address-hkgov-dpo-2025-06-20.0",
+        "ss-hk-address-hkgov-dpo-2025-08-13.0",
+        "ss-hk-address-hkgov-dpo-2025-09-03.0",
+        "ss-hk-address-hkgov-dpo-2025-09-24.0",
+        "ss-hk-address-hkgov-dpo-2025-11-04.0",
+        "ss-hk-address-hkgov-dpo-2025-12-16.0",
+        "ss-hk-address-hkgov-dpo-2026-02-04.0",
+        "ss-hk-address-hkgov-dpo-2026-04-03.0",
+        "ss-hk-address-hkgov-dpo-2026-04-22.0",
+        "ss-hk-address-hkgov-dpo-2026-04-25.0",
+        "ss-hk-address-hkgov-dpo-2026-06-04.0",
+        "ss-hk-address-hkgov-dpo-2026-06-24.0",
+        "ss-hk-address-hkgov-dpo-2026-07-08.0",
+        "ss-hk-address-hkgov-dpo-2026-07-10.0",
+        "ss-hk-address-hkgov-dpo-2026-07-22.0"
       ]
     }
   ],
   "lineageAnchors": [
     {
-      "snapshotVersion": "ss-hk-address-2024-07-25.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2024-07-25.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-01-23.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-01-23.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-02-25.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-02-25.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-03-21.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-03-21.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-04-26.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-04-26.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-05-22.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-05-22.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-06-20.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-06-20.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-08-13.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-08-13.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-09-03.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-09-03.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-09-24.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-09-24.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-11-04.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-11-04.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2025-12-16.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2025-12-16.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2026-02-04.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2026-02-04.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2026-04-03.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2026-04-03.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2026-04-22.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2026-04-22.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2026-04-25.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2026-04-25.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2026-06-04.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2026-06-04.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2026-06-24.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2026-06-24.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2026-07-08.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2026-07-08.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2026-07-10.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2026-07-10.0"
     },
     {
-      "snapshotVersion": "ss-hk-address-2026-07-22.0"
+      "snapshotVersion": "ss-hk-address-hkgov-dpo-2026-07-22.0"
     }
   ],
   "resourceType": "address",

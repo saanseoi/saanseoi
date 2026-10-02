@@ -327,7 +327,7 @@ parameter for the snapshot and checks up to 99 references. Every owner must exis
 each section must retain exactly one match to its reviewed parent.
 
 The default Address API domain is `saanseoi`, SaanSeoi's curated Hong Kong address
-collection. It requires the authoritative ALS `address/default` member and, once the
+collection. It requires the authoritative ALS `address/hkgov-dpo` member and, once the
 initial Overture Places release exists, the accepted Overture Places
 `address/overture-places` member. Supplementary snapshots use the latest applicable
 cohort reference, falling forward only when no earlier snapshot exists. ALS ingestion
@@ -1088,3 +1088,11 @@ counts an Address once within its physical scope; identical IDs in separate sele
 scopes remain separate records. List pagination applies after this deduplication, with
 the physical scope breaking equal-ID ordering ties. HISTORY retains the recorded IDs
 without role lookup indexes.
+
+## Composition member roles
+
+The `saanseoi` Address domain uses `address/hkgov-dpo` as its `primary` member and
+`address/overture-places` as its `supplementary` member. Both contribute Address records
+to the collection. `division/overture` has role `lookup` and supplies geographic
+relationships. Variants identify the materialised collection; the domain identifies the
+combined API collection.

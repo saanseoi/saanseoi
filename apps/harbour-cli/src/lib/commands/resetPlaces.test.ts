@@ -169,7 +169,7 @@ function createPlacesOwnershipDb() {
     INSERT INTO snapshotLineages (
       id, primaryDatasetId, resourceType, variant
     ) VALUES
-      ('places-lineage', 'places-dataset', 'place', 'default'),
+      ('places-lineage', 'places-dataset', 'place', 'overture'),
       (
         'places-address-lineage',
         'places-dataset',

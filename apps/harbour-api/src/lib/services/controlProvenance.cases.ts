@@ -162,7 +162,7 @@ test('requires retained processing audits for Addresses and Places before publis
         .run('3.2', resourceReleaseId)
     }
     seedSnapshot(sqlite, {
-      code: `ss-hk-${datasetType}-2026-06-24.0`,
+      code: `ss-hk-${datasetType === 'address' ? 'address-hkgov-dpo' : datasetType}-2026-06-24.0`,
       datasetId,
       resourceType: datasetType,
       resourceReleaseId,
@@ -266,7 +266,7 @@ test('requires retained processing audits for Addresses and Places before publis
       ).toContainEqual(
         expect.objectContaining({
           resourceType: 'division',
-          role: 'supporting',
+          role: 'lookup',
           variant: 'overture',
         }),
       )
@@ -299,7 +299,11 @@ test('requires retained processing audits for Addresses and Places before publis
               status: 'published',
             })
             return [
-              { resourceType: 'address' as const, snapshotId: addressSnapshotId },
+              {
+                resourceType: 'address' as const,
+                snapshotId: addressSnapshotId,
+                variant: 'hkgov-dpo',
+              },
               {
                 resourceType: 'division' as const,
                 snapshotId: divisionSnapshotId,
@@ -343,7 +347,7 @@ test('requires retained processing audits for Addresses and Places before publis
         'lookup',
         {
           selectedByRule:
-            'api-composition:places/overture:place/default->address/overture-places',
+            'api-composition:places/overture:place/overture->address/overture-places',
           selectionMode: 'exact_ref',
         },
       )
@@ -441,7 +445,7 @@ test('requires retained processing audits for Addresses and Places before publis
           FROM apiReleaseSetSnapshots arss
           INNER JOIN snapshots s ON s.id = arss.snapshotId
           WHERE arss.apiReleaseSetId = ?
-            AND arss.role = 'supporting'
+            AND arss.role <> 'primary'
           ORDER BY s.code
         `,
       )
@@ -483,14 +487,14 @@ test('requires retained processing audits for Addresses and Places before publis
             if (supplementarySnapshotCode === null)
               throw new Error('Expected the Overture supplementary Address snapshot.')
             return [
-              { code: supplementarySnapshotCode, role: 'supporting' },
-              { code: 'ss-hk-division-2026-06-17.0', role: 'supporting' },
+              { code: supplementarySnapshotCode, role: 'supplementary' },
+              { code: 'ss-hk-division-2026-06-17.0', role: 'lookup' },
             ]
           })()
         : [
-            { code: 'ss-hk-address-historical-selection', role: 'supporting' },
-            { code: 'ss-hk-address-overture-places-2026-06', role: 'supporting' },
-            { code: 'ss-hk-division-historical-selection', role: 'supporting' },
+            { code: 'ss-hk-address-historical-selection', role: 'lookup' },
+            { code: 'ss-hk-address-overture-places-2026-06', role: 'lookup' },
+            { code: 'ss-hk-division-historical-selection', role: 'lookup' },
           ]
     expect(supportingSnapshots).toEqual(expectedSupportingSnapshots)
   }

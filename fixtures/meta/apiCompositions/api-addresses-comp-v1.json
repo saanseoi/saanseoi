@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8c7ebdbb17693441ff91f0a63b7cc1b6fbb52623203340e4c7059f8597324117",
+  "versionHash": "sha256:f4d69ab562bce3c165b148ccf6c5b66bd8937cfc956d740ec76581020f6afcb4",
   "apiVersion": "api-addresses-v0.1",
   "code": "comp-addresses-v1",
   "version": 1,
@@ -29,7 +29,7 @@
       "members": [
         {
           "resourceType": "address",
-          "variant": "default",
+          "variant": "hkgov-dpo",
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
@@ -44,7 +44,7 @@
         {
           "resourceType": "address",
           "variant": "overture-places",
-          "role": "supporting",
+          "role": "supplementary",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "anchorResourceType": "address",
@@ -53,7 +53,7 @@
         {
           "resourceType": "division",
           "variant": "overture",
-          "role": "supporting",
+          "role": "lookup",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "anchorResourceType": "address",

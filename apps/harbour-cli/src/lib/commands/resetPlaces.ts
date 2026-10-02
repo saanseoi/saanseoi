@@ -138,7 +138,7 @@ export async function getOverturePlacesInitialisationStatus(target: UploadTarget
             eq(metaSchema.metaSnapshots.resourceType, 'place'),
             eq(metaSchema.metaSnapshots.status, 'published'),
             eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
-            eq(metaSchema.metaSnapshotLineages.variant, 'default'),
+            eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
           ),
         )
         .limit(1)
@@ -564,7 +564,7 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
           and(
             eq(metaSchema.metaSnapshots.resourceType, 'place'),
             eq(metaSchema.metaSnapshotLineages.resourceType, 'place'),
-            eq(metaSchema.metaSnapshotLineages.variant, 'default'),
+            eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
           ),
           and(
             eq(metaSchema.metaSnapshots.resourceType, 'address'),
@@ -784,7 +784,7 @@ async function assertPlacesResetStillSafe(
         or(
           and(
             eq(metaSchema.metaSnapshots.resourceType, 'place'),
-            eq(metaSchema.metaSnapshotLineages.variant, 'default'),
+            eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
           ),
           and(
             eq(metaSchema.metaSnapshots.resourceType, 'address'),

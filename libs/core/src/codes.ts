@@ -185,6 +185,10 @@ export function datasetVariantForSource(
     return 'overture-places'
   }
 
+  if (resourceType === 'address' || resourceType === 'place') {
+    return source ? publisherCodeForSource(source) : 'default'
+  }
+
   if (
     resourceType !== 'division' &&
     resourceType !== 'divisionArea' &&

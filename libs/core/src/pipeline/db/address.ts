@@ -781,7 +781,7 @@ export async function prepareAddressVersionInsertContext(
     datasetCode: lineageDataset.datasetCode,
     datasetId: lineageDataset.datasetId,
     sourceReleaseId: dataset.resourceReleaseId,
-    variant: 'default',
+    variant: 'hkgov-dpo',
   })
 
   const historyYear = message.cohortKey.slice(0, 4)

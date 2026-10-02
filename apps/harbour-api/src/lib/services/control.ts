@@ -106,7 +106,7 @@ export async function assertPlaceAddressDependencies(
         source.role === 'lookup' &&
         source.resourceReleaseId === supplementary.sourceReleaseId &&
         source.selectedByRule ===
-          'api-composition:places/overture:place/default->address/overture-places',
+          'api-composition:places/overture:place/overture->address/overture-places',
     )
   ) {
     throw new ControlRequestError(

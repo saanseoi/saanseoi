@@ -388,7 +388,7 @@ source text. Typed Place unit/floor fragments remain source evidence until an Ad
 materialisation policy is introduced.
 
 Materialise the row under the original Overture Places dataset/source, distinct from
-`hkgov-dpo` and the official `address/default` member. Its provenance must name the
+`hkgov-dpo` and the official `address/hkgov-dpo` member. Its provenance must name the
 Overture Place ID, Place source release, original address value or hash, generated
 entry, policy version, score, and selected ALS base candidate. The supplementary Address
 ID is deterministic from that durable identity key; any incompatible change follows the
@@ -493,10 +493,10 @@ does not carry the Address into later releases. Published history remains the du
 replay source. Artefacts use unique temporary files and replace their destination only
 after a complete write; interrupted writes remove their temporary files.
 
-The Overture Places family reset owns both `place/default` and `address/overture-places`
-snapshots and their resource releases. It removes supplementary Address current and
-historical rows, rebuilds Address search, and preserves the ALS snapshots used as
-derivation evidence.
+The Overture Places family reset owns both `place/overture` and
+`address/overture-places` snapshots and their resource releases. It removes
+supplementary Address current and historical rows, rebuilds Address search, and
+preserves the ALS snapshots used as derivation evidence.
 
 Supplementary snapshots are complete and parentless, including when there are no
 accepted rows. Full membership journals are retained deliberately to bound replay

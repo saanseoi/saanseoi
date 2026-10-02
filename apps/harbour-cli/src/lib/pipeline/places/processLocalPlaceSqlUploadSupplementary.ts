@@ -861,7 +861,7 @@ async function prepareSupplementaryAddressesLocked(
     anchorReleaseId: input.resourceReleaseId,
     lookupSnapshotId: snapshot.id,
     selectedByRule:
-      'api-composition:places/overture:place/default->address/overture-places',
+      'api-composition:places/overture:place/overture->address/overture-places',
     selectionMode: 'exact_ref',
   })
   return {

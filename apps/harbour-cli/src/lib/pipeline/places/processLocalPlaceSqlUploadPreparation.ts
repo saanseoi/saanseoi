@@ -155,7 +155,7 @@ export async function resolvePlaceSnapshots(
     datasetId,
     regionCode: plan.regionCode,
     sourceReleaseId: resourceReleaseId,
-    variant: 'default',
+    variant: 'overture',
   })
   const recordedAddressId = (await readSnapshotDependencies(metaDb, place.id)).address
   const address = recordedAddressId
@@ -175,14 +175,14 @@ export async function resolvePlaceSnapshots(
         'address',
         plan.regionCode,
         plan.cohortKey,
-        { variant: 'default' },
+        { variant: 'hkgov-dpo' },
       )) ??
       (await resolveEarliestPublishedSnapshotForResourceTypeRegionAtOrAfterCohortKey(
         metaDb,
         'address',
         plan.regionCode,
         plan.cohortKey,
-        { variant: 'default' },
+        { variant: 'hkgov-dpo' },
       )))
   if (!address) throw new Error('Places require a published address snapshot.')
   if (dependencies) currentDb = await dependencies.prepare(address.id)

@@ -99,7 +99,7 @@ function seedMeta(sqlite: Database) {
   const snapshots: Array<[string, string, string]> = [
     [PLACE_SNAPSHOT, 'place', 'ss-hk-place-2026-08-19.0'],
     [DIVISION_SNAPSHOT, 'division', 'ss-hk-division-overture-2026-08-19.0'],
-    [ADDRESS_SNAPSHOT, 'address', 'ss-hk-address-2026-08-19.0'],
+    [ADDRESS_SNAPSHOT, 'address', 'ss-hk-address-hkgov-dpo-2026-08-19.0'],
   ]
   for (const [id, resourceType, code] of snapshots) {
     run(
@@ -146,8 +146,8 @@ function seedMeta(sqlite: Database) {
     ],
   )
   const releaseSetSnapshots: Array<[string, string, string]> = [
-    [PLACE_SNAPSHOT, 'default', 'primary'],
-    [DIVISION_SNAPSHOT, 'overture', 'supporting'],
+    [PLACE_SNAPSHOT, 'overture', 'primary'],
+    [DIVISION_SNAPSHOT, 'overture', 'lookup'],
   ]
   for (const [snapshotId, variant, role] of releaseSetSnapshots) {
     run(

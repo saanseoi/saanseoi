@@ -67,7 +67,7 @@ export async function upsertPlaceMetadata(
   await recordSnapshotLookupDependency(metaDb, {
     anchorReleaseId: resourceReleaseId,
     lookupSnapshotId: snapshots.addressSnapshotId,
-    selectedByRule: 'api-composition:places/overture:place/default->address/default',
+    selectedByRule: 'api-composition:places/overture:place/overture->address/hkgov-dpo',
     selectionMode: 'latest_at_or_before_or_earliest_after_cohort',
     snapshotId: snapshots.snapshotId,
   })

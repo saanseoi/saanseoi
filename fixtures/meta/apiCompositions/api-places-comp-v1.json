@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8a94e4985bf3a7c6fd170225185b5a6fc68e13b0e8783f06bf4ff8d621d79af1",
+  "versionHash": "sha256:61cd0eaeab0e7a9fce18e932e388406c782816f4d07cb612434591da40852e83",
   "apiVersion": "api-places-v0.1",
   "code": "comp-places-v1",
   "version": 1,
@@ -29,14 +29,14 @@
       "members": [
         {
           "resourceType": "place",
-          "variant": "default",
+          "variant": "overture",
           "role": "primary",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
           "ingestDependencies": [
             {
               "resourceType": "address",
-              "variant": "default"
+              "variant": "hkgov-dpo"
             },
             {
               "resourceType": "division",
@@ -47,8 +47,8 @@
         },
         {
           "resourceType": "address",
-          "variant": "default",
-          "role": "supporting",
+          "variant": "hkgov-dpo",
+          "role": "lookup",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "anchorResourceType": "place",
@@ -57,7 +57,7 @@
         {
           "resourceType": "address",
           "variant": "overture-places",
-          "role": "supporting",
+          "role": "lookup",
           "isRequired": true,
           "cohortMatchingMode": "exact_ref",
           "anchorResourceType": "place",
@@ -66,7 +66,7 @@
         {
           "resourceType": "division",
           "variant": "overture",
-          "role": "supporting",
+          "role": "lookup",
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_or_earliest_after_cohort",
           "anchorResourceType": "address",

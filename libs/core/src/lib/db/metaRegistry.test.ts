@@ -3307,7 +3307,7 @@ describe('publishReleaseArtefacts', () => {
       INSERT INTO snapshots (
         id, resourceType, code, cohortKey, status, publishedAt, validFrom, validTo, updatedAt
       ) VALUES
-        ('snapshot-address', 'address', 'ss-hk-address-2025-09-03.0', '2025-09-24.0', 'draft', null, null, null, 1760000000000),
+        ('snapshot-address', 'address', 'ss-hk-address-hkgov-dpo-2025-09-03.0', '2025-09-24.0', 'draft', null, null, null, 1760000000000),
         ('snapshot-place-address', 'address', 'ss-hk-address-2025-09-24.0--overture-places', '2025-09-24.0', 'published', 1760000000000, 1760000000000, null, 1760000000000),
         ('snapshot-division', 'division', 'ss-hk-division-2025-09-24.0', '2025-09-24.0', 'published', 1760000000000, 1760000000000, null, 1760000000000);
 
@@ -3346,9 +3346,9 @@ describe('publishReleaseArtefacts', () => {
         apiReleaseSetId, snapshotId, variant, role, isRequired,
         cohortMatchingMode, anchorSnapshotId, createdAt
       ) VALUES
-        ('release-set-addresses', 'snapshot-address', 'default', 'primary', 1, 'exact_ref', null, 1760000000000),
-        ('release-set-addresses', 'snapshot-place-address', 'overture-places', 'supporting', 1, 'exact_ref', 'snapshot-address', 1760000000000),
-        ('release-set-addresses', 'snapshot-division', 'overture', 'supporting', 1, 'exact_ref', null, 1760000000000);
+        ('release-set-addresses', 'snapshot-address', 'hkgov-dpo', 'primary', 1, 'exact_ref', null, 1760000000000),
+        ('release-set-addresses', 'snapshot-place-address', 'overture-places', 'supplementary', 1, 'exact_ref', 'snapshot-address', 1760000000000),
+        ('release-set-addresses', 'snapshot-division', 'overture', 'lookup', 1, 'exact_ref', null, 1760000000000);
     `)
 
     for (const [datasetCode, resourceReleaseId] of [

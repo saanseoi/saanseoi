@@ -811,3 +811,76 @@ test('geographic code assignments declare their actual category', () => {
     ]),
   ).toThrow('category mismatch')
 })
+
+test('Address and Places composition members retain explicit collection variants and distinct roles after registry sync', () => {
+  const sqlite = new Database(':memory:')
+  try {
+    sqlite.exec(
+      loadMigrationSql(resolve(import.meta.dir, '../../migrations'), ['meta']),
+    )
+    for (let pass = 0; pass < 2; pass += 1) {
+      for (const statement of buildMetaRegistrySyncStatements('local'))
+        sqlite.exec(statement)
+      const members = sqlite
+        .query(`SELECT c.code AS composition, m.domainCode AS domain,
+        m.resourceType AS resource, m.variant, m.role
+        FROM apiCompositionMembers m JOIN apiComposition c ON c.id = m.apiCompositionId
+        WHERE c.code IN ('comp-addresses-v1', 'comp-places-v1')
+        ORDER BY c.code, m.priority`)
+        .all()
+      expect(members).toEqual([
+        {
+          composition: 'comp-addresses-v1',
+          domain: 'saanseoi',
+          resource: 'address',
+          variant: 'hkgov-dpo',
+          role: 'primary',
+        },
+        {
+          composition: 'comp-addresses-v1',
+          domain: 'saanseoi',
+          resource: 'address',
+          variant: 'overture-places',
+          role: 'supplementary',
+        },
+        {
+          composition: 'comp-addresses-v1',
+          domain: 'saanseoi',
+          resource: 'division',
+          variant: 'overture',
+          role: 'lookup',
+        },
+        {
+          composition: 'comp-places-v1',
+          domain: 'overture',
+          resource: 'place',
+          variant: 'overture',
+          role: 'primary',
+        },
+        {
+          composition: 'comp-places-v1',
+          domain: 'overture',
+          resource: 'address',
+          variant: 'hkgov-dpo',
+          role: 'lookup',
+        },
+        {
+          composition: 'comp-places-v1',
+          domain: 'overture',
+          resource: 'address',
+          variant: 'overture-places',
+          role: 'lookup',
+        },
+        {
+          composition: 'comp-places-v1',
+          domain: 'overture',
+          resource: 'division',
+          variant: 'overture',
+          role: 'lookup',
+        },
+      ])
+    }
+  } finally {
+    sqlite.close()
+  }
+})

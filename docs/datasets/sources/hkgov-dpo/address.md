@@ -1100,3 +1100,9 @@ names, conflicting recognised names and ambiguous spatial peers remain unresolve
 Per-premise provenance retains the method and references without altering the publisher
 assertion. Prepared nullable fields carry all locality IDs into current and historical
 Address storage and version hashing.
+
+## API composition membership
+
+The ALS Address snapshot variant is `hkgov-dpo`. It is the `primary` member of the
+`saanseoi` Address domain and a `lookup` member of the `overture` Places domain. Both
+memberships refer to the same snapshot lineage.

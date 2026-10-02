@@ -473,7 +473,7 @@ export async function processLocalPlaceSqlUpload(
             {
               resourceType: 'address',
               snapshotId: snapshots.addressSnapshotId,
-              variant: 'default',
+              variant: 'hkgov-dpo',
             },
             {
               resourceType: 'division',
@@ -497,7 +497,7 @@ export async function processLocalPlaceSqlUpload(
             {
               resourceType: 'address',
               snapshotId: snapshots.addressSnapshotId,
-              variant: 'default',
+              variant: 'hkgov-dpo',
             },
             {
               resourceType: 'division',

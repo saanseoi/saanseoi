@@ -18,7 +18,7 @@ test('Place publication requires an exact supplementary dependency and explicit 
     INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role,anchorReleaseId)
       VALUES ('supplementary','address-release','primary','place-release');
     INSERT INTO snapshotResourceReleases(snapshotId,resourceReleaseId,role,selectedByRule)
-      VALUES ('place','address-release','lookup','api-composition:places/overture:place/default->address/overture-places');
+      VALUES ('place','address-release','lookup','api-composition:places/overture:place/overture->address/overture-places');
   `)
   const db = createLocalHarbourDb(sqlite)
   const check = () => assertPlaceAddressDependencies(db, 'place', 'place-release')

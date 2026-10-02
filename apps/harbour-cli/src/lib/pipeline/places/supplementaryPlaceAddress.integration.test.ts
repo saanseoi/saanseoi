@@ -138,6 +138,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       updatedAt: '2025-08-19T00:00:00Z',
     })
     const official = await ensureDraftSnapshotForRelease(db, 'address', {
+      variant: 'hkgov-dpo',
       cohortKey: '2025-08',
       datasetCode: 'ds-hk-hkgov-dpo-address',
       datasetId: 'hkgov-dpo-hk-address',
@@ -152,6 +153,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       'primary',
     )
     const placeSnapshot = await ensureDraftSnapshotForRelease(db, 'place', {
+      variant: 'overture',
       cohortKey: '2025-08',
       datasetCode: 'ds-hk-overture-place',
       datasetId: 'overture-hk-place',
@@ -512,6 +514,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
         updatedAt: timestamp,
       })
       const placeSnapshot = await ensureDraftSnapshotForRelease(db, 'place', {
+        variant: 'overture',
         cohortKey,
         datasetCode: 'ds-hk-overture-place',
         datasetId: 'overture-hk-place',
@@ -585,6 +588,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       updatedAt: '2026-01-25T00:00:00Z',
     })
     const officialNext = await ensureDraftSnapshotForRelease(db, 'address', {
+      variant: 'hkgov-dpo',
       cohortKey: '2026-01',
       datasetCode: 'ds-hk-hkgov-dpo-address',
       datasetId: 'hkgov-dpo-hk-address',
@@ -714,6 +718,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       updatedAt: '2026-09-16T00:00:00Z',
     })
     const withdrawnPlaceSnapshot = await ensureDraftSnapshotForRelease(db, 'place', {
+      variant: 'overture',
       cohortKey: '2026-09',
       datasetCode: 'ds-hk-overture-place',
       datasetId: 'overture-hk-place',

@@ -74,7 +74,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         source: 'hkgov-dpo',
         datasetId: 'hkgov-dpo-hk-address',
         datasetCode: 'ds-hk-hkgov-dpo-address',
-        variant: 'default',
+        variant: 'hkgov-dpo',
       },
       {
         id: 'supplementary',
@@ -161,7 +161,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       carriedSnapshots: [
         {
           resourceType: 'address',
-          variant: 'default',
+          variant: 'hkgov-dpo',
           snapshotId: requireDefined(snapshots.get('als')),
         },
         {
@@ -738,7 +738,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       carriedSnapshots: [
         {
           resourceType: 'address',
-          variant: 'default',
+          variant: 'hkgov-dpo',
           snapshotId: requireDefined(snapshots.get('als')),
         },
         {

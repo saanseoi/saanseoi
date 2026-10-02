@@ -1,3 +1,4 @@
+import { datasetVariantForSource } from '@repo/core/codes'
 import { initialDatasets } from '@repo/db/registry'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -125,6 +126,34 @@ export function seedSnapshot(
     );
   `)
 
+  if (resourceType === 'address' || resourceType === 'place') {
+    const dataset = sqlite
+      .query(`SELECT d.code, d.regionCode, p.code AS publisherCode
+      FROM datasets d JOIN publishers p ON p.id = d.publisherId WHERE d.id = ?`)
+      .get(datasetId) as { code: string; regionCode: string; publisherCode: string }
+    const variant = datasetVariantForSource(resourceType, dataset.publisherCode, {
+      datasetCode: dataset.code,
+    })
+    const lineageId = `fixture-lineage-${datasetId}-${resourceType}-${variant}`
+    sqlite
+      .query(`INSERT OR IGNORE INTO snapshotLineages (
+      id, code, regionCode, resourceType, variant, identityMode, primaryDatasetId,
+      versionHash, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, 'persistent', ?, 'fixture-lineage', ?, ?)`)
+      .run(
+        lineageId,
+        lineageId,
+        dataset.regionCode,
+        resourceType,
+        variant,
+        datasetId,
+        timestamp,
+        timestamp,
+      )
+    sqlite
+      .query('UPDATE snapshots SET snapshotLineageId = ? WHERE id = ?')
+      .run(lineageId, snapshotId)
+  }
   return snapshotId
 }
 

@@ -1053,15 +1053,15 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     INSERT INTO apiCompositionMembers (
       apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority
     ) VALUES
-      ('api-composition-addresses-v1', 'saanseoi', 'address', 'default', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-addresses-v1', 'saanseoi', 'address', 'overture-places', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 5),
-      ('api-composition-addresses-v1', 'saanseoi', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10),
+      ('api-composition-addresses-v1', 'saanseoi', 'address', 'hkgov-dpo', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-addresses-v1', 'saanseoi', 'address', 'overture-places', 'supplementary', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 5),
+      ('api-composition-addresses-v1', 'saanseoi', 'division', 'overture', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10),
       ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
       ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-places-v1', 'default', 'place', 'default', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-places-v1', 'default', 'address', 'default', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'place', null, 10),
-      ('api-composition-places-v1', 'default', 'address', 'overture-places', 'supporting', 1, 'exact_ref', 'place', null, 15),
-      ('api-composition-places-v1', 'default', 'division', 'overture', 'supporting', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 20)
+      ('api-composition-places-v1', 'default', 'place', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-places-v1', 'default', 'address', 'hkgov-dpo', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'place', null, 10),
+      ('api-composition-places-v1', 'default', 'address', 'overture-places', 'lookup', 1, 'exact_ref', 'place', null, 15),
+      ('api-composition-places-v1', 'default', 'division', 'overture', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 20)
     ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
       role = excluded.role,
       isRequired = excluded.isRequired,

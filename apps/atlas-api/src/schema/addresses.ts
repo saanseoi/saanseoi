@@ -272,7 +272,7 @@ const AddressAttributesSchema = z
       .optional()
       .openapi({
         description: openApiText('openapi_addresses_snapshot_id_description'),
-        examples: ['ss-hk-address-2026-08-19.0'],
+        examples: ['ss-hk-address-hkgov-dpo-2026-08-19.0'],
       }),
     geometry: z
       .union([AddressPointGeometrySchema, z.null()])
