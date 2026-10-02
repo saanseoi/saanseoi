@@ -63,7 +63,7 @@
       "dependencies": {
         "@better-auth/core": "1.7.7",
         "@better-auth/passkey": "1.7.7",
-        "@humanspeak/svelte-markdown": "^1.9.5",
+        "@humanspeak/svelte-markdown": "^2.0.0",
         "@iconify-svelte/emojione-monotone": "1.0.3",
         "@iconify-svelte/hugeicons": "1.0.20",
         "@iconify-svelte/ion": "1.0.3",
@@ -626,7 +626,7 @@
 
     "@humanspeak/memory-cache": ["@humanspeak/memory-cache@1.2.0", "", {}, "sha512-im7GIIpgjdD6Fx68xCeiXw3XiDv30/WMRAaodMm+ep0ptYfEUd0cdNeTAylHGIRTJIeByKFHdTmPjAktyDM/JQ=="],
 
-    "@humanspeak/svelte-markdown": ["@humanspeak/svelte-markdown@1.9.5", "", { "dependencies": { "@humanspeak/memory-cache": "^1.2.0", "github-slugger": "^2.0.0", "htmlparser2": "^12.0.0", "marked": "^18.0.14" }, "peerDependencies": { "@tanstack/highlight": ">=0.1.0", "katex": ">=0.16.0", "mermaid": ">=10.0.0", "shiki": ">=4.0.0", "svelte": "^5.0.0" }, "optionalPeers": ["@tanstack/highlight", "katex", "mermaid", "shiki"] }, "sha512-RqWrhE+tkqE1i7JQWpgTIzciSWbhAYSyfeCahh+doxOKzm9kkPXxtr+Vb6PEmZWktXXtBIgE7KAUZuso8hFs0A=="],
+    "@humanspeak/svelte-markdown": ["@humanspeak/svelte-markdown@2.0.0", "", { "dependencies": { "@humanspeak/memory-cache": "^1.2.0", "github-slugger": "^2.0.0", "htmlparser2": "^12.0.0", "marked": "^18.0.14" }, "peerDependencies": { "@tanstack/highlight": ">=0.1.0", "katex": ">=0.16.0", "mermaid": ">=10.0.0", "shiki": ">=4.0.0", "svelte": "^5.0.0" }, "optionalPeers": ["@tanstack/highlight", "katex", "mermaid", "shiki"] }, "sha512-Dg3YNMMX0/ZOVNKGEilQjagMT8a/GgfufDycWxRoLXqVd/Ygs3WCQuwrsqJuBST4fAK5oFh0jql1c6Unw3o9iA=="],
 
     "@iconify-json/simple-icons": ["@iconify-json/simple-icons@1.2.98", "", { "dependencies": { "@iconify/types": "*" } }, "sha512-35CEBG1H/3nsohVgJaRWtOZ/P5syRTL++ZXTISdQSC76o1mAFXngFoSm9EOnnBiDApKPu8WN/DY+z69yCycL9A=="],
 

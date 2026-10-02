@@ -27,7 +27,7 @@
   "dependencies": {
     "@better-auth/core": "1.7.7",
     "@better-auth/passkey": "1.7.7",
-    "@humanspeak/svelte-markdown": "^1.9.5",
+    "@humanspeak/svelte-markdown": "^2.0.0",
     "@iconify-svelte/emojione-monotone": "1.0.3",
     "@iconify-svelte/hugeicons": "1.0.20",
     "@iconify-svelte/ion": "1.0.3",
