@@ -7,6 +7,7 @@ import { note, outro } from '@clack/prompts'
 
 import type { ParsedArgs } from '../cli/options.ts'
 import type { ScheduledUpdateSummary } from './update.ts'
+import { today } from './tilesExecution.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
 const UNIT_NAMES = ['saanseoi-monthly-tiles.timer', 'saanseoi-daily-update.timer']
@@ -68,22 +69,16 @@ export async function runScheduledCommand(args: ParsedArgs, printUsage: () => vo
 
   const startedAt = performance.now()
   const summaryPath = await createRunSummaryPath(job)
-  const child = Bun.spawn(
-    [
-      await resolveCommandPath(),
-      ...(job === 'tiles' ? ['tiles:refresh'] : ['update', '--yes']),
-    ],
-    {
-      cwd: REPO_ROOT,
-      env: {
-        ...process.env,
-        SAANSEOI_RUN_SUMMARY_PATH: summaryPath,
-      },
-      stdin: 'ignore',
-      stdout: 'inherit',
-      stderr: 'inherit',
+  const child = Bun.spawn([await resolveCommandPath(), ...scheduledJobArguments(job)], {
+    cwd: REPO_ROOT,
+    env: {
+      ...process.env,
+      SAANSEOI_RUN_SUMMARY_PATH: summaryPath,
     },
-  )
+    stdin: 'ignore',
+    stdout: 'inherit',
+    stderr: 'inherit',
+  })
   const exitCode = await child.exited
   const duration = formatDuration(performance.now() - startedAt)
   const succeeded = exitCode === 0
@@ -98,6 +93,12 @@ export async function runScheduledCommand(args: ParsedArgs, printUsage: () => vo
   )
 
   if (!succeeded) process.exitCode = exitCode || 1
+}
+
+export function scheduledJobArguments(job: ScheduledJob, date = today()) {
+  return job === 'tiles'
+    ? ['tiles:refresh', '--date', `${date.slice(0, 7)}-01`]
+    : ['update', '--yes']
 }
 
 export function buildUnits(commandPath: string, bunPath = process.execPath) {

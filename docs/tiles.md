@@ -44,13 +44,14 @@ It defaults to the Greater Bay Area (GBA):
 ```sh
 saanseoi tiles:refresh
 saanseoi tiles:refresh --region mo
+saanseoi tiles:refresh --date 2026-10-01
 ```
 
 Supported regions are `gba`, `hk` (`hongkong`), and `mo` (`macau`). A GBA refresh
 provisions three same-date archives in GBA, Hong Kong, then Macao order: the
 consolidated `gba` basemap plus standalone Hong Kong and Macao maps. If a Hong Kong or
-Macao release already exists for the current HKT date, a normal refresh leaves it in
-place instead of rebuilding it.
+Macao release already exists for the selected release date, a normal refresh leaves it
+in place instead of rebuilding it.
 
 Every tileset is clipped to its exact OSM administrative boundary during tile
 generation. The command resolves and dissolves the region relations from its archived
@@ -123,8 +124,8 @@ so generated archives and cache files remain writable for a later `--force` rebu
 Every release is immutable by default. The three publishing commands have deliberately
 different purposes:
 
-- `tiles:refresh` generates the current HKT release from the current GeoFabrik input,
-  then advances the matching `-latest` archive and public indexes.
+- `tiles:refresh` generates the selected release from the current GeoFabrik input, then
+  advances the matching `-latest` archive and public indexes.
 - `tiles:import` publishes a supplied, prebuilt historic PMTiles archive at a fixed
   date. It never changes `-latest` and does not claim to have regenerated its layers.
 - `tiles:rebuild --all` replaces source-backed releases after a generator-contract
@@ -151,9 +152,23 @@ The tiles Worker serves a dated release manifest at
 viewer’s diagnostic report: archive and boundary hashes, clipping inputs, coastline
 inputs, build commits, and command context. It never exposes a PMTiles archive itself.
 
-`tiles:refresh` always uses the current Hong Kong time (HKT) date. A version may not be
-overwritten by a normal refresh. Use `--dry-run` to inspect object names without
-downloading, building, or uploading.
+`tiles:refresh` defaults to the current Hong Kong time (HKT) date. Use
+`--date YYYY-MM-DD` to recover a missed release; the date must be today or earlier. A
+version may not be overwritten by a normal refresh. Recovery reuses a retained
+date-named source where available, otherwise it downloads the current GeoFabrik input;
+the actual build and publication timestamps remain in the manifest. Use `--dry-run` to
+inspect object names without downloading, building, or uploading.
+
+The local `saanseoi-monthly-tiles.timer` runs at 00:05 on the first day of each month.
+Its persistent catch-up uses the first day of the current HKT month as the release date.
+GeoFabrik downloads retry transport and redirect failures up to three times, with a
+ten-redirect limit per attempt. A failed service is recorded in the user journal and
+does not automatically retry at the next daily dataset update.
+
+The installed services load `~/.config/saanseoi/scheduled-jobs.env`. Keep this file
+private (`chmod 600`) and include `CLOUDFLARE_API_TOKEN` with R2 upload, Browser
+Rendering and cache-purge permissions so the scheduled workflow can publish its previews
+and refresh the public catalogues.
 
 After publishing each tileset, `tiles:refresh` invokes Cloudflare Browser Rendering to
 capture the release in the viewer's headless mode at 1200 × 800 pixels. It publishes

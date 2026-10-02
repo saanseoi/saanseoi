@@ -8,6 +8,10 @@ base geography tied to the release input rather than to a separately updated glo
 land-polygon download.
 
 The generator downloads and archives one GeoFabrik Guangdong PBF for each release date.
+Downloads follow at most ten redirects per attempt and retry failures up to three times,
+including redirect-limit failures. A retry writes a temporary file and promotes it only
+after a successful download. Release recovery reuses the retained date-named source or,
+when unavailable, downloads the current input and records its checksum in the manifest.
 It resolves every GBA, Hong Kong, and Macao administrative relation directly from that
 same PBF, then uses Osmium's `complete_ways` strategy to prepare each regional input for
 Planetiler and coastline processing. The complete source also provides Macao's

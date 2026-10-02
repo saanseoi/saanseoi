@@ -325,14 +325,19 @@ export function releaseKey(region: Region, version: string): string {
   return `${region.code}:${version}`
 }
 
-async function downloadFile(url: string, path: string) {
+export async function downloadFile(url: string, path: string) {
   const temporaryPath = `${path}.download`
   await run([
     'curl',
     '--fail',
     '--location',
+    '--max-redirs',
+    '10',
     '--retry',
     '3',
+    '--retry-all-errors',
+    '--connect-timeout',
+    '30',
     '--output',
     temporaryPath,
     url,

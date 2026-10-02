@@ -4,6 +4,11 @@ SaanSeoi's regional PMTiles archives are a generated base-geography family, sepa
 from the API resource families. Their input and publication process is documented in
 [basemap tiles](../../tiles.md).
 
+Monthly scheduled refreshes use the first day of the HKT month as their release date,
+including persistent catch-up runs. An explicit `tiles:refresh --date YYYY-MM-DD`
+recovers a missed release while retaining the actual build and publication timestamps in
+its manifest. Existing releases remain immutable without `--force`.
+
 Source-archive metadata hashes OSM files as a stream, without retaining the complete
 archive in memory. Size, file identity and modification metadata are checked across the
 read; a detected change stops archiving.

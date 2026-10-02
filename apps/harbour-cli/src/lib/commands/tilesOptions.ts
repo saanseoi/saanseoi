@@ -17,11 +17,11 @@ export function resolveTilesInput(
   const rawFile = typeof args.options.file === 'string' ? args.options.file : undefined
   const rawBoundary =
     typeof args.options.boundary === 'string' ? args.options.boundary : undefined
-  const version = operation === 'import' ? rawDate : today()
+  const version = rawDate ?? (operation === 'import' ? undefined : today())
   const allowedOptions =
     operation === 'import'
       ? ['region', 'date', 'file', 'boundary', 'dry-run']
-      : ['region', 'dry-run', 'force']
+      : ['region', 'date', 'dry-run', 'force']
   const invalid =
     args.positionals.length > 0 ||
     Object.keys(args.options).some(key => !allowedOptions.includes(key))
@@ -30,6 +30,9 @@ export function resolveTilesInput(
     !regionDefinition ||
     !version ||
     !/^\d{4}-\d{2}-\d{2}$/.test(version) ||
+    new Date(`${version}T00:00:00Z`).toJSON()?.slice(0, 10) !== version ||
+    (operation === 'refresh' && version > today()) ||
+    ('date' in args.options && !rawDate) ||
     (operation === 'import' && !rawFile) ||
     (operation === 'import' && !rawBoundary) ||
     invalid
@@ -38,7 +41,7 @@ export function resolveTilesInput(
     throw new Error(
       operation === 'import'
         ? 'tiles:import requires --region, --date YYYY-MM-DD, --file PATH, and --boundary PATH.'
-        : 'tiles:refresh accepts only --region gba|hk|mo, --dry-run, and --force.',
+        : 'tiles:refresh accepts --region gba|hk|mo, --date YYYY-MM-DD (today or earlier), --dry-run, and --force.',
     )
   }
 

@@ -29,7 +29,7 @@ export function printUsage() {
   saanseoi init:places:overture:fail [--target local|preview|production]
   saanseoi init:streets:saanseoi [--target local|preview|production] [--continue] [--no-cache-artefacts] [--skip-curation-checks]
   saanseoi init:streets [--target local|preview|production] [--continue] [--no-cache-artefacts] [--skip-curation-checks]
-  saanseoi tiles:refresh [--region gba|hk|mo] [--dry-run] [--force]
+  saanseoi tiles:refresh [--region gba|hk|mo] [--date YYYY-MM-DD] [--dry-run] [--force]
   saanseoi tiles:import --region gba|hk|mo --date YYYY-MM-DD --file PATH --boundary PATH [--dry-run]
   saanseoi tiles:rebuild --all [--dry-run] [--rewrite-history]
   saanseoi tiles:rebuild --region gba|hk|mo --date YYYY-MM-DD [--promote-latest] [--dry-run] [--rewrite-history]

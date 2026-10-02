@@ -1,6 +1,15 @@
 import { expect, test } from 'bun:test'
 
-import { buildUnits } from './schedule.ts'
+import { buildUnits, scheduledJobArguments } from './schedule.ts'
+
+test('monthly catch-up retains the first-of-month release date', () => {
+  expect(scheduledJobArguments('tiles', '2026-10-02')).toEqual([
+    'tiles:refresh',
+    '--date',
+    '2026-10-01',
+  ])
+  expect(scheduledJobArguments('update', '2026-10-02')).toEqual(['update', '--yes'])
+})
 
 test('creates persistent user timers for the nightly update and monthly tiles', () => {
   const units = buildUnits(
