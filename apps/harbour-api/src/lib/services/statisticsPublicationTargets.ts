@@ -3,6 +3,7 @@ import {
   desc,
   eq,
   metaApiReleaseSets,
+  metaApiVersionReleaseSets,
   metaApiReleaseSetSnapshots,
   metaApiVersions,
   metaDatasets,
@@ -22,18 +23,25 @@ export type StatisticsPublicationTarget = {
 export async function listPublishedStatisticsTargets(db: HarbourReadableDb) {
   const releases = await db
     .select({
-      apiVersionId: metaApiReleaseSets.apiVersionId,
+      apiVersionId: metaApiVersionReleaseSets.apiVersionId,
       cohortKey: metaApiReleaseSets.cohortKey,
       domainCode: metaApiReleaseSets.domainCode,
       id: metaApiReleaseSets.id,
       regionCode: metaApiReleaseSets.regionCode,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiVersions.id, metaApiReleaseSets.apiVersionId))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersions.id, metaApiVersionReleaseSets.apiVersionId),
+    )
     .where(
       and(
         eq(metaApiVersions.familyType, 'stats'),
-        ne(metaApiReleaseSets.status, 'draft'),
+        ne(metaApiVersionReleaseSets.status, 'draft'),
       ),
     )
     .orderBy(desc(metaApiReleaseSets.revision))

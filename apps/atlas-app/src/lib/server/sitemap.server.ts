@@ -8,6 +8,7 @@ import {
   isNull,
   metaApiLifecycleJournal,
   metaApiReleaseSets,
+  metaApiVersionReleaseSets,
   metaApiVersions,
   metaDatasets,
   metaPublishers,
@@ -144,18 +145,22 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
         .all(),
       db
         .select({
-          apiVersionId: metaApiReleaseSets.apiVersionId,
+          apiVersionId: metaApiVersionReleaseSets.apiVersionId,
           familyType: metaApiVersions.familyType,
           releaseCode: metaApiReleaseSets.code,
-          publishedAt: metaApiReleaseSets.publishedAt,
+          publishedAt: metaApiVersionReleaseSets.publishedAt,
           updatedAt: metaApiReleaseSets.updatedAt,
         })
         .from(metaApiReleaseSets)
         .innerJoin(
-          metaApiVersions,
-          eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+          metaApiVersionReleaseSets,
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
         )
-        .where(inArray(metaApiReleaseSets.status, ['current', 'archived']))
+        .innerJoin(
+          metaApiVersions,
+          eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+        )
+        .where(inArray(metaApiVersionReleaseSets.status, ['current', 'archived']))
         .all(),
       getBasemapEntries(event.fetch),
     ])

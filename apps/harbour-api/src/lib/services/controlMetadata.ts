@@ -10,6 +10,7 @@ import {
   inArray,
   metaApiComposition,
   metaApiReleaseSets,
+  metaApiVersionReleaseSets,
   metaApiVersions,
   metaApiCompositionMembers,
   metaPublishers,
@@ -91,30 +92,44 @@ export async function resolveApiReleaseSetMetadataDelta(
 ): Promise<ApiReleaseSetMetadataDelta | undefined> {
   const releaseSet = await db
     .select({
-      id: metaApiReleaseSets.id,
-      apiVersionId: metaApiReleaseSets.apiVersionId,
-      apiCompositionId: metaApiReleaseSets.apiCompositionId,
+      id: metaApiVersionReleaseSets.id,
+      apiReleaseSetId: metaApiVersionReleaseSets.apiReleaseSetId,
+      apiVersionId: metaApiVersionReleaseSets.apiVersionId,
+      apiCompositionId: metaApiVersionReleaseSets.apiCompositionId,
       code: metaApiReleaseSets.code,
       regionCode: metaApiReleaseSets.regionCode,
       domainCode: metaApiReleaseSets.domainCode,
       cohortKey: metaApiReleaseSets.cohortKey,
       revision: metaApiReleaseSets.revision,
       effectiveFrom: metaApiReleaseSets.effectiveFrom,
-      supersedesApiReleaseSetId: metaApiReleaseSets.supersedesApiReleaseSetId,
+      supersedesApiReleaseSetId: metaApiVersionReleaseSets.supersedesApiReleaseSetId,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
-      status: metaApiReleaseSets.status,
-      publishedAt: metaApiReleaseSets.publishedAt,
-      validFrom: metaApiReleaseSets.validFrom,
-      validTo: metaApiReleaseSets.validTo,
-      notes: metaApiReleaseSets.notes,
-      guide: metaApiReleaseSets.guide,
-      versionHash: metaApiReleaseSets.versionHash,
-      createdAt: metaApiReleaseSets.createdAt,
-      updatedAt: metaApiReleaseSets.updatedAt,
+      status: metaApiVersionReleaseSets.status,
+      publishedAt: metaApiVersionReleaseSets.publishedAt,
+      validFrom: metaApiVersionReleaseSets.validFrom,
+      validTo: metaApiVersionReleaseSets.validTo,
+      notes: metaApiVersionReleaseSets.notes,
+      guide: metaApiVersionReleaseSets.guide,
+      versionHash: metaApiVersionReleaseSets.versionHash,
+      createdAt: metaApiVersionReleaseSets.createdAt,
+      updatedAt: metaApiVersionReleaseSets.updatedAt,
     })
-    .from(metaApiReleaseSets)
-    .where(eq(metaApiReleaseSets.id, releaseSetId))
+    .from(metaApiVersionReleaseSets)
+    .innerJoin(
+      metaApiReleaseSets,
+      eq(metaApiReleaseSets.id, metaApiVersionReleaseSets.apiReleaseSetId),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersions.id, metaApiVersionReleaseSets.apiVersionId),
+    )
+    .where(
+      and(
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, releaseSetId),
+        eq(metaApiVersions.code, apiVersionCode),
+      ),
+    )
     .limit(1)
     .get()
 
@@ -161,16 +176,28 @@ export async function requireReleaseSetPublicationMetadata(
   const releaseSet = await db
     .select({
       apiFamily: metaApiVersions.familyType,
-      apiVersionId: metaApiReleaseSets.apiVersionId,
-      apiCompositionId: metaApiReleaseSets.apiCompositionId,
+      apiVersionId: metaApiVersionReleaseSets.apiVersionId,
+      apiCompositionId: metaApiVersionReleaseSets.apiCompositionId,
       cohortKey: metaApiReleaseSets.cohortKey,
       domainCode: metaApiReleaseSets.domainCode,
       regionCode: metaApiReleaseSets.regionCode,
       revision: metaApiReleaseSets.revision,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
-    .where(eq(metaApiReleaseSets.id, releaseSetId))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
+    .where(
+      and(
+        eq(metaApiReleaseSets.id, releaseSetId),
+        eq(metaApiVersions.code, apiVersionCode),
+      ),
+    )
     .limit(1)
     .get()
 

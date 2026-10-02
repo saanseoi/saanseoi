@@ -144,16 +144,23 @@ export async function getOfficialAddressInitialisationStatus(target: UploadTarge
           .select({ id: metaSchema.metaApiReleaseSets.id })
           .from(metaSchema.metaApiReleaseSets)
           .innerJoin(
+            metaSchema.metaApiVersionReleaseSets,
+            eq(
+              metaSchema.metaApiVersionReleaseSets.apiReleaseSetId,
+              metaSchema.metaApiReleaseSets.id,
+            ),
+          )
+          .innerJoin(
             metaSchema.metaApiVersions,
             eq(
-              metaSchema.metaApiReleaseSets.apiVersionId,
+              metaSchema.metaApiVersionReleaseSets.apiVersionId,
               metaSchema.metaApiVersions.id,
             ),
           )
           .where(
             and(
               eq(metaSchema.metaApiVersions.familyType, 'addresses'),
-              eq(metaSchema.metaApiReleaseSets.status, 'current'),
+              eq(metaSchema.metaApiVersionReleaseSets.status, 'current'),
             ),
           )
           .limit(1)
@@ -604,9 +611,16 @@ async function collectOwnedRecords(
             ),
           )
           .innerJoin(
+            metaSchema.metaApiVersionReleaseSets,
+            eq(
+              metaSchema.metaApiVersionReleaseSets.apiReleaseSetId,
+              metaSchema.metaApiReleaseSets.id,
+            ),
+          )
+          .innerJoin(
             metaSchema.metaApiVersions,
             eq(
-              metaSchema.metaApiReleaseSets.apiVersionId,
+              metaSchema.metaApiVersionReleaseSets.apiVersionId,
               metaSchema.metaApiVersions.id,
             ),
           )
@@ -673,7 +687,7 @@ async function collectOwnedRecordsFromRemoteMeta(
     client,
     snapshotIds,
     values =>
-      `SELECT ars.apiReleaseSetId AS id, av.familyType FROM apiReleaseSetSnapshots ars JOIN apiReleaseSets ar ON ar.id = ars.apiReleaseSetId JOIN apiVersions av ON av.id = ar.apiVersionId WHERE ars.snapshotId IN (${sqlList(values)})`,
+      `SELECT DISTINCT member.apiReleaseSetId AS id, version.familyType FROM apiReleaseSetSnapshots member JOIN apiVersionReleaseSets association ON association.apiReleaseSetId = member.apiReleaseSetId JOIN apiVersions version ON version.id = association.apiVersionId WHERE member.snapshotId IN (${sqlList(values)})`,
   )
   const assets = await queryRemoteInChunks<{
     id: string
@@ -1022,14 +1036,14 @@ async function buildResetSql(
   const docsSql = [
     ...manifest.baseline.docs.apiReleaseSets.map(
       row =>
-        `UPDATE apiReleaseSets SET notes=${literal(row.notes)}, guide=${literal(row.guide)} WHERE id=${literal(row.id)};`,
+        `UPDATE apiVersionReleaseSets SET notes=${literal(row.notes)}, guide=${literal(row.guide)} WHERE id=${literal(row.id)};`,
     ),
     ...manifest.baseline.docs.releases.map(
       row =>
         `UPDATE resourceReleases SET notes=${literal(row.notes)} WHERE id=${literal(row.id)};`,
     ),
   ].join('\n')
-  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM processingRuns WHERE resourceReleaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE resourceReleaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId IN (${ids});\nDELETE FROM stats WHERE resourceReleaseId IN (${ids}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${ids}) OR relatedResourceReleaseId IN (${ids});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM resourceReleases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
+  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM processingRuns WHERE resourceReleaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE resourceReleaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId IN (${ids});\nDELETE FROM stats WHERE resourceReleaseId IN (${ids}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${ids}) OR relatedResourceReleaseId IN (${ids}) OR apiVersionReleaseSetId IN (SELECT id FROM apiVersionReleaseSets WHERE apiReleaseSetId IN (${apiSets}));\nDELETE FROM apiVersionReleaseSets WHERE apiReleaseSetId IN (${apiSets});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM resourceReleases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
   const source = context.sourceTargets.map(target => ({
     sql: sourceSql,
     target: {
@@ -1074,11 +1088,11 @@ async function readDocsState(
   const [apiReleaseSets, releases] = await Promise.all([
     context.metaDb
       .select({
-        id: metaSchema.metaApiReleaseSets.id,
-        notes: metaSchema.metaApiReleaseSets.notes,
-        guide: metaSchema.metaApiReleaseSets.guide,
+        id: metaSchema.metaApiVersionReleaseSets.id,
+        notes: metaSchema.metaApiVersionReleaseSets.notes,
+        guide: metaSchema.metaApiVersionReleaseSets.guide,
       })
-      .from(metaSchema.metaApiReleaseSets)
+      .from(metaSchema.metaApiVersionReleaseSets)
       .all(),
     context.metaDb
       .select({

@@ -60,6 +60,11 @@ const apiReleaseSetIdColumn = () =>
     .notNull()
     .references(() => metaApiReleaseSets.id, { onDelete: 'cascade' })
 
+const apiVersionReleaseSetIdColumn = () =>
+  text('apiVersionReleaseSetId')
+    .notNull()
+    .references(() => metaApiVersionReleaseSets.id, { onDelete: 'cascade' })
+
 const apiCatalogRevisionIdColumn = () =>
   text('apiCatalogRevisionId')
     .notNull()
@@ -215,6 +220,39 @@ export const metaApiReleaseSets = sqliteTable(
     regionCode: text('regionCode'),
     domainCode: text('domainCode').notNull().default('default'),
     cohortKey: text('cohortKey'),
+    versionHash: text('versionHash').notNull(),
+    ...timestamps,
+  },
+  table => [
+    uniqueIndex('apiReleaseSets_code_schema_ruleset_unique_idx').on(
+      table.code,
+      table.schemaVersion,
+      table.rulesetVersion,
+    ),
+    uniqueIndex('apiReleaseSets_domain_cohort_revision_unique_idx').on(
+      table.regionCode,
+      table.domainCode,
+      table.cohortKey,
+      table.revision,
+      table.schemaVersion,
+      table.rulesetVersion,
+    ),
+  ],
+)
+
+export const metaApiVersionReleaseSets = sqliteTable(
+  'apiVersionReleaseSets',
+  {
+    id: primaryUuid('id'),
+    apiVersionId: apiVersionIdColumn('restrict'),
+    apiReleaseSetId: apiReleaseSetIdColumn(),
+    apiCompositionId: text('apiCompositionId').references(() => metaApiComposition.id, {
+      onDelete: 'restrict',
+    }),
+    supersedesApiReleaseSetId: text('supersedesApiReleaseSetId').references(
+      () => metaApiReleaseSets.id,
+      { onDelete: 'restrict' },
+    ),
     revision: integer('revision').notNull().default(0),
     effectiveFrom: isoTimestamp('effectiveFrom'),
     supersedesApiReleaseSetId: text('supersedesApiReleaseSetId'),
@@ -230,12 +268,12 @@ export const metaApiReleaseSets = sqliteTable(
     ...timestamps,
   },
   table => [
-    uniqueIndex('apiReleaseSets_apiVersionId_code_unique_idx').on(
+    uniqueIndex('apiVersionReleaseSets_version_release_unique_idx').on(
       table.apiVersionId,
       table.code,
+    index('apiVersionReleaseSets_release_idx').on(table.apiReleaseSetId),
     ),
-    index('apiReleaseSets_status_idx').on(table.status),
-    uniqueIndex('apiReleaseSets_domain_cohort_revision_unique_idx').on(
+    index('apiVersionReleaseSets_version_status_idx').on(
       table.apiVersionId,
       table.regionCode,
       table.domainCode,
@@ -291,9 +329,12 @@ export const metaReleaseSetLifecycleJournal = sqliteTable(
     snapshotId: text('snapshotId').references(() => metaSnapshots.id, {
       onDelete: 'set null',
     }),
-    apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id, {
-      onDelete: 'set null',
-    }),
+    apiVersionReleaseSetId: text('apiVersionReleaseSetId').references(
+      () => metaApiVersionReleaseSets.id,
+      {
+        onDelete: 'set null',
+      },
+    ),
     action: text('action').notNull(),
     statusFrom: text('statusFrom'),
     statusTo: text('statusTo'),
@@ -488,7 +529,7 @@ export const metaApiCatalogRevisionReleaseSets = sqliteTable(
   'apiCatalogRevisionReleaseSets',
   {
     apiCatalogRevisionId: apiCatalogRevisionIdColumn(),
-    apiReleaseSetId: apiReleaseSetIdColumn(),
+    apiVersionReleaseSetId: apiVersionReleaseSetIdColumn(),
     domainCode: text('domainCode').notNull(),
     cohortKey: text('cohortKey').notNull(),
     isDefault: integer('isDefault', { mode: 'boolean' }).notNull().default(false),
@@ -500,9 +541,9 @@ export const metaApiCatalogRevisionReleaseSets = sqliteTable(
     }),
     uniqueIndex('apiCatalogRevisionReleaseSets_release_unique_idx').on(
       table.apiCatalogRevisionId,
-      table.apiReleaseSetId,
+      table.apiVersionReleaseSetId,
     ),
-    index('apiCatalogRevisionReleaseSets_release_idx').on(table.apiReleaseSetId),
+    index('apiCatalogRevisionReleaseSets_release_idx').on(table.apiVersionReleaseSetId),
   ],
 )
 

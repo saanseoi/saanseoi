@@ -90,7 +90,13 @@ function setup() {
   }
   for (const family of ['divisions', 'places']) {
     insert(meta, 'apiVersions', { id: family, code: family, familyType: family })
-    insert(meta, 'apiReleaseSets', { id: family, apiVersionId: family, code: family })
+    insert(meta, 'apiReleaseSets', { id: family, code: family })
+    insert(meta, 'apiVersionReleaseSets', {
+      id: family,
+      apiVersionId: family,
+      apiReleaseSetId: family,
+      status: 'current',
+    })
     insert(meta, 'apiReleaseSetSnapshots', {
       apiReleaseSetId: family,
       snapshotId: family === 'divisions' ? 'division' : 'place',
@@ -102,7 +108,7 @@ function setup() {
     })
     insert(meta, 'apiCatalogRevisionReleaseSets', {
       apiCatalogRevisionId: family,
-      apiReleaseSetId: family,
+      apiVersionReleaseSetId: family,
     })
   }
   const context = {

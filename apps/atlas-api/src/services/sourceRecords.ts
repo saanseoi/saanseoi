@@ -786,11 +786,13 @@ async function listReleaseSetSourceReleases(
       .prepare(
         `SELECT apiReleaseSets.id
          FROM apiReleaseSets
-         INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
+         INNER JOIN apiVersionReleaseSets
+           ON apiVersionReleaseSets.apiReleaseSetId = apiReleaseSets.id
+         INNER JOIN apiVersions ON apiVersions.id = apiVersionReleaseSets.apiVersionId
          WHERE apiVersions.familyType = ? AND apiReleaseSets.regionCode = ?
-           AND apiReleaseSets.status <> 'draft'
+           AND apiVersionReleaseSets.status <> 'draft'
            ${selectionCondition}
-         ORDER BY coalesce(apiReleaseSets.publishedAt, apiReleaseSets.createdAt) DESC,
+         ORDER BY coalesce(apiVersionReleaseSets.publishedAt, apiReleaseSets.createdAt) DESC,
            apiReleaseSets.id DESC
          LIMIT 1`,
       )
@@ -837,7 +839,7 @@ async function querySourceReleaseDiscoveryRows(
   const byReleaseSet = 'apiReleaseSetId' in selector
   const sourceCondition = byReleaseSet
     ? 'apiReleaseSetSnapshots.apiReleaseSetId = ?'
-    : "apiVersions.familyType = ? AND snapshots.code = ? AND apiReleaseSets.status <> 'draft'"
+    : "apiVersions.familyType = ? AND snapshots.code = ? AND apiVersionReleaseSets.status <> 'draft'"
   const datasetCondition = selector.datasetCode ? 'AND datasets.code = ?' : ''
   const values = byReleaseSet
     ? [selector.apiReleaseSetId]
@@ -867,7 +869,9 @@ async function querySourceReleaseDiscoveryRows(
         FROM apiReleaseSetSnapshots
         INNER JOIN apiReleaseSets
           ON apiReleaseSets.id = apiReleaseSetSnapshots.apiReleaseSetId
-        INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
+        INNER JOIN apiVersionReleaseSets
+          ON apiVersionReleaseSets.apiReleaseSetId = apiReleaseSets.id
+        INNER JOIN apiVersions ON apiVersions.id = apiVersionReleaseSets.apiVersionId
         INNER JOIN snapshots ON snapshots.id = apiReleaseSetSnapshots.snapshotId
         INNER JOIN snapshotResourceReleases ON snapshotResourceReleases.snapshotId = snapshots.id
         INNER JOIN resourceReleases ON resourceReleases.id = snapshotResourceReleases.resourceReleaseId

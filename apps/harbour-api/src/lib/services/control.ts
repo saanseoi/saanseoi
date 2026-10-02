@@ -18,7 +18,8 @@ import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
   and,
   eq,
-  metaApiReleaseSets,
+  metaApiVersionReleaseSets,
+  metaApiVersions,
   metaSchema,
   metaSnapshotResourceReleases,
   metaSnapshots,
@@ -652,9 +653,18 @@ export async function handlePublishDataset(
       if (shouldPublishReleaseSet) {
         selectedApiCatalogRevision = apiCatalogRevision
         const publishedReleaseSetStatus = await db
-          .select({ status: metaApiReleaseSets.status })
-          .from(metaApiReleaseSets)
-          .where(eq(metaApiReleaseSets.id, releaseSet.id))
+          .select({ status: metaApiVersionReleaseSets.status })
+          .from(metaApiVersionReleaseSets)
+          .innerJoin(
+            metaApiVersions,
+            eq(metaApiVersions.id, metaApiVersionReleaseSets.apiVersionId),
+          )
+          .where(
+            and(
+              eq(metaApiVersionReleaseSets.apiReleaseSetId, releaseSet.id),
+              eq(metaApiVersions.code, publicationApiVersion),
+            ),
+          )
           .limit(1)
           .get()
         selectedReleaseSetStatus = publishedReleaseSetStatus?.status ?? 'draft'

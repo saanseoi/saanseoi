@@ -110,7 +110,7 @@ export async function collectStatsResetDependencies(
   )
   const allSets = await resetRows(
     meta,
-    'SELECT a.*, v.familyType FROM apiReleaseSets a JOIN apiVersions v ON v.id = a.apiVersionId ORDER BY a.id',
+    'SELECT content.*, association.id AS apiVersionReleaseSetId, association.apiVersionId, association.status, association.publishedAt, association.validFrom, association.validTo, association.notes, association.guide, version.familyType FROM apiReleaseSets content JOIN apiVersionReleaseSets association ON association.apiReleaseSetId = content.id JOIN apiVersions version ON version.id = association.apiVersionId ORDER BY content.id, association.apiVersionId',
   )
   const releaseSets = allSets.filter(
     row =>
@@ -120,7 +120,7 @@ export async function collectStatsResetDependencies(
   const setIds = new Set(releaseSets.map(row => String(row.id)))
   const catalogMembers = await resetRows(
     meta,
-    'SELECT * FROM apiCatalogRevisionReleaseSets ORDER BY apiCatalogRevisionId, apiReleaseSetId',
+    'SELECT catalog.*, association.apiReleaseSetId FROM apiCatalogRevisionReleaseSets catalog JOIN apiVersionReleaseSets association ON association.id = catalog.apiVersionReleaseSetId ORDER BY catalog.apiCatalogRevisionId, association.apiReleaseSetId',
   )
   const affectedCatalogIds = new Set(
     catalogMembers

@@ -26,7 +26,7 @@ export async function listStatisticsStatsReleases(db: HarbourReadableDb) {
     .select({
       id: metaSchema.metaApiReleaseSets.id,
       code: metaSchema.metaApiReleaseSets.code,
-      apiVersionId: metaSchema.metaApiReleaseSets.apiVersionId,
+      apiVersionId: metaSchema.metaApiVersionReleaseSets.apiVersionId,
       domainCode: metaSchema.metaApiReleaseSets.domainCode,
       regionCode: metaSchema.metaApiReleaseSets.regionCode,
       cohortKey: metaSchema.metaApiReleaseSets.cohortKey,
@@ -34,13 +34,23 @@ export async function listStatisticsStatsReleases(db: HarbourReadableDb) {
     })
     .from(metaSchema.metaApiReleaseSets)
     .innerJoin(
+      metaSchema.metaApiVersionReleaseSets,
+      eq(
+        metaSchema.metaApiVersionReleaseSets.apiReleaseSetId,
+        metaSchema.metaApiReleaseSets.id,
+      ),
+    )
+    .innerJoin(
       metaSchema.metaApiVersions,
-      eq(metaSchema.metaApiVersions.id, metaSchema.metaApiReleaseSets.apiVersionId),
+      eq(
+        metaSchema.metaApiVersions.id,
+        metaSchema.metaApiVersionReleaseSets.apiVersionId,
+      ),
     )
     .where(
       and(
         eq(metaSchema.metaApiVersions.familyType, 'stats'),
-        inArray(metaSchema.metaApiReleaseSets.status, ['current', 'archived']),
+        inArray(metaSchema.metaApiVersionReleaseSets.status, ['current', 'archived']),
       ),
     )
     .all()

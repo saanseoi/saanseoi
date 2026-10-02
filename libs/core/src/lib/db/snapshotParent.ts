@@ -46,8 +46,9 @@ export async function resolveAcceptedSnapshotParent(
       and(
         eq(snapshots.snapshotLineageId, input.lineageId),
         sql`EXISTS (
-        SELECT 1 FROM apiReleaseSetSnapshots member
-        JOIN apiCatalogRevisionReleaseSets selected ON selected.apiReleaseSetId=member.apiReleaseSetId
+        SELECT 1 FROM apiCatalogRevisionReleaseSets selected
+        JOIN apiVersionReleaseSets association ON association.id=selected.apiVersionReleaseSetId
+        JOIN apiReleaseSetSnapshots member ON member.apiReleaseSetId=association.apiReleaseSetId
         JOIN apiCatalogRevisions catalogue ON catalogue.id=selected.apiCatalogRevisionId
         WHERE member.snapshotId=${snapshots.id} AND catalogue.status<>'draft'
       )`,
@@ -68,8 +69,9 @@ export async function resolveAcceptedSnapshotParent(
     )`,
         catalogued
           ? sql`EXISTS (
-      SELECT 1 FROM apiReleaseSetSnapshots member
-      JOIN apiCatalogRevisionReleaseSets selected ON selected.apiReleaseSetId=member.apiReleaseSetId
+      SELECT 1 FROM apiCatalogRevisionReleaseSets selected
+      JOIN apiVersionReleaseSets association ON association.id=selected.apiVersionReleaseSetId
+      JOIN apiReleaseSetSnapshots member ON member.apiReleaseSetId=association.apiReleaseSetId
       JOIN apiCatalogRevisions catalogue ON catalogue.id=selected.apiCatalogRevisionId
       WHERE member.snapshotId=${snapshots.id} AND catalogue.status='current'
         AND catalogue.id=(

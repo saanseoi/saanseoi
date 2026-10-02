@@ -10,6 +10,7 @@ import {
   metaApiCompositionMembers,
   metaApiLifecycleJournal,
   metaApiReleaseSets,
+  metaApiVersionReleaseSets,
   metaApiVersions,
   sql,
   stats,
@@ -122,37 +123,45 @@ async function loadDataReleasesPage(offset = 0) {
         domainCode: metaApiReleaseSets.domainCode,
         cohortKey: metaApiReleaseSets.cohortKey,
         revision: metaApiReleaseSets.revision,
-        status: metaApiReleaseSets.status,
+        status: metaApiVersionReleaseSets.status,
       })
       .from(metaApiReleaseSets)
       .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .innerJoin(
         metaApiVersions,
-        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .all(),
     db
       .select({
         apiFamily: metaApiVersions.familyType,
-        apiVersionId: metaApiReleaseSets.apiVersionId,
+        apiVersionId: metaApiVersionReleaseSets.apiVersionId,
         code: metaApiReleaseSets.code,
         regionCode: metaApiReleaseSets.regionCode,
         domainCode: metaApiReleaseSets.domainCode,
         cohortKey: metaApiReleaseSets.cohortKey,
         createdAt: metaApiReleaseSets.createdAt,
         id: metaApiReleaseSets.id,
-        publishedAt: metaApiReleaseSets.publishedAt,
+        publishedAt: metaApiVersionReleaseSets.publishedAt,
         revision: metaApiReleaseSets.revision,
         schemaVersion: metaApiReleaseSets.schemaVersion,
-        status: metaApiReleaseSets.status,
+        status: metaApiVersionReleaseSets.status,
       })
       .from(metaApiReleaseSets)
       .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .innerJoin(
         metaApiVersions,
-        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .orderBy(
         desc(
-          sql`coalesce(${metaApiReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
+          sql`coalesce(${metaApiVersionReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
         ),
         desc(metaApiReleaseSets.id),
       )
@@ -267,20 +276,24 @@ async function loadDataPageApis(): Promise<DataPageApi[]> {
     db
       .select({
         apiFamily: metaApiVersions.familyType,
-        apiVersionId: metaApiReleaseSets.apiVersionId,
+        apiVersionId: metaApiVersionReleaseSets.apiVersionId,
         code: metaApiReleaseSets.code,
         regionCode: metaApiReleaseSets.regionCode,
         domainCode: metaApiReleaseSets.domainCode,
         cohortKey: metaApiReleaseSets.cohortKey,
         createdAt: metaApiReleaseSets.createdAt,
-        publishedAt: metaApiReleaseSets.publishedAt,
+        publishedAt: metaApiVersionReleaseSets.publishedAt,
         revision: metaApiReleaseSets.revision,
-        status: metaApiReleaseSets.status,
+        status: metaApiVersionReleaseSets.status,
       })
       .from(metaApiReleaseSets)
       .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .innerJoin(
         metaApiVersions,
-        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .all(),
   ])

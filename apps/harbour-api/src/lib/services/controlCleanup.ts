@@ -4,6 +4,7 @@ import {
   and,
   eq,
   metaApiReleaseSets,
+  metaApiVersionReleaseSets,
   metaApiReleaseSetSnapshots,
   metaApiVersions,
 } from '@repo/db'
@@ -37,10 +38,17 @@ export async function scheduleReconciledSnapshotCleanup(
       metaApiReleaseSets,
       eq(metaApiReleaseSets.id, metaApiReleaseSetSnapshots.apiReleaseSetId),
     )
-    .innerJoin(metaApiVersions, eq(metaApiVersions.id, metaApiReleaseSets.apiVersionId))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersions.id, metaApiVersionReleaseSets.apiVersionId),
+    )
     .where(
       and(
-        eq(metaApiReleaseSets.status, 'archived'),
+        eq(metaApiVersionReleaseSets.status, 'archived'),
         request.apiFamily
           ? eq(metaApiVersions.familyType, request.apiFamily)
           : undefined,

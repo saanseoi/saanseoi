@@ -59,7 +59,7 @@ const TYPES = "('division', 'divisionArea', 'divisionBoundary')"
 const RELEASES = `SELECT id FROM resourceReleases WHERE resourceType IN ${TYPES}`
 const SNAPSHOTS = `SELECT id FROM snapshots WHERE resourceType IN ${TYPES}`
 const VERSIONS = "SELECT id FROM apiVersions WHERE familyType = 'divisions'"
-const SETS = `SELECT id FROM apiReleaseSets WHERE apiVersionId IN (${VERSIONS})`
+const SETS = `SELECT apiReleaseSetId FROM apiVersionReleaseSets WHERE apiVersionId IN (${VERSIONS})`
 const CANONICAL_TABLES = [
   'divisionsI18n',
   'divisionBoundaries',
@@ -98,7 +98,10 @@ export async function collectDivisionResetPlan(context: ResetReadContext) {
   )
   const releaseSets = await rows(
     context.metaBinding,
-    `SELECT * FROM apiReleaseSets WHERE id IN (${SETS}) ORDER BY id`,
+    `SELECT content.*, association.id AS apiVersionReleaseSetId, association.apiVersionId, association.status, association.publishedAt, association.validFrom, association.validTo, association.notes, association.guide
+     FROM apiReleaseSets content
+     INNER JOIN apiVersionReleaseSets association ON association.apiReleaseSetId = content.id
+     WHERE content.id IN (${SETS}) ORDER BY content.id, association.apiVersionId`,
   )
   return { releases, snapshots, releaseSets }
 }
@@ -222,7 +225,7 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     `DELETE FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId IN (SELECT id FROM apiCatalogRevisions WHERE apiVersionId IN (${VERSIONS}));`,
     `DELETE FROM apiCatalogRevisions WHERE apiVersionId IN (${VERSIONS});`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${SETS});`,
-    `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${RELEASES});`,
+    `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${RELEASES}) OR apiVersionReleaseSetId IN (SELECT id FROM apiVersionReleaseSets WHERE apiVersionId IN (${VERSIONS}));`,
     `DELETE FROM stats WHERE resourceReleaseId IN (${RELEASES}) OR apiReleaseSetId IN (${SETS});`,
     ...[
       'releaseProcessingActionChunks',

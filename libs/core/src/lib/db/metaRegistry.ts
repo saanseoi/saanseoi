@@ -85,6 +85,7 @@ const {
   metaApiVersions,
   processingRuns,
   metaDatasetTransforms,
+  metaApiVersionReleaseSets,
   metaDatasets,
   metaLicenses,
   metaPublishers,
@@ -278,11 +279,22 @@ export async function listRegistryReleases(
       domainCode: metaApiReleaseSets.domainCode,
       cohortKey: metaApiReleaseSets.cohortKey,
       revision: metaApiReleaseSets.revision,
-      status: metaApiReleaseSets.status,
+      status: metaApiVersionReleaseSets.status,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
-    .where(apiVersionId ? eq(metaApiReleaseSets.apiVersionId, apiVersionId) : undefined)
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
+    .where(
+      apiVersionId
+        ? eq(metaApiVersionReleaseSets.apiVersionId, apiVersionId)
+        : undefined,
+    )
     .all()
 
   const latestByScope = new Map<string, { cohortKey: string; revision: number }>()
@@ -309,18 +321,18 @@ export async function listRegistryReleases(
   const releaseCondition =
     apiVersionId && releaseCode
       ? and(
-          eq(metaApiReleaseSets.apiVersionId, apiVersionId),
+          eq(metaApiVersionReleaseSets.apiVersionId, apiVersionId),
           eq(metaApiReleaseSets.code, releaseCode),
         )
       : apiVersionId
-        ? eq(metaApiReleaseSets.apiVersionId, apiVersionId)
+        ? eq(metaApiVersionReleaseSets.apiVersionId, apiVersionId)
         : releaseCode
           ? eq(metaApiReleaseSets.code, releaseCode)
           : undefined
   const releases = await db
     .select({
       id: metaApiReleaseSets.id,
-      apiVersionId: metaApiReleaseSets.apiVersionId,
+      apiVersionId: metaApiVersionReleaseSets.apiVersionId,
       apiFamily: metaApiVersions.familyType,
       apiVersion: metaApiVersions.code,
       code: metaApiReleaseSets.code,
@@ -330,22 +342,29 @@ export async function listRegistryReleases(
       revision: metaApiReleaseSets.revision,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
-      status: metaApiReleaseSets.status,
-      publishedAt: metaApiReleaseSets.publishedAt,
-      validFrom: metaApiReleaseSets.validFrom,
-      validTo: metaApiReleaseSets.validTo,
-      notes: metaApiReleaseSets.notes,
-      guide: metaApiReleaseSets.guide,
+      status: metaApiVersionReleaseSets.status,
+      publishedAt: metaApiVersionReleaseSets.publishedAt,
+      validFrom: metaApiVersionReleaseSets.validFrom,
+      validTo: metaApiVersionReleaseSets.validTo,
+      notes: metaApiVersionReleaseSets.notes,
+      guide: metaApiVersionReleaseSets.guide,
       versionHash: metaApiReleaseSets.versionHash,
       createdAt: metaApiReleaseSets.createdAt,
       updatedAt: metaApiReleaseSets.updatedAt,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
     .where(releaseCondition)
     .orderBy(
       desc(
-        sql`coalesce(${metaApiReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
+        sql`coalesce(${metaApiVersionReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
       ),
       desc(metaApiReleaseSets.id),
     )
@@ -600,7 +619,7 @@ async function listRegistryReleaseSummaries(db: MetaDatabase, apiVersionId: stri
   const releases = await db
     .select({
       id: metaApiReleaseSets.id,
-      apiVersionId: metaApiReleaseSets.apiVersionId,
+      apiVersionId: metaApiVersionReleaseSets.apiVersionId,
       apiFamily: metaApiVersions.familyType,
       apiVersion: metaApiVersions.code,
       code: metaApiReleaseSets.code,
@@ -610,21 +629,28 @@ async function listRegistryReleaseSummaries(db: MetaDatabase, apiVersionId: stri
       revision: metaApiReleaseSets.revision,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
-      status: metaApiReleaseSets.status,
-      publishedAt: metaApiReleaseSets.publishedAt,
-      validFrom: metaApiReleaseSets.validFrom,
-      validTo: metaApiReleaseSets.validTo,
-      notes: metaApiReleaseSets.notes,
-      guide: metaApiReleaseSets.guide,
+      status: metaApiVersionReleaseSets.status,
+      publishedAt: metaApiVersionReleaseSets.publishedAt,
+      validFrom: metaApiVersionReleaseSets.validFrom,
+      validTo: metaApiVersionReleaseSets.validTo,
+      notes: metaApiVersionReleaseSets.notes,
+      guide: metaApiVersionReleaseSets.guide,
       createdAt: metaApiReleaseSets.createdAt,
       updatedAt: metaApiReleaseSets.updatedAt,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
-    .where(eq(metaApiReleaseSets.apiVersionId, apiVersionId))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
+    .where(eq(metaApiVersionReleaseSets.apiVersionId, apiVersionId))
     .orderBy(
       desc(
-        sql`coalesce(${metaApiReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
+        sql`coalesce(${metaApiVersionReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
       ),
       desc(metaApiReleaseSets.id),
     )
@@ -974,7 +1000,7 @@ const processingActionBelongsToApiRelease = (
       inner join ${metaApiReleaseSets}
         on ${metaApiReleaseSets.id} = ${metaApiReleaseSetSnapshots.apiReleaseSetId}
       inner join ${metaApiVersions}
-        on ${metaApiVersions.id} = ${metaApiReleaseSets.apiVersionId}
+        on ${metaApiVersions.id} = ${metaApiVersionReleaseSets.apiVersionId}
       where ${metaApiVersions.familyType} = ${input.familyType}
         and ${metaApiReleaseSets.code} = ${input.releaseCode}
         and ${metaSnapshotResourceReleases.resourceReleaseId} = ${releaseProcessingActions.resourceReleaseId}
@@ -1139,7 +1165,7 @@ const apiFieldLineageSelection = {
   id: metaApiFieldProvenance.apiReleaseSetId,
   definitionId: metaApiFieldProvenance.definitionId,
   definition: metaFieldLineageDefinitions.definition,
-  compositionId: metaApiReleaseSets.apiCompositionId,
+  compositionId: metaApiVersionReleaseSets.apiCompositionId,
 }
 
 export async function listRegistryApiFields(db: MetaDatabase, limit?: number) {
@@ -1417,7 +1443,7 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
             )
             .innerJoin(
               metaApiVersions,
-              eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+              eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
             )
             .where(
               and(
@@ -1463,6 +1489,10 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
             ),
           stats:
             resourceIds.length === 1
+            .innerJoin(
+              metaApiVersionReleaseSets,
+              eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+            )
               ? releaseStats.filter(stat =>
                   resourceIds.includes(stat.resourceReleaseId ?? ''),
                 )
@@ -1758,7 +1788,7 @@ async function queryRegistrySourceVersions(
           )
           .innerJoin(
             metaApiVersions,
-            eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+            eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
           )
           .leftJoin(
             metaSnapshotAssemblies,
@@ -1780,7 +1810,7 @@ async function queryRegistrySourceVersions(
           )
           .leftJoin(
             metaApiComposition,
-            eq(metaApiComposition.apiVersionId, metaApiReleaseSets.apiVersionId),
+            eq(metaApiComposition.apiVersionId, metaApiVersionReleaseSets.apiVersionId),
           )
           .leftJoin(
             metaApiCompositionMembers,
@@ -1799,11 +1829,15 @@ async function queryRegistrySourceVersions(
             ),
           )
           .orderBy(
-            desc(metaApiReleaseSets.publishedAt),
+            desc(metaApiVersionReleaseSets.publishedAt),
             desc(metaApiReleaseSets.createdAt),
           )
           .all(),
       )
+          .innerJoin(
+            metaApiVersionReleaseSets,
+            eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+          )
     : []
   const assembledReleaseSetIds = [
     ...new Set(releaseAs.map(item => item.apiReleaseSetId)),
@@ -1869,6 +1903,10 @@ async function queryRegistrySourceVersions(
       ),
   )
   const assemblyPublisherIds = [
+          .innerJoin(
+            metaApiVersionReleaseSets,
+            eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+          )
     ...new Set(assemblySourceRows.map(source => source.publisherId)),
   ]
   const assemblyPublisherI18n = await queryInBatches(assemblyPublisherIds, ids =>
@@ -3897,20 +3935,23 @@ export async function resolveReleaseSetForType(
         code: metaApiReleaseSets.code,
         schemaVersion: metaApiReleaseSets.schemaVersion,
         rulesetVersion: metaApiReleaseSets.rulesetVersion,
-        status: metaApiReleaseSets.status,
+        status: metaApiVersionReleaseSets.status,
       })
       .from(metaApiReleaseSets)
       .innerJoin(
         metaApiVersions,
-        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .where(
         and(
           eq(metaApiVersions.code, apiVersionCode),
-          ne(metaApiReleaseSets.status, 'archived'),
+          ne(metaApiVersionReleaseSets.status, 'archived'),
         ),
       )
-      .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
+      .orderBy(
+        desc(metaApiVersionReleaseSets.publishedAt),
+        desc(metaApiReleaseSets.createdAt),
+      )
       .limit(1)
       .get()) ?? null
   )
@@ -3950,21 +3991,28 @@ export async function resolveActiveReleaseSetForType(
         domainCode: metaApiReleaseSets.domainCode,
         schemaVersion: metaApiReleaseSets.schemaVersion,
         rulesetVersion: metaApiReleaseSets.rulesetVersion,
-        status: metaApiReleaseSets.status,
+        status: metaApiVersionReleaseSets.status,
       })
       .from(metaApiReleaseSets)
       .innerJoin(
         metaApiVersions,
-        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .where(
         and(
           eq(metaApiVersions.code, apiVersionCode),
-          eq(metaApiReleaseSets.status, 'current'),
+          eq(metaApiVersionReleaseSets.status, 'current'),
           eq(metaApiReleaseSets.domainCode, resolvedDomainCode),
         ),
       )
-      .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .orderBy(
+        desc(metaApiVersionReleaseSets.publishedAt),
+        desc(metaApiReleaseSets.createdAt),
+      )
       .limit(1)
       .get()) ?? null
   )
@@ -3986,23 +4034,26 @@ export async function resolveLatestReleaseSetForTypeDomainCohort(
         domainCode: metaApiReleaseSets.domainCode,
         schemaVersion: metaApiReleaseSets.schemaVersion,
         rulesetVersion: metaApiReleaseSets.rulesetVersion,
-        status: metaApiReleaseSets.status,
+        status: metaApiVersionReleaseSets.status,
       })
       .from(metaApiReleaseSets)
       .innerJoin(
         metaApiVersions,
-        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .where(
         and(
           eq(metaApiVersions.code, apiVersionCode),
           eq(metaApiReleaseSets.regionCode, regionCode),
           eq(metaApiReleaseSets.domainCode, domainCode),
-          ne(metaApiReleaseSets.status, 'draft'),
+          ne(metaApiVersionReleaseSets.status, 'draft'),
           eq(metaApiReleaseSets.cohortKey, cohortKey),
         ),
       )
-      .orderBy(desc(metaApiReleaseSets.revision), desc(metaApiReleaseSets.publishedAt))
+      .orderBy(
+        desc(metaApiReleaseSets.revision),
+        desc(metaApiVersionReleaseSets.publishedAt),
+      )
       .limit(1)
       .get()) ?? null
   )
@@ -4017,6 +4068,10 @@ export async function resolveLatestReleaseSetForTypeDomainCohort(
  */
 export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
   db: HarbourReadableDb,
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
@@ -4043,8 +4098,8 @@ export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
     .from(metaApiReleaseSets)
     .where(
       and(
-        eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
-        eq(metaApiReleaseSets.status, 'draft'),
+        eq(metaApiVersionReleaseSets.apiVersionId, apiVersion.id),
+        eq(metaApiVersionReleaseSets.status, 'draft'),
         eq(metaApiReleaseSets.regionCode, regionCode),
         sql`${metaApiReleaseSets.cohortKey} >= ${cohortKey}`,
       ),
@@ -4053,6 +4108,10 @@ export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
     .all()
 
   return rows
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
     .flatMap(row => (row.cohortKey ? [{ ...row, cohortKey: row.cohortKey }] : []))
     .sort(
       (left, right) =>
@@ -4078,10 +4137,17 @@ export async function listDraftReleaseSets(
       id: metaApiReleaseSets.id,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
     .where(
       and(
-        eq(metaApiReleaseSets.status, 'draft'),
+        eq(metaApiVersionReleaseSets.status, 'draft'),
         options.apiFamily
           ? eq(metaApiVersions.familyType, options.apiFamily)
           : undefined,
@@ -4105,7 +4171,18 @@ export async function listDraftReleaseSetPrimaryReleases(
       resourceReleaseId: metaResourceReleases.id,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
     .innerJoin(
       metaApiReleaseSetSnapshots,
       eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
@@ -4123,7 +4200,7 @@ export async function listDraftReleaseSetPrimaryReleases(
     )
     .where(
       and(
-        eq(metaApiReleaseSets.status, 'draft'),
+        eq(metaApiVersionReleaseSets.status, 'draft'),
         eq(metaApiReleaseSetSnapshots.role, 'primary'),
         eq(metaSnapshotResourceReleases.role, 'primary'),
         or(
@@ -4169,7 +4246,14 @@ export async function listOvertureReleaseSetCohortsAtOrAfterCohortKey(
       cohortKey: metaApiReleaseSets.cohortKey,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
     .innerJoin(
       metaApiReleaseSetSnapshots,
       eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
@@ -4264,16 +4348,18 @@ export async function ensureDraftReleaseSetForRelease(
           cohortKey: metaApiReleaseSets.cohortKey,
           id: metaApiReleaseSets.id,
           code: metaApiReleaseSets.code,
-          status: metaApiReleaseSets.status,
+          status: metaApiVersionReleaseSets.status,
         })
         .from(metaApiReleaseSets)
         .where(
           and(
-            eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
+            eq(metaApiVersionReleaseSets.apiVersionId, apiVersion.id),
             eq(metaApiReleaseSets.regionCode, release.regionCode),
             eq(metaApiReleaseSets.domainCode, domainCode),
             eq(metaApiReleaseSets.cohortKey, release.cohortKey),
-            eq(metaApiReleaseSets.status, 'draft'),
+            eq(metaApiVersionReleaseSets.status, 'draft'),
+            eq(metaApiReleaseSets.schemaVersion, schemaVersion),
+            eq(metaApiReleaseSets.rulesetVersion, rulesetVersion),
           ),
         )
         .orderBy(desc(metaApiReleaseSets.createdAt))
@@ -4292,14 +4378,21 @@ export async function ensureDraftReleaseSetForRelease(
       schemaVersion: metaApiReleaseSets.schemaVersion,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
     .where(
       and(
         eq(metaApiVersions.code, apiVersionCode),
         eq(metaApiReleaseSets.regionCode, release.regionCode),
         eq(metaApiReleaseSets.domainCode, domainCode),
         eq(metaApiReleaseSets.cohortKey, release.cohortKey),
-        ne(metaApiReleaseSets.status, 'draft'),
+        ne(metaApiVersionReleaseSets.status, 'draft'),
       ),
     )
     .orderBy(desc(metaApiReleaseSets.revision), desc(metaApiReleaseSets.createdAt))
@@ -4312,7 +4405,7 @@ export async function ensureDraftReleaseSetForRelease(
     .from(metaApiReleaseSets)
     .where(
       and(
-        eq(metaApiReleaseSets.apiVersionId, apiVersion.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, apiVersion.id),
         eq(metaApiReleaseSets.regionCode, release.regionCode),
         eq(metaApiReleaseSets.domainCode, domainCode),
         eq(metaApiReleaseSets.cohortKey, release.cohortKey),
@@ -4334,21 +4427,33 @@ export async function ensureDraftReleaseSetForRelease(
     domainCode === (composition?.defaultDomainCode ?? 'default') ? null : domainCode,
   ]
     .filter((segment): segment is string => segment !== null)
+        .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+        )
     .join('--')
   const now = toIsoTimestamp()
-  const releaseSetId = buildDeterministicApiReleaseSetId(apiVersionCode, releaseSetCode)
-  const resourceCode = resourceTypeCodeSlug(resourceType)
-  // Statistics are materialised from `divisionStatistic` resources, while the
-  // public API contract deliberately uses the broader Statistics schema name.
-  const defaultSchemaVersion =
-    apiVersion.familyType === 'stats' ? 'sv-statistics-v1' : `sv-${resourceCode}-v1`
-  const schemaVersion = latestReleaseSet?.schemaVersion ?? defaultSchemaVersion
-  const rulesetDomainSegment =
-    domainCode === (composition?.defaultDomainCode ?? 'default') ? '' : `-${domainCode}`
-  const rulesetVersion =
-    composition?.rulesetVersions[domainCode] ??
-    latestReleaseSet?.rulesetVersion ??
-    `rs-${resourceCode}${rulesetDomainSegment}-merge-v1`
+  const releaseSetId = buildDeterministicApiReleaseSetId(
+    releaseSetCode,
+    schemaVersion,
+    rulesetVersion,
+  )
+  const apiVersionReleaseSetId = buildDeterministicApiVersionReleaseSetId(
+    apiVersion.id,
+    releaseSetId,
+  )
+  const existingContent = await db
+    .select({ id: metaApiReleaseSets.id })
+    .from(metaApiReleaseSets)
+    .where(
+      and(
+        eq(metaApiReleaseSets.code, releaseSetCode),
+        eq(metaApiReleaseSets.schemaVersion, schemaVersion),
+        eq(metaApiReleaseSets.rulesetVersion, rulesetVersion),
+      ),
+    )
+    .limit(1)
+    .get()
   const versionHash = computeVersionHash({
     apiVersion: apiVersionCode,
     releaseSetCode,
@@ -4367,13 +4472,17 @@ export async function ensureDraftReleaseSetForRelease(
   })
 
   await db
-    .insert(metaApiReleaseSets)
+    .insert(metaApiVersionReleaseSets)
     .values({
-      id: releaseSetId,
+      id: apiVersionReleaseSetId,
       apiVersionId: apiVersion.id,
       apiCompositionId: composition?.id ?? null,
       code: releaseSetCode,
       regionCode: release.regionCode,
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
       domainCode,
       cohortKey: release.cohortKey,
       revision: nextRevision,
@@ -4422,7 +4531,7 @@ export async function resolveReleaseSetForRelease(
         domainCode: metaApiReleaseSets.domainCode,
         schemaVersion: metaApiReleaseSets.schemaVersion,
         rulesetVersion: metaApiReleaseSets.rulesetVersion,
-        status: metaApiReleaseSets.status,
+        status: metaApiVersionReleaseSets.status,
       })
       .from(metaSnapshotResourceReleases)
       .innerJoin(
@@ -4439,7 +4548,7 @@ export async function resolveReleaseSetForRelease(
       )
       .innerJoin(
         metaApiVersions,
-        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .where(
         and(
@@ -4456,26 +4565,25 @@ export async function resolveReleaseSetForRelease(
 
 export async function activateReleaseSet(
   db: HarbourReadableDb & HarbourWritableDb,
-  releaseSetId: string,
+  apiVersionReleaseSetId: string,
 ) {
   const releaseSet = await db
     .select({
-      apiVersionId: metaApiReleaseSets.apiVersionId,
-      id: metaApiReleaseSets.id,
-      status: metaApiReleaseSets.status,
+      id: metaApiVersionReleaseSets.id,
+      status: metaApiVersionReleaseSets.status,
     })
-    .from(metaApiReleaseSets)
-    .where(eq(metaApiReleaseSets.id, releaseSetId))
+    .from(metaApiVersionReleaseSets)
+    .where(eq(metaApiVersionReleaseSets.id, apiVersionReleaseSetId))
     .limit(1)
     .get()
 
   if (!releaseSet) {
-    throw new Error(`Release set not found: ${releaseSetId}`)
+    throw new Error(`API version release-set link not found: ${apiVersionReleaseSetId}`)
   }
 
   const now = toIsoTimestamp()
   await db
-    .update(metaApiReleaseSets)
+    .update(metaApiVersionReleaseSets)
     .set({
       status: 'current',
       publishedAt: now,
@@ -4483,7 +4591,7 @@ export async function activateReleaseSet(
       validTo: null,
       updatedAt: now,
     })
-    .where(eq(metaApiReleaseSets.id, releaseSetId))
+    .where(eq(metaApiVersionReleaseSets.id, apiVersionReleaseSetId))
     .run()
 
   return {
@@ -4492,7 +4600,7 @@ export async function activateReleaseSet(
 }
 
 type CatalogReleaseSetMember = {
-  apiReleaseSetId: string
+  apiVersionReleaseSetId: string
   cohortKey: string
   domainCode: string
   effectiveFrom: string | null
@@ -4511,6 +4619,10 @@ function catalogMemberSortKey(
 export function compareCatalogMembers(
   left: Pick<CatalogReleaseSetMember, 'cohortKey' | 'effectiveFrom' | 'revision'>,
   right: Pick<CatalogReleaseSetMember, 'cohortKey' | 'effectiveFrom' | 'revision'>,
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
 ) {
   return (
     catalogMemberSortKey(left).localeCompare(catalogMemberSortKey(right)) ||
@@ -4555,7 +4667,8 @@ async function prepareApiCatalogRevision(
   const previousMembers = previousCatalog
     ? await db
         .select({
-          apiReleaseSetId: metaApiCatalogRevisionReleaseSets.apiReleaseSetId,
+          apiVersionReleaseSetId:
+            metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
           cohortKey: metaApiCatalogRevisionReleaseSets.cohortKey,
           domainCode: metaApiCatalogRevisionReleaseSets.domainCode,
           effectiveFrom: metaApiReleaseSets.effectiveFrom,
@@ -4565,7 +4678,7 @@ async function prepareApiCatalogRevision(
         .from(metaApiCatalogRevisionReleaseSets)
         .innerJoin(
           metaApiReleaseSets,
-          eq(metaApiCatalogRevisionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
         )
         .where(
           eq(
@@ -4576,7 +4689,7 @@ async function prepareApiCatalogRevision(
         .all()
     : await db
         .select({
-          apiReleaseSetId: metaApiReleaseSets.id,
+          apiVersionReleaseSetId: metaApiVersionReleaseSets.id,
           cohortKey: metaApiReleaseSets.cohortKey,
           domainCode: metaApiReleaseSets.domainCode,
           effectiveFrom: metaApiReleaseSets.effectiveFrom,
@@ -4585,9 +4698,9 @@ async function prepareApiCatalogRevision(
         .from(metaApiReleaseSets)
         .where(
           and(
-            eq(metaApiReleaseSets.apiVersionId, args.apiVersionId),
+            eq(metaApiVersionReleaseSets.apiVersionId, args.apiVersionId),
             eq(metaApiReleaseSets.regionCode, args.regionCode),
-            ne(metaApiReleaseSets.status, 'draft'),
+            ne(metaApiVersionReleaseSets.status, 'draft'),
           ),
         )
         .all()
@@ -4625,8 +4738,8 @@ async function prepareApiCatalogRevision(
   }
   for (const member of members) {
     member.isDefault =
-      latestMemberByDomain.get(member.domainCode)?.apiReleaseSetId ===
-      member.apiReleaseSetId
+      latestMemberByDomain.get(member.domainCode)?.apiVersionReleaseSetId ===
+      member.apiVersionReleaseSetId
   }
   members.sort(
     (left, right) =>
@@ -4637,6 +4750,13 @@ async function prepareApiCatalogRevision(
   const publicationDate = new Date(args.publishedAt).toISOString().slice(0, 10)
   const existingRevisions = await db
     .select({ revision: metaApiCatalogRevisions.revision })
+        .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(
+            metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
+            metaApiVersionReleaseSets.id,
+          ),
+        )
     .from(metaApiCatalogRevisions)
     .where(
       and(
@@ -4657,6 +4777,10 @@ async function prepareApiCatalogRevision(
   )
   const id = buildDeterministicApiCatalogRevisionId(code)
 
+        .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+        )
   return {
     id,
     code,
@@ -4668,7 +4792,7 @@ async function prepareApiCatalogRevision(
       code,
       defaultDomainCode: args.defaultDomainCode,
       members: members.map(member => ({
-        apiReleaseSetId: member.apiReleaseSetId,
+        apiVersionReleaseSetId: member.apiVersionReleaseSetId,
         cohortKey: member.cohortKey,
         domainCode: member.domainCode,
         isDefault: member.isDefault,
@@ -4711,7 +4835,10 @@ export async function publishReleaseArtefacts(
   },
 ) {
   await recordProcessingRun(db, {
-    apiReleaseSetId: args.releaseSetId,
+    apiVersionReleaseSetId: buildDeterministicApiVersionReleaseSetId(
+      args.apiVersionId,
+      args.releaseSetId,
+    ),
     stage: 'composition',
     phase: 'compose',
     status: 'running',
@@ -4719,8 +4846,9 @@ export async function publishReleaseArtefacts(
   try {
     const releaseSet = await db
       .select({
-        apiCompositionId: metaApiReleaseSets.apiCompositionId,
-        apiVersionId: metaApiReleaseSets.apiVersionId,
+        apiVersionReleaseSetId: metaApiVersionReleaseSets.id,
+        apiCompositionId: metaApiVersionReleaseSets.apiCompositionId,
+        apiVersionId: metaApiVersionReleaseSets.apiVersionId,
         apiVersion: metaApiVersions.code,
         apiVersionNumber: metaApiVersions.version,
         apiFamily: metaApiVersions.familyType,
@@ -4732,13 +4860,13 @@ export async function publishReleaseArtefacts(
         revision: metaApiReleaseSets.revision,
         rulesetVersion: metaApiReleaseSets.rulesetVersion,
         schemaVersion: metaApiReleaseSets.schemaVersion,
-        status: metaApiReleaseSets.status,
-        supersedesApiReleaseSetId: metaApiReleaseSets.supersedesApiReleaseSetId,
+        status: metaApiVersionReleaseSets.status,
+        supersedesApiReleaseSetId: metaApiVersionReleaseSets.supersedesApiReleaseSetId,
       })
       .from(metaApiReleaseSets)
       .innerJoin(
         metaApiVersions,
-        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .where(eq(metaApiReleaseSets.id, args.releaseSetId))
       .limit(1)
@@ -4810,6 +4938,10 @@ export async function publishReleaseArtefacts(
     const releaseSetSnapshots = new Map<
       string,
       {
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
         anchorSnapshotId: string | null
         isRequired: boolean
         role: string
@@ -4924,10 +5056,10 @@ export async function publishReleaseArtefacts(
             .from(metaApiReleaseSets)
             .where(
               and(
-                eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
+                eq(metaApiVersionReleaseSets.apiVersionId, releaseSet.apiVersionId),
                 eq(metaApiReleaseSets.regionCode, releaseSetRegionCode),
                 eq(metaApiReleaseSets.domainCode, releaseSet.domainCode),
-                ne(metaApiReleaseSets.status, 'draft'),
+                ne(metaApiVersionReleaseSets.status, 'draft'),
               ),
             )
             .orderBy(
@@ -4998,6 +5130,10 @@ export async function publishReleaseArtefacts(
               metaResourceReleases.processingRules,
             ),
             sourceSchemaVersion: metaResourceReleases.sourceSchemaVersion,
+            .innerJoin(
+              metaApiVersionReleaseSets,
+              eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+            )
             sourceVersion: metaResourceReleases.sourceVersion,
           })
           .from(metaSnapshotResourceReleases)
@@ -5320,7 +5456,7 @@ export async function publishReleaseArtefacts(
       if (!deferApiReleaseSet) {
         statements.push(
           tx
-            .update(metaApiReleaseSets)
+            .update(metaApiVersionReleaseSets)
             .set({
               status: 'archived',
               validTo: publishedAt,
@@ -5328,15 +5464,18 @@ export async function publishReleaseArtefacts(
             })
             .where(
               and(
-                eq(metaApiReleaseSets.apiVersionId, releaseSet.apiVersionId),
-                eq(metaApiReleaseSets.regionCode, releaseSet.regionCode),
-                eq(metaApiReleaseSets.domainCode, releaseSet.domainCode),
-                eq(metaApiReleaseSets.status, 'current'),
-                ne(metaApiReleaseSets.id, activeReleaseSetId),
+                eq(metaApiVersionReleaseSets.apiVersionId, releaseSet.apiVersionId),
+                eq(metaApiVersionReleaseSets.status, 'current'),
+                ne(metaApiVersionReleaseSets.id, releaseSet.apiVersionReleaseSetId),
+                sql`${metaApiVersionReleaseSets.apiReleaseSetId} IN (
+                  SELECT id FROM apiReleaseSets
+                  WHERE regionCode = ${releaseSet.regionCode}
+                    AND domainCode = ${releaseSet.domainCode}
+                )`,
               ),
             ),
           tx
-            .update(metaApiReleaseSets)
+            .update(metaApiVersionReleaseSets)
             .set({
               status: 'current',
               validTo: null,
@@ -5345,7 +5484,7 @@ export async function publishReleaseArtefacts(
                 ? { publishedAt, validFrom: publishedAt }
                 : {}),
             })
-            .where(eq(metaApiReleaseSets.id, activeReleaseSetId)),
+            .where(eq(metaApiVersionReleaseSets.id, releaseSet.apiVersionReleaseSetId)),
           tx
             .delete(metaApiFieldProvenance)
             .where(eq(metaApiFieldProvenance.apiReleaseSetId, args.releaseSetId)),
@@ -5354,7 +5493,7 @@ export async function publishReleaseArtefacts(
         if (!shouldActivateReleaseSet) {
           statements.push(
             tx
-              .update(metaApiReleaseSets)
+              .update(metaApiVersionReleaseSets)
               .set({
                 status: 'archived',
                 publishedAt,
@@ -5362,7 +5501,9 @@ export async function publishReleaseArtefacts(
                 validTo: publishedAt,
                 updatedAt: publishedAt,
               })
-              .where(eq(metaApiReleaseSets.id, args.releaseSetId)),
+              .where(
+                eq(metaApiVersionReleaseSets.id, releaseSet.apiVersionReleaseSetId),
+              ),
           )
         }
       }
@@ -5399,7 +5540,7 @@ export async function publishReleaseArtefacts(
           statements.push(
             tx.insert(metaApiCatalogRevisionReleaseSets).values({
               apiCatalogRevisionId: apiCatalogRevision.id,
-              apiReleaseSetId: member.apiReleaseSetId,
+              apiVersionReleaseSetId: member.apiVersionReleaseSetId,
               domainCode: member.domainCode,
               cohortKey: member.cohortKey,
               isDefault: member.isDefault,
@@ -5459,7 +5600,7 @@ export async function publishReleaseArtefacts(
             resourceReleaseId: args.dataset.resourceReleaseId,
             relatedResourceReleaseId: args.currentRelease.resourceReleaseId,
             snapshotId: args.snapshotId,
-            apiReleaseSetId: args.releaseSetId,
+            apiVersionReleaseSetId: releaseSet.apiVersionReleaseSetId,
             action: 'published',
             statusFrom: null,
             statusTo: 'published',
@@ -5475,7 +5616,7 @@ export async function publishReleaseArtefacts(
             resourceReleaseId: args.currentRelease.resourceReleaseId,
             relatedResourceReleaseId: args.dataset.resourceReleaseId,
             snapshotId: args.snapshotId,
-            apiReleaseSetId: args.releaseSetId,
+            apiVersionReleaseSetId: releaseSet.apiVersionReleaseSetId,
             action: args.currentReleaseIsCorrected ? 'revoked' : 'replaced',
             statusFrom: 'published',
             statusTo: args.currentReleaseIsCorrected ? 'revoked' : 'superseded',
@@ -5529,7 +5670,7 @@ export async function publishReleaseArtefacts(
             resourceReleaseId: args.dataset.resourceReleaseId,
             relatedResourceReleaseId: null,
             snapshotId: args.snapshotId,
-            apiReleaseSetId: args.releaseSetId,
+            apiVersionReleaseSetId: releaseSet.apiVersionReleaseSetId,
             action: 'published',
             statusFrom: null,
             statusTo: 'published',
@@ -6051,7 +6192,11 @@ export async function listCurrentSnapshotCleanupCandidates(
         metaApiReleaseSets,
         eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
       )
-      .where(ne(metaApiReleaseSets.status, 'archived'))
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .where(ne(metaApiVersionReleaseSets.status, 'archived'))
       .all()
   } catch (error) {
     if (
@@ -6067,7 +6212,11 @@ export async function listCurrentSnapshotCleanupCandidates(
         metaApiReleaseSets,
         eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
       )
-      .where(ne(metaApiReleaseSets.status, 'archived'))
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .where(ne(metaApiVersionReleaseSets.status, 'archived'))
       .all()
   }
   const protectedSnapshotIds = new Set(protectedRows.map(row => row.snapshotId))
@@ -6117,7 +6266,7 @@ export async function resolveActiveSnapshotForType(
         )
         .innerJoin(
           metaApiVersions,
-          eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+          eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
         )
         .innerJoin(
           metaSnapshots,
@@ -6134,7 +6283,7 @@ export async function resolveActiveSnapshotForType(
         .where(
           and(
             eq(metaApiVersions.code, getApiVersionCodeForType(resourceType)),
-            eq(metaApiReleaseSets.status, 'current'),
+            eq(metaApiVersionReleaseSets.status, 'current'),
             eq(metaApiReleaseSets.domainCode, domainCode),
             eq(metaSnapshots.resourceType, resourceType),
             options.variant
@@ -6145,7 +6294,7 @@ export async function resolveActiveSnapshotForType(
           ),
         )
         .orderBy(
-          desc(metaApiReleaseSets.publishedAt),
+          desc(metaApiVersionReleaseSets.publishedAt),
           desc(metaApiReleaseSets.createdAt),
         )
         .limit(1)
@@ -6204,7 +6353,10 @@ function releaseSetCatalogCondition(args: {
   if (!args.releaseSet || args.catalogRevision) return undefined
   return sql`exists (
     select 1 from ${metaApiCatalogRevisionReleaseSets} as membership
-    join ${metaApiReleaseSets} as release_set on release_set.id = membership.apiReleaseSetId
+    join ${metaApiVersionReleaseSets} as version_release_set
+      on version_release_set.id = membership.apiVersionReleaseSetId
+    join ${metaApiReleaseSets} as release_set
+      on release_set.id = version_release_set.apiReleaseSetId
     where membership.apiCatalogRevisionId = ${metaApiCatalogRevisions.id}
       and membership.domainCode = ${args.domainCode}
       and release_set.code = ${args.releaseSet}
@@ -6219,6 +6371,10 @@ function apiCatalogRevisionStatusCondition(args: {
 }) {
   return args.catalogRevision || args.knownAt || args.releaseSet
     ? ne(metaApiCatalogRevisions.status, 'draft')
+        .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+        )
     : eq(metaApiCatalogRevisions.status, 'current')
 }
 
@@ -6281,6 +6437,10 @@ export async function resolveApiReleaseSetForRequest(
   const selected = await db
     .select({
       id: metaApiReleaseSets.id,
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
       code: metaApiReleaseSets.code,
       cohortKey: metaApiCatalogRevisionReleaseSets.cohortKey,
       domainCode: metaApiCatalogRevisionReleaseSets.domainCode,
@@ -6292,7 +6452,7 @@ export async function resolveApiReleaseSetForRequest(
     .from(metaApiCatalogRevisionReleaseSets)
     .innerJoin(
       metaApiReleaseSets,
-      eq(metaApiCatalogRevisionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
     )
     .where(
       and(
@@ -6395,6 +6555,13 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
     )
     .limit(1)
     .get()
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(
+        metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
+        metaApiVersionReleaseSets.id,
+      ),
+    )
   if (!catalogRevision) return null
 
   const effectiveAt = args.effectiveAt ? toIsoTimestamp(args.effectiveAt) : null
@@ -6402,7 +6569,7 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
     .select({
       id: metaApiReleaseSets.id,
       code: metaApiReleaseSets.code,
-      status: metaApiReleaseSets.status,
+      status: metaApiVersionReleaseSets.status,
       cohortKey: metaApiCatalogRevisionReleaseSets.cohortKey,
       domainCode: metaApiCatalogRevisionReleaseSets.domainCode,
       effectiveFrom: metaApiReleaseSets.effectiveFrom,
@@ -6413,7 +6580,7 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
     .from(metaApiCatalogRevisionReleaseSets)
     .innerJoin(
       metaApiReleaseSets,
-      eq(metaApiCatalogRevisionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
     )
     .where(
       and(
@@ -6516,6 +6683,13 @@ async function resolveSnapshotLineageVersions(
   const seen = new Set<string>()
   let cursor: string | null = snapshotId
 
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(
+        metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
+        metaApiVersionReleaseSets.id,
+      ),
+    )
   while (cursor) {
     if (seen.has(cursor)) {
       throw new Error(`Snapshot parent cycle detected at ${cursor}.`)

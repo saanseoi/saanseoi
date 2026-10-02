@@ -1045,7 +1045,7 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
   const metaSql = [
     `DELETE FROM apiFieldProvenance WHERE apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${apiReleaseSets});`,
-    `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${releaseIds}) OR relatedResourceReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
+    `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${releaseIds}) OR relatedResourceReleaseId IN (${releaseIds}) OR apiVersionReleaseSetId IN (SELECT id FROM apiVersionReleaseSets WHERE apiReleaseSetId IN (${apiReleaseSets}));`,
     `DELETE FROM stats WHERE resourceReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM releaseProcessingActions WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId IN (${releaseIds});`,
@@ -1054,6 +1054,7 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId IN (${snapshots});`,
     `DELETE FROM snapshotResourceReleases WHERE snapshotId IN (${snapshots}) OR resourceReleaseId IN (${releaseIds});`,
+    `DELETE FROM apiVersionReleaseSets WHERE apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM apiReleaseSets WHERE id IN (${apiReleaseSets});`,
     `DELETE FROM assets WHERE id IN (${assets});`,
     `DELETE FROM snapshots WHERE id IN (${snapshots});`,

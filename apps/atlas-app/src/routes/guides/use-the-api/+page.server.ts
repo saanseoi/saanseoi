@@ -5,6 +5,7 @@ import {
   metaApiComposition,
   metaApiCompositionMembers,
   metaApiReleaseSets,
+  metaApiVersionReleaseSets,
   metaApiVersions,
   or,
 } from '@repo/db'
@@ -41,19 +42,23 @@ export const load: PageServerLoad = async () => {
         .all(),
       db
         .select({
-          apiVersionId: metaApiReleaseSets.apiVersionId,
+          apiVersionId: metaApiVersionReleaseSets.apiVersionId,
           code: metaApiReleaseSets.code,
           createdAt: metaApiReleaseSets.createdAt,
           domainCode: metaApiReleaseSets.domainCode,
-          notes: metaApiReleaseSets.notes,
-          publishedAt: metaApiReleaseSets.publishedAt,
-          status: metaApiReleaseSets.status,
+          notes: metaApiVersionReleaseSets.notes,
+          publishedAt: metaApiVersionReleaseSets.publishedAt,
+          status: metaApiVersionReleaseSets.status,
         })
         .from(metaApiReleaseSets)
+        .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+        )
         .where(
           or(
-            eq(metaApiReleaseSets.status, 'current'),
-            eq(metaApiReleaseSets.status, 'archived'),
+            eq(metaApiVersionReleaseSets.status, 'current'),
+            eq(metaApiVersionReleaseSets.status, 'archived'),
           ),
         )
         .all(),

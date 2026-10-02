@@ -17,7 +17,11 @@ test('effective periods follow distinct starts in the selected catalogue', async
         schemaVersion TEXT, rulesetVersion TEXT
       );
       CREATE TABLE apiCatalogRevisionReleaseSets(
-        apiCatalogRevisionId TEXT, apiReleaseSetId TEXT, domainCode TEXT,
+      CREATE TABLE apiVersionReleaseSets(
+        id TEXT PRIMARY KEY, apiVersionId TEXT, apiReleaseSetId TEXT,
+        status TEXT, publishedAt TEXT
+      );
+        apiCatalogRevisionId TEXT, apiVersionReleaseSetId TEXT, domainCode TEXT,
         cohortKey TEXT, isDefault INTEGER
       );
       INSERT INTO apiVersions VALUES ('api', 'api-divisions-v0.1');
@@ -25,11 +29,17 @@ test('effective periods follow distinct starts in the selected catalogue', async
         ('old', 'api', 'old', 'hk', 'current', '2026-01-02T00:00:00.000Z', 0),
         ('new', 'api', 'new', 'hk', 'current', '2026-04-02T00:00:00.000Z', 1);
       INSERT INTO apiReleaseSets VALUES
-        ('jan', 'jan', '2026-01-01T00:00:00.000Z', 0, 'schema', 'rules'),
-        ('feb', 'feb', '2026-02-01T00:00:00.000Z', 0, 'schema', 'rules'),
-        ('mar', 'mar', '2026-03-01T00:00:00.000Z', 0, 'schema', 'rules'),
-        ('mar-r1', 'mar-r1', '2026-03-01T00:00:00.000Z', 1, 'schema', 'rules'),
-        ('other', 'other', '2026-03-15T00:00:00.000Z', 0, 'schema', 'rules');
+        ('jan', 'jan', 'hk', 'geographic', '2026-01', '2026-01-01T00:00:00.000Z', 0, 'schema', 'rules'),
+        ('feb', 'feb', 'hk', 'geographic', '2026-02', '2026-02-01T00:00:00.000Z', 0, 'schema', 'rules'),
+        ('mar', 'mar', 'hk', 'geographic', '2026-03', '2026-03-01T00:00:00.000Z', 0, 'schema', 'rules'),
+        ('mar-r1', 'mar-r1', 'hk', 'geographic', '2026-03', '2026-03-01T00:00:00.000Z', 1, 'schema', 'rules'),
+        ('other', 'other', 'hk', 'other', '2026-03-15', '2026-03-15T00:00:00.000Z', 0, 'schema', 'rules');
+      INSERT INTO apiVersionReleaseSets VALUES
+        ('jan','api','jan','current','2026-01-02T00:00:00.000Z'),
+        ('feb','api','feb','current','2026-01-02T00:00:00.000Z'),
+        ('mar','api','mar','current','2026-01-02T00:00:00.000Z'),
+        ('mar-r1','api','mar-r1','current','2026-01-02T00:00:00.000Z'),
+        ('other','api','other','current','2026-01-02T00:00:00.000Z');
       INSERT INTO apiCatalogRevisionReleaseSets VALUES
         ('old', 'jan', 'geographic', '2026-01', 1),
         ('new', 'jan', 'geographic', '2026-01', 0),

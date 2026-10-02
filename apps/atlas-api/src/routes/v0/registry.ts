@@ -221,8 +221,10 @@ async function listRegistryReviewReleases(db: AppEnv['Variables']['metaDb']) {
               ORDER BY apiReleaseSets.cohortKey DESC, apiReleaseSets.revision DESC
             ) AS domainRank
           FROM apiReleaseSets
-          INNER JOIN apiVersions ON apiVersions.id = apiReleaseSets.apiVersionId
-          WHERE apiReleaseSets.status <> 'draft'
+          INNER JOIN apiVersionReleaseSets
+            ON apiVersionReleaseSets.apiReleaseSetId = apiReleaseSets.id
+          INNER JOIN apiVersions ON apiVersions.id = apiVersionReleaseSets.apiVersionId
+          WHERE apiVersionReleaseSets.status <> 'draft'
             AND apiReleaseSets.cohortKey IS NOT NULL
         )
         SELECT DISTINCT

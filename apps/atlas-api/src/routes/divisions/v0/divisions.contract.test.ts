@@ -188,6 +188,20 @@ function seedMeta(sqlite: Database) {
         0,
         release.effectiveFrom,
         'sv-division-v1',
+        `hash-${release.id}`,
+        CATALOG_PUBLISHED_AT,
+        CATALOG_PUBLISHED_AT,
+      ],
+    )
+    run(
+      sqlite,
+      `INSERT INTO apiVersionReleaseSets
+        (id, apiVersionId, apiReleaseSetId, status, publishedAt, validFrom, versionHash, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        `${release.id}-v01`,
+        'api-version-divisions-v0.1',
+        release.id,
         'rs-division-merge-v1',
         'current',
         CATALOG_PUBLISHED_AT,
@@ -311,7 +325,7 @@ function seedMeta(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO apiCatalogRevisionReleaseSets
-        (apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey, isDefault, createdAt)
+        (apiCatalogRevisionId, apiVersionReleaseSetId, domainCode, cohortKey, isDefault, createdAt)
         VALUES (?, ?, ?, ?, ?, ?)`,
       [
         'catalog-revision-divisions-2026-08-14',
@@ -901,7 +915,12 @@ test('0.2 resolves its own catalogue, exposes inventories and rejects absent cho
     })
     clone('apiReleaseSets', "id='api-release-set-overture-2025'", {
       id: 'release-v02',
-      code: 'reviewed-edition',
+      schemaVersion: 'sv-division-v2',
+      rulesetVersion: 'rs-division-merge-v2',
+      versionHash: 'release-v02-hash',
+    })
+    clone('apiVersionReleaseSets', "id='api-release-set-overture-2025-v01'", {
+      id: 'release-v02-association',
       apiVersionId: 'api-v02',
     })
     clone('apiCatalogRevisions', "code='" + CATALOG_REVISION + "'", {
@@ -911,10 +930,10 @@ test('0.2 resolves its own catalogue, exposes inventories and rejects absent cho
     })
     clone(
       'apiCatalogRevisionReleaseSets',
-      "apiReleaseSetId='api-release-set-overture-2025'",
+      "apiVersionReleaseSetId='api-release-set-overture-2025-v01'",
       {
         apiCatalogRevisionId: 'catalog-v02',
-        apiReleaseSetId: 'release-v02',
+        apiVersionReleaseSetId: 'release-v02-association',
         isDefault: 1,
       },
     )

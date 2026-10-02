@@ -130,6 +130,23 @@ id TEXT PRIMARY KEY,
 
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
+    CREATE TABLE apiVersionReleaseSets (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      apiReleaseSetId TEXT NOT NULL,
+      apiCompositionId TEXT,
+      supersedesApiReleaseSetId TEXT,
+      status TEXT NOT NULL,
+      publishedAt TEXT,
+      validFrom TEXT,
+      validTo TEXT,
+      notes TEXT,
+      guide TEXT,
+      versionHash TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
       cohortKey TEXT NOT NULL,
@@ -699,6 +716,23 @@ id TEXT PRIMARY KEY,
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
       status TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'draft',
+      publishedAt TEXT,
+      validFrom TEXT,
+      validTo TEXT,
+      notes TEXT,
+      guide TEXT,
+      versionHash TEXT NOT NULL,
+      createdAt TEXT NOT NULL,
+      updatedAt TEXT NOT NULL
+    );
+
+    CREATE TABLE apiVersionReleaseSets (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
+      apiReleaseSetId TEXT NOT NULL,
+      apiCompositionId TEXT,
+      supersedesApiReleaseSetId TEXT,
       publishedAt TEXT,
       validFrom TEXT,
       validTo TEXT,
@@ -1159,6 +1193,14 @@ id TEXT PRIMARY KEY,
     CREATE TABLE apiCatalogRevisions (
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
+    CREATE TABLE apiVersionReleaseSets (id TEXT PRIMARY KEY, apiReleaseSetId TEXT, apiVersionId TEXT, apiCompositionId TEXT, supersedesApiReleaseSetId TEXT, status TEXT, publishedAt INTEGER, validFrom INTEGER, validTo INTEGER, notes TEXT, guide TEXT, versionHash TEXT, createdAt INTEGER, updatedAt INTEGER);
+    CREATE TRIGGER seedVersionRelease AFTER INSERT ON apiReleaseSets BEGIN
+      INSERT INTO apiVersionReleaseSets (id,apiReleaseSetId,apiVersionId,apiCompositionId,supersedesApiReleaseSetId,status,publishedAt,validFrom,validTo,versionHash,createdAt,updatedAt)
+      VALUES (NEW.id || '-version',NEW.id,NEW.apiVersionId,NEW.apiCompositionId,NEW.supersedesApiReleaseSetId,NEW.status,NEW.publishedAt,NEW.validFrom,NEW.validTo,'hash',NEW.updatedAt,NEW.updatedAt);
+    END;
+    CREATE TABLE snapshotRecipes (id TEXT PRIMARY KEY, resourceType TEXT, processingRules TEXT);
+    CREATE TABLE snapshotAssemblies (id TEXT PRIMARY KEY, snapshotId TEXT, snapshotRecipeId TEXT);
+
       code TEXT NOT NULL UNIQUE,
       regionCode TEXT NOT NULL,
       publicationDate TEXT NOT NULL,
@@ -1173,7 +1215,8 @@ id TEXT PRIMARY KEY,
 
     CREATE TABLE apiCatalogRevisionReleaseSets (
       apiCatalogRevisionId TEXT NOT NULL,
-      apiReleaseSetId TEXT NOT NULL,
+      apiReleaseSetId TEXT,
+      apiVersionReleaseSetId TEXT,
       domainCode TEXT NOT NULL,
       cohortKey TEXT NOT NULL,
       isDefault INTEGER NOT NULL DEFAULT 0,
@@ -1241,6 +1284,7 @@ id TEXT PRIMARY KEY,
       action TEXT NOT NULL,
       statusFrom TEXT,
       statusTo TEXT,
+      apiVersionReleaseSetId TEXT,
       reason TEXT,
       metadataJson TEXT,
       createdAt TEXT NOT NULL
@@ -2184,23 +2228,49 @@ describe('ensureDraftReleaseSetForRelease', () => {
 
   test('uses the current composition domain ruleset for new releases', async () => {
     const { sqlite, db } = createDraftReleaseSetDb()
-    sqlite
-      .query(
-        `UPDATE apiComposition
-         SET rulesetVersions = '{"default":"rs-division-merge-v2"}'
-         WHERE id = 'api-composition-division'`,
-      )
-      .run()
-
-    const releaseSet = await ensureDraftReleaseSetForRelease(db as never, 'division', {
-      cohortKey: '2026-09-01.0',
-      regionCode: 'hk',
-    })
-
-    const row = sqlite
-      .query('SELECT rulesetVersion FROM apiReleaseSets WHERE id = ?')
-      .get(releaseSet.id) as { rulesetVersion: string }
-    expect(row.rulesetVersion).toBe('rs-division-merge-v2')
+    const release = { cohortKey: '2026-09-01.0', regionCode: 'hk' }
+    const original = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      release,
+      versions,
+    )
+    const same = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      release,
+      versions,
+    )
+    expect(same.id).toBe(original.id)
+    const changed = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      release,
+      {
+        ...versions,
+        rulesetVersion: 'rs-division-merge-v2',
+      },
+    )
+    expect(changed.id).not.toBe(original.id)
+    expect(changed.code).toBe('data-hk-divisions-2026-09-01.0-r1')
+    expect(
+      sqlite.query('SELECT rulesetVersion FROM apiReleaseSets ORDER BY revision').all(),
+    ).toEqual([
+      { rulesetVersion: 'rs-division-merge-v1' },
+      { rulesetVersion: 'rs-division-merge-v2' },
+    ])
+    expect(
+      sqlite
+        .query(
+          'SELECT DISTINCT apiVersionId, apiCompositionId FROM apiVersionReleaseSets',
+        )
+        .all(),
+    ).toEqual([
+      {
+        apiVersionId: 'api-version-division',
+        apiCompositionId: 'api-composition-division',
+      },
+    ])
     sqlite.close()
   })
 
@@ -2237,6 +2307,13 @@ describe('ensureDraftReleaseSetForRelease', () => {
              publishedAt = '2026-07-01T00:00:00.000Z'
          WHERE id = ?`,
       )
+    expect(
+      sqlite
+        .query(
+          'SELECT apiReleaseSetId FROM apiVersionReleaseSets ORDER BY apiVersionId',
+        )
+        .all(),
+    ).toEqual([{ apiReleaseSetId: v01.id }, { apiReleaseSetId: v01.id }])
       .run(first.id)
 
     const enriched = await ensureDraftReleaseSetForRelease(
@@ -2246,7 +2323,10 @@ describe('ensureDraftReleaseSetForRelease', () => {
     )
     const row = sqlite
       .query(
-        'SELECT revision, supersedesApiReleaseSetId FROM apiReleaseSets WHERE id = ?',
+        `SELECT apiReleaseSets.revision, apiVersionReleaseSets.supersedesApiReleaseSetId
+         FROM apiReleaseSets
+         INNER JOIN apiVersionReleaseSets ON apiVersionReleaseSets.apiReleaseSetId = apiReleaseSets.id
+         WHERE apiReleaseSets.id = ?`,
       )
       .get(enriched.id)
 
@@ -2360,6 +2440,14 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       '2026-07-21T00:00:00.000Z',
     )
 
+    sqlite
+      .query(
+        `UPDATE apiVersionReleaseSets
+         SET status = 'current',
+             publishedAt = '2026-07-01T00:00:00.000Z'
+         WHERE apiReleaseSetId = ?`,
+      )
+      .run(first.id)
     await insertDataset(
       db as never,
       {
@@ -3622,7 +3710,9 @@ describe('publishReleaseArtefacts', () => {
     })
     expect(
       sqlite
-        .query('SELECT status, validTo FROM apiReleaseSets WHERE id = ?')
+        .query(
+          'SELECT status, validTo FROM apiVersionReleaseSets WHERE apiReleaseSetId = ?',
+        )
         .get('release-set-previous'),
     ).toEqual({
       status: 'archived',

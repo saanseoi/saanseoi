@@ -55,13 +55,15 @@ test('publication metadata reads locale values from the selected domain member a
   try {
     sqlite.exec(`
       CREATE TABLE publishers(code TEXT, i18n TEXT);
-      CREATE TABLE apiVersions(id TEXT, familyType TEXT);
-      CREATE TABLE apiReleaseSets(id TEXT, apiVersionId TEXT, apiCompositionId TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER);
+      CREATE TABLE apiVersions(id TEXT, code TEXT, familyType TEXT);
+      CREATE TABLE apiReleaseSets(id TEXT, code TEXT, regionCode TEXT, domainCode TEXT, cohortKey TEXT, revision INTEGER, effectiveFrom TEXT, schemaVersion TEXT, rulesetVersion TEXT, versionHash TEXT, createdAt TEXT, updatedAt TEXT);
+      CREATE TABLE apiVersionReleaseSets(id TEXT, apiVersionId TEXT, apiReleaseSetId TEXT, apiCompositionId TEXT, supersedesApiReleaseSetId TEXT, status TEXT, publishedAt TEXT, validFrom TEXT, validTo TEXT, notes TEXT, guide TEXT, versionHash TEXT, createdAt TEXT, updatedAt TEXT);
       CREATE TABLE apiComposition(id TEXT, apiVersionId TEXT, status TEXT);
       CREATE TABLE apiCompositionMembers(apiCompositionId TEXT, domainCode TEXT, i18n TEXT);
       INSERT INTO publishers VALUES ('publisher', '{"en":{"name":"Publisher name"}}');
-      INSERT INTO apiVersions VALUES ('api', 'divisions');
-      INSERT INTO apiReleaseSets VALUES ('release', 'api', 'composition', '2026', 'selected', 'hk', 0);
+      INSERT INTO apiVersions VALUES ('api', 'api-divisions-v0.1', 'divisions');
+      INSERT INTO apiReleaseSets VALUES ('release', 'data-hk-division-2026', 'hk', 'selected', '2026', 0, '2026-01-01', 'schema-v1', 'rules-v1', 'hash', 'now', 'now');
+      INSERT INTO apiVersionReleaseSets VALUES ('version-release', 'api', 'release', 'composition', NULL, 'current', '2026-01-01', '2026-01-01', NULL, NULL, NULL, 'hash', 'now', 'now');
       INSERT INTO apiComposition VALUES ('composition', 'api', 'current');
       INSERT INTO apiCompositionMembers VALUES
         ('composition', 'other', '{"en":{"name":"Other domain"}}'),
@@ -84,7 +86,7 @@ test('publication metadata reads locale values from the selected domain member a
       domainName: 'Selected domain',
       description: 'Domain description',
     })
-    sqlite.exec('UPDATE apiReleaseSets SET apiCompositionId = NULL')
+    sqlite.exec('UPDATE apiVersionReleaseSets SET apiCompositionId = NULL')
     expect(
       await requireReleaseSetPublicationMetadata(db, 'release', fallback),
     ).toMatchObject({

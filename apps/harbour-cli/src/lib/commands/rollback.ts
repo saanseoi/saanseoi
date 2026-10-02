@@ -410,13 +410,20 @@ async function resolveDraftReleaseSetForSnapshot(
       id: metaSchema.metaApiReleaseSets.id,
       rulesetVersion: metaSchema.metaApiReleaseSets.rulesetVersion,
       schemaVersion: metaSchema.metaApiReleaseSets.schemaVersion,
-      status: metaSchema.metaApiReleaseSets.status,
+      status: metaSchema.metaApiVersionReleaseSets.status,
     })
     .from(metaSchema.metaApiReleaseSetSnapshots)
     .innerJoin(
       metaSchema.metaApiReleaseSets,
       eq(
         metaSchema.metaApiReleaseSetSnapshots.apiReleaseSetId,
+        metaSchema.metaApiReleaseSets.id,
+      ),
+    )
+    .innerJoin(
+      metaSchema.metaApiVersionReleaseSets,
+      eq(
+        metaSchema.metaApiVersionReleaseSets.apiReleaseSetId,
         metaSchema.metaApiReleaseSets.id,
       ),
     )

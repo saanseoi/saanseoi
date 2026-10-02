@@ -26,7 +26,7 @@ export async function listDivisionStatsReleases(db: HarbourReadableDb) {
     .select({
       id: metaSchema.metaApiReleaseSets.id,
       code: metaSchema.metaApiReleaseSets.code,
-      apiVersionId: metaSchema.metaApiReleaseSets.apiVersionId,
+      apiVersionId: metaSchema.metaApiVersionReleaseSets.apiVersionId,
       domainCode: metaSchema.metaApiReleaseSets.domainCode,
       regionCode: metaSchema.metaApiReleaseSets.regionCode,
       cohortKey: metaSchema.metaApiReleaseSets.cohortKey,
@@ -35,8 +35,18 @@ export async function listDivisionStatsReleases(db: HarbourReadableDb) {
     })
     .from(metaSchema.metaApiReleaseSets)
     .innerJoin(
+      metaSchema.metaApiVersionReleaseSets,
+      eq(
+        metaSchema.metaApiVersionReleaseSets.apiReleaseSetId,
+        metaSchema.metaApiReleaseSets.id,
+      ),
+    )
+    .innerJoin(
       metaSchema.metaApiVersions,
-      eq(metaSchema.metaApiVersions.id, metaSchema.metaApiReleaseSets.apiVersionId),
+      eq(
+        metaSchema.metaApiVersions.id,
+        metaSchema.metaApiVersionReleaseSets.apiVersionId,
+      ),
     )
     .innerJoin(
       metaSchema.metaApiReleaseSetSnapshots,
@@ -52,7 +62,7 @@ export async function listDivisionStatsReleases(db: HarbourReadableDb) {
     .where(
       and(
         eq(metaSchema.metaApiVersions.familyType, 'divisions'),
-        inArray(metaSchema.metaApiReleaseSets.status, ['current', 'archived']),
+        inArray(metaSchema.metaApiVersionReleaseSets.status, ['current', 'archived']),
         eq(metaSchema.metaApiReleaseSetSnapshots.role, 'primary'),
         eq(metaSchema.metaSnapshots.resourceType, 'division'),
         eq(metaSchema.metaSnapshots.status, 'published'),

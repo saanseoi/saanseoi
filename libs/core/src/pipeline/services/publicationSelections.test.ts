@@ -21,8 +21,9 @@ function fixture() {
     CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
     CREATE TABLE apiVersions(id TEXT PRIMARY KEY,code TEXT);
     CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY,apiVersionId TEXT,code TEXT,regionCode TEXT,status TEXT,publishedAt TEXT,revision INTEGER);
-    CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,code TEXT,effectiveFrom TEXT,revision INTEGER,schemaVersion TEXT,rulesetVersion TEXT,status TEXT);
-    CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT,apiReleaseSetId TEXT,domainCode TEXT,cohortKey TEXT,isDefault INTEGER);
+    CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,code TEXT,regionCode TEXT,domainCode TEXT,cohortKey TEXT,effectiveFrom TEXT,revision INTEGER,schemaVersion TEXT,rulesetVersion TEXT);
+    CREATE TABLE apiVersionReleaseSets(id TEXT PRIMARY KEY,apiVersionId TEXT,apiReleaseSetId TEXT,status TEXT,publishedAt TEXT);
+    CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT,apiVersionReleaseSetId TEXT,domainCode TEXT,cohortKey TEXT,isDefault INTEGER);
     CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT,snapshotId TEXT,variant TEXT,role TEXT);
     CREATE TABLE divisionAreaPublicationState(snapshotId TEXT UNIQUE NOT NULL,scopeId TEXT PRIMARY KEY,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
     CREATE TABLE divisionBoundaryPublicationState(snapshotId TEXT UNIQUE NOT NULL,scopeId TEXT PRIMARY KEY,status TEXT,publicationToken TEXT,preparedAt TEXT,updatedAt TEXT);
@@ -96,7 +97,13 @@ function fixture() {
       .query(
         "INSERT INTO apiReleaseSets VALUES (?,?,'2026-09-01',0,'schema','rules','current')",
       )
-      .run(id, id)
+      .run(id, id, options.domain ?? 'geographic')
+    const version = sqlite
+      .query('SELECT apiVersionId FROM apiCatalogRevisions WHERE id=?')
+      .get(catalogueId) as { apiVersionId: string }
+    sqlite
+      .query("INSERT INTO apiVersionReleaseSets VALUES (?,?,?,'current','2026-09-01')")
+      .run(id, version.apiVersionId, id)
     sqlite
       .query('INSERT INTO apiCatalogRevisionReleaseSets VALUES (?,?,?,?,?)')
       .run(
@@ -173,14 +180,18 @@ test('API-pinned companions survive source supersession until the serving select
       'new-boundary',
       'old-boundary',
     ])
-    f.sqlite.exec("UPDATE apiReleaseSets SET status='archived' WHERE id='selected'")
+    f.sqlite.exec(
+      "UPDATE apiVersionReleaseSets SET status='archived' WHERE id='selected'",
+    )
     const archivedSelection = await resolvePublicationSelections(f.meta)
     expect([...archivedSelection.divisionArea].sort()).toEqual([
       'independent-census',
       'new-area',
     ])
     expect([...archivedSelection.divisionBoundary]).toEqual(['new-boundary'])
-    f.sqlite.exec("UPDATE apiReleaseSets SET status='current' WHERE id='selected'")
+    f.sqlite.exec(
+      "UPDATE apiVersionReleaseSets SET status='current' WHERE id='selected'",
+    )
     await finalisePublishedResources(f.meta, f.binding, {
       snapshotIds: ['new-area', 'new-boundary'],
     })

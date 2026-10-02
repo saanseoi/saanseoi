@@ -18,6 +18,7 @@ import {
   isNull,
   metaApiReleaseSets,
   metaApiReleaseSetSnapshots,
+  metaApiVersionReleaseSets,
   metaApiVersions,
   metaDatasets,
   metaResourceReleases,
@@ -192,8 +193,12 @@ async function restoreMissingDivisionReleaseSets(
       .select({ id: metaApiReleaseSets.id })
       .from(metaApiReleaseSets)
       .innerJoin(
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
         metaApiVersions,
-        eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+        eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .where(
         and(
@@ -240,7 +245,14 @@ async function listCurrentReleaseSetStatsTargets(
       snapshotId: metaApiReleaseSetSnapshots.snapshotId,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
     .innerJoin(
       metaApiReleaseSetSnapshots,
       and(
@@ -266,10 +278,10 @@ async function listCurrentReleaseSetStatsTargets(
       and(
         request.apiFamily === 'divisions' || request.apiFamily === 'stats'
           ? or(
-              eq(metaApiReleaseSets.status, 'current'),
-              eq(metaApiReleaseSets.status, 'archived'),
+              eq(metaApiVersionReleaseSets.status, 'current'),
+              eq(metaApiVersionReleaseSets.status, 'archived'),
             )
-          : eq(metaApiReleaseSets.status, 'current'),
+          : eq(metaApiVersionReleaseSets.status, 'current'),
         eq(
           metaApiVersions.familyType,
           request.apiFamily === 'addresses'
@@ -456,8 +468,12 @@ export async function handleBootstrapStatsReleaseSets(
         .select({ revision: metaApiReleaseSets.revision })
         .from(metaApiReleaseSets)
         .innerJoin(
+        .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+        )
           metaApiVersions,
-          eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id),
+          eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
         )
         .where(
           and(
@@ -465,7 +481,7 @@ export async function handleBootstrapStatsReleaseSets(
             eq(metaApiReleaseSets.regionCode, regionCode),
             eq(metaApiReleaseSets.domainCode, 'government'),
             eq(metaApiReleaseSets.cohortKey, cohortKey),
-            eq(metaApiReleaseSets.status, 'draft'),
+            eq(metaApiVersionReleaseSets.status, 'draft'),
           ),
         )
         .limit(1)

@@ -2,7 +2,7 @@ PRAGMA foreign_keys = OFF;
 PRAGMA defer_foreign_keys = true;
 
 DROP TABLE IF EXISTS `harbourSqlDeliveryReceipts`;
-DROP TABLE IF EXISTS `publishedDataJournal`;
+DROP TABLE IF EXISTS `releaseSetLifecycleJournal`;
 DROP TABLE IF EXISTS `releaseProvenance`;
 
 DROP TABLE IF EXISTS `apiFieldProvenance`;
@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS `apiEndpointDatasets`;
 DROP TABLE IF EXISTS `apiReleaseSetSnapshots`;
 DROP TABLE IF EXISTS `apiReleaseSetSources`;
 DROP TABLE IF EXISTS `apiCatalogRevisionReleaseSets`;
+DROP TABLE IF EXISTS `apiVersionReleaseSets`;
 DROP TABLE IF EXISTS `apiCompositionMembers`;
 DROP TABLE IF EXISTS `apiComposition`;
 DROP TABLE IF EXISTS `apiLifecycleJournal`;
@@ -54,7 +55,6 @@ DROP TABLE IF EXISTS `processingRuleDefinitions`;
 DROP TABLE IF EXISTS `unitsI18n`;
 DROP TABLE IF EXISTS `units`;
 DROP TABLE IF EXISTS `licenses`;
-DROP TABLE IF EXISTS `releaseSetLifecycleJournal`;
 DROP TABLE IF EXISTS `publisherI18n`;
 DROP TABLE IF EXISTS `publishers`;
 DROP TABLE IF EXISTS `divisionCodes`;

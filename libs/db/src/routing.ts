@@ -1,6 +1,11 @@
 import { and, desc, eq } from 'drizzle-orm'
 
-import { metaApiReleaseSets, metaApiVersions, metaDataShards } from './schema/meta'
+import {
+  metaApiReleaseSets,
+  metaApiVersionReleaseSets,
+  metaApiVersions,
+  metaDataShards,
+} from './schema/meta'
 import type { DataShardType } from './constants/schema'
 import type { MetaDatabase } from './client'
 
@@ -20,17 +25,27 @@ export async function resolveActiveApiReleaseSet(
       code: metaApiReleaseSets.code,
       schemaVersion: metaApiReleaseSets.schemaVersion,
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
-      publishedAt: metaApiReleaseSets.publishedAt,
+      publishedAt: metaApiVersionReleaseSets.publishedAt,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(metaApiVersions, eq(metaApiReleaseSets.apiVersionId, metaApiVersions.id))
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
+    .innerJoin(
+      metaApiVersions,
+      eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
+    )
     .where(
       and(
         eq(metaApiVersions.code, apiVersionCode),
-        eq(metaApiReleaseSets.status, 'current'),
+        eq(metaApiVersionReleaseSets.status, 'current'),
       ),
     )
-    .orderBy(desc(metaApiReleaseSets.publishedAt), desc(metaApiReleaseSets.createdAt))
+    .orderBy(
+      desc(metaApiVersionReleaseSets.publishedAt),
+      desc(metaApiReleaseSets.createdAt),
+    )
     .limit(1)
 
   return rows[0] ?? null

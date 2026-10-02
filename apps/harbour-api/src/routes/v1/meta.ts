@@ -295,7 +295,8 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
           ars.guide,
           ars.createdAt,
           ars.updatedAt
-        FROM apiReleaseSets ars
+        FROM apiVersionReleaseSets ars
+        INNER JOIN apiReleaseSets content ON content.id = ars.apiReleaseSetId
         INNER JOIN apiVersions av ON av.id = ars.apiVersionId
         WHERE ars.code = ?
         LIMIT 1
@@ -334,7 +335,7 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
     await db
       .prepare(
         `
-        UPDATE apiReleaseSets
+        UPDATE apiVersionReleaseSets
         SET notes = ?, guide = ?, versionHash = ?, updatedAt = ?
         WHERE code = ?
         `,
@@ -444,7 +445,8 @@ async function listApiReleaseSetDocsRows(dbBinding: D1Database) {
         ars.guide,
         ars.createdAt,
         ars.updatedAt
-      FROM apiReleaseSets ars
+      FROM apiVersionReleaseSets ars
+      INNER JOIN apiReleaseSets content ON content.id = ars.apiReleaseSetId
       INNER JOIN apiVersions av ON av.id = ars.apiVersionId
       ORDER BY av.familyType, ars.publishedAt, ars.createdAt, ars.code
       `,

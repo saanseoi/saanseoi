@@ -22,6 +22,7 @@ export type RollbackSnapshot = {
 }
 type ReleaseSet = {
   id: string
+  apiVersionReleaseSetId: string
   apiVersionId: string
   regionCode: string
   domainCode: string
@@ -37,6 +38,7 @@ type Catalog = {
   defaultDomainCode: string | null
 }
 type Member = {
+  apiVersionReleaseSetId: string
   apiReleaseSetId: string
   domainCode: string
   cohortKey: string
@@ -49,6 +51,15 @@ const getSnapshotMembers = (db: Database, id: string) =>
       `SELECT DISTINCT s.id,s.resourceType,s.snapshotLineageId,s.parentSnapshotId,s.cohortKey FROM snapshots s JOIN apiReleaseSetSnapshots m ON m.snapshotId=s.id WHERE m.apiReleaseSetId=? ORDER BY s.id`,
     )
     .all(id)
+
+const getSnapshotMembersForVersionReleaseSet = (db: Database, id: string) => {
+  const releaseSet = db
+    .query<{ apiReleaseSetId: string }, [string]>(
+      'SELECT apiReleaseSetId FROM apiVersionReleaseSets WHERE id=?',
+    )
+    .get(id)
+  return releaseSet ? getSnapshotMembers(db, releaseSet.apiReleaseSetId) : []
+}
 export const rollbackSnapshotScope = (snapshot: RollbackSnapshot) =>
   publicationScopeId(
     snapshot.resourceType,
@@ -74,7 +85,7 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
     throw new Error('Rollback requires a published source release.')
   const candidates = meta
     .query<ReleaseSet, [string]>(
-      `SELECT DISTINCT r.id,r.apiVersionId,r.regionCode,r.domainCode,r.cohortKey,r.supersedesApiReleaseSetId,r.status FROM apiReleaseSets r JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id JOIN snapshotResourceReleases s ON s.snapshotId=m.snapshotId WHERE s.resourceReleaseId=? AND s.role<>'lookup' AND r.status<>'draft'`,
+      `SELECT DISTINCT r.id,vrs.id AS apiVersionReleaseSetId,vrs.apiVersionId,r.regionCode,r.domainCode,r.cohortKey,vrs.supersedesApiReleaseSetId,vrs.status FROM apiReleaseSets r JOIN apiVersionReleaseSets vrs ON vrs.apiReleaseSetId=r.id JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id JOIN snapshotResourceReleases s ON s.snapshotId=m.snapshotId WHERE s.resourceReleaseId=? AND s.role<>'lookup' AND vrs.status<>'draft'`,
     )
     .all(resourceReleaseId)
   const catalogs = new Map<string, Catalog>()
@@ -89,9 +100,9 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
       !catalog ||
       !meta
         .query(
-          'SELECT 1 FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId=? AND apiReleaseSetId=?',
+          'SELECT 1 FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId=? AND apiVersionReleaseSetId=?',
         )
-        .get(catalog.id, candidate.id)
+        .get(catalog.id, candidate.apiVersionReleaseSetId)
     )
       continue
     catalogs.set(catalog.id, catalog)
@@ -120,7 +131,7 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
     if (!previous && parentIds.length === 1)
       previous = meta
         .query<ReleaseSet, [string, string, string, string]>(
-          `SELECT r.* FROM apiReleaseSets r JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id WHERE m.snapshotId=? AND r.apiVersionId=? AND r.regionCode=? AND r.domainCode=? AND r.status<>'draft' ORDER BY r.publishedAt DESC,r.revision DESC LIMIT 1`,
+          `SELECT r.*,vrs.id AS apiVersionReleaseSetId,vrs.apiVersionId,vrs.supersedesApiReleaseSetId,vrs.status FROM apiReleaseSets r JOIN apiVersionReleaseSets vrs ON vrs.apiReleaseSetId=r.id JOIN apiReleaseSetSnapshots m ON m.apiReleaseSetId=r.id WHERE m.snapshotId=? AND vrs.apiVersionId=? AND r.regionCode=? AND r.domainCode=? AND vrs.status<>'draft' ORDER BY vrs.publishedAt DESC,r.revision DESC LIMIT 1`,
         )
         .get(
           parentIds[0]!,
@@ -160,16 +171,21 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
   const catalog = [...catalogs.values()][0]!
   const oldMembers = meta
     .query<Member, [string]>(
-      'SELECT apiReleaseSetId,domainCode,cohortKey,isDefault FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId=? ORDER BY domainCode,cohortKey',
+      'SELECT c.apiVersionReleaseSetId,v.apiReleaseSetId,c.domainCode,c.cohortKey,c.isDefault FROM apiCatalogRevisionReleaseSets c JOIN apiVersionReleaseSets v ON v.id=c.apiVersionReleaseSetId WHERE c.apiCatalogRevisionId=? ORDER BY c.domainCode,c.cohortKey',
     )
     .all(catalog.id)
   const newMembers = oldMembers.filter(
-    member => !selected.some(pair => pair.current.id === member.apiReleaseSetId),
+    member =>
+      !selected.some(
+        pair => pair.current.apiVersionReleaseSetId === member.apiVersionReleaseSetId,
+      ),
   )
   for (const { previous } of selected)
     if (
       previous &&
-      !newMembers.some(member => member.apiReleaseSetId === previous.id)
+      !newMembers.some(
+        member => member.apiVersionReleaseSetId === previous.apiVersionReleaseSetId,
+      )
     ) {
       const conflict = newMembers.find(
         member =>
@@ -179,6 +195,7 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
       if (conflict)
         throw new Error('Rollback would replace an unrelated catalogue member.')
       newMembers.push({
+        apiVersionReleaseSetId: previous.apiVersionReleaseSetId,
         apiReleaseSetId: previous.id,
         domainCode: previous.domainCode,
         cohortKey: previous.cohortKey,
@@ -193,15 +210,17 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
       member => member.domainCode === domain && member.isDefault,
     )
     const replacement = selected.find(
-      pair => pair.current.id === oldDefault?.apiReleaseSetId,
+      pair =>
+        pair.current.apiVersionReleaseSetId === oldDefault?.apiVersionReleaseSetId,
     )?.previous
     const next =
-      replacement?.id ??
-      candidates.find(member => member.apiReleaseSetId === oldDefault?.apiReleaseSetId)
-        ?.apiReleaseSetId ??
-      candidates[0]?.apiReleaseSetId
+      replacement?.apiVersionReleaseSetId ??
+      candidates.find(
+        member => member.apiVersionReleaseSetId === oldDefault?.apiVersionReleaseSetId,
+      )?.apiVersionReleaseSetId ??
+      candidates[0]?.apiVersionReleaseSetId
     for (const member of candidates)
-      member.isDefault = Number(member.apiReleaseSetId === next)
+      member.isDefault = Number(member.apiVersionReleaseSetId === next)
   }
   newMembers.sort(
     (a, b) =>
@@ -317,24 +336,26 @@ export function prepareRollbackMetadata(
       ],
     },
     {
-      sql: `INSERT INTO apiCatalogRevisionReleaseSets(apiCatalogRevisionId,apiReleaseSetId,domainCode,cohortKey,isDefault,createdAt) SELECT ?,json_extract(value,'$.apiReleaseSetId'),json_extract(value,'$.domainCode'),json_extract(value,'$.cohortKey'),json_extract(value,'$.isDefault'),? FROM json_each(?)`,
+      sql: `INSERT INTO apiCatalogRevisionReleaseSets(apiCatalogRevisionId,apiVersionReleaseSetId,domainCode,cohortKey,isDefault,createdAt) SELECT ?,json_extract(value,'$.apiVersionReleaseSetId'),json_extract(value,'$.domainCode'),json_extract(value,'$.cohortKey'),json_extract(value,'$.isDefault'),? FROM json_each(?)`,
       params: [catalogId, timestamp, JSON.stringify(newMembers)],
     },
   ]
   for (const pair of selected) {
     metadata.push({
-      sql: "UPDATE apiReleaseSets SET status='archived',validTo=?,updatedAt=? WHERE id=?",
-      params: [timestamp, timestamp, pair.current.id],
+      sql: "UPDATE apiVersionReleaseSets SET status='archived',validTo=?,updatedAt=? WHERE id=?",
+      params: [timestamp, timestamp, pair.current.apiVersionReleaseSetId],
     })
     if (
       pair.previous &&
       newMembers.some(
-        member => member.apiReleaseSetId === pair.previous!.id && member.isDefault,
+        member =>
+          member.apiVersionReleaseSetId === pair.previous!.apiVersionReleaseSetId &&
+          member.isDefault,
       )
     )
       metadata.push({
-        sql: "UPDATE apiReleaseSets SET status='current',validTo=NULL,updatedAt=? WHERE id=?",
-        params: [timestamp, pair.previous.id],
+        sql: "UPDATE apiVersionReleaseSets SET status='current',validTo=NULL,updatedAt=? WHERE id=?",
+        params: [timestamp, pair.previous.apiVersionReleaseSetId],
       })
   }
   // Canonical/source rows and published snapshot evidence stay immutable and retained.

@@ -1058,8 +1058,12 @@ WHERE older.status = 'current'
 UPDATE apiReleaseSets
 SET domainCode = ${sqlString(rename.to)},
     updatedAt = ${nowSql}
-WHERE apiVersionId = ${apiVersionId}
-  AND domainCode = ${sqlString(rename.from)};`.trim(),
+WHERE domainCode = ${sqlString(rename.from)}
+  AND id IN (
+    SELECT apiReleaseSetId
+    FROM apiVersionReleaseSets
+    WHERE apiVersionId = ${apiVersionId}
+  );`.trim(),
     )
     statements.push(
       `
@@ -1073,9 +1077,9 @@ WHERE apiVersionId = ${apiVersionId}
 UPDATE apiCatalogRevisionReleaseSets
 SET domainCode = ${sqlString(rename.to)}
 WHERE domainCode = ${sqlString(rename.from)}
-  AND apiReleaseSetId IN (
+  AND apiVersionReleaseSetId IN (
     SELECT id
-    FROM apiReleaseSets
+    FROM apiVersionReleaseSets
     WHERE apiVersionId = ${apiVersionId}
   );`.trim(),
     )

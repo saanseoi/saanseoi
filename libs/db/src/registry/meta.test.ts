@@ -381,6 +381,8 @@ describe('fixture version hashes', () => {
       'UPDATE apiCatalogRevisionReleaseSets\nSET domainCode =',
     )
     expect(statements).toContain('UPDATE apiReleaseSets\nSET domainCode =')
+    expect(statements).toContain('FROM apiVersionReleaseSets\n    WHERE apiVersionId =')
+    expect(statements).toContain('AND apiVersionReleaseSetId IN (')
   })
 
   test('stores deterministic bulk actions resolved from versioned merge rulesets', () => {

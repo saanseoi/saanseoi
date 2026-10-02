@@ -159,9 +159,15 @@ describe('Statistics API responses through the Worker route', () => {
       )
       run(
         fixture.meta,
-        `INSERT INTO apiReleaseSets (id, apiVersionId, code, regionCode, domainCode, cohortKey, revision, effectiveFrom, schemaVersion, rulesetVersion, status, publishedAt, versionHash, createdAt, updatedAt)
-        SELECT 'release-set-statistics-revised', apiVersionId, code || '-r1', regionCode, domainCode, cohortKey, 1, effectiveFrom, schemaVersion, rulesetVersion, status, ?, 'revised-release-hash', ?, ? FROM apiReleaseSets WHERE id = 'release-set-statistics'`,
-        [newerAt, newerAt, newerAt],
+        `INSERT INTO apiReleaseSets (id, code, regionCode, domainCode, cohortKey, revision, effectiveFrom, schemaVersion, rulesetVersion, versionHash, createdAt, updatedAt)
+        SELECT 'release-set-statistics-revised', code || '-r1', regionCode, domainCode, cohortKey, 1, effectiveFrom, schemaVersion, rulesetVersion, 'revised-release-hash', ?, ? FROM apiReleaseSets WHERE id = 'release-set-statistics'`,
+        [newerAt, newerAt],
+      )
+      run(
+        fixture.meta,
+        `INSERT INTO apiVersionReleaseSets (id, apiVersionId, apiReleaseSetId, status, publishedAt, validFrom, versionHash, createdAt, updatedAt)
+        SELECT 'release-set-statistics-revised', apiVersionId, 'release-set-statistics-revised', status, ?, ?, 'revised-association-hash', ?, ? FROM apiVersionReleaseSets WHERE id = 'release-set-statistics'`,
+        [newerAt, newerAt, newerAt, newerAt],
       )
       run(
         fixture.meta,
@@ -177,8 +183,8 @@ describe('Statistics API responses through the Worker route', () => {
       )
       run(
         fixture.meta,
-        `INSERT INTO apiCatalogRevisionReleaseSets (apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey, isDefault, createdAt)
-        SELECT 'catalog-statistics-revised', CASE WHEN apiReleaseSetId = 'release-set-statistics' THEN 'release-set-statistics-revised' ELSE apiReleaseSetId END, domainCode, cohortKey, isDefault, ? FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId = 'catalog-statistics'`,
+        `INSERT INTO apiCatalogRevisionReleaseSets (apiCatalogRevisionId, apiVersionReleaseSetId, domainCode, cohortKey, isDefault, createdAt)
+        SELECT 'catalog-statistics-revised', CASE WHEN apiVersionReleaseSetId = 'release-set-statistics' THEN 'release-set-statistics-revised' ELSE apiVersionReleaseSetId END, domainCode, cohortKey, isDefault, ? FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId = 'catalog-statistics'`,
         [newerAt],
       )
       run(

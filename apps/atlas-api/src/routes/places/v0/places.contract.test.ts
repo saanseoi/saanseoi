@@ -136,6 +136,20 @@ function seedMeta(sqlite: Database) {
       0,
       PUBLISHED_AT,
       'sv-place-v1',
+      'release-set-hash',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO apiVersionReleaseSets
+      (id, apiVersionId, apiReleaseSetId, status, publishedAt, validFrom, versionHash, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'api-release-set-places-v01',
+      'api-version-places-v0.1',
+      'api-release-set-places',
       'rs-place-v1',
       'current',
       PUBLISHED_AT,
@@ -217,7 +231,7 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO apiCatalogRevisionReleaseSets
-      (apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey, isDefault, createdAt)
+      (apiCatalogRevisionId, apiVersionReleaseSetId, domainCode, cohortKey, isDefault, createdAt)
       VALUES (?, ?, ?, ?, ?, ?)`,
     [
       'catalog-places',
@@ -573,13 +587,15 @@ function createFixtureEnvironment(
     }
   } else {
     metaSqlite.exec(`INSERT INTO apiReleaseSets
-      (id,apiVersionId,code,regionCode,domainCode,cohortKey,revision,effectiveFrom,schemaVersion,rulesetVersion,status,publishedAt,versionHash,createdAt,updatedAt)
-      SELECT id || '-latest',apiVersionId,code || '-latest',regionCode,domainCode,'2026-09-01',0,effectiveFrom,schemaVersion,rulesetVersion,status,publishedAt,versionHash,createdAt,updatedAt FROM apiReleaseSets;
+      (id,code,regionCode,domainCode,cohortKey,revision,effectiveFrom,schemaVersion,rulesetVersion,versionHash,createdAt,updatedAt)
+      SELECT id || '-latest',code || '-latest',regionCode,domainCode,'2026-09-01',0,effectiveFrom,schemaVersion,rulesetVersion,versionHash,createdAt,updatedAt FROM apiReleaseSets;
+      INSERT INTO apiVersionReleaseSets(id,apiVersionId,apiReleaseSetId,status,publishedAt,validFrom,versionHash,createdAt,updatedAt)
+      SELECT id || '-latest',apiVersionId,apiReleaseSetId || '-latest',status,publishedAt,validFrom,versionHash,createdAt,updatedAt FROM apiVersionReleaseSets;
       INSERT INTO apiReleaseSetSnapshots(apiReleaseSetId,snapshotId,variant,role,isRequired,cohortMatchingMode,createdAt)
       SELECT apiReleaseSetId || '-latest',snapshotId,variant,role,isRequired,cohortMatchingMode,createdAt FROM apiReleaseSetSnapshots;
       UPDATE apiCatalogRevisionReleaseSets SET isDefault=0;
-      INSERT INTO apiCatalogRevisionReleaseSets(apiCatalogRevisionId,apiReleaseSetId,domainCode,cohortKey,isDefault,createdAt)
-      SELECT apiCatalogRevisionId,apiReleaseSetId || '-latest',domainCode,'2026-09-01',1,createdAt FROM apiCatalogRevisionReleaseSets;`)
+      INSERT INTO apiCatalogRevisionReleaseSets(apiCatalogRevisionId,apiVersionReleaseSetId,domainCode,cohortKey,isDefault,createdAt)
+      SELECT apiCatalogRevisionId,apiVersionReleaseSetId || '-latest',domainCode,'2026-09-01',1,createdAt FROM apiCatalogRevisionReleaseSets;`)
   }
   seedHistory(historySqlite)
   const historyDb = options.rejectHistory

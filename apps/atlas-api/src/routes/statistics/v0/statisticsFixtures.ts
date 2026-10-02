@@ -199,6 +199,21 @@ function seedMeta(sqlite: Database) {
       '2021',
       0,
       PUBLISHED_AT,
+      'release-set-hash',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO apiVersionReleaseSets (
+      id, apiVersionId, apiReleaseSetId, status, publishedAt, validFrom,
+      versionHash, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'release-set-statistics',
+      'api-version-stats',
+      'release-set-statistics',
       'sv-statistics-v1',
       'rs-division-statistic-merge-v1',
       'current',
@@ -248,7 +263,7 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO apiCatalogRevisionReleaseSets (
-      apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey,
+      apiCatalogRevisionId, apiVersionReleaseSetId, domainCode, cohortKey,
       isDefault, createdAt
     ) VALUES (?, ?, ?, ?, ?, ?)`,
     [
@@ -365,6 +380,21 @@ function seedMeta(sqlite: Database) {
       'government',
       '2020',
       0,
+      'release-set-historical-hash',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO apiVersionReleaseSets (
+      id, apiVersionId, apiReleaseSetId, status, publishedAt, validFrom,
+      versionHash, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'release-set-statistics-historical',
+      'api-version-stats',
+      'release-set-statistics-historical',
       '2020-01-01T00:00:00.000Z',
       'sv-statistics-v1',
       'rs-division-statistic-merge-v1',
@@ -394,7 +424,7 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO apiCatalogRevisionReleaseSets (
-      apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey,
+      apiCatalogRevisionId, apiVersionReleaseSetId, domainCode, cohortKey,
       isDefault, createdAt
     ) VALUES (?, ?, ?, ?, ?, ?)`,
     [
@@ -722,6 +752,21 @@ function seedSelectedDivision(sqlite: Database) {
       'hk',
       'geographic',
       '2021',
+      'release-set-divisions-hash',
+      PUBLISHED_AT,
+      PUBLISHED_AT,
+    ],
+  )
+  run(
+    sqlite,
+    `INSERT INTO apiVersionReleaseSets (
+      id, apiVersionId, apiReleaseSetId, status, publishedAt, validFrom,
+      versionHash, createdAt, updatedAt
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [
+      'release-set-divisions',
+      'api-version-divisions',
+      'release-set-divisions',
       0,
       PUBLISHED_AT,
       'sv-division-v1',
@@ -773,7 +818,7 @@ function seedSelectedDivision(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO apiCatalogRevisionReleaseSets (
-      apiCatalogRevisionId, apiReleaseSetId, domainCode, cohortKey,
+      apiCatalogRevisionId, apiVersionReleaseSetId, domainCode, cohortKey,
       isDefault, createdAt
     ) VALUES (?, ?, ?, ?, ?, ?)`,
     [

@@ -89,6 +89,15 @@ async function fixture() {
           schemaVersion: '1',
           rulesetVersion: '1',
           status: 'current',
+          versionHash: id,
+        })
+        .run()
+      await m
+        .insert(metaSchema.metaApiVersionReleaseSets)
+        .values({
+          id: `${id}-association`,
+          apiVersionId: family,
+          apiReleaseSetId: id,
           publishedAt: '2026-09-01T00:00:00.000Z',
           versionHash: id,
         })
@@ -199,7 +208,7 @@ async function fixture() {
       .insert(metaSchema.metaApiCatalogRevisionReleaseSets)
       .values({
         apiCatalogRevisionId: catalog,
-        apiReleaseSetId: `${family}-2026-08-19.0`,
+        apiVersionReleaseSetId: `${family}-2026-08-19.0-association`,
         domainCode: family === 'addresses' ? 'saanseoi' : 'geographic',
         cohortKey: '2026-08-19.0',
         isDefault: true,

@@ -23,7 +23,11 @@ export async function resolveDivisionChangesRelease(
   inventory?: string,
   apiVersion = 'api-divisions-v0.1',
 ): Promise<GeocodingRelease> {
-  const { metaApiReleaseSets: sets, metaApiVersions: versions } = metaSchema
+  const {
+    metaApiReleaseSets: sets,
+    metaApiVersionReleaseSets: versionSets,
+    metaApiVersions: versions,
+  } = metaSchema
   const pin =
     selector ??
     (

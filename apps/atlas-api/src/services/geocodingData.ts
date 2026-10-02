@@ -40,6 +40,7 @@ export type GeocodingRelease = {
 }
 const {
   metaApiReleaseSets: sets,
+  metaApiVersionReleaseSets: versionSets,
   metaApiVersions: versions,
   metaApiReleaseSetSnapshots: members,
 } = metaSchema

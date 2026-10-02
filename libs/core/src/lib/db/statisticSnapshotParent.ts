@@ -15,14 +15,16 @@ export async function resolveAcceptedStatisticSnapshotParent(
       id: snapshots.id,
       parentSnapshotId: snapshots.parentSnapshotId,
       catalogued: sql<number>`EXISTS (
-        SELECT 1 FROM apiReleaseSetSnapshots member
-        JOIN apiCatalogRevisionReleaseSets selected ON selected.apiReleaseSetId=member.apiReleaseSetId
+        SELECT 1 FROM apiCatalogRevisionReleaseSets selected
+        JOIN apiVersionReleaseSets association ON association.id=selected.apiVersionReleaseSetId
+        JOIN apiReleaseSetSnapshots member ON member.apiReleaseSetId=association.apiReleaseSetId
         JOIN apiCatalogRevisions catalogue ON catalogue.id=selected.apiCatalogRevisionId
         WHERE member.snapshotId=snapshots.id AND catalogue.status<>'draft'
       )`,
       selected: sql<number>`EXISTS (
-        SELECT 1 FROM apiReleaseSetSnapshots member
-        JOIN apiCatalogRevisionReleaseSets selected ON selected.apiReleaseSetId=member.apiReleaseSetId
+        SELECT 1 FROM apiCatalogRevisionReleaseSets selected
+        JOIN apiVersionReleaseSets association ON association.id=selected.apiVersionReleaseSetId
+        JOIN apiReleaseSetSnapshots member ON member.apiReleaseSetId=association.apiReleaseSetId
         JOIN apiCatalogRevisions catalogue ON catalogue.id=selected.apiCatalogRevisionId
         WHERE member.snapshotId=snapshots.id AND catalogue.status='current'
           AND catalogue.id=(SELECT latest.id FROM apiCatalogRevisions latest
