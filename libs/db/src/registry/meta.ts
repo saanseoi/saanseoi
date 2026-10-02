@@ -984,6 +984,21 @@ WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),
     )
   }
 
+  statements.push(
+    `
+UPDATE apiComposition AS older
+SET status = 'archived',
+    updatedAt = ${nowSql}
+WHERE older.status = 'current'
+  AND EXISTS (
+    SELECT 1
+    FROM apiComposition AS newer
+    WHERE newer.apiVersionId = older.apiVersionId
+      AND newer.status = 'current'
+      AND newer.version > older.version
+  );`.trim(),
+  )
+
   // Keep published release and catalogue metadata aligned when a composition
   // renames an existing domain without changing its lineage.
   for (const rename of apiDomainCodeRenames) {

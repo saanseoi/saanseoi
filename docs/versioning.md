@@ -774,6 +774,10 @@ comp-divisions, version 1
 The composition version MUST increase when any of those declarations changes. Existing
 published domain releases retain the composition ID under which they were built.
 
+Within one API version, only its latest current composition is used for new releases;
+older composition versions are archived and remain attached to the releases that used
+them. Different API versions can each have a current composition at the same time.
+
 Changing a composition does not mutate or automatically rebuild historical domain
 releases. We choose which cohorts to republish under the new composition.
 
