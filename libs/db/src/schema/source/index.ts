@@ -10,3 +10,5 @@ export * from './hkgovHad'
 export * from './hkgovCenstatd'
 export * from './hkgovPland'
 export * from './saanseoi'
+
+export * from './hkgovRvd'

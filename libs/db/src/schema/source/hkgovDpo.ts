@@ -1,6 +1,6 @@
 import { primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
 
-import { jsonText } from '../shared'
+import { jsonText, timestamps } from '../shared'
 import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
 
 /** Every publisher 3D occurrence is retained, even when its inventory is shared. */
@@ -10,6 +10,7 @@ export const sourceHkgovAlsAddresses3d = sqliteTable(
     ...sourceAssertionColumns(),
     properties: jsonText('properties').notNull(),
     sourceGeometry: jsonText('sourceGeometry'),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -23,6 +24,7 @@ export const sourceHkgovAlsAddresses2d = sqliteTable(
   {
     ...sourceAssertionColumns(),
     sourceGeometry: jsonText('sourceGeometry'),
+    ...timestamps,
   },
   table => [
     primaryKey({

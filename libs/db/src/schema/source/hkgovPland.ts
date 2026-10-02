@@ -1,4 +1,5 @@
 import { primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
+import { timestamps } from '../shared'
 
 import { sourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
 
@@ -7,6 +8,7 @@ export const sourceHkgovPlandPlanningCells = sqliteTable(
   'hkgovPlandPlanningCells',
   {
     ...sourceSpatialAssertionColumns(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -19,6 +21,7 @@ export const sourceHkgovPlandNewTowns = sqliteTable(
   'hkgovPlandNewTowns',
   {
     ...sourceSpatialAssertionColumns(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),

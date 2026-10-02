@@ -1,4 +1,5 @@
 import { primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
+import { timestamps } from '../shared'
 
 import { streetSourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
 
@@ -7,6 +8,7 @@ export const sourceHkgovHydStreetNamePlates = sqliteTable(
   'hkgovHydStreetNamePlates',
   {
     ...streetSourceSpatialAssertionColumns(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -19,6 +21,7 @@ export const sourceHkgovHydSensitiveStreets = sqliteTable(
   'hkgovHydSensitiveStreets',
   {
     ...streetSourceSpatialAssertionColumns(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -31,6 +34,7 @@ export const sourceHkgovHydStrategicStreets = sqliteTable(
   'hkgovHydStrategicStreets',
   {
     ...streetSourceSpatialAssertionColumns(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),

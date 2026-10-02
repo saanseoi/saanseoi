@@ -1,5 +1,5 @@
 import { primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
-import { jsonText } from '../shared'
+import { jsonText, timestamps } from '../shared'
 
 import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
 
@@ -10,6 +10,7 @@ function overtureSourceTable<TName extends string>(name: TName) {
     {
       ...sourceAssertionColumns(),
       sourceGeometry: jsonText('sourceGeometry'),
+      ...timestamps,
     },
     table => [
       primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),

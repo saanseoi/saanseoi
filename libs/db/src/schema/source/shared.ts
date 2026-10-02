@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { index, integer, text } from 'drizzle-orm/sqlite-core'
-import { jsonText, timestamps } from '../shared'
+import { jsonText } from '../shared'
 
 /**
  * A publisher or ingestion reference supporting a source record.
@@ -16,6 +16,8 @@ export type SourceReference = {
 /** Null when no publisher or ingestion evidence is supplied; never a self-reference. */
 export const sourceReferences = () => jsonText<SourceReference[]>('sources')
 
+export const sourceRecordId = { sourceRecordId: text('sourceRecordId').notNull() }
+/** Lifecycle columns; append timestamps after all table-specific columns. */
 export const sourceVersioning = {
   versionHash: text('versionHash').notNull(),
   resourceReleaseId: text('resourceReleaseId').notNull(),
@@ -23,21 +25,20 @@ export const sourceVersioning = {
   validFromRelease: text('validFromRelease').notNull(),
   validToRelease: text('validToRelease'),
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),
-  ...timestamps,
 }
 
 /** A source child row with a stable parent-record identity and release history. */
-export function sourceVersionedRecordColumns() {
+export function sourceRecordColumns() {
   return {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceRecordId,
     ...sourceVersioning,
   }
 }
 
 /** A versioned publisher source record with optional source provenance. */
-export function sourceVersionedAssertionColumns() {
+export function sourceReferencedRecordColumns() {
   return {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceRecordId,
     sources: sourceReferences(),
     ...sourceVersioning,
   }
@@ -52,7 +53,7 @@ export function sourceVersionedAssertionColumns() {
  */
 export function sourceAssertionColumns() {
   return {
-    sourceRecordId: text('sourceRecordId').notNull(),
+    ...sourceRecordId,
     sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
     properties: jsonText('properties'),
     ...sourceVersioning,

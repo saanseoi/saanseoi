@@ -1,12 +1,12 @@
 import { index, integer, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { jsonText, type StreetEvidenceAsset } from '../shared'
+import { jsonText, type StreetEvidenceAsset, timestamps } from '../shared'
 import {
   sourceSpatialAssertionColumns,
   streetSourceSpatialAssertionColumns,
-  sourceVersionedAssertionColumns,
+  sourceReferencedRecordColumns,
   sourceVersionIndexes,
-  sourceVersionedRecordColumns,
+  sourceRecordColumns,
 } from './shared'
 
 export const landsdStreetNoticeApplicationMethods = ['automatic', 'manual'] as const
@@ -40,6 +40,7 @@ export const sourceHkgovLandsdPlaceNames = sqliteTable(
   'hkgovLandsdPlaceNames',
   {
     ...sourceSpatialAssertionColumns(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -52,7 +53,7 @@ export const sourceHkgovLandsdStreetBaselineRecords = sqliteTable(
   'hkgovLandsdStreetBaselineRecords',
   {
     /** Stable internal key derived from the three fields in the baseline PDF table. */
-    ...sourceVersionedAssertionColumns(),
+    ...sourceReferencedRecordColumns(),
     /** True when the authoritative state is established by Government Notices. */
     deferToNotices: integer('deferToNotices', {
       mode: 'boolean',
@@ -61,6 +62,7 @@ export const sourceHkgovLandsdStreetBaselineRecords = sqliteTable(
     nameEn: text('nameEn').notNull(),
     nameZhHant: text('nameZhHant').notNull(),
     districtCode: text('districtCode').notNull(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -76,7 +78,7 @@ export const sourceHkgovLandsdStreetNotices = sqliteTable(
   'hkgovLandsdStreetNotices',
   {
     /** Stable internal key: notice reference plus the PDF table row ordinal. */
-    ...sourceVersionedAssertionColumns(),
+    ...sourceReferencedRecordColumns(),
     /** Gazette date parsed directly from the bilingual notice PDFs. */
     gazetteDate: text('gazetteDate').notNull(),
     /** Publisher's notice classification, parsed from the notice PDF. */
@@ -96,6 +98,7 @@ export const sourceHkgovLandsdStreetNotices = sqliteTable(
     descriptionZhHant: text('descriptionZhHant'),
     /** Bilingual Government Notice PDFs and any legally referenced plans. */
     evidenceAssets: jsonText<StreetEvidenceAsset[]>('evidenceAssets').notNull(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -114,7 +117,7 @@ export const sourceHkgovLandsdStreetNotices = sqliteTable(
 export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
   'hkgovLandsdStreetNoticeApplications',
   {
-    ...sourceVersionedRecordColumns(),
+    ...sourceRecordColumns(),
     method: text('method', { enum: landsdStreetNoticeApplicationMethods }).notNull(),
     disposition: text('disposition', {
       enum: landsdStreetNoticeApplicationDispositions,
@@ -124,6 +127,7 @@ export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
     }),
     /** Required when nameChangeScope is partial. */
     retainedDescriptions: jsonText<Record<string, string>>('retainedDescriptions'),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -141,6 +145,7 @@ export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
   {
     /** Native EPSG:2326 geometry from the FileGDB. */
     ...streetSourceSpatialAssertionColumns(),
+    ...timestamps,
   },
   table => [
     primaryKey({

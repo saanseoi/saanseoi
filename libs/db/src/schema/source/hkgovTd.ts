@@ -1,4 +1,5 @@
 import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { timestamps } from '../shared'
 
 import { streetSourceSpatialAssertionColumns, sourceVersionIndexes } from './shared'
 
@@ -24,6 +25,7 @@ export const sourceHkgovTdPedestrianStreets = sqliteTable(
   {
     ...streetSourceSpatialAssertionColumns(),
     kind: text('kind', { enum: hkgovTdPedestrianStreetKinds }).notNull(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),

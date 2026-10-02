@@ -1,11 +1,11 @@
 import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
-import { binaryText, geoBbox, jsonText } from '../shared'
+import { binaryText, geoBbox, jsonText, timestamps } from '../shared'
 import {
   sourceAssertionColumns,
   sourceSpatialAssertionColumns,
   sourceVersionIndexes,
-  sourceVersionedRecordColumns,
+  sourceRecordColumns,
 } from './shared'
 
 /**
@@ -17,10 +17,10 @@ import {
 export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
   'hkgovCenstatdDivisionAreas',
   {
-    ...sourceAssertionColumns(),
-    sourceGeometry: binaryText('sourceGeometry').notNull(),
+    ...sourceSpatialAssertionColumns(),
     // Source cohort identity resolves version-linked geometry derivatives.
     censusYear: text('censusYear').notNull(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -37,6 +37,7 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
   'hkgovCenstatdDistrictLandAreaPopulationDensities',
   {
     ...sourceSpatialAssertionColumns(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -53,8 +54,8 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
 export const sourceHkgovCenstatdStatistics = sqliteTable(
   'hkgovCenstatdStatistics',
   {
-    ...sourceAssertionColumns(),
-    sourceGeometry: jsonText('sourceGeometry'),
+    ...sourceSpatialAssertionColumns(),
+    ...timestamps,
   },
   table => [
     primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
@@ -72,11 +73,12 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
 export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
   'hkgovCenstatdDivisionAreaDerivatives',
   {
-    ...sourceVersionedRecordColumns(),
+    ...sourceRecordColumns(),
     inputVersionHash: text('inputVersionHash').notNull(),
     transform: text('transform').notNull(),
     derivation: jsonText('derivation').notNull(),
     ...geoBbox,
+    ...timestamps,
   },
   table => [
     primaryKey({
