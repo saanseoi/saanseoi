@@ -25,10 +25,10 @@ end
 
 # These source-only ingredients are pinned by the curated release manifest.
 # Retain them in the selected local database before publishing that manifest.
-set -l protomaps_release_code dr-hk-protomaps-island-2026-09-01.1
+set -l protomaps_release_code dr-hk-protomaps-island-2026-09-01.3
 if not init_skip_completed_release "$protomaps_release_code"
     set -l protomaps_archive \
-        "$saanseoi_init_repo/.local/protomaps-islands/2026-09-01.1/$protomaps_release_code.zip"
+        "$saanseoi_init_repo/.local/protomaps-islands/2026-09-01.3/$protomaps_release_code.zip"
     if not test -f "$protomaps_archive"
         echo "Protomaps island archive not found: $protomaps_archive" >&2
         exit 1

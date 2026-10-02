@@ -26,11 +26,11 @@
     },
     {
       "datasetCode": "ds-hk-protomaps-island",
-      "releaseCode": "dr-hk-protomaps-island-2026-09-01.1::divisionArea",
-      "sourceVersion": "2026-09-01.1",
+      "releaseCode": "dr-hk-protomaps-island-2026-09-01.3::divisionArea",
+      "sourceVersion": "2026-09-01.3",
       "resourceType": "divisionArea",
-      "rawObjectKey": "by-source/hk/protomaps/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-09-01.1/881c1776d88b4312ea403367b0976e1c3eea6c281594c8075b0e8f30828f74fc-dr-hk-protomaps-island-2026-09-01.1.zip",
-      "contentHash": "881c1776d88b4312ea403367b0976e1c3eea6c281594c8075b0e8f30828f74fc",
+      "rawObjectKey": "by-source/hk/protomaps/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-09-01.3/e19502054b702f03e2595f639def5c8118542ac533fde373e11d243f4d4282ec-dr-hk-protomaps-island-2026-09-01.3.zip",
+      "contentHash": "e19502054b702f03e2595f639def5c8118542ac533fde373e11d243f4d4282ec",
       "releaseNotesUrl": "https://tiles.saanseoi.hk/releases/hk/2026-09-01.json"
     },
     {

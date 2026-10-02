@@ -31,7 +31,7 @@ cohortKey: "2026-09-01.0"
 
 ## Sources and Coverage
 
-This monthly edition uses Overture `2026-08-19.0`, Protomaps `2026-09-01.1` and LandsD
+This monthly edition uses Overture `2026-08-19.0`, Protomaps `2026-09-01.3` and LandsD
 `2026-06-10.0`. Exact archive keys and checksums are retained in the release manifest.
 Curated fixtures supply additions, exclusions, naming and geometry selections. Matching
 uses bilingual names or aliases within 5,000 metres, or curated native identifiers;
@@ -61,7 +61,7 @@ and partitions of large administrative geometries.
 
 ## 來源及涵蓋範圍
 
-來源版本為 Overture `2026-08-19.0`、Protomaps `2026-09-01.1` 及地政總署
+來源版本為 Overture `2026-08-19.0`、Protomaps `2026-09-01.3` 及地政總署
 `2026-06-10.0`。來源檔案及校驗值保留於版本清單。保留離島及不相連的領土部分；經繪製的鄰里範圍並非法定界線。
 
 ## 涵蓋限制
@@ -78,7 +78,7 @@ and partitions of large administrative geometries.
 
 ## 来源及覆盖范围
 
-来源版本为 Overture `2026-08-19.0`、Protomaps `2026-09-01.1` 及地政总署
+来源版本为 Overture `2026-08-19.0`、Protomaps `2026-09-01.3` 及地政总署
 `2026-06-10.0`。来源档案及校验值保留于版本清单。保留离岛及不相连的领土部分；经绘制的邻里范围并非法定界线。
 
 ## 覆盖限制

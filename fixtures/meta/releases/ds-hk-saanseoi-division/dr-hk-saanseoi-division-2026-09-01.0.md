@@ -56,7 +56,7 @@ asserting an area boundary. This will be improved in future releases.
 This monthly edition is dated 1 September 2026. Editions are scheduled for the first of
 each month in Hong Kong, using the latest upstream releases dated on or before the
 edition date and carrying forward slower sources. This edition uses data from
-<black>Overture</black> `2026-08-19.0`, <black>Protomaps</black> `2026-09-01.1` and
+<black>Overture</black> `2026-08-19.0`, <black>Protomaps</black> `2026-09-01.3` and
 <black>Lands Department</black> `2026-06-10.0`, with historical RVD list membership from
 `2015-04-30.0`. Exact archive keys, checksums and input snapshot references are retained
 in the release manifest.
@@ -158,7 +158,7 @@ in Hong Kong.
 ## 來源及涵蓋範圍
 
 此 SaanSeoi 月度版本日期為 2026 年 9 月 1 日。版本按香港時間於每月首日編定，選用版本日期或之前最新保留的來源版本；更新較慢的來源沿用可用版本。本版採用 Overture
-`2026-08-19.0`、Protomaps `2026-09-01.1` 及地政總署
+`2026-08-19.0`、Protomaps `2026-09-01.3` 及地政總署
 `2026-06-10.0`。確切來源檔案鍵、校驗值及輸入快照參照保留於版本清單。
 
 - <orange>Overture</orange>
@@ -240,7 +240,7 @@ schema
 ## 来源及覆盖范围
 
 此 SaanSeoi 月度版本日期为 2026 年 9 月 1 日。版本按香港时间于每月首日编定，选用版本日期或之前最新保留的来源版本；更新较慢的来源沿用可用版本。本版采用 Overture
-`2026-08-19.0`、Protomaps `2026-09-01.1` 及地政总署
+`2026-08-19.0`、Protomaps `2026-09-01.3` 及地政总署
 `2026-06-10.0`。确切来源档案键、校验值及输入快照参照保留于版本清单。
 
 - <orange>Overture</orange>
