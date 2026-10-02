@@ -92,7 +92,8 @@ validation separately.
 
 Evidence: `libs/db/src/apiFieldInputs.ts`, `libs/db/src/apiFieldCurationContexts.ts`,
 `libs/core/src/lib/db/metaRegistry.ts` around line 4849;
-`fixtures/meta/processing-rules/address-curation.json` and `place-normalisation.json`.
+`fixtures/meta/processing-rules/assembly/address-curation.json` and
+`place-normalisation.json`.
 
 ### 4. Places ruleset retains two declaration formats
 

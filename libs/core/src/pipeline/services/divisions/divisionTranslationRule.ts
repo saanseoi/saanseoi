@@ -1,4 +1,4 @@
-import ruleFixture from '../../../../../../fixtures/meta/processing-rules/division-translation.json'
+import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/division-translation.json'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import type { DivisionI18nPayload } from '@repo/db/currentSchema'
 import { registerRule } from '../../../provenance/auditTypes'

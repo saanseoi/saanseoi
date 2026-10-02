@@ -1,6 +1,6 @@
 import { registerRule } from '../../../provenance/auditTypes'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
-import declaration from '../../../../../../fixtures/meta/processing-rules/censtatd-population-thousands-to-persons.json'
+import declaration from '../../../../../../fixtures/meta/processing-rules/assembly/censtatd-population-thousands-to-persons.json'
 
 export const populationThousandsRule = registerRule(
   ruleDeclarationFromFixture(declaration),

@@ -7,9 +7,9 @@ import {
   divisionBoundaryGeometryRule,
 } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { freezeRegisteredRule } from '../../api/retainedRule'
-import sourceFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-source-assertion.json'
-import bridgeFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-district-identity.json'
-import wkbFixture from '../../../../../../fixtures/meta/processing-rules/wkb-geometry.json'
+import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/censtatd-source-assertion.json'
+import bridgeFixture from '../../../../../../fixtures/meta/processing-rules/assembly/censtatd-district-identity.json'
+import wkbFixture from '../../../../../../fixtures/meta/processing-rules/assembly/wkb-geometry.json'
 
 test('remaining rules expose the exact definitions consumed by their executors', () => {
   for (const [rule, fixture] of [

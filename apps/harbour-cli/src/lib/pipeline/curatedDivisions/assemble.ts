@@ -1,4 +1,4 @@
-import assemblyFixture from '../../../../../../fixtures/meta/processing-rules/curated-division-assembly.json'
+import assemblyFixture from '../../../../../../fixtures/meta/processing-rules/assembly/curated-division-assembly.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { resolveCuratedHierarchies } from './resolveHierarchies'
 import {

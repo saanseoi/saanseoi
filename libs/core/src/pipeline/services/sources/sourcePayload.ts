@@ -1,7 +1,7 @@
 import { registerRule } from '../../../provenance/auditTypes'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
-import overtureFixture from '../../../../../../fixtures/meta/processing-rules/overture-source-retention.json'
-import saanseoiFixture from '../../../../../../fixtures/meta/processing-rules/saanseoi-source-retention.json'
+import overtureFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/overture-source-retention.json'
+import saanseoiFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/saanseoi-source-retention.json'
 import { recordContent } from './recordContent'
 import { retainSourceProperties } from './retainedProperties'
 /**

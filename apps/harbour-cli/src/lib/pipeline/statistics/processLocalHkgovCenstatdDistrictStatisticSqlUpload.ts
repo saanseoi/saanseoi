@@ -3,7 +3,7 @@ import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts
 import { calculateAndStorePublishedStatisticsStats } from '../../api/apiReleaseSetStats'
 import { nativeSourcePayloadHashInput } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { retainProcessingFailure } from '../../api/processingFailureAudit'
-import sourceAssertionFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-source-assertion.json'
+import sourceAssertionFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/censtatd-source-assertion.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { curationDocumentsFor } from '../../curationDocuments'
 import { replaceDatasetStatsAndReturnRows } from '@repo/core/pipeline/db/stats'

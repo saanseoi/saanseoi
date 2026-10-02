@@ -142,10 +142,11 @@ counters to that declaration.
 
 Division normalisation, classification, translation, geometry, Planning, synthetic-area,
 geography-identity and Statistics declarations are readable JSON under
-`fixtures/meta/processing-rules/`. Executors validate and register these fixtures
-directly; the retained declaration is the same frozen definition. Storing a declaration
-in a fixture does not change its operation basis: algorithmic transformations remain
-code rules, while reviewed value selections remain fixture-backed decisions.
+`fixtures/meta/processing-rules/assembly/`. Executors validate and register these
+fixtures directly; the retained declaration is the same frozen definition. Storing a
+declaration in a fixture does not change its operation basis: algorithmic
+transformations remain code rules, while reviewed value selections remain fixture-backed
+decisions.
 
 Taxonomy mappings, ordered level matching, area-name recognition, API locale priorities,
 geometry exclusions and population scaling factors are consumed from those definitions.

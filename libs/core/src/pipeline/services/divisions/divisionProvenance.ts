@@ -1,4 +1,4 @@
-import translationSummaryFixture from '../../../../../../fixtures/meta/processing-rules/division-translation-summary.json'
+import translationSummaryFixture from '../../../../../../fixtures/meta/processing-rules/assembly/division-translation-summary.json'
 import { registerRule } from '../../../provenance/auditTypes'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import {

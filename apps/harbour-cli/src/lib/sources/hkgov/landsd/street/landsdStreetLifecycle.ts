@@ -1,4 +1,4 @@
-import assemblyFixture from '../../../../../../../../fixtures/meta/processing-rules/landsd-street-assembly.json'
+import assemblyFixture from '../../../../../../../../fixtures/meta/processing-rules/assembly/landsd-street-assembly.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import type {
   LandsdStreetNameChangeScope,

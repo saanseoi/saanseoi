@@ -9,7 +9,7 @@ import {
   resolveProcessingReferences,
 } from './processingPolicy'
 import { resolveRuleFixtureCatalog } from './ruleFixture'
-import population from '../../../../fixtures/meta/processing-rules/censtatd-population-thousands-to-persons.json'
+import population from '../../../../fixtures/meta/processing-rules/assembly/censtatd-population-thousands-to-persons.json'
 
 test('implemented datasets describe SOURCE ingestion with typed field references and localised definitions', () => {
   expect(initialDatasets.filter(dataset => dataset.processingRules)).toHaveLength(27)

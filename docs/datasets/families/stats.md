@@ -61,7 +61,8 @@ whose `validFromRelease` matches its source version; the records and canonical
 observations remain intact.
 
 C&SD source-assertion normalisation and district identity bridging have executable
-JSON-backed rules in `fixtures/meta/processing-rules/`. Both merge rulesets reference
+JSON-backed rules in `fixtures/meta/processing-rules/ingestion/` and
+`fixtures/meta/processing-rules/assembly/`, respectively. Both merge rulesets reference
 the same district mapping definition. Upload audits retain the rules executed by the
 selected path, including their counts. Reviewed field and localisation declarations
 identify their related guard requirements.
@@ -104,10 +105,10 @@ canonical value packs. Recorded translations are individual curations; publisher
 and origin-unrecorded labels remain reviewed bulk metadata.
 
 Normalisation, population scaling, geography-identity and field/localisation
-declarations live in `fixtures/meta/processing-rules/`. The canonical normalisation
-cache uses the `censtatd-packed-statistic-normalisation-v2` contract and includes
-registered rule definitions in its identity alongside source inputs and reviewed
-metadata.
+declarations live in `fixtures/meta/processing-rules/assembly/`. The canonical
+normalisation cache uses the `censtatd-packed-statistic-normalisation-v2` contract and
+includes registered rule definitions in its identity alongside source inputs and
+reviewed metadata.
 
 Merge ruleset entries for scaling and field curation reference these same definitions;
 their resolved hashes include the declarations rather than only the reference names.

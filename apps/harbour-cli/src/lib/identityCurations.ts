@@ -1,4 +1,4 @@
-import ruleFixture from '../../../../fixtures/meta/processing-rules/geography-identities.json'
+import ruleFixture from '../../../../fixtures/meta/processing-rules/assembly/geography-identities.json'
 import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { requireDefined } from '@repo/core/requireDefined'
 import { registerRule, auditDivisionCode } from '@repo/core/provenance'

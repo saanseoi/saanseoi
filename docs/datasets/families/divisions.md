@@ -279,10 +279,10 @@ Shek Pai Wan (石排灣) is excluded from the curated hierarchy by a guarded Ove
 division patch. The publisher source assertion remains retained.
 
 Division, area, boundary, classification, translation, Planning and synthetic-area
-normalisers register JSON declarations from `fixtures/meta/processing-rules/`; Audit
-retains those same frozen definitions. Taxonomy mappings, locale priorities and geometry
-exclusions are consumed from their parameters. Merge ruleset references resolve these
-definitions and include their content in the resolved ruleset hash.
+normalisers register JSON declarations from `fixtures/meta/processing-rules/assembly/`;
+Audit retains those same frozen definitions. Taxonomy mappings, locale priorities and
+geometry exclusions are consumed from their parameters. Merge ruleset references resolve
+these definitions and include their content in the resolved ruleset hash.
 
 API locale fallback lists contain only alternative source locales. Existing target names
 are kept before alternatives are checked; English has no alternatives. The audit

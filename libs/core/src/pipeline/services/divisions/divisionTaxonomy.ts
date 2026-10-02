@@ -1,4 +1,4 @@
-import type fixture from '../../../../../../fixtures/meta/processing-rules/division-normalisation.json'
+import type fixture from '../../../../../../fixtures/meta/processing-rules/assembly/division-normalisation.json'
 import {
   selectBranch,
   type BranchCondition,

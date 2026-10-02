@@ -296,7 +296,9 @@ fixture.
 Every source that normalises, maps, corrects or otherwise changes a publisher source
 record must declare its audit rules before its processor is written.
 
-1. Add a registered executable declaration in `fixtures/meta/processing-rules/`. It
+1. Add a registered executable declaration in
+   `fixtures/meta/processing-rules/ingestion/` or
+   `fixtures/meta/processing-rules/assembly/`, according to its processing stage. It
    names the input/output interfaces, static parameters, implementation and descriptions
    in English, Traditional Chinese and Simplified Chinese. Shared dependencies retain
    their complete definitions.

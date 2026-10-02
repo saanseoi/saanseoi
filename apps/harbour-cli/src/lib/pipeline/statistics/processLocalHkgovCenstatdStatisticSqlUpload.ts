@@ -1,4 +1,4 @@
-import sourceFixture from '../../../../../../fixtures/meta/processing-rules/censtatd-generic-source-assertion.json'
+import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/censtatd-generic-source-assertion.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'

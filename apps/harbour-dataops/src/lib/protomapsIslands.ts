@@ -1,4 +1,4 @@
-import sourceFixture from '../../../../fixtures/meta/processing-rules/protomaps-source-extraction.json'
+import sourceFixture from '../../../../fixtures/meta/processing-rules/ingestion/protomaps-source-extraction.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { createHash } from 'node:crypto'
 

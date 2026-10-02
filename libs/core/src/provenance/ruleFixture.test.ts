@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import declaration from '../../../../fixtures/meta/processing-rules/censtatd-population-thousands-to-persons.json'
+import declaration from '../../../../fixtures/meta/processing-rules/assembly/censtatd-population-thousands-to-persons.json'
 import { ruleDeclarationFromFixture } from './ruleFixture'
 import { registerRule } from './auditTypes'
 import { populationThousandsRule } from '../pipeline/services/statistics/statisticRules'

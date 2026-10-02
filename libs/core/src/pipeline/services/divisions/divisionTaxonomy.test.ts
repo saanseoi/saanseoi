@@ -1,5 +1,5 @@
 import { expect, test } from 'bun:test'
-import fixture from '../../../../../../fixtures/meta/processing-rules/division-normalisation.json'
+import fixture from '../../../../../../fixtures/meta/processing-rules/assembly/division-normalisation.json'
 import { divisionLocaleBranches } from './divisionLocaleBranches'
 import { selectBranch } from '../../../provenance/branches'
 import {

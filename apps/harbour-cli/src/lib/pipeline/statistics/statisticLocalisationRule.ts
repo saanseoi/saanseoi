@@ -1,5 +1,5 @@
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
-import declaration from '../../../../../../fixtures/meta/processing-rules/statistic-localisation.json'
+import declaration from '../../../../../../fixtures/meta/processing-rules/assembly/statistic-localisation.json'
 import type { CenstatdFieldLocalisation } from './censtatdMeasureCurationTypes'
 
 export const statisticLocalisationRule = registerRule(

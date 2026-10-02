@@ -1,4 +1,4 @@
-import importFixture from '../../../../../../fixtures/meta/processing-rules/native-source-import.json'
+import importFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/native-source-import.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { nativeSourceLocatorDefaults } from './nativeSourceLocators'
 import { linkManagedSourceAssetToRelease } from '../../sources/sourceAssets'

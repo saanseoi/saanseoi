@@ -3,7 +3,7 @@ import {
   type ResolvedHkgovCenstatdDistrict,
 } from '@repo/core/pipeline/services/divisions/divisionStatistics'
 import { resolveIdentityCuration } from '../../identityCurations'
-import fixture from '../../../../../../fixtures/meta/processing-rules/censtatd-district-identity.json'
+import fixture from '../../../../../../fixtures/meta/processing-rules/assembly/censtatd-district-identity.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { captureCurationDocuments, curationDocumentsFor } from '../../curationDocuments'
 

@@ -94,10 +94,10 @@ shard. The final annual pass publishes every exact and simplified snapshot attac
 that child.
 
 Normalisation, population scaling, identity and field/localisation declarations are
-selected from `fixtures/meta/processing-rules/` and registered by their executors.
-Scaling derives its decimal exponent from the fixture's factor, without a separately
-maintained exponent. The `censtatd-packed-statistic-normalisation-v2` preparation
-identity includes these registered definitions.
+selected from `fixtures/meta/processing-rules/assembly/` and registered by their
+executors. Scaling derives its decimal exponent from the fixture's factor, without a
+separately maintained exponent. The `censtatd-packed-statistic-normalisation-v2`
+preparation identity includes these registered definitions.
 
 Both SQL upload paths retain and register
 [processing provenance](../../processing-provenance.md) before publication. Registered

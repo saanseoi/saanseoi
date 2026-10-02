@@ -2,7 +2,7 @@ import {
   geographicDivisionClassification,
   type GeographicDivisionClass,
 } from '@repo/db'
-import ruleFixture from '../../../../../../fixtures/meta/processing-rules/division-classification.json'
+import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/division-classification.json'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import fixture from '../../../../../../fixtures/meta/patches/overture-division-classification.json'
 import { ProcessingGuardError } from '../../../provenance/guards'

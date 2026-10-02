@@ -4,7 +4,7 @@ import { readAlsPublisherSource } from '../sources/alsSourcePayload'
 import { addressSourceReferences } from './sourceReferences'
 import { publisherSourceHashInput } from '../sources/sourcePayload'
 import type { AddressI18nPayload, AddressRow } from '@repo/db/currentSchema'
-import ruleFixture from '../../../../../../fixtures/meta/processing-rules/address-normalisation.json'
+import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/address-normalisation.json'
 import {
   registerRule,
   ruleDeclarationFromFixture,

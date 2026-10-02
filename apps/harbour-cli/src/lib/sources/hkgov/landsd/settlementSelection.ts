@@ -1,5 +1,5 @@
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
-import fixture from '../../../../../../../fixtures/meta/processing-rules/landsd-settlement-selection.json'
+import fixture from '../../../../../../../fixtures/meta/processing-rules/assembly/landsd-settlement-selection.json'
 
 export const landsdSettlementSelectionRule = registerRule(
   { ...ruleDeclarationFromFixture(fixture), parameters: fixture.parameters },

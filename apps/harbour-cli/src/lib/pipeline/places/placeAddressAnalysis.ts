@@ -1,5 +1,5 @@
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
-import ruleFixture from '../../../../../../fixtures/meta/processing-rules/place-address-analysis.json'
+import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/place-address-analysis.json'
 import type { PlaceRecordCache } from './placeRecordCache.ts'
 import type { PlaceAddressDefinition } from './placeAddressMatcher.ts'
 import {

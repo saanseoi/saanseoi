@@ -1,4 +1,4 @@
-import sourceFixture from '../../../../../../fixtures/meta/processing-rules/landsd-street-source-retention.json'
+import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/landsd-street-source-retention.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'

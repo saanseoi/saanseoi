@@ -1,6 +1,6 @@
 import { registerRule } from '../../../provenance/auditTypes'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
-import sourceFixture from '../../../../../../fixtures/meta/processing-rules/als-source-retention.json'
+import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/als-source-retention.json'
 import { retainedLocalePropertyName } from './retainedProperties'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import { createHash } from '../../utils'

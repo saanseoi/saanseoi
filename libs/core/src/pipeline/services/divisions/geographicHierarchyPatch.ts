@@ -1,5 +1,5 @@
 import fixture from '../../../../../../fixtures/divisions/hk/geographic-hierarchy-patch.json'
-import declaration from '../../../../../../fixtures/meta/processing-rules/geographic-hierarchy-patch.json'
+import declaration from '../../../../../../fixtures/meta/processing-rules/assembly/geographic-hierarchy-patch.json'
 import {
   registerRule,
   ruleDeclarationFromFixture,

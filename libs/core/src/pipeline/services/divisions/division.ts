@@ -42,12 +42,12 @@ import {
   hierarchyClassification,
   validateDivisionPolicy,
 } from './divisionTaxonomy'
-import ruleFixture from '../../../../../../fixtures/meta/processing-rules/division-normalisation.json'
+import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/division-normalisation.json'
 import {
   checkHongKongHierarchy,
   createHongKongHierarchyGuard,
 } from './hongKongHierarchyGuard'
-import wkbFixture from '../../../../../../fixtures/meta/processing-rules/wkb-geometry.json'
+import wkbFixture from '../../../../../../fixtures/meta/processing-rules/assembly/wkb-geometry.json'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import type { DatasetProcessingMessage } from '../../../types'
 import {

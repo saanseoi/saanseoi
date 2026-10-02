@@ -22,7 +22,7 @@ import {
   validateDivisionCodeFixtures,
   resolveMergeRulesetDefinitions,
 } from './meta'
-import populationRule from '../../../../fixtures/meta/processing-rules/censtatd-population-thousands-to-persons.json'
+import populationRule from '../../../../fixtures/meta/processing-rules/assembly/censtatd-population-thousands-to-persons.json'
 import { ruleDeclarationFromFixture } from '@repo/core/provenance/ruleFixture'
 
 test('referenced policy content determines resolved ruleset identity and descriptions', () => {

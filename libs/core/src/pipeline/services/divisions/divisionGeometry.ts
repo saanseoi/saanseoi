@@ -10,9 +10,9 @@ import {
 import type { NewDivisionAreaRow, NewDivisionBoundaryRow } from '@repo/db/currentSchema'
 import { registerRule, ProcessingGuardError } from '../../../provenance'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
-import areaDeclaration from '../../../../../../fixtures/meta/processing-rules/division-area-geometry.json'
-import exclusionDeclaration from '../../../../../../fixtures/meta/processing-rules/division-geometry-exclusions.json'
-import boundaryDeclaration from '../../../../../../fixtures/meta/processing-rules/division-boundary-geometry.json'
+import areaDeclaration from '../../../../../../fixtures/meta/processing-rules/assembly/division-area-geometry.json'
+import exclusionDeclaration from '../../../../../../fixtures/meta/processing-rules/assembly/division-geometry-exclusions.json'
+import boundaryDeclaration from '../../../../../../fixtures/meta/processing-rules/assembly/division-boundary-geometry.json'
 import type {
   NewSourceDivisionAreaRow,
   NewSourceDivisionBoundaryRow,

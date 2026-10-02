@@ -91,7 +91,7 @@ export function placeComputationContract() {
       'bun.lock',
     ].map(name => resolve(root, name)),
     ...['place-normalisation', 'place-country-selection', 'place-address-analysis'].map(
-      name => resolve(root, `fixtures/meta/processing-rules/${name}.json`),
+      name => resolve(root, `fixtures/meta/processing-rules/assembly/${name}.json`),
     ),
   ]
   const hash = createHash('sha256')

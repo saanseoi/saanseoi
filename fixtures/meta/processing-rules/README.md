@@ -1,5 +1,11 @@
 # Processing rules
 
+Rules are grouped by processing stage:
+
+- `ingestion/`: publisher extraction, validation and SOURCE retention (8 rules).
+- `assembly/`: canonical reconstruction, matching, curation, translation and geometry
+  selection, including their shared dependencies (26 rules).
+
 Each JSON file declares a registered processing rule. Its implementation exports the
 executor named by `implementation.symbol`; the executor validates and freezes the
 declaration and consumes its parameters. Audit retains that exact definition.
@@ -25,14 +31,15 @@ change shared regional exclusions; area-only referent exclusions are parameters 
 same policy. WKB decoding, C&SD source assertions and district identity bridging also
 have registered definitions referenced by the merge rulesets.
 
-Merge ruleset entries use `ruleFixture` with a basename or a list of basenames.
+Merge ruleset entries use `ruleFixture` with a basename or a list of basenames,
+independent of the stage directory. Basenames and rule IDs must be unique across stages.
 Resolution derives their descriptions and interfaces and includes exact definitions in
 the resolved hash. Multiple references for one operation must have the same scope. Do
 not copy mappings or parameter values into a parallel ruleset description.
 
 When editing a rule, update its processor validation and behaviour tests as needed. The
-fixture/executor parity test covers every JSON declaration in this directory. Keep
-reviewed record decisions in their own input fixtures.
+fixture/executor parity test covers every JSON declaration in both stage directories.
+Keep reviewed record decisions in their own input fixtures.
 
 ## Policy ownership and field references
 

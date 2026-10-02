@@ -1,9 +1,9 @@
 import { expect, test } from 'bun:test'
 import { ruleDeclarationFromFixture, resolveRuleFixtureCatalog } from './ruleFixture'
 import { auditActionCategory, type IndividualAudit } from './auditTypes'
-import area from '../../../../fixtures/meta/processing-rules/division-area-geometry.json'
-import boundary from '../../../../fixtures/meta/processing-rules/division-boundary-geometry.json'
-import exclusions from '../../../../fixtures/meta/processing-rules/division-geometry-exclusions.json'
+import area from '../../../../fixtures/meta/processing-rules/assembly/division-area-geometry.json'
+import boundary from '../../../../fixtures/meta/processing-rules/assembly/division-boundary-geometry.json'
+import exclusions from '../../../../fixtures/meta/processing-rules/assembly/division-geometry-exclusions.json'
 import { createGeometryExclusionRule } from '../pipeline/services/divisions/divisionGeometry'
 
 test('area and boundary retain one resolved exclusion policy', () => {

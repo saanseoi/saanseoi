@@ -5,7 +5,7 @@ import type {
 } from '../../../core/src/provenance/processingPolicy'
 import { geographicDivisionClassification } from '../divisionTaxonomy'
 import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 
 import type { ResourceType } from '@repo/core'
 import {
@@ -437,10 +437,13 @@ const unitFixtures = readFixtureDir<UnitFixture>('units')
 const datasetFixtures = readFixtureDir<DatasetFixture>('datasets')
 const processingRuleDefinitions = resolveRuleFixtureCatalog(
   Object.fromEntries(
-    readdirSync(join(fixturesDir.pathname, 'processing-rules'))
-      .filter(name => name.endsWith('.json'))
+    readdirSync(join(fixturesDir.pathname, 'processing-rules'), { recursive: true })
+      .filter(
+        (name): name is string => typeof name === 'string' && name.endsWith('.json'),
+      )
+      .sort()
       .map(name => [
-        name.slice(0, -5),
+        basename(name, '.json'),
         JSON.parse(
           readFileSync(join(fixturesDir.pathname, 'processing-rules', name), 'utf8'),
         ),

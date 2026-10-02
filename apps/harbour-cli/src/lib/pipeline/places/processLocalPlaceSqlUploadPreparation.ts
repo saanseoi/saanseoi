@@ -3,7 +3,7 @@ import { createDivisionMembership } from '../divisions/divisionMembership'
 import { createRecordEnrichmentReuse } from './placeRecordEnrichment.ts'
 import { recordCacheKey, type PlaceRecordCache } from './placeRecordCache.ts'
 import { rename, open } from 'node:fs/promises'
-import countryFixture from '../../../../../../fixtures/meta/processing-rules/place-country-selection.json'
+import countryFixture from '../../../../../../fixtures/meta/processing-rules/assembly/place-country-selection.json'
 import {
   registerRule,
   ruleDeclarationFromFixture,

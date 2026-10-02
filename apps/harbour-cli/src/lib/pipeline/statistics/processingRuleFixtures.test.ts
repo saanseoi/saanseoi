@@ -1,12 +1,13 @@
 import { expect, test } from 'bun:test'
 import { readdirSync } from 'node:fs'
+import { basename } from 'node:path'
 import { resolveRuleFixtureCatalog } from '@repo/core/provenance'
 import { syntheticAreaExclusion } from '../divisions/processLocalDivisionGeometrySqlUploadSyntheticGeometry'
 
 const root = new URL('../../../../../../', import.meta.url)
 const fixtures = new URL('fixtures/meta/processing-rules/', root)
-const names = readdirSync(fixtures)
-  .filter(name => name.endsWith('.json'))
+const names = readdirSync(fixtures, { recursive: true })
+  .filter((name): name is string => typeof name === 'string' && name.endsWith('.json'))
   .sort()
 
 test('every authored processing rule field is retained by its registered executor', async () => {
@@ -16,14 +17,14 @@ test('every authored processing rule field is retained by its registered executo
     Object.fromEntries(
       await Promise.all(
         names.map(async name => [
-          name.slice(0, -5),
+          basename(name, '.json'),
           await Bun.file(new URL(name, fixtures)).json(),
         ]),
       ),
     ),
   )
   for (const name of names) {
-    const fixture = catalogue.get(name.slice(0, -5))!
+    const fixture = catalogue.get(basename(name, '.json'))!
     expect(ids.has(fixture.id)).toBe(false)
     ids.add(fixture.id)
     const module = await import(new URL(fixture.implementation.path, root).href)

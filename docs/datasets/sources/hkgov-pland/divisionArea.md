@@ -43,8 +43,8 @@ script validates complete inventories and defaults to a dry run; `--apply` repla
 aggregate churn statistics in one transaction.
 
 The processor registers `planning-division-normalisation.json` from
-`fixtures/meta/processing-rules/`. Its frozen declaration is shared with the retained
-processing audit; selected reviewed fixtures remain separate inputs.
+`fixtures/meta/processing-rules/assembly/`. Its frozen declaration is shared with the
+retained processing audit; selected reviewed fixtures remain separate inputs.
 
 Division geometry source storage uses `null` when no provenance references are supplied;
 it does not generate a self-reference from the source-record ID. Supplied publisher and

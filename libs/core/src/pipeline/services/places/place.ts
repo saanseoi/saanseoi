@@ -1,5 +1,5 @@
 import { createHash } from '../../utils'
-import referenceNameFixture from '../../../../../../fixtures/meta/processing-rules/place-reference-name.json'
+import referenceNameFixture from '../../../../../../fixtures/meta/processing-rules/assembly/place-reference-name.json'
 
 export type PlaceI18nRecord = {
   accessHint?: string | null
@@ -746,5 +746,5 @@ function asNumber(value: unknown) {
   const number = Number(value)
   return Number.isFinite(number) ? number : null
 }
-import placeRuleFixture from '../../../../../../fixtures/meta/processing-rules/place-normalisation.json'
+import placeRuleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/place-normalisation.json'
 import { registerRule, ruleDeclarationFromFixture } from '../../../provenance'

@@ -28,10 +28,11 @@ not require every monthly geometry snapshot to remain in current storage.
 2025-10-22.0 with all three Division, Division Area and Division Boundary resources.
 
 Area and boundary rule declarations are explicit JSON fixtures in
-`fixtures/meta/processing-rules/`, shared by their normalisers and audit. Both depend on
-`division-geometry-exclusions.json`, whose parameters specify regional and area-only
-referent exclusions. Boundaries retain references to those identities. The Hong Kong
-area geometry patch fixture owns the validated Shenzhen Bay Port exclusion polygon.
+`fixtures/meta/processing-rules/assembly/`, shared by their normalisers and audit. Both
+depend on `division-geometry-exclusions.json`, whose parameters specify regional and
+area-only referent exclusions. Boundaries retain references to those identities. The
+Hong Kong area geometry patch fixture owns the validated Shenzhen Bay Port exclusion
+polygon.
 
 The [processing audit](../../processing-provenance.md) retains registered geometry
 normalisation and geometry-patch declarations with counts, including Guangdong spillover

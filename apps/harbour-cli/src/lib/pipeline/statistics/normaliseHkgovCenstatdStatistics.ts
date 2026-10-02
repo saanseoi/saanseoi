@@ -1,4 +1,4 @@
-import ruleFixture from '../../../../../../fixtures/meta/processing-rules/statistic-normalisation.json'
+import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/statistic-normalisation.json'
 import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { createHash } from 'node:crypto'
 import { statisticFieldCurationRule } from './statisticFieldCurationRule'

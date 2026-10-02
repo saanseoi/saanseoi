@@ -5,8 +5,8 @@ import {
   ruleDeclarationFromFixture,
   type ProvenanceStore,
 } from '@repo/core/provenance'
-import preparation from '../../../../../../fixtures/meta/processing-rules/address-preparation.json'
-import curation from '../../../../../../fixtures/meta/processing-rules/address-curation.json'
+import preparation from '../../../../../../fixtures/meta/processing-rules/assembly/address-preparation.json'
+import curation from '../../../../../../fixtures/meta/processing-rules/assembly/address-curation.json'
 import {
   readAddressPreparationAudit,
   retainAddressProvenance,

@@ -1,7 +1,7 @@
 import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { emptyDivisionHierarchies } from '@repo/db'
 import { materialiseDivisionHierarchies } from '@repo/core/pipeline/services/divisions/divisionHierarchies'
-import ruleFixture from '../../../../../../fixtures/meta/processing-rules/planning-division-normalisation.json'
+import ruleFixture from '../../../../../../fixtures/meta/processing-rules/assembly/planning-division-normalisation.json'
 import { ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { eq } from 'drizzle-orm'
 import { registerRule, guardSession } from '@repo/core/provenance'
