@@ -14,6 +14,7 @@ import {
   handleStageFailed,
   initDb,
   seedCompletedAudits,
+  seedSnapshotAssembly,
 } from './controlFixtures.fixtures.ts'
 
 test('publishes a dataset snapshot without finalising a shared source release', async () => {
@@ -47,11 +48,11 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     );
     UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionStatistic') WHERE id = 'dataset-censtatd-density' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionStatistic');
     INSERT INTO apiVersions (
-      id, code, familyType, version, status, publishedAt,
+      id, code, familyType, version, status,
       versionHash, createdAt, updatedAt
     ) VALUES (
       'api-version-stats-v0.1', 'api-stats-v0.1', 'stats', '0.1', 'current',
-      1761264000000, 'vh-api-stats-v0.1', 1761264000000, 1761264000000
+      'vh-api-stats-v0.1', 1761264000000, 1761264000000
     );
     INSERT INTO apiComposition (
       id, apiVersionId, code, version, primaryResourceType, defaultDomainCode,
@@ -129,6 +130,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
     )
     .run(resourceReleaseId, `sha256:${'0'.repeat(64)}`, 1, 1)
   await upsertSnapshotSource(db, snapshot.id, dataset.id, resourceReleaseId, 'primary')
+  seedSnapshotAssembly(sqlite, snapshot.id)
 
   sqlite
     .query(
@@ -282,11 +284,11 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt)
     VALUES ('publisher-hkgov-censtatd', 'hkgov-censtatd', 'vh-publisher', 1761264000000, 1761264000000);
     INSERT INTO apiVersions (
-      id, code, familyType, version, status, publishedAt,
+      id, code, familyType, version, status,
       versionHash, createdAt, updatedAt
     ) VALUES (
       'api-version-stats-v0.1', 'api-stats-v0.1', 'stats', '0.1', 'current',
-      1761264000000, 'vh-api-stats-v0.1', 1761264000000, 1761264000000
+      'vh-api-stats-v0.1', 1761264000000, 1761264000000
     );
     INSERT INTO apiComposition (
       id, apiVersionId, code, version, primaryResourceType, defaultDomainCode,
@@ -346,6 +348,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
       variant: datasetCode,
     })
     await upsertSnapshotSource(db, snapshot.id, datasetId, resourceReleaseId, 'primary')
+    seedSnapshotAssembly(sqlite, snapshot.id)
   }
 
   const sharedReleaseId = releaseIds[0]
@@ -421,7 +424,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   expect(
     sqlite
       .query(
-        `SELECT status, revision FROM apiReleaseSets WHERE code = 'data-hk-stats-2026-q2'`,
+        `SELECT v.status, r.revision FROM apiReleaseSets r JOIN apiVersionReleaseSets v ON v.apiReleaseSetId = r.id WHERE r.code = 'data-hk-stats-2026-q2'`,
       )
       .get(),
   ).toEqual({ revision: 0, status: 'current' })
@@ -451,7 +454,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   ])
   sqlite
     .query(
-      "UPDATE apiReleaseSets SET status = 'archived' WHERE code = 'data-hk-stats-2026-q2'",
+      "UPDATE apiVersionReleaseSets SET status = 'archived' WHERE apiReleaseSetId IN (SELECT id FROM apiReleaseSets WHERE code = 'data-hk-stats-2026-q2')",
     )
     .run()
   expect(
@@ -460,7 +463,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   ).toEqual(statsRecovery.publishedReleaseSetStatsTargets)
   sqlite
     .query(
-      "UPDATE apiReleaseSets SET status = 'current' WHERE code = 'data-hk-stats-2026-q2'",
+      "UPDATE apiVersionReleaseSets SET status = 'current' WHERE apiReleaseSetId IN (SELECT id FROM apiReleaseSets WHERE code = 'data-hk-stats-2026-q2')",
     )
     .run()
 
@@ -511,6 +514,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
     'legacy-release-2022',
     'primary',
   )
+  seedSnapshotAssembly(sqlite, legacySnapshot.id)
   sqlite.exec(`
     INSERT INTO sourceReleases
       (id, datasetId, code, sourceVersion, cohortKey, status)

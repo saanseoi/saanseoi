@@ -1,6 +1,8 @@
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
 import addressFixtureOfficialLineage from '../../../../../fixtures/meta/apiFields/api-addresses-v0.1@saanseoi-v1.json'
+import { requireDefined } from '../../../../../libs/core/src/requireDefined'
+import placeFixtureLineage from '../../../../../fixtures/meta/apiFields/api-places-v0.1@overture-v1.json'
 import { insertFixtureRelease } from '../../../../../libs/core/src/testing/metaFixtures'
 import {
   ensureDraftSnapshotForRelease,
@@ -15,6 +17,7 @@ import {
   handleReconcileDraftReleaseSets,
   initDb,
   seedSnapshot,
+  seedSnapshotAssembly,
 } from './controlFixtures.fixtures.ts'
 
 test('every resource release requires an audit, including deferred publication', async () => {
@@ -74,7 +77,8 @@ test('requires retained processing audits for Addresses and Places before publis
     const source = datasetType === 'address' ? 'hkgov-dpo' : 'overture'
     const datasetId =
       datasetType === 'address' ? 'hkgov-dpo-hk-address' : 'overture-hk-place'
-    const releaseCode = `dr-hk-${source}-${datasetType}-2026-06-24.0`
+    const sourceVersion = datasetType === 'place' ? '2026-06-17.0' : '2026-06-24.0'
+    const releaseCode = `dr-hk-${source}-${datasetType}-${sourceVersion}`
     const resourceReleaseId = `release-${releaseCode}`
     const snapshotId = `snapshot-${resourceReleaseId}`
     let supplementarySnapshotCode: string | null = null
@@ -85,7 +89,7 @@ test('requires retained processing audits for Addresses and Places before publis
       sqlite
         .query(
           `UPDATE apiReleaseSets
-           SET regionCode = ?, cohortKey = ?, validFrom = ?, validTo = null
+           SET regionCode = ?, cohortKey = ?, effectiveFrom = ?
            WHERE id = ?`,
         )
         .run(
@@ -124,8 +128,8 @@ test('requires retained processing audits for Addresses and Places before publis
       regionCode: 'hk',
       cohortKey: '2026-06',
       resourceType: datasetType,
-      sourceVersion: '2026-06-24.0',
-      rawObjectKey: `hk/${source}/2026-06-24.0/${datasetType}.parquet`,
+      sourceVersion,
+      rawObjectKey: `hk/${source}/${sourceVersion}/${datasetType}.parquet`,
       originalFileName: `${datasetType}.parquet`,
       status: 'staged',
       ingestedAt: '2026-06-05T00:01:00.000Z',
@@ -162,7 +166,7 @@ test('requires retained processing audits for Addresses and Places before publis
         .run('3.2', resourceReleaseId)
     }
     seedSnapshot(sqlite, {
-      code: `ss-hk-${datasetType === 'address' ? 'address-hkgov-dpo' : datasetType}-2026-06-24.0`,
+      code: `ss-hk-${datasetType === 'address' ? 'address-hkgov-dpo' : datasetType}-${sourceVersion}`,
       datasetId,
       resourceType: datasetType,
       resourceReleaseId,
@@ -256,6 +260,7 @@ test('requires retained processing audits for Addresses and Places before publis
         supplementaryRelease.resourceReleaseId,
         'primary',
       )
+      seedSnapshotAssembly(sqlite, supplementarySnapshot.id)
       await publishSnapshot(db, supplementarySnapshot.id)
       supplementarySnapshotCode = supplementarySnapshot.code
       const { listCurrentApiCompositionMembersForType } = await import(
@@ -281,11 +286,36 @@ test('requires retained processing audits for Addresses and Places before publis
       | undefined =
       datasetType === 'place'
         ? (() => {
+            const historicalReleases = new Map<string, string>()
+            for (const resourceType of ['address', 'division'] as const) {
+              const release = insertFixtureRelease(sqlite, {
+                source: resourceType === 'address' ? 'hkgov-dpo' : 'overture',
+                regionCode: 'hk',
+                cohortKey: '2026-01',
+                resourceType,
+                sourceVersion: '2026-01-21.0',
+                rawObjectKey: `${resourceType}.parquet`,
+                originalFileName: `${resourceType}.parquet`,
+                status: 'published',
+                ingestedAt: '2026-01-21T00:00:00.000Z',
+                createdAt: '2026-01-21T00:00:00.000Z',
+                updatedAt: '2026-01-21T00:00:00.000Z',
+              })
+              sqlite
+                .query(
+                  'UPDATE resourceReleases SET sourceSchemaVersion = ? WHERE id = ?',
+                )
+                .run(
+                  resourceType === 'address' ? '3.2' : '1.16.0',
+                  release.resourceReleaseId,
+                )
+              historicalReleases.set(resourceType, release.resourceReleaseId)
+            }
             const addressSnapshotId = seedSnapshot(sqlite, {
               code: 'ss-hk-address-historical-selection',
               cohortKey: '2026-01',
               datasetId: 'hkgov-dpo-hk-address',
-              resourceReleaseId,
+              resourceReleaseId: requireDefined(historicalReleases.get('address')),
               resourceType: 'address',
               snapshotId: 'snapshot-address-historical-selection',
               status: 'published',
@@ -293,7 +323,7 @@ test('requires retained processing audits for Addresses and Places before publis
             const divisionSnapshotId = seedSnapshot(sqlite, {
               code: 'ss-hk-division-historical-selection',
               cohortKey: '2026-01',
-              resourceReleaseId,
+              resourceReleaseId: requireDefined(historicalReleases.get('division')),
               resourceType: 'division',
               snapshotId: 'snapshot-division-historical-selection',
               status: 'published',
@@ -338,6 +368,7 @@ test('requires retained processing audits for Addresses and Places before publis
         'primary',
         { anchorReleaseId: resourceReleaseId },
       )
+      seedSnapshotAssembly(sqlite, supplementary.id)
       await publishSnapshot(db, supplementary.id)
       await upsertSnapshotSource(
         db,
@@ -426,18 +457,24 @@ test('requires retained processing audits for Addresses and Places before publis
       apiReleaseSetId: string
       datasetId: string
     }
-    const provenanceCount = sqlite
+    const provenanceDefinition = sqlite
       .query(
         `
-          SELECT COUNT(*) AS count
-          FROM apiFieldProvenance
-          WHERE apiReleaseSetId = ?
-            AND sourceDatasetId = ?
+          SELECT definition
+          FROM apiFieldProvenance provenance
+          INNER JOIN fieldLineageDefinitions definition
+            ON definition.id = provenance.definitionId
+          WHERE provenance.apiReleaseSetId = ?
         `,
       )
-      .get(publishedReleaseSet.apiReleaseSetId, publishedReleaseSet.datasetId) as {
-      count: number
-    }
+      .get(publishedReleaseSet.apiReleaseSetId) as { definition: string } | null
+    const provenanceFields = provenanceDefinition
+      ? (
+          JSON.parse(provenanceDefinition.definition) as {
+            fields: Array<{ sourceDatasetId: string }>
+          }
+        ).fields.filter(field => field.sourceDatasetId === datasetId)
+      : []
     const supportingSnapshots = sqlite
       .query(
         `
@@ -474,12 +511,14 @@ test('requires retained processing audits for Addresses and Places before publis
     })
     expect(snapshotRow.status).toBe('published')
     expect(snapshotRow.publishedAt).not.toBeNull()
-    expect(provenanceCount.count).toBe(
+    expect(provenanceFields.length).toBe(
       datasetType === 'address'
         ? addressFixtureOfficialLineage.fields.filter(
             field => field.sourceDatasetCode === 'ds-hk-hkgov-dpo-address',
           ).length
-        : 0,
+        : placeFixtureLineage.fields.filter(
+            field => field.sourceDatasetCode === 'ds-hk-overture-place',
+          ).length,
     )
     const expectedSupportingSnapshots =
       datasetType === 'address'
@@ -534,7 +573,9 @@ test('publishes LandsD divisions in their own API domain', async () => {
     )
   }
   const releaseSet = sqlite
-    .query('SELECT domainCode, status FROM apiReleaseSets WHERE id = ?')
+    .query(
+      'SELECT r.domainCode, v.status FROM apiReleaseSets r JOIN apiVersionReleaseSets v ON v.apiReleaseSetId = r.id WHERE r.id = ?',
+    )
     .get(result.apiReleaseSetId) as {
     domainCode: string
     status: string

@@ -1,3 +1,5 @@
+import { resolveSnapshotProcessingRules } from '../../../../../libs/core/src/provenance/processingPolicyCatalogue'
+import { computeVersionHash } from '@repo/db'
 import { datasetVariantForSource } from '@repo/core/codes'
 import { initialDatasets } from '@repo/db/registry'
 import { mkdtempSync } from 'node:fs'
@@ -55,11 +57,20 @@ export function initDb(dbPath: string) {
   db.exec(
     'CREATE TABLE fixturePolicies (datasetCode TEXT PRIMARY KEY, processingRules TEXT)',
   )
-  for (const dataset of initialDatasets)
+  for (const dataset of initialDatasets) {
+    const definitionId = dataset.processingRules
+      ? computeVersionHash(dataset.processingRules)
+      : null
+    if (definitionId)
+      db.query('INSERT OR IGNORE INTO processingRuleDefinitions VALUES (?,?)').run(
+        definitionId,
+        JSON.stringify(dataset.processingRules),
+      )
     db.query('INSERT INTO fixturePolicies VALUES (?, ?)').run(
       dataset.code,
-      JSON.stringify(dataset.processingRules),
+      definitionId ? JSON.stringify({ definitionId }) : null,
     )
+  }
   db.exec(`CREATE TRIGGER fixture_capture_release_rules AFTER INSERT ON resourceReleases
     WHEN NEW.processingRules IS NULL
     BEGIN UPDATE resourceReleases SET processingRules = (SELECT p.processingRules FROM fixturePolicies p JOIN datasets d ON d.code = p.datasetCode WHERE d.id = NEW.datasetId) WHERE id = NEW.id; END;`)
@@ -154,6 +165,7 @@ export function seedSnapshot(
       .query('UPDATE snapshots SET snapshotLineageId = ? WHERE id = ?')
       .run(lineageId, snapshotId)
   }
+  seedSnapshotAssembly(sqlite, snapshotId)
   return snapshotId
 }
 
@@ -314,4 +326,70 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       )
       .run(snapshotId, datasetId.datasetId, resourceReleaseId, 'supporting')
   }
+  seedSnapshotAssembly(sqlite, snapshotId)
+  const companions = sqlite
+    .query<
+      {
+        resourceReleaseId: string
+        datasetId: string
+        resourceType: string
+        cohortKey: string
+      },
+      [string]
+    >(
+      `SELECT r.id AS resourceReleaseId, r.datasetId, r.resourceType, r.cohortKey
+     FROM snapshotResourceReleases sr JOIN resourceReleases r ON r.id = sr.resourceReleaseId
+     WHERE sr.snapshotId = ? AND r.resourceType IN ('divisionArea', 'divisionBoundary')`,
+    )
+    .all(snapshotId)
+  for (const companion of companions) {
+    const companionSnapshotId = `${snapshotId}-${companion.resourceReleaseId}`
+    seedSnapshot(sqlite, {
+      ...companion,
+      snapshotId: companionSnapshotId,
+      code: companionSnapshotId,
+      status: 'published',
+    })
+  }
+}
+
+/** Fixtures retain the same selected assembly policies as real snapshot publication. */
+export function seedSnapshotAssembly(sqlite: Database, snapshotId: string) {
+  const snapshot = sqlite
+    .query<{ resourceType: string; cohortKey: string }, [string]>(
+      'SELECT resourceType, cohortKey FROM snapshots WHERE id = ?',
+    )
+    .get(snapshotId)
+  if (!snapshot) throw new Error(`Missing fixture snapshot: ${snapshotId}`)
+  const sources = sqlite
+    .query<{ code: string }, [string]>(
+      'SELECT d.code FROM snapshotResourceReleases sr JOIN datasets d ON d.id = sr.datasetId WHERE sr.snapshotId = ?',
+    )
+    .all(snapshotId)
+  const rules = resolveSnapshotProcessingRules(
+    sources.map(row => row.code),
+    snapshot.resourceType,
+  )
+  const definitionId = computeVersionHash(rules)
+  sqlite
+    .query(
+      'INSERT OR IGNORE INTO processingRuleDefinitions (id, definition) VALUES (?, ?)',
+    )
+    .run(definitionId, JSON.stringify(rules))
+  const recipeId = `fixture-recipe-${definitionId}`
+  sqlite
+    .query(`INSERT OR IGNORE INTO snapshotRecipes (id, code, resourceType, version, status, processingRules, versionHash)
+    VALUES (?, ?, ?, 1, 'current', ?, ?)`)
+    .run(
+      recipeId,
+      recipeId,
+      snapshot.resourceType,
+      JSON.stringify({ definitionId }),
+      definitionId,
+    )
+  sqlite
+    .query(`INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId, anchorCohortKey, status, reviewRequired)
+    VALUES (?, ?, ?, ?, 'completed', 0)
+    ON CONFLICT(snapshotId) DO UPDATE SET snapshotRecipeId = excluded.snapshotRecipeId`)
+    .run(`fixture-assembly-${snapshotId}`, snapshotId, recipeId, snapshot.cohortKey)
 }

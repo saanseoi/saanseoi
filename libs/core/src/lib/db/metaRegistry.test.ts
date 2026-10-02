@@ -644,7 +644,8 @@ function createDraftSnapshotDb() {
   sqlite.exec(`
     CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,status TEXT NOT NULL);
     CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT NOT NULL,snapshotId TEXT NOT NULL);
-    CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT NOT NULL,apiReleaseSetId TEXT NOT NULL);
+    CREATE TABLE apiCatalogRevisionReleaseSets(apiCatalogRevisionId TEXT NOT NULL,apiVersionReleaseSetId TEXT NOT NULL);
+    CREATE TABLE apiVersionReleaseSets(id TEXT PRIMARY KEY,apiReleaseSetId TEXT NOT NULL);
     CREATE TABLE apiCatalogRevisions(id TEXT PRIMARY KEY,apiVersionId TEXT NOT NULL,regionCode TEXT NOT NULL,status TEXT NOT NULL,publishedAt TEXT NOT NULL,revision INTEGER NOT NULL);
     CREATE TABLE snapshotLineages (
       id TEXT PRIMARY KEY,
@@ -1034,9 +1035,10 @@ function createCleanupCandidatesDb() {
     CREATE TABLE apiReleaseSets (
       publisherFields TEXT,
 id TEXT PRIMARY KEY,
-      code TEXT NOT NULL,
-      status TEXT NOT NULL
+      code TEXT NOT NULL
     );
+
+    CREATE TABLE apiVersionReleaseSets (id TEXT PRIMARY KEY, apiReleaseSetId TEXT NOT NULL, status TEXT NOT NULL);
 
     CREATE TABLE apiReleaseSetSnapshots (
       apiReleaseSetId TEXT NOT NULL,
@@ -1055,7 +1057,7 @@ id TEXT PRIMARY KEY,
 
     CREATE TABLE apiCatalogRevisionReleaseSets (
       apiCatalogRevisionId TEXT NOT NULL,
-      apiReleaseSetId TEXT NOT NULL,
+      apiVersionReleaseSetId TEXT NOT NULL,
       isDefault INTEGER NOT NULL
     );
   `)
@@ -1084,15 +1086,14 @@ function createActiveSnapshotLookupDb() {
     CREATE TABLE apiReleaseSets (
       publisherFields TEXT,
 id TEXT PRIMARY KEY,
-      apiVersionId TEXT NOT NULL,
       code TEXT NOT NULL,
       domainCode TEXT NOT NULL DEFAULT 'default',
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
-      status TEXT NOT NULL,
-      publishedAt INTEGER,
       createdAt INTEGER NOT NULL
     );
+
+    CREATE TABLE apiVersionReleaseSets (id TEXT PRIMARY KEY, apiReleaseSetId TEXT NOT NULL, apiVersionId TEXT NOT NULL, status TEXT NOT NULL, publishedAt INTEGER);
 
     CREATE TABLE snapshots (
       id TEXT PRIMARY KEY,
@@ -2092,7 +2093,7 @@ describe('ensureDraftSnapshotForRelease', () => {
           "INSERT INTO apiCatalogRevisions VALUES ('catalog-b','api','hk','current','2026-01-01',0),('catalog-restored','api','hk','current','2026-01-02',0)",
         )
         sqlite.exec(
-          "INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog-b','set-b'),('catalog-restored','set-a')",
+          "INSERT INTO apiVersionReleaseSets VALUES ('version-a','set-a'),('version-b','set-b'); INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog-b','version-b'),('catalog-restored','version-a')",
         )
         const c = await ensureDraftSnapshotForRelease(db as never, 'division', {
           ...args,
@@ -2152,7 +2153,7 @@ describe('ensureDraftSnapshotForRelease', () => {
         "INSERT INTO apiCatalogRevisions VALUES ('catalog-a','api','hk','current','2026-01-01',0),('catalog-empty','api','hk','current','2026-01-02',0)",
       )
       sqlite.exec(
-        "INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog-a','set-a')",
+        "INSERT INTO apiVersionReleaseSets VALUES ('version-a','set-a'); INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog-a','version-a')",
       )
       const b = await ensureDraftSnapshotForRelease(db as never, 'division', {
         ...args,
@@ -2190,7 +2191,7 @@ describe('ensureDraftSnapshotForRelease', () => {
         "INSERT INTO apiCatalogRevisions VALUES ('catalog','api','hk','current','2026-01-01',0)",
       )
       sqlite.exec(
-        "INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog','set-a'),('catalog','set-b')",
+        "INSERT INTO apiVersionReleaseSets VALUES ('version-a','set-a'),('version-b','set-b'); INSERT INTO apiCatalogRevisionReleaseSets VALUES ('catalog','version-a'),('catalog','version-b')",
       )
       const revision = await ensureDraftSnapshotForRelease(db as never, 'division', {
         ...args,
@@ -2978,11 +2979,17 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
         ('snapshot-published-area-variant', 'divisionArea', 'published'),
         ('snapshot-published-boundary-variant', 'divisionBoundary', 'published');
 
-      INSERT INTO apiReleaseSets (id, code, status) VALUES
-        ('release-set-default', 'ss-hk-division-2026-05-20.0', 'published'),
-        ('release-set-historical-cohort', 'ss-hk-division-2026-04-20.0', 'published'),
-        ('release-set-retained-revision', 'ss-hk-division-2026-03-20.0', 'published'),
-        ('release-set-draft', 'ss-hk-division-2026-06-20.0', 'draft');
+      INSERT INTO apiReleaseSets (id, code) VALUES
+        ('release-set-default', 'ss-hk-division-2026-05-20.0'),
+        ('release-set-historical-cohort', 'ss-hk-division-2026-04-20.0'),
+        ('release-set-retained-revision', 'ss-hk-division-2026-03-20.0'),
+        ('release-set-draft', 'ss-hk-division-2026-06-20.0');
+
+      INSERT INTO apiVersionReleaseSets (id, apiReleaseSetId, status) VALUES
+        ('version-default', 'release-set-default', 'current'),
+        ('version-historical', 'release-set-historical-cohort', 'current'),
+        ('version-retained', 'release-set-retained-revision', 'current'),
+        ('version-draft', 'release-set-draft', 'draft');
 
       INSERT INTO apiReleaseSetSnapshots (apiReleaseSetId, snapshotId) VALUES
         ('release-set-default', 'snapshot-published-default'),
@@ -3000,11 +3007,11 @@ describe('listCurrentSnapshotCleanupCandidates', () => {
       );
 
       INSERT INTO apiCatalogRevisionReleaseSets (
-        apiCatalogRevisionId, apiReleaseSetId, isDefault
+        apiCatalogRevisionId, apiVersionReleaseSetId, isDefault
       ) VALUES
-        ('catalog-current', 'release-set-default', 1),
-        ('catalog-current', 'release-set-historical-cohort', 0),
-        ('catalog-retained', 'release-set-retained-revision', 0);
+        ('catalog-current', 'version-default', 1),
+        ('catalog-current', 'version-historical', 0),
+        ('catalog-retained', 'version-retained', 0);
     `)
 
     await expect(
@@ -3058,30 +3065,28 @@ describe('resolveActiveSnapshotForType', () => {
         ('api-version-place', 'api-places-v0.1');
 
       INSERT INTO apiReleaseSets (
-        id, apiVersionId, code, domainCode, schemaVersion, rulesetVersion, status, publishedAt, createdAt
+        id, code, domainCode, schemaVersion, rulesetVersion, createdAt
       ) VALUES
         (
           'release-set-hk',
-          'api-version-place',
           'rs-hk-place-2026-05',
           'place',
           'sv-place-v1',
           'rs-place-v1',
-          'current',
-          1760000000000,
           1760000000000
         ),
         (
           'release-set-mo',
-          'api-version-place',
           'rs-mo-place-2026-05',
           'place',
           'sv-place-v1',
           'rs-place-v1',
-          'current',
-          1760000100000,
           1760000100000
         );
+
+      INSERT INTO apiVersionReleaseSets VALUES
+        ('version-hk', 'release-set-hk', 'api-version-place', 'current', 1760000000000),
+        ('version-mo', 'release-set-mo', 'api-version-place', 'current', 1760000100000);
 
       INSERT INTO snapshots (id, resourceType, code) VALUES
         ('snapshot-hk-place', 'place', 'ss-hk-place-2026-05'),
@@ -3981,7 +3986,12 @@ describe('publishReleaseArtefacts', () => {
       )
       .all('release-set-1') as Array<{ snapshotId: string }>
 
-    expect(linkedSnapshotIds).toEqual([{ snapshotId: 'snapshot-new' }])
+    expect(linkedSnapshotIds).toEqual([
+      { snapshotId: 'snapshot-new' },
+      { snapshotId: 'snapshot-new-divisionArea' },
+      { snapshotId: 'snapshot-new-divisionBoundary' },
+      { snapshotId: 'snapshot-new-divisionStatistic' },
+    ])
 
     const mapping = await getApiFieldLineageForReleaseSet(db, 'release-set-1')
     expect(
@@ -4015,11 +4025,11 @@ describe('publishReleaseArtefacts', () => {
 
     const journalRows = sqlite
       .query(
-        'SELECT resourceReleaseId, relatedResourceReleaseId, snapshotId, apiReleaseSetId, action, statusFrom, statusTo FROM releaseSetLifecycleJournal ORDER BY createdAt',
+        'SELECT resourceReleaseId, relatedResourceReleaseId, snapshotId, apiVersionReleaseSetId, action, statusFrom, statusTo FROM releaseSetLifecycleJournal ORDER BY createdAt',
       )
       .all() as Array<{
       action: string
-      apiReleaseSetId: string | null
+      apiVersionReleaseSetId: string | null
       relatedResourceReleaseId: string | null
       resourceReleaseId: string
       snapshotId: string | null
@@ -4032,7 +4042,7 @@ describe('publishReleaseArtefacts', () => {
         resourceReleaseId: 'release-1',
         relatedResourceReleaseId: null,
         snapshotId: 'snapshot-new',
-        apiReleaseSetId: 'release-set-1',
+        apiVersionReleaseSetId: 'release-set-1-version',
         action: 'published',
         statusFrom: null,
         statusTo: 'published',
@@ -4064,7 +4074,23 @@ describe('publishReleaseArtefacts', () => {
 
     seedSnapshotProcessingPolicies(sqlite)
     await publishReleaseArtefacts(db, {
-      carriedSnapshots: [],
+      carriedSnapshots: [
+        {
+          resourceType: 'divisionArea',
+          snapshotId: 'snapshot-new-divisionArea',
+          variant: 'overture',
+        },
+        {
+          resourceType: 'divisionBoundary',
+          snapshotId: 'snapshot-new-divisionBoundary',
+          variant: 'overture',
+        },
+        {
+          resourceType: 'divisionStatistic',
+          snapshotId: 'snapshot-new-divisionStatistic',
+          variant: 'overture',
+        },
+      ],
       currentRelease: null,
       currentReleaseIsCorrected: false,
       dataset: {

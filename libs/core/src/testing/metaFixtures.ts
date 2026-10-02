@@ -980,65 +980,25 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     ON CONFLICT(id) DO NOTHING;
 
     INSERT INTO apiReleaseSets (
-      id,
-      apiVersionId,
-      code,
-      domainCode,
-      schemaVersion,
-      rulesetVersion,
-      status,
-      publishedAt,
-      versionHash,
-      createdAt,
-      updatedAt
+      id, code, regionCode, domainCode, cohortKey, schemaVersion, rulesetVersion,
+      versionHash, createdAt, updatedAt
     ) VALUES
-      (
-        'api-release-set-data-hk-divisions-2026-06-17.0',
-        'api-version-api-divisions-v0.1',
-        'data-hk-divisions-2026-06-17.0',
-        'geographic',
-        'sv-division-v1',
-        'rs-division-merge-v1',
-        'current',
-        ${FIXTURE_TIMESTAMP_MS},
-        'vh-api-release-set-division-2026-06-17.0-v1',
-        ${FIXTURE_TIMESTAMP_MS},
-        ${FIXTURE_TIMESTAMP_MS}
-      ),
-      (
-        'api-release-set-data-hk-addresses-2026-06-17.0',
-        'api-version-api-addresses-v0.1',
-        'data-hk-addresses-2026-06-17.0',
-        'saanseoi',
-        'sv-address-v1',
-        'rs-address-merge-v1',
-        'current',
-        ${FIXTURE_TIMESTAMP_MS},
-        'vh-api-release-set-address-2026-06-17.0-v1',
-        ${FIXTURE_TIMESTAMP_MS},
-        ${FIXTURE_TIMESTAMP_MS}
-      ),
-      (
-        'api-release-set-data-hk-places-2026-06-17.0',
-        'api-version-api-places-v0.1',
-        'data-hk-places-2026-06-17.0',
-        'default',
-        'sv-place-v1',
-        'rs-place-merge-v1',
-        'current',
-        ${FIXTURE_TIMESTAMP_MS},
-        'vh-api-release-set-place-2026-06-17.0-v1',
-        ${FIXTURE_TIMESTAMP_MS},
-        ${FIXTURE_TIMESTAMP_MS}
-      )
+      ('api-release-set-data-hk-divisions-2026-06-17.0', 'data-hk-divisions-2026-06-17.0',
+        'hk', 'geographic', '2026-06-17.0', 'sv-division-v1', 'rs-division-merge-v1',
+        'vh-api-release-set-division-2026-06-17.0-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-release-set-data-hk-addresses-2026-06-17.0', 'data-hk-addresses-2026-06-17.0',
+        'hk', 'saanseoi', '2026-06-17.0', 'sv-address-v1', 'rs-address-merge-v1',
+        'vh-api-release-set-address-2026-06-17.0-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-release-set-data-hk-places-2026-06-17.0', 'data-hk-places-2026-06-17.0',
+        'hk', 'overture', '2026-06-17.0', 'sv-place-v1', 'rs-place-merge-v1',
+        'vh-api-release-set-place-2026-06-17.0-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
-      apiVersionId = excluded.apiVersionId,
       code = excluded.code,
+      regionCode = excluded.regionCode,
       domainCode = excluded.domainCode,
+      cohortKey = excluded.cohortKey,
       schemaVersion = excluded.schemaVersion,
       rulesetVersion = excluded.rulesetVersion,
-      status = excluded.status,
-      publishedAt = excluded.publishedAt,
       versionHash = excluded.versionHash,
       updatedAt = excluded.updatedAt
     WHERE apiReleaseSets.versionHash <> excluded.versionHash;
@@ -1048,7 +1008,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     ) VALUES
       ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-saanseoi', 1, 'address', 'saanseoi', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
       ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'geographic', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', null, 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+      ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', 'overture', 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       apiVersionId = excluded.apiVersionId,
       code = excluded.code,
@@ -1060,6 +1020,21 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       versionHash = excluded.versionHash,
       updatedAt = excluded.updatedAt;
 
+    INSERT INTO apiVersionReleaseSets (
+      id, apiVersionId, apiReleaseSetId, apiCompositionId, status, publishedAt,
+      versionHash, createdAt, updatedAt
+    ) VALUES
+      ('fixture-version-divisions-2026-06-17.0', 'api-version-api-divisions-v0.1',
+        'api-release-set-data-hk-divisions-2026-06-17.0', 'api-composition-divisions-v1',
+        'current', ${FIXTURE_TIMESTAMP_MS}, 'vh-fixture-version-divisions', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('fixture-version-addresses-2026-06-17.0', 'api-version-api-addresses-v0.1',
+        'api-release-set-data-hk-addresses-2026-06-17.0', 'api-composition-addresses-v1',
+        'current', ${FIXTURE_TIMESTAMP_MS}, 'vh-fixture-version-addresses', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('fixture-version-places-2026-06-17.0', 'api-version-api-places-v0.1',
+        'api-release-set-data-hk-places-2026-06-17.0', 'api-composition-places-v1',
+        'current', ${FIXTURE_TIMESTAMP_MS}, 'vh-fixture-version-places', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+    ON CONFLICT(id) DO NOTHING;
+
     INSERT INTO apiCompositionMembers (
       apiCompositionId, domainCode, resourceType, variant, role, isRequired, cohortMatchingMode, anchorResourceType, maxLagDays, priority
     ) VALUES
@@ -1067,11 +1042,13 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       ('api-composition-addresses-v1', 'saanseoi', 'address', 'overture-places', 'supplementary', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 5),
       ('api-composition-addresses-v1', 'saanseoi', 'division', 'overture', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 10),
       ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10),
+      ('api-composition-divisions-v1', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20),
       ('api-composition-divisions-v1', 'hkgov-landsd', 'division', 'hkgov-landsd', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-places-v1', 'default', 'place', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-places-v1', 'default', 'address', 'hkgov-dpo', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'place', null, 10),
-      ('api-composition-places-v1', 'default', 'address', 'overture-places', 'lookup', 1, 'exact_ref', 'place', null, 15),
-      ('api-composition-places-v1', 'default', 'division', 'overture', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 20)
+      ('api-composition-places-v1', 'overture', 'place', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-places-v1', 'overture', 'address', 'hkgov-dpo', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'place', null, 10),
+      ('api-composition-places-v1', 'overture', 'address', 'overture-places', 'lookup', 1, 'exact_ref', 'place', null, 15),
+      ('api-composition-places-v1', 'overture', 'division', 'overture', 'lookup', 1, 'latest_at_or_before_or_earliest_after_cohort', 'address', null, 20)
     ON CONFLICT(apiCompositionId, domainCode, resourceType, variant) DO UPDATE SET
       role = excluded.role,
       isRequired = excluded.isRequired,

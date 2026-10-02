@@ -1,3 +1,4 @@
+import { requireDefined } from '../../../requireDefined'
 import { describe, expect, test } from 'bun:test'
 
 import { createHash } from '../../utils'
@@ -1136,10 +1137,9 @@ describe('normaliseDivisionRow hierarchy', () => {
       { hierarchyLookup },
     )
 
-    expect(normalised.base.hierarchies.administrative[0]).toMatchObject([
-      { class: 'sar' },
-      { class: 'area', id: '25cec859-44f3-5e1d-a72b-952f804e56ab' },
-    ])
+    expect(requireDefined(normalised.base.hierarchies.administrative)[0]).toMatchObject(
+      [{ class: 'sar' }, { class: 'area', id: '25cec859-44f3-5e1d-a72b-952f804e56ab' }],
+    )
     expect(normalised.overtureHongKongAreaHierarchyAssignment).toMatchObject({
       code: 'hong-kong-island',
     })

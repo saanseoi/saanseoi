@@ -1,3 +1,4 @@
+import { requireDefined } from '../../../requireDefined'
 import { expect, test } from 'bun:test'
 import {
   checkHongKongHierarchy,
@@ -203,14 +204,15 @@ test('a source city keeps its identity and has a separate administrative area', 
   }
   const original = structuredClone(raw)
   const result = normaliseDivisionRow(raw)
-  expect(result.base.hierarchies.administrative[0]?.map(entry => entry.class)).toEqual([
+  const administrative = requireDefined(result.base.hierarchies.administrative)
+  expect(administrative[0]?.map(entry => entry.class)).toEqual([
     'sar',
     'area',
     'district',
   ])
-  expect(
-    result.base.hierarchies.administrative.flat().map(entry => entry.id),
-  ).not.toContain(raw.id)
+  expect(administrative.flat().map(entry => requireDefined(entry).id)).not.toContain(
+    raw.id,
+  )
   expect(result.base).toMatchObject({
     id: raw.id,
     class: 'city',

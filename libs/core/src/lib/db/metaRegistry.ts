@@ -4725,7 +4725,7 @@ async function prepareApiCatalogRevision(
     domainCode: string
     publishedAt: string
     regionCode: string
-    releaseSetId: string
+    apiVersionReleaseSetId: string
     releaseSetRevision: number
   },
 ) {
@@ -4813,10 +4813,7 @@ async function prepareApiCatalogRevision(
   }
 
   membersByDomainCohort.set(`${args.domainCode}\u0000${args.cohortKey}`, {
-    apiVersionReleaseSetId: buildDeterministicApiVersionReleaseSetId(
-      args.apiVersionId,
-      args.releaseSetId,
-    ),
+    apiVersionReleaseSetId: args.apiVersionReleaseSetId,
     cohortKey: args.cohortKey,
     domainCode: args.domainCode,
     effectiveFrom: cohortKeyEffectiveFrom(args.cohortKey),
@@ -5187,7 +5184,7 @@ export async function publishReleaseArtefacts(
             domainCode: releaseSet.domainCode,
             publishedAt,
             regionCode: releaseSetRegionCode,
-            releaseSetId: releaseSet.id,
+            apiVersionReleaseSetId: releaseSet.apiVersionReleaseSetId,
             releaseSetRevision: releaseSet.revision,
           })
         : null
@@ -5437,12 +5434,17 @@ export async function publishReleaseArtefacts(
               if (!sourceDatasetId) {
                 throw new Error(`Source dataset not found: ${field.sourceDatasetCode}`)
               }
+              const assemblyResourceType =
+                field.resourceType === 'statistic' ||
+                field.resourceType === 'statistic-field'
+                  ? 'divisionStatistic'
+                  : field.resourceType
               const resolverRules = pinApiFieldRules(field, [
                 ...sourceSchemaRows.filter(
                   row => row.datasetCode === field.sourceDatasetCode,
                 ),
                 ...assemblyPolicyRows.filter(
-                  row => row.resourceType === field.resourceType,
+                  row => row.resourceType === assemblyResourceType,
                 ),
               ])
 
@@ -5573,25 +5575,35 @@ export async function publishReleaseArtefacts(
 
       if (!deferApiReleaseSet) {
         statements.push(
-          tx
-            .update(metaApiVersionReleaseSets)
-            .set({
-              status: 'archived',
-              validTo: publishedAt,
-              updatedAt: publishedAt,
-            })
-            .where(
-              and(
-                eq(metaApiVersionReleaseSets.apiVersionId, releaseSet.apiVersionId),
-                eq(metaApiVersionReleaseSets.status, 'current'),
-                ne(metaApiVersionReleaseSets.id, releaseSet.apiVersionReleaseSetId),
-                sql`${metaApiVersionReleaseSets.apiReleaseSetId} IN (
+          ...(shouldActivateReleaseSet
+            ? [
+                tx
+                  .update(metaApiVersionReleaseSets)
+                  .set({
+                    status: 'archived',
+                    validTo: publishedAt,
+                    updatedAt: publishedAt,
+                  })
+                  .where(
+                    and(
+                      eq(
+                        metaApiVersionReleaseSets.apiVersionId,
+                        releaseSet.apiVersionId,
+                      ),
+                      eq(metaApiVersionReleaseSets.status, 'current'),
+                      ne(
+                        metaApiVersionReleaseSets.id,
+                        releaseSet.apiVersionReleaseSetId,
+                      ),
+                      sql`${metaApiVersionReleaseSets.apiReleaseSetId} IN (
                   SELECT id FROM apiReleaseSets
                   WHERE regionCode = ${releaseSet.regionCode}
                     AND domainCode = ${releaseSet.domainCode}
                 )`,
-              ),
-            ),
+                    ),
+                  ),
+              ]
+            : []),
           tx
             .update(metaApiVersionReleaseSets)
             .set({

@@ -76,45 +76,36 @@ test('reconciles a draft division release set once its required C&SD areas are a
   const releaseSetId = 'd092ef65-1ae3-4a3d-beb2-19f20e8f5904'
 
   sqlite.exec(`
-    UPDATE apiComposition
-    SET i18n = '{"geographic":[{"locale":"en","name":"Geographic","description":"Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."}]}'
-    WHERE id = 'api-composition-divisions-v1';
-
     DELETE FROM apiCompositionMembers
     WHERE apiCompositionId = 'api-composition-divisions-v1';
 
     INSERT INTO apiCompositionMembers (
-      apiCompositionId, domainCode, resourceType, variant, role, isRequired,
+      apiCompositionId, i18n, domainCode, resourceType, variant, role, isRequired,
       cohortMatchingMode, anchorResourceType, maxLagDays, priority
     ) VALUES
-      ('api-composition-divisions-v1', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 12),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 13),
-      ('api-composition-divisions-v1', 'geographic', 'divisionArea', 'hkgov-censtatd-area', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 15),
-      ('api-composition-divisions-v1', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20);
+      ('api-composition-divisions-v1', '{"en":{"name":"Geographic","description":"Explore the geographical and administrative divisions used to describe Hong Kong, including districts, planning units, new towns, boundaries, and areas."}}', 'geographic', 'division', 'overture', 'primary', 1, 'exact_ref', null, null, 0),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'overture', 'geometry', 1, 'exact_ref', null, null, 10),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 12),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 13),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd-area', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 15),
+      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20);
 
     INSERT INTO apiReleaseSets (
-      id, apiVersionId, apiCompositionId, code, regionCode, domainCode,
-      cohortKey, revision, schemaVersion, rulesetVersion, status,
-      publishedAt, validFrom, validTo, notes, versionHash, createdAt, updatedAt
+      id, code, regionCode, domainCode, cohortKey, revision, schemaVersion,
+      rulesetVersion, versionHash, createdAt, updatedAt
     ) VALUES (
-      '${releaseSetId}',
-      'api-version-api-divisions-v0.1',
-      'api-composition-divisions-v1',
-      'data-hk-divisions-${cohortKey}',
-      'hk',
-      'geographic',
-      '${cohortKey}',
-      0,
-      'sv-division-v1',
-      'rs-division-merge-v1',
-      'draft',
-      null, null, null, null,
-      'vh-had-draft-release-set',
-      1761264000001,
-      1761264000001
+      '${releaseSetId}', 'data-hk-divisions-${cohortKey}', 'hk', 'geographic',
+      '${cohortKey}', 0, 'sv-division-v1', 'rs-division-merge-v1',
+      'vh-had-draft-release-set', 1761264000001, 1761264000001
+    );
+    INSERT INTO apiVersionReleaseSets (
+      id, apiVersionId, apiReleaseSetId, apiCompositionId, status, versionHash,
+      createdAt, updatedAt
+    ) VALUES (
+      'version-${releaseSetId}', 'api-version-api-divisions-v0.1', '${releaseSetId}',
+      'api-composition-divisions-v1', 'draft', 'vh-had-draft-version',
+      1761264000001, 1761264000001
     );
 
     INSERT INTO publishers (id, code, versionHash, createdAt, updatedAt) VALUES
@@ -265,7 +256,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     resourceReleaseId: hadArea.resourceReleaseId,
   })
   const publishedSet = sqlite
-    .query('SELECT status FROM apiReleaseSets WHERE id = ?')
+    .query('SELECT status FROM apiVersionReleaseSets WHERE apiReleaseSetId = ?')
     .get(releaseSetId) as { status: string }
   const members = sqlite
     .query(
@@ -403,7 +394,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     regionCode: 'hk',
   })
   const stillDraftSet = sqlite
-    .query('SELECT status FROM apiReleaseSets WHERE id = ?')
+    .query('SELECT status FROM apiVersionReleaseSets WHERE apiReleaseSetId = ?')
     .get(releaseSetId) as { status: string }
 
   sqlite.exec(`
@@ -433,14 +424,14 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 
     INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion,
-      sourceSchemaVersion, cohortKey,
+      sourceSchemaVersion, cohortKey, geometryStatus,
       rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
       'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       'hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea',
       'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
-      '2023-H2', '1.0', '2023-H2',
+      '2023-H2', '1.0', '2023-H2', 'authoritative',
       'hk/hkgov-censtatd/2023-H2/division-area.parquet', 'division-area.parquet',
       'published', '2026-06-05T00:02:00.000Z',
       '2026-06-05T00:02:00.000Z', '2026-06-05T00:02:00.000Z'
@@ -487,7 +478,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   })
   const revisionRowsBeforeReconciliation = sqlite
     .query(
-      'SELECT code, revision, status FROM apiReleaseSets WHERE cohortKey = ? ORDER BY revision',
+      'SELECT r.code, r.revision, v.status FROM apiReleaseSets r JOIN apiVersionReleaseSets v ON v.apiReleaseSetId = r.id WHERE r.cohortKey = ? ORDER BY r.revision',
     )
     .all(cohortKey) as Array<{ code: string; revision: number; status: string }>
 
@@ -496,7 +487,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     regionCode: 'hk',
   })
   const reconciledSet = sqlite
-    .query('SELECT status FROM apiReleaseSets WHERE id = ?')
+    .query('SELECT status FROM apiVersionReleaseSets WHERE apiReleaseSetId = ?')
     .get(releaseSetId) as { status: string }
 
   expect(result.apiReleaseSetId).toBe(releaseSetId)
@@ -551,7 +542,12 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       },
     ],
   })
-  expect(reconciledSet.status).toBe('current')
+  expect(reconciledSet.status).toBe('archived')
+  expect(
+    sqlite
+      .query('SELECT status FROM apiVersionReleaseSets WHERE apiReleaseSetId = ?')
+      .get('api-release-set-data-hk-divisions-2026-06-17.0'),
+  ).toEqual({ status: 'current' })
   const statsRecovery = await handleReconcileDraftReleaseSets(db, {
     apiFamily: 'divisions',
     regionCode: 'hk',
@@ -566,7 +562,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   })
   // Archived cohorts with partial presentation stats must remain recoverable.
   sqlite
-    .query('UPDATE apiReleaseSets SET status = ? WHERE id = ?')
+    .query('UPDATE apiVersionReleaseSets SET status = ? WHERE apiReleaseSetId = ?')
     .run('archived', releaseSetId)
   sqlite
     .query(
@@ -598,7 +594,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   ).toBe(false)
   sqlite.query("DELETE FROM stats WHERE id = 'partial-division-stats'").run()
   sqlite
-    .query('UPDATE apiReleaseSets SET status = ? WHERE id = ?')
+    .query('UPDATE apiVersionReleaseSets SET status = ? WHERE apiReleaseSetId = ?')
     .run('current', releaseSetId)
   const deferredAfterReconciliation = await handlePublishDataset(db, {
     deferApiReleaseSet: true,
@@ -606,7 +602,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   })
   const revisionRowsAfterReconciliation = sqlite
     .query(
-      'SELECT code, revision, status FROM apiReleaseSets WHERE cohortKey = ? ORDER BY revision',
+      'SELECT r.code, r.revision, v.status FROM apiReleaseSets r JOIN apiVersionReleaseSets v ON v.apiReleaseSetId = r.id WHERE r.cohortKey = ? ORDER BY r.revision',
     )
     .all(cohortKey) as Array<{ code: string; revision: number; status: string }>
 

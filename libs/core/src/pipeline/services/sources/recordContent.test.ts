@@ -22,7 +22,7 @@ test('record content excludes nested bookkeeping metadata and preserves semantic
     versionHash: 'dependency-content',
   }
   const before = structuredClone(input)
-  expect(recordContent(input)).toEqual({
+  expect<Record<string, unknown>>(recordContent(input)).toEqual({
     name: 'Original',
     sources: [{ dataset: 'publisher' }],
     geometry,

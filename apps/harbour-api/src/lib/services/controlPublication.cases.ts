@@ -346,18 +346,18 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
   const dbPath = join(tempDir, 'harbour-publish-rebuild.sqlite')
   const sqlite = initDb(dbPath)
   const db = createLocalHarbourDb(sqlite)
-  const resourceReleaseId = 'release-dr-hk-overture-division-2026-02-18.0'
-  const firstSnapshotId = 'snapshot-release-dr-hk-overture-division-2026-02-18.0'
+  const resourceReleaseId = 'release-dr-hk-overture-division-2026-07-22.0'
+  const firstSnapshotId = 'snapshot-release-dr-hk-overture-division-2026-07-22.0'
   const rebuiltSnapshotId = `${firstSnapshotId}-r1`
 
   insertFixtureRelease(sqlite, {
     resourceReleaseId,
     source: 'overture',
     regionCode: 'hk',
-    cohortKey: '2026-02',
+    cohortKey: '2026-07',
     resourceType: 'division',
-    sourceVersion: '2026-02-18.0',
-    rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
+    sourceVersion: '2026-07-22.0',
+    rawObjectKey: 'hk/overture/2026-07-22.0/division.parquet',
     originalFileName: 'division.parquet',
     status: 'staged',
     ingestedAt: '2026-06-05T00:00:00.000Z',
@@ -365,7 +365,7 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
     updatedAt: '2026-06-05T00:00:00.000Z',
   })
   seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-02-18.0',
+    code: 'ss-hk-division-2026-07-22.0',
     resourceReleaseId,
     snapshotId: firstSnapshotId,
     status: 'draft',
@@ -373,14 +373,14 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
   })
   seedCompleteDivisionSourceSignature(sqlite, {
     snapshotId: firstSnapshotId,
-    sourceVersion: '2026-02-18.0',
+    sourceVersion: '2026-07-22.0',
     overtureSchemaVersion: '1.16.0',
   })
 
   const firstPublication = await handlePublishDataset(db, { resourceReleaseId })
 
   seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-02-18.0-r1',
+    code: 'ss-hk-division-2026-07-22.0-r1',
     resourceReleaseId,
     snapshotId: rebuiltSnapshotId,
     status: 'draft',
@@ -417,7 +417,7 @@ test('rebuilds a published Geographic snapshot into a new API release-set revisi
 
   expect(rebuiltPublication).toMatchObject({
     apiReleaseSetStatus: 'current',
-    datasetId: 'dr-hk-overture-division-2026-02-18.0',
+    datasetId: 'dr-hk-overture-division-2026-07-22.0',
     resourceReleaseId,
     snapshotId: rebuiltSnapshotId,
     status: 'current',

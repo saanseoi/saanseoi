@@ -8,7 +8,7 @@ import {
 } from './curatedDivisionPolicy'
 import { normaliseCuratedDivision } from './curatedDivision'
 import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
-import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
+import { recordContent } from '../sources/recordContent'
 import {
   beginSnapshotPublication,
   completeSnapshotPublication,
