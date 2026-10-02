@@ -415,12 +415,12 @@ export async function listRegistryReleases(
       db
         .select({
           apiReleaseSetId: stats.apiReleaseSetId,
-          dimension: stats.dimension,
-          metric: stats.metric,
-          metricUnit: stats.metricUnit,
+          category: stats.category,
+          measure: stats.measure,
+          unit: stats.unit,
           value: stats.value,
-          groupBy: stats.groupBy,
-          groupValue: stats.groupValue,
+          dimension: stats.dimension,
+          dimensionValue: stats.dimensionValue,
         })
         .from(stats)
         .where(inArray(stats.apiReleaseSetId, ids))
@@ -1444,22 +1444,22 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
           db
             .select({
               resourceReleaseId: stats.resourceReleaseId,
-              dimension: stats.dimension,
-              metric: stats.metric,
-              metricUnit: stats.metricUnit,
+              category: stats.category,
+              measure: stats.measure,
+              unit: stats.unit,
               value: stats.value,
-              groupBy: stats.groupBy,
-              groupValue: stats.groupValue,
+              dimension: stats.dimension,
+              dimensionValue: stats.dimensionValue,
             })
             .from(stats)
             .where(
               and(
                 inArray(stats.resourceReleaseId, ids),
-                eq(stats.dimension, 'records'),
-                eq(stats.metric, 'count'),
-                eq(stats.metricUnit, 'count'),
-                isNull(stats.groupBy),
-                isNull(stats.groupValue),
+                eq(stats.category, 'records'),
+                eq(stats.measure, 'count'),
+                eq(stats.unit, 'count'),
+                isNull(stats.dimension),
+                isNull(stats.dimensionValue),
               ),
             )
             .all(),
@@ -1791,12 +1791,12 @@ async function queryRegistrySourceVersions(
         db
           .select({
             resourceReleaseId: stats.resourceReleaseId,
-            dimension: stats.dimension,
-            metric: stats.metric,
-            metricUnit: stats.metricUnit,
+            category: stats.category,
+            measure: stats.measure,
+            unit: stats.unit,
             value: stats.value,
-            groupBy: stats.groupBy,
-            groupValue: stats.groupValue,
+            dimension: stats.dimension,
+            dimensionValue: stats.dimensionValue,
           })
           .from(stats)
           .where(inArray(stats.resourceReleaseId, ids))

@@ -274,11 +274,11 @@ describe('LandsD Road Centreline matching', () => {
     const stats = buildRoadCentrelineReleaseStats(result.records)
 
     expect(stats).toContainEqual({
-      dimension: 'records',
-      groupBy: 'district',
-      groupValue: 'district-east',
-      metric: 'distribution',
-      metricUnit: 'count',
+      category: 'records',
+      dimension: 'district',
+      dimensionValue: 'district-east',
+      measure: 'count',
+      unit: 'count',
       value: 1,
     })
   })

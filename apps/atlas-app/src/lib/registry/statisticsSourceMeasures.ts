@@ -23,14 +23,14 @@ export async function readStatisticsSourceMeasures(input: {
     .get()
   if (!release) return []
   const assertions = await input.metaDb
-    .select({ fieldName: stats.groupValue, count: stats.value })
+    .select({ fieldName: stats.dimensionValue, count: stats.value })
     .from(stats)
     .where(
       and(
         eq(stats.resourceReleaseId, release.id),
-        eq(stats.dimension, 'observations'),
-        eq(stats.groupBy, 'field'),
-        eq(stats.metric, 'count'),
+        eq(stats.category, 'observations'),
+        eq(stats.dimension, 'field'),
+        eq(stats.measure, 'count'),
       ),
     )
     .all()

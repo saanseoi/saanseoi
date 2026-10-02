@@ -51,7 +51,7 @@ export async function findPreviousComparableCenstatdReleaseStats(
       .where(
         and(
           eq(metaSchema.stats.resourceReleaseId, candidate.id),
-          sql`${metaSchema.stats.metric} != 'processing'`,
+          sql`${metaSchema.stats.category} != 'processing'`,
         ),
       )
       .all()

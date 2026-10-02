@@ -182,12 +182,12 @@ id TEXT PRIMARY KEY,
     CREATE TABLE stats (
       id TEXT PRIMARY KEY,
       apiReleaseSetId TEXT,
-      dimension TEXT NOT NULL,
-      metric TEXT NOT NULL,
-      metricUnit TEXT NOT NULL,
+      category TEXT NOT NULL,
+      measure TEXT NOT NULL,
+      unit TEXT NOT NULL,
       value REAL NOT NULL,
-      groupBy TEXT,
-      groupValue TEXT
+      dimension TEXT,
+      dimensionValue TEXT
     );
 
     CREATE TABLE snapshotResourceReleases (

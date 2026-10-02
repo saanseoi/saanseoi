@@ -35,16 +35,16 @@ describe('Places SQL materialisation', () => {
 
     expect(rows).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ dimension: 'records', value: 1 }),
+        expect.objectContaining({ category: 'records', value: 1 }),
         expect.objectContaining({
-          dimension: 'localisation_coverage',
-          groupValue: 'name:en',
+          category: 'localisation_coverage',
+          dimensionValue: 'name:en',
           value: 100,
-          metricUnit: 'percentage',
+          unit: 'percentage',
         }),
         expect.objectContaining({
-          dimension: 'localisation_missing_value_count',
-          groupValue: 'freeformAddress:zh-hant',
+          category: 'localisation_missing_value_count',
+          dimensionValue: 'freeformAddress:zh-hant',
           value: 1,
         }),
       ]),

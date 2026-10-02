@@ -108,18 +108,18 @@ function buildPlaceReleaseStatsRowsFromValues(input: {
 }): ReleaseScopedStatsRow[] {
   const timestamp = new Date().toISOString()
   const row = (
-    dimension: string,
+    category: string,
     value: number,
-    groupBy: string | null = null,
-    groupValue: string | null = null,
-    metric: 'count' | 'percentage' = 'count',
+    dimension: string | null = null,
+    dimensionValue: string | null = null,
+    measure: 'count' | 'percentage' = 'count',
   ): ReleaseScopedStatsRow => ({
     createdAt: timestamp,
+    category,
     dimension,
-    groupBy,
-    groupValue,
-    metric,
-    metricUnit: metric,
+    dimensionValue,
+    measure,
+    unit: measure,
 
     updatedAt: timestamp,
     value,
@@ -137,71 +137,71 @@ function buildPlaceReleaseStatsRowsFromValues(input: {
   ]
   for (const [fieldLocale, stats] of input.localisationStats.fields) {
     const [field, locale] = fieldLocale.split('\u0000')
-    const grouping = { groupBy: 'field_locale', groupValue: `${field}:${locale}` }
+    const grouping = { dimension: 'field_locale', dimensionValue: `${field}:${locale}` }
     statsRows.push(
       row(
         'localisation_value_count',
         stats.valueCount,
-        grouping.groupBy,
-        grouping.groupValue,
+        grouping.dimension,
+        grouping.dimensionValue,
       ),
       row(
         'localisation_coverage',
         percentage(stats.valueCount, input.processedRows),
-        grouping.groupBy,
-        grouping.groupValue,
+        grouping.dimension,
+        grouping.dimensionValue,
         'percentage',
       ),
       row(
         'localisation_provided_coverage',
         percentage(stats.providedCount, input.processedRows),
-        grouping.groupBy,
-        grouping.groupValue,
+        grouping.dimension,
+        grouping.dimensionValue,
         'percentage',
       ),
       row(
         'localisation_inferred_coverage',
         percentage(stats.inferredCount, input.processedRows),
-        grouping.groupBy,
-        grouping.groupValue,
+        grouping.dimension,
+        grouping.dimensionValue,
         'percentage',
       ),
       row(
         'localisation_ai_translated_coverage',
         percentage(stats.aiTranslatedCount, input.processedRows),
-        grouping.groupBy,
-        grouping.groupValue,
+        grouping.dimension,
+        grouping.dimensionValue,
         'percentage',
       ),
       row(
         'localisation_human_translated_coverage',
         percentage(stats.humanTranslatedCount, input.processedRows),
-        grouping.groupBy,
-        grouping.groupValue,
+        grouping.dimension,
+        grouping.dimensionValue,
         'percentage',
       ),
       row(
         'localisation_conflict_count',
         stats.conflictCount,
-        grouping.groupBy,
-        grouping.groupValue,
+        grouping.dimension,
+        grouping.dimensionValue,
       ),
       row(
         'localisation_missing_value_count',
         stats.missingCount,
-        grouping.groupBy,
-        grouping.groupValue,
+        grouping.dimension,
+        grouping.dimensionValue,
       ),
     )
   }
-  const referenceGrouping = { groupBy: 'field', groupValue: 'referenceName' }
+  const referenceGrouping = { dimension: 'field', dimensionValue: 'referenceName' }
   statsRows.push(
     row('reference_name_count', input.localisationStats.referenceNameCount),
     row(
       'reference_name_coverage',
       percentage(input.localisationStats.referenceNameCount, input.processedRows),
-      referenceGrouping.groupBy,
-      referenceGrouping.groupValue,
+      referenceGrouping.dimension,
+      referenceGrouping.dimensionValue,
       'percentage',
     ),
     row(
@@ -214,8 +214,8 @@ function buildPlaceReleaseStatsRowsFromValues(input: {
         input.localisationStats.bilingualReferenceNameCount,
         input.processedRows,
       ),
-      referenceGrouping.groupBy,
-      referenceGrouping.groupValue,
+      referenceGrouping.dimension,
+      referenceGrouping.dimensionValue,
       'percentage',
     ),
   )

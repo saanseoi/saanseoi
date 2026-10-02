@@ -33,15 +33,16 @@ const field = (fieldName: string, datasetCode = 'a') =>
   }) as StatisticsStatsData['fields'][number]
 const value = (
   rows: ReturnType<typeof buildStatisticsStatsRows>,
-  dimension: string,
-  groupBy: string | null = null,
-  groupValue: string | null = null,
+  category: string,
+  dimension: string | null = null,
+  dimensionValue: string | null = null,
 ) =>
   rows.find(
     row =>
+      (row.category === category ||
+        (row.category === 'changes' && row.measure === category)) &&
       row.dimension === dimension &&
-      row.groupBy === groupBy &&
-      row.groupValue === groupValue,
+      row.dimensionValue === dimensionValue,
   )?.value
 
 test('counts dataset-qualified fields, literal availability and localisation without summing values', () => {
@@ -108,7 +109,7 @@ test('structural churn ignores numerical changes and distinguishes dataset ident
   expect(value(rows, 'changed_count')).toBe(1)
   expect(value(rows, 'added_count')).toBe(1)
   expect(
-    rows.some(row => row.dimension === 'changed_count' && row.groupBy === 'structural'),
+    rows.some(row => row.measure === 'changed_count' && row.dimension === 'structural'),
   ).toBe(false)
 })
 function createTables(sqlite: Database, tables: SQLiteTable[]) {

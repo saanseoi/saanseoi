@@ -306,16 +306,16 @@ export function formatStatsReportTable(rows: StatReportRow[]) {
   return orderedReleaseCodes
     .map(releaseCode => {
       const releaseRows = groupedRows.get(releaseCode) ?? []
-      const sections = ['completeness', 'churn', 'quality', 'processing']
-        .map(metric => {
-          const metricRows = releaseRows.filter(row => row.metric === metric)
+      const sections = ['completeness', 'changes', 'quality', 'processing']
+        .map(category => {
+          const measureRows = releaseRows.filter(row => row.category === category)
 
-          if (metricRows.length === 0) {
+          if (measureRows.length === 0) {
             return null
           }
 
-          const pivot = pivotStatsRows(metricRows)
-          return [metric, formatTable(pivot.headers, pivot.rows)].join('\n')
+          const pivot = pivotStatsRows(measureRows)
+          return [category, formatTable(pivot.headers, pivot.rows)].join('\n')
         })
         .filter((section): section is string => section !== null)
 
@@ -513,32 +513,32 @@ function isSqlHiddenUmbrellaPhase(phase: string) {
 
 function pivotStatsRows(rows: StatReportRow[]) {
   const countHeaders = uniqueHeaders(
-    rows.filter(row => row.metricUnit === 'count').map(row => row.dimension),
+    rows.filter(row => row.unit === 'count').map(row => row.measure),
   )
   const percentageHeaders = uniqueHeaders(
-    rows.filter(row => row.metricUnit === 'percentage').map(row => row.dimension),
+    rows.filter(row => row.unit === 'percentage').map(row => row.measure),
   )
-  const dimensionHeaders = [...countHeaders, ...percentageHeaders]
+  const measureHeaders = [...countHeaders, ...percentageHeaders]
   const grouped = new Map<string, Map<string, string>>()
 
   for (const row of rows) {
     const rowLabel = formatStatsRowLabel(row)
     const current = grouped.get(rowLabel) ?? new Map<string, string>()
-    current.set(row.dimension, formatNumber(row.value))
+    current.set(row.measure, formatNumber(row.value))
     grouped.set(rowLabel, current)
   }
 
   return {
-    headers: ['group', ...dimensionHeaders],
+    headers: ['group', ...measureHeaders],
     rows: [...grouped.entries()].map(([label, values]) => [
       label,
-      ...dimensionHeaders.map(header => values.get(header) ?? '-'),
+      ...measureHeaders.map(header => values.get(header) ?? '-'),
     ]),
   }
 }
 
 function formatStatsRowLabel(row: StatReportRow) {
-  return row.groupBy ? `${row.groupBy}=${row.groupValue ?? '(null)'}` : 'all'
+  return row.dimension ? `${row.dimension}=${row.dimensionValue ?? '(null)'}` : 'all'
 }
 
 function formatDateTime(value: string) {

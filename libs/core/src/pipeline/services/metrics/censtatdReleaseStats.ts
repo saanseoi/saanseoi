@@ -119,34 +119,34 @@ export function buildCenstatdReleaseStats(
 ): ReleaseScopedStatsRow[] {
   const rows: ReleaseScopedStatsRow[] = []
   const add = (
-    dimension: string,
-    metric: string,
+    category: string,
+    measure: string,
     value: number,
-    grouping?: { groupBy: string; groupValue: string },
+    grouping?: { dimension: string; dimensionValue: string },
   ) => {
     rows.push({
       createdAt,
-      dimension,
-      groupBy: grouping?.groupBy ?? null,
-      groupValue: grouping?.groupValue ?? null,
-      metric,
-      metricUnit: 'count',
+      category,
+      dimension: grouping?.dimension ?? null,
+      dimensionValue: grouping?.dimensionValue ?? null,
+      measure,
+      unit: 'count',
 
       updatedAt: createdAt,
       value,
     })
   }
   const distribution = (
+    category: string,
     dimension: string,
-    groupBy: string,
     values: Iterable<string>,
   ) => {
     const counts = new Map<string, number>()
     for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1)
-    for (const [groupValue, count] of [...counts].sort(([a], [b]) =>
+    for (const [dimensionValue, count] of [...counts].sort(([a], [b]) =>
       a.localeCompare(b),
     )) {
-      add(dimension, 'count', count, { groupBy, groupValue })
+      add(category, 'count', count, { dimension, dimensionValue })
     }
   }
 
@@ -320,13 +320,13 @@ export function buildCenstatdStructuralChurnStats(
   if (!previous?.length) return []
 
   const rows: ReleaseScopedStatsRow[] = []
-  for (const [groupValue, dimension, groupBy] of [
+  for (const [dimensionValue, category, dimension] of [
     ['fields', 'observations', 'field'],
     ['dimensions', 'dimensions', 'definitionCode'],
     ['reference_periods', 'observations', 'referencePeriod'],
   ] as const) {
-    const currentValues = groupedValues(current, dimension, groupBy)
-    const previousValues = groupedValues(previous, dimension, groupBy)
+    const currentValues = groupedValues(current, category, dimension)
+    const previousValues = groupedValues(previous, category, dimension)
     if (!currentValues.size && !previousValues.size) continue
     const added = [...currentValues].filter(value => !previousValues.has(value)).length
     const removed = [...previousValues].filter(
@@ -343,11 +343,11 @@ export function buildCenstatdStructuralChurnStats(
     ] as const) {
       rows.push({
         createdAt,
-        dimension: churnDimension,
-        groupBy: 'structural',
-        groupValue,
-        metric: 'churn',
-        metricUnit: 'count',
+        category: 'changes',
+        dimension: 'structural',
+        dimensionValue,
+        measure: churnDimension,
+        unit: 'count',
 
         updatedAt: createdAt,
         value,
@@ -358,14 +358,17 @@ export function buildCenstatdStructuralChurnStats(
 }
 
 function groupedValues(
-  rows: readonly Pick<ReleaseScopedStatsRow, 'dimension' | 'groupBy' | 'groupValue'>[],
+  rows: readonly Pick<
+    ReleaseScopedStatsRow,
+    'category' | 'dimension' | 'dimensionValue'
+  >[],
+  category: string,
   dimension: string,
-  groupBy: string,
 ) {
   return new Set(
     rows
-      .filter(row => row.dimension === dimension && row.groupBy === groupBy)
-      .map(row => row.groupValue)
+      .filter(row => row.category === category && row.dimension === dimension)
+      .map(row => row.dimensionValue)
       .filter((value): value is string => Boolean(value)),
   )
 }

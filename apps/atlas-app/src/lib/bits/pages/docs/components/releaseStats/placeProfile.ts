@@ -8,13 +8,13 @@ export function createPlaceProfile(
 ) {
   const claimed = new Set<ReleaseStat>()
   const format = (row?: ReleaseStat) =>
-    row ? formatReleaseStat(locale, row.value, row.metricUnit ?? row.metric) : '—'
-  const take = (dimension: string, groupBy?: string, groupValue?: string) => {
+    row ? formatReleaseStat(locale, row.value, row.unit ?? row.measure) : '—'
+  const take = (category: string, dimension?: string, dimensionValue?: string) => {
     const row = stats.find(
       row =>
-        row.dimension === dimension &&
-        (row.groupBy ?? undefined) === groupBy &&
-        (row.groupValue ?? undefined) === groupValue,
+        row.category === category &&
+        (row.dimension ?? undefined) === dimension &&
+        (row.dimensionValue ?? undefined) === dimensionValue,
     )
     if (row) claimed.add(row)
     return row
@@ -30,8 +30,8 @@ export function createPlaceProfile(
     ['address_links', '', 'Places with linked addresses'],
     ['division_links', '', 'Division links'],
     ['localised_rows', '', 'Localised entries'],
-  ].flatMap(([dimension, coverage, label]) => {
-    const count = take(dimension)
+  ].flatMap(([category, coverage, label]) => {
+    const count = take(category)
     const percentage = coverage ? take(coverage, 'field', 'referenceName') : undefined
     return count || percentage
       ? [
@@ -46,8 +46,10 @@ export function createPlaceProfile(
   const fields = [
     ...new Set(
       stats
-        .filter(row => row.groupBy === 'field_locale' && row.groupValue?.includes(':'))
-        .map(row => row.groupValue!.split(':')[0]),
+        .filter(
+          row => row.dimension === 'field_locale' && row.dimensionValue?.includes(':'),
+        )
+        .map(row => row.dimensionValue!.split(':')[0]),
     ),
   ]
     .sort((a, b) => (a === 'name' ? -1 : b === 'name' ? 1 : a.localeCompare(b)))
@@ -60,15 +62,15 @@ export function createPlaceProfile(
         const count =
           field === 'name'
             ? stats.find(
-                row => row.dimension === 'reference_name_count' && !row.groupBy,
+                row => row.category === 'reference_name_count' && !row.dimension,
               )
             : undefined
         const coverage =
           field === 'name'
             ? stats.find(
                 row =>
-                  row.dimension === 'reference_name_coverage' &&
-                  row.groupBy === 'field',
+                  row.category === 'reference_name_coverage' &&
+                  row.dimension === 'field',
               )
             : undefined
         return {
@@ -85,10 +87,10 @@ export function createPlaceProfile(
           stats
             .filter(
               row =>
-                row.groupBy === 'field_locale' &&
-                row.groupValue?.startsWith(`${field}:`),
+                row.dimension === 'field_locale' &&
+                row.dimensionValue?.startsWith(`${field}:`),
             )
-            .map(row => row.groupValue!),
+            .map(row => row.dimensionValue!),
         ),
       ]
         .map(key => {
@@ -120,13 +122,13 @@ export function createPlaceProfile(
     .filter(
       row =>
         fields.length > 0 &&
-        row.groupBy === 'locale' &&
-        row.dimension === 'localised_records' &&
-        row.metric === 'count',
+        row.dimension === 'locale' &&
+        row.category === 'localised_records' &&
+        row.measure === 'count',
     )
     .map(row => {
       claimed.add(row)
-      return { label: copy.localeName(row.groupValue ?? ''), value: format(row) }
+      return { label: copy.localeName(row.dimensionValue ?? ''), value: format(row) }
     })
   return {
     profile: { metrics, fields, locales },

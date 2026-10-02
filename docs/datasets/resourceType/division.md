@@ -195,16 +195,19 @@ Division processing computes release-level stats and stores them against the rel
 These are built in `libs/core/src/pipeline/services/metrics/releaseStats.ts`, serialised
 into a dedicated `stats` SQL artefact, and imported into `DB_META`.
 
-Atlas-facing division summaries should be written as `type = apiReleaseSet` stats
-against the API release set. The standard rows are:
+SaanSeoi-facing division summaries are owned by `apiReleaseSetId`. Each row uses
+`category`, `measure`, `unit`, `dimension`, and `dimensionValue`; see the
+[release statistics contract](../release-stats.md). The standard rows are:
 
-- `records/count/count` total, plus `groupBy = table` rows for `divisions`
-- `localised_records/count/count` with `groupBy = table`, `groupValue = divisionsI18n`
+- `records/count/count` total, plus `dimension = table` rows for `divisions`
+- `localised_records/count/count` with `dimension = table`,
+  `dimensionValue = divisionsI18n`
 - `records/count/count` grouped by `level`
 - `records/count/count` grouped by `divisionType`
-- locale completeness rows: `locale_count`, `locale_coverage`,
-  `locale_coverage_non_inferred`, and `locale_alt_coverage`
-- churn rows for `count`, `added_count`, `changed_count`, `unchanged_count`, and
+- `completeness` rows: `locale_count`, `locale_coverage`, `locale_coverage_provided`,
+  `locale_coverage_inferred`, `locale_coverage_ai_translated`,
+  `locale_coverage_human_translated`, and `locale_alt_coverage`
+- `changes` rows for `count`, `added_count`, `changed_count`, `unchanged_count`, and
   `removed_count`, optionally grouped by `level` and `divisionType`
 - quality rows for `parent_changed_count`, `geometry_changed_count`,
   `locale_regression_count`, and `name_regression_count`

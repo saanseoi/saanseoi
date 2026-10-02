@@ -7,15 +7,15 @@ let { profile }: { profile: PlaceProfile } = $props()
 <Section id="stats-place-overview">
   <Header eyebrow="Places" title="Place coverage" />
   <dl class="grid grid-cols-2 gap-px bg-data-outline-variant/60 sm:grid-cols-3">
-    {#each profile.metrics as metric}
+    {#each profile.metrics as measure}
       <div class="bg-data-surface-container px-5 py-5">
-        <dt class="text-label-md text-foreground-alt">{metric.label}</dt>
+        <dt class="text-label-md text-foreground-alt">{measure.label}</dt>
         <dd
           class="mt-2 flex flex-wrap items-baseline gap-x-2 font-mono text-headline-md font-bold tabular-nums text-primary"
         >
-          {metric.value}
-          {#if metric.coverage}
-            <span class="text-label-md text-data-primary">{metric.coverage}</span>
+          {measure.value}
+          {#if measure.coverage}
+            <span class="text-label-md text-data-primary">{measure.coverage}</span>
           {/if}
         </dd>
       </div>

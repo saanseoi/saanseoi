@@ -51,22 +51,22 @@ export function buildReleaseStatsMetaSqlBatches(
   rows: readonly ReleaseStatsRow[],
 ) {
   const statements = [
-    `DELETE FROM "stats" WHERE "resourceReleaseId" = ${sqlValue(resourceReleaseId)} AND "metric" != 'processing';`,
+    `DELETE FROM "stats" WHERE "resourceReleaseId" = ${sqlValue(resourceReleaseId)} AND "category" != 'processing';`,
     ...[...rows]
       .sort((left, right) => left.id.localeCompare(right.id))
       .map(
         row =>
-          'INSERT INTO "stats" ("id", "resourceReleaseId", "apiReleaseSetId", "dimension", "metric", "metricUnit", "value", "groupBy", "groupValue", "createdAt", "updatedAt") VALUES (' +
+          'INSERT INTO "stats" ("id", "resourceReleaseId", "apiReleaseSetId", "category", "measure", "unit", "value", "dimension", "dimensionValue", "createdAt", "updatedAt") VALUES (' +
           [
             row.id,
             row.resourceReleaseId,
             row.apiReleaseSetId,
-            row.dimension,
-            row.metric,
-            row.metricUnit,
+            row.category,
+            row.measure,
+            row.unit,
             row.value,
-            row.groupBy,
-            row.groupValue,
+            row.dimension,
+            row.dimensionValue,
             row.createdAt,
             row.updatedAt,
           ]

@@ -73,11 +73,11 @@ export type RoadCentrelineMatchIssue = {
 }
 
 export type RoadCentrelineReleaseStat = {
-  dimension: string
-  groupBy?: string
-  groupValue?: string
-  metric: string
-  metricUnit: 'count' | 'percentage'
+  category: string
+  dimension?: string
+  dimensionValue?: string
+  measure: string
+  unit: 'count' | 'percentage'
   value: number
 }
 
@@ -320,35 +320,35 @@ export function buildRoadCentrelineReleaseStats(
   }
   return [
     {
-      dimension: 'records',
-      groupBy: 'source',
-      groupValue: 'roadCentreline',
-      metric: 'count',
-      metricUnit: 'count',
+      category: 'records',
+      dimension: 'source',
+      dimensionValue: 'roadCentreline',
+      measure: 'count',
+      unit: 'count',
       value: records.length,
     },
     {
-      dimension: 'street_coverage',
-      metric: 'count',
-      metricUnit: 'count',
+      category: 'street_coverage',
+      measure: 'count',
+      unit: 'count',
       value: new Set(
         records.flatMap(record => (record.streetId ? [record.streetId] : [])),
       ).size,
     },
     ...[...byStreetType.entries()].map(([type, count]) => ({
-      dimension: 'records',
-      groupBy: 'streetType',
-      groupValue: type,
-      metric: 'count',
-      metricUnit: 'count' as const,
+      category: 'records',
+      dimension: 'streetType',
+      dimensionValue: type,
+      measure: 'count',
+      unit: 'count' as const,
       value: count,
     })),
     ...[...byDistrict.entries()].map(([districtId, count]) => ({
-      dimension: 'records',
-      groupBy: 'district',
-      groupValue: districtId,
-      metric: 'distribution',
-      metricUnit: 'count' as const,
+      category: 'records',
+      dimension: 'district',
+      dimensionValue: districtId,
+      measure: 'count',
+      unit: 'count' as const,
       value: count,
     })),
   ]

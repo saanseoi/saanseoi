@@ -27,10 +27,10 @@ let {
         ><InfoTooltip
           label={labels.changeSummary}
           description={overview.churn.unavailable
-  ? 'Change counts are not available for this release.'
-  : overview.churn.baseline
-    ? labels.comparisonBaseline
-    : labels.comparisonPrevious}
+            ? 'Change counts are not available for this release.'
+            : overview.churn.baseline
+              ? labels.comparisonBaseline
+              : labels.comparisonPrevious}
         /></span
       >
     {/if}
@@ -42,8 +42,8 @@ let {
       </p>
     {/if}
     <div class="grid grid-cols-2 gap-px bg-data-outline-variant/60 sm:grid-cols-4">
-      {#each overview.churn.metrics as metric}
-        <ChurnMetric {metric} />
+      {#each overview.churn.metrics as measure}
+        <ChurnMetric {measure} />
       {/each}
     </div>
   {/if}</Section

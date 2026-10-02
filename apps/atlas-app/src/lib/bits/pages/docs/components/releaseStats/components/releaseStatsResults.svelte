@@ -40,7 +40,9 @@ let {
   {#if presentation.statisticsProfile}
     <StatisticsProfile profile={presentation.statisticsProfile}>
       {#snippet structural()}
-        {#each presentation.recordDistributions.filter(item => item.groupBy === 'structural') as distribution}
+        {#each presentation.recordDistributions.filter(
+          item => item.dimension === 'structural',
+        ) as distribution}
           <TypeDistribution {distribution} {labels} />
         {/each}
       {/snippet}
@@ -71,8 +73,8 @@ let {
     <Measures measures={presentation.measures} />
   {/if}
   {#each presentation.recordDistributions.filter(
-   item => !presentation.statisticsProfile || item.groupBy !== 'structural',
- ) as distribution}
+    item => !presentation.statisticsProfile || item.dimension !== 'structural',
+  ) as distribution}
     <TypeDistribution {distribution} {labels} />
   {/each}
   {#if presentation.processing}

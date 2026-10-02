@@ -139,12 +139,12 @@ export async function buildPlandMetaSql(
     'id',
     'resourceReleaseId',
     'apiReleaseSetId',
-    'dimension',
-    'metric',
-    'metricUnit',
+    'category',
+    'measure',
+    'unit',
     'value',
-    'groupBy',
-    'groupValue',
+    'dimension',
+    'dimensionValue',
     'createdAt',
     'updatedAt',
   ]
@@ -180,11 +180,11 @@ export async function buildPlandMetaSql(
       },
     ),
     ...auditSql,
-    `DELETE FROM stats WHERE resourceReleaseId = ${sqlLiteral(state.resourceReleaseId)} AND metric != 'processing';`,
+    `DELETE FROM stats WHERE resourceReleaseId = ${sqlLiteral(state.resourceReleaseId)} AND category != 'processing';`,
     ...buildInsertStatements(
       'stats',
       statsColumns,
-      stats.filter(row => row.metric !== 'processing'),
+      stats.filter(row => row.category !== 'processing'),
     ),
   ])
 }

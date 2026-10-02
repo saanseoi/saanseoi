@@ -155,28 +155,48 @@ export function buildStatisticsStatsRows(
   const rows: ApiReleaseSetScopedStatsRow[] = []
   const timestamp = new Date().toISOString()
   const add = (
-    dimension: string,
+    category: string,
     value: number,
-    groupBy: string | null = null,
-    groupValue: string | null = null,
-    metric = 'count',
-    metricUnit = 'count',
+    dimension: string | null = null,
+    dimensionValue: string | null = null,
+    measure = 'count',
+    unit = 'count',
   ) =>
     rows.push({
-      dimension,
+      category,
       value,
-      groupBy,
-      groupValue,
-      metric,
-      metricUnit,
+      dimension,
+      dimensionValue,
+      measure,
+      unit,
       createdAt: timestamp,
       updatedAt: timestamp,
     })
-  const distribute = (dimension: string, groupBy: string, values: Iterable<string>) => {
+  const addChange = (
+    measure: string,
+    value: number,
+    dimension: string | null = null,
+    dimensionValue: string | null = null,
+  ) =>
+    rows.push({
+      category: 'changes',
+      measure,
+      value,
+      dimension,
+      dimensionValue,
+      unit: 'count',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    })
+  const distribute = (
+    category: string,
+    dimension: string,
+    values: Iterable<string>,
+  ) => {
     const counts = new Map<string, number>()
     for (const value of values) counts.set(value, (counts.get(value) ?? 0) + 1)
     for (const [value, count] of [...counts].sort(([a], [b]) => a.localeCompare(b)))
-      add(dimension, count, groupBy, value)
+      add(category, count, dimension, value)
   }
   const fields = new Map(
     data.fields.map(row => [key(row.datasetCode, row.fieldName, row.versionHash), row]),
@@ -274,10 +294,10 @@ export function buildStatisticsStatsRows(
       locale,
     )
   }
-  for (const [dimension, value] of Object.entries(
+  for (const [category, value] of Object.entries(
     buildStatisticsRecordChurn(data.records, previous?.records),
   ))
-    add(dimension, value, null, null, 'churn')
+    addChange(category, value)
 
   // Structural identity counts are independent of record value changes.
   if (previous) {
@@ -299,27 +319,24 @@ export function buildStatisticsStatsRows(
     const current = structures(data),
       before = structures(previous)
     for (const group of ['fields', 'measures', 'geographies'] as const) {
-      add('count', current[group].size, 'structural', group, 'churn')
-      add(
+      addChange('count', current[group].size, 'structural', group)
+      addChange(
         'added_count',
         [...current[group]].filter(id => !before[group].has(id)).length,
         'structural',
         group,
-        'churn',
       )
-      add(
+      addChange(
         'removed_count',
         [...before[group]].filter(id => !current[group].has(id)).length,
         'structural',
         group,
-        'churn',
       )
-      add(
+      addChange(
         'unchanged_count',
         [...current[group]].filter(id => before[group].has(id)).length,
         'structural',
         group,
-        'churn',
       )
     }
   }

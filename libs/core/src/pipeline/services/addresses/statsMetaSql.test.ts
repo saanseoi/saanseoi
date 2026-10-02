@@ -5,19 +5,19 @@ import { buildAddressStatsMetaSql } from './sqlStages'
 test('Address metadata replay uses the current stats schema and preserves processing stats', () => {
   const db = new Database(':memory:')
   db.exec(
-    'CREATE TABLE stats(id TEXT PRIMARY KEY,resourceReleaseId TEXT,apiReleaseSetId TEXT,dimension TEXT,metric TEXT,metricUnit TEXT,value REAL,groupBy TEXT,groupValue TEXT,createdAt TEXT,updatedAt TEXT)',
+    'CREATE TABLE stats(id TEXT PRIMARY KEY,resourceReleaseId TEXT,apiReleaseSetId TEXT,category TEXT,measure TEXT,unit TEXT,value REAL,dimension TEXT,dimensionValue TEXT,createdAt TEXT,updatedAt TEXT)',
   )
   try {
     const rows = [
       {
         id: 'count',
         resourceReleaseId: 'release',
-        dimension: 'records',
-        metric: 'count',
-        metricUnit: 'count',
+        category: 'records',
+        measure: 'count',
+        unit: 'count',
         value: 42,
       },
-      { id: 'processing', metric: 'processing', value: 1 },
+      { id: 'processing', category: 'processing', value: 1 },
     ]
     db.exec(buildAddressStatsMetaSql(rows))
     expect(db.query('SELECT id,value FROM stats').all()).toEqual([

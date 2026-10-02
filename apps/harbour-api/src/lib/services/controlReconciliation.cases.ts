@@ -566,7 +566,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     .run('archived', releaseSetId)
   sqlite
     .query(
-      "INSERT INTO stats (id, apiReleaseSetId, dimension, metric, metricUnit, value, createdAt, updatedAt) VALUES ('partial-division-stats', ?, 'records', 'count', 'count', 1, '2026-01-01', '2026-01-01')",
+      "INSERT INTO stats (id, apiReleaseSetId, category, measure, unit, value, createdAt, updatedAt) VALUES ('partial-division-stats', ?, 'records', 'count', 'count', 1, '2026-01-01', '2026-01-01')",
     )
     .run(releaseSetId)
   const archivedRecovery = await handleReconcileDraftReleaseSets(db, {
@@ -580,7 +580,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   ).toBe(true)
   sqlite
     .query(
-      "UPDATE stats SET metric = 'churn', dimension = 'count' WHERE id = 'partial-division-stats'",
+      "UPDATE stats SET category = 'changes', measure = 'count' WHERE id = 'partial-division-stats'",
     )
     .run()
   const completeRecovery = await handleReconcileDraftReleaseSets(db, {

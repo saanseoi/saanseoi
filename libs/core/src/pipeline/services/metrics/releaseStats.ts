@@ -102,7 +102,7 @@ export type DivisionApiReleaseSetStatsInput = {
  * Turns exact, canonical geometry measurements into release-owned statistics.
  * Area geometry includes feature, polygon, area, boundary-segment, and
  * all-ring boundary-length measurements; boundary geometry deliberately has
- * no polygon or area metric.
+ * no polygon or area measure.
  */
 export function buildGeometryReleaseStatsRows(
   resourceType: 'divisionArea' | 'divisionBoundary',
@@ -112,7 +112,7 @@ export function buildGeometryReleaseStatsRows(
   return [...districts]
     .sort(([left], [right]) => left.localeCompare(right))
     .flatMap(([districtId, metrics]) => {
-      const grouping = { groupBy: 'district', groupValue: districtId }
+      const grouping = { dimension: 'district', dimensionValue: districtId }
       const rows: ReleaseScopedStatsRow[] = [
         buildReleaseStatsRow(
           'geometry',
@@ -271,25 +271,25 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
 
     return [
       buildReleaseStatsRow(
-        'locale_count',
         'completeness',
+        'locale_count',
         'count',
         localeCount,
         createdAt,
         {
-          groupBy: 'locale',
-          groupValue: locale,
+          dimension: 'locale',
+          dimensionValue: locale,
         },
       ),
       buildReleaseStatsRow(
-        'locale_coverage',
         'completeness',
+        'locale_coverage',
         'percentage',
         percentage(localeCount, total),
         createdAt,
         {
-          groupBy: 'locale',
-          groupValue: locale,
+          dimension: 'locale',
+          dimensionValue: locale,
         },
       ),
       ...(
@@ -299,28 +299,28 @@ export function buildLocaleStatsRows(statsAccumulator: LocaleStatsAccumulator) {
           ['locale_coverage_ai_translated', localeAiTranslatedCount],
           ['locale_coverage_human_translated', localeHumanTranslatedCount],
         ] as const
-      ).map(([dimension, count]) =>
+      ).map(([category, count]) =>
         buildReleaseStatsRow(
-          dimension,
           'completeness',
+          category,
           'percentage',
           percentage(count, total),
           createdAt,
           {
-            groupBy: 'locale',
-            groupValue: locale,
+            dimension: 'locale',
+            dimensionValue: locale,
           },
         ),
       ),
       buildReleaseStatsRow(
-        'locale_alt_coverage',
         'completeness',
+        'locale_alt_coverage',
         'percentage',
         percentage(localeAltCount, total),
         createdAt,
         {
-          groupBy: 'locale',
-          groupValue: locale,
+          dimension: 'locale',
+          dimensionValue: locale,
         },
       ),
     ]
@@ -446,8 +446,8 @@ export function buildChurnStatsRows(churn: {
 
     rows.push(
       ...buildChurnMetricRows(typeCounts, createdAt, {
-        groupBy: 'type',
-        groupValue: type,
+        dimension: 'type',
+        dimensionValue: type,
       }),
     )
   }
@@ -463,29 +463,29 @@ export function buildQualityStatsRows(counts: QualityCounts) {
 
   return [
     buildReleaseStatsRow(
-      'parent_changed_count',
       'quality',
+      'parent_changed_count',
       'count',
       counts.parent_changed_count,
       createdAt,
     ),
     buildReleaseStatsRow(
-      'locale_regression_count',
       'quality',
+      'locale_regression_count',
       'count',
       counts.locale_regression_count,
       createdAt,
     ),
     buildReleaseStatsRow(
-      'name_regression_count',
       'quality',
+      'name_regression_count',
       'count',
       counts.name_regression_count,
       createdAt,
     ),
     buildReleaseStatsRow(
-      'geometry_changed_count',
       'quality',
+      'geometry_changed_count',
       'count',
       counts.geometry_changed_count,
       createdAt,
@@ -512,8 +512,8 @@ export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
   const rows = [
     ...buildChurnMetricRows(churn, createdAt, null),
     buildReleaseStatsRow('records', 'count', 'count', recordedRows, createdAt, {
-      groupBy: 'table',
-      groupValue: 'address2d',
+      dimension: 'table',
+      dimensionValue: 'address2d',
     }),
     ...(input.address3dCount === undefined
       ? []
@@ -525,8 +525,8 @@ export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
             input.address3dCount,
             createdAt,
             {
-              groupBy: 'table',
-              groupValue: 'address3d',
+              dimension: 'table',
+              dimensionValue: 'address3d',
             },
           ),
         ]),
@@ -540,8 +540,8 @@ export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
             input.address3dI18nCount,
             createdAt,
             {
-              groupBy: 'table',
-              groupValue: 'address3dI18n',
+              dimension: 'table',
+              dimensionValue: 'address3dI18n',
             },
           ),
         ]),
@@ -554,36 +554,36 @@ export function buildAddressReleaseStatsRows(input: AddressReleaseStatsInput) {
       'count',
       input.localisedRows,
       createdAt,
-      { groupBy: 'table', groupValue: 'address2dI18n' },
+      { dimension: 'table', dimensionValue: 'address2dI18n' },
     ),
   ]
 
   if (input.quality) {
     rows.push(
       buildReleaseStatsRow(
-        'unmatched_area_count',
         'quality',
+        'unmatched_area_count',
         'count',
         input.quality.unmatched_area_count,
         createdAt,
       ),
       buildReleaseStatsRow(
-        'unmatched_district_count',
         'quality',
+        'unmatched_district_count',
         'count',
         input.quality.unmatched_district_count,
         createdAt,
       ),
       buildReleaseStatsRow(
-        'ambiguous_area_count',
         'quality',
+        'ambiguous_area_count',
         'count',
         input.quality.ambiguous_area_count,
         createdAt,
       ),
       buildReleaseStatsRow(
-        'ambiguous_district_count',
         'quality',
+        'ambiguous_district_count',
         'count',
         input.quality.ambiguous_district_count,
         createdAt,
@@ -606,17 +606,17 @@ export function buildAddressLocaleStatsRows(
   return ['en', 'zh-hant', 'zh-hans'].flatMap(locale => {
     const count = localeCounts[locale] ?? 0
     return [
-      buildReleaseStatsRow('locale_count', 'completeness', 'count', count, createdAt, {
-        groupBy: 'locale',
-        groupValue: locale,
+      buildReleaseStatsRow('completeness', 'locale_count', 'count', count, createdAt, {
+        dimension: 'locale',
+        dimensionValue: locale,
       }),
       buildReleaseStatsRow(
-        'locale_coverage',
         'completeness',
+        'locale_coverage',
         'percentage',
         percentage(count, total),
         createdAt,
-        { groupBy: 'locale', groupValue: locale },
+        { dimension: 'locale', dimensionValue: locale },
       ),
     ]
   })
@@ -638,12 +638,12 @@ export function buildAddressComponentStatsRows(
     'block',
   ].map(component =>
     buildReleaseStatsRow(
-      'component_coverage',
       'completeness',
+      'component_coverage',
       'percentage',
       percentage(componentCounts[component] ?? 0, total),
       createdAt,
-      { groupBy: 'addressComponent', groupValue: component },
+      { dimension: 'addressComponent', dimensionValue: component },
     ),
   )
 }
@@ -662,9 +662,9 @@ export function buildDistrictDistributionStatsRows(
     .filter(([, count]) => count > 0)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([districtId, count]) =>
-      buildReleaseStatsRow('records', 'distribution', 'count', count, createdAt, {
-        groupBy: 'district',
-        groupValue: districtId,
+      buildReleaseStatsRow('records', 'count', 'count', count, createdAt, {
+        dimension: 'district',
+        dimensionValue: districtId,
       }),
     )
 }
@@ -682,9 +682,9 @@ function buildApiReleaseSetDistrictDistributionStatsRows(
     .filter(([, count]) => count > 0)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([districtId, count]) =>
-      buildApiReleaseSetStatsRow('records', 'distribution', 'count', count, createdAt, {
-        groupBy: 'district',
-        groupValue: districtId,
+      buildApiReleaseSetStatsRow('records', 'count', 'count', count, createdAt, {
+        dimension: 'district',
+        dimensionValue: districtId,
       }),
     )
 }
@@ -708,8 +708,8 @@ export function buildAddressApiReleaseSetStatsRows(
       input.address2dCount,
       createdAt,
       {
-        groupBy: 'table',
-        groupValue: 'address2d',
+        dimension: 'table',
+        dimensionValue: 'address2d',
       },
     ),
     buildApiReleaseSetStatsRow(
@@ -719,8 +719,8 @@ export function buildAddressApiReleaseSetStatsRows(
       input.address2dI18nCount,
       createdAt,
       {
-        groupBy: 'table',
-        groupValue: 'address2dI18n',
+        dimension: 'table',
+        dimensionValue: 'address2dI18n',
       },
     ),
     buildApiReleaseSetStatsRow(
@@ -730,8 +730,8 @@ export function buildAddressApiReleaseSetStatsRows(
       input.address3dCount,
       createdAt,
       {
-        groupBy: 'table',
-        groupValue: 'address3d',
+        dimension: 'table',
+        dimensionValue: 'address3d',
       },
     ),
     buildApiReleaseSetStatsRow(
@@ -741,8 +741,8 @@ export function buildAddressApiReleaseSetStatsRows(
       input.address3dI18nCount,
       createdAt,
       {
-        groupBy: 'table',
-        groupValue: 'address3dI18n',
+        dimension: 'table',
+        dimensionValue: 'address3dI18n',
       },
     ),
     ...(input.address3dUnitCount == null
@@ -754,12 +754,12 @@ export function buildAddressApiReleaseSetStatsRows(
             'count',
             input.address3dUnitCount,
             createdAt,
-            { groupBy: 'table', groupValue: 'address3d' },
+            { dimension: 'table', dimensionValue: 'address3d' },
           ),
         ]),
     buildApiReleaseSetStatsRow(
-      'missing_street_count',
       'quality',
+      'missing_street_count',
       'count',
       input.missingStreetCount,
       createdAt,
@@ -783,8 +783,8 @@ export function buildAddressApiReleaseSetStatsRows(
     if (value !== undefined)
       rows.push(
         buildApiReleaseSetStatsRow('records', 'linkage', 'count', value, createdAt, {
-          groupBy: 'divisionLevel',
-          groupValue: level,
+          dimension: 'divisionLevel',
+          dimensionValue: level,
         }),
       )
   }
@@ -797,38 +797,38 @@ export function buildAddressApiReleaseSetStatsRows(
     rows.push(...buildApiReleaseSetChurnMetricRows(input.churn.totals, createdAt, null))
     rows.push(
       ...buildOptionalGroupedChurnRows(input.churn.address2d, createdAt, {
-        groupBy: 'table',
-        groupValue: 'address2d',
+        dimension: 'table',
+        dimensionValue: 'address2d',
       }),
       ...buildOptionalGroupedChurnRows(input.churn.address3d, createdAt, {
-        groupBy: 'table',
-        groupValue: 'address3d',
+        dimension: 'table',
+        dimensionValue: 'address3d',
       }),
     )
   }
 
   if (input.quality) {
-    for (const dimension of [
+    for (const category of [
       'locale_regression_count',
       'name_regression_count',
       'geometry_changed_count',
     ] as const) {
-      const value = input.quality[dimension]
+      const value = input.quality[category]
       if (value === undefined) continue
       rows.push(
-        buildApiReleaseSetStatsRow(dimension, 'quality', 'count', value, createdAt),
+        buildApiReleaseSetStatsRow('quality', category, 'count', value, createdAt),
       )
     }
-    for (const dimension of [
+    for (const category of [
       'unmatched_area_count',
       'unmatched_district_count',
       'ambiguous_area_count',
       'ambiguous_district_count',
     ] as const) {
-      const value = input.quality[dimension]
+      const value = input.quality[category]
       if (value === undefined) continue
       rows.push(
-        buildApiReleaseSetStatsRow(dimension, 'quality', 'count', value, createdAt),
+        buildApiReleaseSetStatsRow('quality', category, 'count', value, createdAt),
       )
     }
   }
@@ -847,12 +847,12 @@ function buildAddressApiReleaseSetComponentStatsRows(
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([component, count]) =>
       buildApiReleaseSetStatsRow(
-        'component_coverage',
         'completeness',
+        'component_coverage',
         'percentage',
         percentage(count, total),
         createdAt,
-        { groupBy: 'addressComponent', groupValue: component },
+        { dimension: 'addressComponent', dimensionValue: component },
       ),
     )
 }
@@ -876,8 +876,8 @@ export function buildDivisionApiReleaseSetStatsRows(
       input.divisionCount,
       createdAt,
       {
-        groupBy: 'table',
-        groupValue: 'divisions',
+        dimension: 'table',
+        dimensionValue: 'divisions',
       },
     ),
     buildApiReleaseSetStatsRow(
@@ -887,8 +887,8 @@ export function buildDivisionApiReleaseSetStatsRows(
       input.divisionI18nCount,
       createdAt,
       {
-        groupBy: 'table',
-        groupValue: 'divisionsI18n',
+        dimension: 'table',
+        dimensionValue: 'divisionsI18n',
       },
     ),
   ]
@@ -919,29 +919,29 @@ export function buildDivisionApiReleaseSetStatsRows(
   if (input.quality) {
     rows.push(
       buildApiReleaseSetStatsRow(
-        'parent_changed_count',
         'quality',
+        'parent_changed_count',
         'count',
         input.quality.parent_changed_count,
         createdAt,
       ),
       buildApiReleaseSetStatsRow(
-        'locale_regression_count',
         'quality',
+        'locale_regression_count',
         'count',
         input.quality.locale_regression_count,
         createdAt,
       ),
       buildApiReleaseSetStatsRow(
-        'name_regression_count',
         'quality',
+        'name_regression_count',
         'count',
         input.quality.name_regression_count,
         createdAt,
       ),
       buildApiReleaseSetStatsRow(
-        'geometry_changed_count',
         'quality',
+        'geometry_changed_count',
         'count',
         input.quality.geometry_changed_count,
         createdAt,
@@ -1005,51 +1005,51 @@ export function hasNameRegression<
 }
 
 function buildReleaseStatsRow(
-  dimension: string,
-  metric: string,
-  metricUnit: string,
+  category: string,
+  measure: string,
+  unit: string,
   value: number,
   timestamp: string,
   grouping?: {
-    groupBy: string
-    groupValue: string
+    dimension: string
+    dimensionValue: string
   },
 ): ReleaseScopedStatsRow {
-  return buildStatsRow(dimension, metric, metricUnit, value, timestamp, grouping)
+  return buildStatsRow(category, measure, unit, value, timestamp, grouping)
 }
 
 function buildApiReleaseSetStatsRow(
-  dimension: string,
-  metric: string,
-  metricUnit: string,
+  category: string,
+  measure: string,
+  unit: string,
   value: number,
   timestamp: string,
   grouping?: {
-    groupBy: string
-    groupValue: string
+    dimension: string
+    dimensionValue: string
   },
 ): ApiReleaseSetScopedStatsRow {
-  return buildStatsRow(dimension, metric, metricUnit, value, timestamp, grouping)
+  return buildStatsRow(category, measure, unit, value, timestamp, grouping)
 }
 
 function buildStatsRow(
-  dimension: string,
-  metric: string,
-  metricUnit: string,
+  category: string,
+  measure: string,
+  unit: string,
   value: number,
   timestamp: string,
   grouping?: {
-    groupBy: string
-    groupValue: string
+    dimension: string
+    dimensionValue: string
   },
 ) {
   return {
     createdAt: timestamp,
-    dimension,
-    groupBy: grouping?.groupBy ?? null,
-    groupValue: grouping?.groupValue ?? null,
-    metric,
-    metricUnit,
+    category,
+    dimension: grouping?.dimension ?? null,
+    dimensionValue: grouping?.dimensionValue ?? null,
+    measure,
+    unit,
     updatedAt: timestamp,
     value,
   }
@@ -1074,25 +1074,25 @@ function buildApiReleaseSetLocaleStatsRows(
 
     return [
       buildApiReleaseSetStatsRow(
-        'locale_count',
         'completeness',
+        'locale_count',
         'count',
         localeCount,
         createdAt,
         {
-          groupBy: 'locale',
-          groupValue: locale,
+          dimension: 'locale',
+          dimensionValue: locale,
         },
       ),
       buildApiReleaseSetStatsRow(
-        'locale_coverage',
         'completeness',
+        'locale_coverage',
         'percentage',
         percentage(localeCount, total),
         createdAt,
         {
-          groupBy: 'locale',
-          groupValue: locale,
+          dimension: 'locale',
+          dimensionValue: locale,
         },
       ),
       ...(
@@ -1102,28 +1102,28 @@ function buildApiReleaseSetLocaleStatsRows(
           ['locale_coverage_ai_translated', localeAiTranslatedCount],
           ['locale_coverage_human_translated', localeHumanTranslatedCount],
         ] as const
-      ).map(([dimension, count]) =>
+      ).map(([category, count]) =>
         buildApiReleaseSetStatsRow(
-          dimension,
           'completeness',
+          category,
           'percentage',
           percentage(count, total),
           createdAt,
           {
-            groupBy: 'locale',
-            groupValue: locale,
+            dimension: 'locale',
+            dimensionValue: locale,
           },
         ),
       ),
       buildApiReleaseSetStatsRow(
-        'locale_alt_coverage',
         'completeness',
+        'locale_alt_coverage',
         'percentage',
         percentage(localeAltCount, total),
         createdAt,
         {
-          groupBy: 'locale',
-          groupValue: locale,
+          dimension: 'locale',
+          dimensionValue: locale,
         },
       ),
     ]
@@ -1132,14 +1132,14 @@ function buildApiReleaseSetLocaleStatsRows(
 
 function buildGroupedCountRows(
   counts: Map<string, number> | Record<string, number> | undefined,
-  dimension: string,
+  category: string,
   createdAt: string,
-  groupBy: string,
+  dimension: string,
 ) {
-  return mapEntries(counts).map(([groupValue, value]) =>
-    buildApiReleaseSetStatsRow(dimension, 'count', 'count', value, createdAt, {
-      groupBy,
-      groupValue,
+  return mapEntries(counts).map(([dimensionValue, value]) =>
+    buildApiReleaseSetStatsRow(category, 'count', 'count', value, createdAt, {
+      dimension,
+      dimensionValue,
     }),
   )
 }
@@ -1147,12 +1147,12 @@ function buildGroupedCountRows(
 function buildGroupedChurnRows(
   counts: Map<string, ChurnCounts> | Record<string, ChurnCounts> | undefined,
   createdAt: string,
-  groupBy: string,
+  dimension: string,
 ) {
-  return mapEntries(counts).flatMap(([groupValue, churnCounts]) =>
+  return mapEntries(counts).flatMap(([dimensionValue, churnCounts]) =>
     buildApiReleaseSetChurnMetricRows(churnCounts, createdAt, {
-      groupBy,
-      groupValue,
+      dimension,
+      dimensionValue,
     }),
   )
 }
@@ -1161,8 +1161,8 @@ function buildOptionalGroupedChurnRows(
   counts: ChurnCounts | undefined,
   createdAt: string,
   grouping: {
-    groupBy: string
-    groupValue: string
+    dimension: string
+    dimensionValue: string
   },
 ) {
   if (!counts) {
@@ -1176,16 +1176,16 @@ function buildApiReleaseSetChurnMetricRows(
   counts: ChurnCounts,
   timestamp: string,
   grouping: {
-    groupBy: string
-    groupValue: string
+    dimension: string
+    dimensionValue: string
   } | null,
 ) {
-  return churnMetricNames.map(dimension =>
+  return churnMetricNames.map(category =>
     buildApiReleaseSetStatsRow(
-      dimension,
-      'churn',
+      'changes',
+      category,
       'count',
-      counts[dimension],
+      counts[category],
       timestamp,
       grouping ?? undefined,
     ),
@@ -1231,16 +1231,16 @@ function buildChurnMetricRows(
   counts: ChurnCounts,
   timestamp: string,
   grouping: {
-    groupBy: string
-    groupValue: string
+    dimension: string
+    dimensionValue: string
   } | null,
 ) {
-  return churnMetricNames.map(dimension =>
+  return churnMetricNames.map(category =>
     buildReleaseStatsRow(
-      dimension,
-      'churn',
+      'changes',
+      category,
       'count',
-      counts[dimension],
+      counts[category],
       timestamp,
       grouping ?? undefined,
     ),

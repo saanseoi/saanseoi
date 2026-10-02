@@ -36,7 +36,7 @@ const plans = releases.map(release => {
     .all(release.id) as Array<{ id: string; versionHash: string; level: number }>
   const count = meta
     .query(
-      "SELECT value FROM stats WHERE resourceReleaseId = ? AND dimension = 'records' AND metric = 'count'",
+      "SELECT value FROM stats WHERE resourceReleaseId = ? AND category = 'records' AND measure = 'count'",
     )
     .get(release.id) as { value: number } | null
   if (
@@ -58,7 +58,7 @@ const plans = releases.map(release => {
   previous.set(release.datasetId, contentRows)
   console.log(
     release.code,
-    Object.fromEntries(stats.map(row => [row.dimension, row.value])),
+    Object.fromEntries(stats.map(row => [row.measure, row.value])),
     'levels',
     rows.reduce(
       (counts, row) => {
@@ -76,7 +76,7 @@ if (mode === '--apply')
       if (release.code.includes('-division-pu-')) {
         meta
           .query(
-            "DELETE FROM stats WHERE resourceReleaseId = ? AND groupBy = 'unit_distribution'",
+            "DELETE FROM stats WHERE resourceReleaseId = ? AND dimension = 'unit_distribution'",
           )
           .run(release.id)
         for (const [level, label] of [
@@ -86,7 +86,7 @@ if (mode === '--apply')
           [6, 'subunits'],
         ] as const) {
           meta
-            .query(`INSERT INTO stats (id,resourceReleaseId,dimension,metric,metricUnit,value,groupBy,groupValue)
+            .query(`INSERT INTO stats (id,resourceReleaseId,category,measure,unit,value,dimension,dimensionValue)
             VALUES (?, ?, 'units', 'count', 'rows', ?, 'unit_distribution', ?)`)
             .run(
               crypto.randomUUID(),
@@ -98,21 +98,21 @@ if (mode === '--apply')
       }
       meta
         .query(
-          "DELETE FROM stats WHERE resourceReleaseId = ? AND metric = 'churn' AND groupBy IS NULL",
+          "DELETE FROM stats WHERE resourceReleaseId = ? AND category = 'changes' AND dimension IS NULL",
         )
         .run(release.id)
       for (const row of stats)
         meta
           .query(`INSERT INTO stats
-      (id,type,resourceReleaseId,dimension,metric,metricUnit,value,createdAt,updatedAt)
+      (id,type,resourceReleaseId,category,measure,unit,value,createdAt,updatedAt)
       VALUES (?,?,?,?,?,?,?,?,?)`)
           .run(
             crypto.randomUUID(),
             row.type,
             release.id,
-            row.dimension,
-            row.metric,
-            row.metricUnit,
+            row.category,
+            row.measure,
+            row.unit,
             row.value,
             new Date().toISOString(),
             new Date().toISOString(),

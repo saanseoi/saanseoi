@@ -33,19 +33,19 @@ import { CENSTATD_2021_DISTRICT_VARIANT } from './processLocalDivisionGeometrySq
 import { isGeoJsonPolygon } from './processLocalDivisionGeometrySqlUploadSyntheticGeometry.ts'
 
 function geometryStatRow(
-  dimension: string,
-  metric: string,
+  category: string,
+  measure: string,
   value: number,
-  groupBy: string | null = null,
-  groupValue: string | null = null,
+  dimension: string | null = null,
+  dimensionValue: string | null = null,
 ) {
   return {
-    dimension,
-    metric,
-    metricUnit: 'count',
+    category,
+    measure,
+    unit: 'count',
     value,
-    groupBy,
-    groupValue,
+    dimension,
+    dimensionValue,
   }
 }
 
@@ -276,22 +276,40 @@ function buildGeometryChurnStatRows(
   churn: GeometryChurnCounts,
 ) {
   const rows = [
-    geometryStatRow('count', 'churn', churn.count),
-    geometryStatRow('added_count', 'churn', churn.added),
-    geometryStatRow('changed_count', 'churn', churn.changed),
-    geometryStatRow('removed_count', 'churn', churn.removed),
-    geometryStatRow('unchanged_count', 'churn', churn.unchanged),
+    geometryStatRow('changes', 'count', churn.count),
+    geometryStatRow('changes', 'added_count', churn.added),
+    geometryStatRow('changes', 'changed_count', churn.changed),
+    geometryStatRow('changes', 'removed_count', churn.removed),
+    geometryStatRow('changes', 'unchanged_count', churn.unchanged),
   ]
 
-  for (const [groupValue, counts] of [...churn.byType].sort(([left], [right]) =>
+  for (const [dimensionValue, counts] of [...churn.byType].sort(([left], [right]) =>
     left.localeCompare(right),
   )) {
     rows.push(
-      geometryStatRow('count', 'churn', counts.count, 'type', groupValue),
-      geometryStatRow('added_count', 'churn', counts.added, 'type', groupValue),
-      geometryStatRow('changed_count', 'churn', counts.changed, 'type', groupValue),
-      geometryStatRow('removed_count', 'churn', counts.removed, 'type', groupValue),
-      geometryStatRow('unchanged_count', 'churn', counts.unchanged, 'type', groupValue),
+      geometryStatRow('changes', 'count', counts.count, 'type', dimensionValue),
+      geometryStatRow('changes', 'added_count', counts.added, 'type', dimensionValue),
+      geometryStatRow(
+        'changes',
+        'changed_count',
+        counts.changed,
+        'type',
+        dimensionValue,
+      ),
+      geometryStatRow(
+        'changes',
+        'removed_count',
+        counts.removed,
+        'type',
+        dimensionValue,
+      ),
+      geometryStatRow(
+        'changes',
+        'unchanged_count',
+        counts.unchanged,
+        'type',
+        dimensionValue,
+      ),
     )
   }
 
@@ -491,8 +509,8 @@ export function calculateHousingMarketAreaDistrictCoverage(
 function buildDistrictDistributionRows(counts: ReadonlyMap<string, number>) {
   return [...counts.entries()]
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([groupValue, value]) =>
-      geometryStatRow('records', 'distribution', value, 'district', groupValue),
+    .map(([dimensionValue, value]) =>
+      geometryStatRow('records', 'count', value, 'district', dimensionValue),
     )
 }
 

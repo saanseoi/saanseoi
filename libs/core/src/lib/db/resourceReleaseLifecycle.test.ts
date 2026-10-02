@@ -181,9 +181,9 @@ for (const order of [types, [...types].reverse()]) {
         for (let retry = 0; retry < 2; retry++) {
           await replaceDatasetStats(db, resourceReleaseId, [
             {
-              dimension: 'records',
-              metric: 'count',
-              metricUnit: 'records',
+              category: 'records',
+              measure: 'count',
+              unit: 'records',
               value: type === 'divisionStatistic' ? 241155 : 18,
             },
           ])

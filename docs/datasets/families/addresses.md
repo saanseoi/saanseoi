@@ -1026,8 +1026,9 @@ persistent scope, validated against its complete publication receipt. A newer Di
 projection does not invalidate the older selection; missing receipts and lineage
 mismatches remain ingestion errors.
 
-Address metadata replay writes release statistics using `dimension`, `metric`, and
-`metricUnit`, while retaining processing statistics owned by their separate stage.
+Address metadata replay writes release statistics using `category`, `measure`, `unit`,
+`dimension`, and `dimensionValue`, while retaining processing statistics owned by their
+separate stage.
 
 Building-number history compares the retained versions for each exact address and number
 before selecting matching baseline content. Multiple lookups can reuse the same prepared

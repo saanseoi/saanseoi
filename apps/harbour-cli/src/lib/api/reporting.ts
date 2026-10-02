@@ -29,12 +29,12 @@ export type ProcessingRunReportRow = {
 export type StatReportRow = {
   createdAt: string
   datasetCode: string
-  dimension: string
-  groupBy: string | null
-  groupValue: string | null
+  category: string
+  dimension: string | null
+  dimensionValue: string | null
   id: string
-  metric: string
-  metricUnit: string
+  measure: string
+  unit: string
   releaseCode: string
   resourceReleaseId: string
   source: string

@@ -105,11 +105,11 @@ const sourceYear = (source: SourcesPageSource) => {
 const sourceRecordCount = (source: SourcesPageSource) =>
   sourceVersion(source)?.stats?.find(
     stat =>
-      stat.dimension === 'records' &&
-      stat.metric === 'count' &&
-      stat.metricUnit === 'count' &&
-      !stat.groupBy &&
-      !stat.groupValue,
+      stat.category === 'records' &&
+      stat.measure === 'count' &&
+      stat.unit === 'count' &&
+      !stat.dimension &&
+      !stat.dimensionValue,
   )?.value
 
 const formatRecordCount = (count: number | undefined) => {
@@ -338,13 +338,16 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
           <Popover.Root>
             <Popover.Trigger openOnHover openDelay={200}>
               {#snippet child({
-  props,
-})}
+                props,
+              })}
                 <button
                   {...props}
                   class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
                   type="button"
-                  aria-label={getMarkdownTransclusionDisplayTitle(apiFamilyDefinition, locale)}
+                  aria-label={getMarkdownTransclusionDisplayTitle(
+                    apiFamilyDefinition,
+                    locale,
+                  )}
                 >
                   {m.sources_api_families()}
                 </button>
@@ -364,13 +367,16 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
           <Popover.Root>
             <Popover.Trigger openOnHover openDelay={200}>
               {#snippet child({
-  props,
-})}
+                props,
+              })}
                 <button
                   {...props}
                   class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
                   type="button"
-                  aria-label={getMarkdownTransclusionDisplayTitle(domainDefinition, locale)}
+                  aria-label={getMarkdownTransclusionDisplayTitle(
+                    domainDefinition,
+                    locale,
+                  )}
                 >
                   {m.sources_domains()}
                 </button>

@@ -194,11 +194,11 @@ async function loadDataReleasesPage(offset = 0) {
     ? await db
         .select({
           apiReleaseSetId: stats.apiReleaseSetId,
+          category: stats.category,
           dimension: stats.dimension,
-          groupBy: stats.groupBy,
-          groupValue: stats.groupValue,
-          metric: stats.metric,
-          metricUnit: stats.metricUnit,
+          dimensionValue: stats.dimensionValue,
+          measure: stats.measure,
+          unit: stats.unit,
           value: stats.value,
         })
         .from(stats)
@@ -208,11 +208,11 @@ async function loadDataReleasesPage(offset = 0) {
   const primaryRecordCountByReleaseId = new Map(
     releaseStats.flatMap(stat =>
       stat.apiReleaseSetId &&
-      stat.dimension === 'records' &&
-      stat.metric === 'count' &&
-      stat.metricUnit === 'count' &&
-      stat.groupBy === null &&
-      stat.groupValue === null
+      stat.category === 'records' &&
+      stat.measure === 'count' &&
+      stat.unit === 'count' &&
+      stat.dimension === null &&
+      stat.dimensionValue === null
         ? [[stat.apiReleaseSetId, stat.value] as const]
         : [],
     ),

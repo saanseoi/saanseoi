@@ -4,7 +4,7 @@ import { Database } from 'bun:sqlite'
 import { and, desc, eq, historySchema, metaSchema, sql } from '@repo/db'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { replaceReleaseStatsDimension } from '@repo/core/pipeline/db/stats'
+import { replaceReleaseStatsCategory } from '@repo/core/pipeline/db/stats'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
 import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
 import {
@@ -207,27 +207,27 @@ export async function runGeometryStatsBackfillCommand(
       const rows = buildGeometryReleaseStatsRows(release.resourceType, metrics)
       const existing = await seedContext.metaDb
         .select({
-          dimension: metaSchema.stats.dimension,
-          groupValue: metaSchema.stats.groupValue,
-          metric: metaSchema.stats.metric,
-          metricUnit: metaSchema.stats.metricUnit,
+          category: metaSchema.stats.category,
+          dimensionValue: metaSchema.stats.dimensionValue,
+          measure: metaSchema.stats.measure,
+          unit: metaSchema.stats.unit,
           value: metaSchema.stats.value,
         })
         .from(metaSchema.stats)
         .where(
           and(
             eq(metaSchema.stats.resourceReleaseId, release.id),
-            eq(metaSchema.stats.dimension, 'geometry'),
+            eq(metaSchema.stats.category, 'geometry'),
           ),
         )
         .all()
       const changed = !sameGeometryRows(existing, rows)
       const totalArea = [...metrics.values()].reduce(
-        (total, metric) => total + (metric.area ?? 0),
+        (total, measure) => total + (measure.area ?? 0),
         0,
       )
       const totalLength = [...metrics.values()].reduce(
-        (total, metric) => total + metric.boundaryLength,
+        (total, measure) => total + measure.boundaryLength,
         0,
       )
       console.log(
@@ -255,7 +255,7 @@ export async function runGeometryStatsBackfillCommand(
         continue
       }
 
-      await replaceReleaseStatsDimension(
+      await replaceReleaseStatsCategory(
         seedContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
         release.id,
         'geometry',
@@ -545,27 +545,27 @@ function selectExactGeometryRows<TRow extends { id: string; variant?: string | n
 
 function sameGeometryRows(
   existing: Array<{
-    dimension: string
-    groupValue: string | null
-    metric: string
-    metricUnit: string
+    category: string
+    dimensionValue: string | null
+    measure: string
+    unit: string
     value: number
   }>,
   rows: Array<{
-    dimension: string
-    groupValue?: string | null
-    metric: string
-    metricUnit: string
+    category: string
+    dimensionValue?: string | null
+    measure: string
+    unit: string
     value: number
   }>,
 ) {
   const key = (row: {
-    groupValue?: string | null
-    metric: string
-    metricUnit: string
+    dimensionValue?: string | null
+    measure: string
+    unit: string
     value: number
   }) =>
-    `${row.groupValue ?? ''}\u0000${row.metric}\u0000${row.metricUnit}\u0000${row.value}`
+    `${row.dimensionValue ?? ''}\u0000${row.measure}\u0000${row.unit}\u0000${row.value}`
   return (
     existing.length === rows.length &&
     existing.every(row => rows.some(candidate => key(candidate) === key(row)))
@@ -597,7 +597,7 @@ function buildRemoteStatsSql(cacheDir: string, resourceReleaseId: string) {
   const database = new Database(`${cacheDir}/DB_META.sqlite`, { readonly: true })
   try {
     const rows = database
-      .query('SELECT * FROM stats WHERE resourceReleaseId = ? AND dimension = ?')
+      .query('SELECT * FROM stats WHERE resourceReleaseId = ? AND category = ?')
       .all(resourceReleaseId, 'geometry') as Array<Record<string, unknown>>
     const values = rows
       .map(row => `(${Object.values(row).map(sqlLiteral).join(', ')})`)
@@ -605,7 +605,7 @@ function buildRemoteStatsSql(cacheDir: string, resourceReleaseId: string) {
     const columns = Object.keys(rows[0] ?? {})
       .map(column => `"${column}"`)
       .join(', ')
-    return `DELETE FROM stats WHERE resourceReleaseId = ${sqlLiteral(resourceReleaseId)} AND dimension = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
+    return `DELETE FROM stats WHERE resourceReleaseId = ${sqlLiteral(resourceReleaseId)} AND category = 'geometry';\nINSERT INTO stats (${columns}) VALUES ${values};`
   } finally {
     database.close()
   }

@@ -37,7 +37,7 @@ test('source catalogue preserves unchanged reissue counts and frozen definitions
       INSERT INTO snapshots (id,resourceType,parentSnapshotId,cohortKey,revision) VALUES
         ('base','divisionStatistic',NULL,'2025',0),('reissue','divisionStatistic','base','2025',1);
       INSERT INTO snapshotResourceReleases (snapshotId,resourceReleaseId) VALUES ('reissue','resource-reissue');
-      INSERT INTO stats (resourceReleaseId,dimension,metric,groupBy,groupValue,value) VALUES
+      INSERT INTO stats (resourceReleaseId,category,measure,dimension,dimensionValue,value) VALUES
         ('resource-reissue','observations','count','field','population',3495);`)
     history.exec(`INSERT INTO statsDefinitionSets (id,fieldDefinitionHashes) VALUES
       ('frozen','{"population":"f1","landArea":"retained-other-field"}'),

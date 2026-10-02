@@ -328,9 +328,9 @@ async function listCurrentReleaseSetStatsTargets(
           eq(metaSchema.stats.apiReleaseSetId, row.apiReleaseSetId),
           request.apiFamily === 'divisions'
             ? and(
-                eq(metaSchema.stats.metric, 'churn'),
-                eq(metaSchema.stats.dimension, 'count'),
-                isNull(metaSchema.stats.groupBy),
+                eq(metaSchema.stats.category, 'changes'),
+                eq(metaSchema.stats.measure, 'count'),
+                isNull(metaSchema.stats.dimension),
               )
             : undefined,
         ),

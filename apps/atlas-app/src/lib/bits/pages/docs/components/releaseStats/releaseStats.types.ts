@@ -3,12 +3,12 @@ import type { MultiPolygon, Polygon } from 'geojson'
 import type { ReleaseContentHeading } from '../releaseContentOutline'
 
 export type ReleaseStat = {
-  dimension?: string | null
-  metric?: string | null
-  metricUnit?: string | null
+  category?: string | null
+  measure?: string | null
+  unit?: string | null
   value: number
-  groupBy?: string | null
-  groupValue?: string | null
+  dimension?: string | null
+  dimensionValue?: string | null
 }
 export type ReleaseStatsDistrictArea = {
   divisionId: string
@@ -36,7 +36,7 @@ export type ReleaseStatsCopy = {
   districtFallback: (districtId: string) => string
   statLabel: (value: string | null | undefined) => string
   processingAction: (code: string) => { issue: string; outcome: string; mode: string }
-  qualityDescription?: (dimension: string) => string
+  qualityDescription?: (measure: string) => string
 }
 export type ReleaseStatsLabels = {
   added: string
@@ -126,7 +126,7 @@ export type ComponentCoveragePresentation = {
 }[]
 export type TypeDistributionPresentation = {
   eyebrow: string
-  groupBy: string
+  dimension: string
   id: string
   title: string
   valueLabel: string
@@ -188,9 +188,9 @@ export type GenericStatGroupPresentation = {
   id: string
   label: string
   rows: Array<{
-    dimension: string
-    metric: string
-    groupValue: string
+    category: string
+    measure: string
+    dimensionValue: string
     unit: string
     value: string
   }>

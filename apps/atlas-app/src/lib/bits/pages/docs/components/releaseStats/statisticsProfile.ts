@@ -18,9 +18,9 @@ export function createStatisticsProfile(
     })
     return rows
   }
-  const count = (dimension: string) =>
+  const count = (category: string) =>
     take(
-      row => row.dimension === dimension && row.metric === 'count' && !row.groupBy,
+      row => row.category === category && row.measure === 'count' && !row.dimension,
     )[0]?.value
   const format = (value: number) => formatReleaseStat(locale, value)
   const records = count('records')
@@ -31,23 +31,23 @@ export function createStatisticsProfile(
   const periods = count('reference_periods')
   const referencePeriods = take(
     row =>
-      row.dimension === 'observations' &&
-      row.metric === 'count' &&
-      row.groupBy === 'referencePeriod',
+      row.category === 'observations' &&
+      row.measure === 'count' &&
+      row.dimension === 'referencePeriod',
   )
   const fieldRows = take(
     row =>
-      row.dimension === 'observations' &&
-      row.metric === 'count' &&
-      row.groupBy === 'field' &&
-      Boolean(row.groupValue),
+      row.category === 'observations' &&
+      row.measure === 'count' &&
+      row.dimension === 'field' &&
+      Boolean(row.dimensionValue),
   )
   const measureRows = take(
     row =>
-      row.dimension === 'observations' &&
-      row.metric === 'count' &&
-      row.groupBy === 'measure' &&
-      Boolean(row.groupValue),
+      row.category === 'observations' &&
+      row.measure === 'count' &&
+      row.dimension === 'measure' &&
+      Boolean(row.dimensionValue),
   )
   const coverageRows = fieldRows.length ? fieldRows : measureRows
   const frequencies = new Map<number, number>()
@@ -70,10 +70,10 @@ export function createStatisticsProfile(
         label: 'Reference periods',
         value: periods ?? (referencePeriods.length || undefined),
       },
-    ].flatMap(metric =>
-      metric.value === undefined
+    ].flatMap(measure =>
+      measure.value === undefined
         ? []
-        : [{ label: metric.label, value: format(metric.value) }],
+        : [{ label: measure.label, value: format(measure.value) }],
     ),
     distributions: [],
     availability: [],
@@ -87,37 +87,40 @@ export function createStatisticsProfile(
             .filter(row => row.value !== baseline[0])
             .sort((a, b) => a.value - b.value)
             .map(row => ({
-              label: copy.statLabel(row.groupValue),
+              label: copy.statLabel(row.dimensionValue),
               value: format(row.value),
             })),
         }
       : undefined,
   }
   if (referencePeriods.length === 1) {
-    const metric = profile.metrics.find(metric => metric.label === 'Reference periods')
-    if (metric) {
-      metric.label = 'Reference period'
-      metric.value = copy.statLabel(referencePeriods[0]?.groupValue)
+    const measure = profile.metrics.find(
+      measure => measure.label === 'Reference periods',
+    )
+    if (measure) {
+      measure.label = 'Reference period'
+      measure.value = copy.statLabel(referencePeriods[0]?.dimensionValue)
     }
   }
   const statusRows = take(
     row =>
-      row.dimension === 'observations' &&
-      row.metric === 'count' &&
-      row.groupBy === 'observationStatus',
+      row.category === 'observations' &&
+      row.measure === 'count' &&
+      row.dimension === 'observationStatus',
   )
   const statusTotal =
     observations ?? statusRows.reduce((sum, row) => sum + row.value, 0)
   for (const row of statusRows) {
     const tone =
-      row.groupValue === 'published' ||
-      row.groupValue === 'suppressed' ||
-      row.groupValue === 'unavailable'
-        ? row.groupValue
+      row.dimensionValue === 'published' ||
+      row.dimensionValue === 'suppressed' ||
+      row.dimensionValue === 'unavailable'
+        ? row.dimensionValue
         : 'other'
     const percentage = statusTotal > 0 ? (row.value / statusTotal) * 100 : 0
     profile.availability.push({
-      label: tone === 'published' ? 'Published values' : copy.statLabel(row.groupValue),
+      label:
+        tone === 'published' ? 'Published values' : copy.statLabel(row.dimensionValue),
       value: format(row.value),
       percentage,
       percentageLabel: new Intl.NumberFormat(locale, {
@@ -137,7 +140,7 @@ export function createStatisticsProfile(
   }
   const order = ['published', 'suppressed', 'unavailable', 'other']
   profile.availability.sort((a, b) => order.indexOf(a.tone) - order.indexOf(b.tone))
-  for (const [group, title, dimension, unit] of [
+  for (const [group, title, category, unit] of [
     ['sourceLayer', 'Geographic coverage', 'records', 'records'],
     ['geographyKind', 'Geography types', 'records', 'records'],
     ['divisionLinkage', 'Canonical division linkage', 'records', 'records'],
@@ -154,10 +157,10 @@ export function createStatisticsProfile(
           : []
         : take(
             row =>
-              row.groupBy === group &&
-              row.metric === 'count' &&
-              (row.dimension === dimension ||
-                (dimension === 'fields' && row.dimension === 'measures')),
+              row.dimension === group &&
+              row.measure === 'count' &&
+              (row.category === category ||
+                (category === 'fields' && row.category === 'measures')),
           )
     if (!rows.length) continue
     const total = rows.reduce((sum, row) => sum + row.value, 0)
@@ -169,12 +172,13 @@ export function createStatisticsProfile(
         .sort((a, b) => b.value - a.value)
         .map(row => ({
           label:
-            group === 'sourceLayer' && /^BG[_ -]?\d{2}C$/i.test(row.groupValue ?? '')
+            group === 'sourceLayer' &&
+            /^BG[_ -]?\d{2}C$/i.test(row.dimensionValue ?? '')
               ? 'Building groups'
               : group === 'sourceLayer' &&
-                  /^HMA[_ -]?\d{2}C$/i.test(row.groupValue ?? '')
+                  /^HMA[_ -]?\d{2}C$/i.test(row.dimensionValue ?? '')
                 ? 'Housing market areas'
-                : copy.statLabel(row.groupValue),
+                : copy.statLabel(row.dimensionValue),
           value: format(row.value),
           percentage: total > 0 ? (row.value / total) * 100 : 0,
         })),
@@ -182,28 +186,29 @@ export function createStatisticsProfile(
   }
   const localeRows = take(
     row =>
-      row.groupBy === 'locale' &&
+      row.dimension === 'locale' &&
       ['field_labels', 'field_label_coverage', 'unverified_field_labels'].includes(
-        row.dimension ?? '',
+        row.category ?? '',
       ),
   )
   profile.localeCoverage = localeRows
-    .filter(row => row.dimension === 'field_label_coverage')
+    .filter(row => row.category === 'field_label_coverage')
     .map(row => ({
-      label: copy.localeName(row.groupValue ?? ''),
+      label: copy.localeName(row.dimensionValue ?? ''),
       percentage: row.value,
       value: formatReleaseStat(locale, row.value, 'percentage'),
       count: format(
         localeRows.find(
           item =>
-            item.groupValue === row.groupValue && item.dimension === 'field_labels',
+            item.dimensionValue === row.dimensionValue &&
+            item.category === 'field_labels',
         )?.value ?? 0,
       ),
       unverified: format(
         localeRows.find(
           item =>
-            item.groupValue === row.groupValue &&
-            item.dimension === 'unverified_field_labels',
+            item.dimensionValue === row.dimensionValue &&
+            item.category === 'unverified_field_labels',
         )?.value ?? 0,
       ),
     }))

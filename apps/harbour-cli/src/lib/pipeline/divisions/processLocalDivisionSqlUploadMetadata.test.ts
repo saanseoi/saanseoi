@@ -25,14 +25,14 @@ test('division metadata replays current-schema statistics without duplicating pr
       INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES ('snapshot', 'dataset', 'release', 'primary');
       INSERT INTO releaseShardAssignments VALUES ('release', 'shard');
       INSERT INTO snapshotShardAssignments VALUES ('snapshot', 'shard');
-      INSERT INTO stats (id, resourceReleaseId, dimension, metric, metricUnit, value) VALUES
-      ('processing', 'release', 'rows', 'processing', 'count', 7),
+      INSERT INTO stats (id, resourceReleaseId, category, measure, unit, value) VALUES
+      ('processing', 'release', 'processing', 'rows', 'count', 7),
       ('stale', 'release', 'rows', 'total', 'count', 99),
       ('other', 'other-release', 'rows', 'total', 'count', 42);`)
     const db = createLocalHarbourDb(sqlite)
     const statsRows = [
-      { dimension: 'rows', metric: 'total', metricUnit: 'count', value: 3 },
-      { dimension: 'rows', metric: 'processing', metricUnit: 'count', value: 100 },
+      { category: 'rows', measure: 'total', unit: 'count', value: 3 },
+      { category: 'processing', measure: 'rows', unit: 'count', value: 100 },
     ]
     for (const row of statsRows)
       Object.assign(row, {
@@ -61,13 +61,13 @@ test('division metadata replays current-schema statistics without duplicating pr
     expect(
       sqlite
         .query(
-          'SELECT resourceReleaseId, metric, value FROM stats ORDER BY resourceReleaseId, metric',
+          'SELECT resourceReleaseId, measure, value FROM stats ORDER BY resourceReleaseId, measure',
         )
         .all(),
     ).toEqual([
-      { resourceReleaseId: 'other-release', metric: 'total', value: 42 },
-      { resourceReleaseId: 'release', metric: 'processing', value: 7 },
-      { resourceReleaseId: 'release', metric: 'total', value: 3 },
+      { resourceReleaseId: 'other-release', measure: 'total', value: 42 },
+      { resourceReleaseId: 'release', measure: 'rows', value: 7 },
+      { resourceReleaseId: 'release', measure: 'total', value: 3 },
     ])
   } finally {
     sqlite.close()

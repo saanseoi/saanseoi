@@ -30,8 +30,8 @@ const name = (id: string, value: string, extra = {}) =>
 const totals = (rows: ReturnType<typeof buildDivisionStatsFromSnapshots>) =>
   Object.fromEntries(
     rows
-      .filter(row => row.metric === 'churn' && !row.groupBy)
-      .map(row => [row.dimension, row.value]),
+      .filter(row => row.category === 'changes' && !row.dimension)
+      .map(row => [row.measure, row.value]),
   )
 
 test('waits for required companion snapshots before calculating API stats', () => {
@@ -96,17 +96,17 @@ test('churn counts name and hierarchy changes, additions and removals, excluding
   expect(
     rows.find(
       row =>
-        row.metric === 'churn' &&
-        row.dimension === 'changed_count' &&
-        row.groupBy === 'divisionType',
+        row.category === 'changes' &&
+        row.measure === 'changed_count' &&
+        row.dimension === 'divisionType',
     )?.value,
   ).toBe(2)
   expect(
     rows.find(
       row =>
-        row.metric === 'churn' &&
-        row.dimension === 'removed_count' &&
-        row.groupBy === 'level',
+        row.category === 'changes' &&
+        row.measure === 'removed_count' &&
+        row.dimension === 'level',
     )?.value,
   ).toBe(1)
   expect(totals(buildDivisionStatsFromSnapshots(current))).toEqual({

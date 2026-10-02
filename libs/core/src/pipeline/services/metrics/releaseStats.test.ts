@@ -39,7 +39,7 @@ describe('stats rows', () => {
       ]),
       '2026-08-17T00:00:00.000Z',
     )
-    expect(areas.map(row => [row.dimension, row.metric, row.metricUnit])).toEqual([
+    expect(areas.map(row => [row.category, row.measure, row.unit])).toEqual([
       ['geometry', 'feature_count', 'count'],
       ['geometry', 'polygon_count', 'count'],
       ['geometry', 'area', 'square_kilometres'],
@@ -55,7 +55,7 @@ describe('stats rows', () => {
             { featureCount: 1, boundarySegmentCount: 1, boundaryLength: 2 },
           ],
         ]),
-      ).map(row => row.metric),
+      ).map(row => row.measure),
     ).toEqual(['feature_count', 'boundary_segment_count', 'boundary_length'])
   })
   test('counts village-addressed premises as a distinct address component', () => {
@@ -84,11 +84,11 @@ describe('stats rows', () => {
     expect(rows.every(row => !('kind' in row))).toBe(true)
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'locale_coverage',
-        groupBy: 'locale',
-        groupValue: 'en',
-        metric: 'completeness',
-        metricUnit: 'percentage',
+        category: 'completeness',
+        dimension: 'locale',
+        dimensionValue: 'en',
+        measure: 'locale_coverage',
+        unit: 'percentage',
 
         value: 50,
       }),
@@ -122,78 +122,78 @@ describe('stats rows', () => {
     expect(rows.every(row => !('kind' in row))).toBe(true)
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'records',
-        groupBy: null,
-        metric: 'count',
-        metricUnit: 'count',
+        category: 'records',
+        dimension: null,
+        measure: 'count',
+        unit: 'count',
         value: 10,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'component_coverage',
-        groupBy: 'addressComponent',
-        groupValue: 'street_name',
-        metric: 'completeness',
-        metricUnit: 'percentage',
+        category: 'completeness',
+        dimension: 'addressComponent',
+        dimensionValue: 'street_name',
+        measure: 'component_coverage',
+        unit: 'percentage',
         value: 80,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'records',
-        groupBy: 'district',
-        groupValue: 'district-id',
-        metric: 'distribution',
+        category: 'records',
+        dimension: 'district',
+        dimensionValue: 'district-id',
+        measure: 'count',
         value: 10,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'records',
-        groupBy: 'divisionLevel',
-        groupValue: 'district',
-        metric: 'linkage',
+        category: 'records',
+        dimension: 'divisionLevel',
+        dimensionValue: 'district',
+        measure: 'linkage',
         value: 10,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'detail_records',
-        groupBy: 'table',
-        groupValue: 'address3d',
+        category: 'detail_records',
+        dimension: 'table',
+        dimensionValue: 'address3d',
         value: 4,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'records',
-        groupBy: 'divisionLevel',
-        groupValue: 'street',
-        metric: 'linkage',
+        category: 'records',
+        dimension: 'divisionLevel',
+        dimensionValue: 'street',
+        measure: 'linkage',
         value: 0,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'missing_street_count',
-        metric: 'quality',
+        category: 'quality',
+        measure: 'missing_street_count',
         value: 3,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'ambiguous_area_count',
-        metric: 'quality',
+        category: 'quality',
+        measure: 'ambiguous_area_count',
         value: 1,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'added_count',
-        groupBy: 'table',
-        groupValue: 'address2d',
-        metric: 'churn',
+        category: 'changes',
+        dimension: 'table',
+        dimensionValue: 'address2d',
+        measure: 'added_count',
         value: 2,
       }),
     )
@@ -222,66 +222,66 @@ describe('stats rows', () => {
     })
 
     expect(
-      rows.filter(row => row.groupBy === 'table' && row.metric === 'count'),
+      rows.filter(row => row.dimension === 'table' && row.measure === 'count'),
     ).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ groupValue: 'address2d', value: 10 }),
-        expect.objectContaining({ groupValue: 'address2dI18n', value: 18 }),
-        expect.objectContaining({ groupValue: 'address3d', value: 3 }),
-        expect.objectContaining({ groupValue: 'address3dI18n', value: 6 }),
+        expect.objectContaining({ dimensionValue: 'address2d', value: 10 }),
+        expect.objectContaining({ dimensionValue: 'address2dI18n', value: 18 }),
+        expect.objectContaining({ dimensionValue: 'address3d', value: 3 }),
+        expect.objectContaining({ dimensionValue: 'address3dI18n', value: 6 }),
       ]),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'added_count',
-        metric: 'churn',
+        category: 'changes',
+        measure: 'added_count',
 
         value: 2,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'localised_records',
-        groupBy: 'table',
-        groupValue: 'address2dI18n',
-        metric: 'count',
+        category: 'localised_records',
+        dimension: 'table',
+        dimensionValue: 'address2dI18n',
+        measure: 'count',
 
         value: 18,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'component_coverage',
-        groupBy: 'addressComponent',
-        groupValue: 'street_name',
-        metric: 'completeness',
-        metricUnit: 'percentage',
+        category: 'completeness',
+        dimension: 'addressComponent',
+        dimensionValue: 'street_name',
+        measure: 'component_coverage',
+        unit: 'percentage',
         value: 100,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'component_coverage',
-        groupBy: 'addressComponent',
-        groupValue: 'village_name',
-        metric: 'completeness',
-        metricUnit: 'percentage',
+        category: 'completeness',
+        dimension: 'addressComponent',
+        dimensionValue: 'village_name',
+        measure: 'component_coverage',
+        unit: 'percentage',
         value: 100,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'records',
-        groupBy: 'district',
-        groupValue: 'district',
-        metric: 'distribution',
+        category: 'records',
+        dimension: 'district',
+        dimensionValue: 'district',
+        measure: 'count',
         value: 10,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'unmatched_district_count',
-        metric: 'quality',
+        category: 'quality',
+        measure: 'unmatched_district_count',
         value: 4,
       }),
     )
@@ -317,42 +317,42 @@ describe('stats rows', () => {
     expect(rows.every(row => !('kind' in row))).toBe(true)
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'records',
-        groupBy: 'district',
-        groupValue: 'district-id',
-        metric: 'distribution',
+        category: 'records',
+        dimension: 'district',
+        dimensionValue: 'district-id',
+        measure: 'count',
         value: 19,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'records',
-        groupBy: 'table',
-        groupValue: 'divisions',
+        category: 'records',
+        dimension: 'table',
+        dimensionValue: 'divisions',
         value: 19,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'records',
-        groupBy: 'divisionType',
-        groupValue: 'district',
+        category: 'records',
+        dimension: 'divisionType',
+        dimensionValue: 'district',
         value: 18,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'parent_changed_count',
-        metric: 'quality',
+        category: 'quality',
+        measure: 'parent_changed_count',
         value: 4,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'changed_count',
-        groupBy: 'divisionType',
-        groupValue: 'district',
-        metric: 'churn',
+        category: 'changes',
+        dimension: 'divisionType',
+        dimensionValue: 'district',
+        measure: 'changed_count',
         value: 3,
       }),
     )

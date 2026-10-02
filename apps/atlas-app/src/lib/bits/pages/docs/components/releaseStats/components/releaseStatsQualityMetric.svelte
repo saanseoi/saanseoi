@@ -1,6 +1,6 @@
 <script lang="ts">
 import InfoTooltip from './releaseStatsInfoTooltip.svelte'
-let { metric }: { metric: { label: string; description: string; value: string } } =
+let { measure }: { measure: { label: string; description: string; value: string } } =
   $props()
 </script>
 <div
@@ -10,11 +10,11 @@ let { metric }: { metric: { label: string; description: string; value: string } 
     <p
       class="font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-alert"
     >
-      {metric.label}
+      {measure.label}
     </p>
-    <InfoTooltip label={metric.description} description={metric.description} />
+    <InfoTooltip label={measure.description} description={measure.description} />
   </div>
   <p class="mt-3 font-mono text-title-lg font-bold tabular-nums text-data-alert">
-    {metric.value}
+    {measure.value}
   </p>
 </div>

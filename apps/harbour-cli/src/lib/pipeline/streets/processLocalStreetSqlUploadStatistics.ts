@@ -147,36 +147,36 @@ export function buildStreetStats(
 }
 
 function statRowsForCounts(
-  dimension: string,
-  metric: string,
+  category: string,
+  measure: string,
   unit: string,
   counts: Map<string, number>,
   now: string,
-  groupBy: string,
+  dimension: string,
 ) {
   return [...counts.entries()]
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([groupValue, value]) =>
-      streetStat(dimension, metric, unit, value, now, groupBy, groupValue),
+    .map(([dimensionValue, value]) =>
+      streetStat(category, measure, unit, value, now, dimension, dimensionValue),
     )
 }
 
 function streetStat(
-  dimension: string,
-  metric: string,
-  metricUnit: string,
+  category: string,
+  measure: string,
+  unit: string,
   value: number,
   now: string,
-  groupBy: string | null = null,
-  groupValue: string | null = null,
+  dimension: string | null = null,
+  dimensionValue: string | null = null,
 ): ReleaseScopedStatsRow {
   return {
     createdAt: now,
+    category,
     dimension,
-    groupBy,
-    groupValue,
-    metric,
-    metricUnit,
+    dimensionValue,
+    measure,
+    unit,
 
     updatedAt: now,
     value,

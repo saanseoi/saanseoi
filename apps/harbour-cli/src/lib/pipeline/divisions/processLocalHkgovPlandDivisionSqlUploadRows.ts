@@ -452,18 +452,18 @@ export function levelNumber(level: string) {
 }
 
 export function statRow(
-  dimension: string,
-  metric: string,
+  category: string,
+  measure: string,
   value: number,
-  groupValue: string,
+  dimensionValue: string,
 ) {
   return {
-    dimension,
-    metric,
-    metricUnit: 'rows',
+    category,
+    measure,
+    unit: 'rows',
     value,
-    groupBy: 'source',
-    groupValue,
+    dimension: 'source',
+    dimensionValue,
   }
 }
 

@@ -1,6 +1,6 @@
 <script lang="ts">
 import type { ChurnMetricPresentation } from '../releaseStats.types'
-let { metric }: { metric: ChurnMetricPresentation } = $props()
+let { measure }: { measure: ChurnMetricPresentation } = $props()
 const styles = {
   added: ['border-data-success', 'bg-data-success'],
   changed: ['border-data-warning', 'bg-data-warning'],
@@ -9,13 +9,13 @@ const styles = {
 } as const
 </script>
 <div
-  class={`border-t-8 bg-data-surface-container-low px-5 py-5 ${styles[metric.key][0]}`}
+  class={`border-t-8 bg-data-surface-container-low px-5 py-5 ${styles[measure.key][0]}`}
 >
   <div class="flex items-center gap-2">
-    <span class={`size-2 rounded-full ${styles[metric.key][1]}`}></span>
-    <p class="font-body text-label-sm text-foreground-alt">{metric.label}</p>
+    <span class={`size-2 rounded-full ${styles[measure.key][1]}`}></span>
+    <p class="font-body text-label-sm text-foreground-alt">{measure.label}</p>
   </div>
   <p class="mt-3 font-mono text-title-lg font-bold tabular-nums text-primary">
-    {metric.formattedValue}
+    {measure.formattedValue}
   </p>
 </div>

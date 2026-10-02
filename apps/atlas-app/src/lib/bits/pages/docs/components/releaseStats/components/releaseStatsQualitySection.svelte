@@ -25,8 +25,8 @@ let placeholderCount = $derived(quality.issues.length % 2)
   </div>
   {#if quality.issues.length}
     <div class="grid gap-px bg-data-outline-variant/60 sm:grid-cols-2">
-      {#each quality.issues as metric}
-        <QualityMetric {metric} />
+      {#each quality.issues as measure}
+        <QualityMetric {measure} />
       {/each}
       {#each Array(placeholderCount) as _}
         <div

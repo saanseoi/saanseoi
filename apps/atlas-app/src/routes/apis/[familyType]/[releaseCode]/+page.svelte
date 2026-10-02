@@ -412,10 +412,10 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
       mode: mode === 'manual' ? 'Manual' : 'Automatic',
     }
   },
-  qualityDescription: dimension =>
-    dimension === 'missing_street_count'
+  qualityDescription: measure =>
+    measure === 'missing_street_count'
       ? 'Addresses in this API release that could not be linked to a SaanSeoi street record. This does not mean the publisher omitted a street name.'
-      : humaniseStat(dimension),
+      : humaniseStat(measure),
 })
 let allVersions = $derived(
   domainReleases.map((item, index, releases) => ({
@@ -770,10 +770,12 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
                 centerEmptyState={!previousRelease}
                 changes={previousRelease ? noteDiff.changes : []}
                 labels={{
-  added: m.source_added(),
-  removed: m.source_removed(),
-  empty: previousRelease ? m.source_diff_no_changes() : m.api_release_initial_diff(),
-}}
+                  added: m.source_added(),
+                  removed: m.source_removed(),
+                  empty: previousRelease
+                    ? m.source_diff_no_changes()
+                    : m.api_release_initial_diff(),
+                }}
                 markdown={notesPresentation}
               />
             {:else}
@@ -794,10 +796,12 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
                 centerEmptyState={!previousRelease}
                 changes={previousRelease ? guideDiff.changes : []}
                 labels={{
-  added: m.source_added(),
-  removed: m.source_removed(),
-  empty: previousRelease ? m.source_diff_no_changes() : m.api_release_initial_diff(),
-}}
+                  added: m.source_added(),
+                  removed: m.source_removed(),
+                  empty: previousRelease
+                    ? m.source_diff_no_changes()
+                    : m.api_release_initial_diff(),
+                }}
                 markdown={guidePresentation}
               />
             {:else}
@@ -815,7 +819,9 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
             {#await statsRoot then module}
               {@const ReleaseStatsRoot = module.default}
               <ReleaseStatsRoot
-                resourceType={api.familyType === 'stats' ? 'divisionStatistic' : undefined}
+                resourceType={api.familyType === 'stats'
+                  ? 'divisionStatistic'
+                  : undefined}
                 stats={release.stats}
                 {districtAreas}
                 {locale}
@@ -848,13 +854,13 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
                   profile={apiProfile}
                   releaseSet={release.code}
                   recordCount={release.stats?.find(
-  stat =>
-    stat.dimension === 'records' &&
-    stat.metric === 'count' &&
-    stat.metricUnit === 'count' &&
-    stat.groupBy == null &&
-    stat.groupValue == null,
-)?.value ?? null}
+                    stat =>
+                      stat.category === 'records' &&
+                      stat.measure === 'count' &&
+                      stat.unit === 'count' &&
+                      stat.dimension == null &&
+                      stat.dimensionValue == null,
+                  )?.value ?? null}
                   request={sampleRequest}
                 />
               {/key}

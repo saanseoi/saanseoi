@@ -50,12 +50,12 @@ export type ApiRelease = {
     tableName?: string | null
   }>
   stats?: Array<{
-    dimension?: string | null
-    metric?: string | null
-    metricUnit?: string | null
+    category?: string | null
+    measure?: string | null
+    unit?: string | null
     value: number
-    groupBy?: string | null
-    groupValue?: string | null
+    dimension?: string | null
+    dimensionValue?: string | null
   }>
   processingActions?: Array<{
     id: string
@@ -182,12 +182,12 @@ export type SourceVersion = {
   status: string
   ingestedAt?: string | null
   stats?: Array<{
-    dimension?: string | null
-    metric?: string | null
-    metricUnit?: string | null
+    category?: string | null
+    measure?: string | null
+    unit?: string | null
     value: number
-    groupBy?: string | null
-    groupValue?: string | null
+    dimension?: string | null
+    dimensionValue?: string | null
   }>
   processingActions?: Array<{
     id: string

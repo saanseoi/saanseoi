@@ -71,6 +71,7 @@
     "db:reset:production:current": "bash ./scripts/reset-remote-db.sh current production",
     "db:reset:production:history": "bash ./scripts/reset-remote-db.sh history production",
     "db:reset:production:source": "bash ./scripts/reset-remote-db.sh source production",
+    "db:stats:normalise": "bun ./scripts/normaliseReleaseStats.ts",
     "db:migration:run:local": "bash ./scripts/migrate-local-db.sh all",
     "db:migration:run:local:meta": "bash ./scripts/migrate-local-db.sh meta",
     "db:migration:run:local:current": "bash ./scripts/migrate-local-db.sh current",

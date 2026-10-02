@@ -12,8 +12,8 @@ import type {
 } from './releaseStats.types'
 
 type Row = ReleaseStat & { index: number }
-const valueFor = (rows: Row[], dimension: string, metric: string) =>
-  rows.find(row => row.dimension === dimension && row.metric === metric)?.value
+const valueFor = (rows: Row[], category: string, measure: string) =>
+  rows.find(row => row.category === category && row.measure === measure)?.value
 const sectionId = (value: string) =>
   `stats-${
     value
@@ -86,32 +86,33 @@ export function createReleaseStatsPresentation({
     })
   }
 
-  const churn = matching(row => row.metric === 'churn' && !row.groupBy)
-  const total = valueFor(churn, 'count', 'churn')
+  const churn = matching(row => row.category === 'changes' && !row.dimension)
+  const total = valueFor(churn, 'changes', 'count')
   const baselineRecords =
     isFirstRelease && total === undefined
       ? stats?.find(
-          row => row.dimension === 'records' && row.metric === 'count' && !row.groupBy,
+          row =>
+            row.category === 'records' && row.measure === 'count' && !row.dimension,
         )?.value
       : undefined
-  const churnValue = (dimension: string) =>
-    valueFor(churn, dimension, 'churn') ??
-    (dimension === 'added_count' ? (baselineRecords ?? 0) : 0)
+  const churnValue = (category: string) =>
+    valueFor(churn, 'changes', category) ??
+    (category === 'added_count' ? (baselineRecords ?? 0) : 0)
   const primaryRecords = matching(
-    row => row.dimension === 'records' && row.metric === 'count' && !row.groupBy,
+    row => row.category === 'records' && row.measure === 'count' && !row.dimension,
   )[0]
   const fallback = matching(
     row =>
-      row.dimension === 'records' &&
-      row.metric === 'count' &&
-      (row.groupBy === 'table' || row.groupBy === 'source'),
+      row.category === 'records' &&
+      row.measure === 'count' &&
+      (row.dimension === 'table' || row.dimension === 'source'),
   )[0]
   const overview =
     (stats?.length ?? 0) > 0
       ? (() => {
           if (total !== undefined) claim(churn)
           if (primaryRecords) claim([primaryRecords])
-          if (fallback && !primaryRecords && fallback.groupBy !== 'table')
+          if (fallback && !primaryRecords && fallback.dimension !== 'table')
             claim([fallback])
           const metrics = (
             [
@@ -120,15 +121,15 @@ export function createReleaseStatsPresentation({
               ['removed_count', 'removed', copy.labels.removed],
               ['unchanged_count', 'unchanged', copy.labels.unchanged],
             ] as const
-          ).map(([dimension, key, label]) => ({
+          ).map(([category, key, label]) => ({
             key,
             label,
-            value: churnValue(dimension),
+            value: churnValue(category),
             formattedValue:
-              valueFor(churn, dimension, 'churn') === undefined &&
+              valueFor(churn, 'changes', category) === undefined &&
               baselineRecords === undefined
                 ? '—'
-                : formatReleaseStat(locale, churnValue(dimension)),
+                : formatReleaseStat(locale, churnValue(category)),
           }))
           addHeading(
             'stats-overview',
@@ -145,9 +146,9 @@ export function createReleaseStatsPresentation({
                 fallback?.value ??
                 stats?.find(
                   row =>
-                    row.dimension === 'records' &&
-                    row.metric === 'count' &&
-                    !row.groupBy,
+                    row.category === 'records' &&
+                    row.measure === 'count' &&
+                    !row.dimension,
                 )?.value ??
                 0,
             ),
@@ -159,7 +160,7 @@ export function createReleaseStatsPresentation({
               baseline:
                 baselineRecords !== undefined ||
                 ((metrics[0]?.value ?? 0) > 0 &&
-                  metrics.slice(1).every(metric => metric.value === 0)),
+                  metrics.slice(1).every(measure => measure.value === 0)),
               metrics,
             },
           }
@@ -175,10 +176,10 @@ export function createReleaseStatsPresentation({
 
   const districtRows = matching(
     row =>
-      row.metric === 'distribution' &&
-      row.dimension === 'records' &&
-      row.groupBy === 'district' &&
-      Boolean(row.groupValue),
+      row.measure === 'count' &&
+      row.category === 'records' &&
+      row.dimension === 'district' &&
+      Boolean(row.dimensionValue),
   )
   claim(districtRows)
   const districtDistribution =
@@ -192,7 +193,7 @@ export function createReleaseStatsPresentation({
               label: area.name ?? copy.labels.district,
             })),
             values: districtRows.map(row => ({
-              id: row.groupValue ?? '',
+              id: row.dimensionValue ?? '',
               value: row.value,
             })),
           }
@@ -201,15 +202,15 @@ export function createReleaseStatsPresentation({
 
   const geometryRows = matching(
     row =>
-      row.dimension === 'geometry' &&
-      row.groupBy === 'district' &&
-      Boolean(row.groupValue),
+      row.category === 'geometry' &&
+      row.dimension === 'district' &&
+      Boolean(row.dimensionValue),
   )
   const geometry = geometryRows.length
     ? (() => {
         const districts = new Map<string, Row[]>()
         geometryRows.forEach(row => {
-          const districtId = row.groupValue
+          const districtId = row.dimensionValue
           if (districtId)
             districts.set(districtId, [...(districts.get(districtId) ?? []), row])
         })
@@ -303,37 +304,37 @@ export function createReleaseStatsPresentation({
 
   const localeRows = matching(
     row =>
-      row.metric === 'completeness' &&
-      row.groupBy === 'locale' &&
-      Boolean(row.groupValue),
+      row.category === 'completeness' &&
+      row.dimension === 'locale' &&
+      Boolean(row.dimensionValue),
   )
   const localeCoverage = localeRows.length
     ? (() => {
         const groups = new Map<string, Row[]>()
         localeRows.forEach(row => {
-          const groupValue = row.groupValue
-          if (groupValue) {
-            groups.set(groupValue, [...(groups.get(groupValue) ?? []), row])
+          const dimensionValue = row.dimensionValue
+          if (dimensionValue) {
+            groups.set(dimensionValue, [...(groups.get(dimensionValue) ?? []), row])
           }
         })
         const result = [...groups]
           .map(([code, group]) => {
-            const coverage = valueFor(group, 'locale_coverage', 'completeness') ?? 0
+            const coverage = valueFor(group, 'completeness', 'locale_coverage') ?? 0
             const provenanceDimensions = [
-              { tone: 'provided', dimension: 'locale_coverage_provided' },
-              { tone: 'inferred', dimension: 'locale_coverage_inferred' },
-              { tone: 'ai-translated', dimension: 'locale_coverage_ai_translated' },
+              { tone: 'provided', category: 'locale_coverage_provided' },
+              { tone: 'inferred', category: 'locale_coverage_inferred' },
+              { tone: 'ai-translated', category: 'locale_coverage_ai_translated' },
               {
                 tone: 'human-translated',
-                dimension: 'locale_coverage_human_translated',
+                category: 'locale_coverage_human_translated',
               },
             ] as const
             const hasProvenanceBreakdown = group.some(row =>
-              provenanceDimensions.some(({ dimension }) => row.dimension === dimension),
+              provenanceDimensions.some(({ category }) => row.measure === category),
             )
             const segments: LocaleCoveragePresentation[number]['segments'] =
-              provenanceDimensions.flatMap(({ tone, dimension }) => {
-                const value = valueFor(group, dimension, 'completeness') ?? 0
+              provenanceDimensions.flatMap(({ tone, category }) => {
+                const value = valueFor(group, 'completeness', category) ?? 0
                 return value > 0 ? [{ label: tone, tone, value }] : []
               })
             const localeSegments: LocaleCoveragePresentation[number]['segments'] =
@@ -345,7 +346,7 @@ export function createReleaseStatsPresentation({
               label: copy.localeName(code),
               count: formatReleaseStat(
                 locale,
-                valueFor(group, 'locale_count', 'completeness') ?? 0,
+                valueFor(group, 'completeness', 'locale_count') ?? 0,
               ),
               coverage,
               coverageLabel: formatReleaseStat(locale, coverage, 'percentage'),
@@ -362,10 +363,10 @@ export function createReleaseStatsPresentation({
 
   const componentRows = matching(
     row =>
-      row.metric === 'completeness' &&
-      row.dimension === 'component_coverage' &&
-      row.groupBy === 'addressComponent' &&
-      Boolean(row.groupValue),
+      row.category === 'completeness' &&
+      row.measure === 'component_coverage' &&
+      row.dimension === 'addressComponent' &&
+      Boolean(row.dimensionValue),
   )
   const componentCoverage = componentRows.length
     ? (() => {
@@ -373,12 +374,12 @@ export function createReleaseStatsPresentation({
         addHeading('stats-address-components', copy.labels.addressComponents)
         return componentRows
           .map(row => ({
-            label: copy.statLabel(row.groupValue),
+            label: copy.statLabel(row.dimensionValue),
             value: row.value,
             formattedValue: formatReleaseStat(
               locale,
               row.value,
-              row.metricUnit ?? 'percentage',
+              row.unit ?? 'percentage',
             ),
           }))
           .sort((a, b) => b.value - a.value)
@@ -387,10 +388,10 @@ export function createReleaseStatsPresentation({
 
   const divisionLinkageRows = matching(
     row =>
-      row.dimension === 'records' &&
-      row.metric === 'linkage' &&
-      row.groupBy === 'divisionLevel' &&
-      Boolean(row.groupValue),
+      row.category === 'records' &&
+      row.measure === 'linkage' &&
+      row.dimension === 'divisionLevel' &&
+      Boolean(row.dimensionValue),
   )
   const divisionLinkage = divisionLinkageRows.length
     ? (() => {
@@ -401,9 +402,9 @@ export function createReleaseStatsPresentation({
           id: addHeading('stats-division-linkage', 'Divisions & Streets'),
           rows: divisionLinkageRows
             .map(row => ({
-              order: divisionLevelOrder.indexOf(row.groupValue ?? ''),
-              label: copy.statLabel(row.groupValue),
-              value: formatReleaseStat(locale, row.value, row.metricUnit),
+              order: divisionLevelOrder.indexOf(row.dimensionValue ?? ''),
+              label: copy.statLabel(row.dimensionValue),
+              value: formatReleaseStat(locale, row.value, row.unit),
               coverageLabel: formatReleaseStat(
                 locale,
                 linkageTotal > 0 ? Math.min(100, (row.value / linkageTotal) * 100) : 0,
@@ -423,22 +424,24 @@ export function createReleaseStatsPresentation({
   claim(
     matching(
       row =>
-        !row.groupBy &&
-        ((row.dimension === 'observations' && row.metric === 'count') ||
-          (row.dimension === 'measures' && row.metric === 'count') ||
-          (row.dimension === 'fields' && row.metric === 'count') ||
-          (row.dimension === 'reference_periods' && row.metric === 'count') ||
-          (row.dimension === 'dimensions' &&
-            ['definition_count', 'value_definition_count'].includes(row.metric ?? ''))),
+        !row.dimension &&
+        ((row.category === 'observations' && row.measure === 'count') ||
+          (row.category === 'measures' && row.measure === 'count') ||
+          (row.category === 'fields' && row.measure === 'count') ||
+          (row.category === 'reference_periods' && row.measure === 'count') ||
+          (row.category === 'dimensions' &&
+            ['definition_count', 'value_definition_count'].includes(
+              row.measure ?? '',
+            ))),
     ),
   )
 
   const measureRows = matching(
     row =>
-      row.dimension === 'observations' &&
-      row.metric === 'count' &&
-      row.groupBy === 'measure' &&
-      Boolean(row.groupValue),
+      row.category === 'observations' &&
+      row.measure === 'count' &&
+      row.dimension === 'measure' &&
+      Boolean(row.dimensionValue),
   )
   const measureCoverage = measureRows.length
     ? (() => {
@@ -458,11 +461,11 @@ export function createReleaseStatsPresentation({
           .sort(
             (left, right) =>
               left.value - right.value ||
-              (left.groupValue ?? '').localeCompare(right.groupValue ?? ''),
+              (left.dimensionValue ?? '').localeCompare(right.dimensionValue ?? ''),
           )
           .map(row => ({
-            label: copy.statLabel(row.groupValue),
-            value: formatReleaseStat(locale, row.value, row.metricUnit),
+            label: copy.statLabel(row.dimensionValue),
+            value: formatReleaseStat(locale, row.value, row.unit),
           }))
         const baselineCount = baselineRows.length
         return {
@@ -496,54 +499,54 @@ export function createReleaseStatsPresentation({
 
   const distributionRows = matching(
     row =>
-      Boolean(row.groupValue) &&
-      row.groupBy !== 'district' &&
-      row.groupBy !== 'table' &&
-      row.groupBy !== 'source' &&
-      !(statistics && row.groupBy === 'dataset') &&
-      (row.metric === 'churn' ||
-        (row.dimension === 'units' &&
-          row.metric === 'count' &&
-          row.groupBy === 'unit_distribution') ||
-        (row.dimension === 'records' && row.metric === 'count') ||
-        (row.dimension === 'observations' &&
-          row.metric === 'count' &&
-          row.groupBy === 'referencePeriod')),
+      Boolean(row.dimensionValue) &&
+      row.dimension !== 'district' &&
+      row.dimension !== 'table' &&
+      row.dimension !== 'source' &&
+      !(statistics && row.dimension === 'dataset') &&
+      (row.category === 'changes' ||
+        (row.category === 'units' &&
+          row.measure === 'count' &&
+          row.dimension === 'unit_distribution') ||
+        (row.category === 'records' && row.measure === 'count') ||
+        (row.category === 'observations' &&
+          row.measure === 'count' &&
+          row.dimension === 'referencePeriod')),
   )
   const recordDistributions = distributionRows.length
     ? (() => {
         const groups = new Map<string, Row[]>()
         distributionRows.forEach(row => {
-          const groupBy = row.groupBy
-          if (groupBy) groups.set(groupBy, [...(groups.get(groupBy) ?? []), row])
+          const dimension = row.dimension
+          if (dimension) groups.set(dimension, [...(groups.get(dimension) ?? []), row])
         })
         const presentations = [...groups]
-          .map(([groupBy, groupRows]) => {
+          .map(([dimension, groupRows]) => {
             const values = new Map<string, Row[]>()
             groupRows.forEach(row => {
-              const groupValue = row.groupValue
-              if (groupValue)
-                values.set(groupValue, [...(values.get(groupValue) ?? []), row])
+              const dimensionValue = row.dimensionValue
+              if (dimensionValue)
+                values.set(dimensionValue, [...(values.get(dimensionValue) ?? []), row])
             })
             const rows = [...values]
-              .map(([groupValue, valueRows]) => {
+              .map(([dimensionValue, valueRows]) => {
                 const unchanged =
-                  valueFor(valueRows, 'unchanged_count', 'churn') ??
+                  valueFor(valueRows, 'changes', 'unchanged_count') ??
                   valueFor(valueRows, 'records', 'count') ??
                   valueFor(valueRows, 'units', 'count') ??
                   valueFor(valueRows, 'observations', 'count') ??
                   0
-                const added = valueFor(valueRows, 'added_count', 'churn') ?? 0
-                const changed = valueFor(valueRows, 'changed_count', 'churn') ?? 0
-                const removed = valueFor(valueRows, 'removed_count', 'churn') ?? 0
+                const added = valueFor(valueRows, 'changes', 'added_count') ?? 0
+                const changed = valueFor(valueRows, 'changes', 'changed_count') ?? 0
+                const removed = valueFor(valueRows, 'changes', 'removed_count') ?? 0
                 const total =
-                  valueFor(valueRows, 'count', 'churn') ??
+                  valueFor(valueRows, 'changes', 'count') ??
                   valueFor(valueRows, 'records', 'count') ??
                   valueFor(valueRows, 'units', 'count') ??
                   valueFor(valueRows, 'observations', 'count') ??
                   0
                 return {
-                  label: copy.statLabel(groupValue),
+                  label: copy.statLabel(dimensionValue),
                   count: formatReleaseStat(locale, total),
                   total,
                   added,
@@ -556,27 +559,27 @@ export function createReleaseStatsPresentation({
               .sort((a, b) => b.total - a.total)
             if (!rows.length) return undefined
             const title =
-              groupBy === 'type'
+              dimension === 'type'
                 ? groupRows.some(row =>
-                    ['land', 'maritime', 'mixed'].includes(row.groupValue ?? ''),
+                    ['land', 'maritime', 'mixed'].includes(row.dimensionValue ?? ''),
                   )
                   ? copy.labels.recordsByGeometryClass
                   : copy.labels.recordsByType
-                : copy.statLabel(groupBy)
+                : copy.statLabel(dimension)
             const observationDistribution = groupRows.some(
-              row => row.dimension === 'observations',
+              row => row.category === 'observations',
             )
             return {
               eyebrow: observationDistribution
                 ? copy.statLabel('observations')
                 : copy.labels.records,
-              groupBy,
-              id: addHeading(sectionId(groupBy), title),
+              dimension,
+              id: addHeading(sectionId(dimension), title),
               title,
               valueLabel: observationDistribution
                 ? copy.statLabel('observations')
                 : copy.labels.records,
-              showChangeLegend: groupRows.some(row => row.metric === 'churn'),
+              showChangeLegend: groupRows.some(row => row.category === 'changes'),
               rows,
               maxVolume: Math.max(
                 1,
@@ -596,43 +599,43 @@ export function createReleaseStatsPresentation({
     : []
 
   const sourceLayerDistribution = recordDistributions.find(
-    distribution => distribution.groupBy === 'sourceLayer',
+    distribution => distribution.dimension === 'sourceLayer',
   )
   const remainingRecordDistributions = recordDistributions.filter(
     distribution => distribution !== sourceLayerDistribution,
   )
 
   const processingRows = matching(
-    row => row.metric === 'processing' && row.groupBy === 'action',
+    row => row.category === 'processing' && row.dimension === 'action',
   )
   const processing = processingRows.length
     ? (() => {
         claim(processingRows)
         addHeading('stats-processing-actions', copy.labels.processingActions)
         return processingRows.map(row => ({
-          ...copy.processingAction(row.groupValue ?? ''),
-          value: formatReleaseStat(locale, row.value, row.metricUnit),
+          ...copy.processingAction(row.dimensionValue ?? ''),
+          value: formatReleaseStat(locale, row.value, row.unit),
         }))
       })()
     : undefined
   const qualityRows = matching(
     row =>
-      row.metric === 'quality' ||
-      (row.dimension === 'source_quality' && row.metric === 'repaired'),
+      row.category === 'quality' ||
+      (row.category === 'source_quality' && row.measure === 'repaired'),
   )
   const observationStatusRows = matching(
     row =>
-      row.dimension === 'observations' &&
-      row.metric === 'count' &&
-      row.groupBy === 'observationStatus' &&
-      Boolean(row.groupValue),
+      row.category === 'observations' &&
+      row.measure === 'count' &&
+      row.dimension === 'observationStatus' &&
+      Boolean(row.dimensionValue),
   )
   const unknownUnitRows = matching(
     row =>
-      row.dimension === 'measures' &&
-      row.metric === 'count' &&
-      row.groupBy === 'unitCode' &&
-      row.groupValue === 'publisher-unknown',
+      row.category === 'measures' &&
+      row.measure === 'count' &&
+      row.dimension === 'unitCode' &&
+      row.dimensionValue === 'publisher-unknown',
   )
   const quality =
     qualityRows.length || observationStatusRows.length || unknownUnitRows.length
@@ -647,31 +650,31 @@ export function createReleaseStatsPresentation({
                 .filter(row => row.value > 0)
                 .map(row => ({
                   label:
-                    row.dimension === 'source_quality'
-                      ? `${copy.statLabel(row.groupValue)} · Repaired`
-                      : copy.statLabel(row.dimension),
+                    row.category === 'source_quality'
+                      ? `${copy.statLabel(row.dimensionValue)} · Repaired`
+                      : copy.statLabel(row.measure),
                   description:
-                    row.dimension === 'source_quality'
+                    row.category === 'source_quality'
                       ? 'Output records whose source geometry required repair during processing.'
-                      : (copy.qualityDescription?.(row.dimension ?? '') ??
-                        copy.statLabel(row.dimension)),
-                  value: formatReleaseStat(locale, row.value, row.metricUnit),
+                      : (copy.qualityDescription?.(row.measure ?? '') ??
+                        copy.statLabel(row.measure)),
+                  value: formatReleaseStat(locale, row.value, row.unit),
                 })),
               ...observationStatusRows
-                .filter(row => row.groupValue !== 'published' && row.value > 0)
+                .filter(row => row.dimensionValue !== 'published' && row.value > 0)
                 .map(row => ({
-                  label: `${copy.statLabel(row.groupValue)} observations`,
+                  label: `${copy.statLabel(row.dimensionValue)} observations`,
                   description:
-                    row.groupValue === 'suppressed'
+                    row.dimensionValue === 'suppressed'
                       ? 'C&SD publishes “**” instead of the value.'
                       : 'C&SD publishes “-”, “N.A.”, or “NA” instead of the value.',
-                  value: formatReleaseStat(locale, row.value, row.metricUnit),
+                  value: formatReleaseStat(locale, row.value, row.unit),
                 })),
               ...unknownUnitRows.map(row => ({
                 label: 'Measures without a mapped unit',
                 description:
                   'These publisher measures are valid, but their unit codes have not yet been mapped.',
-                value: formatReleaseStat(locale, row.value, row.metricUnit),
+                value: formatReleaseStat(locale, row.value, row.unit),
               })),
             ],
           }
@@ -682,23 +685,24 @@ export function createReleaseStatsPresentation({
   claim(
     matching(
       row =>
-        row.dimension === 'observations' &&
-        row.metric === 'count' &&
-        row.groupBy === 'valueKind',
+        row.category === 'observations' &&
+        row.measure === 'count' &&
+        row.dimension === 'valueKind',
     ),
   )
 
   const generic = new Map<string, Row[]>()
   claim(
     matching(
-      row => row.dimension === 'source_features' && row.groupValue === 'planning_cells',
+      row =>
+        row.category === 'source_features' && row.dimensionValue === 'planning_cells',
     ),
   )
   const genericGroupOrder = ['field', 'statisticKind', 'unitCode', 'aggregation']
   rows
     .filter(row => !claimed.has(row.index))
     .forEach(row => {
-      const group = row.groupBy ?? 'summary'
+      const group = row.dimension ?? 'summary'
       generic.set(group, [...(generic.get(group) ?? []), row])
     })
   const genericGroups = [...generic]
@@ -726,19 +730,19 @@ export function createReleaseStatsPresentation({
         label,
         rows: [...groupRows]
           .sort((a, b) =>
-            `${a.groupValue ?? ''}:${a.dimension}:${a.metric}`.localeCompare(
-              `${b.groupValue ?? ''}:${b.dimension}:${b.metric}`,
+            `${a.dimensionValue ?? ''}:${a.category}:${a.measure}`.localeCompare(
+              `${b.dimensionValue ?? ''}:${b.category}:${b.measure}`,
             ),
           )
           .map(row => ({
-            dimension: copy.statLabel(row.dimension),
-            metric: copy.statLabel(row.metric),
-            groupValue:
+            category: copy.statLabel(row.category),
+            measure: copy.statLabel(row.measure),
+            dimensionValue:
               statistics && group === 'dataset'
                 ? 'Stats'
-                : copy.statLabel(row.groupValue),
-            unit: row.metricUnit ?? '',
-            value: formatReleaseStat(locale, row.value, row.metricUnit),
+                : copy.statLabel(row.dimensionValue),
+            unit: row.unit ?? '',
+            value: formatReleaseStat(locale, row.value, row.unit),
           })),
       }
     })
@@ -746,7 +750,7 @@ export function createReleaseStatsPresentation({
     if (statistics.profile.localeCoverage.length)
       addHeading('stats-profile-locale', 'Locale')
     const structural = remainingRecordDistributions.find(
-      item => item.groupBy === 'structural',
+      item => item.dimension === 'structural',
     )
     const order = [
       'stats-overview',

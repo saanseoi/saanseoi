@@ -20,11 +20,11 @@ let { group }: { group: GenericStatGroupPresentation } = $props()
           <p
             class="font-body text-caption font-semibold uppercase tracking-[0.08em] text-data-primary"
           >
-            {row.dimension}
-            · {row.metric}
+            {row.category}
+            · {row.measure}
           </p>
           <p class="mt-1 font-body text-label-md font-semibold text-primary">
-            {row.groupValue}
+            {row.dimensionValue}
           </p>
           {#if row.unit && row.unit !== 'count'}
             <p class="mt-1 font-body text-caption text-foreground-alt">{row.unit}</p>

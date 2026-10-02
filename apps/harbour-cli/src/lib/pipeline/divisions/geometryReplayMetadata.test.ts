@@ -43,7 +43,7 @@ const tables = {
   releaseProcessingActionChunks:
     'id TEXT PRIMARY KEY, resourceReleaseId TEXT, actionId TEXT, generation TEXT, firstOrdinal INTEGER, decisionCount INTEGER, part INTEGER, parts INTEGER, encoding TEXT, checksum TEXT, payload BLOB CHECK(length(payload)<=32768)',
   stats:
-    'id TEXT PRIMARY KEY, resourceReleaseId TEXT, apiReleaseSetId TEXT, dimension TEXT, metric TEXT, metricUnit TEXT, value REAL, groupBy TEXT, groupValue TEXT, createdAt TEXT, updatedAt TEXT',
+    'id TEXT PRIMARY KEY, resourceReleaseId TEXT, apiReleaseSetId TEXT, category TEXT, measure TEXT, unit TEXT, value REAL, dimension TEXT, dimensionValue TEXT, createdAt TEXT, updatedAt TEXT',
 }
 
 function schema(db: Database) {
@@ -268,7 +268,7 @@ test('geometry metadata replay resumes a partial second variant and carries real
     expect(contents(remote)).toEqual(contents(local))
 
     await updateReport(local, 'second', 13)
-    local.exec(`UPDATE stats SET value=13,groupBy='type',groupValue='land';
+    local.exec(`UPDATE stats SET value=13,dimension='type',dimensionValue='land';
       UPDATE snapshotResourceReleases SET selectionMode='verified_identical_geometry' WHERE snapshotId='simplified';
       UPDATE snapshotAssemblies SET anchorReleaseId='release' WHERE snapshotId='simplified';`)
     const beforeChanges = changes(remote) ?? 0
@@ -278,7 +278,7 @@ test('geometry metadata replay resumes a partial second variant and carries real
     expect(await report(remote)).toEqual(await report(local))
 
     local.exec(`UPDATE releaseProcessingActions SET updatedAt='recovered';
-      UPDATE stats SET groupBy=NULL,groupValue=NULL;
+      UPDATE stats SET dimension=NULL,dimensionValue=NULL;
       UPDATE snapshots SET status='published',updatedAt='published' WHERE id='exact';
       UPDATE snapshotAssemblies SET status='completed' WHERE snapshotId='exact';`)
     const beforeRecovery = changes(remote) ?? 0

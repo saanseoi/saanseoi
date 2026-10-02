@@ -57,8 +57,8 @@ export async function runDivisionApiStatsBackfillCommand(
       prepared.push({ release, rows })
       const churn = Object.fromEntries(
         rows
-          .filter(row => row.metric === 'churn' && !row.groupBy)
-          .map(row => [row.dimension, row.value]),
+          .filter(row => row.category === 'changes' && !row.dimension)
+          .map(row => [row.measure, row.value]),
       )
       console.log(
         `${args.options['dry-run'] ? 'Inspect' : 'Prepared'} ${release.code}: ${rows.length} stats rows; ${JSON.stringify(churn)}`,

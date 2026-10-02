@@ -120,7 +120,7 @@ export async function readAuditReplaySql(
     .where(
       and(
         eq(metaSchema.stats.resourceReleaseId, resourceReleaseId),
-        eq(metaSchema.stats.metric, 'processing'),
+        eq(metaSchema.stats.category, 'processing'),
       ),
     )
     .all()) as ReleaseStatsRow[]

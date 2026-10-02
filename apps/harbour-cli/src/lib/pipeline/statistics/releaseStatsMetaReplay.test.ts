@@ -16,12 +16,12 @@ const stats = [
   {
     apiReleaseSetId: null,
     createdAt: '2026-08-18T00:00:00.000Z',
-    dimension: 'records',
-    groupBy: null,
-    groupValue: null,
+    category: 'records',
+    dimension: null,
+    dimensionValue: null,
     id: 'b-stat',
-    metric: 'count',
-    metricUnit: 'count',
+    measure: 'count',
+    unit: 'count',
     resourceReleaseId,
 
     updatedAt: '2026-08-18T00:00:00.000Z',
@@ -30,12 +30,12 @@ const stats = [
   {
     apiReleaseSetId: null,
     createdAt: '2026-08-18T00:00:00.000Z',
-    dimension: 'records',
-    groupBy: 'sourceLayer',
-    groupValue: 'Density_2024',
+    category: 'records',
+    dimension: 'sourceLayer',
+    dimensionValue: 'Density_2024',
     id: 'a-stat',
-    metric: 'count',
-    metricUnit: 'count',
+    measure: 'count',
+    unit: 'count',
     resourceReleaseId,
 
     updatedAt: '2026-08-18T00:00:00.000Z',
@@ -48,7 +48,7 @@ describe('release statistics metadata replay', () => {
     const sql = buildReleaseStatsMetaSqlBatches(resourceReleaseId, stats).join('\n')
 
     expect(sql).toContain(
-      `DELETE FROM "stats" WHERE "resourceReleaseId" = '${resourceReleaseId}' AND "metric" != 'processing';`,
+      `DELETE FROM "stats" WHERE "resourceReleaseId" = '${resourceReleaseId}' AND "category" != 'processing';`,
     )
     expect(sql).not.toContain('apiReleaseSetId =')
     expect(sql.indexOf("'a-stat'")).toBeLessThan(sql.indexOf("'b-stat'"))
@@ -123,17 +123,17 @@ describe('release statistics metadata replay', () => {
       stats: [
         {
           ...stats[0],
-          dimension: 'processing',
-          groupBy: 'action',
-          groupValue: 'automatic:map_censtatd_district_code_to_canonical_division',
+          category: 'processing',
+          dimension: 'action',
+          dimensionValue: 'automatic:map_censtatd_district_code_to_canonical_division',
           id: 'processing-1',
-          metric: 'processing',
+          measure: 'processing',
         },
       ],
     }).join('\n')
 
     expect(sql).toContain('DELETE FROM "releaseProcessingActions"')
-    expect(sql).toContain(`AND "metric" = 'processing';`)
+    expect(sql).toContain(`AND "category" = 'processing';`)
     expect(sql).toContain("'audit-1'")
     expect(sql).toContain("'processing-1'")
   })

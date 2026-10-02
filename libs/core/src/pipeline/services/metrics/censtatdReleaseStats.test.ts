@@ -70,28 +70,28 @@ describe('buildCenstatdReleaseStats', () => {
     )
 
     expect(rows).toContainEqual(
-      expect.objectContaining({ dimension: 'records', metric: 'count', value: 3 }),
+      expect.objectContaining({ category: 'records', measure: 'count', value: 3 }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'records',
-        groupBy: 'sourceLayer',
-        groupValue: 'BG_21C',
+        category: 'records',
+        dimension: 'sourceLayer',
+        dimensionValue: 'BG_21C',
         value: 2,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'observations',
-        groupBy: 'valueKind',
-        groupValue: 'categorical',
+        category: 'observations',
+        dimension: 'valueKind',
+        dimensionValue: 'categorical',
         value: 1,
       }),
     )
     expect(rows).toContainEqual(
       expect.objectContaining({
-        dimension: 'dimensions',
-        metric: 'value_definition_count',
+        category: 'dimensions',
+        measure: 'value_definition_count',
         value: 3,
       }),
     )
@@ -131,7 +131,7 @@ describe('buildCenstatdReleaseStats', () => {
     )
 
     expect(
-      rows.find(row => row.dimension === 'observations' && !row.groupBy)?.value,
+      rows.find(row => row.category === 'observations' && !row.dimension)?.value,
     ).toBe(1)
     expect(rows.some(row => row.value === 243300)).toBeFalse()
   })
@@ -224,20 +224,20 @@ describe('buildCenstatdReleaseStats', () => {
       .filter(
         row =>
           !(
-            (row.dimension === 'observations' &&
-              row.groupBy === 'field' &&
-              row.groupValue === 'households') ||
-            (row.dimension === 'dimensions' &&
-              row.groupBy === 'definitionCode' &&
-              row.groupValue === 'district-class')
+            (row.category === 'observations' &&
+              row.dimension === 'field' &&
+              row.dimensionValue === 'households') ||
+            (row.category === 'dimensions' &&
+              row.dimension === 'definitionCode' &&
+              row.dimensionValue === 'district-class')
           ),
       )
       .map((row, index) => ({
         ...row,
         apiReleaseSetId: null,
         createdAt: row.createdAt ?? timestamp,
-        groupBy: row.groupBy ?? null,
-        groupValue: row.groupValue ?? null,
+        dimension: row.dimension ?? null,
+        dimensionValue: row.dimensionValue ?? null,
         id: `previous-${index}`,
         resourceReleaseId: 'release-previous',
         snapshotId: null,
@@ -247,16 +247,16 @@ describe('buildCenstatdReleaseStats', () => {
     const churn = buildCenstatdStructuralChurnStats(current, previous, timestamp)
     expect(churn).toContainEqual(
       expect.objectContaining({
-        dimension: 'added_count',
-        groupBy: 'structural',
-        groupValue: 'fields',
+        measure: 'added_count',
+        dimension: 'structural',
+        dimensionValue: 'fields',
         value: 1,
       }),
     )
     expect(churn).toContainEqual(
       expect.objectContaining({
-        dimension: 'added_count',
-        groupValue: 'dimensions',
+        measure: 'added_count',
+        dimensionValue: 'dimensions',
         value: 1,
       }),
     )

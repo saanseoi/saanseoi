@@ -122,7 +122,7 @@ describe('reporting service', () => {
         inserted: 1,
       })
       expect(statRows).toHaveLength(1)
-      expect(statRows[0]?.metric).toBe('rows')
+      expect(statRows[0]?.measure).toBe('rows')
       expect(resolveDataShardEnvironment('production')).toBe('production')
       expect(resolveDataShardEnvironment('preview')).toBe('preview')
 
@@ -237,7 +237,7 @@ describe('reporting service', () => {
           );
 
         INSERT INTO stats (
-          id, resourceReleaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
+          id, resourceReleaseId, category, measure, unit, value, dimension, dimensionValue, createdAt, updatedAt
         ) VALUES
           (
             'stat-release-2',
@@ -650,7 +650,7 @@ function seedProcessingRun(sqlite: SQLiteDatabase) {
 function seedStat(sqlite: SQLiteDatabase) {
   sqlite.exec(`
     INSERT INTO stats (
-      id, resourceReleaseId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt
+      id, resourceReleaseId, category, measure, unit, value, dimension, dimensionValue, createdAt, updatedAt
     ) VALUES (
       'stat-dr-hk-hkgov-dpo-address-2026-06-24.0-rows',
       'release-dr-hk-hkgov-dpo-address-2026-06-24.0',

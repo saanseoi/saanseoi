@@ -311,12 +311,12 @@ describe('formatStatsReportTable', () => {
       {
         createdAt: '2026-06-24T12:00:00.000Z',
         datasetCode: 'ds-hk-overture-division',
-        dimension: 'locale_count',
-        groupBy: null,
-        groupValue: null,
+        category: 'completeness',
+        dimension: null,
+        dimensionValue: null,
         id: '1',
-        metric: 'completeness',
-        metricUnit: 'count',
+        measure: 'locale_count',
+        unit: 'count',
         releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         resourceReleaseId: 'release-1',
         source: 'overture',
@@ -327,12 +327,12 @@ describe('formatStatsReportTable', () => {
       {
         createdAt: '2026-06-24T12:00:00.000Z',
         datasetCode: 'ds-hk-overture-division',
-        dimension: 'locale_coverage',
-        groupBy: null,
-        groupValue: null,
+        category: 'completeness',
+        dimension: null,
+        dimensionValue: null,
         id: '2',
-        metric: 'completeness',
-        metricUnit: 'percentage',
+        measure: 'locale_coverage',
+        unit: 'percentage',
         releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         resourceReleaseId: 'release-1',
         source: 'overture',
@@ -343,12 +343,12 @@ describe('formatStatsReportTable', () => {
       {
         createdAt: '2026-06-24T12:00:00.000Z',
         datasetCode: 'ds-hk-overture-division',
-        dimension: 'count',
-        groupBy: 'type',
-        groupValue: 'district',
+        category: 'changes',
+        dimension: 'type',
+        dimensionValue: 'district',
         id: '3',
-        metric: 'churn',
-        metricUnit: 'count',
+        measure: 'count',
+        unit: 'count',
         releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         resourceReleaseId: 'release-1',
         source: 'overture',
@@ -359,12 +359,12 @@ describe('formatStatsReportTable', () => {
       {
         createdAt: '2026-06-24T12:00:00.000Z',
         datasetCode: 'ds-hk-overture-division',
-        dimension: 'name_regression_count',
-        groupBy: null,
-        groupValue: null,
+        category: 'quality',
+        dimension: null,
+        dimensionValue: null,
         id: '4',
-        metric: 'quality',
-        metricUnit: 'count',
+        measure: 'name_regression_count',
+        unit: 'count',
         releaseCode: 'dr-hk-overture-division-2026-06-24.0',
         resourceReleaseId: 'release-1',
         source: 'overture',
@@ -375,12 +375,12 @@ describe('formatStatsReportTable', () => {
       {
         createdAt: '2026-06-23T12:00:00.000Z',
         datasetCode: 'ds-hk-overture-division',
-        dimension: 'count',
-        groupBy: 'type',
-        groupValue: 'district',
+        category: 'changes',
+        dimension: 'type',
+        dimensionValue: 'district',
         id: '5',
-        metric: 'churn',
-        metricUnit: 'count',
+        measure: 'count',
+        unit: 'count',
         releaseCode: 'dr-hk-overture-division-2026-06-23.0',
         resourceReleaseId: 'release-2',
         source: 'overture',
@@ -395,7 +395,7 @@ describe('formatStatsReportTable', () => {
     expect(table).toContain('release: dr-hk-overture-division-2026-06-24.0')
     expect(table).toContain('release: dr-hk-overture-division-2026-06-23.0')
     expect(table).toContain('\n\ncompleteness\n')
-    expect(table).toContain('\n\nchurn\n')
+    expect(table).toContain('\n\nchanges\n')
     expect(table).toContain('\n\nquality\n')
     expect(table).toContain('group  locale_count')
     expect(table).toContain('locale_coverage')

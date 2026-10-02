@@ -78,7 +78,7 @@ type CalculateApiReleaseSetStatsOptions = {
 
 type GroupCountRow = {
   count: number
-  groupValue: string | number | null
+  dimensionValue: string | number | null
 }
 
 const API_RELEASE_SET_STATS_PHASE = 'calculateApiReleaseSetStats'
@@ -530,14 +530,14 @@ async function buildPlaceStatsRows(
   for (const [locale, count] of localeCounts) {
     rows.push(
       placeStatsRow('localised_records', 'count', 'count', count, timestamp, {
-        groupBy: 'locale',
-        groupValue: locale,
+        dimension: 'locale',
+        dimensionValue: locale,
       }),
     )
   }
   for (const [fieldLocale, stats] of localisationStats.fields) {
     const [field, locale] = fieldLocale.split('\u0000')
-    const groupValue = `${field}:${locale}`
+    const dimensionValue = `${field}:${locale}`
     rows.push(
       placeStatsRow(
         'localisation_value_count',
@@ -546,8 +546,8 @@ async function buildPlaceStatsRows(
         stats.valueCount,
         timestamp,
         {
-          groupBy: 'field_locale',
-          groupValue,
+          dimension: 'field_locale',
+          dimensionValue,
         },
       ),
       placeStatsRow(
@@ -557,8 +557,8 @@ async function buildPlaceStatsRows(
         percentage(stats.valueCount, placeCount),
         timestamp,
         {
-          groupBy: 'field_locale',
-          groupValue,
+          dimension: 'field_locale',
+          dimensionValue,
         },
       ),
       placeStatsRow(
@@ -568,8 +568,8 @@ async function buildPlaceStatsRows(
         percentage(stats.providedCount, placeCount),
         timestamp,
         {
-          groupBy: 'field_locale',
-          groupValue,
+          dimension: 'field_locale',
+          dimensionValue,
         },
       ),
       placeStatsRow(
@@ -579,8 +579,8 @@ async function buildPlaceStatsRows(
         percentage(stats.inferredCount, placeCount),
         timestamp,
         {
-          groupBy: 'field_locale',
-          groupValue,
+          dimension: 'field_locale',
+          dimensionValue,
         },
       ),
       placeStatsRow(
@@ -590,8 +590,8 @@ async function buildPlaceStatsRows(
         percentage(stats.aiTranslatedCount, placeCount),
         timestamp,
         {
-          groupBy: 'field_locale',
-          groupValue,
+          dimension: 'field_locale',
+          dimensionValue,
         },
       ),
       placeStatsRow(
@@ -601,8 +601,8 @@ async function buildPlaceStatsRows(
         percentage(stats.humanTranslatedCount, placeCount),
         timestamp,
         {
-          groupBy: 'field_locale',
-          groupValue,
+          dimension: 'field_locale',
+          dimensionValue,
         },
       ),
       placeStatsRow(
@@ -612,8 +612,8 @@ async function buildPlaceStatsRows(
         stats.conflictCount,
         timestamp,
         {
-          groupBy: 'field_locale',
-          groupValue,
+          dimension: 'field_locale',
+          dimensionValue,
         },
       ),
       placeStatsRow(
@@ -623,8 +623,8 @@ async function buildPlaceStatsRows(
         stats.missingCount,
         timestamp,
         {
-          groupBy: 'field_locale',
-          groupValue,
+          dimension: 'field_locale',
+          dimensionValue,
         },
       ),
     )
@@ -720,20 +720,20 @@ function percentage(value: number, total: number) {
 }
 
 function placeStatsRow(
-  dimension: string,
-  metric: string,
-  metricUnit: string,
+  category: string,
+  measure: string,
+  unit: string,
   value: number,
   timestamp: string,
-  grouping?: { groupBy: string; groupValue: string },
+  grouping?: { dimension: string; dimensionValue: string },
 ): ApiReleaseSetScopedStatsRow {
   return {
     createdAt: timestamp,
-    dimension,
-    groupBy: grouping?.groupBy ?? null,
-    groupValue: grouping?.groupValue ?? null,
-    metric,
-    metricUnit,
+    category,
+    dimension: grouping?.dimension ?? null,
+    dimensionValue: grouping?.dimensionValue ?? null,
+    measure,
+    unit,
 
     updatedAt: timestamp,
     value,
@@ -751,7 +751,7 @@ async function buildAddressLocaleStats(
   const rows = await db
     .select({
       count: sql<number>`count(distinct ${currentSchema.address2dI18n.addressId})`,
-      groupValue: currentSchema.address2dI18n.locale,
+      dimensionValue: currentSchema.address2dI18n.locale,
     })
     .from(currentSchema.address2dI18n)
     .where(eq(currentSchema.address2dI18n.snapshotId, snapshotId))
@@ -759,7 +759,7 @@ async function buildAddressLocaleStats(
     .all()
 
   for (const row of rows) {
-    const group = toStatsLocaleGroup(String(row.groupValue))
+    const group = toStatsLocaleGroup(String(row.dimensionValue))
 
     if (!group) {
       continue
@@ -804,7 +804,7 @@ async function countGrouped(
   const rows = await db
     .select({
       count: sql<number>`count(*)`,
-      groupValue: groupColumn,
+      dimensionValue: groupColumn,
     })
     .from(table)
     .where(eq(snapshotIdColumn, snapshotId))
@@ -813,8 +813,8 @@ async function countGrouped(
 
   return new Map(
     (rows as GroupCountRow[])
-      .filter(row => row.groupValue != null)
-      .map(row => [String(row.groupValue), Number(row.count ?? 0)]),
+      .filter(row => row.dimensionValue != null)
+      .map(row => [String(row.dimensionValue), Number(row.count ?? 0)]),
   )
 }
 
@@ -856,17 +856,17 @@ function buildStatsSql(apiReleaseSetId: string, rows: ApiReleaseSetScopedStatsRo
     `DELETE FROM stats WHERE apiReleaseSetId = ${sqlLiteral(apiReleaseSetId)};`,
     ...rows.map(row =>
       [
-        'INSERT INTO stats (id, resourceReleaseId, apiReleaseSetId, dimension, metric, metricUnit, value, groupBy, groupValue, createdAt, updatedAt) VALUES (',
+        'INSERT INTO stats (id, resourceReleaseId, apiReleaseSetId, category, measure, unit, value, dimension, dimensionValue, createdAt, updatedAt) VALUES (',
         [
           crypto.randomUUID(),
           null,
           apiReleaseSetId,
-          row.dimension,
-          row.metric,
-          row.metricUnit,
+          row.category,
+          row.measure,
+          row.unit,
           row.value,
-          row.groupBy,
-          row.groupValue,
+          row.dimension,
+          row.dimensionValue,
           row.createdAt,
           row.updatedAt,
         ]

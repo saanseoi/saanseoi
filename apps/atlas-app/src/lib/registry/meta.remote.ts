@@ -109,7 +109,7 @@ export type SourcesPageSource = Pick<
       stats: Array<
         Pick<
           NonNullable<SourceVersion['stats']>[number],
-          'dimension' | 'groupBy' | 'groupValue' | 'metric' | 'metricUnit' | 'value'
+          'category' | 'dimension' | 'dimensionValue' | 'measure' | 'unit' | 'value'
         >
       >
     }
@@ -142,11 +142,11 @@ function toSourcesPageSource(source: RegistrySource): SourcesPageSource {
             })),
             stats: (version.stats ?? []).filter(
               stat =>
-                stat.dimension === 'records' &&
-                stat.metric === 'count' &&
-                stat.metricUnit === 'count' &&
-                !stat.groupBy &&
-                !stat.groupValue,
+                stat.category === 'records' &&
+                stat.measure === 'count' &&
+                stat.unit === 'count' &&
+                !stat.dimension &&
+                !stat.dimensionValue,
             ),
             status: version.status,
           },
@@ -548,11 +548,11 @@ export const getApiReleasePageData = query(
             sourceReleaseCodeBatches.map(releaseCodes =>
               db
                 .select({
+                  category: stats.category,
                   dimension: stats.dimension,
-                  groupBy: stats.groupBy,
-                  groupValue: stats.groupValue,
-                  metric: stats.metric,
-                  metricUnit: stats.metricUnit,
+                  dimensionValue: stats.dimensionValue,
+                  measure: stats.measure,
+                  unit: stats.unit,
                   releaseCode: metaSourceReleases.code,
                   value: stats.value,
                 })
@@ -568,9 +568,9 @@ export const getApiReleasePageData = query(
                 .where(
                   and(
                     inArray(metaSourceReleases.code, releaseCodes),
-                    eq(stats.dimension, 'records'),
-                    eq(stats.metric, 'distribution'),
-                    eq(stats.groupBy, 'district'),
+                    eq(stats.category, 'records'),
+                    eq(stats.measure, 'count'),
+                    eq(stats.dimension, 'district'),
                   ),
                 )
                 .all(),
@@ -592,7 +592,7 @@ export const getApiReleasePageData = query(
         ...release,
         stats: (() => {
           const releaseStats = release.stats ?? []
-          if (releaseStats.some(stat => stat.groupBy === 'district'))
+          if (releaseStats.some(stat => stat.dimension === 'district'))
             return releaseStats
           const primaryDivisionSourceCodes =
             release.contributingSources

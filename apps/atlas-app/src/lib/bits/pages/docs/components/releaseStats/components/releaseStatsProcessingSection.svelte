@@ -25,8 +25,8 @@ let {
     >
   </div>
   <div class="grid gap-px bg-data-outline-variant/60 sm:grid-cols-2">
-    {#each processing as metric}
-      <ProcessingMetric {metric} />
+    {#each processing as measure}
+      <ProcessingMetric {measure} />
     {/each}
     {#if processing.length % 2}
       <div aria-hidden="true" class="min-h-28 bg-data-surface-container-lowest"></div>

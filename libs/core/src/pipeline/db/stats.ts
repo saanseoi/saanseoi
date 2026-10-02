@@ -49,7 +49,7 @@ export async function replaceDatasetStatsAndReturnRows(
       .where(
         and(
           eq(metaSchema.stats.resourceReleaseId, dataset.resourceReleaseId),
-          sql`${metaSchema.stats.metric} != 'processing'`,
+          sql`${metaSchema.stats.category} != 'processing'`,
         ),
       ),
   ])
@@ -62,8 +62,8 @@ export async function replaceDatasetStatsAndReturnRows(
       ...row,
       apiReleaseSetId: null,
       createdAt: row.createdAt ?? timestamp,
-      groupBy: row.groupBy ?? null,
-      groupValue: row.groupValue ?? null,
+      dimension: row.dimension ?? null,
+      dimensionValue: row.dimensionValue ?? null,
       id: crypto.randomUUID(),
       resourceReleaseId: dataset.resourceReleaseId,
 
@@ -83,11 +83,11 @@ export async function replaceDatasetStatsAndReturnRows(
   return materialisedRows
 }
 
-/** Replaces one release-stat dimension while preserving all other release facts. */
-export async function replaceReleaseStatsDimension(
+/** Replaces one release-stat category while preserving all other release facts. */
+export async function replaceReleaseStatsCategory(
   metaDb: HarbourReadableDb & HarbourWritableDb,
   resourceReleaseId: string,
-  dimension: string,
+  category: string,
   rows: ReleaseScopedStatsRow[],
 ) {
   const dataset = await getDatasetRecordByReleaseId(metaDb, resourceReleaseId)
@@ -99,8 +99,8 @@ export async function replaceReleaseStatsDimension(
       .where(
         and(
           eq(metaSchema.stats.resourceReleaseId, dataset.resourceReleaseId),
-          sql`${metaSchema.stats.metric} != 'processing'`,
-          eq(metaSchema.stats.dimension, dimension),
+          sql`${metaSchema.stats.category} != 'processing'`,
+          eq(metaSchema.stats.category, category),
         ),
       ),
   ])

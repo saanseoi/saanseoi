@@ -65,14 +65,14 @@ const present = (
 ) => createReleaseStatsPresentation({ stats, locale: 'en', copy })
 
 describe('createReleaseStatsPresentation', () => {
-  test('renders retained zero locale coverage as chart rows instead of a generic metric grid', () => {
+  test('renders retained zero locale coverage as chart rows instead of a generic measure grid', () => {
     const model = present(
-      ['en', 'zh-hant', 'zh-hans'].flatMap(groupValue =>
-        ['locale_count', 'locale_coverage', 'locale_alt_coverage'].map(dimension => ({
-          dimension,
-          metric: 'completeness',
-          groupBy: 'locale',
-          groupValue,
+      ['en', 'zh-hant', 'zh-hans'].flatMap(dimensionValue =>
+        ['locale_count', 'locale_coverage', 'locale_alt_coverage'].map(category => ({
+          category: 'completeness',
+          measure: category,
+          dimension: 'locale',
+          dimensionValue,
           value: 0,
         })),
       ),
@@ -89,17 +89,17 @@ describe('createReleaseStatsPresentation', () => {
   test('treats legacy locale coverage without provenance rows as source-provided', () => {
     const model = present([
       {
-        dimension: 'locale_count',
-        metric: 'completeness',
-        groupBy: 'locale',
-        groupValue: 'en',
+        category: 'completeness',
+        measure: 'locale_count',
+        dimension: 'locale',
+        dimensionValue: 'en',
         value: 10,
       },
       {
-        dimension: 'locale_coverage',
-        metric: 'completeness',
-        groupBy: 'locale',
-        groupValue: 'en',
+        category: 'completeness',
+        measure: 'locale_coverage',
+        dimension: 'locale',
+        dimensionValue: 'en',
         value: 100,
       },
     ])
@@ -112,10 +112,10 @@ describe('createReleaseStatsPresentation', () => {
       resourceType: 'divisionStatistic',
       locale: 'en',
       copy,
-      stats: [{ dimension: 'records', metric: 'count', value: 3495 }],
+      stats: [{ category: 'records', measure: 'count', value: 3495 }],
     }
     const baseline = createReleaseStatsPresentation({ ...input, isFirstRelease: true })
-    expect(baseline.overview?.churn?.metrics.map(metric => metric.value)).toEqual([
+    expect(baseline.overview?.churn?.metrics.map(measure => measure.value)).toEqual([
       3495, 0, 0, 0,
     ])
     expect(baseline.overview?.churn?.baseline).toBe(true)
@@ -129,14 +129,14 @@ describe('createReleaseStatsPresentation', () => {
       locale: 'en',
       copy,
       stats: [
-        { dimension: 'records', metric: 'count', value: 10 },
-        { dimension: 'count', metric: 'churn', value: 10 },
-        { dimension: 'added_count', metric: 'churn', value: 3 },
-        { dimension: 'unchanged_count', metric: 'churn', value: 7 },
+        { category: 'records', measure: 'count', value: 10 },
+        { category: 'changes', measure: 'count', value: 10 },
+        { category: 'changes', measure: 'added_count', value: 3 },
+        { category: 'changes', measure: 'unchanged_count', value: 7 },
       ],
     })
     expect(model.overview?.recordCount).toBe('10')
-    expect(model.overview?.churn?.metrics.map(metric => metric.value)).toEqual([
+    expect(model.overview?.churn?.metrics.map(measure => measure.value)).toEqual([
       3, 0, 0, 7,
     ])
     expect(model.headings[0]?.id).toBe('stats-overview')
@@ -148,52 +148,52 @@ describe('createReleaseStatsPresentation', () => {
       copy,
       resourceType: 'divisionStatistic',
       stats: [
-        { dimension: 'records', metric: 'count', value: 10 },
-        { dimension: 'fields', metric: 'count', value: 3 },
-        { dimension: 'observations', metric: 'count', value: 25 },
-        ...['population', 'income'].map(groupValue => ({
-          dimension: 'observations',
-          metric: 'count',
-          groupBy: 'field',
-          groupValue,
+        { category: 'records', measure: 'count', value: 10 },
+        { category: 'fields', measure: 'count', value: 3 },
+        { category: 'observations', measure: 'count', value: 25 },
+        ...['population', 'income'].map(dimensionValue => ({
+          category: 'observations',
+          measure: 'count',
+          dimension: 'field',
+          dimensionValue,
           value: 10,
         })),
         {
-          dimension: 'observations',
-          metric: 'count',
-          groupBy: 'field',
-          groupValue: 'rent',
+          category: 'observations',
+          measure: 'count',
+          dimension: 'field',
+          dimensionValue: 'rent',
           value: 5,
         },
         {
-          dimension: 'observations',
-          metric: 'count',
-          groupBy: 'observationStatus',
-          groupValue: 'published',
+          category: 'observations',
+          measure: 'count',
+          dimension: 'observationStatus',
+          dimensionValue: 'published',
           value: 20,
         },
         {
-          dimension: 'observations',
-          metric: 'count',
-          groupBy: 'observationStatus',
-          groupValue: 'suppressed',
+          category: 'observations',
+          measure: 'count',
+          dimension: 'observationStatus',
+          dimensionValue: 'suppressed',
           value: 3,
         },
         {
-          dimension: 'observations',
-          metric: 'count',
-          groupBy: 'observationStatus',
-          groupValue: 'unavailable',
+          category: 'observations',
+          measure: 'count',
+          dimension: 'observationStatus',
+          dimensionValue: 'unavailable',
           value: 2,
         },
         {
-          dimension: 'observations',
-          metric: 'count',
-          groupBy: 'referencePeriod',
-          groupValue: '2021',
+          category: 'observations',
+          measure: 'count',
+          dimension: 'referencePeriod',
+          dimensionValue: '2021',
           value: 25,
         },
-        { dimension: 'custom', metric: 'count', value: 7 },
+        { category: 'custom', measure: 'count', value: 7 },
       ],
     })
     expect(model.statisticsProfile?.coverage).toEqual({
@@ -215,7 +215,7 @@ describe('createReleaseStatsPresentation', () => {
     expect(model.overview).toBeDefined()
     expect(model.measures).toBeUndefined()
     expect(model.genericGroups[0]?.rows).toContainEqual(
-      expect.objectContaining({ dimension: 'custom', value: '7' }),
+      expect.objectContaining({ category: 'custom', value: '7' }),
     )
   })
 
@@ -225,19 +225,19 @@ describe('createReleaseStatsPresentation', () => {
       copy,
       resourceType: 'divisionStatistic',
       stats: [
-        { dimension: 'observations', metric: 'count', value: 0 },
+        { category: 'observations', measure: 'count', value: 0 },
         {
-          dimension: 'observations',
-          metric: 'count',
-          groupBy: 'observationStatus',
-          groupValue: 'published',
+          category: 'observations',
+          measure: 'count',
+          dimension: 'observationStatus',
+          dimensionValue: 'published',
           value: 0,
         },
-        ...['2016', '2021'].map(groupValue => ({
-          dimension: 'observations',
-          metric: 'count',
-          groupBy: 'referencePeriod',
-          groupValue,
+        ...['2016', '2021'].map(dimensionValue => ({
+          category: 'observations',
+          measure: 'count',
+          dimension: 'referencePeriod',
+          dimensionValue,
           value: 0,
         })),
       ],
@@ -278,65 +278,65 @@ describe('createReleaseStatsPresentation', () => {
       ],
       stats: [
         {
-          dimension: 'geometry',
-          metric: 'feature_count',
+          category: 'geometry',
+          measure: 'feature_count',
           value: 1,
-          groupBy: 'district',
-          groupValue: 'district-b',
+          dimension: 'district',
+          dimensionValue: 'district-b',
         },
         {
-          dimension: 'geometry',
-          metric: 'polygon_count',
+          category: 'geometry',
+          measure: 'polygon_count',
           value: 2,
-          groupBy: 'district',
-          groupValue: 'district-b',
+          dimension: 'district',
+          dimensionValue: 'district-b',
         },
         {
-          dimension: 'geometry',
-          metric: 'area',
-          metricUnit: 'square_kilometres',
+          category: 'geometry',
+          measure: 'area',
+          unit: 'square_kilometres',
           value: 0.00012,
-          groupBy: 'district',
-          groupValue: 'district-b',
+          dimension: 'district',
+          dimensionValue: 'district-b',
         },
         {
-          dimension: 'geometry',
-          metric: 'boundary_segment_count',
-          metricUnit: 'count',
+          category: 'geometry',
+          measure: 'boundary_segment_count',
+          unit: 'count',
           value: 8,
-          groupBy: 'district',
-          groupValue: 'district-b',
+          dimension: 'district',
+          dimensionValue: 'district-b',
         },
         {
-          dimension: 'geometry',
-          metric: 'boundary_length',
-          metricUnit: 'kilometres',
+          category: 'geometry',
+          measure: 'boundary_length',
+          unit: 'kilometres',
           value: 0.0045,
-          groupBy: 'district',
-          groupValue: 'district-b',
+          dimension: 'district',
+          dimensionValue: 'district-b',
         },
         {
-          dimension: 'geometry',
-          metric: 'feature_count',
+          category: 'geometry',
+          measure: 'feature_count',
           value: 1,
-          groupBy: 'district',
-          groupValue: 'district-a',
+          dimension: 'district',
+          dimensionValue: 'district-a',
         },
         {
-          dimension: 'geometry',
-          metric: 'boundary_segment_count',
-          metricUnit: 'count',
+          category: 'geometry',
+          measure: 'boundary_segment_count',
+          unit: 'count',
           value: 4,
-          groupBy: 'district',
-          groupValue: 'district-a',
+          dimension: 'district',
+          dimensionValue: 'district-a',
         },
         {
-          dimension: 'geometry',
-          metric: 'boundary_length',
-          metricUnit: 'kilometres',
+          category: 'geometry',
+          measure: 'boundary_length',
+          unit: 'kilometres',
           value: 1,
-          groupBy: 'district',
-          groupValue: 'district-a',
+          dimension: 'district',
+          dimensionValue: 'district-a',
         },
       ],
     })
@@ -357,73 +357,73 @@ describe('createReleaseStatsPresentation', () => {
   test('keeps the feature column when districts have different feature counts', () => {
     const model = present([
       {
-        dimension: 'geometry',
-        metric: 'feature_count',
+        category: 'geometry',
+        measure: 'feature_count',
         value: 1,
-        groupBy: 'district',
-        groupValue: 'district-a',
+        dimension: 'district',
+        dimensionValue: 'district-a',
       },
       {
-        dimension: 'geometry',
-        metric: 'boundary_segment_count',
+        category: 'geometry',
+        measure: 'boundary_segment_count',
         value: 4,
-        groupBy: 'district',
-        groupValue: 'district-a',
+        dimension: 'district',
+        dimensionValue: 'district-a',
       },
       {
-        dimension: 'geometry',
-        metric: 'boundary_length',
+        category: 'geometry',
+        measure: 'boundary_length',
         value: 1,
-        groupBy: 'district',
-        groupValue: 'district-a',
+        dimension: 'district',
+        dimensionValue: 'district-a',
       },
       {
-        dimension: 'geometry',
-        metric: 'feature_count',
+        category: 'geometry',
+        measure: 'feature_count',
         value: 2,
-        groupBy: 'district',
-        groupValue: 'district-b',
+        dimension: 'district',
+        dimensionValue: 'district-b',
       },
       {
-        dimension: 'geometry',
-        metric: 'boundary_segment_count',
+        category: 'geometry',
+        measure: 'boundary_segment_count',
         value: 8,
-        groupBy: 'district',
-        groupValue: 'district-b',
+        dimension: 'district',
+        dimensionValue: 'district-b',
       },
       {
-        dimension: 'geometry',
-        metric: 'boundary_length',
+        category: 'geometry',
+        measure: 'boundary_length',
         value: 2,
-        groupBy: 'district',
-        groupValue: 'district-b',
+        dimension: 'district',
+        dimensionValue: 'district-b',
       },
     ])
     expect(model.geometry?.showFeatureCount).toBe(true)
   })
 
-  test('hides polygon and area columns when a boundaries release has neither metric', () => {
+  test('hides polygon and area columns when a boundaries release has neither measure', () => {
     const model = present([
       {
-        dimension: 'geometry',
-        metric: 'feature_count',
+        category: 'geometry',
+        measure: 'feature_count',
         value: 1,
-        groupBy: 'district',
-        groupValue: 'district-a',
+        dimension: 'district',
+        dimensionValue: 'district-a',
       },
       {
-        dimension: 'geometry',
-        metric: 'boundary_segment_count',
+        category: 'geometry',
+        measure: 'boundary_segment_count',
         value: 4,
-        groupBy: 'district',
-        groupValue: 'district-a',
+        dimension: 'district',
+        dimensionValue: 'district-a',
       },
       {
-        dimension: 'geometry',
-        metric: 'boundary_length',
+        category: 'geometry',
+        measure: 'boundary_length',
         value: 1.2,
-        groupBy: 'district',
-        groupValue: 'district-a',
+        dimension: 'district',
+        dimensionValue: 'district-a',
       },
     ])
 
@@ -444,25 +444,25 @@ describe('createReleaseStatsPresentation', () => {
       ],
       stats: [
         {
-          dimension: 'geometry',
-          metric: 'feature_count',
+          category: 'geometry',
+          measure: 'feature_count',
           value: 1,
-          groupBy: 'district',
-          groupValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
+          dimension: 'district',
+          dimensionValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
         },
         {
-          dimension: 'geometry',
-          metric: 'boundary_segment_count',
+          category: 'geometry',
+          measure: 'boundary_segment_count',
           value: 4,
-          groupBy: 'district',
-          groupValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
+          dimension: 'district',
+          dimensionValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
         },
         {
-          dimension: 'geometry',
-          metric: 'boundary_length',
+          category: 'geometry',
+          measure: 'boundary_length',
           value: 1.2,
-          groupBy: 'district',
-          groupValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
+          dimension: 'district',
+          dimensionValue: '222b7818-970a-491d-98b6-b88d8c6f0161',
         },
       ],
     })
@@ -478,88 +478,88 @@ describe('createReleaseStatsPresentation', () => {
   test('distinguishes an all-new baseline from a prior-release churn summary', () => {
     expect(
       present([
-        { dimension: 'count', metric: 'churn', value: 4 },
-        { dimension: 'added_count', metric: 'churn', value: 4 },
-        { dimension: 'changed_count', metric: 'churn', value: 0 },
-        { dimension: 'removed_count', metric: 'churn', value: 0 },
-        { dimension: 'unchanged_count', metric: 'churn', value: 0 },
+        { category: 'changes', measure: 'count', value: 4 },
+        { category: 'changes', measure: 'added_count', value: 4 },
+        { category: 'changes', measure: 'changed_count', value: 0 },
+        { category: 'changes', measure: 'removed_count', value: 0 },
+        { category: 'changes', measure: 'unchanged_count', value: 0 },
       ]).overview?.churn?.baseline,
     ).toBe(true)
     expect(
       present([
-        { dimension: 'count', metric: 'churn', value: 4 },
-        { dimension: 'added_count', metric: 'churn', value: 1 },
-        { dimension: 'unchanged_count', metric: 'churn', value: 3 },
+        { category: 'changes', measure: 'count', value: 4 },
+        { category: 'changes', measure: 'added_count', value: 1 },
+        { category: 'changes', measure: 'unchanged_count', value: 3 },
       ]).overview?.churn?.baseline,
     ).toBe(false)
   })
 
   test('shapes standard sections and percentage labels once', () => {
     const model = present([
-      { dimension: 'count', metric: 'churn', value: 10 },
+      { category: 'changes', measure: 'count', value: 10 },
       {
-        dimension: 'locale_count',
-        metric: 'completeness',
-        groupBy: 'locale',
-        groupValue: 'en',
+        category: 'completeness',
+        measure: 'locale_count',
+        dimension: 'locale',
+        dimensionValue: 'en',
         value: 10,
       },
       {
-        dimension: 'locale_coverage',
-        metric: 'completeness',
-        groupBy: 'locale',
-        groupValue: 'en',
+        category: 'completeness',
+        measure: 'locale_coverage',
+        dimension: 'locale',
+        dimensionValue: 'en',
         value: 62.5,
       },
       {
-        dimension: 'locale_coverage_provided',
-        metric: 'completeness',
-        groupBy: 'locale',
-        groupValue: 'en',
+        category: 'completeness',
+        measure: 'locale_coverage_provided',
+        dimension: 'locale',
+        dimensionValue: 'en',
         value: 20,
       },
       {
-        dimension: 'locale_coverage_inferred',
-        metric: 'completeness',
-        groupBy: 'locale',
-        groupValue: 'en',
+        category: 'completeness',
+        measure: 'locale_coverage_inferred',
+        dimension: 'locale',
+        dimensionValue: 'en',
         value: 10,
       },
       {
-        dimension: 'locale_coverage_ai_translated',
-        metric: 'completeness',
-        groupBy: 'locale',
-        groupValue: 'en',
+        category: 'completeness',
+        measure: 'locale_coverage_ai_translated',
+        dimension: 'locale',
+        dimensionValue: 'en',
         value: 25,
       },
       {
-        dimension: 'locale_coverage_human_translated',
-        metric: 'completeness',
-        groupBy: 'locale',
-        groupValue: 'en',
+        category: 'completeness',
+        measure: 'locale_coverage_human_translated',
+        dimension: 'locale',
+        dimensionValue: 'en',
         value: 7.5,
       },
       {
-        dimension: 'component_coverage',
-        metric: 'completeness',
-        groupBy: 'addressComponent',
-        groupValue: 'street',
+        category: 'completeness',
+        measure: 'component_coverage',
+        dimension: 'addressComponent',
+        dimensionValue: 'street',
         value: 50,
       },
       {
-        dimension: 'records',
-        metric: 'count',
-        groupBy: 'type',
-        groupValue: 'address',
+        category: 'records',
+        measure: 'count',
+        dimension: 'type',
+        dimensionValue: 'address',
         value: 10,
       },
       {
-        metric: 'processing',
-        groupBy: 'action',
-        groupValue: 'automatic:normalised',
+        category: 'processing',
+        dimension: 'action',
+        dimensionValue: 'automatic:normalised',
         value: 3,
       },
-      { dimension: 'name_regression_count', metric: 'quality', value: 1 },
+      { category: 'quality', measure: 'name_regression_count', value: 1 },
     ])
     expect(model.localeCoverage?.[0]?.coverageLabel).toBe('62.5%')
     expect(model.localeCoverage?.[0]?.segments).toEqual([
@@ -577,10 +577,10 @@ describe('createReleaseStatsPresentation', () => {
   test('keeps the table count visible when it supplies the overview total', () => {
     const model = present([
       {
-        dimension: 'records',
-        metric: 'count',
-        groupBy: 'table',
-        groupValue: 'addresses',
+        category: 'records',
+        measure: 'count',
+        dimension: 'table',
+        dimensionValue: 'addresses',
         value: 7,
       },
     ])
@@ -588,25 +588,25 @@ describe('createReleaseStatsPresentation', () => {
     expect(model.overview?.churn?.unavailable).toBe(true)
     expect(model.districtDistribution).toBeUndefined()
     expect(model.genericGroups[0]?.rows).toEqual([
-      expect.objectContaining({ groupValue: 'addresses', value: '7' }),
+      expect.objectContaining({ dimensionValue: 'addresses', value: '7' }),
     ])
   })
 
   test('keeps primary and localised table counts together when the primary total is available', () => {
     const model = present([
-      { dimension: 'records', metric: 'count', value: 7 },
+      { category: 'records', measure: 'count', value: 7 },
       {
-        dimension: 'records',
-        metric: 'count',
-        groupBy: 'table',
-        groupValue: 'divisions',
+        category: 'records',
+        measure: 'count',
+        dimension: 'table',
+        dimensionValue: 'divisions',
         value: 7,
       },
       {
-        dimension: 'localised_records',
-        metric: 'count',
-        groupBy: 'table',
-        groupValue: 'divisionsI18n',
+        category: 'localised_records',
+        measure: 'count',
+        dimension: 'table',
+        dimensionValue: 'divisionsI18n',
         value: 21,
       },
     ])
@@ -615,8 +615,8 @@ describe('createReleaseStatsPresentation', () => {
       expect.objectContaining({
         label: 'Record Types',
         rows: expect.arrayContaining([
-          expect.objectContaining({ groupValue: 'divisions', value: '7' }),
-          expect.objectContaining({ groupValue: 'divisionsI18n', value: '21' }),
+          expect.objectContaining({ dimensionValue: 'divisions', value: '7' }),
+          expect.objectContaining({ dimensionValue: 'divisionsI18n', value: '21' }),
         ]),
       }),
     ])
@@ -624,17 +624,17 @@ describe('createReleaseStatsPresentation', () => {
 
   test('presents division linkage separately from quality checks', () => {
     const model = present([
-      { dimension: 'records', metric: 'count', value: 10 },
+      { category: 'records', measure: 'count', value: 10 },
       {
-        dimension: 'records',
-        metric: 'linkage',
-        groupBy: 'divisionLevel',
-        groupValue: 'area',
+        category: 'records',
+        measure: 'linkage',
+        dimension: 'divisionLevel',
+        dimensionValue: 'area',
         value: 7,
       },
       {
-        dimension: 'missing_street_count',
-        metric: 'quality',
+        category: 'quality',
+        measure: 'missing_street_count',
         value: 2,
       },
     ])
@@ -648,26 +648,26 @@ describe('createReleaseStatsPresentation', () => {
 
   test('renders record distributions as bars and keeps district identifiers out of generic cards', () => {
     const model = present([
-      { dimension: 'records', metric: 'count', value: 10 },
+      { category: 'records', measure: 'count', value: 10 },
       {
-        dimension: 'records',
-        metric: 'count',
-        groupBy: 'divisionType',
-        groupValue: 'district',
+        category: 'records',
+        measure: 'count',
+        dimension: 'divisionType',
+        dimensionValue: 'district',
         value: 8,
       },
       {
-        dimension: 'records',
-        metric: 'count',
-        groupBy: 'level',
-        groupValue: '2',
+        category: 'records',
+        measure: 'count',
+        dimension: 'level',
+        dimensionValue: '2',
         value: 8,
       },
       {
-        dimension: 'records',
-        metric: 'distribution',
-        groupBy: 'district',
-        groupValue: 'opaque-id',
+        category: 'records',
+        measure: 'count',
+        dimension: 'district',
+        dimensionValue: 'opaque-id',
         value: 8,
       },
     ])
@@ -684,36 +684,36 @@ describe('createReleaseStatsPresentation', () => {
   test('keeps unknown and unrendered dimensions in generic groups with stable unique IDs', () => {
     const model = present([
       {
-        dimension: 'source_metadata',
-        metric: 'note',
-        groupBy: 'source',
-        groupValue: 'upstream',
+        category: 'source_metadata',
+        measure: 'note',
+        dimension: 'source',
+        dimensionValue: 'upstream',
         value: 8,
       },
       {
-        dimension: 'strange_dimension',
-        metric: 'mystery',
-        groupBy: 'future_group',
-        groupValue: 'value',
-        metricUnit: 'percentage',
+        category: 'strange_dimension',
+        measure: 'mystery',
+        dimension: 'future_group',
+        dimensionValue: 'value',
+        unit: 'percentage',
         value: 12.5,
       },
       {
-        dimension: 'records',
-        metric: 'distribution',
-        groupBy: 'district',
-        groupValue: 'd1',
+        category: 'records',
+        measure: 'count',
+        dimension: 'district',
+        dimensionValue: 'd1',
         value: 1,
       },
-      { dimension: 'another', metric: 'value', groupBy: 'overview', value: 1 },
+      { category: 'another', measure: 'value', dimension: 'overview', value: 1 },
     ])
     expect(
-      model.genericGroups.flatMap(group => group.rows).map(row => row.dimension),
+      model.genericGroups.flatMap(group => group.rows).map(row => row.category),
     ).toEqual(expect.arrayContaining(['source_metadata', 'strange_dimension']))
     expect(
       model.genericGroups
         .flatMap(group => group.rows)
-        .find(row => row.dimension === 'strange_dimension')?.value,
+        .find(row => row.category === 'strange_dimension')?.value,
     ).toBe('12.5%')
     const ids = model.headings.map(heading => heading.id)
     expect(new Set(ids).size).toBe(ids.length)
@@ -721,111 +721,111 @@ describe('createReleaseStatsPresentation', () => {
 
   test('summarises uniform measure coverage, hides structural facts, and sends publisher markers to quality checks', () => {
     const model = present([
-      { dimension: 'records', metric: 'count', value: 2 },
+      { category: 'records', measure: 'count', value: 2 },
       {
-        dimension: 'records',
-        metric: 'count',
-        groupBy: 'sourceLayer',
-        groupValue: 'BG 21C',
+        category: 'records',
+        measure: 'count',
+        dimension: 'sourceLayer',
+        dimensionValue: 'BG 21C',
         value: 2,
       },
-      { dimension: 'observations', metric: 'count', value: 12 },
+      { category: 'observations', measure: 'count', value: 12 },
       {
-        dimension: 'observations',
-        metric: 'count',
-        groupBy: 'measure',
-        groupValue: 'age_1',
+        category: 'observations',
+        measure: 'count',
+        dimension: 'measure',
+        dimensionValue: 'age_1',
         value: 4,
       },
       {
-        dimension: 'observations',
-        metric: 'count',
-        groupBy: 'measure',
-        groupValue: 'age_2',
+        category: 'observations',
+        measure: 'count',
+        dimension: 'measure',
+        dimensionValue: 'age_2',
         value: 4,
       },
       {
-        dimension: 'observations',
-        metric: 'count',
-        groupBy: 'measure',
-        groupValue: 'age_3',
+        category: 'observations',
+        measure: 'count',
+        dimension: 'measure',
+        dimensionValue: 'age_3',
         value: 4,
       },
       {
-        dimension: 'observations',
-        metric: 'count',
-        groupBy: 'referencePeriod',
-        groupValue: '2021',
+        category: 'observations',
+        measure: 'count',
+        dimension: 'referencePeriod',
+        dimensionValue: '2021',
         value: 12,
       },
       {
-        dimension: 'observations',
-        metric: 'count',
-        groupBy: 'valueKind',
-        groupValue: 'numeric',
+        category: 'observations',
+        measure: 'count',
+        dimension: 'valueKind',
+        dimensionValue: 'numeric',
         value: 12,
       },
       {
-        dimension: 'observations',
-        metric: 'count',
-        groupBy: 'observationStatus',
-        groupValue: 'published',
+        category: 'observations',
+        measure: 'count',
+        dimension: 'observationStatus',
+        dimensionValue: 'published',
         value: 10,
       },
       {
-        dimension: 'observations',
-        metric: 'count',
-        groupBy: 'observationStatus',
-        groupValue: 'suppressed',
+        category: 'observations',
+        measure: 'count',
+        dimension: 'observationStatus',
+        dimensionValue: 'suppressed',
         value: 2,
       },
-      { dimension: 'measures', metric: 'count', value: 3 },
+      { category: 'measures', measure: 'count', value: 3 },
       {
-        dimension: 'measures',
-        metric: 'count',
-        groupBy: 'unitCode',
-        groupValue: 'publisher-unknown',
+        category: 'measures',
+        measure: 'count',
+        dimension: 'unitCode',
+        dimensionValue: 'publisher-unknown',
         value: 3,
       },
       {
-        dimension: 'measures',
-        metric: 'count',
-        groupBy: 'statisticKind',
-        groupValue: 'count',
+        category: 'measures',
+        measure: 'count',
+        dimension: 'statisticKind',
+        dimensionValue: 'count',
         value: 2,
       },
       {
-        dimension: 'measures',
-        metric: 'count',
-        groupBy: 'statisticKind',
-        groupValue: 'density',
+        category: 'measures',
+        measure: 'count',
+        dimension: 'statisticKind',
+        dimensionValue: 'density',
         value: 1,
       },
       {
-        dimension: 'measures',
-        metric: 'count',
-        groupBy: 'aggregation',
-        groupValue: 'total',
+        category: 'measures',
+        measure: 'count',
+        dimension: 'aggregation',
+        dimensionValue: 'total',
         value: 3,
       },
-      { dimension: 'fields', metric: 'count', value: 3 },
+      { category: 'fields', measure: 'count', value: 3 },
       {
-        dimension: 'fields',
-        metric: 'count',
-        groupBy: 'field',
-        groupValue: 'POPULATION',
+        category: 'fields',
+        measure: 'count',
+        dimension: 'field',
+        dimensionValue: 'POPULATION',
         value: 3,
       },
       {
-        dimension: 'fields',
-        metric: 'count',
-        groupBy: 'unitCode',
-        groupValue: 'person',
+        category: 'fields',
+        measure: 'count',
+        dimension: 'unitCode',
+        dimensionValue: 'person',
         value: 1,
       },
-      { dimension: 'reference_periods', metric: 'count', value: 1 },
-      { dimension: 'dimensions', metric: 'definition_count', value: 2 },
-      { dimension: 'dimensions', metric: 'value_definition_count', value: 4 },
+      { category: 'reference_periods', measure: 'count', value: 1 },
+      { category: 'dimensions', measure: 'definition_count', value: 2 },
+      { category: 'dimensions', measure: 'value_definition_count', value: 4 },
     ])
 
     expect(model.sourceLayerDistribution?.title).toBe('sourceLayer')
@@ -870,7 +870,7 @@ describe('createReleaseStatsPresentation', () => {
       'aggregation',
     ])
     expect(model.genericGroups.flatMap(group => group.rows)).not.toContainEqual(
-      expect.objectContaining({ dimension: 'fields', groupValue: 'Unspecified' }),
+      expect.objectContaining({ category: 'fields', dimensionValue: 'Unspecified' }),
     )
     expect(model.genericGroups).toEqual(
       expect.arrayContaining([
@@ -896,14 +896,14 @@ test('Places consolidates localised metrics, retains zero coverage and leaves un
     locale: 'en',
     copy,
     stats: [
-      { dimension: 'records', metric: 'count', value: 100 },
-      { dimension: 'reference_name_count', metric: 'count', value: 100 },
+      { category: 'records', measure: 'count', value: 100 },
+      { category: 'reference_name_count', measure: 'count', value: 100 },
       {
-        dimension: 'reference_name_coverage',
-        metric: 'percentage',
+        category: 'reference_name_coverage',
+        measure: 'percentage',
         value: 100,
-        groupBy: 'field',
-        groupValue: 'referenceName',
+        dimension: 'field',
+        dimensionValue: 'referenceName',
       },
       ...[
         'coverage',
@@ -915,18 +915,18 @@ test('Places consolidates localised metrics, retains zero coverage and leaves un
         'missing_value_count',
         'conflict_count',
       ].map(suffix => ({
-        dimension: `localisation_${suffix}`,
-        metric: suffix.endsWith('coverage') ? 'percentage' : 'count',
+        category: `localisation_${suffix}`,
+        measure: suffix.endsWith('coverage') ? 'percentage' : 'count',
         value: suffix === 'missing_value_count' ? 100 : 0,
-        groupBy: 'field_locale',
-        groupValue: 'name:ja',
+        dimension: 'field_locale',
+        dimensionValue: 'name:ja',
       })),
       {
-        dimension: 'future_metric',
-        metric: 'count',
+        category: 'future_metric',
+        measure: 'count',
         value: 4,
-        groupBy: 'field_locale',
-        groupValue: 'name:ja',
+        dimension: 'field_locale',
+        dimensionValue: 'name:ja',
       },
     ],
   })
@@ -943,7 +943,7 @@ test('Places consolidates localised metrics, retains zero coverage and leaves un
     conflicts: '0',
   })
   expect(
-    model.genericGroups.flatMap(group => group.rows).map(row => row.dimension),
+    model.genericGroups.flatMap(group => group.rows).map(row => row.category),
   ).toEqual(['future_metric'])
   expect(model.headings.map(heading => heading.id)).toContain('stats-place-languages')
 })
@@ -954,28 +954,28 @@ test('Places Any name coverage uses the distinct reference count rather than add
     locale: 'en',
     copy,
     stats: [
-      { dimension: 'records', metric: 'count', value: 100 },
-      { dimension: 'reference_name_count', metric: 'count', value: 90 },
+      { category: 'records', measure: 'count', value: 100 },
+      { category: 'reference_name_count', measure: 'count', value: 90 },
       {
-        dimension: 'reference_name_coverage',
-        metric: 'percentage',
+        category: 'reference_name_coverage',
+        measure: 'percentage',
         value: 90,
-        groupBy: 'field',
-        groupValue: 'referenceName',
+        dimension: 'field',
+        dimensionValue: 'referenceName',
       },
       ...['en', 'zh-hant'].map(locale => ({
-        dimension: 'localisation_coverage',
-        metric: 'percentage',
+        category: 'localisation_coverage',
+        measure: 'percentage',
         value: 70,
-        groupBy: 'field_locale',
-        groupValue: `name:${locale}`,
+        dimension: 'field_locale',
+        dimensionValue: `name:${locale}`,
       })),
       {
-        dimension: 'localisation_coverage',
-        metric: 'percentage',
+        category: 'localisation_coverage',
+        measure: 'percentage',
         value: 10,
-        groupBy: 'field_locale',
-        groupValue: 'brandName:en',
+        dimension: 'field_locale',
+        dimensionValue: 'brandName:en',
       },
     ],
   })
@@ -985,12 +985,9 @@ test('Places Any name coverage uses the distinct reference count rather than add
   expect(
     model.placeProfile?.fields.find(field => field.code === 'brandName')?.any,
   ).toMatchObject({ count: '—', coverageLabel: '—', available: false })
-  expect(model.overview?.churn?.metrics.map(metric => metric.formattedValue)).toEqual([
-    '—',
-    '—',
-    '—',
-    '—',
-  ])
+  expect(model.overview?.churn?.metrics.map(measure => measure.formattedValue)).toEqual(
+    ['—', '—', '—', '—'],
+  )
 })
 
 test('a first Places release uses an all-added baseline', () => {
@@ -999,12 +996,9 @@ test('a first Places release uses an all-added baseline', () => {
     isFirstRelease: true,
     locale: 'en',
     copy,
-    stats: [{ dimension: 'records', metric: 'count', value: 100 }],
+    stats: [{ category: 'records', measure: 'count', value: 100 }],
   })
-  expect(model.overview?.churn?.metrics.map(metric => metric.formattedValue)).toEqual([
-    '100',
-    '0',
-    '0',
-    '0',
-  ])
+  expect(model.overview?.churn?.metrics.map(measure => measure.formattedValue)).toEqual(
+    ['100', '0', '0', '0'],
+  )
 })

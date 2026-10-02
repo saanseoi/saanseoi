@@ -559,7 +559,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                   ? []
                   : [3, 4, 5, 6]
                 ).map(level => {
-                  const groupValue = (
+                  const dimensionValue = (
                     {
                       3: 'primary',
                       4: 'secondary',
@@ -567,16 +567,16 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                       6: 'subunits',
                     } as Record<number, string>
                   )[level]
-                  if (!groupValue)
+                  if (!dimensionValue)
                     throw new Error(`Unknown Planning division level ${level}.`)
                   return {
                     ...statRow(
                       'units',
                       'count',
                       records.filter(record => record.base.level === level).length,
-                      groupValue,
+                      dimensionValue,
                     ),
-                    groupBy: 'unit_distribution',
+                    dimension: 'unit_distribution',
                   }
                 }),
                 ...planningDivisionChurn(

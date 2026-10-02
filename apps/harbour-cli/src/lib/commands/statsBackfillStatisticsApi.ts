@@ -58,13 +58,13 @@ export async function runStatisticsApiStatsBackfillCommand(
       prepared.push({ release, rows })
       const counts = Object.fromEntries(
         rows
-          .filter(row => row.metric === 'count' && !row.groupBy)
-          .map(row => [row.dimension, row.value]),
+          .filter(row => row.measure === 'count' && !row.dimension)
+          .map(row => [row.category, row.value]),
       )
       const churn = Object.fromEntries(
         rows
-          .filter(row => row.metric === 'churn' && !row.groupBy)
-          .map(row => [row.dimension, row.value]),
+          .filter(row => row.category === 'changes' && !row.dimension)
+          .map(row => [row.measure, row.value]),
       )
       console.log(
         `${args.options['dry-run'] ? 'Inspect' : 'Prepared'} ${release.code}: ${rows.length} stats rows; ${JSON.stringify(counts)}; churn ${JSON.stringify(churn)}`,
@@ -82,12 +82,12 @@ export async function runStatisticsApiStatsBackfillCommand(
         values
           .map(row =>
             JSON.stringify([
-              row.dimension,
-              row.metric,
-              row.metricUnit,
+              row.category,
+              row.measure,
+              row.unit,
               row.value,
-              row.groupBy,
-              row.groupValue,
+              row.dimension,
+              row.dimensionValue,
             ]),
           )
           .sort()
