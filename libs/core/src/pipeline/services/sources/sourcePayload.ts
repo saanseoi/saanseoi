@@ -33,8 +33,6 @@ export function overtureSourcePayload(row: Record<string, unknown>) {
             ).toString('base64'),
           }
         : (geometry ?? null),
-    // Acquisition metadata is separate from publisher-authored attribution.
-    sourceLocator: null,
   }
 }
 
@@ -77,6 +75,7 @@ export function nativeSourcePayloadHashInput(row: {
 /** Minimal acquisition locator; dataset, release and publisher attributes live elsewhere. */
 export function sourceLocatorFromReferences(
   value: unknown,
+  envelope: { sourceRecordId?: string; archiveObjectKey?: string } = {},
 ): Record<string, unknown> | null {
   if (value == null) return null
   if (!Array.isArray(value)) throw new Error('Acquisition references must be an array.')
@@ -103,5 +102,26 @@ export function sourceLocatorFromReferences(
       locator[field] = reference[field]
     }
   }
+  if (locator.sourceFile === envelope.archiveObjectKey) delete locator.sourceFile
+  if (locator.sourceFeatureRef === envelope.sourceRecordId)
+    delete locator.sourceFeatureRef
   return Object.keys(locator).length ? locator : null
+}
+
+/** Preserve the reviewed publisher record, not its Parquet transport envelope. */
+export function saanseoiSourcePayload(row: Record<string, unknown>) {
+  const record = typeof row.record === 'string' ? JSON.parse(row.record) : row.record
+  if (
+    !record ||
+    typeof record !== 'object' ||
+    Array.isArray(record) ||
+    record.id !== row.id
+  )
+    throw new Error('Invalid SaanSeoi source record.')
+  const { id: _id, geometry, ...properties } = record
+  return {
+    properties,
+    sourceGeometry:
+      typeof geometry === 'string' ? JSON.parse(geometry) : (geometry ?? null),
+  }
 }

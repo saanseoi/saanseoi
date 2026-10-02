@@ -136,7 +136,14 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       expect(current.query('SELECT count(*) AS n FROM divisionAreas').get()).toEqual({
         n: 3,
       })
-      if (sourceName === 'hkgov-censtatd')
+      if (sourceName === 'hkgov-censtatd') {
+        expect(
+          source
+            .query(
+              'SELECT DISTINCT typeof(sourceGeometry) AS storage FROM hkgovCenstatdDivisionAreas',
+            )
+            .all(),
+        ).toEqual([{ storage: 'blob' }])
         expect(
           source
             .query(
@@ -149,6 +156,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
           { censusYear: '2026', versions: 2, current: 1 },
           { censusYear: '2027', versions: 1, current: 1 },
         ])
+      }
     } finally {
       current.close()
       history.close()

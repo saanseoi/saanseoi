@@ -22,7 +22,6 @@ describe('publisher source payload boundary', () => {
       expect(config.columns.map(column => column.name).sort()).toEqual(
         [
           'sourceRecordId',
-          'sourceLocator',
           'properties',
           'sourceGeometry',
           'versionHash',

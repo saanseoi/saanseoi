@@ -332,7 +332,6 @@ export async function insertSourceRows(
       sourceRecordId: town.sourceRecordId,
       properties: retainSourceProperties(town.properties),
       sourceGeometry: town.sourceGeometry,
-      sourceLocator: null,
       versionHash: await createHash(nativeSourcePayloadHashInput(town)),
       resourceReleaseId,
       validFromRelease: sourceVersion,

@@ -360,7 +360,7 @@ CREATE TABLE `ssDivision` (
 	`validFromRelease` text NOT NULL,
 	`validToRelease` text,
 	`isCurrent` integer NOT NULL,
-	`sourceGeometry` text NOT NULL,
+	`sourceGeometry` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `ssDivision_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)

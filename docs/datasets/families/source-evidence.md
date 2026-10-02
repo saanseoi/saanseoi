@@ -69,3 +69,29 @@ a copy on every observation pack.
 The generated current/history schema migrations target a rebuilt database. Populated
 stores require an isolated rebuild retaining their existing field-definition selections
 before publication; adding the required reference column alone is not a data conversion.
+
+## Native acquisition coordinates
+
+The native SQL importer resolves the retained archive through `resourceReleaseId`. It
+omits a repeated archive object key and a `sourceFeatureRef` equal to `sourceRecordId`.
+Locator coordinates common to every row of an imported table are stored once as
+`tables[].locatorDefaults` in the META processing run results. Only row-specific
+coordinates remain in `sourceLocator`. Reconstruct a complete acquisition address using
+the release archive, the table defaults and the row locator, in that order. This
+supports multiple archive members and layers without duplicating a constant file or
+layer on every record. Publisher properties and payload hashes do not include these
+acquisition coordinates.
+
+`sourceLocator` is explicit on ALS address, Planning cell and C&SD statistic tables.
+HAD, Overture, SaanSeoi, C&SD district geometry, Planning New Town, LandsD place name,
+Protomaps island and RVD area tables omit it: their retained archive, publisher identity
+and table receipt supply the acquisition address. SQL writers omit absent locators.
+
+A completed canonical publication does not prove native SOURCE rows are present.
+Explicit local native recovery replays the source archive even when the canonical
+snapshot receipt is already complete; it preserves that completed snapshot.
+
+Local family resets remove publication-owned processing runs and CURRENT delivery
+receipts along with the selected resources. Source archives remain available for replay.
+Reingestion explicitly relinks retained archives to the recreated release; an existing
+asset registration alone does not prove that release linkage survived a reset.

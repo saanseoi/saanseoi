@@ -183,7 +183,6 @@ export async function buildPlaceSql(
           'overturePlaces',
           {
             sourceRecordId: place.id,
-            sourceLocator: overtureSourcePayload(place.raw).sourceLocator,
             properties: overtureSourcePayload(place.raw).properties,
             sourceGeometry: overtureSourcePayload(place.raw).sourceGeometry,
             versionHash: row.sourcePayloadHash,

@@ -99,6 +99,8 @@ type StagedSourceRow<T> = Omit<
 > & {
   /** Publisher geometry retained outside raw publisher attributes until persistence. */
   sourceGeometry?: unknown
+  /** Acquisition coordinates retained only by Planning cell source records. */
+  sourceLocator?: Record<string, unknown> | null
   /** Transform metadata retained only for a materialised derivative. */
   derivation?: Record<string, unknown>
 }
@@ -110,7 +112,10 @@ function normaliseDivisionAreaGeometry(
   source = 'overture',
   options: GeometryNormalisationOptions = {},
 ): NormalisedDivisionArea | null {
-  if (divisionGeometryExclusionRule.execute({ kind: 'boundary', region: row.region })) {
+  if (
+    source !== 'saanseoi' &&
+    divisionGeometryExclusionRule.execute({ kind: 'boundary', region: row.region })
+  ) {
     return null
   }
 
@@ -119,7 +124,10 @@ function normaliseDivisionAreaGeometry(
     throw new Error('Division area row requires a non-empty `id`.')
   }
   const divisionId = asNonEmptyString(row.division_id)
-  if (divisionGeometryExclusionRule.execute({ kind: 'area', divisionId })) {
+  if (
+    source !== 'saanseoi' &&
+    divisionGeometryExclusionRule.execute({ kind: 'area', divisionId })
+  ) {
     return null
   }
   const geometry = requireGeometry(
@@ -150,7 +158,8 @@ function normaliseDivisionAreaGeometry(
   }
 
   const identifiers = canonicalIdentifiers(buildIdentifiers(row, source))
-  const canonicalId = canonicalGeometryId('divisionArea', source, id)
+  const canonicalId =
+    source === 'saanseoi' ? id : canonicalGeometryId('divisionArea', source, id)
   const sources = geometrySourceReferences(row, source, canonicalId)
   const base: GeometryBase = {
     bbox,
@@ -171,10 +180,13 @@ function normaliseDivisionAreaGeometry(
     },
     source: {
       properties: sourceProperties(row, source),
-      sourceLocator:
-        source === 'overture'
-          ? null
-          : sourceLocatorFromReferences(normaliseSourceReferences(row.sources)),
+      ...(source === 'hkgov-pland-pu'
+        ? {
+            sourceLocator: sourceLocatorFromReferences(
+              normaliseSourceReferences(row.sources),
+            ),
+          }
+        : {}),
       sourceRecordId: source === 'hkgov-had' ? hadPublisherId(row) : id,
       derivation: sourceDerivation(row, source),
       sourceGeometry: sourceGeometry(row, source),
@@ -234,10 +246,13 @@ function normaliseDivisionBoundaryGeometry(
     },
     source: {
       properties: sourceProperties(row, source),
-      sourceLocator:
-        source === 'overture'
-          ? null
-          : sourceLocatorFromReferences(normaliseSourceReferences(row.sources)),
+      ...(source === 'hkgov-pland-pu'
+        ? {
+            sourceLocator: sourceLocatorFromReferences(
+              normaliseSourceReferences(row.sources),
+            ),
+          }
+        : {}),
       sourceRecordId: source === 'hkgov-had' ? hadPublisherId(row) : id,
       sourceGeometry: sourceGeometry(row, source),
     },
@@ -299,6 +314,7 @@ function geometrySourceReferences(
   source: string,
   id: string,
 ) {
+  if (source === 'saanseoi') return row.sources as Record<string, unknown>
   if (source === 'hkgov-pland-new-town') {
     const recordId = asNonEmptyString(row.newtown_id)
     if (!recordId)
@@ -366,6 +382,8 @@ function buildIdentifiers(
   row: Record<string, unknown>,
   source: string,
 ): Record<string, unknown> | null {
+  if (source === 'saanseoi')
+    return (row.identifiers ?? null) as Record<string, unknown> | null
   if (source === 'hkgov-had') {
     return {
       hkgov: {
@@ -410,21 +428,40 @@ function buildIdentifiers(
 
 function sourceProperties(row: Record<string, unknown>, source: string) {
   if (source === 'overture') return overtureSourcePayload(row).properties
-  if (source !== 'hkgov-had' && source !== 'hkgov-censtatd') return { ...row }
+  if (source !== 'hkgov-had' && source !== 'hkgov-censtatd' && source !== 'saanseoi')
+    return { ...row }
 
   const properties = row.source_properties
+  if (source === 'saanseoi' && !isRecord(properties)) {
+    const derived = new Set([
+      'class',
+      'division_id',
+      'is_land',
+      'is_territorial',
+      'source_geometry',
+      'source_properties',
+    ])
+    return Object.fromEntries(
+      Object.entries(row).filter(
+        ([key]) => key !== 'id' && key !== 'geometry' && !derived.has(key),
+      ),
+    )
+  }
   if (!isRecord(properties)) {
     throw new Error(`${source} district area requires publisher \`source_properties\`.`)
   }
-  return retainSourceProperties(properties) as Record<string, unknown>
+  return source === 'saanseoi'
+    ? { ...properties }
+    : (retainSourceProperties(properties) as Record<string, unknown>)
 }
 
 function sourceGeometry(row: Record<string, unknown>, source: string) {
   if (source === 'overture')
     return overtureSourcePayload(row).sourceGeometry ?? undefined
-  if (source !== 'hkgov-had' && source !== 'hkgov-censtatd') return undefined
+  if (source !== 'hkgov-had' && source !== 'hkgov-censtatd' && source !== 'saanseoi')
+    return undefined
   return requireGeometry(
-    row.source_geometry,
+    row.source_geometry ?? (source === 'saanseoi' ? row.geometry : undefined),
     ['Polygon', 'MultiPolygon'],
     asNonEmptyString(row.id),
   )

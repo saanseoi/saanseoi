@@ -1,3 +1,5 @@
+import { nativeSourceLocatorDefaults } from './nativeSourceLocators'
+import { linkManagedSourceAssetToRelease } from '../../sources/sourceAssets'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { missingSourceMembershipPredicates } from './sourceMembershipSql.ts'
@@ -86,6 +88,8 @@ export type NativeSourceTable = {
 }
 
 export type NativeSourceRelease = {
+  /** Retain an ingredient ledger without publishing a canonical snapshot. */
+  sourceOnly?: boolean
   archivePath: string
   archiveSha256: string
   archiveObjectKey: string
@@ -129,12 +133,17 @@ export async function processNativeSourceSqlRelease(
     resourceType: input.resourceType,
   }
   const registered = await resolveNativeSourceRelease(target, input, registerOptions)
-  if ('completed' in registered && registered.completed) return
+  const canonicalCompleted =
+    'canonicalCompleted' in registered && registered.canonicalCompleted
   const resourceReleaseId = requireString(
     registered.resourceReleaseId,
     'resourceReleaseId',
   )
   const releaseCode = requireString(registered.releaseCode, 'releaseCode')
+  await linkManagedSourceAssetToRelease(target, {
+    assetKey: input.archiveObjectKey,
+    resourceReleaseId,
+  })
   const shardYear = resolveShardYear(input.cohortKey, input.sourceVersion)
   // Native source tables are not part of the canonical street/division cache
   // profiles. Mirror their source records into the local planning cache.
@@ -198,19 +207,21 @@ export async function processNativeSourceSqlRelease(
       input.tables,
       resourceReleaseId,
       input.sourceVersion,
+      input.archiveObjectKey,
     )
     const remoteReplay = target.remote
       ? resolveNativeRemoteReplay(target, context, shardYear)
       : null
-    const nativeMetaSql = input.divisionRows
-      ? []
-      : await prepareNativeDivisionMetaSql(
-          metaDb,
-          input,
-          resourceReleaseId,
-          releaseCode,
-          resolvePipelineEnvironment(target),
-        )
+    const nativeMetaSql =
+      input.divisionRows || input.sourceOnly
+        ? []
+        : await prepareNativeDivisionMetaSql(
+            metaDb,
+            input,
+            resourceReleaseId,
+            releaseCode,
+            resolvePipelineEnvironment(target),
+          )
     const remoteMetaReplay = target.remote
       ? resolveNativeMetaReplay(target, context)
       : null
@@ -258,11 +269,15 @@ export async function processNativeSourceSqlRelease(
         tables: input.tables.map(table => ({
           name: table.name,
           rows: table.rows.length,
+          locatorDefaults: nativeSourceLocatorDefaults(
+            table.rows,
+            input.archiveObjectKey,
+          ),
         })),
       } satisfies DatasetProcessingStats & Record<string, unknown>,
       releaseCode,
     )
-    if (!input.divisionRows) {
+    if (!input.divisionRows || canonicalCompleted) {
       publishResult = await client.publishDataset(resourceReleaseId, releaseCode)
       published = true
     }
@@ -288,7 +303,7 @@ export async function processNativeSourceSqlRelease(
     context.cleanup()
   }
 
-  if (input.divisionRows) {
+  if (input.divisionRows && !canonicalCompleted) {
     return processLocalDivisionSqlUpload(
       target,
       {
@@ -620,10 +635,18 @@ async function resolveNativeSourceRelease(
         ['staged', 'processing', 'failed', 'published'].includes(existing.status) &&
         existing.datasetCode === input.datasetCode
       ) {
-        if (existing.rawObjectKey !== input.archiveObjectKey)
-          throw new Error(
-            `Native source archive does not match registered release ${releaseCode}.`,
+        const linkedArchive = await context.metaDb
+          .select({ assetKey: metaSchema.metaAssets.assetKey })
+          .from(metaSchema.metaAssets)
+          .where(
+            eq(metaSchema.metaAssets.resourceReleaseId, existing.resourceReleaseId),
           )
+          .get()
+        assertNativeSourceArchiveMatchesRelease(
+          linkedArchive?.assetKey ?? null,
+          input.archiveObjectKey,
+          releaseCode,
+        )
         if (input.divisionRows && existing.status === 'published') {
           const snapshot = (
             await listSnapshotsForRelease(
@@ -646,7 +669,7 @@ async function resolveNativeSourceRelease(
               return {
                 releaseCode: existing.releaseCode,
                 resourceReleaseId: existing.resourceReleaseId,
-                completed: true,
+                canonicalCompleted: true,
               }
           }
         }
@@ -668,6 +691,22 @@ async function resolveNativeSourceRelease(
     prepared.plan.schemaFingerprint,
     { allowReprocessPublished: true, force: true },
   )
+}
+
+export function assertNativeSourceArchiveMatchesRelease(
+  registeredArchiveKey: string | null,
+  requestedArchiveKey: string,
+  releaseCode: string,
+) {
+  // A resource release's rawObjectKey points to its generated import artefact;
+  // the publisher archive is a separately managed asset linked to the release.
+  // A missing link is recoverable after an interrupted import, while a different
+  // linked archive must remain an explicit conflict.
+  if (registeredArchiveKey && registeredArchiveKey !== requestedArchiveKey) {
+    throw new Error(
+      `Native source archive does not match registered release ${releaseCode}.`,
+    )
+  }
 }
 
 function resolveNativeRemoteReplay(
@@ -714,6 +753,8 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
   sourceVersion: string,
   hashPublisherContentOnly = false,
   separatePublisherEnvelope = false,
+  archiveObjectKey?: string,
+  locatorDefaults: Record<string, unknown> = {},
 ) {
   const now = new Date().toISOString()
   return Promise.all(
@@ -726,7 +767,17 @@ export async function versionNativeSourceRows<T extends NativeSourceRow>(
         payload.properties = retainSourceProperties(payload.properties)
       }
       if (separatePublisherEnvelope) {
-        payload.sourceLocator = sourceLocatorFromReferences(payload.sources)
+        payload.sourceLocator = sourceLocatorFromReferences(payload.sources, {
+          sourceRecordId: row.sourceRecordId,
+          archiveObjectKey,
+        })
+        if (payload.sourceLocator) {
+          for (const [key, value] of Object.entries(locatorDefaults))
+            if (JSON.stringify(payload.sourceLocator[key]) === JSON.stringify(value))
+              delete payload.sourceLocator[key]
+          if (!Object.keys(payload.sourceLocator).length) payload.sourceLocator = null
+        }
+        if (payload.sourceLocator === null) delete payload.sourceLocator
         delete payload.sources
       }
       return {
@@ -761,6 +812,7 @@ export async function buildNativeSourceSql(
   tables: NativeSourceTable[],
   resourceReleaseId: string,
   sourceVersion: string,
+  archiveObjectKey?: string,
 ) {
   const statements: string[] = []
   for (const table of tables) {
@@ -771,6 +823,8 @@ export async function buildNativeSourceSql(
       sourceVersion,
       table.name === 'hkgovLandsdRoadCentrelines',
       [
+        'protomapsIslandFeatures',
+        'hkgovRvdAreas',
         'hkgovLandsdPlaceNames',
         'hkgovPlandPlanningCells',
         'hkgovPlandNewTowns',
@@ -778,6 +832,8 @@ export async function buildNativeSourceSql(
         'hkgovCenstatdStatistics',
         'hkgovCenstatdDistrictLandAreaPopulationDensities',
       ].includes(table.name),
+      archiveObjectKey,
+      nativeSourceLocatorDefaults(table.rows, archiveObjectKey),
     )
     const ids = [...new Set(rows.map(row => row.sourceRecordId))]
     if (table.replaceCurrentRows)
@@ -800,6 +856,11 @@ export async function buildNativeSourceSql(
         assertIdentifier(column, 'column')
       })
       statements.push(...nativeRowStatements(table.name, row))
+      // Acquisition metadata can be recovered without changing publisher identity.
+      if (row.sourceLocator)
+        statements.push(
+          `UPDATE "${table.name}" SET "sourceLocator" = ${sqlValue(row.sourceLocator)} WHERE "sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)} AND "sourceLocator" IS NULL;`,
+        )
     }
   }
   return chunkSql(statements)
@@ -897,7 +958,7 @@ function nativeType(value: unknown) {
 }
 
 function assertRelease(input: NativeSourceRelease) {
-  if (input.resourceType === 'division' && !input.divisionRows)
+  if (input.resourceType === 'division' && !input.divisionRows && !input.sourceOnly)
     throw new Error('Native division ingestion requires its canonical projection.')
   if (
     input.divisionRows &&

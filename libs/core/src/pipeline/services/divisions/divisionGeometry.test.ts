@@ -22,17 +22,53 @@ const polygon = {
 }
 
 describe('division geometry normalisation', () => {
+  test('retains curated area publisher fields from its source record payload', () => {
+    const normalised = normaliseDivisionAreaGeometryRow(
+      {
+        bbox: [0, 0, 1, 1],
+        class: 'land',
+        division_id: 'division-1',
+        divisionId: 'division-1',
+        geometry: polygon,
+        id: 'ss-area-1',
+        identifiers: { curation: { method: 'drawn' } },
+        isLand: 1,
+        isTerritorial: 0,
+        is_land: true,
+        is_territorial: false,
+        sources: {
+          saanseoi: [{ dataset: 'division-drawings', record_id: 'drawing-1' }],
+        },
+        type: 'land',
+        variant: 'saanseoi',
+      },
+      'saanseoi',
+    )
+    if (!normalised) throw new Error('Expected a curated area row.')
+
+    expect(normalised.source.properties).toEqual({
+      bbox: [0, 0, 1, 1],
+      divisionId: 'division-1',
+      identifiers: { curation: { method: 'drawn' } },
+      isLand: 1,
+      isTerritorial: 0,
+      sources: { saanseoi: [{ dataset: 'division-drawings', record_id: 'drawing-1' }] },
+      type: 'land',
+      variant: 'saanseoi',
+    })
+    expect(normalised.source.sourceGeometry).toEqual(polygon)
+  })
+
   test('source fingerprints retain envelope metadata and the established serialised field key', async () => {
     const source = {
       properties: { name: ' Original ' },
       sourceGeometry: null,
       sourceRecordId: 'record',
-      sourceLocator: null,
       derivation: null,
     }
     const hash = await hashDivisionGeometrySourceRow(source)
     expect(hash).toBe(
-      '88bb9a74535773540154b76fa4c1b18b00970d478ce7c39ec37dc69aa07c7506',
+      '76080bbd067b0ca02d4b180216e4e685a7edba802edba2fb23ae598059465e11',
     )
     expect(
       await hashDivisionGeometrySourceRow({ ...source, sourceRecordId: 'other' }),
@@ -309,7 +345,7 @@ describe('division geometry normalisation', () => {
     )
     expect(normalised.source.properties).not.toHaveProperty('theme')
     expect(normalised.source.properties).not.toHaveProperty('source_feature')
-    expect(normalised.source.sourceLocator).toBeNull()
+    expect(normalised.source).not.toHaveProperty('sourceLocator')
     expect(normalised.source.sourceGeometry).toMatchObject(polygon)
   })
 

@@ -1,12 +1,17 @@
+import { divisionLocaleContent } from '@repo/core/pipeline/db/divisionHistory'
 import {
   sourceResolutionSql,
   resolvedEntities,
 } from '@repo/core/pipeline/db/sourceResolutions'
-import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
+import {
+  overtureSourcePayload,
+  saanseoiSourcePayload,
+} from '@repo/core/pipeline/services/sources/sourcePayload'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { splitLargeInsertLiterals } from '../local/largeSqlLiterals.ts'
 import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
 import {
+  createHash,
   chunkArray,
   getMaxItemsPerInClause,
   stableJsonStringify,
@@ -35,7 +40,7 @@ export async function buildDivisionSourceSqlFile(
   state: DivisionSqlState,
   reportProgress: (current: number) => Promise<void>,
 ) {
-  if (message.source !== 'overture') {
+  if (message.source !== 'overture' && message.source !== 'saanseoi') {
     return buildSqlImportFile(
       'source',
       `${buildDivisionSqlRunId(message)}-source.sql`,
@@ -43,6 +48,9 @@ export async function buildDivisionSourceSqlFile(
     )
   }
 
+  const table = message.source === 'saanseoi' ? 'ssDivision' : 'overtureDivisions'
+  const payload =
+    message.source === 'saanseoi' ? saanseoiSourcePayload : overtureSourcePayload
   const resourceReleaseId = buildSourceReleaseId(message)
   const changedBaseRows: Record<string, SqlValue>[] = []
   const changedIds: string[] = []
@@ -54,9 +62,8 @@ export async function buildDivisionSourceSqlFile(
         changedIds.push(record.id)
         changedBaseRows.push({
           sourceRecordId: record.id,
-          sourceLocator: jsonText(overtureSourcePayload(record.raw).sourceLocator),
-          properties: jsonText(overtureSourcePayload(record.raw).properties),
-          sourceGeometry: jsonText(overtureSourcePayload(record.raw).sourceGeometry),
+          properties: jsonText(payload(record.raw).properties),
+          sourceGeometry: jsonText(payload(record.raw).sourceGeometry),
           versionHash: record.sourcePayloadHash,
           resourceReleaseId,
           validFromRelease: message.sourceVersion,
@@ -91,17 +98,18 @@ export async function buildDivisionSourceSqlFile(
       changedIdsInPrimary,
       message.sourceVersion,
       now,
+      table,
     ),
     ...buildCloseSourceVersionStatements(
       missingIdsInPrimary,
       message.sourceVersion,
       now,
+      table,
     ),
     ...buildInsertStatements(
-      'overtureDivisions',
+      table,
       [
         'sourceRecordId',
-        'sourceLocator',
         'properties',
         'sourceGeometry',
         'versionHash',
@@ -119,7 +127,7 @@ ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
   validToRelease = NULL,
   isCurrent = 1,
   updatedAt = ${sqlLiteral(now)}
-WHERE overtureDivisions.isCurrent <> 1 OR overtureDivisions.validToRelease IS NOT NULL`.trim(),
+WHERE ${table}.isCurrent <> 1 OR ${table}.validToRelease IS NOT NULL`.trim(),
       },
     ),
   ]
@@ -140,10 +148,13 @@ export async function buildDivisionHistorySqlFile(
   const baseRows: Record<string, SqlValue>[] = []
   const i18nRows: Record<string, SqlValue>[] = []
   const changedExistingIds: string[] = []
-  await processDivisionRecordBatches(state.records, reportProgress, batch => {
+  await processDivisionRecordBatches(state.records, reportProgress, async batch => {
     for (const record of batch) {
       if (record.omitCanonical) continue
-      if (message.source === 'overture' && !record.isSupplemental)
+      if (
+        (message.source === 'overture' || message.source === 'saanseoi') &&
+        !record.isSupplemental
+      )
         resolutionStatements.push(
           sourceResolutionSql({
             snapshotId: state.snapshotId,
@@ -184,22 +195,24 @@ export async function buildDivisionHistorySqlFile(
         updatedAt: record.base.updatedAt,
       })
       i18nRows.push(
-        ...record.canonicalI18n.map(localised => ({
-          divisionId: record.id,
-          versionHash: record.baseChanged ? record.versionHash : record.i18nVersionHash,
-          sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
-          snapshotId: state.snapshotId,
-          isCurrent: true,
-          locale: localised.locale,
-          name: localised.name ?? null,
-          nameVariant: jsonText(localised.nameVariant),
-          nameAlts: localised.nameAlts ?? null,
-          nameRules: jsonText(localised.nameRules),
-          nameProvenance: localised.nameProvenance,
-          isLocaleInferred: localised.isLocaleInferred,
-          createdAt: record.base.updatedAt,
-          updatedAt: record.base.updatedAt,
-        })),
+        ...(await Promise.all(
+          record.canonicalI18n.map(async localised => ({
+            divisionId: record.id,
+            versionHash: await createHash(divisionLocaleContent(localised)),
+            sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
+            snapshotId: state.snapshotId,
+            isCurrent: true,
+            locale: localised.locale,
+            name: localised.name ?? null,
+            nameVariant: jsonText(localised.nameVariant),
+            nameAlts: localised.nameAlts ?? null,
+            nameRules: jsonText(localised.nameRules),
+            nameProvenance: localised.nameProvenance,
+            isLocaleInferred: localised.isLocaleInferred,
+            createdAt: record.base.updatedAt,
+            updatedAt: record.base.updatedAt,
+          })),
+        )),
       )
     }
   })
@@ -511,6 +524,7 @@ export function buildCloseSourceVersionStatements(
   sourceRecordIds: string[],
   validToRelease: string,
   now: string,
+  table: 'overtureDivisions' | 'ssDivision' = 'overtureDivisions',
 ) {
   return chunkArray(sourceRecordIds, getMaxItemsPerInClause(1, 4)).flatMap(chunk => {
     if (chunk.length === 0) {
@@ -521,7 +535,7 @@ export function buildCloseSourceVersionStatements(
 
     return [
       `
-UPDATE overtureDivisions
+UPDATE ${table}
 SET isCurrent = 0, validToRelease = ${sqlLiteral(validToRelease)}, updatedAt = ${sqlLiteral(now)}
 WHERE isCurrent = 1
   AND sourceRecordId IN (${values});`.trim(),

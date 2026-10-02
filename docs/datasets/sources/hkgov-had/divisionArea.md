@@ -2,7 +2,9 @@
 
 Canonical source references follow the
 [source evidence contract](../../families/source-evidence.md). Original publisher
-properties and file locators remain in retained source assertions.
+properties remain in retained source assertions. The release identifies the retained
+archive; table-wide acquisition coordinates belong in the processing receipt. These
+source tables do not need a `sourceLocator` column.
 
 Canonical Area versions are immutable. Snapshot membership follows the selected parent's
 version journal and recorded history shards; complete releases remove only members of

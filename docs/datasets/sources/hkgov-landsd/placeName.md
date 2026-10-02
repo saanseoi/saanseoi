@@ -2,7 +2,9 @@
 
 Canonical source references follow the
 [source evidence contract](../../families/source-evidence.md). Original publisher
-properties and file locators remain in retained source assertions.
+properties remain in retained source assertions. The release identifies the retained
+archive; table-wide acquisition coordinates belong in the processing receipt. These
+source tables do not need a `sourceLocator` column.
 
 Source validity uses the owning release's version component in `validFromRelease` and
 `validToRelease`. Dataset prefixes and resource suffixes are omitted;

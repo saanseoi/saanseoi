@@ -1,5 +1,12 @@
 # Census and Statistics Department division statistics
 
+C&SD statistic tables retain populated acquisition coordinates in `sourceLocator`.
+District geometry assertions use the retained archive and publisher identity and omit
+that column.
+
+Processing retains shared rule definitions and curation application counts under the
+[shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).
+
 Canonical source references follow the
 [source evidence contract](../../families/source-evidence.md); Statistics fields retain
 independent release selections in full-response specifications.

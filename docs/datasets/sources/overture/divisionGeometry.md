@@ -2,7 +2,9 @@
 
 Canonical source references follow the
 [source evidence contract](../../families/source-evidence.md). Original publisher
-properties and file locators remain in retained source assertions.
+properties remain in retained source assertions. The release identifies the retained
+archive; table-wide acquisition coordinates belong in the processing receipt. These
+source tables do not need a `sourceLocator` column.
 
 Record-content hashes exclude observation timestamps and publisher version labels,
 including nested attribution metadata. Effective dates, statistical periods and content
@@ -225,20 +227,20 @@ area and boundary uploads can be performed in either order. If one geometry snap
 missing, the dataset itself is still published and the cohort's API release set remains
 draft until the counterpart arrives.
 
-## Reviewed Hong Kong area patches
+## Curated Hong Kong area patches
 
 Administrative areas use independent deterministic identities and district-union
 geometries. Hong Kong Island combines Central and Western, Wan Chai, Eastern and
 Southern. Kowloon area combines its five districts. New Territories combines its nine
-districts and the reviewed Lok Ma Chau Loop identity
+districts and the curated Lok Ma Chau Loop identity
 `222b7818-970a-491d-98b6-b88d8c6f0161`, with the Shenzhen Bay Port exclusion. All
 configured inputs must resolve.
 
 Kowloon city retains UUID `17009785-57fd-4e5b-af86-2d27352e4718` and receives the same
-district-union geometry as Kowloon area (`bb5c7e0a-fd09-5416-8bb8-9593c90280fb`). Hong
-Kong city retains an existing source city and its geometry; when absent, its identity
-and geometry are reconstructed from Central and Western, Wan Chai and Eastern, excluding
-Southern.
+district-union geometry as Kowloon area (`ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb`).
+Hong Kong city retains an existing source city and its geometry; when absent, its
+identity and geometry are reconstructed from Central and Western, Wan Chai and Eastern,
+excluding Southern.
 
 Canonical area and Kowloon city geometries use the configured unions even when source
 polygons exist. Publisher geometries remain retained as source assertions. Supplemental
@@ -251,7 +253,7 @@ include supplemental rows.
 Hong Kong's scoped division extract omits the Overture PRC country record
 `fb68fc73-3ac6-41c9-a692-22fcf20cb5be`, although both the Hong Kong division hierarchy
 and the international land boundary reference it. Each Overture Hong Kong division
-snapshot therefore adds the reviewed
+snapshot therefore adds the curated
 `fixtures/divisions/overture/hk-prc-country-anchor.json` row. The fixture supplies only
 the level-0 country identity and localised names; it deliberately has no country
 geometry. It is ingested with every cohort so geometry and address references resolve
@@ -368,15 +370,22 @@ boundary reconstruction.
 Canonical geometry IDs are stable `ss-` UUIDs derived from provider, entity kind and
 original record identity. Native Overture IDs remain source record identities.
 
-## Reviewed SaanSeoi assembly
+## Curated SaanSeoi assembly
 
 Native Overture areas remain the fallback input to the
-[SaanSeoi reviewed DivisionArea assembly](../saanseoi/divisionArea.md). Reviewed
-polygons and island geometry take precedence per division in the separate `saanseoi`
-snapshot. The geographic API composition selects that assembly for geocoding; Overture
-source geometry retains its own snapshot and provenance.
+[SaanSeoi curated DivisionArea assembly](../saanseoi/divisionArea.md). Curated polygons
+and island geometry take precedence per division in the separate `saanseoi` snapshot.
+The geographic API composition selects that assembly for geocoding; Overture source
+geometry retains its own snapshot and provenance.
 
-Area selection excludes every identity in the reviewed Overture division-exclusion
+Area selection excludes every identity in the curated Overture division-exclusion
 fixture. The geometry exclusion policy retains these IDs explicitly so its audit
 definition matches the selected rows. Original geometry remains in the retained
 publisher archive.
+
+SaanSeoi administrative geometry uses pinned native Overture SAR and District
+territorial polygons. Its three Area territories are unions of constituent districts.
+Each territory also supplies a separate land-clipped record using the pinned Protomaps
+coastline land mask. Administrative editor drawings do not override either record;
+source record IDs and release identities remain attached to each derived geometry.
+Disconnected territorial parts and islands are retained.

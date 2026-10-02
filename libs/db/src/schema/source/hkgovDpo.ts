@@ -8,6 +8,7 @@ export const sourceHkgovAlsAddresses3d = sqliteTable(
   'hkgovAlsAddresses3d',
   {
     ...sourceAssertionColumns(),
+    sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
     properties: jsonText('properties').notNull(),
     sourceGeometry: jsonText('sourceGeometry'),
     ...timestamps,
@@ -23,6 +24,7 @@ export const sourceHkgovAlsAddresses2d = sqliteTable(
   'hkgovAlsAddresses2d',
   {
     ...sourceAssertionColumns(),
+    sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
     sourceGeometry: jsonText('sourceGeometry'),
     ...timestamps,
   },

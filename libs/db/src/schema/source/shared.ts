@@ -54,7 +54,6 @@ export function sourceReferencedRecordColumns() {
 export function sourceAssertionColumns() {
   return {
     ...sourceRecordId,
-    sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
     properties: jsonText('properties'),
     ...sourceVersioning,
   }
@@ -94,8 +93,7 @@ export const sourceVersionIndexes = <
 
 /** Streets retains its separate source provenance contract. */
 export function streetSourceAssertionColumns() {
-  const { sourceLocator: _locator, ...columns } = sourceAssertionColumns()
-  return { ...columns, sources: sourceReferences() }
+  return { ...sourceAssertionColumns(), sources: sourceReferences() }
 }
 
 export function streetSourceSpatialAssertionColumns() {

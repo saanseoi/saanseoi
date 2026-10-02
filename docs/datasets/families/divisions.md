@@ -24,7 +24,15 @@ Cheng Uk” as an English alias.
 Division localisation history versions hash the locale row independently of the base
 division. Names and their provenance therefore retain distinct versions when a base
 division returns to an earlier state. Initialisation defers curated API publication
-until required companion datasets have been ingested.
+until required companion datasets have been ingested. The full Divisions initialiser
+ingests the locked Protomaps and RVD source archives, then assembles and uploads the
+SaanSeoi Division and DivisionArea releases before reconciling API composition. The
+post-cutoff Overture snapshots remain native inputs.
+
+An Overture cohort without a configured Division API release set is deferred as a whole.
+DivisionArea and DivisionBoundary uploads require the matching Division snapshot, and
+publishing that unselected snapshot would replace the receipt for the still-selected
+cohort in its shared lineage scope.
 
 Division audit actions retain repeated field values in bounded column dictionaries. R2
 delivery uploads independent objects concurrently and registers the release audit only
@@ -287,7 +295,9 @@ never substitutes the current implementation for a historical declaration.
 
 Overture attribution remains in `properties.sources`, including explicit nulls or empty
 arrays supplied by the publisher. Private acquisition locators do not repeat publisher
-attribution or canonical identifiers.
+attribution or canonical identifiers. A source table includes `sourceLocator` only when
+its writer retains acquisition coordinates; archive and table-wide evidence belongs in
+the release and processing receipt.
 
 Local geometry prerequisite checks may read a pending delivery only when its sealed
 plans prove ownership by the exact release being resumed. Other releases remain blocked
@@ -1243,6 +1253,10 @@ cadence from `fixtures/meta/datasets/`. The hierarchy and drawing fixtures retai
 selected Overture input cohort. Monthly source updates do not require redrawing
 polygons. See [curated DivisionArea](../sources/saanseoi/divisionArea.md) for local
 ingestion, retained geometry, exclusions and island coastline cleanup.
+
+Clean Division initialisation selects this initial edition explicitly. Its input lock
+and API field mapping both retain the RVD Division ingredient before the complete
+curated pair is reconciled.
 
 Point-only island records with unknown land area retain `minor_island` until a measured
 outline supports size classification; a stored zero area is not evidence that an island

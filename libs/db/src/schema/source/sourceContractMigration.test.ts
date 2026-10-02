@@ -24,13 +24,13 @@ test('fresh source migration chain creates every Streets table and source payloa
         )
         .all()
     db.exec(
-      "INSERT INTO overturePlaces (sourceRecordId,versionHash,resourceReleaseId,validFromRelease,isCurrent,properties,sourceLocator) VALUES ('publisher','hash','release','2025',0,'{\"name\":\"literal\"}','{\"sourceFile\":\"original\"}')",
+      "INSERT INTO overturePlaces (sourceRecordId,versionHash,resourceReleaseId,validFromRelease,isCurrent,properties) VALUES ('publisher','hash','release','2025',0,'{\"name\":\"literal\"}')",
     )
     expect(streetSchema().length).toBeGreaterThan(0)
     expect(
       db
         .query(
-          'SELECT sourceRecordId,versionHash,validFromRelease,isCurrent,properties,sourceLocator FROM overturePlaces',
+          'SELECT sourceRecordId,versionHash,validFromRelease,isCurrent,properties FROM overturePlaces',
         )
         .get(),
     ).toEqual({
@@ -39,8 +39,18 @@ test('fresh source migration chain creates every Streets table and source payloa
       validFromRelease: '2025',
       isCurrent: 0,
       properties: '{"name":"literal"}',
-      sourceLocator: '{"sourceFile":"original"}',
     })
+    db.exec(
+      "INSERT INTO ssDivision (sourceRecordId,versionHash,resourceReleaseId,validFromRelease,isCurrent) VALUES ('curated','hash','release','2026',1)",
+    )
+    expect(db.query('SELECT sourceGeometry FROM ssDivision').get()).toEqual({
+      sourceGeometry: null,
+    })
+    expect(() =>
+      db.exec(
+        "INSERT INTO ssDivisionArea (sourceRecordId,versionHash,resourceReleaseId,validFromRelease,isCurrent) VALUES ('curated','hash','release','2026',1)",
+      ),
+    ).toThrow('NOT NULL constraint failed: ssDivisionArea.sourceGeometry')
     expect(db.query('PRAGMA integrity_check').get()).toEqual({ integrity_check: 'ok' })
   } finally {
     db.close()

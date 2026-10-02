@@ -1,5 +1,8 @@
 # Planning Department TPU and subunit areas
 
+Planning cells retain their layer in `sourceLocator`. New Town assertions need no
+row-specific acquisition coordinate and omit that column.
+
 Canonical Division and geometry references follow the
 [source evidence contract](../../families/source-evidence.md). Planning classification
 is read from canonical fields rather than duplicated source metadata.
@@ -439,3 +442,14 @@ Chinese names may be retained, but missing Simplified Chinese names are not gene
 missing English name requires a source-release fixture entry with public source URLs in
 `references` establishing the local spelling; Azure English translation is disabled. New
 Town preparation permits an absent Simplified Chinese name.
+
+## Geographic membership crosswalk
+
+TPUs use a separate versioned many-to-many spatial crosswalk to SaanSeoi geographic
+divisions. It preserves PPU/SPU ancestry. Intersections retain every material overlap
+and record full containment, overlap square metres, source fraction, both geometry
+fingerprints and exact source/geographic Division and DivisionArea snapshots. The
+[shared filter contract](../../internal/geographic-code-filters.md#crosswalk-preparation)
+documents preparation, tolerances and atomic delivery. A new geometry release requires a
+new crosswalk selection. Boundary contact and sub-square-metre slivers do not imply
+membership; overlap fractions are not population weights.

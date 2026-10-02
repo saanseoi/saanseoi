@@ -2,7 +2,6 @@ import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { binaryText, geoBbox, jsonText, timestamps } from '../shared'
 import {
-  sourceAssertionColumns,
   sourceSpatialAssertionColumns,
   sourceVersionIndexes,
   sourceRecordColumns,
@@ -18,6 +17,7 @@ export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
   'hkgovCenstatdDivisionAreas',
   {
     ...sourceSpatialAssertionColumns(),
+    sourceGeometry: binaryText('sourceGeometry').notNull(),
     // Source cohort identity resolves version-linked geometry derivatives.
     censusYear: text('censusYear').notNull(),
     ...timestamps,
@@ -37,6 +37,7 @@ export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTabl
   'hkgovCenstatdDistrictLandAreaPopulationDensities',
   {
     ...sourceSpatialAssertionColumns(),
+    sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
     ...timestamps,
   },
   table => [
@@ -55,6 +56,7 @@ export const sourceHkgovCenstatdStatistics = sqliteTable(
   'hkgovCenstatdStatistics',
   {
     ...sourceSpatialAssertionColumns(),
+    sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
     ...timestamps,
   },
   table => [
