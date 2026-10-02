@@ -5434,18 +5434,14 @@ export async function publishReleaseArtefacts(
               if (!sourceDatasetId) {
                 throw new Error(`Source dataset not found: ${field.sourceDatasetCode}`)
               }
-              const assemblyResourceType =
-                field.resourceType === 'statistic' ||
-                field.resourceType === 'statistic-field'
-                  ? 'divisionStatistic'
-                  : field.resourceType
               const resolverRules = pinApiFieldRules(field, [
                 ...sourceSchemaRows.filter(
                   row => row.datasetCode === field.sourceDatasetCode,
                 ),
-                ...assemblyPolicyRows.filter(
-                  row => row.resourceType === assemblyResourceType,
-                ),
+                // A selected Division recipe can derive IDs used by its geometry
+                // companions. Resolve against all selected recipes so those
+                // fields retain the rule that actually produced their inputs.
+                ...assemblyPolicyRows,
               ])
 
               return {
