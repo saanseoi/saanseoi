@@ -50,6 +50,7 @@ test('processing references pin the selected release definition, not a current r
   expect(pins).toEqual([
     {
       ruleId: definition.id,
+      stage: 'ingestion',
       resourceReleaseId: 'retained-release',
       rulesetVersion: 'rules-v1',
       rulesetVersionHash: 'retained-ruleset-hash',

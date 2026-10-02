@@ -3,6 +3,7 @@ import addressDocument from '../../../fixtures/meta/apiFields/api-addresses-v0.1
 import divisionDocument from '../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
 import { pinApiFieldRules } from './apiFieldInputs'
 import { initialDatasets } from './registry/meta'
+import { resolveSnapshotProcessingRules } from '../../core/src/provenance/processingPolicyCatalogue'
 import { describe, expect, test } from 'bun:test'
 
 import {
@@ -68,6 +69,53 @@ describe('api field fixtures', () => {
         },
       }),
     ).not.toBeNull()
+  })
+
+  test('Address provenance selects supplementary fields only for exact source signatures', () => {
+    const lookup = {
+      apiVersion: 'api-addresses-v0.1',
+      domainCode: 'saanseoi',
+      lineageSnapshotVersions: ['ss-hk-address-hkgov-dpo-2026-07-22.0'],
+      schemaVersion: 'sv-address-v1',
+      rulesetVersion: 'rs-address-merge-v1',
+      sourceSchemas: {
+        'ds-hk-hkgov-dpo-address': '3.2',
+        'ds-hk-overture-division': '1.18.0',
+      },
+    }
+    const official = resolveApiFieldFixture(lookup)
+    expect(official).not.toBeNull()
+    expect(
+      official!.fields.every(field =>
+        Object.hasOwn(lookup.sourceSchemas, field.sourceDatasetCode),
+      ),
+    ).toBe(true)
+
+    const sourceSchemas = { ...lookup.sourceSchemas, 'ds-hk-overture-place': '2.0.0' }
+    const supplementary = resolveApiFieldFixture({ ...lookup, sourceSchemas })
+    expect(supplementary).not.toBeNull()
+    expect(
+      supplementary!.fields
+        .filter(field => field.sourceDatasetCode === 'ds-hk-overture-place')
+        .map(field => field.apiField),
+    ).toEqual([
+      'id',
+      'attributes.i18n',
+      'attributes.sources',
+      'relationships.divisions',
+    ])
+    expect(
+      resolveApiFieldFixture({
+        ...lookup,
+        sourceSchemas: { ...sourceSchemas, 'ds-hk-overture-place': '2.1.0' },
+      }),
+    ).toBeNull()
+    expect(
+      resolveApiFieldFixture({
+        ...lookup,
+        sourceSchemas: { ...sourceSchemas, 'ds-hk-saanseoi-division': '1.0' },
+      }),
+    ).toBeNull()
   })
 
   test('statistics distinguish publisher periods, registry IDs and named measure outputs', () => {
@@ -216,10 +264,19 @@ describe('api field fixtures', () => {
             field,
             initialDatasets
               .filter(dataset => dataset.code === field.sourceDatasetCode)
-              .map(dataset => ({
-                resourceReleaseId: dataset.code,
-                processingRules: dataset.processingRules,
-              })),
+              .flatMap(dataset => [
+                {
+                  resourceReleaseId: dataset.code,
+                  processingRules: dataset.processingRules,
+                },
+                ...dataset.resourceTypes.map(resourceType => ({
+                  snapshotRecipeId: `${dataset.code}:${resourceType}`,
+                  processingRules: resolveSnapshotProcessingRules(
+                    [dataset.code],
+                    resourceType,
+                  ),
+                })),
+              ]),
           ),
         ).not.toThrow()
       }
@@ -389,7 +446,7 @@ describe('api field fixtures', () => {
 
     expect(
       fixtures.filter(fixture => fixture.apiVersion !== 'api-divisions-v0.2'),
-    ).toHaveLength(14)
+    ).toHaveLength(13)
     expect(
       fixtures.filter(fixture => fixture.apiVersion === 'api-divisions-v0.2'),
     ).toHaveLength(10)

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:8e57817d5ea5024a4c02f2838b75a24b67e8dac951433013c9275d7da4ee87ef",
+  "versionHash": "sha256:e5648372c6fd1b2a0ceb86a6b0e10db494c7a55710d43049867612f95279b6ad",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -13,6 +13,18 @@
     "ds-hk-overture-division": {
       "min": "1.12.0",
       "max": "2.0.0"
+    },
+    "ds-hk-overture-place": {
+      "min": "1.12.0",
+      "max": "2.0.0"
+    },
+    "ds-hk-overture-division-area": {
+      "min": "1.16.0",
+      "max": "2.0.0"
+    },
+    "ds-hk-saanseoi-division": {
+      "min": "1.0",
+      "max": "1.0"
     }
   },
   "publisherFields": {
@@ -72,6 +84,9 @@
       "properties.villageNumberFromZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiVillage.BuildingNoFrom",
       "properties.villageNumberToEn": "properties.Address.PremisesAddress.EngPremisesAddress.EngVillage.BuildingNoTo",
       "properties.villageNumberToZhHant": "properties.Address.PremisesAddress.ChiPremisesAddress.ChiVillage.BuildingNoTo"
+    },
+    "ds-hk-overture-place": {
+      "properties.addresses": "addresses[]"
     }
   },
   "sourceCompositions": [
@@ -79,6 +94,68 @@
       "datasetCodes": [
         "ds-hk-hkgov-dpo-address",
         "ds-hk-overture-division"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-address-hkgov-dpo-2024-07-25.0",
+        "ss-hk-address-hkgov-dpo-2025-01-23.0",
+        "ss-hk-address-hkgov-dpo-2025-02-25.0",
+        "ss-hk-address-hkgov-dpo-2025-03-21.0",
+        "ss-hk-address-hkgov-dpo-2025-04-26.0",
+        "ss-hk-address-hkgov-dpo-2025-05-22.0",
+        "ss-hk-address-hkgov-dpo-2025-06-20.0",
+        "ss-hk-address-hkgov-dpo-2025-08-13.0",
+        "ss-hk-address-hkgov-dpo-2025-09-03.0",
+        "ss-hk-address-hkgov-dpo-2025-09-24.0",
+        "ss-hk-address-hkgov-dpo-2025-11-04.0",
+        "ss-hk-address-hkgov-dpo-2025-12-16.0",
+        "ss-hk-address-hkgov-dpo-2026-02-04.0",
+        "ss-hk-address-hkgov-dpo-2026-04-03.0",
+        "ss-hk-address-hkgov-dpo-2026-04-22.0",
+        "ss-hk-address-hkgov-dpo-2026-04-25.0",
+        "ss-hk-address-hkgov-dpo-2026-06-04.0",
+        "ss-hk-address-hkgov-dpo-2026-06-24.0",
+        "ss-hk-address-hkgov-dpo-2026-07-08.0",
+        "ss-hk-address-hkgov-dpo-2026-07-10.0",
+        "ss-hk-address-hkgov-dpo-2026-07-22.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-dpo-address",
+        "ds-hk-overture-division",
+        "ds-hk-overture-place"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-address-hkgov-dpo-2024-07-25.0",
+        "ss-hk-address-hkgov-dpo-2025-01-23.0",
+        "ss-hk-address-hkgov-dpo-2025-02-25.0",
+        "ss-hk-address-hkgov-dpo-2025-03-21.0",
+        "ss-hk-address-hkgov-dpo-2025-04-26.0",
+        "ss-hk-address-hkgov-dpo-2025-05-22.0",
+        "ss-hk-address-hkgov-dpo-2025-06-20.0",
+        "ss-hk-address-hkgov-dpo-2025-08-13.0",
+        "ss-hk-address-hkgov-dpo-2025-09-03.0",
+        "ss-hk-address-hkgov-dpo-2025-09-24.0",
+        "ss-hk-address-hkgov-dpo-2025-11-04.0",
+        "ss-hk-address-hkgov-dpo-2025-12-16.0",
+        "ss-hk-address-hkgov-dpo-2026-02-04.0",
+        "ss-hk-address-hkgov-dpo-2026-04-03.0",
+        "ss-hk-address-hkgov-dpo-2026-04-22.0",
+        "ss-hk-address-hkgov-dpo-2026-04-25.0",
+        "ss-hk-address-hkgov-dpo-2026-06-04.0",
+        "ss-hk-address-hkgov-dpo-2026-06-24.0",
+        "ss-hk-address-hkgov-dpo-2026-07-08.0",
+        "ss-hk-address-hkgov-dpo-2026-07-10.0",
+        "ss-hk-address-hkgov-dpo-2026-07-22.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-dpo-address",
+        "ds-hk-overture-division",
+        "ds-hk-overture-division-area",
+        "ds-hk-overture-place",
+        "ds-hk-saanseoi-division"
       ],
       "anchorSnapshotVersions": [
         "ss-hk-address-hkgov-dpo-2024-07-25.0",
@@ -1933,6 +2010,86 @@
           "fieldPath": "alsCurations.hierarchy"
         }
       ]
+    },
+    {
+      "apiField": "id",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.addresses"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress"
+        }
+      ],
+      "processingRuleIds": [
+        "normalise-overture-places"
+      ],
+      "resolverCode": "resolve-place-addresses",
+      "contributionType": "resolver-input",
+      "priority": 10
+    },
+    {
+      "apiField": "attributes.i18n",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.addresses"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress"
+        }
+      ],
+      "processingRuleIds": [
+        "normalise-overture-places"
+      ],
+      "resolverCode": "resolve-place-addresses",
+      "contributionType": "resolver-input",
+      "priority": 10
+    },
+    {
+      "apiField": "attributes.sources",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.addresses"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress"
+        }
+      ],
+      "processingRuleIds": [
+        "normalise-overture-places"
+      ],
+      "resolverCode": "resolve-place-addresses",
+      "contributionType": "resolver-input",
+      "priority": 10
+    },
+    {
+      "apiField": "relationships.divisions",
+      "sourceDatasetCode": "ds-hk-overture-place",
+      "inputs": [
+        {
+          "origin": "source",
+          "fieldPath": "properties.addresses"
+        },
+        {
+          "origin": "curation",
+          "fieldPath": "overturePlaceAddress"
+        }
+      ],
+      "processingRuleIds": [
+        "normalise-overture-places"
+      ],
+      "resolverCode": "resolve-place-addresses",
+      "contributionType": "resolver-input",
+      "priority": 10
     }
   ]
 }

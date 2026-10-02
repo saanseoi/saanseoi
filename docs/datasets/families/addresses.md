@@ -836,6 +836,13 @@ source GeoJSON geometry uses EPSG:4326.
 
 ## Field provenance
 
+The v1 Address field mapping declares exact source signatures for ALS with Overture
+Divisions, ALS with supplementary Places, and the combined curated Division lookup. All
+use the retained ALS lineage anchor. Places address contributions retain the
+`addresses[]` publisher path and the `resolve-place-addresses` rule, including direct
+Division relationships. Publication selects only fields contributed by sources in the
+chosen signature and checks their bounded publisher schema ranges.
+
 ALS publisher leaf paths are paired with retained camelCase keys. Address identity,
 geometry, components, granularity and parent relationships include preparation and
 reviewed curation inputs. Supplementary Place addresses reference the captured

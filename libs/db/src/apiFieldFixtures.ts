@@ -250,72 +250,6 @@ function derivePopulationHouseholdsFixture(fixture: ApiFieldFixture): ApiFieldFi
   }
 }
 
-/** ALS and Places are independently released. A combined Address set retains
- * the ALS lineage anchor and records the selected Places schema separately.
- * Only schema versions already covered by the Places mapping are supported.
- */
-function deriveCuratedAddressFixture(): ApiFieldFixture {
-  const official = apiAddressesV01FixtureOfficialLineage as ApiFieldFixture
-  const fixture = {
-    ...official,
-    publisherSchemaRanges: {
-      ...official.publisherSchemaRanges,
-      'ds-hk-overture-division-area':
-        apiDivisionsV01FixtureOverture116To118.publisherSchemaRanges[
-          'ds-hk-overture-division-area'
-        ]!,
-      'ds-hk-saanseoi-division':
-        apiDivisionsV01FixtureOverture116To118.publisherSchemaRanges[
-          'ds-hk-saanseoi-division'
-        ]!,
-      'ds-hk-overture-place':
-        apiPlacesV01FixtureOverture112To118.publisherSchemaRanges[
-          'ds-hk-overture-place'
-        ]!,
-    },
-    publisherFields: {
-      ...official.publisherFields,
-      'ds-hk-overture-place': { 'properties.addresses': 'addresses[]' },
-    },
-    sourceCompositions: official.sourceCompositions.map(composition => ({
-      ...composition,
-      datasetCodes: [
-        ...composition.datasetCodes,
-        'ds-hk-overture-division-area',
-        'ds-hk-overture-place',
-        'ds-hk-saanseoi-division',
-      ].sort(),
-    })),
-    fields: [
-      ...official.fields,
-      ...['id', 'attributes.i18n', 'attributes.sources', 'relationships.divisions'].map(
-        apiField => ({
-          apiField,
-          resourceType: 'address',
-          canonicalInputs: canonicalResponseInputs(
-            resolveApiResponseFields(official.apiVersion, official.schemaVersion),
-            'address',
-            apiField,
-          ),
-          sourceDatasetCode: 'ds-hk-overture-place',
-          inputs: [
-            {
-              origin: 'source' as const,
-              fieldPath: 'properties.addresses',
-            },
-            { origin: 'curation' as const, fieldPath: 'overturePlaceAddress' },
-          ],
-          processingRuleIds: ['normalise-overture-places'],
-          resolverCode: 'resolve-place-addresses',
-          contributionType: 'resolver-input' as const,
-          priority: 10,
-        }),
-      ),
-    ],
-  }
-  return { ...fixture, versionHash: computeVersionHash(fixture) }
-}
-
 const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixtureOverture112To115 as unknown as ApiFieldFixture,
   derivePopulationHouseholdsFixture(
@@ -336,7 +270,6 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
   apiAddressesV01FixtureOfficialLineage as ApiFieldFixture,
   expandApiFieldFixture(curatedDivisionDocument as unknown as ApiFieldFixtureDocument),
-  deriveCuratedAddressFixture(),
   apiPlacesV01FixtureOverture112To118 as ApiFieldFixture,
   apiStatisticsV01FixtureCenstatd as unknown as ApiFieldFixture,
 ]

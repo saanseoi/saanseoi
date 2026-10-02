@@ -14,6 +14,12 @@ curated identity decisions retain individual fixture references.
 Canonical references and retained processing evidence follow the
 [source evidence contract](../../families/source-evidence.md).
 
+The v1 Address field mapping retains exact ALS-only and supplementary Places source
+signatures under the ALS lineage anchors. Combined curated Division lookups declare
+their selected Division and DivisionArea datasets explicitly. Supplementary address
+fields retain the Places `addresses[]` publisher path and captured resolution rule;
+sources absent from a selected signature contribute no field provenance.
+
 ALS audit verification reads bounded evidence partitions and preserves the registered
 bulk-search prefix without concatenating all preparation actions. Large non-tabular
 search catalogues retain bounded derived text; complete preparation evidence remains
