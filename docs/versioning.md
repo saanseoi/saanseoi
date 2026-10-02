@@ -752,6 +752,22 @@ their domain.
 A pure performance refactor that is demonstrated to preserve values and ordering does
 not require a ruleset bump.
 
+### Release publication version pins
+
+API release sets MUST retain explicit `schemaVersion` and `rulesetVersion` pins.
+Publication MUST supply both codes and validate their registered descriptors and
+resource family before creating or publishing a release. Publication MUST NOT construct
+version codes from resource/domain names or inherit them implicitly from an earlier
+release. An existing draft may be reused only when both pins match the requested
+publication.
+
+API compositions declare domains, member slots and selection policy; they do not own
+schema or ruleset version pins. A ruleset revision can produce a new domain-release
+revision under the same API and composition versions when their contracts remain valid.
+Published releases retain their original pins. Membership, precedence or cohort-matching
+changes still require a composition revision; public contract changes require the
+appropriate API version.
+
 ### API composition version
 
 An API composition declares which resources may form an API domain release. It contains:

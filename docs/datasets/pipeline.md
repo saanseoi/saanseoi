@@ -1,14 +1,74 @@
 # Dataset pipeline
 
+## Processing stages and retained evidence
+
+| Stage                | Input               | Output                                | Retained definition                                       |
+| -------------------- | ------------------- | ------------------------------------- | --------------------------------------------------------- |
+| Ingestion            | Original datasets   | SOURCE records                        | Release-pinned processing rules and publisher field paths |
+| Snapshot assembly    | SOURCE records      | HISTORY / CURRENT canonical snapshots | Assembly recipe, rules and reviewed curations             |
+| API composition      | Canonical snapshots | API release set                       | Composition and exact snapshot membership                 |
+| API response shaping | API release set     | Request response                      | General canonical-to-API field mappings                   |
+
+`processingRuns` records the current state of each processing task. A task belongs to
+one resource release, snapshot or API release set and has a `stage`, `phase`, `status`,
+`attempt`, `results` and optional `checkpoint`. Retries reuse the task row. Identical
+terminal reports do not write again; unchanged running reports refresh at most once per
+minute. Results contain current progress and review information. Failures retain
+progress. Checkpoints reference delivery plans and validate input and target identity;
+delivery owns its existing receipts. Local CLI delivery checkpoints live in its metadata
+context, while control callbacks report release progress to Harbour. Response shaping
+runs per request and does not create a processing task.
+
+`GET /v1/reports/processing` reads tasks across all three processing stages. The
+release-focused ingestion report remains available separately.
+
+Dataset `processingRules` describes SOURCE ingestion only. Source and resource releases
+capture that ingestion policy through content-addressed `processingRuleDefinitions`.
+Snapshot recipes capture assembly policies through the same definition store. General
+field lineage lives in `fieldLineageDefinitions`; `apiFieldProvenance` pins one
+definition at the API release root. The definition shares rule versions and hashes,
+original publisher paths, SOURCE inputs, logical canonical inputs and response
+projection rules. Registry readers expand these mappings when requested. Record
+identifiers, selected fallback values and per-record selection traces do not belong in
+these definitions.
+
+Response dependencies are shared by API version and canonical schema version in
+`fixtures/meta/apiResponseFields/`, independently of source mappings and composition
+rulesets. Ordinary `id` and `attributes.X` fields project `resource.id` and `resource.X`
+implicitly, including locale-keyed paths. The shared fixture declares only exceptions,
+joins and computed dependencies: a string for one canonical input, an array for multiple
+inputs. Relationships require explicit mappings. For example,
+`place.relationships.address` uses `place.addressId`, while Division areas depend on
+`division.id`, `divisionArea.divisionId` and `divisionArea.id`.
+
+API-field fixture expansion resolves the shared mapping, pins its content hash and
+supplies canonical inputs to field lineage. These declarations describe provenance;
+response serializers execute the projection. Rehash both edited source-mapping fixtures
+and shared response fixtures with `bun scripts/rehash-fixture.ts <fixture-path>`.
+
+Reviewed patches, curations and translations retain their authored definition once.
+Application evidence contains the definition reference, original fixture pointer and
+application count. Standalone decisions use their own content hash; large fixture
+documents use bounded partitions. The audit tab resolves these originals at read time.
+Automatic processing retains aggregate counts, without per-record actions, expanded
+curation copies or persisted search indexes. Release processing action summaries do not
+duplicate the same metrics into separate stats rows.
+
+Canonical corrections belong to assembly. Ingestion normalisation and selection, API
+composition and response projection use general versioned rules. Audit presentation can
+require following several references; minimising retained writes takes precedence over
+precomputing a second representation of the evidence.
+
 ## Snapshot assembly provenance
 
-Each ingestion records its effective recipe in `snapshotRecipes` and its dataset/role
-inputs in `snapshotRecipeInputs`. Each input has a typed `selectionPolicyJson`
-containing selection rule identifiers and modes. These descriptions explain how datasets
-contribute; transformation implementations live in the codebase. The recipe hash covers
-the resource type, recording format and sorted input policies, so different snapshots
-can share a recipe without sharing release IDs or cohorts. `isRequired` describes
-participation in that effective recipe.
+Each snapshot assembly records its effective recipe in `snapshotRecipes` and its
+dataset/role inputs in `snapshotRecipeInputs`. Each input has a typed
+`selectionPolicyJson` containing selection rule identifiers and modes. These
+descriptions explain how datasets contribute; transformation implementations live in the
+codebase. The recipe hash covers the resource type, recording format, sorted input
+policies and resolved assembly rules, so different snapshots can share a recipe without
+sharing release IDs or cohorts. `isRequired` describes participation in that effective
+recipe.
 
 Recipe codes use `sa-<resourceType>-v1-<versionHash>`, where `versionHash` includes its
 `sha256:` prefix. The code determines the recipe's UUID. This recording format does not
@@ -236,20 +296,28 @@ fixture.
 Every source that normalises, maps, corrects or otherwise changes a publisher source
 record must declare its audit rules before its processor is written.
 
-1. Add the complete rule definition to the applicable merge `rulesetVersions/` fixture.
-   A rule has a stable `operationCode`, `type` and all three localised descriptions.
-   `type: "bulk"` describes a deterministic operation applied to every matching row;
-   `type: "record"` describes an individual decision that is emitted as a logical
-   release audit decision.
-2. For a mapping, include the ordered `mappings` and any `condition`, source and target
-   field paths. If the mapping is maintained by a reviewed `curations/identity/`
-   fixture, reference the curation lookup, authority, domain, cohort and output fields
-   rather than copying its mapping rows into the rule.
-3. In the dataset fixture, add `mergeRules` references to the ruleset version and the
-   exact operation codes that apply to that dataset. A dataset only selects rules; it
-   does not repeat their descriptions or mappings.
-4. Add a JSDoc comment to every corresponding processing function naming its
-   `operationCode` and requiring the rule and code to stay in sync.
+1. Add a registered executable declaration in `fixtures/meta/processing-rules/`. It
+   names the input/output interfaces, static parameters, implementation and descriptions
+   in English, Traditional Chinese and Simplified Chinese. Shared dependencies retain
+   their complete definitions.
+2. Reference the declaration with `ruleFixture` in a staged `rulesetVersions/` fixture.
+   Resolved declarations use `kind: "bulk"` or `kind: "record"`: these share a schema
+   and group execution scope. Reserve `type` for structurally different schemas.
+3. Select ingestion operations in the dataset fixture's `processingRules`. These cover
+   publisher extraction and SOURCE retention, validation, identity, hashes and validity.
+   Canonical normalisation, matching, curation, translation and geometry selection
+   belong to the resource-specific selections in
+   `fixtures/meta/snapshotProcessingRules.json`.
+4. Keep `inputs` and `outputs` as arrays of interface identifiers. Where column lineage
+   is useful, use `sourceFields` and `targetFields` containing `origin`, `collection`
+   and `path`. A path is one field selector, such as `properties.names`, `names[]` or
+   `*`; descriptions and comma-separated lists are not paths. SOURCE and canonical
+   references must identify existing tables and root columns. Ingestion cannot target
+   canonical fields.
+5. Call the registered executor from the real processing path. Declarations document
+   code; they are not an executable transformation language. Keep archive preparation
+   contracts distinct from prepared-row retention, and do not declare an importer that
+   has no implementation.
 
 Ruleset versions are linear processing-policy revisions. Make a new ruleset version
 whenever observable normalisation, mapping, precedence or fallback behaviour changes;
@@ -263,6 +331,13 @@ series. See [dataset update checks](update.md) for the policy semantics.
 After changing versioned JSON fixtures, run `bun run rehash:fixture` for the changed
 fixtures and `saanseoi version:doctor` before registry publication. Do not hand-write a
 `versionHash`.
+
+API release publication supplies explicit schema and composition ruleset codes through
+`apps/harbour-api/src/lib/services/releaseSetVersions.ts`. Every supported domain's
+publication must select registered descriptors. These pins belong to the immutable API
+release set, independently of the API composition version. Draft creation and final
+publication reject missing, unknown or incompatible pins; source and snapshot processing
+policies retain their own stage-specific rulesets.
 
 ## 3. Define source schemas and database storage
 
@@ -381,13 +456,14 @@ the registry and does not derive it from terminal output or release notes.
   compresses independently readable chunks. It also stores aggregate processing metrics
   in `stats`. Decision counts and affected-record counts remain separate.
 
-At source-release creation, the processor resolves the dataset's selected merge rules
-and freezes the complete ruleset revision, hash and definitions on the release. The
-Audit tab must read that frozen projection, never the current dataset or ruleset
-fixture. For every `type: "record"` rule, the emitted `releaseProcessingActions.action`
-must exactly equal the rule's `operationCode`; the processing-action replacement helper
-enforces this whenever a release has a frozen audit projection. `type: "bulk"` rules are
-not emitted once per row: they are surfaced as deterministic bulk actions.
+At source-release creation, the processor captures the selected ingestion policy. At
+snapshot assembly, it captures canonical policies on the content-addressed recipe. Audit
+and API field lineage read those exact captured definitions. Published recipes remain
+immutable; missing historical policies cannot be inferred from current fixtures. For
+every `kind: "record"` rule, the emitted `releaseProcessingActions.action` must exactly
+equal the rule's `operationCode`; the processing-action replacement helper enforces this
+whenever a release has a frozen audit projection. `kind: "bulk"` rules are not emitted
+once per row: they are surfaced as deterministic bulk actions.
 
 The Stats tab can render any available release statistics. The Audit tab is shown only
 when the release has processing-action rows or selected bulk rules: do not create
@@ -497,7 +573,7 @@ Use this as the review checklist for a source addition:
 - [ ] Dataset/source/variant identity, cohort and bridges are explicit.
 - [ ] Publisher, licence, dataset, release and any composition/API/bridge fixtures are
       present and rehashed.
-- [ ] Merge-rule definitions include stable operation codes, `bulk`/`record` type,
+- [ ] Merge-rule definitions include stable operation codes, `bulk`/`record` kind,
       localised descriptions, mappings or bridge references, and are selected by each
       applicable dataset fixture.
 - [ ] Publisher, source-retention and canonical schemas are correct; migrations and

@@ -1,0 +1,9 @@
+{
+  "code": "rs-division-hkgov-landsd-merge-v1",
+  "resourceType": "division",
+  "strategy": "merge",
+  "version": "1",
+  "notes": "Lands Department settlement point divisions with no administrative hierarchy or area companion. Source processing rules are retained on the source releases and snapshots.",
+  "mergeRules": [],
+  "versionHash": "sha256:4af9e1296e4bb9edf13201b6f952afebf60608f17caef1625a2b0922e33dd068"
+}

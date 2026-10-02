@@ -210,16 +210,16 @@ export const metaApiReleaseSets = sqliteTable(
   'apiReleaseSets',
   {
     id: primaryUuid('id'),
-    apiVersionId: apiVersionIdColumn('restrict'),
-    apiCompositionId: text('apiCompositionId').references(() => metaApiComposition.id, {
-      onDelete: 'restrict',
-    }),
     // Immutable domain/cohort composition code; its trailing `r` segment is
     // the composition revision for this effective cohort.
     code: text('code').notNull(),
     regionCode: text('regionCode'),
     domainCode: text('domainCode').notNull().default('default'),
     cohortKey: text('cohortKey'),
+    revision: integer('revision').notNull().default(0),
+    effectiveFrom: isoTimestamp('effectiveFrom'),
+    schemaVersion: text('schemaVersion').notNull(),
+    rulesetVersion: text('rulesetVersion').notNull(),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -253,11 +253,6 @@ export const metaApiVersionReleaseSets = sqliteTable(
       () => metaApiReleaseSets.id,
       { onDelete: 'restrict' },
     ),
-    revision: integer('revision').notNull().default(0),
-    effectiveFrom: isoTimestamp('effectiveFrom'),
-    supersedesApiReleaseSetId: text('supersedesApiReleaseSetId'),
-    schemaVersion: text('schemaVersion').notNull(),
-    rulesetVersion: text('rulesetVersion').notNull(),
     status: text('status', { enum: apiReleaseSetStatuses }).notNull(),
     publishedAt: isoTimestamp('publishedAt'),
     validFrom: isoTimestamp('validFrom'),
@@ -270,16 +265,13 @@ export const metaApiVersionReleaseSets = sqliteTable(
   table => [
     uniqueIndex('apiVersionReleaseSets_version_release_unique_idx').on(
       table.apiVersionId,
-      table.code,
-    index('apiVersionReleaseSets_release_idx').on(table.apiReleaseSetId),
+      table.apiReleaseSetId,
     ),
     index('apiVersionReleaseSets_version_status_idx').on(
       table.apiVersionId,
-      table.regionCode,
-      table.domainCode,
-      table.cohortKey,
-      table.revision,
+      table.status,
     ),
+    index('apiVersionReleaseSets_release_idx').on(table.apiReleaseSetId),
   ],
 )
 
@@ -294,8 +286,8 @@ export const metaApiCatalogRevisions = sqliteTable(
     revision: integer('revision').notNull(),
     defaultDomainCode: text('defaultDomainCode'),
     status: text('status', { enum: apiReleaseSetStatuses }).notNull(),
-    publishedAt: isoTimestamp('publishedAt').notNull(),
     versionHash: text('versionHash').notNull(),
+    publishedAt: isoTimestamp('publishedAt').notNull(),
     ...timestamps,
   },
   table => [
@@ -398,6 +390,8 @@ export const metaSnapshotRecipes = sqliteTable(
     version: integer('version').notNull(),
     status: text('status').notNull(),
     notes: text('notes'),
+    // Frozen assembly policy; ingestion policy belongs to source/resource releases.
+    processingRules: jsonText<{ definitionId: string }>('processingRules'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -462,9 +456,6 @@ export const metaApiComposition = sqliteTable(
     notes: text('notes'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
-    rulesetVersions: jsonText<Record<string, string>>('rulesetVersions')
-      .notNull()
-      .default({}),
   },
   table => [
     uniqueIndex('apiComposition_apiVersionId_version_unique_idx').on(

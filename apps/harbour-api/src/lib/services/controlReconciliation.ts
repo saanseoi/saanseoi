@@ -1,3 +1,5 @@
+import { releaseSetVersionsForPublication } from './releaseSetVersions'
+import { resolveDivisionPublicationVersion } from './divisionPublicationVersion'
 import {
   publishReleaseArtefacts,
   ensureDraftReleaseSetForRelease,
@@ -17,8 +19,8 @@ import {
   eq,
   isNull,
   metaApiReleaseSets,
-  metaApiReleaseSetSnapshots,
   metaApiVersionReleaseSets,
+  metaApiReleaseSetSnapshots,
   metaApiVersions,
   metaDatasets,
   metaResourceReleases,
@@ -92,7 +94,11 @@ export async function handleReconcileDraftReleaseSets(
           skipSnapshotCleanup: true,
         },
         undefined,
-        { reconcileDraftReleaseSet: true, releaseSet },
+        {
+          reconcileDraftReleaseSet: true,
+          releaseSet,
+          apiVersion: releaseSet.apiVersion,
+        },
       )
       if (
         result.apiReleaseSetPublications?.some(
@@ -159,9 +165,6 @@ async function restoreMissingDivisionReleaseSets(
   db: HarbourReadableDb & HarbourWritableDb,
   regionCode?: 'hk' | 'mo',
 ) {
-  const members = (
-    await listCurrentApiCompositionMembersForType(db, 'division')
-  ).filter(member => member.role === 'primary')
   const releases = await db
     .select({ id: metaResourceReleases.id })
     .from(metaResourceReleases)
@@ -182,6 +185,12 @@ async function restoreMissingDivisionReleaseSets(
     const dataset = await getDatasetRecordByReleaseId(db, release.id)
     if (!dataset) continue
     const snapshots = await listSnapshotsForRelease(db, release.id, 'division')
+    const variant = snapshots.find(snapshot => snapshot.status !== 'archived')?.variant
+    if (!variant) continue
+    const apiVersion = await resolveDivisionPublicationVersion(db, 'division', variant)
+    const members = (
+      await listCurrentApiCompositionMembersForType(db, 'division', apiVersion)
+    ).filter(member => member.role === 'primary')
     const member = members.find(member =>
       snapshots.some(
         snapshot =>
@@ -193,16 +202,16 @@ async function restoreMissingDivisionReleaseSets(
       .select({ id: metaApiReleaseSets.id })
       .from(metaApiReleaseSets)
       .innerJoin(
-      .innerJoin(
         metaApiVersionReleaseSets,
         eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
       )
+      .innerJoin(
         metaApiVersions,
         eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
       .where(
         and(
-          eq(metaApiVersions.familyType, 'divisions'),
+          eq(metaApiVersions.code, apiVersion),
           eq(metaApiReleaseSets.regionCode, dataset.regionCode),
           eq(metaApiReleaseSets.domainCode, member.domainCode),
           eq(metaApiReleaseSets.cohortKey, dataset.cohortKey),
@@ -218,7 +227,7 @@ async function restoreMissingDivisionReleaseSets(
         skipSnapshotCleanup: true,
       },
       undefined,
-      { reconcileDraftReleaseSet: true },
+      { reconcileDraftReleaseSet: true, apiVersion },
     )
   }
 }
@@ -468,10 +477,10 @@ export async function handleBootstrapStatsReleaseSets(
         .select({ revision: metaApiReleaseSets.revision })
         .from(metaApiReleaseSets)
         .innerJoin(
-        .innerJoin(
           metaApiVersionReleaseSets,
           eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
         )
+        .innerJoin(
           metaApiVersions,
           eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
         )
@@ -518,7 +527,14 @@ export async function handleBootstrapStatsReleaseSets(
         db,
         'divisionStatistic',
         { cohortKey, regionCode },
-        { domainCode: 'government' },
+        {
+          ...releaseSetVersionsForPublication(
+            'divisionStatistic',
+            'government',
+            'hkgov-censtatd',
+          ),
+          domainCode: 'government',
+        },
       )
       const orderedCandidates = [...selectedByVariant.values()].sort(
         (left, right) =>

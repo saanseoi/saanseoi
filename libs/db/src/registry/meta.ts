@@ -1,3 +1,8 @@
+import { resolveIngestionProcessingRules } from '../../../core/src/provenance/processingPolicyCatalogue'
+import type {
+  ProcessingRules,
+  ProcessingRule,
+} from '../../../core/src/provenance/processingPolicy'
 import { geographicDivisionClassification } from '../divisionTaxonomy'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -114,8 +119,8 @@ type DatasetFixture = {
   schemaURL: string | null
   category?: DatasetCategory
   // A dataset selects the source-specific operations it uses from a versioned
-  // merge ruleset. The rule definitions themselves belong to rulesetVersions.
-  mergeRules?: Array<{
+  // ingestion ruleset. The rule definitions themselves belong to rulesetVersions.
+  processingRules?: Array<{
     rulesetVersion: string
     operationCodes: string[]
   }>
@@ -183,7 +188,6 @@ type ApiCompositionFixture = {
   domains?: Array<{
     code: string
     isDefault?: boolean
-    rulesetVersion?: string
     i18n: LocaleMap<{
       name: string
       descriptionShort?: string
@@ -207,19 +211,7 @@ type DataShardFileFixture = {
   }>
 }
 
-export type MergeProcessingRule = {
-  operationCode: string
-  definition?: ReturnType<typeof ruleDeclarationFromFixture>
-  definitions?: Array<ReturnType<typeof ruleDeclarationFromFixture>>
-  kind: 'bulk' | 'record'
-  sourceFieldPath?: string
-  targetFieldPath?: string
-  condition?: string
-  mappings?: Array<{ from: string; to: string }>
-  i18n: LocaleMap<{
-    description: string
-  }>
-}
+export type MergeProcessingRule = ProcessingRule
 
 type MergeRulesetFixture = {
   versionHash: string
@@ -238,13 +230,7 @@ export type DatasetMergeRuleReference = {
   operationCodes: string[]
 }
 
-export type ReleaseMergeRules = {
-  rulesets: Array<{
-    rulesetVersion: string
-    rulesetVersionHash: string
-    rules: MergeProcessingRule[]
-  }>
-}
+export type ReleaseMergeRules = ProcessingRules
 
 type InitialPublisherSeed = VersionedFixture<{
   code: string
@@ -265,7 +251,7 @@ type InitialUnitSeed = {
 }
 
 type InitialDatasetSeed = VersionedFixture<
-  Omit<DatasetFixture, 'mergeRules' | 'kind' | 'sourceVariant' | 'transforms'> & {
+  Omit<DatasetFixture, 'processingRules' | 'kind' | 'sourceVariant' | 'transforms'> & {
     kind: string | null
     sourceVariant: string
     processingRules: ReleaseMergeRules | null
@@ -299,7 +285,6 @@ type InitialApiCompositionSeed = VersionedFixture<{
   version: number
   primaryResourceType: ResourceType
   defaultDomainCode?: string
-  rulesetVersions: Record<string, string>
   status: string
   notes?: string
 }>
@@ -487,12 +472,8 @@ export function resolveMergeRulesetDefinitions(
     return {
       operationCode: rule.operationCode,
       kind: first.scope === 'bulk' ? 'bulk' : 'record',
-      sourceFieldPath: [
-        ...new Set(selected.flatMap(definition => definition.inputs)),
-      ].join(', '),
-      targetFieldPath: [
-        ...new Set(selected.flatMap(definition => definition.outputs)),
-      ].join(', '),
+      inputs: [...new Set(selected.flatMap(definition => definition.inputs))],
+      outputs: [...new Set(selected.flatMap(definition => definition.outputs))],
       i18n: {
         en: { description: selected.map(definition => definition.summary).join(' ') },
       },
@@ -507,16 +488,6 @@ const mergeRulesetFixtures = readFixtureDir<MergeRulesetFixture>('rulesetVersion
   fixture => resolveMergeRulesetDefinitions(fixture),
 )
 const apiCompositionFixtures = readFixtureDir<ApiCompositionFixture>('apiCompositions')
-const mergeRulesetCodes = new Set(mergeRulesetFixtures.map(fixture => fixture.code))
-for (const composition of apiCompositionFixtures) {
-  for (const domain of composition.domains ?? []) {
-    if (domain.rulesetVersion && !mergeRulesetCodes.has(domain.rulesetVersion)) {
-      throw new Error(
-        `API composition ${composition.code} references unknown ruleset ${domain.rulesetVersion} for domain ${domain.code}.`,
-      )
-    }
-  }
-}
 const apiEndpointFixtures = readFixtureDir<ApiEndpointFileFixture>('apiEndpoints')
 const dataShardFixtures = readFixtureDir<DataShardFileFixture>('dataShards')
 const divisionCodeFixtures = readFixtureDir<DivisionCodeFixture>('divisionCodes')
@@ -562,7 +533,7 @@ export const initialDatasets: InitialDatasetSeed[] = datasetFixtures.map(fixture
   sourceUrl: fixture.sourceUrl,
   schemaURL: fixture.schemaURL,
   category: fixture.category,
-  processingRules: resolveDatasetMergeRules(fixture.mergeRules),
+  processingRules: resolveDatasetMergeRules(fixture.processingRules),
   i18n: fixture.i18n,
 }))
 
@@ -575,35 +546,7 @@ export function resolveDatasetMergeRules(
 ): ReleaseMergeRules | null {
   if (!references?.length) return null
 
-  return {
-    rulesets: references.map(reference => {
-      const ruleset = mergeRulesetFixtures.find(
-        fixture => fixture.code === reference.rulesetVersion,
-      )
-      if (!ruleset) {
-        throw new Error(`Unknown merge ruleset version: ${reference.rulesetVersion}.`)
-      }
-
-      const rulesByCode = new Map(
-        (ruleset.mergeRules ?? []).map(rule => [rule.operationCode, rule]),
-      )
-      const rules = reference.operationCodes.map(operationCode => {
-        const rule = rulesByCode.get(operationCode)
-        if (!rule) {
-          throw new Error(
-            `Merge ruleset ${reference.rulesetVersion} does not define operation ${operationCode}.`,
-          )
-        }
-        return rule
-      })
-
-      return {
-        rulesetVersion: ruleset.code,
-        rulesetVersionHash: ruleset.versionHash,
-        rules,
-      }
-    }),
-  }
+  return resolveIngestionProcessingRules(references)
 }
 
 export const initialDatasetTransforms: InitialDatasetTransformSeed[] =
@@ -641,11 +584,6 @@ export const initialApiCompositions: InitialApiCompositionSeed[] =
     version: fixture.version,
     primaryResourceType: fixture.primaryResourceType,
     defaultDomainCode: fixture.domains?.find(domain => domain.isDefault)?.code,
-    rulesetVersions: Object.fromEntries(
-      (fixture.domains ?? []).flatMap(domain =>
-        domain.rulesetVersion ? [[domain.code, domain.rulesetVersion]] : [],
-      ),
-    ),
     status: fixture.status,
     notes: fixture.notes,
     versionHash: fixture.versionHash,
@@ -1005,7 +943,7 @@ ON CONFLICT(id) DO NOTHING;`.trim(),
     statements.push(
       `
 INSERT INTO apiComposition (
-  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, rulesetVersions, status, notes, versionHash, createdAt, updatedAt
+  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDeterministicId(API_COMPOSITION_ID_NAMESPACE, composition.code)},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(composition.apiVersion)}),
@@ -1013,7 +951,6 @@ INSERT INTO apiComposition (
   ${composition.version},
   ${sqlString(composition.primaryResourceType)},
   ${sqlNullable(composition.defaultDomainCode)},
-  ${sqlString(JSON.stringify(composition.rulesetVersions))},
   ${sqlString(composition.status)},
   ${sqlNullable(composition.notes)},
   ${sqlString(composition.versionHash)},
@@ -1025,7 +962,6 @@ ON CONFLICT(code) DO UPDATE SET
   version = excluded.version,
   primaryResourceType = excluded.primaryResourceType,
   defaultDomainCode = excluded.defaultDomainCode,
-  rulesetVersions = excluded.rulesetVersions,
   status = excluded.status,
   notes = excluded.notes,
   versionHash = excluded.versionHash,

@@ -1,6 +1,10 @@
+import {
+  assertApiReleaseVersions,
+  type ApiReleaseVersions,
+} from '@repo/db/apiReleaseVersions'
 import { selectApiInventory } from './apiInventory'
 import {
-  retainProcessingRules,
+  retainIngestionProcessingRules,
   processingRulesSelection,
 } from './processingRuleDefinitions'
 import { buildFieldLineageDefinition } from '@repo/db'
@@ -81,11 +85,11 @@ const {
   metaApiLifecycleJournal,
   metaFieldLineageDefinitions,
   metaApiReleaseSets,
+  metaApiVersionReleaseSets,
   metaApiReleaseSetSnapshots,
   metaApiVersions,
   processingRuns,
   metaDatasetTransforms,
-  metaApiVersionReleaseSets,
   metaDatasets,
   metaLicenses,
   metaPublishers,
@@ -133,8 +137,8 @@ type ReleaseProcessingRules = {
       i18n: Record<string, { description: string }>
       mappings?: Array<{ from: string; to: string }>
       operationCode: string
-      sourceFieldPath?: string
-      targetFieldPath?: string
+      inputs?: string[]
+      outputs?: string[]
       kind: 'bulk' | 'record'
     }>
   }>
@@ -180,7 +184,7 @@ function bulkRulesFromProcessingRules(processingRules: unknown) {
     return rules
       .filter(
         (rule): rule is ReleaseProcessingRules['rulesets'][number]['rules'][number] =>
-          !!rule && typeof rule === 'object' && rule.type === 'bulk',
+          !!rule && typeof rule === 'object' && rule.kind === 'bulk',
       )
       .map((rule, index) => ({
         rule: {
@@ -434,6 +438,26 @@ export async function listRegistryReleases(
       .where(inArray(metaSnapshotResourceReleases.snapshotId, ids))
       .all(),
   )
+  const snapshotPolicies = await queryInBatches(snapshotIds, ids =>
+    db
+      .select({
+        snapshotId: metaSchema.metaSnapshotAssemblies.snapshotId,
+        snapshotRecipeId: metaSchema.metaSnapshotRecipes.id,
+        processingRules: processingRulesSelection(
+          metaSchema.metaSnapshotRecipes.processingRules,
+        ),
+      })
+      .from(metaSchema.metaSnapshotAssemblies)
+      .innerJoin(
+        metaSchema.metaSnapshotRecipes,
+        eq(
+          metaSchema.metaSnapshotAssemblies.snapshotRecipeId,
+          metaSchema.metaSnapshotRecipes.id,
+        ),
+      )
+      .where(inArray(metaSchema.metaSnapshotAssemblies.snapshotId, ids))
+      .all(),
+  )
   const sourceReleaseIds = [
     ...new Set(snapshotResourceReleases.map(source => source.resourceReleaseId)),
   ]
@@ -548,7 +572,14 @@ export async function listRegistryReleases(
       : processingActionCounts
           .filter(row => releaseSourceIds.has(row.resourceReleaseId))
           .reduce((total, row) => total + Number(row.count), 0)
-    const bulkActions = sourceReleases
+    const bulkActions: Array<
+      ReleaseProcessingRules['rulesets'][number]['rules'][number] & {
+        id: string
+        sourceCode?: string
+        sourceReleaseCode?: string
+        snapshotCode?: string
+      }
+    > = sourceReleases
       .filter(source => releaseSourceIds.has(source.id))
       .flatMap(source => {
         return bulkRulesFromProcessingRules(source.processingRules).map(
@@ -560,6 +591,23 @@ export async function listRegistryReleases(
           }),
         )
       })
+
+    for (const policy of snapshotPolicies.filter(policy =>
+      snapshots.some(snapshot => snapshot.snapshotId === policy.snapshotId),
+    )) {
+      const snapshot = snapshots.find(
+        snapshot => snapshot.snapshotId === policy.snapshotId,
+      )
+      for (const { rule, rulesetVersion, index } of bulkRulesFromProcessingRules(
+        policy.processingRules,
+      )) {
+        bulkActions.push({
+          ...rule,
+          id: `${policy.snapshotRecipeId}:${rulesetVersion}:${index}`,
+          snapshotCode: snapshot?.snapshot.code ?? policy.snapshotId,
+        })
+      }
+    }
 
     return {
       ...release,
@@ -1442,6 +1490,10 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
               eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
             )
             .innerJoin(
+              metaApiVersionReleaseSets,
+              eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+            )
+            .innerJoin(
               metaApiVersions,
               eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
             )
@@ -1489,10 +1541,6 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
             ),
           stats:
             resourceIds.length === 1
-            .innerJoin(
-              metaApiVersionReleaseSets,
-              eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-            )
               ? releaseStats.filter(stat =>
                   resourceIds.includes(stat.resourceReleaseId ?? ''),
                 )
@@ -1787,6 +1835,10 @@ async function queryRegistrySourceVersions(
             eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
           )
           .innerJoin(
+            metaApiVersionReleaseSets,
+            eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+          )
+          .innerJoin(
             metaApiVersions,
             eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
           )
@@ -1834,10 +1886,6 @@ async function queryRegistrySourceVersions(
           )
           .all(),
       )
-          .innerJoin(
-            metaApiVersionReleaseSets,
-            eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-          )
     : []
   const assembledReleaseSetIds = [
     ...new Set(releaseAs.map(item => item.apiReleaseSetId)),
@@ -1855,6 +1903,10 @@ async function queryRegistrySourceVersions(
             sourceVersion: metaSourceReleases.sourceVersion,
           })
           .from(metaApiReleaseSets)
+          .innerJoin(
+            metaApiVersionReleaseSets,
+            eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+          )
           .innerJoin(
             metaApiReleaseSetSnapshots,
             eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
@@ -1903,10 +1955,6 @@ async function queryRegistrySourceVersions(
       ),
   )
   const assemblyPublisherIds = [
-          .innerJoin(
-            metaApiVersionReleaseSets,
-            eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-          )
     ...new Set(assemblySourceRows.map(source => source.publisherId)),
   ]
   const assemblyPublisherI18n = await queryInBatches(assemblyPublisherIds, ids =>
@@ -2477,7 +2525,10 @@ export async function insertDataset(
   status: ReleaseStatus = 'staged',
 ) {
   const dataset = await requireDatasetDefinition(db, plan)
-  const processingRules = await retainProcessingRules(db, dataset.processingRules)
+  const processingRules = await retainIngestionProcessingRules(
+    db,
+    dataset.processingRules,
+  )
   const now = toIsoTimestamp(ingestedAt)
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
@@ -2569,12 +2620,23 @@ export function buildDeterministicSnapshotLineageId(lineageCode: string) {
 }
 
 export function buildDeterministicApiReleaseSetId(
-  apiVersionCode: string,
   releaseSetCode: string,
+  schemaVersion: string,
+  rulesetVersion: string,
 ) {
   return buildDeterministicUuidV5(
     API_RELEASE_SET_ID_NAMESPACE,
-    `${apiVersionCode}--${releaseSetCode}`,
+    `${releaseSetCode}--${schemaVersion}--${rulesetVersion}`,
+  )
+}
+
+export function buildDeterministicApiVersionReleaseSetId(
+  apiVersionId: string,
+  apiReleaseSetId: string,
+) {
+  return buildDeterministicUuidV5(
+    API_RELEASE_SET_ID_NAMESPACE,
+    `api-version-release-set--${apiVersionId}--${apiReleaseSetId}`,
   )
 }
 
@@ -2656,7 +2718,10 @@ export async function resetFailedDataset(
   options: { preservePublishedSourceRelease?: boolean } = {},
 ) {
   const dataset = await requireDatasetDefinition(db, plan)
-  const processingRules = await retainProcessingRules(db, dataset.processingRules)
+  const processingRules = await retainIngestionProcessingRules(
+    db,
+    dataset.processingRules,
+  )
   const now = toIsoTimestamp(ingestedAt)
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
@@ -2881,7 +2946,6 @@ async function resolveCurrentApiComposition(
         version: metaApiComposition.version,
         primaryResourceType: metaApiComposition.primaryResourceType,
         defaultDomainCode: metaApiComposition.defaultDomainCode,
-        rulesetVersions: metaApiComposition.rulesetVersions,
         status: metaApiComposition.status,
       })
       .from(metaApiComposition)
@@ -3939,6 +4003,10 @@ export async function resolveReleaseSetForType(
       })
       .from(metaApiReleaseSets)
       .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .innerJoin(
         metaApiVersions,
         eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
@@ -3995,6 +4063,10 @@ export async function resolveActiveReleaseSetForType(
       })
       .from(metaApiReleaseSets)
       .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .innerJoin(
         metaApiVersions,
         eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
@@ -4004,10 +4076,6 @@ export async function resolveActiveReleaseSetForType(
           eq(metaApiVersionReleaseSets.status, 'current'),
           eq(metaApiReleaseSets.domainCode, resolvedDomainCode),
         ),
-      )
-      .innerJoin(
-        metaApiVersionReleaseSets,
-        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
       )
       .orderBy(
         desc(metaApiVersionReleaseSets.publishedAt),
@@ -4037,6 +4105,10 @@ export async function resolveLatestReleaseSetForTypeDomainCohort(
         status: metaApiVersionReleaseSets.status,
       })
       .from(metaApiReleaseSets)
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
       .innerJoin(
         metaApiVersions,
         eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
@@ -4068,15 +4140,11 @@ export async function resolveLatestReleaseSetForTypeDomainCohort(
  */
 export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
   db: HarbourReadableDb,
-      .innerJoin(
-        metaApiVersionReleaseSets,
-        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-      )
   resourceType: ResourceType,
   regionCode: RegionCode,
   cohortKey: string,
+  apiVersionCode = getApiVersionCodeForType(resourceType),
 ) {
-  const apiVersionCode = getApiVersionCodeForType(resourceType)
   const apiVersion = await db
     .select({
       familyType: metaApiVersions.familyType,
@@ -4096,6 +4164,10 @@ export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
       id: metaApiReleaseSets.id,
     })
     .from(metaApiReleaseSets)
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
     .where(
       and(
         eq(metaApiVersionReleaseSets.apiVersionId, apiVersion.id),
@@ -4108,10 +4180,6 @@ export async function listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey(
     .all()
 
   return rows
-      .innerJoin(
-        metaApiVersionReleaseSets,
-        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-      )
     .flatMap(row => (row.cohortKey ? [{ ...row, cohortKey: row.cohortKey }] : []))
     .sort(
       (left, right) =>
@@ -4135,6 +4203,7 @@ export async function listDraftReleaseSets(
       cohortKey: metaApiReleaseSets.cohortKey,
       code: metaApiReleaseSets.code,
       id: metaApiReleaseSets.id,
+      apiVersion: metaApiVersions.code,
     })
     .from(metaApiReleaseSets)
     .innerJoin(
@@ -4171,10 +4240,6 @@ export async function listDraftReleaseSetPrimaryReleases(
       resourceReleaseId: metaResourceReleases.id,
     })
     .from(metaApiReleaseSets)
-    .innerJoin(
-      metaApiVersionReleaseSets,
-      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-    )
     .innerJoin(
       metaApiVersionReleaseSets,
       eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
@@ -4293,13 +4358,13 @@ export async function ensureDraftReleaseSetForRelease(
   db: HarbourReadableDb & HarbourWritableDb,
   resourceType: ResourceType,
   release: Pick<DatasetRecord, 'cohortKey' | 'regionCode'>,
-  options: {
+  options: ApiReleaseVersions & {
     apiVersion?: string
     domainCode?: string
     forceNew?: boolean
-  } = {},
+  },
 ) {
-  const apiVersionCode = options.apiVersion ?? getApiVersionCodeForType(resourceType)
+  const apiVersionCode = options?.apiVersion ?? getApiVersionCodeForType(resourceType)
   const apiVersion = await db
     .select({
       id: metaApiVersions.id,
@@ -4320,6 +4385,9 @@ export async function ensureDraftReleaseSetForRelease(
       `Cannot create an API release for ${apiVersionCode} while its status is ${apiVersion.status}.`,
     )
   }
+
+  assertApiReleaseVersions(options, apiVersion.familyType)
+  const { schemaVersion, rulesetVersion } = options
 
   const composition = await resolveCurrentApiCompositionSafely(db, apiVersionCode)
 
@@ -4351,6 +4419,10 @@ export async function ensureDraftReleaseSetForRelease(
           status: metaApiVersionReleaseSets.status,
         })
         .from(metaApiReleaseSets)
+        .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+        )
         .where(
           and(
             eq(metaApiVersionReleaseSets.apiVersionId, apiVersion.id),
@@ -4373,9 +4445,6 @@ export async function ensureDraftReleaseSetForRelease(
   const latestReleaseSet = await db
     .select({
       id: metaApiReleaseSets.id,
-      revision: metaApiReleaseSets.revision,
-      rulesetVersion: metaApiReleaseSets.rulesetVersion,
-      schemaVersion: metaApiReleaseSets.schemaVersion,
     })
     .from(metaApiReleaseSets)
     .innerJoin(
@@ -4403,6 +4472,10 @@ export async function ensureDraftReleaseSetForRelease(
       revision: metaApiReleaseSets.revision,
     })
     .from(metaApiReleaseSets)
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
     .where(
       and(
         eq(metaApiVersionReleaseSets.apiVersionId, apiVersion.id),
@@ -4427,10 +4500,6 @@ export async function ensureDraftReleaseSetForRelease(
     domainCode === (composition?.defaultDomainCode ?? 'default') ? null : domainCode,
   ]
     .filter((segment): segment is string => segment !== null)
-        .innerJoin(
-          metaApiVersionReleaseSets,
-          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-        )
     .join('--')
   const now = toIsoTimestamp()
   const releaseSetId = buildDeterministicApiReleaseSetId(
@@ -4455,47 +4524,53 @@ export async function ensureDraftReleaseSetForRelease(
     .limit(1)
     .get()
   const versionHash = computeVersionHash({
-    apiVersion: apiVersionCode,
     releaseSetCode,
-    apiCompositionId: composition?.id ?? null,
     domainCode,
     cohortKey: release.cohortKey,
     revision: nextRevision,
-    supersedesApiReleaseSetId: latestReleaseSet?.id ?? null,
     schemaVersion,
     rulesetVersion,
-    status: 'draft',
-    publishedAt: null,
-    validFrom: null,
-    validTo: null,
-    notes: null,
   })
 
+  if (!existingContent) {
+    await db
+      .insert(metaApiReleaseSets)
+      .values({
+        id: releaseSetId,
+        code: releaseSetCode,
+        regionCode: release.regionCode,
+        domainCode,
+        cohortKey: release.cohortKey,
+        revision: nextRevision,
+        effectiveFrom: cohortKeyEffectiveFrom(release.cohortKey),
+        schemaVersion,
+        rulesetVersion,
+        versionHash,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .run()
+  }
   await db
     .insert(metaApiVersionReleaseSets)
     .values({
       id: apiVersionReleaseSetId,
       apiVersionId: apiVersion.id,
+      apiReleaseSetId: existingContent?.id ?? releaseSetId,
       apiCompositionId: composition?.id ?? null,
-      code: releaseSetCode,
-      regionCode: release.regionCode,
-    .innerJoin(
-      metaApiVersionReleaseSets,
-      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-    )
-      domainCode,
-      cohortKey: release.cohortKey,
-      revision: nextRevision,
-      effectiveFrom: cohortKeyEffectiveFrom(release.cohortKey),
       supersedesApiReleaseSetId: latestReleaseSet?.id ?? null,
-      schemaVersion,
-      rulesetVersion,
       status: 'draft',
       publishedAt: null,
       validFrom: null,
       validTo: null,
       notes: null,
-      versionHash,
+      guide: null,
+      versionHash: computeVersionHash({
+        apiVersion: apiVersionCode,
+        apiCompositionId: composition?.id ?? null,
+        apiReleaseSetId: existingContent?.id ?? releaseSetId,
+        status: 'draft',
+      }),
       createdAt: now,
       updatedAt: now,
     })
@@ -4545,6 +4620,10 @@ export async function resolveReleaseSetForRelease(
       .innerJoin(
         metaApiReleaseSets,
         eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
       )
       .innerJoin(
         metaApiVersions,
@@ -4619,10 +4698,6 @@ function catalogMemberSortKey(
 export function compareCatalogMembers(
   left: Pick<CatalogReleaseSetMember, 'cohortKey' | 'effectiveFrom' | 'revision'>,
   right: Pick<CatalogReleaseSetMember, 'cohortKey' | 'effectiveFrom' | 'revision'>,
-      .innerJoin(
-        metaApiVersionReleaseSets,
-        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-      )
 ) {
   return (
     catalogMemberSortKey(left).localeCompare(catalogMemberSortKey(right)) ||
@@ -4677,6 +4752,13 @@ async function prepareApiCatalogRevision(
         })
         .from(metaApiCatalogRevisionReleaseSets)
         .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(
+            metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
+            metaApiVersionReleaseSets.id,
+          ),
+        )
+        .innerJoin(
           metaApiReleaseSets,
           eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
         )
@@ -4696,6 +4778,10 @@ async function prepareApiCatalogRevision(
           revision: metaApiReleaseSets.revision,
         })
         .from(metaApiReleaseSets)
+        .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+        )
         .where(
           and(
             eq(metaApiVersionReleaseSets.apiVersionId, args.apiVersionId),
@@ -4720,7 +4806,10 @@ async function prepareApiCatalogRevision(
   }
 
   membersByDomainCohort.set(`${args.domainCode}\u0000${args.cohortKey}`, {
-    apiReleaseSetId: args.releaseSetId,
+    apiVersionReleaseSetId: buildDeterministicApiVersionReleaseSetId(
+      args.apiVersionId,
+      args.releaseSetId,
+    ),
     cohortKey: args.cohortKey,
     domainCode: args.domainCode,
     effectiveFrom: cohortKeyEffectiveFrom(args.cohortKey),
@@ -4750,13 +4839,6 @@ async function prepareApiCatalogRevision(
   const publicationDate = new Date(args.publishedAt).toISOString().slice(0, 10)
   const existingRevisions = await db
     .select({ revision: metaApiCatalogRevisions.revision })
-        .innerJoin(
-          metaApiVersionReleaseSets,
-          eq(
-            metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
-            metaApiVersionReleaseSets.id,
-          ),
-        )
     .from(metaApiCatalogRevisions)
     .where(
       and(
@@ -4777,10 +4859,6 @@ async function prepareApiCatalogRevision(
   )
   const id = buildDeterministicApiCatalogRevisionId(code)
 
-        .innerJoin(
-          metaApiVersionReleaseSets,
-          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-        )
   return {
     id,
     code,
@@ -4822,6 +4900,7 @@ export async function publishReleaseArtefacts(
     }
     publishedAt: string
     releaseSetId: string
+    apiVersion?: string
     snapshotId: string
     /** The materialised snapshot variant, when it is more specific than its dataset. */
     snapshotVariant?: string
@@ -4835,10 +4914,7 @@ export async function publishReleaseArtefacts(
   },
 ) {
   await recordProcessingRun(db, {
-    apiVersionReleaseSetId: buildDeterministicApiVersionReleaseSetId(
-      args.apiVersionId,
-      args.releaseSetId,
-    ),
+    apiReleaseSetId: args.releaseSetId,
     stage: 'composition',
     phase: 'compose',
     status: 'running',
@@ -4865,16 +4941,27 @@ export async function publishReleaseArtefacts(
       })
       .from(metaApiReleaseSets)
       .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .innerJoin(
         metaApiVersions,
         eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
       )
-      .where(eq(metaApiReleaseSets.id, args.releaseSetId))
+      .where(
+        and(
+          eq(metaApiReleaseSets.id, args.releaseSetId),
+          args.apiVersion ? eq(metaApiVersions.code, args.apiVersion) : undefined,
+        ),
+      )
       .limit(1)
       .get()
 
     if (!releaseSet) {
       throw new Error(`Release set not found: ${args.releaseSetId}`)
     }
+
+    assertApiReleaseVersions(releaseSet, releaseSet.apiFamily)
 
     if (releaseSet.status !== 'draft') {
       throw new Error(
@@ -4938,10 +5025,6 @@ export async function publishReleaseArtefacts(
     const releaseSetSnapshots = new Map<
       string,
       {
-      .innerJoin(
-        metaApiVersionReleaseSets,
-        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-      )
         anchorSnapshotId: string | null
         isRequired: boolean
         role: string
@@ -5054,6 +5137,10 @@ export async function publishReleaseArtefacts(
               revision: metaApiReleaseSets.revision,
             })
             .from(metaApiReleaseSets)
+            .innerJoin(
+              metaApiVersionReleaseSets,
+              eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+            )
             .where(
               and(
                 eq(metaApiVersionReleaseSets.apiVersionId, releaseSet.apiVersionId),
@@ -5130,10 +5217,6 @@ export async function publishReleaseArtefacts(
               metaResourceReleases.processingRules,
             ),
             sourceSchemaVersion: metaResourceReleases.sourceSchemaVersion,
-            .innerJoin(
-              metaApiVersionReleaseSets,
-              eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-            )
             sourceVersion: metaResourceReleases.sourceVersion,
           })
           .from(metaSnapshotResourceReleases)
@@ -5204,6 +5287,26 @@ export async function publishReleaseArtefacts(
         ]),
       ).values(),
     ]
+    const assemblyPolicyRows = await queryInBatches(releaseSetSnapshotIds, async ids =>
+      db
+        .select({
+          snapshotRecipeId: metaSchema.metaSnapshotRecipes.id,
+          resourceType: metaSchema.metaSnapshotRecipes.resourceType,
+          processingRules: processingRulesSelection(
+            metaSchema.metaSnapshotRecipes.processingRules,
+          ),
+        })
+        .from(metaSchema.metaSnapshotAssemblies)
+        .innerJoin(
+          metaSchema.metaSnapshotRecipes,
+          eq(
+            metaSchema.metaSnapshotAssemblies.snapshotRecipeId,
+            metaSchema.metaSnapshotRecipes.id,
+          ),
+        )
+        .where(inArray(metaSchema.metaSnapshotAssemblies.snapshotId, ids))
+        .all(),
+    )
     const sourceReleaseId = await resolveSourceReleaseId(
       db,
       args.dataset.resourceReleaseId,
@@ -5327,12 +5430,14 @@ export async function publishReleaseArtefacts(
               if (!sourceDatasetId) {
                 throw new Error(`Source dataset not found: ${field.sourceDatasetCode}`)
               }
-              const resolverRules = pinApiFieldRules(
-                field,
-                sourceSchemaRows.filter(
+              const resolverRules = pinApiFieldRules(field, [
+                ...sourceSchemaRows.filter(
                   row => row.datasetCode === field.sourceDatasetCode,
                 ),
-              )
+                ...assemblyPolicyRows.filter(
+                  row => row.resourceType === field.resourceType,
+                ),
+              ])
 
               return {
                 id: buildDeterministicApiFieldProvenanceId({
@@ -5399,6 +5504,12 @@ export async function publishReleaseArtefacts(
             .filter(row => row.processingRules)
             .map(row => ({
               datasetCode: row.datasetCode,
+              definitionId: computeVersionHash(row.processingRules),
+            })),
+          assemblyPolicyRows
+            .filter(row => row.processingRules)
+            .map(row => ({
+              resourceType: row.resourceType,
               definitionId: computeVersionHash(row.processingRules),
             })),
         )
@@ -6265,6 +6376,10 @@ export async function resolveActiveSnapshotForType(
           eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
         )
         .innerJoin(
+          metaApiVersionReleaseSets,
+          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+        )
+        .innerJoin(
           metaApiVersions,
           eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
         )
@@ -6327,6 +6442,10 @@ export async function resolveActiveSnapshotForType(
         eq(metaApiReleaseSetSnapshots.apiReleaseSetId, metaApiReleaseSets.id),
       )
       .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
+      .innerJoin(
         metaSnapshots,
         eq(metaApiReleaseSetSnapshots.snapshotId, metaSnapshots.id),
       )
@@ -6359,6 +6478,7 @@ function releaseSetCatalogCondition(args: {
       on release_set.id = version_release_set.apiReleaseSetId
     where membership.apiCatalogRevisionId = ${metaApiCatalogRevisions.id}
       and membership.domainCode = ${args.domainCode}
+      and version_release_set.apiVersionId = ${metaApiCatalogRevisions.apiVersionId}
       and release_set.code = ${args.releaseSet}
   )`
 }
@@ -6371,10 +6491,6 @@ function apiCatalogRevisionStatusCondition(args: {
 }) {
   return args.catalogRevision || args.knownAt || args.releaseSet
     ? ne(metaApiCatalogRevisions.status, 'draft')
-        .innerJoin(
-          metaApiVersionReleaseSets,
-          eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-        )
     : eq(metaApiCatalogRevisions.status, 'current')
 }
 
@@ -6437,10 +6553,6 @@ export async function resolveApiReleaseSetForRequest(
   const selected = await db
     .select({
       id: metaApiReleaseSets.id,
-      .innerJoin(
-        metaApiVersionReleaseSets,
-        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
-      )
       code: metaApiReleaseSets.code,
       cohortKey: metaApiCatalogRevisionReleaseSets.cohortKey,
       domainCode: metaApiCatalogRevisionReleaseSets.domainCode,
@@ -6450,6 +6562,13 @@ export async function resolveApiReleaseSetForRequest(
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
     })
     .from(metaApiCatalogRevisionReleaseSets)
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(
+        metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
+        metaApiVersionReleaseSets.id,
+      ),
+    )
     .innerJoin(
       metaApiReleaseSets,
       eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
@@ -6555,13 +6674,6 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
     )
     .limit(1)
     .get()
-    .innerJoin(
-      metaApiVersionReleaseSets,
-      eq(
-        metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
-        metaApiVersionReleaseSets.id,
-      ),
-    )
   if (!catalogRevision) return null
 
   const effectiveAt = args.effectiveAt ? toIsoTimestamp(args.effectiveAt) : null
@@ -6578,6 +6690,13 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
       rulesetVersion: metaApiReleaseSets.rulesetVersion,
     })
     .from(metaApiCatalogRevisionReleaseSets)
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(
+        metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
+        metaApiVersionReleaseSets.id,
+      ),
+    )
     .innerJoin(
       metaApiReleaseSets,
       eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
@@ -6683,13 +6802,6 @@ async function resolveSnapshotLineageVersions(
   const seen = new Set<string>()
   let cursor: string | null = snapshotId
 
-    .innerJoin(
-      metaApiVersionReleaseSets,
-      eq(
-        metaApiCatalogRevisionReleaseSets.apiVersionReleaseSetId,
-        metaApiVersionReleaseSets.id,
-      ),
-    )
   while (cursor) {
     if (seen.has(cursor)) {
       throw new Error(`Snapshot parent cycle detected at ${cursor}.`)

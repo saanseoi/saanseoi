@@ -1,4 +1,5 @@
 import { compareCatalogMembers } from './metaRegistry'
+import { resolveSnapshotProcessingRules } from '../../provenance/processingPolicyCatalogue'
 import { initialDatasets } from '@repo/db/registry'
 import { describe, expect, test } from 'bun:test'
 
@@ -10,6 +11,7 @@ import { encodeAuditGroup } from '../../pipeline/db/processingActionCodec'
 import { metaSchema, computeVersionHash } from '@repo/db'
 import {
   buildDeterministicApiReleaseSetId,
+  buildDeterministicApiVersionReleaseSetId,
   ensureDraftReleaseSetForRelease,
   ensureDraftSnapshotForRelease,
   ensureProcessingRunStarted,
@@ -128,8 +130,6 @@ id TEXT PRIMARY KEY,
       updatedAt TEXT NOT NULL
     );
 
-    CREATE TABLE snapshots (
-      id TEXT PRIMARY KEY,
     CREATE TABLE apiVersionReleaseSets (
       id TEXT PRIMARY KEY,
       apiVersionId TEXT NOT NULL,
@@ -147,6 +147,8 @@ id TEXT PRIMARY KEY,
       updatedAt TEXT NOT NULL
     );
 
+    CREATE TABLE snapshots (
+      id TEXT PRIMARY KEY,
       resourceType TEXT NOT NULL,
       code TEXT NOT NULL,
       cohortKey TEXT NOT NULL,
@@ -681,7 +683,6 @@ function createDraftReleaseSetDb() {
       version INTEGER NOT NULL,
       primaryResourceType TEXT NOT NULL,
       defaultDomainCode TEXT,
-      rulesetVersions TEXT NOT NULL DEFAULT '{}',
       status TEXT NOT NULL,
       createdAt TEXT NOT NULL
     );
@@ -704,7 +705,7 @@ function createDraftReleaseSetDb() {
     CREATE TABLE apiReleaseSets (
       publisherFields TEXT,
 id TEXT PRIMARY KEY,
-      apiVersionId TEXT NOT NULL,
+      apiVersionId TEXT,
       apiCompositionId TEXT,
       code TEXT NOT NULL,
       regionCode TEXT,
@@ -715,7 +716,6 @@ id TEXT PRIMARY KEY,
       supersedesApiReleaseSetId TEXT,
       schemaVersion TEXT NOT NULL,
       rulesetVersion TEXT NOT NULL,
-      status TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'draft',
       publishedAt TEXT,
       validFrom TEXT,
@@ -733,6 +733,7 @@ id TEXT PRIMARY KEY,
       apiReleaseSetId TEXT NOT NULL,
       apiCompositionId TEXT,
       supersedesApiReleaseSetId TEXT,
+      status TEXT NOT NULL,
       publishedAt TEXT,
       validFrom TEXT,
       validTo TEXT,
@@ -744,8 +745,8 @@ id TEXT PRIMARY KEY,
     );
 
     INSERT INTO apiVersions (id, code, familyType) VALUES
-      ('api-version-division', 'api-divisions-v0.1', 'division'),
-      ('api-version-division-v02', 'api-divisions-v0.2', 'division');
+      ('api-version-division', 'api-divisions-v0.1', 'divisions'),
+      ('api-version-division-v02', 'api-divisions-v0.2', 'divisions');
 
     INSERT INTO apiComposition (
       id, apiVersionId, code, version, primaryResourceType, status, createdAt
@@ -783,7 +784,8 @@ function createSnapshotAssemblyDb() {
       createdAt TEXT NOT NULL,
       updatedAt TEXT,
       notes TEXT,
-      versionHash TEXT
+      versionHash TEXT,
+      processingRules TEXT
     );
 
     CREATE TABLE snapshotDependencies (snapshotId TEXT NOT NULL, dependencySnapshotId TEXT NOT NULL, role TEXT NOT NULL, PRIMARY KEY (snapshotId,role));
@@ -811,6 +813,8 @@ function createSnapshotAssemblyDb() {
       'current',
       '2026-07-03T00:00:00.000Z'
     );
+    CREATE TABLE datasets (id TEXT PRIMARY KEY, code TEXT NOT NULL);
+    INSERT INTO datasets VALUES ('dataset-division','ds-hk-overture-division');
     CREATE TABLE snapshots (id TEXT PRIMARY KEY, resourceType TEXT, status TEXT, cohortKey TEXT);
     INSERT INTO snapshots VALUES ('snapshot-division', 'division', 'draft', '2025-09-24.0');
     CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT, selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT);
@@ -1134,7 +1138,6 @@ function createPublishReleaseArtefactsDb() {
       version INTEGER NOT NULL,
       primaryResourceType TEXT NOT NULL,
       defaultDomainCode TEXT,
-      rulesetVersions TEXT NOT NULL DEFAULT '{}',
       status TEXT NOT NULL,
       createdAt INTEGER NOT NULL
     );
@@ -1190,9 +1193,6 @@ id TEXT PRIMARY KEY,
       updatedAt INTEGER NOT NULL
     );
 
-    CREATE TABLE apiCatalogRevisions (
-      id TEXT PRIMARY KEY,
-      apiVersionId TEXT NOT NULL,
     CREATE TABLE apiVersionReleaseSets (id TEXT PRIMARY KEY, apiReleaseSetId TEXT, apiVersionId TEXT, apiCompositionId TEXT, supersedesApiReleaseSetId TEXT, status TEXT, publishedAt INTEGER, validFrom INTEGER, validTo INTEGER, notes TEXT, guide TEXT, versionHash TEXT, createdAt INTEGER, updatedAt INTEGER);
     CREATE TRIGGER seedVersionRelease AFTER INSERT ON apiReleaseSets BEGIN
       INSERT INTO apiVersionReleaseSets (id,apiReleaseSetId,apiVersionId,apiCompositionId,supersedesApiReleaseSetId,status,publishedAt,validFrom,validTo,versionHash,createdAt,updatedAt)
@@ -1201,6 +1201,9 @@ id TEXT PRIMARY KEY,
     CREATE TABLE snapshotRecipes (id TEXT PRIMARY KEY, resourceType TEXT, processingRules TEXT);
     CREATE TABLE snapshotAssemblies (id TEXT PRIMARY KEY, snapshotId TEXT, snapshotRecipeId TEXT);
 
+    CREATE TABLE apiCatalogRevisions (
+      id TEXT PRIMARY KEY,
+      apiVersionId TEXT NOT NULL,
       code TEXT NOT NULL UNIQUE,
       regionCode TEXT NOT NULL,
       publicationDate TEXT NOT NULL,
@@ -1281,10 +1284,10 @@ id TEXT PRIMARY KEY,
       relatedResourceReleaseId TEXT,
       snapshotId TEXT,
       apiReleaseSetId TEXT,
+      apiVersionReleaseSetId TEXT,
       action TEXT NOT NULL,
       statusFrom TEXT,
       statusTo TEXT,
-      apiVersionReleaseSetId TEXT,
       reason TEXT,
       metadataJson TEXT,
       createdAt TEXT NOT NULL
@@ -1306,6 +1309,31 @@ id TEXT PRIMARY KEY,
         'CREATE TABLE IF NOT EXISTS processingRuleDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL)',
       ),
       createLocalHarbourDb(sqlite)),
+  }
+}
+
+function seedSnapshotProcessingPolicies(sqlite: SQLiteDatabase) {
+  const rows = sqlite
+    .query(
+      'SELECT s.id, s.resourceType, d.code FROM snapshots s JOIN snapshotResourceReleases sr ON sr.snapshotId=s.id JOIN datasets d ON d.id=sr.datasetId',
+    )
+    .all() as Array<{ id: string; resourceType: string; code: string }>
+  for (const id of new Set(rows.map(row => row.id))) {
+    const selected = rows.filter(row => row.id === id)
+    const policy = resolveSnapshotProcessingRules(
+      selected.map(row => row.code),
+      selected[0]!.resourceType,
+    )
+    sqlite
+      .query('INSERT OR REPLACE INTO snapshotRecipes VALUES (?,?,?)')
+      .run(
+        id + '-recipe',
+        selected[0]!.resourceType,
+        captureFixtureRules(sqlite, policy),
+      )
+    sqlite
+      .query('INSERT OR REPLACE INTO snapshotAssemblies VALUES (?,?,?)')
+      .run(id + '-assembly', id, id + '-recipe')
   }
 }
 
@@ -1338,6 +1366,42 @@ function seedCompleteOvertureFixtureSources(
       ('${snapshotId}', 'dataset-hkgov-censtatd-district-annual', 'release-supporting-censtatd-annual'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-area-type', 'release-supporting-censtatd-area-type');
   `)
+  for (const resourceType of [
+    'divisionArea',
+    'divisionBoundary',
+    'divisionStatistic',
+  ]) {
+    const companionId = `${snapshotId}-${resourceType}`
+    sqlite
+      .query(
+        'INSERT OR IGNORE INTO snapshots (id,code,resourceType,status,updatedAt) VALUES (?,?,?,?,?)',
+      )
+      .run(companionId, companionId, resourceType, 'published', 1760000000000)
+    const memberships = sqlite
+      .query(
+        'SELECT datasetId,resourceReleaseId FROM snapshotResourceReleases WHERE snapshotId=?',
+      )
+      .all(snapshotId) as Array<{ datasetId: string; resourceReleaseId: string }>
+    for (const membership of memberships) {
+      const datasetCode = (
+        sqlite
+          .query('SELECT code FROM datasets WHERE id=?')
+          .get(membership.datasetId) as { code: string }
+      ).code
+      if (!resolveSnapshotProcessingRules([datasetCode], resourceType).rulesets.length)
+        continue
+      sqlite
+        .query(
+          'INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId) VALUES (?,?,?)',
+        )
+        .run(companionId, membership.datasetId, membership.resourceReleaseId)
+    }
+    sqlite
+      .query(
+        "INSERT OR IGNORE INTO apiReleaseSetSnapshots (apiReleaseSetId,snapshotId,variant,role,isRequired,cohortMatchingMode,createdAt) SELECT id,?,'overture','supporting',0,'exact_ref',1760000000000 FROM apiReleaseSets WHERE status='draft'",
+      )
+      .run(companionId)
+  }
   for (const dataset of initialDatasets) {
     sqlite
       .query(
@@ -2155,6 +2219,11 @@ describe('ensureDraftSnapshotForRelease', () => {
 })
 
 describe('ensureDraftReleaseSetForRelease', () => {
+  const versions = {
+    schemaVersion: 'sv-division-v1',
+    rulesetVersion: 'rs-division-merge-v1',
+  }
+
   test('creates deterministic release set ids from the release set code', async () => {
     const first = createDraftReleaseSetDb()
     const second = createDraftReleaseSetDb()
@@ -2166,6 +2235,7 @@ describe('ensureDraftReleaseSetForRelease', () => {
         cohortKey: '2025-09-24.0',
         regionCode: 'hk',
       },
+      versions,
     )
     const secondReleaseSet = await ensureDraftReleaseSetForRelease(
       second.db as never,
@@ -2174,11 +2244,12 @@ describe('ensureDraftReleaseSetForRelease', () => {
         cohortKey: '2025-09-24.0',
         regionCode: 'hk',
       },
+      versions,
     )
 
     expect(firstReleaseSet).toMatchObject({
       id: secondReleaseSet.id,
-      code: 'data-hk-division-2025-09-24.0',
+      code: 'data-hk-divisions-2025-09-24.0',
     })
     expect(firstReleaseSet.id).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-5[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
@@ -2188,22 +2259,35 @@ describe('ensureDraftReleaseSetForRelease', () => {
     second.sqlite.close()
   })
 
-  test('reuses the cohort code across API versions without reusing its row identity', async () => {
+  test('shares release-set content across API versions through distinct associations', async () => {
     const { sqlite, db } = createDraftReleaseSetDb()
-    const releaseSet = await ensureDraftReleaseSetForRelease(
+    const v01 = await ensureDraftReleaseSetForRelease(
       db as never,
       'division',
       { cohortKey: '2026-09-01.0', regionCode: 'hk' },
-      { apiVersion: 'api-divisions-v0.2' },
+      { ...versions, apiVersion: 'api-divisions-v0.1' },
+    )
+    const v02 = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      { cohortKey: '2026-09-01.0', regionCode: 'hk' },
+      { ...versions, apiVersion: 'api-divisions-v0.2' },
     )
 
-    expect(releaseSet.code).toBe('data-hk-division-2026-09-01.0')
-    expect(releaseSet.id).not.toBe(
-      buildDeterministicApiReleaseSetId(
-        'api-divisions-v0.1',
-        'data-hk-division-2026-09-01.0',
-      ),
+    expect(v01.code).toBe('data-hk-divisions-2026-09-01.0')
+    expect(v02.id).toBe(v01.id)
+    expect(
+      buildDeterministicApiVersionReleaseSetId('api-version-division', v01.id),
+    ).not.toBe(
+      buildDeterministicApiVersionReleaseSetId('api-version-division-v02', v02.id),
     )
+    expect(
+      sqlite
+        .query(
+          'SELECT apiReleaseSetId FROM apiVersionReleaseSets ORDER BY apiVersionId',
+        )
+        .all(),
+    ).toEqual([{ apiReleaseSetId: v01.id }, { apiReleaseSetId: v01.id }])
     sqlite.close()
   })
 
@@ -2217,16 +2301,21 @@ describe('ensureDraftReleaseSetForRelease', () => {
       )
       .run()
 
-    const releaseSet = await ensureDraftReleaseSetForRelease(db as never, 'division', {
-      cohortKey: '2026-01-21.0',
-      regionCode: 'hk',
-    })
+    const releaseSet = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      {
+        cohortKey: '2026-01-21.0',
+        regionCode: 'hk',
+      },
+      versions,
+    )
 
-    expect(releaseSet.code).toBe('data-hk-division-2026-01-21.0')
+    expect(releaseSet.code).toBe('data-hk-divisions-2026-01-21.0')
     sqlite.close()
   })
 
-  test('uses the current composition domain ruleset for new releases', async () => {
+  test('pins explicit versions without changing the composition or API version', async () => {
     const { sqlite, db } = createDraftReleaseSetDb()
     const release = { cohortKey: '2026-09-01.0', regionCode: 'hk' }
     const original = await ensureDraftReleaseSetForRelease(
@@ -2274,6 +2363,63 @@ describe('ensureDraftReleaseSetForRelease', () => {
     sqlite.close()
   })
 
+  test.each([
+    [undefined, 'explicit schemaVersion and rulesetVersion'],
+    [
+      { ...versions, schemaVersion: 'sv-missing-v1' },
+      'Unknown API release schemaVersion',
+    ],
+    [
+      { ...versions, rulesetVersion: 'rs-missing-v1' },
+      'Unknown API release rulesetVersion',
+    ],
+    [
+      { schemaVersion: 'sv-place-v1', rulesetVersion: 'rs-place-merge-v1' },
+      'Incompatible API release versions',
+    ],
+  ])(
+    'rejects invalid publication versions before writing: %j',
+    async (pins, message) => {
+      const { sqlite, db } = createDraftReleaseSetDb()
+      await expect(
+        ensureDraftReleaseSetForRelease(
+          db as never,
+          'division',
+          {
+            cohortKey: '2026-09-01.0',
+            regionCode: 'hk',
+          },
+          pins as never,
+        ),
+      ).rejects.toThrow(message as string)
+      expect(
+        sqlite.query('SELECT count(*) AS count FROM apiReleaseSets').get(),
+      ).toEqual({ count: 0 })
+      sqlite.close()
+    },
+  )
+
+  test('creates a September Overture release under a deprecated API with v1 rules', async () => {
+    const { sqlite, db } = createDraftReleaseSetDb()
+    sqlite.exec(
+      "UPDATE apiVersions SET status='deprecated' WHERE id='api-version-division'",
+    )
+    const release = await ensureDraftReleaseSetForRelease(
+      db as never,
+      'division',
+      { cohortKey: '2026-09-23.0', regionCode: 'hk' },
+      versions,
+    )
+    expect(
+      sqlite
+        .query(`SELECT v.code, s.rulesetVersion FROM apiReleaseSets s
+      JOIN apiVersionReleaseSets a ON a.apiReleaseSetId=s.id
+      JOIN apiVersions v ON v.id=a.apiVersionId WHERE s.id=?`)
+        .get(release.id),
+    ).toEqual({ code: 'api-divisions-v0.1', rulesetVersion: 'rs-division-merge-v1' })
+    sqlite.close()
+  })
+
   test('does not create releases for archived API versions', async () => {
     const { sqlite, db } = createDraftReleaseSetDb()
     sqlite
@@ -2283,10 +2429,15 @@ describe('ensureDraftReleaseSetForRelease', () => {
       .run()
 
     await expect(
-      ensureDraftReleaseSetForRelease(db as never, 'division', {
-        cohortKey: '2026-09-01.0',
-        regionCode: 'hk',
-      }),
+      ensureDraftReleaseSetForRelease(
+        db as never,
+        'division',
+        {
+          cohortKey: '2026-09-01.0',
+          regionCode: 'hk',
+        },
+        versions,
+      ),
     ).rejects.toThrow('Cannot create an API release for api-divisions-v0.1')
     sqlite.close()
   })
@@ -2298,28 +2449,29 @@ describe('ensureDraftReleaseSetForRelease', () => {
       db as never,
       'division',
       release,
+      versions,
     )
     sqlite
       .query(
         `UPDATE apiReleaseSets
-         SET code = 'data-hk-division-2025-09-24.0-0',
-             status = 'current',
-             publishedAt = '2026-07-01T00:00:00.000Z'
+         SET code = 'data-hk-divisions-2025-09-24.0-0'
          WHERE id = ?`,
       )
-    expect(
-      sqlite
-        .query(
-          'SELECT apiReleaseSetId FROM apiVersionReleaseSets ORDER BY apiVersionId',
-        )
-        .all(),
-    ).toEqual([{ apiReleaseSetId: v01.id }, { apiReleaseSetId: v01.id }])
+      .run(first.id)
+    sqlite
+      .query(
+        `UPDATE apiVersionReleaseSets
+         SET status = 'current',
+             publishedAt = '2026-07-01T00:00:00.000Z'
+         WHERE apiReleaseSetId = ?`,
+      )
       .run(first.id)
 
     const enriched = await ensureDraftReleaseSetForRelease(
       db as never,
       'division',
       release,
+      versions,
     )
     const row = sqlite
       .query(
@@ -2330,7 +2482,7 @@ describe('ensureDraftReleaseSetForRelease', () => {
       )
       .get(enriched.id)
 
-    expect(enriched.code).toBe('data-hk-division-2025-09-24.0-r1')
+    expect(enriched.code).toBe('data-hk-divisions-2025-09-24.0-r1')
     expect(row).toEqual({
       revision: 1,
       supersedesApiReleaseSetId: first.id,
@@ -2440,14 +2592,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       '2026-07-21T00:00:00.000Z',
     )
 
-    sqlite
-      .query(
-        `UPDATE apiVersionReleaseSets
-         SET status = 'current',
-             publishedAt = '2026-07-01T00:00:00.000Z'
-         WHERE apiReleaseSetId = ?`,
-      )
-      .run(first.id)
     await insertDataset(
       db as never,
       {
@@ -3560,6 +3704,7 @@ describe('publishReleaseArtefacts', () => {
         .run(captureFixtureRules(sqlite, processingRules), resourceReleaseId)
     }
 
+    seedSnapshotProcessingPolicies(sqlite)
     await publishReleaseArtefacts(db, {
       carriedSnapshots: [],
       currentRelease: null,
@@ -3687,6 +3832,7 @@ describe('publishReleaseArtefacts', () => {
       "UPDATE resourceReleases SET resourceType = 'division' WHERE id = 'release-1'",
     )
 
+    seedSnapshotProcessingPolicies(sqlite)
     const catalogRevision = await publishReleaseArtefacts(db, {
       carriedSnapshots: [],
       currentRelease: null,
@@ -3723,7 +3869,13 @@ describe('publishReleaseArtefacts', () => {
         .query('SELECT status FROM sourceReleases WHERE id = ?')
         .get('source-release-1'),
     ).toEqual({ status: 'published' })
-    expect(sqlite.query('SELECT id, status FROM snapshots ORDER BY id').all()).toEqual([
+    expect(
+      sqlite
+        .query(
+          "SELECT id, status FROM snapshots WHERE resourceType='division' ORDER BY id",
+        )
+        .all(),
+    ).toEqual([
       { id: 'snapshot-curated', status: 'published' },
       { id: 'snapshot-new', status: 'published' },
     ])
@@ -3854,6 +4006,7 @@ describe('publishReleaseArtefacts', () => {
       );
     `)
 
+    seedSnapshotProcessingPolicies(sqlite)
     await publishReleaseArtefacts(db, {
       carriedSnapshots: [],
       currentRelease: null,
@@ -3955,6 +4108,7 @@ describe('publishReleaseArtefacts', () => {
       );
     `)
 
+    seedSnapshotProcessingPolicies(sqlite)
     await expect(
       publishReleaseArtefacts(db, {
         carriedSnapshots: [],
@@ -4036,6 +4190,7 @@ describe('publishReleaseArtefacts', () => {
         ('snapshot-new', 'dataset-overture-division', 'release-1');
     `)
 
+    seedSnapshotProcessingPolicies(sqlite)
     await expect(
       publishReleaseArtefacts(db, {
         carriedSnapshots: [],
@@ -4052,9 +4207,7 @@ describe('publishReleaseArtefacts', () => {
         snapshotId: 'snapshot-new',
         resourceType: 'division',
       }),
-    ).rejects.toThrow(
-      /API field fixture not found\. Lookup:\n\{[\s\S]*"sourceSchemas"[\s\S]*\}/,
-    )
+    ).rejects.toThrow('Unknown API release schemaVersion: sv-division-v2')
 
     const snapshotRow = sqlite
       .query('SELECT status, publishedAt FROM snapshots WHERE id = ?')
@@ -4208,6 +4361,7 @@ describe('publishReleaseArtefacts', () => {
     seedCompleteOvertureFixtureSources(sqlite, 'snapshot-new')
 
     try {
+      seedSnapshotProcessingPolicies(sqlite)
       await publishReleaseArtefacts(db, {
         carriedSnapshots: [],
         currentRelease: null,

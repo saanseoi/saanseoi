@@ -587,7 +587,11 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
     db,
     'divisionStatistic',
     { cohortKey: '2022', regionCode: 'hk' },
-    { domainCode: 'government' },
+    {
+      domainCode: 'government',
+      schemaVersion: 'sv-statistics-v1',
+      rulesetVersion: 'rs-division-statistic-merge-v1',
+    },
   )
   expect(legacyReleaseSet.code).toBe('data-hk-stats-2022')
 

@@ -385,67 +385,23 @@ describe('fixture version hashes', () => {
     expect(statements).toContain('AND apiVersionReleaseSetId IN (')
   })
 
-  test('stores deterministic bulk actions resolved from versioned merge rulesets', () => {
-    const overtureDivisions = initialDatasets.find(
+  test('datasets select ingestion rules while snapshot policies own canonical normalisation', () => {
+    const overture = initialDatasets.find(
       dataset => dataset.code === 'ds-hk-overture-division',
-    )
-    const censtatdDensity = initialDatasets.find(
+    )!.processingRules!
+    expect(overture.stage).toBe('ingestion')
+    expect(overture.rulesets[0]!.rules.map(rule => rule.definition?.id)).toEqual([
+      'retain-overture-source',
+    ])
+    const density = initialDatasets.find(
       dataset =>
         dataset.code ===
         'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
-    )
-
-    expect(overtureDivisions?.processingRules).toEqual(
-      expect.objectContaining({
-        rulesets: expect.arrayContaining([
-          expect.objectContaining({
-            rulesetVersion: 'rs-division-merge-v1',
-            rules: expect.arrayContaining([
-              expect.objectContaining({
-                operationCode: 'derive_division_type_from_overture_taxonomy',
-                definition: expect.objectContaining({ id: 'normalise-divisions' }),
-                kind: 'bulk',
-              }),
-              expect.objectContaining({
-                operationCode: 'overture_hong_kong_lok_ma_chau_loop_reclassified',
-                definition: expect.objectContaining({
-                  id: 'apply-division-classification-patch',
-                }),
-                kind: 'record',
-              }),
-            ]),
-          }),
-        ]),
-      }),
-    )
-    expect(censtatdDensity?.processingRules).toEqual(
-      expect.objectContaining({
-        rulesets: expect.arrayContaining([
-          expect.objectContaining({
-            rulesetVersion: 'rs-division-statistic-merge-v1',
-            rules: expect.arrayContaining([
-              expect.objectContaining({
-                operationCode: 'normalise_censtatd_statistic_source_assertion',
-                kind: 'bulk',
-              }),
-              expect.objectContaining({
-                operationCode: 'map_censtatd_district_code_to_canonical_division',
-                kind: 'bulk',
-                definition: expect.objectContaining({
-                  id: 'map_censtatd_district_code_to_canonical_division',
-                  parameters: expect.objectContaining({ targetCohort: '2022' }),
-                }),
-              }),
-              expect.objectContaining({
-                operationCode: 'normalise_censtatd_population_thousands_to_persons',
-                sourceFieldPath: 'publisher-properties.MYPOPN_LAND',
-                kind: 'bulk',
-              }),
-            ]),
-          }),
-        ]),
-      }),
-    )
+    )!.processingRules!
+    expect(density.stage).toBe('ingestion')
+    expect(density.rulesets[0]!.rules.map(rule => rule.definition?.id)).toEqual([
+      'normalise_censtatd_statistic_source_assertion',
+    ])
   })
 
   test('registers the curated Protomaps island geometry source separately from Overture', () => {
@@ -460,20 +416,17 @@ describe('fixture version hashes', () => {
         releaseFrequency: 'monthly',
         resourceTypes: ['divisionArea'],
         processingRules: expect.objectContaining({
+          stage: 'ingestion',
           rulesets: [
             expect.objectContaining({
-              rulesetVersion: 'rs-protomaps-island-assembly-v1',
+              rulesetVersion: 'rs-source-ingestion-v1',
               rules: expect.arrayContaining([
                 expect.objectContaining({
-                  operationCode: 'select_curated_protomaps_island_features',
-                  kind: 'record',
-                }),
-                expect.objectContaining({
-                  operationCode: 'materialise_saanseoi_island_divisions',
+                  operationCode: 'extract-protomaps-source',
                   kind: 'bulk',
                 }),
                 expect.objectContaining({
-                  operationCode: 'materialise_saanseoi_island_division_areas',
+                  operationCode: 'ingest-protomaps-island',
                   kind: 'bulk',
                 }),
               ]),
@@ -917,5 +870,29 @@ test('Address and Places composition members retain explicit collection variants
     }
   } finally {
     sqlite.close()
+  }
+})
+
+test('migrated registry sync stores compositions without schema or ruleset pins', () => {
+  const db = new Database(':memory:')
+  try {
+    db.exec(loadMigrationSql(resolve(import.meta.dir, '../../migrations'), ['meta']))
+    const statements = buildMetaRegistrySyncStatements('local')
+    for (let pass = 0; pass < 2; pass++)
+      for (const statement of statements) db.exec(statement)
+    const columns = db
+      .query<{ name: string }, []>('PRAGMA table_info(apiComposition)')
+      .all()
+      .map(row => row.name)
+    expect(columns).not.toContain('rulesetVersions')
+    expect(columns).not.toContain('schemaVersion')
+    expect(
+      initialApiCompositions.every(row => !Object.hasOwn(row, 'rulesetVersions')),
+    ).toBe(true)
+    expect(db.query('SELECT count(*) AS count FROM apiComposition').get()).toEqual({
+      count: initialApiCompositions.length,
+    })
+  } finally {
+    db.close()
   }
 })

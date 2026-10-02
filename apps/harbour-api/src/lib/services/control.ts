@@ -1,3 +1,5 @@
+import { releaseSetVersionsForPublication } from './releaseSetVersions'
+import { resolveDivisionPublicationVersion } from './divisionPublicationVersion'
 import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
 import { lt } from 'drizzle-orm'
 import {
@@ -8,10 +10,12 @@ import {
   listOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey,
   listCurrentApiCompositionMembersForType,
+  listApiReleaseSetSnapshots,
   resolveLatestReleaseSetForTypeDomainCohort,
   resolveReleaseSetForRelease,
   updateDatasetStatus,
   publishSnapshot,
+  getApiVersionCodeForType,
 } from '@repo/core/db/metaRegistry'
 import { datasetVariantForSource, type RegionCode, type ResourceType } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -122,6 +126,7 @@ export async function handlePublishDataset(
   cleanupQueue?: HarbourJobQueue,
   options: {
     reconcileDraftReleaseSet?: boolean
+    apiVersion?: string
     releaseSet?: {
       code: string
       cohortKey?: string | null
@@ -162,9 +167,22 @@ export async function handlePublishDataset(
         sourceVariant: dataset.sourceVariant,
         sourceVersion: dataset.sourceVersion,
       })
+    const publicationApiVersion = [
+      'division',
+      'divisionArea',
+      'divisionBoundary',
+    ].includes(datasetType)
+      ? await resolveDivisionPublicationVersion(
+          db,
+          datasetType,
+          datasetVariant,
+          options.apiVersion,
+        )
+      : getApiVersionCodeForType(datasetType)
     const compositionMembers = await listCurrentApiCompositionMembersForType(
       db,
       datasetType,
+      publicationApiVersion,
     )
     const datasetMember =
       compositionMembers.find(
@@ -174,14 +192,13 @@ export async function handlePublishDataset(
     // Curated geographic divisions consume a published native baseline. That
     // baseline is an ingestion input, not the API composition's primary member.
     const isCuratedDivisionBaseline =
-      !datasetMember &&
-      datasetType === 'division' &&
+      ['division', 'divisionArea', 'divisionBoundary'].includes(datasetType) &&
       datasetVariant === 'overture' &&
-      compositionMembers.some(
+      !compositionMembers.some(
         member =>
           member.domainCode === 'geographic' &&
           member.resourceType === 'division' &&
-          member.variant === 'saanseoi' &&
+          member.variant === 'overture' &&
           member.role === 'primary',
       )
     if (isCuratedDivisionBaseline) {
@@ -263,6 +280,7 @@ export async function handlePublishDataset(
           'division',
           dataset.regionCode as RegionCode,
           dataset.cohortKey,
+          publicationApiVersion,
         )
       : []
 
@@ -290,6 +308,7 @@ export async function handlePublishDataset(
               dataset.resourceReleaseId,
               datasetType,
               domainCode,
+              publicationApiVersion,
             )))
     const draftReleaseSets =
       datasetVariant === 'hkgov-had'
@@ -298,6 +317,7 @@ export async function handlePublishDataset(
             datasetType,
             dataset.regionCode as RegionCode,
             dataset.cohortKey,
+            publicationApiVersion,
           )
         : []
     const snapshots = await waitForSnapshotsForRelease(
@@ -386,6 +406,19 @@ export async function handlePublishDataset(
       }
     }
 
+    const primaryMember = compositionMembers.find(
+      member => member.domainCode === domainCode && member.role === 'primary',
+    )
+    const publicationVersions = () => {
+      if (!primaryMember)
+        throw new ControlRequestError(`No primary API member for domain ${domainCode}.`)
+      return releaseSetVersionsForPublication(
+        primaryMember.resourceType,
+        domainCode,
+        primaryMember.variant,
+      )
+    }
+
     const ensureDeferredDraftReleaseSet = async (cohortKey: string) => {
       if (request.deferApiReleaseSet) {
         const publishedReleaseSet = await resolveLatestReleaseSetForTypeDomainCohort(
@@ -394,6 +427,7 @@ export async function handlePublishDataset(
           domainCode,
           dataset.regionCode as RegionCode,
           cohortKey,
+          publicationApiVersion,
         )
 
         // A deferred source upload may complete after its cohort's API set is
@@ -407,7 +441,7 @@ export async function handlePublishDataset(
         db,
         datasetType,
         { cohortKey, regionCode: dataset.regionCode },
-        { domainCode },
+        { ...publicationVersions(), domainCode, apiVersion: publicationApiVersion },
       )
     }
     const releaseSets = rebuildPublishedSnapshot
@@ -416,7 +450,7 @@ export async function handlePublishDataset(
             db,
             datasetType,
             { cohortKey: dataset.cohortKey, regionCode: dataset.regionCode },
-            { domainCode },
+            { ...publicationVersions(), domainCode, apiVersion: publicationApiVersion },
           ),
         ]
       : isCenstatdGeographicGeometry
@@ -442,7 +476,11 @@ export async function handlePublishDataset(
                     db,
                     datasetType,
                     { cohortKey: snapshot.cohortKey, regionCode: dataset.regionCode },
-                    { domainCode },
+                    {
+                      ...publicationVersions(),
+                      domainCode,
+                      apiVersion: publicationApiVersion,
+                    },
                   ),
                 )
               }
@@ -522,6 +560,7 @@ export async function handlePublishDataset(
         domainCode,
         dataset.regionCode as RegionCode,
         releaseSetCohortKey,
+        publicationApiVersion,
       )
       const carriedSnapshots = await resolveCarriedSnapshots(
         db,
@@ -566,6 +605,22 @@ export async function handlePublishDataset(
           continue
         }
 
+        if (member.cohortMatchingMode === 'curated_input') {
+          const retained = (await listApiReleaseSetSnapshots(db, releaseSet.id)).find(
+            s =>
+              s.snapshotResourceType === member.resourceType &&
+              s.variant === member.variant,
+          )
+          if (retained) {
+            carriedSnapshots.push({
+              resourceType: member.resourceType,
+              variant: member.variant,
+              snapshotId: retained.snapshotId,
+            })
+            satisfiedRequiredMembers.add(memberKey)
+          }
+          continue
+        }
         const supportingSnapshots = await resolveSupportingSnapshotsForMember(
           db,
           member,
@@ -638,6 +693,7 @@ export async function handlePublishDataset(
         // backfill completes within one clock tick.
         publishedAt,
         releaseSetId: releaseSet.id,
+        apiVersion: publicationApiVersion,
         snapshotId: snapshot.id,
         snapshotVariant: datasetVariant,
         resourceType: datasetType,
@@ -671,6 +727,7 @@ export async function handlePublishDataset(
         const publishedReleaseSet = await requireReleaseSetPublicationMetadata(
           db,
           releaseSet.id,
+          publicationApiVersion,
           {
             apiFamily: dataset.theme,
             cohortKey: releaseSetCohortKey,
@@ -714,7 +771,11 @@ export async function handlePublishDataset(
     }
 
     const apiReleaseSetMetadata = releaseSets.at(-1)
-      ? await resolveApiReleaseSetMetadataDelta(db, releaseSets.at(-1)?.id ?? '')
+      ? await resolveApiReleaseSetMetadataDelta(
+          db,
+          releaseSets.at(-1)?.id ?? '',
+          publicationApiVersion,
+        )
       : undefined
 
     return {

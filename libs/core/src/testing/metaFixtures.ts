@@ -667,12 +667,6 @@ id TEXT PRIMARY KEY NOT NULL,
     'defaultDomainCode',
     'defaultDomainCode TEXT',
   )
-  addColumnIfMissing(
-    db,
-    'apiComposition',
-    'rulesetVersions',
-    "rulesetVersions TEXT NOT NULL DEFAULT '{}'",
-  )
 
   addColumnIfMissing(
     db,

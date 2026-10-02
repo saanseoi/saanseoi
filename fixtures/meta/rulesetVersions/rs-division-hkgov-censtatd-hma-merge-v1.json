@@ -1,0 +1,9 @@
+{
+  "code": "rs-division-hkgov-censtatd-hma-merge-v1",
+  "resourceType": "division",
+  "strategy": "merge",
+  "version": "1",
+  "notes": "Housing Market Area divisions with their exact-cohort published area geometry. Source processing rules are retained on the source releases and snapshots.",
+  "mergeRules": [],
+  "versionHash": "sha256:fcc961112f00db994bc7fc45df6e49f103c07211eea429be9a516f6de78ea677"
+}

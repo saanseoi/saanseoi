@@ -3,7 +3,7 @@ import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { resolve } from 'node:path'
-import { currentSchema } from '@repo/db'
+import { computeVersionHash, currentSchema, metaSchema } from '@repo/db'
 import { listApiFieldFixtures } from '@repo/db/apiFieldFixtures'
 import {
   resolveAddressSearchScopes,
@@ -127,24 +127,34 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         .flatMap(fixture => fixture.fields)
         .flatMap(field => [field.resolverCode, ...(field.processingRuleIds ?? [])]),
     )
-    meta.query('UPDATE resourceReleases SET processingRules = ?').run(
-      JSON.stringify({
-        rulesets: [
-          {
-            rulesetVersion: 'fixture',
-            rulesetVersionHash: 'fixture-hash',
-            rules: [...ruleIds].map(id => ({ definition: { id } })),
-          },
-        ],
-      }),
-    )
+    const processingRuleDefinition = {
+      rulesets: [
+        {
+          rulesetVersion: 'fixture',
+          rulesetVersionHash: 'fixture-hash',
+          rules: [...ruleIds].map(id => ({ definition: { id } })),
+        },
+      ],
+    }
+    const processingRuleDefinitionId = computeVersionHash(processingRuleDefinition)
+    await db
+      .insert(metaSchema.metaProcessingRuleDefinitions)
+      .values({ id: processingRuleDefinitionId, definition: processingRuleDefinition })
+      .run()
+    meta
+      .query('UPDATE resourceReleases SET processingRules = ?')
+      .run(JSON.stringify({ definitionId: processingRuleDefinitionId }))
     // Publishing the supplementary resource must accept its snapshot variant,
     // even though its shared publisher dataset has the Places theme.
     const releaseSet = await ensureDraftReleaseSetForRelease(
       db,
       'address',
       { cohortKey: cohort, regionCode: 'hk' },
-      { domainCode: 'saanseoi' },
+      {
+        domainCode: 'saanseoi',
+        schemaVersion: 'sv-address-v1',
+        rulesetVersion: 'rs-address-merge-v1',
+      },
     )
     const dataset = await getDatasetRecordByReleaseId(db, 'supplementary')
     if (!dataset) throw new Error('Missing fixture release')
@@ -723,7 +733,11 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       db,
       'address',
       { cohortKey: '2025-10-24.0', regionCode: 'hk' },
-      { domainCode: 'saanseoi' },
+      {
+        domainCode: 'saanseoi',
+        schemaVersion: 'sv-address-v1',
+        rulesetVersion: 'rs-address-merge-v1',
+      },
     )
     await publishReleaseArtefacts(db, {
       dataset,
