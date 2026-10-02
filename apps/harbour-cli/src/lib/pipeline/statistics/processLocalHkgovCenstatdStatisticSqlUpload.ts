@@ -322,7 +322,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
           rows: rows.map(row =>
             sourceTable === 'hkgovCenstatdDivisionAreas'
               ? {
-                  ...sourceStatisticAssertion(row),
+                  ...sourceStatisticAssertion(row, { retainSourceLocator: false }),
                   // The native district geometry can exceed D1's 2 MB row
                   // limit. This table is the retained source-record path for
                   // Subdivided Units and its reader decodes Brotli on demand.

@@ -7,7 +7,8 @@ source object through `sourceAssetId`.
 
 C&SD statistic tables retain populated acquisition coordinates in `sourceLocator`.
 District geometry assertions use the retained archive and publisher identity and omit
-that column.
+that column. Subdivided Units statistic intake uses this district-area projection too,
+retaining the census year and compressed geometry without canonical preparation fields.
 
 Processing retains shared rule definitions and curation application counts under the
 [shared processing contract](../../pipeline.md#processing-stages-and-retained-evidence).

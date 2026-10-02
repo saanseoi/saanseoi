@@ -16,12 +16,14 @@ export function sourceStatisticAssertion<
     createdAt: string
     updatedAt: string
   },
->(row: T) {
+>(row: T, options: { retainSourceLocator?: boolean } = {}) {
   return {
     sourceRecordId: row.sourceRecordId,
     properties: retainSourceProperties(row.properties),
     sourceGeometry: row.sourceGeometry,
-    sourceLocator: sourceLocatorFromReferences(row.sources),
+    ...(options.retainSourceLocator === false
+      ? {}
+      : { sourceLocator: sourceLocatorFromReferences(row.sources) }),
     versionHash: row.versionHash,
     resourceReleaseId: row.resourceReleaseId,
     validFromRelease: row.validFromRelease,

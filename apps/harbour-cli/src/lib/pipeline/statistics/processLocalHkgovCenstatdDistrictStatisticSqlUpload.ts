@@ -338,7 +338,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         sourceVersion: plan.sourceVersion,
         resourceReleaseId,
         source: {
-          rows: sourceRows.map(sourceStatisticAssertion),
+          rows: sourceRows.map(row => sourceStatisticAssertion(row)),
           table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
         },
       })

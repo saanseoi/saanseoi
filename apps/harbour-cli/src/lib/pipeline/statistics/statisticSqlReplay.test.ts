@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { captureSqlDeliveryBatches } from '../local/sqlDeliveryBatchCapture.ts'
+import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
 
 import {
   buildStatisticSqlBatches,
@@ -168,7 +169,9 @@ describe('buildStatisticSqlBatches', () => {
       source: {
         rows: [
           {
-            ...sourceRow('district-large'),
+            ...sourceStatisticAssertion(sourceRow('district-large'), {
+              retainSourceLocator: false,
+            }),
             censusYear: '2021',
             sourceGeometry,
           },
@@ -191,9 +194,9 @@ describe('buildStatisticSqlBatches', () => {
     sqlite.exec(`
       CREATE TABLE hkgovCenstatdDivisionAreas (
         censusYear TEXT, createdAt TEXT, isCurrent INTEGER, properties TEXT,
-        resourceReleaseId TEXT, sourceGeometry BLOB NOT NULL, sourceLocator TEXT,
-        sourceRecordId TEXT, sources TEXT, updatedAt TEXT, validFromRelease TEXT,
-        validToRelease TEXT, version INTEGER, versionHash TEXT,
+        resourceReleaseId TEXT, sourceGeometry BLOB NOT NULL,
+        sourceRecordId TEXT, updatedAt TEXT, validFromRelease TEXT,
+        validToRelease TEXT, versionHash TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)
       );
     `)

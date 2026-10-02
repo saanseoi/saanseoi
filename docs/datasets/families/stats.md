@@ -119,6 +119,11 @@ are materialised in canonical history/current records rather than duplicated in 
 columns. Separately versioned geometry derivatives retain their exact input hash and
 transformation evidence.
 
+Subdivided Units district assertions use the retained district-area schema: publisher
+properties, census year and Brotli geometry, with archive provenance and publisher
+identity. Acquisition coordinates in `sourceLocator` belong to the other native
+Statistics tables.
+
 Each reference-period snapshot records its exact-release assembly under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Periods can
 share a recipe; each has its own run and cohort. Remote replay includes the full recipe.
