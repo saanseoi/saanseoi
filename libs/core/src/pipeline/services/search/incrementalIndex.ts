@@ -1,6 +1,7 @@
 import { eq, metaSnapshots } from '@repo/db'
 import type { HarbourReadableDb } from '../../../lib/db/types'
 import { resolveApiReleaseSetSnapshotsForRequest } from '../../../lib/db/metaRegistry'
+import { InventorySelectionError } from '../../../lib/db/apiInventory'
 
 export type SearchScope = { scopeId: string; snapshotId: string }
 export type SearchIndexDefinition = {
@@ -26,38 +27,68 @@ const literal = (value: string) => `'${value.replaceAll("'", "''")}'`
 export async function resolvePublishedSearchScopes(
   db: HarbourReadableDb,
   definition: SearchIndexDefinition,
-  request: { regionCode?: 'hk' | 'mo'; domainCode?: string } = {},
+  request: {
+    regionCode?: 'hk' | 'mo'
+    domainCode?: string
+    apiVersion?: string
+    inventory?: string
+  } = {},
+  dependencies = { resolveApiReleaseSetSnapshotsForRequest },
 ) {
   const scopes: SearchScope[] = []
+  let unavailableInventory: InventorySelectionError | undefined
   for (const regionCode of request.regionCode
     ? [request.regionCode]
     : (['hk', 'mo'] as const)) {
     for (const domainCode of request.domainCode
       ? [request.domainCode]
       : (definition.domainCodes ?? [definition.domainCode])) {
-      const selection = await resolveApiReleaseSetSnapshotsForRequest(
-        db,
-        definition.resourceType,
-        {
-          regionCode,
-          domainCode,
-        },
-      )
-      for (const snapshot of selection?.snapshots ?? []) {
-        if (snapshot.snapshotResourceType !== definition.resourceType) continue
-        const row = await db
-          .select({ lineage: metaSnapshots.snapshotLineageId })
-          .from(metaSnapshots)
-          .where(eq(metaSnapshots.id, snapshot.snapshotId))
-          .get()
-        if (!row) throw new Error(`Missing search snapshot ${snapshot.snapshotId}.`)
-        scopes.push({
-          scopeId: `${regionCode}:${domainCode}:${row.lineage}`,
-          snapshotId: snapshot.snapshotId,
-        })
+      for (const apiVersion of request.apiVersion
+        ? [request.apiVersion]
+        : definition.resourceType === 'division'
+          ? ['api-divisions-v0.1', 'api-divisions-v0.2']
+          : [undefined]) {
+        const selection = await dependencies
+          .resolveApiReleaseSetSnapshotsForRequest(db, definition.resourceType, {
+            regionCode,
+            domainCode,
+            apiVersion,
+            allInventories: !request.apiVersion,
+            inventory: request.inventory,
+          })
+          .catch((error: unknown) => {
+            // An inventory filter searches the domains that expose it. A missing
+            // inventory in another domain must not discard matching selections.
+            if (
+              request.inventory &&
+              !request.domainCode &&
+              error instanceof InventorySelectionError
+            ) {
+              unavailableInventory = error
+              return null
+            }
+            throw error
+          })
+        for (const snapshot of selection?.snapshots ?? []) {
+          if (snapshot.snapshotResourceType !== definition.resourceType) continue
+          const row = await db
+            .select({ lineage: metaSnapshots.snapshotLineageId })
+            .from(metaSnapshots)
+            .where(eq(metaSnapshots.id, snapshot.snapshotId))
+            .get()
+          if (!row) throw new Error(`Missing search snapshot ${snapshot.snapshotId}.`)
+          scopes.push({
+            scopeId:
+              definition.resourceType === 'division'
+                ? `${regionCode}:${domainCode}:${apiVersion}:${snapshot.variant}:${row.lineage}`
+                : `${regionCode}:${domainCode}:${row.lineage}`,
+            snapshotId: snapshot.snapshotId,
+          })
+        }
       }
     }
   }
+  if (!scopes.length && unavailableInventory) throw unavailableInventory
   return scopes
 }
 
