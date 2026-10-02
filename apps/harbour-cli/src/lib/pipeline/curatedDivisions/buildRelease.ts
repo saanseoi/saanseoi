@@ -7,13 +7,14 @@ import { divisionCuration } from './curationInputs'
 import islandGroups from '../../../../../../fixtures/meta/curations/saanseoi-division/island-groups.json'
 import reviewPins from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-review.json'
 import releaseInputs from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-release-policy.json'
+import publicationInputs from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json'
 import type { UploadTarget } from '../../cli/options'
 import { applyCuratedBounds, applyRvdMembership } from './listMembership'
 import { applyCuratedAreaContract, applyCuratedRecordContract } from './recordContract'
 import { buildAdministrativeAreas } from './administrativeAreas'
 import { attachProtomapsGeometryRows } from './nativeIngredients'
 import { attachIngredientMembership } from './ingredientMembership'
-import { monthlyCutoff } from './monthlyInputs'
+import { selectMonthlyIngredients } from './monthlyInputs'
 import { assembleCuratedDivisions } from './assemble'
 import { readCuratedDivisionRelease } from './releaseMetadata'
 import { curatedContentRows, prepareCuratedReleaseAsset } from './releaseAsset'
@@ -39,11 +40,11 @@ export async function buildCuratedDivisionRelease(
     )
   const root = resolve(import.meta.dir, '../../../../../..')
   const release = await readCuratedDivisionRelease(root, options.edition)
-  const cutoff = monthlyCutoff(release.releaseVersion)
-  const sourceReleases: CuratedSourceRelease[] = reviewPins.sourceReleases
-  for (const source of sourceReleases)
-    if (source.sourceVersion.slice(0, 10) > cutoff)
-      throw Error(`Ingredient ${source.releaseCode} is not on or before ${cutoff}.`)
+  const sourceReleases: CuratedSourceRelease[] = selectMonthlyIngredients(
+    release.releaseVersion,
+    reviewPins.sourceReleases,
+    publicationInputs.sourceReleases,
+  )
   const archives: ReviewArchiveOptions = {
     root,
     apiBaseUrl: process.env.SAANSEOI_REVIEW_API_URL,

@@ -1,9 +1,9 @@
 {
-  "versionHash": "sha256:bbe3d822c2a87d87c2f3f3eb05b0ecc7a0dd3994528316f8f6131c4f46ab90d4",
+  "versionHash": "sha256:8d5d107fa01da12669c237cc5f0919918446c763514221cb365a71e843f84c5f",
   "code": "api-divisions-v0.1",
   "familyType": "divisions",
   "version": "0.1",
-  "status": "archived",
+  "status": "deprecated",
   "lifecycleEvents": [
     {
       "statusFrom": "draft",
@@ -12,9 +12,9 @@
     },
     {
       "statusFrom": "current",
-      "statusTo": "archived",
+      "statusTo": "deprecated",
       "occurredAt": "2026-09-01T00:00:00.000Z",
-      "reason": "No further releases are planned for this API version."
+      "reason": "Overture inventories remain publishable; use v0.2 for curated SaanSeoi editions."
     }
   ]
 }

@@ -51,22 +51,24 @@ if not init_skip_completed_release "$rvd_release_code"
     set -g saanseoi_init_docs_pending 1
 end
 
-# Post-cutoff Overture snapshots are native ingredients, not the curated API
-# inventory. Publish the initial SaanSeoi edition after all pinned inputs exist.
-set -l curated_release_dir "$saanseoi_init_repo/.local/curated-divisions/init/2026-09-01.0"
-init_run_step bun run --silent dataops -- saanseoi-divisions:assemble \
-    --target local --out-dir "$curated_release_dir" --edition 2026-09-01.0
-for archive in "$curated_release_dir"/dr-hk-saanseoi-division-*.zip
-    if not test -f "$archive"
-        echo "Curated Division release archive not found: $archive" >&2
-        exit 1
+# Overture publishes through deprecated v0.1. Assemble both curated v0.2
+# editions after their exact publisher ingredients have been retained.
+for edition in 2026-09-01.0 2026-10-01.0
+    set -l curated_release_dir "$saanseoi_init_repo/.local/curated-divisions/init/$edition"
+    init_run_step bun run --silent dataops -- saanseoi-divisions:assemble \
+        --target local --out-dir "$curated_release_dir" --edition "$edition"
+    for archive in "$curated_release_dir"/dr-hk-saanseoi-division-*.zip
+        if not test -f "$archive"
+            echo "Curated Division release archive not found: $archive" >&2
+            exit 1
+        end
+        set -l release_code (string replace -r '\.zip$' '' -- (path basename "$archive"))
+        if not string match -qr '^dr-hk-saanseoi-division(-area)?-[0-9]' -- "$release_code"
+            continue
+        end
+        init_run_upload "$release_code" "$archive" --yes --defer-api-release-set
+        init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
     end
-    set -l release_code (string replace -r '\.zip$' '' -- (path basename "$archive"))
-    if not string match -qr '^dr-hk-saanseoi-division(-area)?-[0-9]' -- "$release_code"
-        continue
-    end
-    init_run_upload "$release_code" "$archive" --yes --defer-api-release-set
-    init_publish_docs_if_processed "$saanseoi_init_last_upload_processed"
 end
 
 # Reconcile only after the complete curated Division and DivisionArea pair has

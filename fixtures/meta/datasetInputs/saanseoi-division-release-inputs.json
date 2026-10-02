@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Additional exact publisher archives eligible for monthly SaanSeoi assembly. Select the latest pin on or before the edition date alongside the editorial review pins.",
+  "sourceReleases": [
+    {
+      "snapshotId": "2258a1b5-b974-5154-b9a5-0a7c486ae85d",
+      "datasetCode": "ds-hk-overture-division",
+      "releaseCode": "dr-hk-overture-division-2026-09-23.0",
+      "sourceVersion": "2026-09-23.0",
+      "resourceType": "division",
+      "rawObjectKey": "by-source/hk/overture/ds-hk-overture-division/dr-hk-overture-division-2026-09-23.0/e6cc609939ce54785567d9971403a1b47ce386af65a663d98091e177c043a559-ds-hk-overture-division-2026-09-23.0.parquet",
+      "contentHash": "e6cc609939ce54785567d9971403a1b47ce386af65a663d98091e177c043a559",
+      "releaseNotesUrl": "https://docs.overturemaps.org/blog/2026/09/23/release-notes/#divisions"
+    },
+    {
+      "snapshotId": "d8017b0c-2401-56ee-a388-5e75a758860a",
+      "datasetCode": "ds-hk-overture-division-area",
+      "releaseCode": "dr-hk-overture-division-area-2026-09-23.0",
+      "sourceVersion": "2026-09-23.0",
+      "resourceType": "divisionArea",
+      "rawObjectKey": "by-source/hk/overture/ds-hk-overture-division-area/dr-hk-overture-division-area-2026-09-23.0/95d2d04aac5241eb5f3498d24c85e145f33a17dce5d96cb79df229ebbf579c7e-ds-hk-overture-division-area-2026-09-23.0.parquet",
+      "contentHash": "95d2d04aac5241eb5f3498d24c85e145f33a17dce5d96cb79df229ebbf579c7e",
+      "releaseNotesUrl": "https://docs.overturemaps.org/blog/2026/09/23/release-notes/#divisions"
+    }
+  ]
+}

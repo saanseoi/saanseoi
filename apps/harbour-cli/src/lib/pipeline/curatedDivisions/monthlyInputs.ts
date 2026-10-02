@@ -40,3 +40,15 @@ export function selectMonthlyIngredient(
     throw new Error(`Ambiguous ingredient ${datasetCode}/${selected.sourceVersion}.`)
   return selected
 }
+
+/** Publication inputs can advance without changing the editor's reference cohort. */
+export function selectMonthlyIngredients(
+  edition: string,
+  review: CuratedSourceRelease[],
+  publication: CuratedSourceRelease[],
+) {
+  const candidates = [...review, ...publication]
+  return [...new Set(review.map(row => row.datasetCode))].map(dataset =>
+    selectMonthlyIngredient(edition, dataset, candidates),
+  )
+}

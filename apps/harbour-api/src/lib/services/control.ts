@@ -177,6 +177,10 @@ export async function handlePublishDataset(
           datasetType,
           datasetVariant,
           options.apiVersion,
+          {
+            regionCode: dataset.regionCode as RegionCode,
+            cohortKey: dataset.cohortKey,
+          },
         )
       : getApiVersionCodeForType(datasetType)
     const compositionMembers = await listCurrentApiCompositionMembersForType(
@@ -280,6 +284,7 @@ export async function handlePublishDataset(
           'division',
           dataset.regionCode as RegionCode,
           dataset.cohortKey,
+          domainCode,
           publicationApiVersion,
         )
       : []

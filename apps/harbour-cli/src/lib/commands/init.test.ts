@@ -523,9 +523,10 @@ describe('initialisation commands', () => {
     expect(curatedDivisionUpload).toBeGreaterThan(curatedAssembly)
     expect(reconciliation).toBeGreaterThan(curatedDivisionUpload)
     expect(source).toContain('--yes --defer-api-release-set')
-    expect(source).toContain('--edition 2026-09-01.0')
+    expect(source).toContain('for edition in 2026-09-01.0 2026-10-01.0')
+    expect(source).toContain('--edition "$edition"')
     expect(source).toContain(
-      'set -l curated_release_dir "$saanseoi_init_repo/.local/curated-divisions/init/2026-09-01.0"',
+      'set -l curated_release_dir "$saanseoi_init_repo/.local/curated-divisions/init/$edition"',
     )
     expect(source).toContain(
       'for archive in "$curated_release_dir"/dr-hk-saanseoi-division-*.zip',
@@ -573,25 +574,19 @@ describe('initialisation commands', () => {
     }
   })
 
-  test('does not replace the selected Division receipt with an unmapped Overture cohort', () => {
+  test('ingests September Overture with its geometry companions before reconciliation', () => {
     const source = readFileSync(
       resolve(repoRoot, 'scripts/init/divisions-overture.fish'),
       'utf8',
     )
-    const skip = source.indexOf('# September has no Division API release set yet.')
-    const nextReleaseDirectory = source.indexOf('set -l dir "$root/$release/', skip)
-    const guard = source.slice(skip, nextReleaseDirectory)
+    const uploads = source.indexOf('for release in $releases')
     const reconciliation = source.indexOf('release-sets:reconcile')
     const historicalUploads = source.indexOf('for year in 2016 2021')
 
-    expect(source).toContain(
-      'set -g saanseoi_init_island_reprocess_release dr-hk-overture-division-2026-08-19.0',
-    )
-    expect(guard).toContain('test "$release" = 2026-09-23.0')
-    expect(guard).toContain('continue')
-    expect(skip).toBeLessThan(nextReleaseDirectory)
+    expect(source).toContain('    2026-09-23.0')
+    expect(source).not.toContain('Skipping unselected Overture Division cohort')
     expect(source).toContain('for type in division division_area division_boundary')
-    expect(reconciliation).toBeGreaterThan(skip)
+    expect(reconciliation).toBeGreaterThan(uploads)
     expect(reconciliation).toBeLessThan(historicalUploads)
   })
 
