@@ -68,6 +68,40 @@ This answers:
 
 - which source releases fed this canonical snapshot
 
+## Snapshot Membership Selection Rules
+
+`snapshotResourceReleases.selectedByRule` identifies why an upstream release belongs to
+a snapshot. Names use `<purpose>:<scope>:<policy>:v1`, with lowercase kebab-case within
+each part. Purposes are `assembly`, `lookup` and `provenance`. Resolution modes such as
+`exact_ref` belong in `selectionMode`. The version identifies the rule semantics.
+
+- `assembly:division:source-release:v1`
+- `assembly:division-geometry:source-release:v1`
+- `assembly:address:source-release:v1`
+- `assembly:division:pland-planning-units:v1`
+- `assembly:division:pland-new-towns:v1`
+- `assembly:division-statistic:reference-period-release:v1`
+- `lookup:division-geometry:division-references:v1`
+- `lookup:censtatd-living-quarters:overture-division-references:v1`
+- `lookup:address:prepared-division-area:v1`
+- `lookup:address:prepared-division:v1`
+- `provenance:curated-division:build-inputs:v1`
+- `provenance:censtatd-geometry:carried-forward-contributors:v1`
+- `provenance:censtatd-geometry:verified-identical-geometry:v1`
+
+`provenance:curated-division:build-inputs:v1` retains the published releases pinned by
+the curated archive manifest. Ingestion checks archive keys, hashes, versions and
+snapshot pins. API release-set publication requires its Overture Division and Division
+Area selections to match these retained inputs.
+
+`provenance:censtatd-geometry:carried-forward-contributors:v1` retains non-lookup
+release memberships from the parent companion geometry snapshot as enrichment.
+`provenance:censtatd-geometry:verified-identical-geometry:v1` links an additional C&SD
+release to an existing snapshot after verifying identical canonical geometry.
+
+Membership selection rules are distinct from snapshot recipe identifiers. Retained
+recipe policies and hashes describe the assembly recorded at build time.
+
 ## API Field-Level Provenance
 
 Tables:

@@ -27,7 +27,7 @@ test('completed geometry contributors can precede shared composition publication
       CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
       INSERT INTO snapshots VALUES ('snapshot','lineage','divisionArea','draft',0,'2026');
-      INSERT INTO snapshotResourceReleases VALUES ('snapshot','contributor','release','contributed_geometry','snapshot-assembly-division-geometry-v1','release');
+      INSERT INTO snapshotResourceReleases VALUES ('snapshot','contributor','release','contributed_geometry','assembly:division-geometry:source-release:v1','release');
       INSERT INTO snapshotLineages VALUES ('lineage','divisionArea','primary');
       INSERT INTO releaseShardAssignments VALUES ('release'),('release'),('release');
       INSERT INTO snapshotShardAssignments VALUES ('snapshot');
@@ -50,7 +50,7 @@ test('completed geometry contributors can precede shared composition publication
       )
     expect(await check()).toEqual([])
     meta.exec(
-      "UPDATE snapshotResourceReleases SET selectionMode='verified_identical_geometry', selectedByRule='verified-censtatd-geometry-materialisation-v1'",
+      "UPDATE snapshotResourceReleases SET selectionMode='verified_identical_geometry', selectedByRule='provenance:censtatd-geometry:verified-identical-geometry:v1'",
     )
     expect(await check()).toEqual([])
     meta.exec("UPDATE snapshotResourceReleases SET selectedByRule='unrecognised'")
@@ -58,7 +58,7 @@ test('completed geometry contributors can precede shared composition publication
       'geometry: missing published snapshot lineage/source membership',
     ])
     meta.exec(
-      "UPDATE snapshotResourceReleases SET selectedByRule='verified-censtatd-geometry-materialisation-v1'",
+      "UPDATE snapshotResourceReleases SET selectedByRule='provenance:censtatd-geometry:verified-identical-geometry:v1'",
     )
     current.exec('DELETE FROM divisionAreas')
     expect(await check()).toEqual([])
@@ -71,7 +71,7 @@ test('completed geometry contributors can precede shared composition publication
     // receipt for this lineage/cohort; the old release remains complete.
     meta.exec(`
       INSERT INTO snapshots VALUES ('replacement','lineage','divisionArea','published',1,'2026');
-      INSERT INTO snapshotResourceReleases VALUES ('replacement','contributor','release','carried_forward_companion','inherited-censtatd-companion-provenance',NULL);
+      INSERT INTO snapshotResourceReleases VALUES ('replacement','contributor','release','carried_forward_companion','provenance:censtatd-geometry:carried-forward-contributors:v1',NULL);
       INSERT INTO snapshotShardAssignments VALUES ('replacement');
     `)
     current.exec(
@@ -159,7 +159,7 @@ test('curated division delivery proves completion of its retained native baselin
       INSERT INTO resourceReleases VALUES ('release','native','dataset','division','current');
       INSERT INTO snapshots VALUES ('native','native-lineage','division','published',1,'2026-08');
       INSERT INTO snapshots VALUES ('curated','curated-lineage','division','published',0,'2026-09');
-      INSERT INTO snapshotResourceReleases VALUES ('native','dataset','release','exact_ref','snapshot-assembly-division-v1','release');
+      INSERT INTO snapshotResourceReleases VALUES ('native','dataset','release','exact_ref','assembly:division:source-release:v1','release');
       INSERT INTO snapshotResourceReleases VALUES ('curated','dataset','release','exact_ref','saanseoi-curated-division-assembly-v1','curated-release');
       INSERT INTO snapshotLineages VALUES ('native-lineage','division','dataset'),('curated-lineage','division','curated-dataset');
       INSERT INTO releaseShardAssignments VALUES ('release'),('release'),('release');

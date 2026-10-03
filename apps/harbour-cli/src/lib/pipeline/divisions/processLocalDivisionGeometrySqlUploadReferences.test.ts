@@ -130,7 +130,7 @@ test('historical C&SD geometry validates against later Overture history without 
       ),
     ).toEqual({
       id: 'complete',
-      selectedByRule: 'api-composition:divisions:censtatd-area-type->overture-division',
+      selectedByRule: 'lookup:censtatd-living-quarters:overture-division-references:v1',
       selectionMode: 'nearest_snapshot_containing_references',
     })
     expect(current.query('SELECT total_changes() AS count').get()).toEqual(

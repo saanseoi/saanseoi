@@ -329,7 +329,7 @@ export async function writeAddressReleaseMetaSqlFile(
       snapshotId,
       lookupSnapshotId: pipelineMessage.addressDivisionSnapshotId,
       anchorReleaseId: message.resourceReleaseId ?? message.datasetId,
-      selectedByRule: 'address-preparation:exact-division',
+      selectedByRule: 'lookup:address:prepared-division:v1',
       selectionMode: 'exact_ref',
     },
   )
@@ -340,7 +340,7 @@ export async function writeAddressReleaseMetaSqlFile(
         snapshotId,
         lookupSnapshotId: pipelineMessage.addressDivisionAreaSnapshotId,
         anchorReleaseId: message.resourceReleaseId ?? message.datasetId,
-        selectedByRule: 'address-preparation:exact-division-area',
+        selectedByRule: 'lookup:address:prepared-division-area:v1',
         selectionMode: 'exact_ref',
       },
     )

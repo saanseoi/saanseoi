@@ -172,13 +172,13 @@ export async function findIncompletePublishedReleases(
                   AND sl.resourceType = s.resourceType
                   AND (
                     (ss.selectionMode = 'contributed_geometry'
-                      AND ss.selectedByRule = 'snapshot-assembly-division-geometry-v1'
+                      AND ss.selectedByRule = 'assembly:division-geometry:source-release:v1'
                       AND ss.anchorReleaseId = ss.resourceReleaseId)
                     OR (ss.selectionMode = 'verified_identical_geometry'
-                      AND ss.selectedByRule = 'verified-censtatd-geometry-materialisation-v1'
+                      AND ss.selectedByRule = 'provenance:censtatd-geometry:verified-identical-geometry:v1'
                       AND ss.anchorReleaseId = ss.resourceReleaseId)
                     OR (ss.selectionMode = 'carried_forward_companion'
-                      AND ss.selectedByRule = 'inherited-censtatd-companion-provenance')
+                      AND ss.selectedByRule = 'provenance:censtatd-geometry:carried-forward-contributors:v1')
                   )
                 )
               )

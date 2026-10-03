@@ -850,7 +850,7 @@ function createSnapshotAssemblyDb() {
     CREATE TABLE snapshots (id TEXT PRIMARY KEY, resourceType TEXT, status TEXT, cohortKey TEXT);
     INSERT INTO snapshots VALUES ('snapshot-division', 'division', 'draft', '2025-09-24.0');
     CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT, selectedByRule TEXT, selectionMode TEXT, anchorReleaseId TEXT, sourceCohortKey TEXT);
-    INSERT INTO snapshotResourceReleases VALUES ('snapshot-division', 'dataset-division', 'release-division', 'primary', 'snapshot-assembly-division-v1', 'exact_ref', 'release-division', '2025-09-24.0');
+    INSERT INTO snapshotResourceReleases VALUES ('snapshot-division', 'dataset-division', 'release-division', 'primary', 'assembly:division:source-release:v1', 'exact_ref', 'release-division', '2025-09-24.0');
     CREATE TABLE snapshotRecipeInputs (snapshotRecipeId TEXT, datasetId TEXT, role TEXT, isRequired INTEGER, anchorDatasetId TEXT, maxLagDays INTEGER, priority INTEGER, selectionPolicyJson TEXT, PRIMARY KEY(snapshotRecipeId, datasetId, role));
   `)
 

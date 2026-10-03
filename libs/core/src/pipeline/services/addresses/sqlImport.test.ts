@@ -85,7 +85,7 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
         snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode,
         anchorReleaseId, sourceCohortKey, createdAt
       ) VALUES (
-        'address-snapshot', 'dataset-address', 'release-address', 'primary', 'snapshot-assembly-address-v1',
+        'address-snapshot', 'dataset-address', 'release-address', 'primary', 'assembly:address:source-release:v1',
         'exact_ref', 'release-address', '2026-08-19.0', '2026-09-07T00:00:00.000Z'
       );
       INSERT INTO snapshotRecipes (

@@ -181,7 +181,7 @@ test('requires retained processing audits for Addresses and Places before publis
       resourceReleaseId,
       'primary',
       {
-        selectedByRule: `snapshot-assembly-${datasetType}-v1`,
+        selectedByRule: `assembly:${datasetType}:source-release:v1`,
         selectionMode: 'exact_ref',
         sourceCohortKey: '2026-06',
       },

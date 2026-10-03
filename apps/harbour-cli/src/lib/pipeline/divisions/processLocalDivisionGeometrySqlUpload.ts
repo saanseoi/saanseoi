@@ -583,7 +583,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         'enrichment',
         {
           anchorReleaseId: dataset.resourceReleaseId,
-          selectedByRule: 'verified-censtatd-geometry-materialisation-v1',
+          selectedByRule: 'provenance:censtatd-geometry:verified-identical-geometry:v1',
           selectionMode: 'verified_identical_geometry',
           sourceCohortKey: dataset.cohortKey,
         },
@@ -614,7 +614,7 @@ export async function processLocalDivisionGeometrySqlUpload(
             source.sourceReleaseId,
             'enrichment',
             {
-              selectedByRule: 'inherited-censtatd-companion-provenance',
+              selectedByRule: 'provenance:censtatd-geometry:carried-forward-contributors:v1',
               selectionMode: 'carried_forward_companion',
             },
           )
@@ -628,7 +628,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         'primary',
         {
           anchorReleaseId: dataset.resourceReleaseId,
-          selectedByRule: 'snapshot-assembly-division-geometry-v1',
+          selectedByRule: 'assembly:division-geometry:source-release:v1',
           selectionMode: isCenstatdGeometryCompanionPlan(previewPlan)
             ? 'contributed_geometry'
             : 'exact_ref',

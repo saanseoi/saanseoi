@@ -180,7 +180,7 @@ describe('release statistics metadata replay', () => {
           createdAt: '2026-08-18T00:00:00.000Z',
           datasetId: 'dataset',
           role: 'primary',
-          selectedByRule: 'stats-reference-period-exact-release-v1',
+          selectedByRule: 'assembly:division-statistic:reference-period-release:v1',
           selectionMode: 'exact_ref',
           snapshotId: 'snapshot',
           sourceCohortKey: '2021',

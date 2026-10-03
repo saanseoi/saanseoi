@@ -824,7 +824,7 @@ export async function prepareAddressVersionInsertContext(
     releaseRole,
     {
       anchorReleaseId: releaseRole === 'primary' ? dataset.resourceReleaseId : null,
-      selectedByRule: 'snapshot-assembly-address-v1',
+      selectedByRule: 'assembly:address:source-release:v1',
       selectionMode: 'exact_ref',
       sourceCohortKey: dataset.cohortKey,
     },

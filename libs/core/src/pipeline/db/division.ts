@@ -395,7 +395,7 @@ export async function prepareDivisionVersionInsertContext(
     'primary',
     {
       anchorReleaseId: dataset.resourceReleaseId,
-      selectedByRule: 'snapshot-assembly-division-v1',
+      selectedByRule: 'assembly:division:source-release:v1',
       selectionMode: 'exact_ref',
       sourceCohortKey: dataset.cohortKey,
     },

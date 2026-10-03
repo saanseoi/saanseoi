@@ -128,7 +128,7 @@ async function resolveDivisionReferenceLookup(
     ]
     return {
       snapshots: uniqueSnapshots,
-      selectedByRule: 'api-composition:divisions:censtatd-area-type->overture-division',
+      selectedByRule: 'lookup:censtatd-living-quarters:overture-division-references:v1',
       selectionMode: prior ? 'latest_at_or_before' : 'earliest_at_or_after',
     }
   }
@@ -143,7 +143,7 @@ async function resolveDivisionReferenceLookup(
         { variant: divisionReferenceVariant(plan) },
       ),
     ].filter((snapshot): snapshot is NonNullable<typeof snapshot> => Boolean(snapshot)),
-    selectedByRule: 'api-composition:divisions:division-geometry->division',
+    selectedByRule: 'lookup:division-geometry:division-references:v1',
     selectionMode: 'exact_ref',
   }
 }

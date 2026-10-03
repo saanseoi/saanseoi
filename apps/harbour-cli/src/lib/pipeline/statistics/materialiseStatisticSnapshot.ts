@@ -106,7 +106,7 @@ export async function materialiseStatisticSnapshots(args: {
       'primary',
       {
         anchorReleaseId: dataset.resourceReleaseId,
-        selectedByRule: 'stats-reference-period-exact-release-v1',
+        selectedByRule: 'assembly:division-statistic:reference-period-release:v1',
         selectionMode: 'exact_ref',
         sourceCohortKey: referencePeriod.code,
       },

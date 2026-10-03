@@ -178,7 +178,10 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
           PLANNING_DIVISION_SNAPSHOT_SOURCE_ROLE,
           {
             anchorReleaseId: dataset.resourceReleaseId,
-            selectedByRule: `snapshot-assembly-${previewPlan.source}-division-v1`,
+            selectedByRule:
+              previewPlan.source === 'hkgov-pland-new-town'
+                ? 'assembly:division:pland-new-towns:v1'
+                : 'assembly:division:pland-planning-units:v1',
             selectionMode: 'exact_ref',
             sourceCohortKey: dataset.cohortKey,
           },
