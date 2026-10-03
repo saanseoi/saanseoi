@@ -11,6 +11,16 @@ export type SourceRecordCatalogueEntry = {
 }
 
 const DIVISION_SOURCE_RECORD_CATALOGUE = {
+  'ds-hk-saanseoi-division': {
+    geometryColumn: 'sourceGeometry',
+    scopeByDataset: true,
+    tableName: 'ssDivision',
+  },
+  'ds-hk-saanseoi-division-area': {
+    geometryColumn: 'sourceGeometry',
+    scopeByDataset: true,
+    tableName: 'ssDivisionArea',
+  },
   'ds-hk-hkgov-had-division-area-district': {
     geometryColumn: 'sourceGeometry',
     tableName: 'hkgovHadDivisionAreas',

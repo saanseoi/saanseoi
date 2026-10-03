@@ -7,6 +7,132 @@ import {
   streamSourceRecordsNdjson,
 } from './sourceRecords'
 
+test.each([
+  ['division', 'ssDivision'],
+  ['division-area', 'ssDivisionArea'],
+] as const)(
+  'curated %s schema and samples respect release history and ownership',
+  async (kind, table) => {
+    const database = new Database(':memory:')
+    const geometry = { type: 'Point', coordinates: [114, 22] }
+    const binding = {
+      prepare: (query: string) => ({
+        bind: (...values: Array<string | number>) => ({
+          all: async () => ({ results: database.query(query).all(...values) }),
+        }),
+      }),
+    }
+    try {
+      database.exec(`CREATE TABLE ${table} (
+      sourceRecordId TEXT, versionHash TEXT, properties TEXT, sourceGeometry TEXT,
+      validFromRelease TEXT, validToRelease TEXT, resourceReleaseId TEXT
+    )`)
+      const insert = database.query(`INSERT INTO ${table} VALUES (?, ?, ?, ?, ?, ?, ?)`)
+      insert.run(
+        'record',
+        'old',
+        '{"name":"Old"}',
+        JSON.stringify(geometry),
+        '2026-09-01.0',
+        '2026-10-01.0',
+        'september',
+      )
+      insert.run(
+        'record',
+        'new',
+        '{"name":"New","reviewed":true}',
+        JSON.stringify(geometry),
+        '2026-10-01.0',
+        null,
+        'october',
+      )
+      insert.run(
+        'unchanged',
+        'v1',
+        '{"name":"Unchanged"}',
+        null,
+        '2026-09-01.0',
+        null,
+        'september',
+      )
+      insert.run(
+        'foreign',
+        'v1',
+        '{"foreign":true}',
+        null,
+        '2026-09-01.0',
+        null,
+        'other-dataset',
+      )
+      insert.run(
+        'future',
+        'v1',
+        '{"future":true}',
+        null,
+        '2026-11-01.0',
+        null,
+        'october',
+      )
+      for (const [version, name] of [
+        ['2026-09-01.0', 'Old'],
+        ['2026-10-01.0', 'New'],
+      ] as const) {
+        const code = `dr-hk-saanseoi-${kind}-${version}`
+        const args = {
+          env: { DB_SOURCE_HK_2026: binding } as never,
+          metaDb: {
+            $client: {
+              prepare: () => ({
+                bind: () => ({
+                  all: async () => ({
+                    results: [
+                      {
+                        bindingName: 'DB_SOURCE_HK_2026',
+                        datasetCode: `ds-hk-saanseoi-${kind}`,
+                        resourceReleaseId:
+                          version === '2026-09-01.0' ? 'september' : 'october',
+                        datasetReleaseIdsJson: JSON.stringify(['september', 'october']),
+                        sourceReleaseCode: code,
+                        sourceVersion: version,
+                        resourceType: kind === 'division' ? 'division' : 'divisionArea',
+                        sourceVariant: 'saanseoi',
+                      },
+                    ],
+                  }),
+                }),
+              }),
+            },
+          } as never,
+          family: 'divisions' as const,
+          sourceReleaseCode: code,
+          includeGeometry: true,
+        }
+        for (const sample of [undefined, 'random'] as const) {
+          const page = await listSourceRecords({ ...args, sample, limit: 10 })
+          expect(page?.records.map(record => record.sourceRecordId).sort()).toEqual([
+            'record',
+            'unchanged',
+          ])
+          expect(
+            page?.records.find(record => record.sourceRecordId === 'record'),
+          ).toMatchObject({
+            geometry,
+            properties: { name },
+          })
+        }
+        const schema = await getSourceRecordSchema(args)
+        expect(schema?.properties).toEqual({
+          name: { type: 'string', nullable: false },
+          ...(name === 'New' ? { reviewed: { type: 'boolean', nullable: false } } : {}),
+        })
+        expect(schema?.required).toEqual(['name'])
+      }
+    } finally {
+      database.close()
+    }
+  },
+)
+
 test('source catalogues include every retained family and preserve both ALS dimensions', () => {
   const database = new Database(':memory:')
   try {
