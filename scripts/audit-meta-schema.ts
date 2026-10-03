@@ -50,9 +50,9 @@ const report = {
     ON s.id = r.sourceReleaseId WHERE s.datasetId != r.datasetId`),
   incompletePublishedSources:
     rows(`SELECT s.code, expected.value AS missingResource FROM sourceReleases s,
-    json_each(s.expectedResourceTypes) expected WHERE s.status = 'published' AND NOT EXISTS (
+    json_each(s.expectedResourceTypes) expected WHERE s.status = 'current' AND NOT EXISTS (
       SELECT 1 FROM resourceReleases r WHERE r.sourceReleaseId = s.id AND r.resourceType = expected.value
-        AND r.status IN ('published', 'superseded'))`),
+        AND r.status IN ('current', 'archived'))`),
   invalidPublicationDates: rows(`SELECT code, publicationDate FROM sourceReleases
     WHERE publicationDate IS NOT NULL AND (length(publicationDate) != 10 OR date(publicationDate) IS NULL)`),
   foreignKeyViolations: rows('PRAGMA foreign_key_check'),

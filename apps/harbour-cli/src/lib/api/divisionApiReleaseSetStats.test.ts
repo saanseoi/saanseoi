@@ -39,7 +39,7 @@ test('waits for required companion snapshots before calculating API stats', () =
     phase: null,
     releaseCode: 'source',
     resourceReleaseId: 'source-id',
-    status: 'published',
+    status: 'current',
     apiReleaseSetId: 'api',
     snapshotId: 'snapshot',
   }

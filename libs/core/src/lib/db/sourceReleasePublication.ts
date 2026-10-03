@@ -12,7 +12,7 @@ export function sourceReleasePublicationCondition(sourceReleaseId: string) {
         SELECT 1 FROM resourceReleases AS child
         WHERE child.sourceReleaseId = ${metaSourceReleases.id}
           AND child.resourceType = expected.value
-          AND child.status = 'published'
+          AND child.status = 'current'
       )
     )`,
   )

@@ -43,11 +43,11 @@ distinct configured source versions before update discovery, retaining companion
 resources. Discovered updates are also capped at two versions per dataset.
 
 Native-source updates with geography require all declared resource children to be
-published or superseded for the same source version. This includes the Division and
-Division Area children of Housing Market Areas and Permanent Living Quarters, and the
-Division Area companions declared by district statistics sources. Missing children
-trigger intake from the cached publisher archive even when its content is unchanged. The
-Permanent Living Quarters initialisation guard checks all three qualified child codes.
+current or archived for the same source version. This includes the Division and Division
+Area children of Housing Market Areas and Permanent Living Quarters, and the Division
+Area companions declared by district statistics sources. Missing children trigger intake
+from the cached publisher archive even when its content is unchanged. The Permanent
+Living Quarters initialisation guard checks all three qualified child codes.
 Statistics-only updates require only the Statistics child.
 
 The public source-record reader selects the dedicated district-density table, the
@@ -258,7 +258,7 @@ publication metadata still identify the reissue. Sparse `statsRecord` changes in
 `snapshotVersionChanges` and snapshot parent ancestry select each frozen publication.
 
 Deferred Statistics revisions inherit only from published snapshots backed by a
-completed processing audit and published resource release in the same lineage and exact
+completed processing audit and current resource release in the same lineage and exact
 reference period. A successful source-only publication certifies these snapshots without
 activating the Statistics API. Revisions retain omitted geographies as well as omitted
 fields. Bootstrap selects one completed descendant per dataset variant; competing

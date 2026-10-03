@@ -826,7 +826,7 @@ async function prepareSupplementaryAddressesLocked(
     await publishSnapshot(db, snapshot.id)
     await db
       .update(metaSchema.metaResourceReleases)
-      .set({ status: 'published', updatedAt: now })
+      .set({ status: 'current', updatedAt: now })
       .where(eq(metaSchema.metaResourceReleases.id, resourceReleaseId))
       .run()
     // The shared source is finalised by Places publication after both outputs succeed.
@@ -847,7 +847,7 @@ async function prepareSupplementaryAddressesLocked(
           input.targets.meta,
           [
             await buildPlaceMetadataSql(db, snapshot.id, resourceReleaseId),
-            `UPDATE resourceReleases SET status = 'published' WHERE id = ${lit(resourceReleaseId)};`,
+            `UPDATE resourceReleases SET status = 'current' WHERE id = ${lit(resourceReleaseId)};`,
           ].join('\n'),
           input.importOptions,
         ),

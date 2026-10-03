@@ -173,7 +173,7 @@ describe('formatReleaseReportTable', () => {
         cohortKey: '2026-06',
         source: 'hkgov-dpo',
         sourceVersion: '2026-06-24.0',
-        status: 'published',
+        status: 'current',
         supersededByResourceReleaseId: null,
         resourceType: 'address',
         updatedAt: '2026-06-24T12:00:00.000Z',

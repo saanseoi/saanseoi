@@ -1,5 +1,22 @@
 # Dataset pipeline
 
+## Source and resource release states
+
+Source and resource releases use `uploading`, `staged`, `processing`, `current`,
+`archived`, `revoked`, and `failed`. `current` means successfully published and not
+replaced within the dataset/resource lifecycle. `archived` retains a completed release
+after replacement; `revoked` withdraws a release. API catalogue selection separately
+controls which releases serve requests. Snapshot publication uses `draft`, `published`,
+and `archived`.
+
+Existing META databases can normalise stored release states and lifecycle-journal
+transitions with `bun run --cwd libs/db db:releases:normalise-statuses <META.sqlite>`.
+The command reports affected rows without writing; add `--apply` to update them in one
+transaction, or use `--sql` to emit the SQL for a target database. It preserves
+timestamps, replacement links, publication events, and snapshot states. Run it against
+the target META database and any retained metadata caches before using the release
+lifecycle.
+
 ## Processing stages and retained evidence
 
 | Stage                | Input               | Output                                | Retained definition                                       |
@@ -226,12 +243,11 @@ The Overture division initialiser includes its HAD and C&SD geometry dependencie
 including both the `2016` and `2021` C&SD district variants and the Permanent Living
 Quarters geometry. It processes that source after the Overture canonical divisions and
 before draft release-set reconciliation. Re-run an interrupted Overture or Planning
-Department backfill with `--continue`; it ignores release codes already marked
-`published` or `superseded`, then passes every other release to `upload --continue`.
-That retry accepts an existing staged release and ordinary failed-release retries, but
-never repairs a published release; unsupported states fail rather than being silently
-ignored. `saanseoi init [--continue]` runs all the focused initialisers in the same
-order.
+Department backfill with `--continue`; it ignores release codes already marked `current`
+or `archived`, then passes every other release to `upload --continue`. That retry
+accepts an existing staged release and ordinary failed-release retries, but never
+repairs a published release; unsupported states fail rather than being silently ignored.
+`saanseoi init [--continue]` runs all the focused initialisers in the same order.
 
 Initialisers defer `docs:publish --scope all` until all their uploads have succeeded.
 This avoids rescanning and publishing the same release documentation after every cohort
@@ -562,8 +578,8 @@ Before considering a new source complete:
 - validate the target API/release-set result when the source is published there.
 
 For audit coverage, test at least one selected bulk rule, one emitted record rule whose
-action code matches its `operationCode`, and a published/superseded release to confirm
-that its audit projection does not change when later rules or source releases change.
+action code matches its `operationCode`, and a current/archived release to confirm that
+its audit projection does not change when later rules or source releases change.
 
 Run `bun run format:markdown` after editing this or any other Markdown documentation.
 

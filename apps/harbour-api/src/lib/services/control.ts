@@ -216,13 +216,13 @@ export async function handlePublishDataset(
       if (!firstSnapshot)
         throw new ControlRequestError(`Snapshot not found for ${dataset.releaseCode}.`)
       if (!request.deferSourcePublish) {
-        await updateDatasetStatus(db, dataset.resourceReleaseId, 'published')
+        await updateDatasetStatus(db, dataset.resourceReleaseId, 'current')
         for (const snapshot of snapshots)
           if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
         await db
           .update(metaSchema.metaResourceReleases)
           .set({
-            status: 'superseded',
+            status: 'archived',
             supersededByResourceReleaseId: dataset.resourceReleaseId,
             updatedAt: new Date().toISOString(),
           })
@@ -230,7 +230,7 @@ export async function handlePublishDataset(
             and(
               eq(metaSchema.metaResourceReleases.datasetId, dataset.datasetId),
               eq(metaSchema.metaResourceReleases.resourceType, datasetType),
-              eq(metaSchema.metaResourceReleases.status, 'published'),
+              eq(metaSchema.metaResourceReleases.status, 'current'),
               lt(metaSchema.metaResourceReleases.cohortKey, dataset.cohortKey),
             ),
           )
@@ -241,7 +241,7 @@ export async function handlePublishDataset(
         releaseCode: dataset.releaseCode,
         resourceReleaseId: dataset.resourceReleaseId,
         snapshotId: firstSnapshot.id,
-        status: request.deferSourcePublish ? 'processing' : 'published',
+        status: request.deferSourcePublish ? 'processing' : 'current',
         phase: null,
         metadataDelta: publishMetadataDelta(
           request.deferSourcePublish ? null : dataset.resourceReleaseId,
@@ -353,7 +353,7 @@ export async function handlePublishDataset(
         )
       }
       if (!request.deferSourcePublish) {
-        await updateDatasetStatus(db, dataset.resourceReleaseId, 'published')
+        await updateDatasetStatus(db, dataset.resourceReleaseId, 'current')
         for (const snapshot of materialisedSnapshots) {
           if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
         }
@@ -374,7 +374,7 @@ export async function handlePublishDataset(
         releaseCode: dataset.releaseCode,
         resourceReleaseId: dataset.resourceReleaseId,
         snapshotId: firstSnapshot.id,
-        status: request.deferSourcePublish ? 'processing' : 'published',
+        status: request.deferSourcePublish ? 'processing' : 'current',
       }
     }
 
@@ -386,7 +386,7 @@ export async function handlePublishDataset(
       (isCenstatdGeographicGeometry && censtatdReleaseSetCohorts.length === 0)
     ) {
       if (!request.deferSourcePublish) {
-        await updateDatasetStatus(db, dataset.resourceReleaseId, 'published')
+        await updateDatasetStatus(db, dataset.resourceReleaseId, 'current')
         for (const snapshot of materialisedSnapshots) {
           if (snapshot.status !== 'published') await publishSnapshot(db, snapshot.id)
         }
@@ -407,7 +407,7 @@ export async function handlePublishDataset(
         releaseCode: dataset.releaseCode,
         resourceReleaseId: dataset.resourceReleaseId,
         snapshotId: firstSnapshot.id,
-        status: request.deferSourcePublish ? 'processing' : 'published',
+        status: request.deferSourcePublish ? 'processing' : 'current',
       }
     }
 
@@ -510,7 +510,7 @@ export async function handlePublishDataset(
               })()
     if (releaseSets.length === 0) {
       if (!request.deferSourcePublish) {
-        await updateDatasetStatus(db, dataset.resourceReleaseId, 'published')
+        await updateDatasetStatus(db, dataset.resourceReleaseId, 'current')
       }
       return {
         datasetId: dataset.releaseCode,
@@ -521,7 +521,7 @@ export async function handlePublishDataset(
         releaseCode: dataset.releaseCode,
         resourceReleaseId: dataset.resourceReleaseId,
         snapshotId: firstSnapshot.id,
-        status: request.deferSourcePublish ? 'processing' : 'published',
+        status: request.deferSourcePublish ? 'processing' : 'current',
       }
     }
     const publicationTargets = releaseSets.map(releaseSet => {

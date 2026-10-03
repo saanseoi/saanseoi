@@ -141,7 +141,7 @@ test.each(['2026-Q2', '2023-H2'])(
     // A retained draft is not an accepted predecessor. Deferred publication
     // certifies the completed audit and immutable snapshots before API activation.
     sqlite.exec(`
-      UPDATE resourceReleases SET status = 'published' WHERE id = 'release';
+      UPDATE resourceReleases SET status = 'current' WHERE id = 'release';
       INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount, attemptStatus)
       VALUES ('release', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed');
       UPDATE snapshots SET status = 'published';

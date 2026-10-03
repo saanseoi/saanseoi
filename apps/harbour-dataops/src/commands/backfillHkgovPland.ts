@@ -532,7 +532,7 @@ async function getCompletedLocalReleaseCodes() {
     const completedReleaseCodes = new Set<string>()
     const releases = sqlite
       .query(
-        "SELECT code FROM resourceReleases WHERE status IN ('published', 'superseded')",
+        "SELECT code FROM resourceReleases WHERE status IN ('current', 'archived')",
       )
       .all() as Array<{ code: string }>
 

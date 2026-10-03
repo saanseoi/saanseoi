@@ -61,7 +61,7 @@ export type ControlResult = {
   datasetId: string
   metadataDelta?: {
     apiReleaseSets?: ApiReleaseSetMetadataDelta[]
-    releases: Array<{ id: string; status: 'published' }>
+    releases: Array<{ id: string; status: 'current' }>
     snapshots?: SnapshotMetadataDelta[]
   }
   releaseCode: string

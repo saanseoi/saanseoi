@@ -170,9 +170,7 @@ export function hasCompletedOverturePlacesBaseline(input: {
     input.hasCurrentPlaces &&
     input.hasPublishedPlaceSnapshot &&
     input.releaseStatuses.length > 0 &&
-    input.releaseStatuses.every(
-      status => status === 'published' || status === 'superseded',
-    )
+    input.releaseStatuses.every(status => status === 'current' || status === 'archived')
   )
 }
 
@@ -647,12 +645,7 @@ export async function assertPlacesInitialisationComplete(
       .where(
         and(
           inArray(metaSchema.metaResourceReleases.id, owned.releaseIds),
-          not(
-            inArray(metaSchema.metaResourceReleases.status, [
-              'published',
-              'superseded',
-            ]),
-          ),
+          not(inArray(metaSchema.metaResourceReleases.status, ['current', 'archived'])),
         ),
       )
       .limit(1)

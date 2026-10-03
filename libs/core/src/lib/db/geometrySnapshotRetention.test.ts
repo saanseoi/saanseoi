@@ -43,7 +43,7 @@ function fixture() {
   const addRelease = (
     id: string,
     dataset: string,
-    status = 'published',
+    status = 'current',
     resourceType = 'divisionArea',
   ) => {
     sqlite
@@ -97,7 +97,7 @@ describe('geometry snapshot retention', () => {
   test('cleans superseded rolling releases and retains independently published census cohorts and transforms', async () => {
     const { db, addDataset, addRelease, addSnapshot } = fixture()
     addDataset('rolling')
-    addRelease('rolling-old', 'rolling', 'superseded')
+    addRelease('rolling-old', 'rolling', 'archived')
     addRelease('rolling-current', 'rolling')
     addSnapshot('rolling-old', 'rolling-old', '2026-07', 'rolling')
     addSnapshot('rolling-current', 'rolling-current', '2026-08', 'rolling')
@@ -107,8 +107,8 @@ describe('geometry snapshot retention', () => {
       for (const variant of ['landclipped', 'landclipped:simplified'])
         addSnapshot(`${variant}-${cohort}`, `census-${cohort}`, cohort, variant)
     }
-    addRelease('boundary-old', 'rolling', 'superseded', 'divisionBoundary')
-    addRelease('boundary-current', 'rolling', 'published', 'divisionBoundary')
+    addRelease('boundary-old', 'rolling', 'archived', 'divisionBoundary')
+    addRelease('boundary-current', 'rolling', 'current', 'divisionBoundary')
     addSnapshot('boundary-old', 'boundary-old', '2026-07', 'rolling')
     addSnapshot('boundary-current', 'boundary-current', '2026-08', 'rolling')
 
@@ -185,7 +185,7 @@ describe('geometry snapshot retention', () => {
   test('non-archived release sets independently protect old snapshots and missing lineages do not exempt obsolete geometry', async () => {
     const { db, sqlite, addDataset, addRelease, addSnapshot } = fixture()
     addDataset('overture', 'hk', 'overture')
-    addRelease('old', 'overture', 'superseded')
+    addRelease('old', 'overture', 'archived')
     addRelease('current', 'overture')
     addSnapshot('unlinked-old', 'old', '2026-07', null)
     addSnapshot('unlinked-revision', 'current', '2026-08', null)

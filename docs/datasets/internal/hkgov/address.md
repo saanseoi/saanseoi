@@ -366,7 +366,7 @@ database correctly re-ingests every release.
 `hkgov-dpo:backfill-local` is the explicit exception for a missing older ALS release. It
 registers that release as an independent historical address cohort, so it does not
 supersede the newer active source release or replace the current Addresses API cohort.
-It treats later superseded ALS releases as already complete, so a run beginning before a
+It treats later archived ALS releases as already complete, so a run beginning before a
 gap processes the missing release rather than reprocessing the rest of the series. The
 normal `hkgov-dpo:ingest` command remains chronological and continues to reject an older
 source version.

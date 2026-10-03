@@ -1385,12 +1385,12 @@ function seedCompleteOvertureFixtureSources(
       id, sourceVersion, sourceSchemaVersion, status, revokedAt,
       revocationReason, supersededByResourceReleaseId, updatedAt
     ) VALUES
-      ('release-supporting-area', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
-      ('release-supporting-boundary', '2026-06-17.0', '1.17.0', 'published', null, null, null, 1760000000000),
-      ('release-supporting-had', '2022', '1.2', 'published', null, null, null, 1760000000000),
-      ('release-supporting-censtatd', '2016', '1.0', 'published', null, null, null, 1760000000000),
-      ('release-supporting-censtatd-annual', '2024', '1.0', 'published', null, null, null, 1760000000000),
-      ('release-supporting-censtatd-area-type', '2023-H2', '1.0', 'published', null, null, null, 1760000000000);
+      ('release-supporting-area', '2026-06-17.0', '1.17.0', 'current', null, null, null, 1760000000000),
+      ('release-supporting-boundary', '2026-06-17.0', '1.17.0', 'current', null, null, null, 1760000000000),
+      ('release-supporting-had', '2022', '1.2', 'current', null, null, null, 1760000000000),
+      ('release-supporting-censtatd', '2016', '1.0', 'current', null, null, null, 1760000000000),
+      ('release-supporting-censtatd-annual', '2024', '1.0', 'current', null, null, null, 1760000000000),
+      ('release-supporting-censtatd-area-type', '2023-H2', '1.0', 'current', null, null, null, 1760000000000);
 
     INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId) VALUES
       ('${snapshotId}', 'dataset-overture-division-area', 'release-supporting-area'),
@@ -2048,7 +2048,7 @@ describe('ensureDraftSnapshotForRelease', () => {
     sqlite.close()
   })
 
-  for (const withdrawnSourceStatus of ['revoked', 'published'])
+  for (const withdrawnSourceStatus of ['revoked', 'current'])
     test(`parents forward ingestion to the restored catalogue branch with withdrawn source ${withdrawnSourceStatus}`, async () => {
       const { db, sqlite } = createDraftSnapshotDb()
       try {
@@ -2069,7 +2069,7 @@ describe('ensureDraftSnapshotForRelease', () => {
         sqlite.query("UPDATE snapshots SET status='published' WHERE id=?").run(b.id)
         sqlite
           .query('INSERT INTO resourceReleases VALUES (?,?)')
-          .run('source-a', 'published')
+          .run('source-a', 'current')
         sqlite
           .query('INSERT INTO resourceReleases VALUES (?,?)')
           .run('source-b', withdrawnSourceStatus)
@@ -2694,8 +2694,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey,
         originalFileName, status, ingestedAt, createdAt, updatedAt
       ) VALUES
-        ('release-district-area-2021', 'dataset-district-area', 'dr-hk-hkgov-censtatd-division-area-district-2021', 'divisionArea', '2021', '2021', 'district-area.parquet', 'district-area.parquet', 'published', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z'),
-        ('release-hma-2021', 'dataset-hma', 'dr-hk-hkgov-censtatd-division-area-housing-market-areas-building-groups-2021-2021', 'divisionArea', '2021', '2021', 'hma.parquet', 'hma.parquet', 'published', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z');
+        ('release-district-area-2021', 'dataset-district-area', 'dr-hk-hkgov-censtatd-division-area-district-2021', 'divisionArea', '2021', '2021', 'district-area.parquet', 'district-area.parquet', 'current', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z'),
+        ('release-hma-2021', 'dataset-hma', 'dr-hk-hkgov-censtatd-division-area-housing-market-areas-building-groups-2021-2021', 'divisionArea', '2021', '2021', 'hma.parquet', 'hma.parquet', 'current', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z');
     `)
 
     const result = await getLatestDatasetForRegionSourceDatasetType(
@@ -2733,7 +2733,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
           '2026-06',
           'hk/overture/2026-06-17.10/division.parquet',
           'division.parquet',
-          'published',
+          'current',
           null,
           null,
           null,
@@ -2750,7 +2750,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
           '2026-06',
           'hk/overture/2026-06-17.9/division.parquet',
           'division.parquet',
-          'published',
+          'current',
           null,
           null,
           null,
@@ -2814,7 +2814,7 @@ describe('source release lifecycle status', () => {
       sqlite
         .query('SELECT status FROM sourceReleases WHERE code = ?')
         .get('dr-hk-hkgov-pland-division-pu-2001'),
-    ).toEqual({ status: 'published' })
+    ).toEqual({ status: 'current' })
 
     sqlite.close()
   })
@@ -2840,7 +2840,7 @@ describe('getCurrentReleaseForDatasetId', () => {
           '2001',
           'hk/hkgov-pland-pu/2001/division.parquet',
           'division.parquet',
-          'published',
+          'current',
           '2026-07-21T00:00:00.000Z',
           '2026-07-21T00:00:00.000Z',
           '2026-07-21T00:00:00.000Z'
@@ -2854,7 +2854,7 @@ describe('getCurrentReleaseForDatasetId', () => {
           '2001',
           'hk/hkgov-pland-pu/2001/division-area.parquet',
           'division-area.parquet',
-          'published',
+          'current',
           '2026-07-21T00:01:00.000Z',
           '2026-07-21T00:01:00.000Z',
           '2026-07-21T00:01:00.000Z'
@@ -3740,9 +3740,9 @@ describe('publishReleaseArtefacts', () => {
         processingRules, resourceType, status, updatedAt
       ) VALUES
         ('release-address', 'source-release-address', 'dataset-address', '2025-09-03.0', '3.2', null, 'address', 'staged', 1760000000000),
-        ('release-division', 'source-release-division', 'dataset-division', '2025-09-24.0', '1.12.0', null, 'division', 'published', 1760000000000),
-        ('release-place-address', 'source-release-place', 'dataset-place', '2025-09-24.0', '1.12.0', '{}', 'address', 'published', 1760000000000),
-        ('release-place-anchor', 'source-release-place', 'dataset-place', '2025-09-24.0', '1.12.0', null, 'place', 'published', 1760000000000);
+        ('release-division', 'source-release-division', 'dataset-division', '2025-09-24.0', '1.12.0', null, 'division', 'current', 1760000000000),
+        ('release-place-address', 'source-release-place', 'dataset-place', '2025-09-24.0', '1.12.0', '{}', 'address', 'current', 1760000000000),
+        ('release-place-anchor', 'source-release-place', 'dataset-place', '2025-09-24.0', '1.12.0', null, 'place', 'current', 1760000000000);
 
       INSERT INTO snapshotResourceReleases (
         snapshotId, datasetId, resourceReleaseId, anchorReleaseId, role
@@ -3938,7 +3938,7 @@ describe('publishReleaseArtefacts', () => {
       sqlite
         .query('SELECT status FROM sourceReleases WHERE id = ?')
         .get('source-release-1'),
-    ).toEqual({ status: 'published' })
+    ).toEqual({ status: 'current' })
     expect(
       sqlite
         .query(
@@ -4054,7 +4054,7 @@ describe('publishReleaseArtefacts', () => {
         apiVersionReleaseSetId: 'release-set-1-version',
         action: 'published',
         statusFrom: null,
-        statusTo: 'published',
+        statusTo: 'current',
       },
     ])
 
@@ -4176,8 +4176,8 @@ describe('publishReleaseArtefacts', () => {
       INSERT INTO resourceReleases (
         id, sourceVersion, sourceSchemaVersion, status, revokedAt, revocationReason, supersededByResourceReleaseId, updatedAt
       ) VALUES
-        ('release-overture-2025', '2025-09-24.0', '1.12.0', 'published', null, null, null, 1760000000000),
-        ('release-overture-2026', '2026-07-22.0', '1.18.0', 'published', null, null, null, 1760000000000),
+        ('release-overture-2025', '2025-09-24.0', '1.12.0', 'current', null, null, null, 1760000000000),
+        ('release-overture-2026', '2026-07-22.0', '1.18.0', 'current', null, null, null, 1760000000000),
         ('release-censtatd', '2016', '1.0', 'staged', null, null, null, 1760000000000);
 
       INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES

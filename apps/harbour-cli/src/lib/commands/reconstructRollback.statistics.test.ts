@@ -218,7 +218,7 @@ async function fixture(previous = true) {
       datasetId,
       code: `source-${name}`,
       sourceVersion: name,
-      status: 'published',
+      status: 'current',
     })
     insert(meta, 'resourceReleases', {
       id: `release-${name}`,
@@ -227,7 +227,7 @@ async function fixture(previous = true) {
       code: `release-${name}`,
       resourceType: 'divisionStatistic',
       sourceVersion: name,
-      status: 'published',
+      status: 'current',
     })
     insert(meta, 'snapshots', {
       id: `snapshot-${name}`,
@@ -703,7 +703,7 @@ test('an intervening exact-period Statistics publication blocks sealed rollback 
     })
     expect(
       f.meta.query('SELECT status FROM resourceReleases WHERE id=?').get('release-new'),
-    ).toEqual({ status: 'published' })
+    ).toEqual({ status: 'current' })
   } finally {
     await f.close()
   }

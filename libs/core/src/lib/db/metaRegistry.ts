@@ -1407,7 +1407,7 @@ export async function listRegistrySourcesPage(db: MetaDatabase, limit?: number) 
         .where(
           and(
             inArray(metaSourceReleases.datasetId, ids),
-            eq(metaSourceReleases.status, 'published'),
+            eq(metaSourceReleases.status, 'current'),
           ),
         )
         .orderBy(
@@ -2489,13 +2489,13 @@ export async function getCurrentReleaseForDatasetId(
     ? and(
         eq(metaResourceReleases.datasetId, datasetId),
         eq(metaResourceReleases.resourceType, resourceType),
-        eq(metaResourceReleases.status, 'published'),
+        eq(metaResourceReleases.status, 'current'),
         ne(metaResourceReleases.id, excludeReleaseId),
       )
     : and(
         eq(metaResourceReleases.datasetId, datasetId),
         eq(metaResourceReleases.resourceType, resourceType),
-        eq(metaResourceReleases.status, 'published'),
+        eq(metaResourceReleases.status, 'current'),
       )
 
   return (
@@ -2789,7 +2789,7 @@ export async function resetFailedDataset(
       rawObjectKey,
       originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
-      status: sourceRelease?.status === 'published' ? 'published' : status,
+      status: sourceRelease?.status === 'current' ? 'current' : status,
       ingestedAt: now,
       revokedAt: null,
       revocationReason: null,
@@ -2824,12 +2824,12 @@ export async function updateDatasetStatus(
   const sourceReleaseId = await resolveSourceReleaseId(db, resourceReleaseId)
   const updatedAt = toIsoTimestamp()
   const releaseStatusCondition =
-    status === 'published'
+    status === 'current'
       ? eq(metaResourceReleases.id, resourceReleaseId)
       : and(
           eq(metaResourceReleases.id, resourceReleaseId),
-          ne(metaResourceReleases.status, 'published'),
-          ne(metaResourceReleases.status, 'superseded'),
+          ne(metaResourceReleases.status, 'current'),
+          ne(metaResourceReleases.status, 'archived'),
         )
 
   await db
@@ -2843,12 +2843,12 @@ export async function updateDatasetStatus(
 
   if (sourceReleaseId) {
     const sourceReleaseStatusCondition =
-      status === 'published'
+      status === 'current'
         ? sourceReleasePublicationCondition(sourceReleaseId)
         : and(
             eq(metaSourceReleases.id, sourceReleaseId),
-            ne(metaSourceReleases.status, 'published'),
-            ne(metaSourceReleases.status, 'superseded'),
+            ne(metaSourceReleases.status, 'current'),
+            ne(metaSourceReleases.status, 'archived'),
           )
     await db
       .update(metaSourceReleases)
@@ -2871,7 +2871,7 @@ export async function markDatasetCurrent(
   await db
     .update(metaResourceReleases)
     .set({
-      status: 'published',
+      status: 'current',
       revokedAt: null,
       revocationReason: null,
       updatedAt: now,
@@ -2883,7 +2883,7 @@ export async function markDatasetCurrent(
     await db
       .update(metaSourceReleases)
       .set({
-        status: 'published',
+        status: 'current',
         revokedAt: null,
         revocationReason: null,
         updatedAt: now,
@@ -2903,7 +2903,7 @@ export async function markDatasetHistoric(
   await db
     .update(metaResourceReleases)
     .set({
-      status: 'superseded',
+      status: 'archived',
       updatedAt,
     })
     .where(eq(metaResourceReleases.id, resourceReleaseId))
@@ -4285,8 +4285,8 @@ export async function listDraftReleaseSetPrimaryReleases(
         eq(metaApiReleaseSetSnapshots.role, 'primary'),
         eq(metaSnapshotResourceReleases.role, 'primary'),
         or(
-          eq(metaResourceReleases.status, 'published'),
-          eq(metaResourceReleases.status, 'superseded'),
+          eq(metaResourceReleases.status, 'current'),
+          eq(metaResourceReleases.status, 'archived'),
         ),
         options.apiFamily
           ? eq(metaApiVersions.familyType, options.apiFamily)
@@ -5555,7 +5555,7 @@ export async function publishReleaseArtefacts(
               tx
                 .update(metaResourceReleases)
                 .set({
-                  status: 'published',
+                  status: 'current',
                   revokedAt: null,
                   revocationReason: null,
                   updatedAt: publishedAt,
@@ -5566,7 +5566,7 @@ export async function publishReleaseArtefacts(
                     tx
                       .update(metaSourceReleases)
                       .set({
-                        status: 'published',
+                        status: 'current',
                         revokedAt: null,
                         revocationReason: null,
                         updatedAt: publishedAt,
@@ -5738,7 +5738,7 @@ export async function publishReleaseArtefacts(
             apiVersionReleaseSetId: releaseSet.apiVersionReleaseSetId,
             action: 'published',
             statusFrom: null,
-            statusTo: 'published',
+            statusTo: 'current',
             reason: null,
             metadataJson: {
               replacedReleaseId: args.currentRelease.resourceReleaseId,
@@ -5753,8 +5753,8 @@ export async function publishReleaseArtefacts(
             snapshotId: args.snapshotId,
             apiVersionReleaseSetId: releaseSet.apiVersionReleaseSetId,
             action: args.currentReleaseIsCorrected ? 'revoked' : 'replaced',
-            statusFrom: 'published',
-            statusTo: args.currentReleaseIsCorrected ? 'revoked' : 'superseded',
+            statusFrom: 'current',
+            statusTo: args.currentReleaseIsCorrected ? 'revoked' : 'archived',
             reason: replacedReason,
             metadataJson: {
               replacementReleaseId: args.dataset.resourceReleaseId,
@@ -5790,7 +5790,7 @@ export async function publishReleaseArtefacts(
             tx
               .update(metaResourceReleases)
               .set({
-                status: 'superseded',
+                status: 'archived',
                 updatedAt: publishedAt,
               })
               .where(
@@ -5808,7 +5808,7 @@ export async function publishReleaseArtefacts(
             apiVersionReleaseSetId: releaseSet.apiVersionReleaseSetId,
             action: 'published',
             statusFrom: null,
-            statusTo: 'published',
+            statusTo: 'current',
             reason: null,
             metadataJson: {
               resourceType: args.resourceType,

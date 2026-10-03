@@ -101,7 +101,7 @@ export async function fixture(previous = true) {
       datasetId: 'dataset',
       code: `source-${name}`,
       sourceVersion: name,
-      status: 'published',
+      status: 'current',
     })
     insert(meta, 'resourceReleases', {
       id: `release-${name}`,
@@ -110,7 +110,7 @@ export async function fixture(previous = true) {
       code: `release-${name}`,
       resourceType: 'division',
       sourceVersion: name,
-      status: 'published',
+      status: 'current',
     })
     insert(meta, 'snapshots', {
       id: `snapshot-${name}`,

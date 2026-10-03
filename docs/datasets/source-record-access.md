@@ -5,7 +5,7 @@ Statistics and Streets. The dataset's primary family determines the endpoint; de
 resources such as an address extracted from a Place do not select a different source
 collection.
 
-For a published or superseded, non-revoked release:
+For a current or archived, non-revoked release:
 
 - `GET /{family}/v0.1/sources?sourceRelease={code}` returns retained publisher records.
   `sample=random&limit=1` selects an example; `include=geometry` includes retained

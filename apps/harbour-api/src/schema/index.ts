@@ -496,7 +496,7 @@ export const ControlResponseSchema = z
           )
           .optional(),
         releases: z.array(
-          z.object({ id: z.string().uuid(), status: z.literal('published') }),
+          z.object({ id: z.string().uuid(), status: z.literal('current') }),
         ),
         snapshots: z
           .array(

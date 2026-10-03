@@ -32,7 +32,7 @@ export async function findPreviousComparableCenstatdReleaseStats(
         eq(metaSchema.metaResourceReleases.datasetId, release.datasetId),
         eq(metaSchema.metaResourceReleases.resourceType, release.resourceType),
         ne(metaSchema.metaResourceReleases.id, resourceReleaseId),
-        eq(metaSchema.metaResourceReleases.status, 'published'),
+        eq(metaSchema.metaResourceReleases.status, 'current'),
         release.sourceSchemaVersion === null
           ? isNull(metaSchema.metaResourceReleases.sourceSchemaVersion)
           : eq(

@@ -148,7 +148,7 @@ export async function processNativeSourceSqlRelease(
     : createLocalControlClient(metaDb, {
         publishClient: {
           async publishDataset(id) {
-            await updateDatasetStatus(metaDb, id, 'published')
+            await updateDatasetStatus(metaDb, id, 'current')
           },
           async stageCompleted() {},
           async stageFailed() {},
@@ -624,7 +624,7 @@ async function resolveNativeSourceRelease(
       )
       if (
         existing &&
-        ['staged', 'processing', 'failed', 'published'].includes(existing.status) &&
+        ['staged', 'processing', 'failed', 'current'].includes(existing.status) &&
         existing.datasetCode === input.datasetCode
       ) {
         const linkedArchive = await context.metaDb
@@ -639,7 +639,7 @@ async function resolveNativeSourceRelease(
           input.archiveObjectKey,
           releaseCode,
         )
-        if (input.divisionRows && existing.status === 'published') {
+        if (input.divisionRows && existing.status === 'current') {
           const snapshot = (
             await listSnapshotsForRelease(
               context.metaDb as unknown as HarbourReadableDb,

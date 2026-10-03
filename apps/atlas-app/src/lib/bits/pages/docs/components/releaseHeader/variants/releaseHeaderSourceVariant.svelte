@@ -37,29 +37,26 @@ let description = $derived(dataset?.description)
 let descriptionPresentation = $derived(
   buildReleaseNotesPresentation(description ?? '', locale),
 )
-let isLatest = $derived(source.sourceVersions?.[0]?.code === version.code)
 let statusClass = $derived(
-  version.status === 'published' && isLatest
+  version.status === 'current'
     ? 'border-data-success/70 bg-data-success-container text-data-on-primary-container dark:border-data-success/60 dark:bg-data-success-container dark:text-data-on-primary-container'
-    : version.status === 'superseded'
+    : version.status === 'archived'
       ? 'border-blue-600/70 bg-blue-100 text-blue-800 dark:border-blue-400/70 dark:bg-blue-950 dark:text-blue-200'
       : version.status === 'failed' || version.status === 'revoked'
         ? 'border-error/30 bg-error-container text-on-error-container'
         : 'border-outline-variant bg-surface-container-high text-primary',
 )
 let statusDotClass = $derived(
-  version.status === 'superseded'
+  version.status === 'archived'
     ? 'bg-blue-400 shadow-[0_0_0.4rem_rgb(96_165_250/0.8)]'
     : 'bg-data-success shadow-[0_0_0.4rem_rgb(75_220_172/0.8)]',
 )
 let statusLabel = $derived(
-  version.status === 'published' && isLatest
-    ? m.source_latest()
-    : version.status === 'published'
-      ? m.source_published()
-      : version.status === 'superseded'
-        ? m.source_superseded()
-        : version.status,
+  version.status === 'current'
+    ? m.source_current()
+    : version.status === 'archived'
+      ? m.source_archived()
+      : version.status,
 )
 let releaseNotesUrl = $derived(normaliseExternalUrl(version.releaseNotesUrl))
 let accessMetrics = $derived([

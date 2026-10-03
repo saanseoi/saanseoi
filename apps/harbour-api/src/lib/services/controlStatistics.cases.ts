@@ -267,7 +267,7 @@ test('publishes every annual snapshot attached to fallback C&SD geometry', async
   expect(
     (result.metadataDelta?.snapshots ?? []).map(snapshot => snapshot.id).sort(),
   ).toEqual([...snapshotIds].sort())
-  expect(result).toMatchObject({ status: 'published', resourceReleaseId })
+  expect(result).toMatchObject({ status: 'current', resourceReleaseId })
   sqlite.close()
 })
 
@@ -382,7 +382,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
     sqlite
       .query(`SELECT status FROM resourceReleases WHERE id = ?`)
       .get(firstReleaseId),
-  ).toEqual({ status: 'published' })
+  ).toEqual({ status: 'current' })
   // A C&SD source can materialise both geometry and Statistics snapshots. The
   // source release may be classified as geometry, but its linked Statistics
   // snapshot must still enter the cohort release set; the geometry snapshot
@@ -439,9 +439,7 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   ).toEqual({ count: 1 })
   expect(
     sqlite
-      .query(
-        `SELECT count(*) AS count FROM resourceReleases WHERE status = 'published'`,
-      )
+      .query(`SELECT count(*) AS count FROM resourceReleases WHERE status = 'current'`)
       .get(),
   ).toEqual({ count: 1 })
 

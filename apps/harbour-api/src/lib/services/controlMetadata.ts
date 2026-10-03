@@ -30,7 +30,7 @@ export function publishMetadataDelta(
         }
       : {}),
     releases: resourceReleaseId
-      ? [{ id: resourceReleaseId, status: 'published' as const }]
+      ? [{ id: resourceReleaseId, status: 'current' as const }]
       : [],
     ...(snapshots && snapshots.length > 0 ? { snapshots } : {}),
   }

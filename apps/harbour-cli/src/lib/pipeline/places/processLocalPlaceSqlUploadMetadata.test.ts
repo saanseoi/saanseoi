@@ -30,7 +30,7 @@ test('Place releases retain every active source shard containing their assertion
         (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, status)
       VALUES
         ('place-release', 'source-release', 'place-dataset',
-         'place-release', 'place', '2026-01-01.0', 'published');
+         'place-release', 'place', '2026-01-01.0', 'current');
     `)
 
     const metaDb = drizzle({

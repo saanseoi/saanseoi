@@ -28,7 +28,7 @@ function createLinkDb(options: {
                   if (options.assetReleaseId && selectCount === 3) {
                     return {
                       sourceReleaseId: options.linkedSourceReleaseId,
-                      status: options.linkedReleaseStatus ?? 'published',
+                      status: options.linkedReleaseStatus ?? 'current',
                     }
                   }
                   if (selectCount === 3) {

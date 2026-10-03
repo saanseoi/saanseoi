@@ -174,8 +174,8 @@ async function restoreMissingDivisionReleaseSets(
       and(
         eq(metaResourceReleases.resourceType, 'division'),
         or(
-          eq(metaResourceReleases.status, 'published'),
-          eq(metaResourceReleases.status, 'superseded'),
+          eq(metaResourceReleases.status, 'current'),
+          eq(metaResourceReleases.status, 'archived'),
         ),
         regionCode ? eq(metaDatasets.regionCode, regionCode) : undefined,
       ),
@@ -306,8 +306,8 @@ async function listCurrentReleaseSetStatsTargets(
           ? eq(metaApiReleaseSets.regionCode, request.regionCode)
           : undefined,
         or(
-          eq(metaResourceReleases.status, 'published'),
-          eq(metaResourceReleases.status, 'superseded'),
+          eq(metaResourceReleases.status, 'current'),
+          eq(metaResourceReleases.status, 'archived'),
         ),
       ),
     )
@@ -388,7 +388,7 @@ export async function handleBootstrapStatsReleaseSets(
         and(
           eq(metaDatasets.regionCode, regionCode),
           eq(metaDatasets.theme, 'stats'),
-          eq(metaResourceReleases.status, 'published'),
+          eq(metaResourceReleases.status, 'current'),
         ),
       )
       .all()

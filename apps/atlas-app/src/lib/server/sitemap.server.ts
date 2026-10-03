@@ -114,7 +114,7 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
         .innerJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
         .where(
           and(
-            inArray(metaSourceReleases.status, ['published', 'superseded']),
+            inArray(metaSourceReleases.status, ['current', 'archived']),
             isNull(metaSourceReleases.revokedAt),
           ),
         )

@@ -447,6 +447,8 @@
   "pipeline_apis_description": "提供直觀的搜尋、篩選，以及探索相關實體的功能。",
   "source_dataset": "來源資料集",
   "source_primary_records": "主要記錄",
+  "source_current": "現行",
+  "source_archived": "已封存",
   "source_latest": "最新",
   "source_published": "已發布",
   "source_superseded": "已取代",

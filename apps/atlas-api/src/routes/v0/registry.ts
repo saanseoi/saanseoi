@@ -242,11 +242,11 @@ async function listRegistryReviewReleases(db: AppEnv['Variables']['metaDb']) {
           ON snapshotResourceReleases.snapshotId = apiReleaseSetSnapshots.snapshotId
         LEFT JOIN resourceReleases
           ON resourceReleases.id = snapshotResourceReleases.resourceReleaseId
-          AND resourceReleases.status IN ('published', 'superseded')
+          AND resourceReleases.status IN ('current', 'archived')
           AND resourceReleases.revokedAt IS NULL
         LEFT JOIN sourceReleases
           ON sourceReleases.id = resourceReleases.sourceReleaseId
-          AND sourceReleases.status IN ('published', 'superseded')
+          AND sourceReleases.status IN ('current', 'archived')
           AND sourceReleases.revokedAt IS NULL
         LEFT JOIN datasets ON datasets.id = resourceReleases.datasetId
         WHERE rankedReleaseSets.domainRank = 1

@@ -15,7 +15,7 @@ const {
 /**
  * Current geometry follows the resource releases that are still published.
  * Independent census releases therefore retain their own cohort and transforms,
- * while superseded rolling releases no longer protect their materialisations.
+ * while archived rolling releases no longer protect their materialisations.
  */
 export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
   // Resolve against the whole published inventory: a cleanup request containing
@@ -58,7 +58,7 @@ export async function listRetainedGeometrySnapshotIds(db: HarbourReadableDb) {
       and(
         inArray(metaSnapshots.resourceType, ['divisionArea', 'divisionBoundary']),
         eq(metaSnapshots.status, 'published'),
-        eq(metaResourceReleases.status, 'published'),
+        eq(metaResourceReleases.status, 'current'),
         ne(metaSnapshotResourceReleases.role, 'lookup'),
       ),
     )

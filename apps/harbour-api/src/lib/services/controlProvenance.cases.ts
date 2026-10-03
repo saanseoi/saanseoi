@@ -215,7 +215,7 @@ test('requires retained processing audits for Addresses and Places before publis
         sourceVersion: '2026-06-17.0',
         rawObjectKey: 'hk/overture/2026-06-17.0/division.parquet',
         originalFileName: 'division.parquet',
-        status: 'published',
+        status: 'current',
         ingestedAt: '2026-06-05T00:01:00.000Z',
         createdAt: '2026-06-05T00:01:00.000Z',
         updatedAt: '2026-06-05T00:01:00.000Z',
@@ -240,7 +240,7 @@ test('requires retained processing audits for Addresses and Places before publis
         sourceVersion: '2026-06-17.0',
         rawObjectKey: 'hk/overture/2026-06-17.0/place.parquet',
         originalFileName: 'place.parquet',
-        status: 'published',
+        status: 'current',
         ingestedAt: '2026-06-05T00:01:00.000Z',
         createdAt: '2026-06-05T00:01:00.000Z',
         updatedAt: '2026-06-05T00:01:00.000Z',
@@ -296,7 +296,7 @@ test('requires retained processing audits for Addresses and Places before publis
                 sourceVersion: '2026-01-21.0',
                 rawObjectKey: `${resourceType}.parquet`,
                 originalFileName: `${resourceType}.parquet`,
-                status: 'published',
+                status: 'current',
                 ingestedAt: '2026-01-21T00:00:00.000Z',
                 createdAt: '2026-01-21T00:00:00.000Z',
                 updatedAt: '2026-01-21T00:00:00.000Z',
@@ -350,7 +350,7 @@ test('requires retained processing audits for Addresses and Places before publis
       const supplementaryReleaseId = `supplementary-${resourceReleaseId}`
       sqlite
         .query(`INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, cohortKey, status, createdAt, updatedAt)
-        SELECT ?, sourceReleaseId, datasetId, ?, 'address', sourceVersion, sourceSchemaVersion, cohortKey, 'published', createdAt, updatedAt FROM resourceReleases WHERE id = ?`)
+        SELECT ?, sourceReleaseId, datasetId, ?, 'address', sourceVersion, sourceSchemaVersion, cohortKey, 'current', createdAt, updatedAt FROM resourceReleases WHERE id = ?`)
         .run(supplementaryReleaseId, `supplementary-${releaseCode}`, resourceReleaseId)
       const supplementary = await ensureDraftSnapshotForRelease(db, 'address', {
         cohortKey: '2026-06',
@@ -507,7 +507,7 @@ test('requires retained processing audits for Addresses and Places before publis
       expect(result.metadataDelta?.apiReleaseSets?.[0]?.status).toBe('archived')
     }
     expect(releaseRow).toEqual({
-      status: 'published',
+      status: 'current',
     })
     expect(snapshotRow.status).toBe('published')
     expect(snapshotRow.publishedAt).not.toBeNull()

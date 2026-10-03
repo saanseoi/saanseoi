@@ -375,7 +375,7 @@ export function shouldIncludeSupersededAlsSourceVersions(input: {
   continue?: boolean
 }) {
   // A historical backfill starts before the newest release. Every later
-  // completed release is normally superseded, so treating only the active
+  // completed release is normally archived, so treating only the active
   // release as complete would needlessly reprocess the rest of the series.
   return input.allowHistoricalCohort === true || input.continue === true
 }
@@ -411,7 +411,7 @@ async function listTargetCompletedAlsSourceVersions(
           eq(metaSchema.metaDatasets.code, 'ds-hk-hkgov-dpo-address'),
           inArray(
             metaSchema.metaResourceReleases.status,
-            includeSuperseded ? ['published', 'superseded'] : ['published'],
+            includeSuperseded ? ['current', 'archived'] : ['current'],
           ),
         ),
       )
@@ -1025,7 +1025,7 @@ async function resolveAlsSourceReleases(
       )
       .where(
         and(
-          inArray(metaSchema.metaResourceReleases.status, ['published', 'superseded']),
+          inArray(metaSchema.metaResourceReleases.status, ['current', 'archived']),
           eq(metaSchema.metaDatasets.code, 'ds-hk-overture-division'),
           eq(metaSchema.metaDatasets.regionCode, 'hk'),
           eq(metaSchema.metaSnapshots.resourceType, 'division'),

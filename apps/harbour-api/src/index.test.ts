@@ -40,7 +40,7 @@ function createMockDb() {
                   sourceSchemaVersion: null,
                   cohortKey: null,
                   publicationDate: null,
-                  status: 'published',
+                  status: 'current',
                   notes: null,
                   createdAt: '2026-07-24T00:00:00.000Z',
                   updatedAt: '2026-07-24T00:00:00.000Z',

@@ -220,13 +220,13 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
         'hkgov-censtatd-hk-permanent-living-quarters',
         'sr-hkgov-censtatd-permanent-living-quarters-2023-H2',
-        '2023-H2', '2023-H2', 'published'
+        '2023-H2', '2023-H2', 'current'
       ),
       (
         'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
         'hkgov-censtatd-hk-district-annual',
         'sr-hkgov-censtatd-division-area-district-annual-2024',
-        '2024', '2024', 'published'
+        '2024', '2024', 'current'
       );
 
     INSERT OR IGNORE INTO resourceReleases (
@@ -241,7 +241,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
       '2023-H2', '1.0', '2023-H2',
       'hk/hkgov-censtatd/2023-H2/division-area.parquet',
-      'division-area.parquet', 'published', '2026-06-05T00:00:00.000Z',
+      'division-area.parquet', 'current', '2026-06-05T00:00:00.000Z',
       '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
     ),
     (
@@ -251,7 +251,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       '2024', '1.0', '2024',
       'hk/hkgov-censtatd/2024/division-area.parquet',
-      'division-area.parquet', 'published', '2026-06-05T00:00:00.000Z',
+      'division-area.parquet', 'current', '2026-06-05T00:00:00.000Z',
       '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
     );
 
@@ -309,7 +309,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       sourceVersion: release.sourceVersion,
       rawObjectKey: `hk/${release.source}/${release.sourceVersion}/${release.type}.parquet`,
       originalFileName: `${release.type}.parquet`,
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-05T00:00:00.000Z',
       createdAt: '2026-06-05T00:00:00.000Z',
       updatedAt: '2026-06-05T00:00:00.000Z',

@@ -90,7 +90,7 @@ let releases = $derived.by(() =>
 const unavailable = 'N/A'
 let latestRelease = $derived(releases[0])
 let lastPublishedRelease = $derived(
-  releases.find(release => release.status === 'published'),
+  releases.find(release => release.status === 'current'),
 )
 let latestReleaseSource = $derived(
   publisherPageData.sources.find(source =>
@@ -186,10 +186,10 @@ const sourceCountLabel = (count: number) =>
         </dt>
         <dd class="mt-2 font-mono text-sm font-semibold text-primary">
           {displayDate(
-  lastPublishedRelease?.publicationDate ??
-    lastPublishedRelease?.ingestedAt ??
-    lastPublishedRelease?.createdAt,
-)}
+            lastPublishedRelease?.publicationDate ??
+              lastPublishedRelease?.ingestedAt ??
+              lastPublishedRelease?.createdAt,
+          )}
         </dd>
       </div>
       <div class="min-w-0 max-w-full">

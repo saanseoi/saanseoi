@@ -396,7 +396,7 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       code: 'source',
       sourceVersion: '2026',
       cohortKey: '2026',
-      status: 'published',
+      status: 'current',
     })
     insert(f.meta, 'resourceReleases', {
       id: 'release',
@@ -406,7 +406,7 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       code: 'release',
       sourceVersion: '2026',
       cohortKey: '2026',
-      status: 'published',
+      status: 'current',
     })
     insert(f.meta, 'snapshotResourceReleases', {
       snapshotId: 'b',

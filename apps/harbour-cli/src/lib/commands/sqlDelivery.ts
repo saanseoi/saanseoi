@@ -99,7 +99,7 @@ export async function runSqlDeliveryCommand(
           .query<{ status: string }, [string]>(
             'SELECT status FROM resourceReleases WHERE id = ? LIMIT 1',
           )
-          .get(plan.context.resourceReleaseId)?.status === 'published'
+          .get(plan.context.resourceReleaseId)?.status === 'current'
     } finally {
       metaDb.close()
     }
@@ -217,7 +217,7 @@ export async function runSqlDeliveryCommand(
         }).query(
           `SELECT status FROM resourceReleases WHERE id = '${plan.context.resourceReleaseId.replaceAll("'", "''")}';`,
         )
-        return rows[0]?.status === 'published'
+        return rows[0]?.status === 'current'
       },
     )
     // Completion acquires this lock itself and rechecks ownership and every

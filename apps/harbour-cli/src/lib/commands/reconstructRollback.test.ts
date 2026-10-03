@@ -234,7 +234,7 @@ test('stale publication ownership stops sealed rollback before any canonical or 
     ).toEqual({ publicationToken: 'intervening-publication' })
     expect(
       f.meta.query("SELECT status FROM resourceReleases WHERE id='release-new'").get(),
-    ).toEqual({ status: 'published' })
+    ).toEqual({ status: 'current' })
   } finally {
     await f.close()
   }

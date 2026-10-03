@@ -244,7 +244,7 @@ async function assertAdminLevelTransitionAllowed(
     sourceVersion: '2026-01-21.0',
     rawObjectKey: `hk/overture/2026-01-21.0/${resourceName}.parquet`,
     originalFileName: `${resourceName}.parquet`,
-    status: 'published',
+    status: 'current',
     ingestedAt: '2026-06-02T00:00:00.000Z',
     createdAt: '2026-06-02T00:00:00.000Z',
     updatedAt: '2026-06-02T00:00:00.000Z',
@@ -670,7 +670,7 @@ describe('upload', () => {
       sourceVersion: '2026-05-20.0',
       originalFileName: 'division.parquet',
       rawObjectKey: fixtureFile,
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-02T00:00:00.000Z',
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',
@@ -857,7 +857,7 @@ describe('upload', () => {
         inspection: addressFixtureInspection,
         rawObjectKey: 'hk/hkgov-dpo/2026-06-04.0/address.parquet',
       })
-      sqlite.exec("UPDATE resourceReleases SET status = 'published'")
+      sqlite.exec("UPDATE resourceReleases SET status = 'current'")
       const added = { name: 'publisherSource', type: 'utf8', nullable: true }
       const plan = (schema: UploadInspection['schema']) =>
         planUpload(db, {
@@ -1109,7 +1109,7 @@ describe('upload', () => {
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-02T00:00:00.000Z',
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',
@@ -1150,7 +1150,7 @@ describe('upload', () => {
       sourceVersion: '2026-01-21.0',
       rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
       originalFileName: 'division.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-02T00:00:00.000Z',
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',
@@ -1205,7 +1205,7 @@ describe('upload', () => {
       sourceVersion: '2025-09-24.0',
       rawObjectKey: 'hk/overture/2025-09-24.0/place.parquet',
       originalFileName: 'place.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-02T00:00:00.000Z',
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',
@@ -1237,7 +1237,7 @@ describe('upload', () => {
       sourceVersion: '2025-10-22.0',
       rawObjectKey: 'hk/overture/2025-10-22.0/place.parquet',
       originalFileName: 'place.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-03T00:00:00.000Z',
       createdAt: '2026-06-03T00:00:00.000Z',
       updatedAt: '2026-06-03T00:00:00.000Z',
@@ -1283,7 +1283,7 @@ describe('upload', () => {
       sourceVersion: '2026-08-19.0',
       rawObjectKey: 'hk/overture/2026-08-19.0/place.parquet',
       originalFileName: 'place.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-09-01T00:00:00.000Z',
       createdAt: '2026-09-01T00:00:00.000Z',
       updatedAt: '2026-09-01T00:00:00.000Z',
@@ -1330,7 +1330,7 @@ describe('upload', () => {
       sourceVersion: '2024',
       rawObjectKey: 'hk/hkgov-censtatd/2024/density.parquet',
     })
-    sqlite.exec("UPDATE resourceReleases SET status = 'published';")
+    sqlite.exec("UPDATE resourceReleases SET status = 'current';")
 
     const planned = await planUpload(db, {
       cohortKey: '2024',
@@ -1341,7 +1341,7 @@ describe('upload', () => {
       sourceVersion: '2024',
       theme: 'stats',
       resourceType: 'divisionStatistic',
-      allowExistingDatasetStatuses: ['published'],
+      allowExistingDatasetStatuses: ['current'],
       resolveSchemaFingerprint: async () =>
         createSchemaFingerprint(censtatdDensityLegacyInspection),
     })
@@ -1415,7 +1415,7 @@ describe('upload', () => {
       sourceVersion: '2026-02-18.0',
       rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
       originalFileName: 'division.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-02T00:00:00.000Z',
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',
@@ -1457,7 +1457,7 @@ describe('upload', () => {
       sourceVersion: '2026-01-21.0',
       rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
       originalFileName: 'division.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-02T00:00:00.000Z',
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',
@@ -1667,7 +1667,7 @@ Reconcile the schema before uploading this dataset.`)
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-02T00:00:00.000Z',
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',
@@ -1709,7 +1709,7 @@ Reconcile the schema before uploading this dataset.`)
       sourceVersion: '2026-05-20.0',
       rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
       originalFileName: 'division.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-02T00:00:00.000Z',
       createdAt: '2026-06-02T00:00:00.000Z',
       updatedAt: '2026-06-02T00:00:00.000Z',

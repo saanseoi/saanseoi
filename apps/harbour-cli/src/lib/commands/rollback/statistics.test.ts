@@ -199,7 +199,7 @@ function fixture() {
       code: `${id}-source`,
       sourceVersion: `${period}-${id}`,
       cohortKey: period,
-      status: 'published',
+      status: 'current',
     })
     insert(meta, 'resourceReleases', {
       id: `${id}-release`,
@@ -209,7 +209,7 @@ function fixture() {
       code: `${id}-release`,
       sourceVersion: `${period}-${id}`,
       cohortKey: period,
-      status: 'published',
+      status: 'current',
     })
     insert(meta, 'snapshotResourceReleases', {
       snapshotId: id,

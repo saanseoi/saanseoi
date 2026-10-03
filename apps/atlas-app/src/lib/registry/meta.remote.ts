@@ -117,7 +117,7 @@ export type SourcesPageSource = Pick<
 }
 
 function toSourcesPageSource(source: RegistrySource): SourcesPageSource {
-  const version = source.sourceVersions?.find(item => item.status === 'published')
+  const version = source.sourceVersions?.find(item => item.status === 'current')
 
   return {
     code: source.code,

@@ -784,9 +784,7 @@ test('treats a partial target report as authoritative for every release cohort',
   } satisfies DatasetFixture
 
   expect(
-    targetVersionsFromReport(dataset, [
-      { sourceVersion: '2021.0', status: 'published' },
-    ]),
+    targetVersionsFromReport(dataset, [{ sourceVersion: '2021.0', status: 'current' }]),
   ).toEqual(
     new Map([
       ['2021.0', '2021.0'],
@@ -829,7 +827,7 @@ test('geometry publication cannot hide a missing statistics release', () => {
   } satisfies DatasetFixture
   const geometry = {
     sourceVersion: '2021',
-    status: 'published',
+    status: 'current',
     resourceType: 'divisionArea',
   }
   expect(targetVersionsFromReport(dataset, [geometry]).get('2021')).toBeNull()
@@ -858,7 +856,7 @@ test('statistics readiness requires every declared resource in the same cohort',
   } satisfies DatasetFixture
   const stats = {
     sourceVersion: '2021',
-    status: 'published',
+    status: 'current',
     resourceType: 'divisionStatistic',
   }
   const division = { ...stats, resourceType: 'division' }
@@ -886,7 +884,7 @@ test('statistics readiness requires every declared resource in the same cohort',
     targetVersionsFromReport(dataset, [
       stats,
       division,
-      { ...area, status: 'superseded' },
+      { ...area, status: 'archived' },
     ]).get('2021'),
   ).toBe('2021')
 })

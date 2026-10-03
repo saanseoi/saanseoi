@@ -160,7 +160,7 @@ Release precedence is also explicit:
 - if a newer sibling release is already `staged` or `processing`, the older local upload
   fails fast instead of waiting
 - if a newer sibling has already reached a terminal non-failed state, the older release
-  is marked `superseded` instead of processing out of order
+  is marked `archived` instead of processing out of order
 
 ## Source Retention
 

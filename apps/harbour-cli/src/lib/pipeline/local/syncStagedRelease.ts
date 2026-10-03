@@ -108,8 +108,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     existingRelease.status !== 'failed' &&
     !(
       options.reuseExistingRelease &&
-      (existingRelease.status === 'processing' ||
-        existingRelease.status === 'published')
+      (existingRelease.status === 'processing' || existingRelease.status === 'current')
     )
   ) {
     throw new Error(
@@ -232,7 +231,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
             ...(options.reuseExistingRelease
               ? [
                   eq(metaResourceReleases.status, 'processing'),
-                  eq(metaResourceReleases.status, 'published'),
+                  eq(metaResourceReleases.status, 'current'),
                 ]
               : []),
           ),

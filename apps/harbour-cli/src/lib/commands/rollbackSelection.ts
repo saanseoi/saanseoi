@@ -81,7 +81,7 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
       [string]
     >('SELECT id,code,resourceType,status,datasetId FROM resourceReleases WHERE id=?')
     .get(resourceReleaseId)
-  if (release?.status !== 'published')
+  if (release?.status !== 'current')
     throw new Error('Rollback requires a published source release.')
   const candidates = meta
     .query<ReleaseSet, [string]>(
@@ -364,11 +364,11 @@ export function prepareRollbackMetadata(
     params: [timestamp, timestamp, release.id],
   })
   metadata.push({
-    sql: "UPDATE resourceReleases SET status='published',supersededByResourceReleaseId=NULL,updatedAt=? WHERE supersededByResourceReleaseId=? AND datasetId=?",
+    sql: "UPDATE resourceReleases SET status='current',supersededByResourceReleaseId=NULL,updatedAt=? WHERE supersededByResourceReleaseId=? AND datasetId=?",
     params: [timestamp, release.id, release.datasetId],
   })
   metadata.push({
-    sql: `INSERT INTO releaseSetLifecycleJournal(id,resourceReleaseId,action,statusFrom,statusTo,reason,metadataJson,createdAt) VALUES(?,?,'rolled_back','published','revoked','Restored retained predecessor projections',?,?)`,
+    sql: `INSERT INTO releaseSetLifecycleJournal(id,resourceReleaseId,action,statusFrom,statusTo,reason,metadataJson,createdAt) VALUES(?,?,'rolled_back','current','revoked','Restored retained predecessor projections',?,?)`,
     params: [
       crypto.randomUUID(),
       release.id,

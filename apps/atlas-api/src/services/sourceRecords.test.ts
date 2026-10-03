@@ -55,7 +55,7 @@ function metaDatabase(input?: {
               all: async () => {
                 expect(query).toContain('FROM resourceReleases')
                 expect(query).toContain(
-                  "sourceReleases.status IN ('published', 'superseded')",
+                  "sourceReleases.status IN ('current', 'archived')",
                 )
                 expect(query).toContain('resourceReleases.revokedAt IS NULL')
                 expect(query).toContain('datasets.regionCode = ?')
@@ -180,7 +180,7 @@ describe('source records', () => {
     sqlite.run('INSERT INTO sourceReleases VALUES(?, ?, ?, NULL)', [
       'parent',
       code,
-      'published',
+      'current',
     ])
     for (const [id, type] of [
       ['area', 'divisionArea'],
@@ -193,7 +193,7 @@ describe('source records', () => {
         'dataset',
         type!,
         '2021',
-        'published',
+        'current',
       ])
     }
     sqlite.run(
@@ -480,13 +480,9 @@ describe('source records', () => {
       })
 
       expect(queries[0]).toContain("apiReleaseSets.status <> 'draft'")
-      expect(queries[1]).toContain(
-        "resourceReleases.status IN ('published', 'superseded')",
-      )
+      expect(queries[1]).toContain("resourceReleases.status IN ('current', 'archived')")
       expect(queries[1]).toContain('resourceReleases.revokedAt IS NULL')
-      expect(queries[1]).toContain(
-        "sourceReleases.status IN ('published', 'superseded')",
-      )
+      expect(queries[1]).toContain("sourceReleases.status IN ('current', 'archived')")
       expect(queries[1]).toContain('sourceReleases.revokedAt IS NULL')
       expect(queries.join('\n')).not.toContain("apiReleaseSets.status = 'published'")
       expect(result).toHaveLength(1)

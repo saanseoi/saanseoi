@@ -67,7 +67,7 @@ try {
       throw new Error(`${release.code} requires an existing completed audit.`)
     if (
       !release.code.startsWith('dr-hk-overture-division-area-') ||
-      !['published', 'superseded'].includes(release.status)
+      !['current', 'archived'].includes(release.status)
     )
       throw new Error(
         `Unexpected release identity or status: ${JSON.stringify(release)}`,

@@ -36,7 +36,7 @@ export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) 
   }
 
   const publishedDomain = source.sourceVersions
-    ?.find(version => version.status === 'published')
+    ?.find(version => version.status === 'current')
     ?.releaseAs.find(release => release.apiFamily === familyType)?.domainCode
   if (publishedDomain) return publishedDomain
 

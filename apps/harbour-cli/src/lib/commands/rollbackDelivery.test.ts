@@ -29,7 +29,7 @@ async function fixture() {
     ]),
   )
   meta.exec(
-    "CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,status TEXT);INSERT INTO resourceReleases VALUES('release','published')",
+    "CREATE TABLE resourceReleases(id TEXT PRIMARY KEY,status TEXT);INSERT INTO resourceReleases VALUES('release','current')",
   )
   current.exec(`INSERT INTO divisions(snapshotId,id,class,category,level,hierarchies) VALUES('scope','id','district','administrative',2,'{}'),('other','else','district','administrative',2,'{}');
     INSERT INTO divisionsI18n(snapshotId,divisionId,locale,name,nameProvenance,isLocaleInferred) VALUES('scope','id','en','New term','provided',0),('scope','id','zh-hant','保留','provided',0),('other','else','en','Other name','provided',0);
@@ -75,7 +75,7 @@ async function fixture() {
             )
             .run(change)
         const guard = {
-          sql: "SELECT CASE WHEN (SELECT status FROM resourceReleases WHERE id='release')='published' THEN 1 ELSE abs(-9223372036854775808) END",
+          sql: "SELECT CASE WHEN (SELECT status FROM resourceReleases WHERE id='release')='current' THEN 1 ELSE abs(-9223372036854775808) END",
           params: [],
         }
         const claims = [{ ...claim, snapshotId: remove ? null : 'old' }]

@@ -45,7 +45,7 @@ export function pendingCenstatdStatisticResourceTypes(
 ) {
   const publishedTypes = new Set(
     rows
-      .filter(row => row.sourceVersion === sourceVersion && row.status === 'published')
+      .filter(row => row.sourceVersion === sourceVersion && row.status === 'current')
       .map(row => row.resourceType),
   )
 

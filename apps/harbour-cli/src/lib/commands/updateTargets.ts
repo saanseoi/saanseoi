@@ -113,7 +113,7 @@ export function targetVersionsFromReport(
 }
 
 function isPublishedTargetRelease(status: string) {
-  return status === 'published' || status === 'superseded'
+  return status === 'current' || status === 'archived'
 }
 
 function versionMatchesSourceRelease(version: string, sourceVersion: string) {

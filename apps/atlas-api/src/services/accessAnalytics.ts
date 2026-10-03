@@ -82,9 +82,9 @@ export async function resolveApiReleaseSetAccessAttribution(
        WHERE (apiReleaseSets.id = ? OR apiReleaseSets.code = ?)
          AND apiVersionReleaseSets.status <> 'draft'
          AND snapshotResourceReleases.role <> 'lookup'
-         AND resourceReleases.status IN ('published', 'superseded')
+         AND resourceReleases.status IN ('current', 'archived')
          AND resourceReleases.revokedAt IS NULL
-         AND sourceReleases.status IN ('published', 'superseded')
+         AND sourceReleases.status IN ('current', 'archived')
          AND sourceReleases.revokedAt IS NULL
        ORDER BY publishers.code ASC, sourceReleases.code ASC`,
     )

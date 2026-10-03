@@ -99,7 +99,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         resourceType: member.type,
         cohortKey: cohort,
         sourceVersion: cohort,
-        status: 'published',
+        status: 'current',
         createdAt: '2025-09-25T00:00:00Z',
         updatedAt: '2025-09-25T00:00:00Z',
       })

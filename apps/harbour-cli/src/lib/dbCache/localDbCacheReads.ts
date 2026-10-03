@@ -46,7 +46,7 @@ export async function listCompletedReleaseCodes(
 ) {
   const releases = meta
     .query<CompletedRelease, []>(
-      "SELECT code, datasetId, id, status, resourceType FROM resourceReleases WHERE status IN ('published', 'superseded') ORDER BY code",
+      "SELECT code, datasetId, id, status, resourceType FROM resourceReleases WHERE status IN ('current', 'archived') ORDER BY code",
     )
     .all()
   const incomplete = await findIncompletePublishedReleases(
@@ -92,8 +92,8 @@ export async function readRemoteCachedCompletedReleaseCodes(
       .from(metaSchema.metaResourceReleases)
       .where(
         or(
-          eq(metaSchema.metaResourceReleases.status, 'published'),
-          eq(metaSchema.metaResourceReleases.status, 'superseded'),
+          eq(metaSchema.metaResourceReleases.status, 'current'),
+          eq(metaSchema.metaResourceReleases.status, 'archived'),
         ),
       )
       .all()
@@ -135,7 +135,7 @@ export async function findIncompletePublishedReleases(
 
   try {
     for (const release of releases) {
-      if (release.status === 'superseded') {
+      if (release.status === 'archived') {
         continue
       }
 

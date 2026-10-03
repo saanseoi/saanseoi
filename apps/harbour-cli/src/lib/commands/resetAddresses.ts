@@ -122,8 +122,8 @@ export async function getOfficialAddressInitialisationStatus(target: UploadTarge
             and(
               eq(metaSchema.metaDatasets.code, DATASET_CODE),
               or(
-                eq(metaSchema.metaResourceReleases.status, 'published'),
-                eq(metaSchema.metaResourceReleases.status, 'superseded'),
+                eq(metaSchema.metaResourceReleases.status, 'current'),
+                eq(metaSchema.metaResourceReleases.status, 'archived'),
               ),
             ),
           )

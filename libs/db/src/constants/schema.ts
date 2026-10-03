@@ -85,12 +85,13 @@ export const datasetStatuses = [
   'failed',
 ] as const
 
+// Current/archived describe the source or resource lifecycle, independently of API selection.
 export const releaseStatuses = [
   'uploading',
   'staged',
   'processing',
-  'published',
-  'superseded',
+  'current',
+  'archived',
   'revoked',
   'failed',
 ] as const

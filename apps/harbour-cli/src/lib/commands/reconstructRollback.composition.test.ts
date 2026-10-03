@@ -35,7 +35,7 @@ async function composedFixture() {
       code: `release-address-${name}`,
       resourceType: 'address',
       sourceVersion: name,
-      status: 'published',
+      status: 'current',
     })
     // These sort before Division snapshots; preparation must resolve dependencies explicitly.
     insert(f.meta, 'snapshots', {

@@ -19,7 +19,7 @@ const meta = new Database(
 const history = new Database(historyPath, { readonly: true })
 const releases = meta
   .query(`SELECT id, code, datasetId, sourceVersion FROM resourceReleases
-  WHERE resourceType = 'division' AND status IN ('published', 'superseded')
+  WHERE resourceType = 'division' AND status IN ('current', 'archived')
   AND (code LIKE 'dr-hk-hkgov-pland-division-pu-%'
     OR code LIKE 'dr-hk-hkgov-pland-division-new-town-%')
   ORDER BY datasetId, sourceVersion`)

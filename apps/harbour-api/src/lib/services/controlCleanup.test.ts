@@ -58,7 +58,7 @@ function fixture() {
     sqlite.query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)').run(id, id)
     sqlite
       .query("INSERT INTO resourceReleases VALUES (?,'geometry','divisionArea',?)")
-      .run(id, options.sourceStatus ?? 'superseded')
+      .run(id, options.sourceStatus ?? 'archived')
     sqlite
       .query(`INSERT INTO snapshots VALUES (?, 'new-town', 'divisionArea', ?,
       'authoritative', 0, 'published', '2026-09-11', '2026-09-11')`)
@@ -95,7 +95,7 @@ test('reconciliation cleans completed deferred cohorts after their release sets 
   const f = fixture()
   try {
     for (const cohort of ['2006', '2011', '2016']) f.add(cohort, { status: 'draft' })
-    f.add('2021', { status: 'current', sourceStatus: 'published' })
+    f.add('2021', { status: 'current', sourceStatus: 'current' })
     f.sqlite.exec(
       "UPDATE divisionAreaPublicationState SET status='current' WHERE snapshotId='2021'",
     )
@@ -133,7 +133,7 @@ test('reconciliation scopes cleanup and protects retained members and active del
   try {
     f.add('obsolete')
     f.add('active', { prepared: false })
-    f.add('retained-geometry', { sourceStatus: 'published' })
+    f.add('retained-geometry', { sourceStatus: 'current' })
     f.add('other-region', { region: 'mo' })
     f.add('other-family', { family: 'stats' })
     for (const status of ['draft', 'current']) {

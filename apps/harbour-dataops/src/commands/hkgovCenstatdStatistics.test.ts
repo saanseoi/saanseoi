@@ -27,17 +27,17 @@ describe('C&SD statistics ingestion idempotency', () => {
         [
           {
             sourceVersion: '2023-H2',
-            status: 'published',
+            status: 'current',
             resourceType: 'divisionStatistic',
           },
           {
             sourceVersion: '2023-H2',
-            status: 'published',
+            status: 'current',
             resourceType: 'divisionArea',
           },
           {
             sourceVersion: '2022',
-            status: 'published',
+            status: 'current',
             resourceType: 'division',
           },
         ],
@@ -53,7 +53,7 @@ describe('C&SD statistics ingestion idempotency', () => {
         [
           {
             sourceVersion: '2023-H2',
-            status: 'superseded',
+            status: 'archived',
             resourceType: 'divisionArea',
           },
         ],

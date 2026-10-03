@@ -69,7 +69,7 @@ for (const [label, mutation] of [
         f.meta
           .query("SELECT status FROM resourceReleases WHERE id='release-new'")
           .get(),
-      ).toEqual({ status: 'published' })
+      ).toEqual({ status: 'current' })
     } finally {
       await f.close()
     }

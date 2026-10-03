@@ -180,9 +180,9 @@ async function resolveSourceRelease(
         INNER JOIN dataShards
           ON dataShards.id = releaseShardAssignments.dataShardId
         WHERE (sourceReleases.code = ? OR resourceReleases.code = ?) AND datasets.regionCode = ?
-          AND resourceReleases.status IN ('published', 'superseded')
+          AND resourceReleases.status IN ('current', 'archived')
           AND resourceReleases.revokedAt IS NULL
-          AND sourceReleases.status IN ('published', 'superseded')
+          AND sourceReleases.status IN ('current', 'archived')
           AND sourceReleases.revokedAt IS NULL
           AND dataShards.shardType = 'source'
           AND dataShards.status = 'active'
@@ -880,9 +880,9 @@ async function querySourceReleaseDiscoveryRows(
         INNER JOIN datasets ON datasets.id = resourceReleases.datasetId
         WHERE ${sourceCondition}
         AND datasets.regionCode = ?
-        AND resourceReleases.status IN ('published', 'superseded')
+        AND resourceReleases.status IN ('current', 'archived')
         AND resourceReleases.revokedAt IS NULL
-        AND sourceReleases.status IN ('published', 'superseded')
+        AND sourceReleases.status IN ('current', 'archived')
         AND sourceReleases.revokedAt IS NULL
         ${datasetCondition}
         ORDER BY datasets.code ASC, resourceReleases.code ASC, snapshots.code ASC`,

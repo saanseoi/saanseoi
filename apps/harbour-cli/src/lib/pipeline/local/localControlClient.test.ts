@@ -34,7 +34,7 @@ test.each([
       sourceVersion: '2025-09-24.0',
       rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
       originalFileName: 'division.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-05T00:00:00.000Z',
       createdAt: '2026-06-05T00:00:00.000Z',
       updatedAt: '2026-06-05T00:00:00.000Z',
@@ -65,7 +65,7 @@ test.each([
       sqlite
         .query('SELECT status FROM resourceReleases WHERE id = ?')
         .get(resourceReleaseId),
-    ).toEqual({ status: 'published' })
+    ).toEqual({ status: 'current' })
   } finally {
     sqlite.close()
   }

@@ -75,7 +75,7 @@ test.each([false, true])(
       sourceVersion: '2026-01-21.0',
       rawObjectKey: 'hk/overture/2026-01-21.0/division.parquet',
       originalFileName: 'division.parquet',
-      status: 'published',
+      status: 'current',
       ingestedAt: '2026-06-05T00:00:00.000Z',
       createdAt: '2026-06-05T00:00:00.000Z',
       updatedAt: '2026-06-05T00:00:00.000Z',
@@ -181,13 +181,13 @@ test.each([false, true])(
     expect(rows).toEqual([
       {
         datasetId: 'dr-hk-overture-division-2026-01-21.0',
-        status: 'superseded',
+        status: 'archived',
         revokedAt: null,
         revocationReason: null,
       },
       {
         datasetId: 'dr-hk-overture-division-2026-02-18.0',
-        status: 'published',
+        status: 'current',
         revokedAt: null,
         revocationReason: null,
       },
@@ -276,7 +276,7 @@ test('revokes the superseded dataset only for corrected same-release publishes',
     sourceVersion: '2026-02-18.0',
     rawObjectKey: 'hk/overture/2026-02-18.0/division.parquet',
     originalFileName: 'division.parquet',
-    status: 'published',
+    status: 'current',
     ingestedAt: '2026-06-05T00:00:00.000Z',
     createdAt: '2026-06-05T00:00:00.000Z',
     updatedAt: '2026-06-05T00:00:00.000Z',
@@ -354,7 +354,7 @@ test('revokes the superseded dataset only for corrected same-release publishes',
   expect(rows[0]?.revokedAt).not.toBeNull()
   expect(rows[1]).toEqual({
     datasetId: 'dr-hk-overture-division-2026-02-18.1',
-    status: 'published',
+    status: 'current',
     revokedAt: null,
     revocationReason: null,
   })
@@ -470,7 +470,7 @@ test('marks the superseded dataset historic for same-cohort releases with differ
     sourceVersion: '2026-06-17.0',
     rawObjectKey: 'hk/overture/2026-06-17.0/division.parquet',
     originalFileName: 'division.parquet',
-    status: 'published',
+    status: 'current',
     ingestedAt: '2026-06-05T00:00:00.000Z',
     createdAt: '2026-06-05T00:00:00.000Z',
     updatedAt: '2026-06-05T00:00:00.000Z',
@@ -533,13 +533,13 @@ test('marks the superseded dataset historic for same-cohort releases with differ
   expect(rows).toEqual([
     {
       datasetId: 'dr-hk-overture-division-2026-06-17.0',
-      status: 'superseded',
+      status: 'archived',
       revokedAt: null,
       revocationReason: null,
     },
     {
       datasetId: 'dr-hk-overture-division-2026-06-24.0',
-      status: 'published',
+      status: 'current',
       revokedAt: null,
       revocationReason: null,
     },
@@ -575,7 +575,7 @@ test('publishes an Overture baseline independently of the curated geographic API
     sourceVersion: '2026-07-22.0',
     rawObjectKey: 'previous.parquet',
     originalFileName: 'previous.parquet',
-    status: 'published',
+    status: 'current',
     ingestedAt: '2026-08-01T00:00:00.000Z',
     createdAt: '2026-08-01T00:00:00.000Z',
     updatedAt: '2026-08-01T00:00:00.000Z',
@@ -591,7 +591,7 @@ test('publishes an Overture baseline independently of the curated geographic API
     sqlite.query('SELECT status FROM snapshots WHERE id=?').get(snapshotId),
   ).toEqual({ status: 'draft' })
   const result = await handlePublishDataset(db, { resourceReleaseId })
-  expect(result.status).toBe('published')
+  expect(result.status).toBe('current')
   expect(
     sqlite.query('SELECT status FROM snapshots WHERE id=?').get(snapshotId),
   ).toEqual({ status: 'published' })
@@ -599,7 +599,7 @@ test('publishes an Overture baseline independently of the curated geographic API
     sqlite
       .query('SELECT status FROM resourceReleases WHERE id=?')
       .get(resourceReleaseId),
-  ).toEqual({ status: 'published' })
+  ).toEqual({ status: 'current' })
   expect(sqlite.query('SELECT count(*) n FROM apiReleaseSets').get()).toEqual(before)
   expect(
     sqlite
@@ -607,7 +607,7 @@ test('publishes an Overture baseline independently of the curated geographic API
         'SELECT status, supersededByResourceReleaseId FROM resourceReleases WHERE id=?',
       )
       .get('previous-baseline'),
-  ).toEqual({ status: 'superseded', supersededByResourceReleaseId: resourceReleaseId })
+  ).toEqual({ status: 'archived', supersededByResourceReleaseId: resourceReleaseId })
   sqlite.close()
 })
 
@@ -651,7 +651,7 @@ test('native Division publication uses the current API when v0.1 is archived', a
     resourceReleaseId,
     deferApiReleaseSet: true,
   })
-  expect(result.status).toBe('published')
+  expect(result.status).toBe('current')
   expect(
     sqlite.query('SELECT status FROM snapshots WHERE id=?').get(snapshotId),
   ).toEqual({ status: 'published' })

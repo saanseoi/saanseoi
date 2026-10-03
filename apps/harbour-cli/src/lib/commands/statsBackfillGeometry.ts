@@ -335,7 +335,7 @@ async function listGeometryReleases(
         (filters.datasetCodes.length === 0 ||
           filters.datasetCodes.includes(row.datasetCode)),
     )
-    .filter(row => row.status === 'published')
+    .filter(row => row.status === 'current')
     .filter(
       (row): row is typeof row & { resourceType: GeometryResourceType } =>
         row.resourceType === 'divisionArea' || row.resourceType === 'divisionBoundary',

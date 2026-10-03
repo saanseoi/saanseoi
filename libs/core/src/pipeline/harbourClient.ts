@@ -45,7 +45,7 @@ export type PublishDatasetResult = {
   datasetId?: string
   metadataDelta?: {
     apiReleaseSets?: ApiReleaseSetMetadataDelta[]
-    releases: Array<{ id: string; status: 'published' }>
+    releases: Array<{ id: string; status: 'current' }>
     snapshots?: SnapshotMetadataDelta[]
   }
   phase: string | null

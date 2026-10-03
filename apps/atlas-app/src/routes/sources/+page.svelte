@@ -60,7 +60,7 @@ const streetGeometryLabels: Record<string, string> = {
 }
 
 const sourceVersion = (source: SourcesPageSource) =>
-  source.sourceVersions?.find(version => version.status === 'published') ?? null
+  source.sourceVersions?.find(version => version.status === 'current') ?? null
 
 const sourceLicense = (source: SourcesPageSource) =>
   source.license?.code ?? sourceVersion(source)?.license?.code ?? 'unknown'

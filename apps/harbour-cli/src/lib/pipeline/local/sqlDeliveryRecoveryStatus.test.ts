@@ -8,7 +8,7 @@ test('recovery reopens only failed resources without published snapshots', () =>
     db.exec(`CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, status TEXT);
       CREATE TABLE snapshots (id TEXT, status TEXT);
       CREATE TABLE snapshotResourceReleases (snapshotId TEXT, resourceReleaseId TEXT);
-      INSERT INTO resourceReleases VALUES ('failed','failed'), ('published','published'), ('superseded','superseded'), ('poisoned','failed'), ('staged','staged'), ('quoted''id','failed');
+      INSERT INTO resourceReleases VALUES ('failed','failed'), ('published','current'), ('superseded','archived'), ('poisoned','failed'), ('staged','staged'), ('quoted''id','failed');
       INSERT INTO snapshots VALUES ('snapshot','published');
       INSERT INTO snapshotResourceReleases VALUES ('snapshot','poisoned');`)
     for (const id of [
@@ -24,10 +24,10 @@ test('recovery reopens only failed resources without published snapshots', () =>
     expect(db.query('SELECT * FROM resourceReleases ORDER BY id').all()).toEqual([
       { id: 'failed', status: 'processing' },
       { id: 'poisoned', status: 'failed' },
-      { id: 'published', status: 'published' },
+      { id: 'published', status: 'current' },
       { id: "quoted'id", status: 'processing' },
       { id: 'staged', status: 'staged' },
-      { id: 'superseded', status: 'superseded' },
+      { id: 'superseded', status: 'archived' },
     ])
   } finally {
     db.close()

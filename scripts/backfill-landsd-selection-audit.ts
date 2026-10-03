@@ -44,7 +44,7 @@ try {
     SELECT r.id, r.code, p.manifestHash, p.byteLength, p.applicationCount, p.attemptStatus
     FROM resourceReleases r JOIN datasets d ON d.id = r.datasetId
     LEFT JOIN releaseProvenance p ON p.resourceReleaseId = r.id
-    WHERE d.code = 'ds-hk-hkgov-landsd-division' AND r.status = 'published'
+    WHERE d.code = 'ds-hk-hkgov-landsd-division' AND r.status = 'current'
     ORDER BY r.code
   `)
     .all<{
@@ -150,7 +150,7 @@ try {
       UPDATE releaseProvenance SET manifestHash = ?, byteLength = ?
       WHERE resourceReleaseId = ? AND manifestHash = ? AND byteLength = ?
       AND applicationCount = ? AND attemptStatus = 'completed'
-      AND EXISTS (SELECT 1 FROM resourceReleases WHERE id = ? AND status = 'published')
+      AND EXISTS (SELECT 1 FROM resourceReleases WHERE id = ? AND status = 'current')
     `)
       .bind(
         ref.hash,

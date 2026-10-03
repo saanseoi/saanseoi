@@ -38,7 +38,7 @@ test('completed geometry contributors can precede shared composition publication
         code: 'geometry',
         datasetId: 'contributor',
         resourceType: 'divisionArea',
-        status: 'published',
+        status: 'current',
       },
     ]
     const check = () =>
@@ -102,8 +102,8 @@ test('initialisation skips published divisions only after their exact delivery i
       CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
       CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
-      INSERT INTO resourceReleases VALUES ('release','landsd','dataset','division','published');
-      INSERT INTO resourceReleases VALUES ('older','landsd-older','dataset','division','superseded');
+      INSERT INTO resourceReleases VALUES ('release','landsd','dataset','division','current');
+      INSERT INTO resourceReleases VALUES ('older','landsd-older','dataset','division','archived');
       INSERT INTO snapshots VALUES ('snapshot','lineage','division','published',0,'2026');
       INSERT INTO snapshotResourceReleases VALUES ('snapshot','dataset','release',NULL,NULL,NULL);
       INSERT INTO snapshotLineages VALUES ('lineage','division','dataset');
@@ -156,7 +156,7 @@ test('curated division delivery proves completion of its retained native baselin
       CREATE TABLE snapshotLineages(id TEXT, resourceType TEXT, primaryDatasetId TEXT);
       CREATE TABLE releaseShardAssignments(resourceReleaseId TEXT);
       CREATE TABLE snapshotShardAssignments(snapshotId TEXT);
-      INSERT INTO resourceReleases VALUES ('release','native','dataset','division','published');
+      INSERT INTO resourceReleases VALUES ('release','native','dataset','division','current');
       INSERT INTO snapshots VALUES ('native','native-lineage','division','published',1,'2026-08');
       INSERT INTO snapshots VALUES ('curated','curated-lineage','division','published',0,'2026-09');
       INSERT INTO snapshotResourceReleases VALUES ('native','dataset','release','exact_ref','snapshot-assembly-division-v1','release');
@@ -181,7 +181,7 @@ test('curated division delivery proves completion of its retained native baselin
     expect(await completed()).toEqual([])
     meta.exec(`
       UPDATE snapshotResourceReleases SET selectedByRule = 'saanseoi-curated-division-assembly-v1' WHERE snapshotId = 'curated';
-      INSERT INTO resourceReleases VALUES ('curated-release','curated','curated-dataset','division','published');
+      INSERT INTO resourceReleases VALUES ('curated-release','curated','curated-dataset','division','current');
       INSERT INTO snapshotResourceReleases VALUES ('curated','curated-dataset','curated-release','exact_ref','saanseoi-curated-division-assembly-v1',NULL);
     `)
     // Derived releases retain an archive and snapshot history, without a

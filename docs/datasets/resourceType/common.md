@@ -48,7 +48,7 @@ Release precedence is enforced before local processing starts:
 - if a newer sibling release is already `staged` or `processing`, the older local upload
   fails fast instead of waiting
 - if a newer sibling has already reached a terminal non-failed state, the older release
-  is marked `superseded` instead of processing out of order
+  is marked `archived` instead of processing out of order
 
 ## Local SQL Stages
 
@@ -129,7 +129,7 @@ source/history/current SQL cache when Wrangler has a short-lived connectivity fa
 
 Each replay has a durable per-release checkpoint under the target cache. Generated SQL
 is idempotent, so transient local replay failures are retried before the cache is
-invalidated and a remote clone is required. `--continue` skips published and superseded
+invalidated and a remote clone is required. `--continue` skips current and archived
 SQL-backed releases only when their cache records have valid snapshot lineage and source
 membership, required shard assignments, and a materialised current snapshot; otherwise,
 a remote clone is required.

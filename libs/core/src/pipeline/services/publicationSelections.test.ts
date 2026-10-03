@@ -46,7 +46,7 @@ function fixture() {
     const type = options.type ?? 'divisionArea'
     sqlite
       .query('INSERT INTO resourceReleases VALUES (?, ?, ?, ?)')
-      .run(id, 'geometry', type, options.sourceStatus ?? 'published')
+      .run(id, 'geometry', type, options.sourceStatus ?? 'current')
     sqlite
       .query(
         "INSERT INTO snapshots VALUES (?,'overture',?,?,?,'authoritative',0,'published',?,?)",
@@ -143,10 +143,10 @@ function fixture() {
 test('API-pinned companions survive source supersession until the serving selection advances', async () => {
   const f = fixture()
   try {
-    f.geometry('old-area', { sourceStatus: 'superseded', receipt: false })
+    f.geometry('old-area', { sourceStatus: 'archived', receipt: false })
     f.geometry('new-area', { parent: 'old-area', publishedAt: '2026-09-02' })
     f.geometry('old-boundary', {
-      sourceStatus: 'superseded',
+      sourceStatus: 'archived',
       type: 'divisionBoundary',
       receipt: false,
     })
@@ -162,7 +162,7 @@ test('API-pinned companions survive source supersession until the serving select
       receipt: false,
       publishedAt: '2026-09-03',
     })
-    f.geometry('independent-branch', { sourceStatus: 'superseded', receipt: false })
+    f.geometry('independent-branch', { sourceStatus: 'archived', receipt: false })
     f.catalogue('serving', 'divisions')
     f.member('serving', 'selected', ['old-area', 'old-boundary'])
     expect([...(await listRetainedGeometrySnapshotIds(f.meta))].sort()).toEqual([
@@ -239,7 +239,7 @@ test('Statistics protects all periods in the serving catalogue and excludes draf
       'stale-catalogue-area',
       'draft-catalogue-area',
     ])
-      f.geometry(id, { sourceStatus: 'superseded', receipt: false })
+      f.geometry(id, { sourceStatus: 'archived', receipt: false })
     f.catalogue('old-catalogue', 'stats', { publishedAt: '2026-08-01' })
     f.member('old-catalogue', 'old-selection', ['stale-catalogue-area'], {
       domain: 'government',

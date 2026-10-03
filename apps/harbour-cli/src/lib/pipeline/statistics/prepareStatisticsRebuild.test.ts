@@ -57,11 +57,7 @@ function fixture() {
   `)
   const history = legacyDb(requireDefined(inputs.history[0]).path, 'history')
   const current = legacyDb(inputs.current, 'current')
-  function release(
-    number: number,
-    values: Record<string, string>,
-    status = 'published',
-  ) {
+  function release(number: number, values: Record<string, string>, status = 'current') {
     const release = `release-${number}`
     const snapshot = `snapshot-${number}`
     meta

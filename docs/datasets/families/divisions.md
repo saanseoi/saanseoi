@@ -354,8 +354,8 @@ Division reference snapshot can belong to a later year than the source release. 
 and geometry writes remain assigned to the source release's shard year. Cache rebuilds
 group selected tables by data/schema export mode per binding. Binary geometry rows
 retain their separate byte-for-byte verified transfer. Post-publication statistics
-failures are recorded against their ingest stage without changing published or
-superseded source-release status.
+failures are recorded against their ingest stage without changing current or archived
+source-release status.
 
 Curated Division codes use `SCREAMING_SNAKE_CASE` (for example, `TSEUNG_KWAN_O`).
 Metadata registry synchronisation assigns each code to its canonical Division and

@@ -426,7 +426,7 @@ test('marks a deferred source snapshot published in the local metadata cache', a
     phase: null,
     releaseCode: 'dr-hk-example-2026-08-31.0',
     resourceReleaseId: 'release-example',
-    status: 'published',
+    status: 'current',
   })
 
   const verify = new Database(resolve(cacheDir, 'DB_META.sqlite'), { readonly: true })

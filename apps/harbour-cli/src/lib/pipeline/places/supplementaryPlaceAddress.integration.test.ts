@@ -133,7 +133,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       resourceType: 'address',
       cohortKey: '2025-08',
       sourceVersion: '2025-08-01',
-      status: 'published',
+      status: 'current',
       createdAt: '2025-08-19T00:00:00Z',
       updatedAt: '2025-08-19T00:00:00Z',
     })

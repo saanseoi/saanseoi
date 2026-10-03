@@ -447,6 +447,8 @@
   "pipeline_apis_description": "With intuitive search, filtering, and discovery of related entities.",
   "source_dataset": "Source dataset",
   "source_primary_records": "Primary records",
+  "source_current": "Current",
+  "source_archived": "Archived",
   "source_latest": "Latest",
   "source_published": "Published",
   "source_superseded": "Superseded",

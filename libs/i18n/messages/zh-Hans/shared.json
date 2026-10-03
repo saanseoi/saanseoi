@@ -447,6 +447,8 @@
   "pipeline_apis_description": "提供直观的搜索、筛选，以及探索相关实体的功能。",
   "source_dataset": "来源数据集",
   "source_primary_records": "主要记录",
+  "source_current": "现行",
+  "source_archived": "已归档",
   "source_latest": "最新",
   "source_published": "已发布",
   "source_superseded": "已替代",

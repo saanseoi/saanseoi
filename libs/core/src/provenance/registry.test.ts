@@ -82,7 +82,7 @@ test('registry uses guarded SQL and identical registration writes no D1 rows', a
     const before = f.sqlite.query('SELECT total_changes() AS n').get()
     await registerProcessingResult(f.db, f.store, 'r', f.ref)
     expect(f.sqlite.query('SELECT total_changes() AS n').get()).toEqual(before)
-    f.sqlite.exec("UPDATE resourceReleases SET status='published'")
+    f.sqlite.exec("UPDATE resourceReleases SET status='current'")
     await registerProcessingResult(f.db, f.store, 'r', f.ref)
     const changed = await retainObject(f.store, {
       ...f.manifest,
@@ -165,7 +165,7 @@ test('publication racing registration cannot insert or replace provenance', asyn
       get(target, key, receiver) {
         if (key === 'insert')
           return (...args: Parameters<typeof f.db.insert>) => {
-            f.sqlite.exec("UPDATE resourceReleases SET status='published'")
+            f.sqlite.exec("UPDATE resourceReleases SET status='current'")
             return target.insert(...args)
           }
         return Reflect.get(target, key, receiver)

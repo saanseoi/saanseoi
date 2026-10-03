@@ -22,7 +22,7 @@ import type { UploadPlan } from '../../types'
 import { recordDatasetStage } from '../../pipeline/datasetStages'
 import { insertFixtureRelease } from '../../testing/metaFixtures'
 
-test('post-publication statistics failures retain superseded source release status', async () => {
+test('post-publication statistics failures retain archived resource release status', async () => {
   const sqlite = new Database(':memory:')
   sqlite.exec(
     loadMigrationSql(resolve(import.meta.dir, '../../../../db/migrations'), [
@@ -46,7 +46,7 @@ test('post-publication statistics failures retain superseded source release stat
       sourceVersion: '2025-09-24.0',
       rawObjectKey: 'division.parquet',
       originalFileName: 'division.parquet',
-      status: 'superseded',
+      status: 'archived',
       ingestedAt: '2026-09-09T00:00:00Z',
       createdAt: '2026-09-09T00:00:00Z',
       updatedAt: '2026-09-09T00:00:00Z',
@@ -64,7 +64,7 @@ test('post-publication statistics failures retain superseded source release stat
       sqlite
         .query('SELECT status FROM resourceReleases WHERE id = ?')
         .get(resourceReleaseId),
-    ).toEqual({ status: 'superseded' })
+    ).toEqual({ status: 'archived' })
     expect(
       sqlite
         .query('SELECT status FROM processingRuns WHERE resourceReleaseId = ?')
@@ -153,7 +153,7 @@ for (const order of [types, [...types].reverse()]) {
           expect(
             sqlite
               .query(
-                "SELECT count(*) AS n FROM resourceReleases WHERE status = 'published'",
+                "SELECT count(*) AS n FROM resourceReleases WHERE status = 'current'",
               )
               .get(),
           ).toEqual({ n: 1 })
@@ -203,14 +203,14 @@ for (const order of [types, [...types].reverse()]) {
           '2026-09-09T00:01:00Z',
           null,
         )
-        await updateDatasetStatus(db, resourceReleaseId, 'published')
+        await updateDatasetStatus(db, resourceReleaseId, 'current')
         expect(sqlite.query('SELECT status FROM sourceReleases').get()).toEqual({
-          status: index === 0 ? 'processing' : 'published',
+          status: index === 0 ? 'processing' : 'current',
         })
         if (index === 0) {
           // Later fixture edits cannot remove an expected sibling from this release.
           sqlite.run(`UPDATE datasets SET resourceTypes = ?`, [JSON.stringify([type])])
-          await updateDatasetStatus(db, resourceReleaseId, 'published')
+          await updateDatasetStatus(db, resourceReleaseId, 'current')
           expect(sqlite.query('SELECT status FROM sourceReleases').get()).toEqual({
             status: 'processing',
           })
@@ -242,7 +242,7 @@ for (const order of [types, [...types].reverse()]) {
           sqlite
             .query('SELECT resourceType, status FROM resourceReleases WHERE id = ?')
             .get(id),
-        ).toEqual({ resourceType: type, status: 'published' })
+        ).toEqual({ resourceType: type, status: 'current' })
         expect(
           sqlite
             .query(
@@ -266,3 +266,42 @@ for (const order of [types, [...types].reverse()]) {
     }
   })
 }
+
+test('current resources finalise their source and archived releases resist late progress updates', async () => {
+  const sqlite = new Database(':memory:')
+  sqlite.exec(
+    loadMigrationSql(resolve(import.meta.dir, '../../../../db/migrations'), ['meta']),
+  )
+  try {
+    sqlite.exec(`INSERT INTO publishers(id,code,versionHash) VALUES ('publisher','test','hash');
+      INSERT INTO datasets(id,publisherId,code,regionCode,releaseType,releaseFrequency,theme,resourceTypes,versionHash)
+      VALUES ('dataset','publisher','dataset','hk','static','monthly','divisions','["division","divisionArea"]','hash');
+      INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,expectedResourceTypes,status)
+      VALUES ('source','dataset','source','2026','["division","divisionArea"]','processing');
+      INSERT INTO resourceReleases(id,sourceReleaseId,datasetId,code,resourceType,sourceVersion,status)
+      VALUES ('division','source','dataset','division','division','2026','processing'),
+             ('area','source','dataset','area','divisionArea','2026','processing');`)
+    const db = createLocalHarbourDb(sqlite)
+    const sourceStatus = () =>
+      sqlite.query("SELECT status FROM sourceReleases WHERE id='source'").get()
+    await updateDatasetStatus(db, 'division', 'current')
+    expect(sourceStatus()).toEqual({ status: 'processing' })
+    await updateDatasetStatus(db, 'area', 'current')
+    expect(sourceStatus()).toEqual({ status: 'current' })
+    await updateDatasetStatus(db, 'division', 'failed')
+    expect(
+      sqlite.query("SELECT status FROM resourceReleases WHERE id='division'").get(),
+    ).toEqual({ status: 'current' })
+    expect(sourceStatus()).toEqual({ status: 'current' })
+    sqlite.exec(
+      "UPDATE resourceReleases SET status='archived'; UPDATE sourceReleases SET status='archived';",
+    )
+    await updateDatasetStatus(db, 'division', 'processing')
+    expect(
+      sqlite.query("SELECT status FROM resourceReleases WHERE id='division'").get(),
+    ).toEqual({ status: 'archived' })
+    expect(sourceStatus()).toEqual({ status: 'archived' })
+  } finally {
+    sqlite.close()
+  }
+})

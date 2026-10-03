@@ -285,14 +285,14 @@ describe('Overture Places initialisation ownership', () => {
   test('recognises a fully published retained local baseline without claiming reset ownership', () => {
     expect(
       hasCompletedOverturePlacesBaseline({
-        releaseStatuses: ['published', 'superseded'],
+        releaseStatuses: ['current', 'archived'],
         hasCurrentPlaces: true,
         hasPublishedPlaceSnapshot: true,
       }),
     ).toBe(true)
     expect(
       hasCompletedOverturePlacesBaseline({
-        releaseStatuses: ['published', 'staged'],
+        releaseStatuses: ['current', 'staged'],
         hasCurrentPlaces: true,
         hasPublishedPlaceSnapshot: true,
       }),
@@ -450,7 +450,7 @@ describe('Overture Places initialisation ownership', () => {
       /Overture Places release .* is staged/,
     )
 
-    sqlite.exec("UPDATE resourceReleases SET status = 'published';")
+    sqlite.exec("UPDATE resourceReleases SET status = 'current';")
     await expect(assertPlacesInitialisationComplete(db, owned)).rejects.toThrow(
       /Overture Places snapshot .* is draft/,
     )

@@ -27,7 +27,7 @@ test('restores missing Overture draft sets from retained geography without stats
     sourceVersion: cohortKey,
     rawObjectKey: 'hk/overture/division.parquet',
     originalFileName: 'division.parquet',
-    status: 'published',
+    status: 'current',
     ingestedAt: '2026-06-05T00:00:00.000Z',
     createdAt: '2026-06-05T00:00:00.000Z',
     updatedAt: '2026-06-05T00:00:00.000Z',
@@ -132,7 +132,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     sourceVersion: '2025-09-24.0',
     rawObjectKey: 'hk/overture/2025-09-24.0/division.parquet',
     originalFileName: 'division.parquet',
-    status: 'published',
+    status: 'current',
     ingestedAt: '2026-06-05T00:00:00.000Z',
     createdAt: '2026-06-05T00:00:00.000Z',
     updatedAt: '2026-06-05T00:00:00.000Z',
@@ -145,7 +145,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     sourceVersion: '2025-09-24.0',
     rawObjectKey: 'hk/overture/2025-09-24.0/division-area.parquet',
     originalFileName: 'division-area.parquet',
-    status: 'published',
+    status: 'current',
     ingestedAt: '2026-06-05T00:00:00.000Z',
     createdAt: '2026-06-05T00:00:00.000Z',
     updatedAt: '2026-06-05T00:00:00.000Z',
@@ -158,7 +158,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     sourceVersion: '2025-09-24.0',
     rawObjectKey: 'hk/overture/2025-09-24.0/division-boundary.parquet',
     originalFileName: 'division-boundary.parquet',
-    status: 'published',
+    status: 'current',
     ingestedAt: '2026-06-05T00:00:00.000Z',
     createdAt: '2026-06-05T00:00:00.000Z',
     updatedAt: '2026-06-05T00:00:00.000Z',
@@ -306,7 +306,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       ) VALUES (
         '${resourceReleaseId}', 'hkgov-censtatd-hk-district',
         'sr-hk-hkgov-censtatd-division-area-district-${year}', '${year}', '1.0', '${year}',
-        'published', '2026-06-05T00:01:00.000Z',
+        'current', '2026-06-05T00:01:00.000Z',
         '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
       );
 
@@ -317,7 +317,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       ) VALUES (
         '${resourceReleaseId}', '${resourceReleaseId}', 'hkgov-censtatd-hk-district', 'divisionArea',
         'dr-hk-hkgov-censtatd-division-area-district-${year}', '${year}', '1.0', '${year}',
-        'hk/hkgov-censtatd/${year}/division-area.gml', 'division-area.gml', 'published',
+        'hk/hkgov-censtatd/${year}/division-area.gml', 'division-area.gml', 'current',
         '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
       );
 
@@ -349,7 +349,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       'hkgov-censtatd-hk-district-annual',
       'sr-hk-hkgov-censtatd-division-area-district-annual-2024',
-      '2024', '1.0', '2024', 'published', '2026-06-05T00:01:00.000Z',
+      '2024', '1.0', '2024', 'current', '2026-06-05T00:01:00.000Z',
       '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
     );
 
@@ -362,7 +362,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       'hkgov-censtatd-hk-district-annual', 'divisionArea',
       'dr-hk-hkgov-censtatd-division-area-district-annual-2024', '2024', '1.0', '2024',
-      'hk/hkgov-censtatd/2024/division-area.gml', 'division-area.gml', 'published',
+      'hk/hkgov-censtatd/2024/division-area.gml', 'division-area.gml', 'current',
       '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
     );
     INSERT INTO snapshotLineages (
@@ -418,7 +418,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       'hkgov-censtatd-hk-permanent-living-quarters',
       'sr-hkgov-censtatd-permanent-living-quarters-2023-H2',
-      '2023-H2', '1.0', '2023-H2', 'published', '2026-06-05T00:02:00.000Z',
+      '2023-H2', '1.0', '2023-H2', 'current', '2026-06-05T00:02:00.000Z',
       '2026-06-05T00:02:00.000Z', '2026-06-05T00:02:00.000Z'
     );
 
@@ -433,7 +433,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
       '2023-H2', '1.0', '2023-H2', 'authoritative',
       'hk/hkgov-censtatd/2023-H2/division-area.parquet', 'division-area.parquet',
-      'published', '2026-06-05T00:02:00.000Z',
+      'current', '2026-06-05T00:02:00.000Z',
       '2026-06-05T00:02:00.000Z', '2026-06-05T00:02:00.000Z'
     );
 
@@ -493,7 +493,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   expect(result.apiReleaseSetId).toBe(releaseSetId)
   expect(result.apiReleaseSetStatus).toBe('draft')
   expect(publishedSet.status).toBe('draft')
-  expect(hadRelease.status).toBe('published')
+  expect(hadRelease.status).toBe('current')
   expect(hadSnapshot.status).toBe('published')
   expect(incompleteReconciliation).toMatchObject({
     inspected: 1,

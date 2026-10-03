@@ -148,10 +148,10 @@ describe('reporting service', () => {
         INSERT INTO sourceReleases
           (id, datasetId, code, sourceVersion, cohortKey, status)
         VALUES
-          ('release-1', 'hkgov-dpo-hk-address', 'sr-release-1', '2026-06-26.0', '2026-06', 'published'),
-          ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'published'),
-          ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'published'),
-          ('release-4', 'hkgov-dpo-hk-address', 'sr-release-4', '2026-06-23.0', '2026-06', 'published');
+          ('release-1', 'hkgov-dpo-hk-address', 'sr-release-1', '2026-06-26.0', '2026-06', 'current'),
+          ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'current'),
+          ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'current'),
+          ('release-4', 'hkgov-dpo-hk-address', 'sr-release-4', '2026-06-23.0', '2026-06', 'current');
         INSERT INTO resourceReleases (
           id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
         ) VALUES
@@ -167,7 +167,7 @@ describe('reporting service', () => {
             '2026-06',
             null,
             null,
-            'published',
+            'current',
             null,
             null,
             null,
@@ -187,7 +187,7 @@ describe('reporting service', () => {
             '2026-06',
             null,
             null,
-            'published',
+            'current',
             null,
             null,
             null,
@@ -207,7 +207,7 @@ describe('reporting service', () => {
             '2026-06',
             null,
             null,
-            'published',
+            'current',
             null,
             null,
             null,
@@ -227,7 +227,7 @@ describe('reporting service', () => {
             '2026-06',
             null,
             null,
-            'published',
+            'current',
             null,
             null,
             null,
@@ -306,9 +306,9 @@ describe('reporting service', () => {
         INSERT INTO sourceReleases
           (id, datasetId, code, sourceVersion, cohortKey, status)
         VALUES
-          ('release-1', 'hkgov-dpo-hk-address', 'sr-release-1', '2026-06-26.0', '2026-06', 'published'),
-          ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'published'),
-          ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'published');
+          ('release-1', 'hkgov-dpo-hk-address', 'sr-release-1', '2026-06-26.0', '2026-06', 'current'),
+          ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'current'),
+          ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'current');
         INSERT INTO resourceReleases (
           id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
         ) VALUES
@@ -324,7 +324,7 @@ describe('reporting service', () => {
             '2026-06',
             null,
             null,
-            'published',
+            'current',
             null,
             null,
             null,
@@ -344,7 +344,7 @@ describe('reporting service', () => {
             '2026-06',
             null,
             null,
-            'published',
+            'current',
             null,
             null,
             null,
@@ -364,7 +364,7 @@ describe('reporting service', () => {
             '2026-06',
             null,
             null,
-            'published',
+            'current',
             null,
             null,
             null,
@@ -595,7 +595,7 @@ function seedRelease(
       ingestedAt, createdAt, updatedAt
     ) VALUES (
       '${resourceReleaseId}', 'hkgov-dpo-hk-address', 'sr-${releaseCode}',
-      '${sourceVersion}', '2026-06', 'published',
+      '${sourceVersion}', '2026-06', 'current',
       ${timestamp}, ${timestamp}, ${timestamp}
     );
     INSERT INTO resourceReleases (
@@ -612,7 +612,7 @@ function seedRelease(
       '2026-06',
       'hk/hkgov-dpo/${sourceVersion}/address.parquet',
       'address.parquet',
-      'published',
+      'current',
       null,
       null,
       null,

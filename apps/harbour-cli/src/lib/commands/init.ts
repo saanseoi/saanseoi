@@ -57,10 +57,7 @@ export async function formatInitialisationSkippedDatasets(
           .where(
             and(
               inArray(metaSchema.metaResourceReleases.code, codes),
-              inArray(metaSchema.metaResourceReleases.status, [
-                'published',
-                'superseded',
-              ]),
+              inArray(metaSchema.metaResourceReleases.status, ['current', 'archived']),
             ),
           )
           .all()

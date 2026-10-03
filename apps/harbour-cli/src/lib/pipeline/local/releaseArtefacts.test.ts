@@ -18,7 +18,7 @@ test('discards derived artefacts while retaining the source object and state', a
     await mkdir(join(releaseRoot, 'objects/hk/example/2026-01-01.0'), {
       recursive: true,
     })
-    await writeFile(join(releaseRoot, 'state.json'), '{"status":"published"}\n')
+    await writeFile(join(releaseRoot, 'state.json'), '{"status":"current"}\n')
     await writeFile(
       join(releaseRoot, 'objects/hk/example/2026-01-01.0/source.parquet'),
       'raw source',
@@ -41,7 +41,7 @@ test('discards derived artefacts while retaining the source object and state', a
       ),
     ).resolves.toBe('raw source')
     await expect(readFile(join(releaseRoot, 'state.json'), 'utf8')).resolves.toContain(
-      'published',
+      'current',
     )
     await expect(access(join(releaseRoot, 'objects/processed'))).rejects.toThrow()
   } finally {

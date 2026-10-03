@@ -39,7 +39,7 @@ export async function resolvePublicationSelections(meta: HarbourReadableDb) {
     if (row?.type === 'divisionArea' || row?.type === 'divisionBoundary')
       selected[row.type].add(snapshotId)
   }
-  // A published API selection can still pin a companion from a superseded
+  // A published API selection can still pin a companion from an archived
   // source release while a replacement is waiting for its full composition.
   // Include every cohort in the serving catalogue: Statistics retains the
   // latest revision of older periods as well as its default period.
@@ -66,7 +66,7 @@ export async function resolvePublicationSelections(meta: HarbourReadableDb) {
         for (const releaseSet of catalogue?.releaseSets ?? []) {
           // A current catalogue keeps archived releases discoverable, but their
           // geometry has already been superseded in DB_CURRENT. A current set
-          // may still pin a companion from a superseded source release, so
+          // may still pin a companion from an archived source release, so
           // select by release-set status rather than source-release status.
           if (releaseSet.status !== 'current') continue
           for (const snapshot of releaseSet.snapshots) {

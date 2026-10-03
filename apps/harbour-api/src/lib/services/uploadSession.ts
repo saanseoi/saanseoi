@@ -34,7 +34,7 @@ export async function handleRegisterUploadRequest(
     allowExistingDatasetStatuses: request.force
       ? request.reuseExistingRelease
         ? ['staged', 'processing']
-        : ['staged', 'published']
+        : ['staged', 'current']
       : request.resumeStagedRelease
         ? request.reuseExistingRelease
           ? ['staged', 'processing']
