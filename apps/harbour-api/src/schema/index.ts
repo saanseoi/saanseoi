@@ -261,6 +261,7 @@ export const RegisterUploadRequestSchema = z
       cohortKey: z.string().optional(),
       datasetCode: z.string().optional(),
       regionCode: z.string().optional(),
+      publicationDate: z.string().date().optional(),
       releaseNotesUrl: z.string().url().optional(),
       shardYear: z.string().optional(),
       source: z.string().optional(),

@@ -5,6 +5,8 @@ dataset: "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-dist
 release: "dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district-2023-H2"
 regionCode: "hk"
 source: "hkgov-censtatd"
+publicationDate: "2023-12-27"
+publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934103275_66203/xml"
 sourceVersion: "2023-H2"
 releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=censtatd_rcd_1635934103275_66203"
 releaseVersion: "2023-H2.0"

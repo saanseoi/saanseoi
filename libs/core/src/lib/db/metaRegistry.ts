@@ -2514,14 +2514,23 @@ function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-/** Date-coded releases can supply a date; year and period cohorts cannot. */
-export function releasePublicationDate(sourceVersion: string): string | null {
-  const date = sourceVersion.split('.')[0] ?? ''
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
+/** Explicit publisher dates take precedence; periods do not imply a publication day. */
+export function releasePublicationDate(
+  sourceVersion: string,
+  publicationDate?: string,
+): string | null {
+  const date = publicationDate ?? sourceVersion.split('.')[0] ?? ''
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    if (publicationDate !== undefined)
+      throw new Error(`Invalid publicationDate: ${publicationDate}`)
+    return null
+  }
   const parsed = new Date(`${date}T00:00:00.000Z`)
-  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date
-    ? date
-    : null
+  if (Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date)
+    return date
+  if (publicationDate !== undefined)
+    throw new Error(`Invalid publicationDate: ${publicationDate}`)
+  return null
 }
 
 export async function insertDataset(
@@ -2554,7 +2563,7 @@ export async function insertDataset(
       sourceVersion: plan.sourceVersion,
       expectedResourceTypes: dataset.resourceTypes,
       sourceSchemaVersion,
-      publicationDate: releasePublicationDate(plan.sourceVersion),
+      publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
       cohortKey: plan.cohortKey,
       rawObjectKey,
       originalFileName: plan.originalFileName,
@@ -2583,7 +2592,7 @@ export async function insertDataset(
       sourceVersion: plan.sourceVersion,
       sourceSchemaVersion,
       processingRules,
-      publicationDate: releasePublicationDate(plan.sourceVersion),
+      publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
       cohortKey: plan.cohortKey,
       geometryStatus: isGeometryResourceType(plan.resourceType)
         ? (plan.geometryStatus ?? 'authoritative')
@@ -2752,7 +2761,7 @@ export async function resetFailedDataset(
       resourceType: plan.resourceType,
       sourceSchemaVersion,
       processingRules,
-      publicationDate: releasePublicationDate(plan.sourceVersion),
+      publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
       cohortKey: plan.cohortKey,
       geometryStatus: isGeometryResourceType(plan.resourceType)
         ? (plan.geometryStatus ?? 'authoritative')
@@ -2775,7 +2784,7 @@ export async function resetFailedDataset(
     .set({
       sourceSchemaVersion,
       processingRules,
-      publicationDate: releasePublicationDate(plan.sourceVersion),
+      publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
       cohortKey: plan.cohortKey,
       rawObjectKey,
       originalFileName: plan.originalFileName,

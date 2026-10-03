@@ -699,3 +699,9 @@ including companion division areas. `--defer-stats-release-set` postpones compos
 Statistics release-set publication only. A source cohort is complete only when every
 declared resource is published for that cohort. Resuming an incomplete cohort retains
 published resources and ingests its missing companions.
+
+## Publication dates
+
+Release fixtures retain verified CSDI publication days separately from reference
+cohorts. The [publication-date evidence](../../source-publication-dates.md) records the
+upstream field, verified dates and unresolved rolling compilations.

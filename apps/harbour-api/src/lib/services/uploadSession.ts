@@ -15,6 +15,7 @@ export type RegisterUploadRequest = {
     cohortKey?: string
     datasetCode?: string
     regionCode?: string
+    publicationDate?: string
     releaseNotesUrl?: string
     shardYear?: string
     source?: string
@@ -48,6 +49,7 @@ export async function handleRegisterUploadRequest(
     filePath: request.fileName,
     inspection: request.inspection,
     regionCode: request.plan.regionCode,
+    publicationDate: request.plan.publicationDate,
     releaseNotesUrl: request.plan.releaseNotesUrl,
     reuseExistingRelease: request.reuseExistingRelease,
     resolveSchemaFingerprint: createSchemaFingerprintResolver(db),

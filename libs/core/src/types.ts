@@ -102,6 +102,8 @@ export type UploadPlan = {
   filePath: string
   fileName: string
   originalFileName: string
+  /** Verified upstream publication day, independent of the reference cohort. */
+  publicationDate?: string
   releaseNotesUrl?: string
   rowCount: number
   schemaFingerprint: string
@@ -128,6 +130,8 @@ export type RegisterUploadOptions = {
   source?: string
   sourceVersion?: string
   geometryStatus?: GeometryStatus
+  /** Verified upstream publication day, independent of the reference cohort. */
+  publicationDate?: string
   releaseNotesUrl?: string
   shardYear?: string
   dryRun?: boolean

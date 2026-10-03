@@ -17,6 +17,7 @@ import {
 import { prepareUploadFileForDispatch } from '../upload/parquetRepack.ts'
 import { resumePendingSqlDeliveryForUpload } from '../upload/upload.ts'
 import { resolveReleaseNotesUrl } from '../upload/releaseNotes.ts'
+import { readFixturePublicationDate } from '../upload/publicationDate.ts'
 import {
   assertRetainableSourceReleaseInput,
   linkManagedSourceAssetToRelease,
@@ -271,6 +272,9 @@ ${mutedBar}  `)
       interactiveRetryCommand: options.releaseNotesRetryCommand,
       skipPrompt: options.skipConfirm,
     })
+    registerOptions.publicationDate = await readFixturePublicationDate(
+      previewResult.plan,
+    )
     registerOptions.releaseNotesUrl = releaseNotesUrl
     registerOptions.inspection = previewResult.inspection
     previewResult = await prepareUpload(registerOptions)

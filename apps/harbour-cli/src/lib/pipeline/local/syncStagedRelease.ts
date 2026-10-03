@@ -23,6 +23,7 @@ import {
 } from '@repo/core/db/metaRegistry'
 import { runWithWriteRetry } from '@repo/core/pipeline/utils'
 import type { MetaDatabase } from '@repo/db'
+import { readFixturePublicationDate } from '../../upload/publicationDate.ts'
 import { findPendingSqlDeliveryReleaseId } from './sqlDeliveryPending.ts'
 
 type StagedReleaseSyncPlan = {
@@ -30,6 +31,7 @@ type StagedReleaseSyncPlan = {
   regionCode: 'hk' | 'mo'
   source: string
   sourceVersion: string
+  publicationDate?: string
   theme: string
   resourceType: ResourceType
 }
@@ -115,6 +117,10 @@ export async function syncStagedReleaseIntoLocalMetaCache(
     )
   }
 
+  const publicationDate = releasePublicationDate(
+    plan.sourceVersion,
+    plan.publicationDate ?? (await readFixturePublicationDate({ ...plan, ...release })),
+  )
   const now = toIsoTimestamp()
   const sourceSchemaVersion = await resolveSourceSchemaVersion({
     source: plan.source,
@@ -142,7 +148,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           sourceVersion: plan.sourceVersion,
           expectedResourceTypes: dataset.resourceTypes,
           sourceSchemaVersion,
-          publicationDate: releasePublicationDate(plan.sourceVersion),
+          publicationDate,
           cohortKey: plan.cohortKey,
           rawObjectKey: release.rawObjectKey,
           originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
@@ -187,7 +193,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           sourceVersion: plan.sourceVersion,
           sourceSchemaVersion,
           processingRules,
-          publicationDate: releasePublicationDate(plan.sourceVersion),
+          publicationDate,
           cohortKey: plan.cohortKey,
           rawObjectKey: release.rawObjectKey,
           originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
@@ -209,7 +215,7 @@ export async function syncStagedReleaseIntoLocalMetaCache(
             sourceVersion: plan.sourceVersion,
             sourceSchemaVersion,
             processingRules,
-            publicationDate: releasePublicationDate(plan.sourceVersion),
+            publicationDate,
             cohortKey: plan.cohortKey,
             rawObjectKey: release.rawObjectKey,
             originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,

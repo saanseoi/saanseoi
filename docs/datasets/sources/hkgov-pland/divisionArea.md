@@ -462,3 +462,9 @@ respective snapshot recipes. Ingestion definitions do not claim canonical field 
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Publication dates
+
+Release fixtures retain verified CSDI publication days separately from reference
+cohorts. The [publication-date evidence](../../source-publication-dates.md) records the
+upstream field, verified dates and unresolved rolling compilations.

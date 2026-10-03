@@ -5,6 +5,8 @@ dataset: "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-d
 release: "dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022"
 regionCode: "hk"
 source: "hkgov-censtatd"
+publicationDate: "2023-12-27"
+publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1635934215448_25451/xml"
 sourceVersion: "2022"
 sourceSchemaVersion: "1.0"
 releaseVersion: "2022.0"

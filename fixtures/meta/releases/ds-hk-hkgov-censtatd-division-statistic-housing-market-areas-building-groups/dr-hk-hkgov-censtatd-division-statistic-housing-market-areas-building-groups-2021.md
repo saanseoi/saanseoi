@@ -5,6 +5,8 @@ dataset: "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-
 release: "dr-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups-2021"
 regionCode: "hk"
 source: "hkgov-censtatd"
+publicationDate: "2026-03-30"
+publicationDateSource: "https://portal.csdi.gov.hk/geoportal/rest/metadata/item/censtatd_rcd_1728978338390_76872/xml"
 sourceVersion: "2021"
 releaseVersion: "2021.0"
 type: "divisionStatistic"

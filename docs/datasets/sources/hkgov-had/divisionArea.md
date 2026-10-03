@@ -64,15 +64,18 @@ This page records the provider-specific profile. The reusable source contract is
 | Publisher           | Home Affairs Department (`hkgov-had`)                                                                                                                |
 | Source artefact     | Native package from each CSDI Archived Dataset slot; format and files are recorded in its manifest                                                   |
 | Feature service     | `https://portal.csdi.gov.hk/server/rest/services/common/had_rcd_1634523272907_75218/FeatureServer/0`                                                 |
-| Source release data | Catalogue published July 2025; layer last revised in 2022                                                                                            |
+| Source release data | CSDI publication date 2022-03-14; retained source cohort 2022                                                                                        |
 | Source schema       | `1.2`                                                                                                                                                |
 | Observed features   | 18 Polygon features                                                                                                                                  |
 | Native CRS          | Recorded from the publisher package in each source-archive manifest                                                                                  |
 
 The dataset update check maps the configured `sourceVersion` release metadata to the
 `2022.0` source version. The catalogue page's `Creation Date` and `Revision Date` are
-publisher timing, not the source version. The updater mirrors every native Archived
-Dataset package and does not use the CSDI GeoJSON file API as input.
+publisher timing, not the source version. The identification citation explicitly records
+publication on 2022-03-14; see the
+[publication-date evidence](../../source-publication-dates.md). The updater mirrors
+every native Archived Dataset package and does not use the CSDI GeoJSON file API as
+input.
 
 The `hkgov-had` District Boundary native package is read from the CSDI archive. Its File
 Geodatabase `DCD` layer is required to contain 18 Polygon district features with

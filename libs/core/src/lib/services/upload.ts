@@ -760,6 +760,7 @@ function resolveUploadPlan(
     filePath: options.filePath,
     fileName,
     originalFileName,
+    publicationDate: options.publicationDate,
     releaseNotesUrl: options.releaseNotesUrl?.trim() || undefined,
     rowCount: resolvedInspection.rowCount,
     schemaFingerprint: createSchemaFingerprint(resolvedInspection),

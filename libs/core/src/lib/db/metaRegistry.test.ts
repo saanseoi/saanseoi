@@ -2618,6 +2618,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         datasetCode: 'ds-hk-hkgov-pland-division-pu',
         originalFileName: 'hkgov-pland-pu-hk-2001-division.parquet',
         releaseCode: 'dr-hk-hkgov-pland-division-pu-2001',
+        publicationDate: '2022-03-16',
         source: 'hkgov-pland-pu',
         sourceVersion: '2001',
         resourceType: 'division',
@@ -2640,6 +2641,14 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'raw/hkgov-pland-new-town/2006/division.parquet',
       '2026-07-21T00:00:00.000Z',
     )
+
+    for (const table of ['sourceReleases', 'resourceReleases']) {
+      expect(
+        sqlite
+          .query(`SELECT publicationDate FROM ${table} WHERE code = ?`)
+          .get('dr-hk-hkgov-pland-division-pu-2001'),
+      ).toEqual({ publicationDate: '2022-03-16' })
+    }
 
     expect(
       sqlite

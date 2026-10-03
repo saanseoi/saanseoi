@@ -258,6 +258,7 @@ export function frontmatterForReleaseRow(row: ReleaseDocsRow): Record<string, st
     regionCode: row.regionCode,
     release: row.code,
     source: row.source,
+    ...(row.publicationDate ? { publicationDate: row.publicationDate } : {}),
     sourceSchemaVersion: row.sourceSchemaVersion ?? '',
     sourceVersion: row.sourceVersion,
     releaseVersion: releaseVersionFromSourceVersion(row.sourceVersion),
