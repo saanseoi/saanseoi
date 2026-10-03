@@ -33,9 +33,7 @@ export async function recordEffectiveSnapshotAssembly(
     resourceType: ResourceType
     anchorCohortKey: string
     anchorReleaseId?: string | null
-    detailsJson?: metaSchema.SnapshotAssemblyDetails | null
     dependencies?: Record<string, string>
-    reviewRequired?: number | null
     processingRules?: ProcessingRules
     allowPlanning?: boolean
   },
@@ -57,8 +55,6 @@ export async function recordEffectiveSnapshotAssembly(
     .select({
       id: metaSnapshotAssemblies.id,
       snapshotRecipeId: metaSnapshotAssemblies.snapshotRecipeId,
-      detailsJson: metaSnapshotAssemblies.detailsJson,
-      reviewRequired: metaSnapshotAssemblies.reviewRequired,
     })
     .from(metaSnapshotAssemblies)
     .where(eq(metaSnapshotAssemblies.snapshotId, args.snapshotId))
@@ -155,11 +151,8 @@ export async function recordEffectiveSnapshotAssembly(
       code,
       resourceType: args.resourceType,
       version: 1,
-      status: 'scoped',
       versionHash,
       processingRules: retainedRules,
-      notes:
-        'Effective dataset inputs and selection policies used to construct snapshots.',
       createdAt: now,
       updatedAt: now,
     })
@@ -181,7 +174,6 @@ export async function recordEffectiveSnapshotAssembly(
       .onConflictDoNothing()
       .run()
   }
-  const details = { ...existing?.detailsJson, ...args.detailsJson }
   await recordSnapshotDependencies(db, args.snapshotId, args.dependencies ?? {})
   const primary = sources.find(source => source.role === 'primary')
   const values = {
@@ -193,11 +185,6 @@ export async function recordEffectiveSnapshotAssembly(
       null,
     anchorCohortKey: snapshot.cohortKey ?? args.anchorCohortKey,
     status: sources.length ? 'selected' : 'planning',
-    detailsJson: details,
-    reviewRequired:
-      args.reviewRequired === undefined
-        ? (existing?.reviewRequired ?? null)
-        : args.reviewRequired,
     updatedAt: now,
   }
   await db

@@ -13,7 +13,6 @@ import type {
   DivisionSqlState,
   SqlValue,
 } from './processLocalDivisionSqlUploadTypes.ts'
-import { jsonText } from './processLocalDivisionSqlUploadPreparation.ts'
 import { DIVISION_BATCH_SIZE } from './processLocalDivisionSqlUploadConfig.ts'
 import {
   buildInsertStatements,
@@ -103,18 +102,13 @@ export async function buildDivisionMetaSqlFile(
       anchorReleaseId: metaSnapshotAssemblies.anchorReleaseId,
       anchorCohortKey: metaSnapshotAssemblies.anchorCohortKey,
       status: metaSnapshotAssemblies.status,
-      reviewRequired: metaSnapshotAssemblies.reviewRequired,
-      detailsJson: metaSnapshotAssemblies.detailsJson,
       createdAt: metaSnapshotAssemblies.createdAt,
       updatedAt: metaSnapshotAssemblies.updatedAt,
     })
     .from(metaSnapshotAssemblies)
     .where(eq(metaSnapshotAssemblies.snapshotId, state.snapshotId))
     .all()
-  const serialisedSnapshotAssemblyRows = snapshotAssemblyRows.map(row => ({
-    ...row,
-    detailsJson: jsonText(row.detailsJson),
-  }))
+  const serialisedSnapshotAssemblyRows = snapshotAssemblyRows
 
   const releaseShardAssignmentRows = await metaDb
     .select({
@@ -272,8 +266,6 @@ ON CONFLICT(snapshotId, resourceReleaseId) DO UPDATE SET
         'anchorReleaseId',
         'anchorCohortKey',
         'status',
-        'reviewRequired',
-        'detailsJson',
         'createdAt',
         'updatedAt',
       ],
@@ -286,8 +278,6 @@ ON CONFLICT(id) DO UPDATE SET
   anchorReleaseId = excluded.anchorReleaseId,
   anchorCohortKey = excluded.anchorCohortKey,
   status = excluded.status,
-  reviewRequired = excluded.reviewRequired,
-  detailsJson = excluded.detailsJson,
   createdAt = excluded.createdAt,
   updatedAt = excluded.updatedAt`.trim(),
       },

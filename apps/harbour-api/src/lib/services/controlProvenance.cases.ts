@@ -388,7 +388,6 @@ test('requires retained processing audits for Addresses and Places before publis
         anchorReleaseId: resourceReleaseId,
         anchorCohortKey: '2026-06',
         dependencies: { supplementaryAddress: supplementary.id },
-        reviewRequired: 0,
       })
       carriedSnapshots?.push({
         resourceType: 'address',

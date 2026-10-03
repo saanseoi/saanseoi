@@ -129,8 +129,6 @@ export async function buildPlandMetaSql(
     'anchorReleaseId',
     'anchorCohortKey',
     'status',
-    'reviewRequired',
-    'detailsJson',
     'createdAt',
     'updatedAt',
   ]

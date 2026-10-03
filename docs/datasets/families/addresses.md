@@ -188,10 +188,11 @@ not the last-written release ID, determines omissions. Reappearance of a closed
 assertion requires a write. Canonical component and source-resolution journals record
 only the changes needed to reconstruct each snapshot.
 
-ALS ingestion prepares each pending release once, records its unreviewed cases, and
-uploads it before advancing chronologically. Delivery validates checksums and compares
-membership with the acknowledged predecessor. Review evidence does not indicate that an
-upload has completed.
+ALS ingestion prepares each pending release and retains its unresolved cases locally.
+Assembly and upload wait until those cases are resolved before advancing
+chronologically. Delivery validates checksums and compares membership with the
+acknowledged predecessor. Review evidence does not indicate that an upload has
+completed.
 
 ALS preparation and preflight fingerprints replay the selected division snapshot's
 immutable history across its assigned shards. Parent membership, changed translations
@@ -205,10 +206,9 @@ Address lookup caches are scoped to the exact parent snapshot. A baseline withou
 parent never uses a retained lookup; cached unchanged-row decisions cannot substitute
 for materialising its complete 2D address set.
 
-Non-blocking ALS 3D preparation emits `ALS_MANUAL_REVIEW` JSON log lines for unreviewed
+ALS 3D preparation caches and emits `ALS_MANUAL_REVIEW` JSON log lines for unreviewed
 section inventories, ambiguous block parents and shared-building owner conflicts. These
-preserve source locations and candidate address IDs without approving an identity or
-implying that the issue list is complete.
+preserve source locations and candidate address IDs and block assembly until resolved.
 
 Skipped alias, coordinate, approved-batch and inventory-suppression assertion guards
 also emit structured issues with the release, curation fixture, decision or source
@@ -1005,20 +1005,22 @@ distinct even when they share a CSU. Exact release evidence guards each tower; r
 source attributes and coordinates are preserved. Centaline Phases 2A and 2B corroborate
 the inventory, without replacing the publisher points. No earlier existence is inferred.
 
-### Deferred ingestion review
+### Local review before assembly
 
-Ingestion retains unresolved curation cases as **unreviewed** and continues without
-asking for identity or retirement decisions. Existing approved corrections remain
-active. ALS deletion reports retain their evidence and exact approval digest; stale
-approvals do not mark a new report reviewed. Identity drift uses the generated current
-IDs without recording an approved identity decision. Active corrections beyond their
-verification date retain unverified provenance.
+ALS preparation retains unresolved identity drift, curation verification, division
+linkage and 3D inventory cases in `{preparedFile}.review.json`. The preparation seal
+binds this cache to the exact Parquet and 3D sidecar checksums. Ingestion rejects a
+missing, changed or mismatched cache and stops before assembly when any issue remains.
+Resolve the underlying evidence or curation decisions and prepare the release again;
+editing or deleting the issue list does not establish readiness. `--yes` and
+`--skip-curation-checks` cannot bypass this gate.
 
-ALS prepares and ingests one release at a time in chronological order. Upload checks
-compare membership with the acknowledged predecessor. ALS stores per-release evidence in
-`.local/hkgov-dpo/review-backlog/`, with linked deletion and identity-drift reports.
-Dataset issues can be reviewed after ingestion and resolved in revised releases.
-File-integrity, parent-reference and ID-collision checks still apply.
+ALS prepares and ingests releases chronologically. Local deletion reports compare the
+prepared membership with the acknowledged predecessor and block assembly until every
+required report has its exact digest approval. Stale approvals do not authorise changed
+membership. `.local/hkgov-dpo/review-backlog/` links the per-release review evidence;
+review state does not belong to META. File-integrity, parent-reference and ID-collision
+checks also apply.
 
 Historical Address releases retain their exact published Division selection in
 provenance and history. Current Address foreign keys use that Division lineage's

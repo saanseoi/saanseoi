@@ -1,3 +1,5 @@
+import { assertPreparedAlsDeletionReview } from '../../sources/hkgov/dpo/hkgovAlsDeletionPreflight'
+import { assertPreparedAlsReview } from '../../sources/hkgov/dpo/hkgovAlsReviewCache'
 import { mkdir, readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
@@ -13,6 +15,7 @@ import {
   prepareAddressVersionInsertContext,
 } from '@repo/core/pipeline/db/address'
 import {
+  recordSnapshotAssembly,
   resolveLatestPublishedSnapshotForLineage,
   resolveSnapshotReplayPlan,
 } from '@repo/core/db/metaRegistry'
@@ -162,6 +165,11 @@ export async function processLocalAddressSqlUpload(
         'ALS 2D and 3D preparation do not belong together; prepare the release again',
       )
     }
+    await assertPreparedAlsReview(
+      preparedUpload.filePath,
+      previewPlan.sourceVersion,
+      seal.reviewSha256,
+    )
   }
   const resourceReleaseId = requireString(
     uploadResult.resourceReleaseId,
@@ -367,6 +375,7 @@ export async function processLocalAddressSqlUpload(
       dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
       initialMessage,
       dataShardEnvironment,
+      { deferAssembly: true },
     )
     const activeSnapshot = await resolveLatestPublishedSnapshotForLineage(
       dbContext.metaDb as unknown as HarbourReadableDb,
@@ -449,6 +458,31 @@ export async function processLocalAddressSqlUpload(
       })
     const membership =
       prepared3d && !retainedDelivery ? await reviewMembership() : undefined
+    if (prepared3d && retainedDelivery)
+      await assertPreparedAlsDeletionReview({
+        preparedFile: preparedUpload.filePath,
+        sourceVersion: previewPlan.sourceVersion,
+        previousMembershipFile: versionInsertContext.parentSnapshotId
+          ? resolve(
+              dbContext.state.dbCacheDir,
+              addressMembershipMirrorFile(
+                versionInsertContext.snapshotLineageId,
+                versionInsertContext.parentSnapshotId,
+              ),
+            )
+          : undefined,
+        reportFile: resolve(releaseRoot, 'address-deletions.json'),
+      })
+    await recordSnapshotAssembly(
+      dbContext.metaDb as unknown as HarbourReadableDb & HarbourWritableDb,
+      {
+        snapshotId: versionInsertContext.snapshotId,
+        resourceType: 'address',
+        anchorReleaseId:
+          versionInsertContext.releaseRole === 'primary' ? resourceReleaseId : null,
+        anchorCohortKey: previewPlan.cohortKey,
+      },
+    )
     const finalMessageWithMeta = retainedDelivery
       ? (retainedDelivery.context.inputs.message as AddressPipelineMessage)
       : await (async () => {

@@ -94,23 +94,22 @@ represent a processing ruleset version.
 `snapshotResourceReleases` records concrete source releases, roles, selection rules,
 modes and source cohorts. `snapshotAssemblies` links each snapshot to its recipe, anchor
 and construction status. Each snapshot has one assembly, updated during draft
-preparation and retained when published. Places preparation can record a `planning`
-assembly before source selection; finalisation records `selected`. Missing
-source-selection rules fail ingestion. A later release verifying identical published
-geometry can retain a separate source association without replacing the published
-assembly.
+preparation and retained when published. Address review runs before the final assembly
+is recorded; finalisation records `selected`. Missing source-selection rules fail
+ingestion. A later release verifying identical published geometry can retain a separate
+source association without replacing the published assembly.
 
 `snapshotDependencies` pins exact logical snapshot inputs by role, including `division`,
 `divisionArea`, `street`, `address` and `supplementaryAddress`. Each role selects one
 snapshot. Foreign keys protect referenced snapshots; reset and rollback inspect these
-relationships directly. Dependency IDs and selected source lists are not duplicated in
-assembly JSON.
+relationships directly. Assembly input selection and dependency identity remain
+relational.
 
-Assembly `detailsJson` holds typed construction context such as materialisation and
-curation hashes and result counts. The nullable `reviewRequired` column records
-outstanding review counts: zero explicitly means review is complete; null does not.
-Places publication requires a supplementary Address dependency and zero outstanding
-reviews.
+Assembly records link a snapshot to its effective recipe and anchor. Review evidence
+belongs to local preparation caches. Unresolved Address cases block materialisation and
+assembly before delivery; retries must validate the cache against source, dependencies
+and curation inputs. Places publication requires its exact supplementary Address
+dependency. Published supplementary rows and localisations must remain reproducible.
 
 SQL delivery includes recipe and input rows before assembly rows, and delivers exact
 snapshot dependencies once their referenced snapshots exist. Assembly records describe

@@ -697,8 +697,6 @@ id TEXT PRIMARY KEY NOT NULL,
       code TEXT NOT NULL UNIQUE,
       resourceType TEXT NOT NULL,
       version INTEGER NOT NULL,
-      status TEXT NOT NULL,
-      notes TEXT,
       versionHash TEXT NOT NULL,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
@@ -725,8 +723,6 @@ id TEXT PRIMARY KEY NOT NULL,
       anchorReleaseId TEXT,
       anchorCohortKey TEXT,
       status TEXT NOT NULL,
-      reviewRequired INTEGER,
-      detailsJson TEXT,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
     );
@@ -1056,16 +1052,14 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       priority = excluded.priority;
 
     INSERT INTO snapshotRecipes (
-      id, code, resourceType, version, status, notes, versionHash, createdAt, updatedAt
+      id, code, resourceType, version, versionHash, createdAt, updatedAt
     ) VALUES
-      ('snapshot-assembly-address-v1', 'snapshot-assembly-address-v1', 'address', 1, 'current', null, 'vh-snapshot-assembly-address-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('snapshot-assembly-division-v1', 'snapshot-assembly-division-v1', 'division', 1, 'current', null, 'vh-snapshot-assembly-division-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+      ('snapshot-assembly-address-v1', 'snapshot-assembly-address-v1', 'address', 1, 'vh-snapshot-assembly-address-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('snapshot-assembly-division-v1', 'snapshot-assembly-division-v1', 'division', 1, 'vh-snapshot-assembly-division-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       code = excluded.code,
       resourceType = excluded.resourceType,
       version = excluded.version,
-      status = excluded.status,
-      notes = excluded.notes,
       versionHash = excluded.versionHash,
       updatedAt = excluded.updatedAt;
 

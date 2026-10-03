@@ -20,6 +20,7 @@ test('preparation reuse checks every output, input identity and incomplete attem
       '.address3d.jsonl',
       '.address3d.meta.json',
       '.audit.json',
+      '.review.json',
       '.membership.json',
     ])
       await writeFile(`${outputFile}${suffix}`, `contents-${generated}`)

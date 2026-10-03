@@ -58,9 +58,7 @@ function run(sqlite: Database) {
     id: string
     snapshotRecipeId: string
     anchorReleaseId: string
-    detailsJson: string
     status: string
-    reviewRequired: number | null
   }
 }
 
@@ -71,7 +69,6 @@ test('fresh ingestion records all inputs, refreshes one draft assembly and repla
     await source(local.db, 'primary')
     await recordSnapshotAssembly(local.db, {
       ...args,
-      detailsJson: { materialisationHash: 'retained' },
     })
     const first = run(local.sqlite)
     await source(local.db, 'enrichment')
@@ -84,8 +81,6 @@ test('fresh ingestion records all inputs, refreshes one draft assembly and repla
     expect(final.id).toBe(first.id)
     expect(final.snapshotRecipeId).not.toBe(first.snapshotRecipeId)
     expect(final.anchorReleaseId).toBe('release-primary')
-    expect(JSON.parse(final.detailsJson).materialisationHash).toBe('retained')
-    expect(JSON.parse(final.detailsJson).sources).toBeUndefined()
     expect(
       local.sqlite.query('SELECT * FROM snapshotResourceReleases').all(),
     ).toHaveLength(3)
@@ -104,7 +99,7 @@ test('fresh ingestion records all inputs, refreshes one draft assembly and repla
     expect(target.sqlite.query('SELECT total_changes() AS count').get()).toEqual(
       changes,
     )
-    expect(run(target.sqlite).detailsJson).toBe(final.detailsJson)
+    expect(run(target.sqlite)).toEqual(run(local.sqlite))
     expect(target.sqlite.query('PRAGMA foreign_key_check').all()).toEqual([])
     expect(
       target.sqlite.query('SELECT * FROM snapshotRecipeInputs').all(),
@@ -144,7 +139,7 @@ test('published assembly evidence remains fixed when a later release verifies th
   }
 })
 
-test('Places planning and finalisation retain review evidence in the same assembly', async () => {
+test('Places finalisation retains exact dependencies in one assembly', async () => {
   const { db, sqlite } = fixture()
   try {
     sqlite.exec(
@@ -153,21 +148,14 @@ test('Places planning and finalisation retain review evidence in the same assemb
     await recordPlaceAddressAssembly(db, {
       ...args,
       dependencies: { address: 'als' },
-      reviewRequired: 2,
     })
     expect(run(sqlite).status).toBe('planning')
     await source(db, 'primary')
     await recordPlaceAddressAssembly(db, {
       ...args,
-      reviewRequired: 0,
-      detailsJson: { materialisationHash: 'hash' },
     })
     expect(run(sqlite).status).toBe('selected')
-    expect(run(sqlite).reviewRequired).toBe(0)
     expect(await readSnapshotDependencies(db, 'snapshot')).toEqual({ address: 'als' })
-    expect(JSON.parse(run(sqlite).detailsJson)).toMatchObject({
-      materialisationHash: 'hash',
-    })
     expect(sqlite.query('SELECT * FROM snapshotAssemblies').all()).toHaveLength(1)
   } finally {
     sqlite.close()

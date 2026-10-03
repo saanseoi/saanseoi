@@ -24,7 +24,6 @@ async function composedFixture() {
     code: 'address-assembly',
     resourceType: 'address',
     version: 1,
-    status: 'scoped',
     versionHash: 'address-assembly',
   })
   for (const name of ['old', 'new']) {

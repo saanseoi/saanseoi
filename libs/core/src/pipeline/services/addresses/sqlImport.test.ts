@@ -89,17 +89,17 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
         'exact_ref', 'release-address', '2026-08-19.0', '2026-09-07T00:00:00.000Z'
       );
       INSERT INTO snapshotRecipes (
-        id, code, resourceType, version, status, notes, versionHash, createdAt, updatedAt
+        id, code, resourceType, version, versionHash, createdAt, updatedAt
       ) VALUES (
-        'address-assembly', 'snapshot-assembly-address-v1', 'address', 1, 'active', NULL,
+        'address-assembly', 'snapshot-assembly-address-v1', 'address', 1,
         'assembly-hash', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
       INSERT INTO snapshotAssemblies (
         id, snapshotId, snapshotRecipeId, anchorReleaseId, anchorCohortKey, status,
-        detailsJson, createdAt, updatedAt
+        createdAt, updatedAt
       ) VALUES (
         'address-assembly-run', 'address-snapshot', 'address-assembly', 'release-address',
-        '2026-08-19.0', 'selected', '{}', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
+        '2026-08-19.0', 'selected', '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
       INSERT INTO releaseShardAssignments (resourceReleaseId, dataShardId)
       VALUES ('release-address', 'history-shard');

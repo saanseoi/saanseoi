@@ -65,6 +65,7 @@ export async function cachedAlsPreparation(
     `${output}.address3d.jsonl`,
     `${output}.address3d.meta.json`,
     `${output}.audit.json`,
+    `${output}.review.json`,
     resolve(input.membershipFile ?? `${output}.membership.json`),
   ]
   return withDeliveryLock(`${output}.preparation.lock`, async () => {

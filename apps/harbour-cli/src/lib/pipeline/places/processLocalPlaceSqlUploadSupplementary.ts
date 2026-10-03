@@ -9,7 +9,6 @@ import {
   stat,
   unlink,
 } from 'node:fs/promises'
-import { deferPlaceAddressReview } from './placeAddressReviewDeferral'
 import { dirname, resolve } from 'node:path'
 import {
   ensureDraftSnapshotForRelease,
@@ -415,9 +414,7 @@ async function prepareSupplementaryAddressesLocked(
               }
             : null,
         )
-        const stagedResolution = deferPlaceAddressReview(
-          compactAddressResolution(resolution),
-        )
+        const stagedResolution = compactAddressResolution(resolution)
         await resolutionOutput.write(`${JSON.stringify(stagedResolution)}\n`)
         resolutionCounts.set(
           resolution.tier,
@@ -469,10 +466,12 @@ async function prepareSupplementaryAddressesLocked(
     throw new Error('Place Address defaults changed during analysis; retry.')
   if ((await readOptionalFile(entryLedgerPath)) !== entryLedgerText)
     throw new Error('Generated Place Address entries changed during analysis; retry.')
-  if (reviewCount)
-    input.onStage?.(
-      `Deferred ${reviewCount} unreviewed Address cases; links remain null; evidence retained at ${reviewPath}`,
+  if (reviewCount) {
+    input.recordCache?.flush()
+    throw new Error(
+      `Address assembly blocked by ${reviewCount} unresolved identity reviews. Resolve the cases in ${reviewPath} and retry.`,
     )
+  }
   // A Places release is complete. Once a generated Address's Place no longer
   // appears after it was first seen, retain the entry but close its lifecycle.
   for (const entry of fixture.entries) {
@@ -674,23 +673,14 @@ async function prepareSupplementaryAddressesLocked(
     revokedAddressIds,
   })
   if (snapshot.status === 'published') {
-    const runs = await db
-      .select()
-      .from(metaSchema.metaSnapshotAssemblies)
-      .where(eq(metaSchema.metaSnapshotAssemblies.snapshotId, snapshot.id))
-      .all()
-    if (
-      !runs.some(
-        run =>
-          (run.detailsJson as { materialisationHash?: string } | null)
-            ?.materialisationHash === materialisationHash,
-      )
-    ) {
+    try {
+      await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
+    } catch (cause) {
       throw new Error(
         'Published supplementary snapshot differs from curation; create a release revision.',
+        { cause },
       )
     }
-    await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
     await writeSupplementaryEntryLedger(entryLedgerPath, nextEntryLedger)
     await input.retainAudit(resourceReleaseId, datasetCode, {
       materialisationHash,
@@ -727,22 +717,6 @@ async function prepareSupplementaryAddressesLocked(
       anchorReleaseId: input.resourceReleaseId,
       anchorCohortKey: input.plan.cohortKey,
       dependencies: { address: input.snapshots.addressSnapshotId },
-      reviewRequired: 0,
-      detailsJson: {
-        materialisationHash,
-        policyVersion: fixture.activePolicy,
-        policies,
-        curationHash: await createHash({
-          policy: JSON.parse(fixtureText),
-          decisions: fixture.decisions,
-          entryLedger: {
-            ...entryLedger,
-            entries: fixture.entries,
-          },
-        }),
-        unreviewedAddressCases: reviewCount,
-        rowCount: addresses.length,
-      },
     })
     const environment = input.targets.environment
     const historyShard = await resolveShardForTypeRegionYear(
@@ -937,7 +911,7 @@ async function writeSupplementaryReviewArtefact(input: {
           authority: input.authority,
           placeReleaseId: input.placeReleaseId,
           policies: input.policies,
-          reviewRequired: input.reviewCount,
+          unresolvedCount: input.reviewCount,
           sourceRelease: input.sourceRelease,
           version: 1,
           results: null,
@@ -952,7 +926,7 @@ async function writeSupplementaryReviewArtefact(input: {
       for await (const resolution of readStagedJsonLines<StagedAddressResolution>(
         input.resolutionPath,
       )) {
-        if (resolution.tier !== 'review' && !resolution.reviewDeferral) continue
+        if (resolution.tier !== 'review') continue
         await output.write(`${first ? '\n' : ',\n'}    ${JSON.stringify(resolution)}`)
         first = false
       }

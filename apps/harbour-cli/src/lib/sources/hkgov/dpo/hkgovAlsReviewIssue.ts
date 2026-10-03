@@ -1,3 +1,5 @@
+import { AsyncLocalStorage } from 'node:async_hooks'
+
 export type AlsReviewIssue = {
   sourceVersion: string
   sourceFile: string
@@ -12,11 +14,20 @@ export type AlsReviewIssue = {
   candidateAddressIds: string[]
 }
 
+export type AlsPendingIssue = AlsReviewIssue | AlsCurationGuardIssue
+const reviewIssues = new AsyncLocalStorage<AlsPendingIssue[]>()
+
+export function collectAlsReviewIssues<T>(run: (issues: AlsPendingIssue[]) => T): T {
+  const issues: AlsPendingIssue[] = []
+  return reviewIssues.run(issues, () => run(issues))
+}
+
 /** Machine-readable line retained by the ingestion log without approving an identity. */
 export function reportAlsReviewIssue(
   issue: AlsReviewIssue | AlsCurationGuardIssue,
   warn: (line: string) => void = console.warn,
 ) {
+  reviewIssues.getStore()?.push(issue)
   warn(`ALS_MANUAL_REVIEW ${JSON.stringify({ ...issue, status: 'unresolved' })}`)
 }
 

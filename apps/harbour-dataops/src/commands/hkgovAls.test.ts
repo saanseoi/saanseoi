@@ -38,13 +38,13 @@ describe('skip curation checks', () => {
       )
       expect(report).toMatchObject({
         reviewStatus: 'unreviewed',
-        ingestionDisposition: 'continue',
+        ingestionDisposition: 'blocked',
         curationApplications: [{ id: 'pending', verification: 'unverified' }],
       })
       expect(report.curationApplications).toHaveLength(1)
       expect(
         JSON.parse(await readFile(report.identityDriftReport, 'utf8')),
-      ).toMatchObject({ reviewStatus: 'unreviewed', candidates: [] })
+      ).toMatchObject({ reviewStatus: 'not_required', candidates: [] })
       expect(result.curationApplications[0]?.verification).toBe('unverified')
     } finally {
       await rm(root, { recursive: true, force: true })

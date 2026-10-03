@@ -812,10 +812,8 @@ function createSnapshotAssemblyDb() {
       code TEXT NOT NULL,
       resourceType TEXT NOT NULL,
       version INTEGER NOT NULL,
-      status TEXT NOT NULL,
       createdAt TEXT NOT NULL,
       updatedAt TEXT,
-      notes TEXT,
       versionHash TEXT,
       processingRules TEXT
     );
@@ -829,20 +827,17 @@ function createSnapshotAssemblyDb() {
       anchorReleaseId TEXT,
       anchorCohortKey TEXT NOT NULL,
       status TEXT NOT NULL,
-      reviewRequired INTEGER,
-      detailsJson TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     );
 
     INSERT INTO snapshotRecipes (
-      id, code, resourceType, version, status, createdAt
+      id, code, resourceType, version, createdAt
     ) VALUES (
       'snapshot-assembly-division-v1',
       'snapshot-assembly-division-v1',
       'division',
       1,
-      'current',
       '2026-07-03T00:00:00.000Z'
     );
     CREATE TABLE datasets (id TEXT PRIMARY KEY, code TEXT NOT NULL);

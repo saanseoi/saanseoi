@@ -272,7 +272,6 @@ test('restores Address2D/3D, localisations and derived number ranges using exact
       code: 'assembly',
       resourceType: 'address',
       version: 1,
-      status: 'scoped',
       versionHash: 'assembly',
     })
     insert(f.meta, 'snapshotAssemblies', {
@@ -419,7 +418,6 @@ test('ALS rollback requires acknowledged exact canonical membership, including e
       code: 'assembly',
       resourceType: 'address',
       version: 1,
-      status: 'scoped',
       versionHash: 'assembly',
     })
     insert(f.meta, 'snapshotAssemblies', {

@@ -9,7 +9,6 @@ import {
 } from './processingRuleDefinitions'
 import { buildFieldLineageDefinition } from '@repo/db'
 import { recordProcessingRun } from './processingRuns'
-import type { SnapshotAssemblyDetails } from '@repo/db/metaSchema'
 import {
   pinApiFieldRules,
   resolvePublisherFieldPaths,
@@ -3883,9 +3882,7 @@ export async function recordSnapshotAssembly(
     anchorCohortKey: string
     anchorReleaseId?: string | null
     resourceType: ResourceType
-    detailsJson?: SnapshotAssemblyDetails | null
     dependencies?: Record<string, string>
-    reviewRequired?: number | null
     snapshotId: string
   },
 ) {

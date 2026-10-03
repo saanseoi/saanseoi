@@ -349,19 +349,6 @@ export type SnapshotSelectionPolicy = {
   rules: Array<{ selectedByRule: string; selectionMode: string }>
 }
 
-/** Construction context only. Source releases and snapshot dependencies are relational. */
-export type SnapshotAssemblyDetails = {
-  releaseRole?: string
-  sourceReleaseId?: string
-  sourceVersion?: string
-  materialisationHash?: string
-  policyVersion?: string
-  policies?: Record<string, unknown>
-  curationHash?: string
-  unreviewedAddressCases?: number
-  rowCount?: number
-}
-
 /** Each role pins one exact dependency; a snapshot may have several different roles. */
 export const metaSnapshotDependencies = sqliteTable(
   'snapshotDependencies',
@@ -387,19 +374,12 @@ export const metaSnapshotRecipes = sqliteTable(
     code: text('code').notNull().unique(),
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     version: integer('version').notNull(),
-    status: text('status').notNull(),
-    notes: text('notes'),
     // Frozen assembly policy; ingestion policy belongs to source/resource releases.
     processingRules: jsonText<{ definitionId: string }>('processingRules'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
-  table => [
-    index('snapshotRecipes_resourceType_status_idx').on(
-      table.resourceType,
-      table.status,
-    ),
-  ],
+  table => [index('snapshotRecipes_resourceType_idx').on(table.resourceType)],
 )
 
 export const metaSnapshotRecipeInputs = sqliteTable(
@@ -433,8 +413,6 @@ export const metaSnapshotAssemblies = sqliteTable(
     anchorReleaseId: text('anchorReleaseId'),
     anchorCohortKey: text('anchorCohortKey'),
     status: text('status').notNull(),
-    reviewRequired: integer('reviewRequired'),
-    detailsJson: jsonText<SnapshotAssemblyDetails>('detailsJson'),
     ...timestamps,
   },
   table => [uniqueIndex('snapshotAssemblies_snapshotId_idx').on(table.snapshotId)],

@@ -55,15 +55,14 @@ export async function retainPlaceProvenance(
     observedPlaces.add(resolution.placeId)
     counts[resolution.tier] = (counts[resolution.tier] ?? 0) + 1
     if (resolution.addressId) linked++
-    if (resolution.reviewDeferral) unreviewed.push(resolution)
+    if (resolution.tier === 'review') unreviewed.push(resolution)
     const index = input.addresses.fixture.decisions.findIndex(
       d =>
         d.placeId === resolution.placeId &&
         d.sourceRelease === input.addresses.sourceVersion &&
         d.fingerprint === resolution.fingerprint,
     )
-    if (index >= 0 && resolution.tier !== 'review' && !resolution.reviewDeferral)
-      selectedDecisions.add(index)
+    if (index >= 0 && resolution.tier !== 'review') selectedDecisions.add(index)
   }
   const total = Object.values(counts).reduce((a, b) => a + b, 0)
   const decisions = input.addresses.fixture.decisions.filter((_, index) =>

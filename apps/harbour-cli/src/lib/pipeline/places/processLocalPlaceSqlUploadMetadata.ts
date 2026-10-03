@@ -58,11 +58,6 @@ export async function upsertPlaceMetadata(
         : {}),
       supplementaryAddress: snapshots.supplementaryAddressSnapshotId,
     },
-    reviewRequired: 0,
-    detailsJson: {
-      sourceReleaseId: resourceReleaseId,
-      sourceVersion: plan.sourceVersion,
-    },
   })
   await recordSnapshotLookupDependency(metaDb, {
     anchorReleaseId: resourceReleaseId,

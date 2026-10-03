@@ -484,8 +484,6 @@ export async function buildAddressMetaSqlFile(
       anchorReleaseId: metaSnapshotAssemblies.anchorReleaseId,
       anchorCohortKey: metaSnapshotAssemblies.anchorCohortKey,
       status: metaSnapshotAssemblies.status,
-      reviewRequired: metaSnapshotAssemblies.reviewRequired,
-      detailsJson: metaSnapshotAssemblies.detailsJson,
       createdAt: metaSnapshotAssemblies.createdAt,
       updatedAt: metaSnapshotAssemblies.updatedAt,
     })
@@ -621,23 +619,16 @@ export async function buildAddressMetaSqlFile(
         'anchorReleaseId',
         'anchorCohortKey',
         'status',
-        'reviewRequired',
-        'detailsJson',
         'createdAt',
         'updatedAt',
       ],
-      snapshotAssemblyRows.map(row => ({
-        ...row,
-        detailsJson: jsonText(row.detailsJson),
-      })),
+      snapshotAssemblyRows,
       `ON CONFLICT(id) DO UPDATE SET
   snapshotId = excluded.snapshotId,
   snapshotRecipeId = excluded.snapshotRecipeId,
   anchorReleaseId = excluded.anchorReleaseId,
   anchorCohortKey = excluded.anchorCohortKey,
   status = excluded.status,
-  reviewRequired = excluded.reviewRequired,
-  detailsJson = excluded.detailsJson,
   createdAt = excluded.createdAt,
   updatedAt = excluded.updatedAt`,
     ),
@@ -810,14 +801,6 @@ function buildInsertStatement(
 
   return `INSERT INTO ${tableName} (${columns.join(', ')}) VALUES ${values}
 ${suffix};`
-}
-
-function jsonText(value: unknown): string | null {
-  if (value === null || value === undefined) {
-    return null
-  }
-
-  return JSON.stringify(value)
 }
 
 function sqlLiteral(value: unknown): string {

@@ -58,8 +58,9 @@ Key points:
 - `snapshotResourceReleases` records concrete upstream release membership
 - `snapshotRecipes` and `snapshotRecipeInputs` describe effective dataset/role selection
   policies; processing implementations live in the codebase
-- `snapshotAssemblies` links each snapshot to one recipe and records construction
-  context and explicit review readiness
+- `snapshotAssemblies` links each snapshot to one recipe and records its construction
+  anchor. Local preparation caches retain review cases and block assembly until
+  resolved.
 - `snapshotDependencies` pins exact input snapshots by role, with one selection per
   snapshot and role
 

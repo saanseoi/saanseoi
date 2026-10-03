@@ -614,7 +614,8 @@ export async function processLocalDivisionGeometrySqlUpload(
             source.sourceReleaseId,
             'enrichment',
             {
-              selectedByRule: 'provenance:censtatd-geometry:carried-forward-contributors:v1',
+              selectedByRule:
+                'provenance:censtatd-geometry:carried-forward-contributors:v1',
               selectionMode: 'carried_forward_companion',
             },
           )
@@ -642,11 +643,6 @@ export async function processLocalDivisionGeometrySqlUpload(
       resourceType: previewPlan.resourceType,
       anchorReleaseId: dataset.resourceReleaseId,
       anchorCohortKey: dataset.cohortKey,
-      detailsJson: {
-        releaseRole: reusesExistingGeometrySnapshot ? 'verified-identical' : 'primary',
-        sourceReleaseId: dataset.resourceReleaseId,
-        sourceVersion: dataset.sourceVersion,
-      },
     })
     if (divisionLookup) {
       await recordSnapshotLookupDependency(metaDb, {

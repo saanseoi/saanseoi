@@ -139,11 +139,6 @@ export type AddressResolution = {
 }
 export type StagedAddressResolution = Omit<AddressResolution, 'candidates'> & {
   candidates: CandidateEvidence[]
-  reviewDeferral?: {
-    reviewStatus: 'unreviewed'
-    originalReason: string
-    authority: string
-  }
 }
 
 /**

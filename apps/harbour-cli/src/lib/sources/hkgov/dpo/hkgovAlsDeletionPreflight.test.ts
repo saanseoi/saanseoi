@@ -180,7 +180,7 @@ test('complex retirement reports affected descendants and requires exact digest 
       }),
     ).resolves.toMatchObject({
       reviewStatus: 'unreviewed',
-      ingestionDisposition: 'continue',
+      ingestionDisposition: 'blocked',
     })
     expect((await Bun.file(reportFile).json()).digest).toBe(report.digest)
     await Bun.write(approvalsFile, JSON.stringify(approved))
@@ -439,6 +439,57 @@ test('upload validates prepared file hashes, source version and predecessor revi
     )
   } finally {
     await rm(dir, { recursive: true, force: true })
+  }
+})
+
+test('unresolved deletion evidence blocks ingestion until the exact report is approved', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'als-deletion-gate-'))
+  const preparedFile = join(directory, 'prepared.parquet')
+  const current = release('2024-02-01.0')
+  current.addresses = []
+  current.collections = []
+  current.sources = []
+  try {
+    await Bun.write(preparedFile, 'prepared')
+    await Bun.write(`${preparedFile}.address3d.jsonl`, 'inventory')
+    const digest = (value: string) => createHash('sha256').update(value).digest('hex')
+    current.preparedSha256 = digest('prepared')
+    current.address3dSha256 = digest('inventory')
+    await writeAlsMembership(`${preparedFile}.membership.json`, current)
+    const previousMembershipFile = join(directory, 'previous.json')
+    const previous = release()
+    await writeAlsMembership(previousMembershipFile, previous)
+    const input = {
+      preparedFile,
+      sourceVersion: current.sourceVersion,
+      previousMembershipFile,
+      reportFile: join(directory, 'review.json'),
+      approvalsFile: join(directory, 'approvals.json'),
+    }
+    await expect(assertPreparedAlsDeletionReview(input)).rejects.toThrow(
+      'unresolved deletion review',
+    )
+    const report = buildAlsDeletionReport(previous, current)
+    await Bun.write(
+      input.approvalsFile,
+      JSON.stringify({
+        schemaVersion: 1,
+        reviews: [
+          {
+            digest: report.digest,
+            sourceVersion: current.sourceVersion,
+            previousSourceVersion: previous.sourceVersion,
+            reason: 'Confirmed complete retirement.',
+            reviewedAt: '2026-10-03',
+          },
+        ],
+      }),
+    )
+    await expect(assertPreparedAlsDeletionReview(input)).resolves.toMatchObject({
+      sourceVersion: current.sourceVersion,
+    })
+  } finally {
+    await rm(directory, { recursive: true, force: true })
   }
 })
 

@@ -1,3 +1,4 @@
+import { assertPreparedAlsReview } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsReviewCache'
 import { cachedAlsPreparation } from '../lib/alsPreparationCache.ts'
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -290,6 +291,14 @@ export async function runHkgovAlsIngestCommand(
         'CONSOLIDATION',
       )
     }
+    const reviewSeal = JSON.parse(
+      await readFile(`${result.outputFile}.address3d.meta.json`, 'utf8'),
+    )
+    await assertPreparedAlsReview(
+      result.outputFile,
+      sourceVersion,
+      reviewSeal.reviewSha256,
+    )
     await runUploadCommand(
       {
         command: 'upload',
@@ -809,8 +818,18 @@ export async function recordAlsIngestionReview(
   )
   await writeJson(resolve(reviewRoot, 'review-backlog', `${sourceVersion}.json`), {
     sourceVersion,
-    reviewStatus: 'unreviewed',
-    ingestionDisposition: 'continue',
+    reviewStatus:
+      result.driftCandidates.length ||
+      curationApplications.length ||
+      result.divisionQuality.issues.length
+        ? 'unreviewed'
+        : 'not_required',
+    ingestionDisposition:
+      result.driftCandidates.length ||
+      curationApplications.length ||
+      result.divisionQuality.issues.length
+        ? 'blocked'
+        : 'ready',
     curationApplications,
     divisionIssues: result.divisionQuality.issues,
     deletionReport: resolve(
@@ -1152,8 +1171,8 @@ async function writeDriftReport(
   await writeJson(resolveInvocationPath(filePath), {
     authority: 'hkgov-dpo',
     candidates,
-    reviewStatus: 'unreviewed',
-    ingestionDisposition: 'continue',
+    reviewStatus: candidates.length ? 'unreviewed' : 'not_required',
+    ingestionDisposition: candidates.length ? 'blocked' : 'ready',
     generatedAt: new Date().toISOString(),
     sourceVersion,
     version: 1,

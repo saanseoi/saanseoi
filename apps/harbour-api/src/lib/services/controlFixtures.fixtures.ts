@@ -378,8 +378,8 @@ export function seedSnapshotAssembly(sqlite: Database, snapshotId: string) {
     .run(definitionId, JSON.stringify(rules))
   const recipeId = `fixture-recipe-${definitionId}`
   sqlite
-    .query(`INSERT OR IGNORE INTO snapshotRecipes (id, code, resourceType, version, status, processingRules, versionHash)
-    VALUES (?, ?, ?, 1, 'current', ?, ?)`)
+    .query(`INSERT OR IGNORE INTO snapshotRecipes (id, code, resourceType, version, processingRules, versionHash)
+    VALUES (?, ?, ?, 1, ?, ?)`)
     .run(
       recipeId,
       recipeId,
@@ -388,8 +388,8 @@ export function seedSnapshotAssembly(sqlite: Database, snapshotId: string) {
       definitionId,
     )
   sqlite
-    .query(`INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId, anchorCohortKey, status, reviewRequired)
-    VALUES (?, ?, ?, ?, 'completed', 0)
+    .query(`INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId, anchorCohortKey, status)
+    VALUES (?, ?, ?, ?, 'completed')
     ON CONFLICT(snapshotId) DO UPDATE SET snapshotRecipeId = excluded.snapshotRecipeId`)
     .run(`fixture-assembly-${snapshotId}`, snapshotId, recipeId, snapshot.cohortKey)
 }

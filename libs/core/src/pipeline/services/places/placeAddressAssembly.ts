@@ -10,9 +10,7 @@ export async function recordPlaceAddressAssembly(
     resourceType: 'place' | 'address'
     anchorReleaseId: string
     anchorCohortKey: string
-    detailsJson?: metaSchema.SnapshotAssemblyDetails
     dependencies?: Record<string, string>
-    reviewRequired?: number | null
   },
 ) {
   const snapshot = await db

@@ -20,7 +20,7 @@ test('division metadata replays current-schema statistics without duplicating pr
       VALUES ('lineage', 'lineage', 'hk', 'division', 'source', 'hash');
       INSERT INTO snapshots (id, snapshotLineageId, resourceType, code, cohortKey, status)
       VALUES ('snapshot', 'lineage', 'division', 'snapshot', '2025', 'draft');
-      INSERT INTO snapshotRecipes (id, code, resourceType, version, status, versionHash) VALUES ('assembly', 'assembly', 'division', 1, 'active', 'hash');
+      INSERT INTO snapshotRecipes (id, code, resourceType, version, versionHash) VALUES ('assembly', 'assembly', 'division', 1, 'hash');
       INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId, status) VALUES ('run', 'snapshot', 'assembly', 'completed');
       INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES ('snapshot', 'dataset', 'release', 'primary');
       INSERT INTO releaseShardAssignments VALUES ('release', 'shard');

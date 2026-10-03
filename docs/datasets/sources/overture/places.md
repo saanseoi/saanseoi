@@ -11,8 +11,8 @@ Processing retains shared rule definitions and curation application counts under
 Place construction records its concrete source releases in `snapshotResourceReleases`,
 its effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact
 Address, Division, DivisionArea and supplementary Address selections in
-`snapshotDependencies`. Assembly `reviewRequired` must be zero before publication;
-`detailsJson` retains typed construction evidence without duplicating dependency IDs.
+`snapshotDependencies`. Address analysis must resolve every identity review before
+materialising supplementary Addresses or recording the final Place assembly.
 
 The updater consumes the Hong Kong `place.division.intersects.clipSmart.parquet` file
 from `data/overture/<release>/divisions/China/Hong Kong`. A present, non-empty export is
@@ -325,7 +325,7 @@ deterministic replacement policy or an explicit curation decision.
 The English-language Clack review defers source addresses containing Chinese characters,
 including mixed-language source values. These items remain unresolved in the review
 artefact with a null link; deferral records no identity decision or retirement and does
-not block ingestion. The review reports how many such items it deferred.
+block assembly until reviewed. The review reports how many such items it retained.
 
 Automatic Address selection, including exact-text, canonical-component and supplementary
 matches, requires known coordinates within 50 metres and a lead of at least 20 points
@@ -369,10 +369,10 @@ records but cannot supply premise evidence or contradictions. Qualified names su
    ALS provenance.
 3. **Review candidate.** A candidate which independently clears the automatic score but
    is tied, insufficiently separated, or carries contradictory component evidence is
-   deferred with a null link; `--yes` may not choose an identity. Multiple source
-   localisations and identity drift also require review. The review artefact must show
-   the previous accepted link, when present, so a reviewer can later keep, retire, or
-   replace it explicitly in a revised release.
+   retained locally and blocks assembly; `--yes` may not choose an identity. Multiple
+   source localisations and identity drift also require review. The review artefact must
+   show the previous accepted link, when present, so a reviewer can later keep, retire,
+   or replace it explicitly before retrying assembly.
 4. **No usable match.** A result below the automatic threshold, including no candidate
    at all, is recorded as delayed and ignored for current Address matching. Weak name
    fragments and locality-shaped tokens are not actionable identity choices. Do not
@@ -661,13 +661,20 @@ Overture Places, Overture Divisions and DivisionAreas, and curated SaanSeoi Divi
 Each selected publisher schema must fall within its declared range; the curated Division
 schema is `1.0`.
 
-### Deferred address review
+### Address review before assembly
 
-Unresolved Place Address cases are retained as unreviewed during ingestion. The place
-remains available with a null address link; candidate evidence and the original reason
-are retained in the release review artefact and provenance. Ingestion does not select an
-identity or record a curation decision. Reviewed links and approved supplementary
-addresses continue to apply. Later review can resolve these cases in revised releases.
+Address analysis caches candidate evidence and unresolved identity cases locally in
+`.local/harbour-sql/releases/{target}/{releaseCode}/overture-place-address-review.json`.
+Any unresolved case blocks supplementary Address materialisation and final Place
+assembly, including with `--yes`. Resolve each case through the curation decisions and
+retry the release; analysis reuses unchanged computations and checks the current source,
+Address dependencies and curation inputs. A retry replaces the review cache, including
+when no cases remain. Review state is not stored in META.
+
+A reviewed decision to leave a Place unlinked is resolved. A source address with no
+usable match also remains unlinked; it does not represent an ambiguous identity choice.
+Published supplementary Addresses must reproduce their materialised rows and
+localisations before a retry can proceed.
 
 The Place division projection includes point-in-polygon island membership alongside
 administrative and locality references. `filter[division]` accepts island IDs even when

@@ -293,11 +293,7 @@ export async function prepareAls3dCollections(options: {
       const blocklessKey = hkgovAls3dBlocklessParentKey(csuCorrection.csu, en, zh)
       const structuralCandidates = blocklessParentsByKey.get(blocklessKey) ?? []
       const hasBlockComponents = Boolean(en.EngBlock || zh.ChiBlock)
-      if (
-        hasBlockComponents &&
-        structuralCandidates.length > 1 &&
-        options.skipCurationChecks
-      )
+      if (hasBlockComponents && structuralCandidates.length > 1)
         reportReview(
           'ambiguous-block-parent',
           structuralCandidates.map(row => row.id),
@@ -355,11 +351,7 @@ export async function prepareAls3dCollections(options: {
       const parent = candidates[0]
       if (!parent) throw new Error('Missing ALS parent')
       options.onGuardPassed?.('inventory-parent')
-      if (
-        parent.curatedGranularity === 'section' &&
-        !ownership.has(parent.id) &&
-        options.skipCurationChecks
-      )
+      if (parent.curatedGranularity === 'section' && !ownership.has(parent.id))
         reportReview('unreviewed-section-inventory', [parent.id])
       if (
         parent.curatedGranularity === 'section' &&
@@ -380,7 +372,7 @@ export async function prepareAls3dCollections(options: {
         en.EngBlock?.BlockNo,
       ])
       const priorOwner = physicalOwners.get(physicalKey)
-      if (priorOwner && priorOwner !== owner && options.skipCurationChecks)
+      if (priorOwner && priorOwner !== owner)
         reportReview('shared-building-owners', [priorOwner, owner])
       if (priorOwner && priorOwner !== owner && !options.skipCurationChecks)
         throw new Error(

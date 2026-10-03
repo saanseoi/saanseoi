@@ -167,11 +167,6 @@ export async function processLocalStreetSqlUpload(
       resourceType: 'street',
       anchorReleaseId: dataset.resourceReleaseId,
       anchorCohortKey: dataset.cohortKey,
-      detailsJson: {
-        releaseRole: LANDSD_STREET_SNAPSHOT_SOURCE_ROLE,
-        sourceReleaseId: dataset.resourceReleaseId,
-        sourceVersion: dataset.sourceVersion,
-      },
     })
 
     const [historyShard, sourceShard] = await Promise.all([

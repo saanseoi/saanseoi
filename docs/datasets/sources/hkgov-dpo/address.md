@@ -143,11 +143,11 @@ loss. A deletion spike is at least 100 removals and at least 5% at a level, or a
 
 Approval is an exact report digest in `.local/hkgov-dpo/deletion-reviews.json`, with
 `schemaVersion: 1` and `reviews` entries containing `digest`, `sourceVersion`,
-`previousSourceVersion`, `reason` and `reviewedAt`. Ingestion continues with unreviewed
-reports. Changed resolved membership or report contents remain unreviewed until a fresh
-review. Prepared-file container hashes are excluded from the approval digest; changed
-files still require preparation and checksum validation. Delivery retains a sealed
-`address-membership.json` inside its `sql-delivery-address` directory. After
+`previousSourceVersion`, `reason` and `reviewedAt`. Unreviewed reports block assembly
+and ingestion. Changed resolved membership or report contents remain unreviewed until a
+fresh review. Prepared-file container hashes are excluded from the approval digest;
+changed files still require preparation and checksum validation. Delivery retains a
+sealed `address-membership.json` inside its `sql-delivery-address` directory. After
 acknowledgement, the mirror receives `address-membership/<scopeId>/<snapshotId>.json`.
 The next release requires that exact predecessor file and checks its Address2D IDs,
 Address3D owners and unit IDs against the mirror. A prepared sidecar alone cannot
@@ -266,24 +266,11 @@ enrichment candidates must have no bilingual source block objects. Descriptor-on
 blocks such as `CARPARK BLK` / `停車場` retain their publisher components and use their
 existing 2D parent without numbered-block enrichment.
 
-`--skip-curation-checks` accepts pending correction verification and identity drift
-checks during ingestion, including with `--yes`. Each release is prepared and checked
-immediately before ingestion; unresolved deletion cases remain unreviewed. Source and
-integrity validation run during preparation of each ingested release. Grouped
-initialisers broadcast the flag to address ingestion; direct `hkgov-dpo:ingest` also
-accepts it. Corrections retain their existing verification provenance. Unresolved
-identity changes use generated IDs for the run, without writing human-reviewed decisions
-or verification dates to fixtures. This mode supports pre-curation reference and testing
-imports; source validation and database integrity checks still apply. The
-shared-building ownership curation check is skipped: each resolved owner keeps its own
-inventory and source occurrences. Ambiguous parent matches and conflicting inventories
-for the same owner still stop preparation. Skip mode omits parent block enrichment and
-duplicate suppression, retaining publisher 2D components and separate assertions. It
-uses exact parents or unique block-free matches and accepts section inventories without
-a reviewed ownership mapping. Alias coalescences apply only when their source guards
-match. In skip mode, a guard mismatch omits that coalescence and retains both publisher
-records unchanged. Coordinate backfills whose source targets are missing, ambiguous or
-changed are omitted in skip mode; matching backfills still apply with their provenance.
+`--skip-curation-checks` permits preparation to retain pending correction verification
+and identity drift evidence locally. Ingestion checks the sealed review cache before
+assembly; unresolved cases, including deletion reviews, block it. Grouped initialisers
+and direct `hkgov-dpo:ingest` use the same gate. This flag does not approve an identity,
+change fixture verification dates or bypass integrity validation.
 
 Strict ALS preflight stops on an alias-coalescence guard mismatch with the release,
 curation fixture and decision ID. It writes an unresolved JSON review item under
@@ -1015,20 +1002,22 @@ distinct even when they share a CSU. Exact release evidence guards each tower; r
 source attributes and coordinates are preserved. Centaline Phases 2A and 2B corroborate
 the inventory, without replacing the publisher points. No earlier existence is inferred.
 
-### Deferred ingestion review
+### Local review before assembly
 
-Ingestion retains unresolved curation cases as **unreviewed** and continues without
-asking for identity or retirement decisions. Existing approved corrections remain
-active. ALS deletion reports retain their evidence and exact approval digest; stale
-approvals do not mark a new report reviewed. Identity drift uses the generated current
-IDs without recording an approved identity decision. Active corrections beyond their
-verification date retain unverified provenance.
+ALS preparation retains unresolved identity drift, curation verification, division
+linkage and 3D inventory cases in `{preparedFile}.review.json`. The preparation seal
+binds this cache to the exact Parquet and 3D sidecar checksums. Ingestion rejects a
+missing, changed or mismatched cache and stops before assembly when any issue remains.
+Resolve the underlying evidence or curation decisions and prepare the release again;
+editing or deleting the issue list does not establish readiness. `--yes` and
+`--skip-curation-checks` cannot bypass this gate.
 
-ALS prepares and ingests one release at a time in chronological order. Upload checks
-compare membership with the acknowledged predecessor. ALS stores per-release evidence in
-`.local/hkgov-dpo/review-backlog/`, with linked deletion and identity-drift reports.
-Dataset issues can be reviewed after ingestion and resolved in revised releases.
-File-integrity, parent-reference and ID-collision checks still apply.
+ALS prepares and ingests releases chronologically. Local deletion reports compare the
+prepared membership with the acknowledged predecessor and block assembly until every
+required report has its exact digest approval. Stale approvals do not authorise changed
+membership. `.local/hkgov-dpo/review-backlog/` links the per-release review evidence;
+review state does not belong to META. File-integrity, parent-reference and ID-collision
+checks also apply.
 
 Historical Address releases retain their exact published Division selection in
 provenance and history. Current Address foreign keys use that Division lineage's

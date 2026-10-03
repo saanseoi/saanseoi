@@ -322,6 +322,37 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     } as unknown as Parameters<typeof prepareSupplementaryAddresses>[0]
     const nextHistoryTarget = input.targets.historyByBinding.get('DB_HISTORY_HK_2026')
     if (!nextHistoryTarget) throw new Error('Expected the next history shard.')
+    // Unresolved analysis must leave snapshot assembly and canonical stores untouched.
+    const blockedPolicy = { ...structuredClone(policy), decisions: [] as unknown[] }
+    blockedPolicy.decisions = [
+      {
+        placeId: place.id,
+        sourceRelease: input.plan.sourceVersion,
+        fingerprint: addressFingerprint(['Citygate Outlets, 20 Tat Tung Road']),
+        previousAddressId: null,
+        resolution: 'link_existing',
+        addressId: 'missing-reviewed-address',
+        reason: 'Selected address must be reproduced before assembly.',
+      },
+    ]
+    await writeFile(curationPath, JSON.stringify(blockedPolicy))
+    const assembliesBeforeReview = meta.query('SELECT * FROM snapshotAssemblies').all()
+    await expect(prepareSupplementaryAddresses(input)).rejects.toThrow(
+      'Address assembly blocked by 1 unresolved identity reviews',
+    )
+    expect(meta.query('SELECT * FROM snapshotAssemblies').all()).toEqual(
+      assembliesBeforeReview,
+    )
+    expect(current.query('SELECT id FROM address2d').all()).toEqual([
+      { id: 'als-citygate' },
+    ])
+    expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 0 })
+    expect(auditHashes).toHaveLength(0)
+    const blockedReview = JSON.parse(
+      await readFile(resolve(root, 'overture-place-address-review.json'), 'utf8'),
+    )
+    expect(blockedReview.results[0]).toMatchObject({ tier: 'review', addressId: null })
+    await writeFile(curationPath, JSON.stringify(policy))
     await writeFile(
       resolve(root, 'entries.json.lock'),
       JSON.stringify({
@@ -815,17 +846,16 @@ test('supplementary editions reuse cross-year components, replay immutable prove
         ...input,
         places: [changed, additionalAccepted],
       }),
-    ).rejects.toThrow('Published supplementary snapshot differs from curation')
+    ).rejects.toThrow('Address assembly blocked by 1 unresolved identity reviews')
     expect(await readFile(curationPath, 'utf8')).toBe(curationBeforeReview)
     expect(await readFile(entryLedgerPath, 'utf8')).toBe(entriesBeforeReview)
     const review = JSON.parse(
       await readFile(resolve(root, 'overture-place-address-review.json'), 'utf8'),
     )
-    expect(review.reviewRequired).toBe(1)
+    expect(review.unresolvedCount).toBe(1)
     expect(review.results).toHaveLength(1)
     expect(review.results[0]).toMatchObject({
-      tier: 'delayed',
-      reviewDeferral: { reviewStatus: 'unreviewed' },
+      tier: 'review',
     })
     expect(review.results[0].previous.addressId).toBe(first.addresses[0]?.current.id)
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })

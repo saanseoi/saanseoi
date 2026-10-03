@@ -31,7 +31,7 @@ const tables = {
   snapshotRecipeInputs:
     'snapshotRecipeId TEXT REFERENCES snapshotRecipes(id), datasetId TEXT, PRIMARY KEY(snapshotRecipeId,datasetId)',
   snapshotAssemblies:
-    'id TEXT PRIMARY KEY, snapshotId TEXT REFERENCES snapshots(id), snapshotRecipeId TEXT REFERENCES snapshotRecipes(id), status TEXT, detailsJson TEXT, anchorReleaseId TEXT',
+    'id TEXT PRIMARY KEY, snapshotId TEXT REFERENCES snapshots(id), snapshotRecipeId TEXT REFERENCES snapshotRecipes(id), status TEXT, anchorReleaseId TEXT',
   snapshotDependencies:
     'snapshotId TEXT REFERENCES snapshots(id), dependencySnapshotId TEXT REFERENCES snapshots(id), role TEXT, PRIMARY KEY(snapshotId,role)',
   releaseShardAssignments:
@@ -62,7 +62,7 @@ async function populate(db: Database) {
       INSERT INTO snapshotResourceReleases VALUES('${variant}','release','contributed_geometry');
       INSERT INTO snapshotRecipes VALUES('${variant}','recipe-hash');
       INSERT INTO snapshotRecipeInputs VALUES('${variant}','dataset');
-      INSERT INTO snapshotAssemblies VALUES('${variant}','${variant}','${variant}','selected','{"materialisationHash":"retained"}',NULL);
+      INSERT INTO snapshotAssemblies VALUES('${variant}','${variant}','${variant}','selected',NULL);
       INSERT INTO snapshotShardAssignments VALUES('${variant}','history');`)
   db.exec(
     "INSERT INTO snapshotDependencies VALUES ('simplified','lookup','divisionArea')",
@@ -295,17 +295,17 @@ test('geometry metadata replay resumes a partial second variant and carries real
 
 test('oversized metadata replay retains complete content when the existing chunk placeholder matches', () => {
   const db = new Database(':memory:')
-  db.exec(`CREATE TABLE snapshotAssemblies(id TEXT PRIMARY KEY,snapshotId TEXT,detailsJson TEXT);
-    INSERT INTO snapshotAssemblies VALUES('run','snapshot','');`)
+  db.exec(`CREATE TABLE testPayloads(id TEXT PRIMARY KEY,snapshotId TEXT,payload TEXT);
+    INSERT INTO testPayloads VALUES('run','snapshot','');`)
   const row = {
     id: 'run',
     snapshotId: 'snapshot',
-    detailsJson: JSON.stringify({
+    payload: JSON.stringify({
       evidence: '香港'.repeat(MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES),
     }),
   }
   try {
-    const sql = geometryBuildUpsertSql('snapshotAssemblies', [row], {
+    const sql = geometryBuildUpsertSql('testPayloads', [row], {
       skipUnchanged: true,
     })
     for (const statement of sql.split('\n'))
@@ -313,9 +313,9 @@ test('oversized metadata replay retains complete content when the existing chunk
         MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES,
       )
     executeNativeSqlStatements(db, sql)
-    expect(db.query('SELECT * FROM snapshotAssemblies').get()).toEqual(row)
+    expect(db.query('SELECT * FROM testPayloads').get()).toEqual(row)
     executeNativeSqlStatements(db, sql)
-    expect(db.query('SELECT * FROM snapshotAssemblies').get()).toEqual(row)
+    expect(db.query('SELECT * FROM testPayloads').get()).toEqual(row)
   } finally {
     db.close()
   }

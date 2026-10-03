@@ -58,17 +58,12 @@ export async function assertPlaceAddressDependencies(
   snapshotId: string,
   resourceReleaseId: string,
 ) {
-  const assembly = await db
-    .select({ reviewRequired: metaSchema.metaSnapshotAssemblies.reviewRequired })
-    .from(metaSchema.metaSnapshotAssemblies)
-    .where(eq(metaSchema.metaSnapshotAssemblies.snapshotId, snapshotId))
-    .get()
   const supplementaryAddressSnapshotId = (
     await readSnapshotDependencies(db, snapshotId)
   ).supplementaryAddress
-  if (!supplementaryAddressSnapshotId || assembly?.reviewRequired !== 0) {
+  if (!supplementaryAddressSnapshotId) {
     throw new ControlRequestError(
-      'Places publication requires completed supplementary Address analysis with no outstanding identity reviews.',
+      'Places publication requires a completed supplementary Address dependency.',
     )
   }
   const supplementary = await db

@@ -759,6 +759,7 @@ export async function prepareAddressVersionInsertContext(
   metaDb: HarbourReadableDb & HarbourWritableDb,
   message: DatasetProcessingMessage,
   environment: 'preview' | 'production',
+  options: { deferAssembly?: boolean } = {},
 ): Promise<AddressVersionInsertContext> {
   const dataset = message.resourceReleaseId?.trim()
     ? await waitForDatasetRecord(metaDb, {
@@ -829,17 +830,13 @@ export async function prepareAddressVersionInsertContext(
       sourceCohortKey: dataset.cohortKey,
     },
   )
-  await recordSnapshotAssembly(metaDb, {
-    snapshotId: snapshot.id,
-    resourceType: 'address',
-    anchorReleaseId: releaseRole === 'primary' ? dataset.resourceReleaseId : null,
-    anchorCohortKey: dataset.cohortKey,
-    detailsJson: {
-      releaseRole,
-      sourceReleaseId: dataset.resourceReleaseId,
-      sourceVersion: dataset.sourceVersion,
-    },
-  })
+  if (!options.deferAssembly)
+    await recordSnapshotAssembly(metaDb, {
+      snapshotId: snapshot.id,
+      resourceType: 'address',
+      anchorReleaseId: releaseRole === 'primary' ? dataset.resourceReleaseId : null,
+      anchorCohortKey: dataset.cohortKey,
+    })
   await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, historyShard.id)
   await upsertReleaseShardAssignment(metaDb, dataset.resourceReleaseId, sourceShard.id)
   await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)

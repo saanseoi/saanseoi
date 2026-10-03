@@ -72,7 +72,6 @@ test('empty exact Address dependencies resolve from metadata and reject missing 
       code: 'assembly',
       resourceType: 'address',
       version: 1,
-      status: 'scoped',
       versionHash: 'assembly',
     })
     insert(meta, 'snapshotAssemblies', {
@@ -210,7 +209,6 @@ test('exact historical Place dependencies replay independent locale shards and s
       code: 'assembly',
       resourceType: 'address',
       version: 1,
-      status: 'scoped',
       versionHash: 'assembly',
     })
     for (const snapshotId of ['a1', 'a2'])

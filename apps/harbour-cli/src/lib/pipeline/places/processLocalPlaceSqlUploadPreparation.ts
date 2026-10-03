@@ -43,7 +43,6 @@ import {
 import type { StagedAddressResolution } from './supplementaryPlaceAddress.ts'
 import type { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.ts'
 import { hashPlaceSource } from './placeSourceHash.ts'
-import { recordPlaceAddressAssembly } from '@repo/core/pipeline/services/places/placeAddressAssembly'
 import { currentSchema, metaSchema } from '@repo/db'
 import { and, eq, sql } from 'drizzle-orm'
 import { mapWithConcurrency } from '../local/orchestrator.ts'
@@ -206,19 +205,6 @@ export async function resolvePlaceSnapshots(
     metaDb,
     address.id,
   )
-  if (!recordedAddressId)
-    await recordPlaceAddressAssembly(metaDb, {
-      snapshotId: place.id,
-      resourceType: 'place',
-      anchorReleaseId: resourceReleaseId,
-      anchorCohortKey: plan.cohortKey,
-      dependencies: {
-        address: address.id,
-        division: division.id,
-        divisionArea: divisionAreaSnapshotId,
-      },
-      reviewRequired: null,
-    })
   return {
     addressSnapshotId: address.id,
     divisionSnapshotId: division.id,

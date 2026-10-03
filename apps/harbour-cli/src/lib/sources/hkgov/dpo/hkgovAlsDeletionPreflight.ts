@@ -412,7 +412,10 @@ export async function reviewAlsDeletions(input: {
         ? 'reviewed'
         : 'unreviewed'
       : 'not_required',
-    ingestionDisposition: 'continue',
+    ingestionDisposition:
+      report.requiresReview && !hasAlsDeletionReview(report, approvals)
+        ? 'blocked'
+        : 'ready',
   }
   await writeFile(input.reportFile, JSON.stringify(reviewedReport, null, 2))
   return reviewedReport
@@ -448,7 +451,7 @@ export async function assertPreparedAlsDeletionReview(input: {
   const previous = input.previousMembershipFile
     ? await readAlsMembership(input.previousMembershipFile)
     : null
-  await reviewAlsDeletions({
+  const review = await reviewAlsDeletions({
     previous,
     current,
     reportFile:
@@ -456,5 +459,9 @@ export async function assertPreparedAlsDeletionReview(input: {
       resolve(ALS_DELETION_REPORT_DIRECTORY, `${input.sourceVersion}.json`),
     approvalsFile: input.approvalsFile,
   })
+  if (review.reviewStatus === 'unreviewed')
+    throw new Error(
+      `Address assembly blocked by unresolved deletion review: ${input.reportFile ?? resolve(ALS_DELETION_REPORT_DIRECTORY, `${input.sourceVersion}.json`)}`,
+    )
   return current
 }

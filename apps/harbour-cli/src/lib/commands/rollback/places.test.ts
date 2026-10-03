@@ -72,7 +72,6 @@ async function fixture() {
       code: id,
       resourceType: kind,
       version: 1,
-      status: 'scoped',
       versionHash: id,
     })
     insert(meta, 'snapshotAssemblies', {

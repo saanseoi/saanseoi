@@ -1,3 +1,9 @@
+import {
+  collectAlsReviewIssues,
+  AlsCurationReviewError,
+  type AlsPendingIssue,
+} from './hkgovAlsReviewIssue'
+import { writeAlsReviewCache, writeAlsReviewFailureCache } from './hkgovAlsReviewCache'
 import { applyAlsDivisionMembership } from './hkgovAlsDivisionMembership'
 import {
   retainReviewedAlsPremises,
@@ -110,7 +116,24 @@ export const alsPreparationRule = registerRule(
 
 export const alsCurationRule = registerRule(
   ruleDeclarationFromFixture(curationFixture),
-  (options: PrepareHkgovAlsOptions) => prepareHkgovAlsAddressParquetInternal(options),
+  (options: PrepareHkgovAlsOptions) =>
+    collectAlsReviewIssues(async issues => {
+      try {
+        return await prepareHkgovAlsAddressParquetInternal(options, issues)
+      } catch (error) {
+        const pending = [
+          ...issues,
+          ...(error instanceof AlsCurationReviewError ? [error.issue] : []),
+        ]
+        if (pending.length && options.writeOutput !== false)
+          await writeAlsReviewFailureCache(
+            resolve(options.outputFile),
+            options.sourceVersion,
+            pending,
+          )
+        throw error
+      }
+    }),
 )
 
 export function prepareHkgovAlsAddressParquet(options: PrepareHkgovAlsOptions) {
@@ -119,6 +142,7 @@ export function prepareHkgovAlsAddressParquet(options: PrepareHkgovAlsOptions) {
 
 async function prepareHkgovAlsAddressParquetInternal(
   options: PrepareHkgovAlsOptions,
+  reviewIssues: AlsPendingIssue[],
 ): Promise<PreparedHkgovAlsResult> {
   const sourceDir = resolve(options.sourceDir)
   const outputFile = resolve(options.outputFile)
@@ -662,11 +686,27 @@ async function prepareHkgovAlsAddressParquetInternal(
       ],
     })
 
+  const curationApplications = [
+    ...estateComponents.applications,
+    ...estateGaps.applications,
+  ]
   if (options.writeOutput !== false) {
+    const reviewSha256 = await writeAlsReviewCache(outputFile, options.sourceVersion, [
+      ...reviewIssues,
+      ...drift.candidates.map(evidence => ({ code: 'identity-drift', evidence })),
+      ...curationApplications
+        .filter(row => row.verification === 'unverified')
+        .map(evidence => ({ code: 'unverified-curation', evidence })),
+      ...divisionQuality.issues.map(evidence => ({
+        code: 'division-linkage',
+        evidence,
+      })),
+    ])
     await writeFile(
       `${outputFile}.address3d.meta.json`,
       JSON.stringify({
         sourceVersion: options.sourceVersion,
+        reviewSha256,
         parquetSha256: await fileSha256(outputFile),
         sidecarSha256: await fileSha256(`${outputFile}.address3d.jsonl`),
       }),
@@ -721,10 +761,7 @@ async function prepareHkgovAlsAddressParquetInternal(
   }
   return {
     membership,
-    curationApplications: [
-      ...estateComponents.applications,
-      ...estateGaps.applications,
-    ],
+    curationApplications,
     deduplicatedFeatureCount: sourceFeatureCount - uniqueSourceFeatures.length,
     driftCandidates: drift.candidates,
     featureCount: sourceFeatureCount,

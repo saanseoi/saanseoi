@@ -6,8 +6,8 @@ Processing runs, reusable rule mappings and counts-only curation evidence follow
 Place construction records its concrete source releases in `snapshotResourceReleases`,
 its effective recipe through `snapshotAssemblies` and `snapshotRecipes`, and exact
 Address, Division, DivisionArea and supplementary Address selections in
-`snapshotDependencies`. Assembly `reviewRequired` must be zero before publication;
-`detailsJson` retains typed construction evidence without duplicating dependency IDs.
+`snapshotDependencies`. Address analysis must resolve every identity review before
+materialising supplementary Addresses or recording the final Place assembly.
 
 Automatic Place normalisation and Address matching retain rules and aggregate counts.
 Individual audit entries require record-specific fixture decisions; matching additional
@@ -513,13 +513,20 @@ unavailable, and a valid empty snapshot still requires completion evidence. Sear
 reuses unchanged documents across publication advances. Reads, cleanup and
 reset/reingest follow the [publication-state contract](../publication-state-plan.md).
 
-### Deferred address review
+### Address review before assembly
 
-Unresolved Place Address cases are retained as unreviewed during ingestion. The place
-remains available with a null address link; candidate evidence and the original reason
-are retained in the release review artefact and provenance. Ingestion does not select an
-identity or record a curation decision. Reviewed links and approved supplementary
-addresses continue to apply. Later review can resolve these cases in revised releases.
+Address analysis caches candidate evidence and unresolved identity cases locally in
+`.local/harbour-sql/releases/{target}/{releaseCode}/overture-place-address-review.json`.
+Any unresolved case blocks supplementary Address materialisation and final Place
+assembly, including with `--yes`. Resolve each case through the curation decisions and
+retry the release; analysis reuses unchanged computations and checks the current source,
+Address dependencies and curation inputs. A retry replaces the review cache, including
+when no cases remain. Review state is not stored in META.
+
+A reviewed decision to leave a Place unlinked is resolved. A source address with no
+usable match also remains unlinked; it does not represent an ambiguous identity choice.
+Published supplementary Addresses must reproduce their materialised rows and
+localisations before a retry can proceed.
 
 ## Composition member roles
 
