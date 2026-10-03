@@ -90,10 +90,6 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
     key = args.options['source-archive-key'],
     sha = args.options['source-archive-sha256']
   const geographyOnly = args.options['geography-only'] === true
-  const includeGeography =
-    geographyOnly ||
-    args.options['defer-stats-release-set'] !== true ||
-    args.options['include-geography'] === true
   const deferApiReleaseSet = args.options['defer-api-release-set'] === true
   const forceUpload = args.options['force-upload'] === true
   if (
@@ -227,16 +223,12 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
           ]
     const requestedTypes: StatisticResourceType[] = [
       ...(!geographyOnly ? (['divisionStatistic'] as const) : []),
-      ...(!includeGeography
-        ? []
-        : geographies.some(geography => geography.divisionCount > 0)
-          ? (['division'] as const)
-          : []),
-      ...(!includeGeography
-        ? []
-        : geographies.some(geography => geography.areaCount > 0)
-          ? (['divisionArea'] as const)
-          : []),
+      ...(geographies.some(geography => geography.divisionCount > 0)
+        ? (['division'] as const)
+        : []),
+      ...(geographies.some(geography => geography.areaCount > 0)
+        ? (['divisionArea'] as const)
+        : []),
     ]
     const releaseReport = forceUpload
       ? null
@@ -339,13 +331,7 @@ export async function runHkgovCenstatdStatisticsIngestCommand(
       )
     }
 
-    // Launch bootstrap prepares all Statistics snapshots before publishing a
-    // cohort-complete initial release set. HMA/area companion geometry belongs to the Divisions
-    // family and may depend on Division inputs that are deliberately outside
-    // that Stats-only batch. Do not let that optional fan-out invalidate the
-    // successfully published Statistics source release.
-    if (!includeGeography) return
-
+    // Release-set deferral does not defer the source release’s companion resources.
     for (const geography of geographies) {
       for (const [filePath, type] of [
         ...(geography.divisionCount > 0 && geography.divisionOutputFile

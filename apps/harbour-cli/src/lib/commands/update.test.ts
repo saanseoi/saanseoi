@@ -827,13 +827,17 @@ test('geometry publication cannot hide a missing statistics release', () => {
     versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
     releases: [{ sourceVersion: '2021', sourceUrl: 'https://example.test/2021' }],
   } satisfies DatasetFixture
-  const geometry = { sourceVersion: '2021', status: 'published', type: 'divisionArea' }
+  const geometry = {
+    sourceVersion: '2021',
+    status: 'published',
+    resourceType: 'divisionArea',
+  }
   expect(targetVersionsFromReport(dataset, [geometry]).get('2021')).toBeNull()
   expect(
     targetVersionsFromReport(dataset, [
       { ...geometry, hasStatisticsSnapshot: true },
     ]).get('2021'),
-  ).toBe('2021')
+  ).toBeNull()
   expect(
     targetVersionsFromReport(dataset, [
       geometry,
@@ -842,7 +846,7 @@ test('geometry publication cannot hide a missing statistics release', () => {
   ).toBe('2021')
 })
 
-test('statistics with requested geography requires every declared resource in the same cohort', () => {
+test('statistics readiness requires every declared resource in the same cohort', () => {
   const dataset = {
     code: 'ds-example',
     publisherCode: 'example',
@@ -859,33 +863,32 @@ test('statistics with requested geography requires every declared resource in th
   }
   const division = { ...stats, resourceType: 'division' }
   const area = { ...stats, resourceType: 'divisionArea' }
-  expect(targetVersionsFromReport(dataset, [stats], true).get('2021')).toBeNull()
-  expect(targetVersionsFromReport(dataset, [stats, area], true).get('2021')).toBeNull()
+  expect(targetVersionsFromReport(dataset, [stats]).get('2021')).toBeNull()
+  expect(targetVersionsFromReport(dataset, [stats, area]).get('2021')).toBeNull()
   expect(
-    targetVersionsFromReport(
-      dataset,
-      [stats, division, { ...area, sourceVersion: '2024' }],
-      true,
-    ).get('2021'),
+    targetVersionsFromReport(dataset, [
+      stats,
+      division,
+      { ...area, sourceVersion: '2024' },
+    ]).get('2021'),
   ).toBeNull()
   expect(
-    targetVersionsFromReport(
-      dataset,
-      [stats, division, { ...area, status: 'failed' }],
-      true,
-    ).get('2021'),
+    targetVersionsFromReport(dataset, [
+      stats,
+      division,
+      { ...area, status: 'failed' },
+    ]).get('2021'),
   ).toBeNull()
+  expect(targetVersionsFromReport(dataset, [stats, division, area]).get('2021')).toBe(
+    '2021',
+  )
   expect(
-    targetVersionsFromReport(dataset, [stats, division, area], true).get('2021'),
+    targetVersionsFromReport(dataset, [
+      stats,
+      division,
+      { ...area, status: 'superseded' },
+    ]).get('2021'),
   ).toBe('2021')
-  expect(
-    targetVersionsFromReport(
-      dataset,
-      [stats, division, { ...area, status: 'superseded' }],
-      true,
-    ).get('2021'),
-  ).toBe('2021')
-  expect(targetVersionsFromReport(dataset, [stats], false).get('2021')).toBe('2021')
 })
 
 test('wraps update errors to the guided output width, including long URLs', () => {

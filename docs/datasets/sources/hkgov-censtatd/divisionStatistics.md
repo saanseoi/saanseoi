@@ -559,8 +559,8 @@ unrelated geometry and source evidence assets. See the
 datasets, including exact and simplified snapshots. It also retracts derived geographic
 snapshots, affected Divisions API release sets and catalogue revisions, preserving their
 other source inputs. Non-geographic consumers block deletion. Update readiness requires
-a published statistics release; a geometry release for the same source cohort does not
-satisfy that check.
+every declared source resource to be published for the same cohort, including the
+statistics release and its companion geometry.
 
 Rules that consume identity mappings retain the selected bridge fixtures alongside their
 execution counts. Audit cards can also display the same release’s retained geography
@@ -693,3 +693,9 @@ processing are selected only for the resource outputs that use them.
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+Statistics initialisation ingests every resource declared by each source dataset,
+including companion division areas. `--defer-stats-release-set` postpones composed
+Statistics release-set publication only. A source cohort is complete only when every
+declared resource is published for that cohort. Resuming an incomplete cohort retains
+published resources and ingests its missing companions.

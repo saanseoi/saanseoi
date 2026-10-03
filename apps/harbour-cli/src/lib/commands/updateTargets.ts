@@ -33,7 +33,6 @@ export function requirePublishedTargetVersion(
 export async function fetchTargetVersions(
   target: UploadTarget,
   dataset: DatasetFixture,
-  includeGeography = false,
 ) {
   const report = await fetchReleaseReport(target, {
     datasetCode: dataset.code,
@@ -44,7 +43,7 @@ export async function fetchTargetVersions(
       `Target release report for ${dataset.code} may be truncated at ${TARGET_RELEASE_REPORT_LIMIT} rows.`,
     )
   }
-  return targetVersionsFromReport(dataset, report.rows, includeGeography)
+  return targetVersionsFromReport(dataset, report.rows)
 }
 
 export function targetVersionsFromReport(
@@ -53,9 +52,8 @@ export function targetVersionsFromReport(
     Pick<ReleaseReportRow, 'sourceVersion' | 'status'> &
       Partial<Pick<ReleaseReportRow, 'resourceType' | 'hasStatisticsSnapshot'>>
   >,
-  includeGeography = false,
 ) {
-  if (dataset.theme === 'stats' && includeGeography) {
+  if (dataset.theme === 'stats') {
     const requiredTypes = dataset.resourceTypes ?? ['divisionStatistic']
     const completeVersions = new Set(
       rows

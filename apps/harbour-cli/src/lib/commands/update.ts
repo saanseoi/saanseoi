@@ -147,11 +147,7 @@ export async function runUpdateCommand(
     try {
       targetVersionLookup = {
         status: 'available',
-        versions: await fetchTargetVersions(
-          target,
-          dataset,
-          includeGeography || !deferStatsReleaseSet,
-        ),
+        versions: await fetchTargetVersions(target, dataset),
       }
     } catch {
       targetVersionLookup = { status: 'unknown' }
@@ -508,11 +504,7 @@ async function processPlannedUpdates(
       if ((result === 'ingested' || result === 'uploaded') && update.version) {
         const publishedVersion = requirePublishedTargetVersion(
           update,
-          await fetchTargetVersions(
-            options.target,
-            plan.dataset,
-            options.includeGeography || !options.deferStatsReleaseSet,
-          ),
+          await fetchTargetVersions(options.target, plan.dataset),
         )
         plan.targetVersions.set(
           update.targetSourceKey ?? plan.dataset.code,

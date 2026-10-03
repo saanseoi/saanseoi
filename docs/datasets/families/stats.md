@@ -530,3 +530,9 @@ localisation and unit conversion. Area and geography outputs select their own as
 policies; a Statistic recipe does not acquire area geometry processing.
 
 See the [processing policy contract](../pipeline.md#define-audit-processing-rules).
+
+Statistics initialisation ingests every resource declared by each source dataset,
+including companion division areas. `--defer-stats-release-set` postpones composed
+Statistics release-set publication only. A source cohort is complete only when every
+declared resource is published for that cohort. Resuming an incomplete cohort retains
+published resources and ingests its missing companions.
