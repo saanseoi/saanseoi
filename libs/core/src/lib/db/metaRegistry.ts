@@ -398,7 +398,6 @@ export async function listRegistryReleases(
             publishedAt: metaSnapshots.publishedAt,
             validFrom: metaSnapshots.validFrom,
             validTo: metaSnapshots.validTo,
-            notes: metaSnapshots.notes,
             createdAt: metaSnapshots.createdAt,
             updatedAt: metaSnapshots.updatedAt,
           },
@@ -3862,7 +3861,6 @@ export async function ensureDraftSnapshotForRelease(
       publishedAt: null,
       validFrom: null,
       validTo: null,
-      notes: null,
       createdAt: now,
       updatedAt: now,
     })

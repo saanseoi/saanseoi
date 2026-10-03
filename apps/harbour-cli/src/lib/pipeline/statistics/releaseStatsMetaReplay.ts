@@ -342,7 +342,6 @@ export function buildStatisticSnapshotMetaSqlBatches(metadata: StatisticSnapshot
         'publishedAt',
         'validFrom',
         'validTo',
-        'notes',
         'createdAt',
         'updatedAt',
       ],

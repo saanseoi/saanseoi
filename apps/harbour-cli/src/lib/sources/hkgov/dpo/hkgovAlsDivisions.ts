@@ -87,11 +87,10 @@ export async function loadDivisionLookupMaps(
     id: string
     cohortKey: string
     variant: string
-    notes: string | null
   }>(
     'meta',
     `
-    SELECT s.id,s.cohortKey,l.variant,s.notes FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId
+    SELECT s.id,s.cohortKey,l.variant FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId
     WHERE s.resourceType='division' AND s.status='published' AND l.regionCode='hk'
       AND (l.variant='saanseoi' OR (l.variant='overture' AND s.cohortKey=${sqlLiteral(options.cohortKey)}))
     ORDER BY CASE WHEN l.variant='saanseoi' THEN 0 ELSE 1 END,s.cohortKey DESC,s.revision DESC LIMIT 1`,
@@ -122,7 +121,6 @@ export async function loadDivisionLookupMaps(
     SELECT s.id FROM snapshots s JOIN snapshotLineages l ON l.id=s.snapshotLineageId
     WHERE s.resourceType='divisionArea' AND s.status='published' AND l.regionCode='hk'
       AND l.variant=${sqlLiteral(snapshot.variant)} AND s.cohortKey=${sqlLiteral(snapshot.cohortKey)}
-      ${snapshot.variant === 'saanseoi' ? `AND s.notes=${sqlLiteral(snapshot.notes ?? '')}` : ''}
     ORDER BY s.revision DESC LIMIT 1`,
   )
   if (!areaSnapshot)

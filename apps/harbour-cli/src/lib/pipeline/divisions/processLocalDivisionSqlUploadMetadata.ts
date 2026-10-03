@@ -44,7 +44,6 @@ export async function buildDivisionMetaSqlFile(
       publishedAt: metaSnapshots.publishedAt,
       validFrom: metaSnapshots.validFrom,
       validTo: metaSnapshots.validTo,
-      notes: metaSnapshots.notes,
       createdAt: metaSnapshots.createdAt,
       updatedAt: metaSnapshots.updatedAt,
     })
@@ -216,7 +215,6 @@ ON CONFLICT(id) DO UPDATE SET
         'publishedAt',
         'validFrom',
         'validTo',
-        'notes',
         'createdAt',
         'updatedAt',
       ],
@@ -234,7 +232,6 @@ ON CONFLICT(id) DO UPDATE SET
   publishedAt = excluded.publishedAt,
   validFrom = excluded.validFrom,
   validTo = excluded.validTo,
-  notes = excluded.notes,
   createdAt = excluded.createdAt,
   updatedAt = excluded.updatedAt`.trim(),
       },

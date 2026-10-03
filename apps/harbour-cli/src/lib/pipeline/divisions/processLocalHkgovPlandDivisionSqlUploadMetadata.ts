@@ -108,7 +108,6 @@ export async function buildPlandMetaSql(
     'publishedAt',
     'validFrom',
     'validTo',
-    'notes',
     'createdAt',
     'updatedAt',
   ]

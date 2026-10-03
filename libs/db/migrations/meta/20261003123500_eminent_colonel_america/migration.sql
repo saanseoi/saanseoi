@@ -1,0 +1,1 @@
+ALTER TABLE `snapshots` DROP COLUMN `notes`;

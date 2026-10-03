@@ -361,14 +361,13 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
           publishedAt INTEGER,
           validFrom INTEGER,
           validTo INTEGER,
-          notes TEXT,
           createdAt INTEGER NOT NULL,
           updatedAt INTEGER NOT NULL
         );
       `,
       `
         INSERT INTO snapshots (
-          id, resourceType, code, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+          id, resourceType, code, status, publishedAt, validFrom, validTo, createdAt, updatedAt
         )
         SELECT
           id,
@@ -378,7 +377,6 @@ function ensureFixtureCompatibleMetaSchema(db: Database) {
           publishedAt,
           validFrom,
           validTo,
-          notes,
           createdAt,
           updatedAt
         FROM __LEGACY_TABLE__;

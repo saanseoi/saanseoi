@@ -455,7 +455,6 @@ async function prepareNativeDivisionMetaSql(
         'publishedAt',
         'validFrom',
         'validTo',
-        'notes',
         'createdAt',
         'updatedAt',
       ],

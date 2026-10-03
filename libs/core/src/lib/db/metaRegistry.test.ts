@@ -163,7 +163,6 @@ id TEXT PRIMARY KEY,
       publishedAt TEXT,
       validFrom TEXT,
       validTo TEXT,
-      notes TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     );
@@ -676,7 +675,6 @@ function createDraftSnapshotDb() {
       publishedAt TEXT,
       validFrom TEXT,
       validTo TEXT,
-      notes TEXT,
       createdAt TEXT NOT NULL,
       updatedAt TEXT NOT NULL
     );

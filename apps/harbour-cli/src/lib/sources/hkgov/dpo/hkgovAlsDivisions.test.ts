@@ -8,10 +8,10 @@ test('ALS current Division lookup resolves a prepared scope and retains its late
   const current = new Database(':memory:')
   const meta = new Database(':memory:')
   try {
-    meta.exec(`CREATE TABLE snapshots(id TEXT,snapshotLineageId TEXT,resourceType TEXT,status TEXT,cohortKey TEXT,revision INTEGER,notes TEXT);
+    meta.exec(`CREATE TABLE snapshots(id TEXT,snapshotLineageId TEXT,resourceType TEXT,status TEXT,cohortKey TEXT,revision INTEGER);
       CREATE TABLE snapshotLineages(id TEXT,variant TEXT,regionCode TEXT);
       INSERT INTO snapshotLineages VALUES ('division-scope','overture','hk'),('area-scope','overture','hk');
-      INSERT INTO snapshots VALUES ('revision-1','division-scope','division','published','2026-09',1,NULL),('revision-2','division-scope','division','published','2026-09',2,NULL),('area','area-scope','divisionArea','published','2026-09',1,NULL);`)
+      INSERT INTO snapshots VALUES ('revision-1','division-scope','division','published','2026-09',1),('revision-2','division-scope','division','published','2026-09',2),('area','area-scope','divisionArea','published','2026-09',1);`)
     current.exec(`CREATE TABLE divisionAreas(snapshotId TEXT, divisionId TEXT, geometry TEXT);
       CREATE TABLE divisionAreaPublicationState(scopeId TEXT,snapshotId TEXT,preparedAt TEXT,publicationToken TEXT);
       INSERT INTO divisionAreaPublicationState VALUES ('area-scope','area','ready','release');
@@ -36,7 +36,7 @@ test('ALS current Division lookup resolves a prepared scope and retains its late
       'No published division snapshot',
     )
     meta.exec(`INSERT INTO snapshotLineages VALUES ('curated','saanseoi','hk'),('curated-area','saanseoi','hk');
-      INSERT INTO snapshots VALUES ('reviewed','curated','division','published','2026-09-01.0',1,'assembly'),('reviewed-area','curated-area','divisionArea','published','2026-09-01.0',1,'assembly');`)
+      INSERT INTO snapshots VALUES ('reviewed','curated','division','published','2026-09-01.0',1),('reviewed-area','curated-area','divisionArea','published','2026-09-01.0',1);`)
     current.exec(`INSERT INTO divisionPublicationState VALUES ('curated','reviewed','ready','curated');
       INSERT INTO divisionAreaPublicationState VALUES ('curated-area','reviewed-area','ready','curated');
       INSERT INTO divisions VALUES ('curated','town',3,'locality','town','{"full":[]}');
@@ -63,9 +63,7 @@ test('ALS current Division lookup resolves a prepared scope and retains its late
     expect(curated.membership?.resolve({ lng: 0.5, lat: 0.5 }).references.townId).toBe(
       'town',
     )
-    meta.exec(
-      "UPDATE snapshots SET notes='different-assembly' WHERE id='reviewed-area'",
-    )
+    meta.exec("DELETE FROM snapshots WHERE id='reviewed-area'")
     await expect(loadDivisionLookupMaps(options)).rejects.toThrow(
       'requires published saanseoi divisionArea',
     )

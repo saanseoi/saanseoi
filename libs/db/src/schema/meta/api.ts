@@ -157,7 +157,6 @@ export const metaSnapshots = sqliteTable(
     publishedAt: isoTimestamp('publishedAt'),
     validFrom: isoTimestamp('validFrom'),
     validTo: isoTimestamp('validTo'),
-    notes: text('notes'),
     ...timestamps,
   },
   table => [

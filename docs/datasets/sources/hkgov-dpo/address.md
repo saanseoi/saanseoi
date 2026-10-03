@@ -1095,9 +1095,10 @@ their original structure.
 ## Geographic membership
 
 Fresh ALS preparation selects the latest published SaanSeoi Division edition and the
-DivisionArea snapshot from the same curated assembly. Without a published curated
-edition, both references use the requested Overture cohort. Their exact snapshot IDs are
-recorded in the release lookup dependencies and preparation audit.
+latest published DivisionArea snapshot with the same variant and cohort. Without a
+published curated edition, both references use the requested Overture cohort. Their
+exact snapshot IDs are recorded in the release lookup dependencies and preparation
+audit.
 
 Membership runs after reviewed coordinate and locality corrections. Point inclusion
 populates levels 3–6 wherever polygons exist and independently resolves island

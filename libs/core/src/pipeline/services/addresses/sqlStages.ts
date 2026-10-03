@@ -422,7 +422,6 @@ export async function buildAddressMetaSqlFile(
       publishedAt: metaSnapshots.publishedAt,
       validFrom: metaSnapshots.validFrom,
       validTo: metaSnapshots.validTo,
-      notes: metaSnapshots.notes,
       createdAt: metaSnapshots.createdAt,
       updatedAt: metaSnapshots.updatedAt,
     })
@@ -570,7 +569,6 @@ export async function buildAddressMetaSqlFile(
         'publishedAt',
         'validFrom',
         'validTo',
-        'notes',
         'createdAt',
         'updatedAt',
       ],
@@ -587,7 +585,6 @@ export async function buildAddressMetaSqlFile(
   publishedAt = excluded.publishedAt,
   validFrom = excluded.validFrom,
   validTo = excluded.validTo,
-  notes = excluded.notes,
   createdAt = excluded.createdAt,
   updatedAt = excluded.updatedAt`,
     ),

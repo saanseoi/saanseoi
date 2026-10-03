@@ -1061,9 +1061,10 @@ curation and division dependencies still invalidate reuse when their contents ch
 ## Division membership
 
 ALS preparation selects the latest published SaanSeoi geographic Division edition and
-its matching DivisionArea assembly. Where no curated edition is published, it uses the
-requested Overture cohort and its published DivisionArea snapshot. Both immutable
-snapshot IDs are retained as release lookup dependencies, including empty releases.
+the latest published DivisionArea snapshot with the same variant and cohort. Where no
+curated edition is published, it uses the requested Overture cohort and its published
+DivisionArea snapshot. Both immutable snapshot IDs are retained as release lookup
+dependencies, including empty releases.
 
 After all coordinate and locality corrections, a shared spatial index matches each
 Address point to available district, town, macrohood, neighbourhood, village, microhood,

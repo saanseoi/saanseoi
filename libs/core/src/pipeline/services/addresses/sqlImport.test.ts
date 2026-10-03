@@ -76,10 +76,10 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
       );
       INSERT INTO snapshots (
         id, snapshotLineageId, parentSnapshotId, resourceType, code, cohortKey,
-        geometryStatus, revision, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+        geometryStatus, revision, status, publishedAt, validFrom, validTo, createdAt, updatedAt
       ) VALUES (
         'address-snapshot', 'address-lineage', NULL, 'address', 'ss-hk-address-hkgov-dpo-2026-08-19.0', '2026-08-19.0',
-        'authoritative', 0, 'draft', NULL, NULL, NULL, NULL, '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
+        'authoritative', 0, 'draft', NULL, NULL, NULL, '2026-09-07T00:00:00.000Z', '2026-09-07T00:00:00.000Z'
       );
       INSERT INTO snapshotResourceReleases (
         snapshotId, datasetId, resourceReleaseId, role, selectedByRule, selectionMode,

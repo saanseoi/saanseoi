@@ -140,9 +140,8 @@ reference.
 
 Snapshot shard assignments locate journal deltas. A draft snapshot can exist before its
 history shard is assigned. Audit missing assignments together with snapshot status and
-publication state; table counts alone do not prove a broken published snapshot.
-`snapshots.notes` is optional free-text annotation. Validity closure updates `validTo`
-and does not automatically populate notes.
+publication state; table counts alone do not prove a broken published snapshot. Validity
+closure updates `validTo`.
 
 Statistics have exactly one owner: `resourceReleaseId` or `apiReleaseSetId`. The owner
 is independent of `metric`, which describes the measurement. Processing-action counts
