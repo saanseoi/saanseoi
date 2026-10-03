@@ -123,12 +123,11 @@ function seedMeta(sqlite: Database) {
   run(
     sqlite,
     `INSERT INTO apiReleaseSets
-      (id, apiVersionId, code, regionCode, domainCode, cohortKey, revision, effectiveFrom,
-       schemaVersion, rulesetVersion, status, publishedAt, versionHash, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (id, code, regionCode, domainCode, cohortKey, revision, effectiveFrom,
+       schemaVersion, rulesetVersion, versionHash, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       'api-release-set-places',
-      'api-version-places-v0.1',
       RELEASE_SET,
       'hk',
       'overture',
@@ -136,6 +135,7 @@ function seedMeta(sqlite: Database) {
       0,
       PUBLISHED_AT,
       'sv-place-v1',
+      'rs-place-v1',
       'release-set-hash',
       PUBLISHED_AT,
       PUBLISHED_AT,
@@ -150,10 +150,10 @@ function seedMeta(sqlite: Database) {
       'api-release-set-places-v01',
       'api-version-places-v0.1',
       'api-release-set-places',
-      'rs-place-v1',
       'current',
       PUBLISHED_AT,
-      'release-set-hash',
+      PUBLISHED_AT,
+      'api-release-set-places-v01-hash',
       PUBLISHED_AT,
       PUBLISHED_AT,
     ],
@@ -235,7 +235,7 @@ function seedMeta(sqlite: Database) {
       VALUES (?, ?, ?, ?, ?, ?)`,
     [
       'catalog-places',
-      'api-release-set-places',
+      'api-release-set-places-v01',
       'overture',
       '2026-08-19.0',
       1,

@@ -51,7 +51,9 @@ async function fixture() {
   const [meta, current, history] = databases as [Database, Database, Database]
   const m = createMetaDb(d1(meta))
   const c = createCurrentDb(d1(current))
-  for (const family of ['addresses', 'divisions']) {
+  // Address release sets reference the matching division snapshot, so seed the
+  // dependency family first while foreign-key checks are enabled.
+  for (const family of ['divisions', 'addresses']) {
     await m
       .insert(metaSchema.metaApiVersions)
       .values({
@@ -81,14 +83,12 @@ async function fixture() {
         .values({
           id,
           code: id,
-          apiVersionId: family,
           regionCode: 'hk',
           domainCode: family === 'addresses' ? 'saanseoi' : 'geographic',
           cohortKey: cohort,
           effectiveFrom: `${cohort.slice(0, 10)}T00:00:00.000Z`,
           schemaVersion: '1',
           rulesetVersion: '1',
-          status: 'current',
           versionHash: id,
         })
         .run()
@@ -98,8 +98,10 @@ async function fixture() {
           id: `${id}-association`,
           apiVersionId: family,
           apiReleaseSetId: id,
+          status: 'current',
           publishedAt: '2026-09-01T00:00:00.000Z',
-          versionHash: id,
+          validFrom: '2026-09-01T00:00:00.000Z',
+          versionHash: `${id}-association`,
         })
         .run()
       await m

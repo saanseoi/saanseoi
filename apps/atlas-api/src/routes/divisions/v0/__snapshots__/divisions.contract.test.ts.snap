@@ -772,15 +772,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           "identifiers": null,
           "isLand": true,
           "isTerritorial": false,
-          "sources": {
-            "provider": [
-              {
-                "dataset": "overture",
-                "property": "/id",
-                "record_id": "area-overture-division-east",
-              },
-            ],
-          },
           "type": "Polygon",
           "variant": "overture",
         },
@@ -813,15 +804,6 @@ exports[`Divisions API responses through the Worker route areas and boundaries t
           "isTerritorial": false,
           "leftDivisionId": "division-east",
           "rightDivisionId": "division-hk-sar",
-          "sources": {
-            "overture": [
-              {
-                "dataset": "overture",
-                "property": "/id",
-                "record_id": "boundary-east",
-              },
-            ],
-          },
           "type": "LineString",
           "variant": "overture",
         },

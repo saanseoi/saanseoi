@@ -175,12 +175,11 @@ function seedMeta(sqlite: Database) {
     run(
       sqlite,
       `INSERT INTO apiReleaseSets
-        (id, apiVersionId, code, regionCode, domainCode, cohortKey, revision, effectiveFrom,
-         schemaVersion, rulesetVersion, status, publishedAt, versionHash, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        (id, code, regionCode, domainCode, cohortKey, revision, effectiveFrom,
+         schemaVersion, rulesetVersion, versionHash, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         release.id,
-        'api-version-divisions-v0.1',
         release.code,
         'hk',
         release.domain,
@@ -188,6 +187,7 @@ function seedMeta(sqlite: Database) {
         0,
         release.effectiveFrom,
         'sv-division-v1',
+        'rs-division-merge-v1',
         `hash-${release.id}`,
         CATALOG_PUBLISHED_AT,
         CATALOG_PUBLISHED_AT,
@@ -202,10 +202,10 @@ function seedMeta(sqlite: Database) {
         `${release.id}-v01`,
         'api-version-divisions-v0.1',
         release.id,
-        'rs-division-merge-v1',
         'current',
         CATALOG_PUBLISHED_AT,
-        `hash-${release.id}`,
+        release.effectiveFrom,
+        `hash-${release.id}-v01`,
         CATALOG_PUBLISHED_AT,
         CATALOG_PUBLISHED_AT,
       ],
@@ -329,7 +329,7 @@ function seedMeta(sqlite: Database) {
         VALUES (?, ?, ?, ?, ?, ?)`,
       [
         'catalog-revision-divisions-2026-08-14',
-        release.id,
+        `${release.id}-v01`,
         release.domain,
         release.cohort,
         release.domain === 'overture' ? 1 : 0,
@@ -922,6 +922,8 @@ test('0.2 resolves its own catalogue, exposes inventories and rejects absent cho
     clone('apiVersionReleaseSets', "id='api-release-set-overture-2025-v01'", {
       id: 'release-v02-association',
       apiVersionId: 'api-v02',
+      apiReleaseSetId: 'release-v02',
+      versionHash: 'release-v02-association-hash',
     })
     clone('apiCatalogRevisions', "code='" + CATALOG_REVISION + "'", {
       id: 'catalog-v02',
@@ -966,7 +968,7 @@ test('0.2 resolves its own catalogue, exposes inventories and rejects absent cho
     }
     expect(body.meta.inventory).toBe('saanseoi')
     expect(body.links.permalink).toContain('inventory=saanseoi')
-    expect(body.links.permalink).toContain('releaseSet=reviewed-edition')
+    expect(body.links.permalink).toContain(`releaseSet=${OVERTURE_RELEASE_SET}`)
     const unavailable = await app.fetch(
       new Request('http://localhost/divisions/v0.2?inventory=overture'),
       fixture.env,
@@ -980,7 +982,7 @@ test('0.2 resolves its own catalogue, exposes inventories and rejects absent cho
     expect(await discovery.json()).toMatchObject({
       defaultInventory: 'saanseoi',
       primaryResourceType: 'division',
-      releaseSet: 'reviewed-edition',
+      releaseSet: OVERTURE_RELEASE_SET,
       inventories: [
         {
           code: 'saanseoi',

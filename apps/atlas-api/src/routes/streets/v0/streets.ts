@@ -1,3 +1,4 @@
+import { geographicCodeQueryShape } from '../../../schema/geographicCodeFilters'
 import { EmptyRegionCollectionSchema } from '../../../schema/region'
 import {
   emptyRegionCollection,
@@ -33,7 +34,10 @@ const streetDetailRoute = createRoute({
   operationId: 'getHongKongStreetByIdV0',
   summary: 'Get Street',
   tags: ['Streets'],
-  request: { query: RegionQuerySchema, params: StreetDetailParamsSchema },
+  request: {
+    query: RegionQuerySchema.extend(geographicCodeQueryShape),
+    params: StreetDetailParamsSchema,
+  },
   responses: {
     200: {
       content: { 'application/json': { schema: StreetDetailResponseSchema } },
@@ -58,7 +62,7 @@ const streetChangelogRoute = createRoute({
   path: '/streets/v0.1/changelog',
   operationId: 'replayHongKongStreetChangelogV0',
   summary: 'List Street Changes',
-  request: { query: RegionQuerySchema },
+  request: { query: RegionQuerySchema.extend(geographicCodeQueryShape) },
   tags: ['Streets'],
   responses: {
     422: ValidationErrorOpenAPIResponse,
@@ -85,7 +89,10 @@ const streetVersionsRoute = createRoute({
   operationId: 'listHongKongStreetVersionsV0',
   summary: 'List Street Versions',
   tags: ['Streets'],
-  request: { query: RegionQuerySchema, params: StreetDetailParamsSchema },
+  request: {
+    query: RegionQuerySchema.extend(geographicCodeQueryShape),
+    params: StreetDetailParamsSchema,
+  },
   responses: {
     200: {
       content: { 'application/json': { schema: StreetVersionsResponseSchema } },
@@ -111,7 +118,10 @@ const streetVersionRoute = createRoute({
   operationId: 'getHongKongStreetVersionV0',
   summary: 'Get Street Version',
   tags: ['Streets'],
-  request: { query: RegionQuerySchema, params: StreetVersionParamsSchema },
+  request: {
+    query: RegionQuerySchema.extend(geographicCodeQueryShape),
+    params: StreetVersionParamsSchema,
+  },
   responses: {
     200: {
       content: { 'application/json': { schema: StreetDetailResponseSchema } },

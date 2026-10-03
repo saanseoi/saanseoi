@@ -1,6 +1,7 @@
 import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
 import {
   eq,
+  sql,
   metaAssets,
   metaDatasets,
   metaPublishers,
@@ -61,7 +62,10 @@ export const managedAssetRoute = defineOpenAPIRoute<
       )
       .leftJoin(
         metaSourceReleases,
-        eq(metaResourceReleases.sourceReleaseId, metaSourceReleases.id),
+        eq(
+          sql`coalesce(${metaAssets.sourceReleaseId}, ${metaResourceReleases.sourceReleaseId})`,
+          metaSourceReleases.id,
+        ),
       )
       .leftJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
       .leftJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
