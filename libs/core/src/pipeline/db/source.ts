@@ -35,6 +35,8 @@ export function buildSourceDatasetId(message: DatasetProcessingMessage) {
 }
 
 export type CurrentSourceRecord = {
+  properties?: unknown
+  sourceGeometry?: unknown
   ownerShardKeys?: string[]
   sourcePayloadHash: string | null
   sourceRecordId: string
@@ -57,7 +59,20 @@ function runRawSql(db: SourceDatabase, statement: unknown) {
 }
 
 export async function getCurrentSourceOvertureDivisionMap(db: SourceDatabase) {
-  return loadCurrentSourceRecordMap(db, sourceSchema.sourceOvertureDivisions)
+  const table = sourceSchema.sourceOvertureDivisions
+  const rows = await db
+    .select({
+      sourcePayloadHash: table.versionHash,
+      sourceRecordId: table.sourceRecordId,
+      properties: table.properties,
+      sourceGeometry: table.sourceGeometry,
+    })
+    .from(table)
+    .where(eq(table.isCurrent, true))
+    .all()
+  return new Map<string, CurrentSourceRecord>(
+    rows.map(row => [row.sourceRecordId, row]),
+  )
 }
 
 export async function getMergedCurrentSourceOvertureDivisionMap(

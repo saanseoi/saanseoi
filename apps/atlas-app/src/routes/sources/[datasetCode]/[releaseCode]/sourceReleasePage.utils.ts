@@ -16,8 +16,8 @@ export type SourceReleaseTab =
   | 'notes'
   | 'schema'
   | 'samples'
-  | 'releases'
-  | 'assembly'
+  | 'usage'
+  | 'changes'
   | 'stats'
   | 'audit'
 
@@ -25,8 +25,8 @@ const sourceReleaseTabs: readonly SourceReleaseTab[] = [
   'notes',
   'schema',
   'samples',
-  'releases',
-  'assembly',
+  'usage',
+  'changes',
   'stats',
   'audit',
 ]
@@ -121,15 +121,21 @@ export function buildSourceReleaseVersionLinks({
   versions,
   activeTab,
   showNoteDiff,
+  showAssembly = false,
+  changeType,
 }: {
   datasetCode: string
   versions: readonly SourceReleaseVersion[]
   activeTab: SourceReleaseTab
   showNoteDiff: boolean
+  changeType?: 'added' | 'changed' | 'removed'
+  showAssembly?: boolean
 }) {
   return versions.map((item, index) => {
     const searchParams = new URLSearchParams()
     if (activeTab !== 'notes') searchParams.set('tab', activeTab)
+    if (activeTab === 'changes' && changeType) searchParams.set('changes', changeType)
+    if (activeTab === 'usage' && showAssembly) searchParams.set('view', 'assembly')
     if (activeTab === 'notes' && showNoteDiff && index < versions.length - 1)
       searchParams.set('view', 'diff')
 

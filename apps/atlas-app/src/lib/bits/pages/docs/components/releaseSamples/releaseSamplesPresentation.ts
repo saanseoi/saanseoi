@@ -1,5 +1,6 @@
 export type ReleaseSampleField = {
   key: string
+  previousValue?: string
   value?: string
   children?: ReleaseSampleField[]
 }

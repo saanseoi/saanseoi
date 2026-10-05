@@ -7,7 +7,7 @@ export type SourceReleaseContentInput = {
   datasetCode: string
   releaseCode: string
   previousReleaseCode: null
-  tab: SourceReleaseTab
+  tab: SourceReleaseTab | 'assembly'
 }
 
 type SourceReleaseContentQuery = ReturnType<typeof getSourceReleaseContentData>
@@ -21,13 +21,22 @@ const sourceReleaseContentKey = ({
 }: SourceReleaseContentInput) => `${datasetCode}/${releaseCode}/${tab}`
 
 export function getSourceReleaseContentQuery(input: SourceReleaseContentInput) {
-  if (!browser) return getSourceReleaseContentData(input)
+  const request = {
+    ...input,
+    tab:
+      input.tab === 'usage'
+        ? ('releases' as const)
+        : input.tab === 'changes'
+          ? ('stats' as const)
+          : input.tab,
+  }
+  if (!browser) return getSourceReleaseContentData(request)
 
   const key = sourceReleaseContentKey(input)
   const existing = preloadedQueries.get(key)
   if (existing) return existing
 
-  const query = getSourceReleaseContentData(input)
+  const query = getSourceReleaseContentData(request)
   preloadedQueries.set(key, query)
   return query
 }

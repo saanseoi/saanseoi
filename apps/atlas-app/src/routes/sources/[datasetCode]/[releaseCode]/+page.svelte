@@ -1,6 +1,7 @@
 <script lang="ts">
-import { afterNavigate, goto } from '$app/navigation'
-import { page } from '$app/state'
+import { goto } from '$app/navigation'
+import { navigating, page } from '$app/state'
+
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
@@ -41,6 +42,9 @@ import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
 import SourceReleaseLoadError from './sourceReleaseLoadError.svelte'
 import SourceRecordSamples from './sourceRecordSamples.svelte'
+import { sourceRecordChangesCopy } from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.copy.js'
+import SourceRecordChanges from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.svelte'
+import type { SourceChangeType } from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.copy.js'
 import SourceRecordSchema from './sourceRecordSchema.svelte'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import {
@@ -57,7 +61,19 @@ import {
 } from './sourceReleasePage.utils'
 
 let { params, data } = $props()
-let activeTab = $state<SourceReleaseTab>(getSourceReleaseTabFromUrl(page.url))
+let changingRelease = $derived(
+  Boolean(
+    navigating.to?.params?.releaseCode &&
+      (navigating.to.params.releaseCode !== params.releaseCode ||
+        navigating.to.params.datasetCode !== params.datasetCode),
+  ),
+)
+let currentUrl = $derived(page.shallow?.url ?? page.url)
+let showAssembly = $derived(currentUrl.searchParams.get('view') === 'assembly')
+let changesOnly = $state(true)
+let activeTab = $state<SourceReleaseTab>(
+  getSourceReleaseTabFromUrl(page.shallow?.url ?? page.url),
+)
 // Keep closed Stats and Audit tabs, including their map code, off the Notes path.
 let statsRoot = $derived(
   activeTab === 'stats'
@@ -85,6 +101,7 @@ $effect(() => {
   void auditComponents?.catch(() => {})
 })
 let locale = $derived(getCurrentLocale())
+let changeCopy = $derived(sourceRecordChangesCopy[locale])
 // The server load seeds direct and client navigations synchronously. Keep its
 // last-ready value while the content query refreshes. A component-level
 // await would block the whole page on every client navigation.
@@ -115,7 +132,7 @@ let contentResource = createDeferredRemoteResource({
   getInput: () => ({
     datasetCode: params.datasetCode,
     releaseCode: params.releaseCode,
-    tab: activeTab,
+    tab: activeTab === 'usage' && showAssembly ? ('assembly' as const) : activeTab,
   }),
   getKey: input => `${input.datasetCode}/${input.releaseCode}/${input.tab}`,
   hasShell: () => Boolean(shell),
@@ -128,7 +145,7 @@ function preloadVersion(version: ReleaseNavVersion) {
     datasetCode: params.datasetCode,
     releaseCode: version.code,
     previousReleaseCode: null,
-    tab: activeTab,
+    tab: activeTab === 'usage' && showAssembly ? ('assembly' as const) : activeTab,
   })
 }
 let content = $derived(contentResource.current)
@@ -182,9 +199,11 @@ let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
 let auditResourceTypes = $state<string[]>([])
 let selectedAuditResourceType = $state('')
-let showNoteDiff = $state(page.url.searchParams.get('view') === 'diff')
+let showNoteDiff = $state(
+  (page.shallow?.url ?? page.url).searchParams.get('view') === 'diff',
+)
 $effect(() => {
-  showNoteDiff = page.url.searchParams.get('view') === 'diff'
+  showNoteDiff = currentUrl.searchParams.get('view') === 'diff'
 })
 let showBulkActions = $state(false)
 let bulkActions = $derived(
@@ -283,6 +302,28 @@ $effect(() => {
   }
 })
 
+let changeType = $derived.by<SourceChangeType | undefined>(() => {
+  const value = currentUrl.searchParams.get('changes')
+  return value === 'added' || value === 'changed' || value === 'removed'
+    ? value
+    : undefined
+})
+function selectRecordChanges(type?: SourceChangeType) {
+  const url = new URL(currentUrl.href)
+  url.searchParams.set('tab', 'changes')
+  if (activeTab === 'changes' && changeType === type) url.searchParams.delete('changes')
+  else if (type) url.searchParams.set('changes', type)
+  else url.searchParams.delete('changes')
+  url.hash = ''
+  void goto(`${url.pathname}${url.search}`, { shallow: true, state: {} })
+}
+function toggleAssembly() {
+  const url = new URL(currentUrl.href)
+  if (showAssembly) url.searchParams.delete('view')
+  else url.searchParams.set('view', 'assembly')
+  void goto(`${url.pathname}${url.search}`, { shallow: true, state: {} })
+}
+
 let statsPresentation = $derived(buildSourceReleaseStatsPresentation(locale))
 let selectedResourceId = $state('')
 let resources = $derived(version?.resources ?? [])
@@ -299,6 +340,7 @@ let hasContent = $derived.by(() => {
       ? noteDiff.changes.length > 0
       : notesPresentation.markdown.trim().length > 0
   }
+  if (activeTab === 'changes') return true
   if (activeTab === 'stats')
     return Boolean(selectedResource?.stats.length ?? version?.stats?.length)
   if (activeTab === 'schema' || activeTab === 'samples')
@@ -311,7 +353,8 @@ let hasContent = $derived.by(() => {
         bulkActions.length,
     )
   }
-  if (activeTab === 'assembly') return Boolean(version?.assembledWith?.length)
+  if (activeTab === 'usage' && showAssembly)
+    return Boolean(version?.assembledWith?.length)
   return Boolean(version?.releaseAs?.length)
 })
 let tocHeadings = $derived(
@@ -349,6 +392,8 @@ let versions = $derived(
     versions: source?.sourceVersions ?? [],
     activeTab,
     showNoteDiff,
+    showAssembly,
+    changeType,
   }),
 )
 let sourceReleaseAssembliesPresentation = $derived(
@@ -371,7 +416,7 @@ function setShowNoteDiff(enabled: boolean) {
     entityType: 'action',
     entityId: enabled ? 'open' : 'close',
   })
-  const url = new URL(page.url.href)
+  const url = new URL(currentUrl.href)
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
   void goto(`${url.pathname}${url.search}${url.hash}`, {
@@ -388,7 +433,7 @@ function setActiveTab(tab: string) {
     entityType: 'tab',
     entityId: tab,
   })
-  const url = new URL(page.url.href)
+  const url = new URL(currentUrl.href)
   if (tab === 'notes') url.searchParams.delete('tab')
   else url.searchParams.set('tab', tab)
   url.hash = ''
@@ -405,6 +450,7 @@ let tabs = $derived<ReleaseNavTab[]>([
         { id: 'samples', label: m.api_release_samples() },
       ]
     : []),
+  { id: 'changes', label: changeCopy.changes },
   { id: 'stats', label: m.source_tab_stats() },
   ...((activeTab === 'audit' && isContentLoading) ||
   hasAuditFamily ||
@@ -412,16 +458,15 @@ let tabs = $derived<ReleaseNavTab[]>([
   bulkActions.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
-  { id: 'releases', label: m.source_tab_released_as() },
-  { id: 'assembly', label: m.source_tab_assembly() },
+  { id: 'usage', label: changeCopy.usage },
 ])
 
 let releaseQueryError = $derived(contentResource.error)
 const refreshRelease = () => contentResource.query.refresh()
 
-afterNavigate(({ to }) => {
-  if (!to) return
-  activeTab = getSourceReleaseTabFromUrl(to.url)
+// Restore the selected tab when the visible URL changes, including shallow history.
+$effect(() => {
+  activeTab = getSourceReleaseTabFromUrl(currentUrl)
 })
 
 $effect(() => {
@@ -438,7 +483,7 @@ $effect(() => {
 })
 
 let actions = $derived<ReleaseNavAction[]>(
-  activeTab === 'stats' && resources.length > 1
+  (activeTab === 'stats' || activeTab === 'changes') && resources.length > 1
     ? [
         {
           id: 'stats-resource',
@@ -463,90 +508,83 @@ let actions = $derived<ReleaseNavAction[]>(
             pressed: showNoteDiff,
           },
         ]
-      : activeTab === 'releases'
+      : activeTab === 'usage'
         ? [
             {
-              icon: 'proicons:info',
-              id: 'releases-info',
-              infoDescription: m.source_tab_released_as_description(),
-              label: m.source_tab_released_as_info(),
+              id: 'assembly',
+              icon: 'proicons:layers',
+              label: showAssembly
+                ? m.source_tab_released_as()
+                : m.source_tab_assembly(),
+              onSelect: toggleAssembly,
             },
           ]
-        : activeTab === 'assembly'
+        : activeTab === 'samples' &&
+            sourceRecordFamily &&
+            sourceRecordsAvailable !== false
           ? [
               {
-                icon: 'proicons:info',
-                id: 'assembly-info',
-                infoDescription: m.source_tab_assembly_description(),
-                label: m.source_tab_assembly_info(),
+                id: 'include',
+                label: m.source_samples_include(),
+                value: sourceSampleInclude,
+                options: [
+                  { value: '', label: m.source_samples_include_none() },
+                  { value: 'geometry', label: 'geometry' },
+                ],
+                onValueChange: value => {
+                  sourceSampleInclude = value
+                },
+              },
+              {
+                icon: 'ion:reload-outline',
+                id: 'more-samples',
+                label: m.source_show_more(),
+                onSelect: () => {
+                  sourceSampleRequest += 1
+                  trackClientProductUsage({
+                    event: 'client.sample_control',
+                    surface: 'source_release',
+                    entityType: 'action',
+                    entityId: version?.code ?? params.releaseCode,
+                  })
+                },
               },
             ]
-          : activeTab === 'samples' &&
-              sourceRecordFamily &&
-              sourceRecordsAvailable !== false
+          : activeTab === 'audit'
             ? [
-                {
-                  id: 'include',
-                  label: m.source_samples_include(),
-                  value: sourceSampleInclude,
-                  options: [
-                    { value: '', label: m.source_samples_include_none() },
-                    { value: 'geometry', label: 'geometry' },
-                  ],
-                  onValueChange: value => {
-                    sourceSampleInclude = value
-                  },
-                },
-                {
-                  icon: 'ion:reload-outline',
-                  id: 'more-samples',
-                  label: m.source_show_more(),
-                  onSelect: () => {
-                    sourceSampleRequest += 1
-                    trackClientProductUsage({
-                      event: 'client.sample_control',
-                      surface: 'source_release',
-                      entityType: 'action',
-                      entityId: version?.code ?? params.releaseCode,
-                    })
-                  },
-                },
-              ]
-            : activeTab === 'audit'
-              ? [
-                  sourceArchiveUrl
-                    ? {
-                        download: true,
-                        href: sourceArchiveUrl,
-                        icon: 'ion:download-outline',
-                        id: 'download',
-                        label: m.source_download_archive(),
-                        analyticsSurface: 'source_release',
-                      }
-                    : {
-                        disabled: true,
-                        icon: 'ion:download-outline',
-                        id: 'download',
-                        label: m.source_download_archive(),
-                      },
-                  ...(auditResourceTypes.length > 1
-                    ? [
-                        {
-                          id: 'audit-resource',
-                          label: m.source_resource_type(),
-                          value: selectedAuditResourceType,
-                          options: auditResourceTypes.map(resourceType => ({
-                            value: resourceType,
-                            label: resourceLabel(resourceType),
-                          })),
-                          onValueChange: (value: string) => {
-                            selectedAuditResourceType = value
-                          },
+                sourceArchiveUrl
+                  ? {
+                      download: true,
+                      href: sourceArchiveUrl,
+                      icon: 'ion:download-outline',
+                      id: 'download',
+                      label: m.source_download_archive(),
+                      analyticsSurface: 'source_release',
+                    }
+                  : {
+                      disabled: true,
+                      icon: 'ion:download-outline',
+                      id: 'download',
+                      label: m.source_download_archive(),
+                    },
+                ...(auditResourceTypes.length > 1
+                  ? [
+                      {
+                        id: 'audit-resource',
+                        label: m.source_resource_type(),
+                        value: selectedAuditResourceType,
+                        options: auditResourceTypes.map(resourceType => ({
+                          value: resourceType,
+                          label: resourceLabel(resourceType),
+                        })),
+                        onValueChange: (value: string) => {
+                          selectedAuditResourceType = value
                         },
-                      ]
-                    : []),
-                ]
-              : [],
+                      },
+                    ]
+                  : []),
+              ]
+            : [],
 )
 let sourceReleaseLinksPresentation = $derived(
   buildSourceReleaseLinksPresentation(version?.releaseAs),
@@ -572,7 +610,7 @@ $effect(() => {
   type="article"
   publishedTime={version?.publicationDate ?? version?.createdAt}
   modifiedTime={version?.updatedAt}
-  noindex={page.url.searchParams.size > 0}
+  noindex={currentUrl.searchParams.size > 0}
 />
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
@@ -587,7 +625,20 @@ $effect(() => {
       activeOutlineId={activeTocHeadingId}
       {hasContent}
       nestedContent={activeTab === 'notes' && !showNoteDiff}
-      {actions}
+      actions={activeTab === 'changes'
+        ? [
+            ...actions,
+            {
+              id: 'changes-mode',
+              icon: changesOnly ? 'proicons:diff' : 'proicons:brackets',
+              label: changesOnly ? changeCopy.changesOnly : changeCopy.full,
+              pressed: !changesOnly,
+              onSelect: () => {
+                changesOnly = !changesOnly
+              },
+            },
+          ]
+        : actions}
       {outline}
       {tabs}
       versionTitle={m.source_versions()}
@@ -595,7 +646,8 @@ $effect(() => {
       onVersionPreload={preloadVersion}
       bind:activeTab
     >
-      {#if isContentLoading && contentResource.showSkeleton}
+      {#if (activeTab === 'changes' && changingRelease) ||
+        (isContentLoading && contentResource.showSkeleton)}
         <div
           data-release-nav-loading-layer
           transition:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}
@@ -603,7 +655,7 @@ $effect(() => {
           <ReleaseNav.ContentSkeleton
             tab={activeTab}
             diff={showNoteDiff}
-            linksVariant={activeTab === 'assembly' ? 'assembly' : 'releases'}
+            linksVariant={showAssembly ? 'assembly' : 'releases'}
           />
         </div>
       {:else if releaseQueryError}
@@ -623,10 +675,10 @@ $effect(() => {
                 <ReleaseDiff.Root
                   changes={noteDiff.changes}
                   labels={{
-  added: m.source_added(),
-  removed: m.source_removed(),
-  empty: m.source_diff_no_changes(),
-}}
+                    added: m.source_added(),
+                    removed: m.source_removed(),
+                    empty: m.source_diff_no_changes(),
+                  }}
                   markdown={notesPresentation}
                 />
               {:else}
@@ -640,6 +692,21 @@ $effect(() => {
                 />
               {/if}
             </div>
+          {:else if activeTab === 'changes'}
+            {#key `${params.datasetCode}:${params.releaseCode}:${selectedResource?.id}:${changeType}`}
+              <SourceRecordChanges
+                stats={selectedResource?.stats ?? version.stats}
+                family={sourceRecordFamily ?? ''}
+                fromRelease={previousVersion?.code}
+                toRelease={selectedResource?.id ?? ''}
+                resourceType={selectedResource?.resourceType ?? ''}
+                presentation={statsPresentation}
+                type={changeType}
+                diff={changesOnly}
+                onTypeChange={selectRecordChanges}
+                {locale}
+              />
+            {/key}
           {:else if activeTab === 'stats'}
             {#if statsRoot}
               {#await statsRoot}
@@ -647,8 +714,14 @@ $effect(() => {
               {:then module}
                 {@const ReleaseStatsRoot = module.default}
                 <ReleaseStatsRoot
+                  onChangeSelect={previousVersion &&
+                  sourceRecordFamily &&
+                  selectedResource
+                    ? type => selectRecordChanges(type)
+                    : undefined}
                   isFirstRelease={!previousVersion}
-                  resourceType={selectedResource?.resourceType ?? source.resourceTypes[0]}
+                  resourceType={selectedResource?.resourceType ??
+                    source.resourceTypes[0]}
                   stats={selectedResource?.stats ?? version.stats}
                   {districtAreas}
                   {locale}
@@ -695,11 +768,11 @@ $effect(() => {
                 <Audit
                   selectedResourceType={selectedAuditResourceType}
                   onResourceTypesChange={resourceTypes => {
-  auditResourceTypes = resourceTypes
-  if (!resourceTypes.includes(selectedAuditResourceType)) {
-    selectedAuditResourceType = resourceTypes[0] ?? ''
-  }
-}}
+                    auditResourceTypes = resourceTypes
+                    if (!resourceTypes.includes(selectedAuditResourceType)) {
+                      selectedAuditResourceType = resourceTypes[0] ?? ''
+                    }
+                  }}
                   bind:headings={auditHeadings}
                   bind:activeHeadingId={activeAuditHeadingId}
                   datasetCode={params.datasetCode}
@@ -725,7 +798,7 @@ $effect(() => {
                 />
               {/await}
             {/if}
-          {:else if activeTab === 'releases'}
+          {:else if activeTab === 'usage' && !showAssembly}
             <ReleaseLinks.Root>
               <ReleaseLinks.Provenance
                 analyticsSurface="source_release"

@@ -107,3 +107,21 @@ SaanSeoi 区划使用 `category`、`class` 及 `level`，与来源的 `subtype` 
 国家参照点是独立的行政 level-0 记录。规划及统计类别的地理 category 为
 `null`。城市保留来源 UUID；行政大区使用独立标识码，即使两者几何相同。落马洲河套地区是经审核的 level-4
 macrohood。科技园及科学园等 hood 不一定有聚落祖先。来源分类保留于 `properties`。
+
+## Source release change counts
+
+The persisted source-release change statistics compare retained publisher division
+records with the preceding release across all retained source shards. They include
+publisher records excluded from canonical divisions and exclude synthetic supplemental
+divisions. Added and removed counts follow publisher record identity; changed counts
+compare retained properties and geometry, ignoring observation timestamps and publisher
+version labels. A different storage hash alone does not constitute a content change.
+
+The Changes and Stats tabs read these saved counts. API release-set statistics describe
+canonical output separately.
+
+For local retained releases, run
+`apps/harbour-cli/scripts/repair-local-overture-division-churn.ts` with the META SQLite
+path followed by every retained SOURCE SQLite path. The default is a dry run. `--apply`
+saves the previous churn rows beside META and replaces only source-release `changes`
+statistics in one transaction.

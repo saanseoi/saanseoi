@@ -1,3 +1,5 @@
+import { buildSourceChurnCounts } from '@repo/core/pipeline/services/sources/sourceChurn'
+import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { buildGeographicHierarchyProcessingActions } from '@repo/core/pipeline/services/divisions/geographicHierarchyPatch.ts'
 import { assertPublishedSnapshotMaterialised } from '@repo/core/pipeline/services/publication/execute.ts'
@@ -480,7 +482,35 @@ export async function buildDivisionSqlState(
   const statsRows = [
     ...buildLocaleStatsRows(statsAccumulator),
     ...buildDistrictDistributionStatsRows(districtCounts),
-    ...buildChurnStatsRows(buildChurnCounts(previousRows, processedRowsById)),
+    ...buildChurnStatsRows(
+      message.source === 'overture'
+        ? buildSourceChurnCounts(
+            new Map(
+              [...currentSourceRows].map(([id, row]) => [
+                id,
+                {
+                  properties: row.properties,
+                  sourceGeometry: row.sourceGeometry,
+                },
+              ]),
+            ),
+            new Map(
+              records
+                .filter(record => !record.isSupplemental)
+                .map(record => [
+                  record.id,
+                  !record.sourceChanged && currentSourceRows.has(record.id)
+                    ? {
+                        properties: currentSourceRows.get(record.id)!.properties,
+                        sourceGeometry: currentSourceRows.get(record.id)!
+                          .sourceGeometry,
+                      }
+                    : overtureSourcePayload(record.raw),
+                ]),
+            ),
+          )
+        : buildChurnCounts(previousRows, processedRowsById),
+    ),
     ...buildQualityStatsRows(
       buildQualityCounts(previousRows, processedRowsById, {
         hasLocaleRegression,

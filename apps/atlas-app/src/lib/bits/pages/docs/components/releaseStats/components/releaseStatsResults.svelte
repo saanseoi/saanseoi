@@ -20,10 +20,12 @@ import TypeDistribution from './releaseStatsTypeDistributionSection.svelte'
 import StatisticsProfile from './releaseStatsStatisticsProfile.svelte'
 let {
   presentation,
+  onChangeSelect,
   labels,
   locale,
   districtNames,
 }: {
+  onChangeSelect?: (type: 'added' | 'changed' | 'removed') => void
   presentation: ReleaseStatsPresentation
   labels: ReleaseStatsLabels
   locale: 'en' | 'zh-Hant' | 'zh-Hans'
@@ -32,7 +34,7 @@ let {
 </script>
 <div class="grid gap-6">
   {#if presentation.overview}
-    <Overview overview={presentation.overview} {labels} />
+    <Overview {onChangeSelect} overview={presentation.overview} {labels} />
   {/if}
   {#if presentation.placeProfile}
     <PlacesProfile profile={presentation.placeProfile} />

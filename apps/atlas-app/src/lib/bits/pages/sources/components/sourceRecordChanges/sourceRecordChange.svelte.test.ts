@@ -1,0 +1,141 @@
+import { expect, test } from 'vitest'
+import { render } from 'vitest-browser-svelte'
+import { jsonFieldDiff } from '@repo/core/jsonFieldDiff'
+import SourceRecordChange from './sourceRecordChange.svelte'
+
+test('records start collapsed and changed fields use previous/current columns', async () => {
+  const before = { names: { en: 'Old name', zh: '不變' }, unchanged: 'Hidden value' }
+  const after = { names: { en: 'New name', zh: '不變' }, unchanged: 'Hidden value' }
+  const screen = await render(SourceRecordChange, {
+    id: 'division-1',
+    type: 'changed',
+    before,
+    after,
+    fields: jsonFieldDiff(before, after),
+    locale: 'en',
+  })
+  const summary = screen.getByRole('button', { name: /New name/ })
+  await expect.element(summary).toHaveAttribute('aria-expanded', 'false')
+  await expect
+    .element(screen.getByText('Previous', { exact: true }))
+    .not.toBeInTheDocument()
+  await summary.click()
+  await expect.element(screen.getByText('Previous', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('Current', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('Old name', { exact: true })).toBeVisible()
+  await expect
+    .element(screen.getByText('Hidden value', { exact: true }))
+    .not.toBeInTheDocument()
+  await expect
+    .element(screen.getByText('不變', { exact: true }))
+    .not.toBeInTheDocument()
+  await summary.click()
+  await expect
+    .element(screen.getByText('Previous', { exact: true }))
+    .not.toBeInTheDocument()
+})
+
+for (const type of ['added', 'removed'] as const) {
+  test(`${type} records use a single value column`, async () => {
+    const value = { name: 'Test village', properties: { retained: 'Record detail' } }
+    const screen = await render(SourceRecordChange, {
+      id: 'division-2',
+      type,
+      before: type === 'removed' ? value : null,
+      after: type === 'added' ? value : null,
+      fields: [],
+      locale: 'en',
+    })
+    await screen.getByRole('button', { name: /division-2/ }).click()
+    await expect
+      .element(screen.getByText('Record detail', { exact: true }))
+      .toBeVisible()
+    await expect
+      .element(screen.getByText('Previous', { exact: true }))
+      .not.toBeInTheDocument()
+    await expect
+      .element(screen.getByText('Not present', { exact: true }))
+      .not.toBeInTheDocument()
+  })
+}
+
+test('full-record mode includes unchanged values', async () => {
+  const screen = await render(SourceRecordChange, {
+    id: 'division-3',
+    type: 'changed',
+    before: { value: 'Old' },
+    after: { value: 'New', retained: 'Full detail' },
+    fields: [],
+    locale: 'en',
+    diff: false,
+  })
+  await screen.getByRole('button', { name: /division-3/ }).click()
+  await expect.element(screen.getByText('Full detail', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('Not present', { exact: true })).toBeVisible()
+})
+
+test('bulk field expansion reflects manual collapse and expands hidden descendants', async () => {
+  const screen = await render(SourceRecordChange, {
+    id: 'nested',
+    type: 'removed',
+    before: {
+      properties: { name: 'Village', nested: { value: 'Detail' } },
+      geometry: { type: 'Point', coordinates: [1, 2] },
+    },
+    after: null,
+    fields: [],
+    locale: 'en',
+  })
+  await screen.getByRole('button', { name: /Village/ }).click()
+  await expect
+    .element(screen.getByRole('button', { name: 'Expand All', exact: true }))
+    .toBeVisible()
+  await screen.getByRole('button', { name: 'Expand All', exact: true }).click()
+  await expect
+    .element(screen.getByRole('button', { name: 'Collapse All', exact: true }))
+    .toBeVisible()
+  await screen.getByRole('button', { name: 'Collapse nested', exact: true }).click()
+  await expect
+    .element(screen.getByRole('button', { name: 'Expand All', exact: true }))
+    .toBeVisible()
+  await screen.getByRole('button', { name: 'Expand All', exact: true }).click()
+  await expect.element(screen.getByText('Detail', { exact: true })).toBeVisible()
+  await screen.getByRole('button', { name: 'Collapse All', exact: true }).click()
+  await expect
+    .element(screen.getByText('Detail', { exact: true }))
+    .not.toBeInTheDocument()
+  await screen.getByRole('button', { name: 'Expand All', exact: true }).click()
+  await expect.element(screen.getByText('Detail', { exact: true })).toBeVisible()
+})
+
+test('language-matched changes hide shifted unchanged translations', async () => {
+  const before = {
+    rules: [
+      { language: 'ko', value: 'Unchanged Korean' },
+      { language: 'es', value: 'Old Spanish' },
+    ],
+  }
+  const after = {
+    rules: [
+      { language: 'ja', value: 'New Japanese' },
+      { language: 'ko', value: 'Unchanged Korean' },
+      { language: 'es', value: 'New Spanish' },
+    ],
+  }
+  const screen = await render(SourceRecordChange, {
+    id: 'translations',
+    type: 'changed',
+    before,
+    after,
+    fields: jsonFieldDiff(before, after),
+    locale: 'en',
+  })
+  await screen.getByRole('button', { name: 'translations' }).click()
+  await expect
+    .element(screen.getByText('Unchanged Korean', { exact: true }))
+    .not.toBeInTheDocument()
+  await expect.element(screen.getByText('Old Spanish', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('New Spanish', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('New Japanese', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('es', { exact: true })).not.toBeInTheDocument()
+})

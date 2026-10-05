@@ -22,6 +22,11 @@ import {
 import type { AppEnv } from '../../../types'
 import type { AccessAttribution } from '../../../services/accessAnalytics'
 import { openApiText } from '../../../lib/openapi-i18n'
+import {
+  SourceChangesQuerySchema,
+  SourceChangesResponseSchema,
+} from '../../../schema/sourceChanges'
+import { listSourceChanges, SourceChangesError } from '../../../services/sourceChanges'
 
 const SOURCE_FAMILIES = [
   {
@@ -173,6 +178,29 @@ function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number
   return versions.flatMap(version => {
     const sourceReleasesConfig = sourceReleasesRouteConfig(familyDefinition, version)
     const sourceRecordsConfig = sourceRecordsRouteConfig(familyDefinition, version)
+    const sourceChangesConfig = createRoute({
+      method: 'get',
+      path: `/${familyDefinition.family}/${version}/sources/changes`,
+      operationId: `list${familyDefinition.label}SourceChanges${version === 'v0' ? 'V0' : 'V01'}`,
+      summary: `Compare ${familyDefinition.label} Source Records`,
+      description:
+        'Compare retained resource releases of the same dataset. Pass resource-release IDs or release codes. Returns added, changed and removed source records with before/after values and changed JSON fields. Observation timestamps and publisher version labels do not define content changes. The limit counts matching changes after filtering. For the records view, a short page means the comparison is exhausted; nextCursor is present only when another matching change exists.',
+      tags: ['Sources'],
+      request: { query: SourceChangesQuerySchema },
+      responses: {
+        200: {
+          description: 'Pinned source-resource comparison.',
+          content: { 'application/json': { schema: SourceChangesResponseSchema } },
+        },
+        404: sourceRecordsConfig.responses[404],
+        409: {
+          description:
+            'Incompatible resource releases or ambiguous retained identities.',
+          content: { 'application/json': { schema: ErrorResponseSchema } },
+        },
+        422: sourceRecordsConfig.responses[422],
+      },
+    })
     const sourceSchemaConfig = createRoute({
       method: 'get',
       path: `/${familyDefinition.family}/${version}/source-schema`,
@@ -202,6 +230,30 @@ function sourceRoutesForFamily(familyDefinition: (typeof SOURCE_FAMILIES)[number
     })
 
     return [
+      defineOpenAPIRoute<typeof sourceChangesConfig, AppEnv>({
+        route: sourceChangesConfig,
+        handler: async c => {
+          try {
+            return c.json(
+              await listSourceChanges({
+                env: c.env,
+                metaDb: c.var.metaDb,
+                family: familyDefinition.family,
+                query: c.req.valid('query'),
+                onResolved: attribution => c.set('accessAttribution', attribution),
+              }),
+              200,
+            )
+          } catch (error) {
+            if (error instanceof SourceChangesError)
+              return c.json(
+                { httpStatus: error.status, error: error.code, message: error.message },
+                error.status,
+              )
+            throw error
+          }
+        },
+      }),
       defineOpenAPIRoute<typeof sourceSchemaConfig, AppEnv>({
         route: sourceSchemaConfig,
         handler: async c => {

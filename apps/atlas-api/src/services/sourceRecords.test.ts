@@ -60,7 +60,12 @@ function metaDatabase(input?: {
                 )
                 expect(query).toContain('resourceReleases.revokedAt IS NULL')
                 expect(query).toContain('datasets.regionCode = ?')
-                expect(values).toEqual([sourceReleaseCode, sourceReleaseCode, 'hk'])
+                expect(values).toEqual([
+                  sourceReleaseCode,
+                  sourceReleaseCode,
+                  sourceReleaseCode,
+                  'hk',
+                ])
                 return {
                   results:
                     input?.published === false

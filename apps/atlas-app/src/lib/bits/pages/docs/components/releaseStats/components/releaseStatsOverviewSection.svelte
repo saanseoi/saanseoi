@@ -4,9 +4,16 @@ import ChurnMetric from './releaseStatsChurnMetric.svelte'
 import InfoTooltip from './releaseStatsInfoTooltip.svelte'
 import Section from './releaseStatsSection.svelte'
 let {
+  onChangeSelect,
+  selectedType,
   overview,
   labels,
-}: { overview: OverviewPresentation; labels: ReleaseStatsLabels } = $props()
+}: {
+  selectedType?: 'added' | 'changed' | 'removed'
+  onChangeSelect?: (type: 'added' | 'changed' | 'removed') => void
+  overview: OverviewPresentation
+  labels: ReleaseStatsLabels
+} = $props()
 </script>
 <Section id="stats-overview"
   ><div
@@ -43,7 +50,15 @@ let {
     {/if}
     <div class="grid grid-cols-2 gap-px bg-data-outline-variant/60 sm:grid-cols-4">
       {#each overview.churn.metrics as measure}
-        <ChurnMetric {measure} />
+        <ChurnMetric
+          {measure}
+          selected={selectedType === measure.key}
+          onSelect={onChangeSelect &&
+          !overview.churn.unavailable &&
+          measure.key !== 'unchanged'
+            ? () => onChangeSelect?.(measure.key as 'added' | 'changed' | 'removed')
+            : undefined}
+        />
       {/each}
     </div>
   {/if}</Section

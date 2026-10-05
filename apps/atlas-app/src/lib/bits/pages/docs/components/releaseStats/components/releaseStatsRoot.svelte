@@ -15,6 +15,7 @@ import Panel from './releaseStatsPanel.svelte'
 import Results from './releaseStatsResults.svelte'
 
 type Props = {
+  onChangeSelect?: (type: 'added' | 'changed' | 'removed') => void
   resourceType?: string
   isFirstRelease?: boolean
   stats?: ReleaseStat[]
@@ -28,6 +29,7 @@ type Props = {
 }
 let {
   resourceType,
+  onChangeSelect,
   isFirstRelease = false,
   stats = [],
   districtAreas = [],
@@ -58,7 +60,13 @@ $effect(() => {
 <Tooltip.Provider delayDuration={200}
   ><Panel bind:element={panel}
     >{#if stats.length}
-      <Results {districtNames} {locale} presentation={model} labels={copy.labels} />
+      <Results
+        {onChangeSelect}
+        {districtNames}
+        {locale}
+        presentation={model}
+        labels={copy.labels}
+      />
     {:else}
       <EmptyState label={copy.labels.noStats} />
     {/if}</Panel

@@ -1612,3 +1612,12 @@ archive. Source-record JSON, NDJSON and schema descriptions follow that contract
 Publisher-owned Overture source records and archives retain their original field names.
 Internal geometry processing has a separate storage contract; curated ingestion maps
 published containment fields into that contract without discarding geometry evidence.
+
+### Source change statistics
+
+Overture division source releases persist churn from retained publisher records,
+including records excluded by canonical curation. Baselines span retained annual source
+shards. The calculation compares retained properties and geometry without observation
+metadata and saves counts during ingestion, so source pages can read stable statistics
+without recounting records. Canonical API release-set churn and quality statistics
+retain their output-specific populations.

@@ -10,18 +10,18 @@ type Props = {
 
 let { diff = false, linksVariant = 'releases', tab }: Props = $props()
 let linksSkeleton = $derived(
-  tab === 'sources' || tab === 'assembly'
+  tab === 'sources' || tab === 'usage' || tab === 'assembly'
     ? import('../../releaseLinks/components/releaseLinksSkeleton.svelte')
     : undefined,
 )
 let skeleton = $derived(
-  tab === 'samples' || tab === 'sources' || tab === 'assembly'
+  tab === 'samples' || tab === 'sources' || tab === 'usage' || tab === 'assembly'
     ? undefined
     : tab === 'release' && diff
       ? import('../../releaseDiff/components/releaseDiffSkeleton.svelte')
       : tab === 'notes' || tab === 'release' || tab === 'guide'
         ? import('../../releaseNotes/components/releaseNotesSkeleton.svelte')
-        : tab === 'stats'
+        : tab === 'stats' || tab === 'changes'
           ? import('../../releaseStats/components/releaseStatsSkeleton.svelte')
           : import('../../releaseAudit/components/releaseAuditSkeleton.svelte'),
 )

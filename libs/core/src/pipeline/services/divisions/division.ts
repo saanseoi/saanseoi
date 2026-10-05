@@ -1,3 +1,4 @@
+import { buildSourceChurnCounts, type SourceChurnRecord } from '../sources/sourceChurn'
 import {
   saanseoiSourcePayload,
   nativeSourcePayloadHashInput,
@@ -479,6 +480,7 @@ export async function processDivisionDataset(
   const previousRows = new Map(currentRows)
   const seenIds = new Set<string>()
   const seenPublisherIds = new Set<string>()
+  const publisherPayloads = new Map<string, SourceChurnRecord>()
   const seenSourceResolutionIds = new Set<string>()
   const processedRowsById = new Map<string, DivisionVersionSnapshot>()
 
@@ -656,6 +658,16 @@ export async function processDivisionDataset(
         })
         const currentSource = currentSourceRows?.get(normalised.base.id) ?? null
         sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
+        if (message.source === 'overture')
+          publisherPayloads.set(
+            normalised.base.id,
+            !sourceChanged && currentSource
+              ? {
+                  properties: currentSource.properties,
+                  sourceGeometry: currentSource.sourceGeometry,
+                }
+              : overtureSourcePayload(row),
+          )
 
         if (sourceChanged) {
           sourceChangedRows += 1
@@ -913,7 +925,20 @@ export async function processDivisionDataset(
     deleteStaleDivisionCurrentRows(currentRepoDb, currentScopeId, seenIds),
   )
   const churnStats = buildChurnStatsRows(
-    buildChurnCounts(previousRows, processedRowsById),
+    message.source === 'overture' && currentSourceRows
+      ? buildSourceChurnCounts(
+          new Map(
+            [...currentSourceRows].map(([id, row]) => [
+              id,
+              {
+                properties: row.properties,
+                sourceGeometry: row.sourceGeometry,
+              },
+            ]),
+          ),
+          publisherPayloads,
+        )
+      : buildChurnCounts(previousRows, processedRowsById),
   )
   const qualityStats = buildQualityStatsRows(
     buildQualityCounts(previousRows, processedRowsById, {

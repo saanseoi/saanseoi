@@ -37,7 +37,7 @@ type SourceReleaseWithShard = SourceReleaseRow & {
   sourceReleaseId: string
 }
 
-type SourceRecordRow = {
+export type SourceRecordRow = {
   sources?: string | null
   properties: string | null
   sourceGeometry?: unknown
@@ -157,6 +157,7 @@ async function resolveSourceRelease(
   sourceReleaseCode: string,
   family: SourceFamily,
   region?: ApiRegion,
+  resourceType?: string,
 ): Promise<SourceReleaseWithShard | null> {
   const result = await runWithD1ReadRetry(() =>
     metaDb.$client
@@ -179,11 +180,17 @@ async function resolveSourceRelease(
           ON sourceReleases.id = resourceReleases.sourceReleaseId
         INNER JOIN datasets ON datasets.id = resourceReleases.datasetId
         INNER JOIN publishers ON publishers.id = datasets.publisherId
+        INNER JOIN resourceReleases AS retainedRelease
+          ON retainedRelease.datasetId = resourceReleases.datasetId
+          AND retainedRelease.resourceType = resourceReleases.resourceType
+          AND retainedRelease.sourceVersion <= resourceReleases.sourceVersion
+          AND retainedRelease.status IN ('current', 'archived')
+          AND retainedRelease.revokedAt IS NULL
         INNER JOIN releaseShardAssignments
-          ON releaseShardAssignments.resourceReleaseId = resourceReleases.id
+          ON releaseShardAssignments.resourceReleaseId = retainedRelease.id
         INNER JOIN dataShards
           ON dataShards.id = releaseShardAssignments.dataShardId
-        WHERE (sourceReleases.code = ? OR resourceReleases.code = ?) AND datasets.regionCode = ?
+        WHERE (sourceReleases.code = ? OR resourceReleases.code = ? OR resourceReleases.id = ?) AND datasets.regionCode = ?
           AND resourceReleases.status IN ('current', 'archived')
           AND resourceReleases.revokedAt IS NULL
           AND sourceReleases.status IN ('current', 'archived')
@@ -192,12 +199,20 @@ async function resolveSourceRelease(
           AND dataShards.status = 'active'
           `,
       )
-      .bind(sourceReleaseCode, sourceReleaseCode, resolveDataRegion(region))
+      .bind(
+        sourceReleaseCode,
+        sourceReleaseCode,
+        sourceReleaseCode,
+        resolveDataRegion(region),
+      )
       .all<SourceReleaseWithShard>(),
   )
 
+  const candidates = resourceType
+    ? result.results.filter(row => row.resourceType === resourceType)
+    : result.results
   const preferred =
-    result.results.find(
+    candidates.find(
       row =>
         row.resourceType ===
         (sourceCatalogueFor(family)[row.datasetCode]?.resourceType ??
@@ -208,7 +223,7 @@ async function resolveSourceRelease(
             addresses: 'address',
             streets: 'street',
           }[family]),
-    ) ?? result.results[0]
+    ) ?? candidates[0]
   const rows = [
     ...new Map(
       result.results
@@ -220,7 +235,7 @@ async function resolveSourceRelease(
   return release ? { ...release, bindingNames: rows.map(row => row.bindingName) } : null
 }
 
-async function readSourceRecordPage(args: {
+export async function readSourceRecordPage(args: {
   cursor: Cursor | null
   entry: SourceRecordCatalogueEntry
   includeGeometry: boolean
@@ -465,18 +480,20 @@ export function toSourceRecord(
   return record
 }
 
-async function resolveRecordsRequest(args: {
+export async function resolveRecordsRequest(args: {
   env: AppBindings
   family: SourceFamily
   region?: ApiRegion
   metaDb: AppEnv['Variables']['metaDb']
   sourceReleaseCode: string
+  resourceType?: string
 }) {
   const release = await resolveSourceRelease(
     args.metaDb,
     args.sourceReleaseCode,
     args.family,
     args.region,
+    args.resourceType,
   )
   if (!release) return null
 

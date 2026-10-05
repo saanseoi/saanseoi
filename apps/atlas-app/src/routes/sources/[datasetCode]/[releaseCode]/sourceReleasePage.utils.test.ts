@@ -53,6 +53,24 @@ describe('source release page utilities', () => {
     ])
   })
 
+  test('Usage keeps its Assembly toggle across release navigation', () => {
+    expect(
+      buildSourceReleaseVersionLinks({
+        datasetCode: 'divisions',
+        versions: [{ code: '2026' }],
+        activeTab: 'usage',
+        showNoteDiff: false,
+        showAssembly: true,
+      })[0]?.href,
+    ).toBe('/sources/divisions/2026?tab=usage&view=assembly')
+    expect(getSourceReleaseTabFromUrl(new URL('http://localhost/?tab=changes'))).toBe(
+      'changes',
+    )
+    expect(getSourceReleaseTabFromUrl(new URL('http://localhost/?tab=usage'))).toBe(
+      'usage',
+    )
+  })
+
   test('projects only polygon district coverage rows', () => {
     expect(
       selectDistrictAreas([
@@ -75,4 +93,16 @@ describe('source release page utilities', () => {
       },
     ])
   })
+})
+
+test('release navigation retains the selected changes filter', () => {
+  expect(
+    buildSourceReleaseVersionLinks({
+      datasetCode: 'divisions',
+      versions: [{ code: 'old' }],
+      activeTab: 'changes',
+      showNoteDiff: false,
+      changeType: 'removed',
+    })[0]?.href,
+  ).toBe('/sources/divisions/old?tab=changes&changes=removed')
 })
