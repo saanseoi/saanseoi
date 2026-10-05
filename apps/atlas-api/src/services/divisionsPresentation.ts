@@ -1,3 +1,4 @@
+import type { PublicDivisionHierarchies } from '../schema/divisions'
 import type { DivisionHierarchies } from '@repo/db'
 import { divisionHierarchyEntries } from '@repo/core/pipeline/services/divisions/divisionHierarchies.ts'
 import type { ApiRegion } from '../schema/region'
@@ -114,7 +115,7 @@ type DivisionResourcePayload = {
     level: number | null
     class: string
     category: import('@repo/db').DivisionCategory | null
-    hierarchies: DivisionHierarchies
+    hierarchies: PublicDivisionHierarchies
     divisionCode?: string
     snapshotId?: string
     geometry?: DivisionGeometry | null
@@ -446,6 +447,41 @@ export function matchesDivisionFilters(
   )
 }
 
+/** Keep geometry-validation evidence in stored records, outside the public contract. */
+export function publicDivisionHierarchies(
+  hierarchies: DivisionHierarchies | PublicDivisionHierarchies,
+): PublicDivisionHierarchies {
+  return Object.fromEntries(
+    Object.entries(hierarchies).map(([category, paths]) => [
+      category,
+      paths?.map(
+        (
+          path: Array<
+            | DivisionHierarchies['full'][number][number]
+            | PublicDivisionHierarchies['full'][number][number]
+          >,
+        ) =>
+          path.map(entry => {
+            const { id, name, class: klass } = entry
+            // Native canonical storage and SaanSeoi source archives have separate contracts.
+            const fullContainment =
+              'fullContainment' in entry
+                ? entry.fullContainment
+                : 'full_containment' in entry
+                  ? entry.full_containment
+                  : undefined
+            return {
+              id,
+              name,
+              class: klass,
+              ...(fullContainment !== undefined ? { fullContainment } : {}),
+            }
+          }),
+      ),
+    ]),
+  ) as PublicDivisionHierarchies
+}
+
 export function createDivisionResource(args: {
   baseUrl: string
   routeState: DivisionRouteState
@@ -459,7 +495,7 @@ export function createDivisionResource(args: {
     level: division.level,
     class: division.class,
     category: division.category,
-    hierarchies: division.hierarchies,
+    hierarchies: publicDivisionHierarchies(division.hierarchies),
     ...(division.divisionCode ? { divisionCode: division.divisionCode } : {}),
   }
 

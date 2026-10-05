@@ -93,7 +93,7 @@ const PlaceSourceSchema = z
         description: openApiText('openapi_places_source_license_description'),
         examples: ['CDLA-Permissive-2.0', null],
       }),
-    record_id: z
+    recordId: z
       .string()
       .nullable()
       .optional()
@@ -101,7 +101,7 @@ const PlaceSourceSchema = z
         description: openApiText('openapi_places_source_record_id_description'),
         examples: ['110864367186379', null],
       }),
-    update_time: z
+    updateTime: z
       .string()
       .nullable()
       .optional()
@@ -846,8 +846,8 @@ const PlaceCollectionAttributesSchema = z
             property: '',
             dataset: 'meta',
             license: 'CDLA-Permissive-2.0',
-            record_id: '110864367186379',
-            update_time: '2025-09-15T07:00:00.000Z',
+            recordId: '110864367186379',
+            updateTime: '2025-09-15T07:00:00.000Z',
             confidence: 0.6096840190952489,
           },
         ],

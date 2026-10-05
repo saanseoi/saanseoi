@@ -1,3 +1,4 @@
+import { normaliseCuratedDivision } from '@repo/core/pipeline/services/divisions/curatedDivision'
 import { afterEach, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
@@ -94,10 +95,12 @@ test('division archive retains multilingual names', async () => {
   const asset = await prepareCuratedReleaseAsset({
     ...input,
     resourceType: 'division',
-    names: [{ divisionId: 'division', locale: 'zh-Hant', name: '香港' }],
+    names: [{ divisionId: 'area', locale: 'zh-hant', name: '香港' }],
   })
   const zip = unzipSync(await readFile(asset.filePath))
-  expect(JSON.parse(strFromU8(zip['records.json']!)).names[0].name).toBe('香港')
+  expect(
+    JSON.parse(strFromU8(zip['records.json']!)).rows[0].names['zh-hant'].name,
+  ).toBe('香港')
 })
 
 test('upload verifies an existing edition, rejects changed bytes and propagates failures', async () => {
@@ -143,4 +146,64 @@ test('upload verifies an existing edition, rejects changed bytes and propagates 
       throw Error('upload failed')
     }),
   ).rejects.toThrow('upload failed')
+})
+
+test('SaanSeoi archives camelCase inherited JSON and preserve internal containment on ingestion', async () => {
+  const input = await fixture()
+  const original = {
+    id: 'division',
+    class: 'neighbourhood',
+    geometry: { type: 'Point', coordinates: [114, 22] },
+    cartography: { min_zoom: 14, max_zoom: 24 },
+    hierarchies: {
+      full: [
+        [
+          {
+            id: 'parent',
+            name: 'Parent',
+            class: 'district',
+            full_containment: true,
+            containment_geometry: { division: 'sha256:a', ancestor: 'sha256:b' },
+          },
+        ],
+      ],
+    },
+    sources: {
+      overture: [
+        {
+          record_id: 'native-id',
+          update_time: 'date',
+          extra_data: { nested_key: 'value' },
+        },
+      ],
+    },
+    identifiers: { 'LANDSD:GEO_NAME_ID': '1' },
+  }
+  const asset = await prepareCuratedReleaseAsset({
+    ...input,
+    resourceType: 'division',
+    rows: [original],
+    names: [{ divisionId: 'division', locale: 'zh-hant', name: '地方' }],
+  })
+  const zip = unzipSync(await readFile(asset.filePath))
+  const published = JSON.parse(strFromU8(zip['records.json']!)).rows[0]
+  expect(published.cartography).toEqual({ minZoom: 14, maxZoom: 24 })
+  expect(published.sources.overture).toEqual([
+    { recordId: 'native-id', updateTime: 'date', extraData: { nestedKey: 'value' } },
+  ])
+  expect(published.hierarchies.full[0][0]).toMatchObject({
+    fullContainment: true,
+    containmentGeometry: { division: 'sha256:a', ancestor: 'sha256:b' },
+  })
+  expect(published.identifiers).toEqual(original.identifiers)
+  expect(published.names['zh-hant'].name).toBe('地方')
+  const ingested = normaliseCuratedDivision({
+    id: 'division',
+    record: JSON.stringify(published),
+  })
+  expect(ingested.base.hierarchies.full[0]![0]).toMatchObject({
+    full_containment: true,
+    containment_geometry: { division: 'sha256:a', ancestor: 'sha256:b' },
+  })
+  expect(original.sources.overture[0]).toHaveProperty('record_id', 'native-id')
 })

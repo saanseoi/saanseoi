@@ -10,6 +10,7 @@ export type OpenApiSchema = {
   const?: string | number | boolean | null
   description?: string
   enum?: Array<string | number | boolean | null>
+  examples?: unknown[]
   format?: string
   items?: OpenApiSchema
   maximum?: number

@@ -1,3 +1,7 @@
+import { camelCaseFieldName, camelCaseJson } from '@repo/core/jsonKeys'
+import type { DivisionHierarchies } from '@repo/db'
+import { saanseoiDivisionSourceFields } from './saanseoiDivisionSourceSchema'
+import { publicDivisionHierarchies } from './divisionsPresentation'
 import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 
@@ -412,7 +416,7 @@ function sourceValidityValues(args: {
   return values
 }
 
-function toSourceRecord(
+export function toSourceRecord(
   row: SourceRecordRow,
   release: SourceReleaseRow,
   entry: SourceRecordCatalogueEntry,
@@ -420,8 +424,30 @@ function toSourceRecord(
   family: SourceFamily,
 ): SourceRecord {
   const properties = parseProperties(row.properties)
+  if (release.datasetCode === 'ds-hk-saanseoi-division' && properties?.hierarchies) {
+    properties.hierarchies = publicDivisionHierarchies(
+      properties.hierarchies as DivisionHierarchies,
+    )
+  }
+  if (
+    release.datasetCode === 'ds-hk-saanseoi-division' &&
+    properties?.names &&
+    typeof properties.names === 'object' &&
+    !Array.isArray(properties.names)
+  ) {
+    properties.names = Object.fromEntries(
+      Object.entries(properties.names).map(([locale, value]) => {
+        if (!value || typeof value !== 'object' || Array.isArray(value))
+          return [locale, value]
+        const { nameVariant: _variants, ...name } = value as Record<string, unknown>
+        return [locale, name]
+      }),
+    )
+  }
   const record: SourceRecord = {
-    properties,
+    properties: release.datasetCode.startsWith('ds-hk-saanseoi-')
+      ? camelCaseJson(properties)
+      : properties,
     sourceRecordId: row.sourceRecordId,
     ...(family === 'streets'
       ? { resourceType: release.resourceType, variant: release.sourceVariant }
@@ -592,22 +618,36 @@ export async function getSourceRecordSchema(args: {
   }
   for (const field of results.flatMap(result => result.results)) {
     if (field.name == null) continue
-    occurrences.set(field.name, (occurrences.get(field.name) ?? 0) + field.occurrences)
-    const values = fields.get(field.name) ?? new Set<string>()
+    const name = resolved.release.datasetCode.startsWith('ds-hk-saanseoi-')
+      ? camelCaseFieldName(field.name)
+      : field.name
+    occurrences.set(name, (occurrences.get(name) ?? 0) + field.occurrences)
+    const values = fields.get(name) ?? new Set<string>()
     values.add(types[field.type] ?? field.type)
-    fields.set(field.name, values)
+    fields.set(name, values)
   }
   return {
     type: 'object' as const,
     additionalProperties: true,
+    ...(resolved.release.datasetCode === 'ds-hk-saanseoi-division'
+      ? {
+          description:
+            'The fields stored in this release. Expand a field to see what it can contain. Required fields are always present; optional fields may be missing. Nullable means the field can have no value (null).',
+        }
+      : {}),
     required: [...fields.keys()].filter(name => occurrences.get(name) === total),
     properties: Object.fromEntries(
       [...fields].map(([name, values]) => {
         const nonNull = [...values].filter(type => type !== 'null')
+        const contract =
+          resolved.release.datasetCode === 'ds-hk-saanseoi-division'
+            ? saanseoiDivisionSourceFields[name]
+            : undefined
         const definitions = nonNull.map(type => ({
           type,
           ...(type === 'object' ? { additionalProperties: true } : {}),
           ...(type === 'array' ? { items: {} } : {}),
+          ...(contract?.type === type ? contract : {}),
         }))
         return [
           name,
@@ -617,6 +657,7 @@ export async function getSourceRecordSchema(args: {
               : definitions.length
                 ? { anyOf: definitions }
                 : { type: 'null' }),
+            ...(contract?.description ? { description: contract.description } : {}),
             nullable: values.has('null'),
           },
         ]

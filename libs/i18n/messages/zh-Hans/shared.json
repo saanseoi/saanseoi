@@ -2788,7 +2788,7 @@
   "openapi_overture_source_item_description": "图征属性的 Overture 来源归属项目。",
   "openapi_other_source_item_description": "特定提供者的来源归属项目。",
   "openapi_sources_overture_description": "由 Overture Maps 提供的归属数据。每个项目标识此属性的来源记录。",
-  "openapi_sources_other_provider_description": "来自另一来源提供者的归属数据。属性键是该提供者的标识符，每个项目均遵循该提供者的来源项目结构。",
+  "openapi_sources_other_provider_description": "来自其他来源提供者的归属数据。属性键标识提供者；每个项目的字段名称均使用 camelCase。",
   "openapi_sources_other_provider_label": "另一来源提供者",
   "openapi_sources_payload_description": "按提供者分组的来源归属数据。每个提供者键对应一个或多个来源项目。",
   "openapi_list_response_description": "列出{resource}。",

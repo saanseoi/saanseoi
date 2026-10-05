@@ -1,3 +1,4 @@
+import { camelCaseJson } from '../../../jsonKeys'
 import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
 import { canonicalGeometryId } from '@repo/db'
 import { recordContent } from '../sources/recordContent'
@@ -441,9 +442,11 @@ function sourceProperties(row: Record<string, unknown>, source: string) {
       'source_geometry',
       'source_properties',
     ])
-    return Object.fromEntries(
-      Object.entries(row).filter(
-        ([key]) => key !== 'id' && key !== 'geometry' && !derived.has(key),
+    return camelCaseJson(
+      Object.fromEntries(
+        Object.entries(row).filter(
+          ([key]) => key !== 'id' && key !== 'geometry' && !derived.has(key),
+        ),
       ),
     )
   }
@@ -451,7 +454,7 @@ function sourceProperties(row: Record<string, unknown>, source: string) {
     throw new Error(`${source} district area requires publisher \`source_properties\`.`)
   }
   return source === 'saanseoi'
-    ? { ...properties }
+    ? camelCaseJson(properties)
     : (retainSourceProperties(properties) as Record<string, unknown>)
 }
 

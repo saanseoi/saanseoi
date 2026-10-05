@@ -1595,3 +1595,20 @@ including its shared exclusion dependency. SaanSeoi curated assembly belongs to 
 SaanSeoi snapshot recipes; Protomaps source intake does not declare canonical assembly.
 
 See the [processing policy contract](../pipeline.md#define-audit-processing-rules).
+
+## JSON field naming
+
+Public API responses use camelCase field names recursively, including inherited source
+references, cartographic hints, hierarchy entries and included resources. Examples are
+`recordId`, `updateTime`, `minZoom`, `maxZoom` and `fullContainment`. Source references
+under `sources.overture` follow this API contract too. Locale codes, provider
+identifiers, external identifier keys, enum values and source-field paths retain their
+exact values. Colliding field spellings are rejected rather than silently overwriting
+either value.
+
+SaanSeoi Division and DivisionArea archives and retained SOURCE properties use the same
+field naming. Publication projects inherited objects before hashing the published
+archive. Source-record JSON, NDJSON and schema descriptions follow that contract.
+Publisher-owned Overture source records and archives retain their original field names.
+Internal geometry processing has a separate storage contract; curated ingestion maps
+published containment fields into that contract without discarding geometry evidence.

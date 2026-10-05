@@ -5,6 +5,9 @@ import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 import {
   getSchemaComposition,
+  getExpandableSchemaComposition,
+  getSchemaTypeLabel,
+  unwrapNullableSchema,
   getSchemaDataArrayEnvelope,
   getSchemaRecordValueSchema,
   getSchemaReferenceName,
@@ -38,7 +41,7 @@ let {
   onExpandAll,
   onExpandedNodeStateChange,
   referencePath = [],
-  required = false,
+  required,
   schema,
   schemas,
 }: Props = $props()
@@ -55,7 +58,7 @@ let compositionReferenceName = $derived(
 )
 let referenceName = $derived(ownReferenceName ?? compositionReferenceName)
 let resolvedSchema = $derived(referenceName ? schemas[referenceName] : undefined)
-let displaySchema = $derived(resolvedSchema ?? schema)
+let displaySchema = $derived(unwrapNullableSchema(resolvedSchema ?? schema))
 let dataArrayEnvelope = $derived(getSchemaDataArrayEnvelope(displaySchema, schemas))
 let childSchema = $derived(dataArrayEnvelope?.itemSchema ?? displaySchema)
 let properties = $derived(Object.entries(childSchema.properties ?? {}))
@@ -72,18 +75,14 @@ let additionalProperties = $derived(
 )
 let recordValueSchema = $derived(getSchemaRecordValueSchema(childSchema, schemas))
 let visibleProperties = $derived(properties)
-let composition = $derived(getSchemaComposition(childSchema))
+let composition = $derived(getExpandableSchemaComposition(childSchema))
 let nullable = $derived(isSchemaNullable(schema) || isSchemaNullable(displaySchema))
 let scalarArrayChain = $derived(getScalarArrayChain(displaySchema))
 let typeLabel = $derived.by(() => {
   if (!ownReferenceName && referenceName) return referenceName
 
-  const type = displaySchema.type
-  const base = Array.isArray(type)
-    ? type.filter(value => value !== 'null').join(' | ')
-    : type
   const reference = ownReferenceName ? ` · ${ownReferenceName}` : ''
-  return `${base || (composition.length ? 'union' : 'object')}${reference}`
+  return `${getSchemaTypeLabel(displaySchema)}${reference}`
 })
 let detailLabels = $derived([
   ...(displaySchema.format ? [displaySchema.format] : []),
@@ -189,7 +188,7 @@ function toggleExpanded() {
               class="rounded-full bg-secondary-container px-2.5 py-1 font-body text-caption font-semibold text-on-secondary-container"
               >Required</span
             >
-          {:else if depth > 0}
+          {:else if required === false && depth > 0}
             <span
               class="rounded-full border border-outline-variant px-2.5 py-1 font-body text-caption text-foreground-alt"
               >Optional</span
@@ -224,11 +223,18 @@ function toggleExpanded() {
       {/if}
       {#if displaySchema.enum?.length}
         <p class="font-mono text-caption text-foreground-alt">
+          <span class="font-body">Allowed values:</span>
           {displaySchema.enum.map(value => JSON.stringify(value)).join(' | ')}
         </p>
       {:else if displaySchema.const !== undefined}
         <p class="font-mono text-caption text-foreground-alt">
           {JSON.stringify(displaySchema.const)}
+        </p>
+      {/if}
+      {#if displaySchema.examples?.length}
+        <p class="font-mono text-caption text-foreground-alt">
+          <span class="font-body">Examples:</span>
+          {displaySchema.examples.map(value => JSON.stringify(value)).join(', ')}
         </p>
       {/if}
     </div>
@@ -264,7 +270,8 @@ function toggleExpanded() {
               {onExpandedNodeStateChange}
               referencePath={childReferencePath}
               required={recordValueSchema?.required?.includes(propertyName) ??
-  childSchema.required?.includes(propertyName)}
+                childSchema.required?.includes(propertyName) ??
+                false}
               schema={propertySchema}
               {schemas}
             />
@@ -280,8 +287,9 @@ function toggleExpanded() {
               {expandAllToken}
               {expandedNodeStates}
               name={recordValueSchema
-  ? (childSchema['x-recordKeyName'] ?? 'property key')
-  : (childSchema['x-additionalPropertiesName'] ?? 'additional properties')}
+                ? (childSchema['x-recordKeyName'] ?? 'property key')
+                : (childSchema['x-additionalPropertiesName'] ??
+                  'additional properties')}
               {onExpandedNodeStateChange}
               referencePath={childReferencePath}
               schema={additionalProperties}
@@ -299,7 +307,7 @@ function toggleExpanded() {
               depth={depth + 1}
               {expandAllToken}
               {expandedNodeStates}
-              name={getSchemaVariantName(member) ?? `option ${index + 1}`}
+              name={getSchemaVariantName(member) ?? getSchemaTypeLabel(member)}
               {onExpandedNodeStateChange}
               referencePath={childReferencePath}
               schema={member}

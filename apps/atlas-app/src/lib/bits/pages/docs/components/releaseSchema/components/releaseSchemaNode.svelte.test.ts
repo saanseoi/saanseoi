@@ -169,3 +169,86 @@ test('shows the variants of a nullable referenced union', async () => {
   await expect.element(screen.getByText('A single position.')).toBeVisible()
   await expect.element(screen.getByText('One enclosed area.')).toBeVisible()
 })
+
+test('renders unspecified items honestly and nullable arrays without option wrappers', async () => {
+  const screen = await render(ReleaseSchemaNode, {
+    name: 'properties',
+    expandAllToken: 1,
+    schema: {
+      type: 'object',
+      properties: {
+        unknownItems: { type: 'array', items: {} },
+        nameRules: {
+          anyOf: [
+            {
+              type: 'array',
+              items: { type: 'object', properties: { value: { type: 'string' } } },
+            },
+            { type: 'null' },
+          ],
+        },
+      },
+    },
+    schemas: {},
+  })
+  await expect.element(screen.getByText('any value', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('value', { exact: true })).toBeVisible()
+  await expect.element(screen.getByText('Nullable', { exact: true })).toBeVisible()
+  await expect
+    .element(screen.getByText('option 1', { exact: true }))
+    .not.toBeInTheDocument()
+})
+
+test('shows readable type alternatives for nullable names', async () => {
+  const screen = await render(ReleaseSchemaNode, {
+    name: 'nameAlts',
+    expandAllToken: 1,
+    schema: {
+      anyOf: [
+        { anyOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }] },
+        { type: 'null' },
+      ],
+    },
+    schemas: {},
+  })
+  await expect
+    .element(screen.getByText('string | array of string', { exact: true }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByRole('button', { name: 'Collapse nameAlts' }))
+    .not.toBeInTheDocument()
+  await expect
+    .element(screen.getByText('array of string', { exact: true }))
+    .not.toBeInTheDocument()
+  await expect.element(screen.getByText('Nullable', { exact: true })).toBeVisible()
+  await expect
+    .element(screen.getByText('option 1', { exact: true }))
+    .not.toBeInTheDocument()
+  await expect
+    .element(screen.getByText('Optional', { exact: true }))
+    .not.toBeInTheDocument()
+})
+
+test('distinguishes allowed values from illustrative examples', async () => {
+  const screen = await render(ReleaseSchemaNode, {
+    name: 'properties',
+    schema: {
+      type: 'object',
+      properties: {
+        category: { type: 'string', enum: ['administrative', 'hood'] },
+        divisionCode: { type: 'string', examples: ['HKSAR', 'CW', 'SYP'] },
+      },
+    },
+    schemas: {},
+  })
+  await expect
+    .element(screen.getByText('Allowed values:', { exact: true }))
+    .toBeVisible()
+  await expect.element(screen.getByText('Examples:', { exact: true })).toBeVisible()
+  await expect
+    .element(screen.getByText('"administrative" | "hood"', { exact: false }))
+    .toBeVisible()
+  await expect
+    .element(screen.getByText('"HKSAR", "CW", "SYP"', { exact: false }))
+    .toBeVisible()
+})

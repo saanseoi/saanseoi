@@ -52,7 +52,7 @@ describe('division geometry normalisation', () => {
       identifiers: { curation: { method: 'drawn' } },
       isLand: 1,
       isTerritorial: 0,
-      sources: { saanseoi: [{ dataset: 'division-drawings', record_id: 'drawing-1' }] },
+      sources: { saanseoi: [{ dataset: 'division-drawings', recordId: 'drawing-1' }] },
       type: 'land',
       variant: 'saanseoi',
     })

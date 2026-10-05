@@ -6,6 +6,9 @@ import {
   getProfileSchema,
   getScalarArrayChain,
   getSchemaComposition,
+  getExpandableSchemaComposition,
+  getSchemaTypeLabel,
+  unwrapNullableSchema,
   getSchemaRecordValueSchema,
   getSchemaReferenceName,
   getSchemaVariantName,
@@ -197,4 +200,60 @@ test('keeps parsed address components in every non-compact response profile', ()
         ?.properties ?? {},
     ),
   ).toEqual(['formattedAddress'])
+})
+
+test('does not invent an object type for unspecified array items', () => {
+  expect(getSchemaTypeLabel({})).toBe('any value')
+  expect(getSchemaTypeLabel({ type: 'array', items: { type: 'number' } })).toBe(
+    'array of number',
+  )
+})
+
+test('flattens nullable alternatives and unwraps a single non-null alternative', () => {
+  const names = {
+    anyOf: [
+      { anyOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }] },
+      { type: 'null' },
+    ],
+  }
+  expect(getSchemaComposition(names)).toHaveLength(2)
+  expect(getSchemaTypeLabel(names)).toBe('string | array of string')
+  expect(isSchemaNullable(names)).toBe(true)
+  expect(
+    unwrapNullableSchema({
+      anyOf: [
+        {
+          type: 'array',
+          items: { type: 'object', properties: { value: { type: 'string' } } },
+        },
+        { type: 'null' },
+      ],
+    }),
+  ).toMatchObject({
+    type: 'array',
+    nullable: true,
+    items: { properties: { value: { type: 'string' } } },
+  })
+  const intersection = {
+    allOf: [{ type: 'object' }, { properties: { id: { type: 'string' } } }],
+  }
+  expect(unwrapNullableSchema(intersection)).toEqual(intersection)
+})
+
+test('compacts only bare scalar alternatives without hiding constraints or object fields', () => {
+  expect(
+    getExpandableSchemaComposition({
+      anyOf: [{ type: 'string' }, { type: 'array', items: { type: 'string' } }],
+    }),
+  ).toEqual([])
+  for (const member of [
+    { type: 'string', enum: ['official', 'alternate'] },
+    { type: 'string', pattern: '^Q' },
+    { type: 'object', properties: { value: { type: 'string' } } },
+    { type: 'array', items: { type: 'string', description: 'Name value.' } },
+  ]) {
+    expect(
+      getExpandableSchemaComposition({ anyOf: [{ type: 'string' }, member] }),
+    ).toHaveLength(2)
+  }
 })

@@ -96,6 +96,10 @@ export const DivisionHierarchyEntrySchema = z
         'Stored Traditional Chinese and English display name, with duplicate names omitted.',
     }),
     class: z.string(),
+    fullContainment: z.boolean().nullable().optional().openapi({
+      description:
+        'Whether this ancestor covers the owning division’s entire canonical area, including boundaries and all polygon parts, for the selected release. False means some area lies outside; null or absent means unknown. This assertion does not apply to transformed or alternative geometry.',
+    }),
   })
   .openapi('DivisionHierarchyEntry')
 
@@ -110,6 +114,8 @@ export const DivisionHierarchiesSchema = z
     description:
       'Stored broadest-to-narrowest ancestor paths, excluding the division itself. Full paths merge administrative, landform and locality ancestry, suppressing cities and explicitly equivalent landform labels. Each path preserves evidenced branching.',
   })
+
+export type PublicDivisionHierarchies = z.infer<typeof DivisionHierarchiesSchema>
 
 const DivisionPositionSchema = z
   .array(z.number())

@@ -413,8 +413,8 @@ their own domain.
 
 ## Map display policy
 
-`cartography` uses `min_zoom`, `max_zoom` and `prominence`. Labels become eligible at
-the minimum zoom and remain eligible through zoom 24. Larger prominence values win label
+`cartography` uses `minZoom`, `maxZoom` and `prominence`. Labels become eligible at the
+minimum zoom and remain eligible through zoom 24. Larger prominence values win label
 collisions; map clients retain collision detection rather than displaying every eligible
 label. Landform labels use the island classification, not an artificial level. These are
 display hints, not changes to geometry or identity.
@@ -445,3 +445,22 @@ declarations independently of the ingestion policy.
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Published JSON keys
+
+SaanSeoi archives and retained source properties use camelCase for structural fields,
+including inherited nested objects and array entries. Source references use `recordId`
+and `updateTime`; cartography uses `minZoom` and `maxZoom`; published hierarchy entries
+use `fullContainment`. Internal containment evidence is named `containmentGeometry` in
+archives and omitted from public source samples and API responses.
+
+The archive writer projects keys before calculating the archive hash. SOURCE retention
+applies the same projection before content hashing. DivisionArea source properties
+follow the same rule. Existing immutable releases are not edited in place; corrected
+archive content requires a new reviewed publication. Public SaanSeoi source JSON and
+NDJSON use the naming contract when projecting retained records.
+
+Provider keys, locale keys, external identifier names and source-path values are data
+and retain their spelling. Structural name collisions fail publication instead of
+dropping a value. Raw Overture archives and retained publisher records remain
+publisher-owned.

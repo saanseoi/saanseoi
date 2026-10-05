@@ -1,3 +1,4 @@
+import { camelCaseJson } from '../../../jsonKeys'
 import { registerRule } from '../../../provenance/auditTypes'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import overtureFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/overture-source-retention.json'
@@ -124,7 +125,7 @@ function saanseoiSourcePayloadInternal(row: Record<string, unknown>) {
     throw new Error('Invalid SaanSeoi source record.')
   const { id: _id, geometry, ...properties } = record
   return {
-    properties,
+    properties: camelCaseJson(properties),
     sourceGeometry:
       typeof geometry === 'string' ? JSON.parse(geometry) : (geometry ?? null),
   }

@@ -128,7 +128,7 @@ function assembleCuratedDivisionsInternal(input: {
         ...(sources.saanseoi ?? []),
         {
           dataset: 'curated-island-areas',
-          record_id: sourceId,
+          recordId: sourceId,
           contributions: ['identity', 'classification'],
         },
       ],
@@ -211,7 +211,7 @@ function assembleCuratedDivisionsInternal(input: {
           ...retained,
           {
             dataset: 'ds-hk-saanseoi-division',
-            record_id: id,
+            recordId: id,
             curation: 'division-names',
             contributions: ['names'],
           },
@@ -255,7 +255,7 @@ function assembleCuratedDivisionsInternal(input: {
         bbox: null,
         identifiers: JSON.stringify({ saanseoiIsland: { sourceId: island.id } }),
         sources: JSON.stringify({
-          saanseoi: [{ dataset: 'curated-island-areas', record_id: island.id }],
+          saanseoi: [{ dataset: 'curated-island-areas', recordId: island.id }],
         }),
       })
       for (const [locale, name] of [
@@ -396,7 +396,7 @@ function assembleCuratedDivisionsInternal(input: {
         isTerritorial: 0,
         identifiers: JSON.stringify({ curation: { source, originalId } }),
         sources: JSON.stringify({
-          saanseoi: [{ dataset: source, record_id: originalId }],
+          saanseoi: [{ dataset: source, recordId: originalId }],
         }),
       },
     ])

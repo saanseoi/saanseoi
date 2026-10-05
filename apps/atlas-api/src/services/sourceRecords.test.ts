@@ -4,6 +4,7 @@ import { Database } from 'bun:sqlite'
 
 import {
   listSourceRecords,
+  toSourceRecord,
   getSourceRecordSchema,
   listSourceReleases,
   SourceRecordRequestError,
@@ -1003,3 +1004,178 @@ for (const [family, datasetCode, tableName, resourceType] of [
     ).toEqual([expected])
   })
 }
+
+test('SaanSeoi source samples, downloads and schema omit internal containment evidence', async () => {
+  const datasetCode = 'ds-hk-saanseoi-division'
+  const code = 'dr-hk-saanseoi-division-2026-07-22.0'
+  const ancestor = {
+    id: 'ancestor',
+    name: 'Ancestor',
+    class: 'district',
+    fullContainment: true,
+    containment_geometry: { division: 'sha256:child', ancestor: 'sha256:parent' },
+  }
+  const names = {
+    en: {
+      name: 'Child',
+      nameVariant: ['Child', 'Alias'],
+      nameAlts: 'Alias',
+      nameRules: [{ value: 'Alias', variant: 'alternate' }],
+      isLocaleInferred: 0,
+    },
+  }
+  const properties = {
+    id: 'child',
+    hierarchies: { full: [[ancestor]] },
+    names,
+    sources: {
+      overture: [
+        {
+          record_id: 'native',
+          update_time: 'date',
+          nested_data: { provider_flag: true },
+        },
+      ],
+    },
+    cartography: { min_zoom: 8, max_zoom: 24 },
+  }
+  const row = {
+    sourceRecordId: 'child',
+    versionHash: 'hash',
+    properties: JSON.stringify(properties),
+  }
+  const db = {
+    prepare(query: string) {
+      return {
+        bind() {
+          return {
+            all: async () => ({
+              results: query.includes('json_each(record.properties)')
+                ? [
+                    { name: 'id', type: 'text', occurrences: 1, total: 1 },
+                    { name: 'hierarchies', type: 'object', occurrences: 1, total: 1 },
+                    { name: 'names', type: 'object', occurrences: 1, total: 1 },
+                    { name: 'category', type: 'text', occurrences: 1, total: 1 },
+                    { name: 'class', type: 'text', occurrences: 1, total: 1 },
+                    { name: 'divisionCode', type: 'text', occurrences: 1, total: 1 },
+                    { name: 'bbox', type: 'array', occurrences: 1, total: 1 },
+                    { name: 'cartography', type: 'object', occurrences: 1, total: 1 },
+                    { name: 'sources', type: 'object', occurrences: 1, total: 1 },
+                    { name: 'memberships', type: 'array', occurrences: 1, total: 1 },
+                  ]
+                : [row],
+              success: true,
+            }),
+          }
+        },
+      }
+    },
+  }
+  const args = {
+    family: 'divisions' as const,
+    sourceReleaseCode: code,
+    includeGeometry: false,
+    env: { DB_SOURCE_HK_2026: db } as never,
+    metaDb: metaDatabase({ datasetCode, sourceReleaseCode: code }),
+  }
+  for (const sample of [undefined, 'random'] as const) {
+    const result = await listSourceRecords({ ...args, sample, limit: 1 })
+    expect(result?.records[0]?.properties?.hierarchies).toEqual({
+      full: [
+        [
+          {
+            id: 'ancestor',
+            name: 'Ancestor',
+            class: 'district',
+            fullContainment: true,
+          },
+        ],
+      ],
+    })
+    expect(result?.records[0]?.properties?.sources).toEqual({
+      overture: [
+        { recordId: 'native', updateTime: 'date', nestedData: { providerFlag: true } },
+      ],
+    })
+    expect(result?.records[0]?.properties?.cartography).toEqual({
+      minZoom: 8,
+      maxZoom: 24,
+    })
+    expect(JSON.stringify(result)).not.toContain('containment_geometry')
+    expect(JSON.stringify(result)).not.toContain('nameVariant')
+    expect(result?.records[0]?.properties?.names).toEqual({
+      en: {
+        name: 'Child',
+        nameAlts: 'Alias',
+        nameRules: [{ value: 'Alias', variant: 'alternate' }],
+        isLocaleInferred: 0,
+      },
+    })
+  }
+  const stream = await streamSourceRecordsNdjson(args)
+  const ndjson = await new Response(stream).text()
+  expect(ndjson).not.toContain('containment_geometry')
+  expect(ndjson).not.toContain('nameVariant')
+  expect(ndjson).not.toContain('record_id')
+  expect(ndjson).toContain('recordId')
+  const schema = await getSourceRecordSchema(args)
+  expect(JSON.stringify(schema)).not.toContain('containment_geometry')
+  expect(JSON.stringify(schema)).not.toContain('nameVariant')
+  expect(JSON.stringify(schema?.properties.names)).toContain('nameAlts')
+  expect(JSON.stringify(schema?.properties.names)).toContain('nameRules')
+  expect(JSON.stringify(schema?.properties.hierarchies)).toContain('fullContainment')
+  expect(schema?.properties.bbox).toMatchObject({
+    type: 'array',
+    items: { type: 'number' },
+    minItems: 4,
+    maxItems: 4,
+    nullable: false,
+  })
+  expect(schema?.required).toContain('bbox')
+  expect(schema?.properties.cartography).toHaveProperty(
+    'properties.minZoom.description',
+  )
+  expect(schema?.properties.sources).toHaveProperty(
+    'additionalProperties.items.properties.recordId.description',
+  )
+  expect(schema?.properties.memberships).toHaveProperty(
+    'items.properties.collection.description',
+  )
+  expect(schema?.properties.names).toHaveProperty('x-recordKeyName', 'locale')
+  expect(schema?.properties.hierarchies).toHaveProperty(
+    'properties.full.items.items.properties.name.description',
+  )
+  expect(schema?.properties.category).toHaveProperty('enum', [
+    'landform',
+    'administrative',
+    'locality',
+    'hood',
+  ])
+  expect(schema?.properties.class).toHaveProperty(
+    'enum',
+    expect.arrayContaining(['district', 'neighbourhood', 'major_island']),
+  )
+  expect(schema?.properties.divisionCode).toHaveProperty('examples', [
+    'HKSAR',
+    'CW',
+    'SYP',
+  ])
+  expect(schema?.properties.divisionCode).not.toHaveProperty('enum')
+  expect(JSON.parse(row.properties)).toEqual(properties)
+})
+
+test('raw Overture source records preserve publisher field spelling', () => {
+  const properties = {
+    sources: [{ record_id: 'native', update_time: 'date' }],
+    cartography: { min_zoom: 8, max_zoom: 24 },
+    names: { common: { 'zh-hant': '名稱' } },
+  }
+  const result = toSourceRecord(
+    { sourceRecordId: 'native', properties: JSON.stringify(properties) } as never,
+    { datasetCode: 'ds-hk-overture-division' } as never,
+    {} as never,
+    false,
+    'divisions',
+  )
+  expect(result.properties).toEqual(properties)
+})

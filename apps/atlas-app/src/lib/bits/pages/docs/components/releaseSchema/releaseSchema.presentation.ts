@@ -77,10 +77,55 @@ function isNullSchema(schema: OpenApiSchema) {
   )
 }
 
-export function getSchemaComposition(schema: OpenApiSchema) {
-  return (schema.oneOf ?? schema.anyOf ?? schema.allOf ?? []).filter(
-    schema => !isNullSchema(schema),
-  )
+export function getSchemaComposition(schema: OpenApiSchema): OpenApiSchema[] {
+  const members = schema.oneOf ?? schema.anyOf ?? schema.allOf ?? []
+  return members
+    .filter(member => !isNullSchema(member))
+    .flatMap(member =>
+      schema.anyOf && member.anyOf && Object.keys(member).every(key => key === 'anyOf')
+        ? getSchemaComposition(member)
+        : [member],
+    )
+}
+
+/** Bare scalar alternatives are fully described by the parent type label. */
+export function getExpandableSchemaComposition(schema: OpenApiSchema) {
+  const members = getSchemaComposition(schema)
+  const isBareValue = (value: OpenApiSchema): boolean => {
+    if (Object.keys(value).some(key => key !== 'type' && key !== 'items')) return false
+    if (value.type === 'array') return Boolean(value.items && isBareValue(value.items))
+    return (
+      typeof value.type === 'string' &&
+      ['string', 'number', 'integer', 'boolean', 'null'].includes(value.type)
+    )
+  }
+  return !schema.allOf && members.every(isBareValue) ? [] : members
+}
+
+/** Remove a nullable wrapper with just one non-null alternative. */
+export function unwrapNullableSchema(schema: OpenApiSchema): OpenApiSchema {
+  if (!schema.anyOf || schema.type || schema.properties) return schema
+  const members = getSchemaComposition(schema)
+  if (members.length !== 1) return schema
+  const { anyOf: _alternatives, ...annotations } = schema
+  return {
+    ...unwrapNullableSchema(members[0]!),
+    ...annotations,
+    nullable: isSchemaNullable(schema) || isSchemaNullable(members[0]!),
+  }
+}
+
+export function getSchemaTypeLabel(schema: OpenApiSchema): string {
+  const scalarArray = getScalarArrayChain(schema)
+  if (scalarArray) return scalarArray.types.join(' of ')
+  const type = getSchemaTypeName(schema)
+  if (type) return type
+  const composition = getSchemaComposition(schema)
+  if (composition.length)
+    return schema.allOf
+      ? 'intersection'
+      : composition.map(getSchemaTypeLabel).join(' | ')
+  return schema.properties || schema.additionalProperties ? 'object' : 'any value'
 }
 
 export function isSchemaNullable(schema: OpenApiSchema) {

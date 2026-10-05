@@ -124,13 +124,13 @@ export const CartographicHintsSchema = z
       .openapi({
         description: openApiText('openapi_cartographic_prominence_description'),
       }),
-    min_zoom: z
+    minZoom: z
       .number()
       .optional()
       .openapi({
         description: openApiText('openapi_cartographic_min_zoom_description'),
       }),
-    max_zoom: z
+    maxZoom: z
       .number()
       .optional()
       .openapi({
@@ -187,10 +187,10 @@ export const OvertureSourceItemSchema = z
     property: z.string().optional(),
     dataset: z.string().min(1),
     license: z.string().nullable().optional(),
-    record_id: z.string().nullable().optional(),
+    recordId: z.string().nullable().optional(),
     release: z.string().nullable().optional(),
     contributions: z.array(z.string().min(1)).min(1).optional(),
-    update_time: z.string().nullable().optional(),
+    updateTime: z.string().nullable().optional(),
     confidence: z.number().min(0).max(1).nullable().optional(),
     between: z.tuple([z.number(), z.number()]).nullable().optional(),
   })
@@ -202,7 +202,7 @@ export const OvertureSourceItemSchema = z
 export const OtherSourceTypeItemSchema = z
   .object({
     dataset: z.string().min(1).optional(),
-    record_id: z.string().nullable().optional(),
+    recordId: z.string().nullable().optional(),
     release: z.string().nullable().optional(),
     contributions: z.array(z.string().min(1)).min(1).optional(),
   })

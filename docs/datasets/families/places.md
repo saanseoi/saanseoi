@@ -544,3 +544,12 @@ address matching. Supplementary Address recipes capture their Place normalisatio
 prerequisite and address-analysis policy separately from publisher release policy.
 
 See the [processing policy contract](../pipeline.md#define-audit-processing-rules).
+
+## JSON field naming
+
+Canonical API responses use camelCase throughout nested JSON, including inherited source
+attribution (`recordId`, `updateTime`) and localised provenance. Dictionary keys such as
+locale codes and external identifiers retain their original spelling, as do string
+values and source-field paths. Raw Overture source-record responses and retained
+archives use the publisher's field names. The shared response projection rejects
+field-name collisions.

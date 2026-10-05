@@ -2160,7 +2160,7 @@ describe('atlas-api', () => {
       'Attribution provided by Overture Maps. Each item identifies the source record for this property.',
     )
     expect(sources?.additionalProperties?.description).toBe(
-      "Attribution from another source provider. The property key is that provider's identifier, and each item follows that provider's source-item structure.",
+      "Attribution from another source provider. The property key identifies the provider; each item's field names use camelCase.",
     )
     expect(sources?.['x-additionalPropertiesName']).toBe('another source provider')
     expect(divisionResource?.properties?.links?.allOf?.[1]?.description).toBe(
@@ -2287,8 +2287,8 @@ describe('atlas-api', () => {
       'property',
       'dataset',
       'license',
-      'record_id',
-      'update_time',
+      'recordId',
+      'updateTime',
       'confidence',
       'provider',
       'resource',

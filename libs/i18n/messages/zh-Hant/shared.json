@@ -2794,7 +2794,7 @@
   "openapi_overture_source_item_description": "圖徵屬性的 Overture 來源歸屬項目。",
   "openapi_other_source_item_description": "特定提供者的來源歸屬項目。",
   "openapi_sources_overture_description": "由 Overture Maps 提供的歸屬資料。每個項目識別此屬性的來源記錄。",
-  "openapi_sources_other_provider_description": "來自另一來源提供者的歸屬資料。屬性鍵為該提供者的識別碼，而每個項目均遵循該提供者的來源項目結構。",
+  "openapi_sources_other_provider_description": "來自其他來源提供者的歸屬資料。屬性鍵識別提供者；每個項目的欄位名稱均使用 camelCase。",
   "openapi_sources_other_provider_label": "另一來源提供者",
   "openapi_sources_payload_description": "按提供者分組的來源歸屬資料。每個提供者鍵對應一個或多個來源項目。",
   "openapi_list_response_description": "列出{resource}。",

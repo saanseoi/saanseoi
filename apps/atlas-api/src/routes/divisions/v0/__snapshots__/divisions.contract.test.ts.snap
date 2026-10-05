@@ -936,7 +936,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
             {
               "dataset": "overture",
               "property": "/properties/id",
-              "record_id": "ovt-division-a-kung-ngam",
+              "recordId": "ovt-division-a-kung-ngam",
             },
           ],
         },
@@ -1003,7 +1003,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               {
                 "dataset": "overture",
                 "property": "/properties/id",
-                "record_id": "ovt-division-country-cn",
+                "recordId": "ovt-division-country-cn",
               },
             ],
           },
@@ -1085,7 +1085,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               {
                 "dataset": "overture",
                 "property": "/properties/id",
-                "record_id": "ovt-division-hk-sar",
+                "recordId": "ovt-division-hk-sar",
               },
             ],
           },
@@ -1177,7 +1177,7 @@ exports[`Divisions API responses through the Worker route detail and hierarchy t
               {
                 "dataset": "overture",
                 "property": "/properties/id",
-                "record_id": "ovt-division-east",
+                "recordId": "ovt-division-east",
               },
             ],
           },

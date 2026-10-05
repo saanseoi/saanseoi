@@ -1,3 +1,5 @@
+import { camelCaseJson } from '@repo/core/jsonKeys'
+import { curatedNameObject } from './recordContract'
 import { createHash } from 'node:crypto'
 import { writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
@@ -26,9 +28,45 @@ export async function prepareCuratedReleaseAsset(input: {
   rows: Record<string, unknown>[]
   names?: Record<string, unknown>[]
 }) {
+  const names = new Map<string, Record<string, unknown>>()
+  for (const { divisionId, locale, ...value } of curatedContentRows(
+    input.names ?? [],
+  )) {
+    const key = String(divisionId)
+    const localisations = names.get(key) ?? {}
+    if (Object.hasOwn(localisations, String(locale)))
+      throw new Error(`Duplicate archive locale: ${key}/${locale}`)
+    localisations[String(locale)] = curatedNameObject(value)
+    names.set(key, localisations)
+  }
+  const rows = curatedContentRows(input.rows).map(row =>
+    Object.fromEntries(
+      Object.entries(row).map(([key, value]) => [
+        key,
+        [
+          'geometry',
+          'bbox',
+          'hierarchies',
+          'identifiers',
+          'sources',
+          'cartography',
+        ].includes(key) && typeof value === 'string'
+          ? JSON.parse(value)
+          : value,
+      ]),
+    ),
+  )
+  const ids = new Set(rows.map(row => String(row.id)))
+  for (const id of names.keys())
+    if (!ids.has(id)) throw new Error(`Names reference missing archive division: ${id}`)
   const records = {
-    rows: curatedContentRows(input.rows),
-    ...(input.names ? { names: curatedContentRows(input.names) } : {}),
+    rows: rows.map(row =>
+      camelCaseJson(
+        input.resourceType === 'division'
+          ? { ...row, names: names.get(String(row.id)) ?? {} }
+          : row,
+      ),
+    ),
   }
   const manifest = {
     schemaVersion: 1,

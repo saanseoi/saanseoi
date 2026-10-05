@@ -3,7 +3,8 @@ import { flip } from 'svelte/animate'
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 import {
-  getSchemaComposition,
+  getExpandableSchemaComposition,
+  getSchemaTypeLabel,
   getSchemaRecordValueSchema,
   getSchemaVariantName,
 } from '../releaseSchema.presentation'
@@ -44,7 +45,7 @@ let additionalProperties = $derived(
     : undefined,
 )
 let recordValueSchema = $derived(getSchemaRecordValueSchema(itemSchema, schemas))
-let composition = $derived(getSchemaComposition(itemSchema))
+let composition = $derived(getExpandableSchemaComposition(itemSchema))
 </script>
 
 <div
@@ -96,7 +97,8 @@ let composition = $derived(getSchemaComposition(itemSchema))
           {onExpandedNodeStateChange}
           {referencePath}
           required={recordValueSchema?.required?.includes(propertyName) ??
-  itemSchema.required?.includes(propertyName)}
+            itemSchema.required?.includes(propertyName) ??
+            false}
           schema={propertySchema}
           {schemas}
         />
@@ -108,8 +110,8 @@ let composition = $derived(getSchemaComposition(itemSchema))
         {expandAllToken}
         {expandedNodeStates}
         name={recordValueSchema
-  ? (itemSchema['x-recordKeyName'] ?? 'property key')
-  : (itemSchema['x-additionalPropertiesName'] ?? 'additional properties')}
+          ? (itemSchema['x-recordKeyName'] ?? 'property key')
+          : (itemSchema['x-additionalPropertiesName'] ?? 'additional properties')}
         {onExpandedNodeStateChange}
         {referencePath}
         schema={additionalProperties}
@@ -126,7 +128,7 @@ let composition = $derived(getSchemaComposition(itemSchema))
           depth={depth + 1}
           {expandAllToken}
           {expandedNodeStates}
-          name={getSchemaVariantName(member) ?? `option ${index + 1}`}
+          name={getSchemaVariantName(member) ?? getSchemaTypeLabel(member)}
           {onExpandedNodeStateChange}
           {referencePath}
           schema={member}

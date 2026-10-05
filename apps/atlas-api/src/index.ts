@@ -1,3 +1,8 @@
+import {
+  camelCaseJson,
+  isJsonContentType,
+  usesCanonicalResponseKeys,
+} from './lib/responseKeys'
 import { GeographicCrosswalkUnavailableError } from './lib/geographicFilterContext'
 import { apiVersionLifecycleMiddleware } from './services/apiVersionLifecycle'
 import { geographicCodeFilterMiddleware } from './services/geographicCodeFilters'
@@ -441,18 +446,26 @@ for (const path of apiRoutePaths) {
     c.set('historyDbsByBinding', historyDbsByBinding)
     await next()
     if (
-      requiresCanonicalSourceExpansion(c.req.path, c.req.query('profile')) &&
+      (usesCanonicalResponseKeys(c.req.path) ||
+        requiresCanonicalSourceExpansion(c.req.path, c.req.query('profile'))) &&
       c.res.status === 200 &&
-      c.res.headers.get('content-type')?.includes('application/json')
+      isJsonContentType(c.res.headers.get('content-type'))
     ) {
       const document = await c.res.clone().json()
-      await hydrateCanonicalSourceDocument(document as never, {
-        metaDb: c.get('metaDb'),
-        historyDbsByBinding,
-      })
+      if (requiresCanonicalSourceExpansion(c.req.path, c.req.query('profile'))) {
+        await hydrateCanonicalSourceDocument(document as never, {
+          metaDb: c.get('metaDb'),
+          historyDbsByBinding,
+        })
+      }
       const headers = new Headers(c.res.headers)
       headers.delete('content-length')
-      c.res = new Response(JSON.stringify(document), { status: c.res.status, headers })
+      c.res = new Response(
+        JSON.stringify(
+          usesCanonicalResponseKeys(c.req.path) ? camelCaseJson(document) : document,
+        ),
+        { status: c.res.status, headers },
+      )
     }
   })
 }

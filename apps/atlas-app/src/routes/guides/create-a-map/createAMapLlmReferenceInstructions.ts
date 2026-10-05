@@ -602,6 +602,11 @@ Every basemap and style reference reads the public key from
 https://saanseoi.hk/api-keys, then ask them to provide the resulting \`pk.\` key so you
 can configure the local environment. Never log or commit it.
 
+Canonical API responses use camelCase keys throughout nested objects, including
+source references (recordId, updateTime) and cartographic hints (minZoom, maxZoom).
+Raw publisher source-record responses retain their publisher's field names.
+Locale codes, provider identifiers and external identifier keys retain their spelling.
+
 ## Division discovery
 
 For Division discovery, request /divisions/v0.1/search?q=水埗. It searches all domains

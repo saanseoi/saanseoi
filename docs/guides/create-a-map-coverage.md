@@ -110,3 +110,9 @@ response during publication finalisation.
 Division discovery references cover `/divisions/v0.1/search`, all-domain search,
 optional domain/locale filters, partial English and Chinese text, and opt-in ancestor
 matching. Search is limited to the latest published release selection.
+
+Canonical Places and included-resource JSON uses camelCase throughout nested objects,
+including source references (`recordId`, `updateTime`) and cartography (`minZoom`,
+`maxZoom`). Raw source-record responses retain publisher field names. The tutorial's
+reference instructions state this distinction; basic marker and pagination examples
+consume canonical fields.
