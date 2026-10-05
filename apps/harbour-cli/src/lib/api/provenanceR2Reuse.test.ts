@@ -56,7 +56,9 @@ for (const scenario of ['present', 'missing', 'corrupt', 'changed-input'] as con
           ? {
               size: bytes.byteLength,
               checksums: {
-                sha256: createHash('sha256').update(new Uint8Array(bytes)).digest(),
+                sha256: Uint8Array.from(
+                  createHash('sha256').update(new Uint8Array(bytes)).digest(),
+                ).buffer,
               },
             }
           : null

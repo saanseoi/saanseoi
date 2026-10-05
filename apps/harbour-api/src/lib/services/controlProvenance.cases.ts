@@ -1,3 +1,4 @@
+import { readFixtureLineage } from './controlFixtures.fixtures'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
 import addressFixtureOfficialLineage from '../../../../../fixtures/meta/apiFields/api-addresses-v0.1@saanseoi-v1.json'
@@ -346,7 +347,7 @@ test('requires retained processing audits for Addresses and Places before publis
     if (datasetType === 'place') {
       await expect(
         handlePublishDataset(db, { resourceReleaseId, deferApiReleaseSet: true }),
-      ).rejects.toThrow('supplementary Address analysis')
+      ).rejects.toThrow('supplementary Address dependency')
       const supplementaryReleaseId = `supplementary-${resourceReleaseId}`
       sqlite
         .query(`INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, cohortKey, status, createdAt, updatedAt)
@@ -456,24 +457,31 @@ test('requires retained processing audits for Addresses and Places before publis
       apiReleaseSetId: string
       datasetId: string
     }
-    const provenanceDefinition = sqlite
-      .query(
-        `
-          SELECT definition
-          FROM apiFieldProvenance provenance
-          INNER JOIN fieldLineageDefinitions definition
-            ON definition.id = provenance.definitionId
-          WHERE provenance.apiReleaseSetId = ?
-        `,
-      )
-      .get(publishedReleaseSet.apiReleaseSetId) as { definition: string } | null
-    const provenanceFields = provenanceDefinition
-      ? (
-          JSON.parse(provenanceDefinition.definition) as {
-            fields: Array<{ sourceDatasetId: string }>
-          }
-        ).fields.filter(field => field.sourceDatasetId === datasetId)
-      : []
+    const lineage = await readFixtureLineage(
+      sqlite,
+      publishedReleaseSet.apiReleaseSetId,
+    )
+    const sourceScopes = new Set(
+      lineage?.sourceSchemas
+        .filter(
+          (scope: { sourceDatasetId: string }) => scope.sourceDatasetId === datasetId,
+        )
+        .map((scope: { scopeId: string }) => scope.scopeId) ?? [],
+    )
+    const applicableNodes = new Set(
+      lineage?.nodes
+        .filter(
+          node =>
+            node.when.kind === 'compare' &&
+            typeof node.when.value === 'string' &&
+            sourceScopes.has(node.when.value),
+        )
+        .map((node: { id: string }) => node.id) ?? [],
+    )
+    const provenanceFields =
+      lineage?.fields.filter((field: { provenance: { assembly: string[] } }) =>
+        field.provenance.assembly.some(id => applicableNodes.has(id)),
+      ) ?? []
     const supportingSnapshots = sqlite
       .query(
         `
@@ -510,14 +518,23 @@ test('requires retained processing audits for Addresses and Places before publis
     })
     expect(snapshotRow.status).toBe('published')
     expect(snapshotRow.publishedAt).not.toBeNull()
-    expect(provenanceFields.length).toBe(
+    const expectedFields = (
       datasetType === 'address'
-        ? addressFixtureOfficialLineage.fields.filter(
-            field => field.sourceDatasetCode === 'ds-hk-hkgov-dpo-address',
-          ).length
-        : placeFixtureLineage.fields.filter(
-            field => field.sourceDatasetCode === 'ds-hk-overture-place',
-          ).length,
+        ? addressFixtureOfficialLineage.fields
+        : placeFixtureLineage.fields
+    ).filter(
+      field =>
+        field.sourceDatasetCode ===
+        (datasetType === 'address'
+          ? 'ds-hk-hkgov-dpo-address'
+          : 'ds-hk-overture-place'),
+    )
+    expect(provenanceFields.length).toBe(
+      new Set(
+        expectedFields.map(field =>
+          JSON.stringify([field.apiField, 'variant' in field ? field.variant : null]),
+        ),
+      ).size,
     )
     const expectedSupportingSnapshots =
       datasetType === 'address'
@@ -558,7 +575,7 @@ test('publishes LandsD divisions in their own API domain', async () => {
     updatedAt: '2026-06-10T00:00:00.000Z',
   })
   const snapshotId = seedSnapshot(sqlite, {
-    code: 'ss-hk-division-2026-06-10.0',
+    code: 'ss-hk-division-hkgov-landsd-2026-06-10.0',
     cohortKey: '2026-06',
     datasetId: 'hkgov-landsd-hk-division',
     resourceReleaseId,

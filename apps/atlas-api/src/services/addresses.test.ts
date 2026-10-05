@@ -1,10 +1,12 @@
+import { createMemoryProvenanceStore } from '../../../../libs/core/src/testing/provenanceStore'
+const { store: lineageStore } = createMemoryProvenanceStore()
 import { requireDefined } from '@repo/core/requireDefined'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { resolve } from 'node:path'
 import { computeVersionHash, currentSchema, metaSchema } from '@repo/db'
-import { listApiFieldFixtures } from '@repo/db/apiFieldFixtures'
+import { initialDatasets } from '@repo/db/registry'
 import {
   resolveAddressSearchScopes,
   buildAddressSearchSyncSql,
@@ -21,6 +23,7 @@ import {
   publishReleaseArtefacts,
   getDatasetRecordByReleaseId,
   publishSnapshot,
+  recordSnapshotAssembly,
   upsertSnapshotSource,
 } from '@repo/core/db/metaRegistry'
 import {
@@ -51,6 +54,10 @@ test('publishes and serves a curated Address union with dataset filtering, globa
         ]).replaceAll('--> statement-breakpoint', ''),
       )
     seedFixtureCatalog(meta)
+    meta.exec(`DELETE FROM apiCatalogRevisionReleaseSets;
+      DELETE FROM apiCatalogRevisions;
+      DELETE FROM apiVersionReleaseSets;
+      DELETE FROM apiReleaseSets;`)
     const db = createLocalHarbourDb(meta)
     const currentDb = createLocalHarbourDb(current)
     meta.exec(`INSERT INTO datasets (id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, versionHash)
@@ -117,33 +124,35 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
         member.datasetId,
         member.id,
         'primary',
+        {
+          selectedByRule: `assembly:${member.type}:source-release:v1`,
+          selectionMode: 'exact_ref',
+          sourceCohortKey: cohort,
+        },
       )
+      await recordSnapshotAssembly(db, {
+        anchorCohortKey: cohort,
+        anchorReleaseId: member.id,
+        resourceType: member.type,
+        snapshotId: snapshot.id,
+      })
       await publishSnapshot(db, snapshot.id)
       snapshots.set(member.id, snapshot.id)
     }
-    // Publication pins the fixture's processing rules to each contributing release.
-    const ruleIds = new Set(
-      listApiFieldFixtures()
-        .flatMap(fixture => fixture.fields)
-        .flatMap(field => [field.resolverCode, ...(field.processingRuleIds ?? [])]),
-    )
-    const processingRuleDefinition = {
-      rulesets: [
-        {
-          rulesetVersion: 'fixture',
-          rulesetVersionHash: 'fixture-hash',
-          rules: [...ruleIds].map(id => ({ definition: { id } })),
-        },
-      ],
+    // Capture the actual dataset policy so every pinned field rule is retained.
+    for (const dataset of initialDatasets) {
+      if (!dataset.processingRules) continue
+      const definitionId = computeVersionHash(dataset.processingRules)
+      await db
+        .insert(metaSchema.metaProcessingRuleDefinitions)
+        .values({ id: definitionId, definition: dataset.processingRules })
+        .onConflictDoNothing()
+        .run()
+      meta
+        .query(`UPDATE resourceReleases SET processingRules = ?
+          WHERE datasetId IN (SELECT id FROM datasets WHERE code = ?)`)
+        .run(definitionId, dataset.code)
     }
-    const processingRuleDefinitionId = computeVersionHash(processingRuleDefinition)
-    await db
-      .insert(metaSchema.metaProcessingRuleDefinitions)
-      .values({ id: processingRuleDefinitionId, definition: processingRuleDefinition })
-      .run()
-    meta
-      .query('UPDATE resourceReleases SET processingRules = ?')
-      .run(JSON.stringify({ definitionId: processingRuleDefinitionId }))
     // Publishing the supplementary resource must accept its snapshot variant,
     // even though its shared publisher dataset has the Places theme.
     const releaseSet = await ensureDraftReleaseSetForRelease(
@@ -159,6 +168,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     const dataset = await getDatasetRecordByReleaseId(db, 'supplementary')
     if (!dataset) throw new Error('Missing fixture release')
     const publication = await publishReleaseArtefacts(db, {
+      lineageStore,
       dataset,
       currentRelease: null,
       currentReleaseIsCorrected: false,
@@ -740,6 +750,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       },
     )
     await publishReleaseArtefacts(db, {
+      lineageStore,
       dataset,
       currentRelease: null,
       currentReleaseIsCorrected: false,

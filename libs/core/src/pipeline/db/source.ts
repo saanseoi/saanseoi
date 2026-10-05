@@ -58,8 +58,17 @@ function runRawSql(db: SourceDatabase, statement: unknown) {
   return runWithWriteRetry(() => (db as unknown as RawSqlWritableDb).run(statement))
 }
 
-export async function getCurrentSourceOvertureDivisionMap(db: SourceDatabase) {
-  const table = sourceSchema.sourceOvertureDivisions
+function divisionSourceTable(source: string) {
+  if (source === 'overture') return sourceSchema.sourceOvertureDivisions
+  if (source === 'saanseoi') return sourceSchema.sourceSsDivision
+  throw new Error(`Unsupported division source ledger: ${source}`)
+}
+
+export async function getCurrentSourceDivisionMap(
+  db: SourceDatabase,
+  source = 'overture',
+) {
+  const table = divisionSourceTable(source)
   const rows = await db
     .select({
       sourcePayloadHash: table.versionHash,
@@ -75,27 +84,27 @@ export async function getCurrentSourceOvertureDivisionMap(db: SourceDatabase) {
   )
 }
 
-export async function getMergedCurrentSourceOvertureDivisionMap(
+export async function getMergedCurrentSourceDivisionMap(
   sources: Array<{
     db: unknown
     key: string
     sortOrder: number
   }>,
+  publisher = 'overture',
 ) {
   const mergedRows = new Map<string, CurrentSourceRecord & { ownerSortOrder: number }>()
 
   for (const source of [...sources].sort(
     (left, right) => left.sortOrder - right.sortOrder,
   )) {
-    const rows = await getCurrentSourceOvertureDivisionMap(source.db as SourceDatabase)
+    const rows = await getCurrentSourceDivisionMap(
+      source.db as SourceDatabase,
+      publisher,
+    )
 
     for (const [id, row] of rows) {
       const existing = mergedRows.get(id)
-      const ownerShardKeys = [
-        ...(existing?.ownerShardKeys ?? []),
-        ...(row.ownerShardKeys ?? []),
-        source.key,
-      ]
+      const ownerShardKeys = [...(existing?.ownerShardKeys ?? []), source.key]
 
       if (!existing || source.sortOrder >= existing.ownerSortOrder) {
         mergedRows.set(id, {
@@ -198,14 +207,15 @@ export async function dropSeenSourceRecordIdTable(db: SourceDatabase) {
   await runRawSql(db, sql`DROP TABLE IF EXISTS tempSeenSourceRecordIds`)
 }
 
-export async function closeSourceOvertureDivisionVersions(
+export async function closeSourceDivisionVersions(
   db: SourceDatabase,
   sourceRecordIds: string[],
   validToRelease: string,
+  source = 'overture',
 ) {
   await closeCurrentSourceVersions(
     db,
-    sourceSchema.sourceOvertureDivisions,
+    divisionSourceTable(source),
     sourceRecordIds,
     validToRelease,
   )
@@ -361,22 +371,21 @@ async function deleteMissingCurrentSourceRowsByReleaseId<
   return closedRows
 }
 
-export async function insertSourceOvertureDivisionVersions(
+export async function insertSourceDivisionVersions(
   db: SourceDatabase,
   rows: Array<typeof sourceSchema.sourceOvertureDivisions.$inferInsert>,
   options?: {
     assumeVersionRowsAbsent?: boolean
+    source?: string
   },
 ) {
+  const table = divisionSourceTable(options?.source ?? 'overture')
   await insertVersionRows(
     db,
-    sourceSchema.sourceOvertureDivisions,
+    table,
     rows,
     SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT,
-    [
-      sourceSchema.sourceOvertureDivisions.sourceRecordId,
-      sourceSchema.sourceOvertureDivisions.versionHash,
-    ],
+    [table.sourceRecordId, table.versionHash],
     options,
   )
 }

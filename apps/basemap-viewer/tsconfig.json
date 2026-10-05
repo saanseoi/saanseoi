@@ -19,5 +19,6 @@
       "@repo/basemap": ["../../libs/basemap/src/index.ts"]
     }
   },
-  "include": ["src", "tests", "vite.config.ts"]
+  "include": ["src", "tests", "vite.config.ts"],
+  "exclude": ["src/local-review"]
 }

@@ -16,9 +16,10 @@ beforeEach(() => {
   panel.style.cssText = 'height:200px;overflow-y:auto'
   const text = document.createElement('div')
   text.style.height = '1200px'
-  panel.append(text)
-  node.append(controls, panel)
-  document.body.append(node)
+  panel.appendChild(text)
+  node.appendChild(controls)
+  node.appendChild(panel)
+  document.body.appendChild(node)
   window.scrollTo({ top: 0, behavior: 'instant' })
   node.addEventListener('wheel', event => routeReleaseNavWheel(node, event))
 })
