@@ -527,6 +527,16 @@ Approved issue-batch decisions whose evidence does not match emit a warning unde
 `--skip-curation-checks` and leave their records unchanged; matching decisions still
 apply.
 
+The reviewed 21 August 2024 omission cohort retains 15 buildings and five complexes
+under `hkgov-dpo-address-august-deletion-retentions.json`. Decisions preserve the
+acknowledged July canonical IDs from 21 August onwards and restore missing premises from
+dated publisher evidence. Terra keeps its bilingual building name. James’ Garden and The
+Nascent retain their reviewed transitional-housing premises. Fu Tip Estate and Lingnan
+University keep complexes distinct from their buildings; the Lingnan campus is a
+complex. Returning publisher assertions must match the reviewed per-release hashes; new
+evidence or ambiguous matches require review. Retained premises carry curation
+provenance without inventing publisher rows or approving deletion reports.
+
 Named-premise retentions are similarly explicit. Cheung Hong Commercial Centre No. 2
 keeps the reviewed named record and preserves its unnamed cross-reference as provenance,
 but does not backfill beyond the date both publisher records disappear.
@@ -616,6 +626,160 @@ Neither a number nor its inclusion in another address's range establishes granul
 containment. Addresses 134, 136 and 138 may be shops within a building addressed
 134–138; addresses 60 and 62 may be separate school buildings within a campus addressed
 60–62. Review the actual premises before classifying or linking these records.
+
+The October 2024 deletion triage is recorded in
+[`hkgov-dpo-address-october-deletion-retentions.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-october-deletion-retentions.json).
+It records the user's 54 retained identities and one approved retirement from the
+55-entry review. The rules apply from `2024-10-18.0`; complete publisher CSU groups and
+selected premise hashes guard every inspected delivery through `2026-08-19.0`. Changed
+or uninspected publisher evidence stops processing.
+
+Exact bilingual labels, address numbers, source points and structured components support
+continuity, name omissions and renames. FTLIFE Tower becomes CTF LIFE Tower; SML Tower
+becomes Upper Living. Hoi Pa Building at number 8 and Texwood Plaza at number 6 retain
+their identities independently of other frontage numbers. Parent complexes and phases
+remain distinct from Crestmont Block 9, Bella Vista blocks, Wellness Lodge Substation,
+Hilltop Villa Block A, 2Gether South Wing and the 14 source-backed towers of The Reach.
+Source IDs that move between these levels do not transfer a building identity to its
+parent.
+
+The three Cameron Lodge houses, Kowloon International Baptist Church, Wo Hop Shek House
+B, Personage Hotel and 2Gether North Wing are retained with their genuine predecessor
+evidence. North Wing and South Wing have separate building identities beneath the
+retained 2Gether complex; a sub-premise never takes the complex identity. Personage
+Hotel remains distinct from the already coexisting unnamed Cumberland Road address. The
+user approved retirement of entry 28, Ngong Wan Road temporary substation; the approval
+requires its exact predecessor membership and does not retire the nearby unnamed address
+at number 129. A suffix match from number 5 to number 15 is invalid.
+
+ALS preparation and isolated-review caches fingerprint Bun's emitted JavaScript for
+TypeScript code. Erased type declarations and test edits do not invalidate prepared
+artefacts. Executable changes, runtime version, source files, processing metadata,
+selected division lookups and every output digest remain part of the cache contract.
+Invalid TypeScript stops fingerprinting; changed runtime inputs during preparation still
+prevent sealing the checkpoint. A consistency failure identifies the changed dependency
+group so that source, processing, code and division-lookup changes can be investigated
+without weakening the seal. Local release-set reconciliation retries Harbour
+`control_unavailable` responses with a bounded delay; other structured failures stop
+ingestion.
+
+The November 2024 ALS triage is recorded in
+[`hkgov-dpo-address-november-deletion-retentions.json`](../../../../fixtures/meta/curations/hkgov-dpo-address-november-deletion-retentions.json).
+It contains 59 user-reviewed retentions from the 62-entry deletion review and one
+supporting rule for the existing Chinese Recreation Club complex. Complete CSU groups
+and selected premise hashes guard all inspected deliveries through `2026-08-19.0`. The
+fixture records reasons and confidence alongside the user decision authority.
+
+Fu Tip Estate houses retain their IDs when Chung Nga Road is corrected to Choi Tip
+Street. Regency Centre becomes Metro South; St James Concourse becomes 1 Cheong San;
+Kerry Warehouse becomes China Resources Logistics Fanling Warehouse. Palm Springs houses
+retain their estate, phase and house qualifiers when the publisher moves their numbers
+into village fields; the village number is cleared from curated structure to avoid
+repeating the house number. Raw publisher JSON remains unchanged.
+
+Wong Teck Building and Wai Tak Building retain genuinely recorded frontage addresses
+independently of surviving frontages. Bella Vista Block 12A remains a building beneath
+the reviewed complex; its broadened parent assertion joins that complex's existing
+publisher variants. Chinese Recreation Club's named building remains distinct from its
+complex and the already coexisting unnamed address. The Chinese Women's Club College
+complex retains its identity across a replacement CSU and point correction.
+
+The user retains Bamboo Vista, Gun Club Hill Barracks Block K2, Wo Hop Shek number 331
+Block B and Loong Fung Terrace despite publisher withdrawal. Their identities and
+specific premises remain separate from neighbouring or broader assertions. Entry 39
+keeps its building name. Only entries 24, 38 and 41 retire: Yip Fat Factory Building,
+Rose Court at Rose Street and Good Year Industrial Building, which the user confirms
+were demolished. Retirement approvals require exact predecessor membership evidence.
+
+The February 2025 ALS review uses `hkgov-dpo-address-february-deletion-retentions.json`.
+Exact bilingual premise and frontage assertions retain their canonical identity.
+Withdrawn building qualifiers, names and frontages remain separate from broadened
+complex or phase assertions; qualified successors remain separate from retained parents.
+Village numbers and phase assertions participate in premise selection, so a shared
+publisher group cannot collapse independently recorded addresses. Complete
+publisher-group hashes bound every inference to the inspected deliveries through
+August 2026. Unsupported withdrawals remain behind the deletion-review gate.
+
+Beaulieu Peninsula retains its broad parent above 40 separately identified houses, and
+Celestial Heights retains its parent above 34 constituent buildings. Cho Yiu Centre
+preserves blocks A and B independently of its Lim Cho Street parent and King Cho Road
+frontage. St. Mark's School retains its identity when its bilingual name moves from
+estate to building fields and Oi Tung Estate is added as context. The complete
+constituent source groups are included in the evidence guards.
+
+The user review covers all 387 February entries: 374 retain/reconcile decisions and 13
+exact predecessor retirements. House C PT and ZONE S H.A.N.D.S are distinct sections
+beneath House C and Oi Yung House. La Serene, the St. Luke's pastoral centre, Lai Chi
+Kok Bay Garden and Tui Min Hoi Chuen retain their constituent buildings. Diocesan Boys'
+School retains its campus and named components. Broad Fontana Gardens, Tai Po Plaza,
+Stanley Plaza, Tai Tong Holiday Camp, Choi Kai Yau School and Conway Mansion assertions
+are deduplicated without collapsing qualified buildings or separate frontages. Wings at
+Sea towers, Coral Villa and Yuen Long Building remain retained. Human authority and the
+earlier automatic confidence are recorded separately; browser reviews display confidence
+alongside automatic matches.
+
+Hin Fat House retains its reviewed owner identity, bilingual estate membership and
+872-unit inventory when the raw named publisher assertion appears in February. The
+predecessor unit identities must survive; matching counts alone do not prove inventory
+continuity.
+
+The January 2025 ALS review is recorded in
+`fixtures/meta/curations/hkgov-dpo-address-january-deletion-retentions.json`. Thirty
+supported reconciliations retain named buildings, independent Siu King frontages, and
+constituent buildings beneath broadened complexes. Alberose retains its 132, 132A, 132B,
+134 and 136 frontages independently of the 132–136 complex. YOHO West retains its broad
+address assertions separately from newly qualified towers. Harbour East retains its
+identity through the Hong Kong Li-Ning Building rename; the January named replacement
+and unnamed predecessor assertions are consolidated. Complete publisher groups and each
+selected assertion are guarded across the inspected releases through August 2026.
+Changed or uninspected source evidence fails closed.
+
+The reviewed demolition of Pine Court & Pine Grove at 23 Sha Wan Drive also applies to
+their separately recorded named complexes, with exact predecessor guards in
+`fixtures/meta/curations/hkgov-dpo-address-approved-retirements.json`. Ten reviewed
+entries are approved to retire. The Convenience Foods building assertion at 7 Dai Fu
+Street retires while its independently recorded unnamed street address remains. The
+retained Silicon Hill Greenwood Towers 1, 2, 5 and 6 preserve their individual
+identities and the supplied names and coordinates, including coincident points for
+Towers 1, 5 and 6. Gee Luen Hing keeps both street frontages; the Silverstrand podium,
+Black Point Power Station and Tam Gardens remain distinct premises. The original January
+review has no undecided entries.
+
+The December 2024 ALS review is recorded in
+`fixtures/meta/curations/hkgov-dpo-address-december-deletion-retentions.json`. Seventeen
+retained identities and the existing recreation-ground complex have complete CSU and
+premise-assertion guards through `2026-08-19.0`. W Mega's 250–254 and 252 frontages
+remain separate; Capitol Centre's 5–17 frontage remains distinct from its coexisting
+5–19 frontage. Wo Hop Shek columbarium Blocks A and B keep their identities when their
+street numbers are exchanged. Linda Vista and Kai Fat House retain their withdrawn
+names. Seasons Monarch Houses 71 and 72 retain their house, estate and Kam Tin Road
+components when the publisher moves the houses into village fields; raw JSON stays
+unchanged. The Fu Tung market remains distinct from its plaza and estate. The university
+complex assertions at 8 and 8–12 Wai Tsui Crescent remain independent, with the
+residential building beneath the number 8 complex.
+
+Fu Tip Block 7 and Hin Tip House have the same publisher CSU and matching 465-flat
+inventories. The existing named-house identity and its existing unit IDs are canonical.
+The withdrawn duplicate building ID is recorded as an alias, with the complete unit-ID
+correspondence retained in source provenance. A duplicate inventory is reconciled only
+when an explicit owner alias exists, both predecessor inventories match completely, and
+all canonical unit IDs and bilingual floor/flat labels remain unchanged in the current
+inventory. Partial matches, duplicate tokens, missing predecessor inventories and
+regenerated canonical unit IDs still require deletion review. The report records each
+unit alias replacement separately from physical retirement.
+
+The reviewed Department of Health Institute of Immunology at 800 Victoria Road retains
+its named building identity separately from the coexisting unnamed address. Pine Court &
+Pine Grove at 23 Sha Wan Drive and Wang Cheong Factory Estate at 781 Lai Chi Kok Road
+are approved demolished premises. Their exact predecessor records are guarded in
+`fixtures/meta/curations/hkgov-dpo-address-approved-retirements.json`.
+
+The reviewed September 2024 ALS cohort keeps Wing Fai's street-number entrances as
+`section` children of its building owner. The reviewed Wong's Building and New Lucky
+House shop addresses are `unit` children, with independent building parents. Wong's
+building address spans the reviewed 84–90 Tam Kung Road range. These relationships are
+explicit curation decisions; numeric overlap alone does not establish containment, and
+the source street numbers do not imply a shop-number or floor inventory.
 
 Only the resulting `granularity` is stored, versioned and served by the Address API.
 Operational review metadata belongs in codebase curations. The classifier can produce
@@ -1059,6 +1223,10 @@ preparation rolls back open transactions and emits no delivery.
 
 Preparation-cache code fingerprints exclude test files; runtime code and all source,
 curation and division dependencies still invalidate reuse when their contents change.
+Metadata fingerprints cover curations, processing rules, ruleset versions, snapshot
+processing policies, division codes and patches. Dataset input lists and catalogue
+documents do not invalidate ALS preparation. Published division lookup contents and
+snapshot references are checked independently.
 
 ## Division membership
 
@@ -1116,3 +1284,49 @@ canonical normalisation. Supplementary Overture Address recipes also retain Plac
 normalisation and reviewed address analysis, with exact policy and curation evidence.
 
 See the [processing policy contract](../pipeline.md#define-audit-processing-rules).
+
+## Retained dataset archives
+
+Original publisher inputs are managed assets with role `releaseSourceArchive`, owned by
+a source release. Original Parquet and ZIP files retain their bytes; loose GeoJSON and
+GML are losslessly packaged as ZIP. Original filenames and packaging details live in the
+downloadable manifest.
+
+Resource-specific source downloads use role `resourceSourceArchive`, are Parquet and are
+owned by a resource release. The ordinary uploader retains its prepared Parquet input.
+Native SQL intake exports its source tables with a `sourceTable` column and JSON strings
+for complex source values. Processing scratch files are separate from retained assets;
+release metadata does not store their file locations.
+
+The March 2025 review records 15 high-confidence reconciliations in
+`hkgov-dpo-address-march-deletion-retentions.json`, with complete publisher-group guards
+through August 2026. Sing Yick Building keeps its 75, 77 and 75–77 frontages. Named
+sports, park and court premises remain distinct from surviving unnamed street
+assertions. Ka Yu/Ka Yue and Ap Lei Chau Municipal Services Building retain their
+identities through spelling and abbreviation corrections. Capital Tower retains its
+broad site identity as a complex, with Towers A and B independently beneath it. Lok Wah
+Catholic Primary School and Lok Man Sun Chuen retain their campus/complex identities.
+Human review confirms 17 retentions and two demolitions. Pao Yue Kong Swimming Pool
+retains its named premise; A Hotel retains its building identity as Epoch Hotel. KK
+Hotel and Le Hoteru Hotel retire as demolished premises, with replacement buildings
+remaining distinct. The fixture preserves the original automatic confidence alongside
+human-reviewed decisions; browser reviews show confidence and matching evidence.
+
+The April 2025 review automatically reconciles Tai Fai House and Sing Fai House when the
+publisher adds their Block 2 and Block 1 qualifiers, preserving all 952 unit IDs. The
+remaining April cases stay subject to human review, with qualitative confidence shown
+for each candidate.
+
+The reviewed Seaside Sonata entries retain four distinct towers—1, 2, 3 and 5—with
+201–218 Hai Tan Street as their shared address. Tower 4 is intentionally absent; the
+development has four towers, not five, as listed in the
+[project sales information](https://hk.centanet.com/info/en/new-property/Cheung-Sha-Wan/Seaside-Sonata/1696).
+Shiu King Building retains its 177–181 Ngau Tau Kok Road, 2–8 On Wah Street and 10 Chun
+Wah Road building addresses. Its 6 On Wah Street shop address is represented as a unit
+child of the 2–8 On Wah Street building record.
+
+The ALS preparation checkpoint rejects changed dependency keys from its bounded header
+before loading the large result. Matching checkpoints still require the complete result
+hash and sealed-file checks. It writes and hashes result entries incrementally. It keeps
+the sealed-file and dependency checks while avoiding duplicate complete JSON strings for
+the large preparation result. Interrupted writes cannot establish cache reuse.

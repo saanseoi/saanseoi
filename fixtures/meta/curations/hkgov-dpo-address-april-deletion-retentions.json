@@ -1,0 +1,2263 @@
+{
+  "version": 1,
+  "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+  "triage": [
+    {
+      "entry": 1,
+      "previousId": "ss-2350ce85-0f68-5839-89d5-94086500dbe6",
+      "previousLabel": "SHIU KING BUILDING, 177-181 NGAU TAU KOK ROAD, KWUN TONG DISTRICT, KLN",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "Both addresses are valid for the building",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 1,
+        "decision": "retain-reconcile",
+        "reason": "Both addresses are valid for the building"
+      },
+      "implementation": "Separate building address, valid entrances, and shop sub-premises",
+      "additionalInstruction": "building address: 177-181 Ngau Tau Kok Road; 2-8 On Wah Street; and 10 Chun Wah Road. 6 On Wah Street is a shop address."
+    },
+    {
+      "entry": 2,
+      "previousId": "ss-27686a7f-a722-51a6-8afe-b00d61f44984",
+      "previousLabel": "TOWER 2, SEASIDE SONATA, 201 HAI TAN STREET, SHAM SHUI PO DISTRICT, KLN",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "The complex covers Nos. 201, 203 and 218 Hai Tan Street. Use 201-218 in the address, acknowledge the parts, and retain all five towers.",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 2,
+        "decision": "retain-reconcile",
+        "reason": "The complex covers Nos. 201, 203 and 218 Hai Tan Street. Use 201-218 in the address, acknowledge the parts, and retain all five towers.",
+        "sourceVerification": {
+          "title": "Seaside Sonata project information",
+          "url": "https://hk.centanet.com/info/en/new-property/Cheung-Sha-Wan/Seaside-Sonata/1696",
+          "finding": "Four towers numbered 1, 2, 3 and 5; address list specifies 218 for Tower 1, 203 for Tower 2, and 201 for Towers 3 and 5."
+        }
+      },
+      "implementation": "Keep the actual Seaside Sonata Towers 1, 2, 3 and 5 as separate buildings; reconcile each to the shared 201-218 Hai Tan Street range.",
+      "additionalInstruction": "The development has four towers numbered 1, 2, 3 and 5; Tower 4 was never built. Keep all four distinct and use 201-218 Hai Tan Street for each."
+    },
+    {
+      "entry": 3,
+      "previousId": "ss-2923bb41-412c-5d81-93dd-2f1bf59f6b88",
+      "previousLabel": "TAI FAI HOUSE, FAI MING ESTATE, 10 FAI MING ROAD, FANLING, NORTH DISTRICT, NT",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": "high",
+      "reason": "",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 3,
+        "decision": "retain-reconcile",
+        "reason": ""
+      }
+    },
+    {
+      "entry": 4,
+      "previousId": "ss-2d1e36c9-504c-5c9d-94ce-faf812e640bf",
+      "previousLabel": "SHUNG LEE BUILDING, 128-130 MAIN STREET, AP LEI CHAU, SOUTHERN DISTRICT, HK",
+      "handling": "approve-retirement",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "Demolished",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 4,
+        "decision": "approve-retirement",
+        "reason": "Demolished"
+      }
+    },
+    {
+      "entry": 5,
+      "previousId": "ss-30129dc6-9cdc-5e17-96d8-f6b50fe2cd5d",
+      "previousLabel": "CHUNG YUET LAU, JAT MIN CHUEN, 11A JAT MIN CHUEN STREET, SHA TIN DISTRICT, NT",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "Building is inside the complex",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 5,
+        "decision": "retain-reconcile",
+        "reason": "Building is inside the complex"
+      },
+      "implementation": "Retain the building separately beneath the complex",
+      "additionalInstruction": "Retain the building separately beneath the complex."
+    },
+    {
+      "entry": 6,
+      "previousId": "ss-331c9202-40f2-5a4e-8a0b-0fc6fb61e5e7",
+      "previousLabel": "SDM JAZZ & BALLET ACADEMIE, 6 CAMBRIDGE ROAD, KOWLOON CITY DISTRICT, KLN",
+      "handling": "approve-retirement",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "SDM Jazz & Ballet Academie is a shop inside the building, not the building name",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 6,
+        "decision": "approve-retirement",
+        "reason": "SDM Jazz & Ballet Academie is a shop inside the building, not the building name"
+      }
+    },
+    {
+      "entry": 7,
+      "previousId": "ss-33e5d265-1d22-52e6-9155-4e439e59558d",
+      "previousLabel": "SHIU KING BUILDING, 2-8 ON WAH STREET, KWUN TONG DISTRICT, KLN",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "The building address is 2-8 On Wah Street; the other records are shop sub-premises addresses",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 7,
+        "decision": "retain-reconcile",
+        "reason": "The building address is 2-8 On Wah Street; the other records are shop sub-premises addresses"
+      },
+      "implementation": "Separate building address, valid entrances, and shop sub-premises",
+      "additionalInstruction": "Building address: 177-181 Ngau Tau Kok Road; 2-8 On Wah Street; and 10 Chun Wah Road. 6 On Wah Street is a shop address."
+    },
+    {
+      "entry": 8,
+      "previousId": "ss-594007db-5670-5b85-830b-fdb85719d5d3",
+      "previousLabel": "CHEUNG CHING COMMUNITY HALL, CHEUNG CHING ESTATE, 1 CHUNG MEI ROAD, KWAI TSING DISTRICT, NT",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "Contact information is still listed on the government site",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 8,
+        "decision": "retain-reconcile",
+        "reason": "Contact information is still listed on the government site"
+      },
+      "implementation": "Retain the named hall",
+      "additionalInstruction": "Retain the named hall."
+    },
+    {
+      "entry": 9,
+      "previousId": "ss-643d002d-317a-54cc-8845-9cbf7e33097f",
+      "previousLabel": "TAMSON PLAZA, 161 WAI YIP STREET, KWUN TONG DISTRICT, KLN",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": "high",
+      "reason": "",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 9,
+        "decision": "retain-reconcile",
+        "reason": ""
+      }
+    },
+    {
+      "entry": 10,
+      "previousId": "ss-65537b62-a551-5834-9c81-ea327319d269",
+      "previousLabel": "TOWER 2, SEASIDE SONATA, 218 HAI TAN STREET, SHAM SHUI PO DISTRICT, KLN",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "The complex covers Nos. 201, 203 and 218 Hai Tan Street. Use 201-218 in the address, acknowledge the parts, and retain all five towers.",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 10,
+        "decision": "retain-reconcile",
+        "reason": "The complex covers Nos. 201, 203 and 218 Hai Tan Street. Use 201-218 in the address, acknowledge the parts, and retain all five towers.",
+        "sourceVerification": {
+          "title": "Seaside Sonata project information",
+          "url": "https://hk.centanet.com/info/en/new-property/Cheung-Sha-Wan/Seaside-Sonata/1696",
+          "finding": "Four towers numbered 1, 2, 3 and 5; address list specifies 218 for Tower 1, 203 for Tower 2, and 201 for Towers 3 and 5."
+        }
+      },
+      "implementation": "Keep the actual Seaside Sonata Towers 1, 2, 3 and 5 as separate buildings; reconcile each to the shared 201-218 Hai Tan Street range.",
+      "additionalInstruction": "The development has four towers numbered 1, 2, 3 and 5; Tower 4 was never built. Keep all four distinct and use 201-218 Hai Tan Street for each."
+    },
+    {
+      "entry": 11,
+      "previousId": "ss-7ffe9762-ba78-5e45-b672-bd15e83d20c9",
+      "previousLabel": "PODIUM, CHEUNG CHING ESTATE, 1 CHUNG MEI ROAD, KWAI TSING DISTRICT, NT",
+      "handling": "approve-retirement",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 11,
+        "decision": "approve-retirement",
+        "reason": ""
+      }
+    },
+    {
+      "entry": 12,
+      "previousId": "ss-a7e2d623-aea6-52fd-b28e-13b453d00512",
+      "previousLabel": "SING FAI HOUSE, FAI MING ESTATE, 10 FAI MING ROAD, FANLING, NORTH DISTRICT, NT",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": "high",
+      "reason": "",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 12,
+        "decision": "retain-reconcile",
+        "reason": ""
+      }
+    },
+    {
+      "entry": 13,
+      "previousId": "ss-e4e7ec33-f240-53df-aa9c-aa597be0383a",
+      "previousLabel": "FU SHAN PUBLIC MORTUARY, 10 YAU ON STREET, SHA TIN DISTRICT, NT",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "Just a rename",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 13,
+        "decision": "retain-reconcile",
+        "reason": "Just a rename"
+      },
+      "implementation": "Retain identity through rename to FPS Storage Facility",
+      "additionalInstruction": "Retain identity through rename to FPS Storage Facility."
+    },
+    {
+      "entry": 14,
+      "previousId": "ss-f5947d7b-082e-50cb-91da-dd6269799604",
+      "previousLabel": "SHIU KING BUILDING, 10 CHUN WAH ROAD, KWUN TONG DISTRICT, KLN",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "Both addresses are valid for the building",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 14,
+        "decision": "retain-reconcile",
+        "reason": "Both addresses are valid for the building"
+      },
+      "implementation": "Separate building address, valid entrances, and shop sub-premises",
+      "additionalInstruction": "Building address: 177-181 Ngau Tau Kok Road; 2-8 On Wah Street; and 10 Chun Wah Road. 6 On Wah Street is a shop address."
+    },
+    {
+      "entry": 15,
+      "previousId": "ss-fe0d8e96-5d5e-50fe-a08e-b5702cb3811e",
+      "previousLabel": "AMBER PLACE, 1 CHEUNG WAH STREET, SHAM SHUI PO DISTRICT, KLN",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "Retain the name",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 15,
+        "decision": "retain-reconcile",
+        "reason": "Retain the name"
+      },
+      "implementation": "Retain the existing name",
+      "additionalInstruction": "Retain the existing name."
+    },
+    {
+      "entry": 16,
+      "previousId": "ss-1a9b28b0-89d5-5971-8600-a4803fba0e49",
+      "previousLabel": "YU NGA COURT, 8 YI TUNG ROAD, ISLANDS DISTRICT, NT",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "Specificity; keep both",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 16,
+        "decision": "retain-reconcile",
+        "reason": "Specificity; keep both"
+      },
+      "implementation": "Retain the complex and its child building",
+      "additionalInstruction": "Retain the complex and its child building."
+    },
+    {
+      "entry": 17,
+      "previousId": "ss-31e5a453-4e98-5596-ac0b-7887a9a05afc",
+      "previousLabel": "FORMER COGNITIO COLLEGE, 96 KING FUK STREET, WONG TAI SIN DISTRICT, KLN",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": null,
+      "reason": "Function was lost; the building remains",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 17,
+        "decision": "retain-reconcile",
+        "reason": "Function was lost; the building remains"
+      },
+      "implementation": "Retain building identity through function loss",
+      "additionalInstruction": "Retain building identity through function loss."
+    },
+    {
+      "entry": 18,
+      "previousId": "ss-c87530e2-4fce-5c28-b1db-eda209d26dc2",
+      "previousLabel": "SING FAI HOUSE, FAI MING ESTATE, 10 FAI MING ROAD, FANLING, NORTH DISTRICT, NT — 819 units withdrawn",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": "high",
+      "reason": "",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 18,
+        "decision": "retain-reconcile",
+        "reason": ""
+      }
+    },
+    {
+      "entry": 19,
+      "previousId": "ss-d68848bb-d177-5d97-a936-f00d28428029",
+      "previousLabel": "TAI FAI HOUSE, FAI MING ESTATE, 10 FAI MING ROAD, FANLING, NORTH DISTRICT, NT — 133 units withdrawn",
+      "handling": "retain-reconcile",
+      "confidence": "human-reviewed",
+      "automaticConfidence": "high",
+      "reason": "",
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19",
+        "entry": 19,
+        "decision": "retain-reconcile",
+        "reason": ""
+      }
+    }
+  ],
+  "rules": [
+    {
+      "id": "april-2025-inference-03",
+      "authority": "Assistant inference authorised by user, 2026-10-05",
+      "sourceVersionFrom": "2025-04-26.0",
+      "sourceFile": "als_addresses_(north_district).geojson",
+      "curationFile": "hkgov-dpo-address-april-deletion-retentions.json",
+      "csus": [
+        "3208737916T20200303"
+      ],
+      "premiseSelectors": [
+        [
+          "TAI FAI HOUSE",
+          "FAI MING ESTATE",
+          "FAI MING ROAD",
+          "10",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "TAI FAI HOUSE",
+          "FAI MING ESTATE",
+          "FAI MING ROAD",
+          "10",
+          null,
+          "BLK",
+          "2",
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-2923bb41-412c-5d81-93dd-2f1bf59f6b88",
+      "retain": true,
+      "coalesce": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-04-26.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "0776ac5e07bc2cb2f03532a15ddbce527e33bb04b9aa46c2dc614bd43cf92131"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-03-21.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.13624,
+              22.48079
+            ]
+          },
+          "properties": {
+            "Northing": 837916,
+            "Easting": 832086,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3208737916T20200303"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "北區",
+                  "ChiStreet": {
+                    "StreetName": "暉明路",
+                    "BuildingNoFrom": "10"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "暉明邨"
+                  },
+                  "BuildingName": "泰暉樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "TAI FAI HOUSE",
+                  "EngEstate": {
+                    "EstateName": "FAI MING ESTATE"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "10",
+                    "StreetName": "FAI MING ROAD"
+                  },
+                  "EngDistrict": "NORTH DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3208737916T20200303"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "entry": 3,
+        "reason": "Same bilingual building and publisher CSU; the source adds the explicit Block 2 qualifier. Retain its ID and all 133 unit IDs."
+      },
+      "patch": {
+        "granularity": "building",
+        "blockNumber": "2",
+        "blockDescriptor": "BLK",
+        "zhBlockDescriptor": "座"
+      }
+    },
+    {
+      "id": "april-2025-inference-09",
+      "authority": "Assistant inference authorised by user, 2026-10-05",
+      "sourceVersionFrom": "2025-04-26.0",
+      "sourceFile": "als_addresses_(kwun_tong_district).geojson",
+      "curationFile": "hkgov-dpo-address-april-deletion-retentions.json",
+      "csus": [
+        "4064119282T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "TAMSON PLAZA",
+          null,
+          "WAI YIP STREET",
+          "161",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "THE 80|20",
+          null,
+          "WAI YIP STREET",
+          "161",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-643d002d-317a-54cc-8845-9cbf7e33097f",
+      "retain": true,
+      "coalesce": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-04-26.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "1fb915a4f5da56c6b9e09489b4ffdc4d15349823b29b09ae2e5f500b0d3ba197"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "300ccecfd0cab756bc63e33d97b39627066af9c98d5f53b8b1a44a4e5fb225d4"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-03-21.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.21929,
+              22.31249
+            ]
+          },
+          "properties": {
+            "Northing": 819279,
+            "Easting": 840639,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "4064119282T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "觀塘區",
+                  "ChiStreet": {
+                    "StreetName": "偉業街",
+                    "BuildingNoFrom": "161"
+                  },
+                  "BuildingName": "德勝廣場"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "TAMSON PLAZA",
+                  "EngStreet": {
+                    "BuildingNoFrom": "161",
+                    "StreetName": "WAI YIP STREET"
+                  },
+                  "EngDistrict": "KWUN TONG DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "4064119282T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "entry": 9,
+        "reason": "Same publisher CSU, street number and coordinates; TAMSON PLAZA is renamed THE 80|20. Preserve its canonical building identity."
+      },
+      "patch": {
+        "granularity": "building",
+        "enName": "THE 80|20",
+        "zhName": null
+      }
+    },
+    {
+      "id": "april-2025-inference-12",
+      "authority": "Assistant inference authorised by user, 2026-10-05",
+      "sourceVersionFrom": "2025-04-26.0",
+      "sourceFile": "als_addresses_(north_district).geojson",
+      "curationFile": "hkgov-dpo-address-april-deletion-retentions.json",
+      "csus": [
+        "3207937952T20200309"
+      ],
+      "premiseSelectors": [
+        [
+          "SING FAI HOUSE",
+          "FAI MING ESTATE",
+          "FAI MING ROAD",
+          "10",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "SING FAI HOUSE",
+          "FAI MING ESTATE",
+          "FAI MING ROAD",
+          "10",
+          null,
+          "BLK",
+          "1",
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-a7e2d623-aea6-52fd-b28e-13b453d00512",
+      "retain": true,
+      "coalesce": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-04-26.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "e50af071c15f53a51d78042cc48e17b93fc048b73442b8bec2b14eca455f7e99"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-03-21.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.13616,
+              22.48111
+            ]
+          },
+          "properties": {
+            "Northing": 837952,
+            "Easting": 832078,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3207937952T20200309"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "北區",
+                  "ChiStreet": {
+                    "StreetName": "暉明路",
+                    "BuildingNoFrom": "10"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "暉明邨"
+                  },
+                  "BuildingName": "昇暉樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SING FAI HOUSE",
+                  "EngEstate": {
+                    "EstateName": "FAI MING ESTATE"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "10",
+                    "StreetName": "FAI MING ROAD"
+                  },
+                  "EngDistrict": "NORTH DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3207937952T20200309"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf",
+        "entry": 12,
+        "reason": "Same bilingual building and publisher CSU; the source adds the explicit Block 1 qualifier. Retain its ID and all 819 unit IDs."
+      },
+      "patch": {
+        "granularity": "building",
+        "blockNumber": "1",
+        "blockDescriptor": "BLK",
+        "zhBlockDescriptor": "座"
+      }
+    }
+  ],
+  "sourceGuards": [
+    {
+      "sourceFile": "als_addresses_(kwun_tong_district).geojson",
+      "csu": "4064119282T20050430",
+      "assertions": [
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "1fb915a4f5da56c6b9e09489b4ffdc4d15349823b29b09ae2e5f500b0d3ba197"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "5faa44a76db0671c89875b0aafe602b3c0c1a02d6a04147b9b73850a55ced06e"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "300ccecfd0cab756bc63e33d97b39627066af9c98d5f53b8b1a44a4e5fb225d4"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "e481fc27f09db2973967fa228b60b02d6a56697347b380d17fcd3386afbf2cda"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceFile": "als_addresses_(north_district).geojson",
+      "csu": "3207937952T20200309",
+      "assertions": [
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "e50af071c15f53a51d78042cc48e17b93fc048b73442b8bec2b14eca455f7e99"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "97d5ab0d0d1267b75014e369bf9e83216abf4c86458022f14b06df43242736bd"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "ae42bbc0ecf65868dfe9e6e550722a7185d10749f2b4d4d53bd74662dab926d8"
+          ]
+        }
+      ]
+    },
+    {
+      "sourceFile": "als_addresses_(north_district).geojson",
+      "csu": "3208737916T20200303",
+      "assertions": [
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "0776ac5e07bc2cb2f03532a15ddbce527e33bb04b9aa46c2dc614bd43cf92131"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "06b3c68ddad29b8a90af712ce3bdfab2099a8c69fff8aa92561b42f0e79d0e60"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "a3894bf0917dfb8ce45b82c7029a9c08472cab50f2aa2590404c5f2184ebdc30"
+          ]
+        }
+      ]
+    }
+  ],
+  "inventories": [
+    {
+      "ownerId": "ss-2923bb41-412c-5d81-93dd-2f1bf59f6b88",
+      "previousUnitCount": 133,
+      "unitIds": [
+        "0093a09e-a025-5897-bfe3-2c1fb4a1e8e3",
+        "04eff81d-2bf2-5ff2-a069-10022414d9ef",
+        "04ff7931-52d9-5b3e-bf07-80fe9a645520",
+        "07a880ea-fd4e-5117-9c92-a6e36bf31c40",
+        "086862ad-f7de-50b3-93c4-e9be2c651b5a",
+        "0c40cbfc-9f58-5af3-9115-27a49aed898e",
+        "0d3becc4-4342-5274-85e5-28c9392b4ac1",
+        "0df48f44-b990-5bc6-ba5a-b603b40e9d6b",
+        "0e678e71-f6a4-5f51-9f80-ce06b71be424",
+        "0f8674d6-b484-5384-9932-adf728f2badc",
+        "10b30f49-bd96-5194-8ad1-c929db3d61c0",
+        "124da669-1157-57f7-a19c-95f9106a1bfc",
+        "1251aca1-02c9-59e6-861c-0e396ca27033",
+        "16753320-1366-52ab-a1fa-d3487e1751be",
+        "168466ec-9180-5ad8-a09a-2b3d97ece9da",
+        "1bbe40d4-5697-5839-893c-270612901b65",
+        "1be8c0e0-020c-59cd-806c-a75e32cc0334",
+        "1ed69905-e01b-5e96-81d2-0188277f3ed7",
+        "1f13743e-1c6d-50d7-91c9-cb88f56f9c78",
+        "2167a1c2-43f7-50b0-98ff-aa9e88fceb94",
+        "265f25c0-8ffd-51ae-ac79-9ceff5d86595",
+        "2bd4d539-beab-5625-90b8-a14afe77dc98",
+        "2dc4480d-41b2-5057-a5f5-7195563e18af",
+        "2f3ae5c5-4b15-5e03-bdc5-ff2d6a808a3f",
+        "388140d6-684b-54bb-ad67-31ad4cb0c232",
+        "39e7b24b-4588-556f-a17e-ff5c7de5044e",
+        "3ccbe319-aa75-594f-9227-c941c509a6b1",
+        "3e62a1e5-3ff6-503a-b420-0f2b70893b02",
+        "3e6bfbc7-aea9-5933-9222-cde6b7668fe6",
+        "3ed643b2-15fc-5b12-9a3c-905069b8febe",
+        "421b1e8d-fe4b-50ed-a65b-891d23885099",
+        "450112ba-3105-5c84-82cc-4a93db3561c3",
+        "452e1847-d968-5fc4-a73c-9ca6a59097c0",
+        "453ec113-7835-56e3-82b1-640d2c6b227a",
+        "4a043994-8be4-52be-b02a-a82d833bd8b7",
+        "4aa64b3e-013d-5ef1-8da9-2478cd2e3e84",
+        "4abc794e-35c8-519a-a09c-b63d200c3115",
+        "4d025368-ea87-5a6d-bcce-6cc6241d1e8c",
+        "4f797d1f-def4-5296-a2f3-839ac5119a0e",
+        "50abcdbd-0f4a-5d4e-8e39-3b0a9998c0d4",
+        "519c8346-ce62-5b20-8e9c-d2e882c25abc",
+        "587e36de-0efe-5c66-9bc0-11765ff3bcf0",
+        "625dfa30-3824-5e6e-a019-923143f949d0",
+        "638e5f82-f567-5a45-a55f-22438e645bce",
+        "63cf2610-a951-5a8a-8ad3-97b92e750d31",
+        "64a0ae72-861a-59bd-9711-149e7cf39636",
+        "65712014-ba67-5106-bb84-695e4035e342",
+        "6adb4f60-7a4b-5652-81d2-3627b57d9a99",
+        "6b3e27a6-4c0f-5a69-9a65-010b53e4b16c",
+        "6fda9386-81e5-54d5-ba0e-981017f749cd",
+        "6fec702e-67f8-5d68-9759-346df234b26a",
+        "704da254-49a8-55ed-8b4e-365ff59f4023",
+        "70679e22-bc30-5661-82ec-e694da739710",
+        "72a1672d-ff93-51fe-b6ba-8eb4e175bb01",
+        "72d4df52-f0cf-5bdb-ab95-c8f89ca41240",
+        "7393b3a5-f7f9-54ae-81a5-36288b4035b5",
+        "73bcb8dd-f9eb-5803-bb11-f7dbd0b627dc",
+        "760014d5-387d-557f-8bea-e86de075d021",
+        "764dbefa-528f-5ba0-8eea-fe2453866224",
+        "76730f70-571f-5f98-8d73-1b60b005b8fe",
+        "778a25f0-a9a2-5647-b461-35fd943e6396",
+        "7b1ee59b-1cd2-594b-a120-4d40acff61bb",
+        "7fea12b9-a38e-56d5-a2ed-adea3da67d98",
+        "807b4bcd-5128-5e4c-8492-4eb831d90c74",
+        "8123bbf7-0de9-526c-8eba-a27c06b895ea",
+        "857c2dc1-66ca-59ed-b768-1108b2bccba4",
+        "8802d2b1-5e11-5b29-81b5-def42057a79a",
+        "8862556f-e95c-5784-ab55-4e07aa520b44",
+        "88b795c8-334a-5cbd-a478-e30f1f0532f1",
+        "8aeacb0b-1304-56f8-a433-f74545ca2be9",
+        "8d4ae3fc-a87d-5e2b-b71e-a257e7ed21db",
+        "90854296-b830-52e4-9a8b-b108eab9acc3",
+        "9088f061-d506-5c06-ac9a-8e6057f3ea2f",
+        "913463ac-a9bc-5d25-be38-321e3973aa15",
+        "91931bd4-a29c-56c1-bfa6-7dbb28974d3a",
+        "92a1977c-7601-54c0-b97a-68df7cc4638b",
+        "940a23e6-49e3-5769-808c-e56c4a307d30",
+        "9b92d4cf-0cdb-5cc8-b8e7-bdb1923ef8f5",
+        "9dadbb9a-41be-5052-861f-a891355540f8",
+        "9f6ae280-10aa-56ec-94e0-99674980955f",
+        "a1fed98f-5194-512a-bbd9-650fed5f1759",
+        "a50abfba-b71c-53ea-b111-f829f891d87b",
+        "a67912f3-adb1-5800-9c04-21fd58c36d9e",
+        "a6afcaaa-898e-586e-bfde-577d615e5e15",
+        "a8572567-28ab-520c-b1cc-e9f6b6659edf",
+        "aa1d20bd-ebd6-5e95-8619-75a658f01893",
+        "acfca897-5863-5fee-802f-74164d5a6a1c",
+        "ad2fb138-1297-594f-80eb-8eaf857362ce",
+        "ad53401e-1dfa-5b5b-a0ca-2d7d537a33a0",
+        "ae555026-56b4-5107-a3a7-15b1a5a2cc1d",
+        "afa36c5a-4684-56ff-9c08-0eb603ee5003",
+        "aff15a83-89e6-5a08-96b5-d497385c9d69",
+        "b2dea9cb-8f41-5d4b-a4e3-27e321c0dab9",
+        "b3b89be5-fa76-597f-bfba-5d07ebe5554b",
+        "b4b10102-a36e-5a2b-915b-bf4d4379a095",
+        "b71535a5-db9f-55b6-b4d8-bd2e1930ba2c",
+        "ba611ffe-79ae-5222-8e72-6513e8b5e215",
+        "bab9b1e5-5595-5250-b6d5-e10ccc469a6e",
+        "bafe389e-0aec-5d25-9ab3-afdd87e91449",
+        "bcdade73-858d-5cdc-91fd-255e1020a9aa",
+        "be1f012c-826b-5733-a112-33f52dd7afac",
+        "bf578528-2769-5368-8b98-ceb98abe6087",
+        "c33b4224-ba3f-5fe8-8607-ec0b49a53980",
+        "c735287c-72f8-5266-821b-4b8a48a3720c",
+        "c78f9f5a-4a0b-517b-893e-fc0732c3a85d",
+        "c90eedae-5bdf-5e88-82cb-29fc0b69056d",
+        "ca69aaf9-b102-51c6-8180-14855cf775e1",
+        "cce1e290-448f-56b0-a245-119f4e852694",
+        "d108c25a-ccc7-5576-9d10-4bf8d6c705f6",
+        "d31a233b-09b5-50d3-959d-2ac39f4c0051",
+        "d34e7d1a-bc01-5a06-a48a-38ff5dcaaae1",
+        "d8917e48-0378-5cda-a17f-73013a6bd61c",
+        "dc97d5f0-d28f-5090-8a86-e33a1e68e60d",
+        "dd2c5eb1-9523-5a82-a4e5-e0cab7391688",
+        "dd2e1ada-0eda-51d7-9541-d369e57b8062",
+        "e0382ae9-81ed-58a1-a2a5-a6efcc5ea8c4",
+        "e075871a-97ae-58be-a125-47a2631aab41",
+        "e316696b-f86b-56e5-bb10-f67dbc29acfa",
+        "e380c15a-8110-5154-89f0-3f8a5b0dac5e",
+        "e3f83db6-cd8d-58aa-bf18-1121d0a6e70a",
+        "e538ed2d-5c02-591a-8889-b9b352f94b2e",
+        "e7d57641-c76e-5216-be4c-0e8e64635a03",
+        "e7e3ef5a-45b6-5560-8403-d7637987c798",
+        "e90717a4-dd9e-51a1-8497-60aab00267e3",
+        "eb1658ca-2827-54e4-b3bc-4790e30fb39a",
+        "eef28965-da4d-5aaa-a3e0-3bc59eddfa3c",
+        "f14bb404-9d29-5572-9220-a1fa90af6d1e",
+        "f1f0411d-d9f7-54bb-aab7-4666cc87fd00",
+        "f48449cd-cd03-5243-bdc1-708cb44a1ff4",
+        "f71a3354-b1af-581a-a748-8301fb56e268",
+        "fcd7ddee-d5d8-5ac4-bb8a-281953a2781d",
+        "fe952519-b32f-5e64-baec-7cb96c8cc8e9",
+        "ff00c7eb-1375-56f7-8904-1daa30c50f1d"
+      ]
+    },
+    {
+      "ownerId": "ss-a7e2d623-aea6-52fd-b28e-13b453d00512",
+      "previousUnitCount": 819,
+      "unitIds": [
+        "0004cc7a-5474-5a32-9c28-5365e9b454a0",
+        "00122b8e-2f3c-5e57-97ba-b51eee00280b",
+        "0025a2a2-6456-5f69-aec2-06eca535af6e",
+        "004c8def-4ab2-5b9c-9d82-71462fb19314",
+        "00b79138-7e4d-51d9-b896-9fd429841b4b",
+        "01375a14-e05c-52ca-9317-a1813d8e799a",
+        "0180e487-40f2-5f0b-867e-2943332e4e89",
+        "023b301f-9eef-535f-aec1-6c5e145fb336",
+        "02be36c8-a5e4-5d1a-b783-b58b8df1f0b7",
+        "02ccd7c0-2dd6-5edc-9860-060ad9f2c65e",
+        "0312de2c-19a8-5ea6-9654-a8ee18fe7759",
+        "039cf32f-7d3d-5590-85bd-7e9f2e6c8a44",
+        "03fc0613-b4ca-5d96-bf04-42cc8331d577",
+        "045cf34d-b799-52b4-990c-81b6ac967b52",
+        "052ccf6f-e0c9-5047-b9e9-59e007db9475",
+        "05610e99-75cd-5c58-a141-c8246d19ee67",
+        "0579b72c-874a-57c6-a9c3-8ecbb5a2f837",
+        "057e1919-74f4-52b2-9ca3-ee55526d00ef",
+        "05a8157a-fe86-5c8d-a027-f7bb2be79656",
+        "05e34cc3-e733-586b-b1ff-bf3037b71765",
+        "05f36813-8e8d-5202-bedf-07d092c9af58",
+        "065d75ba-9cb0-59b7-9758-09f70225e9e0",
+        "066dc44f-5136-57e2-b530-b6e16f5691b8",
+        "067b6a73-ac7b-5eec-8e51-105933b8bd64",
+        "06afc6f0-5b72-5b3f-acd4-52c1e4aed1cc",
+        "06d0cd3c-b6ca-5686-88d4-cbf8dbc0e8d4",
+        "06d672fe-c24a-5c20-8cdb-b57b15ef71b6",
+        "07282716-e09b-5620-90ce-4f34e5d8c3ab",
+        "07ab6281-3518-5391-b612-e995eb6591dd",
+        "07d995ce-a2b8-5e45-a21d-0e78c0c2d912",
+        "080325ca-d5eb-5df2-8249-e031bf621730",
+        "0808bb80-a67a-55f5-863b-bec81dc5c2c0",
+        "0820960a-a434-5588-b72d-60357d9bead5",
+        "0834df76-8cfd-5dfc-8e3a-9f1ecb81770e",
+        "083b3cfe-8e0c-5ced-803a-ca5493c1ac0a",
+        "08645d49-d475-5e16-a7a2-039e7ad49384",
+        "089eed4b-473a-579e-ac9f-95d54eebdfe1",
+        "08b19aa7-2591-55c7-a323-d9947ac850b9",
+        "08dbe102-9751-5df6-858b-8c06d03dbc68",
+        "0a36c0d7-dce4-542f-b652-399c6eee8f15",
+        "0a4f6d5b-b331-553e-b34d-d673414c1c04",
+        "0ae87d05-372d-535a-924d-821acba08bdb",
+        "0b6e8d65-c577-59bc-b244-2564ce4a6e0e",
+        "0b77d54d-3927-5da3-a2be-362e08a4d528",
+        "0c40563c-07ec-503e-9dcc-da2b5f7c2d1f",
+        "0c44bad3-a920-5fba-8964-9f1d71d79760",
+        "0ce57b31-1855-5c38-8ee0-dd84fefa6061",
+        "0d237000-4941-54f4-ad3b-c75e20dfc40b",
+        "0d31b392-8098-5688-86be-05272a773d29",
+        "0d5b5a92-6f85-57f1-9e19-f70e53fe0902",
+        "0d5e0652-8853-5f2f-b174-c5f75eb7fb90",
+        "0d642cba-d965-57b8-80b7-1d30d83edaa5",
+        "0e352804-231b-594b-9cdd-6e2e9ee81c19",
+        "0e6f4061-ac3f-53a7-b39b-4af230e4d52d",
+        "0e8cb64c-bdf5-5f99-a9cc-e49436e63b58",
+        "0eec3696-152a-5c4e-af58-aea32d302623",
+        "0f4c86e2-e9f1-5b27-a1b9-81b144443de1",
+        "10737b1c-368d-5477-9604-48f38100a47b",
+        "10c967c6-dae9-5532-a0ab-32c33bef81d2",
+        "10d23408-8499-508e-90f9-3f4c47df34ab",
+        "10fd6022-2490-5f9b-a3f3-180aa8ca4ec9",
+        "1113f6fe-6a1b-52e5-81b2-39cd07b43971",
+        "111e04c0-d81f-58d7-b437-abcd295c7f1e",
+        "11835d35-98cf-5c93-859c-b32ad7fbfc21",
+        "11b4698d-59a4-5443-8378-7dc55ef0ca35",
+        "11b8c743-6147-59b4-bef8-8955e8c8ad22",
+        "11b95726-70a2-5eca-879b-d44c5c240c49",
+        "11e75a04-479d-5bbe-a478-cb415fd4f4f6",
+        "12083783-06b9-52cf-8925-4af477ce4e39",
+        "123cea2e-26c9-56d4-96bb-9526455a6e8d",
+        "1245ebdd-2c0a-5518-9194-5c0cea8d3e95",
+        "1280ab04-a539-52c8-8f2f-3f1e12acdac6",
+        "12bd08cf-a234-5dfc-8574-1832c1d5cdf0",
+        "12f5a832-74d0-5e2b-9738-6931261af41f",
+        "13334e54-6300-5c6d-8e87-66f60b44b932",
+        "13912611-870a-5ee2-a8ba-8532333072a8",
+        "144aded5-ee53-5cb5-b4fe-65f7dc2fce80",
+        "1493590d-8d08-5cbd-82bc-858c1108c5c8",
+        "14971ed4-55fa-5f49-80dc-a4c98fb75d1b",
+        "14f64ef1-7b9c-5222-abfb-a97c0973bca4",
+        "14fc338d-917d-59af-99ea-8b9900bde486",
+        "15469827-3a87-566f-b65f-22814df0b4d2",
+        "155c1536-8608-5e07-87ed-a9705220d6fc",
+        "15715432-8c6c-593a-b6cc-2b4ef8480b0a",
+        "1582ee74-ebbe-5ac7-8734-7536bfe536fa",
+        "163a3aaf-bfc3-5834-bcd9-3176d3e59c60",
+        "16790762-d468-5cdc-b5e1-bfc6fa1a07be",
+        "168d088c-bba4-5751-9e7d-c4ca481ca11b",
+        "16de6dcd-34a3-509c-8b62-bf18b2ada6a8",
+        "16f0509b-7e49-5261-bda9-73aa31c56030",
+        "1729d600-5abf-5203-8361-fbc64c4ff5c0",
+        "17d85787-dd9d-5d7b-9d80-d9fe8deb64db",
+        "17f72981-c464-5c4d-81fe-bc45c9084301",
+        "17fbc9cc-5feb-5ac4-bd5f-45e15a4ee19c",
+        "18112b0e-7534-5307-b860-08c0a6c8d4b5",
+        "1843db18-fad4-5ed8-9931-9a208028a2db",
+        "184c7471-999d-5b26-af16-01c76e0eec7e",
+        "189a4f57-eb70-5dfe-8661-d7218e1e6c1b",
+        "191d509c-67b0-5d1b-bbc7-b2b5edf18049",
+        "199933ca-c52a-5cd9-95c8-340b2d93fd9b",
+        "19bed4f6-7a80-54d1-8dd3-5854858d7d48",
+        "1a33a84d-15b7-5642-9aa2-25a22905d141",
+        "1a81c53b-55c4-573c-a09a-0a4c93864f90",
+        "1a9f7236-2446-5f4f-9ec5-99c72d39e05e",
+        "1ae7e698-71a7-571e-8c22-7d43b68deb62",
+        "1b905ebd-53e3-53a0-b6e7-301c07f4b6d3",
+        "1ba45649-0226-5723-b7d9-c01a18622ad3",
+        "1bf0609f-4870-51fb-afd9-625257e0c66f",
+        "1c5dab3b-549f-503b-a750-bc4fd5073028",
+        "1c9ab95d-5320-57e4-a921-346cff6181c5",
+        "1cf36672-1e57-530f-9b26-d3503d9f4ee8",
+        "1cfbe59d-4dbd-5579-a67f-bcd0e6449678",
+        "1db72218-e40b-550f-a1fd-edad1283685f",
+        "1e9da63e-8abc-5f04-a37d-00d48713fac8",
+        "1ea4bc23-b989-529c-9241-40eea1ef3bea",
+        "1ebbed44-21bf-5106-a3c3-5516153a7046",
+        "1f21fd09-7e88-5938-822e-0be1e6516240",
+        "1f700e2e-2fe3-54e6-9a77-1353318150b4",
+        "1fb4dc37-57dd-51b1-9d28-fd5f09842d40",
+        "2080f62c-5abe-5062-9370-6c1bb037f3c4",
+        "20b7e85d-d84b-5413-a42a-191aa8934d39",
+        "210e4a34-5723-5d04-8c4b-56f16985ba2d",
+        "216383d3-02ba-5f9a-8dee-d71371aa68a2",
+        "218cbde1-da06-54cb-9928-53843873c354",
+        "21af0d4c-8a41-526d-8b23-e619fdd9bbd0",
+        "21d7028d-30ba-5336-b7b4-6b2d3868b54b",
+        "224272b5-627a-5558-a64b-f78ed45f8f41",
+        "2248279f-b87b-5895-be0f-492eb2486667",
+        "2270717d-c699-58da-9355-09e2614b4a53",
+        "229340f8-d9f1-5b79-9aac-256b9fbac8cf",
+        "22a08e48-762b-54d5-8722-15d0b354912c",
+        "232dbac1-1138-5d6c-8912-c9ab2d1742ea",
+        "23643469-5f77-5848-81e5-9d93c63de897",
+        "237418da-f7e4-5f70-824e-cf77f20181fa",
+        "24a2c103-93a5-5caf-a472-df52f771ff87",
+        "25ebfa68-5e1d-5d67-9a31-902758dfbc13",
+        "261823b1-1fff-57f2-99c9-b3afe8ab7999",
+        "262662f1-b8f1-55ba-8725-732a0b3c194a",
+        "266ecdce-c91c-5d73-abf3-3a1b7094e566",
+        "27097531-3eed-597d-9613-9fed7f7377e8",
+        "270fb721-6130-5984-b986-71afa2a72e4d",
+        "27e39950-620b-5723-a7a3-5b681dd46eb2",
+        "286180f0-d7b7-57d7-928c-db80d9146c3b",
+        "2863ab13-4f49-5ae0-b80b-f44171482fe3",
+        "28b3a9b5-97df-5aae-8eeb-7e9a6cc1a07f",
+        "2975028b-3dee-5981-b064-f8a32f42ddc0",
+        "299568ab-896a-50de-9342-e03754c397c8",
+        "29aa48f2-ddea-597f-a9f9-7463a970cf76",
+        "29afc769-c672-5e52-adb7-48212cbb7f66",
+        "29e857fb-5de7-54e6-b166-c36ede97f947",
+        "2a67184b-413c-50a5-ac71-30185e2e3396",
+        "2a675131-56db-5b5d-bb0f-b836a57b9361",
+        "2a764e9a-9506-5c71-9ca1-a63ad39feb5d",
+        "2aa50ca2-551d-55d7-a5f3-d8ccf55a5a62",
+        "2ac46edd-5f2a-575f-a7dc-360382edf950",
+        "2baec9f1-321c-503a-804f-be2d13fd42a0",
+        "2bc6fbd4-1ff0-50ab-a417-b7279a684760",
+        "2bd85c76-8e62-5ab2-b0e1-545eb6beaab9",
+        "2c457c62-07e2-59e8-91ed-862338d05ee0",
+        "2d57a460-e928-5ae7-96af-98f7aee3a8f1",
+        "2d7bb0c1-2435-5110-986d-158d7b68e5ab",
+        "2e8926b4-ef20-5ed1-bd46-4a435cab1120",
+        "2e9f86bb-08f1-5dc8-b0c4-244696ffed22",
+        "2eaf26e6-3d92-5b4a-9962-b5a6d0526564",
+        "2ebfde21-f9c1-518a-b192-e65cc4893f5c",
+        "2efbde67-d0d6-56a8-830c-cf4949810743",
+        "2f118dfe-45bc-59ca-9309-5aafa42f3da1",
+        "2f43d0a3-725a-5071-9710-7d898de8bc1f",
+        "307264ad-68ae-55bc-a919-3f3b17d2555a",
+        "30e605cc-e827-5534-a298-f03f3fb31790",
+        "31328377-8f89-5f1c-a076-5855f30002cb",
+        "316bfb9e-b789-58f7-a6e2-9293b9bb7491",
+        "319bf3db-64ed-5cbc-a231-630f33fa14e9",
+        "3233f8ae-84fb-5537-907d-a3c0c8ee178f",
+        "326568b4-6a0f-507d-a42b-e89ae8de2c8c",
+        "326e5846-3fee-597c-9ff4-2c22d9f19070",
+        "327b4ef6-4f93-5829-be58-654c54e0b1f8",
+        "32c3c288-4f22-5dcd-a688-5952830f91f0",
+        "330b3dc5-5d21-500c-8831-6f34ff94a611",
+        "330dcd6f-e467-506c-8ea1-6313fc12ce2b",
+        "331654c0-392d-556f-bbd3-1e9e52c60f65",
+        "34b0d910-dbe1-5360-b74f-ae51f9f65b13",
+        "35f25c02-540f-535a-85ee-eb7cfe654bac",
+        "36092709-9c18-51d5-9053-9924500f23dd",
+        "363c1f64-7ff8-5fa8-ac46-ef9e946f0749",
+        "364116fa-e8c7-57bf-8aea-6c18692ea825",
+        "3643dc40-52bf-5b00-a423-7c94139c89ed",
+        "365890a3-84dd-5173-b213-8d36b567f75d",
+        "374e38bc-e1e3-5cf4-9286-95b8ebf68ca2",
+        "37dd488b-4fe1-57cf-97d5-89434f541c72",
+        "38055cbe-5d34-5cae-a108-51a8b2bcae17",
+        "3824d27d-7e61-5561-925c-40567ea9fd61",
+        "3839b37b-03ff-5d60-937e-454cfc9aa0aa",
+        "3845a776-340b-5844-849b-c051c5187e75",
+        "386068b5-b3ca-59f0-ad0a-39b51700c29f",
+        "38df345d-5e8d-5fa8-96ea-077806e111ba",
+        "38f57899-19dd-5397-bdc9-36f42560a796",
+        "39012fbf-c676-58b7-bf64-36f0f5ef6ee8",
+        "395140ee-1595-53ac-983f-acca5c74739b",
+        "39921357-e442-5832-ac2e-c73ad7f102fa",
+        "3a53888c-44f6-5b6b-b192-e0b4fd7ba2da",
+        "3aa8062a-6071-5ce9-b0cb-79ddf6a22666",
+        "3ac936c7-7938-5b79-a98f-0b3e5920a2a2",
+        "3b1025a0-306a-5a5b-a115-3a54194750f1",
+        "3b259ff2-27af-54da-a1a3-77b03026d09c",
+        "3b818801-d549-5873-bf29-58194f06f589",
+        "3b8b8e4c-d70a-59a1-a4f5-fa284dab5fe9",
+        "3b8fe9d5-93ca-5d59-9a2d-783e46d71dd2",
+        "3be07f35-cd1e-51ec-9298-ad8cf0965f82",
+        "3bfe2640-cd2e-5af9-b98d-64473e04201b",
+        "3c23db1a-fe6b-564b-b25c-f19167e33ce0",
+        "3c8f0d5b-550b-550b-a112-e6eafad1ed35",
+        "3cbaf94d-f1b7-5401-9b58-e5c1dbd0c32c",
+        "3d3c5b8e-decf-5e62-a494-b945a290aa73",
+        "3dc0f39a-88da-589f-abc5-00798729285b",
+        "3ecbe5c1-94e8-5765-a854-a2a7ba64038e",
+        "3ee00b2d-40cd-5875-b044-bf41a21e2ffc",
+        "3ef8cd7a-69d2-5067-9e2d-40c702354973",
+        "3f0467dd-5072-5d90-afd4-499906f110d6",
+        "3f28c31b-8dca-5d04-8325-b8109904141b",
+        "3f3008d5-bf22-51cb-8096-78accd5703ec",
+        "3f3acdbc-e16a-5fa5-9f05-8fde326e83c6",
+        "3f9685dc-4ad7-50ba-b25d-140b25331663",
+        "3fbdcc8d-907b-5bfc-b5bd-a47f79e92acb",
+        "3fc36985-da1d-506b-a096-53f57d961e8f",
+        "3fe9d909-3097-5f3d-9350-9bedf5d614e3",
+        "3ff0b99a-fe78-5ced-abd3-0e6f2616d2a0",
+        "400723d6-5f04-5389-8a9c-41a8446a5f2c",
+        "400f02c5-0e7d-554b-93a4-246b2256a173",
+        "4083ff5f-434c-523c-a474-51011d8d1bff",
+        "40d6c020-2c30-52b2-a40f-5f3329fdd932",
+        "40e49cb5-3a47-553d-bf89-f51676e16115",
+        "420f343e-9458-5699-b53f-e5a52dc8ed9a",
+        "421d4b8f-eada-5ffb-bd4e-1f927971b16b",
+        "42a80ab1-4346-50aa-8232-1fd4741967a1",
+        "42e2ca5f-5aed-5bb2-8629-60f081d86d80",
+        "4325facb-fd7a-52fc-8b2e-7bbacae122ca",
+        "4385dbe1-c9d0-5b01-a422-c794e8c9648d",
+        "43a47727-1e54-5020-a65e-81ac283190e3",
+        "43c605d5-4076-5d2a-a823-3c642e25dced",
+        "43e9fdbd-c94e-5842-8ac8-5643f098d111",
+        "442c2660-e959-52f3-aa52-971224fea6aa",
+        "44818b72-3ca6-5a8d-a590-f3172bee4ca0",
+        "449c24ac-0364-51c5-ad00-768150c740f5",
+        "44ac200a-6e07-5810-b728-5cc4210e1592",
+        "45789470-5b5e-591a-b73d-720785860b64",
+        "4587c2f7-e618-5520-a385-fa0c05b8996a",
+        "45f19f95-f7cd-5b10-ae7a-7ba1a2542521",
+        "46960c45-7a0a-5bee-a5b4-046ae2ca1619",
+        "46a27766-2208-59c4-8dc9-1c308871d2ad",
+        "46d55f52-bf43-5570-bb26-adda87aa4fcd",
+        "473f32e5-9caf-5e71-9567-b183ffd88f54",
+        "4751abbd-f78e-5c24-84fa-cb090ebe16ed",
+        "48043a67-b17e-5318-ae10-d17da2e8900e",
+        "4867a89e-e723-51f7-a7a7-0b972441650c",
+        "48c1bacc-3eac-517c-a8ea-05d7ff89b7d0",
+        "48d40e81-dc06-569a-8553-ea6d03f7a2b7",
+        "4a7281b2-29d7-5b75-8733-8f8b8f3ecf0c",
+        "4a7b6175-a104-5468-a664-a7dfbd2ff24e",
+        "4aa63bc6-90e7-5b18-b864-fc07318d32af",
+        "4b20d75b-e451-5eb2-8ec0-abf0d58e7e6d",
+        "4bdc03e5-b365-58d2-a798-2b9adb448c70",
+        "4be5f30e-9600-5ad6-9452-57d594b6babe",
+        "4c74340a-ddad-5efa-9429-e002da17eee3",
+        "4c894297-0198-59df-a01d-7ea17deef878",
+        "4d38dbdb-03bc-5086-871c-eccef03adc0e",
+        "4d5ea45c-39e5-5931-9867-0e49c87d7088",
+        "4d759b3c-9c43-532a-bbbe-f06600e3bbd2",
+        "4d7ad0b9-640f-5fdc-a483-8926a70fb36a",
+        "4d80e5ce-e34b-5418-8bd6-988f7d201119",
+        "4ddb96d9-8006-55e9-88b1-bd35dbac916c",
+        "4de4a989-6032-53db-9a13-0582ebb79631",
+        "4df7aae7-3dcf-52ed-9365-1ce356d2d2dd",
+        "4e025fad-c3ba-505f-8e43-8481e7a09a9e",
+        "4e203cff-092b-55fc-8dd2-9250d053725e",
+        "4e21385c-d8b9-5f18-8aaa-dc37b4b21a8e",
+        "4f2faf6e-8c16-5934-aaf4-e3087f24a7f1",
+        "503858c5-5ccb-554f-876e-1ae38d4ffb60",
+        "504e5529-7464-522c-9e17-c111e1c7a4df",
+        "505d0071-5dec-5cc6-9632-5aa17d4cef0e",
+        "510979ef-6664-51ff-9dbe-01058df6a5cc",
+        "518f8ae7-9352-5b72-8294-7a59c4a5d195",
+        "51a48c07-74b8-5808-a012-07e72bb07d79",
+        "52bfc9a7-1629-5090-94ae-f7ada82d8b8a",
+        "52dbf33c-4943-55ef-a134-f4f71321b99c",
+        "542b7c7a-6cd8-5979-b204-13f9134bd8fe",
+        "5442ee72-967f-583a-9443-eddee22ea08c",
+        "54948c85-3433-5789-80a4-a94bf31eeb11",
+        "5495c0c3-9f75-5808-b540-6e30d2dd91ee",
+        "54eafba9-17cb-5f02-b916-f9196b195674",
+        "55004bde-58f6-59b5-a25a-9bdbc1b632d7",
+        "5521ef50-bc99-5347-b072-8b538b5b5013",
+        "557e5466-510e-59cc-8d64-f5c21fd8e7ec",
+        "55a517aa-12c5-5257-9f73-330d8c636146",
+        "566ce570-b7cb-5b36-b1d4-e1772001297f",
+        "56e76cc9-02ef-5d0d-9362-bdf57c12d410",
+        "573bd7b7-ae52-535e-a466-04eca31e4406",
+        "5744a347-1733-5654-870b-a0c7c3d3bd93",
+        "574f0381-e3e9-5a15-9024-4a915cab3081",
+        "5840d1cb-6f42-54d0-afc8-ad52996ff4c0",
+        "586a42c9-ccdb-5010-919b-d63fb7747289",
+        "5892f2f3-f0b3-5487-9bb9-e958cbc4f990",
+        "59b37b4c-d54a-5498-8c37-30758ca7e7ad",
+        "5a15785f-aeb8-5baf-b7bb-f5799b13c2b4",
+        "5a765c64-ebf6-54ef-b1d1-8b9bb83f4254",
+        "5ac69da6-d254-50b3-aaec-282e5658302c",
+        "5af2b986-b618-598f-bf7a-c5ab03a0627d",
+        "5af850f2-a2e0-5128-9a78-d4a4fbc80294",
+        "5b03d6f2-b47d-5532-8fa6-c31fe87e6855",
+        "5b12f371-546e-5b66-916b-9269ae180cab",
+        "5b41a36c-b24d-52a0-841a-876fbe0ae140",
+        "5b45e455-4f98-5089-a3b9-af60fc928a28",
+        "5b46619b-3386-534a-a33b-f54503650db9",
+        "5b4b21e2-e4e0-5242-adb6-0023a801b26e",
+        "5bffa820-2903-52df-baf8-7da47c8d284d",
+        "5c32d6a1-c099-514d-9a87-3467495d8394",
+        "5d00222e-2871-5bce-928e-364fd45df9e1",
+        "5d1d85a0-0589-5d39-b450-e31ee1d0e0d4",
+        "5d4838ea-8307-59d5-8f35-7da6cc533990",
+        "5de22d6d-8c9a-54f1-8d7d-92e932cb3bef",
+        "5dea11c1-38f1-5c42-aec8-e9fe333cfb32",
+        "5e1b49f2-6837-51f6-b447-db3960bf3f8a",
+        "5e52967d-5113-5d3d-93a3-9025d78ed412",
+        "5e579e41-eb28-5004-8929-b9b2aace2bcf",
+        "5e871ecb-0d62-5859-8b7e-f88c836ad5b1",
+        "5ec492fa-9b49-5c68-9349-173b996a7e52",
+        "5ef566f3-6fd0-5b2f-b248-5fdf884e93bb",
+        "5f0c87e1-1f9a-5100-b167-f3e4ea2c8ca0",
+        "5f9c6a4e-f2af-59f7-8462-bb3de1c9ffdb",
+        "603e71e2-f8ab-538b-8a3c-51e3f72a096b",
+        "6084c4a1-2b26-564b-9d19-18fa73e4dd05",
+        "60d3ef72-726b-52f0-9393-e9db0e98c2fe",
+        "612a4a66-e103-57ba-addd-ef35698651c4",
+        "61983caf-b9c7-5616-b551-da61961c2602",
+        "61ba63b7-8edb-5e7a-b224-a3c4518d8542",
+        "61e8d21a-c159-54fc-bfa2-8cb07b9b62e0",
+        "62b05974-5018-5e44-b017-e2566b113313",
+        "62dbd3e3-1957-5395-92ea-7763b6ee6fae",
+        "630d4336-5edc-5124-a032-0fa94d9bd8ff",
+        "6314d5e9-d7e0-5d26-9aae-988fd6427f5c",
+        "634f3bfd-5271-5e2b-aeac-0eafd10f8670",
+        "63580df3-774e-5b04-b126-4f593e905130",
+        "6428c55d-9ef7-5b46-9df3-30a18fbb50e8",
+        "648d655d-d690-5c32-8d04-74b5810a0b22",
+        "6493cf08-c6d0-5a73-a6a9-ff4b62c7c9ce",
+        "649bf2bb-db1e-5460-85ad-adf36821960d",
+        "64c2c0d8-1f17-583c-a6c7-04b3b06455fe",
+        "64df2832-baaa-5ced-bb91-410f83ec57a6",
+        "652ebdd9-8757-54c2-834a-3baa54767e94",
+        "653b5410-67a7-5a11-9f0d-ce18a6a1a8f1",
+        "655fcf36-4a57-5895-a3aa-bc2b1387dce7",
+        "65bef20e-e0eb-5db8-9d0c-0a5d3e494cd5",
+        "66006ae2-c8c0-5b01-98c8-a4cfe6f008fc",
+        "6650bae2-cd38-592e-872d-d002aab56974",
+        "66776176-5ddd-582f-a084-e81eadb1cec7",
+        "676f2890-adb6-589a-a83f-fa9bcb79b561",
+        "67a5872e-9a5d-56b3-81cf-0ad1d1cd77d0",
+        "67ad204a-c883-5196-959c-feee1d26a6d2",
+        "67d9c380-b256-5d23-8572-d14f4a12687c",
+        "67e9c035-9019-54ac-aee6-bc548e6f473e",
+        "682d4a02-4d8b-513d-8c9d-2b9d58b503f8",
+        "6937e107-add1-5457-8817-50b0f5049626",
+        "69efa777-b68e-5e32-b342-4db61aacb61c",
+        "6a054a36-b780-5080-bb9a-17600ed0058b",
+        "6a28b537-44c2-59c0-a496-aee2dd17a4e7",
+        "6a877f36-1d65-5335-9148-4052b456aa6c",
+        "6ac7aab1-7147-57a4-90b3-917e98ad084d",
+        "6adfbeb3-1a2b-55c7-8996-a16b56daa52d",
+        "6b294f42-e3ed-58bd-b728-30a780215b2f",
+        "6b5fc648-876c-53cf-9674-f1639581a807",
+        "6bce34ce-ecbb-51f5-8bd6-b7e2ad59713a",
+        "6be64e75-4e49-5b75-b834-d7b29a6151f6",
+        "6c2e4129-7c4b-5aaf-8319-47d09b30d7ca",
+        "6c34ce76-fe2c-5ce7-b193-1ae624e2be4a",
+        "6c729f2b-0c83-5615-8a99-744e2fae7fa2",
+        "6c81b2ab-26ac-5319-ac75-46762bed2ac1",
+        "6cb69b01-0923-53e1-a5ae-f43146d2fc05",
+        "6d1c76d1-1a71-5d14-bd67-4bbbc8ba1dd8",
+        "6d6c9af8-7767-51e1-8347-64bf9bde79e6",
+        "6dcf3bb3-6928-5514-b1d4-3be8c9ca7b99",
+        "6df2c61d-b13a-5467-8e54-c8b39be2c1d7",
+        "6df385d2-c545-5bcc-8d64-1097dbdd9690",
+        "6e088412-d36b-56d4-b6db-57c58afd43b2",
+        "6e4e3d30-430e-5585-81f1-3271d5dac3fb",
+        "6e6db742-5af9-5568-b97d-ae0135123e45",
+        "6e6ef8f8-f2f9-58f9-995c-bd2f5fb7ab0e",
+        "6e9e16f3-f585-5dc2-8bfa-74604c1522e3",
+        "6ec210c2-119c-5935-8f63-3ce17e9ce4d6",
+        "6f2fc0f8-86a8-558e-87d8-09db0a73825c",
+        "6f8a7dd0-6b47-5c4e-ae6c-f41162a8b555",
+        "703394e6-964f-5f6f-a990-c6b727985e20",
+        "70a74b79-96b6-55bb-86c7-0789829f9eef",
+        "70b9ccd8-1954-5be6-80db-ddb10e7d0005",
+        "71092edf-6898-5c72-b598-08f3d67f29de",
+        "710cca2e-2d47-5acc-ad7c-15dfdd0acede",
+        "71eef4ba-5d37-512f-beeb-2a946bba1e55",
+        "71f788ae-1581-5fa6-b004-a89bd39a7535",
+        "71f8490e-6909-580e-93fd-19ef23c6ca06",
+        "729f97d6-dd29-5086-866d-e75154b81123",
+        "72a922eb-7ed1-5ae3-94eb-efa4d1114073",
+        "72e522a4-a1bd-56ba-ad74-225f03a6b6a9",
+        "730abe28-e2b5-5b4b-ba9b-9a43be0b6083",
+        "7394ae0f-168a-5952-aba0-43e9e0baa74e",
+        "73ce9f64-c19a-5d50-99e9-05db8359f551",
+        "74ec1588-f5b6-5e55-8c09-8201e91f5fb6",
+        "753e7a4a-df9b-5810-b6e9-6c65466a5f30",
+        "7595ed74-b3de-593c-a227-be2fa9b29edd",
+        "75c1eeb9-feba-5050-815e-406d1e57ad9f",
+        "762ad79d-8acd-5be1-a0ec-241e8ecef86a",
+        "76359d63-708e-5c77-869a-a5e57b41cae8",
+        "76621536-9ff0-528d-b68a-60e832f99647",
+        "7681c658-5b6d-5132-b48c-7484b4784f1f",
+        "76971649-b0da-583b-9b06-dff3fc319ac1",
+        "769f8cac-16d3-59fe-8ad3-7a8c7a2dcba2",
+        "76c2a92d-dded-5ca5-9b44-31d24c28cbad",
+        "76dfa6db-dcdc-5e01-982b-499ce0b8de80",
+        "77106256-2df6-5e62-9fb2-2717db39fd42",
+        "77270b36-88ed-5c28-981d-89dccd2e4c92",
+        "788641b6-7fc4-5b60-89f9-2f4d160808d0",
+        "788f14c1-20d9-5d7b-88c7-81eb214488bf",
+        "78f582d7-b520-5137-8db1-3e4b777c0904",
+        "79122b38-3f67-5146-a599-05329016503e",
+        "794086f2-cf73-5007-8864-4ff778100101",
+        "79786e08-e86b-540d-a503-9e415f07cabe",
+        "799470ac-90d4-5be2-9570-e758f81cd33e",
+        "79da69fd-57c8-5570-a209-5a6148dfbd4b",
+        "7a024734-3933-5840-91e1-f2b2507b681f",
+        "7a075c4c-1997-5902-903d-0fd6f7664e7f",
+        "7a2c27ad-2866-57e8-8e76-4e23305016b1",
+        "7a2cdbd1-2c0f-5ece-a8ae-fe613897d292",
+        "7a677493-27c6-53fd-ab67-53248831e02d",
+        "7ab54432-4700-56b7-83b7-31b6e35fa432",
+        "7ac36100-ac40-5aee-9bb6-92952ece6851",
+        "7acf0f0e-9d4e-55f9-a737-707ae1fe0fc2",
+        "7ad8e893-7f13-5a08-8fd2-b16cee96581f",
+        "7ade16da-bcd3-5816-bd63-b0297bcd9cbc",
+        "7ae038f8-b930-5ed4-9ed0-9faebe9b5cb0",
+        "7b23c6ee-a713-5a4a-a578-3fe3da3c2b5e",
+        "7b7e1a8d-bacb-5107-9182-e58c41d3b509",
+        "7bffd734-7c1a-58b6-a694-dbff8c9f1458",
+        "7c12bc0b-00e9-56c0-8c45-86ebd08c13db",
+        "7c79b535-df18-58cb-a57b-6c8ca10dd33c",
+        "7c9673e1-867d-5e43-893d-be166e761fad",
+        "7d0423c3-1895-5b8d-bad4-eaeac500db26",
+        "7d147a9e-2150-596d-864a-83f485c9bb39",
+        "7d23dbfd-23f0-5632-abaf-49a140e49067",
+        "7d24288d-a03b-5b5d-a3c6-02fb1849d631",
+        "7d33b88b-cd29-5b31-ac48-004ee9656541",
+        "7d63a0fe-a4aa-56df-b2d4-14765c02b3a3",
+        "7de261ff-3312-50aa-a45c-b375d8a09fc6",
+        "7de2c328-0be9-5f70-863e-7d942dc47890",
+        "7dedb861-577b-5137-b56b-ad3edce9ca80",
+        "7e128fa9-2160-52d3-b209-02001e8dadfb",
+        "7e73eff0-aeb6-57cd-ac14-9b070a82ae3d",
+        "7ed27ce8-c9f4-5893-944c-8d95187724e5",
+        "7fc95116-03b6-5dee-af99-7c16c743fc97",
+        "7feca8fe-b1e3-5df1-b0b0-c4a398e438db",
+        "8006804a-4b66-56a3-92fd-c3af8a340d75",
+        "80da09e8-f462-5767-8850-2722004b020f",
+        "81613651-249e-5145-a6d7-71d6f9ecf195",
+        "820ab5b1-4945-5c0a-bbf8-d91c9f12a1a7",
+        "827135fa-0307-58a7-a6b9-223c591977cd",
+        "827bd9c8-7cf4-59f6-b94f-b99a5c55ed63",
+        "8285ffd1-33bd-5e5e-bad2-8a664a33909a",
+        "82ab63ae-d883-5f1f-91bb-8d887c43668e",
+        "834094ed-017a-5a3b-b0b7-7769f0ea8757",
+        "839af46b-75c4-5e22-93f5-94f7fe261709",
+        "848a3128-b2ad-5d2d-9def-baf3bd46d933",
+        "849a36fa-496e-5f4e-8b67-15cc4b1dd0cc",
+        "870418f2-c5a9-5c36-a6dd-73c1991e0881",
+        "87323cbc-25e0-5c5b-8b0e-5f0f1c550fc6",
+        "879affb8-a430-5de4-9f25-42919b668480",
+        "88137550-c5f4-5c87-93ef-157afb66e8d7",
+        "881dd3a1-5577-55d1-9682-4dfa02cb2bf4",
+        "883ab3d2-eaa0-5171-84fb-0835c2d99cc3",
+        "89295f40-fb90-586c-9f87-8407555957f8",
+        "895fa7c7-2784-5c0c-a535-e1d3e6de672b",
+        "89bcfd0d-d148-538e-8c8a-b23f5ca72af6",
+        "89c1536f-50e8-5385-8827-a724a57d3919",
+        "8a09f890-8e2c-556a-96d8-8aa0c86b87ed",
+        "8a3ee907-a88c-5e50-98cb-8961f70291a5",
+        "8a4a2f21-5fc1-520e-9e7a-fd1d8def5a1c",
+        "8a6d8126-950b-5ac3-ba83-e00a85feb4f3",
+        "8a7bed5f-d6f5-56d0-a3b8-1d01ce600eee",
+        "8ac5818e-c5c8-595a-b84a-f55ef68fd210",
+        "8b60e54d-b82d-5e99-becd-6683c8b5dd0c",
+        "8b733fcd-11ac-5c03-b1a8-7da8276ec5bf",
+        "8b96eeba-dcd8-59a8-98c1-bc76ffda507f",
+        "8bb375c2-7abc-5252-a118-83d180cc7e9d",
+        "8bf82fc4-bab4-51fe-8baa-e52e28f4f931",
+        "8c44c5a1-b25b-5472-8826-e17622614df5",
+        "8c8d4ffd-166f-5a49-ab29-f0feed613a47",
+        "8cfe96a0-5e69-53d0-b706-3cc24f9bafa0",
+        "8d77a7a6-31fa-5dd1-b4a0-1b4cef06d1ab",
+        "8d8266e9-ed9a-5277-aff1-df6db0156c0b",
+        "8dcef880-a546-5243-b9ec-983de471a57e",
+        "8e46eda6-009a-5e90-9884-ac223c1ef7b4",
+        "8e4f248a-c5f4-5243-801b-600dafd9f188",
+        "8e570e0f-98cf-5a92-a022-ce0ab922d983",
+        "8e9933b5-d82d-5426-9d97-6a02a0745cb0",
+        "8efa6806-dabd-5ca8-8bd8-36a82177f2e4",
+        "90181091-d76e-55a5-a412-d95a038695a4",
+        "90320410-611f-5df8-914c-e523750ea362",
+        "90883042-b52f-5cf3-9bf5-010a50a118ca",
+        "90eacb22-342c-5620-8444-e89797ed6cea",
+        "90fc978d-f515-54a8-8ea6-a6d925514ba3",
+        "911ad081-f342-5b95-99e4-bf1fdf555715",
+        "9142ae74-00dc-5c0f-bd1f-73b39355b26e",
+        "9162fe18-a0c8-58de-882e-0a12e7bb5c90",
+        "9312a1ee-1180-5008-b27b-cada8320c53e",
+        "932b5225-6fdf-5ae6-adc1-5200414964df",
+        "934a2128-10ce-586f-a01c-2fdbcbd73f89",
+        "948f85e7-27f1-5aba-865a-b6481fc4ba7a",
+        "95f6d9f5-4761-5ef4-8dc2-44cd2ccb1b60",
+        "967bfe3f-bff5-5797-bbd4-f78ed9db52ca",
+        "9715356d-751e-5ef7-9d2e-811a3c40b4d1",
+        "975f7e4b-b380-55fe-ae01-e8deb7afe298",
+        "97b130ae-a221-5b45-a247-5ca382699998",
+        "986efc39-e82f-5467-89b7-c7e6ee9194fb",
+        "98a6afcf-4c34-5984-96eb-efec4031b638",
+        "990e0e06-09b6-511a-a0f3-6f6a08359c31",
+        "99c9a794-d987-5b20-bb3f-18837f1a1495",
+        "9a522542-c3c3-5bee-a675-04a31eef0db2",
+        "9a7df080-48bd-5805-848a-89237c311268",
+        "9a89b87e-5229-51e4-aaa8-0123b98c63d0",
+        "9a8c76f7-2d8f-55f8-99be-cc138d380c4c",
+        "9b7a0cb5-25aa-5c73-bdef-dd1286b6dfd4",
+        "9b88837c-bb61-5f6d-aac9-1c1703fe2c49",
+        "9ce1d0e4-e5b6-5255-bbd4-49dfee714858",
+        "9d0dfd2c-0446-54ee-a2d5-30871c49c265",
+        "9d3f4f8e-7196-5661-adfb-f4eecfe2b2b2",
+        "9d5c5dd1-1abb-5aaf-9ff3-3abdb32e044a",
+        "9dbbd48e-62c4-5c73-a871-a0b50d141f05",
+        "9dc562dc-7203-579a-8863-5d8ec457482e",
+        "9dc973fd-d690-524a-b73a-bf0e1f60de4b",
+        "9e2e58ed-7065-5d1b-bd65-3625240ff7ca",
+        "9e463f4f-b66d-5ce5-8686-5ae3e0b17998",
+        "9ed06d7c-7db0-501f-9e6a-93c0f8615373",
+        "a04b577b-f89a-5727-8dde-b17c88b949b9",
+        "a11e55f9-51a3-5715-b96f-468a69960cc8",
+        "a18ee3df-4788-5b4b-9a04-ce73550d4d9e",
+        "a20526d6-7f50-527b-b861-a2eaccc097b0",
+        "a2095182-9b7a-5ead-99f1-fec214cfab89",
+        "a24f21d2-2542-573d-8dfd-e0fe126bc66e",
+        "a24faacd-b3ee-51b7-a1cd-a419d7c4d9c0",
+        "a267d854-670c-5e81-be03-3274eb92a271",
+        "a272c5c9-0050-5fd2-86c2-56da1ca3d65d",
+        "a2a3dfd2-be13-54a3-907e-ea779c8d6882",
+        "a38162bf-ce02-5d3c-bbd1-4df2d2086e63",
+        "a38c60f5-5055-5980-9641-1acb0e04f87c",
+        "a3bcd5dd-8e33-5eb2-acab-f6fc6229a27b",
+        "a3c8735b-7ce0-5611-ade5-af03d0998ecc",
+        "a3d9c692-725a-5f61-8b1f-085fb007ab0e",
+        "a3dd22be-6064-5148-a88b-2720edc3ee17",
+        "a47b3fd8-a555-5c1b-adf4-80ab889b5d98",
+        "a5002005-27ea-5aae-8927-814200427528",
+        "a571dc2e-ee8f-547d-9f6a-6c57d22c3da3",
+        "a5846a93-17e3-5c61-b0d6-cb408b35f40e",
+        "a633c77d-6856-5e4f-a1f2-8c773024a196",
+        "a6cb8135-c5a2-5a29-87e1-385b4e945309",
+        "a751ce12-9a6e-5f40-ab1a-b6b85214ed59",
+        "a793aa99-1d19-54e9-b4a7-6d7ac22e08b8",
+        "a79a565f-e0ad-5723-b593-c10e71c96fbf",
+        "a7d7511c-5a87-5846-8d78-0bdd7d64218c",
+        "a8838c1a-9b2b-52c1-a627-b592f46d2691",
+        "a8da77d3-9219-508a-a7b8-d24c86e8d7e4",
+        "a920c1b4-be3a-55e8-bb0d-87effa06089e",
+        "a9670268-b49c-5207-8271-6167641a3e26",
+        "a9fce99b-7de5-597b-965b-51d61329cebb",
+        "aa41a2f0-3319-56f8-8a48-ac30f0087367",
+        "aa676aaa-5628-5872-86c1-006b7e7183b5",
+        "aa8a6659-ac85-55da-8411-fbdec494cc86",
+        "ab05fb95-b4f3-536a-af5f-88ad6cf1208e",
+        "ab28f681-41af-5aa0-8cfb-d328eab25026",
+        "ab30ff15-50fd-5484-b84e-d07297f66ab7",
+        "ab5185d9-72de-58b0-9b88-6aefd815571b",
+        "ab6b2df5-bfb6-5f5b-81ca-52743f0181a5",
+        "abbcee62-58ce-5cd2-9d39-4dfad3839a9f",
+        "abcf2227-b015-5ea6-9af3-f4ac3435c3da",
+        "abd30e62-06f6-58c4-a190-3625dde818d9",
+        "aca3ec68-fcef-5fc1-9fc1-09089111792b",
+        "acb8d524-eace-56af-94b8-6b5ec753d82a",
+        "acbbfaa2-c71c-5b20-a570-dad81264da91",
+        "ad19ebda-45b1-50bb-8473-7b0975b3d3cd",
+        "ad2fe1e7-7a84-5994-a17d-4b5c7ab607ec",
+        "ad60796a-c59e-5933-88b7-236d4be2ecf6",
+        "ad6d3d6c-f0ab-548e-89f5-5794f01bc35a",
+        "addb7e08-fcf9-5202-838a-d93792ec80a9",
+        "ae06e8fe-80ad-5a1b-b1e8-201278749aaf",
+        "aef09ae5-a045-591c-93b1-68e741717175",
+        "af509c49-ab74-5ed9-9c36-7d6b5fff3549",
+        "afd4277b-8a23-5dcb-b16a-074a0f2100ca",
+        "b0325ac2-b431-5362-a4ba-2d5a63aa6742",
+        "b0dadd9a-c7e1-5608-bad6-6a414ceb5e46",
+        "b1672f91-3d66-5209-9239-881ded71b2fb",
+        "b1c084f8-6602-5ae4-8125-e1b36758a64e",
+        "b2115c0d-cce1-52e4-88bb-310b87ba5137",
+        "b25345f4-01d8-5251-bd9b-41ce10e5bfa7",
+        "b254268d-67d5-5323-8fe6-cd413d929343",
+        "b26753fd-c65d-54eb-a310-732925ff16e8",
+        "b2a8af24-8ce4-50bb-a0d3-dc34b49145c3",
+        "b2c46380-58b6-51f3-8dfb-8fc6c518c356",
+        "b2ed5161-80d1-588d-8e44-4f3d3c27804d",
+        "b370b5e7-1c3e-57be-8e13-81ed12267092",
+        "b49209c1-311d-58f4-895c-d43d733ecb90",
+        "b495d3e5-4bd6-5b37-a204-dc85604ac1e1",
+        "b4c4193a-0834-5c73-acba-bf60d059973e",
+        "b5874ca2-6de7-545e-9c9a-bd240026672b",
+        "b5d2719b-6b7a-5a4d-baaf-7198ca21f45e",
+        "b5d650d0-8c26-566c-a686-b22f7981e3d6",
+        "b5f1e846-3457-55c1-8beb-8e6229f986d3",
+        "b735dbec-bd94-5e9a-8bf8-935f20a152b9",
+        "b744f921-3019-5c9b-957c-2a3ddba38643",
+        "b7a25882-8688-5b87-80cc-e4b59b0c59a2",
+        "b8240529-c93f-5648-8f13-2ecf17b1bcc4",
+        "b8370a52-fd49-5389-928d-106bc4b14ecf",
+        "b83ae04c-1e9d-5df3-b0e1-a01f2af00b56",
+        "b857e21b-bb94-5f9d-a960-8be235556d99",
+        "b9bedace-5a6a-564c-ac29-f9d257f66e10",
+        "b9f9d334-8c30-5ae1-8059-c0a83b438514",
+        "ba05561c-e429-50c6-8e14-e795cd2c07a7",
+        "ba57b951-7035-5908-9fa5-14948271bcd5",
+        "baa82b69-ae9e-51fd-ad62-e408624d4727",
+        "bad68b99-796e-519e-a27a-212b488520af",
+        "bb509f54-8de9-5767-9702-a903fc36ded9",
+        "bb6f2b4b-829e-5b8d-91f5-08d7dd56d4bc",
+        "bbfc9b0a-8b72-5824-a79e-884031588b8d",
+        "bc39af27-6165-5c44-9703-57c400e14d16",
+        "bc962d49-0a35-573c-8899-043a4ef0a52a",
+        "bcd62af3-f2c6-518f-9e2d-aef423436527",
+        "bd9d7691-b4f5-5bb2-85f6-ab377f4708e7",
+        "bf9f37a0-504b-5b79-b8b8-b5a68ec9b717",
+        "bfaf4654-6b9b-5540-9b7b-8d2a2d5832bd",
+        "c059eed8-e55a-51b0-8b14-d5606a173ce1",
+        "c06039cc-f2f0-52dc-a0e2-5c62c84856e3",
+        "c0ce66c0-0d1e-5d4a-a2c4-5d2e61288623",
+        "c1793154-1ae0-5592-a04e-312e4cb62d9a",
+        "c17fa859-3976-5fc2-b8ad-b8d674d326ce",
+        "c1bca66e-6a4e-54c9-9a3c-b19961a35117",
+        "c1e6ca21-0306-52b7-b3b0-598ccb0663b5",
+        "c1f63a81-8f21-5a04-aa89-231840c33d6f",
+        "c2039ce5-d55d-5866-a8ba-c49ce8eebf99",
+        "c24c0974-cf55-538e-ae01-dd8c221735f9",
+        "c2d62303-1133-5036-9104-62a50fcf1724",
+        "c2e36085-754d-506b-9b56-ec634eb2f334",
+        "c30492fa-9bbe-5dd5-9957-3426e15806a9",
+        "c3d9e892-3675-55a6-92d0-d1f032e6a647",
+        "c3e96ad3-d275-5497-a0ac-06190a91d29b",
+        "c4097ac0-15c8-5016-9cb7-47b1cb8990c0",
+        "c47d3206-35c3-5ff4-b4dc-78dc1aec71c1",
+        "c49fed98-0b78-5bdc-aad9-83cc95bf0b6a",
+        "c4dd3d63-a63e-5099-afa9-68e36a4d7526",
+        "c5463247-d1d6-564e-95ef-6c2c8c30d633",
+        "c563042f-4a2c-5dc0-ab85-4ab4a9490811",
+        "c5f5b6de-a476-5d34-8b34-f29fe2476090",
+        "c5fe3850-e829-5ab8-a6c3-8c62f72d1ee6",
+        "c656bcc9-907a-5a99-96f9-4676f82fa3dd",
+        "c6b0b795-519a-5438-af35-00e3cf28129f",
+        "c741ef1e-2015-5cf9-a48b-b4cf6c38977e",
+        "c7420f1a-3d1b-54ba-998a-9209559cb86e",
+        "c74da2f9-2435-545a-b79a-a9dcdb29c9f8",
+        "c84b79ce-d396-5864-8cac-4775a28b468e",
+        "c92269a2-6091-5c75-8b0e-67ccc3f3ea93",
+        "c9472637-ee63-55b3-8ae9-3fa53c59e857",
+        "c96d5494-81b4-5b0c-b4e4-5747f248148f",
+        "c9f67b35-4a5e-505f-9c2a-f59b24ba3988",
+        "ca1d159d-541c-50be-8018-a108c76ec2f7",
+        "ca1f1d33-35fc-5a77-9e72-1e0bc5e3d80c",
+        "ca28382f-1fe3-5aaf-94a6-b98f5b332b7a",
+        "ca405df1-9c13-57f6-9ad1-e4fd234963a9",
+        "ca85bd99-a98f-50cd-8233-dc598b0fdf1b",
+        "caa355e5-6afc-57cc-bb3f-5acb5793a02e",
+        "cafea961-29ee-58c7-8104-484f73949442",
+        "cb32a8ed-ddfe-5144-87ad-0a940bdb16ae",
+        "cb9aa15b-57d0-5a9f-a1dc-651769bfe207",
+        "cbb82ab8-aaf4-5b9e-af43-3d99551844e3",
+        "cbbf962a-fbde-5c69-8edc-217d4573f670",
+        "cc0d6f8f-3fcf-5380-9078-2228e58e1335",
+        "ccc8ef94-ef64-57d0-9a23-33d9f6e1b2f9",
+        "cd88aeca-8af7-55e4-96ce-62cdf55953ca",
+        "cdc742ce-f76e-5fef-9869-3dea456d0a98",
+        "ce96414e-007c-5c31-bffb-9d984e5769d5",
+        "cf1bf665-bd7f-5e20-ba02-94796421a1bb",
+        "cf20d7b6-05e7-52f0-8947-08b242030aac",
+        "cf4ee7ae-355e-50b1-9629-69cae94f52e4",
+        "cfcc9ef0-669e-5dbb-89ef-e06e686b3aab",
+        "d03cbb8f-813c-5b59-ba18-aded02eeabc3",
+        "d1c01c81-302a-581a-99a3-545e69ca8345",
+        "d1d99e96-75d2-5502-8b60-cd86245e3172",
+        "d2709b6a-6f14-5430-bc92-13924212234f",
+        "d2721c51-37b8-53f1-ad5e-6eb50484c08a",
+        "d383a86e-9da0-5160-ba35-12b47d7ba6c7",
+        "d3a5cee6-3a29-5670-b1a2-2e5a1901c789",
+        "d44a7733-45eb-52c3-9017-c68befc0e31c",
+        "d4525905-d324-5c9c-8a90-4caf80a0f8da",
+        "d481dce6-b97c-541f-ba39-fdb54c45dbb3",
+        "d4b4ad05-3edd-589f-9f43-d2b5fa038d27",
+        "d4e6ad0f-63d2-5e9e-b55b-5d396eed4c12",
+        "d62706a8-219c-5e22-9c9a-b9dfcef8f851",
+        "d6902d8e-ab86-513c-8374-08c4b1e4c44e",
+        "d6e2dd45-21ee-5cd4-9920-f72637c4620d",
+        "d703daae-fec2-5cac-adf8-b10eac34061a",
+        "d70e866e-3518-502b-9fdb-fc87c0fad1ce",
+        "d749e6f3-5d24-560d-9baa-b4e572cc7cfb",
+        "d74c6a57-5b3a-5c6c-956c-b70ee64cd1d8",
+        "d81d295c-fbef-5a7e-b24d-a2f63f673712",
+        "d822a83d-72d0-53f8-a06b-99b426ea9099",
+        "d8e0d0f3-fc42-542f-a2a6-da30c74380bd",
+        "d9295267-2d19-5c6b-bca1-433c39b6732b",
+        "d96d7111-c986-5650-b956-9b1b19d1da51",
+        "d9fb5073-6f6e-5ec6-9451-6455b8deb630",
+        "db381868-b592-5c7b-b004-fa0f2bf4e976",
+        "dbbb186b-5ed5-5c66-b13c-e702927ea9df",
+        "dc365d75-92ee-5349-9dd0-8101843136a4",
+        "dc5d30e0-c69d-5491-946a-832561175ddf",
+        "dc62f17d-7d40-52b0-8a1e-3e68ae78e733",
+        "dcca7bb6-1a91-561b-a914-786f1adcca79",
+        "dcd54b87-c251-5810-9250-f8f145e2c198",
+        "dd8c6523-561b-5fbc-9464-b312f1fd5013",
+        "de7f1a67-d802-511e-8f94-b7c1d37b9636",
+        "df0d7615-aa86-532e-807f-b60e996f01f8",
+        "df218ca7-5cb1-5804-8ab7-2c8053edf191",
+        "df50aae7-add8-5e3b-9a60-b5c4b04e1734",
+        "df7c582b-d9d3-5b3c-8a3a-1e365b6b6a65",
+        "dffd4648-56b9-5871-9009-3a4dc4d63a3b",
+        "e0b58f79-362e-5250-b858-01ead1a51049",
+        "e0d47597-05ab-5985-98eb-d5d18fa599e5",
+        "e0e8ddaf-8b72-59cc-9b6d-8407a01106ea",
+        "e10abcdb-3824-5d23-a602-a419c2c28322",
+        "e146fcaa-257a-5c31-bd59-9d60b1787c83",
+        "e14a2c4d-3b48-5bc3-8f67-fb2b0367360d",
+        "e1b527a9-30f9-59ac-b51d-1d0edee38997",
+        "e23ed016-116e-51f2-9a13-6e42be22c7c6",
+        "e2b4d82e-cc16-5c47-b884-8246bda2b47b",
+        "e2edf4e9-fc55-581f-9e59-abb6c664388c",
+        "e32e43f7-4da0-5da6-b7ac-9d318e6086f5",
+        "e39449c5-1268-5f13-9e3a-6f8291f7d6c5",
+        "e3cde004-7611-5fc6-8daa-bfb1a30bf1d7",
+        "e3e0ec5b-fb91-51a3-94c7-717f437a5293",
+        "e3f00b8d-0232-5473-8d60-49711de371d3",
+        "e43d3d92-97c3-58a4-9f62-970f05a3cbcf",
+        "e4d31133-73e5-55ba-8459-340502ba0d2d",
+        "e4fc7794-32c6-518f-8939-73bf7ed42f69",
+        "e5477219-ee1a-5a50-bde7-f38d6b2be1a8",
+        "e5eaf483-57a3-5c7a-9407-379ca3155945",
+        "e5ed7c6e-dbff-541e-b8de-84a2cbc87b39",
+        "e603fa05-2158-50aa-a88e-3426e1b460d2",
+        "e6240c7c-c9e0-50ef-9c75-ad5789daa927",
+        "e660a33f-289e-5712-b987-d1b648e7350e",
+        "e698f41e-3efb-5416-b546-8f6775112b6a",
+        "e6a4cf98-4be5-57ab-ac59-a4c37ee5d6e2",
+        "e73867de-90b7-5c65-9328-d6c9c91f0fe1",
+        "e750b826-5a75-58f7-a2d6-2353fa3d5f91",
+        "e8388390-ad7d-50d3-964b-d1a56baba238",
+        "e85135c8-f1fc-5495-a16c-8bbf45323953",
+        "e8622ac3-501e-56a2-80bf-c65c2f0f9ce8",
+        "e87a1543-f945-5992-96ee-8514821705f5",
+        "e88de809-807f-5a17-8fe7-b5d31b5f1939",
+        "e9594e97-9fce-5bb2-8d7e-70f892672fec",
+        "eae8c83e-7f04-59c5-a68a-0014484e2a0d",
+        "eb5bbf40-062c-5909-87ca-e24de96cf356",
+        "eb5c5c33-ea4c-5104-80fc-ba037ec03cdb",
+        "ebcb7fed-d8c7-5569-92d8-ba46b7da4b96",
+        "ebe01367-87aa-59b5-9541-6ed5e28334bb",
+        "ebe273f1-6205-537d-b80d-5797052e77fa",
+        "ec042e9b-3939-56c6-a12c-6ece15e9dc20",
+        "ec4d206c-3a09-5f3a-b3f7-9f89e702e550",
+        "ec6bf556-18d0-5c7d-a386-cd9bc475e2af",
+        "ecdbd0c2-2f33-5f92-a51d-c05829626970",
+        "ed7ea6d8-868d-501e-80dd-1ef7c07a843a",
+        "ee9e8020-00f7-5736-9f5c-68efa1b81bc8",
+        "ef2399a5-a237-5775-9d0e-b64c31023603",
+        "efbaf85a-081f-5ad5-b1f3-d94dd53680ab",
+        "eff66403-3880-55b0-acc1-0bd13bf3fd94",
+        "f062289e-f595-5e1c-a55b-e67530f16b05",
+        "f1904efa-2683-59f4-8193-a65d3d3bc159",
+        "f1a0138b-6f8b-5512-90b7-4ce71b2615ce",
+        "f1cc8444-bc3c-562b-8718-06cfe6468265",
+        "f1df6c59-5ee8-5e1a-ae78-b5c01ed9184c",
+        "f21babb2-7761-57c4-a7c7-b7d56f6c6400",
+        "f24b50a8-b316-5fbe-9196-d2db35c154d6",
+        "f2ae6ca9-7f27-5025-9caf-b491e23e8113",
+        "f2ef9fbe-9f0c-59fd-a478-bbf8930e703a",
+        "f361d4cd-1287-583d-81ad-9fb22e5de777",
+        "f3d83b1a-567b-5ba9-810e-ee469a034c73",
+        "f46d6a43-ed9c-5c93-b5d7-a161d668a701",
+        "f4741003-54a7-5270-937f-fc51faf8a7fd",
+        "f54ac3e7-f1d1-5351-ba49-bc4e0019ca70",
+        "f5931cdc-a64d-5642-afdf-ab4d8b538c09",
+        "f72cb639-a105-5dfc-ad98-5d81a5c243be",
+        "f746566c-23ad-5da1-81bc-7e40b261247e",
+        "f7999fac-a6fd-5a7e-8e3d-5e1033d6b730",
+        "f7abc443-fca5-559a-a210-2e6d59d17e8a",
+        "f81050f6-4126-5b3c-b96c-00a1f4377028",
+        "f8cfac0b-da8e-56d3-a466-d58e5da41cbc",
+        "f8e3bc65-9827-5904-9161-b578cad8aef2",
+        "f91513c7-a7a2-5129-8eea-1e6fb240e0d1",
+        "f97d0dcd-4436-51cd-b318-ecf723144d44",
+        "f9be404b-10fc-5832-a41b-3c17190535ba",
+        "f9cc3e5f-934e-5ebc-9ec0-eeb12df3e174",
+        "fa1d2e4c-a931-5859-907a-2ab2ab79d78c",
+        "fa64f77b-eac3-5f6f-8342-05be32103830",
+        "fa6c0215-9d8a-5de0-bbfd-aa9b9b1db762",
+        "fa736d19-cb9d-5fa6-9c0c-854495869b17",
+        "fa7e8b73-f2ea-5f20-ad06-27b5a8b4929e",
+        "fbbb7d5c-8375-5de5-ac83-f4cbfd1cad42",
+        "fc1ea7fc-9324-54f3-a673-d90afad0d3c2",
+        "fcdd8b85-5f30-5b72-aea3-3de663643434",
+        "fd7a1d3f-9b5e-5b38-81ff-15292f295399",
+        "fdfdbfd3-35d3-56d9-8812-efef5da86202",
+        "fe811d11-9181-5983-952e-0fad9a638691",
+        "febfe849-f7a0-5110-a472-4a301cefc84b",
+        "fec82f33-e120-54c9-b316-777fda9b3802",
+        "ff340fc7-7c61-5cb2-9d06-f3d518847adf",
+        "ff56f488-9829-5d72-91c7-5638923bcbf2",
+        "ff674f28-fa7d-54b2-b763-ef468ada1ce2",
+        "ff94182f-b653-50f0-b8d8-041682228e91",
+        "ffa0a664-532e-5c32-ab3a-503c846b1cab",
+        "ffbc4c69-0b15-517f-9442-64eb1c545c12"
+      ]
+    }
+  ],
+  "liveDeletionReportDigest": "77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19"
+}

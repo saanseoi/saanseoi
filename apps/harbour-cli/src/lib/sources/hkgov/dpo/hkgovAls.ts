@@ -1,4 +1,27 @@
 import {
+  applyMarchInferredAlsHierarchy,
+  validateMarchInferredAlsSources,
+} from './hkgovAlsMarchReview'
+import {
+  applyAprilReviewedAlsReconciliations,
+  validateAprilInferredAlsSources,
+  validateAprilRetainedInventories,
+} from './hkgovAlsAprilReview'
+import {
+  applyFebruaryInferredAlsHierarchy,
+  validateFebruaryInferredAlsSources,
+  validateFebruaryRetainedInventory,
+} from './hkgovAlsFebruaryReview'
+import {
+  applyJanuaryInferredAlsHierarchy,
+  validateJanuaryInferredAlsSources,
+} from './hkgovAlsJanuaryReview'
+import {
+  applyDecemberInferredAlsHierarchy,
+  validateDecemberInferredAlsSources,
+  validateDecemberCoalescedInventory,
+} from './hkgovAlsDecemberReview'
+import {
   collectAlsReviewIssues,
   AlsCurationReviewError,
   type AlsPendingIssue,
@@ -11,6 +34,18 @@ import {
   finishReviewedAlsPremiseRetentions,
 } from './hkgovAlsReviewedPremiseRetentions'
 import { applyReviewedBuildingOverrides } from './hkgovAlsBuildingOverrides'
+import {
+  applyNovemberInferredAlsHierarchy,
+  validateNovemberInferredAlsSources,
+} from './hkgovAlsNovemberReview'
+import {
+  applyOctoberInferredAlsHierarchy,
+  validateOctoberInferredAlsSources,
+} from './hkgovAlsOctoberReview'
+import {
+  applySeptemberReviewedAlsHierarchy,
+  validateSeptemberReviewedAlsSources,
+} from './hkgovAlsSeptemberReview'
 import { applyReviewedBlockDetailBackfills } from './hkgovAlsBlockDetailBackfills'
 import { applyReviewedIdentityComponentBackfills } from './hkgovAlsIdentityComponentBackfills'
 import {
@@ -192,6 +227,14 @@ async function prepareHkgovAlsAddressParquetInternal(
     sourceFeatures,
     options.sourceVersion,
   )
+  validateSeptemberReviewedAlsSources(sourceFeatures, options.sourceVersion)
+  validateOctoberInferredAlsSources(sourceFeatures, options.sourceVersion)
+  validateNovemberInferredAlsSources(sourceFeatures, options.sourceVersion)
+  validateDecemberInferredAlsSources(sourceFeatures, options.sourceVersion)
+  validateJanuaryInferredAlsSources(sourceFeatures, options.sourceVersion)
+  validateFebruaryInferredAlsSources(sourceFeatures, options.sourceVersion)
+  validateMarchInferredAlsSources(sourceFeatures, options.sourceVersion)
+  validateAprilInferredAlsSources(sourceFeatures, options.sourceVersion)
   const reviewedPremiseRetentions = retainReviewedAlsPremises(
     sourceFeatures,
     options.sourceVersion,
@@ -282,6 +325,44 @@ async function prepareHkgovAlsAddressParquetInternal(
   applyReviewedBuildingOverrides(rows, options.sourceVersion)
   applyReviewedIdentityComponentBackfills(rows, options.sourceVersion)
   applyReviewedAlsPremiseRetentions(rows, reviewedPremiseRetentions)
+  applySeptemberReviewedAlsHierarchy(rows, options.sourceVersion)
+  applyOctoberInferredAlsHierarchy(rows, options.sourceVersion)
+  applyNovemberInferredAlsHierarchy(rows, options.sourceVersion)
+  applyDecemberInferredAlsHierarchy(rows, options.sourceVersion)
+  applyJanuaryInferredAlsHierarchy(rows, options.sourceVersion)
+  applyFebruaryInferredAlsHierarchy(rows, options.sourceVersion)
+  applyMarchInferredAlsHierarchy(rows, options.sourceVersion)
+  applyAprilReviewedAlsReconciliations(rows, options.sourceVersion)
+  const reviewedAliases = new Map<string, string>()
+  for (const row of rows) {
+    if (
+      [
+        'hkgov-dpo-address-september-deletion-retentions.json',
+        'hkgov-dpo-address-october-deletion-retentions.json',
+        'hkgov-dpo-address-november-deletion-retentions.json',
+        'hkgov-dpo-address-december-deletion-retentions.json',
+        'hkgov-dpo-address-january-deletion-retentions.json',
+        'hkgov-dpo-address-february-deletion-retentions.json',
+        'hkgov-dpo-address-march-deletion-retentions.json',
+        'hkgov-dpo-address-april-deletion-retentions.json',
+      ].includes(
+        JSON.parse(row.sources).hkgovAlsReviewedPremiseRetention?.curationFile,
+      ) &&
+      row.identityAlias &&
+      row.identityAlias !== row.id
+    )
+      reviewedAliases.set(row.identityAlias, row.id)
+  }
+  for (const row of rows) {
+    const decision = JSON.parse(row.sources).hkgovAlsReviewedIdentityCoalescence
+    if (
+      [
+        'hkgov-dpo-address-december-deletion-retentions.json',
+        'hkgov-dpo-address-april-deletion-retentions.json',
+      ].includes(decision?.curationFile)
+    )
+      for (const alias of decision.aliasIds) reviewedAliases.set(alias, row.id)
+  }
   const {
     duplicateGroups: identityEquivalentFeatureGroups,
     rows: identityDistinctRows,
@@ -321,6 +402,17 @@ async function prepareHkgovAlsAddressParquetInternal(
   }))
   const resolvedIdDistinctRows = consolidateRowsSharingResolvedId(rows)
   rows.splice(0, rows.length, ...resolvedIdDistinctRows)
+  const aliasesByCanonical = new Map<string, string[]>()
+  for (const [alias, id] of reviewedAliases)
+    aliasesByCanonical.set(id, [...(aliasesByCanonical.get(id) ?? []), alias])
+  for (const row of rows) {
+    const aliases = aliasesByCanonical.get(row.id) ?? []
+    if (aliases.length)
+      row.sources = JSON.stringify({
+        ...JSON.parse(row.sources),
+        reviewedIdentityAliases: aliases,
+      })
+  }
   assertUniquePreparedRowIds(rows)
   const aliasOwnerIds = coalesceAlsAliasedPremises(
     rows,
@@ -372,6 +464,13 @@ async function prepareHkgovAlsAddressParquetInternal(
   backfillOiHei(rows, options.sourceVersion, options.skipCurationChecks)
   assertUniquePreparedRowIds(rows)
   finishReviewedAlsPremiseRetentions(rows)
+  applySeptemberReviewedAlsHierarchy(rows, options.sourceVersion)
+  applyOctoberInferredAlsHierarchy(rows, options.sourceVersion)
+  applyNovemberInferredAlsHierarchy(rows, options.sourceVersion)
+  applyDecemberInferredAlsHierarchy(rows, options.sourceVersion)
+  applyJanuaryInferredAlsHierarchy(rows, options.sourceVersion)
+  applyFebruaryInferredAlsHierarchy(rows, options.sourceVersion)
+  applyMarchInferredAlsHierarchy(rows, options.sourceVersion)
   applyAlsDivisionMembership(rows, divisionMaps)
   const divisionQuality = buildHkgovAlsDivisionQuality(rows)
   auditGuards.passed('unique-identities', rows.length)
@@ -721,8 +820,11 @@ async function prepareHkgovAlsAddressParquetInternal(
     publisherSources,
     collections: inventoryMembership.collections,
     sources3d: inventoryMembership.sources,
-    aliases: aliasOwnerIds,
+    aliases: new Map([...reviewedAliases, ...aliasOwnerIds]),
   })
+  validateDecemberCoalescedInventory(membershipData, options.sourceVersion)
+  validateFebruaryRetainedInventory(membershipData, options.sourceVersion)
+  validateAprilRetainedInventories(membershipData, options.sourceVersion)
   if (options.writeOutput !== false) {
     membershipData.preparedSha256 = await fileSha256(outputFile)
     membershipData.address3dSha256 = await fileSha256(`${outputFile}.address3d.jsonl`)
