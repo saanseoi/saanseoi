@@ -7,6 +7,7 @@ import {
 import { resolve } from 'node:path'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { loadDivisionReviewInputs } from '../../apps/harbour-cli/src/lib/pipeline/curatedDivisions/reviewInputs'
+import { readReviewSource } from '../../apps/harbour-cli/src/lib/pipeline/curatedDivisions/reviewSourceArchives'
 import { buildAdministrativeAreas } from '../../apps/harbour-cli/src/lib/pipeline/curatedDivisions/administrativeAreas'
 import { deriveIslandGroupGeometry } from '../../apps/harbour-cli/src/lib/pipeline/curatedDivisions/islandGroupGeometry'
 import {
@@ -31,12 +32,15 @@ try {
 }
 const optionsPath = process.env.SAANSEOI_REVIEW_OPTIONS
 const options = optionsPath ? JSON.parse(await readFile(optionsPath, 'utf8')) : {}
-const inputs = await loadDivisionReviewInputs({
+const archiveOptions = {
   root,
-  includeAreas: true,
   apiBaseUrl: process.env.SAANSEOI_REVIEW_API_URL,
   archiveBaseUrl: process.env.SAANSEOI_REVIEW_ARCHIVE_URL,
   ...options,
+}
+const inputs = await loadDivisionReviewInputs({
+  ...archiveOptions,
+  includeAreas: true,
 })
 const nativePin = inputs.sourceReleases.find(
   row => row.datasetCode === 'ds-hk-overture-division-area',
@@ -63,7 +67,7 @@ const administrative = buildAdministrativeAreas({
       isLand: row.is_land,
     },
   })),
-  land: inputs.protomaps,
+  land: await readReviewSource(landPin, archiveOptions, 'land-mask'),
   overtureRelease: nativePin.releaseCode,
   landRelease: landPin.releaseCode,
 })

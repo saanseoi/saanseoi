@@ -1585,6 +1585,9 @@ feature counts and topology.
 
 ## Processing policy ownership
 
+The local review editor loads the full Protomaps land mask for administrative
+references, including mainland districts.
+
 Ingestion policies retain publisher properties and native geometry in SOURCE. Division
 snapshot recipes select classification, names, identities and hierarchy processing.
 DivisionArea and DivisionBoundary recipes select their respective geometry executor,

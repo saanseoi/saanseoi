@@ -125,6 +125,10 @@ Research references, checked 30 September 2026:
 
 ## Processing policy ownership
 
+The local review editor clips administrative territories against the full `land-mask`
+view of its pinned Protomaps archive, including mainland coastline polygons. Its island
+inventory uses the separate island-selection view of that same archive.
+
 Protomaps ingestion declares OSM island/islet extraction, coastline geometry selection
 and native SOURCE import into `protomapsIslandFeatures`. These rules preserve source
 assertions and geometry without materialising canonical Divisions. Reviewed island
