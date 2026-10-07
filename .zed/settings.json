@@ -1,0 +1,14 @@
+{
+  "lsp": {
+    "vtsls": {
+      "settings": {
+        "vtsls": {
+          "autoUseWorkspaceTsdk": false,
+          "typescript": {
+            "globalTsdk": "/home/io/.local/share/zed/languages/vtsls/node_modules/@vtsls/language-service/node_modules/typescript/lib"
+          }
+        }
+      }
+    }
+  }
+}
