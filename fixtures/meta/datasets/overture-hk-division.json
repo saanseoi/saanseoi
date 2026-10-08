@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:0fa86efadf1f26d7f39c6a2fab64fe6d719298d2ac75ebc3baab3fe41b22943e",
+  "versionHash": "sha256:76997fd8d47d32670c87968e1a19b5f4ba976f25660cb7122db1af5519e6eced",
   "publisherCode": "overture",
   "code": "ds-hk-overture-division",
   "regionCode": "hk",
@@ -7,7 +7,9 @@
   "releaseFrequency": "monthly",
   "theme": "divisions",
   "resourceTypes": [
-    "division"
+    "division",
+    "divisionArea",
+    "divisionBoundary"
   ],
   "licenseCode": "ODbL",
   "attribution": "© OpenStreetMap contributors; Overture Maps Foundation",
@@ -52,15 +54,15 @@
   "i18n": {
     "en": {
       "name": "Divisions",
-      "description": "A `division` is a feature type that represents an official or non-official organization of people: country, region, province, city, neighborhood, etc. — as seen from a given political perspective. It has a Point geometry which gives an approximate location of the position most commonly associated with the feature."
+      "description": "Overture's <orange>Divisions</orange> theme contains three resource types that we ingest together: `division`, `divisionArea` and `divisionBoundary`. A **division** represents an official or unofficial political or geographic entity, such as a country, district or neighbourhood, with a point marking its approximate location. A **divisionArea** provides a polygon for the land or maritime area covered by a division, linked by ID. A **divisionBoundary** represents a border between divisions of the same subtype; in Hong Kong, these boundaries exist only at district level, the SAR's only official administrative level."
     },
     "zh-hant": {
       "name": "區劃 (香港)",
-      "description": "「division」是一種要素類型，表示從某一政治視角所見的官方或非官方人群組織：國家、地區、省、市、社區等。它具有 Point 幾何，提供與該要素最常見相關位置的大約位置。"
+      "description": "「division」是一種要素類型，表示從某一政治視角所見的官方或非官方人群組織：國家、地區、省、市、社區等。它具有 Point 幾何，提供與該要素最常見相關位置的大約位置。\n\n區劃範圍是代表區劃所涵蓋陸地或海事範圍的多邊形。每個區劃範圍透過 ID 關聯所屬區劃，並為該區劃提供範圍多邊形。\n\n邊界代表相同 subtype 區劃之間的界線。在香港，只有區級區劃具有邊界，因為這些是特區內唯一的正式行政級別。"
     },
     "zh-hans": {
       "name": "区划 (香港)",
-      "description": "「division」是一种要素类型，表示从某个政治视角所见的官方或非官方人群组织：国家、地区、省、市、社区等。它具有 Point 几何，提供与该要素最常关联位置的大致位置。"
+      "description": "「division」是一种要素类型，表示从某个政治视角所见的官方或非官方人群组织：国家、地区、省、市、社区等。它具有 Point 几何，提供与该要素最常关联位置的大致位置。\n\n区划范围是代表区划所涵盖陆地或海事范围的多边形。每个区划范围通过 ID 关联所属区划，并为该区划提供范围多边形。\n\n边界代表相同 subtype 区划之间的界线。在香港，只有区级区划具有边界，因为这些是特区内唯一的正式行政级别。"
     }
   },
   "sourceCrs": "EPSG:4326",
