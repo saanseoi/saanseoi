@@ -3,6 +3,7 @@
   "inputs": [
     "ds-hk-overture-division",
     "ds-hk-protomaps-island",
-    "ds-hk-hkgov-landsd-division"
+    "ds-hk-hkgov-landsd-division",
+    "ds-hk-hkgov-rvd-division"
   ]
 }

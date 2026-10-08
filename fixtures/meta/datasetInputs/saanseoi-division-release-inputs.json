@@ -14,13 +14,22 @@
     },
     {
       "snapshotId": "d8017b0c-2401-56ee-a388-5e75a758860a",
-      "datasetCode": "ds-hk-overture-division-area",
+      "datasetCode": "ds-hk-overture-division",
       "releaseCode": "dr-hk-overture-division-area-2026-09-23.0",
       "sourceVersion": "2026-09-23.0",
       "resourceType": "divisionArea",
-      "rawObjectKey": "by-source/hk/overture/ds-hk-overture-division-area/dr-hk-overture-division-area-2026-09-23.0/95d2d04aac5241eb5f3498d24c85e145f33a17dce5d96cb79df229ebbf579c7e-ds-hk-overture-division-area-2026-09-23.0.parquet",
+      "rawObjectKey": "by-source/hk/overture/ds-hk-overture-division/dr-hk-overture-division-area-2026-09-23.0/95d2d04aac5241eb5f3498d24c85e145f33a17dce5d96cb79df229ebbf579c7e-ds-hk-overture-division-2026-09-23.0.parquet",
       "contentHash": "95d2d04aac5241eb5f3498d24c85e145f33a17dce5d96cb79df229ebbf579c7e",
       "releaseNotesUrl": "https://docs.overturemaps.org/blog/2026/09/23/release-notes/#divisions"
+    },
+    {
+      "datasetCode": "ds-hk-protomaps-island",
+      "releaseCode": "dr-hk-protomaps-island-2026-10-01.1::divisionArea",
+      "sourceVersion": "2026-10-01.1",
+      "resourceType": "divisionArea",
+      "rawObjectKey": "by-source/hk/protomaps/ds-hk-protomaps-island/dr-hk-protomaps-island-2026-10-01.1/2765e3b3c91c5de0eac9f13fa8d2823ea35ce758f61e0b75aa9543d34f37135e-dr-hk-protomaps-island-2026-10-01.1.zip",
+      "contentHash": "2765e3b3c91c5de0eac9f13fa8d2823ea35ce758f61e0b75aa9543d34f37135e",
+      "releaseNotesUrl": "https://tiles.saanseoi.hk/releases/hk/2026-10-01.json"
     }
   ]
 }

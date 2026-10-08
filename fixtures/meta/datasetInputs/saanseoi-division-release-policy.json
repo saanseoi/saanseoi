@@ -10,7 +10,9 @@
   "inputs": [
     {
       "datasetCode": "ds-hk-protomaps-island",
-      "resourceType": "divisionArea"
+      "resourceType": "divisionArea",
+      "selection": "same-edition-month",
+      "carryForward": false
     },
     {
       "datasetCode": "ds-hk-hkgov-landsd-division",

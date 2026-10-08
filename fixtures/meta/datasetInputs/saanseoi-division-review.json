@@ -16,11 +16,11 @@
     },
     {
       "snapshotId": "aeefc085-03d2-55e4-9d4e-3012ee48bea3",
-      "datasetCode": "ds-hk-overture-division-area",
+      "datasetCode": "ds-hk-overture-division",
       "releaseCode": "dr-hk-overture-division-area-2026-08-19.0",
       "sourceVersion": "2026-08-19.0",
       "resourceType": "divisionArea",
-      "rawObjectKey": "by-source/hk/overture/ds-hk-overture-division-area/dr-hk-overture-division-area-2026-08-19.0/d169c9e05514d1b7b574cf916b3ce51102914809bb4c11323951a751c71bcf73-ds-hk-overture-division-area-2026-08-19.0.parquet",
+      "rawObjectKey": "by-source/hk/overture/ds-hk-overture-division/dr-hk-overture-division-area-2026-08-19.0/d169c9e05514d1b7b574cf916b3ce51102914809bb4c11323951a751c71bcf73-ds-hk-overture-division-2026-08-19.0.parquet",
       "contentHash": "d169c9e05514d1b7b574cf916b3ce51102914809bb4c11323951a751c71bcf73",
       "releaseNotesUrl": "https://docs.overturemaps.org/blog/2026/08/19/release-notes/#divisions"
     },
@@ -38,7 +38,7 @@
       "releaseCode": "dr-hk-hkgov-landsd-division-2026-06-10.0",
       "sourceVersion": "2026-06-10.0",
       "resourceType": "division",
-      "rawObjectKey": "by-source/hk/hkgov-csdi/landsd_rcd_1648571595120_89752/cf340ddceea2bbb60b54e366db7e09c752cece053a51963022a918a4c4d69c71-source.zip",
+      "rawObjectKey": "by-source/hk/hkgov-csdi/landsd_rcd_1648571595120_89752/2026-Q2/cf340ddceea2bbb60b54e366db7e09c752cece053a51963022a918a4c4d69c71-source.zip",
       "contentHash": "cf340ddceea2bbb60b54e366db7e09c752cece053a51963022a918a4c4d69c71",
       "releaseNotesUrl": "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1648571595120_89752"
     },

@@ -1,7 +1,0 @@
-{
-  "datasetCode": "ds-hk-saanseoi-division-area",
-  "inputs": [
-    "ds-hk-overture-division-area",
-    "ds-hk-protomaps-island"
-  ]
-}
