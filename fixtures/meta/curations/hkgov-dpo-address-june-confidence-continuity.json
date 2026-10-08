@@ -1,0 +1,4880 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "june-2025-high-confidence-1",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(kwun_tong_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "4102419143T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "TELECOM DIGITAL TOWER",
+          null,
+          "TSUN YIP STREET",
+          "58",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-000210be-22d2-50d4-a700-369105310373",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "360e13050cfe4d3a5a937dfb63cb8f55fcef4b84541638501189a0e57ebd1732"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "cfdcf0c32792f66ecda28af420357d031157d0e54bb36cda07d2daee22252916"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.22305,
+              22.31124
+            ]
+          },
+          "properties": {
+            "Northing": 819141,
+            "Easting": 841026,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "4102419143T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "觀塘區",
+                  "ChiStreet": {
+                    "StreetName": "駿業街",
+                    "BuildingNoFrom": "58"
+                  },
+                  "BuildingName": "電訊數碼大樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "TELECOM DIGITAL TOWER",
+                  "EngStreet": {
+                    "BuildingNoFrom": "58",
+                    "StreetName": "TSUN YIP STREET"
+                  },
+                  "EngDistrict": "KWUN TONG DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "4102419143T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Same publisher CSU, coordinates and street address; named building rename.",
+        "previous": {
+          "id": "ss-000210be-22d2-50d4-a700-369105310373",
+          "level": "building",
+          "parentId": null,
+          "en": "WIDER INDUSTRIAL BUILDING, 58 TSUN YIP STREET, KWUN TONG DISTRICT, KLN",
+          "zhHant": "宏開工業大廈58駿業街觀塘區九龍",
+          "coordinates": [
+            114.22305,
+            22.31124
+          ],
+          "sourceIds": [
+            "1fcc7e24-0321-5f19-807b-c9b29e73bcba"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-14a8fbac-d090-5427-a92f-9c4bdfecc201",
+        "reviewEvidence": [],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Publisher identity and all bilingual premise fields are unchanged. Coordinate adjustment from [114.22305,22.31124] to [114.22303,22.31126] is approximately 3 metres; retain canonical identity.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.22303,
+                22.31126
+              ]
+            },
+            "properties": {
+              "Northing": 819143,
+              "Easting": 841024,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4102419143T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "駿業街",
+                      "BuildingNoFrom": "58"
+                    },
+                    "BuildingName": "電訊數碼大樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "TELECOM DIGITAL TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "58",
+                      "StreetName": "TSUN YIP STREET"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "4102419143T20050430"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-2",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(north_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "4092445064T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "SUN YIN LAU",
+          null,
+          "SHA TAU KOK ROAD",
+          "190",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-002e87ff-1851-5161-87bf-870450496f6c",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "0f25c3558fe5bb42fd46d8985c5cb6642528f2f7de890ed560e9f595c6856bb4"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "f2868a4de1fc690d191cb37ed23612cd4ae18258d6619ef67515a14fd072a784"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "f2868a4de1fc690d191cb37ed23612cd4ae18258d6619ef67515a14fd072a784"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "f2868a4de1fc690d191cb37ed23612cd4ae18258d6619ef67515a14fd072a784"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "f2868a4de1fc690d191cb37ed23612cd4ae18258d6619ef67515a14fd072a784"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "f2868a4de1fc690d191cb37ed23612cd4ae18258d6619ef67515a14fd072a784"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.22219,
+              22.54534
+            ]
+          },
+          "properties": {
+            "Northing": 845064,
+            "Easting": 840929,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "4092445064T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "北區",
+                  "ChiStreet": {
+                    "LocationName": "北區 石涌凹段",
+                    "StreetName": "沙頭角公路",
+                    "BuildingNoFrom": "190"
+                  },
+                  "BuildingName": "新然樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SUN YIN LAU",
+                  "EngStreet": {
+                    "BuildingNoFrom": "190",
+                    "StreetName": "SHA TAU KOK ROAD",
+                    "LocationName": "SHEK CHUNG AU, NORTH"
+                  },
+                  "EngDistrict": "NORTH DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "4093045064T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Identical English premise name, street address and coordinates; Chinese name changes by one character (新燃樓 to 新然樓) alongside publisher CSU replacement.",
+        "previous": {
+          "id": "ss-002e87ff-1851-5161-87bf-870450496f6c",
+          "level": "building",
+          "parentId": null,
+          "en": "SUN YIN LAU, 190 SHA TAU KOK ROAD, NORTH DISTRICT, NT",
+          "zhHant": "新燃樓190沙頭角公路北區新界",
+          "coordinates": [
+            114.22219,
+            22.54534
+          ],
+          "sourceIds": [
+            "5f9f820f-292f-534c-b951-aec7ef7738bf"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-d6338de0-30b5-5a02-aabb-46a180b30e31",
+        "reviewEvidence": [],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.03 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.22219,
+            22.54534
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.2222,
+                22.54534
+              ]
+            },
+            "properties": {
+              "Northing": 845064,
+              "Easting": 840930,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4092445064T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "北區",
+                    "ChiStreet": {
+                      "LocationName": "北區 石涌凹段",
+                      "StreetName": "沙頭角公路",
+                      "BuildingNoFrom": "190"
+                    },
+                    "BuildingName": "新然樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SUN YIN LAU",
+                    "EngStreet": {
+                      "BuildingNoFrom": "190",
+                      "StreetName": "SHA TAU KOK ROAD",
+                      "LocationName": "SHEK CHUNG AU, NORTH"
+                    },
+                    "EngDistrict": "NORTH DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "4093045064T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.03 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.22219,
+            22.54534
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.2222,
+                22.54534
+              ]
+            },
+            "properties": {
+              "Northing": 845064,
+              "Easting": 840930,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4092445064T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "北區",
+                    "ChiStreet": {
+                      "LocationName": "北區 石涌凹段",
+                      "StreetName": "沙頭角公路",
+                      "BuildingNoFrom": "190"
+                    },
+                    "BuildingName": "新然樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SUN YIN LAU",
+                    "EngStreet": {
+                      "BuildingNoFrom": "190",
+                      "StreetName": "SHA TAU KOK ROAD",
+                      "LocationName": "SHEK CHUNG AU, NORTH"
+                    },
+                    "EngDistrict": "NORTH DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "4093045064T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.03 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.22219,
+            22.54534
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.2222,
+                22.54534
+              ]
+            },
+            "properties": {
+              "Northing": 845064,
+              "Easting": 840930,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4092445064T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "北區",
+                    "ChiStreet": {
+                      "LocationName": "北區 石涌凹段",
+                      "StreetName": "沙頭角公路",
+                      "BuildingNoFrom": "190"
+                    },
+                    "BuildingName": "新然樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SUN YIN LAU",
+                    "EngStreet": {
+                      "BuildingNoFrom": "190",
+                      "StreetName": "SHA TAU KOK ROAD",
+                      "LocationName": "SHEK CHUNG AU, NORTH"
+                    },
+                    "EngDistrict": "NORTH DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "4093045064T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.03 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.22219,
+            22.54534
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.2222,
+                22.54534
+              ]
+            },
+            "properties": {
+              "Northing": 845064,
+              "Easting": 840930,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4092445064T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "北區",
+                    "ChiStreet": {
+                      "LocationName": "北區 石涌凹段",
+                      "StreetName": "沙頭角公路",
+                      "BuildingNoFrom": "190"
+                    },
+                    "BuildingName": "新然樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SUN YIN LAU",
+                    "EngStreet": {
+                      "BuildingNoFrom": "190",
+                      "StreetName": "SHA TAU KOK ROAD",
+                      "LocationName": "SHEK CHUNG AU, NORTH"
+                    },
+                    "EngDistrict": "NORTH DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "4093045064T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.03 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.22219,
+            22.54534
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.2222,
+                22.54534
+              ]
+            },
+            "properties": {
+              "Northing": 845064,
+              "Easting": 840930,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4092445064T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "北區",
+                    "ChiStreet": {
+                      "LocationName": "北區 石涌凹段",
+                      "StreetName": "沙頭角公路",
+                      "BuildingNoFrom": "190"
+                    },
+                    "BuildingName": "新然樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SUN YIN LAU",
+                    "EngStreet": {
+                      "BuildingNoFrom": "190",
+                      "StreetName": "SHA TAU KOK ROAD",
+                      "LocationName": "SHEK CHUNG AU, NORTH"
+                    },
+                    "EngDistrict": "NORTH DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "4093045064T20050430"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-4",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(yau_tsim_mong_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "3571218360T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "SYNLOC TOWER",
+          null,
+          "NATHAN ROAD",
+          "223",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-13f59243-e6a4-5a58-9fb0-592a0052c6dd",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "f9f3888b5a5d4747fed8b2fb6bbc10f44c1dd1c5ea4e64c3cc43a08134e0e454"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "9a0de97e3b8ff6c6353894937aea2af5cf624dc048efc3865a6aff6fe6d56b90"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "9a0de97e3b8ff6c6353894937aea2af5cf624dc048efc3865a6aff6fe6d56b90"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "9a0de97e3b8ff6c6353894937aea2af5cf624dc048efc3865a6aff6fe6d56b90"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "9a0de97e3b8ff6c6353894937aea2af5cf624dc048efc3865a6aff6fe6d56b90"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "9a0de97e3b8ff6c6353894937aea2af5cf624dc048efc3865a6aff6fe6d56b90"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "9a0de97e3b8ff6c6353894937aea2af5cf624dc048efc3865a6aff6fe6d56b90"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "9a0de97e3b8ff6c6353894937aea2af5cf624dc048efc3865a6aff6fe6d56b90"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.17143,
+              22.30412
+            ]
+          },
+          "properties": {
+            "Northing": 818352,
+            "Easting": 835707,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3571218360T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "油尖旺區",
+                  "ChiStreet": {
+                    "StreetName": "彌敦道",
+                    "BuildingNoFrom": "223"
+                  },
+                  "BuildingName": "盛樂中心"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SYNLOC TOWER",
+                  "EngStreet": {
+                    "BuildingNoFrom": "223",
+                    "StreetName": "NATHAN ROAD"
+                  },
+                  "EngDistrict": "YAU TSIM MONG DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "3571218360T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Same CSU, coordinates and address; linked research identifies Shamrock Hotel as Synloc Tower.",
+        "previous": {
+          "id": "ss-13f59243-e6a4-5a58-9fb0-592a0052c6dd",
+          "level": "building",
+          "parentId": null,
+          "en": "SHAMROCK HOTEL, 223 NATHAN ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "新樂酒店223彌敦道油尖旺區九龍",
+          "coordinates": [
+            114.17143,
+            22.30412
+          ],
+          "sourceIds": [
+            "a95ae643-d32b-5ade-b00d-90dc14d76d67"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-6c68c4fb-c00f-5111-8945-567fedc0ade0",
+        "reviewEvidence": [
+          {
+            "source": "Gwulo historical building record",
+            "url": "https://gwulo.com/node/2723",
+            "observation": "The historical Shamrock Hotel page identifies the block’s current name as Synloc Tower.",
+            "qualification": "Community-sourced continuity evidence; changing hotel operation does not prove physical demolition.",
+            "checkedAt": "2026-10-06"
+          }
+        ],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 9.34 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17143,
+            22.30412
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17148,
+                22.30419
+              ]
+            },
+            "properties": {
+              "Northing": 818360,
+              "Easting": 835712,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3571218360T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "223"
+                    },
+                    "BuildingName": "盛樂中心"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SYNLOC TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "223",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3571218360T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 9.34 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17143,
+            22.30412
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17148,
+                22.30419
+              ]
+            },
+            "properties": {
+              "Northing": 818360,
+              "Easting": 835712,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3571218360T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "223"
+                    },
+                    "BuildingName": "盛樂中心"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SYNLOC TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "223",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3571218360T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 9.34 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17143,
+            22.30412
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17148,
+                22.30419
+              ]
+            },
+            "properties": {
+              "Northing": 818360,
+              "Easting": 835712,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3571218360T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "223"
+                    },
+                    "BuildingName": "盛樂中心"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SYNLOC TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "223",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3571218360T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 9.34 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17143,
+            22.30412
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17148,
+                22.30419
+              ]
+            },
+            "properties": {
+              "Northing": 818360,
+              "Easting": 835712,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3571218360T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "223"
+                    },
+                    "BuildingName": "盛樂中心"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SYNLOC TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "223",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3571218360T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 9.34 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17143,
+            22.30412
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17148,
+                22.30419
+              ]
+            },
+            "properties": {
+              "Northing": 818360,
+              "Easting": 835712,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3571218360T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "223"
+                    },
+                    "BuildingName": "盛樂中心"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SYNLOC TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "223",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3571218360T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 9.34 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17143,
+            22.30412
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17148,
+                22.30419
+              ]
+            },
+            "properties": {
+              "Northing": 818360,
+              "Easting": 835712,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3571218360T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "223"
+                    },
+                    "BuildingName": "盛樂中心"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SYNLOC TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "223",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3571218360T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 9.34 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17143,
+            22.30412
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17148,
+                22.30419
+              ]
+            },
+            "properties": {
+              "Northing": 818360,
+              "Easting": 835712,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3571218360T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "223"
+                    },
+                    "BuildingName": "盛樂中心"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "SYNLOC TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "223",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3571218360T20050430"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-6",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "3394815731T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "BAUHINIA HOUSE",
+          null,
+          "HOLLYWOOD ROAD",
+          "10",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-3114283f-aa4a-50a7-9421-f08975f6899d",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "844a59f7e5c889fbe6facba18457c039c635ab3b8c5999026e2835298738184d"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "dc7347a4a9a6798975f03bbfe9f78d2279a2d7e4cf7194a17e990fff7194e611"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "dc7347a4a9a6798975f03bbfe9f78d2279a2d7e4cf7194a17e990fff7194e611"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "dc7347a4a9a6798975f03bbfe9f78d2279a2d7e4cf7194a17e990fff7194e611"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "dc7347a4a9a6798975f03bbfe9f78d2279a2d7e4cf7194a17e990fff7194e611"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "dc7347a4a9a6798975f03bbfe9f78d2279a2d7e4cf7194a17e990fff7194e611"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "dc7347a4a9a6798975f03bbfe9f78d2279a2d7e4cf7194a17e990fff7194e611"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "dc7347a4a9a6798975f03bbfe9f78d2279a2d7e4cf7194a17e990fff7194e611"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.15435,
+              22.28044
+            ]
+          },
+          "properties": {
+            "Northing": 815730,
+            "Easting": 833947,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3394815731T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "荷李活道",
+                    "BuildingNoFrom": "10"
+                  },
+                  "BuildingName": "紫荊樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "BAUHINIA HOUSE",
+                  "EngStreet": {
+                    "BuildingNoFrom": "10",
+                    "StreetName": "HOLLYWOOD ROAD"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3394815731T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Same named building, CSU and coordinates; site entrance address correction.",
+        "previous": {
+          "id": "ss-3114283f-aa4a-50a7-9421-f08975f6899d",
+          "level": "building",
+          "parentId": null,
+          "en": "BAUHINIA HOUSE, 16 OLD BAILEY STREET, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "紫荊樓16奧卑利街中西區香港",
+          "coordinates": [
+            114.15435,
+            22.28044
+          ],
+          "sourceIds": [
+            "281e7d2f-a9db-5642-a0db-c6d2cabc5890"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-bd60b010-4fcb-55da-b770-a9a9e8bb6bc3",
+        "reviewEvidence": [],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15435,
+            22.28044
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15436,
+                22.28045
+              ]
+            },
+            "properties": {
+              "Northing": 815731,
+              "Easting": 833948,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3394815731T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "紫荊樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "BAUHINIA HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3394815731T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15435,
+            22.28044
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15436,
+                22.28045
+              ]
+            },
+            "properties": {
+              "Northing": 815731,
+              "Easting": 833948,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3394815731T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "紫荊樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "BAUHINIA HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3394815731T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15435,
+            22.28044
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15436,
+                22.28045
+              ]
+            },
+            "properties": {
+              "Northing": 815731,
+              "Easting": 833948,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3394815731T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "紫荊樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "BAUHINIA HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3394815731T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15435,
+            22.28044
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15436,
+                22.28045
+              ]
+            },
+            "properties": {
+              "Northing": 815731,
+              "Easting": 833948,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3394815731T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "紫荊樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "BAUHINIA HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3394815731T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15435,
+            22.28044
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15436,
+                22.28045
+              ]
+            },
+            "properties": {
+              "Northing": 815731,
+              "Easting": 833948,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3394815731T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "紫荊樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "BAUHINIA HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3394815731T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15435,
+            22.28044
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15436,
+                22.28045
+              ]
+            },
+            "properties": {
+              "Northing": 815731,
+              "Easting": 833948,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3394815731T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "紫荊樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "BAUHINIA HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3394815731T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15435,
+            22.28044
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15436,
+                22.28045
+              ]
+            },
+            "properties": {
+              "Northing": 815731,
+              "Easting": 833948,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3394815731T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "紫荊樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "BAUHINIA HOUSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3394815731T20050430"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-7",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(wan_chai_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "3642215477P20060312"
+      ],
+      "premiseSelectors": [
+        [
+          "WINLAND SQUARE",
+          null,
+          "HENNESSY ROAD",
+          "314",
+          "324",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-313d5ec5-77ab-524b-8683-72d49107dd0b",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "43b0fc59a7ad552e7d0e2ace5bf7638c973fdb981691de4ea69b6d73d15cccc0"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "4b040ce6b0dad88ca6c1e5a4d3c219649369ab88050bcff797c0a677dd3562ce"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "4b040ce6b0dad88ca6c1e5a4d3c219649369ab88050bcff797c0a677dd3562ce"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "4b040ce6b0dad88ca6c1e5a4d3c219649369ab88050bcff797c0a677dd3562ce"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "4b040ce6b0dad88ca6c1e5a4d3c219649369ab88050bcff797c0a677dd3562ce"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "4b040ce6b0dad88ca6c1e5a4d3c219649369ab88050bcff797c0a677dd3562ce"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.17837,
+              22.27815
+            ]
+          },
+          "properties": {
+            "Northing": 815476,
+            "Easting": 836422,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3642215477P20060312"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "灣仔區",
+                  "ChiStreet": {
+                    "StreetName": "軒尼詩道",
+                    "BuildingNoFrom": "314",
+                    "BuildingNoTo": "324"
+                  },
+                  "BuildingName": "永倫立方"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "WINLAND SQUARE",
+                  "EngStreet": {
+                    "BuildingNoFrom": "314",
+                    "BuildingNoTo": "324",
+                    "StreetName": "HENNESSY ROAD"
+                  },
+                  "EngDistrict": "WAN CHAI DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3641615485T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Exact address and coordinates; JLL explicitly identifies W Square as Winland Square.",
+        "previous": {
+          "id": "ss-313d5ec5-77ab-524b-8683-72d49107dd0b",
+          "level": "building",
+          "parentId": null,
+          "en": "W SQUARE, 314-324 HENNESSY ROAD, WAN CHAI DISTRICT, HK",
+          "zhHant": "W SQUARE314324軒尼詩道灣仔區香港",
+          "coordinates": [
+            114.17837,
+            22.27815
+          ],
+          "sourceIds": [
+            "c0aaab20-c8f1-5d57-855f-96e7a200f314"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-f855516e-4696-593d-8a56-957aa1d108e2",
+        "reviewEvidence": [
+          {
+            "source": "JLL building information",
+            "url": "https://property.jll.com.hk/en/office-lease/hong-kong/wanchai/winland-square-hkg-p-000kd5",
+            "observation": "The Winland Square listing describes the property as W Square.",
+            "qualification": "Supports a building-name reconciliation; assess the separate unnamed address candidate.",
+            "checkedAt": "2026-10-06"
+          }
+        ],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.84 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17837,
+            22.27815
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17831,
+                22.27823
+              ]
+            },
+            "properties": {
+              "Northing": 815485,
+              "Easting": 836416,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3642215477P20060312"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "軒尼詩道",
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324"
+                    },
+                    "BuildingName": "永倫立方"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "WINLAND SQUARE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324",
+                      "StreetName": "HENNESSY ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641615485T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.84 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17837,
+            22.27815
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17831,
+                22.27823
+              ]
+            },
+            "properties": {
+              "Northing": 815485,
+              "Easting": 836416,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3642215477P20060312"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "軒尼詩道",
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324"
+                    },
+                    "BuildingName": "永倫立方"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "WINLAND SQUARE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324",
+                      "StreetName": "HENNESSY ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641615485T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.84 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17837,
+            22.27815
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17831,
+                22.27823
+              ]
+            },
+            "properties": {
+              "Northing": 815485,
+              "Easting": 836416,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3642215477P20060312"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "軒尼詩道",
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324"
+                    },
+                    "BuildingName": "永倫立方"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "WINLAND SQUARE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324",
+                      "StreetName": "HENNESSY ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641615485T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.84 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17837,
+            22.27815
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17831,
+                22.27823
+              ]
+            },
+            "properties": {
+              "Northing": 815485,
+              "Easting": 836416,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3642215477P20060312"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "軒尼詩道",
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324"
+                    },
+                    "BuildingName": "永倫立方"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "WINLAND SQUARE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324",
+                      "StreetName": "HENNESSY ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641615485T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.84 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17837,
+            22.27815
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17831,
+                22.27823
+              ]
+            },
+            "properties": {
+              "Northing": 815485,
+              "Easting": 836416,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3642215477P20060312"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "軒尼詩道",
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324"
+                    },
+                    "BuildingName": "永倫立方"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "WINLAND SQUARE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "314",
+                      "BuildingNoTo": "324",
+                      "StreetName": "HENNESSY ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641615485T20050430"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-8",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(kwun_tong_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "3925320410T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "LEGAN CENTRE",
+          null,
+          "WANG KWONG ROAD",
+          "9",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-3a1a42a1-57b1-5a26-950d-bf09987918fd",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "fb71a0d8053480353227b43fa4b6f8a9e86fc6a33cb2a9a104518f0ab521c3f2"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "c2369735a7af8bf5bdc3b29344aebde41e74cd872eabab28c020a78eedda7616"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "c2369735a7af8bf5bdc3b29344aebde41e74cd872eabab28c020a78eedda7616"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "c2369735a7af8bf5bdc3b29344aebde41e74cd872eabab28c020a78eedda7616"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "c2369735a7af8bf5bdc3b29344aebde41e74cd872eabab28c020a78eedda7616"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "c2369735a7af8bf5bdc3b29344aebde41e74cd872eabab28c020a78eedda7616"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "c2369735a7af8bf5bdc3b29344aebde41e74cd872eabab28c020a78eedda7616"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "c2369735a7af8bf5bdc3b29344aebde41e74cd872eabab28c020a78eedda7616"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20584,
+              22.32279
+            ]
+          },
+          "properties": {
+            "Northing": 820419,
+            "Easting": 839252,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3925320410T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "觀塘區",
+                  "ChiStreet": {
+                    "StreetName": "宏光道",
+                    "BuildingNoFrom": "9"
+                  },
+                  "BuildingName": "LEGAN CENTRE"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "LEGAN CENTRE",
+                  "EngStreet": {
+                    "BuildingNoFrom": "9",
+                    "StreetName": "WANG KWONG ROAD"
+                  },
+                  "EngDistrict": "KWUN TONG DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "3925320410T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Same CSU, coordinates and address; linked research identifies Legan Centre as the former Wai Yuen Tong building.",
+        "previous": {
+          "id": "ss-3a1a42a1-57b1-5a26-950d-bf09987918fd",
+          "level": "building",
+          "parentId": null,
+          "en": "WAI YUEN TONG MEDICINE BUILDING, 9 WANG KWONG ROAD, KWUN TONG DISTRICT, KLN",
+          "zhHant": "位元堂藥業大廈9宏光道觀塘區九龍",
+          "coordinates": [
+            114.20584,
+            22.32279
+          ],
+          "sourceIds": [
+            "05fe8fb8-7057-5294-88b0-e53828fd1b41"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-2367adb7-db92-5a59-b874-63c6661344ff",
+        "reviewEvidence": [
+          {
+            "source": "Mingtiandi report on OneAsia",
+            "url": "https://www.mingtiandi.com/real-estate/data-centres/apg-buys-stake-in-hk-data-centre-operator-oneasia/",
+            "observation": "Identifies Legan Centre as occupying the former Wai Yuen Tong Medicine Building.",
+            "qualification": "Supports name/use continuity rather than physical retirement.",
+            "checkedAt": "2026-10-06"
+          }
+        ],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.07 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.20584,
+            22.32279
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.20585,
+                22.3227
+              ]
+            },
+            "properties": {
+              "Northing": 820410,
+              "Easting": 839253,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3925320410T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "宏光道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "BuildingName": "LEGAN CENTRE"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "LEGAN CENTRE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "WANG KWONG ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3925320410T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.07 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.20584,
+            22.32279
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.20585,
+                22.3227
+              ]
+            },
+            "properties": {
+              "Northing": 820410,
+              "Easting": 839253,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3925320410T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "宏光道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "BuildingName": "LEGAN CENTRE"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "LEGAN CENTRE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "WANG KWONG ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3925320410T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.07 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.20584,
+            22.32279
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.20585,
+                22.3227
+              ]
+            },
+            "properties": {
+              "Northing": 820410,
+              "Easting": 839253,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3925320410T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "宏光道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "BuildingName": "LEGAN CENTRE"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "LEGAN CENTRE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "WANG KWONG ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3925320410T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.07 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.20584,
+            22.32279
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.20585,
+                22.3227
+              ]
+            },
+            "properties": {
+              "Northing": 820410,
+              "Easting": 839253,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3925320410T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "宏光道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "BuildingName": "LEGAN CENTRE"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "LEGAN CENTRE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "WANG KWONG ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3925320410T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.07 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.20584,
+            22.32279
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.20585,
+                22.3227
+              ]
+            },
+            "properties": {
+              "Northing": 820410,
+              "Easting": 839253,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3925320410T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "宏光道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "BuildingName": "LEGAN CENTRE"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "LEGAN CENTRE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "WANG KWONG ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3925320410T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.07 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.20584,
+            22.32279
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.20585,
+                22.3227
+              ]
+            },
+            "properties": {
+              "Northing": 820410,
+              "Easting": 839253,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3925320410T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "宏光道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "BuildingName": "LEGAN CENTRE"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "LEGAN CENTRE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "WANG KWONG ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3925320410T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 10.07 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.20584,
+            22.32279
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.20585,
+                22.3227
+              ]
+            },
+            "properties": {
+              "Northing": 820410,
+              "Easting": 839253,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3925320410T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "觀塘區",
+                    "ChiStreet": {
+                      "StreetName": "宏光道",
+                      "BuildingNoFrom": "9"
+                    },
+                    "BuildingName": "LEGAN CENTRE"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "LEGAN CENTRE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "9",
+                      "StreetName": "WANG KWONG ROAD"
+                    },
+                    "EngDistrict": "KWUN TONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3925320410T20050430"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-20",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "3387715827T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "ABLUTIONS BLOCK",
+          null,
+          "HOLLYWOOD ROAD",
+          "10",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-5d41f4b4-1687-54ea-b95b-406e309ac2c8",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "e6726ef74c3e941580f058e60d6cd479b6b8e3f0ddbc403dab8b838b9878324a"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "0f766d8019b54e15d6987ed25f3138580a5897117eaddc363f65afee0507a951"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "0f766d8019b54e15d6987ed25f3138580a5897117eaddc363f65afee0507a951"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "0f766d8019b54e15d6987ed25f3138580a5897117eaddc363f65afee0507a951"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "0f766d8019b54e15d6987ed25f3138580a5897117eaddc363f65afee0507a951"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "0f766d8019b54e15d6987ed25f3138580a5897117eaddc363f65afee0507a951"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "0f766d8019b54e15d6987ed25f3138580a5897117eaddc363f65afee0507a951"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "0f766d8019b54e15d6987ed25f3138580a5897117eaddc363f65afee0507a951"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.15368,
+              22.28131
+            ]
+          },
+          "properties": {
+            "Northing": 815827,
+            "Easting": 833878,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3387715827T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "荷李活道",
+                    "BuildingNoFrom": "10"
+                  },
+                  "BuildingName": "沐浴樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "ABLUTIONS BLOCK",
+                  "EngStreet": {
+                    "BuildingNoFrom": "10",
+                    "StreetName": "HOLLYWOOD ROAD"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3387715827T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Same named block, CSU and coordinates; site entrance address correction.",
+        "previous": {
+          "id": "ss-5d41f4b4-1687-54ea-b95b-406e309ac2c8",
+          "level": "building",
+          "parentId": null,
+          "en": "ABLUTIONS BLOCK, 16 OLD BAILEY STREET, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "沐浴樓16奧卑利街中西區香港",
+          "coordinates": [
+            114.15368,
+            22.28131
+          ],
+          "sourceIds": [
+            "ac43a029-b597-5711-a3af-b12d6776de73"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-6f34270d-39ee-5f3e-87e5-f8951e15e6f6",
+        "reviewEvidence": [],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15368,
+            22.28131
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15367,
+                22.28132
+              ]
+            },
+            "properties": {
+              "Northing": 815827,
+              "Easting": 833877,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3387715827T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "沐浴樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ABLUTIONS BLOCK",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3387715827T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15368,
+            22.28131
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15367,
+                22.28132
+              ]
+            },
+            "properties": {
+              "Northing": 815827,
+              "Easting": 833877,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3387715827T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "沐浴樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ABLUTIONS BLOCK",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3387715827T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15368,
+            22.28131
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15367,
+                22.28132
+              ]
+            },
+            "properties": {
+              "Northing": 815827,
+              "Easting": 833877,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3387715827T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "沐浴樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ABLUTIONS BLOCK",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3387715827T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15368,
+            22.28131
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15367,
+                22.28132
+              ]
+            },
+            "properties": {
+              "Northing": 815827,
+              "Easting": 833877,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3387715827T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "沐浴樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ABLUTIONS BLOCK",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3387715827T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15368,
+            22.28131
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15367,
+                22.28132
+              ]
+            },
+            "properties": {
+              "Northing": 815827,
+              "Easting": 833877,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3387715827T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "沐浴樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ABLUTIONS BLOCK",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3387715827T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15368,
+            22.28131
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15367,
+                22.28132
+              ]
+            },
+            "properties": {
+              "Northing": 815827,
+              "Easting": 833877,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3387715827T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "沐浴樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ABLUTIONS BLOCK",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3387715827T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 1.52 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15368,
+            22.28131
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15367,
+                22.28132
+              ]
+            },
+            "properties": {
+              "Northing": 815827,
+              "Easting": 833877,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3387715827T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "沐浴樓"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ABLUTIONS BLOCK",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3387715827T20050430"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-23",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(kowloon_city_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "3630420273T20130207"
+      ],
+      "premiseSelectors": [
+        [
+          "CLP PULSE",
+          null,
+          "ARGYLE STREET",
+          "147",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-6a6e4ef1-64f3-5866-88fc-a4943c4acc41",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "f1c435d7450c31c6b8e0f9fd9ec81f0d8a4dbabb60f71659b1a29eb0e7dd17be"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "23ecc1c518e9db3fc3f0e69568a30c2e3ae431b2ead2b48034c5390352cb7ac0"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "23ecc1c518e9db3fc3f0e69568a30c2e3ae431b2ead2b48034c5390352cb7ac0"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "23ecc1c518e9db3fc3f0e69568a30c2e3ae431b2ead2b48034c5390352cb7ac0"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "23ecc1c518e9db3fc3f0e69568a30c2e3ae431b2ead2b48034c5390352cb7ac0"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "23ecc1c518e9db3fc3f0e69568a30c2e3ae431b2ead2b48034c5390352cb7ac0"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "23ecc1c518e9db3fc3f0e69568a30c2e3ae431b2ead2b48034c5390352cb7ac0"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "23ecc1c518e9db3fc3f0e69568a30c2e3ae431b2ead2b48034c5390352cb7ac0"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.1772,
+              22.32144
+            ]
+          },
+          "properties": {
+            "Northing": 820270,
+            "Easting": 836302,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3630420273T20130207"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "九龍城區",
+                  "ChiStreet": {
+                    "StreetName": "亞皆老街",
+                    "BuildingNoFrom": "147"
+                  },
+                  "BuildingName": "中電鐘樓文化館"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "CLP PULSE",
+                  "EngStreet": {
+                    "BuildingNoFrom": "147",
+                    "StreetName": "ARGYLE STREET"
+                  },
+                  "EngDistrict": "KOWLOON CITY DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "3630420273T20130207"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Same CSU, coordinates and address; CLP PULSE spelling correction.",
+        "previous": {
+          "id": "ss-6a6e4ef1-64f3-5866-88fc-a4943c4acc41",
+          "level": "building",
+          "parentId": null,
+          "en": "CLPULSE, 147 ARGYLE STREET, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "中電鐘樓文化館147亞皆老街九龍城區九龍",
+          "coordinates": [
+            114.1772,
+            22.32144
+          ],
+          "sourceIds": [
+            "7cad2768-5656-5dc9-a5f0-0ee3fecefc60"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-41827335-5e60-5bae-ba7a-42e97d441a9c",
+        "reviewEvidence": [],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 3.92 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.1772,
+            22.32144
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17722,
+                22.32147
+              ]
+            },
+            "properties": {
+              "Northing": 820273,
+              "Easting": 836304,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3630420273T20130207"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "九龍城區",
+                    "ChiStreet": {
+                      "StreetName": "亞皆老街",
+                      "BuildingNoFrom": "147"
+                    },
+                    "BuildingName": "中電鐘樓文化館"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "CLP PULSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "147",
+                      "StreetName": "ARGYLE STREET"
+                    },
+                    "EngDistrict": "KOWLOON CITY DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3630420273T20130207"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 3.92 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.1772,
+            22.32144
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17722,
+                22.32147
+              ]
+            },
+            "properties": {
+              "Northing": 820273,
+              "Easting": 836304,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3630420273T20130207"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "九龍城區",
+                    "ChiStreet": {
+                      "StreetName": "亞皆老街",
+                      "BuildingNoFrom": "147"
+                    },
+                    "BuildingName": "中電鐘樓文化館"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "CLP PULSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "147",
+                      "StreetName": "ARGYLE STREET"
+                    },
+                    "EngDistrict": "KOWLOON CITY DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3630420273T20130207"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 3.92 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.1772,
+            22.32144
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17722,
+                22.32147
+              ]
+            },
+            "properties": {
+              "Northing": 820273,
+              "Easting": 836304,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3630420273T20130207"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "九龍城區",
+                    "ChiStreet": {
+                      "StreetName": "亞皆老街",
+                      "BuildingNoFrom": "147"
+                    },
+                    "BuildingName": "中電鐘樓文化館"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "CLP PULSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "147",
+                      "StreetName": "ARGYLE STREET"
+                    },
+                    "EngDistrict": "KOWLOON CITY DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3630420273T20130207"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 3.92 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.1772,
+            22.32144
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17722,
+                22.32147
+              ]
+            },
+            "properties": {
+              "Northing": 820273,
+              "Easting": 836304,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3630420273T20130207"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "九龍城區",
+                    "ChiStreet": {
+                      "StreetName": "亞皆老街",
+                      "BuildingNoFrom": "147"
+                    },
+                    "BuildingName": "中電鐘樓文化館"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "CLP PULSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "147",
+                      "StreetName": "ARGYLE STREET"
+                    },
+                    "EngDistrict": "KOWLOON CITY DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3630420273T20130207"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 3.92 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.1772,
+            22.32144
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17722,
+                22.32147
+              ]
+            },
+            "properties": {
+              "Northing": 820273,
+              "Easting": 836304,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3630420273T20130207"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "九龍城區",
+                    "ChiStreet": {
+                      "StreetName": "亞皆老街",
+                      "BuildingNoFrom": "147"
+                    },
+                    "BuildingName": "中電鐘樓文化館"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "CLP PULSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "147",
+                      "StreetName": "ARGYLE STREET"
+                    },
+                    "EngDistrict": "KOWLOON CITY DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3630420273T20130207"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 3.92 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.1772,
+            22.32144
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17722,
+                22.32147
+              ]
+            },
+            "properties": {
+              "Northing": 820273,
+              "Easting": 836304,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3630420273T20130207"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "九龍城區",
+                    "ChiStreet": {
+                      "StreetName": "亞皆老街",
+                      "BuildingNoFrom": "147"
+                    },
+                    "BuildingName": "中電鐘樓文化館"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "CLP PULSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "147",
+                      "StreetName": "ARGYLE STREET"
+                    },
+                    "EngDistrict": "KOWLOON CITY DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3630420273T20130207"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 3.92 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.1772,
+            22.32144
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17722,
+                22.32147
+              ]
+            },
+            "properties": {
+              "Northing": 820273,
+              "Easting": 836304,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3630420273T20130207"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "九龍城區",
+                    "ChiStreet": {
+                      "StreetName": "亞皆老街",
+                      "BuildingNoFrom": "147"
+                    },
+                    "BuildingName": "中電鐘樓文化館"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "CLP PULSE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "147",
+                      "StreetName": "ARGYLE STREET"
+                    },
+                    "EngDistrict": "KOWLOON CITY DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3630420273T20130207"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-25",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(tsuen_wan_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "3185325614P20130903"
+      ],
+      "premiseSelectors": [
+        [
+          "ATAL TOWER",
+          null,
+          "KWOK SHUI ROAD",
+          "45",
+          "51",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-775c1ac5-15a8-5026-8525-adce4ea7bd4b",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "4145f91f441c0049472b01535885e4936ea885bcf2a5f2b3ef47d6dc12bf0774"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "7a63224f836d79617e5ec6ac498c322af3d299b48436db91a777ac03dd70228b"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "7a63224f836d79617e5ec6ac498c322af3d299b48436db91a777ac03dd70228b"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "7a63224f836d79617e5ec6ac498c322af3d299b48436db91a777ac03dd70228b"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "7a63224f836d79617e5ec6ac498c322af3d299b48436db91a777ac03dd70228b"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "7a63224f836d79617e5ec6ac498c322af3d299b48436db91a777ac03dd70228b"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.13397,
+              22.36968
+            ]
+          },
+          "properties": {
+            "Northing": 825612,
+            "Easting": 831850,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3185325614P20130903"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "荃灣區",
+                  "ChiStreet": {
+                    "LocationName": "葵涌",
+                    "StreetName": "國瑞路",
+                    "BuildingNoFrom": "45",
+                    "BuildingNoTo": "51"
+                  },
+                  "BuildingName": "安樂工程大廈"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "ATAL TOWER",
+                  "EngStreet": {
+                    "BuildingNoFrom": "45",
+                    "BuildingNoTo": "51",
+                    "StreetName": "KWOK SHUI ROAD",
+                    "LocationName": "KWAI CHUNG"
+                  },
+                  "EngDistrict": "TSUEN WAN DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3185125612T20130903"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Same named tower, exact street range and coordinates; publisher district/address record correction.",
+        "previous": {
+          "id": "ss-775c1ac5-15a8-5026-8525-adce4ea7bd4b",
+          "level": "building",
+          "parentId": null,
+          "en": "ATAL TOWER, 45-51 KWOK SHUI ROAD, KWAI TSING DISTRICT, NT",
+          "zhHant": "安樂工程大廈4551國瑞路葵青區新界",
+          "coordinates": [
+            114.13397,
+            22.36968
+          ],
+          "sourceIds": [
+            "62ee7cb4-8e50-5cfe-a612-3b43125f7862"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-b96ed8f3-cfc2-53e5-8b1f-637cff5d8ecf",
+        "reviewEvidence": [],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 2.06 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.13397,
+            22.36968
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.13399,
+                22.36968
+              ]
+            },
+            "properties": {
+              "Northing": 825612,
+              "Easting": 831851,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3185325614P20130903"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "荃灣區",
+                    "ChiStreet": {
+                      "LocationName": "葵涌",
+                      "StreetName": "國瑞路",
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51"
+                    },
+                    "BuildingName": "安樂工程大廈"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ATAL TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51",
+                      "StreetName": "KWOK SHUI ROAD",
+                      "LocationName": "KWAI CHUNG"
+                    },
+                    "EngDistrict": "TSUEN WAN DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3185125612T20130903"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 2.06 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.13397,
+            22.36968
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.13399,
+                22.36968
+              ]
+            },
+            "properties": {
+              "Northing": 825612,
+              "Easting": 831851,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3185325614P20130903"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "荃灣區",
+                    "ChiStreet": {
+                      "LocationName": "葵涌",
+                      "StreetName": "國瑞路",
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51"
+                    },
+                    "BuildingName": "安樂工程大廈"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ATAL TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51",
+                      "StreetName": "KWOK SHUI ROAD",
+                      "LocationName": "KWAI CHUNG"
+                    },
+                    "EngDistrict": "TSUEN WAN DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3185125612T20130903"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 2.06 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.13397,
+            22.36968
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.13399,
+                22.36968
+              ]
+            },
+            "properties": {
+              "Northing": 825612,
+              "Easting": 831851,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3185325614P20130903"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "荃灣區",
+                    "ChiStreet": {
+                      "LocationName": "葵涌",
+                      "StreetName": "國瑞路",
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51"
+                    },
+                    "BuildingName": "安樂工程大廈"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ATAL TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51",
+                      "StreetName": "KWOK SHUI ROAD",
+                      "LocationName": "KWAI CHUNG"
+                    },
+                    "EngDistrict": "TSUEN WAN DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3185125612T20130903"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 2.06 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.13397,
+            22.36968
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.13399,
+                22.36968
+              ]
+            },
+            "properties": {
+              "Northing": 825612,
+              "Easting": 831851,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3185325614P20130903"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "荃灣區",
+                    "ChiStreet": {
+                      "LocationName": "葵涌",
+                      "StreetName": "國瑞路",
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51"
+                    },
+                    "BuildingName": "安樂工程大廈"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ATAL TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51",
+                      "StreetName": "KWOK SHUI ROAD",
+                      "LocationName": "KWAI CHUNG"
+                    },
+                    "EngDistrict": "TSUEN WAN DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3185125612T20130903"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 2.06 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.13397,
+            22.36968
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.13399,
+                22.36968
+              ]
+            },
+            "properties": {
+              "Northing": 825612,
+              "Easting": 831851,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3185325614P20130903"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "新界",
+                    "ChiDistrict": "荃灣區",
+                    "ChiStreet": {
+                      "LocationName": "葵涌",
+                      "StreetName": "國瑞路",
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51"
+                    },
+                    "BuildingName": "安樂工程大廈"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ATAL TOWER",
+                    "EngStreet": {
+                      "BuildingNoFrom": "45",
+                      "BuildingNoTo": "51",
+                      "StreetName": "KWOK SHUI ROAD",
+                      "LocationName": "KWAI CHUNG"
+                    },
+                    "EngDistrict": "TSUEN WAN DISTRICT",
+                    "Region": "NT"
+                  },
+                  "GeoAddress": "3185125612T20130903"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-29",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "3392515780T20181120"
+      ],
+      "premiseSelectors": [
+        [
+          "D HALL",
+          null,
+          "HOLLYWOOD ROAD",
+          "10",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-b338905a-556f-5b93-9987-26491fe93ff3",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "a676ba95cf9f63cf71fa8225ce307490c7794823102c4693b60e96d1b0ea89c7"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "e1bd181ce17344a52510d942372990fb755d7f209a4399e63576a7e93c5d298f"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "e1bd181ce17344a52510d942372990fb755d7f209a4399e63576a7e93c5d298f"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "e1bd181ce17344a52510d942372990fb755d7f209a4399e63576a7e93c5d298f"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "e1bd181ce17344a52510d942372990fb755d7f209a4399e63576a7e93c5d298f"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "e1bd181ce17344a52510d942372990fb755d7f209a4399e63576a7e93c5d298f"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "e1bd181ce17344a52510d942372990fb755d7f209a4399e63576a7e93c5d298f"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "e1bd181ce17344a52510d942372990fb755d7f209a4399e63576a7e93c5d298f"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.15409,
+              22.28089
+            ]
+          },
+          "properties": {
+            "Northing": 815780,
+            "Easting": 833920,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3392515780T20181120"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "荷李活道",
+                    "BuildingNoFrom": "10"
+                  },
+                  "BuildingName": "四座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "D HALL",
+                  "EngStreet": {
+                    "BuildingNoFrom": "10",
+                    "StreetName": "HOLLYWOOD ROAD"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3392515780T20181120"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Same named hall, CSU and coordinates; site entrance address correction.",
+        "previous": {
+          "id": "ss-b338905a-556f-5b93-9987-26491fe93ff3",
+          "level": "building",
+          "parentId": null,
+          "en": "D HALL, 16 OLD BAILEY STREET, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "四座16奧卑利街中西區香港",
+          "coordinates": [
+            114.15409,
+            22.28089
+          ],
+          "sourceIds": [
+            "68070b5e-5485-5185-b965-76c322f04d33"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-321180ec-754a-5ca5-b8d9-56fc60b91c0a",
+        "reviewEvidence": [],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 5.15 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15409,
+            22.28089
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15414,
+                22.28089
+              ]
+            },
+            "properties": {
+              "Northing": 815780,
+              "Easting": 833925,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3392515780T20181120"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "四座"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "D HALL",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3392515780T20181120"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 5.15 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15409,
+            22.28089
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15414,
+                22.28089
+              ]
+            },
+            "properties": {
+              "Northing": 815780,
+              "Easting": 833925,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3392515780T20181120"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "四座"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "D HALL",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3392515780T20181120"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 5.15 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15409,
+            22.28089
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15414,
+                22.28089
+              ]
+            },
+            "properties": {
+              "Northing": 815780,
+              "Easting": 833925,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3392515780T20181120"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "四座"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "D HALL",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3392515780T20181120"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 5.15 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15409,
+            22.28089
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15414,
+                22.28089
+              ]
+            },
+            "properties": {
+              "Northing": 815780,
+              "Easting": 833925,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3392515780T20181120"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "四座"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "D HALL",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3392515780T20181120"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 5.15 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15409,
+            22.28089
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15414,
+                22.28089
+              ]
+            },
+            "properties": {
+              "Northing": 815780,
+              "Easting": 833925,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3392515780T20181120"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "四座"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "D HALL",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3392515780T20181120"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 5.15 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15409,
+            22.28089
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15414,
+                22.28089
+              ]
+            },
+            "properties": {
+              "Northing": 815780,
+              "Easting": 833925,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3392515780T20181120"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "四座"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "D HALL",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3392515780T20181120"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 5.15 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.15409,
+            22.28089
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15414,
+                22.28089
+              ]
+            },
+            "properties": {
+              "Northing": 815780,
+              "Easting": 833925,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3392515780T20181120"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "荷李活道",
+                      "BuildingNoFrom": "10"
+                    },
+                    "BuildingName": "四座"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "D HALL",
+                    "EngStreet": {
+                      "BuildingNoFrom": "10",
+                      "StreetName": "HOLLYWOOD ROAD"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3392515780T20181120"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "june-2025-high-confidence-31",
+      "authority": "User authorisation, 2026-10-06: automatically reconcile high-confidence identity changes; leave ambiguous matches and new retirements for review.",
+      "curationFile": "hkgov-dpo-address-june-confidence-continuity.json",
+      "sourceFile": "als_addresses_(wan_chai_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "3641414159T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "RACEVIEW MANSION",
+          null,
+          "STUBBS ROAD",
+          "46",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-bb6d1492-ea9b-5939-a866-6683cbe13293",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2025-06-20.0"
+      },
+      "assertions": [
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "6c41d8626634c2c63131c03b337d25880d9b33e1d9daea3f9c485cc4b8b67d23"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "ed03e1bba5873c64b97b389958bd21788adf283901de903383df946238ea0131"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "ed03e1bba5873c64b97b389958bd21788adf283901de903383df946238ea0131"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "ed03e1bba5873c64b97b389958bd21788adf283901de903383df946238ea0131"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "ed03e1bba5873c64b97b389958bd21788adf283901de903383df946238ea0131"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "ed03e1bba5873c64b97b389958bd21788adf283901de903383df946238ea0131"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "ed03e1bba5873c64b97b389958bd21788adf283901de903383df946238ea0131"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "ed03e1bba5873c64b97b389958bd21788adf283901de903383df946238ea0131"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.17828,
+              22.26621
+            ]
+          },
+          "properties": {
+            "Northing": 814154,
+            "Easting": 836413,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3641414159T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "灣仔區",
+                  "ChiStreet": {
+                    "StreetName": "司徒拔道",
+                    "BuildingNoFrom": "46"
+                  },
+                  "BuildingName": "眺馬閣"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "RACEVIEW MANSION",
+                  "EngStreet": {
+                    "BuildingNoFrom": "46",
+                    "StreetName": "STUBBS ROAD"
+                  },
+                  "EngDistrict": "WAN CHAI DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3641414159T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "automated": true,
+        "reason": "Same CSU, coordinates and address; singular/plural name correction.",
+        "previous": {
+          "id": "ss-bb6d1492-ea9b-5939-a866-6683cbe13293",
+          "level": "building",
+          "parentId": null,
+          "en": "RACEVIEW MANSIONS, 46 STUBBS ROAD, WAN CHAI DISTRICT, HK",
+          "zhHant": "眺馬閣46司徒拔道灣仔區香港",
+          "coordinates": [
+            114.17828,
+            22.26621
+          ],
+          "sourceIds": [
+            "c9291a0e-b949-5e9e-a835-ad21f55ed880"
+          ],
+          "curations": []
+        },
+        "selectedCandidateId": "ss-3f222f31-81d6-57ab-a7fa-c72b412345c3",
+        "reviewEvidence": [],
+        "reviewReportDigest": "c987e5183d5f39f505f966a195eebc9afbec09315ea7e7f1ea5be0a1b0432e59"
+      },
+      "patch": {
+        "preserveStructure": true
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 4.57 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17828,
+            22.26621
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17829,
+                22.26625
+              ]
+            },
+            "properties": {
+              "Northing": 814159,
+              "Easting": 836414,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3641414159T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "司徒拔道",
+                      "BuildingNoFrom": "46"
+                    },
+                    "BuildingName": "眺馬閣"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "RACEVIEW MANSION",
+                    "EngStreet": {
+                      "BuildingNoFrom": "46",
+                      "StreetName": "STUBBS ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641414159T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 4.57 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17828,
+            22.26621
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17829,
+                22.26625
+              ]
+            },
+            "properties": {
+              "Northing": 814159,
+              "Easting": 836414,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3641414159T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "司徒拔道",
+                      "BuildingNoFrom": "46"
+                    },
+                    "BuildingName": "眺馬閣"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "RACEVIEW MANSION",
+                    "EngStreet": {
+                      "BuildingNoFrom": "46",
+                      "StreetName": "STUBBS ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641414159T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 4.57 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17828,
+            22.26621
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17829,
+                22.26625
+              ]
+            },
+            "properties": {
+              "Northing": 814159,
+              "Easting": 836414,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3641414159T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "司徒拔道",
+                      "BuildingNoFrom": "46"
+                    },
+                    "BuildingName": "眺馬閣"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "RACEVIEW MANSION",
+                    "EngStreet": {
+                      "BuildingNoFrom": "46",
+                      "StreetName": "STUBBS ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641414159T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 4.57 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17828,
+            22.26621
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17829,
+                22.26625
+              ]
+            },
+            "properties": {
+              "Northing": 814159,
+              "Easting": 836414,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3641414159T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "司徒拔道",
+                      "BuildingNoFrom": "46"
+                    },
+                    "BuildingName": "眺馬閣"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "RACEVIEW MANSION",
+                    "EngStreet": {
+                      "BuildingNoFrom": "46",
+                      "StreetName": "STUBBS ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641414159T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 4.57 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17828,
+            22.26621
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17829,
+                22.26625
+              ]
+            },
+            "properties": {
+              "Northing": 814159,
+              "Easting": 836414,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3641414159T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "司徒拔道",
+                      "BuildingNoFrom": "46"
+                    },
+                    "BuildingName": "眺馬閣"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "RACEVIEW MANSION",
+                    "EngStreet": {
+                      "BuildingNoFrom": "46",
+                      "StreetName": "STUBBS ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641414159T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 4.57 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17828,
+            22.26621
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17829,
+                22.26625
+              ]
+            },
+            "properties": {
+              "Northing": 814159,
+              "Easting": 836414,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3641414159T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "司徒拔道",
+                      "BuildingNoFrom": "46"
+                    },
+                    "BuildingName": "眺馬閣"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "RACEVIEW MANSION",
+                    "EngStreet": {
+                      "BuildingNoFrom": "46",
+                      "StreetName": "STUBBS ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641414159T20050430"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher identity and identical bilingual premise fields; coordinate adjustment of 4.57 metres. Retain canonical identity.",
+          "previousCoordinates": [
+            114.17828,
+            22.26621
+          ],
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17829,
+                22.26625
+              ]
+            },
+            "properties": {
+              "Northing": 814159,
+              "Easting": 836414,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3641414159T20050430"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "灣仔區",
+                    "ChiStreet": {
+                      "StreetName": "司徒拔道",
+                      "BuildingNoFrom": "46"
+                    },
+                    "BuildingName": "眺馬閣"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "RACEVIEW MANSION",
+                    "EngStreet": {
+                      "BuildingNoFrom": "46",
+                      "StreetName": "STUBBS ROAD"
+                    },
+                    "EngDistrict": "WAN CHAI DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3641414159T20050430"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

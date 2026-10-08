@@ -1,0 +1,389 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "2026-reviewed-d-hall-old-bailey-address",
+      "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations and preserve separate addresses.",
+      "curationFile": "hkgov-dpo-address-2026-reviewed-continuity.json",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "sourceVersionFrom": "2026-04-03.0",
+      "csus": [
+        "3392515780T20181120"
+      ],
+      "premiseSelectors": [
+        [
+          "D HALL",
+          null,
+          "OLD BAILEY STREET",
+          "16",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-1e0816c7-edc0-54d5-9628-c1b1782e2cb7",
+      "sharedProvisionalId": "ss-b338905a-556f-5b93-9987-26491fe93ff3",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2026-04-03.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "3e9f3d1220bac8d3763d6cefbb7f875a1744c0c0d1023f90e71e194e85991d14"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "3e9f3d1220bac8d3763d6cefbb7f875a1744c0c0d1023f90e71e194e85991d14"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "3e9f3d1220bac8d3763d6cefbb7f875a1744c0c0d1023f90e71e194e85991d14"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "3e9f3d1220bac8d3763d6cefbb7f875a1744c0c0d1023f90e71e194e85991d14"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "3e9f3d1220bac8d3763d6cefbb7f875a1744c0c0d1023f90e71e194e85991d14"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "3e9f3d1220bac8d3763d6cefbb7f875a1744c0c0d1023f90e71e194e85991d14"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "3e9f3d1220bac8d3763d6cefbb7f875a1744c0c0d1023f90e71e194e85991d14"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2026-04-03.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.15414,
+              22.28089
+            ]
+          },
+          "properties": {
+            "Northing": 815780,
+            "Easting": 833925,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3392515780T20181120"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "奧卑利街",
+                    "BuildingNoFrom": "16"
+                  },
+                  "BuildingName": "四座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "D HALL",
+                  "EngStreet": {
+                    "BuildingNoFrom": "16",
+                    "StreetName": "OLD BAILEY STREET"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3392515780T20181120"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "reason": "Publisher concurrently asserts D Hall at 10 Hollywood Road and 16 Old Bailey Street with the same CSU, bilingual name and coordinates. Preserve both street addresses. Earlier curated canonical identity remains on Hollywood Road; the reintroduced Old Bailey address has a separate deterministic ID. Its original provisional ID is already owned and must not become an alias."
+      },
+      "patch": {
+        "preserveStructure": true
+      }
+    },
+    {
+      "id": "2026-reviewed-ablutions-block-old-bailey-address",
+      "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations and preserve separate addresses.",
+      "curationFile": "hkgov-dpo-address-2026-reviewed-continuity.json",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "sourceVersionFrom": "2026-04-03.0",
+      "csus": [
+        "3387715827T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "ABLUTIONS BLOCK",
+          null,
+          "OLD BAILEY STREET",
+          "16",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-83c019c7-76fc-597e-bf46-a9cc96d01c5b",
+      "sharedProvisionalId": "ss-5d41f4b4-1687-54ea-b95b-406e309ac2c8",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2026-04-03.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "2db371df43af6cc0ef30e0ede9599e7de1ff26ac767204c25cb890236bb0bd59"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "2db371df43af6cc0ef30e0ede9599e7de1ff26ac767204c25cb890236bb0bd59"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "2db371df43af6cc0ef30e0ede9599e7de1ff26ac767204c25cb890236bb0bd59"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "2db371df43af6cc0ef30e0ede9599e7de1ff26ac767204c25cb890236bb0bd59"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "2db371df43af6cc0ef30e0ede9599e7de1ff26ac767204c25cb890236bb0bd59"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "2db371df43af6cc0ef30e0ede9599e7de1ff26ac767204c25cb890236bb0bd59"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "2db371df43af6cc0ef30e0ede9599e7de1ff26ac767204c25cb890236bb0bd59"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2026-04-03.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.15367,
+              22.28132
+            ]
+          },
+          "properties": {
+            "Northing": 815827,
+            "Easting": 833877,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3387715827T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "奧卑利街",
+                    "BuildingNoFrom": "16"
+                  },
+                  "BuildingName": "沐浴樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "ABLUTIONS BLOCK",
+                  "EngStreet": {
+                    "BuildingNoFrom": "16",
+                    "StreetName": "OLD BAILEY STREET"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3387715827T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "reason": "Publisher concurrently asserts Ablutions Block at 10 Hollywood Road and 16 Old Bailey Street with the same CSU, bilingual name and coordinates. Preserve both street addresses. Earlier curated canonical identity remains on Hollywood Road; the reintroduced Old Bailey address has a separate deterministic ID. Its original provisional ID is already owned and must not become an alias."
+      },
+      "patch": {
+        "preserveStructure": true
+      }
+    },
+    {
+      "id": "2026-reviewed-bauhinia-house-old-bailey-address",
+      "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations and preserve separate addresses.",
+      "curationFile": "hkgov-dpo-address-2026-reviewed-continuity.json",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "sourceVersionFrom": "2026-04-03.0",
+      "csus": [
+        "3394815731T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "BAUHINIA HOUSE",
+          null,
+          "OLD BAILEY STREET",
+          "16",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-7ff69892-90cc-5995-8bae-9013b17d1674",
+      "sharedProvisionalId": "ss-3114283f-aa4a-50a7-9421-f08975f6899d",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2026-04-03.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "9b14497d9d7bd35482abc601770bb576e2b8937c9ed741dadebac086d457a6f0"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "9b14497d9d7bd35482abc601770bb576e2b8937c9ed741dadebac086d457a6f0"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "9b14497d9d7bd35482abc601770bb576e2b8937c9ed741dadebac086d457a6f0"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "9b14497d9d7bd35482abc601770bb576e2b8937c9ed741dadebac086d457a6f0"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "9b14497d9d7bd35482abc601770bb576e2b8937c9ed741dadebac086d457a6f0"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "9b14497d9d7bd35482abc601770bb576e2b8937c9ed741dadebac086d457a6f0"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "9b14497d9d7bd35482abc601770bb576e2b8937c9ed741dadebac086d457a6f0"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2026-04-03.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.15436,
+              22.28045
+            ]
+          },
+          "properties": {
+            "Northing": 815731,
+            "Easting": 833948,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3394815731T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "奧卑利街",
+                    "BuildingNoFrom": "16"
+                  },
+                  "BuildingName": "紫荊樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "BAUHINIA HOUSE",
+                  "EngStreet": {
+                    "BuildingNoFrom": "16",
+                    "StreetName": "OLD BAILEY STREET"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3394815731T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "confidence": "high",
+        "reason": "Publisher concurrently asserts Bauhinia House at 10 Hollywood Road and 16 Old Bailey Street with the same CSU, bilingual name and coordinates. Preserve both street addresses. Earlier curated canonical identity remains on Hollywood Road; the reintroduced Old Bailey address has a separate deterministic ID. Its original provisional ID is already owned and must not become an alias."
+      },
+      "patch": {
+        "preserveStructure": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,3083 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "december-2025-reviewed-1",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z; case 2 notes take precedence as confirmed by user.",
+      "sourceFile": "als_addresses_(eastern_district).geojson",
+      "curationFile": "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+      "sourceVersionFrom": "2025-12-16.0",
+      "csus": [
+        "4177415540P20241224"
+      ],
+      "premiseSelectors": [
+        [
+          null,
+          null,
+          "SHAU KEI WAN MAIN STREET EAST",
+          "121",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "ORIA",
+          null,
+          "SHAU KEI WAN MAIN STREET EAST",
+          "121",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-1541d6d5-d73c-5b0c-96b7-99f93e105ddc",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-12-16.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "f4e798ba270f2031049e84fdb81a9afbdeec0883bce6bd553edac1eb78530aa0"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "f4e798ba270f2031049e84fdb81a9afbdeec0883bce6bd553edac1eb78530aa0"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "f4e798ba270f2031049e84fdb81a9afbdeec0883bce6bd553edac1eb78530aa0"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "f4e798ba270f2031049e84fdb81a9afbdeec0883bce6bd553edac1eb78530aa0"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "d8499b37e247171a3a390cbaffb7e176bc6b0a4a1847cd5093aa410bcc4a0d13"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "d8499b37e247171a3a390cbaffb7e176bc6b0a4a1847cd5093aa410bcc4a0d13"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "d8499b37e247171a3a390cbaffb7e176bc6b0a4a1847cd5093aa410bcc4a0d13"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "aeba3cd0ee69c167d1c4edd26da6a4295bf693eaba1320ffb5f14302137767ca"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "aeba3cd0ee69c167d1c4edd26da6a4295bf693eaba1320ffb5f14302137767ca"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "aeba3cd0ee69c167d1c4edd26da6a4295bf693eaba1320ffb5f14302137767ca"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "aeba3cd0ee69c167d1c4edd26da6a4295bf693eaba1320ffb5f14302137767ca"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-12-16.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.23029,
+              22.27871
+            ]
+          },
+          "properties": {
+            "Northing": 815540,
+            "Easting": 841774,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "4177415540P20241224"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "東區",
+                  "ChiStreet": {
+                    "StreetName": "筲箕灣東大街",
+                    "BuildingNoFrom": "121"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngStreet": {
+                    "BuildingNoFrom": "121",
+                    "StreetName": "SHAU KEI WAN MAIN STREET EAST"
+                  },
+                  "EngDistrict": "EASTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "4177415540P20241224"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 1,
+        "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+        "resolution": {
+          "kind": "merge-identities",
+          "canonicalId": "ss-1541d6d5-d73c-5b0c-96b7-99f93e105ddc",
+          "aliasIds": [
+            "ss-4e6c5868-2a4d-5599-97d6-349bc2037369"
+          ]
+        },
+        "notes": "",
+        "reason": "merge-identities"
+      },
+      "patch": {
+        "granularity": "building",
+        "enName": "ORIA",
+        "zhName": "傲華"
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: carry building names forward and resolve confident 2026 continuations",
+          "observation": "ORIA and 傲華 return on the same publisher CSU and 121 Shau Kei Wan Main Street East; approximately 2 metre coordinate correction and updated GeoAddress reference. Use the returned named source, retaining the reviewed canonical ID, without replaying a duplicate older record.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.23031,
+                22.27871
+              ]
+            },
+            "properties": {
+              "Northing": 815539,
+              "Easting": 841775,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4177415540P20241224"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "筲箕灣東大街",
+                      "BuildingNoFrom": "121"
+                    },
+                    "BuildingName": "傲華"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ORIA",
+                    "EngStreet": {
+                      "BuildingNoFrom": "121",
+                      "StreetName": "SHAU KEI WAN MAIN STREET EAST"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4177515539T20241224"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: carry building names forward and resolve confident 2026 continuations",
+          "observation": "ORIA and 傲華 return on the same publisher CSU and 121 Shau Kei Wan Main Street East; approximately 2 metre coordinate correction and updated GeoAddress reference. Use the returned named source, retaining the reviewed canonical ID, without replaying a duplicate older record.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.23031,
+                22.27871
+              ]
+            },
+            "properties": {
+              "Northing": 815539,
+              "Easting": 841775,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4177415540P20241224"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "筲箕灣東大街",
+                      "BuildingNoFrom": "121"
+                    },
+                    "BuildingName": "傲華"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ORIA",
+                    "EngStreet": {
+                      "BuildingNoFrom": "121",
+                      "StreetName": "SHAU KEI WAN MAIN STREET EAST"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4177515539T20241224"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: carry building names forward and resolve confident 2026 continuations",
+          "observation": "ORIA and 傲華 return on the same publisher CSU and 121 Shau Kei Wan Main Street East; approximately 2 metre coordinate correction and updated GeoAddress reference. Use the returned named source, retaining the reviewed canonical ID, without replaying a duplicate older record.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.23031,
+                22.27871
+              ]
+            },
+            "properties": {
+              "Northing": 815539,
+              "Easting": 841775,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4177415540P20241224"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "筲箕灣東大街",
+                      "BuildingNoFrom": "121"
+                    },
+                    "BuildingName": "傲華"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ORIA",
+                    "EngStreet": {
+                      "BuildingNoFrom": "121",
+                      "StreetName": "SHAU KEI WAN MAIN STREET EAST"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4177515539T20241224"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: carry building names forward and resolve confident 2026 continuations",
+          "observation": "ORIA and 傲華 return on the same publisher CSU and 121 Shau Kei Wan Main Street East; approximately 2 metre coordinate correction and updated GeoAddress reference. Use the returned named source, retaining the reviewed canonical ID, without replaying a duplicate older record.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.23031,
+                22.27871
+              ]
+            },
+            "properties": {
+              "Northing": 815539,
+              "Easting": 841775,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "4177415540P20241224"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "東區",
+                    "ChiStreet": {
+                      "StreetName": "筲箕灣東大街",
+                      "BuildingNoFrom": "121"
+                    },
+                    "BuildingName": "傲華"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "ORIA",
+                    "EngStreet": {
+                      "BuildingNoFrom": "121",
+                      "StreetName": "SHAU KEI WAN MAIN STREET EAST"
+                    },
+                    "EngDistrict": "EASTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "4177515539T20241224"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "december-2025-reviewed-2",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z; case 2 notes take precedence as confirmed by user.",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "curationFile": "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+      "sourceVersionFrom": "2025-12-16.0",
+      "csus": [
+        "3408815889P20140205"
+      ],
+      "premiseSelectors": [
+        [
+          "KAILEY TOWER",
+          null,
+          "STANLEY STREET",
+          "16",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-1ed074d3-a80f-5f13-844b-5d5b82bed638",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-12-16.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "f3a15949ac6a0896cfcab6bfda67fde62b4c62794dd71c5669a28dc989d7c6fa"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "f3a15949ac6a0896cfcab6bfda67fde62b4c62794dd71c5669a28dc989d7c6fa"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "db4bfbc6db698725defc7d4b4f771c65875f58f4b627887ecd3b7b5f111293ee"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "db4bfbc6db698725defc7d4b4f771c65875f58f4b627887ecd3b7b5f111293ee"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "db4bfbc6db698725defc7d4b4f771c65875f58f4b627887ecd3b7b5f111293ee"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "db4bfbc6db698725defc7d4b4f771c65875f58f4b627887ecd3b7b5f111293ee"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "db4bfbc6db698725defc7d4b4f771c65875f58f4b627887ecd3b7b5f111293ee"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "db4bfbc6db698725defc7d4b4f771c65875f58f4b627887ecd3b7b5f111293ee"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "db4bfbc6db698725defc7d4b4f771c65875f58f4b627887ecd3b7b5f111293ee"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-12-16.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.15576,
+              22.2819
+            ]
+          },
+          "properties": {
+            "Northing": 815892,
+            "Easting": 834092,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3408815889P20140205"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "士丹利街",
+                    "BuildingNoFrom": "16"
+                  },
+                  "BuildingName": "騏利大廈"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "KAILEY TOWER",
+                  "EngStreet": {
+                    "BuildingNoFrom": "16",
+                    "StreetName": "STANLEY STREET"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3409315893T20140205"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 2,
+        "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+        "resolution": {
+          "kind": "keep-all-addresses",
+          "addressIds": [
+            "ss-1ed074d3-a80f-5f13-844b-5d5b82bed638",
+            "ss-e727c510-b8ae-598d-affc-736cd0038b1f",
+            "ss-eb88380c-396c-5234-a127-2a6e2890e31d"
+          ]
+        },
+        "notes": "keep\n- 14–16 Stanley Street\n-23 WELLINGTON STREET",
+        "reason": "Consolidate Stanley Street duplicates as 14–16 Stanley Street; preserve 23 Wellington Street separately."
+      },
+      "patch": {
+        "granularity": "building",
+        "streetNumberFrom": "14",
+        "streetNumberTo": "16"
+      }
+    },
+    {
+      "id": "december-2025-reviewed-3",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z; case 2 notes take precedence as confirmed by user.",
+      "sourceFile": "als_addresses_(yuen_long_district).geojson",
+      "curationFile": "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+      "sourceVersionFrom": "2025-12-16.0",
+      "csus": [
+        "2389238369T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "BuildingNoFrom": "12",
+            "VillageName": "SANTA BARBARA AVENUE"
+          },
+          {
+            "VillageName": "聖巴拿徑",
+            "BuildingNoFrom": "12"
+          },
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-3bb56d4d-5782-58fd-b5aa-5791d659a6b0",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-12-16.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "e30cd2b751f2d1d8413fb20a3a1d0bc6cad2da4963c41a0c13e4bf9c1631e92e"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "e30cd2b751f2d1d8413fb20a3a1d0bc6cad2da4963c41a0c13e4bf9c1631e92e"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "e14785c813a418806b9564442c91eefa134ad1107fe74b203a60c24fac519f83"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "e14785c813a418806b9564442c91eefa134ad1107fe74b203a60c24fac519f83"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "e14785c813a418806b9564442c91eefa134ad1107fe74b203a60c24fac519f83"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "e14785c813a418806b9564442c91eefa134ad1107fe74b203a60c24fac519f83"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "e14785c813a418806b9564442c91eefa134ad1107fe74b203a60c24fac519f83"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "e14785c813a418806b9564442c91eefa134ad1107fe74b203a60c24fac519f83"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "e14785c813a418806b9564442c91eefa134ad1107fe74b203a60c24fac519f83"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-12-16.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.05661,
+              22.48483
+            ]
+          },
+          "properties": {
+            "Northing": 838368,
+            "Easting": 823892,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "2389238369T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "元朗區",
+                  "ChiVillage": {
+                    "VillageName": "聖巴拿徑",
+                    "BuildingNoFrom": "12"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngVillage": {
+                    "BuildingNoFrom": "12",
+                    "VillageName": "SANTA BARBARA AVENUE"
+                  },
+                  "EngDistrict": "YUEN LONG DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "2389238369T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 3,
+        "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+        "resolution": {
+          "kind": "correct-structure",
+          "canonicalId": "ss-3bb56d4d-5782-58fd-b5aa-5791d659a6b0",
+          "aliasIds": [
+            "ss-f013b45a-1ab6-543f-abdc-cdfa04e82fe4"
+          ],
+          "streetFromCandidateId": "ss-f013b45a-1ab6-543f-abdc-cdfa04e82fe4",
+          "street": {
+            "en": {
+              "name": "SANTA BARBARA AVENUE",
+              "numberFrom": "12",
+              "numberTo": null
+            },
+            "zh-Hant": {
+              "name": "聖巴拿徑",
+              "numberFrom": "12",
+              "numberTo": null
+            }
+          },
+          "clearVillageAddress": true,
+          "estateName": {
+            "en": "ROYAL PALMS",
+            "zh-Hant": "加州豪園"
+          },
+          "buildingName": {
+            "en": null,
+            "zh-Hant": null
+          },
+          "clearHouseBlockPrefix": true,
+          "block": {
+            "en": {
+              "descriptor": null,
+              "number": null
+            },
+            "zh-Hant": {
+              "descriptor": null,
+              "number": null
+            }
+          },
+          "level": "unknown"
+        },
+        "notes": "",
+        "reason": "correct-structure"
+      },
+      "patch": {
+        "granularity": "unknown",
+        "enName": null,
+        "zhName": null,
+        "enEstate": "ROYAL PALMS",
+        "zhEstate": "加州豪園",
+        "enStreet": "SANTA BARBARA AVENUE",
+        "zhStreet": "聖巴拿徑",
+        "streetNumberFrom": "12",
+        "blockNumber": null,
+        "clearVillage": true
+      }
+    },
+    {
+      "id": "december-2025-reviewed-4",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z; case 2 notes take precedence as confirmed by user.",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "curationFile": "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+      "sourceVersionFrom": "2025-12-16.0",
+      "csus": [
+        "3321216511T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "LEE FUNG COMMERCIAL BUILDING",
+          null,
+          "DES VOEUX ROAD WEST",
+          "32",
+          "36",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-5092ce08-11c9-5ebd-8a84-521322119ea8",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-12-16.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "e5c57dbf161c825b4a5a612ec3a55310b3fc2d62d999cfe2dbddc197ba711328"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "e5c57dbf161c825b4a5a612ec3a55310b3fc2d62d999cfe2dbddc197ba711328"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "d9db26f38ac63501729f27f8afada522766cef29b5d5825dc4cfc4dbbcd5263a"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "d9db26f38ac63501729f27f8afada522766cef29b5d5825dc4cfc4dbbcd5263a"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "d9db26f38ac63501729f27f8afada522766cef29b5d5825dc4cfc4dbbcd5263a"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "d9db26f38ac63501729f27f8afada522766cef29b5d5825dc4cfc4dbbcd5263a"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "d9db26f38ac63501729f27f8afada522766cef29b5d5825dc4cfc4dbbcd5263a"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "d9db26f38ac63501729f27f8afada522766cef29b5d5825dc4cfc4dbbcd5263a"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "d9db26f38ac63501729f27f8afada522766cef29b5d5825dc4cfc4dbbcd5263a"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-12-16.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.14729,
+              22.28744
+            ]
+          },
+          "properties": {
+            "Northing": 816505,
+            "Easting": 833220,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3321216511T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "德輔道西",
+                    "BuildingNoFrom": "32",
+                    "BuildingNoTo": "36"
+                  },
+                  "BuildingName": "利豐商業大廈"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "LEE FUNG COMMERCIAL BUILDING",
+                  "EngStreet": {
+                    "BuildingNoFrom": "32",
+                    "BuildingNoTo": "36",
+                    "StreetName": "DES VOEUX ROAD WEST"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3321216511T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 4,
+        "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+        "resolution": {
+          "kind": "rename",
+          "canonicalId": "ss-5092ce08-11c9-5ebd-8a84-521322119ea8",
+          "aliasIds": [
+            "ss-213466de-4c95-524c-a8d3-0300f78ec684"
+          ],
+          "nameFromCandidateId": "ss-213466de-4c95-524c-a8d3-0300f78ec684",
+          "nameOverrides": {}
+        },
+        "notes": "",
+        "reason": "rename"
+      },
+      "patch": {
+        "granularity": "building"
+      }
+    },
+    {
+      "id": "december-2025-reviewed-5",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z; case 2 notes take precedence as confirmed by user.",
+      "sourceFile": "als_addresses_(north_district).geojson",
+      "curationFile": "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+      "sourceVersionFrom": "2025-12-16.0",
+      "csus": [
+        "2988137591T20131219"
+      ],
+      "premiseSelectors": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "BuildingNoFrom": "25",
+            "VillageName": "MAPLE DRIVE"
+          },
+          {
+            "VillageName": "紅楓徑",
+            "BuildingNoFrom": "25"
+          },
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-62f3ec0d-1251-53f9-bd36-924963565095",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-12-16.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "1771c81c24b898699515e14507ac2814b38fbc80122b6b176a87dbf29a7fc6e6"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "1771c81c24b898699515e14507ac2814b38fbc80122b6b176a87dbf29a7fc6e6"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "1771c81c24b898699515e14507ac2814b38fbc80122b6b176a87dbf29a7fc6e6"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "1771c81c24b898699515e14507ac2814b38fbc80122b6b176a87dbf29a7fc6e6"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "1771c81c24b898699515e14507ac2814b38fbc80122b6b176a87dbf29a7fc6e6"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "1771c81c24b898699515e14507ac2814b38fbc80122b6b176a87dbf29a7fc6e6"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "1771c81c24b898699515e14507ac2814b38fbc80122b6b176a87dbf29a7fc6e6"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "1771c81c24b898699515e14507ac2814b38fbc80122b6b176a87dbf29a7fc6e6"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "1771c81c24b898699515e14507ac2814b38fbc80122b6b176a87dbf29a7fc6e6"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-12-16.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.11481,
+              22.47785
+            ]
+          },
+          "properties": {
+            "Northing": 837591,
+            "Easting": 829880,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "2988137591T20131219"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "北區",
+                  "ChiVillage": {
+                    "VillageName": "紅楓徑",
+                    "BuildingNoFrom": "25"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngVillage": {
+                    "BuildingNoFrom": "25",
+                    "VillageName": "MAPLE DRIVE"
+                  },
+                  "EngDistrict": "NORTH DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "2988137591T20131219"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 5,
+        "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+        "resolution": {
+          "kind": "correct-structure",
+          "canonicalId": "ss-62f3ec0d-1251-53f9-bd36-924963565095",
+          "aliasIds": [
+            "ss-4d07155a-bd75-5362-b75c-a2dc93a53904"
+          ],
+          "streetFromCandidateId": "ss-4d07155a-bd75-5362-b75c-a2dc93a53904",
+          "street": {
+            "en": {
+              "name": "MAPLE DRIVE",
+              "numberFrom": "25",
+              "numberTo": null
+            },
+            "zh-Hant": {
+              "name": "紅楓徑",
+              "numberFrom": "25",
+              "numberTo": null
+            }
+          },
+          "clearVillageAddress": true,
+          "estateName": {
+            "en": "THE GREEN",
+            "zh-Hant": "歌賦嶺"
+          },
+          "buildingName": {
+            "en": null,
+            "zh-Hant": null
+          },
+          "clearHouseBlockPrefix": true,
+          "block": {
+            "en": {
+              "descriptor": null,
+              "number": null
+            },
+            "zh-Hant": {
+              "descriptor": null,
+              "number": null
+            }
+          },
+          "level": "unknown"
+        },
+        "notes": "",
+        "reason": "correct-structure"
+      },
+      "patch": {
+        "granularity": "unknown",
+        "enName": null,
+        "zhName": null,
+        "enEstate": "THE GREEN",
+        "zhEstate": "歌賦嶺",
+        "enStreet": "MAPLE DRIVE",
+        "zhStreet": "紅楓徑",
+        "streetNumberFrom": "25",
+        "blockNumber": null,
+        "clearVillage": true
+      }
+    },
+    {
+      "id": "december-2025-reviewed-6",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z; case 2 notes take precedence as confirmed by user.",
+      "sourceFile": "als_addresses_(north_district).geojson",
+      "curationFile": "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+      "sourceVersionFrom": "2025-12-16.0",
+      "csus": [
+        "2987337595T20131219"
+      ],
+      "premiseSelectors": [
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          {
+            "BuildingNoFrom": "23",
+            "VillageName": "MAPLE DRIVE"
+          },
+          {
+            "VillageName": "紅楓徑",
+            "BuildingNoFrom": "23"
+          },
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-7610443e-60d4-5add-b79a-d9075034b9ad",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-12-16.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "14a3a8cebb00fa01d5f79af67a8bf37cdf7319996d9cf8cb775d129e8bfd0173"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "14a3a8cebb00fa01d5f79af67a8bf37cdf7319996d9cf8cb775d129e8bfd0173"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "14a3a8cebb00fa01d5f79af67a8bf37cdf7319996d9cf8cb775d129e8bfd0173"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "14a3a8cebb00fa01d5f79af67a8bf37cdf7319996d9cf8cb775d129e8bfd0173"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "14a3a8cebb00fa01d5f79af67a8bf37cdf7319996d9cf8cb775d129e8bfd0173"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "14a3a8cebb00fa01d5f79af67a8bf37cdf7319996d9cf8cb775d129e8bfd0173"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "14a3a8cebb00fa01d5f79af67a8bf37cdf7319996d9cf8cb775d129e8bfd0173"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "14a3a8cebb00fa01d5f79af67a8bf37cdf7319996d9cf8cb775d129e8bfd0173"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "14a3a8cebb00fa01d5f79af67a8bf37cdf7319996d9cf8cb775d129e8bfd0173"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-12-16.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.11473,
+              22.47788
+            ]
+          },
+          "properties": {
+            "Northing": 837594,
+            "Easting": 829873,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "2987337595T20131219"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "北區",
+                  "ChiVillage": {
+                    "VillageName": "紅楓徑",
+                    "BuildingNoFrom": "23"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngVillage": {
+                    "BuildingNoFrom": "23",
+                    "VillageName": "MAPLE DRIVE"
+                  },
+                  "EngDistrict": "NORTH DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "2987337595T20131219"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 6,
+        "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+        "resolution": {
+          "kind": "correct-structure",
+          "canonicalId": "ss-7610443e-60d4-5add-b79a-d9075034b9ad",
+          "aliasIds": [
+            "ss-b18cf38b-2d23-58a4-9e74-caa6ef79abee"
+          ],
+          "streetFromCandidateId": "ss-b18cf38b-2d23-58a4-9e74-caa6ef79abee",
+          "street": {
+            "en": {
+              "name": "MAPLE DRIVE",
+              "numberFrom": "23",
+              "numberTo": null
+            },
+            "zh-Hant": {
+              "name": "紅楓徑",
+              "numberFrom": "23",
+              "numberTo": null
+            }
+          },
+          "clearVillageAddress": true,
+          "estateName": {
+            "en": "THE GREEN",
+            "zh-Hant": "歌賦嶺"
+          },
+          "buildingName": {
+            "en": null,
+            "zh-Hant": null
+          },
+          "clearHouseBlockPrefix": true,
+          "block": {
+            "en": {
+              "descriptor": null,
+              "number": null
+            },
+            "zh-Hant": {
+              "descriptor": null,
+              "number": null
+            }
+          },
+          "level": "unknown"
+        },
+        "notes": "",
+        "reason": "correct-structure"
+      },
+      "patch": {
+        "granularity": "unknown",
+        "enName": null,
+        "zhName": null,
+        "enEstate": "THE GREEN",
+        "zhEstate": "歌賦嶺",
+        "enStreet": "MAPLE DRIVE",
+        "zhStreet": "紅楓徑",
+        "streetNumberFrom": "23",
+        "blockNumber": null,
+        "clearVillage": true
+      }
+    },
+    {
+      "id": "december-2025-reviewed-7",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z; case 2 notes take precedence as confirmed by user.",
+      "sourceFile": "als_addresses_(yau_tsim_mong_district).geojson",
+      "curationFile": "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+      "sourceVersionFrom": "2025-12-16.0",
+      "csus": [
+        "3576918295T20241019"
+      ],
+      "premiseSelectors": [
+        [
+          null,
+          null,
+          "NATHAN ROAD",
+          "200",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        [
+          "STONE RISE",
+          null,
+          "NATHAN ROAD",
+          "200",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-7e6fdfc0-3026-5071-816b-a6254147b1d6",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-12-16.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "cb3b6722add8e8831a8640498851568363c9528febea1151455f38ca1f4276e3"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "cb3b6722add8e8831a8640498851568363c9528febea1151455f38ca1f4276e3"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "e245f00479260b688d3a8cae471451ae0be09a66ef3f1d67810bd2568356a4cd"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "e245f00479260b688d3a8cae471451ae0be09a66ef3f1d67810bd2568356a4cd"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "e245f00479260b688d3a8cae471451ae0be09a66ef3f1d67810bd2568356a4cd"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "8836ef84c079af84bee5db7b1b73c03bbb47ca82e687791e81aa1a7289b49b79"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "8836ef84c079af84bee5db7b1b73c03bbb47ca82e687791e81aa1a7289b49b79"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "8836ef84c079af84bee5db7b1b73c03bbb47ca82e687791e81aa1a7289b49b79"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "8836ef84c079af84bee5db7b1b73c03bbb47ca82e687791e81aa1a7289b49b79"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-12-16.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.17203,
+              22.3036
+            ]
+          },
+          "properties": {
+            "Northing": 818294,
+            "Easting": 835768,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3576918295T20241019"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "油尖旺區",
+                  "ChiStreet": {
+                    "StreetName": "彌敦道",
+                    "BuildingNoFrom": "200"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngStreet": {
+                    "BuildingNoFrom": "200",
+                    "StreetName": "NATHAN ROAD"
+                  },
+                  "EngDistrict": "YAU TSIM MONG DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "3576918295T20241019"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 7,
+        "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+        "resolution": {
+          "kind": "correct-structure",
+          "canonicalId": "ss-7e6fdfc0-3026-5071-816b-a6254147b1d6",
+          "aliasIds": [
+            "ss-156d29c5-0ab8-5a7b-ba76-d40d09a0c2be"
+          ],
+          "streetFromCandidateId": "ss-156d29c5-0ab8-5a7b-ba76-d40d09a0c2be",
+          "street": {
+            "en": {
+              "name": "NATHAN ROAD",
+              "numberFrom": "200",
+              "numberTo": null
+            },
+            "zh-Hant": {
+              "name": "彌敦道",
+              "numberFrom": "200",
+              "numberTo": null
+            }
+          },
+          "clearVillageAddress": false,
+          "estateName": {
+            "en": null,
+            "zh-Hant": null
+          },
+          "buildingName": {
+            "en": "STONE RISE",
+            "zh-Hant": "二百昊"
+          },
+          "clearHouseBlockPrefix": true,
+          "block": {
+            "en": {
+              "descriptor": null,
+              "number": null
+            },
+            "zh-Hant": {
+              "descriptor": null,
+              "number": null
+            }
+          },
+          "level": "building"
+        },
+        "notes": "New Business Center ",
+        "reason": "correct-structure"
+      },
+      "patch": {
+        "granularity": "building",
+        "enName": "STONE RISE",
+        "zhName": "二百昊",
+        "enEstate": null,
+        "zhEstate": null,
+        "enStreet": "NATHAN ROAD",
+        "zhStreet": "彌敦道",
+        "streetNumberFrom": "200",
+        "blockNumber": null,
+        "clearVillage": false
+      },
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: carry building names forward and resolve confident 2026 continuations",
+          "observation": "Stone Rise and 二百昊 return on the same publisher CSU and 200 Nathan Road; approximately 1 metre coordinate correction. Use the returned named source, retaining the reviewed canonical ID, without replaying a duplicate older record.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17203,
+                22.30361
+              ]
+            },
+            "properties": {
+              "Northing": 818295,
+              "Easting": 835769,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3576918295T20241019"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "200"
+                    },
+                    "BuildingName": "二百昊"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "STONE RISE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "200",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3576918295T20241019"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: carry building names forward and resolve confident 2026 continuations",
+          "observation": "Stone Rise and 二百昊 return on the same publisher CSU and 200 Nathan Road; approximately 1 metre coordinate correction. Use the returned named source, retaining the reviewed canonical ID, without replaying a duplicate older record.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17203,
+                22.30361
+              ]
+            },
+            "properties": {
+              "Northing": 818295,
+              "Easting": 835769,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3576918295T20241019"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "200"
+                    },
+                    "BuildingName": "二百昊"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "STONE RISE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "200",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3576918295T20241019"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: carry building names forward and resolve confident 2026 continuations",
+          "observation": "Stone Rise and 二百昊 return on the same publisher CSU and 200 Nathan Road; approximately 1 metre coordinate correction. Use the returned named source, retaining the reviewed canonical ID, without replaying a duplicate older record.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17203,
+                22.30361
+              ]
+            },
+            "properties": {
+              "Northing": 818295,
+              "Easting": 835769,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3576918295T20241019"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "200"
+                    },
+                    "BuildingName": "二百昊"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "STONE RISE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "200",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3576918295T20241019"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: carry building names forward and resolve confident 2026 continuations",
+          "observation": "Stone Rise and 二百昊 return on the same publisher CSU and 200 Nathan Road; approximately 1 metre coordinate correction. Use the returned named source, retaining the reviewed canonical ID, without replaying a duplicate older record.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.17203,
+                22.30361
+              ]
+            },
+            "properties": {
+              "Northing": 818295,
+              "Easting": 835769,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3576918295T20241019"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "九龍",
+                    "ChiDistrict": "油尖旺區",
+                    "ChiStreet": {
+                      "StreetName": "彌敦道",
+                      "BuildingNoFrom": "200"
+                    },
+                    "BuildingName": "二百昊"
+                  },
+                  "EngPremisesAddress": {
+                    "BuildingName": "STONE RISE",
+                    "EngStreet": {
+                      "BuildingNoFrom": "200",
+                      "StreetName": "NATHAN ROAD"
+                    },
+                    "EngDistrict": "YAU TSIM MONG DISTRICT",
+                    "Region": "KLN"
+                  },
+                  "GeoAddress": "3576918295T20241019"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "december-2025-reviewed-8",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z; case 2 notes take precedence as confirmed by user.",
+      "sourceFile": "als_addresses_(kwai_tsing_district).geojson",
+      "curationFile": "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+      "sourceVersionFrom": "2025-12-16.0",
+      "csus": [
+        "2895623960T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "TSING YI TOWN CLINIC",
+          null,
+          "TSING LUK STREET",
+          "21",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-810aa4ec-d200-58d6-82b9-c01bcd3ea149",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-12-16.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "a2b44dd8961b9abf518634fee1dcae93f738acff48beeb510431d09517e20a82"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "a2b44dd8961b9abf518634fee1dcae93f738acff48beeb510431d09517e20a82"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "84d89a5c36d6ea25d43f1a9496068f3fe453b0afd0c4d271e9456a2b38673d85"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "84d89a5c36d6ea25d43f1a9496068f3fe453b0afd0c4d271e9456a2b38673d85"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "84d89a5c36d6ea25d43f1a9496068f3fe453b0afd0c4d271e9456a2b38673d85"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "84d89a5c36d6ea25d43f1a9496068f3fe453b0afd0c4d271e9456a2b38673d85"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "84d89a5c36d6ea25d43f1a9496068f3fe453b0afd0c4d271e9456a2b38673d85"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "84d89a5c36d6ea25d43f1a9496068f3fe453b0afd0c4d271e9456a2b38673d85"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "84d89a5c36d6ea25d43f1a9496068f3fe453b0afd0c4d271e9456a2b38673d85"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-12-16.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.10586,
+              22.35453
+            ]
+          },
+          "properties": {
+            "Northing": 823936,
+            "Easting": 828953,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "2895623960T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "葵青區",
+                  "ChiStreet": {
+                    "LocationName": "青衣",
+                    "StreetName": "青綠街",
+                    "BuildingNoFrom": "21"
+                  },
+                  "BuildingName": "青衣市區診所"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "TSING YI TOWN CLINIC",
+                  "EngStreet": {
+                    "BuildingNoFrom": "21",
+                    "StreetName": "TSING LUK STREET",
+                    "LocationName": "TSING YI"
+                  },
+                  "EngDistrict": "KWAI TSING DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "2896023928T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 8,
+        "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+        "resolution": {
+          "kind": "correct-structure",
+          "canonicalId": "ss-810aa4ec-d200-58d6-82b9-c01bcd3ea149",
+          "aliasIds": [
+            "ss-9b6fc30c-aa51-5b08-87ae-2ccd51a48f15"
+          ],
+          "streetFromCandidateId": "ss-9b6fc30c-aa51-5b08-87ae-2ccd51a48f15",
+          "street": {
+            "en": {
+              "name": "TSING LUK STREET",
+              "numberFrom": "21",
+              "numberTo": null
+            },
+            "zh-Hant": {
+              "name": "青綠街",
+              "numberFrom": "21",
+              "numberTo": null
+            }
+          },
+          "clearVillageAddress": false,
+          "estateName": {
+            "en": null,
+            "zh-Hant": null
+          },
+          "buildingName": {
+            "en": "TSING YI TOWN CLINIC",
+            "zh-Hant": "青衣市區診所"
+          },
+          "clearHouseBlockPrefix": true,
+          "block": {
+            "en": {
+              "descriptor": null,
+              "number": null
+            },
+            "zh-Hant": {
+              "descriptor": null,
+              "number": null
+            }
+          },
+          "level": "building"
+        },
+        "notes": "",
+        "reason": "correct-structure"
+      },
+      "patch": {
+        "granularity": "building",
+        "enName": "TSING YI TOWN CLINIC",
+        "zhName": "青衣市區診所",
+        "enEstate": null,
+        "zhEstate": null,
+        "enStreet": "TSING LUK STREET",
+        "zhStreet": "青綠街",
+        "streetNumberFrom": "21",
+        "blockNumber": null,
+        "clearVillage": false
+      }
+    },
+    {
+      "id": "december-2025-reviewed-10",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z; case 2 notes take precedence as confirmed by user.",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "curationFile": "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+      "sourceVersionFrom": "2025-12-16.0",
+      "csus": [
+        "3319116102T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          null,
+          null,
+          "HOSPITAL ROAD",
+          "4",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-e073e923-7324-57e7-95d5-47fed6b311a3",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-12-16.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "44171b9ceac2c009f18d443045138ce2053cb774ff6f4af74b92315a9fd8ecb9"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "44171b9ceac2c009f18d443045138ce2053cb774ff6f4af74b92315a9fd8ecb9"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "3c7a3844aeb96cc8a922d6d68e32c870281b72e32eaf99e18169e2092b0692e9"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "3c7a3844aeb96cc8a922d6d68e32c870281b72e32eaf99e18169e2092b0692e9"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "3c7a3844aeb96cc8a922d6d68e32c870281b72e32eaf99e18169e2092b0692e9"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "3c7a3844aeb96cc8a922d6d68e32c870281b72e32eaf99e18169e2092b0692e9"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "3c7a3844aeb96cc8a922d6d68e32c870281b72e32eaf99e18169e2092b0692e9"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "3c7a3844aeb96cc8a922d6d68e32c870281b72e32eaf99e18169e2092b0692e9"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "3c7a3844aeb96cc8a922d6d68e32c870281b72e32eaf99e18169e2092b0692e9"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-12-16.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.14706,
+              22.28385
+            ]
+          },
+          "properties": {
+            "Northing": 816108,
+            "Easting": 833196,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3319116102T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "醫院道",
+                    "BuildingNoFrom": "4"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngStreet": {
+                    "BuildingNoFrom": "4",
+                    "StreetName": "HOSPITAL ROAD"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3319116102T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 10,
+        "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+        "resolution": {
+          "kind": "merge-identities",
+          "canonicalId": "ss-e073e923-7324-57e7-95d5-47fed6b311a3",
+          "aliasIds": [
+            "ss-c5a00221-1d55-52d6-a497-8bd571934dc3"
+          ]
+        },
+        "notes": "",
+        "reason": "merge-identities"
+      },
+      "patch": {
+        "granularity": "building",
+        "enName": "CENTRE FOR FOOD SAFETY",
+        "zhName": "食物安全中心"
+      }
+    }
+  ],
+  "identityReconciliations": [
+    {
+      "id": "december-2025-reviewed-kailey-alias",
+      "sourceVersionFrom": "2025-12-16.0",
+      "canonicalId": "ss-1ed074d3-a80f-5f13-844b-5d5b82bed638",
+      "aliasIds": [
+        "ss-98bcd139-531a-5e79-8f71-4a3533504e53"
+      ],
+      "previousGuards": [
+        {
+          "id": "ss-98bcd139-531a-5e79-8f71-4a3533504e53",
+          "enFormattedAddress": "16 STANLEY STREET, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHantFormattedAddress": "16士丹利街中西區香港",
+          "coordinates": [
+            114.15576,
+            22.2819
+          ],
+          "coordinatesBySourceVersion": {
+            "2026-04-03.0": [
+              114.15577,
+              22.28191
+            ],
+            "2026-04-22.0": [
+              114.15577,
+              22.28191
+            ],
+            "2026-04-25.0": [
+              114.15577,
+              22.28191
+            ],
+            "2026-07-08.0": [
+              114.15577,
+              22.28191
+            ],
+            "2026-07-10.0": [
+              114.15577,
+              22.28191
+            ],
+            "2026-07-22.0": [
+              114.15577,
+              22.28191
+            ],
+            "2026-08-19.0": [
+              114.15577,
+              22.28191
+            ]
+          }
+        }
+      ],
+      "targetGuard": {
+        "enBuildingName": "KAILEY TOWER",
+        "enStreetName": "STANLEY STREET",
+        "enStreetNumberFrom": "14",
+        "enStreetNumberTo": "16"
+      },
+      "authority": "User December review notes, confirmed 2026-10-07: notes take precedence over forced selection.",
+      "reason": "One Kailey Tower address at 14–16 Stanley Street; 23 Wellington Street remains separate.",
+      "subsequentReviews": [
+        {
+          "sourceVersion": "2026-04-03.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher ID and identical bilingual premise fields; approximately 1.5 metre coordinate correction. Retain the reviewed Kailey Tower address and alias.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15577,
+                22.28191
+              ]
+            },
+            "properties": {
+              "Northing": 815893,
+              "Easting": 834093,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3409315893T20140205"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "士丹利街",
+                      "BuildingNoFrom": "16"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngStreet": {
+                      "BuildingNoFrom": "16",
+                      "StreetName": "STANLEY STREET"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3409315893T20140205"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher ID and identical bilingual premise fields; approximately 1.5 metre coordinate correction. Retain the reviewed Kailey Tower address and alias.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15577,
+                22.28191
+              ]
+            },
+            "properties": {
+              "Northing": 815893,
+              "Easting": 834093,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3409315893T20140205"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "士丹利街",
+                      "BuildingNoFrom": "16"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngStreet": {
+                      "BuildingNoFrom": "16",
+                      "StreetName": "STANLEY STREET"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3409315893T20140205"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-04-25.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher ID and identical bilingual premise fields; approximately 1.5 metre coordinate correction. Retain the reviewed Kailey Tower address and alias.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15577,
+                22.28191
+              ]
+            },
+            "properties": {
+              "Northing": 815893,
+              "Easting": 834093,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3409315893T20140205"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "士丹利街",
+                      "BuildingNoFrom": "16"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngStreet": {
+                      "BuildingNoFrom": "16",
+                      "StreetName": "STANLEY STREET"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3409315893T20140205"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-08.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher ID and identical bilingual premise fields; approximately 1.5 metre coordinate correction. Retain the reviewed Kailey Tower address and alias.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15577,
+                22.28191
+              ]
+            },
+            "properties": {
+              "Northing": 815893,
+              "Easting": 834093,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3409315893T20140205"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "士丹利街",
+                      "BuildingNoFrom": "16"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngStreet": {
+                      "BuildingNoFrom": "16",
+                      "StreetName": "STANLEY STREET"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3409315893T20140205"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-10.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher ID and identical bilingual premise fields; approximately 1.5 metre coordinate correction. Retain the reviewed Kailey Tower address and alias.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15577,
+                22.28191
+              ]
+            },
+            "properties": {
+              "Northing": 815893,
+              "Easting": 834093,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3409315893T20140205"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "士丹利街",
+                      "BuildingNoFrom": "16"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngStreet": {
+                      "BuildingNoFrom": "16",
+                      "StreetName": "STANLEY STREET"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3409315893T20140205"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-07-22.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher ID and identical bilingual premise fields; approximately 1.5 metre coordinate correction. Retain the reviewed Kailey Tower address and alias.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15577,
+                22.28191
+              ]
+            },
+            "properties": {
+              "Northing": 815893,
+              "Easting": 834093,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3409315893T20140205"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "士丹利街",
+                      "BuildingNoFrom": "16"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngStreet": {
+                      "BuildingNoFrom": "16",
+                      "StreetName": "STANLEY STREET"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3409315893T20140205"
+                }
+              }
+            }
+          }
+        },
+        {
+          "sourceVersion": "2026-08-19.0",
+          "authority": "User authorisation, 2026-10-07: resolve confident 2026 continuations",
+          "observation": "Same publisher ID and identical bilingual premise fields; approximately 1.5 metre coordinate correction. Retain the reviewed Kailey Tower address and alias.",
+          "feature": {
+            "type": "Feature",
+            "geometry": {
+              "type": "Point",
+              "coordinates": [
+                114.15577,
+                22.28191
+              ]
+            },
+            "properties": {
+              "Northing": 815893,
+              "Easting": 834093,
+              "Address": {
+                "PremisesAddress": {
+                  "BuildingCsuInformation": {
+                    "CsuId": "3409315893T20140205"
+                  },
+                  "ChiPremisesAddress": {
+                    "Region": "香港",
+                    "ChiDistrict": "中西區",
+                    "ChiStreet": {
+                      "StreetName": "士丹利街",
+                      "BuildingNoFrom": "16"
+                    }
+                  },
+                  "EngPremisesAddress": {
+                    "EngStreet": {
+                      "BuildingNoFrom": "16",
+                      "StreetName": "STANLEY STREET"
+                    },
+                    "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                    "Region": "HK"
+                  },
+                  "GeoAddress": "3409315893T20140205"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

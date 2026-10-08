@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "decisions": [
+    {
+      "id": "august-2025-yip-wo-1",
+      "sourceVersionFrom": "2025-08-13.0",
+      "duplicateOwner": {
+        "id": "ss-70125609-7d2a-5a29-8dc9-2c4bf66c003b",
+        "level": "unknown",
+        "parentId": null,
+        "en": "25 TIN HAU ROAD, TUEN MUN DISTRICT, NT",
+        "zhHant": "25天后路屯門區新界",
+        "coordinates": [
+          113.96845,
+          22.38786
+        ],
+        "sourceIds": [
+          "42bc80e0-4c5c-5cc7-bc6a-b01a58adc7eb"
+        ],
+        "curations": []
+      },
+      "currentDuplicateOwner": {
+        "id": "ss-70125609-7d2a-5a29-8dc9-2c4bf66c003b",
+        "level": "unknown",
+        "parentId": null,
+        "en": "25 TIN HAU ROAD, TUEN MUN DISTRICT, NT",
+        "zhHant": "25天后路屯門區新界",
+        "coordinates": [
+          113.96845,
+          22.38786
+        ],
+        "sourceIds": [
+          "42bc80e0-4c5c-5cc7-bc6a-b01a58adc7eb"
+        ],
+        "curations": []
+      },
+      "canonicalOwner": {
+        "id": "ss-a6690d01-e0b1-5c3a-b2ea-a6d798a53910",
+        "level": "building",
+        "parentId": null,
+        "en": "YIP WO HOUSE, YIP WONG ESTATE, 25 TIN HAU ROAD, TUEN MUN DISTRICT, NT",
+        "zhHant": "業和樓業旺邨25天后路屯門區新界",
+        "coordinates": [
+          113.96838,
+          22.38788
+        ],
+        "sourceIds": [
+          "8c62377c-7a50-5dc7-8769-8d99593944cc"
+        ],
+        "curations": [
+          "{\"id\":\"yip-wong-yip-wo-retention\",\"curationFile\":\"hkgov-dpo-address-house-retentions.json\",\"curation\":{\"applicationMode\":\"until-revoked\",\"applicationState\":\"active\",\"lastVerifiedSourceVersion\":\"2026-08-19.0\",\"targetSourceVersion\":\"2025-08-13.0\",\"verificationStatus\":\"verified\"}}"
+        ]
+      },
+      "previousCanonicalOwner": {
+        "id": "ss-a6690d01-e0b1-5c3a-b2ea-a6d798a53910",
+        "level": "building",
+        "parentId": null,
+        "en": "YIP WO HOUSE, YIP WONG ESTATE, 25 TIN HAU ROAD, TUEN MUN DISTRICT, NT",
+        "zhHant": "業和樓業旺邨25天后路屯門區新界",
+        "coordinates": [
+          113.96838,
+          22.38788
+        ],
+        "sourceIds": [
+          "8c62377c-7a50-5dc7-8769-8d99593944cc"
+        ],
+        "curations": [
+          "{\"id\":\"yip-wong-yip-wo-retention\",\"curationFile\":\"hkgov-dpo-address-house-retentions.json\",\"curation\":{\"applicationMode\":\"until-revoked\",\"applicationState\":\"active\",\"lastVerifiedSourceVersion\":\"2026-08-19.0\",\"targetSourceVersion\":\"2025-06-20.0\",\"verificationStatus\":\"verified\"}}"
+        ]
+      },
+      "authority": "Existing Yip Wong inventory continuity approvals; exact 684-unit duplicate verified in June and August 2025. Preserve canonical inventory IDs and separate address representations."
+    },
+    {
+      "id": "august-2025-yip-wo-2",
+      "sourceVersionFrom": "2025-08-13.0",
+      "duplicateOwner": {
+        "id": "ss-acaec9a6-4f8e-59e8-a7ac-823410b03acf",
+        "level": "building",
+        "parentId": null,
+        "en": "YIP WO HOUSE, 25 TIN HAU ROAD, TUEN MUN DISTRICT, NT",
+        "zhHant": "業和樓25天后路屯門區新界",
+        "coordinates": [
+          113.96845,
+          22.38786
+        ],
+        "sourceIds": [
+          "60aad483-97e9-5306-a2a9-13248d0785a9"
+        ],
+        "curations": []
+      },
+      "currentDuplicateOwner": {
+        "id": "ss-acaec9a6-4f8e-59e8-a7ac-823410b03acf",
+        "level": "building",
+        "parentId": null,
+        "en": "YIP WO HOUSE, 25 TIN HAU ROAD, TUEN MUN DISTRICT, NT",
+        "zhHant": "業和樓25天后路屯門區新界",
+        "coordinates": [
+          113.96845,
+          22.38786
+        ],
+        "sourceIds": [
+          "60aad483-97e9-5306-a2a9-13248d0785a9"
+        ],
+        "curations": []
+      },
+      "canonicalOwner": {
+        "id": "ss-a6690d01-e0b1-5c3a-b2ea-a6d798a53910",
+        "level": "building",
+        "parentId": null,
+        "en": "YIP WO HOUSE, YIP WONG ESTATE, 25 TIN HAU ROAD, TUEN MUN DISTRICT, NT",
+        "zhHant": "業和樓業旺邨25天后路屯門區新界",
+        "coordinates": [
+          113.96838,
+          22.38788
+        ],
+        "sourceIds": [
+          "8c62377c-7a50-5dc7-8769-8d99593944cc"
+        ],
+        "curations": [
+          "{\"id\":\"yip-wong-yip-wo-retention\",\"curationFile\":\"hkgov-dpo-address-house-retentions.json\",\"curation\":{\"applicationMode\":\"until-revoked\",\"applicationState\":\"active\",\"lastVerifiedSourceVersion\":\"2026-08-19.0\",\"targetSourceVersion\":\"2025-08-13.0\",\"verificationStatus\":\"verified\"}}"
+        ]
+      },
+      "previousCanonicalOwner": {
+        "id": "ss-a6690d01-e0b1-5c3a-b2ea-a6d798a53910",
+        "level": "building",
+        "parentId": null,
+        "en": "YIP WO HOUSE, YIP WONG ESTATE, 25 TIN HAU ROAD, TUEN MUN DISTRICT, NT",
+        "zhHant": "業和樓業旺邨25天后路屯門區新界",
+        "coordinates": [
+          113.96838,
+          22.38788
+        ],
+        "sourceIds": [
+          "8c62377c-7a50-5dc7-8769-8d99593944cc"
+        ],
+        "curations": [
+          "{\"id\":\"yip-wong-yip-wo-retention\",\"curationFile\":\"hkgov-dpo-address-house-retentions.json\",\"curation\":{\"applicationMode\":\"until-revoked\",\"applicationState\":\"active\",\"lastVerifiedSourceVersion\":\"2026-08-19.0\",\"targetSourceVersion\":\"2025-06-20.0\",\"verificationStatus\":\"verified\"}}"
+        ]
+      },
+      "authority": "Existing Yip Wong inventory continuity approvals; exact 684-unit duplicate verified in June and August 2025. Preserve canonical inventory IDs and separate address representations."
+    }
+  ]
+}

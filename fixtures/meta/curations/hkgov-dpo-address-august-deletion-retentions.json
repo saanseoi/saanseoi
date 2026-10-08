@@ -1,0 +1,4940 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "august-2024-fu-tip-social-service-building",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3582735772T20210226"
+      ],
+      "canonicalId": "ss-14f2bd35-9e24-5356-9da4-d1a9f4aed478",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "6709bf020ffebfd3782c6e6fc4dbb8d2ffe56a2bcf02b936f2eb5a240ccd0b64"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "6709bf020ffebfd3782c6e6fc4dbb8d2ffe56a2bcf02b936f2eb5a240ccd0b64"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "6709bf020ffebfd3782c6e6fc4dbb8d2ffe56a2bcf02b936f2eb5a240ccd0b64"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "6709bf020ffebfd3782c6e6fc4dbb8d2ffe56a2bcf02b936f2eb5a240ccd0b64"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "e5eee8665919eec6e84ddd43fe8cb1a275942041196de8d6975a0a420873f4cc"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "94086a16ad5831d4a16cf0a4421a6937a8864aa12609ad025d48ec3a63f43526"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "94086a16ad5831d4a16cf0a4421a6937a8864aa12609ad025d48ec3a63f43526"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "94086a16ad5831d4a16cf0a4421a6937a8864aa12609ad025d48ec3a63f43526"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "94086a16ad5831d4a16cf0a4421a6937a8864aa12609ad025d48ec3a63f43526"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "94086a16ad5831d4a16cf0a4421a6937a8864aa12609ad025d48ec3a63f43526"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "94086a16ad5831d4a16cf0a4421a6937a8864aa12609ad025d48ec3a63f43526"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "94086a16ad5831d4a16cf0a4421a6937a8864aa12609ad025d48ec3a63f43526"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.1726,
+              22.46142
+            ]
+          },
+          "properties": {
+            "Northing": 835770,
+            "Easting": 835828,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3582735772T20210226"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "LocationName": "大埔",
+                    "StreetName": "頌雅路",
+                    "BuildingNoFrom": "11"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "富蝶邨"
+                  },
+                  "BuildingName": "社會服務大樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SOCIAL SERVICE BUILDING",
+                  "EngEstate": {
+                    "EstateName": "FU TIP ESTATE"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "11",
+                    "StreetName": "CHUNG NGA ROAD",
+                    "LocationName": "TAI PO"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3582735772T20210226"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 1,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "SOCIAL SERVICE BUILDING",
+        "zhName": "社會服務大樓",
+        "enEstate": "FU TIP ESTATE",
+        "zhEstate": "富蝶邨",
+        "granularity": "building"
+      },
+      "role": "house",
+      "parentRule": "august-2024-fu-tip-estate-complex",
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-the-henderson",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "csus": [
+        "3474915699T20240424"
+      ],
+      "canonicalId": "ss-18187a79-0b2e-5cfd-8258-25e2b289bbe7",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "0aae5dfaa27a9cddd7568ed003239a43cfac38200bd1d12bd1fedcd5eb0d4037"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "0aae5dfaa27a9cddd7568ed003239a43cfac38200bd1d12bd1fedcd5eb0d4037"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "0aae5dfaa27a9cddd7568ed003239a43cfac38200bd1d12bd1fedcd5eb0d4037"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "0aae5dfaa27a9cddd7568ed003239a43cfac38200bd1d12bd1fedcd5eb0d4037"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "0aae5dfaa27a9cddd7568ed003239a43cfac38200bd1d12bd1fedcd5eb0d4037"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "0aae5dfaa27a9cddd7568ed003239a43cfac38200bd1d12bd1fedcd5eb0d4037"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "0aae5dfaa27a9cddd7568ed003239a43cfac38200bd1d12bd1fedcd5eb0d4037"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "0aae5dfaa27a9cddd7568ed003239a43cfac38200bd1d12bd1fedcd5eb0d4037"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "5adf4fa7c9b2ff830694c5c200ac4f32e4381de6370bc0f49a4d902793dc9b3c"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "5adf4fa7c9b2ff830694c5c200ac4f32e4381de6370bc0f49a4d902793dc9b3c"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "5adf4fa7c9b2ff830694c5c200ac4f32e4381de6370bc0f49a4d902793dc9b3c"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "5adf4fa7c9b2ff830694c5c200ac4f32e4381de6370bc0f49a4d902793dc9b3c"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "5adf4fa7c9b2ff830694c5c200ac4f32e4381de6370bc0f49a4d902793dc9b3c"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "5adf4fa7c9b2ff830694c5c200ac4f32e4381de6370bc0f49a4d902793dc9b3c"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "5adf4fa7c9b2ff830694c5c200ac4f32e4381de6370bc0f49a4d902793dc9b3c"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "5adf4fa7c9b2ff830694c5c200ac4f32e4381de6370bc0f49a4d902793dc9b3c"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "20b039de57ac353e771a8d7bd3376dd3eda72894f8346b2b1da8cba5b1233e32"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "20b039de57ac353e771a8d7bd3376dd3eda72894f8346b2b1da8cba5b1233e32"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "20b039de57ac353e771a8d7bd3376dd3eda72894f8346b2b1da8cba5b1233e32"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "09cbb960c372523ae74c4efc47036c0af778bf2cfcdac17062ae88bb5206002e"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "09cbb960c372523ae74c4efc47036c0af778bf2cfcdac17062ae88bb5206002e"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "4125da1ef6677317f9bddc81c96dda5b5d1c378a0b3f8ae0f38ddc017460f9e3"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "4125da1ef6677317f9bddc81c96dda5b5d1c378a0b3f8ae0f38ddc017460f9e3"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "4125da1ef6677317f9bddc81c96dda5b5d1c378a0b3f8ae0f38ddc017460f9e3"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "4125da1ef6677317f9bddc81c96dda5b5d1c378a0b3f8ae0f38ddc017460f9e3"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "4125da1ef6677317f9bddc81c96dda5b5d1c378a0b3f8ae0f38ddc017460f9e3"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.16213,
+              22.28016
+            ]
+          },
+          "properties": {
+            "Northing": 815699,
+            "Easting": 834749,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3474915699T20240424"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "美利道",
+                    "BuildingNoFrom": "2"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "THE HENDERSON",
+                  "EngStreet": {
+                    "BuildingNoFrom": "2",
+                    "StreetName": "MURRAY ROAD"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3474915699T20240424"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 2,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "THE HENDERSON",
+        "zhName": null,
+        "enEstate": null,
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-james-garden",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(kowloon_city_district).geojson",
+      "csus": [
+        "3715919065T20050430"
+      ],
+      "canonicalId": "ss-1ac508e5-11a8-5766-a982-bdf003b896b2",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "339294d8a457a88af35d891b03ba315111b33b386f58d776aa8dcd8d311b9467"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "339294d8a457a88af35d891b03ba315111b33b386f58d776aa8dcd8d311b9467"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "339294d8a457a88af35d891b03ba315111b33b386f58d776aa8dcd8d311b9467"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "339294d8a457a88af35d891b03ba315111b33b386f58d776aa8dcd8d311b9467"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "339294d8a457a88af35d891b03ba315111b33b386f58d776aa8dcd8d311b9467"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "339294d8a457a88af35d891b03ba315111b33b386f58d776aa8dcd8d311b9467"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "339294d8a457a88af35d891b03ba315111b33b386f58d776aa8dcd8d311b9467"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "339294d8a457a88af35d891b03ba315111b33b386f58d776aa8dcd8d311b9467"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": []
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.18587,
+              22.31067
+            ]
+          },
+          "properties": {
+            "Northing": 819077,
+            "Easting": 837195,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3715919065T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "九龍城區",
+                  "ChiStreet": {
+                    "StreetName": "鶴園街",
+                    "BuildingNoFrom": "23"
+                  },
+                  "BuildingName": "雅園"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "JAMES' GARDEN",
+                  "EngStreet": {
+                    "BuildingNoFrom": "23",
+                    "StreetName": "HOK YUEN STREET"
+                  },
+                  "EngDistrict": "KOWLOON CITY DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "3719619080T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 3,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots. Transitional housing; James’ Garden is still there."
+      },
+      "patch": {
+        "enName": "JAMES' GARDEN",
+        "zhName": "雅園",
+        "enEstate": null,
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-the-nascent-block-2",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(yuen_long_district).geojson",
+      "csus": [
+        "2482232952T20240524"
+      ],
+      "canonicalId": "ss-67894f09-b8db-585c-a592-ffc5a489281c",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "9caf73630d0c0d8aeeaa39a1c55a2703dc0b37b733cf51362da7b360c0471ec3"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "9caf73630d0c0d8aeeaa39a1c55a2703dc0b37b733cf51362da7b360c0471ec3"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "9caf73630d0c0d8aeeaa39a1c55a2703dc0b37b733cf51362da7b360c0471ec3"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "9caf73630d0c0d8aeeaa39a1c55a2703dc0b37b733cf51362da7b360c0471ec3"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "9caf73630d0c0d8aeeaa39a1c55a2703dc0b37b733cf51362da7b360c0471ec3"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "9aea18d0a7aa7ac99e2f3557027fad387f136696616fa9cc86b6b57c17a2e1ae"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "9aea18d0a7aa7ac99e2f3557027fad387f136696616fa9cc86b6b57c17a2e1ae"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "9aea18d0a7aa7ac99e2f3557027fad387f136696616fa9cc86b6b57c17a2e1ae"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "baa0fdbcd43365a7bf162f7ece3401594b8a08aca59b40fabb43fd449002586e"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "f4f7834de4bb214fe5e4fceee96ad8e3c1941e1b59e7f0982ddd8ef00b1fc365"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "f4f7834de4bb214fe5e4fceee96ad8e3c1941e1b59e7f0982ddd8ef00b1fc365"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "f4f7834de4bb214fe5e4fceee96ad8e3c1941e1b59e7f0982ddd8ef00b1fc365"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "92b2726cc50d07ffdee12eb473f031210467f69910a67c147ca30c2b6e94cb01"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "92b2726cc50d07ffdee12eb473f031210467f69910a67c147ca30c2b6e94cb01"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "92b2726cc50d07ffdee12eb473f031210467f69910a67c147ca30c2b6e94cb01"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "92b2726cc50d07ffdee12eb473f031210467f69910a67c147ca30c2b6e94cb01"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.06568,
+              22.43592
+            ]
+          },
+          "properties": {
+            "Northing": 832952,
+            "Easting": 824822,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "2482232952T20240524"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "元朗區",
+                  "ChiVillage": {
+                    "VillageName": "恒莆新苑",
+                    "BuildingNoFrom": "18"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "恒莆新苑"
+                  },
+                  "BuildingName": "第二座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "BLOCK 2",
+                  "EngEstate": {
+                    "EstateName": "THE NASCENT"
+                  },
+                  "EngVillage": {
+                    "BuildingNoFrom": "18",
+                    "VillageName": "THE NASCENT"
+                  },
+                  "EngDistrict": "YUEN LONG DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "2482232952T20240524"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 4,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots. Transitional housing."
+      },
+      "patch": {
+        "enName": "BLOCK 2",
+        "zhName": "第二座",
+        "enEstate": "THE NASCENT",
+        "zhEstate": "恒莆新苑",
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-portas-tower-b",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(sham_shui_po_district).geojson",
+      "csus": [
+        "3317522256T20240516"
+      ],
+      "canonicalId": "ss-6987abc8-5d5d-5168-a22d-36a36765d620",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "688f476a30be2a9a71e0f64535fe4b8b502543013ea982a773c38ca5fbd00049"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "688f476a30be2a9a71e0f64535fe4b8b502543013ea982a773c38ca5fbd00049"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "688f476a30be2a9a71e0f64535fe4b8b502543013ea982a773c38ca5fbd00049"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "688f476a30be2a9a71e0f64535fe4b8b502543013ea982a773c38ca5fbd00049"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "688f476a30be2a9a71e0f64535fe4b8b502543013ea982a773c38ca5fbd00049"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "688f476a30be2a9a71e0f64535fe4b8b502543013ea982a773c38ca5fbd00049"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "688f476a30be2a9a71e0f64535fe4b8b502543013ea982a773c38ca5fbd00049"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "688f476a30be2a9a71e0f64535fe4b8b502543013ea982a773c38ca5fbd00049"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "e3e6aa33bfeebaabd109a5affdb6e641aaedc5713f194b42d9c0cae7da96ed20"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "85e80ef65b27ffd87f3c2224bafba12e4d9f5cb1811ce6a7c9e247c147302d4e"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "85e80ef65b27ffd87f3c2224bafba12e4d9f5cb1811ce6a7c9e247c147302d4e"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "85e80ef65b27ffd87f3c2224bafba12e4d9f5cb1811ce6a7c9e247c147302d4e"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "85e80ef65b27ffd87f3c2224bafba12e4d9f5cb1811ce6a7c9e247c147302d4e"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "85e80ef65b27ffd87f3c2224bafba12e4d9f5cb1811ce6a7c9e247c147302d4e"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "85e80ef65b27ffd87f3c2224bafba12e4d9f5cb1811ce6a7c9e247c147302d4e"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "85e80ef65b27ffd87f3c2224bafba12e4d9f5cb1811ce6a7c9e247c147302d4e"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.14684,
+              22.33937
+            ]
+          },
+          "properties": {
+            "Northing": 822256,
+            "Easting": 833175,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3317522256T20240516"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "深水埗區",
+                  "ChiStreet": {
+                    "StreetName": "瓊林街",
+                    "BuildingNoFrom": "83"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "PORTAS TOWER B",
+                  "EngEstate": {
+                    "EstateName": "PORTAS"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "83",
+                    "StreetName": "KING LAM STREET"
+                  },
+                  "EngDistrict": "SHAM SHUI PO DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "3317522256T20240516"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 5,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": null,
+        "zhName": null,
+        "enEstate": "PORTAS",
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-88wl",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "csus": [
+        "3360616401T20230208"
+      ],
+      "canonicalId": "ss-78f997c1-1dcf-5ef3-b44e-f5766f57b4d7",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "a9e8629d1da298d9b613265efd2cb98e345ecf94be199c298d023463b4b8ee1f"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "a9e8629d1da298d9b613265efd2cb98e345ecf94be199c298d023463b4b8ee1f"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "a9e8629d1da298d9b613265efd2cb98e345ecf94be199c298d023463b4b8ee1f"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "a9e8629d1da298d9b613265efd2cb98e345ecf94be199c298d023463b4b8ee1f"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "277d2c0f6eb350a7f392a171343233c9aaba73f9a46152bd706b4ca2f3f92bb8"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "392896b551c50a2923d7a4e7f496621cc3c3f5aa959b2161e9bbd45c13ecbf58"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "392896b551c50a2923d7a4e7f496621cc3c3f5aa959b2161e9bbd45c13ecbf58"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "392896b551c50a2923d7a4e7f496621cc3c3f5aa959b2161e9bbd45c13ecbf58"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "392896b551c50a2923d7a4e7f496621cc3c3f5aa959b2161e9bbd45c13ecbf58"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "392896b551c50a2923d7a4e7f496621cc3c3f5aa959b2161e9bbd45c13ecbf58"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "392896b551c50a2923d7a4e7f496621cc3c3f5aa959b2161e9bbd45c13ecbf58"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "392896b551c50a2923d7a4e7f496621cc3c3f5aa959b2161e9bbd45c13ecbf58"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.15104,
+              22.28649
+            ]
+          },
+          "properties": {
+            "Northing": 816400,
+            "Easting": 833606,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3360616401T20230208"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "永樂街",
+                    "BuildingNoFrom": "88"
+                  },
+                  "BuildingName": "88WL"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "88WL",
+                  "EngStreet": {
+                    "BuildingNoFrom": "88",
+                    "StreetName": "WING LOK STREET"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3360616401T20230208"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 6,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "88WL",
+        "zhName": "88WL",
+        "enEstate": null,
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-lingnan-amenities-building",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "csus": [
+        "1637430213T20050430"
+      ],
+      "canonicalId": "ss-a15873a9-637d-5b92-975d-ce2fe382f911",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "7cbf19ef2586b35b22a8f60d36a53251126e55e03ebb590db14a87f88d6775ba"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "b61ce99f6026576badb74805d00eada4c380a33f8af31b6193b87909a9c17f5d"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "7cbf19ef2586b35b22a8f60d36a53251126e55e03ebb590db14a87f88d6775ba"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "b61ce99f6026576badb74805d00eada4c380a33f8af31b6193b87909a9c17f5d"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "7cbf19ef2586b35b22a8f60d36a53251126e55e03ebb590db14a87f88d6775ba"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "b61ce99f6026576badb74805d00eada4c380a33f8af31b6193b87909a9c17f5d"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "7cbf19ef2586b35b22a8f60d36a53251126e55e03ebb590db14a87f88d6775ba"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "b61ce99f6026576badb74805d00eada4c380a33f8af31b6193b87909a9c17f5d"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "b61ce99f6026576badb74805d00eada4c380a33f8af31b6193b87909a9c17f5d"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "b61ce99f6026576badb74805d00eada4c380a33f8af31b6193b87909a9c17f5d"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "b61ce99f6026576badb74805d00eada4c380a33f8af31b6193b87909a9c17f5d"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "b61ce99f6026576badb74805d00eada4c380a33f8af31b6193b87909a9c17f5d"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "e282525b3cbafaeef1200fa8aae929d3b9ec7efa87d98946da04bc7753b1dadc"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "62f3f720ad46a794b20ff33b88ff1e7592481510623f17eb2e54701355138313"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "62f3f720ad46a794b20ff33b88ff1e7592481510623f17eb2e54701355138313"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "62f3f720ad46a794b20ff33b88ff1e7592481510623f17eb2e54701355138313"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "62f3f720ad46a794b20ff33b88ff1e7592481510623f17eb2e54701355138313"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "62f3f720ad46a794b20ff33b88ff1e7592481510623f17eb2e54701355138313"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "62f3f720ad46a794b20ff33b88ff1e7592481510623f17eb2e54701355138313"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "62f3f720ad46a794b20ff33b88ff1e7592481510623f17eb2e54701355138313"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              113.98366,
+              22.41109
+            ]
+          },
+          "properties": {
+            "Northing": 830210,
+            "Easting": 816375,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "1637430213T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "屯門區",
+                  "ChiStreet": {
+                    "StreetName": "青山公路　－　嶺南段",
+                    "BuildingNoFrom": "8"
+                  },
+                  "BuildingName": "劉李婉嫻康樂樓"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "LAU LEE YUEN HAAN AMENITIES BUILDING",
+                  "EngStreet": {
+                    "BuildingNoFrom": "8",
+                    "StreetName": "CASTLE PEAK ROAD - LINGNAN"
+                  },
+                  "EngDistrict": "TUEN MUN DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "1637430213T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 7,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "LAU LEE YUEN HAAN AMENITIES BUILDING",
+        "zhName": "劉李婉嫻康樂樓",
+        "enEstate": null,
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "parentRule": "august-2024-lingnan-campus-complex",
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-cheung-kong-center-ii",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "csus": [
+        "3479515799T20240426"
+      ],
+      "canonicalId": "ss-abf552f5-2b68-5efa-92a6-896cf64f34e7",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "fe451b66fb76a3ddba192ceecea902be7434178a6baf1d8a0b4d3c75da85c4ec"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "fe451b66fb76a3ddba192ceecea902be7434178a6baf1d8a0b4d3c75da85c4ec"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "fe451b66fb76a3ddba192ceecea902be7434178a6baf1d8a0b4d3c75da85c4ec"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "fe451b66fb76a3ddba192ceecea902be7434178a6baf1d8a0b4d3c75da85c4ec"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "fe451b66fb76a3ddba192ceecea902be7434178a6baf1d8a0b4d3c75da85c4ec"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "fe451b66fb76a3ddba192ceecea902be7434178a6baf1d8a0b4d3c75da85c4ec"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "fe451b66fb76a3ddba192ceecea902be7434178a6baf1d8a0b4d3c75da85c4ec"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "fe451b66fb76a3ddba192ceecea902be7434178a6baf1d8a0b4d3c75da85c4ec"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "c7b5ab48b8776f57aff78fef7b0587c2accb5e376eb9d97130f18b4b29bee18c"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": []
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.16258,
+              22.28106
+            ]
+          },
+          "properties": {
+            "Northing": 815799,
+            "Easting": 834795,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3479515799T20240426"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "夏慤道",
+                    "BuildingNoFrom": "10"
+                  },
+                  "BuildingName": "長江集團中心二期"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "CHEUNG KONG CENTER II",
+                  "EngStreet": {
+                    "BuildingNoFrom": "10",
+                    "StreetName": "HARCOURT ROAD"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3479515799T20240426"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 8,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "CHEUNG KONG CENTER II",
+        "zhName": "長江集團中心二期",
+        "enEstate": null,
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-the-nascent-block-1",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(yuen_long_district).geojson",
+      "csus": [
+        "2484432878T20240524"
+      ],
+      "canonicalId": "ss-b3634d40-9348-5482-83c7-1ad288c9022f",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "62c14bc03598d8616728d15eeb787eb74e3e7073e1416245e36b9a29ce1e70ee"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "62c14bc03598d8616728d15eeb787eb74e3e7073e1416245e36b9a29ce1e70ee"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "62c14bc03598d8616728d15eeb787eb74e3e7073e1416245e36b9a29ce1e70ee"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "62c14bc03598d8616728d15eeb787eb74e3e7073e1416245e36b9a29ce1e70ee"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "62c14bc03598d8616728d15eeb787eb74e3e7073e1416245e36b9a29ce1e70ee"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "4be2c1045d8b1f2699e95add083fe8661578452a0e05e4f327798877a01c6cad"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "6d912e3462d87d0e07458da1e40139b2bcad86374f3cfa72d5db7833ae17fcd9"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "6d912e3462d87d0e07458da1e40139b2bcad86374f3cfa72d5db7833ae17fcd9"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "6d912e3462d87d0e07458da1e40139b2bcad86374f3cfa72d5db7833ae17fcd9"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "cb2bac769535b53ce2e667a72672a300bf0779492f4034daaaa32265b54ea769"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "cb2bac769535b53ce2e667a72672a300bf0779492f4034daaaa32265b54ea769"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "cb2bac769535b53ce2e667a72672a300bf0779492f4034daaaa32265b54ea769"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "cb2bac769535b53ce2e667a72672a300bf0779492f4034daaaa32265b54ea769"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.0659,
+              22.43525
+            ]
+          },
+          "properties": {
+            "Northing": 832878,
+            "Easting": 824844,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "2484432878T20240524"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "元朗區",
+                  "ChiVillage": {
+                    "VillageName": "恒莆新苑",
+                    "BuildingNoFrom": "18"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "恒莆新苑"
+                  },
+                  "BuildingName": "第一座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "BLOCK 1",
+                  "EngEstate": {
+                    "EstateName": "THE NASCENT"
+                  },
+                  "EngVillage": {
+                    "BuildingNoFrom": "18",
+                    "VillageName": "THE NASCENT"
+                  },
+                  "EngDistrict": "YUEN LONG DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "2484432878T20240524"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 9,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "BLOCK 1",
+        "zhName": "第一座",
+        "enEstate": "THE NASCENT",
+        "zhEstate": "恒莆新苑",
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-viva-place",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(southern_district).geojson",
+      "csus": [
+        "3496512135T20240503"
+      ],
+      "canonicalId": "ss-b54ed33d-272e-5401-b1c3-5a83ac28c168",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "4afcea4f87e0e47fc526e0cf5c4f0de7a6957278eeb8941573a687710eed2cb0"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "4afcea4f87e0e47fc526e0cf5c4f0de7a6957278eeb8941573a687710eed2cb0"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "4afcea4f87e0e47fc526e0cf5c4f0de7a6957278eeb8941573a687710eed2cb0"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "4afcea4f87e0e47fc526e0cf5c4f0de7a6957278eeb8941573a687710eed2cb0"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "4afcea4f87e0e47fc526e0cf5c4f0de7a6957278eeb8941573a687710eed2cb0"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "4afcea4f87e0e47fc526e0cf5c4f0de7a6957278eeb8941573a687710eed2cb0"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "4afcea4f87e0e47fc526e0cf5c4f0de7a6957278eeb8941573a687710eed2cb0"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "4afcea4f87e0e47fc526e0cf5c4f0de7a6957278eeb8941573a687710eed2cb0"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "2918c5b93325f9b17551ccaec3d4f2524b178b3a3ba41055467f86db14a14244"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "68a945179facebe9f0ac88c777225c4690862c3a986f28e97cbbd0a0fcfe88c3"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "68a945179facebe9f0ac88c777225c4690862c3a986f28e97cbbd0a0fcfe88c3"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "398ea974fb1e47a96cd0f8d04c114d941bdc6c1ffd9466fa1d4bbe69e26db428"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "398ea974fb1e47a96cd0f8d04c114d941bdc6c1ffd9466fa1d4bbe69e26db428"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "398ea974fb1e47a96cd0f8d04c114d941bdc6c1ffd9466fa1d4bbe69e26db428"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "398ea974fb1e47a96cd0f8d04c114d941bdc6c1ffd9466fa1d4bbe69e26db428"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "398ea974fb1e47a96cd0f8d04c114d941bdc6c1ffd9466fa1d4bbe69e26db428"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.16423,
+              22.24797
+            ]
+          },
+          "properties": {
+            "Northing": 812135,
+            "Easting": 834965,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3496512135T20240503"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "南區",
+                  "ChiStreet": {
+                    "StreetName": "香葉道",
+                    "BuildingNoFrom": "36"
+                  },
+                  "BuildingName": "偉華匯"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "VIVA PLACE",
+                  "EngStreet": {
+                    "BuildingNoFrom": "36",
+                    "StreetName": "HEUNG YIP ROAD"
+                  },
+                  "EngDistrict": "SOUTHERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3496512135T20240503"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 10,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "VIVA PLACE",
+        "zhName": "偉華匯",
+        "enEstate": null,
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-two-taikoo-place",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(eastern_district).geojson",
+      "csus": [
+        "3990816407T20240605"
+      ],
+      "canonicalId": "ss-b61f9233-4688-59e4-ad45-5ecb8efdd76b",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "21133cd8d3d49ae7daa687ccdd965f81fe77a991c3ef03ea60ede0b9ad44ed77"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "c794b876448217e3bb2f8559175a7da31ccd47f09eba1095ba02826fac1566f5"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "c794b876448217e3bb2f8559175a7da31ccd47f09eba1095ba02826fac1566f5"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "c794b876448217e3bb2f8559175a7da31ccd47f09eba1095ba02826fac1566f5"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "c794b876448217e3bb2f8559175a7da31ccd47f09eba1095ba02826fac1566f5"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "c794b876448217e3bb2f8559175a7da31ccd47f09eba1095ba02826fac1566f5"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "c794b876448217e3bb2f8559175a7da31ccd47f09eba1095ba02826fac1566f5"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "c794b876448217e3bb2f8559175a7da31ccd47f09eba1095ba02826fac1566f5"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "7a1d656c0c29e7a67378ed08647bb02a9653d7bf3e69fd02ea87500fd08968b5"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "7a1d656c0c29e7a67378ed08647bb02a9653d7bf3e69fd02ea87500fd08968b5"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "7a1d656c0c29e7a67378ed08647bb02a9653d7bf3e69fd02ea87500fd08968b5"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "7a1d656c0c29e7a67378ed08647bb02a9653d7bf3e69fd02ea87500fd08968b5"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "7a1d656c0c29e7a67378ed08647bb02a9653d7bf3e69fd02ea87500fd08968b5"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "7a1d656c0c29e7a67378ed08647bb02a9653d7bf3e69fd02ea87500fd08968b5"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "7a1d656c0c29e7a67378ed08647bb02a9653d7bf3e69fd02ea87500fd08968b5"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.21219,
+              22.28655
+            ]
+          },
+          "properties": {
+            "Northing": 816407,
+            "Easting": 839908,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3990816407T20240605"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "東區",
+                  "ChiStreet": {
+                    "StreetName": "英皇道",
+                    "BuildingNoFrom": "979"
+                  },
+                  "BuildingName": "太古坊二座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "TWO TAIKOO PLACE",
+                  "EngStreet": {
+                    "BuildingNoFrom": "979",
+                    "StreetName": "KING'S ROAD"
+                  },
+                  "EngDistrict": "EASTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3990816407T20240605"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 11,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "TWO TAIKOO PLACE",
+        "zhName": "太古坊二座",
+        "enEstate": null,
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-the-nascent-sewage-treatment-plant",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(yuen_long_district).geojson",
+      "csus": [
+        "2479532901T20240528"
+      ],
+      "canonicalId": "ss-b6f7e55c-3082-5928-a6ed-323404abf702",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "ff31039ece1d28f65229cd378f7038b36e4d5c1350f7492a51251a069134f28a"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "ff31039ece1d28f65229cd378f7038b36e4d5c1350f7492a51251a069134f28a"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "ff31039ece1d28f65229cd378f7038b36e4d5c1350f7492a51251a069134f28a"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "ff31039ece1d28f65229cd378f7038b36e4d5c1350f7492a51251a069134f28a"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "ff31039ece1d28f65229cd378f7038b36e4d5c1350f7492a51251a069134f28a"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "ddb7797f571b3f2ddc4eea439e1b7105d28ee611061e686616d696f6481aff99"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "69a4cd9bba434e65abe3e088286734ca390c8e653fcfbdbe7296078b740842df"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "69a4cd9bba434e65abe3e088286734ca390c8e653fcfbdbe7296078b740842df"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "69a4cd9bba434e65abe3e088286734ca390c8e653fcfbdbe7296078b740842df"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "69a4cd9bba434e65abe3e088286734ca390c8e653fcfbdbe7296078b740842df"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "69a4cd9bba434e65abe3e088286734ca390c8e653fcfbdbe7296078b740842df"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "69a4cd9bba434e65abe3e088286734ca390c8e653fcfbdbe7296078b740842df"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "69a4cd9bba434e65abe3e088286734ca390c8e653fcfbdbe7296078b740842df"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.06542,
+              22.43546
+            ]
+          },
+          "properties": {
+            "Northing": 832901,
+            "Easting": 824795,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "2479532901T20240528"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "元朗區",
+                  "ChiVillage": {
+                    "VillageName": "恒莆新苑",
+                    "BuildingNoFrom": "18"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "恒莆新苑"
+                  },
+                  "BuildingName": "污水處理中心"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SEWAGE TREATMENT PLANT",
+                  "EngEstate": {
+                    "EstateName": "THE NASCENT"
+                  },
+                  "EngVillage": {
+                    "BuildingNoFrom": "18",
+                    "VillageName": "THE NASCENT"
+                  },
+                  "EngDistrict": "YUEN LONG DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "2479532901T20240528"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 12,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "SEWAGE TREATMENT PLANT",
+        "zhName": "污水處理中心",
+        "enEstate": "THE NASCENT",
+        "zhEstate": "恒莆新苑",
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-portas-tower-a",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(sham_shui_po_district).geojson",
+      "csus": [
+        "3311222260T20240516"
+      ],
+      "canonicalId": "ss-e64b13f8-df3b-581c-8222-67ec8c4d850f",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "299e73a0a1f0b34097b71bbb9658647246e36fb014b28bf7e9348f7f9c9b26e4"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "299e73a0a1f0b34097b71bbb9658647246e36fb014b28bf7e9348f7f9c9b26e4"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "299e73a0a1f0b34097b71bbb9658647246e36fb014b28bf7e9348f7f9c9b26e4"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "299e73a0a1f0b34097b71bbb9658647246e36fb014b28bf7e9348f7f9c9b26e4"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "299e73a0a1f0b34097b71bbb9658647246e36fb014b28bf7e9348f7f9c9b26e4"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "299e73a0a1f0b34097b71bbb9658647246e36fb014b28bf7e9348f7f9c9b26e4"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "299e73a0a1f0b34097b71bbb9658647246e36fb014b28bf7e9348f7f9c9b26e4"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "299e73a0a1f0b34097b71bbb9658647246e36fb014b28bf7e9348f7f9c9b26e4"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "91273f020b46a7b231ae70ac8f97abf81c0e713b9074df9548d481956f223d1a"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "77a75a5acfc3c022b666579b45e45f72b5bec43e2dac7c05e82fabf5316c2a0a"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "77a75a5acfc3c022b666579b45e45f72b5bec43e2dac7c05e82fabf5316c2a0a"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "77a75a5acfc3c022b666579b45e45f72b5bec43e2dac7c05e82fabf5316c2a0a"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "77a75a5acfc3c022b666579b45e45f72b5bec43e2dac7c05e82fabf5316c2a0a"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "77a75a5acfc3c022b666579b45e45f72b5bec43e2dac7c05e82fabf5316c2a0a"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "77a75a5acfc3c022b666579b45e45f72b5bec43e2dac7c05e82fabf5316c2a0a"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "77a75a5acfc3c022b666579b45e45f72b5bec43e2dac7c05e82fabf5316c2a0a"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.14623,
+              22.3394
+            ]
+          },
+          "properties": {
+            "Northing": 822260,
+            "Easting": 833112,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3311222260T20240516"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "深水埗區",
+                  "ChiStreet": {
+                    "StreetName": "瓊林街",
+                    "BuildingNoFrom": "83"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "PORTAS TOWER A",
+                  "EngEstate": {
+                    "EstateName": "PORTAS"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "83",
+                    "StreetName": "KING LAM STREET"
+                  },
+                  "EngDistrict": "SHAM SHUI PO DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "3311222260T20240516"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 13,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": null,
+        "zhName": null,
+        "enEstate": "PORTAS",
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-terra",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(kowloon_city_district).geojson",
+      "csus": [
+        "3675920842T20220721"
+      ],
+      "canonicalId": "ss-e6a4f37b-c0ba-5755-8b64-9ce9cb865fc4",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "becd8a4a36106be1add313e9ccaaa9a728221a8f626e0d0b9db24be2dad6de1f"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "becd8a4a36106be1add313e9ccaaa9a728221a8f626e0d0b9db24be2dad6de1f"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "becd8a4a36106be1add313e9ccaaa9a728221a8f626e0d0b9db24be2dad6de1f"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "becd8a4a36106be1add313e9ccaaa9a728221a8f626e0d0b9db24be2dad6de1f"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "becd8a4a36106be1add313e9ccaaa9a728221a8f626e0d0b9db24be2dad6de1f"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "becd8a4a36106be1add313e9ccaaa9a728221a8f626e0d0b9db24be2dad6de1f"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "becd8a4a36106be1add313e9ccaaa9a728221a8f626e0d0b9db24be2dad6de1f"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "becd8a4a36106be1add313e9ccaaa9a728221a8f626e0d0b9db24be2dad6de1f"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "0ad9de04f38adbaca314d990fd14833dbd0adbe04165f80517f768a652ce52a5"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.18164,
+              22.32661
+            ]
+          },
+          "properties": {
+            "Northing": 820842,
+            "Easting": 836759,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3675920842T20220721"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "九龍",
+                  "ChiDistrict": "九龍城區",
+                  "ChiStreet": {
+                    "StreetName": "太子道西",
+                    "BuildingNoFrom": "296"
+                  },
+                  "BuildingName": "隆敍"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "TERRA",
+                  "EngStreet": {
+                    "BuildingNoFrom": "296",
+                    "StreetName": "PRINCE EDWARD ROAD WEST"
+                  },
+                  "EngDistrict": "KOWLOON CITY DISTRICT",
+                  "Region": "KLN"
+                },
+                "GeoAddress": "3675920842T20220721"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 14,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots. Keep the building name."
+      },
+      "patch": {
+        "enName": "TERRA",
+        "zhName": "隆敍",
+        "enEstate": null,
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-sl-ginza",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(wan_chai_district).geojson",
+      "csus": [
+        "3781416131P20200107"
+      ],
+      "canonicalId": "ss-f80dd6b0-0779-5c9a-99f9-4bee41e6ae46",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "61b0b69b8cd5c34f34cdb005443017289fd664af762a9a4b7ab0f9a9f160e079"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "61b0b69b8cd5c34f34cdb005443017289fd664af762a9a4b7ab0f9a9f160e079"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "61b0b69b8cd5c34f34cdb005443017289fd664af762a9a4b7ab0f9a9f160e079"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "61b0b69b8cd5c34f34cdb005443017289fd664af762a9a4b7ab0f9a9f160e079"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "61b0b69b8cd5c34f34cdb005443017289fd664af762a9a4b7ab0f9a9f160e079"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "61b0b69b8cd5c34f34cdb005443017289fd664af762a9a4b7ab0f9a9f160e079"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "61b0b69b8cd5c34f34cdb005443017289fd664af762a9a4b7ab0f9a9f160e079"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "61b0b69b8cd5c34f34cdb005443017289fd664af762a9a4b7ab0f9a9f160e079"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": []
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.19186,
+              22.28406
+            ]
+          },
+          "properties": {
+            "Northing": 816130,
+            "Easting": 837812,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3781416131P20200107"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "灣仔區",
+                  "ChiStreet": {
+                    "StreetName": "電氣道",
+                    "BuildingNoFrom": "68"
+                  },
+                  "BuildingName": "樹林銀座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "SL GINZA",
+                  "EngStreet": {
+                    "BuildingNoFrom": "68",
+                    "StreetName": "ELECTRIC ROAD"
+                  },
+                  "EngDistrict": "WAN CHAI DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3781216131T20200107"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 15,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": "SL GINZA",
+        "zhName": "樹林銀座",
+        "enEstate": null,
+        "zhEstate": null,
+        "granularity": "building"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-ching-tin-estate",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "csus": [
+        "1521830205T20220125"
+      ],
+      "canonicalId": "ss-372a07c2-b553-5257-9dfb-82be6ef7383a",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "ff42f6f0ad6ed52621b3a0c00c9701ea34f40d0b7ba9d63b23a544060f07b400"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "ff42f6f0ad6ed52621b3a0c00c9701ea34f40d0b7ba9d63b23a544060f07b400"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "ff42f6f0ad6ed52621b3a0c00c9701ea34f40d0b7ba9d63b23a544060f07b400"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "ff42f6f0ad6ed52621b3a0c00c9701ea34f40d0b7ba9d63b23a544060f07b400"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "ff42f6f0ad6ed52621b3a0c00c9701ea34f40d0b7ba9d63b23a544060f07b400"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "ff42f6f0ad6ed52621b3a0c00c9701ea34f40d0b7ba9d63b23a544060f07b400"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "ff42f6f0ad6ed52621b3a0c00c9701ea34f40d0b7ba9d63b23a544060f07b400"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "ff42f6f0ad6ed52621b3a0c00c9701ea34f40d0b7ba9d63b23a544060f07b400"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": []
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              113.97151,
+              22.41127
+            ]
+          },
+          "properties": {
+            "Northing": 830231,
+            "Easting": 815123,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "1521830205T20220125"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "屯門區",
+                  "ChiStreet": {
+                    "LocationName": "屯門",
+                    "StreetName": "欣寶路",
+                    "BuildingNoFrom": "10"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "菁田邨"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngEstate": {
+                    "EstateName": "CHING TIN ESTATE"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "10",
+                    "StreetName": "YAN PO ROAD",
+                    "LocationName": "TUEN MUN"
+                  },
+                  "EngDistrict": "TUEN MUN DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "1512430232T20220909"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 16,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": null,
+        "zhName": null,
+        "enEstate": "CHING TIN ESTATE",
+        "zhEstate": "菁田邨",
+        "granularity": "complex"
+      },
+      "role": "complex",
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-fu-tip-estate-complex",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(tai_po_district).geojson",
+      "csus": [
+        "3582735772T20210226"
+      ],
+      "canonicalId": "ss-844d3a85-f8cb-5462-a400-181bbbef56e4",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "aaad0518769118c8727997251e05bc61925c32716b08d52e2e6abf16a23e1341"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "afb099f0070dad8d4a4c2cf62f31e1fd951ed18540af395693485f5e32e6ab71"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "afb099f0070dad8d4a4c2cf62f31e1fd951ed18540af395693485f5e32e6ab71"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "afb099f0070dad8d4a4c2cf62f31e1fd951ed18540af395693485f5e32e6ab71"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "afb099f0070dad8d4a4c2cf62f31e1fd951ed18540af395693485f5e32e6ab71"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "afb099f0070dad8d4a4c2cf62f31e1fd951ed18540af395693485f5e32e6ab71"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "afb099f0070dad8d4a4c2cf62f31e1fd951ed18540af395693485f5e32e6ab71"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "afb099f0070dad8d4a4c2cf62f31e1fd951ed18540af395693485f5e32e6ab71"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.1726,
+              22.46142
+            ]
+          },
+          "properties": {
+            "Northing": 835770,
+            "Easting": 835828,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3582735772T20210226"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "大埔區",
+                  "ChiStreet": {
+                    "LocationName": "大埔",
+                    "StreetName": "頌雅路",
+                    "BuildingNoFrom": "11"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "富蝶邨"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngEstate": {
+                    "EstateName": "FU TIP ESTATE"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "11",
+                    "StreetName": "CHUNG NGA ROAD",
+                    "LocationName": "TAI PO"
+                  },
+                  "EngDistrict": "TAI PO DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "3582735772T20210226"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 17,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": null,
+        "zhName": null,
+        "enEstate": "FU TIP ESTATE",
+        "zhEstate": "富蝶邨",
+        "granularity": "complex"
+      },
+      "role": "complex",
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-lingnan-campus-complex",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "csus": [
+        "1638830000T20050430"
+      ],
+      "canonicalId": "ss-adf42c17-4f8e-549b-9115-78d8243a6777",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "a353559d25b4edf76b4e51075424e7db8e0af1748c80bed9f8a7e858fe1fde68"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "7b513d6144bf5b7f09b9176d78d60a2cfd0a1e6a7142050c4d573e7c55208567"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              113.9829,
+              22.41083
+            ]
+          },
+          "properties": {
+            "Northing": 830181,
+            "Easting": 816296,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "1638830000T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "屯門區",
+                  "ChiStreet": {
+                    "LocationName": "屯門 嶺南段",
+                    "StreetName": "青山公路",
+                    "BuildingNoFrom": "8"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "嶺南大學"
+                  },
+                  "ChiBlock": {
+                    "BlockNo": "CAMPUS"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngBlock": {
+                    "BlockNo": "CAMPUS"
+                  },
+                  "EngEstate": {
+                    "EstateName": "LINGNAN UNIVERSITY"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "8",
+                    "StreetName": "CASTLE PEAK ROAD",
+                    "LocationName": "LINGNAN, TUEN MUN"
+                  },
+                  "EngDistrict": "TUEN MUN DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "1629530171T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 18,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots. Split complex and buildings; campus is a complex."
+      },
+      "patch": {
+        "enName": null,
+        "zhName": null,
+        "enEstate": "LINGNAN UNIVERSITY",
+        "zhEstate": "嶺南大學",
+        "granularity": "complex",
+        "blockNumber": null
+      },
+      "role": "complex",
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-yap-ting-terraced-home",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(sai_kung_district).geojson",
+      "csus": [
+        "4519418749T20240522"
+      ],
+      "canonicalId": "ss-bc83454c-c7d8-5172-91e6-991366f8b521",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "37b1deff35967b5e1921aa5ecce4655bbe508bd543eb9cc69fe2ebb30379b285"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "37b1deff35967b5e1921aa5ecce4655bbe508bd543eb9cc69fe2ebb30379b285"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "37b1deff35967b5e1921aa5ecce4655bbe508bd543eb9cc69fe2ebb30379b285"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "37b1deff35967b5e1921aa5ecce4655bbe508bd543eb9cc69fe2ebb30379b285"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "37b1deff35967b5e1921aa5ecce4655bbe508bd543eb9cc69fe2ebb30379b285"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "37b1deff35967b5e1921aa5ecce4655bbe508bd543eb9cc69fe2ebb30379b285"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "37b1deff35967b5e1921aa5ecce4655bbe508bd543eb9cc69fe2ebb30379b285"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "37b1deff35967b5e1921aa5ecce4655bbe508bd543eb9cc69fe2ebb30379b285"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "7b8751bddab578c82567c7115f64c69035d3479191a29a0c0ff9d685c7c11218"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "4016374297639a6f9e9ce51fc9eaa1e0c65ef7320aab2898f010e36f4709f2ca"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "4016374297639a6f9e9ce51fc9eaa1e0c65ef7320aab2898f010e36f4709f2ca"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "4016374297639a6f9e9ce51fc9eaa1e0c65ef7320aab2898f010e36f4709f2ca"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "2c95774189a061735eb36498f963f36092017b6f975d8a92b94df705ef4e9178"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "2c95774189a061735eb36498f963f36092017b6f975d8a92b94df705ef4e9178"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "2c95774189a061735eb36498f963f36092017b6f975d8a92b94df705ef4e9178"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "2c95774189a061735eb36498f963f36092017b6f975d8a92b94df705ef4e9178"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.26313,
+              22.30742
+            ]
+          },
+          "properties": {
+            "Northing": 818721,
+            "Easting": 845156,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "4519418749T20240522"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "西貢區",
+                  "ChiStreet": {
+                    "StreetName": "寶邑路",
+                    "BuildingNoFrom": "27"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "邑庭居"
+                  },
+                  "BuildingName": "邑庭居"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "YAP TING TERRACED HOME",
+                  "EngEstate": {
+                    "EstateName": "YAP TING TERRACED HOME"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "27",
+                    "StreetName": "PO YAP ROAD"
+                  },
+                  "EngDistrict": "SAI KUNG DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "4515618721T20240522"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 19,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": null,
+        "zhName": null,
+        "enEstate": "YAP TING TERRACED HOME",
+        "zhEstate": "邑庭居",
+        "granularity": "complex"
+      },
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    },
+    {
+      "id": "august-2024-lingnan-castle-peak-road-complex",
+      "authority": "User review screenshots, 2026-10-04",
+      "sourceVersionFrom": "2024-08-21.0",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "csus": [
+        "1645529902T20091230"
+      ],
+      "canonicalId": "ss-d5d645b6-e024-5222-b2b5-5966336cfb62",
+      "retain": true,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2024-08-21.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "ee1b7c575e193e29be3de97c17ab8b1353babce986314f28743aa1c4d3eacaec"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "65c12e4aa259e8fe6ba55efe3602100fdc61477de40234f84c53c75e6b1d3c89"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "65c12e4aa259e8fe6ba55efe3602100fdc61477de40234f84c53c75e6b1d3c89"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "65c12e4aa259e8fe6ba55efe3602100fdc61477de40234f84c53c75e6b1d3c89"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "65c12e4aa259e8fe6ba55efe3602100fdc61477de40234f84c53c75e6b1d3c89"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "65c12e4aa259e8fe6ba55efe3602100fdc61477de40234f84c53c75e6b1d3c89"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": []
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2024-07-31.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              113.98447,
+              22.40831
+            ]
+          },
+          "properties": {
+            "Northing": 829902,
+            "Easting": 816457,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "1645529902T20091230"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "屯門區",
+                  "ChiStreet": {
+                    "StreetName": "青山公路　－　嶺南段",
+                    "BuildingNoFrom": "8"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "嶺南大學"
+                  }
+                },
+                "EngPremisesAddress": {
+                  "EngEstate": {
+                    "EstateName": "LINGNAN UNIVERSITY"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "8",
+                    "StreetName": "CASTLE PEAK ROAD - LINGNAN"
+                  },
+                  "EngDistrict": "TUEN MUN DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "1645529902T20091230"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "reviewReportDigest": "0a4dc3434e0c916ab3b38f9b2de44cd00d92d185ce2fb7de432227240aeb6a29",
+        "reviewEntry": 20,
+        "decision": "retain-reconcile",
+        "reason": "User selected Retain / reconcile in the submitted review screenshots."
+      },
+      "patch": {
+        "enName": null,
+        "zhName": null,
+        "enEstate": "LINGNAN UNIVERSITY",
+        "zhEstate": "嶺南大學",
+        "granularity": "complex"
+      },
+      "role": "complex",
+      "curationFile": "hkgov-dpo-address-august-deletion-retentions.json"
+    }
+  ]
+}

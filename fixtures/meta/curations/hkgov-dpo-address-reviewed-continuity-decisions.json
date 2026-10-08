@@ -1207,6 +1207,268 @@
           }
         }
       }
+    },
+    {
+      "id": "ching-sum-reviewed-inventory-owner",
+      "authority": "User decision, 2026-09-07: backfill the June Ching Sum inventory from identical May and August inventories. Preserve its physical owner and all 949 unit IDs while retaining the June Address2D block components.",
+      "sourceFile": "als_addresses_(tuen_mun_district).geojson",
+      "sourceVersionFrom": "2025-06-20.0",
+      "csus": [
+        "1514730241T20220127"
+      ],
+      "canonicalId": "ss-a7131474-6f05-53d3-b433-cd06b1c77d74",
+      "patch": {
+        "preserveStructure": true
+      },
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-06-20.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": [
+            "e54eaab78658d9875f92b6fe898680c9b6a90e77b3495f9793e33baa84ea354b"
+          ]
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": [
+            "1c649b46c761deed8e8e7038b773d9d6ee450d4b32149c5cd178649e468637ba"
+          ]
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": [
+            "1c649b46c761deed8e8e7038b773d9d6ee450d4b32149c5cd178649e468637ba"
+          ]
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": [
+            "1c649b46c761deed8e8e7038b773d9d6ee450d4b32149c5cd178649e468637ba"
+          ]
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": [
+            "1c649b46c761deed8e8e7038b773d9d6ee450d4b32149c5cd178649e468637ba"
+          ]
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "1c649b46c761deed8e8e7038b773d9d6ee450d4b32149c5cd178649e468637ba"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "1c649b46c761deed8e8e7038b773d9d6ee450d4b32149c5cd178649e468637ba"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "1c649b46c761deed8e8e7038b773d9d6ee450d4b32149c5cd178649e468637ba"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "87e49aa6dca334f238b4c3aff7c3a7b8500a438409345e828e33dbae05d4a80a"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "87e49aa6dca334f238b4c3aff7c3a7b8500a438409345e828e33dbae05d4a80a"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "87e49aa6dca334f238b4c3aff7c3a7b8500a438409345e828e33dbae05d4a80a"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "87e49aa6dca334f238b4c3aff7c3a7b8500a438409345e828e33dbae05d4a80a"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "87e49aa6dca334f238b4c3aff7c3a7b8500a438409345e828e33dbae05d4a80a"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "87e49aa6dca334f238b4c3aff7c3a7b8500a438409345e828e33dbae05d4a80a"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "b5b2499176fb59a11f6d7fef9e15c7497b53b6cd79ebad892b8af5bdbcd33cb0"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-06-20.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              113.97173,
+              22.41142
+            ]
+          },
+          "properties": {
+            "Northing": 830248,
+            "Easting": 815146,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "1514730241T20220127"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "新界",
+                  "ChiDistrict": "屯門區",
+                  "ChiStreet": {
+                    "LocationName": "屯門",
+                    "StreetName": "欣寶路",
+                    "BuildingNoFrom": "10"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "菁田邨"
+                  },
+                  "ChiBlock": {
+                    "BlockNo": "2",
+                    "BlockDescriptor": "座"
+                  },
+                  "BuildingName": "菁心樓"
+                },
+                "EngPremisesAddress": {
+                  "EngBlock": {
+                    "BlockDescriptor": "BLK",
+                    "BlockNo": "2",
+                    "BlockDescriptorPrecedenceIndicator": "N"
+                  },
+                  "BuildingName": "CHING SUM HOUSE",
+                  "EngEstate": {
+                    "EstateName": "CHING TIN ESTATE"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "10",
+                    "StreetName": "YAN PO ROAD",
+                    "LocationName": "TUEN MUN"
+                  },
+                  "EngDistrict": "TUEN MUN DISTRICT",
+                  "Region": "NT"
+                },
+                "GeoAddress": "1516130235P20220127"
+              }
+            }
+          }
+        }
+      }
     }
   ]
 }

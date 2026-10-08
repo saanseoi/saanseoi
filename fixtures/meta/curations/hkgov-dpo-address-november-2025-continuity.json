@@ -1,0 +1,1357 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "november-2025-continuity-1",
+      "authority": "High-confidence publisher continuity with linked public corroboration, 2026-10-07",
+      "sourceFile": "als_addresses_(wan_chai_district).geojson",
+      "curationFile": "hkgov-dpo-address-november-2025-continuity.json",
+      "sourceVersionFrom": "2025-11-04.0",
+      "csus": [
+        "3601414970T20201016"
+      ],
+      "premiseSelectors": [
+        [
+          "WOODY HOUSE",
+          null,
+          "HING WAN STREET",
+          "19",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-00281833-8847-55b3-932d-192e386d43c8",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-11-04.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "1dff4826e81afd825c714b15c6315a0da52f9d3b955500e877d88edcf92fd34b"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "1dff4826e81afd825c714b15c6315a0da52f9d3b955500e877d88edcf92fd34b"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "1dff4826e81afd825c714b15c6315a0da52f9d3b955500e877d88edcf92fd34b"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "34938db9b1801ec370f83970fc1de4c14369e4bf0dc0967a7c5b4fdd601de32c"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "34938db9b1801ec370f83970fc1de4c14369e4bf0dc0967a7c5b4fdd601de32c"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "34938db9b1801ec370f83970fc1de4c14369e4bf0dc0967a7c5b4fdd601de32c"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "34938db9b1801ec370f83970fc1de4c14369e4bf0dc0967a7c5b4fdd601de32c"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "34938db9b1801ec370f83970fc1de4c14369e4bf0dc0967a7c5b4fdd601de32c"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "34938db9b1801ec370f83970fc1de4c14369e4bf0dc0967a7c5b4fdd601de32c"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "34938db9b1801ec370f83970fc1de4c14369e4bf0dc0967a7c5b4fdd601de32c"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-11-04.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.1744,
+              22.27357
+            ]
+          },
+          "properties": {
+            "Northing": 814969,
+            "Easting": 836013,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3601414970T20201016"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "灣仔區",
+                  "ChiStreet": {
+                    "StreetName": "慶雲街",
+                    "BuildingNoFrom": "19"
+                  },
+                  "BuildingName": "木居"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "WOODY HOUSE",
+                  "EngStreet": {
+                    "BuildingNoFrom": "19",
+                    "StreetName": "HING WAN STREET"
+                  },
+                  "EngDistrict": "WAN CHAI DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3601414970T20201016"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 1,
+        "reason": "Same publisher identity, coordinates, street address and scope; hotel rename corroborated by linked listings.",
+        "selectedCandidateId": "ss-5cc0884a-eaba-581f-a694-71ebc7d0011e",
+        "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
+      },
+      "patch": {
+        "granularity": "building"
+      }
+    },
+    {
+      "id": "november-2025-continuity-5",
+      "authority": "High-confidence publisher continuity with linked public corroboration, 2026-10-07",
+      "sourceFile": "als_addresses_(eastern_district).geojson",
+      "curationFile": "hkgov-dpo-address-november-2025-continuity.json",
+      "sourceVersionFrom": "2025-11-04.0",
+      "csus": [
+        "3876916768T20151009"
+      ],
+      "premiseSelectors": [
+        [
+          "THE TANNER HILL TOWER 2",
+          null,
+          "TANNER ROAD",
+          "8",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-09f9bf76-3525-5b7d-86a2-40025e82462e",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-11-04.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "b9dc2663e3e7da453641bead984c38319096b2d79bf3bb48529b75a4b8acb4d4"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "b9dc2663e3e7da453641bead984c38319096b2d79bf3bb48529b75a4b8acb4d4"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "b9dc2663e3e7da453641bead984c38319096b2d79bf3bb48529b75a4b8acb4d4"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": []
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-11-04.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20114,
+              22.28981
+            ]
+          },
+          "properties": {
+            "Northing": 816768,
+            "Easting": 838769,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3876916768T20151009"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "東區",
+                  "ChiStreet": {
+                    "StreetName": "丹拿道",
+                    "BuildingNoFrom": "8"
+                  },
+                  "BuildingName": "雋？第二座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "THE TANNER HILL TOWER 2",
+                  "EngStreet": {
+                    "BuildingNoFrom": "8",
+                    "StreetName": "TANNER ROAD"
+                  },
+                  "EngDistrict": "EASTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3876916768T20151009"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 5,
+        "reason": "Same publisher identity, coordinates, street address and scope; tower-name formatting correction.",
+        "selectedCandidateId": "ss-57ae95cb-250a-5767-a216-11343cecc4ee",
+        "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
+      },
+      "patch": {
+        "granularity": "building"
+      }
+    },
+    {
+      "id": "november-2025-continuity-18",
+      "authority": "High-confidence publisher continuity with linked public corroboration, 2026-10-07",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "curationFile": "hkgov-dpo-address-november-2025-continuity.json",
+      "sourceVersionFrom": "2025-11-04.0",
+      "csus": [
+        "3457815511T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "CHAMPION TOWER",
+          "THREE GARDEN ROAD",
+          "GARDEN ROAD",
+          "3",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-228c1aa3-6e77-52e1-990d-40843180dcc0",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-11-04.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "afb673918974f8ba1e5554bbf8f3daa65b1334a3cfe5efe115c3704d41172b14"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "afb673918974f8ba1e5554bbf8f3daa65b1334a3cfe5efe115c3704d41172b14"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "afb673918974f8ba1e5554bbf8f3daa65b1334a3cfe5efe115c3704d41172b14"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "109b40d334bd05ca88abd1dbcf25b7760e20cbd8da264be0347a53e22e6ba57e"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "109b40d334bd05ca88abd1dbcf25b7760e20cbd8da264be0347a53e22e6ba57e"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "109b40d334bd05ca88abd1dbcf25b7760e20cbd8da264be0347a53e22e6ba57e"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "109b40d334bd05ca88abd1dbcf25b7760e20cbd8da264be0347a53e22e6ba57e"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "109b40d334bd05ca88abd1dbcf25b7760e20cbd8da264be0347a53e22e6ba57e"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "109b40d334bd05ca88abd1dbcf25b7760e20cbd8da264be0347a53e22e6ba57e"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "109b40d334bd05ca88abd1dbcf25b7760e20cbd8da264be0347a53e22e6ba57e"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-11-04.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.16053,
+              22.27848
+            ]
+          },
+          "properties": {
+            "Northing": 815512,
+            "Easting": 834584,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3457815511T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "花園道",
+                    "BuildingNoFrom": "3"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "花園道三號"
+                  },
+                  "BuildingName": "冠君大廈"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "CHAMPION TOWER",
+                  "EngEstate": {
+                    "EstateName": "THREE GARDEN ROAD"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "3",
+                    "StreetName": "GARDEN ROAD"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3457815511T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 18,
+        "reason": "Same publisher identity, coordinates, street address and scope; Champion REIT confirms the Citibank Plaza / Three Garden Road renaming.",
+        "selectedCandidateId": "ss-326cbebb-82b4-5be4-9341-9f6169d0785a",
+        "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
+      },
+      "patch": {
+        "granularity": "building"
+      }
+    },
+    {
+      "id": "november-2025-continuity-41",
+      "authority": "High-confidence publisher continuity with linked public corroboration, 2026-10-07",
+      "sourceFile": "als_addresses_(eastern_district).geojson",
+      "curationFile": "hkgov-dpo-address-november-2025-continuity.json",
+      "sourceVersionFrom": "2025-11-04.0",
+      "csus": [
+        "3876916810T20151009"
+      ],
+      "premiseSelectors": [
+        [
+          "THE TANNER HILL TOWER 1",
+          null,
+          "TANNER ROAD",
+          "8",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-4731de67-174e-5f42-a7c0-726124fa768e",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-11-04.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "5e452c665ee2ca2169a5ca752fcff89267add79595ef131f9800805139ca46f8"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "5e452c665ee2ca2169a5ca752fcff89267add79595ef131f9800805139ca46f8"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "5e452c665ee2ca2169a5ca752fcff89267add79595ef131f9800805139ca46f8"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": []
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-11-04.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.20115,
+              22.29019
+            ]
+          },
+          "properties": {
+            "Northing": 816809,
+            "Easting": 838769,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3876916810T20151009"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "東區",
+                  "ChiStreet": {
+                    "StreetName": "丹拿道",
+                    "BuildingNoFrom": "8"
+                  },
+                  "BuildingName": "雋？第一座"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "THE TANNER HILL TOWER 1",
+                  "EngStreet": {
+                    "BuildingNoFrom": "8",
+                    "StreetName": "TANNER ROAD"
+                  },
+                  "EngDistrict": "EASTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3876916810T20151009"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 41,
+        "reason": "Same publisher identity, coordinates, street address and scope; tower-name formatting correction.",
+        "selectedCandidateId": "ss-0dbd1012-7718-59d5-bbe5-f17b065257ba",
+        "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
+      },
+      "patch": {
+        "granularity": "building"
+      }
+    },
+    {
+      "id": "november-2025-continuity-129",
+      "authority": "High-confidence publisher continuity with linked public corroboration, 2026-10-07",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "curationFile": "hkgov-dpo-address-november-2025-continuity.json",
+      "sourceVersionFrom": "2025-11-04.0",
+      "csus": [
+        "3463615510T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "ICBC TOWER",
+          "THREE GARDEN ROAD",
+          "GARDEN ROAD",
+          "3",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-f969e0e4-8a4c-5071-a1d4-ab9f964eb688",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-11-04.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "e93e6ae65adc0e8bde56c6b055d8ed48da5fc0221c315e54cf51b7b5d7eda74a"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "e93e6ae65adc0e8bde56c6b055d8ed48da5fc0221c315e54cf51b7b5d7eda74a"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "e93e6ae65adc0e8bde56c6b055d8ed48da5fc0221c315e54cf51b7b5d7eda74a"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "511efc45d5a1407baf7da59539dd2c26328364fa9237c869b329f37a9102d961"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "511efc45d5a1407baf7da59539dd2c26328364fa9237c869b329f37a9102d961"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "511efc45d5a1407baf7da59539dd2c26328364fa9237c869b329f37a9102d961"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "511efc45d5a1407baf7da59539dd2c26328364fa9237c869b329f37a9102d961"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "511efc45d5a1407baf7da59539dd2c26328364fa9237c869b329f37a9102d961"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "511efc45d5a1407baf7da59539dd2c26328364fa9237c869b329f37a9102d961"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "511efc45d5a1407baf7da59539dd2c26328364fa9237c869b329f37a9102d961"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-11-04.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.16095,
+              22.27845
+            ]
+          },
+          "properties": {
+            "Northing": 815510,
+            "Easting": 834627,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3463615510T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "花園道",
+                    "BuildingNoFrom": "3"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "花園道三號"
+                  },
+                  "BuildingName": "中國工商銀行大廈"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "ICBC TOWER",
+                  "EngEstate": {
+                    "EstateName": "THREE GARDEN ROAD"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "3",
+                    "StreetName": "GARDEN ROAD"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3463615510T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 129,
+        "reason": "Same publisher identity, coordinates, street address and scope; Champion REIT confirms the Citibank Plaza / Three Garden Road renaming.",
+        "selectedCandidateId": "ss-fcf07bdf-fdda-5f12-946d-e92ad9547d98",
+        "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
+      },
+      "patch": {
+        "granularity": "building"
+      }
+    },
+    {
+      "id": "november-2025-continuity-132",
+      "authority": "High-confidence publisher continuity with linked public corroboration, 2026-10-07",
+      "sourceFile": "als_addresses_(central_&_western_district).geojson",
+      "curationFile": "hkgov-dpo-address-november-2025-continuity.json",
+      "sourceVersionFrom": "2025-11-04.0",
+      "csus": [
+        "3455415522T20050430"
+      ],
+      "premiseSelectors": [
+        [
+          "THREE GARDEN ROAD",
+          "THREE GARDEN ROAD",
+          "GARDEN ROAD",
+          "3",
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null
+        ]
+      ],
+      "canonicalId": "ss-796e7c99-4327-5cd3-9ac4-5a1bdff20bbc",
+      "retain": false,
+      "application": {
+        "mode": "until-revoked",
+        "state": "active",
+        "sourceVersionFrom": "2025-11-04.0",
+        "lastVerifiedSourceVersion": "2026-08-19.0"
+      },
+      "assertions": [
+        {
+          "version": "2024-07-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-07-31.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-01.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-02.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-10-18.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-11-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2024-12-12.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-01-23.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-02-25.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-03-21.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-04-26.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-05-22.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-06-20.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-13.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-08-28.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-09-03.0",
+          "hashes": []
+        },
+        {
+          "version": "2025-11-04.0",
+          "hashes": [
+            "16de34d53531ce3117efe76c105b98d438cee8ac552b26d5f83e85a360794971"
+          ]
+        },
+        {
+          "version": "2025-12-16.0",
+          "hashes": [
+            "16de34d53531ce3117efe76c105b98d438cee8ac552b26d5f83e85a360794971"
+          ]
+        },
+        {
+          "version": "2026-02-04.0",
+          "hashes": [
+            "16de34d53531ce3117efe76c105b98d438cee8ac552b26d5f83e85a360794971"
+          ]
+        },
+        {
+          "version": "2026-04-03.0",
+          "hashes": [
+            "729426e415a5459b33bd3687b85aebcd967c20ae0f95d63a36e3921a1d83473a"
+          ]
+        },
+        {
+          "version": "2026-04-22.0",
+          "hashes": [
+            "729426e415a5459b33bd3687b85aebcd967c20ae0f95d63a36e3921a1d83473a"
+          ]
+        },
+        {
+          "version": "2026-04-25.0",
+          "hashes": [
+            "2e8c2ff9543d75b50f456bdd512d898f2c93027875f6c62d8957b425f2222004"
+          ]
+        },
+        {
+          "version": "2026-07-08.0",
+          "hashes": [
+            "2e8c2ff9543d75b50f456bdd512d898f2c93027875f6c62d8957b425f2222004"
+          ]
+        },
+        {
+          "version": "2026-07-10.0",
+          "hashes": [
+            "2e8c2ff9543d75b50f456bdd512d898f2c93027875f6c62d8957b425f2222004"
+          ]
+        },
+        {
+          "version": "2026-07-22.0",
+          "hashes": [
+            "2e8c2ff9543d75b50f456bdd512d898f2c93027875f6c62d8957b425f2222004"
+          ]
+        },
+        {
+          "version": "2026-08-19.0",
+          "hashes": [
+            "2e8c2ff9543d75b50f456bdd512d898f2c93027875f6c62d8957b425f2222004"
+          ]
+        }
+      ],
+      "evidence": {
+        "sourceVersion": "2025-11-04.0",
+        "feature": {
+          "type": "Feature",
+          "geometry": {
+            "type": "Point",
+            "coordinates": [
+              114.16027,
+              22.27859
+            ]
+          },
+          "properties": {
+            "Northing": 815525,
+            "Easting": 834556,
+            "Address": {
+              "PremisesAddress": {
+                "BuildingCsuInformation": {
+                  "CsuId": "3455415522T20050430"
+                },
+                "ChiPremisesAddress": {
+                  "Region": "香港",
+                  "ChiDistrict": "中西區",
+                  "ChiStreet": {
+                    "StreetName": "花園道",
+                    "BuildingNoFrom": "3"
+                  },
+                  "ChiEstate": {
+                    "EstateName": "花園道三號"
+                  },
+                  "BuildingName": "花園道三號"
+                },
+                "EngPremisesAddress": {
+                  "BuildingName": "THREE GARDEN ROAD",
+                  "EngEstate": {
+                    "EstateName": "THREE GARDEN ROAD"
+                  },
+                  "EngStreet": {
+                    "BuildingNoFrom": "3",
+                    "StreetName": "GARDEN ROAD"
+                  },
+                  "EngDistrict": "CENTRAL & WESTERN DISTRICT",
+                  "Region": "HK"
+                },
+                "GeoAddress": "3455415522T20050430"
+              }
+            }
+          }
+        }
+      },
+      "externalEvidence": {
+        "entry": 132,
+        "reason": "Same publisher identity, coordinates, street address and scope; Champion REIT confirms the Citibank Plaza / Three Garden Road renaming.",
+        "selectedCandidateId": "ss-725e695e-e326-5540-9827-d32b1100ec79",
+        "reviewReportDigest": "c9b07f949a48bf66ecaecb4311a46a7bda5e99127cc3463c0598bb55b38db7b1"
+      },
+      "patch": {
+        "granularity": "complex"
+      }
+    }
+  ]
+}

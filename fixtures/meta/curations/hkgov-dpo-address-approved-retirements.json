@@ -542,6 +542,1349 @@
           "curations": []
         }
       ]
+    },
+    {
+      "id": "september-2024-shui-chun-reviewed-retirements",
+      "sourceVersionFrom": "2024-09-03.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decisions, 2026-10-04: approve retirement of review entries 32 and 40.",
+      "previousAddresses": [
+        {
+          "id": "ss-a5ec2486-4b0f-562e-9c86-1e606164bda3",
+          "level": "building",
+          "parentId": null,
+          "en": "SHUI CHUN BUILDING, 52 KAI TAK ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "樹珍樓52啓德道九龍城區九龍",
+          "coordinates": [
+            114.19232,
+            22.32976
+          ],
+          "sourceIds": [
+            "3099a054-caf2-5515-b0db-fb971c00a4d7"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-ed688b6c-20c9-5f8e-9aa9-64c9eee31143",
+          "level": "building",
+          "parentId": null,
+          "en": "SHUI CHUN BUILDING, 50-50A KAI TAK ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "樹珍樓5050A啓德道九龍城區九龍",
+          "coordinates": [
+            114.19232,
+            22.32976
+          ],
+          "sourceIds": [
+            "1cc86e3a-a83c-5b82-8454-d7da9d6ce12d"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "october-2024-reviewed-substation-retirement",
+      "sourceVersionFrom": "2024-10-18.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decisions, 2026-10-04: approve retirement of October review entry 28 only.",
+      "previousAddresses": [
+        {
+          "id": "ss-9e60f1d9-f53a-557f-8834-fe8220f40875",
+          "level": "building",
+          "parentId": null,
+          "en": "NGONG WAN ROAD P/STN T/S SUBSTATION, 129 CONTAINER PORT ROAD SOUTH, KWAI TSING DISTRICT, NT",
+          "zhHant": "昂運路泵房臨時變電站129貨櫃碼頭南路葵青區新界",
+          "coordinates": [
+            114.12894,
+            22.31994
+          ],
+          "sourceIds": [
+            "8665c912-f193-53c6-8037-53ee1dfcc561"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "november-2024-reviewed-demolished-premises",
+      "sourceVersionFrom": "2024-11-13.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decisions, 2026-10-04: approve retirement of November review entries 24, 38 and 41 because the premises were demolished.",
+      "previousAddresses": [
+        {
+          "id": "ss-7fbb0a65-d4ea-5c84-8fdf-dd4fdc44e5be",
+          "level": "building",
+          "parentId": null,
+          "en": "YIP FAT FACTORY BUILDING, 77 HOI YUEN ROAD, KWUN TONG DISTRICT, KLN",
+          "zhHant": "業發工業大廈第一期77開源道觀塘區九龍",
+          "coordinates": [
+            114.22546,
+            22.31145
+          ],
+          "sourceIds": [
+            "4ea8f4be-d87f-5d81-bb14-a69c5e7ae4bb"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-ada91249-a8b6-513e-b609-a48bf1dd1ab3",
+          "level": "building",
+          "parentId": null,
+          "en": "ROSE COURT, 23-34 ROSE STREET, SHAM SHUI PO DISTRICT, KLN",
+          "zhHant": "玫瑰苑2334玫瑰街深水埗區九龍",
+          "coordinates": [
+            114.17317,
+            22.33316
+          ],
+          "sourceIds": [
+            "16cddf57-4c8a-581b-a4b5-137cde8c1a39"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-b38d5b47-1a60-5913-a837-f09f57b9a3de",
+          "level": "building",
+          "parentId": null,
+          "en": "GOOD YEAR INDUSTRIAL BUILDING, 119-121 HOW MING STREET, KWUN TONG DISTRICT, KLN",
+          "zhHant": "年運工業大廈119121巧明街觀塘區九龍",
+          "coordinates": [
+            114.22487,
+            22.31125
+          ],
+          "sourceIds": [
+            "5dfaafdd-1814-5be0-9cb5-f28f7f74f2c2"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "december-2024-reviewed-demolished-premises",
+      "sourceVersionFrom": "2024-12-12.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-10-05: Pine Court & Pine Grove, 23 Sha Wan Drive, and Wang Cheong Factory Estate, 781 Lai Chi Kok Road, are demolished; approve retirement of these exact premises.",
+      "previousAddresses": [
+        {
+          "id": "ss-31066565-e97c-5a8b-919c-b045ccd3e57f",
+          "level": "complex",
+          "parentId": null,
+          "en": "WANG CHEONG FACTORY ESTATE, 781 LAI CHI KOK ROAD, SHAM SHUI PO DISTRICT, KLN",
+          "zhHant": "宏昌工廠大廈781荔枝角道深水埗區九龍",
+          "coordinates": [
+            114.15221,
+            22.33374
+          ],
+          "sourceIds": [
+            "bc2e96ea-a511-5d0b-99e2-fc44fef4498a"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-c8092f8b-d7bf-579f-89ae-bbe3cc27db4d",
+          "level": "building",
+          "parentId": null,
+          "en": "PINE COURT & PINE GROVE, THE UNIVERSITY OF HONG KONG, 23 SHA WAN DRIVE, SOUTHERN DISTRICT, HK",
+          "zhHant": "松蔭園及蘊真閣香港大學23沙灣徑南區香港",
+          "coordinates": [
+            114.12664,
+            22.26486
+          ],
+          "sourceIds": [
+            "4cbee93f-8c6d-58e4-ab46-7df4120cc352"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "january-2025-reviewed-pine-court-pine-grove-demolition",
+      "sourceVersionFrom": "2025-01-23.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-10-05: Pine Court & Pine Grove at 23 Sha Wan Drive are demolished. These are the separately recorded Pine Court and Pine Grove complexes at that same address.",
+      "previousAddresses": [
+        {
+          "id": "ss-4341a448-0f7f-55fc-ad10-a568770ba205",
+          "level": "complex",
+          "parentId": null,
+          "en": "PINE GROVE, 23 SHA WAN DRIVE, SOUTHERN DISTRICT, HK",
+          "zhHant": "蘊真閣23沙灣徑南區香港",
+          "coordinates": [
+            114.12671,
+            22.26616
+          ],
+          "sourceIds": [
+            "dc51d1fe-82a7-5f30-8eb5-efdd93a568ce"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-4a5ef12d-a0d1-559e-8333-568af63eb6bc",
+          "level": "complex",
+          "parentId": null,
+          "en": "PINE COURT, 23 SHA WAN DRIVE, SOUTHERN DISTRICT, HK",
+          "zhHant": "松蔭園23沙灣徑南區香港",
+          "coordinates": [
+            114.12682,
+            22.26529
+          ],
+          "sourceIds": [
+            "a841a5c0-3ab2-5da9-a006-175084f79328"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "january-2025-reviewed-premise-retirements",
+      "sourceVersionFrom": "2025-01-23.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decisions, 2026-10-05: retire January entries 3, 9, 15, 22, 23, 27, 36 and 40. Entry 3 retires only the named company building; keep its independent street address. Entry 9 is confirmed demolished despite its Undecided selector.",
+      "previousAddresses": [
+        {
+          "id": "ss-11c454ff-1cb7-53c9-a40f-19c9e1b6155f",
+          "level": "building",
+          "parentId": null,
+          "en": "CONVENIENCE FOODS INTERNATIONAL LTD., 7 DAI FU STREET, TAI PO DISTRICT, NT",
+          "zhHant": "健全食品工業國際有限公司7大富街大埔區新界",
+          "coordinates": [
+            114.18545,
+            22.46089
+          ],
+          "sourceIds": [
+            "f36dded9-70af-5a0a-b498-5ce5e882cdf6"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-2df67ee0-8b84-514c-8301-f901d38a6adb",
+          "level": "building",
+          "parentId": null,
+          "en": "BLK E-F, JADE GARDEN, 105 ROBINSON ROAD, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "翡翠園Ｅ－Ｆ座翡翠園105羅便臣道中西區香港",
+          "coordinates": [
+            114.14533,
+            22.28283
+          ],
+          "sourceIds": [
+            "69e975f2-227d-5f21-ac3f-e4fb1b657a6a"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-4626b4df-5586-5f2f-ae0c-163c20f71f37",
+          "level": "building",
+          "parentId": null,
+          "en": "HSE A, 2, SIU LAM SAN TSUEN, TUEN MUN, TUEN MUN DISTRICT, NT",
+          "zhHant": "村屋A2小欖新村屯門屯門區新界",
+          "coordinates": [
+            114.00482,
+            22.36649
+          ],
+          "sourceIds": [
+            "fd45432d-588c-50d0-bb4d-670c9b5f7f99"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-7f444dd0-36bc-55d6-9f20-9cb2a8c45d32",
+          "level": "building",
+          "parentId": null,
+          "en": "HSE C, 2, SIU LAM SAN TSUEN, TUEN MUN, TUEN MUN DISTRICT, NT",
+          "zhHant": "村屋C2小欖新村屯門屯門區新界",
+          "coordinates": [
+            114.00482,
+            22.36649
+          ],
+          "sourceIds": [
+            "bb91b3d6-f138-5240-b313-21d980e51ca7"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-8f97c8c9-c9e7-56aa-b0f6-be75f3c5c4ed",
+          "level": "building",
+          "parentId": null,
+          "en": "BLK A-B, JADE GARDEN, 105 ROBINSON ROAD, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "翡翠園Ａ－Ｂ座翡翠園105羅便臣道中西區香港",
+          "coordinates": [
+            114.14566,
+            22.28289
+          ],
+          "sourceIds": [
+            "45d32485-f858-5933-88e9-f360ef145bb6"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-99255080-ae11-5c31-933c-2500150bfe03",
+          "level": "building",
+          "parentId": null,
+          "en": "82-82A KAI TAK ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "富義樓8282A啓德道九龍城區九龍",
+          "coordinates": [
+            114.19234,
+            22.3304
+          ],
+          "sourceIds": [
+            "33e3f2bc-46c0-58e5-86c5-b596e8399147"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-bde7c2cc-99ae-529f-ab2b-37ff507cb86a",
+          "level": "building",
+          "parentId": null,
+          "en": "HSE B, 2, SIU LAM SAN TSUEN, TUEN MUN, TUEN MUN DISTRICT, NT",
+          "zhHant": "村屋B2小欖新村屯門屯門區新界",
+          "coordinates": [
+            114.00482,
+            22.36649
+          ],
+          "sourceIds": [
+            "f11c8e90-7606-5265-8fc6-9db3a9c778be"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-e5171a1f-cb30-5d73-8180-bfabd5d2aff0",
+          "level": "building",
+          "parentId": null,
+          "en": "BLK C-D, JADE GARDEN, 105 ROBINSON ROAD, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "翡翠園Ｃ－Ｄ座翡翠園105羅便臣道中西區香港",
+          "coordinates": [
+            114.14544,
+            22.28297
+          ],
+          "sourceIds": [
+            "84e8d41d-1069-5e34-a4b4-084e0ce8681b"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "february-2025-reviewed-premise-retirements",
+      "sourceVersionFrom": "2025-02-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decisions, 2026-10-05: approve retirement of February entries 41, 42, 48, 86, 88, 115, 152, 157, 160, 171, 177, 203, 222.",
+      "previousAddresses": [
+        {
+          "id": "ss-2aee9492-d521-5b97-8a9b-33fbecbd4fe4",
+          "level": "building",
+          "parentId": null,
+          "en": "LEE ON MANSION, 11 LAI ON LANE, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "利安大廈11荔安里中西區香港",
+          "coordinates": [
+            114.13925,
+            22.28701
+          ],
+          "sourceIds": [
+            "4811b5d9-a4fc-520b-8282-6ece6a83270b"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-2e853c50-cf46-5599-bd9e-3d60c4671fd0",
+          "level": "building",
+          "parentId": null,
+          "en": "HOUSE, 13 STAFFORD ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "屋13施他佛道九龍城區九龍",
+          "coordinates": [
+            114.1777,
+            22.33137
+          ],
+          "sourceIds": [
+            "6eee972e-2ee3-57b4-86fd-1f6496d02666"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-37f9dae7-2fb5-519b-ac78-1e65bbce33ed",
+          "level": "building",
+          "parentId": null,
+          "en": "SEI LI BUILDING, 5 LAI ON LANE, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "時利樓5荔安里中西區香港",
+          "coordinates": [
+            114.13944,
+            22.28705
+          ],
+          "sourceIds": [
+            "cc10c0ce-c7aa-5663-ad1a-d8a043a474df"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-68bab7fb-8326-56be-99f4-bbd90dab1b4d",
+          "level": "building",
+          "parentId": null,
+          "en": "LEE ON MANSION, 9 LAI ON LANE, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "利安大廈9荔安里中西區香港",
+          "coordinates": [
+            114.13934,
+            22.28703
+          ],
+          "sourceIds": [
+            "00174e97-92ab-5f86-a730-af56f7fcb2dd"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-68c6235e-218f-5447-a2e9-bf966f731b97",
+          "level": "building",
+          "parentId": null,
+          "en": "SEI LI BUILDING, 21 CHIU KWONG STREET, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "時利樓21朝光街中西區香港",
+          "coordinates": [
+            114.13944,
+            22.28705
+          ],
+          "sourceIds": [
+            "222b15d8-e236-52e3-bb4a-c2e5db50f9e1"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-828af22d-9b1c-5dee-831a-c8cf8e08a598",
+          "level": "building",
+          "parentId": null,
+          "en": "SEI LI BUILDING, 22 CHIU KWONG STREET, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "時利樓22朝光街中西區香港",
+          "coordinates": [
+            114.13944,
+            22.28705
+          ],
+          "sourceIds": [
+            "ed8dfda5-d407-5282-ab20-ab35ce29c286"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-a5ed1a49-e9ed-518f-a2d5-ae3cd6700945",
+          "level": "building",
+          "parentId": null,
+          "en": "SEI LI BUILDING, 21-24 CHIU KWONG STREET, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "時利樓2124朝光街中西區香港",
+          "coordinates": [
+            114.13944,
+            22.28705
+          ],
+          "sourceIds": [
+            "c0cc1134-7a30-53a1-8d7e-95d70767b194"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-ab631aab-bf89-5ee8-921e-79a9c98ef61e",
+          "level": "building",
+          "parentId": null,
+          "en": "LEE ON MANSION, 13 LAI ON LANE, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "利安大廈13荔安里中西區香港",
+          "coordinates": [
+            114.13925,
+            22.28701
+          ],
+          "sourceIds": [
+            "bd09bfc8-df3e-5b74-98db-c9cfb3e76a32"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-adc0fac7-c128-5f73-b914-c7d29b6223f4",
+          "level": "building",
+          "parentId": null,
+          "en": "SEI LI BUILDING, 23 CHIU KWONG STREET, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "時利樓23朝光街中西區香港",
+          "coordinates": [
+            114.13944,
+            22.28705
+          ],
+          "sourceIds": [
+            "ad3e19f0-201e-5934-8774-a84b50f5a2f7"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-be1efca2-90ad-50a9-aa41-3867c08e6cbb",
+          "level": "building",
+          "parentId": null,
+          "en": "SEI LI BUILDING, 3 LAI ON LANE, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "時利樓3荔安里中西區香港",
+          "coordinates": [
+            114.13944,
+            22.28705
+          ],
+          "sourceIds": [
+            "46d81f73-8dd5-52dd-978e-f827517c81c0"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-c5921242-bf1f-5d18-a6b2-78e84eed1ed5",
+          "level": "building",
+          "parentId": null,
+          "en": "MAN LOK HOUSE, TAI HANG SAI ESTATE, 2 WOH CHAI STREET, SHAM SHUI PO DISTRICT, KLN",
+          "zhHant": "民樂樓大坑西新邨2窩仔街深水埗區九龍",
+          "coordinates": [
+            114.16949,
+            22.3317
+          ],
+          "sourceIds": [
+            "f0bdb801-94c8-5a53-bc2b-03637d100b35"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-da6a85e1-3aa0-590d-a767-3da722f94e57",
+          "level": "building",
+          "parentId": null,
+          "en": "SEI LI BUILDING, 24 CHIU KWONG STREET, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "時利樓24朝光街中西區香港",
+          "coordinates": [
+            114.13944,
+            22.28705
+          ],
+          "sourceIds": [
+            "ce8de62c-16bc-54fc-ba47-00c7b93da53a"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-ecdde813-0f69-576e-84be-ee0a2354694d",
+          "level": "building",
+          "parentId": null,
+          "en": "LEE ON MANSION, 7 LAI ON LANE, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "利安大廈7荔安里中西區香港",
+          "coordinates": [
+            114.13934,
+            22.28703
+          ],
+          "sourceIds": [
+            "3a4689e3-160b-58e8-b7aa-cf49bb26cfa5"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "march-2025-reviewed-demolished-hotels",
+      "sourceVersionFrom": "2025-03-21.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-10-05: March rows 6 and 12 were demolished and replaced or rebuilt. Keep replacement premises distinct.",
+      "previousAddresses": [
+        {
+          "id": "ss-5d1dc53f-4dbf-57b9-8c15-b1a89224db1b",
+          "level": "building",
+          "parentId": null,
+          "en": "KK HOTEL, 164 HAI TAN STREET, SHAM SHUI PO DISTRICT, KLN",
+          "zhHant": "KK HOTEL164海壇街深水埗區九龍",
+          "coordinates": [
+            114.16079,
+            22.32699
+          ],
+          "sourceIds": [
+            "d20c2dff-08c9-5b2f-b37a-709dde59b15a"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-97f89318-a6d3-5e38-948f-35e492957b4f",
+          "level": "building",
+          "parentId": null,
+          "en": "LE HOTERU HOTEL, 103 TAM KUNG ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "儷賀酒店103譚公道九龍城區九龍",
+          "coordinates": [
+            114.18881,
+            22.32367
+          ],
+          "sourceIds": [
+            "6c248658-63cc-5aa7-86c2-ffd7520f600c"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "april-2025-user-approved-retirements",
+      "sourceVersionFrom": "2025-04-26.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decisions, 2026-10-05: approve retirement of April review entries 4, 6 and 11. Review digest 351996b39b491cd4fcc3b7e3070e552bbcb4ae7ba72129cb6ead062d68f107bf; live deletion report digest 77c0a4b958825995dd14805270784679e2d93ff4744ed6cdebd0630ef4246c19.",
+      "previousAddresses": [
+        {
+          "id": "ss-2d1e36c9-504c-5c9d-94ce-faf812e640bf",
+          "level": "building",
+          "parentId": null,
+          "en": "SHUNG LEE BUILDING, 128-130 MAIN STREET, AP LEI CHAU, SOUTHERN DISTRICT, HK",
+          "zhHant": "順利大廈128130鴨脷洲大街南區香港",
+          "coordinates": [
+            114.1543,
+            22.24373
+          ],
+          "sourceIds": [
+            "aca04987-8dca-5cfa-9dbc-377aa08ff5cf"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-331c9202-40f2-5a4e-8a0b-0fc6fb61e5e7",
+          "level": "building",
+          "parentId": null,
+          "en": "SDM JAZZ & BALLET ACADEMIE, 6 CAMBRIDGE ROAD, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "ＳＤＭ爵士芭蕾舞學院6劍橋道九龍城區九龍",
+          "coordinates": [
+            114.17973,
+            22.33114
+          ],
+          "sourceIds": [
+            "e99b9d4f-fc43-5770-be69-74a3f742837e"
+          ],
+          "curations": []
+        },
+        {
+          "id": "ss-7ffe9762-ba78-5e45-b672-bd15e83d20c9",
+          "level": "building",
+          "parentId": null,
+          "en": "PODIUM, CHEUNG CHING ESTATE, 1 CHUNG MEI ROAD, KWAI TSING DISTRICT, NT",
+          "zhHant": "平台長青邨1涌美路葵青區新界",
+          "coordinates": [
+            114.1075,
+            22.34943
+          ],
+          "sourceIds": [
+            "b4512acc-9672-59c2-aa9b-f46438fd57e3"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "may-2025-wongs-factory-building-closure",
+      "sourceVersionFrom": "2025-05-22.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User decision, 2026-10-06: approve retirement of Wong’s Factory Building; reviewer-provided Google screenshot marks it permanently closed. No physical demolition claim.",
+      "reviewReportDigest": "65d4b6fc6c41e5381f0c4d63e0622c2ff136c3aa89e4f31804dcc3c87e1fea6f",
+      "previousAddresses": [
+        {
+          "id": "ss-143dd6e2-8456-543e-a73c-17219cfd3796",
+          "level": "building",
+          "parentId": null,
+          "en": "WONG'S FACTORY BUILDING, 368-370 SHA TSUI ROAD, TSUEN WAN DISTRICT, NT",
+          "zhHant": "王子工業大廈368370沙嘴道荃灣區新界",
+          "coordinates": [
+            114.11948,
+            22.36781
+          ],
+          "sourceIds": [
+            "cc8e2d1a-fb63-58b3-a662-e03f16377ee5"
+          ],
+          "curations": []
+        }
+      ]
+    },
+    {
+      "id": "june-2025-final-3",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: being sold as a bare site : https://www.savills.com.hk/insight-and-opinion/savills-news/220960/savills-appointed-as-sole-agent-for-the-sale-of-no.-54-chung-hom-kok-road",
+      "previousAddresses": [
+        {
+          "id": "ss-02b3ced4-2970-5fdc-aef9-e8f764d6214d",
+          "level": "building",
+          "parentId": null,
+          "en": "PEARL VILLA, 54 CHUNG HOM KOK ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "PEARL VILLA54舂磡角道南區香港",
+          "coordinates": [
+            114.20447,
+            22.21802
+          ],
+          "sourceIds": [
+            "689bb8fb-dbcb-5f09-b589-a2061c79af35"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "being sold as a bare site : https://www.savills.com.hk/insight-and-opinion/savills-news/220960/savills-appointed-as-sole-agent-for-the-sale-of-no.-54-chung-hom-kok-road",
+      "evidence": [
+        {
+          "source": "Centaline estate information",
+          "url": "https://hk.centanet.com/estate/en/Pearl-Villa/2-OCJRURUERQ",
+          "observation": "Lists Pearl Villa at 54 Chung Hom Kok Road with five units. No closure or demolition established by this source.",
+          "qualification": "Property listings can remain online after changes; verify the physical building.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "june-2025-final-11",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: building demolished",
+      "previousAddresses": [
+        {
+          "id": "ss-4143cbd3-1583-50dc-a865-fcbb4905910b",
+          "level": "building",
+          "parentId": null,
+          "en": "KO SHING BUILDING, 80 QUEEN'S ROAD WEST, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "高陞大樓80皇后大道西中西區香港",
+          "coordinates": [
+            114.14709,
+            22.28623
+          ],
+          "sourceIds": [
+            "b0a38c94-27fa-587e-bece-bff3873f5091"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "building demolished",
+      "evidence": [
+        {
+          "source": "Mingtiandi, 16 February 2025",
+          "url": "https://www.mingtiandi.com/real-estate/projects/hong-kongs-emperor-group-set-to-consolidate-sai-ying-pun-site/",
+          "observation": "Reports that Emperor demolished the former Ko Shing Building at the Queen’s Road West / Hollywood Road corner in early 2024.",
+          "qualification": "Reported demolition predates this release. Six frontage records refer to this reviewed site; each retirement still needs your decision.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "june-2025-final-14",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: building demolished",
+      "previousAddresses": [
+        {
+          "id": "ss-442279af-8dfd-533b-8321-f7d7361d8d1a",
+          "level": "building",
+          "parentId": null,
+          "en": "KO SHING BUILDING, 265 HOLLYWOOD ROAD, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "高陞大樓265荷李活道中西區香港",
+          "coordinates": [
+            114.14709,
+            22.28623
+          ],
+          "sourceIds": [
+            "5fb88ae8-3f14-57fa-8b91-501912e90e4d"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "building demolished",
+      "evidence": [
+        {
+          "source": "Mingtiandi, 16 February 2025",
+          "url": "https://www.mingtiandi.com/real-estate/projects/hong-kongs-emperor-group-set-to-consolidate-sai-ying-pun-site/",
+          "observation": "Reports that Emperor demolished the former Ko Shing Building at the Queen’s Road West / Hollywood Road corner in early 2024.",
+          "qualification": "Reported demolition predates this release. Six frontage records refer to this reviewed site; each retirement still needs your decision.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "june-2025-final-16",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: permanently closed, but the building has a new function",
+      "previousAddresses": [
+        {
+          "id": "ss-4d0ba606-010d-5b8a-9068-ea691c45ae90",
+          "level": "building",
+          "parentId": null,
+          "en": "MAP PUBLICATIONS CENTRE, KOWLOON, 382 NATHAN ROAD, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "九龍地圖銷售處382彌敦道油尖旺區九龍",
+          "coordinates": [
+            114.17164,
+            22.30828
+          ],
+          "sourceIds": [
+            "d5b1c1df-dfe3-560c-9e85-01b8f1f5fbcc"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "permanently closed, but the building has a new function",
+      "evidence": [
+        {
+          "source": "Lands Department map-sales notice",
+          "url": "https://www.landsd.gov.hk/doc/en/mso_closure_notice/mso_closure_notice_poster_sc.pdf",
+          "observation": "The 2024 closure notice lists the Kowloon Map Publications Centre at 382 Nathan Road among the outlets that remain available.",
+          "qualification": "The closure heading concerns other outlets; it must not be treated as evidence that this centre closed.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": "ss-fab0e431-a73c-5720-87ee-a8bd7ffaebef"
+    },
+    {
+      "id": "june-2025-final-17",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: building demolished",
+      "previousAddresses": [
+        {
+          "id": "ss-4ed029f6-709d-5306-8cd0-ff127393f5ff",
+          "level": "building",
+          "parentId": null,
+          "en": "KO SHING BUILDING, 78 QUEEN'S ROAD WEST, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "高陞大樓78皇后大道西中西區香港",
+          "coordinates": [
+            114.14709,
+            22.28623
+          ],
+          "sourceIds": [
+            "df463ad7-13e9-5e51-9125-999fd9c07952"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "building demolished",
+      "evidence": [
+        {
+          "source": "Mingtiandi, 16 February 2025",
+          "url": "https://www.mingtiandi.com/real-estate/projects/hong-kongs-emperor-group-set-to-consolidate-sai-ying-pun-site/",
+          "observation": "Reports that Emperor demolished the former Ko Shing Building at the Queen’s Road West / Hollywood Road corner in early 2024.",
+          "qualification": "Reported demolition predates this release. Six frontage records refer to this reviewed site; each retirement still needs your decision.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "june-2025-final-18",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: building demolished",
+      "previousAddresses": [
+        {
+          "id": "ss-5536a2da-5b33-52fc-acff-4d51fd1007e8",
+          "level": "building",
+          "parentId": null,
+          "en": "KO SHING BUILDING, 267 HOLLYWOOD ROAD, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "高陞大樓267荷李活道中西區香港",
+          "coordinates": [
+            114.14709,
+            22.28623
+          ],
+          "sourceIds": [
+            "ed0aa0c7-372e-5dd6-bacb-f3c90dbd2a5d"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "building demolished",
+      "evidence": [
+        {
+          "source": "Mingtiandi, 16 February 2025",
+          "url": "https://www.mingtiandi.com/real-estate/projects/hong-kongs-emperor-group-set-to-consolidate-sai-ying-pun-site/",
+          "observation": "Reports that Emperor demolished the former Ko Shing Building at the Queen’s Road West / Hollywood Road corner in early 2024.",
+          "qualification": "Reported demolition predates this release. Six frontage records refer to this reviewed site; each retirement still needs your decision.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "june-2025-final-19",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: building demolished",
+      "previousAddresses": [
+        {
+          "id": "ss-5cc647b4-081e-5e1e-9ff0-263d1fea8dfa",
+          "level": "building",
+          "parentId": null,
+          "en": "KO SHING BUILDING, 78-80 QUEEN'S ROAD WEST, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "高陞大樓7880皇后大道西中西區香港",
+          "coordinates": [
+            114.14709,
+            22.28623
+          ],
+          "sourceIds": [
+            "0e00f94e-e64a-5e76-a62b-f9ebeac71fad"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "building demolished",
+      "evidence": [
+        {
+          "source": "Mingtiandi, 16 February 2025",
+          "url": "https://www.mingtiandi.com/real-estate/projects/hong-kongs-emperor-group-set-to-consolidate-sai-ying-pun-site/",
+          "observation": "Reports that Emperor demolished the former Ko Shing Building at the Queen’s Road West / Hollywood Road corner in early 2024.",
+          "qualification": "Reported demolition predates this release. Six frontage records refer to this reviewed site; each retirement still needs your decision.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "june-2025-final-24",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: building demolished",
+      "previousAddresses": [
+        {
+          "id": "ss-6e06722c-0c16-5809-a64b-005cb8634c25",
+          "level": "building",
+          "parentId": null,
+          "en": "KO SHING BUILDING, 265-267 HOLLYWOOD ROAD, CENTRAL & WESTERN DISTRICT, HK",
+          "zhHant": "高陞大樓265267荷李活道中西區香港",
+          "coordinates": [
+            114.14709,
+            22.28623
+          ],
+          "sourceIds": [
+            "8eaeeea3-c60d-58a0-9c58-0b3aea779683"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "building demolished",
+      "evidence": [
+        {
+          "source": "Mingtiandi, 16 February 2025",
+          "url": "https://www.mingtiandi.com/real-estate/projects/hong-kongs-emperor-group-set-to-consolidate-sai-ying-pun-site/",
+          "observation": "Reports that Emperor demolished the former Ko Shing Building at the Queen’s Road West / Hollywood Road corner in early 2024.",
+          "qualification": "Reported demolition predates this release. Six frontage records refer to this reviewed site; each retirement still needs your decision.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "june-2025-final-38",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: Name dropped",
+      "previousAddresses": [
+        {
+          "id": "ss-fff67eee-2352-5be0-9034-c04708d27e36",
+          "level": "building",
+          "parentId": null,
+          "en": "KODAK HSE II, 39 HEALTHY STREET EAST, EASTERN DISTRICT, HK",
+          "zhHant": "柯達大廈二座39健康東街東區香港",
+          "coordinates": [
+            114.20686,
+            22.29272
+          ],
+          "sourceIds": [
+            "ae69700d-2740-57ab-8a58-7f4312124be6"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "Name dropped",
+      "evidence": [
+        {
+          "source": "Rents and Property agency building information",
+          "url": "https://www.rp.com.hk/building/Kodak-House-2-1001447",
+          "observation": "Lists Kodak House 2 at both 39 Healthy Street East and 321 Java Road.",
+          "qualification": "No demolition established; the two addresses may be frontage representations.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "june-2025-final-40",
+      "sourceVersionFrom": "2025-06-20.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User final June decisions, 2026-10-06: demolished, replaced by VERANO",
+      "previousAddresses": [
+        {
+          "id": "ss-3ca09b2c-6a7b-5758-8e6b-be75e4792394",
+          "level": "complex",
+          "parentId": null,
+          "en": "GULESTAN, 125 REPULSE BAY ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "125淺水灣道南區香港",
+          "coordinates": [
+            114.19957,
+            22.2371
+          ],
+          "sourceIds": [
+            "b40c4f4d-19fe-5522-b34f-00e6b2efdbda"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "001e9eb738ae89b48f1399e3d211298b8f679536c9a32c5110ca8e50eacfb1bb",
+      "reason": "demolished, replaced by VERANO",
+      "evidence": [
+        {
+          "source": "Centaline property news, 24 October 2025",
+          "url": "https://hk.centanet.com/info/property-news/地產新聞/淺水灣迎夏現樓逾4000呎複式首曝光/187117",
+          "observation": "Identifies VERANO at 125 Repulse Bay Road as the successor project to Gulestan.",
+          "qualification": "Later-dated evidence supports redevelopment, but does not establish the precise retirement date for June 2025.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "august-2025-reviewed-5",
+      "sourceVersionFrom": "2025-08-13.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User August review export, 2026-10-06T14:41:01.768Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-587c2a6c-3f52-5930-beea-1d75caa1d26e",
+          "level": "building",
+          "parentId": null,
+          "en": "ONE PRINCETON, 266 PRINCE EDWARD ROAD WEST, KOWLOON CITY DISTRICT, KLN",
+          "zhHant": "名鑽266太子道西九龍城區九龍",
+          "coordinates": [
+            114.17904,
+            22.32619
+          ],
+          "sourceIds": [
+            "502fc2c6-497a-53d5-86ef-87f919f7abac"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "c95d5e0b9cbcfd292269dce667bb335e76a4728328ae392c5b133f02db00aae4",
+      "reason": "demolished",
+      "evidence": [
+        {
+          "source": "Centaline new development information",
+          "url": "https://hk.centanet.com/info/new-property/何文田/名鑽/2296",
+          "observation": "Identifies One Princeton at 266 Prince Edward Road West.",
+          "qualification": "Listings do not establish physical status at the August 2025 release; no demolition is established.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "august-2025-reviewed-17",
+      "sourceVersionFrom": "2025-08-13.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User August review export, 2026-10-06T14:41:01.768Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-5814e30a-7c12-5ef4-a060-aea3c8e0ce72",
+          "level": "complex",
+          "parentId": null,
+          "en": "FORMER WANCHAI SCHOOL, 30 OI KWAN ROAD, WAN CHAI DISTRICT, HK",
+          "zhHant": "前灣仔學校30愛群道灣仔區香港",
+          "coordinates": [
+            114.17978,
+            22.27671
+          ],
+          "sourceIds": [
+            "0e866e3b-a3ce-537a-a6b6-bf873e00095c"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "c95d5e0b9cbcfd292269dce667bb335e76a4728328ae392c5b133f02db00aae4",
+      "reason": "User approved retirement of this identity.",
+      "evidence": [
+        {
+          "source": "Legislative Council public works paper",
+          "url": "https://www.legco.gov.hk/yr2023/english/fc/pwsc/papers/P23-27e.pdf",
+          "observation": "Proposes demolishing the former Wanchai School for a 12-class special school.",
+          "qualification": "A demolition proposal does not establish completion or the demolition date. Review before approving retirement.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "august-2025-reviewed-18",
+      "sourceVersionFrom": "2025-08-13.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User August review export, 2026-10-06T14:41:01.768Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-5e6be506-4027-5586-9aaa-9e9d531374db",
+          "level": "complex",
+          "parentId": null,
+          "en": "MARKET STREET REFUSE COLLECTION POINT, 10 MARKET STREET, YAU TSIM MONG DISTRICT, KLN",
+          "zhHant": "街市街垃圾收集站10街市街油尖旺區九龍",
+          "coordinates": [
+            114.17049,
+            22.30947
+          ],
+          "sourceIds": [
+            "4022b1ce-4e46-545f-867d-8211737e0cd8"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "c95d5e0b9cbcfd292269dce667bb335e76a4728328ae392c5b133f02db00aae4",
+      "reason": "User approved retirement of this identity.",
+      "evidence": [
+        {
+          "source": "Historical FEHD access-officer list (mirror)",
+          "url": "https://www.yumpu.com/en/document/view/20782948/yau-tsim-mong-food-and-environmental-hygiene-department",
+          "observation": "Lists Market Street Refuse Collection Point in Yau Tsim district.",
+          "qualification": "Historical listing only; no current closure established. Do not confuse this with the Tsuen Wan facility.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "september-2025-reviewed-1",
+      "sourceVersionFrom": "2025-09-03.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User September review export, 2026-10-06T15:44:14.461Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-0301abcf-afb3-5549-9dd4-f9040c1b6108",
+          "level": "building",
+          "parentId": null,
+          "en": "BLK 58B, CHEK CHUE BARRACKS, 160 WONG MA KOK ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "赤柱軍營第５８Ｂ座赤柱軍營160黃麻角道南區香港",
+          "coordinates": [
+            114.21749,
+            22.20342
+          ],
+          "sourceIds": [
+            "c13ba662-c110-5709-bdb7-673bb9bb4754"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "c9a7300583a8315d634bcc99161802f17ce0101470f062122862ca4e033d040a",
+      "reason": "Stanley Barracks are a better fit; retirement of this record approved, not evidence of physical demolition.",
+      "evidence": [
+        {
+          "source": "Lands Department Stanley map",
+          "url": "https://www.landsd.gov.hk/doc/en/mapping/ehkg/digital_map_files/GEOPDF/HK109_Stanley.pdf",
+          "observation": "The indexed map identifies Chek Chue Barracks and block 58B.",
+          "qualification": "Map content does not establish current status for every barracks block; no block-specific demolition confirmed.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "september-2025-reviewed-5",
+      "sourceVersionFrom": "2025-09-03.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User September review export, 2026-10-06T15:44:14.461Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-325b2ca5-4484-5452-9ab9-d8d77c5fa463",
+          "level": "building",
+          "parentId": null,
+          "en": "BLK 82, CHEK CHUE BARRACKS, 160 WONG MA KOK ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "赤柱軍營第８２座赤柱軍營160黃麻角道南區香港",
+          "coordinates": [
+            114.21575,
+            22.20507
+          ],
+          "sourceIds": [
+            "87a08e78-5c25-527c-a9c4-71aa101d8191"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "c9a7300583a8315d634bcc99161802f17ce0101470f062122862ca4e033d040a",
+      "reason": "Stanley Barracks are a better fit; retirement of this record approved, not evidence of physical demolition.",
+      "evidence": [
+        {
+          "source": "Government Stanley zoning plan announcement",
+          "url": "https://www.info.gov.hk/gia/general/201512/11/P201512110399.htm",
+          "observation": "Identifies Chek Chue Barracks as an existing military site.",
+          "qualification": "Historical site-level evidence only; it does not establish whether this individual block survives.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "september-2025-reviewed-13",
+      "sourceVersionFrom": "2025-09-03.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User September review export, 2026-10-06T15:44:14.461Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-8fef5bb7-cf37-5d46-bdb6-56e0eca82cdf",
+          "level": "building",
+          "parentId": null,
+          "en": "BLK 58A, CHEK CHUE BARRACKS, 160 WONG MA KOK ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "赤柱軍營第５８Ａ座赤柱軍營160黃麻角道南區香港",
+          "coordinates": [
+            114.21722,
+            22.20345
+          ],
+          "sourceIds": [
+            "148323cb-5032-5aa3-a32a-9ea97a516ad4"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "c9a7300583a8315d634bcc99161802f17ce0101470f062122862ca4e033d040a",
+      "reason": "Stanley Barracks are a better fit; retirement of this record approved, not evidence of physical demolition.",
+      "evidence": [
+        {
+          "source": "Lands Department Stanley map",
+          "url": "https://www.landsd.gov.hk/doc/en/mapping/ehkg/digital_map_files/GEOPDF/HK109_Stanley.pdf",
+          "observation": "The indexed map identifies Chek Chue Barracks and block 58B.",
+          "qualification": "Map content does not establish current status for every barracks block; no block-specific demolition confirmed.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "september-2025-reviewed-15",
+      "sourceVersionFrom": "2025-09-03.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User September review export, 2026-10-06T15:44:14.461Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-97523b36-0c88-5966-9755-152acd73ec9e",
+          "level": "building",
+          "parentId": null,
+          "en": "BLK 76, CHEK CHUE BARRACKS, 160 WONG MA KOK ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "赤柱軍營第７６座赤柱軍營160黃麻角道南區香港",
+          "coordinates": [
+            114.21589,
+            22.2049
+          ],
+          "sourceIds": [
+            "4f2824d7-c8ac-596d-bd74-629810f46d34"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "c9a7300583a8315d634bcc99161802f17ce0101470f062122862ca4e033d040a",
+      "reason": "Stanley Barracks are a better fit; retirement of this record approved, not evidence of physical demolition.",
+      "evidence": [
+        {
+          "source": "Government Stanley zoning plan announcement",
+          "url": "https://www.info.gov.hk/gia/general/201512/11/P201512110399.htm",
+          "observation": "Identifies Chek Chue Barracks as an existing military site.",
+          "qualification": "Historical site-level evidence only; it does not establish whether this individual block survives.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "september-2025-reviewed-20",
+      "sourceVersionFrom": "2025-09-03.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User September review export, 2026-10-06T15:44:14.461Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-d1796622-e3a6-58e5-a4c3-38f1681ad641",
+          "level": "building",
+          "parentId": null,
+          "en": "BLK 77, CHEK CHUE BARRACKS, 160 WONG MA KOK ROAD, SOUTHERN DISTRICT, HK",
+          "zhHant": "赤柱軍營第７７座赤柱軍營160黃麻角道南區香港",
+          "coordinates": [
+            114.21617,
+            22.20488
+          ],
+          "sourceIds": [
+            "f56d3a18-5074-5ef0-969a-4f00b07cb75c"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "c9a7300583a8315d634bcc99161802f17ce0101470f062122862ca4e033d040a",
+      "reason": "Stanley Barracks are a better fit; retirement of this record approved, not evidence of physical demolition.",
+      "evidence": [
+        {
+          "source": "Government Stanley zoning plan announcement",
+          "url": "https://www.info.gov.hk/gia/general/201512/11/P201512110399.htm",
+          "observation": "Identifies Chek Chue Barracks as an existing military site.",
+          "qualification": "Historical site-level evidence only; it does not establish whether this individual block survives.",
+          "checkedAt": "2026-10-06"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "november-2025-reviewed-33",
+      "sourceVersionFrom": "2025-11-04.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User November review export, 2026-10-07T07:29:58.575Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-4075a9a1-76dd-560f-99a3-e614ba424b91",
+          "level": "building",
+          "parentId": null,
+          "en": "AIA HONG KONG TOWER, 734 KING'S ROAD, EASTERN DISTRICT, HK",
+          "zhHant": "友邦香港大樓734英皇道東區香港",
+          "coordinates": [
+            114.2079,
+            22.29119
+          ],
+          "sourceIds": [
+            "5b52e843-ef78-5085-bba2-c53ecd77fcd0"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "22a67498da65f5dcb3239581d61a92b70c3d82f6e2ca9e435f274d29b875aa93",
+      "reason": "User approves retirement of this identity; exact physical demolition date is not asserted.",
+      "evidence": [
+        {
+          "source": "EMSD energy audit register",
+          "url": "https://www.emsd.gov.hk/beeo/en/register/search_eaf.php?type=search",
+          "observation": "Annotates AIA Hong Kong Tower at 734–738 King’s Road as demolished.",
+          "qualification": "Current register does not date demolition. AIA moved its principal office on 17 March 2025; relocation alone does not establish demolition timing.",
+          "checkedAt": "2026-10-07"
+        },
+        {
+          "source": "J. Roger Preston news",
+          "url": "https://www.jrp-group.com/en/news/news/58/",
+          "observation": "Lists a 24 July 2026 groundbreaking ceremony for redevelopment of AIA Hong Kong Tower.",
+          "qualification": "Later redevelopment evidence does not settle status on 4 November 2025.",
+          "checkedAt": "2026-10-07"
+        }
+      ],
+      "selectedCandidateId": null
+    },
+    {
+      "id": "december-2025-reviewed-9",
+      "sourceVersionFrom": "2025-12-16.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "authority": "User December review export, 2026-10-07T08:26:12.913Z: explicit retirement approval.",
+      "previousAddresses": [
+        {
+          "id": "ss-abd3b002-997d-5eb6-8f01-3ec8d40d72fe",
+          "level": "building",
+          "parentId": null,
+          "en": "39 SHA TSUI ROAD, 37-43 SHA TSUI ROAD, TSUEN WAN DISTRICT, NT",
+          "zhHant": "沙咀道３９號3743沙咀道荃灣區新界",
+          "coordinates": [
+            114.10938,
+            22.37395
+          ],
+          "sourceIds": [
+            "c97885a5-2db1-57ef-8984-b0664b12847e"
+          ],
+          "curations": []
+        }
+      ],
+      "reviewReportDigest": "856337d0be368df9d3a38d6404b8f551ceeba2398f1e4af7c4097d74d268e548",
+      "reason": "Retire the previous identity only; the current 37–43 Sha Tsui Road street address remains. No demolition date is asserted.",
+      "evidence": [
+        {
+          "source": "Midland commercial building information",
+          "url": "https://www.midlandici.com.hk/en/property/OFFICE-TSW-Kingview-Plaza-Low-Floor/I00326093",
+          "observation": "Identifies Kingview Plaza with 39 Sha Tsui Road and the combined 37–43 Sha Tsui Road address.",
+          "qualification": "Agency listing supports the wider frontage; it does not settle which address identity should survive.",
+          "checkedAt": "2026-10-07"
+        }
+      ],
+      "selectedCandidateId": null
     }
   ]
 }
