@@ -113,15 +113,20 @@ from their native FileGDB layers.
 
 `datasets.processingRules` contains the current resolved ingestion policy, with
 `stage: "ingestion"`. `sourceReleases.processingRules` and
-`resourceReleases.processingRules` retain `{ definitionId }` references to that exact
+`resourceReleases.processingRules` retain plain-text SHA-256 references to that exact
 policy in `processingRuleDefinitions` at creation. Dataset synchronisation does not
 rewrite captured release definitions.
 
-`snapshotRecipes.processingRules` retains `{ definitionId }` for the resolved
-`stage: "assembly"` policy. The effective recipe hash includes those rules as well as
-its selected input policies. `snapshotAssemblies.snapshotRecipeId` pins the recipe used
-by a snapshot; draft revisions can select another content-addressed recipe, while
-published snapshots keep their existing recipe. Null historical references remain
+Release and recipe references store the hash directly, for example
+`sha256:d43257fbc7629972d11e2ffc357176649e9469480dd40ab1ced1bb95317e52f3`. Readers
+resolve it with `processingRuleDefinitions.id = processingRules`. The full policy in
+`processingRuleDefinitions.definition` remains JSON.
+
+`snapshotRecipes.processingRules` retains a plain-text SHA-256 reference for the
+resolved `stage: "assembly"` policy. The effective recipe hash includes those rules as
+well as its selected input policies. `snapshotAssemblies.snapshotRecipeId` pins the
+recipe used by a snapshot; draft revisions can select another content-addressed recipe,
+while published snapshots keep their existing recipe. Null historical references remain
 unknown rather than acquiring today's rules.
 
 Registered declarations supply exact definitions, interfaces, parameters and
@@ -130,11 +135,9 @@ Structured field references identify an origin, collection and programmatic fiel
 API field rule pins identify either an ingestion resource release or an assembly recipe;
 shared lineage definitions retain both ingestion and assembly definition hashes.
 
-`sourceReleases.rawObjectKey` locates the retained publisher artefact or shared prepared
-input. `resourceReleases.rawObjectKey` locates the resource's ingestion input. A
-multi-resource source can own an archive while its resources point to different derived
-files. Complete missing staged source keys without replacing an existing archive
-reference.
+Release tables retain version, processing policy and lifecycle metadata. Durable files
+are registered in `assets`; processing inputs use transient locations outside the
+release tables. Original filenames and packaging details live in manifests.
 
 `publicationDate` accepts a calendar date. A year or half-year cohort remains in
 `cohortKey` and `sourceVersion`; it does not imply a publication day.
@@ -166,13 +169,29 @@ repository root. The command opens the target read-only, prints JSON findings an
 optionally writes reviewable repair SQL. It audits the current schema. Run it again
 after repair and check remaining unknown metadata.
 
-The repair plan fills missing source keys only when all child resource keys agree,
-copies processing rules only from retained related-release evidence, and normalises
-Planning Department release-stat ownership labels. It does not rewrite existing rule
-values, guess multi-resource archive keys, assign draft shards or manufacture missing
-publication dates. Apply schema changes and metadata repairs with ingestion writers
-stopped and a retained database backup. Published source resources may be `superseded`;
-that status still satisfies completed historical materialisation.
+The repair plan copies processing rules only from retained related-release evidence, and
+normalises Planning Department release-stat ownership labels. It does not rewrite
+existing rule values, guess multi-resource archive keys, assign draft shards or
+manufacture missing publication dates. Apply schema changes and metadata repairs with
+ingestion writers stopped and a retained database backup. Published source resources may
+be `archived`; that status still satisfies completed historical materialisation.
+
+## Asset ownership
+
+`releaseSourceArchive` retains original publisher bytes as Parquet or ZIP and links
+through `assets.sourceReleaseId`. Loose GeoJSON and GML are packaged losslessly.
+Acquired archives may remain unlinked until registration. Sibling resources share their
+publisher archive.
+
+`resourceSourceArchive` retains a resource-specific source dataset as Parquet and links
+through `assets.resourceReleaseId`. Native multi-table exports include `sourceTable`;
+complex values use JSON strings in Parquet columns. Each resource owns its export.
+
+Manifest assets use `sourceAssetId` and inherit the source object's release ownership.
+Hash, size, media type and private object key remain in `assets`. Source-release
+deletion detaches retained originals for replay. Resource exports are removed before
+deleting their owner. Public delivery resolves attribution through either ownership
+path.
 
 ## Localised metadata
 

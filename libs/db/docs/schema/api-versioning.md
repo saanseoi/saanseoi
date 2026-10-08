@@ -74,6 +74,12 @@ resulting status, and optional reason or metadata. `apiVersions.status` remains 
 current-state projection used for routing. Publication lifecycle for datasets and API
 release sets is recorded separately in `releaseSetLifecycleJournal`.
 
+`releaseSetLifecycleJournal` records the action, previous and resulting status,
+timestamp, and resource-release, snapshot and API-version release-set relationships. Its
+optional `metadataJson` retains event details, including the catalogue ID and the API
+release sets replaced and restored during rollback. Revocation reasons belong to
+`resourceReleases.revocationReason`.
+
 Recommended status flow:
 
 - `draft`
