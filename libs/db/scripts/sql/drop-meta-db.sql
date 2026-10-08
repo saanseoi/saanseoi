@@ -3,6 +3,7 @@ PRAGMA defer_foreign_keys = true;
 
 DROP TABLE IF EXISTS `harbourSqlDeliveryReceipts`;
 DROP TABLE IF EXISTS `releaseSetLifecycleJournal`;
+DROP TABLE IF EXISTS `processingAudits`;
 DROP TABLE IF EXISTS `releaseProvenance`;
 
 DROP TABLE IF EXISTS `apiFieldProvenance`;
@@ -42,8 +43,6 @@ DROP TABLE IF EXISTS `snapshotLineages`;
 DROP TABLE IF EXISTS `apiCatalogRevisions`;
 DROP TABLE IF EXISTS `apiVersions`;
 DROP TABLE IF EXISTS `entityAliases`;
-DROP TABLE IF EXISTS `releaseProcessingActionChunks`;
-DROP TABLE IF EXISTS `releaseProcessingActions`;
 DROP TABLE IF EXISTS `resourceReleases`;
 DROP TABLE IF EXISTS `releases`;
 DROP TABLE IF EXISTS `sourceReleases`;
