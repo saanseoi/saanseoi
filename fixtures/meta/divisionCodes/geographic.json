@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ec5d2d16f78677e82bb34ffe07738b3e30c8a299fd0d8fd623a4849099048292",
+  "versionHash": "sha256:3ae7ffa8e807ffac2e1ee01ac23b1f4abeba8bdf737f65357f2148b89620bc83",
   "domainCode": "geographic",
   "assignments": [
     {
@@ -287,8 +287,8 @@
     {
       "divisionCode": "LYM",
       "canonicalId": "d3ec706f-f6f0-414d-9e8b-193e73c90c1c",
-      "divisionClass": "macrohood",
-      "divisionCategory": "hood"
+      "divisionClass": "rural_area",
+      "divisionCategory": "locality"
     },
     {
       "divisionCode": "LMC",
@@ -419,8 +419,8 @@
     {
       "divisionCode": "SO",
       "canonicalId": "2b766c3a-5ea7-46cc-aa9f-e6dfed661137",
-      "divisionClass": "macrohood",
-      "divisionCategory": "hood"
+      "divisionClass": "rural_area",
+      "divisionCategory": "locality"
     },
     {
       "divisionCode": "SW",
@@ -479,8 +479,8 @@
     {
       "divisionCode": "TT",
       "canonicalId": "8e8df960-8519-4b8f-b53e-224425178782",
-      "divisionClass": "macrohood",
-      "divisionCategory": "hood"
+      "divisionClass": "rural_area",
+      "divisionCategory": "locality"
     },
     {
       "divisionCode": "TW",
