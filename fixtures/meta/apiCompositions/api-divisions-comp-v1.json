@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:64cf70d243a961d61d9d6d8a2e2eb5014ea18964555e2c935579c426aba4438e",
+  "versionHash": "sha256:696767052595531a67c23a0022ebed93f0cda9774ff29bad4335b4c88da93fe2",
   "apiVersion": "api-divisions-v0.1",
   "code": "comp-divisions-v1",
   "version": 1,
@@ -64,20 +64,6 @@
           "isRequired": true,
           "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
           "priority": 13
-        },
-        {
-          "resourceType": "divisionArea",
-          "variant": "hkgov-censtatd",
-          "role": "geometry",
-          "isRequired": true,
-          "cohortMatchingMode": "latest_at_or_before_cohort_per_dataset",
-          "priority": 14,
-          "ingestDependencies": [
-            {
-              "resourceType": "division",
-              "variant": "overture"
-            }
-          ]
         },
         {
           "resourceType": "divisionBoundary",
