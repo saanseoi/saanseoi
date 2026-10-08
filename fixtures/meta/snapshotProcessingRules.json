@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:0ace470af4b5bd7886dc0a9c25ac0ad5abb5234099d6b9b757447b5e4c4baa30",
+  "versionHash": "sha256:f80775963cd6771a8cdcdfa33465033804f0bd54b28019a68539266e4b196df8",
   "policies": [
     {
       "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
@@ -299,7 +299,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-overture-division-area",
+      "datasetCode": "ds-hk-overture-division",
       "resourceType": "divisionArea",
       "processingRules": [
         {
@@ -311,7 +311,7 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-overture-division-boundary",
+      "datasetCode": "ds-hk-overture-division",
       "resourceType": "divisionBoundary",
       "processingRules": [
         {
@@ -330,11 +330,7 @@
           "rulesetVersion": "rs-division-assembly-v1",
           "operationCodes": [
             "normalise-divisions",
-            "apply-division-classification-patch",
-            "decode_wkb_geometry_to_geojson",
-            "apply-division-name-translation",
-            "apply-geographic-hierarchy-patch",
-            "summarise-division-name-translations"
+            "decode_wkb_geometry_to_geojson"
           ]
         }
       ]
@@ -355,13 +351,12 @@
       ]
     },
     {
-      "datasetCode": "ds-hk-saanseoi-division-area",
+      "datasetCode": "ds-hk-saanseoi-division",
       "resourceType": "divisionArea",
       "processingRules": [
         {
           "rulesetVersion": "rs-divisionArea-assembly-v1",
           "operationCodes": [
-            "assemble-curated-divisions",
             "normalise-division-area-geometry"
           ]
         }
@@ -374,11 +369,7 @@
         {
           "rulesetVersion": "rs-division-assembly-v1",
           "operationCodes": [
-            "assemble-curated-divisions",
-            "resolve-geography-identities",
-            "normalise-divisions",
-            "apply-division-name-translation",
-            "apply-geographic-hierarchy-patch"
+            "normalise-divisions"
           ]
         }
       ]
