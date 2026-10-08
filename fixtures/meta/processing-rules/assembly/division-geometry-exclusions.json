@@ -4,7 +4,7 @@
   "id": "exclude-division-geometry",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Leave out configured areas beyond Hong Kong and shapes attached only as references.",
+  "summary": "Exclude CN-GD geometry. Overture and prepared SaanSeoi resources retain all division IDs; configured area ID exclusions apply only to other sources.",
   "inputs": [
     "source-geometry"
   ],
@@ -119,6 +119,10 @@
       "a62dfc8a-c5a0-454a-94db-b57792ede77b",
       "6656a014-0303-44eb-a3de-74ab665770f7",
       "ee49a68b-e7f8-4781-9211-38c77e54d64d"
+    ],
+    "areaIdExclusionBypassSources": [
+      "overture",
+      "saanseoi"
     ]
   },
   "implementation": {
@@ -127,13 +131,13 @@
   },
   "i18n": {
     "en": {
-      "description": "Leave out configured areas beyond Hong Kong and shapes attached only as references."
+      "description": "Exclude CN-GD geometry. Overture and prepared SaanSeoi resources retain all division IDs; configured area ID exclusions apply only to other sources."
     },
     "zh-hant": {
-      "description": "按宣告的區域及參照排除規則選取區劃幾何。"
+      "description": "排除 CN-GD 幾何。Overture 及已準備的 SaanSeoi 資源保留所有區劃識別；指定面積識別排除只適用於其他來源。"
     },
     "zh-hans": {
-      "description": "按声明的区域及参照排除规则选取区划几何。"
+      "description": "排除 CN-GD 几何。Overture 及已准备的 SaanSeoi 资源保留所有区划标识；指定面积标识排除只适用于其他来源。"
     }
   }
 }

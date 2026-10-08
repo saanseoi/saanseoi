@@ -4,7 +4,7 @@
   "id": "normalise-divisions",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Preserve publisher identity and source assertions; use the curated SaanSeoi class and taxonomy for curated identities, and normalise native source rows for review. Materialise localised names and correlated hierarchy paths.",
+  "summary": "Map publisher classifications to the shared Division schema and normalise localised names and hierarchy paths while preserving publisher identity.",
   "inputs": [
     "source-divisions"
   ],
@@ -225,13 +225,13 @@
   },
   "i18n": {
     "en": {
-      "description": "Preserve publisher identity and source assertions; use the curated SaanSeoi class and taxonomy for curated identities, and normalise native source rows for review. Materialise localised names and correlated hierarchy paths."
+      "description": "Map publisher classifications to the shared Division schema and normalise localised names and hierarchy paths while preserving publisher identity."
     },
     "zh-hant": {
-      "description": "保留來源識別，建立已整理的區劃分類、本地化名稱及相關階層路徑。"
+      "description": "將來源分類對應至共用區劃結構，統一本地化名稱及階層路徑，並保留來源識別。"
     },
     "zh-hans": {
-      "description": "保留来源识别，建立已整理的区划分类、本地化名称及相关层级路径。"
+      "description": "将来源分类对应至共用区划结构，统一本地化名称及层级路径，并保留来源识别。"
     }
   }
 }

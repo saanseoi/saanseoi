@@ -4,7 +4,7 @@
   "id": "normalise-division-area-geometry",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Keep each division’s published area shape and publisher record ID. Leave out parts outside Hong Kong and shapes that are only references, not areas.",
+  "summary": "Map published area geometry to the shared schema, preserve publisher record identity and apply the declared source-specific regional selection.",
   "inputs": [
     "source-geometry"
   ],
@@ -21,7 +21,7 @@
   ],
   "i18n": {
     "en": {
-      "description": "Keep each division’s published area shape and publisher record ID. Leave out parts outside Hong Kong and shapes that are only references, not areas."
+      "description": "Map published area geometry to the shared schema, preserve publisher record identity and apply the declared source-specific regional selection."
     },
     "zh-hant": {
       "description": "建立區劃面積幾何，保留發布者記錄識別並排除宣告的不適用幾何。"

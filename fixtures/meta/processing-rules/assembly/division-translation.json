@@ -4,7 +4,7 @@
   "id": "apply-division-name-translation",
   "scope": "individual",
   "basis": "fixture",
-  "summary": "Add a missing English or Traditional Chinese name from a reviewed fixture, retaining its provenance. Simplified Chinese translations are not applied.",
+  "summary": "Add missing names only from explicitly human-translated fixtures. Ignore automated translations in every locale; Simplified Chinese remains publisher-owned.",
   "inputs": [
     "division-i18n",
     "division-translations"
@@ -27,7 +27,7 @@
   },
   "i18n": {
     "en": {
-      "description": "Add a missing English or Traditional Chinese name from a reviewed fixture, retaining its provenance. Simplified Chinese translations are not applied."
+      "description": "Add missing names only from explicitly human-translated fixtures. Ignore automated translations in every locale; Simplified Chinese remains publisher-owned."
     },
     "zh-hant": {
       "description": "套用具有來源及上下文檢查的已審核區劃名稱翻譯。"
