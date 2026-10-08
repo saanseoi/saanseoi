@@ -25,5 +25,21 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  // The Svelte TypeScript plugin also scans these paths for component files.
+  // Keep cached workspaces, dependencies and generated output out of the project.
+  "exclude": [
+    "**/.git/**",
+    "**/.delta/**",
+    "**/.local/**",
+    "**/node_modules/**",
+    "**/.cache/**",
+    "**/.svelte-kit/**",
+    "**/.wrangler/**",
+    "**/.turbo/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "output/**",
+    "tmp/**"
+  ]
 }
