@@ -325,6 +325,19 @@
       ],
       "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: daai6 joeng4 ce4 sai1. The complete English spelling is not independently attested. The generic area, direction or forecourt descriptor is rendered in English."
     },
+    "7f513882b524f3b2eb8aa19d4589937b47b95b669435481a77b3ba949c2f4d6a": {
+      "field": "name",
+      "sourceLocale": "zh-hans",
+      "sourceText": "阳家村",
+      "sourceTextHash": "1f89e4df052b705b23c24372529af2bbc0108fb9f15ebb81313453f084e067e9",
+      "targetLocale": "en",
+      "text": "Yeung Ka Tsuen",
+      "provenance": "ai-translated",
+      "references": [
+        "https://en.wikipedia.org/wiki/Yeung_Ka_Tsuen"
+      ],
+      "derivation": "Attested village name for Tai Tong, Yuen Long; the article identifies 楊家村 and gives a location within approximately 50 m of this division record."
+    },
     "7f6439debacd738640b77b2122a42ac19900638b3c5f96b0a3da1621687d73a8": {
       "field": "name",
       "sourceLocale": "zh-hant",
@@ -363,17 +376,6 @@
       ],
       "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: cung1 hau2 cyun1. The complete English spelling is not independently attested."
     },
-    "8ffad42ff5ede84407e3faafc13401d2d1d5fe1ed4a6914cacd77ff0360f2fe7": {
-      "field": "name",
-      "sourceLocale": "zh-hant",
-      "sourceText": "四小龍",
-      "sourceTextHash": "79757daac96812ab8c8a82e4a68c5ebebc3a37a932dd4c6cd79ef95bc118b160",
-      "targetLocale": "en",
-      "text": "West Kowloon Four Little Dragons",
-      "provenance": "human-translated",
-      "references": [],
-      "derivation": "User-reviewed English name for the four large private residential estates around Sham Mong Road and Lai Chi Kok Road in Lai Chi Kok / Cheung Sha Wan."
-    },
     "96d72dd0f1e09a77502300093d659a2369b07a1acf8a92483ef18ba52ced2ee1": {
       "field": "name",
       "sourceLocale": "zh-hant",
@@ -390,6 +392,16 @@
         "https://humanum.arts.cuhk.edu.hk/Lexis/lexi-can/search.php?q=%A7%F8"
       ],
       "derivation": "Cantonese fallback in Hong Kong place-name style; dictionary reading: gwong1 baan2 tin4 san1 cyun1. The complete English spelling is not independently attested. Retains the Kwong Pan Tin stem used by neighbouring publisher-named divisions."
+    },
+    "9ef6dc19ff7e8b6b1cd53889423004733f07fa5ac13e71f9f9a96ce0b60e237b": {
+      "field": "name",
+      "sourceLocale": "zh-hant",
+      "sourceText": "四小龍",
+      "sourceTextHash": "79757daac96812ab8c8a82e4a68c5ebebc3a37a932dd4c6cd79ef95bc118b160",
+      "targetLocale": "en",
+      "text": "West Kowloon Four Little Dragons",
+      "provenance": "human-translated",
+      "derivation": "User-reviewed English name for the four large private residential estates around Sham Mong Road and Lai Chi Kok Road in Lai Chi Kok / Cheung Sha Wan."
     },
     "a74f53d143f04e201bbc469ed606f9d544d7137dff9d9970c5b65c8c1d0574c9": {
       "field": "name",
@@ -936,9 +948,18 @@
         "7b98789b-f3a4-406e-bdea-b1216a882225"
       ]
     },
+    "dc85705c2a3829ebd9d77037aebaa9c9149375a2202acf74df6f7af3e1a073b3": {
+      "context": "8532d42676fd9bbdbcd9ae535a8850983d2cf5c790f98162f5470bb34abed3b2",
+      "translation": "7f513882b524f3b2eb8aa19d4589937b47b95b669435481a77b3ba949c2f4d6a",
+      "firstSeenRelease": "dr-hk-overture-division-2025-09-24.0",
+      "lastSeenRelease": "dr-hk-overture-division-2025-12-17.0",
+      "recordIds": [
+        "0cc062c7-3934-4a55-9997-d66bbe36ba7a"
+      ]
+    },
     "efc5d802ef990cae6d20d53fe0650fd9112cb06eac9750c679a326bbdb96e757": {
       "context": "2c691296ec74586ff4d206cb3de7b396a539bee909f4241a0305794e8b72b0f8",
-      "translation": "8ffad42ff5ede84407e3faafc13401d2d1d5fe1ed4a6914cacd77ff0360f2fe7",
+      "translation": "9ef6dc19ff7e8b6b1cd53889423004733f07fa5ac13e71f9f9a96ce0b60e237b",
       "firstSeenRelease": "dr-hk-overture-division-2026-09-23.0",
       "lastSeenRelease": "dr-hk-overture-division-2026-09-23.0",
       "recordIds": [
