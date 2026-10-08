@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:e5648372c6fd1b2a0ceb86a6b0e10db494c7a55710d43049867612f95279b6ad",
+  "versionHash": "sha256:249f3747714ac61e3fe685e1715f9bd531b643522b26111de25433d460f3b122",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -16,10 +16,6 @@
     },
     "ds-hk-overture-place": {
       "min": "1.12.0",
-      "max": "2.0.0"
-    },
-    "ds-hk-overture-division-area": {
-      "min": "1.16.0",
       "max": "2.0.0"
     },
     "ds-hk-saanseoi-division": {
@@ -153,7 +149,6 @@
       "datasetCodes": [
         "ds-hk-hkgov-dpo-address",
         "ds-hk-overture-division",
-        "ds-hk-overture-division-area",
         "ds-hk-overture-place",
         "ds-hk-saanseoi-division"
       ],
@@ -462,7 +457,7 @@
       ]
     },
     {
-      "apiField": "attributes.identifiers.hkgovCsuId",
+      "apiField": "attributes.identifiers.ALS:CsuId",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "resolverCode": "normalise_whitespace",
       "contributionType": "primary",
