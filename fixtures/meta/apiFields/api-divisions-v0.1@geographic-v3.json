@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f2ed2f848567989edd686e3aa2f2f9cb2cfd88e8d913fd5595f6600dcb613ca4",
+  "versionHash": "sha256:ee5d11cde6765388ee6586803c516797d9200a2427776fb2424afbaec8a41865",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 3,
@@ -34,19 +34,7 @@
       "min": "1.16.0",
       "max": "2.0.0"
     },
-    "ds-hk-overture-division-area": {
-      "min": "1.16.0",
-      "max": "2.0.0"
-    },
-    "ds-hk-overture-division-boundary": {
-      "min": "1.16.0",
-      "max": "2.0.0"
-    },
     "ds-hk-saanseoi-division": {
-      "min": "1.0",
-      "max": "1.0"
-    },
-    "ds-hk-saanseoi-division-area": {
       "min": "1.0",
       "max": "1.0"
     },
@@ -67,35 +55,21 @@
     "ds-hk-overture-division": {
       "sourceRecordId": "id",
       "geometry": "geometry",
+      "properties.class": "class",
+      "properties.divisionIds": "division_ids",
+      "properties.isLand": "is_land",
+      "properties.isTerritorial": "is_territorial",
+      "properties.sources": "sources",
       "properties.adminLevel": "admin_level",
       "properties.cartography": "cartography",
-      "properties.class": "class",
       "properties.hierarchies": "hierarchies",
       "properties.names.common": "names.common",
       "properties.names.primary": "names.primary",
       "properties.names.rules": "names.rules",
       "properties.parentDivisionId": "parent_division_id",
-      "properties.sources": "sources",
       "properties.subtype": "subtype",
-      "properties.wikidata": "wikidata"
-    },
-    "ds-hk-overture-division-area": {
-      "sourceRecordId": "id",
-      "geometry": "geometry",
-      "properties.class": "class",
-      "properties.divisionId": "division_id",
-      "properties.isLand": "is_land",
-      "properties.isTerritorial": "is_territorial",
-      "properties.sources": "sources"
-    },
-    "ds-hk-overture-division-boundary": {
-      "sourceRecordId": "id",
-      "geometry": "geometry",
-      "properties.class": "class",
-      "properties.divisionIds": "division_ids",
-      "properties.isLand": "is_land",
-      "properties.isTerritorial": "is_territorial",
-      "properties.sources": "sources"
+      "properties.wikidata": "wikidata",
+      "properties.divisionId": "division_id"
     },
     "ds-hk-hkgov-had-division-area-district": {
       "geometry": "geometry",
@@ -112,12 +86,16 @@
     },
     "ds-hk-saanseoi-division": {
       "sourceRecordId": "rows[].id",
-      "properties.class": "rows[].class",
       "geometry": "rows[].geometry",
+      "properties.divisionId": "rows[].divisionId",
+      "properties.type": "rows[].type",
+      "properties.isLand": "rows[].isLand",
+      "properties.isTerritorial": "rows[].isTerritorial",
+      "properties.sources": "rows[].sources",
+      "properties.class": "rows[].class",
       "properties.bbox": "rows[].bbox",
       "properties.wikidata": "rows[].wikidata",
       "properties.hierarchies": "rows[].hierarchies",
-      "properties.sources": "rows[].sources",
       "properties.cartography": "rows[].cartography",
       "properties.names.en.name": "rows[].names.en.name",
       "properties.names.zh-hant.name": "rows[].names.zh-hant.name",
@@ -127,15 +105,6 @@
       "properties.names.*.nameRules": "rows[].names.*.nameRules",
       "properties.level": "rows[].level",
       "properties.category": "rows[].category"
-    },
-    "ds-hk-saanseoi-division-area": {
-      "sourceRecordId": "rows[].id",
-      "geometry": "rows[].geometry",
-      "properties.divisionId": "rows[].divisionId",
-      "properties.type": "rows[].type",
-      "properties.isLand": "rows[].isLand",
-      "properties.isTerritorial": "rows[].isTerritorial",
-      "properties.sources": "rows[].sources"
     }
   },
   "sourceCompositions": [
@@ -148,14 +117,12 @@
         "ds-hk-hkgov-landsd-division",
         "ds-hk-hkgov-rvd-division",
         "ds-hk-overture-division",
-        "ds-hk-overture-division-area",
-        "ds-hk-overture-division-boundary",
         "ds-hk-protomaps-island",
-        "ds-hk-saanseoi-division",
-        "ds-hk-saanseoi-division-area"
+        "ds-hk-saanseoi-division"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-saanseoi-2026-09-01.0"
+        "ss-hk-division-saanseoi-2026-09-01.0",
+        "ss-hk-division-saanseoi-2026-10-01.0"
       ]
     },
     {
@@ -166,14 +133,12 @@
         "ds-hk-hkgov-landsd-division",
         "ds-hk-hkgov-rvd-division",
         "ds-hk-overture-division",
-        "ds-hk-overture-division-area",
-        "ds-hk-overture-division-boundary",
         "ds-hk-protomaps-island",
-        "ds-hk-saanseoi-division",
-        "ds-hk-saanseoi-division-area"
+        "ds-hk-saanseoi-division"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-saanseoi-2026-09-01.0"
+        "ss-hk-division-saanseoi-2026-09-01.0",
+        "ss-hk-division-saanseoi-2026-10-01.0"
       ]
     },
     {
@@ -184,14 +149,12 @@
         "ds-hk-hkgov-landsd-division",
         "ds-hk-hkgov-rvd-division",
         "ds-hk-overture-division",
-        "ds-hk-overture-division-area",
-        "ds-hk-overture-division-boundary",
         "ds-hk-protomaps-island",
-        "ds-hk-saanseoi-division",
-        "ds-hk-saanseoi-division-area"
+        "ds-hk-saanseoi-division"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-saanseoi-2026-09-01.0"
+        "ss-hk-division-saanseoi-2026-09-01.0",
+        "ss-hk-division-saanseoi-2026-10-01.0"
       ]
     },
     {
@@ -202,20 +165,21 @@
         "ds-hk-hkgov-landsd-division",
         "ds-hk-hkgov-rvd-division",
         "ds-hk-overture-division",
-        "ds-hk-overture-division-area",
-        "ds-hk-overture-division-boundary",
         "ds-hk-protomaps-island",
-        "ds-hk-saanseoi-division",
-        "ds-hk-saanseoi-division-area"
+        "ds-hk-saanseoi-division"
       ],
       "anchorSnapshotVersions": [
-        "ss-hk-division-saanseoi-2026-09-01.0"
+        "ss-hk-division-saanseoi-2026-09-01.0",
+        "ss-hk-division-saanseoi-2026-10-01.0"
       ]
     }
   ],
   "lineageAnchors": [
     {
       "snapshotVersion": "ss-hk-division-saanseoi-2026-09-01.0"
+    },
+    {
+      "snapshotVersion": "ss-hk-division-saanseoi-2026-10-01.0"
     }
   ],
   "resources": [
@@ -405,20 +369,6 @@
           ]
         },
         {
-          "apiField": "attributes.i18n.*.nameVariant",
-          "sourceDatasetCode": "ds-hk-saanseoi-division",
-          "resolverCode": "direct_copy",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "source",
-              "fieldPath": "properties.names.*.nameVariant"
-            }
-          ]
-        },
-        {
           "apiField": "attributes.i18n.*.nameAlts",
           "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
@@ -448,7 +398,7 @@
         },
         {
           "apiField": "relationships.areas",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "lookup_fk",
           "contributionType": "primary",
           "priority": 0,
@@ -462,7 +412,7 @@
         },
         {
           "apiField": "relationships.boundaries",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "lookup_fk",
           "contributionType": "primary",
           "priority": 0,
@@ -481,7 +431,7 @@
       "fields": [
         {
           "apiField": "id",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -495,7 +445,7 @@
         },
         {
           "apiField": "attributes.geometry",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -509,7 +459,7 @@
         },
         {
           "apiField": "attributes.bbox",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "derive_bbox_from_geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -523,7 +473,7 @@
         },
         {
           "apiField": "attributes.divisionId",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -537,7 +487,7 @@
         },
         {
           "apiField": "attributes.type",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "normalise-division-area-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -559,7 +509,7 @@
         },
         {
           "apiField": "attributes.isLand",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -573,7 +523,7 @@
         },
         {
           "apiField": "attributes.isTerritorial",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -588,7 +538,7 @@
         {
           "apiField": "attributes.variant",
           "variant": "overture",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "derive_variant_from_source",
           "contributionType": "primary",
           "priority": 0,
@@ -701,7 +651,7 @@
         },
         {
           "apiField": "attributes.sources",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "wrap_publisher_sources",
           "contributionType": "primary",
           "priority": 0,
@@ -1443,7 +1393,7 @@
         {
           "apiField": "attributes.variant",
           "variant": "saanseoi",
-          "sourceDatasetCode": "ds-hk-overture-division-area",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "derive_variant_from_source",
           "contributionType": "primary",
           "priority": 0,
@@ -1469,7 +1419,7 @@
         },
         {
           "apiField": "id",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1483,7 +1433,7 @@
         },
         {
           "apiField": "attributes.geometry",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1497,7 +1447,7 @@
         },
         {
           "apiField": "attributes.bbox",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1511,7 +1461,7 @@
         },
         {
           "apiField": "attributes.divisionId",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1525,7 +1475,7 @@
         },
         {
           "apiField": "attributes.type",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1547,7 +1497,7 @@
         },
         {
           "apiField": "attributes.isLand",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1561,7 +1511,7 @@
         },
         {
           "apiField": "attributes.isTerritorial",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1576,7 +1526,7 @@
         {
           "apiField": "attributes.variant",
           "variant": "overture",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1594,7 +1544,7 @@
         },
         {
           "apiField": "attributes.sources",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1609,7 +1559,7 @@
         {
           "apiField": "attributes.variant",
           "variant": "saanseoi",
-          "sourceDatasetCode": "ds-hk-saanseoi-division-area",
+          "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1640,7 +1590,7 @@
       "fields": [
         {
           "apiField": "id",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1654,7 +1604,7 @@
         },
         {
           "apiField": "attributes.geometry",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "normalise-division-boundary-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1668,7 +1618,7 @@
         },
         {
           "apiField": "attributes.bbox",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "derive_bbox_from_geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1682,7 +1632,7 @@
         },
         {
           "apiField": "attributes.leftDivisionId",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1696,7 +1646,7 @@
         },
         {
           "apiField": "attributes.rightDivisionId",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1710,7 +1660,7 @@
         },
         {
           "apiField": "attributes.type",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "normalise-division-boundary-geometry",
           "contributionType": "primary",
           "priority": 0,
@@ -1732,7 +1682,7 @@
         },
         {
           "apiField": "attributes.isLand",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1746,7 +1696,7 @@
         },
         {
           "apiField": "attributes.isTerritorial",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
           "priority": 0,
@@ -1760,7 +1710,7 @@
         },
         {
           "apiField": "attributes.sources",
-          "sourceDatasetCode": "ds-hk-overture-division-boundary",
+          "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "wrap_publisher_sources",
           "contributionType": "primary",
           "priority": 0,
