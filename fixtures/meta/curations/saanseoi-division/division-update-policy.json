@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Protect accepted Division identities and core-locale names against unreviewed publisher updates. zh-hans is publisher-owned; only names retained in Overture inputs qualify for protection.",
+  "coreLocales": [
+    "en",
+    "zh-hant",
+    "zh-hans"
+  ],
+  "excludedNewNamePatterns": [
+    "\\bplaza\\b",
+    "\\bsquare\\b",
+    "廣場",
+    "广场"
+  ],
+  "decisions": [
+    {
+      "fingerprint": "98845ef6c9bb8fe3e83ff022c462265f9ccb949a305df4d9b0726ce9b426ed48",
+      "action": "delete",
+      "reason": "Confirmed building, outside Division coverage."
+    },
+    {
+      "fingerprint": "ab4bc4ac34271702d8be8bf2b535775d51783538f0e35a2d9608bacb2381cf40",
+      "action": "keep",
+      "reason": "Confirmed well-defined peninsula."
+    },
+    {
+      "fingerprint": "9f611a5c043fbcd280a4119afdaec9af981b98d32bdc0bfae0b726d04c135960",
+      "action": "delete",
+      "reason": "Confirmed removal conditional on retaining Lau Fau Shan (54cbcd4c-81f2-47c4-b68b-95fee2196960), verified in October proposed inventory."
+    },
+    {
+      "fingerprint": "7721d6672b57a08b03ee6fce3cd609f5c3d9b02eb07654cd69352532d58f39c7",
+      "action": "keep",
+      "reason": "User confirmed retention of Hung Lung Hang; classification retained pending separate locality-area taxonomy review."
+    },
+    {
+      "fingerprint": "34bdfac7d0adc5342addb5f45511c2e77002510190cfaee7e93d8052caab6ae9",
+      "action": "keep",
+      "reason": "User confirmed retention of Hung Lung Hang and its reclassification as a level-4 rural_area locality."
+    }
+  ]
+}

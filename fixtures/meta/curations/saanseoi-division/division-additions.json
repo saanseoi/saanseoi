@@ -7,7 +7,6 @@
       "class": "city",
       "names": {
         "en": "Kowloon",
-        "zh-hans": "九龙",
         "zh-hant": "九龍"
       },
       "point": [
@@ -20,7 +19,6 @@
       "class": "country",
       "names": {
         "en": "China",
-        "zh-hans": "中国",
         "zh-hant": "中國"
       },
       "point": null
@@ -30,7 +28,6 @@
       "class": "area",
       "names": {
         "en": "Hong Kong Island",
-        "zh-hans": "香港岛",
         "zh-hant": "香港島"
       },
       "point": null
@@ -40,7 +37,6 @@
       "class": "area",
       "names": {
         "en": "Kowloon",
-        "zh-hans": "九龙",
         "zh-hant": "九龍"
       },
       "point": null
@@ -50,7 +46,6 @@
       "class": "area",
       "names": {
         "en": "New Territories",
-        "zh-hans": "新界",
         "zh-hant": "新界"
       },
       "point": null
@@ -146,7 +141,6 @@
       "class": "microhood",
       "names": {
         "en": "Thirty Houses",
-        "zh-hans": "卅间",
         "zh-hant": "卅間"
       },
       "point": [
@@ -166,7 +160,6 @@
       "class": "neighbourhood",
       "names": {
         "en": "Tai Tam Gap",
-        "zh-hans": "大潭峡",
         "zh-hant": "大潭峽"
       },
       "point": [
@@ -186,7 +179,6 @@
       "class": "microhood",
       "names": {
         "en": "Tai Tam Tau",
-        "zh-hans": "大潭头",
         "zh-hant": "大潭頭"
       },
       "point": [
@@ -206,7 +198,6 @@
       "class": "neighbourhood",
       "names": {
         "en": "Cape Collinson",
-        "zh-hans": "歌连臣角",
         "zh-hant": "歌連臣角"
       },
       "point": [
@@ -226,7 +217,6 @@
       "class": "hamlet",
       "names": {
         "en": "Hok Tsui Lower Village",
-        "zh-hans": "鹤咀下村",
         "zh-hant": "鶴咀下村"
       },
       "point": [
@@ -246,7 +236,6 @@
       "class": "microhood",
       "names": {
         "en": "Sandy Bay Gap",
-        "zh-hans": "沙湾坳",
         "zh-hant": "沙灣坳"
       },
       "point": [
@@ -266,7 +255,6 @@
       "class": "microhood",
       "names": {
         "en": "Kai Tak Sports Park",
-        "zh-hans": "启德体育园",
         "zh-hant": "啟德體育園"
       },
       "point": [
@@ -286,7 +274,6 @@
       "class": "microhood",
       "names": {
         "en": "Kai Tak Metro Park",
-        "zh-hans": "启德都会公园",
         "zh-hant": "啟德都會公園"
       },
       "point": [
@@ -306,7 +293,6 @@
       "class": "microhood",
       "names": {
         "en": "Kai Tak Cruise Terminal",
-        "zh-hans": "启德邮轮码头",
         "zh-hant": "啟德郵輪碼頭"
       },
       "point": [
@@ -326,7 +312,6 @@
       "class": "neighbourhood",
       "names": {
         "en": "Sheung Yuen Leng",
-        "zh-hans": "上元岭",
         "zh-hant": "上元嶺"
       },
       "point": [
@@ -346,7 +331,6 @@
       "class": "microhood",
       "names": {
         "en": "Ha Yuen Leng",
-        "zh-hans": "下元岭",
         "zh-hant": "下元嶺"
       },
       "point": [
@@ -366,7 +350,6 @@
       "class": "macrohood",
       "names": {
         "en": "Cha Liu Au",
-        "zh-hans": "茶寮坳",
         "zh-hant": "茶寮坳"
       },
       "point": [
@@ -386,7 +369,6 @@
       "class": "neighbourhood",
       "names": {
         "en": "Ping Shan",
-        "zh-hans": "平山",
         "zh-hant": "平山"
       },
       "point": [
@@ -418,8 +400,7 @@
       "class": "microhood",
       "names": {
         "en": "Kellett Island",
-        "zh-hant": "奇力島",
-        "zh-hans": "奇力岛"
+        "zh-hant": "奇力島"
       },
       "point": [
         114.18271101914193,
@@ -438,8 +419,7 @@
       "class": "macrohood",
       "names": {
         "en": "Wah Fu",
-        "zh-hant": "華富",
-        "zh-hans": "华富"
+        "zh-hant": "華富"
       },
       "point": [
         114.13645814715399,
@@ -458,8 +438,7 @@
       "class": "microhood",
       "names": {
         "en": "Pak Kan",
-        "zh-hant": "八間",
-        "zh-hans": "八间"
+        "zh-hant": "八間"
       },
       "point": [
         114.21345858231945,
@@ -483,8 +462,7 @@
       "class": "island_group",
       "names": {
         "en": "Ninepin Group",
-        "zh-hant": "果洲群島",
-        "zh-hans": "果洲群岛"
+        "zh-hant": "果洲群島"
       },
       "point": [
         114.35776935226464,
@@ -496,8 +474,7 @@
       "class": "island_group",
       "names": {
         "en": "The Brothers",
-        "zh-hant": "大小磨刀",
-        "zh-hans": "大小磨刀"
+        "zh-hant": "大小磨刀"
       },
       "point": [
         113.97459979913585,
@@ -509,8 +486,7 @@
       "class": "island_group",
       "names": {
         "en": "Ung Kong Group",
-        "zh-hant": "甕缸群島",
-        "zh-hans": "瓮缸群岛"
+        "zh-hant": "甕缸群島"
       },
       "point": [
         114.35033025,
@@ -522,8 +498,7 @@
       "class": "neighbourhood",
       "names": {
         "en": "Mei Foo",
-        "zh-hant": "美孚",
-        "zh-hans": "美孚"
+        "zh-hant": "美孚"
       },
       "point": null
     },
@@ -532,8 +507,7 @@
       "class": "microhood",
       "names": {
         "en": "Starstreet",
-        "zh-hant": "星街",
-        "zh-hans": "星街"
+        "zh-hant": "星街"
       },
       "point": [
         114.1683894,

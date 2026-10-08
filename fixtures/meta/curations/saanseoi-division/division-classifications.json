@@ -7,6 +7,10 @@
       "class": "neighbourhood"
     },
     {
+      "divisionId": "037738a8-a0cd-44a1-b62c-6b41c14ffc73",
+      "class": "rural_area"
+    },
+    {
       "divisionId": "04ad160c-ba32-44b8-8ab6-b7eaf7f5afe3",
       "class": "neighbourhood"
     },
@@ -25,6 +29,14 @@
     {
       "divisionId": "0a047469-9d4f-4101-ab9c-75560584888e",
       "class": "neighbourhood"
+    },
+    {
+      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
+      "class": "island_group"
+    },
+    {
+      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
+      "class": "island_group"
     },
     {
       "divisionId": "183013ef-20f3-417d-8881-16c1e9a9f7e2",
@@ -47,8 +59,16 @@
       "class": "macrohood"
     },
     {
+      "divisionId": "2b766c3a-5ea7-46cc-aa9f-e6dfed661137",
+      "class": "rural_area"
+    },
+    {
       "divisionId": "36ba2e79-8bae-45a5-8814-6499842f5ca2",
       "class": "neighbourhood"
+    },
+    {
+      "divisionId": "3707878f-080b-42cf-aecf-89fef56a066a",
+      "class": "major_island"
     },
     {
       "divisionId": "38c2dec8-4e8d-45ec-971d-621160fbaa80",
@@ -155,6 +175,10 @@
       "class": "hamlet"
     },
     {
+      "divisionId": "8e8df960-8519-4b8f-b53e-224425178782",
+      "class": "rural_area"
+    },
+    {
       "divisionId": "9313a020-4d76-4cba-8218-25d96b9b7954",
       "class": "neighbourhood"
     },
@@ -169,6 +193,11 @@
     {
       "divisionId": "9879ebb4-1171-4b2f-8125-bc60a256ed52",
       "class": "hamlet"
+    },
+    {
+      "divisionId": "LANDSD:PLACE_NAME:1581",
+      "class": "islet",
+      "reason": "Retain the reviewed island classification independently of measured polygon area."
     },
     {
       "divisionId": "a0883d47-ea3d-48c0-ab37-feae33f4e969",
@@ -187,8 +216,16 @@
       "class": "neighbourhood"
     },
     {
+      "divisionId": "ac162f33-9966-4d6e-9d53-8a6df575775f",
+      "class": "microhood"
+    },
+    {
       "divisionId": "ae137810-8767-4c1d-a1d0-5adff0b633c8",
       "class": "microhood"
+    },
+    {
+      "divisionId": "b14eba1a-b366-461d-a3ce-1d4c878fb997",
+      "class": "village"
     },
     {
       "divisionId": "b15871ff-6563-4c34-b333-a58fec032fd6",
@@ -235,6 +272,10 @@
       "class": "microhood"
     },
     {
+      "divisionId": "d1e1327a-28ff-4487-9103-df158b9c94a0",
+      "class": "microhood"
+    },
+    {
       "divisionId": "d23375f4-b681-4899-8cb9-ce1a0454ac58",
       "class": "neighbourhood"
     },
@@ -245,6 +286,10 @@
     {
       "divisionId": "d39ae65a-e6cc-4dcd-9186-3b041c3d1b9c",
       "class": "neighbourhood"
+    },
+    {
+      "divisionId": "d3ec706f-f6f0-414d-9e8b-193e73c90c1c",
+      "class": "rural_area"
     },
     {
       "divisionId": "d6412be6-0272-4678-8270-2290161920b5",
@@ -307,45 +352,16 @@
       "class": "microhood"
     },
     {
+      "divisionId": "ff8e1c52-ac5d-42a4-a411-454cfd71912e",
+      "class": "neighbourhood"
+    },
+    {
       "divisionId": "ffe094bc-3d49-4f8a-a1d4-4c625cc495f0",
       "class": "neighbourhood"
     },
     {
       "divisionId": "fff6ed27-1d9b-4e7f-a9f8-eff55d7f3f05",
       "class": "neighbourhood"
-    },
-    {
-      "divisionId": "ff8e1c52-ac5d-42a4-a411-454cfd71912e",
-      "class": "neighbourhood"
-    },
-    {
-      "divisionId": "3707878f-080b-42cf-aecf-89fef56a066a",
-      "class": "major_island"
-    },
-    {
-      "divisionId": "b14eba1a-b366-461d-a3ce-1d4c878fb997",
-      "class": "village"
-    },
-    {
-      "divisionId": "ac162f33-9966-4d6e-9d53-8a6df575775f",
-      "class": "microhood"
-    },
-    {
-      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
-      "class": "island_group"
-    },
-    {
-      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
-      "class": "island_group"
-    },
-    {
-      "divisionId": "d1e1327a-28ff-4487-9103-df158b9c94a0",
-      "class": "microhood"
-    },
-    {
-      "divisionId": "LANDSD:PLACE_NAME:1581",
-      "class": "islet",
-      "reason": "Retain the reviewed island classification independently of measured polygon area."
     }
   ]
 }
