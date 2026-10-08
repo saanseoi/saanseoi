@@ -4,13 +4,15 @@
   "id": "extract-protomaps-source",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Select native OSM island, islet and archipelago features and all coastline polygons; retain exact name locale suffixes, tags and geometry. Use native OSM IDs and geometry-content coastline IDs, rejecting conflicting duplicate identities.",
+  "summary": "Retain native OSM island, islet and archipelago features and each full coastline polygon once. Select detached coastline island components by source record ID and component index; exclude components sharing a segment with the regional land border from island membership. Preserve exact locale suffixes, tags, coordinates and native or geometry-content IDs; reject conflicting identities.",
   "inputs": [
     "osm-features",
-    "coastline-features"
+    "coastline-features",
+    "regional-land-border"
   ],
   "outputs": [
-    "prepared-protomaps-records"
+    "prepared-protomaps-records",
+    "protomaps-island-selections"
   ],
   "parameters": {
     "placeTags": [
@@ -25,13 +27,13 @@
   },
   "i18n": {
     "en": {
-      "description": "Select native OSM island, islet and archipelago features and all coastline polygons; retain exact name locale suffixes, tags and geometry. Use native OSM IDs and geometry-content coastline IDs, rejecting conflicting duplicate identities."
+      "description": "Retain native OSM island, islet and archipelago features and each full coastline polygon once. Select detached coastline island components by source record ID and component index; exclude components sharing a segment with the regional land border from island membership. Preserve exact locale suffixes, tags, coordinates and native or geometry-content IDs; reject conflicting identities."
     },
     "zh-hant": {
-      "description": "選取原生 OSM 島嶼、小島、群島要素及所有海岸線多邊形；保留名稱的確切語言後綴、標籤及幾何。使用原生 OSM 識別碼及海岸線幾何內容識別碼，拒絕有衝突的重複識別碼。"
+      "description": "僅儲存一份原生 OSM 島嶼、小島、群島要素及完整海岸線多邊形。以來源記錄識別碼及部分索引選取離岸島嶼，排除與區域陸地邊界共用線段的部分。保留確切語言後綴、標籤、座標及原生或幾何內容識別碼，拒絕有衝突的識別碼。"
     },
     "zh-hans": {
-      "description": "选取原生 OSM 岛屿、小岛、群岛要素及所有海岸线多边形；保留名称的确切语言后缀、标签及几何。使用原生 OSM 识别码及海岸线几何内容识别码，拒绝有冲突的重复识别码。"
+      "description": "仅存储一份原生 OSM 岛屿、小岛、群岛要素及完整海岸线多边形。以来源记录识别码及部分索引选取离岸岛屿，排除与区域陆地边界共用线段的部分。保留确切语言后缀、标签、坐标及原生或几何内容识别码，拒绝有冲突的识别码。"
     }
   }
 }
