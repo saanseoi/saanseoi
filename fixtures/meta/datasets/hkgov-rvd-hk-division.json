@@ -1,9 +1,9 @@
 {
-  "versionHash": "sha256:c8e61d6d427bb591b1a648316e2fb489b2fe70e392acb5c60fe1798a02d3c692",
+  "versionHash": "sha256:bf71356d39c827256cc9c05f1f5406b29100581d5be6a88458e57caa3ba215b1",
   "publisherCode": "hkgov-rvd",
   "code": "ds-hk-hkgov-rvd-division",
   "regionCode": "hk",
-  "releaseType": "statis",
+  "releaseType": "static",
   "releaseFrequency": "as-needed",
   "theme": "divisions",
   "sourceVariant": "hkgov-rvd",
