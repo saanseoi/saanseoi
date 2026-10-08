@@ -1,0 +1,328 @@
+{
+  "versionHash": "sha256:cc915a58c6663cebef859323718889f9e8912ec0bb45a01b118bd02861b449a7",
+  "apiVersion": "api-divisions-v0.1",
+  "domainCode": "hkgov-landsd",
+  "mappingVersion": 1,
+  "schemaVersion": "sv-division-v1",
+  "rulesetVersion": "rs-division-hkgov-landsd-merge-v1",
+  "publisherSchemaRanges": {
+    "ds-hk-hkgov-landsd-division": {
+      "min": "1.0",
+      "max": "1.0"
+    }
+  },
+  "publisherFields": {
+    "ds-hk-hkgov-landsd-division": {
+      "properties.geoNameId": "GEO_PLACE_NAME.GEO_NAME_ID",
+      "geometry": "GEO_PLACE_NAME.geometry",
+      "properties.placeNames": [
+        "PLACE_NAME.GEO_NAME_ID",
+        "PLACE_NAME.NAME_STATUS",
+        "PLACE_NAME.NAME_EN",
+        "PLACE_NAME.NAME_TC"
+      ]
+    }
+  },
+  "sourceCompositions": [
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-landsd-division"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-division-hkgov-landsd-2026-06-10.0"
+      ]
+    }
+  ],
+  "lineageAnchors": [
+    {
+      "snapshotVersion": "ss-hk-division-hkgov-landsd-2026-06-10.0"
+    }
+  ],
+  "resources": [
+    {
+      "resourceType": "division",
+      "fields": [
+        {
+          "apiField": "id",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.level",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.class",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.category",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.geometry",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.bbox",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "geometry"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.identifiers",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.sources",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.hierarchies",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.cartography",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.wikidataId",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.divisionCode",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.i18n.*.name",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.placeNames"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.i18n.*.nameAlts",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.placeNames"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.i18n.*.nameRules",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.placeNames"
+            }
+          ]
+        },
+        {
+          "apiField": "relationships.areas",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "relationships.boundaries",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "source",
+              "fieldPath": "properties.geoNameId"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.snapshotId",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "selectedSnapshot"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.createdAt",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "selectedSnapshot"
+            }
+          ]
+        },
+        {
+          "apiField": "attributes.updatedAt",
+          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
+          "resolverCode": "direct_copy",
+          "contributionType": "primary",
+          "priority": 0,
+          "confidence": 1,
+          "inputs": [
+            {
+              "origin": "registry",
+              "fieldPath": "selectedSnapshot"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
