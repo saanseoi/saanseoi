@@ -47,7 +47,7 @@ export function checkHongKongHierarchy(
   const fail = (reason: string): never => {
     guard.failed++
     guard.status = 'failed'
-    guard.reason = `Division ${input.id}: ${reason} Requires reviewed hierarchy resolution.`
+    guard.reason = `Division ${input.id}: ${reason} Requires curated hierarchy resolution.`
     throw new ProcessingGuardError(guard.reason, [{ ...guard }])
   }
   const path: Entry[] = [
@@ -84,9 +84,7 @@ export function checkHongKongHierarchy(
     district.level !== 2 ||
     new Set(path.map(entry => entry.division_id)).size !== path.length
   ) {
-    fail(
-      'Expected SAR → recognised Area → District, without duplicate or conflicting ancestors.',
-    )
+    fail('Expected SAR → Area → District, without duplicate or conflicting ancestors.')
   }
   guard.status = 'passed'
   guard.reason = 'Every division adheres to the top-level hierarchy.'

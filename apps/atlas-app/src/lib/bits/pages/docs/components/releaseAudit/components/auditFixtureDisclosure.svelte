@@ -5,11 +5,19 @@ let {
   open = $bindable(false),
   summary,
   children,
-}: { open?: boolean; summary: Snippet; children: Snippet } = $props()
+  prominent = false,
+}: {
+  open?: boolean
+  summary: Snippet
+  children: Snippet
+  prominent?: boolean
+} = $props()
 </script>
 
-<details class="px-4 py-3" bind:open>
-  <summary class="cursor-pointer pr-12 text-sm font-medium">
+<details class={prominent ? 'px-4 py-5' : 'px-4 py-3'} bind:open>
+  <summary
+    class={`cursor-pointer pr-12 font-medium ${prominent ? 'text-base' : 'text-sm'}`}
+  >
     {@render summary()}
   </summary>
   {#if open}

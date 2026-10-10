@@ -1,5 +1,71 @@
 # Divisions dataset family
 
+Village-name curations retain the place name when adding ` Village` in English or `村`
+in Traditional Chinese. Standalone suffixes are excluded from alternate names and
+variants; the unsuffixed place names remain available as source alternatives.
+
+## Identifier and construction metadata
+
+SaanSeoi `identifiers` contains publisher-keyed identifier types with text, numeric or
+list values. Geometry representation labels, construction methods, curation objects and
+partition metadata are not identifiers. Construction methods, curation actions and
+partition details belong to `ApiFieldsProvenance` at the API release-set level.
+Record-level `sources` contains only retained dataset and record references, with
+optional geometry component indexes. The `isLand` and `isTerritorial` fields describe
+the geometry representation.
+
+LandsD place-name identities use `hkgov-landsd.geoNameId`. Retained Overture Division
+records establish `overture.divisionId`; UUID syntax alone does not establish publisher
+identity. `BASEMAP:ISLAND:*` denotes a SaanSeoi review identity and stays in
+`saanseoi.sourceId`. Selected native Protomaps records use `protomaps.sourceId`. OSM
+export identities additionally use `osm.areaId`, `osm.nodeId`, `osm.wayId` or
+`osm.relationId` according to the exported element prefix. Osmium area IDs are export
+identifiers, not inferred OSM way or relation IDs. Coastline component IDs are
+content-addressed Protomaps source records and have no OSM element identifier.
+
+Curated Areas can retain identifiers of their associated division. Geometry input
+records remain in `sources`; construction, island-group and partition objects are
+rejected as identifier values. Historical repairs resolve publishers from retained
+native records and do not assign current geometry selections to historical records
+without retained evidence.
+
+The SaanSeoi preparation audit separates its summary and before/after results from flat
+fixture lists, classifies instructions as rules, bulk/custom curations or patches, and
+supports release-scoped additions, exclusions and name decisions. It groups curations by
+purpose and retains names from the pinned ingredients and final edition for readable,
+searchable labels. Drawn and withheld Division Area inputs have geometry previews; file
+metadata is separate from record counts. See
+[preparation audit](../sources/saanseoi/division.md#preparation-audit).
+
+## Native Overture source audit
+
+Source ingestion retains the registered Overture payload mapping, including native
+geometry and property-key handling. Source identity and dropped-field assumption checks
+belong to ingestion; canonical hierarchy and normalisation checks belong to snapshot
+assembly. Geometry intake records the Guangdong spillover filter and its counts before
+source retention, independently of whether a canonical snapshot is reused. Reviewed
+API-field schema compatibility is retained only when upload preflight ran.
+
+Country-anchor preparation retains the reference rule and its validated single-record
+addition. Upstream Hong Kong extraction and clipping need an execution receipt from the
+extraction tool; cached files alone are not audit evidence for those operations.
+Retained historical manifests are evidence of the operations recorded by their producer,
+not a claim that every operation in the current implementation ran for that release.
+
+Missing country ancestors are supplied during preparation from matching cached publisher
+metadata or the reviewed country reference. The Source Audit retains the reference and
+its hash; canonical assembly does not supply missing ancestors.
+
+Overture retains its publisher inventory and geometry independently of SaanSeoi
+editorial decisions. Canonical normalisation maps publisher level, class and category
+into the shared Division schema, normalises locale tags and splits recognisable
+bilingual names. It does not apply SaanSeoi identity-specific names, classifications,
+translations, exclusions, hierarchy corrections or constructed area geometry.
+
+SaanSeoi preparation owns editorial patches and curated source selection. It writes
+final names, taxonomy, hierarchy and geometry into the published SaanSeoi archive;
+canonical materialisation reads that prepared contract.
+
 An **inventory** selects the primary `division` resource within a domain: its
 identities, attributes, names and hierarchy. Area and boundary variants are compatible
 geometry companions. Sources describe provenance and can contribute to an inventory
@@ -15,7 +81,7 @@ classification and names remain source evidence.
 
 SaanSeoi additions use deterministic `ss-` IDs from stable fixture keys. Generated
 administrative areas, Hong Kong city and unmatched island identities also use `ss-` IDs.
-Native ingestion flags new primary/common-name matches for GERS upgrade review.
+SaanSeoi preparation flags new primary/common-name matches for GERS upgrade review.
 Confirmed matches adopt the GERS ID throughout the curated fixtures; matching aliases
 alone never merges places. Jordan and Kwun Chung are distinct, as are Hok Tsui Lower
 Village (鶴咀下村) and Hok Tsui Tsuen (鶴咀村). Lei Cheng Uk retains its GERS ID and “Li
@@ -95,28 +161,38 @@ journal.
 
 Geographic divisions expose `category`, `class` and `level`. Administrative classes are
 `sar` (0), `area` (1) and `district` (2); localities are `city` (1), `town` (3),
-`village` (5) and `hamlet` (6); hoods are `macrohood` (4), `neighbourhood` (5) and
-`microhood` (6). The separate country anchor remains administrative. Planning and
-statistical domains retain their domain-specific classes with no geographic category.
-Landforms use `major_island`, `minor_island`, `islet` and `island_group`, all with
-`level: null`. Individual island land area determines the class: `islet` below 10,000 m²
-(1 hectare), `minor_island` from 10,000 m² inclusive to 10 km² exclusive, and
-`major_island` from 10 km² inclusive. Island groups are independent of area.
-Classification alone does not establish containment. Levels can be shared and skipped; a
-hood does not require a city parent.
+`rural_area` (4), `village` (5) and `hamlet` (6); hoods are `macrohood` (4),
+`neighbourhood` (5) and `microhood` (6). The separate country anchor remains
+administrative. Planning and statistical domains retain their domain-specific classes
+with no geographic category. Landforms use `major_island`, `minor_island`, `islet` and
+`island_group`, all with `level: null`. Individual island land area determines the
+class: `islet` below 10,000 m² (1 hectare), `minor_island` from 10,000 m² inclusive to
+10 km² exclusive, and `major_island` from 10 km² inclusive. Island groups are
+independent of area. Classification alone does not establish containment. Levels can be
+shared and skipped; a hood does not require a city parent.
+
+Public Divisions names expose `name`, `nameAlts` and `nameRules`. SaanSeoi source-record
+samples and their schema use the same field selection. `nameVariant` remains retained
+internal evidence and is omitted from these public outputs.
+
+Curated assembly resolves ancestor labels from the final division localisations in
+Traditional Chinese then English order, separated by one space. Duplicate values are
+omitted and a missing translation uses the available name. Spatially generated paths,
+explicit ancestors without polygons and retained paths all use this label contract.
 
 Ingestion stores `hierarchies.administrative`, `hierarchies.locality`,
 `hierarchies.landform` and `hierarchies.full` as arrays of ancestor paths. Every entry
 is `{ id, name, class }`. Paths run broadest to narrowest and exclude the division
-itself. Locality paths retain the nearest locality and its hood ancestry; full paths
-combine administrative ancestry with landform and locality/hood paths. Cities and
-explicitly equivalent landform labels are suppressed from the full display path while
-their separate associations remain. Paths preserve source correlations: multiple
-districts or hoods do not create a Cartesian product of invented paths. `name` is
-Traditional Chinese followed by English, trimmed and deduplicated, or the one available
-name; absent names are null. The API returns these stored paths without ancestor lookups
-or locale-dependent label construction. Optional `include=hierarchy` loads the distinct
-ancestor resources, including cities, in `included`.
+itself. Locality paths retain the nearest settlement, enclosing rural areas and hood
+ancestry; full paths combine administrative ancestry with landform and locality/hood
+paths. Cities and explicitly equivalent landform labels are suppressed from the full
+display path while their separate associations remain. Paths preserve source
+correlations: multiple districts or hoods do not create a Cartesian product of invented
+paths. `name` is Traditional Chinese followed by English, trimmed and deduplicated, or
+the one available name; absent names are null. The API returns these stored paths
+without ancestor lookups or locale-dependent label construction. Optional
+`include=hierarchy` loads the distinct ancestor resources, including cities, in
+`included`.
 
 Hong Kong Island, Kowloon and New Territories administrative areas have deterministic
 SaanSeoi UUIDs and district-union geometry. Kowloon city retains its source UUID
@@ -153,7 +229,7 @@ Kowloon and New Territories. Source assertions remain unchanged. See the
 [internal geographic review workflow](../internal/geographic-review.md) for
 cohort-scoped ancestry decisions and local area drawing.
 
-SaanSeoi Division and DivisionArea are independently versioned source datasets. A
+SaanSeoi Division and DivisionArea share one jointly versioned source edition. A
 read-only builder combines purpose-specific editorial decisions, authored drawings and
 hash-pinned upstream archives into immutable ZIPs. The ordinary uploader handles both
 resource types on local and remote targets. Each contributing source retains its own
@@ -177,14 +253,15 @@ crosswalk exists, the assembled division retains the Overture ID; otherwise the 
 uses a stable SaanSeoi fallback ID. LandsD Place Name records provide official names and
 aliases, while `protomapsIslandFeatures` retains the selected native polygon. The
 assembly never unions Overture and island polygons. Each canonical record exposes its
-ingredient identifiers in `identifiers` and contribution roles in `sources`: Overture
-`identity`, LandsD `official-name` and `alias`, Protomaps `geometry`, and SaanSeoi
-`geometry-selection`. The local curation processor emits the review artefact at
-`.local/harbour/islands/curated-review.json`, sorted by area, with English, Traditional
-Chinese and alias names. Explicit exclusions and island groups are omitted from the
-individual-island polygon output. Curated island-group identities remain in the Division
-inventory, and the SaanSeoi assembly stops when a new basemap name or new geometry for a
-previously no-geometry candidate needs review.
+ingredient identifiers in `identifiers` and retained dataset/record references in
+`sources`. Island polygons carry the explicitly selected Protomaps record ID and any
+coastline component indexes. Processing roles and construction methods belong to
+release-set `ApiFieldsProvenance`, not record responses. The local curation processor
+emits the review artefact at `.local/harbour/islands/curated-review.json`, sorted by
+area, with English, Traditional Chinese and alias names. Explicit exclusions and island
+groups are omitted from the individual-island polygon output. Curated island-group
+identities remain in the Division inventory, and the SaanSeoi assembly stops when a new
+basemap name or new geometry for a previously no-geometry candidate needs review.
 
 ## API release statistics
 
@@ -302,6 +379,14 @@ candidates do not count as matches. Classification changes compare the canonical
 with the raw source `level` or `type`. Locale copying counts added locale rows, and
 inference counts evaluated text values that produce locale-bearing output. Preparatory
 hierarchy lookups do not contribute to these counters.
+
+SaanSeoi source preparation retains these widgets for its normalised Overture ingredient
+comparison, with counters restricted to identities retained in the edition. Its locale
+table compares reviewed output names with normalised ingredient names, including removed
+names, rather than reporting API fallback. The final administrative hierarchy guard
+checks each applicable division across all of its district paths. See the
+[SaanSeoi preparation audit](../sources/saanseoi/division.md#preparation-audit) for
+count semantics and local reconstruction.
 
 Recorded zero means no selected matches or changes in that execution. Missing branch
 definitions or counters mean **not recorded**. Audit presents only retained policy and
@@ -471,39 +556,22 @@ Home Affairs Department profiles are kept in the provider source folders:
 - [`Planning Department TPU and subunit areas`](../sources/hkgov-pland/divisionArea.md)
 - [`LandsD place names`](../sources/hkgov-landsd/placeName.md)
 
-The default `geographic` domain retains SaanSeoi as its assembled provider variant, with
-Overture available as an explicit native variant. If Overture omits Hong Kong Island,
-Kowloon, or the New Territories, ingestion restores their level-1 `area` identities from
-the configured district members. Every one of those recognised areas receives an
-individual Overture `divisionArea` geometry patch when Overture omits its own area
-geometry, even if Overture does provide the division identity itself. Those curated
-identities retain their Wikidata identifiers: Hong Kong Island (`Q3248921`), Kowloon
-(`Q239143`) and the New Territories (`Q596660`). This rule is applied independently to
-every Overture cohort, so a missing area is not limited to the newest release. Kowloon
-reuses Overture's historic division ID `17009785-57fd-4e5b-af86-2d27352e4718`; it is
-never assigned a SaanSeoi replacement. Lok Ma Chau Loop
-(`222b7818-970a-491d-98b6-b88d8c6f0161`) is a level-4 `macrohood`, not a district: the
-correction keeps level 2 to the 18 statutory districts, retains raw Overture taxonomy as
-provenance, and is recorded in each affected source release's processing actions. C&SD
-Permanent Living Quarters geometry then references those Overture identities rather than
-creating parallel divisions. The separate `hkgov-censtatd-hma` domain publishes C&SD's
-173 polygonal Housing Market Areas. Building Groups are not divisions: their source
-centroids remain source history for a future buildings projection.
+The default `geographic` domain retains SaanSeoi as its assembled provider variant.
+SaanSeoi preparation owns the reviewed Hong Kong Island, Kowloon and New Territories
+identities and their district-union geometry. Their retained identifiers and taxonomy
+are defined by the curated source edition and recorded in its Source Audit. Native
+Overture inventories and geometry remain independent of those editorial decisions.
 
-When ingestion emits a supplemental area row, it retains an individual identity-patch
-application with the curated fixture, affected identity, observed source classification
-and geometry type, replacement row and district identities. The area geometry processor
-retains one individual geometry-patch application per restored area. Historical releases
-without that retained ingestion evidence do not receive inferred applications.
+C&SD Permanent Living Quarters maps its three source codes to these SaanSeoi area
+identities. Its polygons join the `hkgov-censtatd` companion selected by the SaanSeoi
+API composition after the curated Division editions are available. The Overture API
+composition does not select or require this companion. It retains the separate C&SD
+land-clipped district geometry and HAD district geometry.
 
-The 2023-H2 C&SD Permanent Living Quarters statistics output maps its source codes to
-those stable Overture area identities. Its Area/type polygons join the same
-cohort-qualified `hkgov-censtatd` companion as C&SD's annual district polygons; it does
-not add a second Geographic division collection. The 2021 HMA statistics output instead
-supplies the separate HMA domain's primary canonical division snapshot
-(`hkgov-censtatd:2021`), paired with its native `hkgov-censtatd-hma` geometry. Although
-the HMA source dataset also publishes statistics, its statistics and its division
-geography have distinct snapshot lineages.
+The 2021 HMA statistics output instead supplies the separate HMA domain's primary
+canonical division snapshot (`hkgov-censtatd:2021`), paired with its native
+`hkgov-censtatd-hma` geometry. Although the HMA source dataset also publishes
+statistics, its statistics and its division geography have distinct snapshot lineages.
 
 Planning Department Planning Units and New Towns are independent API domains, not
 optional members of the Geographic release. Each Planning Department source dataset
@@ -512,7 +580,7 @@ domain release contains only snapshots that can be returned together. Planning-d
 canonical rows therefore never need an Overture cohort in order to be published, and a
 2006 planning cohort can be backfilled even when no 2006 Overture divisions exist. New
 Town identities are cohort-scoped; Planning Unit and Overture lineages use persistent
-identity. New Town source record keys and `PLAND:NEWTOWN` lookup identifiers use
+identity. New Town source record keys and `hkgov-pland.newTownId` lookup identifiers use
 lowercase English-name slugs, with spaces, slashes and punctuation collapsed to single
 hyphens. Canonical UUIDs derive independently from the cohort and normalised publisher
 name; the original trilingual labels remain in source properties. Updater-driven
@@ -575,11 +643,22 @@ an Overture geometry companion. Only `PLACE_CLASS=Settlement` records belong in 
 division domain. Its Hydrographic and Topographic records remain source data for a
 future government place-name projection; they should not be forced into the divisions
 taxonomy. Source records retain the joined official and alias labels in
-`properties.placeNames`, alongside the publisher classification attributes.
+`properties.placeNames`, alongside publisher classification attributes. Each joined row
+contains `nameEn`, `nameZhHant` and `nameStatus`. Locale grouping belongs to canonical
+assembly and completeness metrics. This source collection includes Settlement,
+Hydrographic and Topographic records; selection for the settlement domain is a separate
+assembly step.
 
-The LandsD selection Bulk Rule retains counts for all native inputs, selected
-settlements and exclusions by publisher class, including missing or unexpected classes.
-The [source documentation](../sources/hkgov-landsd/placeName.md#divisions-projection)
+Source-release statistics for LandsD Place Names cover all source records, including
+Settlement, Hydrographic and Topographic. Record counts and class distribution come from
+the source-validity window; changes compare the preceding published source release.
+Locale completeness measures publisher-provided official names across that full
+inventory. Canonical settlement statistics belong to the API release set.
+
+The LandsD selection Bulk Rule belongs to the assembly audit and records counts for all
+native inputs, selected settlements and exclusions by publisher class, including missing
+or unexpected classes. The
+[source documentation](../sources/hkgov-landsd/placeName.md#divisions-projection)
 describes the retained audit and local backfill.
 
 Native LandsD intake delivers the settlement projection and its source-version
@@ -690,70 +769,24 @@ processing.
 
 ## Reviewable API name translations
 
-Division imports retain publisher names and fill missing `en` and `zh-hant` names. They
-do not generate or apply fixture translations targeting `zh-hans`; publisher Simplified
-Chinese names remain available. Missing English names require a researched,
-context-specific spelling, never an Azure literal translation. Prefer official bilingual
-sources and established local usage over mechanically romanising Chinese characters.
+Division imports retain publisher names. Missing English and Traditional Chinese names
+may use explicitly human-translated fixture entries. Automated translations are ignored
+in every locale, including cached AI-assisted research and dictionary-derived spellings.
+Imports do not generate translations. Missing translations remain absent rather than
+blocking an otherwise valid source import. Simplified Chinese is supplied only by
+explicit Overture names.
 
-Overture geographic divisions use one version-controlled translation memory per dataset:
-`fixtures/i18n/datasets/<datasetCode>.json`. An entry is identified by its field,
-context hash, source locale, source-text hash, and target locale. For divisions, the
-context is the parent division ID and English parent name. This avoids re-translating
-the same name every month without incorrectly sharing a name whose meaning changes under
-a different parent.
+Translation memory lives in `fixtures/i18n/datasets/<datasetCode>.json`. Version 2
+fixtures use `contexts`, `translations` and `usages` maps. Entries retain their source
+text, source and target locales, context, provenance, references and record IDs.
+Historical AI entries remain review evidence; their presence does not authorise
+application. Human curation must verify the geographic identity and attested spelling
+before marking an entry `human-translated`. Source names and genuine alternative names
+are retained.
 
-Version 2 fixtures use three maps: `contexts` stores each parent context once,
-`translations` stores each distinct translation and its provenance once, and `usages`
-links a contextual lookup key to a translation, record IDs and release bounds. Identical
-translations can share a value across contexts; differing contextual choices retain
-separate values. Release audit documents retain expanded application evidence.
-
-Translation context retains multilingual parent display names as `parentName.<locale>`
-alongside `parentDivisionId`. Display names are excluded from the context hash. Audit
-selects the UI locale, then English, another retained name in locale order, and the
-parent ID.
-
-Each entry also retains literal `sourceText` and the sorted canonical `recordIds` that
-have used it, so a web editor can show the source and link directly to affected
-divisions. Those IDs are references, not part of the identity key: the importer resolves
-each record through the context-and-source key at import time. Each entry records its
-context, provenance (`ai-translated` or `human-translated`), and the first and last
-source releases that used it. Fixture review may replace an AI result with a human
-translation while retaining the same identity key. Translations are timeless values: a
-fixture entry has no validity interval. Releases instead preserve the exact application
-that was made in their immutable audit actions.
-
-Planning Department divisions use source-release fixtures with the same target-locale
-policy. English entries require public source URLs in `references`. Overture English
-entries require `references` or explicit human curation. AI-assisted research retains
-`ai-translated` provenance; it must not be labelled as human review.
-
-For missing Overture English names, local imports write
-`<datasetCode>.json.english-review.json` beside the dataset fixture, containing source
-text, record ID, parent context and Google search links. The import stops until curation
-is complete. Non-local imports report missing curation without writing review files.
-Search using the Chinese name and parent locality; verify the actual source page and
-geographic identity before selecting its English spelling. Record source URLs on the
-translation entry, preserve its source/context identity and rebuild the version 2 maps
-with `translationEntries` and `translationMap` when editing translation values. Do not
-use search snippets alone as proof. When an established spelling cannot be obtained, use
-a Cantonese dictionary to select contextual readings and render a fallback in Hong Kong
-place-name style: separate capitalised syllables, no tone numbers, and familiar forms
-such as `Tsuen`, `Wai`, `Sheung`, `Ha`, `Tseng` and `Chung`. Preserve established
-locality stems such as `Pui O`; do not substitute Mandarin pinyin or literal
-translations of village names. Generic descriptors such as a plaza, forecourt or
-direction may use English.
-
-Retain dictionary/source URLs in `references` and explain the reading, spelling choices
-and any source typo in `derivation`. Distinguish an attested complete name from a
-Cantonese fallback or descriptive rendering. AI-assisted curation remains
-`ai-translated`, without an Azure `machine` label. Dictionary-backed fallback entries
-are usable during import and retain their derivation in application evidence.
-
-Traditional Chinese generation remains available during local imports. A source that
-provides codes without a name is not translated. Locale statistics distinguish
-publisher-provided, inferred, AI-translated and human-translated names.
+Local translation generation removes its adjacent `.english-review.json` research queue
+after successful full resolution and fixture persistence. Remote runs and imports that
+ignore automated entries preserve existing research queues.
 
 ## Publisher source boundary
 
@@ -1041,9 +1074,12 @@ SaanSeoi-generated division and geometry identities use stable `ss-` UUIDs. Geom
 identity is scoped by entity kind, provider and original record identity, independently
 of publication or display transform. Publisher record IDs remain in source storage.
 
-Canonical identifier keys use `PUBLISHER:NativeField` spelling, including `PLAND:PPU`,
-`PLAND:SUBUNIT`, `HAD:AREA_ID` and `LANDSD:GEO_NAME_ID`. Native values, including
-leading zeroes, are preserved. Source properties retain their native shape.
+Canonical identifiers are grouped by publisher code, then camelCase identifier type:
+`hkgov-pland.ppu`, `hkgov-pland.subunit`, `hkgov-had.areaId`, `hkgov-landsd.geoNameId`
+and `saanseoi.sourceId`. Each publisher maps to an object; identifier values, including
+leading zeroes and source ID prefixes, are preserved. Native publisher source properties
+retain their native shape. SaanSeoi source archives and canonical division and area
+records use this same identifier structure.
 
 Planning subunits carry the complete root-to-parent `PPU → SPU → TPU` path in `full`.
 Empty `administrative`, `locality` and `landform` categories are omitted. A root has
@@ -1349,6 +1385,14 @@ landforms.
 
 ## Monthly curated inventory editions
 
+Protomaps island and coastline geometry must come from the same calendar month as the
+SaanSeoi edition, dated on or before its first-of-month cutoff. Assembly fails when no
+eligible same-month extract is pinned; it never carries island geometry forward. Prepare
+the extract from that month's retained basemap inputs, then add its exact archive key
+and SHA-256 to `fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json`. The
+latest eligible extraction revision is selected. LandsD and RVD can carry forward;
+Overture uses the latest eligible release on or before the edition date.
+
 SaanSeoi Division and DivisionArea editions use `YYYY-MM-01.revision`, scheduled for the
 first of each month in Hong Kong. The builder selects the latest retained publisher
 release dated on or before the edition date, carrying forward slower sources. The source
@@ -1362,6 +1406,20 @@ pre-release development, corrections edit the initial `2026-09-01.0` revision di
 Assembly retains inputs and curation hashes in generated reports and archive manifests
 without writing fixture files. Island extraction evidence must agree with the pinned
 Protomaps version.
+
+Local initialisation retains both pinned Protomaps archives (`2026-09-01.3` and
+`2026-10-01.1`) before assembling the September and October SaanSeoi editions. Resuming
+source-only Protomaps and RVD inputs verifies their ingestion audit, retained publisher
+and resource archives, and source-row validity without requiring a canonical snapshot
+for those inputs.
+
+The Geographic composition selects Overture Division and DivisionArea companions with
+`latest_at_or_before_cohort_per_dataset`. Curated uploads supply the exact snapshot IDs
+selected by assembly; explicit references take precedence over cohort selection, and the
+API release set freezes those IDs. Publication and draft reconciliation require the
+companions' primary dataset and resource-release references to match the Overture inputs
+retained by both curated snapshots. Missing or inconsistent build references block API
+publication.
 
 LandsD Settlement records are required ingredients. Native `GEO_NAME_ID` identifies each
 source feature; input row positions are never identities. Curated identifiers or unique
@@ -1491,10 +1549,12 @@ Repeated homonyms can require a district qualifier; these proposals require geog
 review.
 
 The [RVD ingredient](../sources/hkgov-rvd/division.md) contributes historical list
-membership. Membership is separate from identifiers, current ancestry and record
-contributions. China bounds are a curated OSM relation assertion in
-`division-geometry.json`; the bounding rectangle is not used as a polygon or invented
-representative point. Geometry-less divisions retain null bounds until evidence exists.
+membership. Its source release exposes the retained assertion schema and samples, plus
+record counts by assertion kind and source changes. Membership is separate from
+identifiers, current ancestry and record contributions. China bounds are a curated OSM
+relation assertion in `division-geometry.json`; the bounding rectangle is not used as a
+polygon or invented representative point. Geometry-less divisions retain null bounds
+until evidence exists.
 
 Reviewed division name aliases are defined in
 `fixtures/meta/curations/saanseoi-division/division-names.json`. Its locale-keyed
@@ -1585,6 +1645,15 @@ feature counts and topology.
 
 ## Processing policy ownership
 
+Protomaps SOURCE retention stores each complete coastline polygon once, including
+mainland. Island membership references detached components by source record ID and
+component index; components sharing a line segment with the checksum-verified regional
+land border have no island membership. Island assembly resolves those references, while
+administrative land clipping uses the full coastline from the same pinned source
+archive. Coordinates, holes and source identities remain exact; point contacts alone do
+not exclude islands. The registered extraction policy lives in
+`fixtures/meta/processing-rules/ingestion/protomaps-source-extraction.json`.
+
 The local review editor loads the full Protomaps land mask for administrative
 references, including mainland districts.
 
@@ -1595,6 +1664,25 @@ including its shared exclusion dependency. SaanSeoi curated assembly belongs to 
 SaanSeoi snapshot recipes; Protomaps source intake does not declare canonical assembly.
 
 See the [processing policy contract](../pipeline.md#define-audit-processing-rules).
+
+## Retained dataset archives
+
+Original publisher inputs are managed assets with role `releaseSourceArchive`, owned by
+a source release. Original Parquet and ZIP files retain their bytes; loose GeoJSON and
+GML are losslessly packaged as ZIP. Original filenames and packaging details live in the
+downloadable manifest.
+
+Resource-specific source downloads use role `resourceSourceArchive`, are Parquet and are
+owned by a resource release. The ordinary uploader retains its prepared Parquet input.
+Native SQL intake exports its source tables with a `sourceTable` column and JSON strings
+for complex source values. Processing scratch files are separate from retained assets;
+release metadata does not store their file locations.
+
+## Field lineage
+
+Base index/detail lineage includes the native HMA and Lands Department domains, with
+explicit archive joins, provider classification, geometry normalisation, translation
+instructions and persisted version metadata.
 
 ## JSON field naming
 
@@ -1621,3 +1709,206 @@ shards. The calculation compares retained properties and geometry without observ
 metadata and saves counts during ingestion, so source pages can read stable statistics
 without recounting records. Canonical API release-set churn and quality statistics
 retain their output-specific populations.
+
+SaanSeoi Division source releases persist counts using the same public source-field
+projection as the Changes endpoint. Internal containment evidence and name variants do
+not contribute to displayed churn; names, classifications, public hierarchy entries,
+containment flags and geometry do. Totals and change distributions by division class and
+level share this comparison. District coverage counts distinct administrative
+memberships, including each district itself; multi-district records contribute once to
+each district. Source record and named locale counts complete the source statistics. See
+[SaanSeoi Division statistics](../sources/saanseoi/division.md) for calculation and
+local backfill details.
+
+## Publisher update review
+
+SaanSeoi preparation reconstructs the accepted inventory from the pinned review inputs
+and editorial fixtures. The proposed edition is compared with that inventory before
+uploadable archives are written. `division-update-policy.json` owns core-locale
+protection, new-identity exclusion patterns and exact reviewed decisions.
+
+New identities are included automatically unless their names match a coverage rule.
+Existing identities absent from the candidate require individual `keep` or `delete`
+decisions. A kept identity retains its accepted names, classification, point and
+available reference geometry. Missing core-locale primary names retain the accepted
+value. Non-empty replacements require `keep` or `accept` review. Each decision contains
+the report fingerprint and a reason; changing the compared values invalidates approval.
+The output directory contains `update-review.json`, including input pins, policy and all
+decisions. Pending decisions block archive preparation. Advance the pinned review inputs
+only after the edition and its editorial decisions have been accepted.
+
+Simplified Chinese names are publisher-owned. Only explicit Overture `zh-Hans`, `zh-CN`
+or `zh-SG` values qualify; curated overrides, authored translations and inferred
+Traditional Chinese conversions cannot supply `zh-hans`. Previously accepted explicit
+Overture names remain eligible for core-locale protection.
+
+## Historical Division backfills
+
+A published revision displaced from current storage is reconstructed from its exact
+history journal and assigned shards. An incomplete existing receipt blocks processing.
+Historical branches use a retained snapshot scope so newer divisions referenced by
+addresses remain intact. History comparisons use the selected parent revision; current
+writes compare against the actual destination scope. Re-uploading SaanSeoi Division and
+DivisionArea resources creates a new API release-set revision, preserving published
+release-set membership.
+
+Reviewed upstream removals retained in SaanSeoi become SaanSeoi patches for identity,
+names, classification, hierarchy and retained geometry. Protected name values are
+SaanSeoi contributions to the affected locale fields. The patch uses the SaanSeoi record
+identity; historical publisher evidence remains in the preparation audit.
+
+### Internal source references
+
+SaanSeoi-authored records reference contributing datasets with `dataset`, `recordId` and
+`contributions`; editorial contributions also carry `curation`. Neither source
+references nor collection memberships contain release codes or versions. Resolve exact
+input versions from the owning release's `sourceReleases` manifest, including when
+reading historical editions. Each dataset has one selected version across its resource
+types. Duplicate resource pins, mixed versions, unpinned dataset references and embedded
+reference versions fail archive validation. Native publisher attribution is preserved.
+
+Record fingerprints include dataset attribution and editorial ownership, while release
+pins remain outside record content. An upstream pin advance alone preserves the record
+version. An editorial takeover creates one content change, then shares that assertion
+across subsequent editions with the same content.
+
+`scripts/backfill-internal-source-references.ts` repairs explicitly selected local
+SOURCE and HISTORY databases and META source churn. It requires reviewed decisions for
+every retained edition, merges only adjacent identical assertions, updates exact source
+resolution hashes and preserves omission evidence. It defaults to a dry run; `--apply`
+writes a compressed rollback SQL file before acquiring write locks and checking for
+concurrent changes. Existing publisher archives and immutable preparation audits retain
+their original bytes; archives with embedded reference versions must be regenerated
+before ingestion. The companion `scripts/backfill-canonical-source-references.ts`
+updates canonical history hashes, exact replay links and registered current snapshots.
+Editorial takeovers receive an explicit snapshot delta even when the record previously
+shared an assertion. Unregistered current rows are excluded from the repair and counted
+in its report.
+
+## Rural areas
+
+`rural_area` is a level-4 locality: a named area that can contain villages and hamlets,
+without asserting administrative authority. Rural areas have their own locality-code
+namespace membership, cartography policy and editor layer. Hung Lung Hang, Tai Tam, Shek
+O on Hong Kong Island and Lei Yue Mun in Kowloon use this class. The separate Shek O
+hamlet in North District retains its classification. Geometry and reviewed ancestry, not
+class alone, establish containment. Rural-area ancestors remain in both `locality` and
+`full` paths when a more specific village or hamlet is present. Address and Place
+membership retains rural areas separately from neighbourhoods through `ruralAreaId`.
+
+The stored and public `full` hierarchy excludes every `city` entry and the Hong Kong
+Island landform, regardless of which ancestors occur in a stored path. Other island
+landforms remain visible. These exclusions do not remove entries from the separate
+`locality` and `landform` hierarchies.
+
+## Audit boundaries and source editions
+
+Sources expose Raw → Preparation and Preparation → SOURCE audits. API releases expose
+SOURCE → Canonical and Canonical → Release Set audits for their selected snapshots,
+including lookup dependencies. Every audit declares its stage and output owner.
+Canonical selection evidence can appear in several API releases when they reuse a
+snapshot. Response serialisation is documented by the API contract.
+
+Overture Division, DivisionArea and DivisionBoundary share one source edition. SaanSeoi
+Division and DivisionArea also share one edition and revision. Publication requires all
+expected children. Notes and Audit combine the resources; Schema, Samples and Changes
+retain resource selection. Source cards include the Area capability. Overture Places is
+a supplementary source for Addresses; configured eligibility is distinct from a
+contribution retained by a published release.
+
+SaanSeoi identity exclusions use one scoped fixture list for final identities and source
+inputs. Additions and exclusions support inclusive `appliesFrom` and exclusive
+`appliesUntil` release bounds; guard-triggered decisions in the same files additionally
+bind the exact reviewed change. Preparation retains alias match/change counts and checks
+for unique identities, at least one name per division, valid ancestor references, valid
+active drawings and core-point containment. Historical rechecks are labelled as
+reconstructed evidence.
+
+SaanSeoi names, translations, classifications, exclusions, hierarchy decisions and
+geometry construction execute in preparation. Its source archive freezes curation
+definitions and executed preparation evidence for the Source Audit. Canonical processing
+normalises the prepared schema. Overture keeps its publisher classifications with the
+common API schema mapping and CN-GD geometry filtering, without SaanSeoi editorial
+patches or configured Division ID exclusions.
+
+### Recurring Overture geometry content
+
+Overture area and boundary source history retains disjoint validity periods when a
+record returns to an earlier content hash. Unchanged open periods continue across
+releases; closed periods are never reopened. Release membership and the local repair
+workflow are documented in
+[Overture geometry ingestion](../sources/overture/divisionGeometry.md).
+
+## Local historical audit repair
+
+`apps/harbour-cli/scripts/repair-local-overture-audits.ts` prepares a local-only audit
+repair for published Overture Division editions. Pass the META SQLite path, a new
+receipt directory and the SOURCE history shard paths; add `--apply` to consume the
+prepared plan. Local R2 is required. The repair verifies retained object hashes and
+historical source inventories, preserves original manifests, backs up META and checks
+for concurrent catalogue or source changes before replacing audit registrations.
+
+Recorded Guangdong geometry exclusions and source checks belong to ingestion. Historical
+source revalidation and country-reference evidence checks carry their actual
+revalidation date. They do not assert that those checks ran during the original import.
+Extraction and clipping require their own retained execution evidence. Source records,
+snapshots and API release membership remain unchanged.
+
+### Inspecting Protomaps source releases
+
+Protomaps source releases expose their retained schema, samples and record changes
+through the Divisions source endpoints. Their SOURCE shard assignments and record
+statistics are published during native ingestion, independently of canonical
+DivisionArea snapshots. Statistics compare publisher properties and geometry across
+release validity periods; unchanged records remain visible even when first imported by
+an earlier release. Counts cover both OSM island features and full coastline records,
+including mainland, so they are not counts of distinct islands. See
+[Protomaps release inspection](../sources/openstreetmap/protomapsIsland.md#release-inspection-and-verification)
+for import verification and local metadata repair.
+
+## Retained island aliases
+
+`division-names.json` retains reviewed island aliases independently of upstream name
+tags. The October 2026 Protomaps refresh drops alternative or local names for Tong Hau
+Pai (Wok Tuk Pai), Pyramid Rock (Wei Sam Chau), Tuen Tau Chau (Tse Leung Chau), Magazine
+Island (Chu Kwu Chau; 豬牯洲), Cha Kwo Chau (Yeung Chau; 洋洲) and Wong Mau Chau (South
+Gau; Nam Kau; 南牛; 南滘). These aliases remain attached to the canonical island
+identifiers; primary names are unchanged. Evidence is retained in Protomaps
+`2026-09-01.3`, compared with `2026-10-01.1`.
+
+Assembly applies the name inventory after island identities are materialised, including
+islands without an Overture match. Alias patches populate alternate names, name variants
+and name rules, and record a SaanSeoi `division-names` contribution on the division.
+
+## Four Little Dragons source identity
+
+Four Little Dragons (四小龍) enters the October edition from Overture `2026-09-23.0` as
+GERS identity `15062812-a4d2-4d4a-b589-2f50bc31943f`. It is included as a level-6
+`microhood`. `division-classifications.json` and `division-names.json` retain the
+curated classification and bilingual names; its reviewed hierarchy, drawn boundary and
+polygon core point remain in their dedicated fixtures. It is not an authored addition:
+the curation applies to the source record and does not create it in earlier inventories.
+
+SaanSeoi area archives encode `isLand` and `isTerritorial` as JSON booleans. Null or
+absent values mean unknown. Preparation converts internal SQLite `0`/`1` flags to
+booleans before writing the archive. Ingestion rejects numeric, string and structured
+flag values, including in retained source properties.
+
+Preprocessing comparisons identify the same-ID Overture ingredient used for Before
+fields and names, preserve its native publisher hierarchy, and list all contributing
+source references separately. Outputs without that ingredient have no single-record
+comparison baseline. These automatic audit records are not individual editorial reviews.
+
+Rejected island source geometries require a boundary patch that resolves to an emitted,
+non-empty, valid polygon for an output division. The `rejected-island-boundaries` guard
+accepts drawings and explicit replacement-source corrections, using retained output
+geometry and its patch provenance. A source selection or withheld drawing alone does not
+satisfy the guard. Completed identity decisions to exclude, merge, reclassify or retain
+no geometry are outside this shape-replacement check. The audit groups both patch kinds
+under Boundaries and labels them Drawn geometry or Replacement source geometry; expanded
+source patches show the resolved polygon.
+
+The Division guard `prepared-island-group-members` requires every output island group to
+have at least one resolved member. Members must be unique output islands, not missing
+IDs, non-island divisions or the group itself. Preparation retains the resolved
+membership used to construct group geometry; seed lists alone do not satisfy this check.

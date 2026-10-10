@@ -102,10 +102,9 @@ const reviewInputs = await fetch('/__division-review/inputs').then(async respons
 const inventory: ReviewInventory = reviewInputs.inventory
 const islandCurationReview = reviewInputs.islandReview
 const excludedIds = new Set(
-  coverageExclusions.entries.flatMap(e => [
-    e.divisionId,
-    ...(e.reviewId ? [e.reviewId] : []),
-  ]),
+  coverageExclusions.entries
+    .filter(entry => entry.scopes.includes('result'))
+    .flatMap(e => [e.divisionId, ...(e.reviewId ? [e.reviewId] : [])]),
 )
 inventory.divisions = inventory.divisions.filter(d => !excludedIds.has(d.id))
 const reference = reviewInputs.reference as FeatureCollection<
@@ -136,12 +135,14 @@ const islandReviewRows = publishedIslandRows(
   islandCurationReview,
 ).filter(row => !excludedIds.has(row.id))
 const drawingHolds = new Map(
-  coverageExclusions.entries.flatMap(entry =>
-    [
-      entry.divisionId,
-      ...('reviewId' in entry && entry.reviewId ? [entry.reviewId] : []),
-    ].map(id => [id, entry.reason] as const),
-  ),
+  coverageExclusions.entries
+    .filter(entry => entry.scopes.includes('result'))
+    .flatMap(entry =>
+      [
+        entry.divisionId,
+        ...('reviewId' in entry && entry.reviewId ? [entry.reviewId] : []),
+      ].map(id => [id, entry.reason] as const),
+    ),
 )
 const acceptedIslandIds = new Set(islandReviewRows.map(row => row.id))
 const islandActions = new Map<string, { id: string; reason?: string }>(

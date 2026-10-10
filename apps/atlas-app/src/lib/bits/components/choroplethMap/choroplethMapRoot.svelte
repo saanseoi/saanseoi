@@ -1,5 +1,11 @@
 <script lang="ts">
-import { FillLayer, GeoJSONSource, LineLayer, MapLibre } from 'svelte-maplibre-gl'
+import {
+  CircleLayer,
+  FillLayer,
+  GeoJSONSource,
+  LineLayer,
+  MapLibre,
+} from 'svelte-maplibre-gl'
 import { onMount, tick, type ComponentProps } from 'svelte'
 import { setWorkerUrl } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -7,6 +13,7 @@ import type { ExpressionSpecification } from 'maplibre-gl'
 import type { MultiPolygon, Polygon } from 'geojson'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import { layers, namedFlavor } from '@protomaps/basemaps'
+import { mapStyleFlavor } from '@repo/basemap'
 import type { StyleSpecification } from 'maplibre-gl'
 import {
   resolveTheme,
@@ -40,7 +47,12 @@ type Props = {
   showValues?: boolean
   maxZoom?: number
   compact?: boolean
+  tolerance?: number
   exclusion?: Geometry | null
+  point?: [number, number]
+  midnight?: boolean
+  stretch?: boolean
+  zoomOffset?: number
 }
 
 let {
@@ -53,13 +65,21 @@ let {
   showValues = true,
   maxZoom = 13,
   compact = false,
+  tolerance = 0.375,
   exclusion = null,
+  point,
+  midnight = false,
+  stretch = false,
+  zoomOffset = 0,
 }: Props = $props()
 const saanseoiAccessToken = import.meta.env.VITE_SAANSEOI_API_KEY?.trim()
 
 // SaanSeoi publishes a TileJSON manifest, so it must be mounted as a vector source
 // inside a Style Specification rather than passed to MapLibre as a style URL.
-const saanseoiBasemapStyle = (theme: ThemeMode): StyleSpecification => ({
+const saanseoiBasemapStyle = (
+  theme: ThemeMode,
+  midnight: boolean,
+): StyleSpecification => ({
   version: 8,
   sources: {
     'hongkong-latest': {
@@ -72,12 +92,15 @@ const saanseoiBasemapStyle = (theme: ThemeMode): StyleSpecification => ({
     },
   },
   glyphs: 'https://protomaps.github.io/basemaps-assets/fonts/{fontstack}/{range}.pbf',
-  sprite: `https://protomaps.github.io/basemaps-assets/sprites/v4/${theme}`,
-  layers: layers('hongkong-latest', namedFlavor(theme)) as StyleSpecification['layers'],
+  sprite: `https://protomaps.github.io/basemaps-assets/sprites/v4/${midnight ? 'dark' : theme}`,
+  layers: layers(
+    'hongkong-latest',
+    midnight ? mapStyleFlavor('midnight') : namedFlavor(theme),
+  ) as StyleSpecification['layers'],
 })
 
 let theme = $state<ThemeMode>('light')
-let basemapStyle = $derived(saanseoiBasemapStyle(theme))
+let basemapStyle = $derived(saanseoiBasemapStyle(theme, midnight))
 let valueById = $derived(new Map(values.map(value => [value.id, value])))
 let maxValue = $derived(Math.max(1, ...values.map(value => value.value)))
 let sourceData = $derived({
@@ -141,6 +164,7 @@ $effect(() => {
             right: container.clientWidth * paddingRatio,
           },
         })
+        if (zoomOffset) map.setZoom(map.getZoom() + zoomOffset)
       }
       if (map) map.setMinZoom(map.getZoom() - 2)
     })
@@ -173,9 +197,15 @@ function updateActiveFeature(event: {
 }
 </script>
 
-<div class="overflow-hidden bg-data-surface-container-lowest">
+<div
+  class={`overflow-hidden bg-data-surface-container-lowest ${stretch ? 'h-full' : ''}`}
+>
   <div
-    class={compact ? 'relative h-72' : 'relative h-auto aspect-3/2 lg:h-152 lg:aspect-auto'}
+    class={stretch
+      ? 'relative h-full min-h-72'
+      : compact
+        ? 'relative h-72'
+        : 'relative h-auto aspect-3/2 lg:h-152 lg:aspect-auto'}
     role="img"
     aria-label={ariaLabel}
   >
@@ -190,23 +220,36 @@ function updateActiveFeature(event: {
       attributionControl={false}
       autoloadGlobalCss={false}
     >
-      <GeoJSONSource id="choropleth-districts" data={sourceData}>
+      {#if point}
+        <GeoJSONSource id="curation-point" data={{ type: 'Point', coordinates: point }}>
+          <CircleLayer
+            id="curation-point-marker"
+            paint={{
+              'circle-radius': 7,
+              'circle-color': midnight ? '#fbbf24' : '#e11d48',
+              'circle-stroke-color': midnight ? '#020617' : '#ffffff',
+              'circle-stroke-width': 3,
+            }}
+          />
+        </GeoJSONSource>
+      {/if}
+      <GeoJSONSource id="choropleth-districts" data={sourceData} {tolerance}>
         <FillLayer
           id="choropleth-district-fill"
           paint={{
-  'fill-color': fillColor,
-  'fill-opacity': 0.33,
-}}
+            'fill-color': fillColor,
+            'fill-opacity': 0.33,
+          }}
           onmousemove={updateActiveFeature}
           onmouseleave={() => (activeFeature = null)}
         />
         <LineLayer
           id="choropleth-district-outline"
           paint={{
-  'line-color': '#0f2624',
-  'line-opacity': 0.72,
-  'line-width': 1.25,
-}}
+            'line-color': '#0f2624',
+            'line-opacity': 0.72,
+            'line-width': 1.25,
+          }}
         />
       </GeoJSONSource>
       {#if exclusion}

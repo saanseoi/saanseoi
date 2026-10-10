@@ -1,3 +1,9 @@
+import type { ProtomapsIslandSelection } from '@repo/core/pipeline/services/sources/protomapsSourceViews'
+import {
+  curatedSourceIdentifiers,
+  protomapsIdentifiers,
+  mergeDivisionIdentifiers,
+} from '@repo/core/pipeline/services/sources/curatedIdentifiers'
 import assemblyFixture from '../../../../../../fixtures/meta/processing-rules/assembly/curated-division-assembly.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { resolveCuratedHierarchies } from './resolveHierarchies'
@@ -6,6 +12,7 @@ import {
   type IslandGroupDefinition,
 } from './islandGroupGeometry'
 import { isAdministrativeDivision } from './administrativeAreas'
+import { createAliasAudit, recordAliasAudit } from './nameAliasAudit'
 import {
   applyCuratedDivisionNames,
   curatedDivisionPolicy,
@@ -51,6 +58,7 @@ function assembleCuratedDivisionsInternal(input: {
   islandGroups?: IslandGroupDefinition[]
 }) {
   const excluded = new Set(input.excludedIds ?? [])
+  const nameAliasAudit = createAliasAudit(curatedDivisionPolicy.aliases.nameAliasRules)
   const mergedAliases = new Map<string, string>()
   const reclassifiedGroups = new Map<string, string>()
   let islands = input.islands
@@ -73,7 +81,13 @@ function assembleCuratedDivisionsInternal(input: {
       .filter(island => accepted.has(island.id))
       .map(island => {
         const selected = curated.get(island.id)!
-        return { ...island, geometry: selected.geometry, areaKm2: selected.areaKm2 }
+        return {
+          ...island,
+          geometry: selected.geometry,
+          geometrySource: selected.geometrySource,
+          protomapsFeatureId: selected.geometrySource?.sourceRecordId,
+          areaKm2: selected.areaKm2,
+        }
       })
     const acceptedMatches = new Set(
       islands.flatMap(island => (island.matches ?? []).map((match: Row) => match.id)),
@@ -171,55 +185,6 @@ function assembleCuratedDivisionsInternal(input: {
       name.nameVariant = JSON.stringify([...new Set([...(variants ?? []), ...deduped])])
     }
   }
-  for (const id of divisions.keys()) {
-    if (!divisions.has(id)) continue
-    const localised: Row[] = names
-      .filter(row => row.divisionId === id)
-      .map(row => ({
-        ...row,
-        nameVariant:
-          typeof row.nameVariant === 'string'
-            ? JSON.parse(row.nameVariant)
-            : row.nameVariant,
-        nameRules:
-          typeof row.nameRules === 'string' ? JSON.parse(row.nameRules) : row.nameRules,
-      }))
-    const curated = applyCuratedDivisionNames(id, localised as never).map(row => ({
-      ...row,
-      nameVariant: row.nameVariant ? JSON.stringify(row.nameVariant) : null,
-      nameRules: row.nameRules ? JSON.stringify(row.nameRules) : null,
-    }))
-    const hasAliasDecision =
-      curatedDivisionPolicy.aliases.entries.some(entry => entry.divisionId === id) ||
-      localised.some(row =>
-        curatedDivisionPolicy.aliases.nameAliasRules.some(
-          rule => row.locale === rule.locale && row.name?.endsWith(rule.suffix),
-        ),
-      )
-    if (hasAliasDecision) {
-      const division = divisions.get(id)!
-      const sources =
-        typeof division.sources === 'string'
-          ? JSON.parse(division.sources)
-          : (division.sources ?? {})
-      const retained = (sources.saanseoi ?? []).filter(
-        (source: Row) => source.curation !== 'division-names',
-      )
-      division.sources = JSON.stringify({
-        ...sources,
-        saanseoi: [
-          ...retained,
-          {
-            dataset: 'ds-hk-saanseoi-division',
-            recordId: id,
-            curation: 'division-names',
-            contributions: ['names'],
-          },
-        ],
-      })
-    }
-    names = [...names.filter(row => row.divisionId !== id), ...curated]
-  }
   const aliases = new Map<string, string>()
   for (const island of islands) {
     if (excluded.has(island.id) || excluded.has(uuid(island.id))) continue
@@ -253,7 +218,14 @@ function assembleCuratedDivisionsInternal(input: {
           : null,
         hierarchies: '{}',
         bbox: null,
-        identifiers: JSON.stringify({ saanseoiIsland: { sourceId: island.id } }),
+        identifiers: JSON.stringify(
+          mergeDivisionIdentifiers(
+            curatedSourceIdentifiers(island.id),
+            island.protomapsFeatureId
+              ? protomapsIdentifiers(island.protomapsFeatureId)
+              : null,
+          ),
+        ),
         sources: JSON.stringify({
           saanseoi: [{ dataset: 'curated-island-areas', recordId: island.id }],
         }),
@@ -264,6 +236,67 @@ function assembleCuratedDivisionsInternal(input: {
       ])
         if (name) names.push({ divisionId: id, locale, name, isLocaleInferred: 0 })
     }
+    const selected = divisions.get(id)!
+    selected.identifiers = JSON.stringify(
+      mergeDivisionIdentifiers(
+        selected.identifiers,
+        curatedSourceIdentifiers(island.id),
+        island.protomapsFeatureId
+          ? protomapsIdentifiers(island.protomapsFeatureId)
+          : null,
+      ),
+    )
+  }
+  // Include newly materialised island identities in the name inventory patches.
+  for (const id of divisions.keys()) {
+    if (!divisions.has(id)) continue
+    const localised: Row[] = names
+      .filter(row => row.divisionId === id)
+      .map(row => ({
+        ...row,
+        nameVariant:
+          typeof row.nameVariant === 'string'
+            ? JSON.parse(row.nameVariant)
+            : row.nameVariant,
+        nameRules:
+          typeof row.nameRules === 'string' ? JSON.parse(row.nameRules) : row.nameRules,
+      }))
+    const curated = applyCuratedDivisionNames(id, localised as never).map(row => ({
+      ...row,
+      nameVariant: row.nameVariant ? JSON.stringify(row.nameVariant) : null,
+      nameRules: row.nameRules ? JSON.stringify(row.nameRules) : null,
+    }))
+    recordAliasAudit(nameAliasAudit, id, localised, curated)
+    const hasAliasDecision =
+      curatedDivisionPolicy.aliases.entries.some(entry => entry.divisionId === id) ||
+      localised.some(row =>
+        curatedDivisionPolicy.aliases.nameAliasRules.some(
+          rule => row.locale === rule.locale && row.name?.endsWith(rule.suffix),
+        ),
+      )
+    if (hasAliasDecision) {
+      const division = divisions.get(id)!
+      const sources =
+        typeof division.sources === 'string'
+          ? JSON.parse(division.sources)
+          : (division.sources ?? {})
+      const retained = (sources.saanseoi ?? []).filter(
+        (source: Row) => source.curation !== 'division-names',
+      )
+      division.sources = JSON.stringify({
+        ...sources,
+        saanseoi: [
+          ...retained,
+          {
+            dataset: 'ds-hk-saanseoi-division',
+            recordId: id,
+            curation: 'division-names',
+            contributions: ['names'],
+          },
+        ],
+      })
+    }
+    names = [...names.filter(row => row.divisionId !== id), ...curated]
   }
   for (const [aliasId, canonicalId] of mergedAliases) {
     const canonical = aliases.get(canonicalId)
@@ -354,6 +387,7 @@ function assembleCuratedDivisionsInternal(input: {
     geometry: Polygon | MultiPolygon,
     source: string,
     originalId: string,
+    geometrySource?: ProtomapsIslandSelection,
   ) => {
     if (excluded.has(id) || excluded.has(originalId)) return
     if (!divisions.has(id)) throw Error(`Area references unknown division ${id}`)
@@ -394,9 +428,34 @@ function assembleCuratedDivisionsInternal(input: {
         type: 'land',
         isLand: 1,
         isTerritorial: 0,
-        identifiers: JSON.stringify({ curation: { source, originalId } }),
+        identifiers: JSON.stringify(
+          mergeDivisionIdentifiers(
+            divisions.get(id)?.identifiers,
+            source === 'island-areas' ? curatedSourceIdentifiers(originalId) : null,
+          ),
+        ),
         sources: JSON.stringify({
-          saanseoi: [{ dataset: source, recordId: originalId }],
+          saanseoi: [
+            {
+              dataset: source,
+              recordId: originalId,
+              contributions: [geometrySource ? 'selection' : 'geometry'],
+            },
+          ],
+          ...(geometrySource
+            ? {
+                protomaps: [
+                  {
+                    dataset: 'ds-hk-protomaps-island',
+                    recordId: geometrySource.sourceRecordId,
+                    contributions: ['geometry'],
+                    ...(geometrySource.componentIndexes
+                      ? { componentIndexes: geometrySource.componentIndexes }
+                      : {}),
+                  },
+                ],
+              }
+            : {}),
         }),
       },
     ])
@@ -406,7 +465,13 @@ function assembleCuratedDivisionsInternal(input: {
       aliases.has(island.id) &&
       ['Polygon', 'MultiPolygon'].includes(island.geometry?.type)
     )
-      put(aliases.get(island.id)!, island.geometry, 'island-areas', island.id)
+      put(
+        aliases.get(island.id)!,
+        island.geometry,
+        'island-areas',
+        island.id,
+        island.geometrySource,
+      )
   for (const feature of input.estimatedAreas.features) {
     if (excluded.has(feature.properties.divisionId)) continue
     const divisionId =
@@ -469,13 +534,13 @@ function assembleCuratedDivisionsInternal(input: {
       throw Error(`Unknown island group ${group.divisionId}`)
     put(group.divisionId, group.geometry, 'island-groups', group.divisionId)
     for (const area of areas.get(group.divisionId)!) {
-      const identifiers = JSON.parse(area.identifiers)
-      identifiers.islandGroup = {
+      const sources = JSON.parse(area.sources)
+      sources.saanseoi[0].islandGroup = {
         memberIds: group.memberIds,
         seedBounds: group.seedBounds,
         method: 'seed-bounds-whole-island-v1',
       }
-      area.identifiers = JSON.stringify(identifiers)
+      area.sources = JSON.stringify(sources)
     }
   }
   const outputAreas: Row[] = [...areas.values()]
@@ -516,6 +581,7 @@ function assembleCuratedDivisionsInternal(input: {
     areas: outputAreas,
     islandGroups: groupGeometry.map(({ geometry: _, ...group }) => group),
     aliases: Object.fromEntries(aliases),
+    nameAliasAudit,
   }
 }
 

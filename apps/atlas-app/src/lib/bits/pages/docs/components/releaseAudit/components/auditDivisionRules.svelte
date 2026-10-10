@@ -29,7 +29,10 @@ let groups = $derived.by(() => {
     return [
       {
         title: m.reference_locale_normalisation(),
-        explanation: m.source_audit_locales_explanation(),
+        explanation:
+          bulk.id === 'prepare-curated-division-rules'
+            ? group.explanation
+            : m.source_audit_locales_explanation(),
         locale: undefined,
         rows: locales.flatMap(item =>
           item.rows.map(row => ({ ...row, locale: item.locale })),
@@ -76,7 +79,8 @@ $effect(() => {
         title={group.title}
         explanation={group.explanation}
         rows={group.rows}
-        getRule={() => getRetainedRuleDeclaration({ resourceReleaseId, hash, bulkId: bulk.id })}
+        getRule={() =>
+          getRetainedRuleDeclaration({ resourceReleaseId, hash, bulkId: bulk.id })}
       />
     {/each}
   {:else}

@@ -6,6 +6,34 @@ import {
   curatedDivisionClassification,
   curatedDivisionPolicy,
 } from './curatedDivisionPolicy'
+test('village suffix curations retain the place name and discard standalone suffix variants', () => {
+  for (const [id, en, zh] of [
+    ['1b0fd737-1ab6-4ae9-a4ce-b48cacb4d221', 'Tui Min Hoi', '對面海'],
+    ['378e8ec0-8a13-4c3d-ac26-9c0be601dc60', 'Fui Yiu Ha', '灰窰下'],
+    ['5334af4f-7c40-43e8-bbfc-f4d6128d38b0', 'Sha Ha', '沙下'],
+  ] as const) {
+    const source = [
+      ['en', en, 'Village'],
+      ['zh-hant', zh, '村'],
+    ].map(([locale, base, suffix]) => ({
+      divisionId: id,
+      locale: locale!,
+      name: suffix!,
+      nameAlts: base!,
+      nameVariant: [suffix!, base!],
+      nameRules: [{ value: suffix!, variant: 'alternate' }],
+      isLocaleInferred: false,
+    }))
+    const result = applyCuratedDivisionNames(id, source)
+    expect(result.map(row => row.name)).toEqual([`${en} Village`, `${zh}村`])
+    for (const [index, suffix] of ['Village', '村'].entries()) {
+      expect(result[index]!.nameVariant).not.toContain(suffix)
+      expect(result[index]!.nameAlts).toBe(index === 0 ? en : zh)
+      expect(result[index]!.nameRules).toBeNull()
+    }
+    expect(applyCuratedDivisionNames(id, result)).toEqual(result)
+  }
+})
 function names(english: string) {
   const division = inventory.divisions.find(row => row.names.en === english)!
   return applyCuratedDivisionNames(
@@ -63,7 +91,7 @@ test('Pak Kan is a curated level-six microhood with a native marker and drawing 
     row => row.divisionId === division.id,
   )!
   expect(override).toMatchObject({
-    identifiers: { 'LANDSD:GEO_NAME_ID': '3038' },
+    identifiers: { 'hkgov-landsd': { geoNameId: '3038' } },
     geometryReview: 'draw-required',
   })
 })
@@ -72,7 +100,7 @@ test('Mid-Levels resolves its curated LandsD identity with its curated district 
   const division = inventory.divisions.find(row => row.names.en === 'Mid-Levels')!
   expect(
     curatedDivisionPolicy.overrides.entries.find(row => row.divisionId === division.id),
-  ).toMatchObject({ identifiers: { 'LANDSD:GEO_NAME_ID': '1111' } })
+  ).toMatchObject({ identifiers: { 'hkgov-landsd': { geoNameId: '1111' } } })
   const chinese = names('Mid-Levels').find(row => row.locale === 'zh-hant')!
   expect(chinese.name).toBe('半山')
   expect(chinese.nameAlts?.split('|') ?? []).toContain('半山區')

@@ -23,7 +23,7 @@ function handleKeydown(event: KeyboardEvent) {
 }
 </script>
 
-<label class="relative mt-5 block">
+<label class="relative mt-2 block">
   <span class="sr-only"
     >{placeholder ? m.source_audit_search_retained() : m.source_audit_search()}</span
   >

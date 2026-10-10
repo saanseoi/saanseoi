@@ -6,8 +6,10 @@ import CopyRule from './auditCopyRule.svelte'
 import ScrollArea from './auditScrollArea.svelte'
 import StatusBadge from './auditStatusBadge.svelte'
 import { ruleGroupStatus } from './auditRuleStatus'
+import type { Snippet } from 'svelte'
 import type { Json } from '@repo/core/provenance'
 let {
+  footer,
   title,
   explanation,
   rows,
@@ -15,6 +17,7 @@ let {
   getRule,
   onmatch,
 }: {
+  footer?: Snippet
   title: string
   explanation: string
   rows: Array<{
@@ -59,8 +62,13 @@ $effect(() => {
       {explanation}
     </p>
     {#if rows.length}
-      <details class="border-t border-current/10 px-4 py-3" open={!!query}>
-        <summary class="cursor-pointer text-sm opacity-70">
+      <details
+        class="border-t border-current/10 px-4 py-3"
+        open={rows.length === 1 || !!query}
+      >
+        <summary
+          class={rows.length === 1 ? 'hidden' : 'cursor-pointer text-sm opacity-70'}
+        >
           {m.source_audit_mappings_conditions()}
           · {matchingRows.length}
         </summary>
@@ -88,12 +96,12 @@ $effect(() => {
                     <tr class="bg-current/5 [&_th]:border-t [&_th]:border-current/15">
                       <th colspan="5" class="px-2 py-2 text-sm font-medium">
                         {row.locale === 'en'
-  ? m.source_locale_en()
-  : row.locale === 'zh-hant'
-    ? m.source_locale_zh_hant()
-    : row.locale === 'zh-hans'
-      ? m.source_locale_zh_hans()
-      : row.locale}
+                          ? m.source_locale_en()
+                          : row.locale === 'zh-hant'
+                            ? m.source_locale_zh_hant()
+                            : row.locale === 'zh-hans'
+                              ? m.source_locale_zh_hans()
+                              : row.locale}
                       </th>
                     </tr>
                   {/if}
@@ -103,7 +111,9 @@ $effect(() => {
                         <span
                           class="inline-flex min-w-5 shrink-0 items-center justify-center rounded bg-black px-1.5 py-0.5 text-xs text-white tabular-nums"
                         >
-                          {row.displayPriority ?? row.precedence ?? m.source_audit_not_recorded()}
+                          {row.displayPriority ??
+                            row.precedence ??
+                            m.source_audit_not_recorded()}
                         </span>
                         <span>{row.id ?? m.source_audit_not_recorded()}</span>
                       </span>
@@ -126,5 +136,6 @@ $effect(() => {
         </ScrollArea>
       </details>
     {/if}
+    {@render footer?.()}
   </article>
 {/if}

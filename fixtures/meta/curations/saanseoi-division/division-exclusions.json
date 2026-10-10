@@ -1,6 +1,6 @@
 {
-  "schemaVersion": 1,
-  "purpose": "Own scoped division coverage exclusions, source-record exclusions and island acceptance decisions. A rejected drawing does not implicitly delete a division identity.",
+  "schemaVersion": 3,
+  "purpose": "Division exclusions. Each entry identifies whether to omit the final identity, an Overture input or a LandsD input. Optional appliesFrom and appliesUntil bound manual entries; releaseEntries contain exact guard-triggered decisions. Island geometry decisions do not delete identities.",
   "entries": [
     {
       "divisionId": "8b673b40-3502-5f8e-af22-226360825506",
@@ -8,7 +8,10 @@
       "names": [
         "North Rock"
       ],
-      "reason": "Excluded from curated coverage by curator."
+      "reason": "Excluded from curated coverage by curator.",
+      "scopes": [
+        "result"
+      ]
     },
     {
       "divisionId": "4694b2f9-3257-411a-91e1-421ad4fdbf45",
@@ -17,7 +20,11 @@
         "蛤䗫擒塘",
         "蛤蟆擒塘"
       ],
-      "reason": "No evidence supports this division; excluded by curator."
+      "reason": "No evidence supports this division; excluded by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "37e9807f-5404-461c-ba18-db54e942a898",
@@ -25,7 +32,11 @@
         "Culture Plaza",
         "文化廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "8c62eda7-887c-40a0-84f2-5d3569d34b94",
@@ -33,7 +44,11 @@
         "Happy Valley",
         "跑馬地"
       ],
-      "reason": "Microhood extent of the larger neighbourhood. Excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Microhood extent of the larger neighbourhood. Excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac",
@@ -41,7 +56,11 @@
         "Chai Wan",
         "柴灣"
       ],
-      "reason": "Microhood extent of the larger neighbourhood. Excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Microhood extent of the larger neighbourhood. Excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "06f5c76f-35fb-42ea-9835-65e047160866",
@@ -49,7 +68,11 @@
         "Ocean Square",
         "海洋廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "0aa7500f-47af-438c-8e53-12dbd8f15507",
@@ -57,7 +80,11 @@
         "Olympic Square",
         "奧林匹克廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "0b20b0ab-3910-42b8-8b82-2037c424430a",
@@ -65,7 +92,11 @@
         "Tin Hau Temple Plaza",
         "天后廟廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "0e37bb26-ab54-4967-b5b5-69c56e3a8629",
@@ -73,7 +104,11 @@
         "Town Square",
         "小鎮廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "10939c86-c6bf-47e1-bb57-994b173b1ce5",
@@ -81,7 +116,11 @@
         "Ginza Square",
         "銀座廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "12a993a0-fd13-44ff-a742-44590f3182e8",
@@ -89,7 +128,11 @@
         "Circular plaza",
         "圓形廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "1fbcf2b4-0acc-40db-9fe1-92cc02a541d2",
@@ -97,7 +140,11 @@
         "Yuen Long Jockey Club Town Square",
         "元朗賽馬會廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "254c87e0-2f32-4abd-a911-a95999dc38c2",
@@ -105,7 +152,11 @@
         "Circular plaza",
         "圓形廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "2a6057d1-b529-4931-99c2-3adf978e46e9",
@@ -113,7 +164,11 @@
         "William M.W. Mong Courtyard",
         "蒙民偉廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "2ad9a1ba-920e-4369-9a35-6631ee0c8300",
@@ -121,7 +176,11 @@
         "Noah's Ark Entrance Plaza",
         "挪亞方舟入口廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "33cae81d-37ee-4d45-ae01-7dd662e75c46",
@@ -129,7 +188,11 @@
         "The Way",
         "道生廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "35acdd77-5dba-4412-8a6e-5a9959a76d19",
@@ -137,7 +200,11 @@
         "Statue Square",
         "皇后像廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "36947839-7da9-4fba-84fb-93c989fe6f1e",
@@ -145,7 +212,11 @@
         "Summit Plaza",
         "高峰廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "3b1bddb7-4183-41e6-a545-35eff840e951",
@@ -153,7 +224,11 @@
         "Central Square",
         "中央廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "3f822307-a355-45cf-8f13-554355e7b916",
@@ -161,7 +236,11 @@
         "Amphitheatre",
         "羅馬廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "42510288-7278-4cdf-b9d2-4bec4d5917a5",
@@ -169,7 +248,11 @@
         "South Pavilion Plaza",
         "南亭廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "44a22c9d-d225-497a-93af-e32d6b1bc168",
@@ -177,7 +260,11 @@
         "Kai Tak Station Square",
         "啟德車站廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "47ae1bfd-faf7-4dca-9fbe-31e88547ceeb",
@@ -185,7 +272,11 @@
         "Welcome Plaza",
         "主廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "4dcf8ac4-e046-4dfb-a946-5a87625ec25b",
@@ -193,7 +284,11 @@
         "Edinburgh Place",
         "愛丁堡廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "5144b56f-8c7c-4d8a-a77f-478070b8eea7",
@@ -201,7 +296,11 @@
         "The Podium",
         "數碼廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "57701665-c2fe-43f5-932d-0b6f7bcceee9",
@@ -209,7 +308,11 @@
         "Ground Plaza",
         "地下廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "62b8361b-7b0e-4aef-81c9-c03a18ce4cbb",
@@ -217,7 +320,11 @@
         "Grand Plaza",
         "大廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "635de50f-369e-48a3-b349-4894c8c99a63",
@@ -225,7 +332,11 @@
         "HSMC Square",
         "恒管廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "70e8c2ae-10b4-4541-a7ff-c103084dd1fb",
@@ -233,7 +344,11 @@
         "Wong Tai Sin Square",
         "黃大仙廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "71ad003f-a328-4253-b308-c70ab903a46a",
@@ -241,7 +356,11 @@
         "Golden Bauhinia Square",
         "金紫荊廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "750f1fbc-a62e-4a16-8a2a-4d696e528200",
@@ -249,7 +368,11 @@
         "Plaza 13/31",
         "13/31廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "7863c770-4b03-4ffd-83e9-819ac0d9a6de",
@@ -257,7 +380,11 @@
         "Green Plaza",
         "綠化廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "7921d08e-a793-4b93-a5d6-8ef4b32697ef",
@@ -265,7 +392,11 @@
         "Harbour View Square",
         "海濱廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "817f1aab-5ee2-4162-b900-01779aa308ec",
@@ -273,7 +404,11 @@
         "Aberdeen Square",
         "香港仔廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "82ff6e65-f93b-477f-8eb7-a249c50ad6a2",
@@ -281,7 +416,11 @@
         "Civic Square",
         "演薈廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "83691f63-8bee-411f-a515-39abc20d2da5",
@@ -289,7 +428,11 @@
         "Cultural Square",
         "文化廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "8966e4cc-1e4e-4a6e-8735-9e24301b1a17",
@@ -297,7 +440,11 @@
         "Sha Tau Kok Plaza (District 9)",
         "沙頭角廣場(九區)"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "8da11c48-b6c4-4839-bcdb-aafedce03265",
@@ -305,7 +452,11 @@
         "Long Ping Estate Plaza",
         "朗屏邨八角廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "8e950523-6ea1-4e56-8028-a19fb056228b",
@@ -313,7 +464,11 @@
         "Sheung Wan Cultural Square",
         "上環文化廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "8f62e3a1-f1ff-4853-84dd-f017519a21de",
@@ -321,7 +476,11 @@
         "Lai Shuk Ying Memorial Square",
         "黎淑英紀念廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "95c48036-8a47-4922-a3e7-8a2133b3f74e",
@@ -329,7 +488,11 @@
         "Kin Sun Square",
         "乾新坊"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "a00099bc-003c-4f03-9304-9f0f0d8615d1",
@@ -337,7 +500,11 @@
         "Theatre",
         "露天廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "a25dbc0f-71df-418a-b2cb-8e9a646a586a",
@@ -345,7 +512,11 @@
         "Waterfront Plaza",
         "海濱樂園廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "aa9d6a2a-0c2e-4485-8628-55d7ec734d2b",
@@ -353,7 +524,11 @@
         "Marine Square",
         "海洋廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "ace2e35e-b493-41c2-9fd4-efe7fee6f9e6",
@@ -361,7 +536,11 @@
         "Tang Ping Yuan Square",
         "唐炳源廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "bd1b2577-4b5e-4862-973c-5716d277e566",
@@ -369,7 +548,11 @@
         "Piazza",
         "廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "c0437a28-ea5e-474a-aa84-16d6d76f3487",
@@ -377,7 +560,11 @@
         "The Square",
         "方院"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "c07ee407-3be1-4ca0-919d-021c9069cbb7",
@@ -385,7 +572,11 @@
         "Tai Ming Lane Square",
         "大明里廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "c183120a-117c-479f-adf1-d7fd8d7effc3",
@@ -393,7 +584,11 @@
         "Eastern District Cultural Square",
         "東區文化廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "c2d093ad-5e2f-407e-a209-630eb2f384df",
@@ -401,7 +596,11 @@
         "The Forum",
         "議事廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "c3129b00-2c9a-4e23-9bed-4e33d3bbd980",
@@ -409,7 +608,11 @@
         "Cultural Plaza",
         "文化廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "cc910ea6-105e-4cb5-96f1-956d70d08529",
@@ -417,7 +620,11 @@
         "Suen Chi Sun Memorial Square",
         "孫志新紀念廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "d1f4c258-bb57-447b-a38f-ccdcf4bb2024",
@@ -425,7 +632,11 @@
         "Chan Sui Kau and Chan Lam Moon Chun Square",
         "陳瑞球林滿珍伉儷廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "da8af9d5-a4da-4c6a-b507-155f3ad4ae24",
@@ -433,7 +644,11 @@
         "Tsui Ping Amphitheatre",
         "翠屏羅馬廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "dce76cda-77ff-4ae9-83aa-c87abc34370e",
@@ -441,7 +656,11 @@
         "Ho Iu Kwong & Kwok Pui Chun Square",
         "何耀光郭佩珍伉儷廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "e0a6b266-8190-47c3-9c7c-4cb94587d47c",
@@ -449,7 +668,11 @@
         "Yau Oi Square",
         "友愛廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "e8168fc2-7e85-4ed1-9566-f2253523bba4",
@@ -457,7 +680,11 @@
         "Wing On Plaza",
         "永安廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "f109ba37-64d3-4e1e-8a15-308b5a6b3e48",
@@ -465,7 +692,11 @@
         "Flora Plaza",
         "花花廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "f3f74f54-b91f-4721-b12c-d3be30f65132",
@@ -473,7 +704,11 @@
         "Tuen Mun Cultural Square",
         "屯門文娛廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "fcb0a9a9-5270-4d10-b155-5c8bfa748dbd",
@@ -481,7 +716,11 @@
         "Entrance Plaza",
         "大澳入口廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "3e2173fb-7721-4159-9d52-f3f1b0248b79",
@@ -489,7 +728,11 @@
         "Eastern Plaza",
         "東籬廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "aa3c5f77-2cb4-48ae-b70f-f7be87f2485d",
@@ -497,7 +740,11 @@
         "Golden Mean Plaza",
         "金律廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "715c75c6-f886-483a-8aeb-96893eeb60f8",
@@ -505,7 +752,11 @@
         "Aviation Square",
         "飛機廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "17dbd6d8-5037-42a6-9375-8d09f1604b78",
@@ -513,7 +764,11 @@
         "Anchor Plaza",
         "賽馬會海事廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "0f285434-0663-491f-a6cd-c2031710044d",
@@ -521,7 +776,11 @@
         "Wen Lan Square",
         "文瀾前地"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "19e6838a-1faa-408c-90e7-fb9da971543a",
@@ -529,7 +788,11 @@
         "Lam Tai Fai Amphitheatre",
         "林大輝廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "40036b5d-cf27-45fe-b39a-f3145a707f4b",
@@ -537,7 +800,11 @@
         "Bamboo Plaza",
         "竹林廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "6fdb1e6c-f46c-45e6-985a-f59c341fdfac",
@@ -545,7 +812,11 @@
         "AIRSIDE Plaza",
         "AIRSIDE 露天廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "c87f35b7-7894-43c7-a495-0aaae2666a50",
@@ -553,7 +824,11 @@
         "New Asia Concourse",
         "圓形廣場"
       ],
-      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Squares are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "f9d753ff-a601-4345-84dd-31ea8b0c23de",
@@ -561,7 +836,11 @@
         "Expo Promenade",
         "博覽海濱花園"
       ],
-      "reason": "Promenades are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Promenades are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "f2c19edf-36b7-4078-b101-95ae60b0193f",
@@ -569,7 +848,11 @@
         "East Wing Forecourt",
         "東翼前地"
       ],
-      "reason": "Forecourts are not geographic divisions; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Forecourts are not geographic divisions; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "1deda0f6-c887-4987-8d29-74ae24b90780",
@@ -577,7 +860,11 @@
         "South Bay Garden",
         "南灣花園"
       ],
-      "reason": "South Bay Garden is a residential development, not a geographic division; excluded from the curated Hong Kong division coverage by curator."
+      "reason": "South Bay Garden is a residential development, not a geographic division; excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "5b44a59f-8a88-4b7f-addc-d74b79aad31a",
@@ -585,7 +872,11 @@
         "Shek Pai Wan",
         "石排灣"
       ],
-      "reason": "Excluded from the curated Hong Kong division coverage by curator."
+      "reason": "Excluded from the curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "c982f940-8e30-4ae6-87d8-6fd73a335217",
@@ -593,7 +884,11 @@
         "East Point",
         "東角"
       ],
-      "reason": "East Point is a curated synonym of Causeway Bay and is not retained as a separate division."
+      "reason": "East Point is a curated synonym of Causeway Bay and is not retained as a separate division.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "5e8e3793-9b4c-4ad0-a6d5-48310df83428",
@@ -601,7 +896,11 @@
         "Chuk Yuen",
         "竹園"
       ],
-      "reason": "Chuk Yuen is a curated synonym of Wong Tai Sin and is not retained as a separate division."
+      "reason": "Chuk Yuen is a curated synonym of Wong Tai Sin and is not retained as a separate division.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "669e74d6-c80b-4132-9bb8-43b59280657c",
@@ -609,7 +908,11 @@
         "Chuk Yuen United Village",
         "竹園聯合村"
       ],
-      "reason": "Demolished settlement; excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Demolished settlement; excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "1e0827ef-4f1a-40d0-bdf1-a0807da65da2",
@@ -617,7 +920,11 @@
         "Ngau Chi Wan Village",
         "牛池灣村"
       ],
-      "reason": "Excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "a21076d4-1c2c-4a79-94d8-90c582a9bc5c",
@@ -625,7 +932,11 @@
         "Tai Hang",
         "大坑"
       ],
-      "reason": "This level 6 Tai Hang microhood duplicates the curated level 5 Tai Hang neighbourhood and is excluded from the hierarchy."
+      "reason": "This level 6 Tai Hang microhood duplicates the curated level 5 Tai Hang neighbourhood and is excluded from the hierarchy.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "7b98c68d-a4d0-46e6-bb2d-12b358c59001",
@@ -633,7 +944,11 @@
         "Kau Pui Shek",
         "靠背石"
       ],
-      "reason": "Historic locality; excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Historic locality; excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "c99e175c-ed9c-4e90-84de-7a506061fd16",
@@ -641,7 +956,11 @@
         "Kai Tak North",
         "啟德北"
       ],
-      "reason": "Excluded from curated Hong Kong division coverage by curator."
+      "reason": "Excluded from curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "0eb68e06-4951-41ef-afe9-cbced12cd7e6",
@@ -649,7 +968,11 @@
         "High Island",
         "糧船灣"
       ],
-      "reason": "Whole-island or island-group macrohood; excluded from curated coverage by curator."
+      "reason": "Whole-island or island-group macrohood; excluded from curated coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "2a938b4b-1803-4e35-97ca-f4c4ed2ed108",
@@ -657,7 +980,11 @@
         "Lamma Island",
         "南丫島"
       ],
-      "reason": "Whole-island or island-group macrohood; excluded from curated coverage by curator."
+      "reason": "Whole-island or island-group macrohood; excluded from curated coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "d5ea5db9-fe81-4156-abeb-f00c0debb48a",
@@ -665,7 +992,11 @@
         "Lantau",
         "大嶼山"
       ],
-      "reason": "Whole-island or island-group macrohood; excluded from curated coverage by curator."
+      "reason": "Whole-island or island-group macrohood; excluded from curated coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "fe3b73dc-e11e-40cb-bc92-11d2650bae01",
@@ -673,7 +1004,11 @@
         "Lai Chi Kok Hill",
         "荔枝角山"
       ],
-      "reason": "Excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "d3d2ddbb-b432-4c31-8f0d-8daec765e27f",
@@ -681,7 +1016,11 @@
         "Ngau Tau Kok Industrial Area",
         "牛頭角工業區"
       ],
-      "reason": "Excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "1a5eb2ce-766c-4deb-b1df-11012459a429",
@@ -689,7 +1028,11 @@
         "Lower Ngau Tau Kok",
         "牛頭角下"
       ],
-      "reason": "Housing estate; excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Housing estate; excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "8026fe90-c346-4f26-a95f-19caef42649a",
@@ -697,7 +1040,11 @@
         "Upper Ngau Tau Kok",
         "牛頭角上"
       ],
-      "reason": "Housing estate; excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Housing estate; excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "1747465a-dbf9-4bca-a965-5eed1b6f197a",
@@ -705,7 +1052,11 @@
         "Lok Wah Shan",
         "樂華山"
       ],
-      "reason": "Housing estate; excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Housing estate; excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "c0294424-7440-44c8-bd01-d610f48b25c4",
@@ -713,7 +1064,11 @@
         "Yue Man Square",
         "裕民坊"
       ],
-      "reason": "Square; excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Square; excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "d8609aa4-f217-4869-8c2d-cf256f92a608",
@@ -721,7 +1076,11 @@
         "Tai Chi Area",
         "太極區"
       ],
-      "reason": "Square; excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Square; excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "59c7ae90-5b5f-4ea4-9a69-39f2ef4dc178",
@@ -729,7 +1088,11 @@
         "Ma Wan Tsuen",
         "馬環村"
       ],
-      "reason": "Duplicate eastern Ma Wan Tsuen locality; the western canonical record is retained."
+      "reason": "Duplicate eastern Ma Wan Tsuen locality; the western canonical record is retained.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "a62dfc8a-c5a0-454a-94db-b57792ede77b",
@@ -737,7 +1100,11 @@
         "Che Ting Tsuen",
         "輋頂村"
       ],
-      "reason": "Cannibalised by surrounding villages; excluded from current curated Hong Kong division coverage by curator."
+      "reason": "Cannibalised by surrounding villages; excluded from current curated Hong Kong division coverage by curator.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "6656a014-0303-44eb-a3de-74ab665770f7",
@@ -745,7 +1112,11 @@
         "Lei Yue Mun Villages",
         "鯉魚門村"
       ],
-      "reason": "Lei Yue Mun Villages is a curated synonym of Lei Yue Mun and is not retained as a separate division."
+      "reason": "Lei Yue Mun Villages is a curated synonym of Lei Yue Mun and is not retained as a separate division.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "ee49a68b-e7f8-4781-9211-38c77e54d64d",
@@ -753,7 +1124,11 @@
         "Chek Lap Kok",
         "赤鱲角"
       ],
-      "reason": "Chek Lap Kok is represented by its curated island landform identity and is excluded as a duplicate macrohood."
+      "reason": "Chek Lap Kok is represented by its curated island landform identity and is excluded as a duplicate macrohood.",
+      "scopes": [
+        "result",
+        "overture"
+      ]
     },
     {
       "divisionId": "LANDSD:PLACE_NAME:2948",
@@ -762,7 +1137,10 @@
         "竹園聯合村"
       ],
       "reasonCode": "DEMOLISHED",
-      "reason": "Demolished; excluded by curator."
+      "reason": "Demolished; excluded by curator.",
+      "scopes": [
+        "result"
+      ]
     },
     {
       "divisionId": "LANDSD:PLACE_NAME:1281",
@@ -771,7 +1149,10 @@
         "牛池灣村"
       ],
       "reasonCode": "DEMOLISHED",
-      "reason": "Demolished; excluded by curator."
+      "reason": "Demolished; excluded by curator.",
+      "scopes": [
+        "result"
+      ]
     },
     {
       "divisionId": "LANDSD:PLACE_NAME:3512",
@@ -780,7 +1161,10 @@
         "輋頂村"
       ],
       "reasonCode": "INSUFFICIENT_EVIDENCE",
-      "reason": "Insufficient evidence to distinguish this Lei Yue Mun settlement from surrounding villages; excluded by curator."
+      "reason": "Insufficient evidence to distinguish this Lei Yue Mun settlement from surrounding villages; excluded by curator.",
+      "scopes": [
+        "result"
+      ]
     },
     {
       "divisionId": "c8488b42-3b2e-425b-8930-cce3fded69e2",
@@ -789,10 +1173,68 @@
         "落馬洲河套"
       ],
       "reasonCode": "CURATED_EXCLUSION",
-      "reason": "Level-6 microhood excluded by curator; the separate level-4 Lok Ma Chau Loop entry is retained."
+      "reason": "Level-6 microhood excluded by curator; the separate level-4 Lok Ma Chau Loop entry is retained.",
+      "scopes": [
+        "result"
+      ]
+    },
+    {
+      "divisionId": "f9321bdb-1e1e-49e6-89c8-662f988b29a3",
+      "reason": "Outside the reviewed SaanSeoi division selection.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "cbfab9fe-5b9a-493d-b710-2cfd0a2ba6db",
+      "reason": "Outside the reviewed SaanSeoi division selection.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "0f959136-e10e-49b5-aa57-97672d01cb34",
+      "reason": "Outside the reviewed SaanSeoi division selection.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "b41774d7-4162-4802-ae67-04f0a08f2911",
+      "reason": "Outside the reviewed SaanSeoi division selection.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "e55d9216-f534-4d89-9a2f-0f564de447cc",
+      "reason": "Outside the reviewed SaanSeoi division selection.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "abef14db-bd24-4e33-ac68-fe42562ffd8f",
+      "reason": "Outside the reviewed SaanSeoi division selection.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "994c536c-cbb4-4448-b139-7b0a0fd7f7e9",
+      "reason": "Outside the reviewed SaanSeoi division selection.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "fc590c1d-dc3d-425e-8bc0-2ca30e3cc9b9",
+      "reason": "Outside the reviewed SaanSeoi division selection.",
+      "scopes": [
+        "overture"
+      ]
     }
   ],
-  "landsd": [],
   "islandDecisions": [
     {
       "id": "LANDSD:PLACE_NAME:1030",
@@ -2517,410 +2959,163 @@
       "reason": "Yim Tin Pai has only a point geometry."
     }
   ],
-  "overture": [
-    {
-      "divisionId": "c183120a-117c-479f-adf1-d7fd8d7effc3",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "a21076d4-1c2c-4a79-94d8-90c582a9bc5c",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "254c87e0-2f32-4abd-a911-a95999dc38c2",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "12a993a0-fd13-44ff-a742-44590f3182e8",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "5e49486b-7b8d-43ab-b2ad-4c22a50bf9ac",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "8c62eda7-887c-40a0-84f2-5d3569d34b94",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "5144b56f-8c7c-4d8a-a77f-478070b8eea7",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "0aa7500f-47af-438c-8e53-12dbd8f15507",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "f2c19edf-36b7-4078-b101-95ae60b0193f",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "42510288-7278-4cdf-b9d2-4bec4d5917a5",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "c982f940-8e30-4ae6-87d8-6fd73a335217",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "37e9807f-5404-461c-ba18-db54e942a898",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "4dcf8ac4-e046-4dfb-a946-5a87625ec25b",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "f9321bdb-1e1e-49e6-89c8-662f988b29a3",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "35acdd77-5dba-4412-8a6e-5a9959a76d19",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "8f62e3a1-f1ff-4853-84dd-f017519a21de",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "36947839-7da9-4fba-84fb-93c989fe6f1e",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "06f5c76f-35fb-42ea-9835-65e047160866",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "817f1aab-5ee2-4162-b900-01779aa308ec",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "5b44a59f-8a88-4b7f-addc-d74b79aad31a",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "bd1b2577-4b5e-4862-973c-5716d277e566",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "a25dbc0f-71df-418a-b2cb-8e9a646a586a",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "1deda0f6-c887-4987-8d29-74ae24b90780",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "2a938b4b-1803-4e35-97ca-f4c4ed2ed108",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "fcb0a9a9-5270-4d10-b155-5c8bfa748dbd",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "d5ea5db9-fe81-4156-abeb-f00c0debb48a",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "ee49a68b-e7f8-4781-9211-38c77e54d64d",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "0e37bb26-ab54-4967-b5b5-69c56e3a8629",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "cbfab9fe-5b9a-493d-b710-2cfd0a2ba6db",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "3b1bddb7-4183-41e6-a545-35eff840e951",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "750f1fbc-a62e-4a16-8a2a-4d696e528200",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "d8609aa4-f217-4869-8c2d-cf256f92a608",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "7b98c68d-a4d0-46e6-bb2d-12b358c59001",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "44a22c9d-d225-497a-93af-e32d6b1bc168",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "40036b5d-cf27-45fe-b39a-f3145a707f4b",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "6fdb1e6c-f46c-45e6-985a-f59c341fdfac",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "c99e175c-ed9c-4e90-84de-7a506061fd16",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "f109ba37-64d3-4e1e-8a15-308b5a6b3e48",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "1e0827ef-4f1a-40d0-bdf1-a0807da65da2",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "1747465a-dbf9-4bca-a965-5eed1b6f197a",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "3e2173fb-7721-4159-9d52-f3f1b0248b79",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "1a5eb2ce-766c-4deb-b1df-11012459a429",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "8026fe90-c346-4f26-a95f-19caef42649a",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "da8af9d5-a4da-4c6a-b507-155f3ad4ae24",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "c0294424-7440-44c8-bd01-d610f48b25c4",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "d3d2ddbb-b432-4c31-8f0d-8daec765e27f",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "715c75c6-f886-483a-8aeb-96893eeb60f8",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "57701665-c2fe-43f5-932d-0b6f7bcceee9",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "dce76cda-77ff-4ae9-83aa-c87abc34370e",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "cc910ea6-105e-4cb5-96f1-956d70d08529",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "d1f4c258-bb57-447b-a38f-ccdcf4bb2024",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "19e6838a-1faa-408c-90e7-fb9da971543a",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "82ff6e65-f93b-477f-8eb7-a249c50ad6a2",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "0f959136-e10e-49b5-aa57-97672d01cb34",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "c3129b00-2c9a-4e23-9bed-4e33d3bbd980",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "7863c770-4b03-4ffd-83e9-819ac0d9a6de",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "ace2e35e-b493-41c2-9fd4-efe7fee6f9e6",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "b41774d7-4162-4802-ae67-04f0a08f2911",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "e55d9216-f534-4d89-9a2f-0f564de447cc",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "17dbd6d8-5037-42a6-9375-8d09f1604b78",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "8e950523-6ea1-4e56-8028-a19fb056228b",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "71ad003f-a328-4253-b308-c70ab903a46a",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "f9d753ff-a601-4345-84dd-31ea8b0c23de",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "a62dfc8a-c5a0-454a-94db-b57792ede77b",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "59c7ae90-5b5f-4ea4-9a69-39f2ef4dc178",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "6656a014-0303-44eb-a3de-74ab665770f7",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "0eb68e06-4951-41ef-afe9-cbced12cd7e6",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "33cae81d-37ee-4d45-ae01-7dd662e75c46",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "635de50f-369e-48a3-b349-4894c8c99a63",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "70e8c2ae-10b4-4541-a7ff-c103084dd1fb",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "669e74d6-c80b-4132-9bb8-43b59280657c",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "5e8e3793-9b4c-4ad0-a6d5-48310df83428",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "2a6057d1-b529-4931-99c2-3adf978e46e9",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "fe3b73dc-e11e-40cb-bc92-11d2650bae01",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "2ad9a1ba-920e-4369-9a35-6631ee0c8300",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "47ae1bfd-faf7-4dca-9fbe-31e88547ceeb",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "aa3c5f77-2cb4-48ae-b70f-f7be87f2485d",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "e0a6b266-8190-47c3-9c7c-4cb94587d47c",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "f3f74f54-b91f-4721-b12c-d3be30f65132",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "0b20b0ab-3910-42b8-8b82-2037c424430a",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "e8168fc2-7e85-4ed1-9566-f2253523bba4",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "95c48036-8a47-4922-a3e7-8a2133b3f74e",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "aa9d6a2a-0c2e-4485-8628-55d7ec734d2b",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "62b8361b-7b0e-4aef-81c9-c03a18ce4cbb",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "7921d08e-a793-4b93-a5d6-8ef4b32697ef",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "c0437a28-ea5e-474a-aa84-16d6d76f3487",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "c2d093ad-5e2f-407e-a209-630eb2f384df",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "abef14db-bd24-4e33-ac68-fe42562ffd8f",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "0f285434-0663-491f-a6cd-c2031710044d",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "c87f35b7-7894-43c7-a495-0aaae2666a50",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "83691f63-8bee-411f-a515-39abc20d2da5",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "994c536c-cbb4-4448-b139-7b0a0fd7f7e9",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "fc590c1d-dc3d-425e-8bc0-2ca30e3cc9b9",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "c07ee407-3be1-4ca0-919d-021c9069cbb7",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "10939c86-c6bf-47e1-bb57-994b173b1ce5",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "1fbcf2b4-0acc-40db-9fe1-92cc02a541d2",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "8da11c48-b6c4-4839-bcdb-aafedce03265",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "3f822307-a355-45cf-8f13-554355e7b916",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "8966e4cc-1e4e-4a6e-8735-9e24301b1a17",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "a00099bc-003c-4f03-9304-9f0f0d8615d1",
-      "reason": "Outside the reviewed SaanSeoi division selection."
-    },
-    {
-      "divisionId": "4694b2f9-3257-411a-91e1-421ad4fdbf45",
-      "reason": "Outside the reviewed SaanSeoi division selection."
+  "releaseEntries": [
+    {
+      "divisionId": "aaeb6c09-e2d5-45f7-b433-f97dc10df479",
+      "appliesFrom": "2026-10-01.0",
+      "reason": "Confirmed building, outside Division coverage.",
+      "review": {
+        "kind": "curation",
+        "guard": {
+          "id": "division-source-updates",
+          "summary": "Removed divisions and changed accepted names require an exact reviewed decision.",
+          "consequence": "block-ingestion"
+        },
+        "fingerprint": "0ed8154df86085a3072ca8d3da6c3dc2c523e3698e1bc8e59bcea76c0dbd2745",
+        "field": "$record",
+        "before": {
+          "category": "locality",
+          "class": "hamlet",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "sar",
+                  "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+                  "name": "Hong Kong"
+                },
+                {
+                  "class": "area",
+                  "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+                  "name": "New Territories"
+                },
+                {
+                  "class": "district",
+                  "id": "c11cb4be-3b0b-405a-9c30-34677c6c4ab2",
+                  "name": "Sai Kung District"
+                }
+              ]
+            ],
+            "full": [
+              [
+                {
+                  "class": "sar",
+                  "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+                  "name": "Hong Kong"
+                },
+                {
+                  "class": "area",
+                  "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+                  "name": "New Territories"
+                },
+                {
+                  "class": "district",
+                  "id": "c11cb4be-3b0b-405a-9c30-34677c6c4ab2",
+                  "name": "Sai Kung District"
+                },
+                {
+                  "class": "town",
+                  "id": "38435a77-123f-4538-b286-5f952abb4631",
+                  "name": "Sai Kung"
+                }
+              ]
+            ],
+            "landform": [],
+            "locality": [
+              [
+                {
+                  "class": "town",
+                  "id": "38435a77-123f-4538-b286-5f952abb4631",
+                  "name": "Sai Kung"
+                }
+              ]
+            ]
+          },
+          "id": "aaeb6c09-e2d5-45f7-b433-f97dc10df479",
+          "level": 6,
+          "names": {
+            "en": "Green Wood Villa",
+            "zh-hant": "木棉山村"
+          },
+          "point": [
+            114.2720774,
+            22.3908712
+          ]
+        },
+        "proposed": null
+      }
+    },
+    {
+      "divisionId": "dc38776f-8672-47bf-8fb4-765931e429a4",
+      "appliesFrom": "2026-10-01.0",
+      "reason": "Confirmed removal conditional on retaining Lau Fau Shan (54cbcd4c-81f2-47c4-b68b-95fee2196960), verified in October proposed inventory.",
+      "review": {
+        "kind": "curation",
+        "guard": {
+          "id": "division-source-updates",
+          "summary": "Removed divisions and changed accepted names require an exact reviewed decision.",
+          "consequence": "block-ingestion"
+        },
+        "fingerprint": "d7dc7360ab25dee1be242b96c229bb40058de2fc28d7e5b88085585d96c91c69",
+        "field": "$record",
+        "before": {
+          "category": "locality",
+          "class": "hamlet",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "sar",
+                  "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+                  "name": "Hong Kong"
+                },
+                {
+                  "class": "area",
+                  "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+                  "name": "New Territories"
+                },
+                {
+                  "class": "district",
+                  "id": "d70db334-3685-4475-a252-23bdd13650e8",
+                  "name": "Yuen Long District"
+                }
+              ]
+            ],
+            "full": [
+              [
+                {
+                  "class": "sar",
+                  "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+                  "name": "Hong Kong"
+                },
+                {
+                  "class": "area",
+                  "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+                  "name": "New Territories"
+                },
+                {
+                  "class": "district",
+                  "id": "d70db334-3685-4475-a252-23bdd13650e8",
+                  "name": "Yuen Long District"
+                }
+              ]
+            ],
+            "landform": [],
+            "locality": []
+          },
+          "id": "dc38776f-8672-47bf-8fb4-765931e429a4",
+          "level": 6,
+          "names": {
+            "en": "流浮山墟",
+            "zh-hant": "流浮山墟"
+          },
+          "point": [
+            113.9814068,
+            22.4684287
+          ]
+        },
+        "proposed": null
+      }
     }
   ]
 }

@@ -37,6 +37,7 @@
     "@iconify-svelte/simple-icons": "1.0.44",
     "@maplibre/maplibre-gl-leaflet": "0.1.4",
     "@protomaps/basemaps": "^5.7.2",
+    "@repo/basemap": "workspace:*",
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",

@@ -1,7 +1,21 @@
+import { boundaryPatchEvidence } from './boundaryPatchEvidence'
+import { scopedExclusions } from '@repo/core/pipeline/services/divisions/curationApplicability'
+import { preprocessingContext } from './preprocessingContext'
+import { preparationCurationNames } from './curationNames'
+import { normaliseAuditedIngredient, finishPreparationRules } from './preparationRules'
+import { ProcessingGuardError, type BranchCounts } from '@repo/core/provenance'
+import { applyEditorialOwnership } from './editorialOwnership'
+import { landsdPlaceNameLocales } from '@repo/core/pipeline/services/sources/landsdPlaceNames'
+import {
+  releaseCurationDecisions,
+  type ReleaseCurationFixtures,
+} from './releaseCurations'
+import updatePolicy from '../../../../../../fixtures/meta/curations/saanseoi-division/division-update-policy.json'
+import { reviewDivisionUpdates, publisherSimplifiedNames } from './updateReview'
 import { createHash } from 'node:crypto'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
-import { normaliseDivisionRow } from '@repo/core/pipeline/services/divisions/division'
+import { prepareCuratedDivisionRow } from '@repo/core/pipeline/services/divisions/division'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { divisionCuration } from './curationInputs'
 import islandGroups from '../../../../../../fixtures/meta/curations/saanseoi-division/island-groups.json'
@@ -12,7 +26,6 @@ import type { UploadTarget } from '../../cli/options'
 import { applyCuratedBounds, applyRvdMembership } from './listMembership'
 import { applyCuratedAreaContract, applyCuratedRecordContract } from './recordContract'
 import { buildAdministrativeAreas } from './administrativeAreas'
-import { attachProtomapsGeometryRows } from './nativeIngredients'
 import { attachIngredientMembership } from './ingredientMembership'
 import { selectMonthlyIngredients } from './monthlyInputs'
 import { assembleCuratedDivisions } from './assemble'
@@ -54,26 +67,114 @@ export async function buildCuratedDivisionRelease(
   const inputs = await loadDivisionReviewInputs({
     ...archives,
     sourceReleases,
+    releaseVersion: release.releaseVersion,
     includeAreas: true,
   })
-  const { inventory, hierarchy, islands, islandReview } = inputs
+  const { inventory, islands, islandReview } = inputs
+  const accepted = await loadDivisionReviewInputs({
+    ...archives,
+    releaseVersion: release.releaseVersion,
+    includeAreas: true,
+  })
+  // Only explicit publisher Simplified Chinese names qualify for this locale.
+  const publisherHans = new Map<string, Set<string>>()
+  const applyPublisherHans = (input: typeof inputs) => {
+    const names = publisherSimplifiedNames(input.overture)
+    for (const division of input.inventory.divisions) {
+      delete division.names['zh-hans']
+      const name = names.get(division.id)
+      if (name) division.names['zh-hans'] = name
+    }
+    for (const [id, name] of names)
+      publisherHans.set(id, new Set([...(publisherHans.get(id) ?? []), name]))
+  }
+  applyPublisherHans(accepted)
+  applyPublisherHans(inputs)
+  const review = reviewDivisionUpdates(
+    accepted.inventory.divisions,
+    inventory.divisions,
+    updatePolicy,
+    releaseCurationDecisions(
+      divisionCuration as unknown as ReleaseCurationFixtures,
+      release.releaseVersion,
+    ),
+  )
+  const reviewDirectory = options.outputDirectory
+    ? resolve(options.outputDirectory)
+    : resolve(root, '.local/curated-divisions/review', release.releaseVersion)
+  await mkdir(reviewDirectory, { recursive: true })
+  await writeFile(
+    resolve(reviewDirectory, 'update-review.json'),
+    JSON.stringify(
+      {
+        edition: release.releaseVersion,
+        acceptedPins: accepted.sourceReleases,
+        proposedPins: sourceReleases,
+        policy: updatePolicy,
+        events: review.events,
+      },
+      null,
+      2,
+    ),
+  )
+  if (review.pending.length)
+    throw Error(
+      `Division updates require ${review.pending.length} individual decisions; see ${resolve(reviewDirectory, 'update-review.json')}. No release archives were produced.`,
+    )
+  inventory.divisions = review.divisions
+  const inventoryIds = new Set(inventory.divisions.map(row => row.id))
+  const hierarchy = {
+    ...inputs.hierarchy,
+    entries: inputs.hierarchy.entries.filter(
+      entry =>
+        inventoryIds.has(entry.divisionId) ||
+        islands.some(island => island.id === entry.divisionId),
+    ),
+  }
+  for (const entry of accepted.hierarchy.entries)
+    if (
+      inventoryIds.has(entry.divisionId) &&
+      !hierarchy.entries.some(current => current.divisionId === entry.divisionId)
+    )
+      hierarchy.entries.push(entry)
+  // Kept identities retain their reviewed geometry even when absent upstream.
+  const kept = new Set(
+    review.events
+      .filter(event => event.field === '$record' && event.status === 'keep')
+      .map(event => event.divisionId),
+  )
+  inputs.reference.push(
+    ...accepted.reference.filter((row: any) => kept.has(row.division_id)),
+  )
   if (options.cohort && options.cohort !== inventory.cohort) return null
-  const pin = (dataset: string) => {
-    const value = sourceReleases.find(row => row.datasetCode === dataset)
+  const pin = (dataset: string, resourceType = 'division') => {
+    const value = sourceReleases.find(
+      row => row.datasetCode === dataset && row.resourceType === resourceType,
+    )
     if (!value) throw Error(`Missing pinned input ${dataset}`)
     return value
   }
   const nativePin = pin('ds-hk-overture-division')
-  const territorialPin = pin('ds-hk-overture-division-area')
-  const protomapsPin = pin('ds-hk-protomaps-island')
+  const territorialPin = pin('ds-hk-overture-division', 'divisionArea')
+  const protomapsPin = pin('ds-hk-protomaps-island', 'divisionArea')
   const landsdPin = pin('ds-hk-hkgov-landsd-division')
-  const baseline = new Map(inputs.overture.map(row => [row.id, row]))
+  const baseline = new Map(
+    [...accepted.overture.filter(row => kept.has(row.id)), ...inputs.overture].map(
+      row => [row.id, row],
+    ),
+  )
+  const currentOvertureIds = new Set(inputs.overture.map(row => row.id))
+  const acceptedOverturePin = accepted.sourceReleases.find(
+    pin =>
+      pin.datasetCode === 'ds-hk-overture-division' && pin.resourceType === 'division',
+  )
+  const preparationCounts = new Map<string, BranchCounts>()
   const divisions: any[] = [],
     names: any[] = []
   for (const division of inventory.divisions) {
     const raw = baseline.get(division.id)
     const normalised = raw
-      ? normaliseDivisionRow(
+      ? prepareCuratedDivisionRow(
           { ...raw, hierarchies: [] },
           { deferHierarchyGuard: true, nativeSourceEvidence: true },
         )
@@ -96,6 +197,7 @@ export async function buildCuratedDivisionRelease(
           ? JSON.parse(normalised.base.identifiers)
           : normalised?.base.identifiers),
         ...identifiers,
+        ...(raw ? { overture: { divisionId: division.id } } : {}),
       }),
     })
     const localised = new Map((normalised?.i18n ?? []).map(row => [row.locale, row]))
@@ -120,7 +222,7 @@ export async function buildCuratedDivisionRelease(
         isLand: row.is_land,
       },
     })),
-    land: inputs.protomaps,
+    land: await readReviewSource(protomapsPin, archives, 'land-mask'),
     overtureRelease: territorialPin.releaseCode,
     landRelease: protomapsPin.releaseCode,
   })
@@ -129,7 +231,16 @@ export async function buildCuratedDivisionRelease(
     names,
     areas: inputs.reference.flatMap(row => {
       const area = normaliseDivisionAreaGeometryRow(row)
-      return area ? [area.canonical] : []
+      return area
+        ? [
+            {
+              ...area.canonical,
+              sources: {
+                overture: [{ dataset: 'ds-hk-overture-division', recordId: row.id }],
+              },
+            },
+          ]
+        : []
     }),
     administrativeAreas,
     hierarchy,
@@ -137,32 +248,32 @@ export async function buildCuratedDivisionRelease(
     islands,
     islandReview,
     islandGroups: islandGroups.entries,
-    excludedIds: divisionCuration.exclusions.entries.flatMap(entry => [
+    excludedIds: scopedExclusions(
+      divisionCuration.exclusions.entries,
+      'result',
+      release.releaseVersion,
+    ).flatMap(entry => [
       entry.divisionId,
       ...('reviewId' in entry && entry.reviewId ? [entry.reviewId] : []),
     ]),
   })
   const landsdNames: any[] = []
   const landsd = inputs.landsd.map(row => {
-    for (const locale of ['en', 'zh-hant']) {
-      const key = locale === 'en' ? 'nameEn' : 'nameZhHant'
-      const official = row.placeNames.find((name: any) => name.status === 'Official')?.[
-        key
-      ]
-      if (official)
+    for (const locale of ['en', 'zh-hant'] as const) {
+      const labels = landsdPlaceNameLocales(row.placeNames)[locale]!
+      if (labels.official)
         landsdNames.push({
           divisionId: `LANDSD:PLACE_NAME:${row.id}`,
           locale,
-          name: official,
-          nameAlts: row.placeNames
-            .map((name: any) => name[key])
-            .filter((name: string) => name && name !== official)
+          name: labels.official,
+          nameAlts: labels.alias
+            .filter((name: string) => name !== labels.official)
             .join('|'),
         })
     }
     return {
       id: `LANDSD:PLACE_NAME:${row.id}`,
-      identifiers: { 'LANDSD:GEO_NAME_ID': String(row.id) },
+      identifiers: { 'hkgov-landsd': { geoNameId: String(row.id) } },
       geometry: row.geometry,
     }
   })
@@ -175,19 +286,28 @@ export async function buildCuratedDivisionRelease(
     overtureIds: new Set(inputs.overture.map(row => row.id)),
     overtureRelease: nativePin.releaseCode,
     excludedSourceIds: new Set(
-      (divisionCuration.exclusions.landsd as Array<{ sourceRecordId: string }>).map(
-        row => row.sourceRecordId,
+      scopedExclusions(
+        divisionCuration.exclusions.entries,
+        'landsd',
+        release.releaseVersion,
+      ).map(row =>
+        'sourceRecordId' in row ? String(row.sourceRecordId) : row.divisionId,
       ),
     ),
   })
   data.divisions = membership.divisions
-  const geometryEvidence = attachProtomapsGeometryRows(
-    inputs.protomaps,
-    protomapsPin.releaseCode,
-    data.areas,
-  )
+  const geometryEvidence = {
+    sourceFeatures: inputs.protomaps.length,
+    areasWithSelectedSourceGeometry: data.areas.filter(area => {
+      const sources =
+        typeof area.sources === 'string' ? JSON.parse(area.sources) : area.sources
+      return sources?.protomaps?.some((source: any) =>
+        source.contributions?.includes('geometry'),
+      )
+    }).length,
+  }
   applyCuratedRecordContract(data.divisions, data.areas)
-  applyCuratedAreaContract(data.areas, territorialPin.releaseCode)
+  applyCuratedAreaContract(data.areas)
   applyCuratedBounds(data.divisions)
   const rvdPin = pin('ds-hk-hkgov-rvd-division')
   const rvd = await readReviewSource(rvdPin, archives)
@@ -196,10 +316,15 @@ export async function buildCuratedDivisionRelease(
     rvd.map(row => ({ sourceRecordId: row.sourceRecordId, properties: row })),
     rvdPin.releaseCode,
   )
+  data.names = data.names.filter(
+    row => row.locale !== 'zh-hans' || publisherHans.get(row.divisionId)?.has(row.name),
+  )
+  applyEditorialOwnership(data.divisions, data.areas, review.events)
   const curationHashes = Object.fromEntries(
     Object.entries(divisionCuration).map(([key, value]) => [key, digest(value)]),
   )
   curationHashes.islandGroups = digest(islandGroups)
+  curationHashes.updatePolicy = digest(updatePolicy)
   const hash = digest({
     release,
     sourceReleases,
@@ -217,14 +342,94 @@ export async function buildCuratedDivisionRelease(
     JSON.stringify({ release, sourceReleases, curationHashes }, null, 2),
   )
   await writeFile(resolve(reportDirectory, 'assembled.json'), JSON.stringify(data))
+  const preparation = {
+    boundaryPatches: boundaryPatchEvidence(divisionCuration, data.areas, data.aliases),
+    islandGroups: data.islandGroups,
+    recordNames: preparationCurationNames({
+      ...inputs,
+      definitions: divisionCuration,
+      names: data.names,
+      aliases: data.aliases,
+    }),
+    definitions: { ...divisionCuration, islandGroups, updatePolicy },
+    inputs: {
+      overture: inputs.overture.length,
+      landsd: inputs.landsd.length,
+      areas: inputs.reference.length,
+      islands: inputs.protomaps.length,
+    },
+    outputs: {
+      divisions: data.divisions.length,
+      areas: data.areas.length,
+      names: data.names.length,
+    },
+    records: curatedContentRows(data.divisions).map(({ geometry, ...row }) => ({
+      ...row,
+      geometryHash: digest(geometry),
+    })),
+    names: curatedContentRows(data.names),
+    changes: data.divisions.map(row => {
+      const raw = baseline.get(row.id)
+      const original = raw ? normaliseAuditedIngredient(raw, preparationCounts) : null
+      const fields = [
+        'class',
+        'category',
+        'level',
+        'hierarchies',
+        'identifiers',
+      ] as const
+      return {
+        ...preprocessingContext(
+          row,
+          raw,
+          currentOvertureIds.has(row.id) ? nativePin : acceptedOverturePin,
+        ),
+        operation: original ? 'prepare' : 'include',
+        fields: Object.fromEntries(
+          fields
+            .filter(
+              field =>
+                JSON.stringify(
+                  field === 'hierarchies'
+                    ? (raw?.hierarchies ?? null)
+                    : (original?.base[field] ?? null),
+                ) !== JSON.stringify(row[field] ?? null),
+            )
+            .map(field => [
+              field,
+              {
+                before:
+                  field === 'hierarchies'
+                    ? (raw?.hierarchies ?? null)
+                    : (original?.base[field] ?? null),
+                after: row[field] ?? null,
+              },
+            ]),
+        ),
+        names: {
+          before: original?.i18n ?? [],
+          after: data.names.filter(name => name.divisionId === row.id),
+        },
+      }
+    }),
+    geometryEvidence,
+    updateDecisions: review.events,
+    nameAliasAudit: data.nameAliasAudit,
+  }
+  const rules = finishPreparationRules(preparation, preparationCounts, baseline)
+  if (rules.guards.some(guard => guard.status === 'failed'))
+    throw new ProcessingGuardError(
+      'Invalid prepared administrative hierarchy.',
+      rules.guards,
+    )
   const output = []
   for (const resourceType of ['division', 'divisionArea'] as const) {
-    const datasetCode = `ds-hk-saanseoi-${resourceType === 'division' ? 'division' : 'division-area'}`
+    const datasetCode = 'ds-hk-saanseoi-division'
     output.push(
       await prepareCuratedReleaseAsset({
         directory: reportDirectory,
         datasetCode,
-        releaseCode: `${datasetCode.replace(/^ds-/, 'dr-')}-${release.releaseVersion}`,
+        releaseCode: `dr-hk-saanseoi-${resourceType === 'division' ? 'division' : 'division-area'}-${release.releaseVersion}`,
         resourceType,
         sourceVersion: release.releaseVersion,
         sourceReleases,
@@ -233,7 +438,11 @@ export async function buildCuratedDivisionRelease(
         provenance: {
           release,
           releaseInputs,
+          acceptedReviewInputs: accepted.sourceReleases,
+          updateDecisions: review.events,
           curationHashes,
+          preparation:
+            resourceType === 'division' ? { ...preparation, rules } : preparation,
           islandGroups: data.islandGroups,
         },
       }),

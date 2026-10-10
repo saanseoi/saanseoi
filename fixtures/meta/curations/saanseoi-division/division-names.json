@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "purpose": "Apply canonical-name and alias modifications by division ID and locale. Unmodified source names are loaded from pinned archives.",
   "entries": [
     {
@@ -45,10 +45,37 @@
       }
     },
     {
+      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
+      "names": {
+        "vi": {
+          "remove": true
+        }
+      }
+    },
+    {
       "divisionId": "15032d26-7b9f-403e-a07b-414fd2b94b91",
       "names": {
         "zh-hant": {
           "name": "蠔田"
+        }
+      }
+    },
+    {
+      "divisionId": "15062812-a4d2-4d4a-b589-2f50bc31943f",
+      "names": {
+        "en": {
+          "name": "West Kowloon Four Little Dragons"
+        },
+        "zh-hant": {
+          "name": "四小龍"
+        }
+      }
+    },
+    {
+      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
+      "names": {
+        "vi": {
+          "remove": true
         }
       }
     },
@@ -83,10 +110,16 @@
       "divisionId": "1b0fd737-1ab6-4ae9-a4ce-b48cacb4d221",
       "names": {
         "en": {
-          "name": "Village"
+          "name": "Tui Min Hoi Village",
+          "removeAliases": [
+            "Village"
+          ]
         },
         "zh-hant": {
-          "name": "村"
+          "name": "對面海村",
+          "removeAliases": [
+            "村"
+          ]
         }
       }
     },
@@ -164,10 +197,16 @@
       "divisionId": "378e8ec0-8a13-4c3d-ac26-9c0be601dc60",
       "names": {
         "en": {
-          "name": "Village"
+          "name": "Fui Yiu Ha Village",
+          "removeAliases": [
+            "Village"
+          ]
         },
         "zh-hant": {
-          "name": "村"
+          "name": "灰窰下村",
+          "removeAliases": [
+            "村"
+          ]
         }
       }
     },
@@ -217,6 +256,31 @@
       }
     },
     {
+      "divisionId": "4ce57ea5-ebe4-4d08-bca3-5f0b4e6d473b",
+      "names": {
+        "zh-hant": {
+          "aliases": [
+            "半山區"
+          ]
+        }
+      }
+    },
+    {
+      "divisionId": "4ddde3cf-b6b2-47b7-8c0e-291a1e491c35",
+      "names": {
+        "en": {
+          "aliases": [
+            "Central District"
+          ]
+        },
+        "zh-hant": {
+          "aliases": [
+            "中區"
+          ]
+        }
+      }
+    },
+    {
       "divisionId": "52bbbd4c-5774-4981-9f54-c3661d3a5e71",
       "names": {
         "zh-hant": {
@@ -228,10 +292,16 @@
       "divisionId": "5334af4f-7c40-43e8-bbfc-f4d6128d38b0",
       "names": {
         "en": {
-          "name": "Village"
+          "name": "Sha Ha Village",
+          "removeAliases": [
+            "Village"
+          ]
         },
         "zh-hant": {
-          "name": "村"
+          "name": "沙下村",
+          "removeAliases": [
+            "村"
+          ]
         }
       }
     },
@@ -243,6 +313,14 @@
           "aliases": [
             "Li Cheng Uk"
           ]
+        }
+      }
+    },
+    {
+      "divisionId": "58dfd8c7-96de-4569-bd24-e206ef66f2d7",
+      "names": {
+        "en": {
+          "name": "Lai Wan"
         }
       }
     },
@@ -314,6 +392,1134 @@
       }
     },
     {
+      "divisionId": "BASEMAP:ISLAND:00830a02f702fa35",
+      "names": {
+        "en": {
+          "name": "Hin Chau"
+        },
+        "zh-hant": {
+          "name": "蜆洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:01d8548ad55eea7d",
+      "names": {
+        "en": {
+          "name": "Ta Long Pai"
+        },
+        "zh-hant": {
+          "name": "打浪排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:023de0f1c3958780",
+      "names": {
+        "en": {
+          "name": "Ngau Tau"
+        },
+        "zh-hant": {
+          "name": "牛頭"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:0473f4e6e4420f93",
+      "names": {
+        "en": {
+          "name": "Cha Yue Pai"
+        },
+        "zh-hant": {
+          "name": "炸魚排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:0482b742dc55f0be",
+      "names": {
+        "en": {
+          "name": "Bun Sha Pui"
+        },
+        "zh-hant": {
+          "name": "崩沙排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:0644c89b7369b848",
+      "names": {
+        "en": {
+          "name": "Tung Kok Pai"
+        },
+        "zh-hant": {
+          "name": "東角排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:09b30189d55a1639",
+      "names": {
+        "en": {
+          "name": "Siu Ma Kong"
+        },
+        "zh-hant": {
+          "name": "小孖崗"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:0fa46f8d1b2566d8",
+      "names": {
+        "en": {
+          "name": "Cross-Connection Chamber"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:10442758da3b1aab",
+      "names": {
+        "en": {
+          "name": "Lo Pai"
+        },
+        "zh-hant": {
+          "name": "螺排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:105f9853bcaf06ec",
+      "names": {
+        "en": {
+          "name": "P17"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:123c946e0fbf0d63",
+      "names": {
+        "en": {
+          "name": "Lai Chi Pai"
+        },
+        "zh-hant": {
+          "name": "荔枝排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:1a3811298dc106d5",
+      "names": {
+        "en": {
+          "name": "Wu Long Tau"
+        },
+        "zh-hant": {
+          "name": "烏浪頭"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:1ebcc96ecac43477",
+      "names": {
+        "en": {
+          "name": "Comber Rock"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:20237d751b5fe16d",
+      "names": {
+        "en": {
+          "name": "四排尾"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:20b1ab86f2fddb31",
+      "names": {
+        "en": {
+          "name": "Yim Tin Pai"
+        },
+        "zh-hant": {
+          "name": "鹽田排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:2184f76344048930",
+      "names": {
+        "en": {
+          "name": "Ap Chau Mei Pak Tun Pai"
+        },
+        "zh-hant": {
+          "name": "鴨洲尾白墩排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:266c51869482fb83",
+      "names": {
+        "en": {
+          "name": "Cham Keng Chau"
+        },
+        "zh-hant": {
+          "name": "斬頸洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:271ec2f0ae5d21ee",
+      "names": {
+        "en": {
+          "name": "Sam Long Pai"
+        },
+        "zh-hant": {
+          "name": "三浪排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:28dd343243ff41f6",
+      "names": {
+        "en": {
+          "name": "Tai Long Pai"
+        },
+        "zh-hant": {
+          "name": "大浪排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:2ed440da8351ed23",
+      "names": {
+        "en": {
+          "name": "Sam Mun Tsai Chau"
+        },
+        "zh-hant": {
+          "name": "三門仔洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:2fb759254a798a32",
+      "names": {
+        "en": {
+          "name": "Shek Lam Chau"
+        },
+        "zh-hant": {
+          "name": "石欖洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:31a1a4010c323342",
+      "names": {
+        "en": {
+          "name": "Kwun Tsoi Pai"
+        },
+        "zh-hant": {
+          "name": "棺材排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:387b9080e374c7c7",
+      "names": {
+        "en": {
+          "name": "Wang Pai"
+        },
+        "zh-hant": {
+          "name": "橫排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:3b8d89b088b1a4cf",
+      "names": {
+        "en": {
+          "name": "La Ka Chau"
+        },
+        "zh-hant": {
+          "name": "勒加洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:3c4d8ba62ba652e4",
+      "names": {
+        "en": {
+          "name": "Yam Tong Ha"
+        },
+        "zh-hant": {
+          "name": "陰塘下"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:3ff8cc8e60e749c1",
+      "names": {
+        "en": {
+          "name": "Yat Lup Mei"
+        },
+        "zh-hant": {
+          "name": "一粒米"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:4023918cedb5df13",
+      "names": {
+        "en": {
+          "name": "Ngan Chau Ngam Pai"
+        },
+        "zh-hant": {
+          "name": "銀洲岩排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:40e4a344d3c42018",
+      "names": {
+        "en": {
+          "name": "Tsui Pai"
+        },
+        "zh-hant": {
+          "name": "咀排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:48b88d2045f74f1a",
+      "names": {
+        "en": {
+          "name": "Tiu Chung"
+        },
+        "zh-hant": {
+          "name": "吊鐘"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:4961859eb9930b72",
+      "names": {
+        "en": {
+          "name": "Tuk Chau"
+        },
+        "zh-hant": {
+          "name": "獨洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:4ab493bce2736c8c",
+      "names": {
+        "en": {
+          "name": "Heung Lo Tun"
+        },
+        "zh-hant": {
+          "name": "香爐躉"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:540edf91fb6d7eee",
+      "names": {
+        "en": {
+          "name": "Lak Lei Mei"
+        },
+        "zh-hant": {
+          "name": "癩痢尾"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:571cbc66ad3c3394",
+      "names": {
+        "en": {
+          "name": "Wong Fa Pai"
+        },
+        "zh-hant": {
+          "name": "黃花排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:5801d1bf0ecae739",
+      "names": {
+        "en": {
+          "name": "Tung Ping Chau"
+        },
+        "zh-hant": {
+          "name": "東平洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:59f1e40b02736693",
+      "names": {
+        "en": {
+          "name": "Wu Ying Pai"
+        },
+        "zh-hant": {
+          "name": "烏蠅排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:5fb63a453f056d6a",
+      "names": {
+        "en": {
+          "name": "Yi Long Pai"
+        },
+        "zh-hant": {
+          "name": "二浪排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:628223e9e52ddc8f",
+      "names": {
+        "en": {
+          "name": "Kowloon Rock"
+        },
+        "zh-hant": {
+          "name": "九龍石"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:62a7002014ba2920",
+      "names": {
+        "en": {
+          "name": "Cham Pai"
+        },
+        "zh-hant": {
+          "name": "杉排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:62ecbebf541d1f47",
+      "names": {
+        "en": {
+          "name": "Hin Pai"
+        },
+        "zh-hant": {
+          "name": "蜆排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:647f69f6720112e4",
+      "names": {
+        "en": {
+          "name": "Kei Yan Shek"
+        },
+        "zh-hant": {
+          "name": "企人石"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:6596a8cb2af66d86",
+      "names": {
+        "en": {
+          "name": "Kak Shan Chau"
+        },
+        "zh-hant": {
+          "name": "隔山洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:665f11986449d4bb",
+      "names": {
+        "en": {
+          "name": "Ta Ma Kong"
+        },
+        "zh-hant": {
+          "name": "大孖崗"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:67558cc8ef99801c",
+      "names": {
+        "en": {
+          "name": "Muk Yu Chau"
+        },
+        "zh-hant": {
+          "name": "木魚洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:67a55c3dbab8fdfa",
+      "names": {
+        "en": {
+          "name": "Sai Pai"
+        },
+        "zh-hant": {
+          "name": "細排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:6a7f2cfddb6b2820",
+      "names": {
+        "en": {
+          "name": "Lan Shuen Pai"
+        },
+        "zh-hant": {
+          "name": "爛船排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:6a9eb18cda366d75",
+      "names": {
+        "en": {
+          "name": "Sheung Sha Chau"
+        },
+        "zh-hant": {
+          "name": "上沙洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:6e010bc28e67ff58",
+      "names": {
+        "en": {
+          "name": "Shui Cham Tsui Pai"
+        },
+        "zh-hant": {
+          "name": "水浸咀排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:6e3b6205b8075581",
+      "names": {
+        "en": {
+          "name": "Wu Lo Chau"
+        },
+        "zh-hant": {
+          "name": "葫蘆洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:6e58ebad7e79c28e",
+      "names": {
+        "en": {
+          "name": "Wu Pai"
+        },
+        "zh-hant": {
+          "name": "烏排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:720204a6e44bd417",
+      "names": {
+        "en": {
+          "name": "Lung Shuen Pai"
+        },
+        "zh-hant": {
+          "name": "龍船排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:738e9dafee99a81d",
+      "names": {
+        "en": {
+          "name": "Fat Tau Chau"
+        },
+        "zh-hant": {
+          "name": "佛頭洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:73c3aabb1e5a97d1",
+      "names": {
+        "en": {
+          "name": "Lan Shek Pai"
+        },
+        "zh-hant": {
+          "name": "爛石排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:799222c687aab0ef",
+      "names": {
+        "en": {
+          "name": "Tuk Shek"
+        },
+        "zh-hant": {
+          "name": "獨石"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:79a60b2219e5e75a",
+      "names": {
+        "en": {
+          "name": "Pak Pai"
+        },
+        "zh-hant": {
+          "name": "白排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:7dfdfcfa2642a07c",
+      "names": {
+        "en": {
+          "name": "Lan Pai"
+        },
+        "zh-hant": {
+          "name": "爛排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:807c7ad5d23f47b6",
+      "names": {
+        "en": {
+          "name": "Ma Tsai Pai"
+        },
+        "zh-hant": {
+          "name": "孖仔排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:817f8615405774b5",
+      "names": {
+        "en": {
+          "name": "Ta Shek Shan"
+        },
+        "zh-hant": {
+          "name": "打石山"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:838578751bc789fc",
+      "names": {
+        "en": {
+          "name": "Lung Ngan Hok"
+        },
+        "zh-hant": {
+          "name": "龍眼殼"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:8bcc700f291ec812",
+      "names": {
+        "en": {
+          "name": "Ap Lo Chun"
+        },
+        "zh-hant": {
+          "name": "鴨螺春"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:90874740b7b8ec21",
+      "names": {
+        "en": {
+          "name": "Waglan Pai"
+        },
+        "zh-hant": {
+          "name": "橫瀾排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:913a30a23b401cb9",
+      "names": {
+        "en": {
+          "name": "Lung Ngan Yuen Pai"
+        },
+        "zh-hant": {
+          "name": "龍眼圓排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:93ef24d84e3e82f9",
+      "names": {
+        "en": {
+          "name": "Siu Yuen Chau"
+        },
+        "zh-hant": {
+          "name": "小圓洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:9533f346c854caba",
+      "names": {
+        "en": {
+          "name": "Ho Tsai Pai"
+        },
+        "zh-hant": {
+          "name": "河仔排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:9615449ed5470d40",
+      "names": {
+        "en": {
+          "name": "Po Yue Pai"
+        },
+        "zh-hant": {
+          "name": "蒲魚排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:97ac9b4a88ecce01",
+      "names": {
+        "en": {
+          "name": "Wai Kap Pai"
+        },
+        "zh-hant": {
+          "name": "桅夾排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:a0ab43fa8853be04",
+      "names": {
+        "en": {
+          "name": "Tong Hau Pai"
+        },
+        "zh-hant": {
+          "name": "塘口排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:a116157fd4614530",
+      "names": {
+        "en": {
+          "name": "Kok Tai Pai"
+        },
+        "zh-hant": {
+          "name": "角大排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:a2830036f4cd6eda",
+      "names": {
+        "en": {
+          "name": "Tsim Shek Pai"
+        },
+        "zh-hant": {
+          "name": "尖石排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:a328f5dcd0d7c9ef",
+      "names": {
+        "en": {
+          "name": "Man Tau Pai"
+        },
+        "zh-hant": {
+          "name": "文頭排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:a331387e771578fb",
+      "names": {
+        "en": {
+          "name": "P19"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:a7a3242c81d99ea0",
+      "names": {
+        "en": {
+          "name": "Lan Tau Pai"
+        },
+        "zh-hant": {
+          "name": "爛頭排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:a8610f19ed16eab3",
+      "names": {
+        "en": {
+          "name": "Tai Yuen Chau"
+        },
+        "zh-hant": {
+          "name": "大圓洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:aaa88278490ce71a",
+      "names": {
+        "en": {
+          "name": "Wai Kap Shek"
+        },
+        "zh-hant": {
+          "name": "桅夾石"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:abbd28a673d3ce22",
+      "names": {
+        "en": {
+          "name": "Mei Pai"
+        },
+        "zh-hant": {
+          "name": "尾排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:ad777e9a7bc9fd4c",
+      "names": {
+        "en": {
+          "name": "Kam Chung Ngam"
+        },
+        "zh-hant": {
+          "name": "金鐘岩"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:aece9df47a133025",
+      "names": {
+        "en": {
+          "name": "Chuk U Pai"
+        },
+        "zh-hant": {
+          "name": "捉魚排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:b15a27d0015f3287",
+      "names": {
+        "en": {
+          "name": "Tai Ko Pai"
+        },
+        "zh-hant": {
+          "name": "大高排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:b251a5f98b917b30",
+      "names": {
+        "en": {
+          "name": "Tiu Chung Pai"
+        },
+        "zh-hant": {
+          "name": "吊鐘排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:bf52e9930823bef8",
+      "names": {
+        "en": {
+          "name": "Siu Po Pin"
+        },
+        "zh-hant": {
+          "name": "小破邊"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:bf66579a96e81628",
+      "names": {
+        "en": {
+          "name": "Ngam Hau Shek"
+        },
+        "zh-hant": {
+          "name": "岩口石"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:c1e2cf4aaa4b3565",
+      "names": {
+        "en": {
+          "name": "P20"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:c4a7d31c577d6eba",
+      "names": {
+        "en": {
+          "name": "Mat Chau Pai"
+        },
+        "zh-hant": {
+          "name": "墨洲排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:c6c713010832fb0e",
+      "names": {
+        "en": {
+          "name": "Fan Tap Pai"
+        },
+        "zh-hant": {
+          "name": "番塔排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:c774c6c0e3f47c87",
+      "names": {
+        "en": {
+          "name": "Ha Sha Chau"
+        },
+        "zh-hant": {
+          "name": "下沙洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:c90503aaaf585437",
+      "names": {
+        "en": {
+          "name": "Hok Tsai Chau"
+        },
+        "zh-hant": {
+          "name": "殼仔洲"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:cb5b39f8ac7a36af",
+      "names": {
+        "en": {
+          "name": "Lo Fu Tiu Pai"
+        },
+        "zh-hant": {
+          "name": "老虎吊排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:cf1571897e53b5d1",
+      "names": {
+        "en": {
+          "name": "Ngan Chau Tan Pai"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:cf27eadac7abc115",
+      "names": {
+        "en": {
+          "name": "Siu Ko Pai"
+        },
+        "zh-hant": {
+          "name": "小高排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:cf4485574ed89765",
+      "names": {
+        "en": {
+          "name": "Chau Tsai Kok"
+        },
+        "zh-hant": {
+          "name": "洲仔角"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:d696bd7c060bfc61",
+      "names": {
+        "en": {
+          "name": "Sha Pai"
+        },
+        "zh-hant": {
+          "name": "沙排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:d981e3683830f964",
+      "names": {
+        "en": {
+          "name": "Ap Tau Pai"
+        },
+        "zh-hant": {
+          "name": "鴨兜排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:d9a88cb5a5272794",
+      "names": {
+        "en": {
+          "name": "Hung Ngam Pai"
+        },
+        "zh-hant": {
+          "name": "紅岩排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:da1e2b659506e87c",
+      "names": {
+        "en": {
+          "name": "Ha So Pai"
+        },
+        "zh-hant": {
+          "name": "蝦鬚排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:dfb378b75fa8808a",
+      "names": {
+        "en": {
+          "name": "Chu Shek"
+        },
+        "zh-hant": {
+          "name": "豬石"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:e391387b61ddbf14",
+      "names": {
+        "en": {
+          "name": "Hung Pai"
+        },
+        "zh-hant": {
+          "name": "紅排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:e590a9baac61880b",
+      "names": {
+        "en": {
+          "name": "Sham Shai Pai"
+        },
+        "zh-hant": {
+          "name": "深水排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:edff47e42599dee2",
+      "names": {
+        "en": {
+          "name": "Kau Tau Shek"
+        },
+        "zh-hant": {
+          "name": "狗頭石"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:f049f18abc9347a4",
+      "names": {
+        "en": {
+          "name": "Ap Chau Pak Tun Pai"
+        },
+        "zh-hant": {
+          "name": "鴨洲白墩排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:f0ed038d2b28d45b",
+      "names": {
+        "en": {
+          "name": "Loaf Rock"
+        },
+        "zh-hant": {
+          "name": "饅頭石"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:f58f9349cec93ac8",
+      "names": {
+        "en": {
+          "name": "P18"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:f9c343718d114d67",
+      "names": {
+        "en": {
+          "name": "Kai Pei Ngam"
+        },
+        "zh-hant": {
+          "name": "雞鼻岩"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:fa764e4e02ddebb7",
+      "names": {
+        "en": {
+          "name": "火燒排 Fo Siu Pai"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:fb9ff210df92fe19",
+      "names": {
+        "en": {
+          "name": "Che Lei Pai"
+        },
+        "zh-hant": {
+          "name": "扯𢃇排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:fd0eba77795c12b6",
+      "names": {
+        "en": {
+          "name": "Fury Rocks"
+        },
+        "zh-hant": {
+          "name": "田頭排"
+        }
+      }
+    },
+    {
+      "divisionId": "BASEMAP:ISLAND:ff5661201f0d40fb",
+      "names": {
+        "en": {
+          "name": "Sheung Pai"
+        },
+        "zh-hant": {
+          "name": "雙排"
+        }
+      }
+    },
+    {
       "divisionId": "a29aa3c5-f441-432c-a9f4-ba9ebd1c6e24",
       "names": {
         "en": {
@@ -340,6 +1546,21 @@
       }
     },
     {
+      "divisionId": "bb082562-b26b-492c-9102-5f89bfbc2067",
+      "names": {
+        "en": {
+          "aliases": [
+            "Wong Chuk Hang San Wai Village"
+          ]
+        },
+        "zh-hant": {
+          "aliases": [
+            "黃竹坑新圍村"
+          ]
+        }
+      }
+    },
+    {
       "divisionId": "be9f51b1-7481-4c3e-88ec-88ec28644209",
       "names": {
         "en": {
@@ -347,6 +1568,29 @@
         },
         "zh-hant": {
           "name": "新園村"
+        }
+      }
+    },
+    {
+      "divisionId": "c389923d-1dca-44af-8abe-4ac5a9d90b0b",
+      "names": {
+        "en": {
+          "aliases": [
+            "West Kowloon Reclamation"
+          ]
+        },
+        "zh-hant": {
+          "aliases": [
+            "西九龍填海區"
+          ]
+        }
+      }
+    },
+    {
+      "divisionId": "c81690db-fae9-4802-8745-fd6d96ca9f60",
+      "names": {
+        "yue": {
+          "remove": true
         }
       }
     },
@@ -413,6 +1657,14 @@
       "names": {
         "en": {
           "name": "Kai Tak South Apron"
+        }
+      }
+    },
+    {
+      "divisionId": "e9b4fca8-fed0-434e-8a6d-1cef542a4e9d",
+      "names": {
+        "en": {
+          "name": "Bottom of \"Rice Cooker\""
         }
       }
     },
@@ -491,55 +1743,88 @@
       }
     },
     {
-      "divisionId": "4ddde3cf-b6b2-47b7-8c0e-291a1e491c35",
+      "divisionId": "ss-6dd4c79e-5605-509e-b056-78d4735278af",
       "names": {
         "en": {
           "aliases": [
-            "Central District"
+            "Chu Kwu Chau"
           ]
         },
         "zh-hant": {
           "aliases": [
-            "中區"
+            "豬牯洲"
           ]
         }
       }
     },
     {
-      "divisionId": "e9b4fca8-fed0-434e-8a6d-1cef542a4e9d",
-      "names": {
-        "en": {
-          "name": "Bottom of \"Rice Cooker\""
-        }
-      }
-    },
-    {
-      "divisionId": "58dfd8c7-96de-4569-bd24-e206ef66f2d7",
-      "names": {
-        "en": {
-          "name": "Lai Wan"
-        }
-      }
-    },
-    {
-      "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
-      "names": {
-        "vi": {
-          "remove": true
-        }
-      }
-    },
-    {
-      "divisionId": "c389923d-1dca-44af-8abe-4ac5a9d90b0b",
+      "divisionId": "ss-8b76fa2a-3216-5845-9eae-3aa4b6936047",
       "names": {
         "en": {
           "aliases": [
-            "West Kowloon Reclamation"
+            "Kwo Chau Islands"
+          ]
+        }
+      }
+    },
+    {
+      "divisionId": "ss-94a5aab8-09bf-5e36-8f43-ca8e9940d600",
+      "names": {
+        "en": {
+          "aliases": [
+            "Tse Leung Chau"
+          ]
+        }
+      }
+    },
+    {
+      "divisionId": "ss-98822028-8460-53a2-8f1b-7fc229efdc8b",
+      "names": {
+        "en": {
+          "aliases": [
+            "South Gau",
+            "Nam Kau"
           ]
         },
         "zh-hant": {
           "aliases": [
-            "西九龍填海區"
+            "南牛",
+            "南滘"
+          ]
+        }
+      }
+    },
+    {
+      "divisionId": "ss-c6cdfff4-9134-5064-b240-1105af5eb7f6",
+      "names": {
+        "en": {
+          "aliases": [
+            "Yeung Chau"
+          ]
+        },
+        "zh-hant": {
+          "aliases": [
+            "洋洲"
+          ]
+        }
+      }
+    },
+    {
+      "divisionId": "ss-dafc5e29-ba62-5893-8e02-62db26723feb",
+      "names": {
+        "en": {
+          "aliases": [
+            "Wok Tuk Pai"
+          ]
+        }
+      }
+    },
+    {
+      "divisionId": "ss-df42c7e0-3a91-5bf7-b632-bf019e4de27a",
+      "names": {
+        "en": {
+          "aliases": [
+            "Wei Sam Chau"
           ]
         }
       }
@@ -558,1185 +1843,6 @@
           ]
         }
       }
-    },
-    {
-      "divisionId": "bb082562-b26b-492c-9102-5f89bfbc2067",
-      "names": {
-        "en": {
-          "aliases": [
-            "Wong Chuk Hang San Wai Village"
-          ]
-        },
-        "zh-hant": {
-          "aliases": [
-            "黃竹坑新圍村"
-          ]
-        }
-      }
-    },
-    {
-      "divisionId": "4ce57ea5-ebe4-4d08-bca3-5f0b4e6d473b",
-      "names": {
-        "zh-hant": {
-          "aliases": [
-            "半山區"
-          ]
-        }
-      }
-    },
-    {
-      "divisionId": "ss-8b76fa2a-3216-5845-9eae-3aa4b6936047",
-      "names": {
-        "en": {
-          "aliases": [
-            "Kwo Chau Islands"
-          ]
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:20237d751b5fe16d",
-      "names": {
-        "en": {
-          "name": "四排尾"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:2184f76344048930",
-      "names": {
-        "en": {
-          "name": "Ap Chau Mei Pak Tun Pai"
-        },
-        "zh-hant": {
-          "name": "鴨洲尾白墩排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:f049f18abc9347a4",
-      "names": {
-        "en": {
-          "name": "Ap Chau Pak Tun Pai"
-        },
-        "zh-hant": {
-          "name": "鴨洲白墩排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:8bcc700f291ec812",
-      "names": {
-        "en": {
-          "name": "Ap Lo Chun"
-        },
-        "zh-hant": {
-          "name": "鴨螺春"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:d981e3683830f964",
-      "names": {
-        "en": {
-          "name": "Ap Tau Pai"
-        },
-        "zh-hant": {
-          "name": "鴨兜排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:0482b742dc55f0be",
-      "names": {
-        "en": {
-          "name": "Bun Sha Pui"
-        },
-        "zh-hant": {
-          "name": "崩沙排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:0473f4e6e4420f93",
-      "names": {
-        "en": {
-          "name": "Cha Yue Pai"
-        },
-        "zh-hant": {
-          "name": "炸魚排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:266c51869482fb83",
-      "names": {
-        "en": {
-          "name": "Cham Keng Chau"
-        },
-        "zh-hant": {
-          "name": "斬頸洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:62a7002014ba2920",
-      "names": {
-        "en": {
-          "name": "Cham Pai"
-        },
-        "zh-hant": {
-          "name": "杉排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:cf4485574ed89765",
-      "names": {
-        "en": {
-          "name": "Chau Tsai Kok"
-        },
-        "zh-hant": {
-          "name": "洲仔角"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:fb9ff210df92fe19",
-      "names": {
-        "en": {
-          "name": "Che Lei Pai"
-        },
-        "zh-hant": {
-          "name": "扯𢃇排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:dfb378b75fa8808a",
-      "names": {
-        "en": {
-          "name": "Chu Shek"
-        },
-        "zh-hant": {
-          "name": "豬石"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:aece9df47a133025",
-      "names": {
-        "en": {
-          "name": "Chuk U Pai"
-        },
-        "zh-hant": {
-          "name": "捉魚排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:1ebcc96ecac43477",
-      "names": {
-        "en": {
-          "name": "Comber Rock"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:0fa46f8d1b2566d8",
-      "names": {
-        "en": {
-          "name": "Cross-Connection Chamber"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:c6c713010832fb0e",
-      "names": {
-        "en": {
-          "name": "Fan Tap Pai"
-        },
-        "zh-hant": {
-          "name": "番塔排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:738e9dafee99a81d",
-      "names": {
-        "en": {
-          "name": "Fat Tau Chau"
-        },
-        "zh-hant": {
-          "name": "佛頭洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:fa764e4e02ddebb7",
-      "names": {
-        "en": {
-          "name": "火燒排 Fo Siu Pai"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:fd0eba77795c12b6",
-      "names": {
-        "en": {
-          "name": "Fury Rocks"
-        },
-        "zh-hant": {
-          "name": "田頭排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:c774c6c0e3f47c87",
-      "names": {
-        "en": {
-          "name": "Ha Sha Chau"
-        },
-        "zh-hant": {
-          "name": "下沙洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:da1e2b659506e87c",
-      "names": {
-        "en": {
-          "name": "Ha So Pai"
-        },
-        "zh-hant": {
-          "name": "蝦鬚排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:4ab493bce2736c8c",
-      "names": {
-        "en": {
-          "name": "Heung Lo Tun"
-        },
-        "zh-hant": {
-          "name": "香爐躉"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:00830a02f702fa35",
-      "names": {
-        "en": {
-          "name": "Hin Chau"
-        },
-        "zh-hant": {
-          "name": "蜆洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:62ecbebf541d1f47",
-      "names": {
-        "en": {
-          "name": "Hin Pai"
-        },
-        "zh-hant": {
-          "name": "蜆排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:9533f346c854caba",
-      "names": {
-        "en": {
-          "name": "Ho Tsai Pai"
-        },
-        "zh-hant": {
-          "name": "河仔排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:c90503aaaf585437",
-      "names": {
-        "en": {
-          "name": "Hok Tsai Chau"
-        },
-        "zh-hant": {
-          "name": "殼仔洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:d9a88cb5a5272794",
-      "names": {
-        "en": {
-          "name": "Hung Ngam Pai"
-        },
-        "zh-hant": {
-          "name": "紅岩排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:e391387b61ddbf14",
-      "names": {
-        "en": {
-          "name": "Hung Pai"
-        },
-        "zh-hant": {
-          "name": "紅排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:f9c343718d114d67",
-      "names": {
-        "en": {
-          "name": "Kai Pei Ngam"
-        },
-        "zh-hant": {
-          "name": "雞鼻岩"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:6596a8cb2af66d86",
-      "names": {
-        "en": {
-          "name": "Kak Shan Chau"
-        },
-        "zh-hant": {
-          "name": "隔山洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:ad777e9a7bc9fd4c",
-      "names": {
-        "en": {
-          "name": "Kam Chung Ngam"
-        },
-        "zh-hant": {
-          "name": "金鐘岩"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:edff47e42599dee2",
-      "names": {
-        "en": {
-          "name": "Kau Tau Shek"
-        },
-        "zh-hant": {
-          "name": "狗頭石"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:647f69f6720112e4",
-      "names": {
-        "en": {
-          "name": "Kei Yan Shek"
-        },
-        "zh-hant": {
-          "name": "企人石"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:a116157fd4614530",
-      "names": {
-        "en": {
-          "name": "Kok Tai Pai"
-        },
-        "zh-hant": {
-          "name": "角大排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:628223e9e52ddc8f",
-      "names": {
-        "en": {
-          "name": "Kowloon Rock"
-        },
-        "zh-hant": {
-          "name": "九龍石"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:31a1a4010c323342",
-      "names": {
-        "en": {
-          "name": "Kwun Tsoi Pai"
-        },
-        "zh-hant": {
-          "name": "棺材排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:3b8d89b088b1a4cf",
-      "names": {
-        "en": {
-          "name": "La Ka Chau"
-        },
-        "zh-hant": {
-          "name": "勒加洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:123c946e0fbf0d63",
-      "names": {
-        "en": {
-          "name": "Lai Chi Pai"
-        },
-        "zh-hant": {
-          "name": "荔枝排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:540edf91fb6d7eee",
-      "names": {
-        "en": {
-          "name": "Lak Lei Mei"
-        },
-        "zh-hant": {
-          "name": "癩痢尾"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:7dfdfcfa2642a07c",
-      "names": {
-        "en": {
-          "name": "Lan Pai"
-        },
-        "zh-hant": {
-          "name": "爛排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:73c3aabb1e5a97d1",
-      "names": {
-        "en": {
-          "name": "Lan Shek Pai"
-        },
-        "zh-hant": {
-          "name": "爛石排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:6a7f2cfddb6b2820",
-      "names": {
-        "en": {
-          "name": "Lan Shuen Pai"
-        },
-        "zh-hant": {
-          "name": "爛船排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:a7a3242c81d99ea0",
-      "names": {
-        "en": {
-          "name": "Lan Tau Pai"
-        },
-        "zh-hant": {
-          "name": "爛頭排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:cb5b39f8ac7a36af",
-      "names": {
-        "en": {
-          "name": "Lo Fu Tiu Pai"
-        },
-        "zh-hant": {
-          "name": "老虎吊排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:10442758da3b1aab",
-      "names": {
-        "en": {
-          "name": "Lo Pai"
-        },
-        "zh-hant": {
-          "name": "螺排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:f0ed038d2b28d45b",
-      "names": {
-        "en": {
-          "name": "Loaf Rock"
-        },
-        "zh-hant": {
-          "name": "饅頭石"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:838578751bc789fc",
-      "names": {
-        "en": {
-          "name": "Lung Ngan Hok"
-        },
-        "zh-hant": {
-          "name": "龍眼殼"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:913a30a23b401cb9",
-      "names": {
-        "en": {
-          "name": "Lung Ngan Yuen Pai"
-        },
-        "zh-hant": {
-          "name": "龍眼圓排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:720204a6e44bd417",
-      "names": {
-        "en": {
-          "name": "Lung Shuen Pai"
-        },
-        "zh-hant": {
-          "name": "龍船排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:807c7ad5d23f47b6",
-      "names": {
-        "en": {
-          "name": "Ma Tsai Pai"
-        },
-        "zh-hant": {
-          "name": "孖仔排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:a328f5dcd0d7c9ef",
-      "names": {
-        "en": {
-          "name": "Man Tau Pai"
-        },
-        "zh-hant": {
-          "name": "文頭排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:c4a7d31c577d6eba",
-      "names": {
-        "en": {
-          "name": "Mat Chau Pai"
-        },
-        "zh-hant": {
-          "name": "墨洲排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:abbd28a673d3ce22",
-      "names": {
-        "en": {
-          "name": "Mei Pai"
-        },
-        "zh-hant": {
-          "name": "尾排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:67558cc8ef99801c",
-      "names": {
-        "en": {
-          "name": "Muk Yu Chau"
-        },
-        "zh-hant": {
-          "name": "木魚洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:bf66579a96e81628",
-      "names": {
-        "en": {
-          "name": "Ngam Hau Shek"
-        },
-        "zh-hant": {
-          "name": "岩口石"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:4023918cedb5df13",
-      "names": {
-        "en": {
-          "name": "Ngan Chau Ngam Pai"
-        },
-        "zh-hant": {
-          "name": "銀洲岩排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:cf1571897e53b5d1",
-      "names": {
-        "en": {
-          "name": "Ngan Chau Tan Pai"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:023de0f1c3958780",
-      "names": {
-        "en": {
-          "name": "Ngau Tau"
-        },
-        "zh-hant": {
-          "name": "牛頭"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:105f9853bcaf06ec",
-      "names": {
-        "en": {
-          "name": "P17"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:f58f9349cec93ac8",
-      "names": {
-        "en": {
-          "name": "P18"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:a331387e771578fb",
-      "names": {
-        "en": {
-          "name": "P19"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:c1e2cf4aaa4b3565",
-      "names": {
-        "en": {
-          "name": "P20"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:79a60b2219e5e75a",
-      "names": {
-        "en": {
-          "name": "Pak Pai"
-        },
-        "zh-hant": {
-          "name": "白排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:9615449ed5470d40",
-      "names": {
-        "en": {
-          "name": "Po Yue Pai"
-        },
-        "zh-hant": {
-          "name": "蒲魚排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:67a55c3dbab8fdfa",
-      "names": {
-        "en": {
-          "name": "Sai Pai"
-        },
-        "zh-hant": {
-          "name": "細排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:271ec2f0ae5d21ee",
-      "names": {
-        "en": {
-          "name": "Sam Long Pai"
-        },
-        "zh-hant": {
-          "name": "三浪排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:2ed440da8351ed23",
-      "names": {
-        "en": {
-          "name": "Sam Mun Tsai Chau"
-        },
-        "zh-hant": {
-          "name": "三門仔洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:d696bd7c060bfc61",
-      "names": {
-        "en": {
-          "name": "Sha Pai"
-        },
-        "zh-hant": {
-          "name": "沙排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:e590a9baac61880b",
-      "names": {
-        "en": {
-          "name": "Sham Shai Pai"
-        },
-        "zh-hant": {
-          "name": "深水排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:2fb759254a798a32",
-      "names": {
-        "en": {
-          "name": "Shek Lam Chau"
-        },
-        "zh-hant": {
-          "name": "石欖洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:ff5661201f0d40fb",
-      "names": {
-        "en": {
-          "name": "Sheung Pai"
-        },
-        "zh-hant": {
-          "name": "雙排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:6a9eb18cda366d75",
-      "names": {
-        "en": {
-          "name": "Sheung Sha Chau"
-        },
-        "zh-hant": {
-          "name": "上沙洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:6e010bc28e67ff58",
-      "names": {
-        "en": {
-          "name": "Shui Cham Tsui Pai"
-        },
-        "zh-hant": {
-          "name": "水浸咀排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:cf27eadac7abc115",
-      "names": {
-        "en": {
-          "name": "Siu Ko Pai"
-        },
-        "zh-hant": {
-          "name": "小高排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:09b30189d55a1639",
-      "names": {
-        "en": {
-          "name": "Siu Ma Kong"
-        },
-        "zh-hant": {
-          "name": "小孖崗"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:bf52e9930823bef8",
-      "names": {
-        "en": {
-          "name": "Siu Po Pin"
-        },
-        "zh-hant": {
-          "name": "小破邊"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:93ef24d84e3e82f9",
-      "names": {
-        "en": {
-          "name": "Siu Yuen Chau"
-        },
-        "zh-hant": {
-          "name": "小圓洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:01d8548ad55eea7d",
-      "names": {
-        "en": {
-          "name": "Ta Long Pai"
-        },
-        "zh-hant": {
-          "name": "打浪排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:665f11986449d4bb",
-      "names": {
-        "en": {
-          "name": "Ta Ma Kong"
-        },
-        "zh-hant": {
-          "name": "大孖崗"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:817f8615405774b5",
-      "names": {
-        "en": {
-          "name": "Ta Shek Shan"
-        },
-        "zh-hant": {
-          "name": "打石山"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:b15a27d0015f3287",
-      "names": {
-        "en": {
-          "name": "Tai Ko Pai"
-        },
-        "zh-hant": {
-          "name": "大高排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:28dd343243ff41f6",
-      "names": {
-        "en": {
-          "name": "Tai Long Pai"
-        },
-        "zh-hant": {
-          "name": "大浪排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:a8610f19ed16eab3",
-      "names": {
-        "en": {
-          "name": "Tai Yuen Chau"
-        },
-        "zh-hant": {
-          "name": "大圓洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:48b88d2045f74f1a",
-      "names": {
-        "en": {
-          "name": "Tiu Chung"
-        },
-        "zh-hant": {
-          "name": "吊鐘"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:b251a5f98b917b30",
-      "names": {
-        "en": {
-          "name": "Tiu Chung Pai"
-        },
-        "zh-hant": {
-          "name": "吊鐘排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:a0ab43fa8853be04",
-      "names": {
-        "en": {
-          "name": "Tong Hau Pai"
-        },
-        "zh-hant": {
-          "name": "塘口排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:a2830036f4cd6eda",
-      "names": {
-        "en": {
-          "name": "Tsim Shek Pai"
-        },
-        "zh-hant": {
-          "name": "尖石排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:40e4a344d3c42018",
-      "names": {
-        "en": {
-          "name": "Tsui Pai"
-        },
-        "zh-hant": {
-          "name": "咀排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:4961859eb9930b72",
-      "names": {
-        "en": {
-          "name": "Tuk Chau"
-        },
-        "zh-hant": {
-          "name": "獨洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:799222c687aab0ef",
-      "names": {
-        "en": {
-          "name": "Tuk Shek"
-        },
-        "zh-hant": {
-          "name": "獨石"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:0644c89b7369b848",
-      "names": {
-        "en": {
-          "name": "Tung Kok Pai"
-        },
-        "zh-hant": {
-          "name": "東角排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:5801d1bf0ecae739",
-      "names": {
-        "en": {
-          "name": "Tung Ping Chau"
-        },
-        "zh-hant": {
-          "name": "東平洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:90874740b7b8ec21",
-      "names": {
-        "en": {
-          "name": "Waglan Pai"
-        },
-        "zh-hant": {
-          "name": "橫瀾排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:97ac9b4a88ecce01",
-      "names": {
-        "en": {
-          "name": "Wai Kap Pai"
-        },
-        "zh-hant": {
-          "name": "桅夾排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:aaa88278490ce71a",
-      "names": {
-        "en": {
-          "name": "Wai Kap Shek"
-        },
-        "zh-hant": {
-          "name": "桅夾石"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:387b9080e374c7c7",
-      "names": {
-        "en": {
-          "name": "Wang Pai"
-        },
-        "zh-hant": {
-          "name": "橫排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:571cbc66ad3c3394",
-      "names": {
-        "en": {
-          "name": "Wong Fa Pai"
-        },
-        "zh-hant": {
-          "name": "黃花排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:6e3b6205b8075581",
-      "names": {
-        "en": {
-          "name": "Wu Lo Chau"
-        },
-        "zh-hant": {
-          "name": "葫蘆洲"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:1a3811298dc106d5",
-      "names": {
-        "en": {
-          "name": "Wu Long Tau"
-        },
-        "zh-hant": {
-          "name": "烏浪頭"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:6e58ebad7e79c28e",
-      "names": {
-        "en": {
-          "name": "Wu Pai"
-        },
-        "zh-hant": {
-          "name": "烏排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:59f1e40b02736693",
-      "names": {
-        "en": {
-          "name": "Wu Ying Pai"
-        },
-        "zh-hant": {
-          "name": "烏蠅排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:3c4d8ba62ba652e4",
-      "names": {
-        "en": {
-          "name": "Yam Tong Ha"
-        },
-        "zh-hant": {
-          "name": "陰塘下"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:3ff8cc8e60e749c1",
-      "names": {
-        "en": {
-          "name": "Yat Lup Mei"
-        },
-        "zh-hant": {
-          "name": "一粒米"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:5fb63a453f056d6a",
-      "names": {
-        "en": {
-          "name": "Yi Long Pai"
-        },
-        "zh-hant": {
-          "name": "二浪排"
-        }
-      }
-    },
-    {
-      "divisionId": "BASEMAP:ISLAND:20b1ab86f2fddb31",
-      "names": {
-        "en": {
-          "name": "Yim Tin Pai"
-        },
-        "zh-hant": {
-          "name": "鹽田排"
-        }
-      }
-    },
-    {
-      "divisionId": "c81690db-fae9-4802-8745-fd6d96ca9f60",
-      "names": {
-        "yue": {
-          "remove": true
-        }
-      }
-    },
-    {
-      "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
-      "names": {
-        "vi": {
-          "remove": true
-        }
-      }
     }
   ],
   "nameAliasRules": [
@@ -1745,5 +1851,6 @@
       "suffix": " Tsuen",
       "replacement": " Village"
     }
-  ]
+  ],
+  "releaseEntries": []
 }

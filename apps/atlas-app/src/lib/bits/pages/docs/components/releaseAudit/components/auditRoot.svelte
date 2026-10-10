@@ -6,8 +6,10 @@ import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import { getSourceAudit, getApiAudit } from '#lib/registry/audit.remote.js'
 import { getReleaseNavDocumentActive } from '../../releaseNav/releaseNavScroll'
 import AuditRelease from './auditRelease.svelte'
+import PreparationSummary from './auditPreparationSummary.svelte'
+import AuditStageHeading from './auditStageHeading.svelte'
 import Controls from './releaseAuditControls.svelte'
-import { releaseAuditHeadingId } from './releaseAuditUtils'
+import { auditResourceTypes, auditStageEntries, groupAuditStages } from './auditStages'
 let {
   datasetCode,
   familyType,
@@ -44,55 +46,34 @@ $effect(() => {
     activeHeadingId = getReleaseNavDocumentActive(visible)
   }
   const update = () => {
-    const sectionElements = [...element.querySelectorAll<HTMLElement>('h3')].filter(
-      heading => heading.getClientRects().length > 0,
-    )
-    const auditHeading = element.querySelector<HTMLElement>(`#${releaseAuditHeadingId}`)
-    const sectionHeadings = sectionElements.map(heading => {
-      const resource =
-        heading.closest('[data-audit-release]')?.getAttribute('data-audit-release') ??
-        ''
+    visible = [
+      ...element.querySelectorAll<HTMLElement>(
+        '[data-audit-stage-heading], [data-audit-source-heading], h3',
+      ),
+    ].filter(heading => heading.getClientRects().length > 0)
+    const next = visible.map(heading => {
+      const isStage = heading.hasAttribute('data-audit-stage-heading')
+      const isResource = heading.hasAttribute('data-audit-source-heading')
       const text =
-        heading.getAttribute('data-audit-toc-title')?.trim() ||
+        heading.dataset.auditTocTitle?.trim() ||
+        heading.dataset.auditSourceLabel ||
         heading.firstChild?.textContent?.trim() ||
         heading.textContent?.trim() ||
         m.source_audit_section()
-      heading.id = `audit-${encodeURIComponent(resource)}-${text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-')}`
+      if (!isStage && !isResource) {
+        const resource =
+          heading.closest('[data-audit-release]')?.getAttribute('data-audit-release') ??
+          ''
+        heading.id = `audit-${encodeURIComponent(resource)}-${text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, '-')}`
+      }
       heading.style.scrollMarginTop = '10rem'
       return {
         id: heading.id,
-        level: familyType ? 3 : 2,
-        resource,
+        level: isStage ? 2 : isResource ? 3 : 4,
+        emphasis: heading.dataset.auditSourceEmphasis,
         text,
       }
     })
-    const sourceHeadings = [
-      ...element.querySelectorAll<HTMLElement>('[data-audit-source-heading]'),
-    ]
-    visible = [
-      ...(auditHeading ? [auditHeading] : []),
-      ...element.querySelectorAll<HTMLElement>('[data-audit-source-heading], h3'),
-    ].filter(heading => heading.getClientRects().length > 0)
-    const next = [
-      {
-        id: releaseAuditHeadingId,
-        level: 2,
-        text: m.source_audit_title(),
-      },
-      ...(familyType
-        ? sourceHeadings.flatMap(source => [
-            {
-              emphasis: source.dataset.auditSourceEmphasis,
-              id: source.id,
-              level: 2,
-              text: source.dataset.auditSourceLabel ?? m.source_audit_section(),
-            },
-            ...sectionHeadings
-              .filter(section => section.resource === source.dataset.auditReleaseId)
-              .map(({ resource: _resource, ...section }) => section),
-          ])
-        : sectionHeadings.map(({ resource: _resource, ...section }) => section)),
-    ]
     if (JSON.stringify(headings) !== JSON.stringify(next)) headings = next
     updateActive()
   }
@@ -132,15 +113,33 @@ let visibleResources = $derived(
   audit.ready
     ? audit.current.filter(
         resource =>
+          datasetCode !== undefined ||
           selectedResourceType === undefined ||
           resource.resourceType ===
             (selectedResourceType || audit.current[0]?.resourceType),
       )
     : [],
 )
+let stages = $derived(groupAuditStages(visibleResources))
+let orderedResourceTypes = $derived(auditResourceTypes(visibleResources))
+const stageLabel = (stage: string) =>
+  ({
+    preparation: m.source_audit_stage_preparation_label(),
+    ingestion: m.source_audit_stage_ingestion_label(),
+    assembly: m.source_audit_stage_assembly_label(),
+    composition: m.source_audit_stage_composition_label(),
+  })[stage] ?? stage
+const stageFlow = (stage: string) =>
+  ({
+    preparation: m.source_audit_stage_preparation(),
+    ingestion: m.source_audit_stage_ingestion(),
+    assembly: m.source_audit_stage_assembly(),
+    composition: m.source_audit_stage_composition(),
+  })[stage] ?? stage
+const resourceTypeTitle = (type: string) => type.charAt(0).toUpperCase() + type.slice(1)
 let searchState = $derived.by(() => {
   const states = visibleResources.map(
-    resource => searchStates[resource.resourceReleaseId],
+    resource => searchStates[resource.hash ?? resource.resourceReleaseId],
   )
   if (states.some(state => !state)) return null
   if (states.some(state => state?.failed)) return { failed: true }
@@ -163,6 +162,12 @@ const updateSearchState = (resourceReleaseId: string, state: AuditSearchState) =
   )
     return
   searchStates = { ...searchStates, [resourceReleaseId]: state }
+}
+// Keep hidden audit components mounted so subsequent searches can update their results.
+const hasSearchResults = (key: string) => {
+  if (!query.trim()) return true
+  const state = searchStates[key]
+  return !state || state.loading || state.failed || state.filteredCount > 0
 }
 const sourceKindLabels: Record<string, string> = {
   district: 'District',
@@ -222,48 +227,95 @@ const sourceHeadingId = (resourceReleaseId: string) =>
   <div class="space-y-8" bind:this={panel}>
     <Controls
       bind:query
-      filteredCount={searchState?.failed ? '—' : (searchState?.filteredCount ?? 0).toLocaleString()}
-      totalCount={searchState?.failed ? '—' : (searchState?.totalCount ?? 0).toLocaleString()}
+      filteredCount={searchState?.failed
+        ? '—'
+        : (searchState?.filteredCount ?? 0).toLocaleString()}
+      totalCount={searchState?.failed
+        ? '—'
+        : (searchState?.totalCount ?? 0).toLocaleString()}
       loading={searchState === null || Boolean(searchState?.loading)}
       infoLabel={m.source_audit_search_info()}
       infoDescription={m.source_audit_search_info_description()}
       placeholder={m.source_audit_search_retained_placeholder()}
     />
-    {#each visibleResources as resource, index (resource.resourceReleaseId)}
-      <section
-        class={familyType
-  ? index === 0
-    ? 'space-y-1'
-    : 'space-y-1 border-t border-border-card/60 pt-8'
-  : ''}
-      >
-        {#if familyType}
-          <div>
-            <h2
-              id={sourceHeadingId(resource.resourceReleaseId)}
-              class="font-mono text-label-sm uppercase tracking-[0.12em] text-foreground-alt"
-              data-audit-source-heading
-              data-audit-source-emphasis={resourceLabel(resource.resourceType)}
-              data-audit-release-id={resource.resourceReleaseId}
-              data-audit-source-label={sourceOutlineLabel(resource)}
-            >
-              {sourceHeadingLabel(resource)}
-            </h2>
-          </div>
-        {/if}
-        <AuditRelease
-          manifest={resource.manifest}
-          releaseCode={resource.code}
-          hash={resource.hash}
-          resourceType={resource.resourceType}
-          showControls={false}
-          showResourceHeading={!familyType && selectedResourceType === undefined}
-          bind:query
-          onSearchStateChange={state => updateSearchState(resource.resourceReleaseId, state)}
+    {#each stages as stage (stage.id)}
+      {@const summaryResource =
+        stage.id === 'preparation'
+          ? stage.resources.find(resource =>
+              resource.manifest.bulk.some(
+                rule => rule.id === 'prepare-curated-division-edition',
+              ),
+            )
+          : undefined}
+      <section class="space-y-6 pb-4" data-audit-stage={stage.id}>
+        <AuditStageHeading
+          stage={stage.id}
+          label={stageLabel(stage.id)}
+          flow={stageFlow(stage.id)}
         />
+        {#if !stage.resources.some(resource => hasSearchResults(resource.hash))}
+          <p role="status" class="text-sm text-foreground-alt">
+            {m.source_audit_no_matches()}
+          </p>
+        {/if}
+        {#if summaryResource}
+          <PreparationSummary
+            manifest={summaryResource.manifest}
+            hash={summaryResource.hash}
+            releaseCode={summaryResource.code}
+            {query}
+          />
+        {/if}
+        {#each auditStageEntries(
+          stage,
+          familyType
+            ? [...new Set(stage.resources.map(resource => resource.resourceType))]
+            : orderedResourceTypes,
+        ) as entry (entry.key)}
+          {@const resource = entry.resource}
+          <section
+            class="space-y-3"
+            hidden={resource ? !hasSearchResults(resource.hash) : Boolean(query.trim())}
+          >
+            <h3
+              id={sourceHeadingId(entry.key)}
+              class="text-lg font-semibold"
+              data-audit-source-heading
+              data-audit-source-emphasis={familyType && resource
+                ? resourceLabel(resource.resourceType)
+                : undefined}
+              data-audit-source-label={familyType && resource
+                ? sourceOutlineLabel(resource)
+                : resourceTypeTitle(entry.resourceType)}
+            >
+              {familyType && resource
+                ? sourceHeadingLabel(resource)
+                : resourceTypeTitle(entry.resourceType)}
+            </h3>
+            {#if resource}
+              <AuditRelease
+                manifest={resource.manifest}
+                releaseCode={resource.code}
+                hash={resource.hash}
+                resourceType={resource.resourceType}
+                showControls={false}
+                showResourceHeading={false}
+                bind:query
+                onSearchStateChange={state =>
+                  updateSearchState(resource.hash ?? resource.resourceReleaseId, state)}
+              />
+            {:else}
+              <p class="text-sm text-foreground-alt">
+                {m.source_audit_no_stage_evidence()}
+              </p>
+            {/if}
+          </section>
+        {/each}
       </section>
     {/each}
   </div>
+{:else if datasetCode}
+  <p class="py-4 text-sm text-foreground-alt">{m.source_audit_no_source_evidence()}</p>
 {:else}
   {@render children?.()}
 {/if}
