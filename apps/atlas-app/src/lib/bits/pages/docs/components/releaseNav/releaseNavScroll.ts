@@ -198,10 +198,15 @@ export const revealReleaseNavVersion = async (
   if (!active || !list) return
   const listRect = list.getBoundingClientRect()
   const activeRect = active.getBoundingClientRect()
-  if (activeRect.top >= listRect.top + 8 && activeRect.bottom <= listRect.bottom - 8)
+  const heading = list.querySelector<HTMLElement>('[data-release-nav-api-heading]')
+  const topClearance = (heading?.getBoundingClientRect().height ?? 0) + 8
+  if (
+    activeRect.top >= listRect.top + topClearance &&
+    activeRect.bottom <= listRect.bottom - 8
+  )
     return
   list.scrollTo({
-    top: Math.max(0, list.scrollTop + activeRect.top - listRect.top - 8),
+    top: Math.max(0, list.scrollTop + activeRect.top - listRect.top - topClearance),
     behavior: 'smooth',
   })
 }

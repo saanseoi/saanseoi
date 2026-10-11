@@ -14,9 +14,9 @@ let { decision }: { decision: AlsDecision } = $props()
   </header>
   <div class="grid grid-cols-1 border-t border-current/10 sm:grid-cols-2">
     {#each [
-   { title: m.source_audit_input(), value: decision.input },
-   { title: m.source_audit_output(), value: decision.output },
- ] as side}
+      { title: m.source_audit_input(), value: decision.input },
+      { title: m.source_audit_output(), value: decision.output },
+    ] as side}
       <section
         class="min-w-0 space-y-3 px-4 py-3 first:border-b first:border-current/10 sm:first:border-b-0 sm:first:border-r"
       >
@@ -28,7 +28,7 @@ let { decision }: { decision: AlsDecision } = $props()
               <dd class="max-w-full wrap-break-word text-emerald-500">{field.value}</dd>
             </div>
           {:else}
-            <p class="opacity-55">No structured values retained for this side.</p>
+            <p class="opacity-55">No structured values saved for this side.</p>
           {/each}
         </dl>
       </section>

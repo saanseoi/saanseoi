@@ -12,7 +12,7 @@ let { measure }: { measure: { label: string; description: string; value: string 
     >
       {measure.label}
     </p>
-    <InfoTooltip label={measure.description} description={measure.description} />
+    <InfoTooltip label={measure.label} description={measure.description} />
   </div>
   <p class="mt-3 font-mono text-title-lg font-bold tabular-nums text-data-alert">
     {measure.value}

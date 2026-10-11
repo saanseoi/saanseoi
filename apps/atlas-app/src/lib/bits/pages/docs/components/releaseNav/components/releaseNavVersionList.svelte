@@ -1,4 +1,5 @@
 <script lang="ts">
+import ReleaseNavVersionHeading from './releaseNavVersionHeading.svelte'
 import type { Snippet } from 'svelte'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import type { ReleaseNavVersion, ReleaseNavVersionPreload } from '../releaseNav.types'
@@ -84,62 +85,68 @@ $effect(() => {
   <nav
     bind:this={versionListElement}
     data-release-nav-version-list
-    class="flex h-full min-h-0 flex-col gap-2 overflow-y-auto overscroll-auto pt-2"
+    class="h-full min-h-0 overflow-y-auto overscroll-auto"
     aria-label="Release versions"
     onscroll={updateVersionOverflow}
     onwheel={() => (versionScrollOverride = true)}
     ontouchstart={() => (versionScrollOverride = true)}
   >
-    {#each versions as version}
-      {#if version.code === currentVersionCode}
-        <div
-          bind:this={activeVersionElement}
-          class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest dark:border-outline-variant"
-        >
+    <div class="relative flex min-h-full flex-col gap-2">
+      {#each versions as version, index}
+        {#if version.apiVersion &&
+          version.apiVersion !== versions[index - 1]?.apiVersion}
+          <ReleaseNavVersionHeading label={version.apiVersion} />
+        {/if}
+        {#if version.code === currentVersionCode}
           <div
-            class="flex items-center gap-3 rounded-t-lg bg-secondary-container px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt dark:text-[#edf2ee]!"
+            bind:this={activeVersionElement}
+            class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest dark:border-outline-variant"
           >
-            {#if canExpand}
-              <button
-                class="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
-                type="button"
-                aria-controls="source-release-toc"
-                aria-expanded={open}
-                onclick={toggleOpen}
+            <div
+              class="flex items-center gap-3 rounded-t-lg bg-secondary-container px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt dark:text-[#edf2ee]!"
+            >
+              {#if canExpand}
+                <button
+                  class="flex min-w-0 flex-1 items-center justify-between gap-3 text-left"
+                  type="button"
+                  aria-controls="source-release-toc"
+                  aria-expanded={open}
+                  onclick={toggleOpen}
+                >
+                  {version.label}
+                  <Icon
+                    icon="ion:chevron-down-outline"
+                    class={`size-4 transition-transform duration-300 ${loading ? 'animate-spin' : open ? '' : 'rotate-180'}`}
+                    aria-hidden="true"
+                  />
+                </button>
+              {:else}
+                <span class="min-w-0 flex-1">{version.label}</span>
+              {/if}
+            </div>
+            {#if children}
+              <div
+                id="source-release-toc"
+                class:rounded-b-lg={open}
+                class={`grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out ${open ? 'grid-rows-[1fr] border-t border-outline-variant/60 dark:border-outline-variant' : 'grid-rows-[0fr]'}`}
               >
-                {version.label}
-                <Icon
-                  icon="ion:chevron-down-outline"
-                  class={`size-4 transition-transform duration-300 ${loading ? 'animate-spin' : open ? '' : 'rotate-180'}`}
-                  aria-hidden="true"
-                />
-              </button>
-            {:else}
-              <span class="min-w-0 flex-1">{version.label}</span>
+                <div class="min-h-0 overflow-hidden">{@render children()}</div>
+              </div>
             {/if}
           </div>
-          {#if children}
-            <div
-              id="source-release-toc"
-              class:rounded-b-lg={open}
-              class={`grid overflow-hidden transition-[grid-template-rows] duration-300 ease-out ${open ? 'grid-rows-[1fr] border-t border-outline-variant/60 dark:border-outline-variant' : 'grid-rows-[0fr]'}`}
-            >
-              <div class="min-h-0 overflow-hidden">{@render children()}</div>
-            </div>
-          {/if}
-        </div>
-      {:else}
-        <a
-          class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt transition hover:border-secondary/70 dark:border-outline-variant"
-          data-sveltekit-reset="false"
-          data-sveltekit-preload-data="hover"
-          href={version.href}
-          onfocusin={() => onVersionPreload?.(version)}
-          onpointerenter={() => onVersionPreload?.(version)}
-          >{version.label}</a
-        >
-      {/if}
-    {/each}
+        {:else}
+          <a
+            class="shrink-0 rounded-lg border border-outline-variant/60 bg-surface-container-lowest px-4 py-3 font-mono text-label-md font-semibold text-foreground-alt transition hover:border-secondary/70 dark:border-outline-variant"
+            data-sveltekit-reset="false"
+            data-sveltekit-preload-data="hover"
+            href={version.href}
+            onfocusin={() => onVersionPreload?.(version)}
+            onpointerenter={() => onVersionPreload?.(version)}
+            >{version.label}</a
+          >
+        {/if}
+      {/each}
+    </div>
   </nav>
   {#if versionHasMoreBelow}
     <div

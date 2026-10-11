@@ -12,6 +12,16 @@ import type {
 } from './releaseStats.types'
 
 type Row = ReleaseStat & { index: number }
+const qualityDescriptions: Record<string, string> = {
+  parent_changed_count:
+    'Records present in both releases whose parent division changed, including a parent being added or removed. This is a structural change, not necessarily an error.',
+  locale_regression_count:
+    'Records present in both releases that lost at least one previously available language locale. Each record is counted once, even if several locales disappeared.',
+  name_regression_count:
+    'Records present in both releases where a previously tracked primary or alternate name is no longer listed in the same locale. Inferred primary names are excluded. Each record is counted once; a renamed record can also trigger this check.',
+  geometry_changed_count:
+    'Records present in both releases whose stored geometry differs, including geometry being added or removed. This compares stored geometry, so coordinate ordering changes can also count; it does not necessarily indicate an error or a change in shape.',
+}
 const valueFor = (rows: Row[], category: string, measure: string) =>
   rows.find(row => row.category === category && row.measure === measure)?.value
 const sectionId = (value: string) =>
@@ -521,7 +531,18 @@ export function createReleaseStatsPresentation({
           if (dimension) groups.set(dimension, [...(groups.get(dimension) ?? []), row])
         })
         const presentations = [...groups]
-          .map(([dimension, groupRows]) => {
+          .map(([dimension, allGroupRows]) => {
+            // Record counts use normalised types; source churn can use a different
+            // publisher taxonomy even where some type names happen to match.
+            const normalisedTypeCounts = allGroupRows.filter(
+              row =>
+                dimension === 'type' &&
+                row.category === 'records' &&
+                row.measure === 'count',
+            )
+            const groupRows = normalisedTypeCounts.length
+              ? normalisedTypeCounts
+              : allGroupRows
             const values = new Map<string, Row[]>()
             groupRows.forEach(row => {
               const dimensionValue = row.dimensionValue
@@ -546,7 +567,10 @@ export function createReleaseStatsPresentation({
                   valueFor(valueRows, 'observations', 'count') ??
                   0
                 return {
-                  label: copy.statLabel(dimensionValue),
+                  label:
+                    dimension === 'level' && dimensionValue === 'not_applicable'
+                      ? copy.labels.notApplicable
+                      : copy.statLabel(dimensionValue),
                   count: formatReleaseStat(locale, total),
                   total,
                   added,
@@ -555,7 +579,7 @@ export function createReleaseStatsPresentation({
                   unchanged,
                 }
               })
-              .filter(row => row.total > 0)
+              .filter(row => row.total > 0 || row.removed > 0)
               .sort((a, b) => b.total - a.total)
             if (!rows.length) return undefined
             const title =
@@ -572,7 +596,9 @@ export function createReleaseStatsPresentation({
             return {
               eyebrow: observationDistribution
                 ? copy.statLabel('observations')
-                : copy.labels.records,
+                : groupRows.some(row => row.category === 'changes')
+                  ? copy.labels.changeDistribution
+                  : copy.labels.records,
               dimension,
               id: addHeading(sectionId(dimension), title),
               title,
@@ -656,7 +682,8 @@ export function createReleaseStatsPresentation({
                   description:
                     row.category === 'source_quality'
                       ? 'Output records whose source geometry required repair during processing.'
-                      : (copy.qualityDescription?.(row.measure ?? '') ??
+                      : (qualityDescriptions[row.measure ?? ''] ??
+                        copy.qualityDescription?.(row.measure ?? '') ??
                         copy.statLabel(row.measure)),
                   value: formatReleaseStat(locale, row.value, row.unit),
                 })),

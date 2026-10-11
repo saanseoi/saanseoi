@@ -5,6 +5,7 @@ import { fade } from 'svelte/transition'
 import type { ReleaseAnalyticsSurface } from '../../releaseLinks/components/releaseLinks.types.js'
 import type { ReleaseNavAction } from '../releaseNav.types'
 import ReleaseNavInfoAction from './releaseNavInfoAction.svelte'
+import ReleaseNavDownloadMenu from './releaseNavDownloadMenu.svelte'
 
 type Props = {
   actions?: ReleaseNavAction[]
@@ -13,17 +14,26 @@ type Props = {
 let { actions = [], analyticsSurface }: Props = $props()
 </script>
 
-<div class="ml-auto flex h-10 items-center gap-1 md:gap-4">
+<div
+  class={`ml-auto flex h-10 shrink-0 items-center gap-1 ${actions.some(action => action.id === 'resourceType') ? 'md:gap-2' : 'md:gap-4'}`}
+>
   {#each actions as action (action.id)}
-    {#if action.infoDescription && action.icon}
+    {#if (action.infoDescription || action.infoContent) && action.icon}
       <ReleaseNavInfoAction
         description={action.infoDescription}
+        content={action.infoContent}
         icon={action.icon}
         label={action.label}
       />
+    {:else if action.downloadLinks?.length}
+      <ReleaseNavDownloadMenu {action} {analyticsSurface} />
     {:else if action.options}
-      <label class="inline-flex items-center gap-5">
-        {#if action.id === 'profile' || action.id === 'include'}
+      <label
+        class={`inline-flex items-center ${action.id === 'resourceType' ? 'gap-2' : 'gap-5'}`}
+      >
+        {#if action.id === 'profile' ||
+          action.id === 'include' ||
+          action.id === 'resourceType'}
           <span class="font-mono text-label-md text-data-primary">{action.id}</span>
         {:else}
           <span class="sr-only">{action.label}</span>
@@ -54,27 +64,29 @@ let { actions = [], analyticsSurface }: Props = $props()
         transition:fade={{ duration: 150 }}
         class={`inline-flex size-10 cursor-pointer items-center justify-center border border-data-outline-variant/70 font-body text-label-md font-semibold ${action.pressed ? 'text-data-primary hover:bg-data-surface-container-high' : 'text-foreground-alt hover:bg-data-surface-container-high hover:text-data-primary'} transition md:h-8 md:w-auto md:justify-start md:gap-2 md:px-3`}
         href={action.href}
+        title={action.tooltip}
         download={action.download}
         onclick={() =>
-  action.download &&
-  trackClientProductUsage({
-    event: 'client.download_click',
-    surface: action.analyticsSurface ?? analyticsSurface,
-    entityType: 'asset',
-    entityId: action.href?.split('/').filter(Boolean).at(-1),
-  })}
+          action.download &&
+          trackClientProductUsage({
+            event: 'client.download_click',
+            surface: action.analyticsSurface ?? analyticsSurface,
+            entityType: 'asset',
+            entityId: action.href?.split('/').filter(Boolean).at(-1),
+          })}
         aria-label={action.label}
       >
         {#if action.icon}
           <Icon icon={action.icon} class="size-5 md:size-4" aria-hidden="true" />
         {/if}
-        <span class="hidden md:inline">{action.label}</span>
+        <span class="hidden whitespace-nowrap md:inline">{action.label}</span>
       </a>
     {:else}
       <button
         transition:fade={{ duration: 150 }}
         class={`inline-flex size-10 items-center justify-center border border-data-outline-variant/70 font-body text-label-md font-semibold transition ${action.disabled ? 'cursor-not-allowed text-foreground-alt/50' : action.pressed ? 'cursor-pointer text-data-primary hover:bg-data-surface-container-high' : 'cursor-pointer text-foreground-alt hover:bg-data-surface-container-high hover:text-data-primary'} md:h-8 md:w-auto md:justify-start md:gap-2 md:px-3`}
         type="button"
+        title={action.tooltip}
         aria-label={action.label}
         aria-pressed={action.pressed}
         disabled={action.disabled}
@@ -83,7 +95,7 @@ let { actions = [], analyticsSurface }: Props = $props()
         {#if action.icon}
           <Icon icon={action.icon} class="size-5 md:size-4" aria-hidden="true" />
         {/if}
-        <span class="hidden md:inline">{action.label}</span>
+        <span class="hidden whitespace-nowrap md:inline">{action.label}</span>
       </button>
     {/if}
   {/each}

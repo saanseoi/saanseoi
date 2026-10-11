@@ -29,6 +29,7 @@ onMount(() => {
       features={districtDistribution.features}
       values={districtDistribution.values}
       valueLabel={labels.records}
+      tolerance={1}
     />
   {:else}
     <div

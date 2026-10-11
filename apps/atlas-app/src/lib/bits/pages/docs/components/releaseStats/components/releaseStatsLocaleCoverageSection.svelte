@@ -17,11 +17,11 @@ let { rows, labels }: { rows: LocaleCoveragePresentation; labels: ReleaseStatsLa
       <Legend
         label={labels.localeLegend}
         items={[
-  { label: labels.provided, tone: 'bg-data-success' },
-  { label: labels.inferred, tone: 'bg-data-inferred' },
-  { label: labels.aiTranslated, tone: 'bg-data-ai-translated' },
-  { label: labels.humanTranslated, tone: 'bg-data-human-translated' },
-]}
+          { label: labels.provided, tone: 'bg-data-success' },
+          { label: labels.inferred, tone: 'bg-data-inferred' },
+          { label: labels.aiTranslated, tone: 'bg-data-ai-translated' },
+          { label: labels.humanTranslated, tone: 'bg-data-human-translated' },
+        ]}
       />
       <InfoTooltip
         label={labels.completenessInfo}
@@ -29,11 +29,9 @@ let { rows, labels }: { rows: LocaleCoveragePresentation; labels: ReleaseStatsLa
       />
     </div></Header
   >
-  <div
-    class="grid grid-cols-[max-content_minmax(0,1fr)_max-content] gap-x-3 gap-y-4 px-5 py-5"
-  >
+  <div class="grid grid-cols-[max-content_minmax(0,1fr)] gap-x-3 gap-y-4 px-5 py-5">
     {#each rows as row}
-      <div class="col-span-3 grid grid-cols-subgrid items-center">
+      <div class="col-span-2 grid grid-cols-subgrid items-center">
         <p class="font-body text-label-md font-semibold text-primary">{row.label}</p>
         <CoverageBar
           coverage={row.coverage}
@@ -41,9 +39,6 @@ let { rows, labels }: { rows: LocaleCoveragePresentation; labels: ReleaseStatsLa
           label={row.coverageLabel}
           ariaLabel={`${row.label}: ${row.coverageLabel}`}
         />
-        <p class="font-mono text-label-md font-bold tabular-nums text-primary">
-          {row.count}
-        </p>
       </div>
     {/each}
   </div></Section

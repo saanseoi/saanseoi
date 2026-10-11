@@ -2,6 +2,30 @@ import { m } from '@repo/i18n/messages'
 
 /** Plain-language presentation for retained processing-rule identifiers. */
 const copy = (): Record<string, { title: string; summary: string }> => ({
+  'saanseoi.native-source-import.v1': {
+    title: m.source_audit_rule_native_import_title(),
+    summary: m.source_audit_rule_native_import_summary(),
+  },
+  'revalidate-overture-retained-source': {
+    title: m.source_audit_rule_historical_revalidation_title(),
+    summary: m.source_audit_rule_historical_revalidation_summary(),
+  },
+  'retain-country-reference': {
+    title: m.source_audit_rule_country_reference_title(),
+    summary: m.source_audit_rule_country_reference_summary(),
+  },
+  'retain-division-source-records': {
+    title: m.source_audit_rule_overture_retention_title(),
+    summary: m.source_audit_rule_overture_retention_summary(),
+  },
+  'retain-overture-source': {
+    title: m.source_audit_rule_overture_retention_title(),
+    summary: m.source_audit_rule_overture_retention_summary(),
+  },
+  'exclude-overture-guangdong-source-geometry': {
+    title: m.source_audit_rule_source_spillover_title(),
+    summary: m.source_audit_rule_source_spillover_summary(),
+  },
   'curate-als-addresses': {
     title: m.source_audit_rule_address_curation_title(),
     summary: m.source_audit_rule_address_curation_summary(),

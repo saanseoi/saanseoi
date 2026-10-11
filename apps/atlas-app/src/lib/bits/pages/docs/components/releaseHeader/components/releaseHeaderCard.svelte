@@ -49,7 +49,7 @@ let {
     >
       {#if imageSrc}
         <span
-          class="flex size-11 shrink-0 items-center justify-center rounded-md border border-outline-variant/60 bg-surface-container-lowest p-2 dark:border-outline-variant"
+          class="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-md border border-outline-variant/60 bg-surface-container-lowest dark:border-outline-variant"
         >
           <img class="max-h-full max-w-full object-contain" src={imageSrc} alt="">
         </span>
@@ -70,11 +70,11 @@ let {
     {/if}
   </div>
   {#if primaryLinks.length || secondaryLinks.length}
-    <nav aria-label="Publisher links" class="mt-5 grid grid-cols-2 gap-2">
+    <nav aria-label="Publisher links" class="mt-5 flex flex-wrap gap-2">
       {#each primaryLinks as link}
         <Button
           href={link.href}
-          class="w-full min-w-0 px-1.5!"
+          class="min-w-0 flex-auto px-3!"
           size="compact"
           variant="secondary"
           target={link.isExternal ? '_blank' : undefined}
@@ -86,7 +86,7 @@ let {
       {#each secondaryLinks as link}
         <Button
           href={link.href}
-          class="w-full min-w-0 px-1.5!"
+          class="min-w-0 flex-auto px-3!"
           size="compact"
           variant="secondary"
           target={link.isExternal ? '_blank' : undefined}

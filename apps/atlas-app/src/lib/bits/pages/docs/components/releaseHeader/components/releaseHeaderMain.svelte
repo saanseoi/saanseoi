@@ -11,9 +11,13 @@ type Detail = {
   isExternal?: boolean
   isMonospace?: boolean
   isAccessMetric?: boolean
+  disclosureMode?: 'popover'
+  alignment?: 'start' | 'end'
+  noWrap?: boolean
   disclosure?: Array<{
     label: string
     value: string
+    codeValues?: string[]
     isMonospace?: boolean
     href?: string
     isExternal?: boolean
@@ -48,12 +52,15 @@ let allDetailsOpen = $state(false)
     {@render description()}
   {/if}
   <dl
-    class="mt-7 grid grid-cols-1 gap-x-8 gap-y-5 font-body text-label-md md:grid-cols-3 lg:grid-cols-[11rem_minmax(0,1fr)_minmax(0,1fr)]"
+    class={`mt-7 grid grid-cols-1 gap-x-8 gap-y-5 font-body text-label-md md:grid-cols-3`}
   >
     {#each details as detail}
       {#if detail.disclosure?.length}
         <ReleaseHeaderDetail
           {detail}
+          popover={detail.disclosureMode === 'popover'}
+          align={detail.alignment}
+          noWrap={detail.noWrap}
           isOpen={allDetailsOpen}
           onToggle={() => (allDetailsOpen = !allDetailsOpen)}
         />

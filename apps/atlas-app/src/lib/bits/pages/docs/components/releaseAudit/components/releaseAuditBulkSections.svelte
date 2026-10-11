@@ -20,7 +20,7 @@ const descriptionForLocale = (rule: AuditBulkRule) =>
 {#if rules.length}
   <section class="mt-6 grid gap-6" aria-label={m.source_bulk_actions()}>
     {#each rules as rule (rule.id ?? rule.operationCode)}
-      {@const (description = descriptionForLocale(rule))}
+      {@const description = descriptionForLocale(rule)}
       <ReleaseAuditBulkSection
         {description}
         {rule}

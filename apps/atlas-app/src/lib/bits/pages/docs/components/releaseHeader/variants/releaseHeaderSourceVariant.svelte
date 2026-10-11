@@ -20,9 +20,13 @@ type Detail = {
   href?: string
   isExternal?: boolean
   isMonospace?: boolean
+  disclosureMode?: 'popover'
+  alignment?: 'start' | 'end'
+  noWrap?: boolean
   disclosure?: Array<{
     label: string
     value: string
+    codeValues?: string[]
     isMonospace?: boolean
     href?: string
     isExternal?: boolean
@@ -71,59 +75,66 @@ let accessMetrics = $derived([
 ])
 let details = $derived.by((): Detail[] => {
   const codeDetails = [
-    { isMonospace: true, label: m.source_version(), value: version.sourceVersion },
-    ...(version.sourceSchemaVersion
-      ? [
-          {
-            isMonospace: true,
-            label: m.source_schema(),
-            value: version.sourceSchemaVersion,
-          },
-        ]
-      : []),
     {
       label: m.source_resource_type(),
       value: source.resourceTypes.join(', ') || m.api_release_unavailable(),
+      codeValues: source.resourceTypes,
     },
-    ...(source.kind ? [{ label: m.source_kind(), value: source.kind }] : []),
-    ...(releaseNotesUrl
+    ...(source.sourceCrs
       ? [
           {
-            href: releaseNotesUrl,
-            isExternal: true,
-            label: m.source_upstream(),
-            value: m.source_release_notes(),
+            label: m.source_coordinate_reference_system(),
+            value: source.sourceCrs,
+            codeValues: [source.sourceCrs],
           },
         ]
       : []),
+    ...(source.kind ? [{ label: m.source_kind(), value: source.kind }] : []),
   ]
   const rows: Detail[] = [
     {
+      disclosureMode: 'popover',
       disclosure: codeDetails,
       isMonospace: true,
       label: m.source_code(),
       value: source.code,
     },
     {
+      disclosureMode: 'popover',
       disclosure: [
+        {
+          label: m.source_version(),
+          value: version.sourceVersion,
+          isMonospace: true,
+        },
+        ...(version.sourceSchemaVersion
+          ? [
+              {
+                label: m.source_schema(),
+                value: version.sourceSchemaVersion,
+                href: source.schemaURL ?? undefined,
+                isExternal: true,
+                isMonospace: true,
+              },
+            ]
+          : []),
         {
           label: m.source_cohort(),
           value: version.cohortKey ?? m.api_release_unavailable(),
           isMonospace: true,
         },
-        {
-          label: m.source_status(),
-          value: statusLabel,
-        },
       ],
       isMonospace: true,
+      noWrap: true,
       label: m.source_release(),
       value: version.code,
     },
     {
+      disclosureMode: 'popover',
+      alignment: 'end',
       disclosure: [
-        { label: m.source_ingested(), value: displayDate(version.ingestedAt) },
         { label: m.source_reference(), value: displayDate(version.publicationDate) },
+        { label: m.source_ingested(), value: displayDate(version.ingestedAt) },
         { label: m.source_last_revised(), value: displayDate(version.updatedAt) },
       ],
       label: m.source_published(),
@@ -171,19 +182,18 @@ let primaryLinks = $derived.by(() => {
       : []),
   ]
 })
-let sourceUrl = $derived(normaliseExternalUrl(source.sourceUrl))
-let secondaryLinks = $derived(
-  sourceUrl
+let secondaryLinks = $derived([
+  ...(releaseNotesUrl
     ? [
         {
-          href: sourceUrl,
-          icon: 'ion:link-outline',
+          href: releaseNotesUrl,
+          icon: 'ion:document-text-outline',
           isExternal: true,
-          label: m.source_official_site(),
+          label: m.source_release_notes(),
         },
       ]
-    : [],
-)
+    : []),
+])
 
 const displayDate = (value?: string | null) =>
   value?.slice(0, 10) ?? m.source_ingestion_unavailable()

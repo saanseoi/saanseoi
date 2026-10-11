@@ -1,7 +1,9 @@
+import type { Snippet } from 'svelte'
 import type { ReleaseAnalyticsSurface } from '../releaseLinks/components/releaseLinks.types.js'
 
 export type ReleaseNavVersion = {
   code: string
+  apiVersion?: string
   cohortKey?: string | null
   href: string
   label: string
@@ -33,12 +35,15 @@ export type ReleaseNavOutlineItem = {
 export type ReleaseNavAction = {
   disabled?: boolean
   download?: boolean
+  downloadLinks?: Array<{ href: string; label: string }>
   href?: string
   icon?: string
+  infoContent?: Snippet
   infoDescription?: string
   id: string
   label: string
   onSelect?: () => void
+  tooltip?: string
   onValueChange?: (value: string) => void
   options?: Array<{
     label: string

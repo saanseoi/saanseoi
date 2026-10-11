@@ -2,6 +2,8 @@ import { m } from '@repo/i18n/messages'
 
 export function auditStatus(status: string): string {
   switch (status) {
+    case 'no-exclusions':
+      return m.source_audit_no_exclusions()
     case 'not-recorded':
       return m.source_audit_not_recorded()
     case 'no-matches':

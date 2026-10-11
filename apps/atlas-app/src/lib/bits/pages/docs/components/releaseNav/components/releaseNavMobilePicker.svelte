@@ -1,4 +1,5 @@
 <script lang="ts">
+import ReleaseNavVersionHeading from './releaseNavVersionHeading.svelte'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import { tick } from 'svelte'
 import { m } from '#lib/bits/internal/i18n.js'
@@ -70,7 +71,11 @@ function close() {
         class="absolute inset-x-0 top-full z-40 grid max-h-[min(24rem,calc(100svh-8rem))] gap-2 overflow-y-auto rounded-b-lg border border-outline-variant/60 bg-surface-container-low p-3 shadow-popover dark:border-outline-variant"
         aria-label={m.source_versions_nav()}
       >
-        {#each versions as version}
+        {#each versions as version, index}
+          {#if version.apiVersion &&
+            version.apiVersion !== versions[index - 1]?.apiVersion}
+            <ReleaseNavVersionHeading label={version.apiVersion} />
+          {/if}
           <a
             class={`flex items-center justify-between rounded-md border px-3 py-2.5 font-mono text-label-md font-semibold transition ${version.code === currentVersionCode ? 'border-secondary/70 bg-secondary-container text-primary dark:text-[#edf2ee]!' : 'border-outline-variant/60 bg-surface-container-lowest text-foreground-alt hover:border-secondary/70 dark:border-outline-variant'}`}
             data-sveltekit-reset="false"

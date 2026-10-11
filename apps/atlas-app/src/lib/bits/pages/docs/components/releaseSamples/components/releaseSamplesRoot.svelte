@@ -56,6 +56,8 @@ let {
   view = $bindable<'distinct' | 'grouped'>('distinct'),
 }: Props = $props()
 let samples = $state<AddressSample[]>([])
+let activeSampleIds = $state<string[] | null>(null)
+let selectedSampleIds = $state<string[] | null>(null)
 let collapsedSamples = $state<Set<string>>(new Set())
 let loading = $state(false)
 let errorMessage = $state<string | null>(null)
@@ -107,6 +109,8 @@ async function loadMore(count: number) {
     const target = `${releaseSet}:${profile}`
     if (loadedReleaseSet !== target) {
       samples = []
+      activeSampleIds = null
+      selectedSampleIds = null
       sampleCount = 0
       view = 'distinct'
       total = recordCount
@@ -172,11 +176,6 @@ $effect(() => {
   </p>
 {:else}
   <section class="space-y-4" aria-label="Random API samples">
-    <p class="font-body text-body-md text-foreground-alt">
-      A random {profile} record from this release set. Null fields are omitted and
-      subsequent examples are deduplicated.
-    </p>
-
     <div>
       {#if samplePresentation === 'grouped'}
         <div in:fade={{ duration: prefersReducedMotion.current ? 0 : 180 }}>
@@ -185,7 +184,12 @@ $effect(() => {
               class="overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
             >
               {#each groupedFields as field (field.key)}
-                <GroupedField {field} sampleIds={samples.map(sample => sample.id)} />
+                <GroupedField
+                  {field}
+                  sampleIds={samples.map(sample => sample.id)}
+                  bind:activeSampleIds
+                  bind:selectedSampleIds
+                />
               {/each}
             </dl>
           </div>

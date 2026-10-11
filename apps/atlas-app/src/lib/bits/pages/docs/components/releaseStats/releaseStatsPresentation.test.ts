@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test'
 
 import { createReleaseStatsPresentation } from './releaseStatsPresentation'
 import type { ReleaseStatsCopy } from './releaseStats.types'
+import { buildSaanseoiDivisionSourceStats } from '@repo/core/pipeline/services/sources/saanseoiDivisionSourceStats.ts'
 
 const copy: ReleaseStatsCopy = {
   labels: {
@@ -65,6 +66,51 @@ const present = (
 ) => createReleaseStatsPresentation({ stats, locale: 'en', copy })
 
 describe('createReleaseStatsPresentation', () => {
+  test('SaanSeoi source stats show stacked type and level changes, removed-only groups, district coverage and record counts', () => {
+    const stats = buildSaanseoiDivisionSourceStats(
+      new Map([['gone', { properties: { class: 'town', level: 3 } }]]),
+      new Map([
+        [
+          'district',
+          {
+            properties: {
+              class: 'district',
+              level: 2,
+              names: { en: { name: 'District' } },
+            },
+          },
+        ],
+      ]),
+    )
+    const model = createReleaseStatsPresentation({
+      stats,
+      locale: 'en',
+      copy,
+      districtAreas: [
+        {
+          divisionId: 'district',
+          name: 'District',
+          geometry: { type: 'Polygon', coordinates: [] },
+        },
+      ],
+    })
+    expect(model.recordDistributions.map(row => row.dimension)).toEqual([
+      'divisionType',
+      'level',
+    ])
+    expect(
+      model.recordDistributions.every(
+        row => row.showChangeLegend && row.eyebrow === 'Change distribution',
+      ),
+    ).toBe(true)
+    expect(
+      model.recordDistributions[0]?.rows.find(row => row.label === 'town')?.removed,
+    ).toBe(1)
+    expect(model.districtDistribution?.values).toEqual([{ id: 'district', value: 1 }])
+    expect(
+      model.genericGroups.find(group => group.label === 'Record Types')?.rows,
+    ).toHaveLength(2)
+  })
   test('renders retained zero locale coverage as chart rows instead of a generic measure grid', () => {
     const model = present(
       ['en', 'zh-hant', 'zh-hans'].flatMap(dimensionValue =>
@@ -679,6 +725,52 @@ describe('createReleaseStatsPresentation', () => {
       model.recordDistributions.every(distribution => !distribution.showChangeLegend),
     ).toBe(true)
     expect(model.genericGroups).toHaveLength(0)
+  })
+
+  test('counts normalised types without mixing publisher churn classifications', () => {
+    const model = present([
+      ...[
+        ['neighbourhood', 150],
+        ['district', 19],
+        ['sar', 1],
+        ['macrohood', 213],
+      ].map(([dimensionValue, value]) => ({
+        category: 'records',
+        measure: 'count',
+        dimension: 'type',
+        dimensionValue: String(dimensionValue),
+        value: Number(value),
+      })),
+      ...[
+        ['neighborhood', 150],
+        ['region', 19],
+        ['dependency', 1],
+        ['macrohood', 210],
+      ].flatMap(([dimensionValue, value]) =>
+        ['count', 'changed_count'].map(measure => ({
+          category: 'changes',
+          measure,
+          dimension: 'type',
+          dimensionValue: String(dimensionValue),
+          value: Number(value),
+        })),
+      ),
+    ])
+    expect(model.recordDistributions).toHaveLength(1)
+    const distribution = model.recordDistributions[0]!
+    expect(distribution.showChangeLegend).toBe(false)
+    expect(distribution.rows.map(row => [row.label, row.total])).toEqual([
+      ['macrohood', 213],
+      ['neighbourhood', 150],
+      ['district', 19],
+      ['sar', 1],
+    ])
+    expect(
+      distribution.rows.every(
+        row => row.added === 0 && row.changed === 0 && row.removed === 0,
+      ),
+    ).toBe(true)
+    expect(model.genericGroups).toEqual([])
   })
 
   test('keeps unknown and unrendered dimensions in generic groups with stable unique IDs', () => {

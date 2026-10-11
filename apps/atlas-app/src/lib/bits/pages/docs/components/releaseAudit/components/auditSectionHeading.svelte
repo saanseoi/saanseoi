@@ -15,8 +15,13 @@ let { children, description, label, title, tocTitle }: Props = $props()
 </script>
 
 <Tooltip.Provider delayDuration={200}>
-  <div class="flex flex-wrap items-center gap-x-6 gap-y-3 px-2 pt-4">
-    <h3 class="mr-auto text-lg font-medium" data-audit-toc-title={tocTitle}>{title}</h3>
+  <div class="flex flex-wrap items-center gap-x-6 gap-y-2">
+    <h3
+      class="mr-auto text-xs font-medium uppercase tracking-widest text-foreground-alt"
+      data-audit-toc-title={tocTitle}
+    >
+      {title}
+    </h3>
     {#if children}
       <div class="ml-auto flex min-w-0 flex-wrap items-center gap-x-6 gap-y-3">
         {@render children()}
@@ -25,8 +30,8 @@ let { children, description, label, title, tocTitle }: Props = $props()
     <Tooltip.Root>
       <Tooltip.Trigger>
         {#snippet child({
-  props,
-})}
+          props,
+        })}
           <button
             {...props}
             class="inline-flex size-8 shrink-0 items-center justify-center rounded-full text-foreground-alt transition hover:bg-current/10 hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2"

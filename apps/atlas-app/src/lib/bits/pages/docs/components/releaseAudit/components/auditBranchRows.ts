@@ -121,7 +121,14 @@ export function retainedBranchGroups(
         ? title.slice('Locale Normalisation: '.length)
         : undefined,
       title: branchGroupTitle(title),
-      explanation: branchGroupExplanation(title),
+      explanation:
+        title.startsWith('Locale Normalisation: ') &&
+        parameters &&
+        typeof parameters === 'object' &&
+        !Array.isArray(parameters) &&
+        typeof parameters.localeNormalisationSummary === 'string'
+          ? parameters.localeNormalisationSummary
+          : branchGroupExplanation(title),
       rows: rows
         .sort((a, b) => a.precedence - b.precedence)
         .map((row, index) => ({
@@ -135,7 +142,8 @@ export function retainedBranchGroups(
 
 function branchGroupExplanation(title: string): string {
   if (title === 'Level Classification') return m.source_audit_level_explanation()
-  if (title === 'Type Classification') return m.source_audit_type_explanation()
+  if (title === 'Type Classification' || title === 'Class Classification')
+    return m.source_audit_type_explanation()
   if (title.startsWith('Locale Normalisation: '))
     return m.source_audit_locale_explanation({
       locale: title.slice('Locale Normalisation: '.length),
@@ -145,7 +153,8 @@ function branchGroupExplanation(title: string): string {
 
 function branchGroupTitle(title: string): string {
   if (title === 'Level Classification') return m.source_audit_level_classification()
-  if (title === 'Type Classification') return m.source_audit_type_classification()
+  if (title === 'Type Classification' || title === 'Class Classification')
+    return m.source_audit_type_classification()
   const localePrefix = 'Locale Normalisation: '
   if (title.startsWith(localePrefix))
     return m.source_audit_branch_locale_title({
