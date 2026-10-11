@@ -1,5 +1,10 @@
 export const sourceRecordChangesCopy = {
   en: {
+    backToTop: 'Back to top',
+    record: 'Record',
+    copyId: 'Copy ID',
+    copiedId: 'ID copied',
+    copyIdError: 'Could not copy ID',
     added: 'Added',
     changed: 'Changed',
     removed: 'Removed',
@@ -20,9 +25,16 @@ export const sourceRecordChangesCopy = {
     error: 'Could not load changes.',
     retry: 'Retry',
     unavailable: 'The retained comparison is unavailable.',
+    noBaseline:
+      'This is the first retained release. There is no earlier release to compare it with.',
     noFields: 'No visible field changes.',
   },
   'zh-Hant': {
+    backToTop: '返回頂部',
+    record: '記錄',
+    copyId: '複製 ID',
+    copiedId: '已複製 ID',
+    copyIdError: '無法複製 ID',
     added: '新增',
     changed: '修改',
     removed: '移除',
@@ -43,9 +55,15 @@ export const sourceRecordChangesCopy = {
     error: '無法載入變更。',
     retry: '重試',
     unavailable: '無法取得保留的比較資料。',
+    noBaseline: '這是首個保留的版本，沒有更早的版本可供比較。',
     noFields: '沒有可顯示的欄位變更。',
   },
   'zh-Hans': {
+    backToTop: '返回顶部',
+    record: '记录',
+    copyId: '复制 ID',
+    copiedId: '已复制 ID',
+    copyIdError: '无法复制 ID',
     added: '新增',
     changed: '修改',
     removed: '移除',
@@ -66,6 +84,7 @@ export const sourceRecordChangesCopy = {
     error: '无法加载变更。',
     retry: '重试',
     unavailable: '无法取得保留的比较数据。',
+    noBaseline: '这是首个保留的版本，没有更早的版本可供比较。',
     noFields: '没有可显示的字段变更。',
   },
 } as const

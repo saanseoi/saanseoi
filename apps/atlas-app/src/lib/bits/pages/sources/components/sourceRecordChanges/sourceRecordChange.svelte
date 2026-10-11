@@ -1,5 +1,7 @@
 <script lang="ts">
 import type { JsonFieldChange } from '@repo/core/jsonFieldDiff'
+import CopyId from './sourceRecordChangeCopyId.svelte'
+import FieldTag from './sourceRecordChangeFieldTag.svelte'
 import Icon from '#lib/bits/primitives/icon/icon.svelte'
 import NestedField from '#lib/bits/pages/docs/components/releaseSamples/components/releaseSamplesNestedField.svelte'
 import {
@@ -37,6 +39,19 @@ const rows = $derived(
   changeFields(before, value, fields, diff, comparison, copy.absent),
 )
 let expansion = $state<Record<string, boolean>>({})
+const changedKeys = $derived(
+  comparison
+    ? [
+        ...new Set(
+          changeFields(before, value, fields, true, true, copy.absent).flatMap(field =>
+            field.key === 'properties'
+              ? (field.children ?? []).map(child => child.key)
+              : [field.key],
+          ),
+        ),
+      ]
+    : [],
+)
 const expandable = $derived(expandableFields(rows))
 const allExpanded = $derived(
   expandable.every(field => expansion[field.id] ?? field.expanded),
@@ -55,11 +70,11 @@ const tones = {
   class={`overflow-hidden rounded-md border border-outline-variant border-l-4 bg-surface-container-lowest ${tones[type]}`}
 >
   <header
-    class="flex items-stretch bg-surface-container-low hover:bg-surface-container"
+    class="flex items-stretch gap-2 bg-surface-container-low pr-4 hover:bg-surface-container"
   >
     <button
       type="button"
-      class="flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left"
+      class="flex min-w-0 flex-1 items-center gap-3 px-4 py-2 text-left"
       aria-expanded={expanded}
       onclick={() => (expanded = !expanded)}
     >
@@ -68,27 +83,41 @@ const tones = {
         class="size-4 shrink-0"
       />
       <span class="min-w-0 flex-1">
-        <span class="block break-words font-body text-body-md text-primary"
-          >{summary.name}</span
+        <span class="block break-words font-body text-body-md text-primary">
+          {summary.name === id ? copy.record : summary.name}
+        </span>
+        <span
+          class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-foreground-alt"
         >
-        <span class="block break-all font-mono text-caption text-foreground-alt"
-          >{summary.name !== id ? id : ''}{summary.detail
-            ? ` · ${summary.detail}`
-            : ''}</span
-        >
+          {#if summary.detail}
+            <span class="break-words font-body text-caption">{summary.detail}</span>
+          {/if}
+          {#if changedKeys.length}
+            <span class="flex flex-wrap items-center gap-1.5">
+              {#each changedKeys as key (key)}
+                <FieldTag field={key} />
+              {/each}
+            </span>
+          {/if}
+        </span>
+        <span class="sr-only">{copy[type]}</span>
       </span>
     </button>
     {#if expanded && expandable.length}
       <button
         type="button"
-        class="mx-4 my-auto shrink-0 rounded border border-current/30 px-3 py-1.5 text-label-sm hover:bg-surface-container"
+        class="my-auto flex size-8 shrink-0 items-center justify-center rounded text-foreground-alt hover:bg-surface-container-high hover:text-primary"
+        aria-label={allExpanded ? copy.collapseAll : copy.expandAll}
+        title={allExpanded ? copy.collapseAll : copy.expandAll}
         onclick={toggleAll}
       >
-        {allExpanded ? copy.collapseAll : copy.expandAll}
+        <span class="flex flex-col" class:rotate-180={allExpanded}>
+          <Icon icon="proicons:chevron-down" class="size-3.5" />
+          <Icon icon="proicons:chevron-down" class="-mt-2 size-3.5" />
+        </span>
       </button>
-    {:else if !expanded}
-      <span class="flex shrink-0 items-center px-5 text-label-sm">{copy[type]}</span>
     {/if}
+    <CopyId {id} {copy} />
   </header>
   {#if expanded}
     <div class="overflow-x-auto text-primary">

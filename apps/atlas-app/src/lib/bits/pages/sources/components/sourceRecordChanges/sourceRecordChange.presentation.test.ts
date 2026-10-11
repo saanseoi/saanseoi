@@ -73,7 +73,7 @@ test('coarse nested-array differences omit equal ancestors and equal object valu
   ])
 })
 
-test('translation insertion aligns by language and hides unchanged discriminants and values', () => {
+test('translation insertion aligns by language and retains identifying context', () => {
   const before = {
     rules: [
       { language: 'ko', value: '동구' },
@@ -100,6 +100,7 @@ test('translation insertion aligns by language and hides unchanged discriminants
     '[language="ja"]',
   ])
   expect(rows[0]?.children?.[0]?.children).toEqual([
+    { key: 'language', previousValue: 'es', value: 'es' },
     { key: 'value', previousValue: 'Old', value: 'New' },
   ])
   expect(rows[0]?.children?.[1]?.children).toContainEqual({
@@ -148,7 +149,7 @@ test('translation removal and full mode keep languages correctly paired', () => 
   })
 })
 
-test('repeated languages use variants when unique and fall back safely when ambiguous', () => {
+test('repeated languages use variants and ignore reordering of exact matches', () => {
   const before = {
     rules: [
       { language: 'en', variant: 'short', value: 'Old' },
@@ -166,6 +167,8 @@ test('repeated languages use variants when unique and fall back safely when ambi
   )
   expect(rows[0]?.children).toHaveLength(1)
   expect(rows[0]?.children?.[0]?.children).toEqual([
+    { key: 'language', previousValue: 'en', value: 'en' },
+    { key: 'variant', previousValue: 'short', value: 'short' },
     { key: 'value', previousValue: 'Old', value: 'New' },
   ])
   const ambiguous = {
@@ -183,6 +186,113 @@ test('repeated languages use variants when unique and fall back safely when ambi
       true,
       true,
       'absent',
-    )[0]?.children?.map(row => row.key),
-  ).toEqual(['[0]', '[1]'])
+    ),
+  ).toEqual([])
+})
+
+test('reordered name rules with missing languages and repeated locales show only the changed value and identity', () => {
+  const before = {
+    properties: {
+      names: {
+        rules: [
+          { value: '東角山 East Point Hill' },
+          { language: 'en', value: 'East Point Hill' },
+          { language: 'zh', value: '東角山' },
+          { language: 'zh', value: '鵝頭山' },
+          { language: null, value: 'Unlabelled' },
+        ],
+      },
+    },
+  }
+  const after = {
+    properties: {
+      names: {
+        rules: [
+          before.properties.names.rules[1],
+          before.properties.names.rules[2],
+          { language: 'zh', value: '鵝頭嶺' },
+          before.properties.names.rules[4],
+          before.properties.names.rules[0],
+        ],
+      },
+    },
+  }
+  const rows = changeFields(
+    before,
+    after,
+    jsonFieldDiff(before, after),
+    true,
+    true,
+    'absent',
+  )
+  const rules = rows[0]?.children?.[0]?.children?.[0]
+  expect(rules?.key).toBe('rules')
+  expect(rules?.children).toHaveLength(1)
+  expect(rules?.children?.[0]?.children).toEqual([
+    { key: 'language', previousValue: 'zh', value: 'zh' },
+    { key: 'value', previousValue: '鵝頭山', value: '鵝頭嶺' },
+  ])
+})
+
+test('missing and null languages remain distinct and retain context on changed entries', () => {
+  const before = { rules: [{ value: 'Missing' }, { language: null, value: 'Old' }] }
+  const after = { rules: [{ language: null, value: 'New' }, before.rules[0]] }
+  const rows = changeFields(
+    before,
+    after,
+    jsonFieldDiff(before, after),
+    true,
+    true,
+    'absent',
+  )
+  expect(rows[0]?.children).toHaveLength(1)
+  expect(rows[0]?.children?.[0]?.children).toEqual([
+    { key: 'language', previousValue: 'null', value: 'null' },
+    { key: 'value', previousValue: 'Old', value: 'New' },
+  ])
+})
+
+test('ambiguous repeated-language edits are not paired arbitrarily and preserve multiplicity', () => {
+  const before = {
+    rules: [
+      { language: 'en', value: 'One' },
+      { language: 'en', value: 'Two' },
+    ],
+  }
+  const after = {
+    rules: [
+      { language: 'en', value: 'Three' },
+      { language: 'en', value: 'Four' },
+    ],
+  }
+  const rows = changeFields(
+    before,
+    after,
+    jsonFieldDiff(before, after),
+    true,
+    true,
+    'absent',
+  )
+  expect(rows[0]?.children).toHaveLength(4)
+  const values = rows[0]?.children?.flatMap(
+    row => row.children?.filter(child => child.key === 'value') ?? [],
+  )
+  expect(values).toEqual([
+    { key: 'value', previousValue: 'One', value: 'absent' },
+    { key: 'value', previousValue: 'Two', value: 'absent' },
+    { key: 'value', previousValue: 'absent', value: 'Three' },
+    { key: 'value', previousValue: 'absent', value: 'Four' },
+  ])
+  const duplicates = { rules: [before.rules[0], before.rules[0]] }
+  const single = { rules: [before.rules[0]] }
+  expect(
+    changeFields(
+      duplicates,
+      single,
+      jsonFieldDiff(duplicates, single),
+      true,
+      true,
+      'absent',
+    )[0]?.children,
+  ).toHaveLength(1)
 })

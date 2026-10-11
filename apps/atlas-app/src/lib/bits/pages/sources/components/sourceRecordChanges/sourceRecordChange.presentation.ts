@@ -4,40 +4,80 @@ import type { ReleaseSampleField } from '#lib/bits/pages/docs/components/release
 function entries(value: unknown): [string, unknown][] {
   return value !== null && typeof value === 'object' ? Object.entries(value) : []
 }
-// Language identifies translated entries; variants and sides disambiguate repeated locales.
-// Fall back to indices when the available identity is ambiguous.
+// Pair translations by identity, then cancel exact matches within repeated identities.
+// Multiple remaining candidates are shown as additions/removals rather than guessed pairs.
 function languageEntries(left: unknown, right: unknown) {
   if (!Array.isArray(left) || !Array.isArray(right)) return null
   const items = [...left, ...right]
   if (
-    !items.length ||
+    !items.some(
+      item => item && typeof item === 'object' && Object.hasOwn(item, 'language'),
+    ) ||
     !items.every(
       item =>
         item &&
         typeof item === 'object' &&
         !Array.isArray(item) &&
-        (typeof item.language === 'string' || item.language === null),
+        (!Object.hasOwn(item, 'language') ||
+          typeof item.language === 'string' ||
+          item.language === null),
     )
   )
     return null
-  for (const keys of [['language'], ['language', 'variant', 'side']]) {
-    const keyed = (values: Record<string, unknown>[]) =>
-      values.map(
-        item =>
-          [
-            keys.map(key => `${key}=${JSON.stringify(item[key] ?? null)}`).join(', '),
-            item,
-          ] as [string, unknown],
+  const identity = (item: Record<string, unknown>, keys: string[]) =>
+    keys
+      .map(
+        key =>
+          `${key}=${Object.hasOwn(item, key) ? JSON.stringify(item[key]) : 'missing'}`,
       )
-    const previous = keyed(left)
-    const current = keyed(right)
-    if (
-      new Set(previous.map(([key]) => key)).size === left.length &&
-      new Set(current.map(([key]) => key)).size === right.length
-    )
-      return { previous, current }
+      .join(', ')
+  const uniqueLanguages = (values: Record<string, unknown>[]) =>
+    new Set(values.map(item => identity(item, ['language']))).size === values.length
+  const keys =
+    uniqueLanguages(left) && uniqueLanguages(right)
+      ? ['language']
+      : ['language', 'variant', 'side']
+  const group = (values: Record<string, unknown>[]) => {
+    const groups = new Map<string, Record<string, unknown>[]>()
+    for (const item of values) {
+      const key = identity(item, keys)
+      const bucket = groups.get(key) ?? []
+      bucket.push(item)
+      groups.set(key, bucket)
+    }
+    return groups
   }
-  return null
+  const before = group(left)
+  const after = group(right)
+  const previous: [string, unknown][] = []
+  const current: [string, unknown][] = []
+  for (const key of new Set([...before.keys(), ...after.keys()])) {
+    const oldItems = before.get(key) ?? []
+    const remaining = [...(after.get(key) ?? [])]
+    const unmatched: Record<string, unknown>[] = []
+    const repeated = Math.max(oldItems.length, remaining.length) > 1
+    let occurrence = 0
+    const pair = (
+      oldItem?: Record<string, unknown>,
+      newItem?: Record<string, unknown>,
+    ) => {
+      const label = repeated ? `${key}, occurrence=${occurrence++}` : key
+      if (oldItem) previous.push([label, oldItem])
+      if (newItem) current.push([label, newItem])
+    }
+    for (const oldItem of oldItems) {
+      const index = remaining.findIndex(item => equalJson(oldItem, item))
+      if (index === -1) unmatched.push(oldItem)
+      else pair(oldItem, remaining.splice(index, 1)[0])
+    }
+    if (unmatched.length === 1 && remaining.length === 1) {
+      pair(unmatched[0], remaining[0])
+    } else {
+      for (const item of unmatched) pair(item, undefined)
+      for (const item of remaining) pair(undefined, item)
+    }
+  }
+  return { previous, current, identityKeys: keys }
 }
 
 function display(value: unknown, exists: boolean, absent: string) {
@@ -93,6 +133,28 @@ export function changeFields(
         nextPath,
         alignedParent || Boolean(aligned),
       )
+      if (aligned && children.length) {
+        const oldItem = new Map(entries(oldValue))
+        const newItem = new Map(entries(newValue))
+        for (const identityKey of [...aligned.identityKeys].reverse()) {
+          if (children.some(child => child.key === identityKey)) continue
+          if (
+            identityKey !== 'language' &&
+            !oldItem.has(identityKey) &&
+            !newItem.has(identityKey)
+          )
+            continue
+          children.unshift({
+            key: identityKey,
+            previousValue: display(
+              oldItem.get(identityKey),
+              oldItem.has(identityKey),
+              absent,
+            ),
+            value: display(newItem.get(identityKey), newItem.has(identityKey), absent),
+          })
+        }
+      }
       if (
         comparison &&
         changesOnly &&

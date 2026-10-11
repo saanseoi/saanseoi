@@ -8,6 +8,7 @@ import type {
   ReleaseStatsCopy,
   ReleaseStat,
 } from '#lib/bits/pages/docs/components/releaseStats/releaseStats.types.js'
+import BackToTop from './sourceRecordChangesBackToTop.svelte'
 import LoadingRows from './sourceRecordChangesSkeleton.svelte'
 import RecordChange from './sourceRecordChange.svelte'
 import {
@@ -112,6 +113,30 @@ async function load(base: string, signal: AbortSignal, cursor: string | null) {
     if (!signal.aborted) loading = false
   }
 }
+function loadMore() {
+  if (
+    loading ||
+    error ||
+    unavailable ||
+    !nextCursor ||
+    !controller ||
+    controller.signal.aborted
+  )
+    return
+  void load(requestUrl, controller.signal, nextCursor)
+}
+
+function observeEnd(node: HTMLElement) {
+  const observer = new IntersectionObserver(
+    entries => {
+      if (entries.some(entry => entry.isIntersecting)) loadMore()
+    },
+    { rootMargin: '300px 0px' },
+  )
+  observer.observe(node)
+  return { destroy: () => observer.disconnect() }
+}
+
 $effect(() => {
   const base = requestUrl
   const pending = new AbortController()
@@ -131,7 +156,8 @@ $effect(() => {
 })
 </script>
 
-<section class="space-y-4" aria-label={copy.diff} aria-busy={loading}>
+<BackToTop label={copy.backToTop} />
+<section class="space-y-2" aria-label={copy.diff} aria-busy={loading}>
   {#if overview}
     <Tooltip.Provider delayDuration={200}>
       <Overview
@@ -153,7 +179,9 @@ $effect(() => {
       {locale}
     />
   {/each}
-  {#if knownEmpty}
+  {#if !fromRelease}
+    <p class="text-body-md text-foreground-alt" role="status">{copy.noBaseline}</p>
+  {:else if knownEmpty}
     <p class="text-body-md text-foreground-alt" role="status">{copy.empty}</p>
   {:else if unavailable}
     <p class="text-body-md text-foreground-alt" role="status">{copy.unavailable}</p>
@@ -164,14 +192,16 @@ $effect(() => {
   {:else if !records.length}
     <p class="text-body-md text-foreground-alt" role="status">{copy.empty}</p>
   {/if}
-  {#if !knownEmpty && !loading && !unavailable && (nextCursor || error)}
+  {#if !knownEmpty && !loading && !unavailable && error}
     <button
       type="button"
       class="rounded border border-outline-variant px-4 py-2 text-label-sm hover:bg-surface-container disabled:opacity-50"
       disabled={loading}
       onclick={() => controller && void load(requestUrl, controller.signal, nextCursor)}
     >
-      {error ? copy.retry : copy.more}
+      {copy.retry}
     </button>
+  {:else if !knownEmpty && !loading && !unavailable && nextCursor}
+    <div use:observeEnd class="h-px" aria-hidden="true"></div>
   {/if}
 </section>

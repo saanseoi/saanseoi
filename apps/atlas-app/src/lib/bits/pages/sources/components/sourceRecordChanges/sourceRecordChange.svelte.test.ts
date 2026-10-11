@@ -46,7 +46,7 @@ for (const type of ['added', 'removed'] as const) {
       fields: [],
       locale: 'en',
     })
-    await screen.getByRole('button', { name: /division-2/ }).click()
+    await screen.getByRole('button', { name: /Record/ }).click()
     await expect
       .element(screen.getByText('Record detail', { exact: true }))
       .toBeVisible()
@@ -69,7 +69,7 @@ test('full-record mode includes unchanged values', async () => {
     locale: 'en',
     diff: false,
   })
-  await screen.getByRole('button', { name: /division-3/ }).click()
+  await screen.getByRole('button', { name: /Record/ }).click()
   await expect.element(screen.getByText('Full detail', { exact: true })).toBeVisible()
   await expect.element(screen.getByText('Not present', { exact: true })).toBeVisible()
 })
@@ -130,12 +130,79 @@ test('language-matched changes hide shifted unchanged translations', async () =>
     fields: jsonFieldDiff(before, after),
     locale: 'en',
   })
-  await screen.getByRole('button', { name: 'translations' }).click()
+  await screen.getByRole('button', { name: /Record/ }).click()
   await expect
     .element(screen.getByText('Unchanged Korean', { exact: true }))
     .not.toBeInTheDocument()
   await expect.element(screen.getByText('Old Spanish', { exact: true })).toBeVisible()
   await expect.element(screen.getByText('New Spanish', { exact: true })).toBeVisible()
   await expect.element(screen.getByText('New Japanese', { exact: true })).toBeVisible()
-  await expect.element(screen.getByText('es', { exact: true })).not.toBeInTheDocument()
+  await expect.element(screen.getByText('es', { exact: true }).first()).toBeVisible()
+  expect(screen.getByText('es', { exact: true }).all()).toHaveLength(2)
+})
+
+test('changed tags flatten properties and copying the ID keeps the record collapsed', async () => {
+  const before = {
+    properties: {
+      name: 'Village',
+      sources: [{ id: 'old', version: 1 }],
+      wikidata: null,
+    },
+    geometry: { coordinates: [1, 2] },
+  }
+  const after = {
+    properties: {
+      name: 'Village',
+      sources: [{ id: 'new', version: 2 }],
+      wikidata: 'Q123',
+    },
+    geometry: { coordinates: [3, 4] },
+  }
+  let copied = ''
+  const original = Object.getOwnPropertyDescriptor(navigator, 'clipboard')
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: {
+      writeText: async (value: string) => {
+        copied = value
+      },
+    },
+  })
+  try {
+    const screen = await render(SourceRecordChange, {
+      id: 'record-id',
+      type: 'changed',
+      before,
+      after,
+      fields: jsonFieldDiff(before, after),
+      locale: 'en',
+      diff: false,
+    })
+    const summary = screen.getByRole('button', { name: /Village/ })
+    for (const key of ['sources', 'wikidata', 'geometry']) {
+      await expect.element(screen.getByText(key, { exact: true })).toBeVisible()
+    }
+    await expect
+      .element(screen.getByText('properties', { exact: true }))
+      .not.toBeInTheDocument()
+    await expect
+      .element(screen.getByText('record-id', { exact: true }))
+      .not.toBeInTheDocument()
+    await screen.getByRole('button', { name: 'Copy ID', exact: true }).click()
+    expect(copied).toBe('record-id')
+    await expect.element(screen.getByRole('status')).toHaveTextContent('ID copied')
+    await expect.element(summary).toHaveAttribute('aria-expanded', 'false')
+    const copyButton = screen.getByRole('button', { name: 'Copy ID', exact: true })
+    const collapsedX = copyButton.element().getBoundingClientRect().x
+    await summary.click()
+    expect(copyButton.element().getBoundingClientRect().x).toBe(collapsedX)
+    await expect
+      .poll(() => screen.getByRole('status').element().textContent?.trim(), {
+        timeout: 3500,
+      })
+      .toBe('')
+  } finally {
+    if (original) Object.defineProperty(navigator, 'clipboard', original)
+    else Reflect.deleteProperty(navigator, 'clipboard')
+  }
 })

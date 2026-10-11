@@ -101,3 +101,78 @@ test('missing counts still request records', async () => {
   await expect.element(screen.getByText('No matching changes.')).toBeVisible()
   expect(fetch).toHaveBeenCalledTimes(1)
 })
+
+test('scrolling near the end loads one batch at a time and failures require retry', async () => {
+  let intersect!: IntersectionObserverCallback
+  const disconnect = vi.fn()
+  vi.stubGlobal(
+    'IntersectionObserver',
+    class {
+      constructor(
+        callback: IntersectionObserverCallback,
+        options?: IntersectionObserverInit,
+      ) {
+        if (options?.rootMargin === '300px 0px') intersect = callback
+      }
+      observe() {}
+      disconnect = disconnect
+    },
+  )
+  const records = Array.from({ length: 25 }, (_, index) => ({
+    sourceRecordId: `record-${index}`,
+    type: 'removed',
+    before: { name: `Village ${index}` },
+    after: null,
+    fields: [],
+  }))
+  let fail!: (reason: Error) => void
+  const fetch = vi
+    .fn()
+    .mockResolvedValueOnce(Response.json({ records, nextCursor: 'page-2' }))
+    .mockImplementationOnce(
+      () =>
+        new Promise((_, reject) => {
+          fail = reject
+        }),
+    )
+    .mockResolvedValueOnce(
+      Response.json({
+        records: [
+          { ...records[0], sourceRecordId: 'last', before: { name: 'Last village' } },
+        ],
+        nextCursor: null,
+      }),
+    )
+  vi.stubGlobal('fetch', fetch)
+  const screen = await render(Changes, props)
+  await expect.poll(() => intersect).toBeDefined()
+  expect(fetch).toHaveBeenCalledTimes(1)
+  const nearEnd = () =>
+    intersect(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    )
+  nearEnd()
+  nearEnd()
+  expect(fetch).toHaveBeenCalledTimes(2)
+  expect(new URL(String(fetch.mock.calls[1]?.[0])).searchParams.get('cursor')).toBe(
+    'page-2',
+  )
+  await expect
+    .element(screen.getByRole('status', { name: 'Loading changes…' }))
+    .toBeVisible()
+  fail(new Error('network failure'))
+  await expect.element(screen.getByRole('button', { name: 'Retry' })).toBeVisible()
+  nearEnd()
+  expect(fetch).toHaveBeenCalledTimes(2)
+  await screen.getByRole('button', { name: 'Retry' }).click()
+  await expect
+    .element(screen.getByRole('button', { name: /Last village/ }))
+    .toBeInTheDocument()
+  nearEnd()
+  expect(fetch).toHaveBeenCalledTimes(3)
+  expect(disconnect).toHaveBeenCalled()
+  await expect
+    .element(screen.getByRole('button', { name: 'Load more' }))
+    .not.toBeInTheDocument()
+})
