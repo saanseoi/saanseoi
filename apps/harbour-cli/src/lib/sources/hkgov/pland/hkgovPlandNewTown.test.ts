@@ -1,3 +1,5 @@
+import { canonicalDivisionPoint } from '@repo/core/pipeline/services/divisions/divisionPoint'
+import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import { describe, expect, test } from 'bun:test'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -8,6 +10,9 @@ import { asyncBufferFromFile } from 'hyparquet/src/node.js'
 import { LocalPipelineBucket } from '../../../pipeline/local/localBucket.ts'
 import { readPreparedDivisions } from '../../../pipeline/divisions/processLocalHkgovPlandDivisionSqlUploadPreparation.ts'
 import { prepareHkgovPlandNewTownParquet } from './hkgovPlandNewTown.ts'
+import { buildDeterministicUuidV5, canonicalGeneratedId } from '@repo/db'
+import { governmentPreparedSpecification } from '../../../../../../../libs/db/src/fieldLineageGovernmentPreparation'
+import { planningDivisionFieldRule } from '../../../../../../../libs/db/src/fieldLineagePlanningRules'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../../../..')
 const COHORTS = ['2006', '2011', '2016', '2021']
@@ -64,6 +69,34 @@ describe('Planning Department New Town source identifiers', () => {
           const sourceRecordId = division.newTown?.sourceRecordId
           const properties = input.features[index]?.properties
           if (!properties) throw new Error('Missing publisher feature.')
+          const identity = governmentPreparedSpecification(
+            'ds-hk-hkgov-pland-division-new-town',
+            'division',
+            'id',
+          )!
+          if (!('canonicalDivisionId' in identity))
+            throw new Error('Missing Planning identity specification.')
+          const name = properties.NewTown_en.trim()
+            .toLowerCase()
+            .replace(/\s+/g, ' ')
+            .replace(/\s*-\s*/g, '-')
+          expect(division.base.id).toBe(
+            canonicalGeneratedId(
+              buildDeterministicUuidV5(
+                identity.canonicalDivisionId!.namespace,
+                `hkgov-pland-new-town:hk:planning:${year}:${name}`,
+              ),
+            ),
+          )
+          expect(division.base).toMatchObject({
+            class: 'planning-newtown',
+            level: 3,
+            category: null,
+          })
+          expect(planningDivisionFieldRule('class')?.inputs).toEqual(['planning_level'])
+          expect(planningDivisionFieldRule('i18n.en.name')?.implementation.symbol).toBe(
+            'readPreparedDivisionsInternal',
+          )
           expect(sourceRecordId).toMatch(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
           expect(division.newTown?.properties).toEqual(properties)
           expect(division.newTown?.sourceGeometry).toEqual(
@@ -80,9 +113,17 @@ describe('Planning Department New Town source identifiers', () => {
             'zh-hant': properties.NewTown_Tc.trim(),
             'zh-hans': properties.NewTown_Sc.trim(),
           })
+          const area = areas[index]!.geometry as GeoJsonGeometry
+          const point = division.base.geometry as GeoJsonGeometry
+          if (point.type !== 'Point') throw new Error('Division must be a Point.')
+          expect(['Polygon', 'MultiPolygon']).toContain(area.type)
+          expect(canonicalDivisionPoint(point, { id: division.base.id, area })).toEqual(
+            point,
+          )
+          if (!division.newTown?.wasGeometryRepaired)
+            expect(division.newTown?.sourceGeometry).toEqual(area)
           expect(areas[index]).toMatchObject({
             division_id: division.base.id,
-            geometry: division.base.geometry,
             newtown_id: sourceRecordId,
             identifiers: { 'PLAND:NEWTOWN': sourceRecordId },
             sources: [{ dataset: 'hkgov-pland-new-town', newTownId: sourceRecordId }],

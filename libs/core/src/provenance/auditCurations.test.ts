@@ -1,4 +1,5 @@
 import { expect, test } from 'bun:test'
+import type { Json } from './types'
 import { enrichCurationGroups, cleanCurationWording } from './auditCurations'
 import { auditFixtureCatalogue, filterIndexedFixture } from './auditFixtureCatalogue'
 test('island members use retained names and completed drawing markers are hidden only in presentation', () => {
@@ -70,7 +71,7 @@ test('retained names make excluded records searchable without counting the name 
   ]!
   expect(group.rows).toHaveLength(1)
   expect(filterIndexedFixture(groups['curation-definitions']!, group, '測試')).toEqual(
-    groups['curation-definitions'],
+    groups['curation-definitions']!,
   )
 })
 test('geometry and withheld geometry use the division identity inside the feature', () => {
@@ -105,7 +106,7 @@ test('removes only the obsolete review sentence', () => {
 })
 
 test('preprocessing context restores publisher hierarchy without altering frozen evidence', () => {
-  const original = {
+  const original: { entries: Array<{ id: string; fields: Record<string, Json> }> } = {
     entries: [
       { id: 'x', fields: { hierarchies: { before: [], after: ['output'] } } },
       { id: 'y', fields: {} },
@@ -132,7 +133,10 @@ test('preprocessing context restores publisher hierarchy without altering frozen
       { fields: {} },
     ],
   })
-  expect(original.entries[0]!.fields.hierarchies!.before).toEqual([])
+  expect(original.entries[0]!.fields.hierarchies).toEqual({
+    before: [],
+    after: ['output'],
+  })
 })
 
 test('boundary source IDs resolve through retained island identity matches', () => {

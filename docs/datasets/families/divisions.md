@@ -1988,3 +1988,10 @@ The rollback database stores every affected canonical row and replay reference,
 including merged rows. Apply and rollback require no concurrent ingestion writers. Run
 `rollback.sql` from an empty SQLite connection to restore the backed-up rows. A second
 plan should report zero polygon-bearing Division rows to repair.
+
+Planning Division source interpretations associate each retained publisher cell with
+every primary, secondary, tertiary and subunit Division that lists that cell in its
+prepared membership. The writer uses the complete inventory, including unchanged
+Divisions, and retains explicit omissions for removed publisher assertions. Native New
+Town assertions resolve their own canonical Division. Division identities remain Points;
+companion DivisionAreas retain polygonal geometry.

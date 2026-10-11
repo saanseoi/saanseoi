@@ -1,3 +1,4 @@
+import { recordPlanningSourceResolutions } from './planningSourceResolutions'
 import { createDivisionPointGuard } from '@repo/core/pipeline/services/divisions/divisionPoint'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { resolveRemoteCacheDir } from '../../dbCache/localDbCacheTargets.ts'
@@ -132,6 +133,11 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
   ) as HarbourClient
   let published = false
 
+  let failureAuditScope: import('@repo/core/provenance').AuditScope = {
+    stage: 'preparation',
+    ownerId: resourceReleaseId,
+  }
+
   try {
     const { snapshot } = await runPlandProgressPhase(
       progress,
@@ -232,6 +238,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     )
     const deliveryContext = context
     let completionCounts: PlandDeliveryCounts
+    failureAuditScope = { stage: 'assembly', ownerId: snapshot.id }
     try {
       completionCounts = await deliverPlandWorkflow(
         {
@@ -297,6 +304,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             missingHistoryIds,
             missingNativeIds,
             nativeRecords,
+            omittedNativeRecords,
           } = await runPlandProgressPhase(
             progress,
             'Compare',
@@ -360,6 +368,9 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 missingHistoryIds,
                 missingNativeIds,
                 nativeRecords,
+                omittedNativeRecords: currentNativeRows.filter(row =>
+                  missingNativeIds.includes(row.sourceRecordId),
+                ),
               }
             },
           )
@@ -458,6 +469,13 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
             'Record',
             'Planning division history',
             async reportProgress => {
+              await recordPlanningSourceResolutions(
+                context.historyDb as unknown as HarbourWritableDb,
+                snapshot.id,
+                resourceReleaseId,
+                records,
+                omittedNativeRecords,
+              )
               await insertHistoryRows(
                 context.historyDb as unknown as HarbourWritableDb,
                 snapshot.id,
@@ -515,6 +533,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 wasPlanningGeometryRepaired,
               )
               const audit = await retainDivisionProvenance(bucket, {
+                scope: { stage: 'assembly', ownerId: snapshot.id },
                 resourceReleaseId,
                 datasetCode,
                 inputCount: records.length,
@@ -709,6 +728,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
     }
   } catch (error) {
     await retainProcessingFailure({
+      scope: failureAuditScope,
       error,
       store: bucket,
       target,

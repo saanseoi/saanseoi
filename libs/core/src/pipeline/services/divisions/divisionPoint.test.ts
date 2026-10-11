@@ -105,7 +105,7 @@ test('island-group labels may lie outside their member geometry while individual
     [NaN, 1],
     [181, 1],
     [1, 91],
-  ])
+  ] as [number, number][])
     expect(() =>
       canonicalDivisionPoint(
         { type: 'Point', coordinates },

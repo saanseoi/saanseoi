@@ -162,9 +162,10 @@ require an all-pairs segment comparison.
 
 Every source cell has one PPU, SPU, TPU and subunit code. It becomes a planning
 division, with PPU → SPU → TPU → subunit hierarchy edges carrying domain `planning`. The
-provider codes are retained in `identifiers` as `PLAND:PPU`, `PLAND:SPU`, `PLAND:TPU`,
-and `PLAND:SUBUNIT`. Canonical IDs are deterministic UUIDv5 values derived from the
-provider-scoped Planning Department identity and never reuse an Overture GERS ID.
+provider codes are retained in `identifiers` as `hkgov-pland.ppu`, `hkgov-pland.spu`,
+`hkgov-pland.tpu`, and `hkgov-pland.subunit`. Canonical IDs are deterministic UUIDv5
+values derived from the provider-scoped Planning Department identity and never reuse an
+Overture GERS ID.
 
 Planning Cell source record keys use `PLAND:<TPU>:<subunit>:<row ordinal>`, for example
 `PLAND:111:10:4385`. The TPU code already includes the PPU and SPU prefixes; all four
@@ -172,10 +173,10 @@ publisher codes remain in `properties`. The one-based delivery row ordinal disti
 repeated cell assertions. Prepared cell-group references use `PLAND:<TPU>:<subunit>`.
 
 The public `/v0.1/identityBridge` lookup derives mappings from the selected release
-records. Namespaces are `PLAND:PPU`, `PLAND:SPU`, `PLAND:TPU` and `PLAND:SUBUNIT`;
-subunit values use `<TPU>-<subunit>`. Only the record's own planning level contributes
-an identity: inherited parent codes are excluded. The lookup does not require a
-checked-in inventory of deterministic UUID mappings.
+records. Namespaces are `hkgov-pland.ppu`, `hkgov-pland.spu`, `hkgov-pland.tpu` and
+`hkgov-pland.subunit`; subunit values use `<TPU>-<subunit>`. Only the record's own
+planning level contributes an identity: inherited parent codes are excluded. The lookup
+does not require a checked-in inventory of deterministic UUID mappings.
 
 PPU, SPU and TPU areas are deterministic unions of their child cells. The raw cell
 feature properties and original geometry remain in `hkgovPlandPlanningCells`; canonical
@@ -228,8 +229,7 @@ Planning geometry reuses the simplified GeoJSON rather than running GEOS again.
 
 Each approved geometry repair is also recorded as a release processing action with the
 canonical division and source-cell reference. Aggregate repair counts remain in release
-stats; the per-record JSON evidence is available through
-`saanseoi reports:processing-actions --source hkgov-pland --resource-type division`.
+stats; the per-record JSON evidence is available through the release Audit view.
 
 The TPU/subunit source has no published names—only hierarchy codes. The adapter exposes
 those codes in canonical `identifiers` and does not manufacture labels for TPU/subunit
@@ -262,12 +262,12 @@ resource release for each type.
 
 The layers publish only English, Traditional Chinese and Simplified Chinese names—no
 stable feature code. The adapter derives lowercase English-name slugs for
-`hkgovPlandNewTowns.sourceRecordId` and `PLAND:NEWTOWN` lookup identifiers. Spaces,
-slashes and punctuation collapse to single hyphens, with no leading or trailing hyphens:
-`Fanling/Sheung Shui` becomes `fanling-sheung-shui` and `Sha Tin - Ma On Shan area`
-becomes `sha-tin-ma-on-shan-area`. Empty slugs and duplicate slugs within a cohort are
-rejected. The prepared division and area artefacts use the same slug in their
-`newtown_id` and source references.
+`hkgovPlandNewTowns.sourceRecordId` and `hkgov-pland.newTownId` lookup identifiers.
+Spaces, slashes and punctuation collapse to single hyphens, with no leading or trailing
+hyphens: `Fanling/Sheung Shui` becomes `fanling-sheung-shui` and
+`Sha Tin - Ma On Shan area` becomes `sha-tin-ma-on-shan-area`. Empty slugs and duplicate
+slugs within a cohort are rejected. The prepared division and area artefacts use the
+same slug in their `newtown_id` and source references.
 
 Canonical UUIDv5 values derive independently from the cohort and normalised English
 publisher name: lowercase, trimmed, repeated whitespace collapsed to one space, and
@@ -441,7 +441,8 @@ close only the previous owning version. Repeated source interpretations inherit 
 snapshot ancestry, and explicit omissions override that inheritance.
 
 Planning divisions and areas use stable `ss-` UUIDs. Subunit ancestry includes PPU, SPU
-and TPU; canonical identifiers retain the `PLAND:` namespace and native code spelling.
+and TPU; canonical identifiers use the `hkgov-pland` publisher object and preserve
+native code values.
 
 ## Division name completion
 
@@ -471,8 +472,29 @@ respective snapshot recipes. Ingestion definitions do not claim canonical field 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
 
+## Archive ownership
+
+Publisher inputs use `releaseSourceArchive` assets owned by their source release.
+Resource-specific source downloads use Parquet `resourceSourceArchive` assets owned by
+their resource release. Both have independently downloadable manifests.
+
 ## Publication dates
 
 Release fixtures retain verified CSDI publication days separately from reference
 cohorts. The [publication-date evidence](../../source-publication-dates.md) records the
 upstream field, verified dates and unresolved rolling compilations.
+
+Planning Division source interpretations associate each retained publisher cell with
+every primary, secondary, tertiary and subunit Division that lists that cell in its
+prepared membership. The writer uses the complete inventory, including unchanged
+Divisions, and retains explicit omissions for removed publisher assertions. Native New
+Town assertions resolve their own canonical Division. Division identities remain Points;
+companion DivisionAreas retain polygonal geometry.
+
+`scripts/backfill-planning-source-resolutions.py` validates existing Planning Unit
+interpretations against exact retained source hashes, pinned releases and replayed
+canonical membership. Supply `--meta`, `--history`, `--source` and `--output` paths for
+a dry run. `--apply` updates eligible interpretations transactionally after writing row
+backups, replay references and rollback SQL. Explicit omissions, source payloads and
+canonical geometry are preserved. Run a second dry run in a separate output directory to
+verify that no further changes are needed.

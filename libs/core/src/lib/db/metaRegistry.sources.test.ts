@@ -3,6 +3,7 @@ import { describe, expect, test } from 'bun:test'
 import { metaSchema } from '@repo/db'
 
 import {
+  getRegistrySourceRelease,
   listCurrentSnapshotCleanupCandidates,
   listRegistrySourcesPage,
 } from './metaRegistry'
@@ -103,5 +104,72 @@ describe('listRegistrySourcesPage', () => {
     expect(allCalls).toBe(4)
     expect(result).toHaveLength(200)
     expect(result[199]?.snapshotId).toBe('snapshot-199')
+  })
+})
+
+describe('getRegistrySourceRelease resources content', () => {
+  test('loads selectable resources without loading statistics or API releases', async () => {
+    const queriedTables: unknown[] = []
+    const resources = (['division', 'divisionArea', 'divisionBoundary'] as const).map(
+      resourceType => ({
+        id: `resource-${resourceType}`,
+        sourceReleaseId: 'release-1',
+        resourceType,
+        status: 'current' as const,
+      }),
+    )
+    const db = {
+      select() {
+        let table: unknown
+        const query = {
+          from(value: unknown) {
+            table = value
+            queriedTables.push(value)
+            return query
+          },
+          innerJoin() {
+            return query
+          },
+          leftJoin() {
+            return query
+          },
+          where() {
+            return query
+          },
+          limit() {
+            return query
+          },
+          orderBy() {
+            return query
+          },
+          async get() {
+            if (table === metaSchema.metaDatasets)
+              return { id: 'dataset-1', publisherId: 'publisher-1', i18n: {} }
+            if (table === metaSchema.metaPublishers)
+              return { id: 'publisher-1', i18n: {} }
+            return null
+          },
+          async all() {
+            if (table === metaSchema.metaSourceReleases)
+              return [{ id: 'release-1', datasetId: 'dataset-1' }]
+            if (table === metaSchema.metaResourceReleases) return resources
+            return []
+          },
+        }
+        return query
+      },
+    }
+    const result = await getRegistrySourceRelease(
+      db as never,
+      'dataset-1',
+      'release-1',
+      { content: 'resources' },
+    )
+    expect(result?.sourceVersions[0]?.resources).toEqual(
+      resources.map(({ sourceReleaseId, ...resource }) => ({ ...resource, stats: [] })),
+    )
+    expect(queriedTables).toContain(metaSchema.metaResourceReleases)
+    expect(queriedTables).not.toContain(metaSchema.stats)
+    expect(queriedTables).not.toContain(metaSchema.metaApiReleaseSets)
   })
 })
