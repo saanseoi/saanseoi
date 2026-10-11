@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:825b7bfcf0d9606295a93f6764f40c991e141b897f623a9c8afe0112b824ac55",
+  "versionHash": "sha256:42d45da7fc77f34aceeb9772d096ee36097baadec122a6d3e326f75cada1a49f",
   "publisherCode": "protomaps",
   "code": "ds-hk-protomaps-island",
   "regionCode": "hk",
@@ -54,15 +54,15 @@
   "i18n": {
     "en": {
       "name": "Islands",
-      "description": "Native OSM island features and references to detached coastline components from the selected Hong Kong Protomaps basemap release. Full coastline geometry is retained once as shared source evidence for island selection and administrative land clipping."
+      "description": "Island locations and shapes from OpenStreetMap, together with the coastline used in the Protomaps map of Hong Kong. SaanSeoi uses this data to identify islands and keep administrative boundaries on land rather than extending into the sea."
     },
     "zh-hant": {
       "name": "島嶼",
-      "description": "從選定的香港 Protomaps 底圖版本擷取原生 OSM 島嶼要素及離岸海岸線部分的參照。完整海岸線幾何僅儲存一份，作為島嶼選取及行政區域陸地裁切的共用來源證據。"
+      "description": "OpenStreetMap 的島嶼位置和形狀，以及 Protomaps 香港地圖使用的海岸線。山水利用這些資料辨識島嶼，並將行政區域邊界限制在陸地上，避免延伸至海面。"
     },
     "zh-hans": {
       "name": "岛屿",
-      "description": "从选定的香港 Protomaps 底图版本提取原生 OSM 岛屿要素及离岸海岸线部分的引用。完整海岸线几何仅存储一份，作为岛屿选取及行政区域陆地裁切的共用来源证据。"
+      "description": "OpenStreetMap 的岛屿位置和形状，以及 Protomaps 香港地图使用的海岸线。山水利用这些资料识别岛屿，并将行政区域边界限制在陆地上，避免延伸至海面。"
     }
   },
   "processingRules": [
