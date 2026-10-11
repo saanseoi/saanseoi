@@ -133,7 +133,7 @@ export function startR2Process(
       key: string,
       path: string,
       metadata: R2Metadata,
-      requestOptions: { sourceFile?: boolean } = {},
+      requestOptions: { sourceFile?: boolean; download?: boolean } = {},
     ) {
       const lane = nextQueue++ % queues.length
       const result = queues[lane]!.then(async () => {
@@ -166,6 +166,7 @@ export function startR2Process(
                 path,
                 metadata,
                 ...(requestOptions.sourceFile ? { sourceFile: true } : {}),
+                ...(requestOptions.download ? { download: true } : {}),
               }),
             )
             renameSync(temporaryPath, requestPath)

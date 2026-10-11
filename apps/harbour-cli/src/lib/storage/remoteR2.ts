@@ -56,7 +56,7 @@ async function openBucket(environment: 'local' | 'preview' | 'production') {
     const client = startR2Process(configPath, {
       persistPath:
         environment === 'local'
-          ? resolve(import.meta.dir, '../../../../../.local/d1/dev')
+          ? resolve(import.meta.dir, '../../../../../.local/d1/dev/v3')
           : undefined,
     })
     worker = client
@@ -132,4 +132,15 @@ export async function retainLocalR2File(
   const session = sessions.get('local') ?? openBucket('local')
   sessions.set('local', session)
   await (await session).retainFile(key, path, metadata)
+}
+
+/** Retain a bounded immutable JSON object in the app-accessible local R2 bucket. */
+export async function retainLocalR2Object(
+  key: string,
+  bytes: Uint8Array,
+  metadata: R2Metadata,
+) {
+  const session = sessions.get('local') ?? openBucket('local')
+  sessions.set('local', session)
+  await (await session).retain(key, bytes, metadata)
 }

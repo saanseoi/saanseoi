@@ -34,7 +34,7 @@ export async function pinLocalR2Mode(next: NonNullable<UploadTarget['r2']>) {
   if (await Bun.file(metaPath).exists()) {
     const db = new Database(metaPath, { readonly: true, create: false })
     try {
-      for (const table of ['assets', 'releaseProvenance']) {
+      for (const table of ['assets', 'releaseProvenance', 'processingAudits']) {
         if (
           db
             .query("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?")

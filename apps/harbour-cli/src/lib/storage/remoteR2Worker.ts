@@ -1,8 +1,9 @@
 // Wrangler binding RPC stalls under Bun; run this adapter with Node >=22.18.
 import { createWriteStream, readFileSync, readdirSync, rmSync } from 'node:fs'
-import { readFile } from 'node:fs/promises'
+import { readFile, writeFile } from 'node:fs/promises'
 import { getPlatformProxy } from 'wrangler'
 import { retainSourceFileInBucket } from './remoteR2SourceFile.ts'
+import { retryRemoteR2 } from './remoteR2Retry.ts'
 import type { SourceAssetStore } from '../../../../../libs/core/src/lib/services/sourceAssetTransfer.ts'
 import {
   retainObjectInBucket,
@@ -21,6 +22,7 @@ type Request = {
   path: string
   metadata: R2Metadata
   sourceFile?: boolean
+  download?: boolean
 }
 const output = createWriteStream('', { fd: 3 })
 const send = (value: object) => {
@@ -73,22 +75,31 @@ function consumeRequests(bucket: RemoteR2Bucket & SourceAssetStore) {
       try {
         const progress = (operation: string) =>
           send({ type: 'progress', id: request.id, operation })
-        if (request.sourceFile)
-          await retainSourceFileInBucket(
-            bucket,
-            request.key,
-            request.path,
-            request.metadata,
-            progress,
-          )
-        else
-          await retainObjectInBucket(
-            bucket,
-            request.key,
-            await readFile(request.path),
-            request.metadata,
-            progress,
-          )
+        // Restart retention with fresh bodies and verify persisted bytes/chunks first.
+        await retryRemoteR2(async () => {
+          if (request.download) {
+            progress('downloading')
+            const object = await bucket.get(request.key)
+            if (!object)
+              throw new Error(`Evidence archive object is missing: ${request.key}`)
+            await writeFile(request.path, new Uint8Array(await object.arrayBuffer()))
+          } else if (request.sourceFile)
+            await retainSourceFileInBucket(
+              bucket,
+              request.key,
+              request.path,
+              request.metadata,
+              progress,
+            )
+          else
+            await retainObjectInBucket(
+              bucket,
+              request.key,
+              await readFile(request.path),
+              request.metadata,
+              progress,
+            )
+        }, progress)
         send({ type: 'done', id: request.id })
       } catch (error) {
         send({
