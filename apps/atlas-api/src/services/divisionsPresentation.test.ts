@@ -84,3 +84,30 @@ test('public division hierarchies retain containment flags without leaking or mu
     }
   }
 })
+
+test('division resources do not expose polygons as identity geometry', () => {
+  const record = division('identity', 'administrative', { full: [] })
+  record.division.geometry = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [0, 0],
+        [2, 0],
+        [2, 2],
+        [0, 0],
+      ],
+    ],
+  }
+  const routeState = buildDivisionRouteState({
+    requestedVersionPath: 'divisions/v0.2',
+    requestedApiVersion: '0.2',
+    resolvedApiVersion: 'api-divisions-v0.2',
+    profile: 'map',
+  })
+  const resource = createDivisionResource({
+    baseUrl: 'https://api.saanseoi.hk',
+    routeState,
+    record,
+  })
+  expect(resource.attributes.geometry).toBeNull()
+})

@@ -1,3 +1,7 @@
+import {
+  canonicalDivisionPoint,
+  createDivisionPointGuard,
+} from '@repo/core/pipeline/services/divisions/divisionPoint'
 import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
 import { emptyDivisionHierarchies } from '@repo/db'
 import { materialiseDivisionHierarchies } from '@repo/core/pipeline/services/divisions/divisionHierarchies'
@@ -82,12 +86,15 @@ async function readPreparedDivisionsInternal(
   sourceRelease: string,
   allowTranslationGeneration: boolean,
   divisionCodesByCanonicalId: ReadonlyMap<string, string>,
+  pointGuard = createDivisionPointGuard(),
 ) {
   const file = await createAsyncBufferFromR2(bucket, key)
   const records: PreparedDivision[] = []
   for await (const batch of readParquetObjectsInBatches(file, 512)) {
     for (const raw of batch) {
-      records.push(await normalisePreparedDivision(raw, divisionCodesByCanonicalId))
+      records.push(
+        await normalisePreparedDivision(raw, divisionCodesByCanonicalId, pointGuard),
+      )
     }
   }
   const translationsByDivisionId = await resolveSourceReleaseNameTranslationsBatch({
@@ -139,9 +146,10 @@ async function readPreparedDivisionsInternal(
   )
 }
 
-async function normalisePreparedDivision(
+export async function normalisePreparedDivision(
   value: Record<string, unknown>,
   divisionCodesByCanonicalId: ReadonlyMap<string, string>,
+  pointGuard = createDivisionPointGuard(),
 ) {
   const id = requireString(value.id, 'id')
   const level = requireString(value.planning_level, 'planning_level')
@@ -149,7 +157,10 @@ async function normalisePreparedDivision(
   const identifiers = asRecord(value.identifiers)
   const sourceCellIds = value.source_cell_ids ?? []
   const i18n = normaliseI18n(value.i18n)
-  const geometry = parseWkbGeometry(value.geometry)
+  const geometry = canonicalDivisionPoint(parseWkbGeometry(value.geometry), {
+    id,
+    guard: pointGuard,
+  })
   if (!geometry) throw new Error(`Planning division ${id} has invalid geometry.`)
   const base = {
     bbox: calculateGeoJsonBbox(geometry),

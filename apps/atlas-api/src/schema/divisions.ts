@@ -210,15 +210,9 @@ const DivisionBoundaryGeometrySchema = z
     ),
   })
 
-const DivisionGeometrySchema = z
-  .union([
-    DivisionPointGeometrySchema,
-    DivisionPolygonGeometrySchema,
-    DivisionMultiPolygonGeometrySchema,
-  ])
-  .openapi('DivisionGeometry', {
-    description: openApiText('openapi_divisions_geometry_field_description'),
-  })
+const DivisionGeometrySchema = DivisionPointGeometrySchema.openapi('DivisionGeometry', {
+  description: openApiText('openapi_divisions_geometry_field_description'),
+})
 
 const DivisionAttributesSchema = z
   .object({

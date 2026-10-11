@@ -1,5 +1,13 @@
 # SaanSeoi Division statistics
 
+Canonical Division identities use representative Points. Canonicalisation preserves a
+valid source point or derives an interior point from polygonal source geometry using JTS
+`InteriorPoint`. The `division-representative-point` audit guard verifies point validity
+and strict containment where canonical area evidence is available. Source polygons and
+separate DivisionArea geometries retain their full extent. See the
+[Division point contract](../../families/divisions.md#representative-points-and-separate-areas)
+for null handling and area selection.
+
 The names fixture sets the complete bilingual village names for Sha Ha (沙下村), Fui Yiu
 Ha (灰窰下村) and Tui Min Hoi (對面海村), with ` Village` appended to each English place
 name. Their standalone `Village` and `村` alternatives are removed during assembly,

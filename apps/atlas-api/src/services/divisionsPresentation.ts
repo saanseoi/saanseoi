@@ -39,12 +39,11 @@ type DivisionPosition =
   | [longitude: number, latitude: number]
   | [longitude: number, latitude: number, elevation: number]
 
-type DivisionGeometry =
-  | { type: 'Point'; coordinates: DivisionPosition }
+type DivisionGeometry = { type: 'Point'; coordinates: DivisionPosition }
+
+type DivisionAreaGeometry =
   | { type: 'Polygon'; coordinates: DivisionPosition[][] }
   | { type: 'MultiPolygon'; coordinates: DivisionPosition[][][] }
-
-type DivisionAreaGeometry = Exclude<DivisionGeometry, { type: 'Point' }>
 
 type DivisionBoundaryGeometry =
   | { type: 'LineString'; coordinates: DivisionPosition[] }
@@ -60,32 +59,11 @@ function isDivisionPosition(value: unknown): value is DivisionPosition {
   )
 }
 
-function isDivisionPolygon(value: unknown): value is DivisionPosition[][] {
-  return (
-    Array.isArray(value) &&
-    value.length > 0 &&
-    value.every(
-      ring => Array.isArray(ring) && ring.length >= 4 && ring.every(isDivisionPosition),
-    )
-  )
-}
-
 function asDivisionGeometry(value: unknown): DivisionGeometry | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null
 
   const { coordinates, type } = value as Record<string, unknown>
   if (type === 'Point' && isDivisionPosition(coordinates)) {
-    return { type, coordinates }
-  }
-  if (type === 'Polygon' && isDivisionPolygon(coordinates)) {
-    return { type, coordinates }
-  }
-  if (
-    type === 'MultiPolygon' &&
-    Array.isArray(coordinates) &&
-    coordinates.length > 0 &&
-    coordinates.every(isDivisionPolygon)
-  ) {
     return { type, coordinates }
   }
 

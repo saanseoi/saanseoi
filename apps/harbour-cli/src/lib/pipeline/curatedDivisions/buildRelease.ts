@@ -417,6 +417,7 @@ export async function buildCuratedDivisionRelease(
     nameAliasAudit: data.nameAliasAudit,
   }
   const rules = finishPreparationRules(preparation, preparationCounts, baseline)
+  rules.guards.push(...data.pointGuards)
   if (rules.guards.some(guard => guard.status === 'failed'))
     throw new ProcessingGuardError(
       'Invalid prepared administrative hierarchy.',

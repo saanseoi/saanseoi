@@ -2831,7 +2831,7 @@
   "openapi_divisions_type_field_description": "The division's canonical classification within the selected domain, such as `district`, `planning-tpu` or `settlement`.",
   "openapi_divisions_division_code_field_description": "The SaanSeoi-curated code for this division in the selected domain, when one is assigned.",
   "openapi_divisions_snapshot_id_field_description": "The immutable SaanSeoi snapshot from which this record was produced.",
-  "openapi_divisions_geometry_field_description": "The division's geographic shape. It is a Point, Polygon or MultiPolygon in WGS 84 when available.",
+  "openapi_divisions_geometry_field_description": "The division's representative Point in WGS 84, or null when no point or area evidence is available. If the source supplies only an area, canonicalisation derives a point inside it. Request include=areas for separate polygons in included via relationships.areas, or include=boundaries for lines via relationships.boundaries.",
   "openapi_divisions_geometry_point_description": "A single position, used when the division is represented by one location rather than an area.",
   "openapi_divisions_geometry_polygon_description": "One enclosed area. Coordinates contain an outer ring and may contain interior holes.",
   "openapi_divisions_geometry_multi_polygon_description": "Two or more separate enclosed areas. Each polygon has an outer ring and may contain interior holes.",

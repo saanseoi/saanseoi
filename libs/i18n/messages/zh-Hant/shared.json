@@ -2815,7 +2815,7 @@
   "openapi_divisions_type_field_description": "此分區在所選領域中的標準分類，例如 `district`、`planning-tpu` 或 `settlement`。",
   "openapi_divisions_division_code_field_description": "此分區在所選領域中的 SaanSeoi 精選代碼（如有指派）。",
   "openapi_divisions_snapshot_id_field_description": "產生此記錄的不可變 SaanSeoi 快照。",
-  "openapi_divisions_geometry_field_description": "分區的地理形狀。如有提供，會以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。",
+  "openapi_divisions_geometry_field_description": "分區在 WGS 84 中的代表 Point；如無點位或面域依據，則為 null。如來源只提供面域，標準化時會計算其內部的點。查詢加入 include=areas，可透過 relationships.areas 從 included 讀取獨立多邊形；加入 include=boundaries 則可透過 relationships.boundaries 讀取邊界線。",
   "openapi_divisions_geometry_point_description": "單一座標位置；用於以一個位置而非區域表示的分區。",
   "openapi_divisions_geometry_polygon_description": "一個封閉區域。座標包含外環，亦可包含內部孔洞。",
   "openapi_divisions_geometry_multi_polygon_description": "兩個或以上彼此分離的封閉區域。每個多邊形都有外環，亦可包含內部孔洞。",

@@ -1,3 +1,9 @@
+import {
+  canonicalDivisionPoint,
+  createDivisionPointGuard,
+  divisionAreaUnion,
+} from '@repo/core/pipeline/services/divisions/divisionPoint'
+import { calculateGeoJsonBbox, type GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import type { ProtomapsIslandSelection } from '@repo/core/pipeline/services/sources/protomapsSourceViews'
 import {
   curatedSourceIdentifiers,
@@ -557,6 +563,26 @@ function assembleCuratedDivisionsInternal(input: {
       geometry,
     ])
   }
+  const pointGuard = createDivisionPointGuard()
+  for (const division of divisions.values()) {
+    const geometry =
+      typeof division.geometry === 'string'
+        ? JSON.parse(division.geometry)
+        : division.geometry
+    const point = canonicalDivisionPoint(geometry ?? null, {
+      id: division.id,
+      area: divisionAreaUnion(
+        (containmentAreas.get(division.id) ?? []) as GeoJsonGeometry[],
+      ),
+      guard: pointGuard,
+    })
+    division.geometry =
+      typeof division.geometry === 'string' ? JSON.stringify(point) : point
+    if (point && geometry?.type !== 'Point') {
+      const bbox = calculateGeoJsonBbox(point)
+      division.bbox = typeof division.bbox === 'string' ? JSON.stringify(bbox) : bbox
+    }
+  }
   resolveCuratedHierarchies(
     [...divisions.values()],
     outputAreas,
@@ -582,6 +608,7 @@ function assembleCuratedDivisionsInternal(input: {
     islandGroups: groupGeometry.map(({ geometry: _, ...group }) => group),
     aliases: Object.fromEntries(aliases),
     nameAliasAudit,
+    pointGuards: pointGuard.snapshot(),
   }
 }
 

@@ -1,5 +1,26 @@
 # Divisions dataset family
 
+## Representative points and separate areas
+
+A canonical Division carries a representative GeoJSON `Point`, never a polygon.
+Publisher points are preserved when valid. If the publisher supplies only a Polygon or
+MultiPolygon, canonicalisation uses JTS `InteriorPoint` to select a point strictly
+inside the area. The `division-representative-point` audit guard rejects invalid areas,
+non-finite coordinates and supplied points outside the canonical area, inside a hole, or
+on its boundary. This handles concave shapes and disconnected polygon parts without
+using a centroid that may fall outside the area.
+
+Area polygons remain in separate DivisionArea resources; boundary lines remain in
+DivisionBoundary resources. Publisher source geometry is retained unchanged. Containment
+uses the canonical area available to that operation, not every alternative, simplified
+or transformed representation. If neither point nor area evidence is available, the
+Division geometry is `null`; canonicalisation does not invent coordinates.
+
+Request `include=areas` or `include=boundaries` to load geometry resources through
+`relationships.areas` or `relationships.boundaries` and the response's `included` array.
+A derived Point receives a point bounding box. Existing authored display bounds are
+preserved; use the area resource's bounding box for the polygon extent.
+
 Village-name curations retain the place name when adding ` Village` in English or `村`
 in Traditional Chinese. Standalone suffixes are excluded from alternate names and
 variants; the unsuffixed place names remain available as source alternatives.
@@ -1927,3 +1948,17 @@ The Division guard `prepared-island-group-members` requires every output island 
 have at least one resolved member. Members must be unique output islands, not missing
 IDs, non-island divisions or the group itself. Preparation retains the resolved
 membership used to construct group geometry; seed lists alone do not satisfy this check.
+
+## Local representative-point repair
+
+`scripts/backfill-division-points.ts OUTPUT CURRENT.sqlite HISTORY.sqlite...` plans a
+repair of canonical polygon-bearing Division rows. `--apply` writes Points and point
+bounding boxes, recomputes canonical history hashes, merges identical canonical results
+and rewrites snapshot replay references. Publisher source rows and
+DivisionArea/DivisionBoundary rows are excluded.
+
+The output contains `plan.json`, `receipt.json`, `rollback.sqlite` and `rollback.sql`.
+The rollback database stores every affected canonical row and replay reference,
+including merged rows. Apply and rollback require no concurrent ingestion writers. Run
+`rollback.sql` from an empty SQLite connection to restore the backed-up rows. A second
+plan should report zero polygon-bearing Division rows to repair.

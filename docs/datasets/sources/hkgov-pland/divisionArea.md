@@ -1,5 +1,13 @@
 # Planning Department TPU and subunit areas
 
+Canonical Division identities use representative Points. Canonicalisation preserves a
+valid source point or derives an interior point from polygonal source geometry using JTS
+`InteriorPoint`. The `division-representative-point` audit guard verifies point validity
+and strict containment where canonical area evidence is available. Source polygons and
+separate DivisionArea geometries retain their full extent. See the
+[Division point contract](../../families/divisions.md#representative-points-and-separate-areas)
+for null handling and area selection.
+
 Planning cells retain their layer in `sourceLocator`. New Town assertions need no
 row-specific acquisition coordinate and omit that column.
 

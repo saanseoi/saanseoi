@@ -1,5 +1,13 @@
 # Census and Statistics Department District Council district areas
 
+Canonical Division identities use representative Points. Canonicalisation preserves a
+valid source point or derives an interior point from polygonal source geometry using JTS
+`InteriorPoint`. The `division-representative-point` audit guard verifies point validity
+and strict containment where canonical area evidence is available. Source polygons and
+separate DivisionArea geometries retain their full extent. See the
+[Division point contract](../../families/divisions.md#representative-points-and-separate-areas)
+for null handling and area selection.
+
 Canonical source references follow the
 [source evidence contract](../../families/source-evidence.md). Original publisher
 properties and file locators remain in retained source assertions.

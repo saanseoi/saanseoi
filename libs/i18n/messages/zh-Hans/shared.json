@@ -2809,7 +2809,7 @@
   "openapi_divisions_type_field_description": "此分区在所选领域中的规范分类，例如 `district`、`planning-tpu` 或 `settlement`。",
   "openapi_divisions_division_code_field_description": "此分区在所选领域中的 SaanSeoi 精选代码（如有指派）。",
   "openapi_divisions_snapshot_id_field_description": "生成此记录的不可变 SaanSeoi 快照。",
-  "openapi_divisions_geometry_field_description": "分区的地理形状。如有提供，会以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。",
+  "openapi_divisions_geometry_field_description": "分区在 WGS 84 中的代表 Point；如无点位或面域依据，则为 null。如来源只提供面域，标准化时会计算其内部的点。查询加入 include=areas，可通过 relationships.areas 从 included 读取独立多边形；加入 include=boundaries 则可通过 relationships.boundaries 读取边界线。",
   "openapi_divisions_geometry_point_description": "单一坐标位置；用于以一个位置而非区域表示的分区。",
   "openapi_divisions_geometry_polygon_description": "一个封闭区域。坐标包含外环，也可包含内部孔洞。",
   "openapi_divisions_geometry_multi_polygon_description": "两个或以上彼此分离的封闭区域。每个多边形都有外环，也可包含内部孔洞。",

@@ -1,3 +1,4 @@
+import { createDivisionPointGuard } from '@repo/core/pipeline/services/divisions/divisionPoint'
 import { buildSourceChurnCounts } from '@repo/core/pipeline/services/sources/sourceChurn'
 import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
 import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
@@ -174,6 +175,7 @@ export async function buildDivisionSqlState(
   const processingActions: ReleaseProcessingAction[] = []
   const branchCounts = createDivisionBranchCounts()
   const hierarchyGuard = createHongKongHierarchyGuard()
+  const pointGuard = createDivisionPointGuard()
   const records: DivisionPreparedRecord[] = []
   const seenIds = new Set<string>()
   const isInitialSourceLoad = currentSourceRows.size === 0
@@ -255,6 +257,7 @@ export async function buildDivisionSqlState(
         source: message,
         branchCounts,
         hierarchyGuard,
+        pointGuard,
         skipGeographicHierarchyPatch: isCuratedIslandRow(raw),
       })
       if (!exclusion && normalised.overtureHongKongDivisionClassificationCorrection)
@@ -529,6 +532,7 @@ export async function buildDivisionSqlState(
     curationDocuments: curationDocumentsFor(translationsByDivisionId),
     auditGuards: [
       hierarchyGuard,
+      ...pointGuard.snapshot(),
       {
         id: 'division-source-identities',
         summary: 'Require non-empty, unique source division identities.',

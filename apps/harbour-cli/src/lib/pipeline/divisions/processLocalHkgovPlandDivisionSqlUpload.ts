@@ -1,3 +1,4 @@
+import { createDivisionPointGuard } from '@repo/core/pipeline/services/divisions/divisionPoint'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { resolveRemoteCacheDir } from '../../dbCache/localDbCacheTargets.ts'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
@@ -248,6 +249,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
         async context => {
           const metaDb = context.metaDb as unknown as HarbourReadableDb &
             HarbourWritableDb
+          const pointGuard = createDivisionPointGuard()
           const records = await runPlandProgressPhase(
             progress,
             'Normalise',
@@ -261,6 +263,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 previewPlan.source === 'hkgov-pland-new-town'
                   ? await loadPlandNewTownDivisionCodes(metaDb)
                   : new Map(),
+                pointGuard,
               ),
           )
           validatePreparedDivisions(records, previewPlan.rowCount)
@@ -517,6 +520,7 @@ export async function processLocalHkgovPlandDivisionSqlUpload(
                 inputCount: records.length,
                 outputCount: records.length,
                 normalisation: planningDivisionRule.declaration,
+                guards: pointGuard.snapshot(),
                 actions:
                   repairedGeometryRecords.length > 0
                     ? [

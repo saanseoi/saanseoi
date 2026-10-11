@@ -3,9 +3,8 @@ import {
   scopedExclusions,
   type CurationApplicability,
 } from './curationApplicability'
-import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
-import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
-import InteriorPoint from 'jsts/org/locationtech/jts/algorithm/InteriorPoint.js'
+import { canonicalDivisionPoint } from './divisionPoint'
+import type { GeoJsonGeometry } from '../../geojson'
 import additions from '../../../../../../fixtures/meta/curations/saanseoi-division/division-additions.json'
 import classifications from '../../../../../../fixtures/meta/curations/saanseoi-division/division-classifications.json'
 import names from '../../../../../../fixtures/meta/curations/saanseoi-division/division-names.json'
@@ -95,7 +94,6 @@ export function buildCurationInventory(
   const areas = new Map(
     authoredAreas.map(feature => [feature.properties.divisionId, feature]),
   )
-  const reader = new GeoJSONReader(new GeometryFactory())
   const activeAdditions = additions.entries.filter(row =>
     curationApplies(row as CurationApplicability, context.releaseVersion),
   )
@@ -174,13 +172,14 @@ export function buildCurationInventory(
       names: curatedPrimaryNames(row.id, row.names),
       point: (() => {
         const area = areas.get(row.id)
-        if (area?.properties.corePoint) return area.properties.corePoint
-        const existing = points.get(row.id) ?? row.point
-        if (existing || !area) return existing
-        const centre = InteriorPoint.getInteriorPoint(reader.read(area.geometry))
-        if (!centre || !Number.isFinite(centre.x) || !Number.isFinite(centre.y))
-          throw Error(`Cannot derive an interior point for ${row.id}`)
-        return [centre.x, centre.y]
+        const existing = area?.properties.corePoint ?? points.get(row.id) ?? row.point
+        if (existing) return existing
+        return (
+          canonicalDivisionPoint(null, {
+            id: row.id,
+            area: area?.geometry as GeoJsonGeometry | undefined,
+          })?.coordinates ?? null
+        )
       })(),
       hierarchies: {
         full,

@@ -777,6 +777,7 @@ describe('normaliseDivisionRow i18n', () => {
       sources: [],
     })
 
+    expect(normalised.base.geometry).toMatchObject({ type: 'Point' })
     expect(normalised).toMatchObject({
       base: {
         hierarchies: { full: [] },

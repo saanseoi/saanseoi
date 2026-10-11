@@ -1,3 +1,4 @@
+import { canonicalDivisionPoint, createDivisionPointGuard } from './divisionPoint'
 import { buildSourceChurnCounts, type SourceChurnRecord } from '../sources/sourceChurn'
 import {
   saanseoiSourcePayload,
@@ -227,6 +228,7 @@ export type DivisionHierarchyLookup = ReadonlyMap<string, DivisionHierarchyLooku
 
 type DivisionNormaliseOptions = {
   nativeSourceEvidence?: boolean
+  pointGuard?: ReturnType<typeof createDivisionPointGuard>
   hierarchyGuard?: import('../../../provenance').AuditGuard
   /** A curated replacement will validate this identity's final hierarchy. */
   deferHierarchyGuard?: boolean
@@ -497,6 +499,7 @@ export async function processDivisionDataset(
   const processingActions: ReleaseProcessingAction[] = []
   const branchCounts = createDivisionBranchCounts()
   const hierarchyGuard = createHongKongHierarchyGuard()
+  const pointGuard = createDivisionPointGuard()
   const sourceBaselineSources =
     sourceDb && (message.source === 'overture' || message.source === 'saanseoi')
       ? [
@@ -599,6 +602,7 @@ export async function processDivisionDataset(
         source: message,
         branchCounts,
         hierarchyGuard,
+        pointGuard,
       })
       if (normalised.overtureHongKongDivisionClassificationCorrection) {
         processingActions.push(
@@ -965,7 +969,7 @@ export async function processDivisionDataset(
     actions: processingActions,
     branchCounts,
     inputCount: processedRows,
-    guards: [hierarchyGuard],
+    guards: [hierarchyGuard, ...pointGuard.snapshot()],
     outputCount: processedRowsById.size,
   })
   await registerProcessingResult(
@@ -1500,7 +1504,16 @@ export function normaliseDivisionRow(
   options: DivisionNormaliseOptions = {},
 ) {
   try {
-    return divisionNormalisationRule.execute({ row, options })
+    const normalised = divisionNormalisationRule.execute({ row, options })
+    const sourceGeometry = normalised.base.geometry as GeoJsonGeometry | null
+    const geometry = canonicalDivisionPoint(sourceGeometry, {
+      id: normalised.base.id,
+      guard: options.pointGuard,
+    })
+    normalised.base.geometry = geometry
+    if (geometry && sourceGeometry?.type !== 'Point')
+      normalised.base.bbox = calculateGeoJsonBbox(geometry)
+    return normalised
   } catch (error) {
     if (error instanceof ProcessingGuardError) throw error
     const reason = error instanceof Error ? error.message : String(error)
