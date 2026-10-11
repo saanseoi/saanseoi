@@ -75,3 +75,9 @@ data/
 *.db
 *.sqlite3
 *.sqlite
+
+# Retained review payloads are checksum-addressed objects in ss-evidence R2.
+# Keep the small catalogue in Git; payload JSON is a verified local cache.
+/fixtures/reviews/**/*.json
+!/fixtures/reviews/manifest.json
+/fixtures/reviews/manifest.json.*
