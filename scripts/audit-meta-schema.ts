@@ -7,14 +7,16 @@ if (!databasePath)
 const db = new Database(databasePath, { readonly: true })
 const rows = (sql: string) => db.query(sql).all()
 const repairs = [
-  // A single shared child key is unambiguous. A multi-resource publisher archive
-  // must never be replaced by one arbitrarily selected prepared resource file.
-  `UPDATE sourceReleases AS s SET rawObjectKey = (
-    SELECT min(r.rawObjectKey) FROM resourceReleases r WHERE r.sourceReleaseId = s.id
-  ) WHERE s.rawObjectKey IS NULL AND EXISTS (
-    SELECT 1 FROM resourceReleases r WHERE r.sourceReleaseId = s.id
-    GROUP BY r.sourceReleaseId HAVING count(*) = count(r.rawObjectKey)
-      AND count(DISTINCT r.rawObjectKey) = 1
+  // Release ownership is authoritative; never infer dataset identity from an R2 key.
+  `UPDATE assets AS a SET datasetId = (
+    SELECT r.datasetId FROM resourceReleases r WHERE r.id = a.resourceReleaseId
+  ) WHERE a.datasetId IS NULL AND EXISTS (
+    SELECT 1 FROM resourceReleases r WHERE r.id = a.resourceReleaseId
+  );`,
+  `UPDATE assets AS a SET datasetId = (
+    SELECT source.datasetId FROM assets source WHERE source.id = a.sourceAssetId
+  ) WHERE a.role = 'manifest' AND a.datasetId IS NULL AND EXISTS (
+    SELECT 1 FROM assets source WHERE source.id = a.sourceAssetId AND source.datasetId IS NOT NULL
   );`,
   // Copy retained release evidence only; never backdate today's dataset policy.
   `UPDATE sourceReleases AS s SET processingRules = (
@@ -32,6 +34,17 @@ const repairs = [
   );`,
 ]
 const report = {
+  missingAssetDatasets: rows(`SELECT a.id, a.role, a.resourceReleaseId, a.sourceAssetId
+    FROM assets a WHERE a.datasetId IS NULL AND (
+      a.resourceReleaseId IS NOT NULL OR EXISTS (
+        SELECT 1 FROM assets source WHERE source.id = a.sourceAssetId
+          AND (source.datasetId IS NOT NULL OR source.resourceReleaseId IS NOT NULL)
+      )
+    ) ORDER BY a.id`),
+  assetDatasetMismatches:
+    rows(`SELECT a.id, a.datasetId, r.datasetId AS releaseDatasetId
+    FROM assets a JOIN resourceReleases r ON r.id = a.resourceReleaseId
+    WHERE a.datasetId IS NOT NULL AND a.datasetId != r.datasetId`),
   datasets: rows(
     `SELECT code, sourceCrs, processingRules IS NOT NULL AS hasProcessingRules FROM datasets ORDER BY code`,
   ),
@@ -42,9 +55,10 @@ const report = {
   invalidStatsOwners: rows(
     `SELECT id FROM stats WHERE (resourceReleaseId IS NOT NULL) + (apiReleaseSetId IS NOT NULL) != 1`,
   ),
-  missingSourceMetadata: rows(`SELECT s.code, s.rawObjectKey IS NULL AS missingRawKey,
+  missingSourceMetadata:
+    rows(`SELECT s.code, NOT EXISTS (SELECT 1 FROM assets a WHERE a.sourceReleaseId = s.id AND a.role = 'releaseSourceArchive') AS missingSourceArchive,
     s.processingRules IS NULL AS missingProcessingRules FROM sourceReleases s
-    WHERE s.rawObjectKey IS NULL OR s.processingRules IS NULL ORDER BY s.code`),
+    WHERE NOT EXISTS (SELECT 1 FROM assets a WHERE a.sourceReleaseId = s.id AND a.role = 'releaseSourceArchive') OR s.processingRules IS NULL ORDER BY s.code`),
   resourceDatasetMismatches:
     rows(`SELECT r.code FROM resourceReleases r JOIN sourceReleases s
     ON s.id = r.sourceReleaseId WHERE s.datasetId != r.datasetId`),
