@@ -40,6 +40,9 @@ const OVERTURE_SOURCE_SCHEMA_RELEASES = SOURCE_SCHEMA_RELEASES.filter(
 ).map(({ schema, version }) => ({ schema, version }))
 
 const SOURCE_SCHEMA_DEFAULTS: Record<string, string> = {
+  saanseoi: '1.0',
+  protomaps: '1.0',
+  'hkgov-rvd': '1.0',
   'hkgov-dpo': '3.2',
   // GEO_PLACE_NAME has an observed stable point-gazetteer shape. New release
   // dates are publisher revisions, not schema revisions.

@@ -84,8 +84,12 @@ export function buildDatasetCode(
 ) {
   const productCode = productCodeForSource(source, resourceType)
   const datasetResourceType =
-    (source === 'hkgov-pland-pu' || source === 'hkgov-pland-new-town') &&
-    resourceType === 'divisionArea'
+    ((source === 'hkgov-pland-pu' ||
+      source === 'hkgov-pland-new-town' ||
+      source === 'saanseoi') &&
+      resourceType === 'divisionArea') ||
+    (source === 'overture' &&
+      (resourceType === 'divisionArea' || resourceType === 'divisionBoundary'))
       ? 'division'
       : resourceType
   const regionSlug = assertLowerKebabCodeSlug(regionCode, 'region')

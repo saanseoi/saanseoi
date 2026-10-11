@@ -45,10 +45,7 @@ export type DatasetRecord = {
   sourceVariant: string
   source: string
   sourceVersion: string
-  rawObjectKey: string | null
-  originalFileName: string
   releaseNotesUrl: string | null
-  notes: string | null
   status: ReleaseStatus
   supersedesDatasetId: string | null
   supersededByResourceReleaseId: string | null

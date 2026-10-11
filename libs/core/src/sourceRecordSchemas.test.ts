@@ -3,8 +3,109 @@ import { describe, expect, test } from 'bun:test'
 import {
   resolveOvertureSourceRecordFieldDefinition,
   resolveSourceRecordSchema,
+  retainedSourceSchema,
   sourceRecordRawPropertyFields,
 } from './sourceRecordSchemas'
+import { retainSourceProperties } from './pipeline/services/sources/retainedProperties'
+
+test('division schemas describe retained API field names at every depth', () => {
+  for (const resourceType of [
+    'division',
+    'divisionArea',
+    'divisionBoundary',
+  ] as const) {
+    const source = resolveSourceRecordSchema({
+      resourceType,
+      source: 'overture',
+      sourceVersion: '2025-11-19.0',
+    })!
+    const raw = {
+      type: 'object',
+      properties: Object.fromEntries(
+        sourceRecordRawPropertyFields(source).map(field => [
+          field.name,
+          resolveOvertureSourceRecordFieldDefinition(source, field) ?? {},
+        ]),
+      ),
+    }
+    const before = structuredClone(raw)
+    const projected = retainedSourceSchema(raw)
+    const publisher = {
+      sources: [
+        {
+          dataset: 'publisher',
+          property: '/division_id',
+          record_id: 'original',
+          update_time: '2025-11-19',
+        },
+      ],
+      ...(resourceType === 'division'
+        ? {
+            parent_division_id: 'parent',
+            hierarchies: [
+              [{ division_id: 'parent', name: 'Name', subtype: 'country' }],
+            ],
+          }
+        : {
+            is_land: true,
+            is_territorial: true,
+            ...(resourceType === 'divisionArea'
+              ? { division_id: 'area' }
+              : { division_ids: ['a', 'b'], is_disputed: false }),
+          }),
+      type:
+        resourceType === 'divisionArea'
+          ? 'division_area'
+          : resourceType === 'divisionBoundary'
+            ? 'division_boundary'
+            : 'division',
+    }
+    const retained = retainSourceProperties(publisher) as Record<string, unknown>
+    for (const name of Object.keys(retained))
+      expect(projected.properties).toHaveProperty(name)
+    expect(projected.properties?.sources?.items?.properties).toHaveProperty('recordId')
+    expect(projected.properties?.sources?.items?.properties).toHaveProperty(
+      'updateTime',
+    )
+    expect(projected.properties?.type?.enum).toEqual([publisher.type])
+    expect((retained.sources as Array<Record<string, unknown>>)[0]?.property).toBe(
+      '/division_id',
+    )
+    if (resourceType === 'division') {
+      expect(
+        projected.properties?.hierarchies?.items?.items?.properties,
+      ).toHaveProperty('divisionId')
+      expect(projected.properties?.hierarchies?.items?.items?.required).toContain(
+        'divisionId',
+      )
+    }
+    expect(raw).toEqual(before)
+    expect(source.fields.some(field => field.name.includes('_'))).toBe(true)
+  }
+})
+
+test('schema projection preserves dictionary keys and projects their object values', () => {
+  const projected = retainedSourceSchema({
+    properties: {
+      common: {
+        properties: { 'zh-Hant': { type: 'string' }, en_US: { type: 'string' } },
+        required: ['en_US'],
+      },
+      entries: {
+        additionalProperties: {
+          properties: { record_id: { type: 'string' } },
+          required: ['record_id'],
+        },
+      },
+    },
+  })
+  expect(projected.properties?.common?.properties).toHaveProperty('en_US')
+  expect(projected.properties?.common?.required).toEqual(['en_US'])
+  expect(projected.properties?.entries?.additionalProperties).toMatchObject({
+    properties: { recordId: { type: 'string' } },
+    required: ['recordId'],
+  })
+})
 
 describe('source record schemas', () => {
   test('resolves the initial Overture Places payload fields', () => {
