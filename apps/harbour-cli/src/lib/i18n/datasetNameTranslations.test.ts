@@ -141,6 +141,71 @@ test('queues every missing English name with context instead of using unresearch
     expect(review.records[0].searchUrl).toContain('https://www.google.com/search?q=')
   }))
 
+test('removes the research queue after local curation resolves it', () =>
+  fixtureTest(async fixturePath => {
+    const input = {
+      datasetCode,
+      sourceRelease,
+      fixturePath,
+      records: [record],
+      allowGeneration: true,
+    }
+    const reviewPath = `${fixturePath}.english-review.json`
+    await expect(resolveDatasetNameTranslationsBatch(input)).rejects.toThrow(
+      'Missing researched English division names',
+    )
+    expect(JSON.parse(await readFile(reviewPath, 'utf8')).records).toHaveLength(1)
+    await writeFile(fixturePath, JSON.stringify(translationMap(datasetCode, [entry])))
+    const result = await resolveDatasetNameTranslationsBatch(input)
+    expect(result.get(record.recordId)?.localisations).toEqual([
+      { locale: 'en', name: 'Central' },
+    ])
+    await expect(readFile(reviewPath)).rejects.toMatchObject({ code: 'ENOENT' })
+    await expect(resolveDatasetNameTranslationsBatch(input)).resolves.toBeInstanceOf(
+      Map,
+    )
+  }))
+
+test('preserves research queues for remote runs and skipped automated entries', () =>
+  fixtureTest(async fixturePath => {
+    await writeFile(fixturePath, JSON.stringify(translationMap(datasetCode, [entry])))
+    const reviewPath = `${fixturePath}.english-review.json`
+    const review = JSON.stringify({ datasetCode, records: [record] })
+    await writeFile(reviewPath, review)
+    for (const options of [
+      { allowGeneration: false },
+      { allowGeneration: true, ignoreAutomated: true },
+    ]) {
+      await resolveDatasetNameTranslationsBatch({
+        datasetCode,
+        sourceRelease,
+        fixturePath,
+        records: [record],
+        ...options,
+      })
+      expect(await readFile(reviewPath, 'utf8')).toBe(review)
+    }
+  }))
+
+test('preserves research queues when another locale fails to resolve', () =>
+  fixtureTest(async fixturePath => {
+    const reviewPath = `${fixturePath}.english-review.json`
+    await writeFile(reviewPath, 'pending research')
+    await expect(
+      resolveDatasetNameTranslationsBatch({
+        datasetCode,
+        sourceRelease,
+        fixturePath,
+        allowGeneration: true,
+        records: [{ ...record, localisations: [{ locale: 'en', name: 'Central' }] }],
+        translate: async () => {
+          throw new Error('translation failed')
+        },
+      }),
+    ).rejects.toThrow('translation failed')
+    expect(await readFile(reviewPath, 'utf8')).toBe('pending research')
+  }))
+
 test('accepts human curation and preserves publisher English names', () =>
   fixtureTest(async fixturePath => {
     await writeFile(
@@ -202,16 +267,19 @@ test('curated Hong Kong English names resolve every queued context without Azure
       entry => entry.targetLocale === 'en',
     )
     const byName = new Map(entries.map(entry => [entry.sourceText, entry]))
-    expect(byName.size).toBe(28)
+    expect(byName.size).toBe(31)
     expect(byName.get('蠔田')?.text).toBe('Ho Tin')
     expect(byName.get('伍村')?.text).toBe('Ng Tsuen')
     expect(byName.get('貝澳圍')?.text).toBe('Pui O Wai')
     expect(byName.get('楊家村')?.text).toBe('Yeung Ka Tsuen')
+    expect(byName.get('阳家村')?.text).toBe('Yeung Ka Tsuen')
     let applications = 0
     for (const entry of entries) {
       expect(entry.machine).toBeUndefined()
       expect(entry.derivation).toBeTruthy()
-      expect(entry.references?.length).toBeGreaterThan(0)
+      if (entry.provenance === 'ai-translated') {
+        expect(entry.references?.length).toBeGreaterThan(0)
+      }
       const result = await resolveDatasetNameTranslationsBatch({
         datasetCode,
         fixturePath,
@@ -219,7 +287,12 @@ test('curated Hong Kong English names resolve every queued context without Azure
         records: (entry.recordIds ?? []).map(recordId => ({
           recordId,
           context: entry.context,
-          localisations: [{ locale: entry.sourceLocale, name: entry.sourceText! }],
+          localisations: [
+            { locale: entry.sourceLocale, name: entry.sourceText! },
+            ...(entry.sourceText === '阳家村'
+              ? [{ locale: 'zh-hant', name: '楊家村' }]
+              : []),
+          ],
         })),
         translate: async () => {
           throw new Error('curated names must not call Azure')
@@ -231,5 +304,23 @@ test('curated Hong Kong English names resolve every queued context without Azure
         applications++
       }
     }
-    expect(applications).toBe(40)
+    expect(applications).toBe(44)
+  }))
+
+test('Division policy ignores cached automated names and does not generate missing locales', () =>
+  fixtureTest(async fixturePath => {
+    await writeFile(fixturePath, JSON.stringify(translationMap(datasetCode, [entry])))
+    const result = await resolveDatasetNameTranslationsBatch({
+      datasetCode,
+      sourceRelease,
+      fixturePath,
+      records: [record],
+      ignoreAutomated: true,
+      allowGeneration: true,
+      translate: async () => {
+        throw new Error('automated generation is disabled')
+      },
+    })
+    expect(result.get(record.recordId)?.applications).toEqual([])
+    expect(result.get(record.recordId)?.localisations).toEqual([])
   }))

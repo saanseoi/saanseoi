@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
 import { captureCurationDocuments } from '../curationDocuments'
 import { dirname, resolve } from 'node:path'
 import {
@@ -97,6 +97,7 @@ type LegacyFixtureEntry = {
  */
 export async function resolveDatasetNameTranslationsBatch(input: {
   allowGeneration?: boolean
+  ignoreAutomated?: boolean
   datasetCode: string
   fixturePath?: string
   legacyFixturePath?: string
@@ -193,6 +194,8 @@ export async function resolveDatasetNameTranslationsBatch(input: {
               text: legacy.text,
             }
           : null)
+
+      if (input.ignoreAutomated && entry?.provenance !== 'human-translated') continue
 
       if (entry) {
         if (cached) {
@@ -348,6 +351,10 @@ export async function resolveDatasetNameTranslationsBatch(input: {
     fixture.entries = dedupeEntries(fixture.entries)
     fixture.entries.sort(compareEntries)
     await writeFixture(fixturePath, fixture)
+  }
+
+  if (input.allowGeneration && !input.ignoreAutomated) {
+    await rm(`${fixturePath}.english-review.json`, { force: true })
   }
 
   return captureCurationDocuments(
