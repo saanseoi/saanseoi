@@ -1,16 +1,14 @@
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
-import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { loadMigrationSql } from '../../../core/src/testing/metaFixtures'
 import geographic from '../../../../fixtures/meta/divisionCodes/geographic.json'
 import { validateDivisionCodeFixtures } from './meta'
 
-test('populated category migration preserves assignments and rejects cross-class collisions', () => {
+test('division code baseline retains assignments and rejects cross-class collisions', () => {
   const db = new Database(':memory:')
   try {
-    db.exec(`CREATE TABLE divisionCodes (
-      domainCode TEXT NOT NULL, divisionCode TEXT NOT NULL, divisionClass TEXT NOT NULL,
-      canonicalId TEXT NOT NULL, versionHash TEXT NOT NULL, createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL, PRIMARY KEY(domainCode, divisionClass, divisionCode))`)
+    db.exec(loadMigrationSql(resolve(import.meta.dir, '../../migrations'), ['meta']))
     const insert = db.prepare('INSERT INTO divisionCodes VALUES (?, ?, ?, ?, ?, ?, ?)')
     for (const row of geographic.assignments)
       insert.run(
@@ -22,15 +20,6 @@ test('populated category migration preserves assignments and rejects cross-class
         'now',
         'now',
       )
-    db.exec(
-      readFileSync(
-        new URL(
-          '../../migrations/meta/20260930060036_solid_kat_farrell/migration.sql',
-          import.meta.url,
-        ),
-        'utf8',
-      ),
-    )
     expect(db.query('SELECT count(*) AS n FROM divisionCodes').get()).toEqual({
       n: geographic.assignments.length,
     })

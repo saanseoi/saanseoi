@@ -23,6 +23,7 @@ import {
   resolveMergeRulesetDefinitions,
 } from './meta'
 import populationRule from '../../../../fixtures/meta/processing-rules/assembly/censtatd-population-thousands-to-persons.json'
+import saanseoiComposition from '../../../../fixtures/meta/apiCompositions/api-divisions-comp-v2.json'
 import { ruleDeclarationFromFixture } from '@repo/core/provenance/ruleFixture'
 
 test('referenced policy content determines resolved ruleset identity and descriptions', () => {
@@ -324,7 +325,7 @@ describe('fixture version hashes', () => {
     ).toBe(true)
   })
 
-  test('pairs C&SD HMA geometry with its canonical division and maps Permanent Living Quarters to Overture areas', () => {
+  test('pairs C&SD HMA geometry with its canonical division and maps Permanent Living Quarters to SaanSeoi areas', () => {
     const divisionsComposition = initialApiCompositions.find(
       composition => composition.code === 'comp-divisions-v1',
     )
@@ -358,7 +359,14 @@ describe('fixture version hashes', () => {
         member.domainCode === 'geographic' &&
         member.variant === 'hkgov-censtatd',
     )
-    expect(areaTypeMembers).toEqual([
+    expect(areaTypeMembers).toEqual([])
+    const saanseoiAreaTypeMembers = initialApiCompositionMembers.filter(
+      member =>
+        member.apiCompositionCode === 'comp-divisions-v2' &&
+        member.domainCode === 'geographic' &&
+        member.variant === 'hkgov-censtatd',
+    )
+    expect(saanseoiAreaTypeMembers).toEqual([
       expect.objectContaining({
         resourceType: 'divisionArea',
         isRequired: true,
@@ -366,6 +374,12 @@ describe('fixture version hashes', () => {
         cohortMatchingMode: 'latest_at_or_before_cohort_per_dataset',
       }),
     ])
+    expect(
+      saanseoiComposition.domains
+        .find(domain => domain.code === 'geographic')
+        ?.members.find(member => member.variant === 'hkgov-censtatd')
+        ?.ingestDependencies,
+    ).toEqual([{ resourceType: 'division', variant: 'saanseoi' }])
   })
 
   test('renames legacy domain labels in published registry metadata', () => {
@@ -753,6 +767,7 @@ test.each([
   ['area', 'district'],
   ['city', 'town'],
   ['village', 'hamlet'],
+  ['rural_area', 'village'],
   ['macrohood', 'microhood'],
   ['minor_island', 'island_group'],
 ])('rejects geographic code reuse between %s and %s', (left, right) => {
@@ -873,7 +888,7 @@ test('Address and Places composition members retain explicit collection variants
   }
 })
 
-test('migrated registry sync stores compositions without schema or ruleset pins', () => {
+test('migrated registry sync stores compositions without notes or schema or ruleset pins', () => {
   const db = new Database(':memory:')
   try {
     db.exec(loadMigrationSql(resolve(import.meta.dir, '../../migrations'), ['meta']))
@@ -884,6 +899,7 @@ test('migrated registry sync stores compositions without schema or ruleset pins'
       .query<{ name: string }, []>('PRAGMA table_info(apiComposition)')
       .all()
       .map(row => row.name)
+    expect(columns).not.toContain('notes')
     expect(columns).not.toContain('rulesetVersions')
     expect(columns).not.toContain('schemaVersion')
     expect(
@@ -892,6 +908,40 @@ test('migrated registry sync stores compositions without schema or ruleset pins'
     expect(db.query('SELECT count(*) AS count FROM apiComposition').get()).toEqual({
       count: initialApiCompositions.length,
     })
+  } finally {
+    db.close()
+  }
+})
+
+test('resource releases omit notes while source releases retain published documentation', () => {
+  const db = new Database(':memory:')
+  try {
+    db.exec(loadMigrationSql(resolve(import.meta.dir, '../../migrations'), ['meta']))
+    const columns = (table: string) =>
+      db
+        .query<{ name: string }, []>(`PRAGMA table_info(${table})`)
+        .all()
+        .map(row => row.name)
+    expect(columns('resourceReleases')).not.toContain('notes')
+    expect(columns('sourceReleases')).toContain('notes')
+    db.exec(`
+      PRAGMA foreign_keys = ON;
+      INSERT INTO publishers (id, code, versionHash) VALUES ('notes-publisher', 'notes-publisher', 'hash');
+      INSERT INTO datasets (id, publisherId, code, regionCode, releaseType, releaseFrequency, theme, resourceTypes, versionHash)
+      VALUES ('notes-dataset', 'notes-publisher', 'notes-dataset', 'hk', 'static', 'monthly', 'divisions', '["division"]', 'hash');
+      INSERT INTO sourceReleases (id, datasetId, code, sourceVersion, status, notes)
+      VALUES ('notes-source', 'notes-dataset', 'notes-source', '2026-10', 'staged', 'Published source documentation');
+      INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, status)
+      VALUES ('notes-resource', 'notes-source', 'notes-dataset', 'notes-resource', 'division', '2026-10', 'staged');
+    `)
+    expect(
+      db
+        .query(
+          `SELECT s.notes FROM resourceReleases r JOIN sourceReleases s ON s.id = r.sourceReleaseId WHERE r.id = 'notes-resource'`,
+        )
+        .get(),
+    ).toEqual({ notes: 'Published source documentation' })
+    expect(db.query('PRAGMA foreign_key_check').all()).toEqual([])
   } finally {
     db.close()
   }

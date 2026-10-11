@@ -9,6 +9,7 @@ const divisionIdColumns = [
   'areaId',
   'districtId',
   'townId',
+  'ruralAreaId',
   'macrohoodId',
   'neighbourhoodId',
   'microhoodId',

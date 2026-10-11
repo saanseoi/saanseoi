@@ -329,7 +329,6 @@ export const metaReleaseSetLifecycleJournal = sqliteTable(
     action: text('action').notNull(),
     statusFrom: text('statusFrom'),
     statusTo: text('statusTo'),
-    reason: text('reason'),
     metadataJson: jsonText('metadataJson'),
     createdAt: timestamps.createdAt,
   },
@@ -375,7 +374,7 @@ export const metaSnapshotRecipes = sqliteTable(
     resourceType: text('resourceType', { enum: datasetTypes }).notNull(),
     version: integer('version').notNull(),
     // Frozen assembly policy; ingestion policy belongs to source/resource releases.
-    processingRules: jsonText<{ definitionId: string }>('processingRules'),
+    processingRules: text('processingRules'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -430,7 +429,6 @@ export const metaApiComposition = sqliteTable(
     }).notNull(),
     defaultDomainCode: text('defaultDomainCode'),
     status: text('status').notNull(),
-    notes: text('notes'),
     versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
@@ -538,10 +536,9 @@ export const metaApiEndpoints = sqliteTable(
 /** Content-addressed general lineage, shared by every release using the same rules. */
 export const metaFieldLineageDefinitions = sqliteTable('fieldLineageDefinitions', {
   id: text('id').primaryKey(),
-  definition:
-    jsonText<import('../../fieldLineage').FieldLineageDefinition>(
-      'definition',
-    ).notNull(),
+  schemaVersion: integer('schemaVersion').notNull(),
+  manifestHash: text('manifestHash').notNull(),
+  manifestByteLength: integer('manifestByteLength').notNull(),
 })
 
 /** One root pin per API release; snapshots already pin concrete source inputs. */
@@ -550,4 +547,5 @@ export const metaApiFieldProvenance = sqliteTable('apiFieldProvenance', {
   definitionId: text('definitionId')
     .notNull()
     .references(() => metaFieldLineageDefinitions.id, { onDelete: 'restrict' }),
+  binding: jsonText<import('../../fieldLineage').FieldLineageReleaseBinding>('binding'),
 })

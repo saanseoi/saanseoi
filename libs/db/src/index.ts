@@ -72,3 +72,4 @@ export {
 export * from './statisticDefinitionSets'
 
 export * from './fieldLineage'
+export { resolveApiResponseFields } from './apiResponseFields'

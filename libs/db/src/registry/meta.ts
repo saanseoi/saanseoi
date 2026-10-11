@@ -183,7 +183,6 @@ type ApiCompositionFixture = {
   version: number
   primaryResourceType: ResourceType
   status: string
-  notes?: string
   members?: ApiCompositionMemberFixture[]
   domains?: Array<{
     code: string
@@ -286,7 +285,6 @@ type InitialApiCompositionSeed = VersionedFixture<{
   primaryResourceType: ResourceType
   defaultDomainCode?: string
   status: string
-  notes?: string
 }>
 
 type InitialApiCompositionMemberSeed = {
@@ -588,7 +586,6 @@ export const initialApiCompositions: InitialApiCompositionSeed[] =
     primaryResourceType: fixture.primaryResourceType,
     defaultDomainCode: fixture.domains?.find(domain => domain.isDefault)?.code,
     status: fixture.status,
-    notes: fixture.notes,
     versionHash: fixture.versionHash,
   }))
 
@@ -946,7 +943,7 @@ ON CONFLICT(id) DO NOTHING;`.trim(),
     statements.push(
       `
 INSERT INTO apiComposition (
-  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
+  id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, versionHash, createdAt, updatedAt
 ) VALUES (
   ${sqlDeterministicId(API_COMPOSITION_ID_NAMESPACE, composition.code)},
   (SELECT id FROM apiVersions WHERE code = ${sqlString(composition.apiVersion)}),
@@ -955,7 +952,6 @@ INSERT INTO apiComposition (
   ${sqlString(composition.primaryResourceType)},
   ${sqlNullable(composition.defaultDomainCode)},
   ${sqlString(composition.status)},
-  ${sqlNullable(composition.notes)},
   ${sqlString(composition.versionHash)},
   ${nowSql},
   ${nowSql}
@@ -966,7 +962,6 @@ ON CONFLICT(code) DO UPDATE SET
   primaryResourceType = excluded.primaryResourceType,
   defaultDomainCode = excluded.defaultDomainCode,
   status = excluded.status,
-  notes = excluded.notes,
   versionHash = excluded.versionHash,
   updatedAt = excluded.updatedAt
 WHERE apiComposition.versionHash <> excluded.versionHash;`.trim(),

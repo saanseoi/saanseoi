@@ -9,7 +9,8 @@ export const streetEvidenceAssetRoles = [
   'gazettePlanPreview',
   'governmentNotice',
   'historicalGovernmentNotice',
-  'sourceArchive',
+  'releaseSourceArchive',
+  'resourceSourceArchive',
   'sourcePage',
   'sourcePdf',
 ] as const
@@ -403,6 +404,7 @@ export const canonicalAddress2d = {
   microhoodId: text('microhoodId'),
   villageId: text('villageId'),
   neighbourhoodId: text('neighbourhoodId'),
+  ruralAreaId: text('ruralAreaId'),
   macrohoodId: text('macrohoodId'),
   townId: text('townId'),
   districtId: text('districtId'),

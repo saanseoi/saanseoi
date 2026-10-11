@@ -425,11 +425,14 @@ export function compileFieldLineage(
                 } satisfies FieldRef,
               ]),
             )
-            const curated = scope.source.datasetCode === 'ds-hk-saanseoi-division'
+            const curated =
+              scope.source.datasetCode === 'ds-hk-saanseoi-division' &&
+              scope.source.resourceType === 'division'
             if (curated) rawInputs.record = curatedRecord(scope)
             const sourceSpecification = sourceRetentionSpecification(
               scope.source.datasetCode ?? '',
               sourcePath,
+              scope.source.resourceType,
             )
             if (sourceSpecification)
               for (const path of sourceSpecification.inputs)
@@ -561,13 +564,13 @@ export function compileFieldLineage(
             if (declared && 'fieldPath' in declared) {
               const semantic =
                 /\.(class|isLand|isTerritorial)$/.exec(declared.fieldPath)?.[1] ??
-                (datasetCode === 'ds-hk-saanseoi-division-area' &&
+                (datasetCode === 'ds-hk-saanseoi-division' &&
                 declared.fieldPath === 'properties.type'
                   ? 'class'
                   : undefined)
               if (semantic) {
                 inputs[semantic] = input
-                if (datasetCode === 'ds-hk-saanseoi-division-area') {
+                if (datasetCode === 'ds-hk-saanseoi-division') {
                   const preparedInputs: Node['inputs'] = Object.fromEntries(
                     resolvePublisherFieldPaths(
                       declared.fieldPath,

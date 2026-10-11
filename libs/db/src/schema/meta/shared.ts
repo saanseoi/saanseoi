@@ -1,6 +1,5 @@
 import {
   check,
-  customType,
   index,
   integer,
   real,
@@ -22,12 +21,12 @@ export const processingRuns = sqliteTable(
     resourceReleaseId: text('resourceReleaseId').references(
       () => metaResourceReleases.id,
     ),
+    snapshotId: text('snapshotId').references(() => metaSnapshots.id),
+    apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id),
     stage: text('stage', { enum: ['ingestion', 'assembly', 'composition'] }).notNull(),
     phase: text('phase').notNull(),
     checkpoint: jsonText('checkpoint'),
     attempt: integer('attempt').notNull().default(1),
-    snapshotId: text('snapshotId').references(() => metaSnapshots.id),
-    apiReleaseSetId: text('apiReleaseSetId').references(() => metaApiReleaseSets.id),
     status: text('status', { enum: processingRunStatuses }).notNull(),
     results: jsonText('results'),
     error: jsonText('error'),
@@ -85,66 +84,6 @@ export const stats = sqliteTable(
     check(
       'stats_owner_chk',
       sql`(${table.resourceReleaseId} IS NOT NULL) != (${table.apiReleaseSetId} IS NOT NULL)`,
-    ),
-  ],
-)
-
-export const releaseProcessingActions = sqliteTable(
-  'releaseProcessingActions',
-  {
-    id: text('id').primaryKey(),
-    resourceReleaseId: text('resourceReleaseId')
-      .notNull()
-      .references(() => metaResourceReleases.id, { onDelete: 'cascade' }),
-    action: text('action').notNull(),
-    mode: text('mode', { enum: ['automatic', 'manual'] }).notNull(),
-    generation: text('generation').notNull(),
-    decisionCount: integer('decisionCount').notNull(),
-    affectedRecordCount: integer('affectedRecordCount').notNull(),
-    ...timestamps,
-  },
-  table => [
-    index('releaseProcessingActions_resourceReleaseId_idx').on(table.resourceReleaseId),
-    index('releaseProcessingActions_action_idx').on(table.action, table.mode),
-  ],
-)
-
-const auditBlob = customType<{ data: Uint8Array; driverData: Uint8Array }>({
-  dataType: () => 'blob',
-  toDriver: value => Uint8Array.from(value),
-  fromDriver: value => new Uint8Array(value),
-})
-
-// Chunks are staged before the summary generation is switched. Their lifetime is
-// release-owned, rather than tied to the currently visible summary rows.
-export const releaseProcessingActionChunks = sqliteTable(
-  'releaseProcessingActionChunks',
-  {
-    id: text('id').primaryKey(),
-    resourceReleaseId: text('resourceReleaseId')
-      .notNull()
-      .references(() => metaResourceReleases.id, { onDelete: 'cascade' }),
-    actionId: text('actionId').notNull(),
-    generation: text('generation').notNull(),
-    firstOrdinal: integer('firstOrdinal').notNull(),
-    decisionCount: integer('decisionCount').notNull(),
-    part: integer('part').notNull(),
-    parts: integer('parts').notNull(),
-    encoding: text('encoding', { enum: ['gzip-json-v1'] }).notNull(),
-    checksum: text('checksum').notNull(),
-    payload: auditBlob('payload').notNull(),
-  },
-  table => [
-    index('releaseProcessingActionChunks_page_idx').on(
-      table.actionId,
-      table.generation,
-      table.firstOrdinal,
-      table.part,
-    ),
-    index('releaseProcessingActionChunks_release_idx').on(table.resourceReleaseId),
-    check(
-      'releaseProcessingActionChunks_payload_chk',
-      sql`length(${table.payload}) <= 32768`,
     ),
   ],
 )

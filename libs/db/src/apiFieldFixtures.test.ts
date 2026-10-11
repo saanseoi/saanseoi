@@ -16,12 +16,9 @@ import { computeVersionHash } from './versioning'
 
 const overtureSourceSchemas = {
   'ds-hk-overture-division': '1.17.0',
-  'ds-hk-overture-division-area': '1.17.0',
-  'ds-hk-overture-division-boundary': '1.17.0',
   'ds-hk-hkgov-had-division-area-district': '1.2',
   'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
   'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
-  'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
 }
 
 describe('api field fixtures', () => {
@@ -63,7 +60,6 @@ describe('api field fixtures', () => {
         sourceSchemas: {
           'ds-hk-hkgov-dpo-address': '3.2',
           'ds-hk-overture-division': '1.18.0',
-          'ds-hk-overture-division-area': '1.18.0',
           'ds-hk-overture-place': '2.0.0',
           'ds-hk-saanseoi-division': '1.0',
         },
@@ -115,7 +111,7 @@ describe('api field fixtures', () => {
         ...lookup,
         sourceSchemas: { ...sourceSchemas, 'ds-hk-saanseoi-division': '1.0' },
       }),
-    ).toBeNull()
+    ).not.toBeNull()
   })
 
   test('statistics distinguish publisher periods, registry IDs and named measure outputs', () => {
@@ -238,7 +234,6 @@ describe('api field fixtures', () => {
           'ds-hk-hkgov-dpo-address': '3.2',
           'ds-hk-overture-place': '1.12.0',
           'ds-hk-overture-division': '1.18.0',
-          'ds-hk-overture-division-area': '1.18.0',
           'ds-hk-saanseoi-division': '1.0',
         },
       }
@@ -446,10 +441,10 @@ describe('api field fixtures', () => {
 
     expect(
       fixtures.filter(fixture => fixture.apiVersion !== 'api-divisions-v0.2'),
-    ).toHaveLength(13)
+    ).toHaveLength(15)
     expect(
       fixtures.filter(fixture => fixture.apiVersion === 'api-divisions-v0.2'),
-    ).toHaveLength(10)
+    ).toHaveLength(12)
     for (const fixture of fixtures) {
       expect(fixture.domainCode).not.toBe('')
       expect(fixture.lineageAnchors.length).toBeGreaterThan(0)
@@ -466,15 +461,13 @@ describe('api field fixtures', () => {
         rulesetVersion: 'rs-division-merge-v1',
         sourceSchemas: {
           'ds-hk-overture-division': '1.12.0',
-          'ds-hk-overture-division-area': '1.12.0',
-          'ds-hk-overture-division-boundary': '1.11.0',
           'ds-hk-hkgov-had-division-area-district': '1.2',
         },
       }),
     ).toBeNull()
   })
 
-  test('selects the density mapping for its distinct C&SD release signature', () => {
+  test('selects native Overture mappings without the SaanSeoi regional companion', () => {
     const cohorts = [
       { snapshotVersion: 'ss-hk-division-2025-09-24.0', version: '1.12.0' },
       { snapshotVersion: 'ss-hk-division-2025-10-22.0', version: '1.13.0' },
@@ -494,12 +487,8 @@ describe('api field fixtures', () => {
     for (const cohort of cohorts) {
       const sourceSchemas = {
         'ds-hk-overture-division': cohort.version,
-        'ds-hk-overture-division-area': cohort.version,
-        'ds-hk-overture-division-boundary': cohort.version,
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district':
-          '1.0',
       }
       const fixture = resolveApiFieldFixture({
         apiVersion: 'api-divisions-v0.1',
@@ -527,8 +516,6 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.12.0',
-        'ds-hk-overture-division-area': '1.12.0',
-        'ds-hk-overture-division-boundary': '1.12.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
         'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
@@ -557,12 +544,9 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.13.0',
-        'ds-hk-overture-division-area': '1.13.0',
-        'ds-hk-overture-division-boundary': '1.13.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
         'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 
@@ -574,7 +558,7 @@ describe('api field fixtures', () => {
     )
   })
 
-  test('selects the PLQ mapping before annual C&SD district geometry is available', () => {
+  test('rejects the SaanSeoi regional companion in an Overture composition', () => {
     const fixture = resolveApiFieldFixture({
       apiVersion: 'api-divisions-v0.1',
       domainCode: 'geographic',
@@ -583,22 +567,13 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.12.0',
-        'ds-hk-overture-division-area': '1.12.0',
-        'ds-hk-overture-division-boundary': '1.12.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
         'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 
-    expect(fixture?.fields).toContainEqual(
-      expect.objectContaining({
-        apiField: 'attributes.variant',
-        sourceDatasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-        variant: 'hkgov-censtatd',
-      }),
-    )
+    expect(fixture).toBeNull()
   })
 
   test('keeps the Overture 1.15 mapping across the 2025 to 2026 boundary', () => {
@@ -610,12 +585,9 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.15.0',
-        'ds-hk-overture-division-area': '1.15.0',
-        'ds-hk-overture-division-boundary': '1.15.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
         'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 
@@ -642,13 +614,10 @@ describe('api field fixtures', () => {
         rulesetVersion: 'rs-division-merge-v1',
         sourceSchemas: {
           'ds-hk-overture-division': cohort.version,
-          'ds-hk-overture-division-area': cohort.version,
-          'ds-hk-overture-division-boundary': cohort.version,
           'ds-hk-hkgov-had-division-area-district': '1.2',
           'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
           'ds-hk-hkgov-censtatd-division-statistic-population-households-district':
             '1.0',
-          'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
         },
       })
 
@@ -767,12 +736,9 @@ describe('api field fixtures', () => {
       rulesetVersion: 'rs-division-merge-v1',
       sourceSchemas: {
         'ds-hk-overture-division': '1.18.0',
-        'ds-hk-overture-division-area': '1.18.0',
-        'ds-hk-overture-division-boundary': '1.18.0',
         'ds-hk-hkgov-had-division-area-district': '1.2',
         'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': '1.0',
         'ds-hk-hkgov-censtatd-division-statistic-population-households-district': '1.0',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
       },
     })
 
@@ -1050,14 +1016,12 @@ test('anchors are unique and compositions cannot be borrowed from another branch
 test('initial curated release resolves its retained ingredient composition for API 0.2', () => {
   const sourceSchemas: Record<string, string> = {
     ...overtureSourceSchemas,
+    'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters': '1.0',
     'ds-hk-overture-division': '1.18.0',
-    'ds-hk-overture-division-area': '1.18.0',
-    'ds-hk-overture-division-boundary': '1.18.0',
     'ds-hk-hkgov-landsd-division': '1.0',
     'ds-hk-hkgov-rvd-division': '1.0',
     'ds-hk-protomaps-island': '1.0',
     'ds-hk-saanseoi-division': '1.0',
-    'ds-hk-saanseoi-division-area': '1.0',
   }
   delete sourceSchemas[
     'ds-hk-hkgov-censtatd-division-statistic-population-households-district'
@@ -1071,6 +1035,12 @@ test('initial curated release resolves its retained ingredient composition for A
     sourceSchemas,
   }
   expect(resolveApiFieldFixture(lookup)?.mappingVersion).toBe(3)
+  expect(
+    resolveApiFieldFixture({
+      ...lookup,
+      lineageSnapshotVersions: ['ss-hk-division-saanseoi-2026-10-01.0'],
+    })?.mappingVersion,
+  ).toBe(3)
   expect(
     resolveApiFieldFixture({
       ...lookup,

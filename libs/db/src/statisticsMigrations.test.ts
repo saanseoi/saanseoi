@@ -91,12 +91,7 @@ test('current and history share packed payloads and retain exact dictionary vers
     const currentColumns = columns(current, 'statsRecords').map(column => column.name)
     const historyColumns = columns(history, 'statsRecords').map(column => column.name)
     expect(currentColumns).not.toContain('dimensions')
-    for (const column of [
-      'values',
-      'fieldSources',
-      'fieldDefinitionHashes',
-      'versionHash',
-    ])
+    for (const column of ['values', 'fieldSources', 'definitionSetId', 'versionHash'])
       expect(currentColumns).toContain(column)
     for (const column of currentColumns) expect(historyColumns).toContain(column)
     expect(
@@ -105,6 +100,10 @@ test('current and history share packed payloads and retain exact dictionary vers
         .map(column => column.name),
     ).toEqual(['datasetCode', 'referencePeriodCode'])
     for (const db of [current, history]) {
+      expect(columns(db, 'statsDefinitionSets').map(column => column.name)).toEqual([
+        'id',
+        'fieldDefinitionHashes',
+      ])
       const keys = columns(db, 'statsFields')
         .filter(column => column.pk)
         .sort((a, b) => a.pk - b.pk)

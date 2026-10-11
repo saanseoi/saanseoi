@@ -67,6 +67,11 @@ export const address2d = sqliteTable(
       name: 'address2d_divisionSnapshotId_townId_divisions_fk',
     }),
     foreignKey({
+      columns: [table.divisionSnapshotId, table.ruralAreaId],
+      foreignColumns: [divisions.snapshotId, divisions.id],
+      name: 'address2d_divisionSnapshotId_ruralAreaId_divisions_fk',
+    }),
+    foreignKey({
       columns: [table.divisionSnapshotId, table.macrohoodId],
       foreignColumns: [divisions.snapshotId, divisions.id],
       name: 'address2d_divisionSnapshotId_macrohoodId_divisions_fk',
@@ -115,6 +120,9 @@ export const address2d = sqliteTable(
     index('address2d_townId_scope_id_idx')
       .on(table.townId, table.snapshotId, table.id)
       .where(sql`${table.townId} IS NOT NULL`),
+    index('address2d_ruralAreaId_scope_id_idx')
+      .on(table.ruralAreaId, table.snapshotId, table.id)
+      .where(sql`${table.ruralAreaId} IS NOT NULL`),
     index('address2d_macrohoodId_scope_id_idx')
       .on(table.macrohoodId, table.snapshotId, table.id)
       .where(sql`${table.macrohoodId} IS NOT NULL`),

@@ -43,10 +43,20 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
           columns.map(column => ({
             name: column.name,
             type: column.getSQLType().toUpperCase(),
-            notnull: Number(column.notNull),
+            // Drizzle emits column-level primary keys without explicit NOT NULL.
+            notnull: Number(column.notNull && !column.primary),
           })),
         )
         if (family === 'source') {
+          expect(actual.some(column => column.name === 'sourceLocator')).toBe(
+            [
+              'hkgovAlsAddresses2d',
+              'hkgovAlsAddresses3d',
+              'hkgovPlandPlanningCells',
+              'hkgovCenstatdStatistics',
+              'hkgovCenstatdDistrictLandAreaPopulationDensities',
+            ].includes(getTableName(table)),
+          )
           expect(actual.slice(-2).map(column => column.name)).toEqual([
             'createdAt',
             'updatedAt',

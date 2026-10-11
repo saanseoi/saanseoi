@@ -1,3 +1,5 @@
+import hmaDivisionDocument from '../../../fixtures/meta/apiFields/api-divisions-v0.1@hkgov-censtatd-hma-v1.json'
+import landsdDivisionDocument from '../../../fixtures/meta/apiFields/api-divisions-v0.1@hkgov-landsd-v1.json'
 import curatedDivisionDocument from '../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v3.json'
 import { canonicalResponseInputs, resolveApiResponseFields } from './apiResponseFields'
 import {
@@ -265,6 +267,8 @@ const apiFieldFixtures: ApiFieldFixture[] = [
   derivePermanentLivingQuartersFixture(
     apiDivisionsV01FixtureOverture116To118 as unknown as ApiFieldFixture,
   ),
+  expandApiFieldFixture(hmaDivisionDocument as unknown as ApiFieldFixtureDocument),
+  expandApiFieldFixture(landsdDivisionDocument as unknown as ApiFieldFixtureDocument),
   apiDivisionsV01FixturePlandNewTown2006 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2001 as ApiFieldFixture,
   apiDivisionsV01FixturePlandPu2021 as ApiFieldFixture,
@@ -352,6 +356,7 @@ function supportsSourceSchemas(
   fixture: ApiFieldFixture,
   anchor: ApiFieldFixtureLineageAnchor,
   selected: Record<string, string>,
+  variants: Record<string, string[]> = {},
 ) {
   return fixture.sourceCompositions.some(
     composition =>
@@ -363,8 +368,11 @@ function supportsSourceSchemas(
         return (
           version !== undefined &&
           range !== undefined &&
-          comparePublisherSchemaVersions(version, range.min) >= 0 &&
-          comparePublisherSchemaVersions(version, range.max) <= 0
+          (variants[dataset] ?? [version]).every(
+            version =>
+              comparePublisherSchemaVersions(version, range.min) >= 0 &&
+              comparePublisherSchemaVersions(version, range.max) <= 0,
+          )
         )
       }),
   )
@@ -395,13 +403,18 @@ export function resolveApiFieldFixture(args: {
   schemaVersion: string
   rulesetVersion: string
   sourceSchemas: Record<string, string>
+  sourceSchemaVariants?: Record<string, string[]>
 }) {
   const candidates = apiFieldFixtures
     .map(fixture => ({
       fixture,
       matchingAnchorIndexes: fixture.lineageAnchors.flatMap((anchor, index) =>
-        supportsSourceSchemas(fixture, anchor, args.sourceSchemas) &&
-        args.lineageSnapshotVersions.includes(anchor.snapshotVersion)
+        supportsSourceSchemas(
+          fixture,
+          anchor,
+          args.sourceSchemas,
+          args.sourceSchemaVariants,
+        ) && args.lineageSnapshotVersions.includes(anchor.snapshotVersion)
           ? [index]
           : [],
       ),

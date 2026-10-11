@@ -10,6 +10,7 @@ export const divisionTaxonomy = {
   district: { category: 'administrative', level: 2 },
   city: { category: 'locality', level: 1 },
   town: { category: 'locality', level: 3 },
+  rural_area: { category: 'locality', level: 4 },
   village: { category: 'locality', level: 5 },
   hamlet: { category: 'locality', level: 6 },
   macrohood: { category: 'hood', level: 4 },

@@ -1,27 +1,40 @@
 import { primaryKey, sqliteTable } from 'drizzle-orm/sqlite-core'
-import { jsonText, timestamps } from '../shared'
+import { binaryText, jsonText, timestamps } from '../shared'
 
 import { sourceAssertionColumns, sourceVersionIndexes } from './shared'
 
 /** Publisher payloads live only in properties; projections belong to canonical tables. */
-function overtureSourceTable<TName extends string>(name: TName) {
+function overtureSourceTable<TName extends string>(
+  name: TName,
+  compressedGeometry = false,
+) {
   return sqliteTable(
     name,
     {
       ...sourceAssertionColumns(),
-      sourceGeometry: jsonText('sourceGeometry'),
+      sourceGeometry: compressedGeometry
+        ? binaryText('sourceGeometry')
+        : jsonText('sourceGeometry'),
       ...timestamps,
     },
     table => [
-      primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+      compressedGeometry
+        ? primaryKey({
+            columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+          })
+        : primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
       ...sourceVersionIndexes(table, name),
     ],
   )
 }
 
 export const sourceOvertureDivisions = overtureSourceTable('overtureDivisions')
-export const sourceOvertureDivisionAreas = overtureSourceTable('overtureDivisionAreas')
+export const sourceOvertureDivisionAreas = overtureSourceTable(
+  'overtureDivisionAreas',
+  true,
+)
 export const sourceOvertureDivisionBoundaries = overtureSourceTable(
   'overtureDivisionBoundaries',
+  true,
 )
 export const sourceOverturePlaces = overtureSourceTable('overturePlaces')

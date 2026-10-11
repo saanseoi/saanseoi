@@ -34,7 +34,7 @@ export const metaDivisionCodes = sqliteTable(
     uniqueIndex('divisionCodes_geographic_locality_code')
       .on(table.divisionCode)
       .where(
-        sql`${table.domainCode} = 'geographic' AND ${table.divisionClass} IN ('city', 'town', 'village', 'hamlet')`,
+        sql`${table.domainCode} = 'geographic' AND ${table.divisionClass} IN ('city', 'town', 'rural_area', 'village', 'hamlet')`,
       ),
     uniqueIndex('divisionCodes_geographic_hood_code')
       .on(table.divisionCode)
@@ -48,7 +48,7 @@ export const metaDivisionCodes = sqliteTable(
       ),
     check(
       'divisionCodes_geographic_class',
-      sql`${table.domainCode} <> 'geographic' OR ${table.divisionClass} IN ('country', 'sar', 'area', 'district', 'city', 'town', 'village', 'hamlet', 'macrohood', 'neighbourhood', 'microhood', 'major_island', 'minor_island', 'islet', 'island_group')`,
+      sql`${table.domainCode} <> 'geographic' OR ${table.divisionClass} IN ('country', 'sar', 'area', 'district', 'city', 'town', 'rural_area', 'village', 'hamlet', 'macrohood', 'neighbourhood', 'microhood', 'major_island', 'minor_island', 'islet', 'island_group')`,
     ),
   ],
 )

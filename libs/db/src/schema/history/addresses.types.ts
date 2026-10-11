@@ -16,6 +16,7 @@ export type CurrentAddressVersionRow = Pick<
   | 'microhoodId'
   | 'villageId'
   | 'neighbourhoodId'
+  | 'ruralAreaId'
   | 'macrohoodId'
   | 'townId'
   | 'districtId'

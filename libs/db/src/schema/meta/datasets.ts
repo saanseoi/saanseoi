@@ -57,7 +57,7 @@ export const metaDatasets = sqliteTable(
     // Resolved, versioned merge-rule revisions are synchronised from the
     // registry. Releases copy this value so later dataset changes cannot
     // rewrite historic processing decisions; per-record exceptions belong in
-    // releaseProcessingActions instead.
+    // retained provenance instead.
     processingRules: jsonText('processingRules'),
     i18n: jsonText<MetaTranslations>('i18n').notNull().default({}),
     versionHash: text('versionHash').notNull(),
@@ -120,14 +120,12 @@ export const metaSourceReleases = sqliteTable(
     sourceSchemaVersion: text('sourceSchemaVersion'),
     publicationDate: text('publicationDate'),
     cohortKey: text('cohortKey'),
-    rawObjectKey: text('rawObjectKey'),
-    originalFileName: text('originalFileName'),
     releaseNotesUrl: text('releaseNotesUrl'),
     notes: text('notes'),
     status: text('status', { enum: releaseStatuses }).notNull(),
     // Content-addressed reference to the immutable processingRuleDefinitions row.
     // Releases sharing a policy retain the same reference.
-    processingRules: jsonText('processingRules'),
+    processingRules: text('processingRules'),
     ingestedAt: isoTimestamp('ingestedAt'),
     revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
@@ -177,14 +175,11 @@ export const metaResourceReleases = sqliteTable(
     geometryStatus: text('geometryStatus', {
       enum: ['authoritative', 'fallback'],
     }),
-    rawObjectKey: text('rawObjectKey'),
-    originalFileName: text('originalFileName'),
     releaseNotesUrl: text('releaseNotesUrl'),
-    notes: text('notes'),
     status: text('status', { enum: releaseStatuses }).notNull(),
     // Content-addressed reference to the immutable processingRuleDefinitions row.
     // Releases sharing a policy retain the same reference.
-    processingRules: jsonText('processingRules'),
+    processingRules: text('processingRules'),
     ingestedAt: isoTimestamp('ingestedAt'),
     revokedAt: isoTimestamp('revokedAt'),
     revocationReason: text('revocationReason'),
