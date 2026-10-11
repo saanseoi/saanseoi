@@ -2,7 +2,6 @@ import type { prepareUpload } from '@repo/core/uploadLocal'
 
 import type {
   ProcessingRunReportRow,
-  ProcessingActionReportRow,
   ReleaseReportRow,
   StatReportRow,
 } from '../api/reporting.ts'
@@ -321,21 +320,6 @@ export function formatStatsReportTable(rows: StatReportRow[]) {
 
       return [`release: ${releaseCode}`, ...sections].join('\n\n')
     })
-    .join('\n\n')
-}
-
-export function formatProcessingActionReport(rows: ProcessingActionReportRow[]) {
-  if (rows.length === 0) return 'No processing actions found.'
-
-  return rows
-    .map(row =>
-      [
-        `release: ${row.releaseCode}`,
-        `${row.mode}: ${row.action} (${formatNumber(row.affectedRecordCount)} records)`,
-        row.summary,
-        JSON.stringify(row.evidence, null, 2),
-      ].join('\n'),
-    )
     .join('\n\n')
 }
 

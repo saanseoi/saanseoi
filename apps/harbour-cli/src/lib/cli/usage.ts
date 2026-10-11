@@ -61,7 +61,6 @@ export function printUsage() {
   saanseoi stats:backfill-addresses --target local [--release API_RELEASE_CODE[,API_RELEASE_CODE...]] [--dry-run]
   saanseoi stats:backfill-statistics --target local [--release API_RELEASE_CODE[,API_RELEASE_CODE...]] [--dry-run]
   saanseoi stats:backfill-divisions --target local [--release API_RELEASE_CODE[,API_RELEASE_CODE...]] [--dry-run]
-  saanseoi reports:processing-actions [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--resource-type TYPE]
   saanseoi reports:releases [--target local|preview|production] [--limit 1-100] [--release <release-id|release-code>] [--source SOURCE] [--resource-type TYPE]
 `)
 }
