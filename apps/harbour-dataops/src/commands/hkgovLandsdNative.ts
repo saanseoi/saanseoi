@@ -23,6 +23,7 @@ import {
   type RoadCentrelineDistrict,
   type RoadCentrelineStreet,
 } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/roadCentreline.ts'
+import { ensurePreparedCsdiSourceArchive } from '../../../harbour-cli/src/lib/sources/sourceArchives.ts'
 import { assertSourceArchiveHash, isSha256 } from '../lib/sourceArchive.ts'
 import { groupRoadCentrelineIssues } from '../../../harbour-cli/src/lib/sources/hkgov/landsd/roadCentrelineReview.ts'
 import {
@@ -47,6 +48,14 @@ export async function runHkgovLandsdPlaceNameIngestCommand(
   const input = requireArchiveArguments(args, printUsage, PLACE_NAME_DATASET)
   const bytes = await readFile(input.archivePath)
   assertArchiveHash(bytes, input.sha256)
+  await ensurePreparedCsdiSourceArchive(target, {
+    expected: {
+      datasetCode: PLACE_NAME_DATASET,
+      objectKey: input.key,
+      sha256: input.sha256,
+    },
+    sourcePath: input.archivePath,
+  })
   const features = await readLandsdPlaceNameArchive(bytes)
   const rows = features.map(feature => ({
     properties: { ...feature.properties, placeNames: feature.placeNames },
@@ -97,6 +106,14 @@ export async function runHkgovLandsdRoadCentrelineIngestCommand(
   const input = requireArchiveArguments(args, printUsage, ROAD_CENTRELINE_DATASET)
   const bytes = await readFile(input.archivePath)
   assertArchiveHash(bytes, input.sha256)
+  await ensurePreparedCsdiSourceArchive(target, {
+    expected: {
+      datasetCode: ROAD_CENTRELINE_DATASET,
+      objectKey: input.key,
+      sha256: input.sha256,
+    },
+    sourcePath: input.archivePath,
+  })
   const archive = await readLandsdRoadCentrelineArchive(bytes)
   const resolvedCanonical =
     canonical.streets && canonical.districts

@@ -1,6 +1,14 @@
 import sourceFixture from '../../../../fixtures/meta/processing-rules/ingestion/protomaps-source-extraction.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { createHash } from 'node:crypto'
+import {
+  resolveProtomapsIslandSelections,
+  type ProtomapsIslandSelection,
+} from '@repo/core/pipeline/services/sources/protomapsSourceViews'
+import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
+import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
+import OverlayOp from 'jsts/org/locationtech/jts/operation/overlay/OverlayOp.js'
+import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 
 export type SourceFeature = {
   id?: string | number
@@ -22,9 +30,31 @@ export function sourceNames(tags: Record<string, unknown>) {
 }
 
 function extractSourceRecords(
-  { named, land }: { named: SourceFeature[]; land: SourceFeature[] },
+  {
+    named,
+    land,
+    landBorder,
+  }: {
+    named: SourceFeature[]
+    land: SourceFeature[]
+    landBorder: SourceFeature[]
+  },
   parameters: Readonly<typeof sourceFixture.parameters>,
 ) {
+  const reader = new GeoJSONReader(new GeometryFactory())
+  if (!landBorder.length)
+    throw Error('Island extraction requires the regional land border.')
+  const border = landBorder.map(feature => {
+    if (
+      !feature.geometry ||
+      !['LineString', 'MultiLineString'].includes(feature.geometry.type)
+    )
+      throw Error('Regional land border input must contain lines.')
+    const geometry = reader.read(feature.geometry)
+    if (geometry.isEmpty() || !IsValidOp.isValid(geometry))
+      throw Error('Regional land border input must contain valid, non-empty lines.')
+    return geometry
+  })
   const records = named
     .filter(feature => parameters.placeTags.includes(String(feature.properties?.place)))
     .map(feature => {
@@ -40,6 +70,9 @@ function extractSourceRecords(
         sourceGeometry: feature.geometry,
       }
     })
+  const islandSelections: ProtomapsIslandSelection[] = records.map(row => ({
+    sourceRecordId: row.sourceRecordId,
+  }))
   // Coastline polygonisation has no native feature IDs. Content identifies the
   // source component; LandsD names and review identities never enter its identity.
   for (const feature of land) {
@@ -48,10 +81,31 @@ function extractSourceRecords(
       !['Polygon', 'MultiPolygon'].includes(feature.geometry.type)
     )
       throw Error('Coastline land input must contain polygons.')
+    const geometry = feature.geometry
+    const components =
+      geometry.type === 'Polygon'
+        ? [geometry.coordinates as number[][][]]
+        : (geometry.coordinates as number[][][][])
+    const componentIndexes = components.flatMap((coordinates, index) => {
+      const polygon = reader.read({ type: 'Polygon', coordinates })
+      if (polygon.isEmpty() || !IsValidOp.isValid(polygon))
+        throw Error('Coastline land input must contain valid, non-empty polygons.')
+      // A shared segment identifies land connected across the regional border.
+      // A point contact alone does not make a detached island mainland.
+      const mainland = border.some(
+        line =>
+          polygon.getEnvelopeInternal().intersects(line.getEnvelopeInternal()) &&
+          OverlayOp.intersection(polygon, line).getLength() > 0,
+      )
+      return mainland ? [] : [index]
+    })
+    const sourceRecordId = `PROTOMAPS:LAND:${sha256(JSON.stringify(geometry))}`
+    if (componentIndexes.length)
+      islandSelections.push({ sourceRecordId, componentIndexes })
     records.push({
-      sourceRecordId: `PROTOMAPS:LAND:${sha256(JSON.stringify(feature.geometry))}`,
+      sourceRecordId,
       properties: { kind: 'coastline-land', tags: feature.properties ?? {}, names: {} },
-      sourceGeometry: feature.geometry,
+      sourceGeometry: geometry,
     })
   }
   const unique = new Map(records.map(row => [row.sourceRecordId, row]))
@@ -59,15 +113,40 @@ function extractSourceRecords(
     if (JSON.stringify(row) !== JSON.stringify(unique.get(row.sourceRecordId)))
       throw Error(`Conflicting source feature ${row.sourceRecordId}`)
   }
-  return [...unique.values()].sort((a, b) =>
-    a.sourceRecordId.localeCompare(b.sourceRecordId),
-  )
+  const selections = new Map<string, ProtomapsIslandSelection>()
+  for (const selection of islandSelections) {
+    const previous = selections.get(selection.sourceRecordId)
+    if (previous && JSON.stringify(previous) !== JSON.stringify(selection))
+      throw Error(`Conflicting island selection ${selection.sourceRecordId}`)
+    selections.set(selection.sourceRecordId, selection)
+  }
+  return {
+    records: [...unique.values()].sort((a, b) =>
+      a.sourceRecordId.localeCompare(b.sourceRecordId),
+    ),
+    islandSelections: [...selections.values()].sort((a, b) =>
+      a.sourceRecordId.localeCompare(b.sourceRecordId),
+    ),
+  }
 }
 
 export const protomapsSourceExtractionRule = registerRule(
   ruleDeclarationFromFixture(sourceFixture),
   extractSourceRecords,
 )
-export function protomapsSourceRecords(named: SourceFeature[], land: SourceFeature[]) {
-  return protomapsSourceExtractionRule.execute({ named, land })
+export function protomapsSourceRecords(
+  named: SourceFeature[],
+  land: SourceFeature[],
+  landBorder: SourceFeature[],
+) {
+  const bundle = protomapsSourceBundle(named, land, landBorder)
+  return resolveProtomapsIslandSelections(bundle.records, bundle.islandSelections)
+}
+
+export function protomapsSourceBundle(
+  named: SourceFeature[],
+  land: SourceFeature[],
+  landBorder: SourceFeature[],
+) {
+  return protomapsSourceExtractionRule.execute({ named, land, landBorder })
 }

@@ -19,11 +19,14 @@ export type ReviewResult = Pick<
   | 'membership'
 >
 const root = resolve(import.meta.dir, '../../../..')
+const typescriptTranspiler = new Bun.Transpiler({ loader: 'ts', target: 'bun' })
+const tsxTranspiler = new Bun.Transpiler({ loader: 'tsx', target: 'bun' })
 
 // Stream large source files: fingerprinting must not allocate another GeoJSON copy.
 export async function fingerprintTree(
   path: string,
   exclude: (file: string) => boolean = () => false,
+  executableTypescript = false,
 ): Promise<string> {
   const hash = createHash('sha256')
   async function visit(file: string) {
@@ -39,12 +42,20 @@ export async function fingerprintTree(
     }
     if (info.isDirectory()) {
       for (const name of (await readdir(file)).sort()) await visit(join(file, name))
+    } else if (executableTypescript && /\.[cm]?tsx?$/.test(file)) {
+      const transpiler = file.endsWith('.tsx') ? tsxTranspiler : typescriptTranspiler
+      hash.update(transpiler.transformSync(await Bun.file(file).text()))
     } else {
       for await (const chunk of createReadStream(file)) hash.update(chunk)
     }
   }
   await visit(path)
   return hash.digest('hex')
+}
+
+/** Hash executable code, excluding tests and erased TypeScript declarations. */
+export function fingerprintRuntimeTree(path: string) {
+  return fingerprintTree(path, file => /\.(test|spec)\.[cm]?[jt]sx?$/.test(file), true)
 }
 
 function sortedMapEntries(values: ReadonlyMap<string, string>) {
@@ -127,12 +138,16 @@ export async function isolatedAlsReview(input: Input): Promise<ReviewResult> {
       'libs/db/src',
       'fixtures/meta/curations',
       'bun.lock',
-    ].map(path => fingerprintTree(join(root, path))),
+    ].map(path =>
+      path.endsWith('/src')
+        ? fingerprintRuntimeTree(join(root, path))
+        : fingerprintTree(join(root, path)),
+    ),
     fingerprintTree(input.sourceDir),
     divisionLookupDependency(input),
   ])
   const key = createHash('sha256')
-    .update(JSON.stringify({ version: 3, runtime: Bun.version, input, dependencies }))
+    .update(JSON.stringify({ version: 4, runtime: Bun.version, input, dependencies }))
     .digest('hex')
   const directory = join(root, '.local/hkgov-dpo/preflight-cache')
   await mkdir(directory, { recursive: true })

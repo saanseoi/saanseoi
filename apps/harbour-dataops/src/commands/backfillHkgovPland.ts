@@ -215,6 +215,7 @@ export async function runHkgovPlandBackfillCommand(
       }
       await uploadPreparedArtefact({
         filePath,
+        releaseSourceFile: inputFile,
         invocationCwd,
         release,
         source,
@@ -446,6 +447,7 @@ export async function runHkgovPlandNativeArchiveIngestCommand(
 }
 
 async function uploadPreparedArtefact(args: {
+  releaseSourceFile?: string
   filePath: string
   invocationCwd: string
   release: BackfillRelease
@@ -470,6 +472,9 @@ async function uploadPreparedArtefact(args: {
     command: 'upload',
     positionals: [args.filePath],
     options: {
+      ...(args.releaseSourceFile
+        ? { 'release-source-file': args.releaseSourceFile }
+        : {}),
       'cohort-key': args.release.year,
       'release-notes-url': args.release.catalogueUrl,
       region: 'hk',

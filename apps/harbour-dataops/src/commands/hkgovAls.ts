@@ -1,3 +1,4 @@
+import { alsDivisionSnapshotSelectionSql } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDivisions'
 import { assertPreparedAlsReview } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsReviewCache'
 import { cachedAlsPreparation } from '../lib/alsPreparationCache.ts'
 import { mkdir, mkdtemp, readFile, readdir, writeFile } from 'node:fs/promises'
@@ -6,7 +7,7 @@ import { selectInitialisationVersions } from '../../../harbour-cli/src/lib/cli/m
 import { dirname, join, resolve } from 'node:path'
 
 import { isCancel, log, note, select } from '@clack/prompts'
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 
 import { inferSourceVersionFromPath } from '@repo/core/uploadLocal'
 import { currentSchema, historySchema, metaSchema, toIsoTimestamp } from '@repo/db'
@@ -511,30 +512,11 @@ async function materialiseDivisionSnapshotForAddressRelease(
     },
   )
   try {
-    const snapshot = await context.metaDb
-      .select({ id: metaSchema.metaSnapshots.id })
-      .from(metaSchema.metaSnapshots)
-      .innerJoin(
-        metaSchema.metaSnapshotLineages,
-        eq(
-          metaSchema.metaSnapshots.snapshotLineageId,
-          metaSchema.metaSnapshotLineages.id,
-        ),
-      )
-      .where(
-        and(
-          eq(metaSchema.metaSnapshots.resourceType, 'division'),
-          eq(metaSchema.metaSnapshots.status, 'published'),
-          eq(metaSchema.metaSnapshots.cohortKey, cohortKey),
-          eq(metaSchema.metaSnapshotLineages.variant, 'overture'),
-        ),
-      )
-      .limit(1)
-      .get()
+    const [snapshot] = (await context.metaDb.all(
+      sql.raw(alsDivisionSnapshotSelectionSql(cohortKey)),
+    )) as Array<{ id: string; cohortKey: string; variant: string }>
     if (!snapshot) {
-      throw new Error(
-        `No published Overture division snapshot found for cohort ${cohortKey}.`,
-      )
+      throw new Error('No published division snapshot found for ALS preparation.')
     }
     const [presentDivisions, presentI18n] = await Promise.all([
       context.currentDb
@@ -816,20 +798,28 @@ export async function recordAlsIngestionReview(
   const curationApplications = result.curationApplications.filter(
     application => application.verification === 'unverified',
   )
+  const investigationAuthority = sourceVersion.startsWith('2026-')
+    ? process.env.SAANSEOI_ALS_INVESTIGATION_AUTHORITY?.trim()
+    : undefined
   await writeJson(resolve(reviewRoot, 'review-backlog', `${sourceVersion}.json`), {
     sourceVersion,
     reviewStatus:
       result.driftCandidates.length ||
       curationApplications.length ||
       result.divisionQuality.issues.length
-        ? 'unreviewed'
+        ? investigationAuthority && !result.divisionQuality.issues.length
+          ? 'needs-further-investigation'
+          : 'unreviewed'
         : 'not_required',
     ingestionDisposition:
       result.driftCandidates.length ||
       curationApplications.length ||
       result.divisionQuality.issues.length
-        ? 'blocked'
+        ? investigationAuthority && !result.divisionQuality.issues.length
+          ? 'ready-with-investigations'
+          : 'blocked'
         : 'ready',
+    investigationAuthority,
     curationApplications,
     divisionIssues: result.divisionQuality.issues,
     deletionReport: resolve(

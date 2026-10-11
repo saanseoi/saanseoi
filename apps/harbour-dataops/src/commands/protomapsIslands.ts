@@ -1,9 +1,9 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
-import { strToU8, strFromU8, zipSync, unzipSync } from 'fflate'
+import { strToU8, zipSync } from 'fflate'
 import type { ParsedArgs, UploadTarget } from '../../../harbour-cli/src/lib/cli/options'
 import {
-  protomapsSourceRecords,
+  protomapsSourceBundle,
   sha256,
   type SourceFeature,
 } from '../lib/protomapsIslands'
@@ -11,6 +11,7 @@ import {
   buildSourceReleaseAssetObjectKey,
   uploadManagedSourceAsset,
 } from '../../../harbour-cli/src/lib/sources/sourceAssets'
+import { readProtomapsSourceArchive } from '../../../harbour-cli/src/lib/pipeline/curatedDivisions/protomapsSourceArchive'
 import { processNativeSourceSqlRelease } from '../../../harbour-cli/src/lib/pipeline/local/nativeSourceSql'
 
 const datasetCode = 'ds-hk-protomaps-island'
@@ -46,6 +47,14 @@ export async function prepareProtomapsIslands(args: ParsedArgs) {
   const landBytes = await readFile(landPath)
   if (sha256(landBytes) !== manifest.release.coastline.land.sha256)
     throw Error('Coastline land checksum differs from the basemap release.')
+  const landBorderBytes = await readFile(
+    resolve(
+      dirname(manifestPath),
+      `${manifest.region.name}-${manifest.release.version}.regional-border.geojson`,
+    ),
+  )
+  if (sha256(landBorderBytes) !== manifest.release.coastline.border.sha256)
+    throw Error('Regional land border checksum differs from the basemap release.')
   const pbf = resolve(out, 'islands.osm.pbf')
   const geojson = resolve(out, 'islands.geojson')
   await run([
@@ -67,12 +76,13 @@ export async function prepareProtomapsIslands(args: ParsedArgs) {
     geojson,
     '--overwrite',
   ])
-  const records = protomapsSourceRecords(
+  const { records, islandSelections } = protomapsSourceBundle(
     JSON.parse(await readFile(geojson, 'utf8')).features as SourceFeature[],
     JSON.parse(landBytes.toString()).features as SourceFeature[],
+    JSON.parse(landBorderBytes.toString()).features as SourceFeature[],
   )
   const descriptor = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     datasetCode,
     sourceVersion: version,
     basemapVersion: manifest.release.version,
@@ -81,12 +91,14 @@ export async function prepareProtomapsIslands(args: ParsedArgs) {
       manifestSha256: sha256(bytes),
       regionalPbfSha256: sha256(sourceBytes),
       coastlineLandSha256: sha256(landBytes),
+      regionalLandBorderSha256: sha256(landBorderBytes),
     },
   }
   const options = { mtime: new Date(`${version.slice(0, 10)}T00:00:00Z`) }
   const archive = zipSync({
     'manifest.json': [strToU8(JSON.stringify(descriptor)), options],
     'records.json': [strToU8(JSON.stringify(records)), options],
+    'island-selections.json': [strToU8(JSON.stringify(islandSelections)), options],
     'basemap-manifest.json': [bytes, options],
   })
   const archivePath = resolve(out, `dr-hk-protomaps-island-${version}.zip`)
@@ -97,6 +109,7 @@ export async function prepareProtomapsIslands(args: ParsedArgs) {
         archivePath,
         sha256: sha256(archive),
         records: records.length,
+        selectedIslands: islandSelections.length,
         osmFeatures: records.filter(r => r.properties.kind === 'osm-island').length,
         localised: records.filter(r => Object.keys(r.properties.names).length).length,
         coastlineLand: records.filter(r => r.properties.kind === 'coastline-land')
@@ -110,18 +123,7 @@ export async function prepareProtomapsIslands(args: ParsedArgs) {
 export async function ingestProtomapsIslands(args: ParsedArgs, target: UploadTarget) {
   const archivePath = resolve(args.positionals[0] ?? '')
   const bytes = await readFile(archivePath)
-  const files = unzipSync(bytes)
-  const manifest = JSON.parse(strFromU8(files['manifest.json']!))
-  const records = JSON.parse(strFromU8(files['records.json']!)) as ReturnType<
-    typeof protomapsSourceRecords
-  >
-  if (
-    manifest.datasetCode !== datasetCode ||
-    manifest.schemaVersion !== 1 ||
-    !records.length ||
-    new Set(records.map(r => r.sourceRecordId)).size !== records.length
-  )
-    throw Error('Invalid Protomaps source archive.')
+  const { manifest, records } = readProtomapsSourceArchive(bytes)
   const version = String(manifest.sourceVersion)
   const releaseCode = `dr-hk-protomaps-island-${version}`
   const fileName = `${releaseCode}.zip`
@@ -142,7 +144,7 @@ export async function ingestProtomapsIslands(args: ParsedArgs, target: UploadTar
       mediaType: 'application/zip',
       originalUrl: manifest.sourceUrl,
       retrievedAt: new Date().toISOString(),
-      role: 'sourceArchive',
+      role: 'releaseSourceArchive',
     },
   })
   await processNativeSourceSqlRelease(target, {
