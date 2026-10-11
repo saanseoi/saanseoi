@@ -22,9 +22,9 @@ function fixture() {
   sqlite.exec(`CREATE TABLE processingRuns (
     runId TEXT PRIMARY KEY,
     resourceReleaseId TEXT NOT NULL,
-    phase TEXT NOT NULL,
+    stage TEXT NOT NULL DEFAULT 'assembly', checkpoint TEXT, attempt INTEGER NOT NULL DEFAULT 1, snapshotId TEXT, apiReleaseSetId TEXT, phase TEXT NOT NULL,
     status TEXT NOT NULL,
-    stats TEXT,
+    results TEXT,
     error TEXT,
     startedAt TEXT NOT NULL,
     finishedAt TEXT,
@@ -41,8 +41,10 @@ function fixture() {
     writes: () =>
       (sqlite.query('SELECT total_changes() AS count').get() as { count: number })
         .count,
-    report: (stats: Record<string, unknown> | string | null = null, time = startedAt) =>
-      ensureProcessingRunStarted(db, 'release', phase, stats, time),
+    report: (
+      results: Record<string, unknown> | string | null = null,
+      time = startedAt,
+    ) => ensureProcessingRunStarted(db, 'release', phase, results, time),
   }
 }
 
@@ -54,9 +56,14 @@ describe('ingest phase write economy', () => {
     expect(row()).toEqual({
       runId: expect.any(String),
       resourceReleaseId: 'release',
+      stage: 'assembly',
+      checkpoint: null,
+      attempt: 1,
+      snapshotId: null,
+      apiReleaseSetId: null,
       phase,
       status: 'running',
-      stats: '{"rowCount":1}',
+      results: '{"rowCount":1}',
       error: null,
       startedAt,
       finishedAt: null,
@@ -92,13 +99,13 @@ describe('ingest phase write economy', () => {
     expect(writes()).toBe(1)
     const initial = row()
 
-    for (const [index, stats] of [{ rowCount: 1 }, { rowCount: 2 }, null].entries()) {
+    for (const [index, results] of [{ rowCount: 1 }, { rowCount: 2 }, null].entries()) {
       const time = `2026-09-12T00:00:0${index + 2}.000Z`
-      await report(stats, time)
+      await report(results, time)
       expect(writes()).toBe(index + 2)
       expect(row()).toEqual({
         ...initial,
-        stats: stats === null ? null : JSON.stringify(stats),
+        results: results === null ? null : JSON.stringify(results),
         updatedAt: time,
       })
     }
@@ -125,7 +132,8 @@ describe('ingest phase write economy', () => {
     expect(writes()).toBe(3)
     expect(row()).toEqual({
       ...initial,
-      stats: '{"rowCount":0}',
+      results: '{"rowCount":0}',
+      attempt: 2,
       startedAt: retryTime,
       updatedAt: retryTime,
     })
@@ -152,13 +160,13 @@ describe('ingest phase write economy', () => {
     await report()
     await recordDatasetStage(
       db,
-      { resourceReleaseId: 'release', phase, stats: { rowCount: 2 } },
+      { resourceReleaseId: 'release', phase, results: { rowCount: 2 } },
       'completed',
     )
     const completed = row()
     expect(completed).toMatchObject({
       status: 'completed',
-      stats: '{"rowCount":2}',
+      results: '{"rowCount":2}',
       finishedAt: expect.any(String),
     })
     expect(writes()).toBe(2)
@@ -181,14 +189,14 @@ describe('ingest phase write economy', () => {
     )
     await recordDatasetStage(
       db,
-      { resourceReleaseId: 'release', phase: reopeningPhase, stats: { rowCount: 3 } },
+      { resourceReleaseId: 'release', phase: reopeningPhase, results: { rowCount: 3 } },
       'running',
     )
     expect(writes()).toBe(2)
     expect(row()).toMatchObject({
       phase: reopeningPhase,
       status: 'running',
-      stats: '{"rowCount":3}',
+      results: '{"rowCount":3}',
       finishedAt: null,
     })
   })
@@ -196,7 +204,7 @@ describe('ingest phase write economy', () => {
 
 for (const useUpsert of [false, true]) {
   for (const failureStats of [null, { durationMs: 5000, processedRows: 4 }]) {
-    test(`failure retains progress (upsert=${useUpsert}, stats=${JSON.stringify(failureStats)})`, async () => {
+    test(`failure retains progress (upsert=${useUpsert}, results=${JSON.stringify(failureStats)})`, async () => {
       const { db, report, row } = fixture()
       await report({ processedRows: 3, bytes: 128, resourceType: 'address' })
       const finishedAt = '2026-09-12T00:00:05.000Z'
@@ -222,19 +230,19 @@ for (const useUpsert of [false, true]) {
           'failed',
         )
       }
-      expect(JSON.parse(row()!.stats as string)).toEqual({
+      expect(JSON.parse(row()!.results as string)).toEqual({
         processedRows: 3,
         bytes: 128,
         resourceType: 'address',
         ...failureStats,
       })
       await report({ processedRows: 0 }, '2026-09-12T00:00:06.000Z')
-      expect(JSON.parse(row()!.stats as string)).toEqual({ processedRows: 0 })
+      expect(JSON.parse(row()!.results as string)).toEqual({ processedRows: 0 })
     })
   }
 }
 
-test('failure without a running report stores its supplied stats', async () => {
+test('failure without a running report stores its supplied results', async () => {
   const { db, row } = fixture()
   await upsertProcessingRunStatus(
     db,
@@ -246,5 +254,5 @@ test('failure without a running report stores its supplied stats', async () => {
     { durationMs: 0 },
     'failed',
   )
-  expect(JSON.parse(row()!.stats as string)).toEqual({ durationMs: 0 })
+  expect(JSON.parse(row()!.results as string)).toEqual({ durationMs: 0 })
 })

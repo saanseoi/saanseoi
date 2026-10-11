@@ -35,7 +35,7 @@ export async function resolveAcceptedStatisticSnapshotParent(
       completed: sql<number>`EXISTS (
         SELECT 1 FROM snapshotResourceReleases source
         JOIN resourceReleases release ON release.id=source.resourceReleaseId
-        JOIN releaseProvenance audit ON audit.resourceReleaseId=release.id
+        JOIN processingAudits audit ON audit.resourceReleaseId=release.id AND audit.stage='assembly' AND audit.ownerId=snapshots.id
         WHERE source.snapshotId=snapshots.id AND source.role='primary'
           AND release.status='current' AND audit.attemptStatus='completed'
       ) AND NOT EXISTS (

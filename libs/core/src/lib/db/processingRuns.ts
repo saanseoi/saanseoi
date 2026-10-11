@@ -123,11 +123,20 @@ export async function upsertProcessingRunStatus(
       target: [processingRuns.resourceReleaseId, processingRuns.phase],
       set: {
         status,
+        attempt:
+          status === 'running'
+            ? sql`${processingRuns.attempt} + CASE WHEN ${processingRuns.status} != 'running' THEN 1 ELSE 0 END`
+            : sql`${processingRuns.attempt}`,
+        startedAt:
+          status === 'running'
+            ? sql`CASE WHEN ${processingRuns.status} != 'running' THEN excluded.startedAt ELSE ${processingRuns.startedAt} END`
+            : sql`${processingRuns.startedAt}`,
         results: terminalProcessingRunResults(status, normalisedResults),
         error,
         finishedAt,
         updatedAt,
       },
+      setWhere: sql`${processingRuns.status} != excluded.status OR ${processingRuns.results} IS NOT ${status === 'error' ? terminalProcessingRunResults(status, normalisedResults) : sql`excluded.results`} OR ${processingRuns.error} IS NOT excluded.error`,
     })
     .run()
 }
@@ -288,7 +297,7 @@ export async function recordProcessingRun(
         updatedAt: now,
       },
       setWhere: sql`${processingRuns.status} != excluded.status
-      OR ${processingRuns.results} IS NOT excluded.results
+      OR ${processingRuns.results} IS NOT ${input.status === 'error' ? terminalProcessingRunResults(input.status, results) : sql`excluded.results`}
       OR ${processingRuns.error} IS NOT excluded.error
       OR (${input.checkpoint !== undefined ? 1 : 0} = 1 AND ${processingRuns.checkpoint} IS NOT excluded.checkpoint)
       OR (excluded.status = 'running' AND ${processingRuns.updatedAt} <= ${new Date(Date.parse(now) - PROCESSING_RUN_HEARTBEAT_INTERVAL_MS).toISOString()})`,

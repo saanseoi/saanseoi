@@ -7,24 +7,25 @@ test('effective periods follow distinct starts in the selected catalogue', async
   const sqlite = new Database(':memory:')
   try {
     sqlite.exec(`
-      CREATE TABLE apiVersions(id TEXT PRIMARY KEY, code TEXT);
+      CREATE TABLE apiVersions(id TEXT PRIMARY KEY, code TEXT, familyType TEXT);
       CREATE TABLE apiCatalogRevisions(
         id TEXT PRIMARY KEY, apiVersionId TEXT, code TEXT, regionCode TEXT,
         status TEXT, publishedAt TEXT, revision INTEGER
       );
       CREATE TABLE apiReleaseSets(
-        id TEXT PRIMARY KEY, code TEXT, effectiveFrom TEXT, revision INTEGER,
+        id TEXT PRIMARY KEY, code TEXT, regionCode TEXT, domainCode TEXT,
+        cohortKey TEXT, effectiveFrom TEXT, revision INTEGER,
         schemaVersion TEXT, rulesetVersion TEXT
       );
-      CREATE TABLE apiCatalogRevisionReleaseSets(
       CREATE TABLE apiVersionReleaseSets(
         id TEXT PRIMARY KEY, apiVersionId TEXT, apiReleaseSetId TEXT,
         status TEXT, publishedAt TEXT
       );
+      CREATE TABLE apiCatalogRevisionReleaseSets(
         apiCatalogRevisionId TEXT, apiVersionReleaseSetId TEXT, domainCode TEXT,
         cohortKey TEXT, isDefault INTEGER
       );
-      INSERT INTO apiVersions VALUES ('api', 'api-divisions-v0.1');
+      INSERT INTO apiVersions VALUES ('api', 'api-divisions-v0.1', 'division');
       INSERT INTO apiCatalogRevisions VALUES
         ('old', 'api', 'old', 'hk', 'current', '2026-01-02T00:00:00.000Z', 0),
         ('new', 'api', 'new', 'hk', 'current', '2026-04-02T00:00:00.000Z', 1);

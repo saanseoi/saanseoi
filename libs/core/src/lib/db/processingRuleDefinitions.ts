@@ -13,14 +13,14 @@ export async function retainProcessingRules(
     .values({ id, definition })
     .onConflictDoNothing()
     .run()
-  return { definitionId: id }
+  return id
 }
 
 /** Releases store references; dataset definitions remain authoring metadata. */
 export function processingRulesSelection(column: AnyColumn) {
   return sql<
     string | null
-  >`(SELECT definition FROM processingRuleDefinitions WHERE id = json_extract(${column}, '$.definitionId'))`.mapWith(
+  >`(SELECT definition FROM processingRuleDefinitions WHERE id = ${column})`.mapWith(
     value => (value === null ? null : JSON.parse(value)),
   )
 }

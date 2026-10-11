@@ -30,7 +30,8 @@ function fixture() {
     CREATE TABLE snapshotResourceReleases (
       snapshotId TEXT, datasetId TEXT, resourceReleaseId TEXT, role TEXT
     );
-    CREATE TABLE apiReleaseSets (id TEXT PRIMARY KEY, status TEXT);
+    CREATE TABLE apiReleaseSets (id TEXT PRIMARY KEY);
+    CREATE TABLE apiVersionReleaseSets (apiReleaseSetId TEXT, status TEXT);
     CREATE TABLE apiReleaseSetSnapshots (apiReleaseSetId TEXT, snapshotId TEXT);
     INSERT INTO publishers VALUES ('publisher', 'overture');
   `)
@@ -194,7 +195,10 @@ describe('geometry snapshot retention', () => {
     })
     for (const status of ['current', 'draft', 'archived']) {
       addSnapshot(`member-${status}`, 'old', '2026-07', 'overture')
-      sqlite.query('INSERT INTO apiReleaseSets VALUES (?, ?)').run(status, status)
+      sqlite.query('INSERT INTO apiReleaseSets VALUES (?)').run(status)
+      sqlite
+        .query('INSERT INTO apiVersionReleaseSets VALUES (?, ?)')
+        .run(status, status)
       sqlite
         .query('INSERT INTO apiReleaseSetSnapshots VALUES (?, ?)')
         .run(status, `member-${status}`)

@@ -1,3 +1,5 @@
+import { createMemoryProvenanceStore } from '../../testing/provenanceStore'
+const { store: lineageStore } = createMemoryProvenanceStore()
 import { compareCatalogMembers } from './metaRegistry'
 import { resolveSnapshotProcessingRules } from '../../provenance/processingPolicyCatalogue'
 import { initialDatasets } from '@repo/db/registry'
@@ -7,8 +9,7 @@ import { Database as SQLiteDatabase } from 'bun:sqlite'
 
 import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
 import { createLocalHarbourDb } from '../../testing/localDb'
-import { encodeAuditGroup } from '../../pipeline/db/processingActionCodec'
-import { metaSchema, computeVersionHash } from '@repo/db'
+import { computeVersionHash } from '@repo/db'
 import {
   buildDeterministicApiReleaseSetId,
   buildDeterministicApiVersionReleaseSetId,
@@ -22,13 +23,11 @@ import {
   insertDataset,
   listApiFieldProvenanceForReleaseSet,
   getApiFieldLineageForReleaseSet,
-  listRegistryApiReleaseProcessingActions,
-  listRegistryApiReleaseProcessingActionSections,
-  listRegistrySourceReleaseProcessingActions,
-  listRegistrySourceReleaseProcessingActionSections,
   listPublishedSnapshotsForResourceTypeRegionAtOrAfterCohortKey,
   markDatasetCurrent,
   listRegistryReleases,
+  listRegistryApiFields,
+  getRegistryApiField,
   listOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listCurrentSnapshotCleanupCandidates,
   publishReleaseArtefacts,
@@ -230,22 +229,6 @@ id TEXT PRIMARY KEY,
 
 
 
-    CREATE TABLE releaseProcessingActions (
-      id TEXT PRIMARY KEY,
-      resourceReleaseId TEXT NOT NULL,
-      action TEXT NOT NULL,
-      mode TEXT NOT NULL,
-      generation TEXT NOT NULL,
-      decisionCount INTEGER NOT NULL,
-      affectedRecordCount INTEGER NOT NULL,
-      createdAt TEXT NOT NULL,
-      updatedAt TEXT NOT NULL
-    );
-    CREATE TABLE releaseProcessingActionChunks (
-      id TEXT PRIMARY KEY, resourceReleaseId TEXT, actionId TEXT, generation TEXT,
-      firstOrdinal INTEGER, decisionCount INTEGER, part INTEGER, parts INTEGER,
-      encoding TEXT, checksum TEXT, payload BLOB
-    );
   `)
 
   return {
@@ -313,7 +296,7 @@ describe('listRegistryReleases', () => {
     sqlite.close()
   })
 
-  test('combines actions and bulk rules from the contributing source releases', async () => {
+  test('combines bulk rules from the contributing source releases', async () => {
     const { sqlite, db } = createRegistryReleasesDb()
 
     sqlite.exec(`
@@ -369,29 +352,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('snapshot-a', 'dataset-c', 'source-release-c', 'primary'),
         ('snapshot-b', 'dataset-b', 'source-release-b', 'primary');
 
-      INSERT INTO releaseProcessingActions (
-        id, resourceReleaseId, action, mode, generation, affectedRecordCount, decisionCount, createdAt, updatedAt
-      ) VALUES
-        ('action-a', 'source-release-a', 'address_normalised', 'automatic', 'g1', 5, 1, '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z'),
-        ('action-b', 'source-release-b', 'address_normalised', 'automatic', 'g1', 3, 1, '2026-07-15T00:00:00.000Z', '2026-07-15T00:00:00.000Z');
     `)
-    for (const parent of await db
-      .select()
-      .from(metaSchema.releaseProcessingActions)
-      .all()) {
-      const chunks = await encodeAuditGroup(parent, [
-        {
-          action: parent.action,
-          mode: parent.mode,
-          summary: `Normalised source ${parent.id === 'action-a' ? 'A' : 'B'}`,
-          affectedRecordCount: parent.affectedRecordCount,
-          evidence: {},
-        },
-      ])
-      for (const chunk of chunks)
-        await db.insert(metaSchema.releaseProcessingActionChunks).values(chunk).run()
-    }
-
     for (const row of sqlite
       .query(
         'SELECT id, processingRules FROM resourceReleases WHERE processingRules IS NOT NULL',
@@ -424,20 +385,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     const [release] = await listRegistryReleases(db as never)
     if (!release) throw new Error('Expected API release to be returned.')
 
-    expect(release.processingActions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: 'action-a',
-          sourceCode: 'hkgov-als',
-          sourceReleaseCode: '2026-07-15',
-        }),
-        expect.objectContaining({
-          id: 'action-b',
-          sourceCode: 'landsd-addresses',
-          sourceReleaseCode: '2026-07-15',
-        }),
-      ]),
-    )
     expect(release.bulkActions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -481,77 +428,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       ]),
     )
 
-    const [lightweightRelease] = await listRegistryReleases(
-      db as never,
-      undefined,
-      0,
-      undefined,
-      undefined,
-      { includeProcessingActions: false },
-    )
-    expect(lightweightRelease?.processingActions).toBeUndefined()
-    expect(lightweightRelease?.processingActionCount).toBe(2)
-
-    const actionSections = await listRegistryApiReleaseProcessingActionSections(
-      db as never,
-      {
-        familyType: 'addresses',
-        releaseCode: 'data-hk-addresses-2026-07-15.0',
-      },
-    )
-    expect(actionSections).toEqual([
-      {
-        action: 'address_normalised',
-        affectedRecordCount: 8,
-        mode: 'automatic',
-        totalCount: 2,
-      },
-    ])
-
-    const firstActionPage = await listRegistryApiReleaseProcessingActions(db as never, {
-      action: 'address_normalised',
-      familyType: 'addresses',
-      limit: 1,
-      offset: 0,
-      releaseCode: 'data-hk-addresses-2026-07-15.0',
-    })
-    const secondActionPage = await listRegistryApiReleaseProcessingActions(
-      db as never,
-      {
-        action: 'address_normalised',
-        familyType: 'addresses',
-        limit: 1,
-        offset: 1,
-        releaseCode: 'data-hk-addresses-2026-07-15.0',
-      },
-    )
-    expect(firstActionPage?.map(action => action.id)).toEqual(['action-b'])
-    expect(secondActionPage?.map(action => action.id)).toEqual(['action-a'])
-
-    const sourceActionSections =
-      await listRegistrySourceReleaseProcessingActionSections(db as never, {
-        datasetCode: 'hkgov-als',
-        releaseCode: 'dr-hk-addresses-2026-07-15',
-      })
-    expect(sourceActionSections).toEqual([
-      {
-        action: 'address_normalised',
-        affectedRecordCount: 5,
-        mode: 'automatic',
-        totalCount: 1,
-      },
-    ])
-    const sourceActionPage = await listRegistrySourceReleaseProcessingActions(
-      db as never,
-      {
-        action: 'address_normalised',
-        datasetCode: 'hkgov-als',
-        limit: 50,
-        offset: 0,
-        releaseCode: 'dr-hk-addresses-2026-07-15',
-      },
-    )
-    expect(sourceActionPage.map(action => action.id)).toEqual(['action-a'])
     sqlite.close()
   })
 })
@@ -946,10 +822,7 @@ function createLatestDatasetLookupDb() {
       publicationDate TEXT,
       cohortKey TEXT NOT NULL,
       geometryStatus TEXT,
-      rawObjectKey TEXT NOT NULL,
-      originalFileName TEXT NOT NULL,
       releaseNotesUrl TEXT,
-      notes TEXT,
       processingRules TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
@@ -969,8 +842,6 @@ function createLatestDatasetLookupDb() {
       sourceSchemaVersion TEXT,
       publicationDate TEXT,
       cohortKey TEXT,
-      rawObjectKey TEXT,
-      originalFileName TEXT,
       releaseNotesUrl TEXT,
       notes TEXT,
       status TEXT NOT NULL,
@@ -1262,7 +1133,6 @@ id TEXT PRIMARY KEY,
       sourceSchemaVersion TEXT,
       processingRules TEXT,
       releaseNotesUrl TEXT,
-      notes TEXT,
       resourceType TEXT,
       status TEXT NOT NULL,
       revokedAt INTEGER,
@@ -1300,8 +1170,10 @@ id TEXT PRIMARY KEY,
       PRIMARY KEY (apiReleaseSetId, snapshotId, variant)
     );
 
-    CREATE TABLE fieldLineageDefinitions (id TEXT PRIMARY KEY, definition TEXT NOT NULL);
-    CREATE TABLE apiFieldProvenance (apiReleaseSetId TEXT PRIMARY KEY, definitionId TEXT NOT NULL);
+    CREATE TABLE fieldLineageDefinitions (id TEXT PRIMARY KEY, schemaVersion INTEGER NOT NULL, manifestHash TEXT NOT NULL, manifestByteLength INTEGER NOT NULL);
+    CREATE TABLE apiFieldProvenance (apiReleaseSetId TEXT PRIMARY KEY, definitionId TEXT NOT NULL, binding TEXT);
+    CREATE TABLE releaseProvenance (resourceReleaseId TEXT PRIMARY KEY, manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL, attemptStatus TEXT NOT NULL DEFAULT 'completed');
+    CREATE TABLE processingAudits(resourceReleaseId TEXT NOT NULL,stage TEXT NOT NULL,ownerId TEXT NOT NULL,manifestHash TEXT NOT NULL,byteLength INTEGER NOT NULL,applicationCount INTEGER NOT NULL,attemptStatus TEXT NOT NULL,PRIMARY KEY(resourceReleaseId,stage,ownerId));
     CREATE TABLE processingRuns (runId TEXT PRIMARY KEY, resourceReleaseId TEXT, snapshotId TEXT, apiReleaseSetId TEXT, stage TEXT NOT NULL, phase TEXT NOT NULL, status TEXT NOT NULL, attempt INTEGER NOT NULL DEFAULT 1, checkpoint TEXT, results TEXT, error TEXT, startedAt TEXT NOT NULL, finishedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, UNIQUE(resourceReleaseId,phase), UNIQUE(snapshotId,phase), UNIQUE(apiReleaseSetId,phase));
 
 
@@ -1315,14 +1187,11 @@ id TEXT PRIMARY KEY,
       action TEXT NOT NULL,
       statusFrom TEXT,
       statusTo TEXT,
-      reason TEXT,
       metadataJson TEXT,
       createdAt TEXT NOT NULL
     );
 
     INSERT INTO datasets (id, publisherId, code) VALUES
-      ('dataset-overture-division-area', 'publisher-overture', 'ds-hk-overture-division-area'),
-      ('dataset-overture-division-boundary', 'publisher-overture', 'ds-hk-overture-division-boundary'),
       ('dataset-hkgov-had-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district'),
       ('dataset-hkgov-censtatd-district', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district'),
       ('dataset-hkgov-censtatd-district-annual', 'publisher-hkgov-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-population-households-district'),
@@ -1386,8 +1255,8 @@ function seedCompleteOvertureFixtureSources(
       ('release-supporting-censtatd-area-type', '2023-H2', '1.0', 'current', null, null, null, 1760000000000);
 
     INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId) VALUES
-      ('${snapshotId}', 'dataset-overture-division-area', 'release-supporting-area'),
-      ('${snapshotId}', 'dataset-overture-division-boundary', 'release-supporting-boundary'),
+      ('${snapshotId}', 'dataset-overture-division', 'release-supporting-area'),
+      ('${snapshotId}', 'dataset-overture-division', 'release-supporting-boundary'),
       ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-district', 'release-supporting-censtatd'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-district-annual', 'release-supporting-censtatd-annual'),
@@ -1444,7 +1313,7 @@ function captureFixtureRules(sqlite: SQLiteDatabase, definition: unknown) {
   sqlite
     .query('INSERT OR IGNORE INTO processingRuleDefinitions VALUES (?,?)')
     .run(id, JSON.stringify(definition))
-  return JSON.stringify({ definitionId: id })
+  return id
 }
 
 function sortProvenanceRows(
@@ -2596,6 +2465,7 @@ describe('getLatestDatasetForRegionSourceDatasetType', () => {
   test('keeps Planning Department upload variants in separate product lineages', async () => {
     const { sqlite, db } = createLatestDatasetLookupDb()
     sqlite.exec(`
+      -- Release metadata stores no asset storage coordinates.
       INSERT INTO publishers (id, code) VALUES ('publisher-pland', 'hkgov-pland');
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division'),
@@ -2616,7 +2486,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         sourceVersion: '2001',
         resourceType: 'division',
       } as never,
-      'raw/hkgov-pland-pu/2001/division.parquet',
       '2026-07-21T00:00:00.000Z',
     )
 
@@ -2631,7 +2500,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         sourceVersion: '2006',
         resourceType: 'division',
       } as never,
-      'raw/hkgov-pland-new-town/2006/division.parquet',
       '2026-07-21T00:00:00.000Z',
     )
 
@@ -2684,11 +2552,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('dataset-district-area', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-area-district', 'hk', 'divisions', 'divisionArea'),
         ('dataset-hma', 'publisher-censtatd', 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups', 'hk', 'divisions', 'divisionArea');
       INSERT INTO resourceReleases (
-        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey,
-        originalFileName, status, ingestedAt, createdAt, updatedAt
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
       ) VALUES
-        ('release-district-area-2021', 'dataset-district-area', 'dr-hk-hkgov-censtatd-division-area-district-2021', 'divisionArea', '2021', '2021', 'district-area.parquet', 'district-area.parquet', 'current', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z'),
-        ('release-hma-2021', 'dataset-hma', 'dr-hk-hkgov-censtatd-division-area-housing-market-areas-building-groups-2021-2021', 'divisionArea', '2021', '2021', 'hma.parquet', 'hma.parquet', 'current', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z');
+        ('release-district-area-2021', 'dataset-district-area', 'dr-hk-hkgov-censtatd-division-area-district-2021', 'divisionArea', '2021', '2021', 'current', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z'),
+        ('release-hma-2021', 'dataset-hma', 'dr-hk-hkgov-censtatd-division-area-housing-market-areas-building-groups-2021-2021', 'divisionArea', '2021', '2021', 'current', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z', '2026-08-02T00:00:00.000Z');
     `)
 
     const result = await getLatestDatasetForRegionSourceDatasetType(
@@ -2715,7 +2582,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
         ('dataset-division', 'publisher-overture', 'ds-hk-overture-division', 'hk', 'divisions', 'division');
 
       INSERT INTO resourceReleases (
-        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
       ) VALUES
         (
           'release-10',
@@ -2724,8 +2591,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
           'division',
           '2026-06-17.10',
           '2026-06',
-          'hk/overture/2026-06-17.10/division.parquet',
-          'division.parquet',
           'current',
           null,
           null,
@@ -2741,8 +2606,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
           'division',
           '2026-06-17.9',
           '2026-06',
-          'hk/overture/2026-06-17.9/division.parquet',
-          'division.parquet',
           'current',
           null,
           null,
@@ -2787,7 +2650,6 @@ describe('source release lifecycle status', () => {
         sourceVersion: '2001',
         resourceType: 'division',
       } as never,
-      'raw/hkgov-pland-pu/2001/division.parquet',
       '2026-07-21T00:00:00.000Z',
     )
 
@@ -2822,7 +2684,7 @@ describe('getCurrentReleaseForDatasetId', () => {
       INSERT INTO datasets (id, publisherId, code, regionCode, theme, type) VALUES
         ('dataset-pland-pu', 'publisher-pland', 'ds-hk-hkgov-pland-division-pu', 'hk', 'divisions', 'division');
       INSERT INTO resourceReleases (
-        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
       ) VALUES
         (
           'release-pland-pu-division-2001',
@@ -2831,8 +2693,6 @@ describe('getCurrentReleaseForDatasetId', () => {
           'division',
           '2001',
           '2001',
-          'hk/hkgov-pland-pu/2001/division.parquet',
-          'division.parquet',
           'current',
           '2026-07-21T00:00:00.000Z',
           '2026-07-21T00:00:00.000Z',
@@ -2845,8 +2705,6 @@ describe('getCurrentReleaseForDatasetId', () => {
           'divisionArea',
           '2001',
           '2001',
-          'hk/hkgov-pland-pu/2001/division-area.parquet',
-          'division-area.parquet',
           'current',
           '2026-07-21T00:01:00.000Z',
           '2026-07-21T00:01:00.000Z',
@@ -2882,7 +2740,7 @@ describe('getLatestNewerDatasetRelease', () => {
         'division'
       );
       INSERT INTO resourceReleases (
-        id, datasetId, code, resourceType, sourceVersion, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
+        id, datasetId, code, resourceType, sourceVersion, cohortKey, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
       ) VALUES
       (
         'release-dr-hk-overture-division-2025-09-24.0',
@@ -2891,8 +2749,6 @@ describe('getLatestNewerDatasetRelease', () => {
         'division',
         '2025-09-24.0',
         '2025-09',
-        'hk/overture/2025-09-24.0/division.parquet',
-        'division.parquet',
         'staged',
         null,
         null,
@@ -2908,8 +2764,6 @@ describe('getLatestNewerDatasetRelease', () => {
         'division',
         '2025-10-22.0',
         '2025-10',
-        'hk/overture/2025-10-22.0/division.parquet',
-        'division.parquet',
         'processing',
         null,
         null,
@@ -2925,8 +2779,6 @@ describe('getLatestNewerDatasetRelease', () => {
         'division',
         '2025-11-19.0',
         '2025-11',
-        'hk/overture/2025-11-19.0/division.parquet',
-        'division.parquet',
         'failed',
         null,
         null,
@@ -2942,8 +2794,6 @@ describe('getLatestNewerDatasetRelease', () => {
         'division',
         '2025-12-17.0',
         '2025-12',
-        'hk/overture/2025-12-17.0/division.parquet',
-        'division.parquet',
         'uploading',
         null,
         null,
@@ -3187,13 +3037,13 @@ describe('resolvePublishedSnapshotForResourceTypeRegionCohortKey', () => {
 
       INSERT INTO publishers (id, code) VALUES ('publisher-overture', 'overture');
       INSERT INTO datasets (id, publisherId, code, regionCode) VALUES
-        ('dataset-overture-division-area', 'publisher-overture', 'ds-hk-overture-division-area', 'hk');
+        ('dataset-overture-division', 'publisher-overture', 'ds-hk-overture-division', 'hk');
       INSERT INTO snapshots (
         id, snapshotLineageId, resourceType, code, cohortKey, status, publishedAt, createdAt
       ) VALUES
         ('overture-division-area-2025', NULL, 'divisionArea', 'ss-hk-division-area-2025-09-24.0', '2025-09-24.0', 'published', 1758672000000, 1758672000000);
       INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES
-        ('overture-division-area-2025', 'dataset-overture-division-area', 'release-overture-division-area-2025', 'primary');
+        ('overture-division-area-2025', 'dataset-overture-division', 'release-overture-division-area-2025', 'primary');
     `)
 
     await expect(
@@ -3769,6 +3619,7 @@ describe('publishReleaseArtefacts', () => {
 
     seedSnapshotProcessingPolicies(sqlite)
     await publishReleaseArtefacts(db, {
+      lineageStore,
       carriedSnapshots: [],
       currentRelease: null,
       currentReleaseIsCorrected: false,
@@ -3784,27 +3635,53 @@ describe('publishReleaseArtefacts', () => {
       resourceType: 'address',
     })
 
-    const lineageRow = sqlite
-      .query(
-        `SELECT d.definition
-         FROM apiFieldProvenance p
-         JOIN fieldLineageDefinitions d ON d.id = p.definitionId
-         WHERE p.apiReleaseSetId = ?`,
-      )
-      .get('release-set-addresses') as { definition: string }
-    const lineage = JSON.parse(lineageRow.definition) as {
-      fields: Array<{ ruleIds: string[] }>
-      processingDefinitions: Array<{ datasetCode: string; definitionId: string }>
+    const lineageRow = (await getApiFieldLineageForReleaseSet(
+      db,
+      'release-set-addresses',
+      lineageStore,
+    ))!
+    const lineage = lineageRow.definition
+    expect(
+      lineage.sourceSchemas
+        .map(({ sourceDatasetId, sourceSchemaVersion }) => ({
+          sourceDatasetId,
+          sourceSchemaVersion,
+        }))
+        .sort((a, b) => a.sourceDatasetId.localeCompare(b.sourceDatasetId)),
+    ).toEqual([
+      { sourceDatasetId: 'dataset-address', sourceSchemaVersion: '3.2' },
+      { sourceDatasetId: 'dataset-division', sourceSchemaVersion: '1.12.0' },
+      { sourceDatasetId: 'dataset-place', sourceSchemaVersion: '1.12.0' },
+      { sourceDatasetId: 'dataset-place', sourceSchemaVersion: '1.12.0' },
+    ])
+    const placeScopes = lineage.sourceSchemas.filter(
+      scope => scope.sourceDatasetId === 'dataset-place',
+    )
+    expect(new Set(placeScopes.map(scope => scope.scopeId)).size).toBe(2)
+    const binding = lineageRow.binding as {
+      scopes: Array<{ scopeId: string; resourceReleaseId?: string }>
     }
+    expect(
+      new Set(
+        placeScopes.map(
+          scope =>
+            binding.scopes.find(pin => pin.scopeId === scope.scopeId)
+              ?.resourceReleaseId,
+        ),
+      ).size,
+    ).toBe(2)
     expect(lineage.fields.length).toBeGreaterThan(0)
-    expect(lineage.processingDefinitions).toContainEqual({
-      datasetCode: 'ds-hk-overture-place',
-      definitionId: computeVersionHash(
-        initialDatasets.find(dataset => dataset.code === 'ds-hk-overture-place')
-          ?.processingRules,
-      ),
-    })
-    expect(lineage.fields.some(field => field.ruleIds.length > 0)).toBe(true)
+    expect(
+      lineage.definitions[
+        computeVersionHash(
+          initialDatasets.find(dataset => dataset.code === 'ds-hk-overture-place')
+            ?.processingRules,
+        )
+      ],
+    ).toBeDefined()
+    expect(
+      lineage.fields.every(field => field.provenance.composition!.length > 0),
+    ).toBe(true)
 
     sqlite.close()
   })
@@ -3896,7 +3773,8 @@ describe('publishReleaseArtefacts', () => {
     )
 
     seedSnapshotProcessingPolicies(sqlite)
-    const catalogRevision = await publishReleaseArtefacts(db, {
+    const publicationArgs: Parameters<typeof publishReleaseArtefacts>[1] = {
+      lineageStore,
       carriedSnapshots: [],
       currentRelease: null,
       currentReleaseIsCorrected: false,
@@ -3910,7 +3788,25 @@ describe('publishReleaseArtefacts', () => {
       releaseSetId: 'release-set-1',
       snapshotId: 'snapshot-new',
       resourceType: 'division',
-    })
+    }
+    const beforeSnapshots = sqlite.query('SELECT * FROM snapshots ORDER BY id').all()
+    await expect(
+      publishReleaseArtefacts(db, {
+        ...publicationArgs,
+        lineageStore: {
+          get: async () => null,
+          put: async () => {
+            throw new Error('R2 unavailable')
+          },
+        },
+      }),
+    ).rejects.toThrow('R2 unavailable')
+    expect(sqlite.query('SELECT * FROM apiFieldProvenance').all()).toEqual([])
+    expect(sqlite.query('SELECT * FROM fieldLineageDefinitions').all()).toEqual([])
+    expect(sqlite.query('SELECT * FROM snapshots ORDER BY id').all()).toEqual(
+      beforeSnapshots,
+    )
+    const catalogRevision = await publishReleaseArtefacts(db, publicationArgs)
 
     expect(catalogRevision).toMatchObject({
       code: 'catalog-hk-divisions-v0.1-2026-06-29.0',
@@ -3995,35 +3891,44 @@ describe('publishReleaseArtefacts', () => {
       { snapshotId: 'snapshot-new-divisionStatistic' },
     ])
 
-    const mapping = await getApiFieldLineageForReleaseSet(db, 'release-set-1')
+    const mapping = await getApiFieldLineageForReleaseSet(
+      db,
+      'release-set-1',
+      lineageStore,
+    )
     expect(
-      mapping?.definition.ingestion.some(
-        field =>
-          field.sourceField === 'properties.names.primary' &&
-          field.rawFields.includes('names.primary'),
+      mapping?.definition.nodes.some(
+        node =>
+          node.stage === 'ingestion' && node.output.path === 'properties.names.primary',
       ),
     ).toBe(true)
     const provenanceRows = (
-      await listApiFieldProvenanceForReleaseSet(db, 'release-set-1')
+      await listApiFieldProvenanceForReleaseSet(db, 'release-set-1', lineageStore)
     ).map(row => ({
       apiField: row.apiField,
       resourceType: row.resourceType,
-      inputs: JSON.stringify(row.inputs),
+      inputs: JSON.stringify(row.provenance),
     }))
+    expect(provenanceRows.length).toBeGreaterThan(0)
+    expect(mapping?.binding?.apiReleaseSetId).toBe('release-set-1')
+    const catalogue = await listRegistryApiFields(db as never)
+    expect(catalogue[0]).not.toHaveProperty('definition')
+    expect(catalogue[0]?.manifestHash).toMatch(/^sha256:/)
+    const detail = await getRegistryApiField(db as never, 'release-set-1', lineageStore)
+    expect(detail?.definition).toEqual(mapping?.definition)
+    await expect(
+      getRegistryApiField(db as never, 'release-set-1', {
+        get: async () => null,
+        put: async () => {},
+      }),
+    ).rejects.toThrow('Missing provenance object')
 
-    expect(sortProvenanceRows(provenanceRows)).toEqual(
-      sortProvenanceRows(
-        divisionFixtureOverture116To118.resources
-          .flatMap(group =>
-            group.fields.map(field => ({ ...field, resourceType: group.resourceType })),
-          )
-          .map(field => ({
-            apiField: field.apiField,
-            resourceType: field.resourceType,
-            inputs: JSON.stringify(field.inputs),
-          })),
-      ),
-    )
+    expect(mapping?.definition.resolution.layerOrder).toEqual([
+      'baseline',
+      'conditional-rule',
+      'curation',
+      'patch',
+    ])
 
     const journalRows = sqlite
       .query(
@@ -4076,6 +3981,7 @@ describe('publishReleaseArtefacts', () => {
 
     seedSnapshotProcessingPolicies(sqlite)
     await publishReleaseArtefacts(db, {
+      lineageStore,
       carriedSnapshots: [
         {
           resourceType: 'divisionArea',
@@ -4121,10 +4027,12 @@ describe('publishReleaseArtefacts', () => {
     ).toEqual({ count: 1 })
     expect(
       sortProvenanceRows(
-        (await listApiFieldProvenanceForReleaseSet(db, 'release-set-2')).map(row => ({
+        (
+          await listApiFieldProvenanceForReleaseSet(db, 'release-set-2', lineageStore)
+        ).map(row => ({
           apiField: row.apiField,
           resourceType: row.resourceType,
-          inputs: JSON.stringify(row.inputs),
+          inputs: JSON.stringify(row.provenance),
         })),
       ),
     ).toEqual(sortProvenanceRows(provenanceRows))
@@ -4195,6 +4103,7 @@ describe('publishReleaseArtefacts', () => {
     seedSnapshotProcessingPolicies(sqlite)
     await expect(
       publishReleaseArtefacts(db, {
+        lineageStore,
         carriedSnapshots: [],
         currentRelease: null,
         currentReleaseIsCorrected: false,
@@ -4277,6 +4186,7 @@ describe('publishReleaseArtefacts', () => {
     seedSnapshotProcessingPolicies(sqlite)
     await expect(
       publishReleaseArtefacts(db, {
+        lineageStore,
         carriedSnapshots: [],
         currentRelease: null,
         currentReleaseIsCorrected: false,
@@ -4366,6 +4276,7 @@ describe('publishReleaseArtefacts', () => {
     try {
       await expect(
         publishReleaseArtefacts(db, {
+          lineageStore,
           carriedSnapshots: [],
           currentRelease: null,
           currentReleaseIsCorrected: false,
@@ -4447,6 +4358,7 @@ describe('publishReleaseArtefacts', () => {
     try {
       seedSnapshotProcessingPolicies(sqlite)
       await publishReleaseArtefacts(db, {
+        lineageStore,
         carriedSnapshots: [],
         currentRelease: null,
         currentReleaseIsCorrected: false,
@@ -4473,7 +4385,8 @@ describe('publishReleaseArtefacts', () => {
 
     expect(provenanceCount.count).toBe(1)
     expect(
-      (await listApiFieldProvenanceForReleaseSet(db, 'release-set-1')).length,
+      (await listApiFieldProvenanceForReleaseSet(db, 'release-set-1', lineageStore))
+        .length,
     ).toBeGreaterThan(20)
   })
 })

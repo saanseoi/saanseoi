@@ -1,13 +1,25 @@
+import { retainCompositionAudits } from '../../provenance/compositionAudit'
+import {
+  readFieldLineage,
+  retainFieldLineage,
+} from '../../provenance/fieldLineageStorage'
+import type { ProvenanceStore } from '../../provenance/types'
 import {
   assertApiReleaseVersions,
   type ApiReleaseVersions,
 } from '@repo/db/apiReleaseVersions'
 import { selectApiInventory } from './apiInventory'
+import { assertCuratedReleaseInputs } from './curatedReleaseInputs'
 import {
   retainIngestionProcessingRules,
   processingRulesSelection,
 } from './processingRuleDefinitions'
-import { buildFieldLineageDefinition } from '@repo/db'
+import {
+  buildFieldLineageDefinition,
+  expandFieldLineage,
+  resolveApiResponseFields,
+  validateFieldLineageBinding,
+} from '@repo/db'
 import { recordProcessingRun } from './processingRuns'
 import {
   pinApiFieldRules,
@@ -46,11 +58,6 @@ import { metaSchema } from '@repo/db'
 import { compareReleaseVersions, resolveSourceSchemaVersion } from '../../sourceSchemas'
 import { chunkArray } from '../../pipeline/utils'
 import { recordEffectiveSnapshotAssembly } from '../../pipeline/db/snapshotAssembly'
-import {
-  auditSummarySelection,
-  readAuditPages,
-  readReleaseAuditDecisions,
-} from '../../pipeline/db/processingActionStorage'
 import {
   buildDatasetCode,
   datasetVariantForSource,
@@ -103,7 +110,6 @@ const {
   metaSnapshotAssemblies,
   metaSnapshotRecipeInputs,
   metaSnapshotResourceReleases,
-  releaseProcessingActions,
   stats,
 } = metaSchema
 
@@ -266,9 +272,7 @@ export async function listRegistryReleases(
   offset = 0,
   apiVersionId?: string,
   releaseCode?: string,
-  options: { includeProcessingActions?: boolean } = {},
 ) {
-  const includeProcessingActions = options.includeProcessingActions ?? true
   // `status` is an operational routing state. The registry also needs a
   // reader-facing lifecycle: a later cohort supersedes an earlier one, while
   // a later revision of the same cohort revises it. Load the small lifecycle
@@ -462,65 +466,45 @@ export async function listRegistryReleases(
   const datasetIds = [
     ...new Set(snapshotResourceReleases.map(source => source.datasetId)),
   ]
-  const [sourceReleases, processingActions, processingActionCounts, datasetI18n] =
-    await Promise.all([
-      queryInBatches(sourceReleaseIds, ids =>
-        db
-          .select({
-            id: metaResourceReleases.id,
-            datasetId: metaResourceReleases.datasetId,
-            code: metaResourceReleases.code,
-            datasetCode: metaDatasets.code,
-            publisherCode: metaPublishers.code,
-            sourceVersion: metaResourceReleases.sourceVersion,
-            kind: metaDatasets.kind,
-            ingestedAt: metaResourceReleases.ingestedAt,
-            processingRules: processingRulesSelection(
-              metaResourceReleases.processingRules,
-            ),
-            resourceTypes: metaDatasets.resourceTypes,
-          })
-          .from(metaResourceReleases)
-          .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
-          .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-          .where(inArray(metaResourceReleases.id, ids))
-          .all(),
-      ),
-      includeProcessingActions
-        ? readReleaseAuditDecisions(
-            db as unknown as HarbourReadableDb,
-            sourceReleaseIds,
-          )
-        : Promise.resolve([]),
-      includeProcessingActions
-        ? Promise.resolve([])
-        : queryInBatches(sourceReleaseIds, ids =>
-            db
-              .select({
-                resourceReleaseId: releaseProcessingActions.resourceReleaseId,
-                count: sql<number>`sum(${releaseProcessingActions.decisionCount})`,
-              })
-              .from(releaseProcessingActions)
-              .where(inArray(releaseProcessingActions.resourceReleaseId, ids))
-              .groupBy(releaseProcessingActions.resourceReleaseId)
-              .all(),
+  const [sourceReleases, datasetI18n] = await Promise.all([
+    queryInBatches(sourceReleaseIds, ids =>
+      db
+        .select({
+          id: metaResourceReleases.id,
+          datasetId: metaResourceReleases.datasetId,
+          code: metaResourceReleases.code,
+          datasetCode: metaDatasets.code,
+          publisherCode: metaPublishers.code,
+          sourceVersion: metaResourceReleases.sourceVersion,
+          kind: metaDatasets.kind,
+          ingestedAt: metaResourceReleases.ingestedAt,
+          processingRules: processingRulesSelection(
+            metaResourceReleases.processingRules,
           ),
-      queryInBatches(datasetIds, ids =>
-        db
-          .select({ id: metaDatasets.id, i18n: metaDatasets.i18n })
-          .from(metaDatasets)
-          .where(inArray(metaDatasets.id, ids))
-          .all(),
-      ).then(
-        rows =>
-          new Map(
-            rows.map(row => [
-              row.id,
-              localeMapFromStoredValue(row.i18n) as typeof row.i18n,
-            ]),
-          ),
-      ),
-    ])
+          resourceTypes: metaDatasets.resourceTypes,
+        })
+        .from(metaResourceReleases)
+        .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
+        .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
+        .where(inArray(metaResourceReleases.id, ids))
+        .all(),
+    ),
+    queryInBatches(datasetIds, ids =>
+      db
+        .select({ id: metaDatasets.id, i18n: metaDatasets.i18n })
+        .from(metaDatasets)
+        .where(inArray(metaDatasets.id, ids))
+        .all(),
+    ).then(
+      rows =>
+        new Map(
+          rows.map(row => [
+            row.id,
+            localeMapFromStoredValue(row.i18n) as typeof row.i18n,
+          ]),
+        ),
+    ),
+  ])
   const resourceTypesByDatasetId = new Map(
     sourceReleases.map(release => [
       release.datasetId,
@@ -553,23 +537,6 @@ export async function listRegistryReleases(
       .filter((value): value is string => value !== null)
       .sort()
       .at(-1)
-    const sourceReleaseActions = processingActions
-      .filter(action => releaseSourceIds.has(action.resourceReleaseId))
-      .map(action => {
-        const source = sourceReleases.find(
-          candidate => candidate.id === action.resourceReleaseId,
-        )
-        return {
-          ...action,
-          sourceCode: source?.datasetCode,
-          sourceReleaseCode: source?.code,
-        }
-      })
-    const processingActionCount = includeProcessingActions
-      ? sourceReleaseActions.length
-      : processingActionCounts
-          .filter(row => releaseSourceIds.has(row.resourceReleaseId))
-          .reduce((total, row) => total + Number(row.count), 0)
     const bulkActions: Array<
       ReleaseProcessingRules['rulesets'][number]['rules'][number] & {
         id: string
@@ -612,8 +579,6 @@ export async function listRegistryReleases(
       displayStatus,
       ingestedAt: ingestedAt ?? null,
       stats: apiReleaseSetStats.filter(stat => stat.apiReleaseSetId === release.id),
-      processingActionCount,
-      processingActions: includeProcessingActions ? sourceReleaseActions : undefined,
       bulkActions,
       apiReleaseSetSnapshots: snapshots.map(snapshot => ({
         ...snapshot,
@@ -661,7 +626,11 @@ export async function listRegistryReleases(
   })
 }
 
-async function listRegistryReleaseSummaries(db: MetaDatabase, apiVersionId: string) {
+async function listRegistryReleaseSummaries(
+  db: MetaDatabase,
+  apiVersionId: string,
+  familyType?: (typeof metaApiVersions.$inferSelect)['familyType'],
+) {
   const releases = await db
     .select({
       id: metaApiReleaseSets.id,
@@ -693,7 +662,11 @@ async function listRegistryReleaseSummaries(db: MetaDatabase, apiVersionId: stri
       metaApiVersions,
       eq(metaApiVersionReleaseSets.apiVersionId, metaApiVersions.id),
     )
-    .where(eq(metaApiVersionReleaseSets.apiVersionId, apiVersionId))
+    .where(
+      familyType
+        ? eq(metaApiVersions.familyType, familyType)
+        : eq(metaApiVersionReleaseSets.apiVersionId, apiVersionId),
+    )
     .orderBy(
       desc(
         sql`coalesce(${metaApiVersionReleaseSets.publishedAt}, ${metaApiReleaseSets.createdAt})`,
@@ -926,9 +899,9 @@ export async function listRegistryApiCompositions(db: MetaDatabase, limit?: numb
 export async function getRegistryApi(
   db: MetaDatabase,
   id: string,
-  options: { includeProcessingActions?: boolean; releaseCode?: string } = {},
+  options: { releaseCode?: string } = {},
 ) {
-  const api = await db
+  const candidates = await db
     .select()
     .from(metaApiVersions)
     .where(
@@ -938,9 +911,38 @@ export async function getRegistryApi(
         sql`${metaApiVersions.familyType} = ${id}`,
       ),
     )
-    .limit(1)
-    .get()
-  if (!api) return null
+    .all()
+  candidates.sort(
+    (left, right) =>
+      Number(right.status === 'current') - Number(left.status === 'current') ||
+      right.version.localeCompare(left.version, undefined, { numeric: true }),
+  )
+  const defaultApi =
+    candidates.find(candidate => candidate.id === id || candidate.code === id) ??
+    candidates[0]
+  if (!defaultApi) return null
+
+  // Family URLs span contract versions; explicit API IDs remain version-scoped.
+  const isFamily = id === defaultApi.familyType
+  const summaries = await listRegistryReleaseSummaries(
+    db,
+    defaultApi.id,
+    isFamily ? defaultApi.familyType : undefined,
+  )
+  const rank = new Map(candidates.map((candidate, index) => [candidate.id, index]))
+  summaries.sort(
+    (left, right) =>
+      (rank.get(left.apiVersionId) ?? 0) - (rank.get(right.apiVersionId) ?? 0),
+  )
+  const seen = new Set<string>()
+  const familyReleases = summaries.filter(release => {
+    if (seen.has(release.id)) return false
+    seen.add(release.id)
+    return true
+  })
+  const selected = familyReleases.find(release => release.code === options.releaseCode)
+  const api =
+    candidates.find(candidate => candidate.id === selected?.apiVersionId) ?? defaultApi
 
   const compositions = await db
     .select()
@@ -974,18 +976,21 @@ export async function getRegistryApi(
       .where(inArray(metaApiCatalogRevisionReleaseSets.apiCatalogRevisionId, ids))
       .all(),
   )
-  const releases = options.releaseCode
-    ? await (async () => {
-        const [summaries, detailed] = await Promise.all([
-          listRegistryReleaseSummaries(db, api.id),
-          listRegistryReleases(db, undefined, 0, api.id, options.releaseCode, options),
-        ])
-        const detail = detailed[0]
-        return detail
-          ? summaries.map(release => (release.id === detail.id ? detail : release))
-          : summaries
-      })()
-    : await listRegistryReleases(db, undefined, 0, api.id, undefined, options)
+  const detailed = options.releaseCode
+    ? await listRegistryReleases(db, undefined, 0, api.id, options.releaseCode)
+    : (
+        await Promise.all(
+          (isFamily ? candidates : [api]).map(candidate =>
+            listRegistryReleases(db, undefined, 0, candidate.id),
+          ),
+        )
+      ).flat()
+  const releases = familyReleases.map(release => {
+    const detail = detailed.find(
+      item => item.id === release.id && item.apiVersionId === release.apiVersionId,
+    )
+    return detail ? { ...detail, displayStatus: release.displayStatus } : release
+  })
 
   return {
     ...api,
@@ -1005,214 +1010,13 @@ export async function getRegistryApi(
   }
 }
 
-export type RegistryApiReleaseProcessingAction = {
-  action: string
-  affectedRecordCount: number
-  createdAt: string
-  evidence: unknown
-  id: string
-  mode: 'automatic' | 'manual'
-  sourceCode: string
-  sourceReleaseCode: string
-  summary: string
-  updatedAt: string
-}
-
-export type RegistryApiReleaseProcessingActionSection = {
-  action: string
-  affectedRecordCount: number
-  mode: 'automatic' | 'manual'
-  totalCount: number
-}
-
-type RegistryApiReleaseProcessingActionInput = {
-  familyType: string
-  releaseCode: string
-}
-
-type RegistrySourceReleaseProcessingActionInput = {
-  datasetCode: string
-  releaseCode: string
-}
-
-const processingActionBelongsToApiRelease = (
-  input: RegistryApiReleaseProcessingActionInput,
-) =>
-  sql`exists (
-      select 1
-      from ${metaSnapshotResourceReleases}
-      inner join ${metaApiReleaseSetSnapshots}
-        on ${metaApiReleaseSetSnapshots.snapshotId} = ${metaSnapshotResourceReleases.snapshotId}
-      inner join ${metaApiReleaseSets}
-        on ${metaApiReleaseSets.id} = ${metaApiReleaseSetSnapshots.apiReleaseSetId}
-      inner join ${metaApiVersionReleaseSets}
-        on ${metaApiVersionReleaseSets.apiReleaseSetId} = ${metaApiReleaseSets.id}
-      inner join ${metaApiVersions}
-        on ${metaApiVersions.id} = ${metaApiVersionReleaseSets.apiVersionId}
-      where ${metaApiVersions.familyType} = ${input.familyType}
-        and ${metaApiReleaseSets.code} = ${input.releaseCode}
-        and ${metaSnapshotResourceReleases.resourceReleaseId} = ${releaseProcessingActions.resourceReleaseId}
-    )`
-
-export async function listRegistryApiReleaseProcessingActionSections(
-  db: MetaDatabase,
-  input: RegistryApiReleaseProcessingActionInput,
-): Promise<RegistryApiReleaseProcessingActionSection[] | null> {
-  const sections = await db
-    .select({
-      action: releaseProcessingActions.action,
-      affectedRecordCount: sql<number>`sum(${releaseProcessingActions.affectedRecordCount})`,
-      mode: sql<'automatic' | 'manual'>`case
-        when min(${releaseProcessingActions.mode}) = 'automatic'
-          and max(${releaseProcessingActions.mode}) = 'automatic'
-        then 'automatic'
-        else 'manual'
-      end`,
-      totalCount: sql<number>`sum(${releaseProcessingActions.decisionCount})`,
-    })
-    .from(releaseProcessingActions)
-    .where(processingActionBelongsToApiRelease(input))
-    .groupBy(releaseProcessingActions.action)
-    .orderBy(releaseProcessingActions.action)
-    .all()
-
-  return sections.map(section => ({
-    ...section,
-    affectedRecordCount: Number(section.affectedRecordCount),
-    totalCount: Number(section.totalCount),
-  }))
-}
-
-export async function listRegistryApiReleaseProcessingActions(
-  db: MetaDatabase,
-  input: RegistryApiReleaseProcessingActionInput & {
-    action: string
-    limit: number
-    offset: number
-  },
-): Promise<RegistryApiReleaseProcessingAction[] | null> {
-  const parents = await db
-    .select({
-      ...auditSummarySelection,
-      sourceCode: metaDatasets.code,
-      sourceReleaseCode: metaResourceReleases.code,
-    })
-    .from(releaseProcessingActions)
-    .innerJoin(
-      metaResourceReleases,
-      eq(releaseProcessingActions.resourceReleaseId, metaResourceReleases.id),
-    )
-    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
-    .where(
-      and(
-        eq(releaseProcessingActions.action, input.action),
-        processingActionBelongsToApiRelease(input),
-      ),
-    )
-    .orderBy(
-      desc(releaseProcessingActions.createdAt),
-      desc(releaseProcessingActions.id),
-    )
-    .all()
-  return readAuditPages(
-    db as unknown as HarbourReadableDb,
-    parents,
-    input.offset,
-    input.limit,
-  )
-}
-
-export async function listRegistrySourceReleaseProcessingActionSections(
-  db: MetaDatabase,
-  input: RegistrySourceReleaseProcessingActionInput,
-): Promise<RegistryApiReleaseProcessingActionSection[]> {
-  const sections = await db
-    .select({
-      action: releaseProcessingActions.action,
-      affectedRecordCount: sql<number>`sum(${releaseProcessingActions.affectedRecordCount})`,
-      mode: sql<'automatic' | 'manual'>`case
-        when min(${releaseProcessingActions.mode}) = 'automatic'
-          and max(${releaseProcessingActions.mode}) = 'automatic'
-        then 'automatic'
-        else 'manual'
-      end`,
-      totalCount: sql<number>`sum(${releaseProcessingActions.decisionCount})`,
-    })
-    .from(releaseProcessingActions)
-    .innerJoin(
-      metaResourceReleases,
-      eq(releaseProcessingActions.resourceReleaseId, metaResourceReleases.id),
-    )
-    .innerJoin(
-      metaSourceReleases,
-      eq(metaResourceReleases.sourceReleaseId, metaSourceReleases.id),
-    )
-    .innerJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
-    .where(
-      and(
-        eq(metaDatasets.code, input.datasetCode),
-        eq(metaSourceReleases.code, input.releaseCode),
-      ),
-    )
-    .groupBy(releaseProcessingActions.action)
-    .orderBy(releaseProcessingActions.action)
-    .all()
-
-  return sections.map(section => ({
-    ...section,
-    affectedRecordCount: Number(section.affectedRecordCount),
-    totalCount: Number(section.totalCount),
-  }))
-}
-
-export async function listRegistrySourceReleaseProcessingActions(
-  db: MetaDatabase,
-  input: RegistrySourceReleaseProcessingActionInput & {
-    action: string
-    limit: number
-    offset: number
-  },
-): Promise<RegistryApiReleaseProcessingAction[]> {
-  const parents = await db
-    .select({
-      ...auditSummarySelection,
-      sourceCode: metaDatasets.code,
-      sourceReleaseCode: metaSourceReleases.code,
-    })
-    .from(releaseProcessingActions)
-    .innerJoin(
-      metaResourceReleases,
-      eq(releaseProcessingActions.resourceReleaseId, metaResourceReleases.id),
-    )
-    .innerJoin(
-      metaSourceReleases,
-      eq(metaResourceReleases.sourceReleaseId, metaSourceReleases.id),
-    )
-    .innerJoin(metaDatasets, eq(metaSourceReleases.datasetId, metaDatasets.id))
-    .where(
-      and(
-        eq(metaDatasets.code, input.datasetCode),
-        eq(metaSourceReleases.code, input.releaseCode),
-        eq(releaseProcessingActions.action, input.action),
-      ),
-    )
-    .orderBy(
-      desc(releaseProcessingActions.createdAt),
-      desc(releaseProcessingActions.id),
-    )
-    .all()
-  return readAuditPages(
-    db as unknown as HarbourReadableDb,
-    parents,
-    input.offset,
-    input.limit,
-  )
-}
-
 const apiFieldLineageSelection = {
   id: metaApiFieldProvenance.apiReleaseSetId,
   definitionId: metaApiFieldProvenance.definitionId,
-  definition: metaFieldLineageDefinitions.definition,
+  binding: metaApiFieldProvenance.binding,
+  schemaVersion: metaFieldLineageDefinitions.schemaVersion,
+  manifestHash: metaFieldLineageDefinitions.manifestHash,
+  manifestByteLength: metaFieldLineageDefinitions.manifestByteLength,
   compositionId: metaApiVersionReleaseSets.apiCompositionId,
 }
 
@@ -1228,13 +1032,21 @@ export async function listRegistryApiFields(db: MetaDatabase, limit?: number) {
       metaApiReleaseSets,
       eq(metaApiFieldProvenance.apiReleaseSetId, metaApiReleaseSets.id),
     )
+    .innerJoin(
+      metaApiVersionReleaseSets,
+      eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+    )
     .orderBy(metaApiFieldProvenance.apiReleaseSetId)
     .limit(registryLimit(limit))
     .all()
 }
 
-export async function getRegistryApiField(db: MetaDatabase, id: string) {
-  return (
+export async function getRegistryApiField(
+  db: MetaDatabase,
+  id: string,
+  store: ProvenanceStore,
+) {
+  const row =
     (await db
       .select(apiFieldLineageSelection)
       .from(metaApiFieldProvenance)
@@ -1246,9 +1058,18 @@ export async function getRegistryApiField(db: MetaDatabase, id: string) {
         metaApiReleaseSets,
         eq(metaApiFieldProvenance.apiReleaseSetId, metaApiReleaseSets.id),
       )
+      .innerJoin(
+        metaApiVersionReleaseSets,
+        eq(metaApiVersionReleaseSets.apiReleaseSetId, metaApiReleaseSets.id),
+      )
       .where(eq(metaApiFieldProvenance.apiReleaseSetId, id))
       .get()) ?? null
-  )
+  return row
+    ? {
+        ...row,
+        definition: await readFieldLineage(store, { ...row, id: row.definitionId }),
+      }
+    : null
 }
 
 export async function listRegistryEndpoints(db: MetaDatabase, limit?: number) {
@@ -1636,33 +1457,11 @@ export async function getRegistrySourceReleaseShell(
     ),
     timed('header-publisher', () => getRegistrySourcePublisher(db, source.publisherId)),
   ])
-  const selectedRelease = sourceVersions.find(release => release.code === releaseCode)
-  const processingActionCount = selectedRelease
-    ? await timed('processing-action-count', async () => {
-        const row = await db
-          .select({
-            count: sql<number>`sum(${releaseProcessingActions.decisionCount})`,
-          })
-          .from(releaseProcessingActions)
-          .innerJoin(
-            metaResourceReleases,
-            eq(releaseProcessingActions.resourceReleaseId, metaResourceReleases.id),
-          )
-          .where(eq(metaResourceReleases.sourceReleaseId, selectedRelease.id))
-          .get()
-        return Number(row?.count ?? 0)
-      })
-    : 0
-
   return {
     ...source,
     publisher,
     datasetI18n: localeMapFromStoredValue(source.i18n) as typeof source.i18n,
-    sourceVersions: sourceVersions.map(release =>
-      release.id === selectedRelease?.id
-        ? { ...release, processingActionCount }
-        : release,
-    ),
+    sourceVersions,
     selectedReleaseCode: releaseCode,
     timings,
   }
@@ -1673,7 +1472,15 @@ export async function getRegistrySourceRelease(
   id: string,
   releaseCode: string,
   options: {
-    content?: 'all' | 'assembly' | 'audit' | 'minimal' | 'notes' | 'releases' | 'stats'
+    content?:
+      | 'all'
+      | 'assembly'
+      | 'audit'
+      | 'minimal'
+      | 'notes'
+      | 'releases'
+      | 'resources'
+      | 'stats'
   } = {},
 ) {
   const source = await getRegistrySourceRecord(db, id)
@@ -1704,7 +1511,15 @@ async function queryRegistrySourceVersions(
   limit?: number,
   sourceReleaseCode?: string,
   options: {
-    content?: 'all' | 'assembly' | 'audit' | 'minimal' | 'notes' | 'releases' | 'stats'
+    content?:
+      | 'all'
+      | 'assembly'
+      | 'audit'
+      | 'minimal'
+      | 'notes'
+      | 'releases'
+      | 'resources'
+      | 'stats'
   } = {},
 ) {
   const content = options.content ?? 'all'
@@ -1712,7 +1527,6 @@ async function queryRegistrySourceVersions(
   const includeReleaseAs =
     content === 'all' || content === 'assembly' || content === 'releases'
   const includeAssembly = content === 'all' || content === 'assembly'
-  const includeProcessingActions = content === 'all'
   const sourceReleases = await db
     .select({
       id: metaSourceReleases.id,
@@ -1724,8 +1538,6 @@ async function queryRegistrySourceVersions(
       processingRules: processingRulesSelection(metaSourceReleases.processingRules),
       publicationDate: metaSourceReleases.publicationDate,
       cohortKey: metaSourceReleases.cohortKey,
-      rawObjectKey: metaSourceReleases.rawObjectKey,
-      originalFileName: metaSourceReleases.originalFileName,
       releaseNotesUrl: metaSourceReleases.releaseNotesUrl,
       notes: metaSourceReleases.notes,
       status: metaSourceReleases.status,
@@ -1760,7 +1572,7 @@ async function queryRegistrySourceVersions(
 
   const sourceReleaseIds = sourceReleases.map(release => release.id)
   const resourceReleases =
-    includeStats || includeReleaseAs || includeProcessingActions
+    includeStats || includeReleaseAs || content === 'resources'
       ? await queryInBatches(sourceReleaseIds, ids =>
           db
             .select({
@@ -1972,13 +1784,6 @@ async function queryRegistrySourceVersions(
         ]),
       ),
   )
-  const processingActions = includeProcessingActions
-    ? await readReleaseAuditDecisions(
-        db as unknown as HarbourReadableDb,
-        resourceReleaseIds,
-      )
-    : []
-
   return sourceReleases.map(release => {
     const resourceIds = resourceReleaseIdsBySourceReleaseId.get(release.id) ?? []
     const assembledWith = releaseAs
@@ -2047,11 +1852,6 @@ async function queryRegistrySourceVersions(
               resourceIds.includes(stat.resourceReleaseId ?? ''),
             )
           : [],
-      processingActions: includeProcessingActions
-        ? processingActions.filter(action =>
-            resourceIds.includes(action.resourceReleaseId),
-          )
-        : undefined,
     }
   })
 }
@@ -2163,10 +1963,7 @@ const releaseRecordSelection = {
   sourceCrs: metaDatasets.sourceCrs,
   source: metaPublishers.code,
   sourceVersion: metaResourceReleases.sourceVersion,
-  rawObjectKey: metaResourceReleases.rawObjectKey,
-  originalFileName: metaResourceReleases.originalFileName,
   releaseNotesUrl: metaResourceReleases.releaseNotesUrl,
-  notes: metaResourceReleases.notes,
   status: metaResourceReleases.status,
   supersedesDatasetId: sql<string | null>`null`,
   supersededByResourceReleaseId: metaResourceReleases.supersededByResourceReleaseId,
@@ -2534,7 +2331,6 @@ export function releasePublicationDate(
 export async function insertDataset(
   db: HarbourWritableDb & HarbourReadableDb,
   plan: UploadPlan,
-  rawObjectKey: string | null,
   ingestedAt: string,
   status: ReleaseStatus = 'staged',
 ) {
@@ -2563,8 +2359,6 @@ export async function insertDataset(
       sourceSchemaVersion,
       publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
       cohortKey: plan.cohortKey,
-      rawObjectKey,
-      originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
       notes: null,
       status,
@@ -2595,10 +2389,7 @@ export async function insertDataset(
       geometryStatus: isGeometryResourceType(plan.resourceType)
         ? (plan.geometryStatus ?? 'authoritative')
         : null,
-      rawObjectKey,
-      originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
-      notes: null,
       status,
       ingestedAt: now,
       revokedAt: null,
@@ -2696,15 +2487,19 @@ export function buildDeterministicApiFieldProvenanceId(args: {
   )
 }
 
-/** Resolve the pinned reusable rules and all three field-lineage boundaries. */
+/** Resolve the pinned reusable graph and its exact release binding. */
 export async function getApiFieldLineageForReleaseSet(
   db: HarbourReadableDb,
   releaseSetId: string,
+  store: ProvenanceStore,
 ) {
-  return db
+  const row = await db
     .select({
       id: metaFieldLineageDefinitions.id,
-      definition: metaFieldLineageDefinitions.definition,
+      binding: metaApiFieldProvenance.binding,
+      schemaVersion: metaFieldLineageDefinitions.schemaVersion,
+      manifestHash: metaFieldLineageDefinitions.manifestHash,
+      manifestByteLength: metaFieldLineageDefinitions.manifestByteLength,
     })
     .from(metaApiFieldProvenance)
     .innerJoin(
@@ -2713,20 +2508,27 @@ export async function getApiFieldLineageForReleaseSet(
     )
     .where(eq(metaApiFieldProvenance.apiReleaseSetId, releaseSetId))
     .get()
+  return row ? { ...row, definition: await readFieldLineage(store, row) } : undefined
 }
 
 export async function listApiFieldProvenanceForReleaseSet(
   db: HarbourReadableDb,
   releaseSetId: string,
+  store: ProvenanceStore,
 ) {
-  const lineage = await getApiFieldLineageForReleaseSet(db, releaseSetId)
-  return lineage?.definition.fields ?? []
+  const lineage = await getApiFieldLineageForReleaseSet(db, releaseSetId, store)
+  if (!lineage) return []
+  if (lineage.definition.schemaVersion !== 2 || !lineage.binding)
+    throw new Error(`Release ${releaseSetId} has no release-bound v2 field lineage.`)
+  validateFieldLineageBinding(lineage.definition, lineage.binding)
+  return lineage.definition.fields.map(field =>
+    expandFieldLineage(lineage.definition, field),
+  )
 }
 
 export async function resetFailedDataset(
   db: HarbourWritableDb & HarbourReadableDb,
   plan: UploadPlan,
-  rawObjectKey: string | null,
   ingestedAt: string,
   status: ReleaseStatus,
   options: { preservePublishedSourceRelease?: boolean } = {},
@@ -2764,8 +2566,6 @@ export async function resetFailedDataset(
       geometryStatus: isGeometryResourceType(plan.resourceType)
         ? (plan.geometryStatus ?? 'authoritative')
         : null,
-      rawObjectKey,
-      originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
       status,
       ingestedAt: now,
@@ -2784,8 +2584,6 @@ export async function resetFailedDataset(
       processingRules,
       publicationDate: releasePublicationDate(plan.sourceVersion, plan.publicationDate),
       cohortKey: plan.cohortKey,
-      rawObjectKey,
-      originalFileName: plan.originalFileName,
       releaseNotesUrl: plan.releaseNotesUrl ?? null,
       status: sourceRelease?.status === 'current' ? 'current' : status,
       ingestedAt: now,
@@ -4892,6 +4690,7 @@ async function prepareApiCatalogRevision(
 export async function publishReleaseArtefacts(
   db: HarbourReadableDb & HarbourWritableDb,
   args: {
+    lineageStore: ProvenanceStore
     carriedSnapshots: Array<{
       resourceType: ResourceType
       snapshotId: string
@@ -5126,6 +4925,28 @@ export async function publishReleaseArtefacts(
     const releaseSetRegionCode = releaseSet.regionCode
     const releaseSetCohortKey = releaseSet.cohortKey
 
+    if (!deferApiReleaseSet) {
+      await assertCuratedReleaseInputs(
+        db,
+        compositionMembers
+          .filter(member => member.domainCode === releaseSet.domainCode)
+          .flatMap(member => {
+            const selected = releaseSetSnapshots.get(
+              buildReleaseSetSnapshotMemberKey(member.resourceType, member.variant),
+            )
+            return selected
+              ? [
+                  {
+                    snapshotId: selected.snapshotId,
+                    resourceType: member.resourceType,
+                    variant: member.variant,
+                  },
+                ]
+              : []
+          }),
+      )
+    }
+
     if (publishApiCatalogRevision && (!releaseSetRegionCode || !releaseSetCohortKey)) {
       throw new Error(
         `Cannot publish API catalogue revision for release set ${releaseSet.code}: regionCode or cohortKey is missing.`,
@@ -5218,9 +5039,13 @@ export async function publishReleaseArtefacts(
         await db
           .select({
             anchorReleaseId: metaSnapshotResourceReleases.anchorReleaseId,
+            producerSnapshotId: metaSnapshotResourceReleases.snapshotId,
+            datasetId: metaDatasets.id,
             datasetCode: metaDatasets.code,
             source: metaPublishers.code,
             resourceReleaseId: metaResourceReleases.id,
+            resourceType: metaResourceReleases.resourceType,
+            sourceReleaseId: metaResourceReleases.sourceReleaseId,
             processingRules: processingRulesSelection(
               metaResourceReleases.processingRules,
             ),
@@ -5265,9 +5090,12 @@ export async function publishReleaseArtefacts(
           async ids =>
             await db
               .select({
+                datasetId: metaDatasets.id,
                 datasetCode: metaDatasets.code,
                 source: metaPublishers.code,
                 resourceReleaseId: metaResourceReleases.id,
+                resourceType: metaResourceReleases.resourceType,
+                sourceReleaseId: metaResourceReleases.sourceReleaseId,
                 processingRules: processingRulesSelection(
                   metaResourceReleases.processingRules,
                 ),
@@ -5298,6 +5126,7 @@ export async function publishReleaseArtefacts(
     const assemblyPolicyRows = await queryInBatches(releaseSetSnapshotIds, async ids =>
       db
         .select({
+          snapshotId: metaSchema.metaSnapshotAssemblies.snapshotId,
           snapshotRecipeId: metaSchema.metaSnapshotRecipes.id,
           resourceType: metaSchema.metaSnapshotRecipes.resourceType,
           processingRules: processingRulesSelection(
@@ -5344,6 +5173,8 @@ export async function publishReleaseArtefacts(
     ]
 
     const sourceSchemas = new Map<string, string>()
+    const sourceSchemasByRelease = new Map<string, string>()
+    const sourceSchemaVariants: Record<string, string[]> = {}
 
     for (const row of sourceSchemaRows) {
       const sourceSchemaVersion = await resolveSourceSchemaVersion({
@@ -5351,15 +5182,12 @@ export async function publishReleaseArtefacts(
         sourceVersion: row.sourceVersion,
         storedSourceSchemaVersion: row.sourceSchemaVersion,
       })
-      const current = sourceSchemas.get(row.datasetCode)
-
-      if (current && current !== sourceSchemaVersion) {
-        throw new Error(
-          `Conflicting source schema versions found for dataset ${row.datasetCode}: ${current} and ${sourceSchemaVersion}.`,
-        )
-      }
-
-      sourceSchemas.set(row.datasetCode, sourceSchemaVersion)
+      sourceSchemasByRelease.set(row.resourceReleaseId, sourceSchemaVersion)
+      const versions = sourceSchemaVariants[row.datasetCode] ?? []
+      if (!versions.includes(sourceSchemaVersion)) versions.push(sourceSchemaVersion)
+      versions.sort()
+      sourceSchemaVariants[row.datasetCode] = versions
+      sourceSchemas.set(row.datasetCode, versions[0]!)
     }
 
     const canonicalSourceSchemas = canonicaliseApiFieldSourceSchemas(
@@ -5376,6 +5204,7 @@ export async function publishReleaseArtefacts(
       schemaVersion: releaseSet.schemaVersion,
       rulesetVersion: releaseSet.rulesetVersion,
       sourceSchemas: canonicalSourceSchemas.sourceSchemas,
+      sourceSchemaVariants,
       redundantSourceDatasetCodes: canonicalSourceSchemas.redundantDatasetCodes,
     }
     const resolvedApiFieldFixture = deferApiReleaseSet
@@ -5493,6 +5322,34 @@ export async function publishReleaseArtefacts(
           })()
         : { apiFieldProvenanceRows: [], publisherFieldsByDatasetId: null }
 
+    const processingManifestRows = resolvedApiFieldFixture
+      ? await queryInBatches(
+          sourceSchemaRows.map(row => row.resourceReleaseId),
+          async ids =>
+            db
+              .select({
+                resourceReleaseId: metaSchema.processingAudits.resourceReleaseId,
+                hash: metaSchema.processingAudits.manifestHash,
+                byteLength: metaSchema.processingAudits.byteLength,
+              })
+              .from(metaSchema.processingAudits)
+              .where(
+                and(
+                  inArray(metaSchema.processingAudits.resourceReleaseId, ids),
+                  eq(metaSchema.processingAudits.attemptStatus, 'completed'),
+                  eq(metaSchema.processingAudits.stage, 'ingestion'),
+                ),
+              )
+              .all(),
+        )
+      : []
+    const processingManifests = new Map(
+      processingManifestRows.map(row => [
+        row.resourceReleaseId,
+        { hash: row.hash, byteLength: row.byteLength },
+      ]),
+    )
+
     const lineage = resolvedApiFieldFixture
       ? buildFieldLineageDefinition(
           apiFieldProvenanceRows.map(row => ({
@@ -5509,36 +5366,113 @@ export async function publishReleaseArtefacts(
             confidence: row.confidence,
           })),
           publisherFieldsByDatasetId ?? new Map(),
-          sourceSchemaRows
-            .filter(row => row.processingRules)
-            .map(row => ({
-              datasetCode: row.datasetCode,
-              definitionId: computeVersionHash(row.processingRules),
-            })),
-          assemblyPolicyRows
-            .filter(row => row.processingRules)
-            .map(row => ({
+          {
+            api: {
+              version: releaseSet.apiVersion,
+              responseSchemaVersion: releaseSet.schemaVersion,
+              responseSchemaHash: resolvedApiFieldFixture.responseFieldsVersionHash,
+            },
+            apiReleaseSetId: args.releaseSetId,
+            apiVersionReleaseSetId: releaseSet.apiVersionReleaseSetId,
+            responseDefinition: resolveApiResponseFields(
+              releaseSet.apiVersion,
+              releaseSet.schemaVersion,
+            ),
+            sources: sourceSchemaRows.map(row => ({
+              sourceDatasetId: row.datasetId,
               resourceType: row.resourceType,
-              definitionId: computeVersionHash(row.processingRules),
+              datasetCode: row.datasetCode,
+              sourceSchemaVersion: sourceSchemasByRelease.get(row.resourceReleaseId)!,
+              resourceReleaseId: row.resourceReleaseId,
+              sourceReleaseId: row.sourceReleaseId,
+              processingRules: row.processingRules,
+              processingManifest: processingManifests.get(row.resourceReleaseId),
+              producerSnapshotIds: [
+                ...new Set(
+                  selectedSourceSchemaRows
+                    .filter(
+                      selected =>
+                        selected.resourceReleaseId === row.resourceReleaseId ||
+                        selected.anchorReleaseId === row.resourceReleaseId,
+                    )
+                    .map(selected => selected.producerSnapshotId),
+                ),
+              ].sort(),
             })),
+            snapshots: [...releaseSetSnapshots].map(([key, selected]) => ({
+              snapshotId: selected.snapshotId,
+              resourceType: key.slice(0, key.indexOf(':')),
+              ...assemblyPolicyRows.find(
+                recipe => recipe.snapshotId === selected.snapshotId,
+              ),
+            })),
+          },
         )
       : null
 
+    const lineageReference =
+      !deferApiReleaseSet && lineage
+        ? await retainFieldLineage(args.lineageStore, lineage.id, lineage.definition)
+        : null
+
+    if (lineageReference) {
+      const retained = await db
+        .select()
+        .from(metaFieldLineageDefinitions)
+        .where(eq(metaFieldLineageDefinitions.id, lineageReference.id))
+        .get()
+      if (
+        retained &&
+        (retained.manifestHash !== lineageReference.manifestHash ||
+          retained.manifestByteLength !== lineageReference.manifestByteLength ||
+          retained.schemaVersion !== lineageReference.schemaVersion)
+      )
+        throw new Error(
+          `Conflicting immutable lineage catalogue entry: ${lineageReference.id}`,
+        )
+    }
+
+    const compositionAudits = deferApiReleaseSet
+      ? []
+      : await retainCompositionAudits(
+          args.lineageStore,
+          args.releaseSetId,
+          selectedSourceSchemaRows,
+          { snapshots: [...releaseSetSnapshots.values()], policy: composition ?? null },
+        )
+
     await runAtomicWriteStatements(db as AtomicWritableDb, tx => {
-      const statements: WriteStatement[] = chunkArray(
-        sourceReleaseSnapshotIds,
-        D1_IN_ARRAY_BATCH_SIZE,
-      ).map(ids =>
+      const statements: WriteStatement[] = compositionAudits.map(audit =>
         tx
-          .update(metaSnapshots)
-          .set({
-            status: 'published',
-            publishedAt,
-            validFrom: publishedAt,
-            validTo: null,
-            updatedAt: publishedAt,
-          })
-          .where(inArray(metaSnapshots.id, ids)),
+          .insert(metaSchema.processingAudits)
+          .values(audit)
+          .onConflictDoUpdate({
+            target: [
+              metaSchema.processingAudits.resourceReleaseId,
+              metaSchema.processingAudits.stage,
+              metaSchema.processingAudits.ownerId,
+            ],
+            set: {
+              manifestHash: audit.manifestHash,
+              byteLength: audit.byteLength,
+              applicationCount: audit.applicationCount,
+              attemptStatus: audit.attemptStatus,
+            },
+          }),
+      )
+      statements.push(
+        ...chunkArray(sourceReleaseSnapshotIds, D1_IN_ARRAY_BATCH_SIZE).map(ids =>
+          tx
+            .update(metaSnapshots)
+            .set({
+              status: 'published',
+              publishedAt,
+              validFrom: publishedAt,
+              validTo: null,
+              updatedAt: publishedAt,
+            })
+            .where(inArray(metaSnapshots.id, ids)),
+        ),
       )
 
       statements.push(
@@ -5710,12 +5644,17 @@ export async function publishReleaseArtefacts(
         )
       }
 
-      if (!deferApiReleaseSet && lineage) {
+      if (!deferApiReleaseSet && lineage && lineageReference) {
         statements.push(
-          tx.insert(metaFieldLineageDefinitions).values(lineage).onConflictDoNothing(),
           tx
-            .insert(metaApiFieldProvenance)
-            .values({ apiReleaseSetId: args.releaseSetId, definitionId: lineage.id }),
+            .insert(metaFieldLineageDefinitions)
+            .values(lineageReference)
+            .onConflictDoNothing(),
+          tx.insert(metaApiFieldProvenance).values({
+            apiReleaseSetId: args.releaseSetId,
+            definitionId: lineage.id,
+            binding: lineage.binding,
+          }),
         )
       }
 
@@ -5734,7 +5673,6 @@ export async function publishReleaseArtefacts(
             action: 'published',
             statusFrom: null,
             statusTo: 'current',
-            reason: null,
             metadataJson: {
               replacedReleaseId: args.currentRelease.resourceReleaseId,
               resourceType: args.resourceType,
@@ -5750,7 +5688,6 @@ export async function publishReleaseArtefacts(
             action: args.currentReleaseIsCorrected ? 'revoked' : 'replaced',
             statusFrom: 'current',
             statusTo: args.currentReleaseIsCorrected ? 'revoked' : 'archived',
-            reason: replacedReason,
             metadataJson: {
               replacementReleaseId: args.dataset.resourceReleaseId,
               resourceType: args.resourceType,
@@ -5804,7 +5741,6 @@ export async function publishReleaseArtefacts(
             action: 'published',
             statusFrom: null,
             statusTo: 'current',
-            reason: null,
             metadataJson: {
               resourceType: args.resourceType,
             },
@@ -6656,7 +6592,7 @@ export async function listApiReleaseSetSnapshotsForRegistryRequest(
   resourceType: ResourceType,
   args: Parameters<typeof resolveApiReleaseSetForRequest>[2],
 ) {
-  const apiVersionCode = getApiVersionCodeForType(resourceType)
+  const apiVersionCode = args.apiVersion ?? getApiVersionCodeForType(resourceType)
   const apiVersion = await db
     .select({ id: metaApiVersions.id })
     .from(metaApiVersions)

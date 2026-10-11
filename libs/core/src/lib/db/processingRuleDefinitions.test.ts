@@ -1,6 +1,6 @@
 import { Database } from 'bun:sqlite'
 import { test, expect } from 'bun:test'
-import { metaSchema, eq } from '@repo/db'
+import { metaSchema, eq, computeVersionHash } from '@repo/db'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import {
   retainProcessingRules,
@@ -31,10 +31,9 @@ test('multiple releases share one immutable processing definition', async () => 
     }
     const first = await retainProcessingRules(db, rules)
     const second = await retainProcessingRules(db, rules)
+    expect(first).toBe(computeVersionHash(rules))
     expect(second).toEqual(first)
-    sqlite
-      .query('INSERT INTO resourceReleases VALUES (?,?)')
-      .run('release', JSON.stringify(first))
+    sqlite.query('INSERT INTO resourceReleases VALUES (?,?)').run('release', first)
     const row = await db
       .select({
         processingRules: processingRulesSelection(
@@ -49,7 +48,7 @@ test('multiple releases share one immutable processing definition', async () => 
       sqlite.query('SELECT COUNT(*) AS n FROM processingRuleDefinitions').get(),
     ).toEqual({ n: 1 })
     expect(sqlite.query('SELECT processingRules FROM resourceReleases').get()).toEqual({
-      processingRules: JSON.stringify(first),
+      processingRules: first,
     })
   } finally {
     sqlite.close()
@@ -72,7 +71,7 @@ test('source and resource releases accept ingestion policies and reject assembly
     expect(sqlite.query('SELECT * FROM processingRuleDefinitions').all()).toEqual([])
     expect(
       await retainIngestionProcessingRules(db, { stage: 'ingestion', rulesets: [] }),
-    ).toHaveProperty('definitionId')
+    ).toBe(computeVersionHash({ stage: 'ingestion', rulesets: [] }))
     expect(await retainIngestionProcessingRules(db, null)).toBeNull()
   } finally {
     sqlite.close()

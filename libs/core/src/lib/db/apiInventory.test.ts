@@ -1,3 +1,5 @@
+import { createMemoryProvenanceStore } from '../../testing/provenanceStore'
+const { store: lineageStore } = createMemoryProvenanceStore()
 import { expect, test } from 'bun:test'
 import { selectApiInventory } from './apiInventory'
 const member = (type: string, variant: string, role: string) => ({
@@ -104,6 +106,7 @@ test('publication rejects unknown stored pins before attaching snapshots', async
     `)
     await expect(
       publishReleaseArtefacts(createLocalHarbourDb(sqlite), {
+        lineageStore,
         carriedSnapshots: [],
         currentRelease: null,
         currentReleaseIsCorrected: false,

@@ -124,7 +124,6 @@ for (const order of [types, [...types].reverse()]) {
             cohortKey: '2024',
             originalFileName: 'source.zip',
           } as UploadPlan,
-          'source.zip',
           '2026-09-09T00:00:00Z',
         )
         await updateDatasetStatus(db, resourceReleaseId, 'processing')
@@ -169,6 +168,7 @@ for (const order of [types, [...types].reverse()]) {
           )
         }
         const audit = await retainAuditResult(store, {
+          scope: { stage: 'ingestion', ownerId: 'test-resource' },
           resourceReleaseId,
           datasetCode,
           attempt: { id: `${type}-attempt`, status: 'completed' },
