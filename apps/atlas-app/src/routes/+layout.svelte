@@ -2,11 +2,14 @@
 import './app.css'
 import { dev } from '$app/env'
 import { page } from '$app/state'
+
 import favicon from '#lib/assets/favicon.svg'
 import { SiteHeader } from '#lib/bits/patterns/site-header/index.js'
 import { Page } from '#lib/bits/primitives/page/index.js'
+
+let currentUrl = $derived(page.shallow?.url ?? page.url)
 let { children, data } = $props()
-let hideNav = $derived(page.url.searchParams.has('hideNav'))
+let hideNav = $derived(currentUrl.searchParams.has('hideNav'))
 let isLandingPage = $derived(page.route.id === '/')
 let siteFooter = $derived(
   isLandingPage ? undefined : import('#lib/bits/patterns/site-footer/index.js'),
@@ -30,9 +33,12 @@ let siteFooter = $derived(
     <script
       defer
       src="https://static.cloudflareinsights.com/beacon.min.js"
-      data-cf-beacon={JSON.stringify({ token: '54e4db0c39524c4fbcf35f4d26009910', spa: true })}
+      data-cf-beacon={JSON.stringify({
+        token: '54e4db0c39524c4fbcf35f4d26009910',
+        spa: true,
+      })}
     ></script>
-  <!-- End Cloudflare Web Analytics -->
+    <!-- End Cloudflare Web Analytics -->
   {/if}
 </svelte:head>
 <Page>

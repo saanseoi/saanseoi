@@ -1,7 +1,6 @@
 <script lang="ts">
+import { page } from '$app/state'
 import ErrorPage from '#lib/bits/pages/error/errorPage.svelte'
-
-let { error } = $props()
 </script>
 
-<ErrorPage {error} />
+<ErrorPage error={page.error} />
