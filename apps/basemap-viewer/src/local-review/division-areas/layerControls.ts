@@ -12,6 +12,7 @@ export const layerGroups = [
     layers: [
       ['city', 'City'],
       ['town', 'Town'],
+      ['rural_area', 'Rural area'],
       ['village', 'Village'],
       ['hamlet', 'Hamlet'],
     ],
@@ -51,7 +52,12 @@ export function divisionLayerKey(
 }
 
 export function createLayerControls(host: HTMLElement, changed: () => void) {
-  const enabled = new Set<string>(['macrohood', 'island-custom', 'island-proto'])
+  const enabled = new Set<string>([
+    'rural_area',
+    'macrohood',
+    'island-custom',
+    'island-proto',
+  ])
   const inputs = new Map<string, HTMLInputElement>()
   for (const group of layerGroups) {
     const fieldset = document.createElement('fieldset')
