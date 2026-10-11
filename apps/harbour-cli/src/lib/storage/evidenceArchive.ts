@@ -188,6 +188,13 @@ export async function registerReviewEvidence(path: string) {
   const name = relative(root, path)
   if (!name.startsWith('fixtures/reviews/'))
     throw new Error('Evidence is outside the review cache.')
+  const catalogued = (await readManifest(root)).entries.find(
+    entry => entry.path === name,
+  )
+  if (catalogued) {
+    await verifyEvidence(catalogued, await safePath(root, name))
+    return
+  }
   await updateManifest(root, async manifest => {
     const entry = await describeEvidence(root, name)
     const old = manifest.entries.find(item => item.path === name)
@@ -209,7 +216,10 @@ export async function validateReviewCache(root: string, manifest: EvidenceManife
   }
 }
 
-export async function openEvidenceStore(bucket: string): Promise<EvidenceStore> {
+export async function openEvidenceStore(
+  bucket: string,
+  options: { persistPath?: string } = {},
+): Promise<EvidenceStore> {
   const directory = await mkdtemp(resolve(tmpdir(), 'saanseoi-evidence-'))
   const configPath = resolve(directory, 'wrangler.json')
   const accountId = process.env.CLOUDFLARE_ACCOUNT_ID?.trim()
@@ -219,10 +229,13 @@ export async function openEvidenceStore(bucket: string): Promise<EvidenceStore> 
       name: 'saanseoi-evidence-archive',
       compatibility_date: '2026-10-11',
       ...(accountId ? { account_id: accountId } : {}),
-      r2_buckets: [{ binding: 'R2_ASSETS', bucket_name: bucket, remote: true }],
+      r2_buckets: [
+        { binding: 'R2_ASSETS', bucket_name: bucket, remote: !options.persistPath },
+      ],
     }),
   )
   const client = startR2Process(configPath, {
+    persistPath: options.persistPath,
     onProgress: message => process.stdout.write(`${message}\n`),
   })
   try {
