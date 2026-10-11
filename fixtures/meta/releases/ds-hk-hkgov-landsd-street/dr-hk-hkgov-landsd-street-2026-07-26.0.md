@@ -6,7 +6,6 @@ source: "hkgov-landsd"
 sourceVersion: "2026-07-26.0"
 type: "street"
 cohortKey: "2026-07-26.0"
-releaseNotesUrl: "https://www.landsd.gov.hk/en/survey-mapping/mapping/street-geographical-place-naming/street-naming.html"
 ---
 
 # EN
@@ -18,8 +17,10 @@ intentionally deferred to later revisions.
 
 # ZH-HANT
 
-SaanSeoi 首次發布地政總署現行刊憲街道名稱清單。此版本包含發布者的英文及繁體中文名稱，作為目前狀態的基線。歷史政府公告及電子憲報資料特意留待後續修訂處理。
+山水 |
+SaanSeoi 首次發布地政總署現行刊憲街道名稱清單，保留發布者的英文及繁體中文名稱。歷史政府公告及電子憲報資料將於後續修訂加入。
 
 # ZH-HANS
 
-SaanSeoi 首次发布地政总署现行刊宪街道名称清单。此版本包含发布者的英文及繁体中文名称，作为当前状态的基线。历史政府公告及电子宪报资料特意留待后续修订处理。
+山水 |
+SaanSeoi 首次发布地政总署现行刊宪街道名称清单，保留发布者的英文及繁体中文名称。历史政府公告及电子宪报资料将在后续修订加入。
