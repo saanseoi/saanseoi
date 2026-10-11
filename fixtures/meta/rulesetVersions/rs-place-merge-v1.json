@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:61a1a9467355419e3920a2f63bf9039d711c338bbdaa35f46fb877ca27d9abdc",
+  "versionHash": "sha256:c9e2498719b236ac655d3a6f4cb31af723f942be434ee7baa122e14096384767",
   "code": "rs-place-merge-v1",
   "resourceType": "place",
   "strategy": "merge",
@@ -143,7 +143,7 @@
         },
         {
           "from": "excluded Place source record",
-          "to": "releaseProcessingActions evidence for review"
+          "to": "retained processing provenance for review"
         }
       ],
       "i18n": {
