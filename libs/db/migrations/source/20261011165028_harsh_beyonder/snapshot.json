@@ -1,10 +1,8 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "83dd58a8-c6aa-409a-9095-f2fd97252269",
-  "prevIds": [
-    "00000000-0000-0000-0000-000000000000"
-  ],
+  "id": "4dcd16aa-a132-437d-8e6d-f1eaaa540a2c",
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "overtureDivisionAreas",
@@ -2558,16 +2556,6 @@
     },
     {
       "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourceLocator",
-      "entityType": "columns",
-      "table": "hkgovPlandPlanningCells"
-    },
-    {
-      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
@@ -2877,172 +2865,119 @@
       "table": "hkgovRvdAreas"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash",
-        "validFromRelease"
-      ],
+      "columns": ["sourceRecordId", "versionHash", "validFromRelease"],
       "nameExplicit": false,
       "name": "overtureDivisionAreas_pk",
       "entityType": "pks",
       "table": "overtureDivisionAreas"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash",
-        "validFromRelease"
-      ],
+      "columns": ["sourceRecordId", "versionHash", "validFromRelease"],
       "nameExplicit": false,
       "name": "overtureDivisionBoundaries_pk",
       "entityType": "pks",
       "table": "overtureDivisionBoundaries"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "overtureDivisions_pk",
       "entityType": "pks",
       "table": "overtureDivisions"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "overturePlaces_pk",
       "entityType": "pks",
       "table": "overturePlaces"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "protomapsIslandFeatures_pk",
       "entityType": "pks",
       "table": "protomapsIslandFeatures"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovAlsAddresses2d_pk",
       "entityType": "pks",
       "table": "hkgovAlsAddresses2d"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovAlsAddresses3d_pk",
       "entityType": "pks",
       "table": "hkgovAlsAddresses3d"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovLandsdPlaceNames_pk",
       "entityType": "pks",
       "table": "hkgovLandsdPlaceNames"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovLandsdRoadCentrelines_pk",
       "entityType": "pks",
       "table": "hkgovLandsdRoadCentrelines"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovLandsdStreetBaselineRecords_pk",
       "entityType": "pks",
       "table": "hkgovLandsdStreetBaselineRecords"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovLandsdStreetNoticeApplications_pk",
       "entityType": "pks",
       "table": "hkgovLandsdStreetNoticeApplications"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovLandsdStreetNotices_pk",
       "entityType": "pks",
       "table": "hkgovLandsdStreetNotices"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovHydSensitiveStreets_pk",
       "entityType": "pks",
       "table": "hkgovHydSensitiveStreets"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovHydStrategicStreets_pk",
       "entityType": "pks",
       "table": "hkgovHydStrategicStreets"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovHydStreetNamePlates_pk",
       "entityType": "pks",
       "table": "hkgovHydStreetNamePlates"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovTdPedestrianStreets_pk",
       "entityType": "pks",
       "table": "hkgovTdPedestrianStreets"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovHadDivisionAreas_pk",
       "entityType": "pks",
@@ -3062,73 +2997,49 @@
       "table": "hkgovCenstatdDivisionAreaDerivatives"
     },
     {
-      "columns": [
-        "datasetCode",
-        "resourceReleaseId",
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovCenstatdFeatureReleases_pk",
       "entityType": "pks",
       "table": "hkgovCenstatdFeatureReleases"
     },
     {
-      "columns": [
-        "datasetCode",
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["datasetCode", "sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovCenstatdFeatures_pk",
       "entityType": "pks",
       "table": "hkgovCenstatdFeatures"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovPlandNewTowns_pk",
       "entityType": "pks",
       "table": "hkgovPlandNewTowns"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovPlandPlanningCells_pk",
       "entityType": "pks",
       "table": "hkgovPlandPlanningCells"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "ssDivision_pk",
       "entityType": "pks",
       "table": "ssDivision"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "ssDivisionArea_pk",
       "entityType": "pks",
       "table": "ssDivisionArea"
     },
     {
-      "columns": [
-        "sourceRecordId",
-        "versionHash"
-      ],
+      "columns": ["sourceRecordId", "versionHash"],
       "nameExplicit": false,
       "name": "hkgovRvdAreas_pk",
       "entityType": "pks",

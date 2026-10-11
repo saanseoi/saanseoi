@@ -269,7 +269,6 @@ export async function insertSourceRows(
         sourceRecordId: cell.sourceRecordId,
         properties: retainSourceProperties(cell.properties),
         sourceGeometry: cell.sourceGeometry,
-        sourceLocator: { layer: 'TPUSU' },
         versionHash: await createHash(nativeSourcePayloadHashInput(cell)),
         resourceReleaseId,
         validFromRelease: sourceVersion,

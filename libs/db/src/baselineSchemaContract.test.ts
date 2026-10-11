@@ -10,7 +10,7 @@ import * as history from './schema/history'
 import * as source from './schema/source'
 
 for (const [family, schema] of Object.entries({ meta, current, history, source })) {
-  test(`${family} baseline creates the declared tables and column contracts`, () => {
+  test(`${family} migrations create the declared tables and column contracts`, () => {
     const db = new Database(':memory:')
     try {
       const root = resolve(import.meta.dir, '../migrations', family)
@@ -18,7 +18,7 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
         .filter(entry => entry.isDirectory())
         .map(entry => entry.name)
         .sort()
-      expect(migrations).toHaveLength(1)
+      expect(migrations.length).toBeGreaterThan(0)
       for (const migration of migrations) {
         db.exec(readFileSync(resolve(root, migration, 'migration.sql'), 'utf8'))
       }
@@ -52,7 +52,6 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
             [
               'hkgovAlsAddresses2d',
               'hkgovAlsAddresses3d',
-              'hkgovPlandPlanningCells',
               'hkgovCenstatdFeatures',
             ].includes(getTableName(table)),
           )

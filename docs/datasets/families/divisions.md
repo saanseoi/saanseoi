@@ -450,7 +450,9 @@ Overture attribution remains in `properties.sources`, including explicit nulls o
 arrays supplied by the publisher. Private acquisition locators do not repeat publisher
 attribution or canonical identifiers. A source table includes `sourceLocator` only when
 its writer retains acquisition coordinates; archive and table-wide evidence belongs in
-the release and processing receipt.
+the release and processing receipt. Planning Cell and New Town assertions omit this
+column because they have no row-specific acquisition coordinates; the Planning Cell
+`TPUSU` layer is table-wide.
 
 Local geometry prerequisite checks may read a pending delivery only when its sealed
 plans prove ownership by the exact release being resumed. Other releases remain blocked

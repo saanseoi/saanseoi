@@ -8,8 +8,9 @@ separate DivisionArea geometries retain their full extent. See the
 [Division point contract](../../families/divisions.md#representative-points-and-separate-areas)
 for null handling and area selection.
 
-Planning cells retain their layer in `sourceLocator`. New Town assertions need no
-row-specific acquisition coordinate and omit that column.
+Planning Cell and New Town assertions omit `sourceLocator`: neither has a row-specific
+acquisition coordinate. The `TPUSU` layer is shared by all Planning Cells and belongs to
+release-level source evidence.
 
 Canonical Division and geometry references follow the
 [source evidence contract](../../families/source-evidence.md). Planning classification

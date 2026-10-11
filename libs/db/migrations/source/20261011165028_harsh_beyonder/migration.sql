@@ -328,7 +328,6 @@ CREATE TABLE `hkgovPlandPlanningCells` (
 	`validToRelease` text,
 	`isCurrent` integer NOT NULL,
 	`sourceGeometry` text NOT NULL,
-	`sourceLocator` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `hkgovPlandPlanningCells_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)

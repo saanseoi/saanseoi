@@ -51,6 +51,7 @@ for (const source of ['hkgov-pland-pu', 'hkgov-pland-new-town'])
       )
       expect(plandSourceSqlColumns(source)).not.toContain('repairedGeometry')
       expect(plandSourceSqlColumns(source)).not.toContain('wasGeometryRepaired')
+      expect(plandSourceSqlColumns(source)).not.toContain('sourceLocator')
       const sql = await buildPlandSourceSql(
         { sourceDb: createLocalHarbourDb(input) } as never,
         { source, sourceVersion: '2001' } as never,
@@ -116,6 +117,7 @@ for (const source of ['hkgov-pland-pu', 'hkgov-pland-new-town'] as const)
       const stored = input.query(`SELECT * FROM ${table}`).get()
       expect(stored).not.toHaveProperty('repairedGeometry')
       expect(stored).not.toHaveProperty('wasGeometryRepaired')
+      expect(stored).not.toHaveProperty('sourceLocator')
       expect(stored).toHaveProperty(
         'sourceGeometry',
         JSON.stringify(record.sourceGeometry),

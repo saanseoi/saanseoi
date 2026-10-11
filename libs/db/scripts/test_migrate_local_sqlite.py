@@ -73,6 +73,32 @@ class LocalMigrationTests(unittest.TestCase):
         with sqlite3.connect(self.database) as db:
             self.assertEqual(db.execute("SELECT value FROM parent WHERE id='new'").fetchone(), ('semi;colon',))
 
+    def test_equivalent_baseline_adoption_preserves_data_and_applies_upgrade(self):
+        self.write('001', '''CREATE TABLE parent(value TEXT, id TEXT PRIMARY KEY);
+          CREATE TABLE child(parentId TEXT REFERENCES parent(id) ON DELETE CASCADE, id TEXT PRIMARY KEY);''')
+        self.write('002', 'ALTER TABLE parent ADD extra TEXT;')
+        self.assertEqual(self.run_migrations(), ['001/migration.sql', '002/migration.sql'])
+        self.assertEqual(self.run_migrations(), [])
+        with sqlite3.connect(self.database) as db:
+            self.assertEqual(db.execute('SELECT id,value,extra FROM parent').fetchall(), [('p','retained',None)])
+            self.assertEqual(db.execute('SELECT * FROM child').fetchall(), [('c','p')])
+
+    def test_baseline_drift_is_rejected_without_receipts_or_data_changes(self):
+        for declaration in [
+            'CREATE TABLE parent(id TEXT PRIMARY KEY, value INTEGER);',
+            "CREATE TABLE parent(id TEXT PRIMARY KEY, value TEXT CHECK(value='other'));",
+            'CREATE TABLE parent(id TEXT PRIMARY KEY, value TEXT); CREATE UNIQUE INDEX values_unique ON parent(value);',
+        ]:
+            with self.subTest(declaration=declaration):
+                path = self.migrations / '001' / 'migration.sql'
+                path.parent.mkdir(exist_ok=True)
+                path.write_text(declaration)
+                with self.assertRaisesRegex(ValueError, 'schema differs'):
+                    self.run_migrations()
+                with sqlite3.connect(self.database) as db:
+                    self.assertEqual(db.execute('SELECT * FROM parent').fetchall(), [('p','retained')])
+                    self.assertEqual(db.execute("SELECT name FROM sqlite_master WHERE name='d1_migrations'").fetchall(), [])
+
 
 if __name__ == '__main__':
     unittest.main()
