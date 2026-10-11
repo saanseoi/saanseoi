@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers'
-import type { Handle } from '@sveltejs/kit'
+import type { Handle } from '@sveltejs/kit/hooks'
 import { sequence } from '@sveltejs/kit/hooks'
 import { building } from '$app/env'
 import { paraglideMiddleware } from '@repo/i18n/server'

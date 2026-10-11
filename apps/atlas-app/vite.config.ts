@@ -9,15 +9,6 @@ import { sveltekit } from '@sveltejs/kit/vite'
 
 export default defineConfig({
   plugins: [
-    {
-      name: 'atlas-cloudflare-workers-dev',
-      apply: 'serve',
-      resolveId(id) {
-        if (id === 'cloudflare:workers') {
-          return resolve(import.meta.dirname, 'src/lib/server/cloudflareWorkers.dev.ts')
-        }
-      },
-    },
     tailwindcss(),
     paraglideVitePlugin({
       project: resolve(import.meta.dirname, '../../libs/i18n/project.inlang'),
@@ -48,7 +39,6 @@ export default defineConfig({
         },
       }),
       experimental: {
-        explicitEnvironmentVariables: true,
         remoteFunctions: true,
       },
     }),
