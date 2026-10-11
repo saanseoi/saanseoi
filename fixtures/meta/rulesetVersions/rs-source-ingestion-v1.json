@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:d425acde693e409c24a0da756a2d683bf5fc0bcdcdd9b1ed56c13f012018e116",
+  "versionHash": "sha256:bcaa01a30900cf4e0ddc2a274f13ab9c7297d198f7421ab3da659f0d9a2c2a7d",
   "code": "rs-source-ingestion-v1",
   "stage": "ingestion",
   "strategy": "ingestion",
@@ -1473,6 +1473,11 @@
           "origin": "publisher",
           "collection": "coastline-features",
           "path": "geometry"
+        },
+        {
+          "origin": "publisher",
+          "collection": "regional-land-border",
+          "path": "geometry"
         }
       ],
       "targetFields": [
@@ -1490,6 +1495,16 @@
           "origin": "intermediate",
           "collection": "prepared-protomaps-records",
           "path": "sourceGeometry"
+        },
+        {
+          "origin": "intermediate",
+          "collection": "protomaps-island-selections",
+          "path": "sourceRecordId"
+        },
+        {
+          "origin": "intermediate",
+          "collection": "protomaps-island-selections",
+          "path": "componentIndexes"
         }
       ]
     },
