@@ -3,7 +3,7 @@ import { expect, test } from 'bun:test'
 import type { AlsMembership } from '../../sources/hkgov/dpo/hkgovAlsMembership.ts'
 import { assertAddressProjectionMembership } from './addressProjectionMembership.ts'
 
-test('the final canonical inventory must match reviewed identities, parents, owners and units', () => {
+test('the final canonical inventory must match curated identities, parents, owners and units', () => {
   const db = new Database(':memory:')
   const address = (id: string, parentId: string | null = null) => ({
     id,

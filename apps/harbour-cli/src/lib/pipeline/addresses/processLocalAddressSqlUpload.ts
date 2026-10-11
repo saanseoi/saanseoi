@@ -24,7 +24,7 @@ import { fileSha256, validateAddress3dPreparation } from './address3dImport'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { PublishDatasetResult } from '@repo/core/pipeline/harbourClient'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import {
   readAddressPreparationAudit,
   retainAddressProvenance,
@@ -351,6 +351,11 @@ export async function processLocalAddressSqlUpload(
     workingDbCacheDir: dbContext.state.dbCacheDir,
   })
 
+  let failureAuditScope: import('@repo/core/provenance').AuditScope = {
+    stage: 'preparation',
+    ownerId: resourceReleaseId,
+  }
+
   try {
     await harbourClient.stageRunning(
       resourceReleaseId,
@@ -377,6 +382,7 @@ export async function processLocalAddressSqlUpload(
       dataShardEnvironment,
       { deferAssembly: true },
     )
+    failureAuditScope = { stage: 'assembly', ownerId: versionInsertContext.snapshotId }
     const activeSnapshot = await resolveLatestPublishedSnapshotForLineage(
       dbContext.metaDb as unknown as HarbourReadableDb,
       versionInsertContext.snapshotLineageId,
@@ -612,6 +618,7 @@ export async function processLocalAddressSqlUpload(
           identity: JSON.stringify({ preparedSha256, preparationAudit }),
           retain: store =>
             retainAddressProvenance(store, {
+              snapshotId: versionInsertContext.snapshotId,
               resourceReleaseId,
               datasetCode,
               preparation: preparationAudit,
@@ -822,6 +829,7 @@ export async function processLocalAddressSqlUpload(
       await completeSqlDeliveryRelease(dbContext.state.dbCacheDir, resourceReleaseId)
   } catch (error) {
     await retainProcessingFailure({
+      scope: failureAuditScope,
       error,
       target,
       resourceReleaseId,

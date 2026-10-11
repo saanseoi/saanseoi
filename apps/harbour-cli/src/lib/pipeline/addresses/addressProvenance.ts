@@ -1,8 +1,7 @@
 import { summariseAutomaticActions } from '../../api/automaticAuditSummary'
 import { readFile } from 'node:fs/promises'
-import { requireDefined } from '@repo/core/requireDefined'
 import {
-  retainFixturePartitions,
+  retainCurationReference,
   retainObject,
   type IndividualAudit,
   type JsonRecord,
@@ -11,7 +10,7 @@ import {
   type AuditGuard,
 } from '@repo/core/provenance'
 import { addressNormalisationRule } from '@repo/core/pipeline/services/addresses/normalisation'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import apiFields from '../../../../../../fixtures/meta/apiFields/api-addresses-v0.1@saanseoi-v1.json'
 import { retainProducerAudit } from '../../api/producerAudit'
 
@@ -71,6 +70,7 @@ export async function readAddressPreparationAudit(
 export async function retainAddressProvenance(
   store: ProvenanceStore,
   input: {
+    snapshotId: string
     resourceReleaseId: string
     datasetCode: string
     preparation: AddressPreparationAudit
@@ -90,44 +90,39 @@ export async function retainAddressProvenance(
   const entries = manual.map(a => (a.evidence as { decision: unknown }).decision)
   if (entries.some(entry => !entry))
     throw new Error('Applied ALS identity decision has no reviewed fixture entry.')
-  const parts = await retainFixturePartitions(
-    store,
-    { kind: 'als-identity-decisions', schemaVersion: 1, entries },
-    'entries',
-  )
-  const individuals: IndividualAudit[] = manual.map((action, index) => {
-    const evidence = action.evidence as {
-      canonicalRecord: {
-        canonicalId: string
-        formattedAddress: Record<string, string | null>
+  const individuals: IndividualAudit[] = await Promise.all(
+    manual.map(async (action, index) => {
+      const evidence = action.evidence as {
+        canonicalRecord: {
+          canonicalId: string
+          formattedAddress: Record<string, string | null>
+        }
+        decision: { reason?: string }
       }
-      decision: { reason?: string }
-    }
-    const part = requireDefined(
-      parts.find(p => index >= p.firstOrdinal && index < p.firstOrdinal + p.count),
-    )
-    return {
-      id: `${action.action}:${index}`,
-      operation: action.action,
-      basis: 'fixture',
-      outcome: 'applied',
-      summary: action.summary,
-      reason: evidence.decision.reason ?? action.summary,
-      definition,
-      fixture: {
-        object: part.object,
-        pointer: `/entries/${index - part.firstOrdinal}`,
-      },
-      record: {
-        id: evidence.canonicalRecord.canonicalId,
-        names: Object.values(evidence.canonicalRecord.formattedAddress).filter(
-          (v): v is string => !!v,
+      return {
+        id: `${action.action}:${index}`,
+        operation: action.action,
+        basis: 'fixture',
+        outcome: 'applied',
+        summary: action.summary,
+        reason: evidence.decision.reason ?? action.summary,
+        definition,
+        fixture: await retainCurationReference(
+          store,
+          entries[index],
+          preparation.fixtures.map(f => f.document),
         ),
-        parents: [],
-      },
-      context: JSON.parse(JSON.stringify(action.evidence)) as JsonRecord,
-    }
-  })
+        record: {
+          id: evidence.canonicalRecord.canonicalId,
+          names: Object.values(evidence.canonicalRecord.formattedAddress).filter(
+            (v): v is string => !!v,
+          ),
+          parents: [],
+        },
+        context: JSON.parse(JSON.stringify(action.evidence)) as JsonRecord,
+      }
+    }),
+  )
   const automatic = summariseAutomaticActions([
     ...preparation.processingActions.filter(action => action.mode === 'automatic'),
     ...(input.address3d?.processingActions ?? []),
@@ -135,75 +130,87 @@ export async function retainAddressProvenance(
   const counters = Object.fromEntries(
     automatic.map(action => [action.action, action.affectedRecordCount]),
   )
+  const stageRules: Parameters<typeof retainProducerAudit>[1]['rules'] = [
+    {
+      declaration: preparation.declarations.preparation,
+      definition: await retainObject(store, preparation.declarations.preparation),
+      inputs: { 'publisher-occurrences': preparation.sourceFeatureCount },
+      outputs: {
+        'prepared-addresses': preparation.outputCount,
+        ...(input.address3d
+          ? {
+              address3d: input.address3d.collectionCount,
+              address3dUnits: input.address3d.unitCount,
+            }
+          : {}),
+      },
+      recordsAffected: preparation.sourceFeatureCount,
+      decisions: counters,
+    },
+    ...automatic.map(action => ({
+      declaration: {
+        ...preparation.declarations.preparation,
+        id: action.action,
+        summary: action.summary,
+        implementation:
+          action.action === 'als_3d_evidence_retained'
+            ? {
+                path: 'apps/harbour-cli/src/lib/pipeline/addresses/address3dImport.ts',
+                symbol: 'validateAddress3dPreparation',
+              }
+            : {
+                path: 'apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsEvidence.ts',
+                symbol: 'buildHkgovAlsProcessingActions',
+              },
+      },
+      inputs: {},
+      outputs: {},
+      recordsAffected: action.affectedRecordCount,
+      decisions: { applied: action.affectedRecordCount },
+    })),
+    {
+      declaration,
+      definition,
+      outcome: preparation.outputCount ? 'applied' : 'not-applicable',
+      inputs: { 'curation-documents': preparation.fixtures.length },
+      outputs: {},
+      recordsAffected: manual.reduce((n, a) => n + a.affectedRecordCount, 0),
+      decisions: { identityDecisions: manual.length },
+      fixtures: preparation.fixtures.map(f => ({
+        ...f,
+        arrayKey:
+          Object.entries(f.document)
+            .filter(([, v]) => Array.isArray(v))
+            .sort(
+              (a, b) => JSON.stringify(b[1]).length - JSON.stringify(a[1]).length,
+            )[0]?.[0] ?? 'entries',
+      })),
+    },
+    {
+      declaration: addressNormalisationRule.declaration,
+      inputs: { 'prepared-addresses': preparation.outputCount },
+      outputs: { address2d: input.outputCount },
+      recordsAffected: preparation.outputCount,
+      decisions: { normalised: input.outputCount },
+    },
+  ]
   return retainProducerAudit(store, {
+    scope: { stage: 'assembly', ownerId: input.snapshotId },
     resourceReleaseId: input.resourceReleaseId,
     datasetCode: input.datasetCode,
     apiFields,
     individuals,
-    rules: [
-      {
-        declaration: preparation.declarations.preparation,
-        definition: await retainObject(store, preparation.declarations.preparation),
-        inputs: { 'publisher-occurrences': preparation.sourceFeatureCount },
-        outputs: {
-          'prepared-addresses': preparation.outputCount,
-          ...(input.address3d
-            ? {
-                address3d: input.address3d.collectionCount,
-                address3dUnits: input.address3d.unitCount,
-              }
-            : {}),
-        },
-        recordsAffected: preparation.sourceFeatureCount,
-        decisions: counters,
-      },
-      ...automatic.map(action => ({
-        declaration: {
-          ...preparation.declarations.preparation,
-          id: action.action,
-          summary: action.summary,
-          implementation:
-            action.action === 'als_3d_evidence_retained'
-              ? {
-                  path: 'apps/harbour-cli/src/lib/pipeline/addresses/address3dImport.ts',
-                  symbol: 'validateAddress3dPreparation',
-                }
-              : {
-                  path: 'apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsEvidence.ts',
-                  symbol: 'buildHkgovAlsProcessingActions',
-                },
-        },
-        inputs: {},
-        outputs: {},
-        recordsAffected: action.affectedRecordCount,
-        decisions: { applied: action.affectedRecordCount },
-      })),
-      {
-        declaration,
-        definition,
-        outcome: preparation.outputCount ? 'applied' : 'not-applicable',
-        inputs: { 'curation-documents': preparation.fixtures.length },
-        outputs: {},
-        recordsAffected: manual.reduce((n, a) => n + a.affectedRecordCount, 0),
-        decisions: { identityDecisions: manual.length },
-        fixtures: preparation.fixtures.map(f => ({
-          ...f,
-          arrayKey:
-            Object.entries(f.document)
-              .filter(([, v]) => Array.isArray(v))
-              .sort(
-                (a, b) => JSON.stringify(b[1]).length - JSON.stringify(a[1]).length,
-              )[0]?.[0] ?? 'entries',
-        })),
-      },
-      {
-        declaration: addressNormalisationRule.declaration,
-        inputs: { 'prepared-addresses': preparation.outputCount },
-        outputs: { address2d: input.outputCount },
-        recordsAffected: preparation.outputCount,
-        decisions: { normalised: input.outputCount },
-      },
-    ],
-    guards: preparation.guards ?? [],
+    individualScope: { stage: 'preparation', ownerId: input.resourceReleaseId },
+    rules: stageRules.map((rule, index, rules) => ({
+      ...rule,
+      scope:
+        index === rules.length - 1
+          ? { stage: 'assembly' as const, ownerId: input.snapshotId }
+          : { stage: 'preparation' as const, ownerId: input.resourceReleaseId },
+    })),
+    guards: (preparation.guards ?? []).map(guard => ({
+      ...guard,
+      scope: { stage: 'preparation' as const, ownerId: input.resourceReleaseId },
+    })),
   })
 }

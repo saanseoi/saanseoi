@@ -16,7 +16,7 @@ import {
 } from '@repo/core/pipeline/db/sourceResolutions'
 import { als3dHash, assertAddress3dRowBudget } from '../../sources/hkgov/dpo/hkgovAls3d'
 import { validateAddress3dOwners } from './address3dOwners'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 
 type Statement = { sql: string; params: unknown[] }
 type Target = 'current' | 'history' | 'source'

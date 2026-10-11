@@ -66,6 +66,7 @@ test('ALS retains reviewed documents, individual identity decisions and automati
     },
   }
   const result = await retainAddressProvenance(store, {
+    snapshotId: 'test-snapshot',
     resourceReleaseId: 'address-release',
     datasetCode: 'als-addresses',
     outputCount: 1,
@@ -94,7 +95,7 @@ test('ALS retains reviewed documents, individual identity decisions and automati
           action: 'als_identity_drift_decision',
           mode: 'manual',
           affectedRecordCount: 1,
-          summary: 'Retain reviewed identity.',
+          summary: 'Retain curated identity.',
           evidence: {
             canonicalRecord: {
               canonicalId: 'address-1',
@@ -133,8 +134,8 @@ test('ALS retains reviewed documents, individual identity decisions and automati
   expect(chunk).toMatchObject({
     rows: [
       {
-        record: { id: 'address-1', names: ['Example House'] },
-        fixture: { pointer: '/entries/0' },
+        context: { applicationCount: 1, currentIdentityKey: 'current' },
+        fixture: { pointer: '' },
       },
     ],
   })
