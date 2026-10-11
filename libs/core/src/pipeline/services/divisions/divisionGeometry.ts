@@ -364,7 +364,7 @@ function geometrySourceReferences(
       .filter((value): value is string => typeof value === 'string' && !!value)
     if (ids.length) return { hkgovCenstatd: ids.map(record_id => ({ record_id })) }
   }
-  return { evidence: [{ record_id: id }] }
+  return { sourceResolutions: { entityId: id } }
 }
 
 function normaliseSourceReferences(value: unknown): SourceReferences | null {

@@ -783,7 +783,7 @@ describe('normaliseDivisionRow i18n', () => {
         geometry: { coordinates: [114.1577, 22.2855], type: 'Point' },
         level: 5,
         sources: {
-          evidence: [{ record_id: 'LANDSD:101' }],
+          sourceResolutions: { entityId: 'LANDSD:101' },
         },
         class: 'settlement',
       },

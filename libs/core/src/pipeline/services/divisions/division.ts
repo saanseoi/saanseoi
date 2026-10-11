@@ -1346,9 +1346,9 @@ function normaliseDivisionRowInternal(
       category: geographicDivisionClassification(type)?.category ?? null,
       class: type,
       sources: landsdPlaceName
-        ? { evidence: [{ record_id: id }] }
+        ? { sourceResolutions: { entityId: id } }
         : options.nativeSourceEvidence
-          ? { evidence: [{ record_id: id }] }
+          ? { sourceResolutions: { entityId: id } }
           : normaliseOvertureSources(row.sources),
       updatedAt: now,
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,

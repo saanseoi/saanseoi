@@ -9,13 +9,13 @@ test('curated records have point bounds, grouped identifiers and classified cart
     id: 'new',
     class: 'neighbourhood',
     geometry: { type: 'Point', coordinates: [114, 22] },
-    sources: { evidence: [{ record_id: 'new' }] },
+    sources: { sourceResolutions: { entityId: 'new' } },
   }
   applyCuratedRecordContract([row])
   expect(row.bbox).toEqual([114, 22, 114, 22])
   expect(row).not.toHaveProperty('wikidata')
   expect(row.cartography).toEqual({ minZoom: 14, maxZoom: 24, prominence: 60 })
-  expect(row.sources.evidence).toBeUndefined()
+  expect(row.sources.sourceResolutions).toBeUndefined()
   expect(row.sources.saanseoi[0].contributions).toContain('identity')
 })
 test('nested name arrays stay structured and null keys are omitted', () => {
@@ -34,7 +34,7 @@ test('nested name arrays stay structured and null keys are omitted', () => {
 })
 
 test('geometry references the dataset without embedding its release', () => {
-  const rows = [{ sources: { evidence: [{ record_id: 'area' }] } }]
+  const rows = [{ sources: { sourceResolutions: { entityId: 'area' } } }]
   applyCuratedAreaContract(rows)
   expect((rows[0]!.sources as any).overture).toEqual([
     {

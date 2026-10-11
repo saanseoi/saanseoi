@@ -47,10 +47,10 @@ export function geometryReferenceRule(
       )
     if (census)
       return result(
-        'When row.sources is an array containing non-empty string sourceRecordId values, return { hkgovCenstatd: ids.map(record_id => ({ record_id })) }; otherwise return { evidence: [{ record_id: canonicalId }] }.',
+        'When row.sources is an array containing non-empty string sourceRecordId values, return { hkgovCenstatd: ids.map(record_id => ({ record_id })) }; otherwise return { sourceResolutions: { entityId: canonicalId } }.',
         ['sources', 'id', 'source'],
       )
-    return result('{ evidence: [{ record_id: canonicalId }] }', ['id', 'source'])
+    return result('{ sourceResolutions: { entityId: canonicalId } }', ['id', 'source'])
   }
   if (saanseoi)
     return result('canonicalIdentifiers(row.identifiers ?? null)', ['identifiers'])

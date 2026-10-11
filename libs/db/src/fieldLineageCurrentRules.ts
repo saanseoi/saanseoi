@@ -698,7 +698,7 @@ export function currentDivisionFieldRule(
     'identifiers.wikidata.id':
       'divisionIdentifiersWithWikidata(row.identifiers, row.wikidata)?.wikidata?.id',
     sources:
-      'Native evidence is { evidence: [{ record_id: id }] }; otherwise normaliseOvertureSources(row.sources).',
+      'Native evidence is { sourceResolutions: { entityId: id } }; otherwise normaliseOvertureSources(row.sources).',
     hierarchies:
       'normaliseDivisionHierarchies → enrich each correlated path with its recognised HK area → materialiseDivisionHierarchies; retain full correlated paths and category projections.',
     'relationships.areas':

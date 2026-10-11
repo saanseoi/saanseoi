@@ -18,9 +18,17 @@ export async function hydrateCanonicalSourceReferences(args: {
     if (
       !record.sources ||
       typeof record.sources !== 'object' ||
-      !('evidence' in record.sources)
+      !('sourceResolutions' in record.sources)
     )
       continue
+    const marker = (record.sources as { sourceResolutions: unknown }).sourceResolutions
+    if (
+      !marker ||
+      typeof marker !== 'object' ||
+      !('entityId' in marker) ||
+      marker.entityId !== record.id
+    )
+      throw new Error(`Invalid source-resolution entity marker for ${record.id}.`)
     const group = groups.get(record.snapshotId) ?? []
     group.push(record)
     groups.set(record.snapshotId, group)

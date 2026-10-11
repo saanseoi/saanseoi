@@ -32,9 +32,23 @@ test('full evidence reads preserve inherited versions and omissions with bounded
   const records = Array.from({ length: 205 }, (_, index) => ({
     id: `division-${index}`,
     snapshotId: 'child',
-    sources: { evidence: [{ record_id: `division-${index}` }] } as unknown,
+    sources: { sourceResolutions: { entityId: `division-${index}` } } as unknown,
   }))
   try {
+    await expect(
+      hydrateCanonicalSourceReferences({
+        metaDb: {} as never,
+        historyDbsByBinding: { history: db } as never,
+        resourceType: 'division',
+        records: [
+          {
+            id: 'division-0',
+            snapshotId: 'child',
+            sources: { sourceResolutions: { entityId: 'another-division' } },
+          },
+        ],
+      }),
+    ).rejects.toThrow('Invalid source-resolution entity marker for division-0.')
     for (const record of records) write('parent', record.id, [record.id])
     write('parent', 'removed', ['division-0'])
     write('child', 'removed', [])

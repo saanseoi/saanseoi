@@ -10,16 +10,19 @@ assertion holds its exact file/feature locator. Canonical district membership is
 substitute for that locator. Statistics retains the selected source release and feature
 reference for each field independently.
 
-Division and geometry `evidence` references identify the canonical record whose source
-interpretation must be replayed. Replay follows the selected snapshot ancestry and keeps
-the exact publisher record/version and owning release. It includes inherited assertions
-and applies explicit omissions. Several source records can contribute to one canonical
-record, and one source record can resolve to several canonical records. Planning
-geometry identifies native New Town records or contributing `cell_id` groups. A cell
-group selects native Planning occurrence IDs beginning with `${cell_id}:`; all matching
-occurrences belong to the selected release. Statistics geometry references its retained
-Statistics feature IDs. Display derivatives retain references to their native
-assertions.
+Canonical `sources.sourceResolutions.entityId` identifies the canonical entity whose
+source interpretation must be replayed. It is an internal replay marker, not a publisher
+record reference. Full API responses replace this marker with `sources.evidence`
+entries; each `record_id` then identifies an actual source assertion and includes its
+`versionHash`, `resourceReleaseId` and `snapshotId`. Replay follows the selected
+snapshot ancestry and keeps the exact publisher record/version and owning release. It
+includes inherited assertions and applies explicit omissions. Several source records can
+contribute to one canonical record, and one source record can resolve to several
+canonical records. Planning geometry identifies native New Town records or contributing
+`cell_id` groups. A cell group selects native Planning occurrence IDs beginning with
+`${cell_id}:`; all matching occurrences belong to the selected release. Statistics
+geometry references its retained Statistics feature IDs. Display derivatives retain
+references to their native assertions.
 
 ALS Address2D references identify the captured publisher occurrence and its version
 hash. Curated premises additionally identify their canonical record in the selected

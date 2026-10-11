@@ -508,3 +508,9 @@ with `name-slug` normalisation: lowercase ASCII letters and digits, non-alphanum
 runs replaced with `-`, and leading/trailing hyphens removed. Empty or duplicate keys
 block intake. These keys have release-local stability; canonical cohort-scoped Division
 IDs remain independent.
+
+Planning Unit area imports require a non-empty `source_cell_ids` array and retain every
+contributing cell as `sources.hkgovPland[].cell_id` in both current and history records.
+Missing cell membership rejects the import. Canonical Divisions use
+`sources.sourceResolutions.entityId` to request replay of their retained
+interpretations.

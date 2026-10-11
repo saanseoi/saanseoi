@@ -193,3 +193,71 @@ test('curated references use edition validity, including unchanged records and e
     source.close()
   }
 })
+
+test('fresh Planning area publication retains cell evidence in current and history', async () => {
+  const { writeGeometryRows } = await import(
+    './processLocalDivisionGeometrySqlUploadRows'
+  )
+  const current = new Database(':memory:')
+  const history = new Database(':memory:')
+  try {
+    for (const [db, family] of [
+      [current, 'current'],
+      [history, 'history'],
+    ] as const)
+      db.exec(
+        loadMigrationSql(
+          join(import.meta.dir, '../../../../../../libs/db/migrations'),
+          [family],
+        ),
+      )
+    const row = normaliseDivisionAreaGeometryRow(
+      {
+        id: 'PLAND:area',
+        division_id: 'planning-division',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [
+              [114, 22],
+              [115, 22],
+              [115, 23],
+              [114, 22],
+            ],
+          ],
+        },
+        source_cell_ids: JSON.stringify(['PLAND:323:20', 'PLAND:323:21']),
+      },
+      'hkgov-pland-pu',
+    )
+    if (!row) throw new Error('Expected a Planning area.')
+    await writeGeometryRows(
+      {
+        currentDb: drizzle({ client: current, schema: currentSchema }),
+        historyDb: drizzle({ client: history, schema: historySchema }),
+      } as never,
+      'divisionArea',
+      [row],
+      {
+        source: 'hkgov-pland-pu',
+        variant: 'hkgov-pland-pu',
+        resourceReleaseId: 'release',
+        releaseCode: 'planning-2006',
+        sourceVersion: '2006',
+        snapshotId: 'snapshot',
+        snapshotLineageId: 'lineage',
+        parentSnapshotId: null,
+        cohortKey: '2006',
+      },
+    )
+    for (const db of [current, history]) {
+      const retained = db.query('SELECT sources FROM divisionAreas').get() as {
+        sources: string
+      }
+      expect(JSON.parse(retained.sources)).toEqual(row.canonical.sources)
+    }
+  } finally {
+    current.close()
+    history.close()
+  }
+})

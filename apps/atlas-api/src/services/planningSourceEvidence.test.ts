@@ -56,7 +56,11 @@ test('delivered Planning assertions hydrate aggregate evidence without resurrect
         historyDbsByBinding: { history: db } as never,
         resourceType: 'division',
         records: [
-          { id: 'ppu', snapshotId, sources: { evidence: [{ record_id: 'ppu' }] } },
+          {
+            id: 'ppu',
+            snapshotId,
+            sources: { sourceResolutions: { entityId: 'ppu' } },
+          },
         ],
         resolvePlan: async () => [
           {

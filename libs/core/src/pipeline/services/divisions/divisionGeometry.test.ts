@@ -22,6 +22,35 @@ const polygon = {
 }
 
 describe('division geometry normalisation', () => {
+  test('Planning areas retain all contributing native cells from Parquet JSON', () => {
+    const cells = ['PLAND:323:20', 'PLAND:323:21']
+    const row = normaliseDivisionAreaGeometryRow(
+      {
+        id: 'PLAND:area',
+        division_id: 'planning-division',
+        geometry: polygon,
+        source_cell_ids: JSON.stringify(cells),
+      },
+      'hkgov-pland-pu',
+    )
+    expect(row?.canonical.sources).toEqual({
+      hkgovPland: cells.map(cell_id => ({ cell_id })),
+    })
+    expect(row?.canonical.isLand).toBe(true)
+    expect(row?.canonical.isTerritorial).toBe(true)
+    for (const source_cell_ids of [undefined, [], ['']])
+      expect(() =>
+        normaliseDivisionAreaGeometryRow(
+          {
+            id: 'PLAND:area',
+            division_id: 'planning-division',
+            geometry: polygon,
+            source_cell_ids,
+          },
+          'hkgov-pland-pu',
+        ),
+      ).toThrow('Planning geometry requires its contributing native cell IDs.')
+  })
   test('retains curated area publisher fields from its source record payload', () => {
     const normalised = normaliseDivisionAreaGeometryRow(
       {
@@ -381,7 +410,7 @@ describe('division geometry normalisation', () => {
       'hkgov-censtatd': { dcClass: 'A', dcCode: 11 },
     })
     expect(normalised.canonical.sources).toEqual({
-      evidence: [{ record_id: normalised.canonical.id }],
+      sourceResolutions: { entityId: normalised.canonical.id },
     })
     expect(normalised.source.properties).toEqual({
       dc: 11,

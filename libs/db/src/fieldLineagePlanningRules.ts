@@ -25,7 +25,10 @@ export function planningDivisionFieldRule(field: string): CurrentFieldRule | nul
     ],
     bbox: ['calculateGeoJsonBbox(parseWkbGeometry(value.geometry))', ['geometry']],
     identifiers: ['asRecord(value.identifiers)', ['identifiers']],
-    sources: ['{ evidence: [{ record_id: requireString(value.id, "id") }] }', ['id']],
+    sources: [
+      '{ sourceResolutions: { entityId: requireString(value.id, "id") } }',
+      ['id'],
+    ],
     divisionCode: [
       'value.planning_level === "newtown" ? divisionCodesByCanonicalId.get(id) ?? null : null',
       ['planning_level', 'id', 'divisionCodesByCanonicalId'],

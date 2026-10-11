@@ -310,7 +310,7 @@ function createAddress3dResource(args: {
       address2dId: args.record.collection.address2dId,
       unitCount: args.record.collection.unitCount,
       ...(args.profile === 'full'
-        ? { sources: { evidence: [{ record_id: args.record.collection.id }] } }
+        ? { sources: { sourceResolutions: { entityId: args.record.collection.id } } }
         : {}),
       units: args.record.collection.units,
       i18n: Object.fromEntries(

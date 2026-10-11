@@ -65,7 +65,7 @@ export function applyCuratedRecordContract(
     row.divisionCode = assignment?.divisionCode ?? row.divisionCode
     row.identifiers = identifiers
     const sources = object(row.sources) ?? {}
-    delete sources.evidence
+    delete sources.sourceResolutions
     for (const [publisher, values] of Object.entries(sources)) {
       sources[publisher] = (values as any[]).flatMap(source => {
         const contributions = source.contributions?.filter(
@@ -105,16 +105,16 @@ export function applyCuratedRecordContract(
 export function applyCuratedAreaContract(rows: Record<string, any>[]) {
   for (const row of rows) {
     const sources = object(row.sources) ?? {}
-    if (sources.evidence) {
+    if (sources.sourceResolutions) {
       sources.overture = [
         ...(sources.overture ?? []),
-        ...sources.evidence.map((source: any) => ({
+        {
           dataset: 'ds-hk-overture-division',
-          recordId: source.record_id,
+          recordId: sources.sourceResolutions.entityId,
           contributions: ['geometry'],
-        })),
+        },
       ]
-      delete sources.evidence
+      delete sources.sourceResolutions
     }
     if (sources.saanseoi)
       sources.saanseoi = sources.saanseoi.map((source: any) => ({

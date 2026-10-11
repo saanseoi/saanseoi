@@ -173,7 +173,7 @@ export async function normalisePreparedDivision(
     identifiers,
     level: levelNumber(level),
     sources: {
-      evidence: [{ record_id: id }],
+      sourceResolutions: { entityId: id },
     },
     class: `planning-${level}`,
     category: null,
