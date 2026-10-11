@@ -1,3 +1,4 @@
+import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
@@ -38,6 +39,7 @@ export const PlaceParamsSchema = z
 
 export const PlaceQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     region: RegionFilterSchema,
     locale: z.string().optional(),
   })
@@ -502,6 +504,7 @@ export const PlacesByCellParamsSchema = z
 
 export const PlacesByCellQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     region: RegionFilterSchema,
     limit: z.coerce.number().int().min(1).max(MAX_PLACE_RESULTS).optional(),
   })
@@ -549,6 +552,7 @@ export const PlacesByCellResponseSchema = z
 
 export const SearchQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     region: RegionFilterSchema,
     q: z.string().min(1).max(MAX_PLACE_SEARCH_LENGTH),
     locale: z.string().optional(),
@@ -927,6 +931,7 @@ const PlacesListDocumentMetaSchema = z
 
 export const PlacesListQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     region: RegionFilterSchema,
     catalogRevision: z.string().min(1).optional(),
     cohort: z.string().min(1).optional(),

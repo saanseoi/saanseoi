@@ -1,3 +1,4 @@
+import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
@@ -29,7 +30,9 @@ const divisionGeometryVariants = [
 ] as const
 const _DivisionResourceIdentifierSchema = z
   .object({
-    type: z.literal('divisions'),
+    type: z.literal('divisions').openapi({
+      description: openApiText('openapi_divisions_resource_type_description'),
+    }),
     id: IdSchema,
   })
   .openapi('DivisionIdentifier')
@@ -57,13 +60,6 @@ const DivisionI18nAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_i18n_name_description'),
       }),
-    nameVariant: z
-      .array(z.string())
-      .nullable()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_divisions_i18n_name_variant_description'),
-      }),
     nameAlts: z
       .array(z.string())
       .nullable()
@@ -79,13 +75,17 @@ const DivisionI18nAttributesSchema = z
         description: openApiText('openapi_divisions_i18n_name_rules_description'),
       }),
   })
-  .openapi('DivisionI18nAttributes')
+  .openapi('DivisionI18nAttributes', {
+    description: openApiText('openapi_divisions_i18n_locale_description'),
+  })
 
 const DivisionI18nSchema = z
   .record(z.string(), DivisionI18nAttributesSchema)
   .openapi('DivisionI18n', {
     'x-recordKeyName': openApiText('openapi_divisions_i18n_locale_label'),
   })
+
+export type PublicDivisionI18n = z.infer<typeof DivisionI18nSchema>
 
 export const DivisionHierarchyEntrySchema = z
   .object({
@@ -345,7 +345,7 @@ const DivisionGeometryResourceAttributesSchema = z.object({
       description: openApiText('openapi_divisions_geometry_is_territorial_description'),
     }),
   variant: z
-    .enum([...divisionGeometryVariants, 'stub'])
+    .enum(divisionGeometryVariants)
     .optional()
     .openapi({
       description: openApiText('openapi_divisions_geometry_variant_description'),
@@ -365,8 +365,7 @@ const DivisionGeometryResourceAttributesSchema = z.object({
     .openapi({
       description: openApiText('openapi_divisions_geometry_sources_description'),
     }),
-  identifiers: z
-    .unknown()
+  identifiers: DivisionIdentifiersSchema.nullable()
     .optional()
     .openapi({
       description: openApiText('openapi_divisions_identifiers_field_description'),
@@ -439,7 +438,9 @@ const RequestedLocalesQuerySchema = z
 
 export const DivisionResourceSchema = z
   .object({
-    type: z.literal('divisions'),
+    type: z.literal('divisions').openapi({
+      description: openApiText('openapi_divisions_resource_type_description'),
+    }),
     id: IdSchema,
     attributes: DivisionAttributesSchema.openapi({
       description: openApiText('openapi_divisions_attributes_description'),
@@ -483,6 +484,7 @@ const DivisionDocumentMetaSchema = z
 
 export const DivisionsListQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     region: RegionFilterSchema,
     catalogRevision: z
       .string()
@@ -542,7 +544,7 @@ export const DivisionsListQuerySchema = z
       .string()
       .refine(value =>
         /^(none|(hierarchy|areas(?::(saanseoi|overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?)(,(hierarchy|areas(?::(saanseoi|overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?))*)$/.test(
-          value.replace(/areas:stub(?=,|$)/g, 'areas:overture'),
+          value,
         ),
       )
       .optional()
@@ -575,6 +577,7 @@ export const DivisionDetailParamsSchema = z
 
 export const DivisionDetailQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     region: RegionFilterSchema,
     catalogRevision: z
       .string()
@@ -634,7 +637,7 @@ export const DivisionDetailQuerySchema = z
       .string()
       .refine(value =>
         /^(none|(hierarchy|areas(?::(saanseoi|overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?)(,(hierarchy|areas(?::(saanseoi|overture|hkgov-had(:simplified)?|hkgov-censtatd(-landclipped)?(:simplified)?|hkgov-censtatd-hma(:simplified)?|hkgov-pland-pu(:simplified)?|hkgov-pland-new-town(:simplified)?)(?:@[A-Za-z0-9][A-Za-z0-9._-]*)?)?|boundaries(?::overture)?))*)$/.test(
-          value.replace(/areas:stub(?=,|$)/g, 'areas:overture'),
+          value,
         ),
       )
       .optional()

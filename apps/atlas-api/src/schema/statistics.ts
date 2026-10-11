@@ -1,3 +1,4 @@
+import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
@@ -381,6 +382,7 @@ const CommonQueryShape = {
 
 export const StatisticsListQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     ...CommonQueryShape,
     'page[limit]': z.coerce
       .number()
@@ -450,6 +452,7 @@ export const StatisticDetailQuerySchema = z
 
 const StatisticsDocumentMetaSchema = z
   .object({
+    ...geographicCodeQueryShape,
     apiCatalogRevision: z.string().openapi({
       description: openApiText('openapi_statistics_meta_catalog_revision_description'),
       examples: ['catalog-hk-stats-v0.1-2026-08-24.11'],
@@ -825,6 +828,7 @@ const GeographyAggregateQueryShape = {
 
 export const StatisticsGeographiesQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     ...GeographyAggregateQueryShape,
     'filter[referencePeriod]': z
       .string()
@@ -843,6 +847,7 @@ export const StatisticsSeriesQuerySchema = z
   .openapi('StatisticsSeriesQuery')
 
 const GeographyDimensionSchema = z.object({
+  ...geographicCodeQueryShape,
   kind: z.enum(['division', 'buildingGroup', 'majorHousingEstate']).openapi({
     description: openApiText('openapi_statistics_geography_kind_description'),
     examples: ['division', 'buildingGroup', 'majorHousingEstate'],

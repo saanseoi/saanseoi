@@ -1,3 +1,4 @@
+import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { z } from '@hono/zod-openapi'
 import { divisionSearchDomains } from '@repo/core/pipeline/services/search/divisions'
 import { divisionSearchTerms } from '@repo/core/pipeline/services/search/divisionQuery'
@@ -6,6 +7,7 @@ import { RegionFilterSchema } from './region'
 
 export const DivisionSearchQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     inventory: z.string().min(1).optional(),
     access_token: z
       .string()

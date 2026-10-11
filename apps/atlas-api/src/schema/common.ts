@@ -185,11 +185,28 @@ export const OvertureSourceItemSchema = z
   .object({
     /** Overture publisher attribution may not name a property for direct membership. */
     property: z.string().optional(),
-    dataset: z.string().min(1),
+    dataset: z
+      .string()
+      .min(1)
+      .openapi({ description: openApiText('openapi_source_dataset_description') }),
     license: z.string().nullable().optional(),
-    recordId: z.string().nullable().optional(),
-    release: z.string().nullable().optional(),
-    contributions: z.array(z.string().min(1)).min(1).optional(),
+    recordId: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ description: openApiText('openapi_source_record_id_description') }),
+    release: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ description: openApiText('openapi_source_release_description') }),
+    contributions: z
+      .array(z.string().min(1))
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_source_contributions_description'),
+      }),
     updateTime: z.string().nullable().optional(),
     confidence: z.number().min(0).max(1).nullable().optional(),
     between: z.tuple([z.number(), z.number()]).nullable().optional(),
@@ -201,10 +218,28 @@ export const OvertureSourceItemSchema = z
 
 export const OtherSourceTypeItemSchema = z
   .object({
-    dataset: z.string().min(1).optional(),
-    recordId: z.string().nullable().optional(),
-    release: z.string().nullable().optional(),
-    contributions: z.array(z.string().min(1)).min(1).optional(),
+    dataset: z
+      .string()
+      .min(1)
+      .optional()
+      .openapi({ description: openApiText('openapi_source_dataset_description') }),
+    recordId: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ description: openApiText('openapi_source_record_id_description') }),
+    release: z
+      .string()
+      .nullable()
+      .optional()
+      .openapi({ description: openApiText('openapi_source_release_description') }),
+    contributions: z
+      .array(z.string().min(1))
+      .min(1)
+      .optional()
+      .openapi({
+        description: openApiText('openapi_source_contributions_description'),
+      }),
   })
   .loose()
   .openapi('OtherSourceTypeItem', {
@@ -240,6 +275,9 @@ const OtherSourceTypeItemsSchema = z
 export const SourcesSchema = z
   .object({
     overture: OvertureSourceItemsSchema.optional(),
+    'hkgov-landsd': OtherSourceTypeItemsSchema.optional().openapi({
+      description: openApiText('openapi_sources_landsd_description'),
+    }),
   })
   .catchall(OtherSourceTypeItemsSchema)
   .openapi('Sources', {

@@ -52,6 +52,43 @@ describe('API field provenance contract paths', () => {
     }
   })
 
+  test('native Division domains cover every base response attribute and relationship', () => {
+    const division = z.toJSONSchema(DivisionResourceSchema) as Schema
+    const geometry = z.toJSONSchema(DivisionGeometryResourceSchema) as Schema
+    const variants = geometry.anyOf ?? geometry.oneOf ?? [geometry]
+    const area = variants.find(
+      schema => schema.properties?.type?.const === 'division-areas',
+    )!
+    expect(area).toBeDefined()
+    for (const domain of ['hkgov-censtatd-hma', 'hkgov-landsd']) {
+      const fixture = listApiFieldFixtures().find(
+        f => f.domainCode === domain && f.apiVersion === 'api-divisions-v0.1',
+      )!
+      expect(fixture).toBeDefined()
+      for (const [resource, schema] of domain === 'hkgov-censtatd-hma'
+        ? ([
+            ['division', division],
+            ['divisionArea', area],
+          ] as const)
+        : ([['division', division]] as const)) {
+        const paths = fixture.fields
+          .filter(f => f.resourceType === resource)
+          .map(f => f.apiField)
+        for (const group of ['attributes', 'relationships']) {
+          for (const key of Object.keys(schema.properties?.[group]?.properties ?? {})) {
+            expect(
+              paths.some(
+                path =>
+                  path === `${group}.${key}` || path.startsWith(`${group}.${key}.`),
+              ),
+              `${domain}/${resource}/${group}.${key}`,
+            ).toBe(true)
+          }
+        }
+      }
+    }
+  })
+
   test('every documented resource field exists in the public schema', () => {
     const statistics = z.toJSONSchema(StatisticDetailResponseSchema) as Schema
     const statisticField = statistics.properties?.included?.items?.anyOf?.find(

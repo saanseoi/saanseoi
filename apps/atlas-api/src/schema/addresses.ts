@@ -1,3 +1,4 @@
+import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
 import { getRequestedApiLocalesValidationError } from '@repo/core'
@@ -418,6 +419,7 @@ const RequestedLocalesQuerySchema = z
   .openapi({ examples: ['en,zh-hant', '*', 'null'] })
 
 const AddressSelectionQuerySchema = z.object({
+  ...geographicCodeQueryShape,
   region: RegionFilterSchema,
   catalogRevision: z.string().min(1).optional(),
   cohort: z.string().min(1).optional(),

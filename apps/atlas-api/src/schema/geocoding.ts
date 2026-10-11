@@ -1,3 +1,4 @@
+import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { z } from '@hono/zod-openapi'
 import {
   getRequestedApiLocalesValidationError,
@@ -14,6 +15,7 @@ const coordinate = (min: number, max: number) =>
 
 export const GeocodingQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     inventory: z.string().min(1).optional(),
     profile: z.enum(['compact', 'default', 'map', 'full']).default('default'),
     lat: coordinate(-90, 90).optional(),
@@ -36,7 +38,7 @@ export const GeocodingQuerySchema = z
       })
       .default('en,zh-hant'),
     include: z.enum(['divisions']).optional(),
-    geometry: z.enum(['area', 'stub']).optional(),
+    geometry: z.enum(['area', 'saanseoi']).optional(),
     limit: z.coerce.number().int().min(1).max(50).default(10),
     maxDistance: z.coerce.number().finite().min(0).max(50000).default(1000),
   })

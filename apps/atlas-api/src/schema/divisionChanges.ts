@@ -1,8 +1,10 @@
+import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { z } from '@hono/zod-openapi'
 
 const releaseSelector = z.string().trim().min(1).max(200)
 export const DivisionChangesQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     inventory: z.string().min(1).optional(),
     fromApiReleaseSet: releaseSelector.openapi({
       description: 'Required published geographic division release-set code or ID.',
@@ -59,6 +61,7 @@ const DivisionChangeReferenceSchema = DivisionChangeDefinitionSchema.extend({
 })
 export const DivisionChangeDefinitionQuerySchema = z
   .object({
+    ...geographicCodeQueryShape,
     inventory: z.string().min(1).optional(),
     apiReleaseSet: releaseSelector,
     definitionHash: z.string().regex(/^[a-f0-9]{64}$/),
@@ -96,7 +99,7 @@ export const DivisionChangesResponseSchema = z.object({
     total: z.number(),
     limit: z.number(),
     nextCursor: z.string().nullable(),
-    membershipGeometry: z.literal('stub'),
+    membershipGeometry: z.literal('saanseoi'),
     dependencies: z.literal('transitive-before-and-after'),
     coverage: z.object({
       before: z.object({ divisions: z.number(), withMembershipGeometry: z.number() }),
