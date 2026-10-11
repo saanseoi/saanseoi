@@ -11,7 +11,12 @@ materialising supplementary Addresses or recording the final Place assembly.
 
 Automatic Place normalisation and Address matching retain rules and aggregate counts.
 Individual audit entries require record-specific fixture decisions; matching additional
-records does not create additional audit actions.
+records does not create additional audit actions. The completed audit also retains
+reviewed decisions for observed Place identities through the incoming source version, so
+replay can resolve an earlier explicit instruction. Future and unobserved decisions are
+excluded. Retaining these instructions does not add automatic per-record applications;
+field lineage matches exact retained instruction content and reports its application
+count without inferring field winners.
 
 Historical Address, Division and DivisionArea dependencies are rebuilt in a disposable
 SQLite transaction. Missing content rolls back rows and readiness receipts together, so
@@ -545,6 +550,19 @@ prerequisite and address-analysis policy separately from publisher release polic
 
 See the [processing policy contract](../pipeline.md#define-audit-processing-rules).
 
+## Retained dataset archives
+
+Original publisher inputs are managed assets with role `releaseSourceArchive`, owned by
+a source release. Original Parquet and ZIP files retain their bytes; loose GeoJSON and
+GML are losslessly packaged as ZIP. Original filenames and packaging details live in the
+downloadable manifest.
+
+Resource-specific source downloads use role `resourceSourceArchive`, are Parquet and are
+owned by a resource release. The ordinary uploader retains its prepared Parquet input.
+Native SQL intake exports its source tables with a `sourceTable` column and JSON strings
+for complex source values. Processing scratch files are separate from retained assets;
+release metadata does not store their file locations.
+
 ## JSON field naming
 
 Canonical API responses use camelCase throughout nested JSON, including inherited source
@@ -553,3 +571,23 @@ locale codes and external identifiers retain their original spelling, as do stri
 values and source-field paths. Raw Overture source-record responses and retained
 archives use the publisher's field names. The shared response projection rejects
 field-name collisions.
+
+### Reviewed building-range addresses
+
+Lee On Building at 56–62 Argyle Street is a reviewed supplementary building-level
+address. Its bilingual identity covers the full frontage range; it does not select one
+of the individual ALS frontages. Publisher floor and unit expressions remain separate
+Address3D evidence. The decision is retained in
+`fixtures/meta/curations/overture-place-address.jsonl`.
+
+### Deferred address identity investigations
+
+Uncertain Place address identities may be accepted for ingestion under an explicit
+`SAANSEOI_PLACES_INVESTIGATION_AUTHORITY` acknowledgement. These cases remain
+`needs-further-investigation`, with low priority, in
+`fixtures/reviews/overture-place-address-investigations/`. Each record retains the
+complete release-specific review evidence and its SHA-256 digest. Exact retained
+evidence can be replayed without a new acknowledgement. Publisher address text is
+preserved, but no uncertain canonical Address link or supplementary Address is created.
+Assembly audits retain these investigations separately from applied human decisions.
+Malformed evidence and concurrent curation changes still block ingestion.

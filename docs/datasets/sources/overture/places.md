@@ -20,7 +20,12 @@ reused; otherwise the updater obtains the requested release through Overturist.
 
 Automatic Place normalisation and Address matching retain rules and aggregate counts.
 Individual audit entries require record-specific fixture decisions; matching additional
-records does not create additional audit actions.
+records does not create additional audit actions. The completed audit also retains
+reviewed decisions for observed Place identities through the incoming source version, so
+replay can resolve an earlier explicit instruction. Future and unobserved decisions are
+excluded. Retaining these instructions does not add automatic per-record applications;
+field lineage matches exact retained instruction content and reports its application
+count without inferring field winners.
 
 Historical Address and Division dependencies are rebuilt in a disposable SQLite
 transaction. Missing content rolls back rows and readiness receipts together, so a retry
@@ -689,3 +694,30 @@ normalisation as an explicit prerequisite of reviewed address derivation.
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Archive ownership
+
+Original publisher inputs use `releaseSourceArchive` assets owned by their source
+release. Resource-specific source exports use Parquet `resourceSourceArchive` assets
+owned by their resource release. Each archive has a downloadable manifest recording its
+original filename and packaging.
+
+### Reviewed building-range addresses
+
+Lee On Building at 56–62 Argyle Street is a reviewed supplementary building-level
+address. Its bilingual identity covers the full frontage range; it does not select one
+of the individual ALS frontages. Publisher floor and unit expressions remain separate
+Address3D evidence. The decision is retained in
+`fixtures/meta/curations/overture-place-address.jsonl`.
+
+### Deferred address identity investigations
+
+Uncertain Place address identities may be accepted for ingestion under an explicit
+`SAANSEOI_PLACES_INVESTIGATION_AUTHORITY` acknowledgement. These cases remain
+`needs-further-investigation`, with low priority, in
+`fixtures/reviews/overture-place-address-investigations/`. Each record retains the
+complete release-specific review evidence and its SHA-256 digest. Exact retained
+evidence can be replayed without a new acknowledgement. Publisher address text is
+preserved, but no uncertain canonical Address link or supplementary Address is created.
+Assembly audits retain these investigations separately from applied human decisions.
+Malformed evidence and concurrent curation changes still block ingestion.

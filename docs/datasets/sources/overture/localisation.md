@@ -24,8 +24,8 @@ counters and do not require individual normalisation actions. Missing retained
 conditions or counters are displayed as **not recorded**, independently of recorded
 zeroes; historical audits do not use current code as policy evidence.
 
-Locale inference and API fallback contribute aggregate processing counters. Applied name
-translations are individual fixture curations in the
+Locale inference and API fallback contribute aggregate processing counters. SaanSeoi
+preparation translations are individual fixture curations in the
 [audit](../../processing-provenance.md), with source and translated text, target locale
 and available parent division names. Full selected translation fixtures are retained in
 bounded partitions; unapplied entries are explicitly skipped. Audit loads individual
@@ -75,9 +75,9 @@ English, another retained name in locale order, and the parent ID.
 
 #### Release audit
 
-Each affected source record is retained in compressed `releaseProcessingActionChunks`,
-with action/mode counts in `releaseProcessingActions`, for investigation. Audit pages
-and locale-conflict statistics decode the same lossless evidence:
+Release audits retain rule declarations, bulk counts and reviewed fixture references in
+R2, selected by `releaseProvenance`. Automatic locale transformations use aggregate
+counts; reviewed translations retain their fixture evidence.
 
 - `overture_division_locale_inferred` records source `names`, normalised i18n rows, and
   the inferred locales when unlabeled text requires script-based inference.
@@ -100,13 +100,16 @@ are neither generated nor applied; publisher-supplied names are retained. Englis
 require a context-specific established spelling with public source URLs in `references`,
 or explicit human curation. Azure does not generate English division names. Local
 imports write missing English research requests and Google search links to an adjacent
-`.english-review.json` file and stop until those names are curated. Search results guide
-research; the linked source and parent locality must substantiate an attested spelling.
-Where no established English name is available, a dictionary-backed Cantonese fallback
-in Hong Kong place-name style is permitted. `derivation` records the selected readings
-and clearly distinguishes fallback spellings or descriptive translations from attested
-names. These entries retain `ai-translated` provenance and omit the Azure machine label;
-references and derivation are preserved in the applied translation evidence.
+`.english-review.json` file and stop until those names are curated. Successful local
+resolution removes this research file after all required translations resolve and any
+fixture updates are saved. Remote runs and runs that ignore automated translations
+preserve it. Search results guide research; the linked source and parent locality must
+substantiate an attested spelling. Where no established English name is available, a
+dictionary-backed Cantonese fallback in Hong Kong place-name style is permitted.
+`derivation` records the selected readings and clearly distinguishes fallback spellings
+or descriptive translations from attested names. These entries retain `ai-translated`
+provenance and omit the Azure machine label; references and derivation are preserved in
+the applied translation evidence.
 
 Division fixtures use version 2 `contexts`, `translations` and `usages` maps. Contexts
 and identical translation values are stored once; usage links retain record IDs and

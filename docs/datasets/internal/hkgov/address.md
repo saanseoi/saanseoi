@@ -112,7 +112,7 @@ preparer removes only exact feature-object duplicates (the same parsed JSON valu
 retains the first occurrence, and reports only aggregate CLI counts: affected premises,
 source features involved and removed, and source files involved. It does not print
 canonical records or ignored-variant JSON to the terminal; that structured audit
-evidence remains available through the processing-actions report.
+evidence remains available through the release Audit view.
 
 No general coordinate-, `GeoAddress`-, street-, or number-based collapsing is performed.
 Two rows at the same point can represent distinct ALS premises, such as blocks, towers,
@@ -127,16 +127,13 @@ variants are printed separately from exact feature duplicates.
 
 ## Processing audit trail
 
-At upload, each automatic consolidation and each curated identity-drift decision is
-stored against the release in the meta database. The `stats` table records aggregate
-counts under the `processing` metric; `releaseProcessingActions` stores action/mode
-summaries, while `releaseProcessingActionChunks` retains compressed JSON evidence per
-affected group or record, including the selected canonical ALS record and ignored source
-variants where applicable. Reports decode the complete evidence. Inspect both through:
+At upload, the release retains its processing manifest, automatic consolidation counts
+and reviewed identity-drift fixture references in R2. `releaseProvenance` registers the
+manifest. Inspect the retained evidence in the release Audit view and aggregate
+statistics through:
 
 ```bash
 saanseoi reports:stats --source hkgov-dpo --resource-type address
-saanseoi reports:processing-actions --source hkgov-dpo --resource-type address
 ```
 
 The source release also persists presentation stats after consolidation: address count

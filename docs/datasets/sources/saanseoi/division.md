@@ -95,11 +95,6 @@ same-ID Overture input have no single-record Before baseline. These comparisons 
 recorded automatically, not individually reviewed or verified before ingestion. They do
 not represent a complete source-to-source merge comparison.
 
-Existing local evidence can be supplemented with
-`scripts/backfill-preprocessing-context.ts` using its frozen archive and hash-verified
-source pins. Original fixtures remain intact; the supplement retains source context
-separately and backs up the local registration.
-
 Curations are grouped by purpose: additions, map bounds, classifications, hierarchy,
 exclusions, island decisions, source matches, names, representative points and boundary
 selection. Each row displays Traditional Chinese and English names when recorded. Search
@@ -108,10 +103,7 @@ are separate from the count of individual curations.
 
 Preparation retains a companion name index from its pinned source ingredients and final
 names, including excluded identities. It supports readable audit labels without changing
-the frozen curation documents. For an existing local edition, the name index can be
-reconstructed from its exact preparation archive and hash-verified pinned sources with
-`scripts/backfill-curation-names.ts`; the default is a dry run and `--apply` retains a
-rollback record before registering the supplemented audit.
+the frozen curation documents.
 
 Drawn and withheld boundaries have map previews of their retained geometry. These are
 Division Area inputs: a withheld drawing is not a published boundary. Map bounds are
@@ -182,20 +174,6 @@ area absent from their publisher ancestry. A blocking guard checks every applica
 final administrative path against Hong Kong SAR → recognised Area → District, checking
 each division once even when it spans multiple districts. A district without its
 required ancestry fails the guard.
-
-For an existing local edition, reconstruct the audit from its original ZIP and
-registered preparation evidence:
-
-```fish
-bun scripts/backfill-curated-preparation-audit.ts META.sqlite ARCHIVE.zip OUTPUT_DIRECTORY
-```
-
-The dry run verifies the frozen evidence against the registered audit and replays pinned
-Overture inputs, checking normalised names and classifications against retained before
-values. Add `--apply` to retain and verify the object graph in local R2, replace only
-the matching preparation-audit reference, and update its local delivery receipt. The
-output directory retains the counts, old and new references, rollback SQL and previous
-delivery receipt. Source records, archive assets and ingestion audits remain unchanged.
 
 Rejected island source geometries require a boundary patch that resolves to an emitted,
 non-empty, valid polygon for an output division. The `rejected-island-boundaries` guard

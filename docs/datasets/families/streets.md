@@ -207,3 +207,21 @@ the Street snapshot recipe. Diana Pang has no implemented SOURCE importer and th
 has no declared processing policy.
 
 See the [processing policy contract](../pipeline.md#define-audit-processing-rules).
+
+## Retained dataset archives
+
+Original publisher inputs are managed assets with role `releaseSourceArchive`, owned by
+a source release. Original Parquet and ZIP files retain their bytes; loose GeoJSON and
+GML are losslessly packaged as ZIP. Original filenames and packaging details live in the
+downloadable manifest.
+
+Resource-specific source downloads use role `resourceSourceArchive`, are Parquet and are
+owned by a resource release. The ordinary uploader retains its prepared Parquet input.
+Native SQL intake exports its source tables with a `sourceTable` column and JSON strings
+for complex source values. Processing scratch files are separate from retained assets;
+release metadata does not store their file locations.
+
+Publication retains the executed source-retention and lifecycle-assembly rules with
+counts from the sealed SQL delivery. It verifies delivered source hashes and baseline
+coverage before transferring a completed processing audit. Retries reuse the retained
+audit graph and SQL delivery receipts.

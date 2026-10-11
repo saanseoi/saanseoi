@@ -26,6 +26,22 @@ materialisation and release-specific provenance remain separate from source vali
 as `2025-09-24.0`, for Division, Division Area and Division Boundary source records.
 Dataset-prefixed release codes belong to release metadata.
 
+Area and boundary source assertions are keyed by source record ID, content hash and
+validity start. A return to identical content opens a separate validity period; closed
+periods remain closed. Release-specific source resolutions retain complete publisher
+membership, including records excluded from canonical materialisation.
+
+`apps/harbour-cli/scripts/repair-overture-geometry-periods.ts` reconstructs local
+periods from those resolutions and retained payloads. Its JSON configuration contains
+`meta` (SQLite path), `histories` (SQLite paths), `sources` (binding name to SQLite
+path) and `backupDirectory`. Run it with the configuration path for a dry run, then
+append `--apply` to back up the source databases and replace their area/boundary
+validity periods. Source databases must already use the current baseline schema. It
+checks membership counts against release statistics, rejects missing or conflicting
+evidence, rehearses the repair and verifies every retained release before applying. Run
+with ingestion stopped; the repair checks for concurrent changes and acquires source
+write locks. Content hashes, publisher payloads and snapshot resolutions remain intact.
+
 Each newly published area or boundary resource release supersedes the preceding release
 of that resource. Current snapshot cleanup removes superseded geometry once it is no
 longer required by a current or draft API release set. Historical requests replay the
@@ -37,10 +53,9 @@ not require every monthly geometry snapshot to remain in current storage.
 
 Area and boundary rule declarations are explicit JSON fixtures in
 `fixtures/meta/processing-rules/assembly/`, shared by their normalisers and audit. Both
-depend on `division-geometry-exclusions.json`, whose parameters specify regional and
-area-only referent exclusions. Boundaries retain references to those identities. The
-Hong Kong area geometry patch fixture owns the validated Shenzhen Bay Port exclusion
-polygon.
+depend on `division-geometry-exclusions.json`. Overture geometry excludes `CN-GD`
+records and retains all division IDs, including country referents. ID-based editorial
+exclusions and constructed district unions belong to SaanSeoi preparation.
 
 The [processing audit](../../processing-provenance.md) retains registered geometry
 normalisation and geometry-patch declarations with counts, including Guangdong spillover
@@ -204,8 +219,8 @@ is assigned to both its source and history shards, allowing the source record AP
 resolve its retained publisher records. Stats include accepted counts,
 land/maritime/mixed type, land/territorial combinations, and source or canonical change
 counts. Geographic exclusions and rejected rows remain visible in CLI diagnostics rather
-than persisted release stats; `CN-GD` exclusions are also retained as release audit
-actions.
+than persisted release stats; `CN-GD` exclusions are retained as source-ingestion audit
+rules.
 
 The Hong Kong cut excludes rows with `region = 'CN-GD'`. A null country is valid for
 maritime or international-water boundaries and is retained. Boundary rows must have
@@ -224,10 +239,22 @@ include nullable integer `admin_level`. It is accepted by preflight and retained
 `properties`; canonical geometry rows do not expose it because the referenced division
 is the canonical owner of that administrative-level attribute.
 
-When the Hong Kong cut excludes one or more `CN-GD` rows, the release writes one
-`overture_division_geometry_cn_gd_excluded` audit action. Its evidence records the
-filter, resource type, source version, count, and up to ten affected-record examples;
-the action is absent when no rows are excluded.
+The source-ingestion audit retains the `exclude-overture-guangdong-source-geometry` rule
+with the exact source version, resource type, `region = CN-GD` predicate, input count,
+excluded count and in-scope output count. An executed filter with no exclusions has a
+`not-applicable` outcome. Automatic rules retain declarations and counts, not record
+fixtures. The filter is not reported as executed for pre-normalised input.
+
+The ingestion audit also retains the registered `retain-overture-source` mapping:
+publisher identifiers, attribute values, property-key mapping and native geometry.
+Passed publisher attribution and property-key collision checks are counted against the
+retained rows. Successful Division-reference checks and reviewed publisher-schema
+compatibility checks are included only when their calling path executed them. Canonical
+geometry normalisation remains in the snapshot assembly audit.
+
+Extraction and clipping performed by Overturist require their own retained execution
+receipt. A cached Parquet filename does not prove which extraction checks ran; source
+ingestion does not manufacture preparation evidence from it.
 
 Each release writes source, history, current, and release-level ingestion statistics.
 Geometry snapshots are assembled and published only for the exact release cohort of the
@@ -236,40 +263,29 @@ area and boundary uploads can be performed in either order. If one geometry snap
 missing, the dataset itself is still published and the cohort's API release set remains
 draft until the counterpart arrives.
 
-## Curated Hong Kong area patches
+## SaanSeoi geometry preparation
 
-Administrative areas use independent deterministic identities and district-union
-geometries. Hong Kong Island combines Central and Western, Wan Chai, Eastern and
-Southern. Kowloon area combines its five districts. New Territories combines its nine
-districts and the curated Lok Ma Chau Loop identity
-`222b7818-970a-491d-98b6-b88d8c6f0161`, with the Shenzhen Bay Port exclusion. All
-configured inputs must resolve.
+District unions, authored geometry, geometry selections and Shenzhen Bay Port clipping
+belong to the SaanSeoi source archive builder. Native Overture area and boundary
+materialisation retains the publisher shapes with common schema normalisation. Canonical
+geometry uses lossless Brotli storage so large publisher polygons fit the D1 row budget;
+API readers restore the exact coordinates. Native area and boundary source geometry also
+uses lossless Brotli storage, restoring its original WKB representation for source
+record responses.
 
-Kowloon city retains UUID `17009785-57fd-4e5b-af86-2d27352e4718` and receives the same
-district-union geometry as Kowloon area (`ss-bb5c7e0a-fd09-5416-8bb8-9593c90280fb`).
-Hong Kong city retains an existing source city and its geometry; when absent, its
-identity and geometry are reconstructed from Central and Western, Wan Chai and Eastern,
-excluding Southern.
+## Pinned country ancestor
 
-Canonical area and Kowloon city geometries use the configured unions even when source
-polygons exist. Publisher geometries remain retained as source assertions. Supplemental
-identities do not create publisher rows. Identity and geometry patches retain their
-district evidence in the processing audit. Bulk source normalisation counts do not
-include supplemental rows.
-
-## Scoped parent fixture
-
-Hong Kong's scoped division extract omits the Overture PRC country record
-`fb68fc73-3ac6-41c9-a692-22fcf20cb5be`, although both the Hong Kong division hierarchy
-and the international land boundary reference it. Each Overture Hong Kong division
-snapshot therefore adds the curated
-`fixtures/divisions/overture/hk-prc-country-anchor.json` row. The fixture supplies only
-the level-0 country identity and localised names; it deliberately has no country
-geometry. It is ingested with every cohort so geometry and address references resolve
-within the exact same division snapshot. The anchor is registered as referent-only, so
-areas belonging to it are rejected before geometry decoding. Boundaries between Hong
-Kong and the PRC remain valid: they may reference the anchor without storing the PRC's
-area geometry.
+A scoped Hong Kong extract can omit the PRC country record
+`fb68fc73-3ac6-41c9-a692-22fcf20cb5be` referenced by its hierarchy and international
+boundary. Preparation uses the exact edition's country metadata from the local
+Overturist cache when available. Editions without cached country metadata use the
+reviewed `hk-prc-country-anchor.json` hierarchy reference. The Source Audit retains
+which reference was used, its content hash and its complete definition. Reference
+metadata supplies identity and names; preparation does not invent publisher geometry. It
+rejects invalid or duplicate country references and writes a separate prepared Parquet
+file, preserving the raw extract. An existing publisher country row is retained without
+duplication. Canonical materialisation does not inject a country fixture or exclude its
+area by ID.
 
 ## Publication lineage
 
@@ -408,3 +424,32 @@ Classification, translation and hierarchy processing are selected on Division re
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Archive ownership
+
+Original publisher inputs use `releaseSourceArchive` assets owned by their source
+release. Resource-specific source exports use Parquet `resourceSourceArchive` assets
+owned by their resource release. Each archive has a downloadable manifest recording its
+original filename and packaging.
+
+## Three-area companion boundary
+
+C&SD Permanent Living Quarters geometry refers to SaanSeoi's reviewed Hong Kong Island,
+Kowloon and New Territories identities. It is selected by the SaanSeoi API composition,
+not the native Overture composition. Overture release sets retain their own area and
+boundary snapshots, HAD district areas and C&SD land-clipped district areas.
+
+## Local historical audit repair
+
+`apps/harbour-cli/scripts/repair-local-overture-audits.ts` prepares a local-only audit
+repair for published Overture Division editions. Pass the META SQLite path, a new
+receipt directory and the SOURCE history shard paths; add `--apply` to consume the
+prepared plan. Local R2 is required. The repair verifies retained object hashes and
+historical source inventories, preserves original manifests, backs up META and checks
+for concurrent catalogue or source changes before replacing audit registrations.
+
+Recorded Guangdong geometry exclusions and source checks belong to ingestion. Historical
+source revalidation and country-reference evidence checks carry their actual
+revalidation date. They do not assert that those checks ran during the original import.
+Extraction and clipping require their own retained execution evidence. Source records,
+snapshots and API release membership remain unchanged.

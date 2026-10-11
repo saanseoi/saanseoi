@@ -1,5 +1,15 @@
 # Canonical division classes
 
+Overture retains its publisher inventory and geometry independently of SaanSeoi
+editorial decisions. Canonical normalisation maps publisher level, class and category
+into the shared Division schema, normalises locale tags and splits recognisable
+bilingual names. It does not apply SaanSeoi identity-specific names, classifications,
+translations, exclusions, hierarchy corrections or constructed area geometry.
+
+SaanSeoi preparation owns editorial patches and curated source selection. It writes
+final names, taxonomy, hierarchy and geometry into the published SaanSeoi archive;
+canonical materialisation reads that prepared contract.
+
 The `division-normalisation.json` processing fixture owns subtype/class mappings,
 hierarchy classifications, ordered level tokens, curated Hong Kong area identity
 recognition and fallbacks. The normaliser consumes these parameters directly.

@@ -248,3 +248,10 @@ recipe rather than the dataset ingestion policy.
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Archive ownership
+
+Original publisher inputs use `releaseSourceArchive` assets owned by their source
+release. Resource-specific source exports use Parquet `resourceSourceArchive` assets
+owned by their resource release. Each archive has a downloadable manifest recording its
+original filename and packaging.

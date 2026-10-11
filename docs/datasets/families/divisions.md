@@ -1826,19 +1826,6 @@ pins remain outside record content. An upstream pin advance alone preserves the 
 version. An editorial takeover creates one content change, then shares that assertion
 across subsequent editions with the same content.
 
-`scripts/backfill-internal-source-references.ts` repairs explicitly selected local
-SOURCE and HISTORY databases and META source churn. It requires reviewed decisions for
-every retained edition, merges only adjacent identical assertions, updates exact source
-resolution hashes and preserves omission evidence. It defaults to a dry run; `--apply`
-writes a compressed rollback SQL file before acquiring write locks and checking for
-concurrent changes. Existing publisher archives and immutable preparation audits retain
-their original bytes; archives with embedded reference versions must be regenerated
-before ingestion. The companion `scripts/backfill-canonical-source-references.ts`
-updates canonical history hashes, exact replay links and registered current snapshots.
-Editorial takeovers receive an explicit snapshot delta even when the record previously
-shared an assertion. Unregistered current rows are excluded from the repair and counted
-in its report.
-
 ## Rural areas
 
 `rural_area` is a level-4 locality: a named area that can contain villages and hamlets,

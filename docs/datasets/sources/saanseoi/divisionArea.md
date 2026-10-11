@@ -1,5 +1,30 @@
 # SaanSeoi curated DivisionArea
 
+## Identifier and construction metadata
+
+SaanSeoi `identifiers` contains publisher-keyed identifier types with text, numeric or
+list values. Geometry representation labels, construction methods, curation objects and
+partition metadata are not identifiers. Construction methods, curation actions and
+partition details belong to `ApiFieldsProvenance` at the API release-set level.
+Record-level `sources` contains only retained dataset and record references, with
+optional geometry component indexes. The `isLand` and `isTerritorial` fields describe
+the geometry representation.
+
+LandsD place-name identities use `hkgov-landsd.geoNameId`. Retained Overture Division
+records establish `overture.divisionId`; UUID syntax alone does not establish publisher
+identity. `BASEMAP:ISLAND:*` denotes a SaanSeoi review identity and stays in
+`saanseoi.sourceId`. Selected native Protomaps records use `protomaps.sourceId`. OSM
+export identities additionally use `osm.areaId`, `osm.nodeId`, `osm.wayId` or
+`osm.relationId` according to the exported element prefix. Osmium area IDs are export
+identifiers, not inferred OSM way or relation IDs. Coastline component IDs are
+content-addressed Protomaps source records and have no OSM element identifier.
+
+Curated Areas can retain identifiers of their associated division. Geometry input
+records remain in `sources`; construction, island-group and partition objects are
+rejected as identifier values. Historical repairs resolve publishers from retained
+native records and do not assign current geometry selections to historical records
+without retained evidence.
+
 Curated Division and DivisionArea assertions use the retained release archive and
 publisher record identity; neither source table has a `sourceLocator` column. Native
 geometry is optional on curated Division records and required on DivisionArea records.
@@ -19,6 +44,18 @@ and release metadata are edited directly in this initial revision.
 
 The source pins include the RVD Division archive. The API field mapping uses that
 complete retained ingredient signature at the `2026-09-01.0` lineage anchor.
+
+Editorial names, classifications, identity additions, hierarchy decisions, translations,
+exclusions and geometry construction run during preparation of these source archives.
+Native Overture materialisation does not reuse those decisions. SaanSeoi canonical
+materialisation reads the prepared values without repeating editorial processing.
+
+Island polygons are resolved by retained Protomaps record ID. Assembly carries that
+reference, including selected coastline component indexes, into `sources.protomaps`.
+Named-polygon corrections carry the chosen option's reference. Authored drawings
+reference the retained SaanSeoi area record. Selection, matching, construction and
+curation details are excluded from record-level source references. Geometry attribution
+is not inferred by searching for identical polygons.
 
 ## Curation ownership
 
@@ -95,8 +132,11 @@ removed.
 
 The editor and assembly generate complete ancestry from reference geometry, authored
 drawings and explicit ID-only parent decisions. Ancestor labels and classes are resolved
-from the current generated identity inventory. Assembly recomputes `full_containment`
-against the final polygons before writing the immutable records:
+from the final division identity and localisation inventory. Ancestor names combine
+Traditional Chinese then English with one space, omit duplicates and use the available
+name when a translation is missing. This applies to spatially generated ancestry and
+retained explicit references, including divisions without polygons. Assembly recomputes
+`full_containment` against the final polygons before writing the immutable records:
 
 - `true`: the ancestor covers the owning division's entire polygon area, including
   boundaries, holes and every disconnected part.
@@ -110,18 +150,22 @@ path, including retained provisional ancestry. It does not infer full containmen
 label point, bounding box or vertex samples. Polygon coverage uses a topological
 `covers` test over the union of each division's area parts.
 
-`containment_geometry` records SHA-256 identities for the division and ancestor
-geometries. Fingerprints retain exact coordinates and are independent of area-row order
-and Polygon/MultiPolygon packaging. Assembly recomputes the flags and fingerprints after
-identity remapping and all geometry replacements.
+Internal `containment_geometry` evidence records SHA-256 identities for the division and
+ancestor geometries. Fingerprints retain exact coordinates and are independent of
+area-row order and Polygon/MultiPolygon packaging. Assembly recomputes the flags and
+fingerprints after identity remapping and all geometry replacements.
 
 The geocoder checks children before ancestors. After a spatial child match, it can
 inherit an ancestor's membership when `full_containment` is `true` and both fingerprints
 match the loaded areas. It validates fingerprints lazily within the request-owned index.
 Missing evidence, changed geometry and partial containment use ordinary point checks; a
 name match alone cannot trigger inheritance. Multiple surviving paths remain ambiguous.
-Containment evidence is internal to hierarchy resolution and does not change the
-geocoding response shape.
+Geometry fingerprints remain internal to hierarchy resolution and are omitted from
+public Divisions responses and source-record samples. The public source-record schema
+describes hierarchy entries without geometry fingerprints. Public hierarchy entries
+expose `fullContainment` for the canonical geometry of the selected release; transformed
+or alternative geometry does not inherit this assertion. The geocoding response shape
+does not include containment evidence.
 
 A local comparison on the retained 2,088-division, 488-area assembly reduced polygon
 checks from approximately 8.3 to 5 per sampled lookup and preserved results across 713
@@ -144,14 +188,15 @@ retained.
 
 ## Archive building and ingestion
 
-Edition codes use `YYYY-MM-01.revision`. Both datasets have a **monthly** cadence,
-scheduled for the first of the month in Hong Kong. Publication time records the actual
-publication event, independently of the edition date. Edition metadata lives in
-`fixtures/meta/releases/`. The curated inventory supplies canonical identities, primary
-names, classes and points; the hierarchy decisions supply curated ancestry. Drawings and
-curated island polygons supply non-administrative geometry, with retained Overture areas
-for divisions without selected drawings. Administrative geometry uses pinned native
-Overture territorial assertions and the pinned Protomaps coastline land mask.
+Edition codes use `YYYY-MM-01.revision`. The paired resources share one **monthly**
+edition and revision, scheduled for the first of the month in Hong Kong. Publication
+time records the actual publication event, independently of the edition date. Edition
+metadata lives in `fixtures/meta/releases/`. The curated inventory supplies canonical
+identities, primary names, classes and points; the hierarchy decisions supply curated
+ancestry. Drawings and curated island polygons supply non-administrative geometry, with
+retained Overture areas for divisions without selected drawings. Administrative geometry
+uses pinned native Overture territorial assertions and the pinned Protomaps coastline
+land mask.
 
 `fixtures/meta/datasetInputs/saanseoi-division-review.json` pins exact source release
 codes, archive keys and SHA-256 hashes. Refreshing source inputs is an explicit review
@@ -210,13 +255,12 @@ membership records them as enrichment inputs anchored to the synthetic resource 
 The imported manifest must match the retained upstream archive hashes before
 publication. A release identity cannot be reused for different archive bytes.
 
-The source registry's SaanSeoi Division and DivisionArea cards expose their dataset
-inputs through accessible icon toggles. Division uses Overture Divisions, Protomaps
-Islands and LandsD settlement names; DivisionArea uses Overture Division Areas and
-Protomaps Islands. Expanded input cards are inset 48px, with arrows from each input's
-left centre into the parent card's bottom-left. Dataset relationships live in
-`fixtures/meta/datasetInputs/`; exact versions belong to the archive manifest. Adding a
-future LandsD Settlement Names input does not require another card implementation.
+The source registry's SaanSeoi Divisions card covers both Division and DivisionArea
+resources and exposes its dataset inputs through an accessible icon toggle: Overture
+Divisions, Protomaps Islands, LandsD and RVD Divisions. Expanded input cards are inset
+48px, with arrows from each input's left centre into the parent card's bottom-left.
+Dataset relationships live in `fixtures/meta/datasetInputs/saanseoi-division.json`;
+exact versions and contributing resource types belong to the archive manifest.
 
 The exclusions in `fixtures/meta/curations/saanseoi-division/division-exclusions.json`
 remove rejected duplicate and unsupported identities from curated coverage. Withheld
@@ -224,12 +268,27 @@ drawings remain review evidence and do not enter the archive. The editor's
 coast-clipping tools, undo history and fixture export preserve the distinction between
 review work and published editions.
 
+Protomaps island and coastline geometry must come from the same calendar month as the
+SaanSeoi edition, dated on or before its first-of-month cutoff. Assembly fails when no
+eligible same-month extract is pinned; it never carries island geometry forward. Prepare
+the extract from that month's retained basemap inputs, then add its exact archive key
+and SHA-256 to `fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json`. The
+latest eligible extraction revision is selected. LandsD and RVD can carry forward;
+Overture uses the latest eligible release on or before the edition date.
+
 Monthly assembly selects the latest exact publisher pin on or before the edition date
 from the editorial review pins and
 `fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json`. The September
 SaanSeoi edition uses August Overture; October uses September Overture. Slower sources
 carry forward, and the archive manifest records the selected hashes and snapshots. The
 editor's reference cohort does not advance implicitly with publication.
+
+The API composition uses `latest_at_or_before_cohort_per_dataset` for its Overture
+Division and DivisionArea companions. The curated uploader supplies assembly's exact
+snapshot IDs, which override automatic selection and are frozen in the API release set.
+Before publication or draft reconciliation, each selected curated snapshot's retained
+Overture dataset and resource-release references must match those companions. Missing or
+inconsistent retained inputs block API publication.
 
 ## Geocoding and coverage
 
@@ -421,12 +480,15 @@ an ingredient dataset supplies an external identifier; it does not by itself ass
 naming or geometry contribution. Geometry attribution identifies the actual inputs.
 
 `wikidata` is explicitly null when unavailable. Names are locale-keyed objects with null
-fields omitted; `nameVariant` is an array and `nameRules` an array of rule objects.
-Bounding boxes are derived from the available Division geometry, including degenerate
-point bounds, or from its published areas when no Division geometry exists. Records
-without either geometry cannot supply a bounding box. Geographic division codes come
-from `fixtures/meta/divisionCodes/geographic.json`; codes in other inventories retain
-their own domain.
+fields omitted. Retained archives can carry `nameVariant` as internal evidence. Public
+Divisions responses and SaanSeoi source-record samples omit it; `name` supplies the
+primary label, `nameAlts` supplies alternatives and `nameRules` supplies qualified
+forms. The public schemas describe those fields without `nameVariant`. Bounding boxes
+are derived from the available Division geometry, including degenerate point bounds, or
+from its published areas when no Division geometry exists. Records without either
+geometry cannot supply a bounding box. Geographic division codes come from
+`fixtures/meta/divisionCodes/geographic.json`; codes in other inventories retain their
+own domain.
 
 ## Map display policy
 
@@ -455,13 +517,21 @@ display hints, not changes to geometry or identity.
 
 ## Processing policy ownership
 
-SaanSeoi ingestion retains reviewed publisher records in `ssDivisionArea` and
-`ssDivision`. Curated assembly, identities, names and canonical geometry processing are
-selected by the resource-specific snapshot recipes. These recipes retain exact assembly
-declarations independently of the ingestion policy.
+SaanSeoi preparation creates both source archives together and retains editorial
+identities, names, classifications, exclusions, hierarchy and geometry evidence in the
+Source Audit. Ingestion retains those prepared publisher records in `ssDivisionArea` and
+`ssDivision`. Resource-specific snapshot recipes normalise the prepared schema; their
+evidence belongs to the API release audit. The source edition remains incomplete until
+both resources are ready.
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Archive ownership
+
+Publisher inputs use `releaseSourceArchive` assets owned by their source release.
+Resource-specific source downloads use Parquet `resourceSourceArchive` assets owned by
+their resource release. Both have independently downloadable manifests.
 
 ## Published JSON keys
 
@@ -477,7 +547,94 @@ follow the same rule. Existing immutable releases are not edited in place; corre
 archive content requires a new reviewed publication. Public SaanSeoi source JSON and
 NDJSON use the naming contract when projecting retained records.
 
-Provider keys, locale keys, external identifier names and source-path values are data
-and retain their spelling. Structural name collisions fail publication instead of
-dropping a value. Raw Overture archives and retained publisher records remain
-publisher-owned.
+Publisher codes, locale keys, identifier values and source-path values retain their
+spelling. Identifier type keys use camelCase. Structural name collisions fail
+publication instead of dropping a value. Raw Overture archives and retained publisher
+records remain publisher-owned.
+
+## Update decisions and Simplified Chinese
+
+Preparation applies `division-update-policy.json` before writing release archives. The
+fixture-backed review inventory supplies the accepted identities and core-locale primary
+names. `update-review.json` lists automatic additions, coverage exclusions, restored
+names and pending decisions. Each missing identity requires an individual keep/delete
+decision; each changed protected primary name requires keep/accept review. Fingerprints
+bind those decisions to the exact old and proposed values. No uploadable archive is
+produced while decisions remain pending. Kept identities retain accepted reference
+geometry and their reviewed attributes.
+
+Only names explicitly retained in Overture inputs may populate `zh-hans`. SaanSeoi name
+overrides and authored additions do not supply Simplified Chinese translations. The
+archive records accepted review input pins and update decisions in provenance.
+
+Automated translations in every locale are excluded from preparation. Human curation and
+publisher names remain eligible; core-locale protection does not restore discarded
+machine-generated names. Historical backfills reconstruct the accepted snapshot from
+retained history and publish a new API release-set revision.
+
+Kept identities and reference geometry cite the accepted Overture release that supplied
+them, even when the selected monthly Overture release omits those records.
+
+The `rural_area` class belongs to `locality` at level 4. Classification overrides
+reassign Hung Lung Hang, Tai Tam, Hong Kong Island's Shek O and Kowloon's Lei Yue Mun.
+Their existing identities and geometry are retained. Rural-area ancestry participates in
+spatial hierarchy assembly and remains in both `locality` and `full` paths.
+
+Preparation excludes every city and the Hong Kong Island landform from stored `full`
+paths after deriving the separate category hierarchies. The `locality` and `landform`
+paths preserve those ancestors. This applies to spatially resolved paths and retained
+ancestry without geometry; empty and duplicate full paths are removed.
+
+## Retained island aliases
+
+`division-names.json` retains reviewed island aliases independently of upstream name
+tags. The October 2026 Protomaps refresh drops alternative or local names for Tong Hau
+Pai (Wok Tuk Pai), Pyramid Rock (Wei Sam Chau), Tuen Tau Chau (Tse Leung Chau), Magazine
+Island (Chu Kwu Chau; 豬牯洲), Cha Kwo Chau (Yeung Chau; 洋洲) and Wong Mau Chau (South
+Gau; Nam Kau; 南牛; 南滘). These aliases remain attached to the canonical island
+identifiers; primary names are unchanged. Evidence is retained in Protomaps
+`2026-09-01.3`, compared with `2026-10-01.1`.
+
+Assembly applies the name inventory after island identities are materialised, including
+islands without an Overture match. Alias patches populate alternate names, name variants
+and name rules. Authored content references its retained SaanSeoi record; the naming
+policy belongs to release-set field provenance.
+
+## Four Little Dragons source identity
+
+Four Little Dragons (四小龍) enters the October edition from Overture `2026-09-23.0` as
+GERS identity `15062812-a4d2-4d4a-b589-2f50bc31943f`. It is included as a level-6
+`microhood`. `division-classifications.json` and `division-names.json` retain the
+curated classification and bilingual names; its reviewed hierarchy, drawn boundary and
+polygon core point remain in their dedicated fixtures. It is not an authored addition:
+the curation applies to the source record and does not create it in earlier inventories.
+
+### Identifier structure
+
+Division and area identifiers are objects keyed by publisher code, then camelCase
+identifier type. Lands Department matches use `hkgov-landsd.geoNameId`; curated island
+identities use `saanseoi.sourceId`. Values retain their source spelling, including
+leading zeroes and prefixes such as `LANDSD:PLACE_NAME:`. SaanSeoi curation and geometry
+evidence is grouped under `saanseoi`. The same structure is used in release archives,
+retained SaanSeoi source records and canonical records.
+
+## Dataset references and editorial ownership
+
+Division and DivisionArea `sources` entries contain stable dataset codes, record IDs and
+optional selected geometry component indexes. References are deduplicated;
+contributions, curation labels, matching rules and construction metadata are excluded.
+Collection memberships use the same version-free reference contract. Exact publisher
+versions are pinned once in the owning release's `sourceReleases` metadata. All
+resources from one dataset select the same version; archive preparation and ingestion
+reject ambiguous or unpinned references.
+
+Keeping a division removed by its publisher creates a SaanSeoi patch. Its retained
+identity, geometry and restored names cite `ds-hk-saanseoi-division` using the retained
+SaanSeoi record ID. Update policy and locale-field decisions belong to release-set field
+provenance. Original evidence remains in the preparation audit. Advancing an input pin
+alone does not change record content or create a new retained assertion.
+
+SaanSeoi area archives encode `isLand` and `isTerritorial` as JSON booleans. Null or
+absent values mean unknown. Preparation converts internal SQLite `0`/`1` flags to
+booleans before writing the archive. Ingestion rejects numeric, string and structured
+flag values, including in retained source properties.

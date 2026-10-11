@@ -6,6 +6,16 @@ and API attributes have no standalone Wikidata field. Overture's native `wikidat
 assertion is retained in its source payload and mapped into the grouped identifier
 during canonical processing and SaanSeoi preparation.
 
+Overture retains its publisher inventory and geometry independently of SaanSeoi
+editorial decisions. Canonical normalisation maps publisher level, class and category
+into the shared Division schema, normalises locale tags and splits recognisable
+bilingual names. It does not apply SaanSeoi identity-specific names, classifications,
+translations, exclusions, hierarchy corrections or constructed area geometry.
+
+SaanSeoi preparation owns editorial patches and curated source selection. It writes
+final names, taxonomy, hierarchy and geometry into the published SaanSeoi archive;
+canonical materialisation reads that prepared contract.
+
 Kwong Pan Tin Tsuen Sections 1, 2 and 4 and Hoi Pa San Tsuen Section II are excluded
 from Overture sourcing during SaanSeoi division preparation through the `overture` scope
 in `fixtures/meta/curations/saanseoi-division/division-exclusions.json`. The curator
@@ -42,27 +52,28 @@ SaanSeoi owns curated division classification. `division-classifications.json` s
 each canonical class; the SaanSeoi taxonomy determines its category and level. Matching
 Overture records retain their GERS IDs, independently of publisher admin level, subtype
 or class. Publisher taxonomy remains in source storage and does not constrain a curated
-classification. The same curated classification is used for normalisation and ancestry
-lookup. Canonical name overrides live in `division-names.json`. Reviewed alias
-additions, removals and suffix rules live in `division-names.json` and apply during
-SaanSeoi curated assembly. Curated archives retain the final classification and names
-with their input releases.
+classification. The curated classification applies only during SaanSeoi preparation.
+Canonical name overrides live in `division-names.json`. Reviewed alias additions,
+removals and suffix rules live in `division-names.json` and apply during SaanSeoi
+curated assembly. Curated archives retain the final classification and names with their
+input releases.
 
 Genuine additions use deterministic `ss-` IDs derived from their stable fixture keys,
-independently of names, coordinates, classifications or release dates. Ingestion checks
-new Overture primary/common names against these additions and blocks possible GERS
-matches for identity review. Publisher alternate names alone do not establish identity.
-A confirmed match adopts the GERS ID across the inventory, hierarchy, names and geometry
-references; ambiguous matches remain distinct.
+independently of names, coordinates, classifications or release dates. SaanSeoi
+preparation checks new Overture primary/common names against these additions and blocks
+possible GERS matches for identity review. Publisher alternate names alone do not
+establish identity. A confirmed match adopts the GERS ID across the inventory,
+hierarchy, names and geometry references; ambiguous matches remain distinct.
 
 Source Divisions retain publisher attributes in `properties`, alongside source identity,
 original `sourceGeometry`, `sources` and release history. Names, admin level, subtype,
 class, Wikidata, hierarchies and cartography have no duplicate source columns; canonical
 history/current tables own the normalised projection.
 
-Supplemental division fixtures belong to canonical snapshots and do not create publisher
-source rows. Source resolutions reference only actual retained publisher assertions,
-following the [source record storage contract](../../source-records.md).
+Curated additions belong to the prepared SaanSeoi source archive. Overture
+materialisation does not inject supplemental division fixtures. Source resolutions
+reference only actual retained publisher assertions, following the
+[source record storage contract](../../source-records.md).
 
 Canonical Division ingestion records its exact source-selection recipe and run under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance).
@@ -430,7 +441,9 @@ Shui Po and Kwai Tsing districts. Kellett Island (奇力島), level 6, and Wah F
 level 4, enter through the curated supplemental division fixtures with LandsD
 representative points.
 
-Four Little Dragons (四小龍) retains GERS ID `15062812-a4d2-4d4a-b589-2f50bc31943f` with
-the curated level-6 microhood classification and representative point. Stonecutters
-Island and Lei Cheng Uk also retain their native GERS identities; none is a supplemental
-addition.
+Four Little Dragons (四小龍) enters the October edition through Overture `2026-09-23.0`
+with GERS ID `15062812-a4d2-4d4a-b589-2f50bc31943f`. SaanSeoi applies the curated
+level-6 `microhood` classification, bilingual names, hierarchy and drawn geometry. It is
+included only when present in the source inventory, not as an authored addition.
+Stonecutters Island and Lei Cheng Uk also retain their native GERS identities; none is a
+supplemental addition.

@@ -17,15 +17,15 @@ decimal degrees: latitude in `[-90, 90]`, longitude in `[-180, 180]`. Returned
 coordinate pairs and GeoJSON use `[lng, lat]`. Empty, non-finite, out-of-range and mixed
 inputs are rejected. Convert HK 1980 Grid coordinates to WGS84 first.
 
-| Parameter       | Meaning                                                                                      |
-| --------------- | -------------------------------------------------------------------------------------------- |
-| `profile`       | `compact`, `default`, `map` or `full`; default is `default`                                  |
-| `apiReleaseSet` | Exact retained release; omission selects the current compatible release                      |
-| `locales`       | Requested locale tags; default `en,zh-hant`; `*` for all, `null` for no names                |
-| `limit`         | Forward or proximity candidates, 1–50; default 10                                            |
-| `maxDistance`   | Reverse address radius in metres, 0–50,000; default 1,000                                    |
-| `include`       | `divisions` adds geographical membership to address results                                  |
-| `geometry`      | `area` includes selected polygons without requiring the map profile; `stub` is also accepted |
+| Parameter       | Meaning                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------ |
+| `profile`       | `compact`, `default`, `map` or `full`; default is `default`                                      |
+| `apiReleaseSet` | Exact retained release; omission selects the current compatible release                          |
+| `locales`       | Requested locale tags; default `en,zh-hant`; `*` for all, `null` for no names                    |
+| `limit`         | Forward or proximity candidates, 1–50; default 10                                                |
+| `maxDistance`   | Reverse address radius in metres, 0–50,000; default 1,000                                        |
+| `include`       | `divisions` adds geographical membership to address results                                      |
+| `geometry`      | `area` includes selected polygons without requiring the map profile; `saanseoi` is also accepted |
 
 | Profile   | Detail                                                                                                   |
 | --------- | -------------------------------------------------------------------------------------------------------- |

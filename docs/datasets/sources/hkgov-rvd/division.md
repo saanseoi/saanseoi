@@ -38,6 +38,21 @@ section is outside this ingredient's scope and is recorded as an excluded sectio
 Source keys such as `RVD:HKPR2015:p1:district-YTM:subdistrict-1` are synthetic document
 locators. RVD does not assign these keys or our abbreviated division codes.
 
+## Release inspection
+
+The source API serves schema, samples and exports from the retained `hkgovRvdAreas`
+assertions, including their PDF page evidence. These assertions have no geometry.
+Source-only ingestion links the BEFORE SOURCE shard and publishes release record counts,
+counts by assertion kind and changes against the previous retained edition.
+
+Existing local metadata can be repaired from the retained rows without re-ingestion. Run
+without `--apply` to inspect the counts; applying creates a SQLite backup and updates
+only source-shard assignments and record/change stats for this dataset.
+
+```sh
+bun apps/harbour-cli/scripts/repair-local-source-only-metadata.ts ds-hk-hkgov-rvd-division META.sqlite SOURCE_BEFORE.sqlite --apply
+```
+
 ## Membership contract
 
 The SaanSeoi SOURCE payload uses `memberships`, an array of collection assertions:
@@ -78,3 +93,10 @@ SOURCE intake does not invent geometry or canonical classification.
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Archive ownership
+
+Original publisher inputs use `releaseSourceArchive` assets owned by their source
+release. Resource-specific source exports use Parquet `resourceSourceArchive` assets
+owned by their resource release. Each archive has a downloadable manifest recording its
+original filename and packaging.

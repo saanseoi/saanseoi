@@ -35,11 +35,31 @@ Dataset `processingRules` describes SOURCE ingestion only. Source and resource r
 capture that ingestion policy through content-addressed `processingRuleDefinitions`.
 Snapshot recipes capture assembly policies through the same definition store. General
 field lineage lives in `fieldLineageDefinitions`; `apiFieldProvenance` pins one
-definition at the API release root. The definition shares rule versions and hashes,
-original publisher paths, SOURCE inputs, logical canonical inputs and response
-projection rules. Registry readers expand these mappings when requested. Record
-identifiers, selected fallback values and per-record selection traces do not belong in
-these definitions.
+definition and its concrete release binding at the API release root. Reusable
+definitions retain preparation, ingestion, assembly and composition nodes,
+output-resolution groups, role-labelled inputs and captured processing definitions.
+Source schemas qualify input scopes: two releases of one dataset may bind different
+schema versions. The graph hash includes these schema qualifications and excludes
+concrete release and snapshot IDs.
+
+Each source binding can also pin the registered processing manifest's hash and byte
+length. The audit reader uses that exact retained root to resolve counts, guards and
+reviewed instruction references. Aggregate counts do not prove a field winner, and an
+audit manifest does not imply replayable effects.
+
+The universal precedence order is baseline, conditional rule, curation, patch. Lower
+priority wins within a layer; applicable ties in the winning layer fail. Automatic rules
+retain aggregate audit counts. Reviewed mappings retain their documents; specific
+curations and patches retain decisions linked by record identity and output selector.
+Dynamic Statistics fields expand through the selected record's retained field-definition
+hashes and source references. Closed-schema and mapping adapters validate retained
+content and pointers; missing evidence cannot fall back to current fixtures.
+
+Registry readers expand per-field stage arrays from shared nodes. Unresolved operations
+remain explicit, and cannot be labelled complete. Record values and per-record automatic
+rule traces do not belong in these definitions. The
+[field-lineage correspondence report](../reviews/field-lineage/README.md#runtime-implementation-and-correspondence)
+tracks remaining field-specific implementation and evidence gaps.
 
 Response dependencies are shared by API version and canonical schema version in
 `fixtures/meta/apiResponseFields/`, independently of source mappings and composition
@@ -458,44 +478,21 @@ the registry and does not derive it from terminal output or release notes.
   quality, locale coverage, component completeness or geographic distribution. Use the
   release-level stats replacement helper so a re-run replaces the release's previous
   values atomically.
-- **Audit** reads action/mode summaries from `releaseProcessingActions` and paginated
-  evidence from `releaseProcessingActionChunks`. Emit one logical decision per auditable
-  automatic or manual operation, with its summary, affected-record count and structured
-  JSON evidence. The storage helper groups decisions, deduplicates summary text and
-  compresses independently readable chunks. It also stores aggregate processing metrics
-  in `stats`. Decision counts and affected-record counts remain separate.
+- **Audit** reads registered content-addressed manifests and retained fixtures from R2.
+  Bulk rules retain declarations and aggregate counts; reviewed record decisions retain
+  fixture references and selected context. `releaseProvenance` pins the manifest for
+  each resource release. See the
+  [processing provenance contract](processing-provenance.md).
 
 At source-release creation, the processor captures the selected ingestion policy. At
 snapshot assembly, it captures canonical policies on the content-addressed recipe. Audit
 and API field lineage read those exact captured definitions. Published recipes remain
-immutable; missing historical policies cannot be inferred from current fixtures. For
-every `kind: "record"` rule, the emitted `releaseProcessingActions.action` must exactly
-equal the rule's `operationCode`; the processing-action replacement helper enforces this
-whenever a release has a frozen audit projection. `kind: "bulk"` rules are not emitted
-once per row: they are surfaced as deterministic bulk actions.
+immutable; missing historical policies cannot be inferred from current fixtures. Audit
+entries identify their declared operation codes. Automatic rules use bulk counts rather
+than per-record evidence. Published registrations are immutable.
 
-The Stats tab can render any available release statistics. The Audit tab is shown only
-when the release has processing-action rows or selected bulk rules: do not create
-placeholder actions solely to make it visible. A processor with no record-level
-decisions should replace the release's action rows with an empty set, so a re-run cannot
-retain stale audit evidence. Action replacement is allowed only while the source release
-is staged or processing; published release actions and frozen rules are immutable. A
-reprocess or correction after publication must create a new source release.
-
-Audit chunks contain at most 256 decisions, 256 KiB of decoded JSON and 32 KiB of
-compressed bytes. A single oversized decision uses ordered, independently compressed
-byte fragments; UTF-8 decoding follows reassembly. Every fragment has a SHA-256
-checksum. Readers pin the summary generation and fetch only chunks overlapping the
-requested ordinal range. Complete reports iterate bounded pages.
-
-Replacement stages and verifies chunks before atomically replacing summaries and
-processing statistics. Identical content retains its generation without row writes.
-Published evidence is immutable. Inactive generations observed before replacement are
-collected in bounded batches; chunks are also removed by release purge and reset. SQL
-replay includes the chunk BLOBs as bounded hexadecimal literals before the summary
-commit. See
-[audit storage](../../libs/db/docs/schema/provenance-model.md#release-processing-actions)
-for the offline conversion workflow.
+The Stats tab renders available release statistics. The Audit tab reads retained
+provenance and selected bulk rules.
 
 The shared stages are `normalise`, `sql-source`, `sql-history`, `sql-current`, meta
 updates and publication. See [resource processing](resourceType/common.md) for the

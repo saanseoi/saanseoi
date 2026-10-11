@@ -33,6 +33,12 @@ The updater mirrors every native CSDI Archived Dataset package and its manifest;
 not use the `GEO_PLACE_NAME` GeoJSON file API. Archive slots, rather than inferred
 catalogue dates, identify upstream source releases.
 
+Source-release statistics for LandsD Place Names cover all source records, including
+Settlement, Hydrographic and Topographic. Record counts and class distribution come from
+the source-validity window; changes compare the preceding published source release.
+Locale completeness measures publisher-provided official names across that full
+inventory. Canonical settlement statistics belong to the API release set.
+
 ## Divisions projection
 
 The projection retains registered normalisation declarations and counts in the
@@ -40,19 +46,9 @@ The projection retains registered normalisation declarations and counts in the
 translation context are retained separately from bulk rules, with available parent
 division names for search. D1 registers the R2 manifest and attempt status.
 
-The `select-landsd-settlements` Bulk Rule records the native input count, selected
-Settlement count and excluded count, with separate Hydrographic, Topographic, missing
-class and unexpected class counters. These measure selection eligibility; downstream
-materialisation is a separate operation. All native publisher records remain retained.
-
-For published local releases, `bun scripts/backfill-landsd-selection-audit.ts --local`
-previews counts reconstructed from the release's retained native source records. Add
-`--apply` to append the rule to the registered audit. This explicit maintenance
-operation preserves existing audit entries and objects, retains a rollback reference
-under `.local/audit-backfills/landsd-selection/`, verifies the complete audit and search
-index, and updates the registration only if its previous reference still matches.
-Repeating it checks the existing counts and skips the write. It does not write to remote
-storage.
+The `select-landsd-settlements` Bulk Rule belongs to canonical assembly. It records all
+native inputs, selected settlements and exclusions by publisher class. Source ingestion
+stores every publisher record; its audit reports the complete import.
 
 The divisions API uses the source as the primary collection in the `hkgov-landsd`
 domain. Only `PLACE_CLASS=Settlement` is eligible for that projection. Each eligible
@@ -77,22 +73,23 @@ only its recorded properties and geometry; an absent relationship table contribu
 `placeNames` entries. Recovery retains the archive hash as provenance and does not
 recalculate canonical divisions or replace the registered source asset.
 
-The source `properties` object retains the parent feature attributes and the joined
-`PLACE_NAME` relationship in `properties.placeNames`. Each entry contains `nameEn`,
-`nameZhHant` and the publisher's `status`. Native geometry, source identity, provenance
-and release history use the shared source envelope. The complete properties object and
-native geometry determine the source version hash. Canonical names and classifications
-belong to the divisions projection.
+The source `properties` JSON object stores parent attributes and joined `PLACE_NAME`
+rows in `properties.placeNames`. Each entry contains `nameEn` (`NAME_EN`), `nameZhHant`
+(`NAME_TC`) and `nameStatus` (`NAME_STATUS`: `Official` or `Alias`). Missing labels stay
+`null`; paired labels and publisher row order are preserved. SOURCE does not group names
+by locale. Locale-keyed names are derived for canonical assembly and completeness
+metrics. All three place classes use this shape. Native geometry, source identity,
+provenance and release history use the shared source envelope. The complete properties
+object and native geometry determine the source version hash. Canonical names and
+classifications belong to the divisions projection.
 
 `hkgov-landsd:place-name` reads the locally mirrored FileGDB ZIP directly. It verifies
 the updater-supplied archive key and SHA-256, joins `GEO_PLACE_NAME` to `PLACE_NAME`,
 and writes the complete 2,706-record source ledger through the SQLite/D1 SQL pipeline.
-Each source record includes its native `PLACE_NAME` relationship as paired English and
-Traditional Chinese labels with the publisher's `Official` or `Alias` status; it does
-not create locale-normalised source child rows. There is no GeoJSON or Parquet
-preparation/upload boundary. The import retains a completed bulk processing audit
-covering the verified archive hash, source tables and imported row counts before the
-release can publish.
+Each source record stores joined `PLACE_NAME` rows in `properties.placeNames`; it does
+not create source child rows. There is no GeoJSON or Parquet preparation/upload
+boundary. The import retains a completed bulk processing audit covering the verified
+archive hash, source tables and imported row counts before the release can publish.
 
 For the Divisions projection, the official English and Traditional Chinese labels form
 the canonical names. A missing Simplified Chinese name is created only by the reviewable
@@ -147,9 +144,10 @@ selecting or continuing this mode.
 
 ## Registry metadata
 
-Dataset processing metadata declares the registered settlement selection and geography
-identity bridge. Releases retain the resolved policy at creation. Dataset source CRS
-metadata identifies the native EPSG:2326 geometry.
+Dataset processing metadata declares source ingestion. Snapshot processing metadata
+declares settlement selection and the geography identity bridge. Releases capture the
+resolved policy at creation. Dataset source CRS metadata identifies the native EPSG:2326
+geometry.
 
 ## Island inventory
 
@@ -164,8 +162,8 @@ resulting source evidence rather than in a separate `hkgov-landsd` island domain
 the [island inventory review](../../internal/island-inventory-review.md) for coverage,
 geometry inputs and the release gate.
 
-Constructed canonical divisions use stable `ss-` UUIDs and expose `LANDSD:GEO_NAME_ID`;
-native source record IDs remain unchanged.
+Constructed canonical divisions use stable `ss-` UUIDs and expose
+`identifiers["hkgov-landsd"].geoNameId`; native source record IDs remain unchanged.
 
 ## SaanSeoi inventory membership
 
@@ -218,3 +216,10 @@ assembly belong to the selected snapshot recipe.
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Field lineage
+
+The native Division lineage fixture traces GEO_PLACE_NAME and PLACE_NAME by GEO_NAME_ID,
+settlement selection, official-before-alias name order, HK80 projection and the fixed
+settlement classification. It also records the source-release translation and canonical
+response stages.

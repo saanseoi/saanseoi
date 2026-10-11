@@ -40,7 +40,8 @@ classes and archive evidence remain valid provenance.
 Geometry assembly records retain contributed and inherited source rules and selected
 releases under the
 [assembly provenance contract](../../pipeline.md#snapshot-assembly-provenance). Verified
-identical reuse preserves the published snapshot's assembly evidence.
+identical reuse preserves the published snapshot's assembly evidence. The incoming
+resource release receives its own ingestion audit; reuse creates no new assembly audit.
 
 Geometry replay streams current, history and source rows into bounded SQL statements
 when creating a delivery plan. Retained plans bypass replay-table reads and SQL packing;
@@ -264,9 +265,9 @@ record count.
 The C&SD Permanent Living Quarters release supplies three regional polygons (`HK`,
 `KLN`, and `NT`). They join the cohort-matched `hkgov-censtatd` companion rather than a
 second division collection: each polygon is linked to the corresponding canonical
-Overture division ID, including the deterministic synthetic Hong Kong, Kowloon, and New
-Territories IDs where Overture has no row. Request them with
-`include=areas:hkgov-censtatd`.
+SaanSeoi division ID from the curated source edition. The companion belongs to the
+SaanSeoi API composition and is not a requirement of the native Overture composition.
+Request them with `include=areas:hkgov-censtatd`.
 
 Regional identities use `HK` for Hong Kong Island, `KLN` for Kowloon and `NT` for New
 Territories. The public identity lookup can extract these codes from the
@@ -292,12 +293,12 @@ geometry. A differing overlapping geometry requires a different companion varian
 census/by-census land-clipped geometry is the current example.
 
 During ingestion, the three references are checked against the closest published
-canonical Overture division snapshot: the latest cohort at or before the C&SD cohort is
-used first; only an absent earlier cohort permits the earliest later Overture cohort.
+canonical SaanSeoi division snapshot: the latest cohort at or before the C&SD cohort is
+used first; only an absent earlier cohort permits the earliest later SaanSeoi cohort.
 The selection is retained as a snapshot lookup dependency. Permanent Living Quarters
 must not create a second C&SD division snapshot merely to satisfy its geometry
 validation. Reference validation opens all configured regional history shards so that a
-later Overture snapshot can be replayed even when the C&SD source belongs to an earlier
+later SaanSeoi snapshot can be replayed even when the C&SD source belongs to an earlier
 shard year. The C&SD source and geometry retain their own shard assignment.
 
 The 2021 Housing Market Areas and Building Groups release is different. Its 173 Housing
@@ -447,3 +448,9 @@ field/measure processing belongs to the Statistic recipe rather than the Area po
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Field lineage
+
+The HMA lineage fixture traces HMA_21C native polygons and publisher names into Division
+and DivisionArea resources. Government Area flags are both true, so the canonical
+geometry type is mixed. Building Group centroids do not create DivisionArea members.

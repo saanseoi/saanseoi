@@ -453,7 +453,7 @@ HMA, it publishes the generated `division` snapshot before the companion `divisi
 snapshot, so the area records are validated against the immutable HMA identities from
 the same source release. Permanent Living Quarters creates no parallel C&SD division
 snapshot: its three geometry records validate against the closest published canonical
-Overture division cohort, preferring the latest cohort at or before the C&SD cohort and
+SaanSeoi division cohort, preferring the latest cohort at or before the C&SD cohort and
 using the earliest later cohort only when no earlier one is available.
 
 When a comparable earlier source release exists, structural churn is limited to measure
@@ -471,13 +471,13 @@ subdivided-units release, the 2021 bridge for the 2021 subdivided-units release,
 datasets. A missing member of one of those bridges stops ingestion; it is never replaced
 by a name or spatial-match guess.
 
-Permanent Living Quarters observations resolve through the reviewed mapping to
-deterministic Overture area identities; HMA observations use their deterministic C&SD
-source-code identities. The archived 2021 New Town observations resolve only through the
-reviewed thirteen-code identifier bridge to Planning's 2021 New Town Divisions. No name
-or spatial matching is used. Building-group and housing-estate observations remain
-without a `divisionId` until their respective geographies are reviewed and released as
-Divisions domains, not by assigning an arbitrary district parent.
+Permanent Living Quarters observations resolve through the reviewed mapping to reviewed
+SaanSeoi area identities; HMA observations use their deterministic C&SD source-code
+identities. The archived 2021 New Town observations resolve only through the reviewed
+thirteen-code identifier bridge to Planning's 2021 New Town Divisions. No name or
+spatial matching is used. Building-group and housing-estate observations remain without
+a `divisionId` until their respective geographies are reviewed and released as Divisions
+domains, not by assigning an arbitrary district parent.
 
 ## District land area, population and density ingestion
 
@@ -693,6 +693,13 @@ processing are selected only for the resource outputs that use them.
 
 The [processing policy contract](../../pipeline.md#define-audit-processing-rules)
 separates captured ingestion and snapshot assembly definitions.
+
+## Archive ownership
+
+Original publisher inputs use `releaseSourceArchive` assets owned by their source
+release. Resource-specific source exports use Parquet `resourceSourceArchive` assets
+owned by their resource release. Each archive has a downloadable manifest recording its
+original filename and packaging.
 
 Statistics initialisation ingests every resource declared by each source dataset,
 including companion division areas. `--defer-stats-release-set` postpones composed

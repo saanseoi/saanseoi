@@ -131,6 +131,12 @@ loss and substantial deletion spikes require explicit review. Ordinary flat remo
 remain visible in the report and can retire automatically. Missing owners, unresolved
 parent references and inconsistent inventories fail validation independently of review.
 
+Before presenting suspected building demolitions for review, search Google by building
+name and address and attach the supporting sources. Record permanent closure separately
+from confirmed demolition. Order browser review cases by approximately 1 km × 1 km
+latitude/longitude cells so nearby premises appear together, preserving case numbers and
+identity keys in exported decisions.
+
 Current Address, Place and Street references identify stable storage scopes. Metadata,
 normalised preparation artefacts and history retain the selected logical snapshots;
 current writers resolve those selections through completed publication receipts. API
@@ -1313,9 +1319,13 @@ remaining distinct. The fixture preserves the original automatic confidence alon
 human-reviewed decisions; browser reviews show confidence and matching evidence.
 
 The April 2025 review automatically reconciles Tai Fai House and Sing Fai House when the
-publisher adds their Block 2 and Block 1 qualifiers, preserving all 952 unit IDs. The
-remaining April cases stay subject to human review, with qualitative confidence shown
-for each candidate.
+publisher adds their Block 2 and Block 1 qualifiers, preserving all 952 unit IDs.
+Reviewed retention rules preserve Chung Yuet Lau beneath Jat Min Chuen, Cheung Ching
+Community Hall, Amber Place, and the Yu Nga Court complex separately from Nga Shing
+House. Fu Shan Public Mortuary retains its identity as FPS Storage Facility; the former
+Cognitio College retains its identity through the recorded change of use. Exact
+publisher assertions across the retained deliveries guard these decisions. New source
+evidence requires verification before the rules can apply.
 
 The reviewed Seaside Sonata entries retain four distinct towers—1, 2, 3 and 5—with
 201–218 Hai Tan Street as their shared address. Tower 4 is intentionally absent; the
@@ -1323,10 +1333,211 @@ development has four towers, not five, as listed in the
 [project sales information](https://hk.centanet.com/info/en/new-property/Cheung-Sha-Wan/Seaside-Sonata/1696).
 Shiu King Building retains its 177–181 Ngau Tau Kok Road, 2–8 On Wah Street and 10 Chun
 Wah Road building addresses. Its 6 On Wah Street shop address is represented as a unit
-child of the 2–8 On Wah Street building record.
+child of the 2–8 On Wah Street building record. Identity aliases link distinct
+predecessor IDs to the retained shop ID; an identity already equal to that ID does not
+create an alias edge.
 
 The ALS preparation checkpoint rejects changed dependency keys from its bounded header
 before loading the large result. Matching checkpoints still require the complete result
 hash and sealed-file checks. It writes and hashes result entries incrementally. It keeps
 the sealed-file and dependency checks while avoiding duplicate complete JSON strings for
 the large preparation result. Interrupted writes cannot establish cache reuse.
+
+The 22 May 2025 review retains 18 identities under
+`hkgov-dpo-address-may-deletion-retentions.json`. THE STEP blocks remain individually
+retained until revoked. Lok Yuen House premises are buildings; renamed commercial
+premises preserve identity continuity. THE HEDON uses 11–15 Matheson Street. The
+reviewed Wong’s Factory Building record has an explicit retirement approval based on
+closure evidence, without asserting a demolition date.
+
+Hin Fat House uses one reviewed owner through the publisher’s estate-qualified named
+record. The approved 872-unit inventory is retained on a 3D omission even when its
+publisher 2D building remains present. A returning 3D assertion takes precedence over
+the fallback; all reviewed unit identities remain subject to validation.
+
+Returning Yip Wong house records preserve the reviewed physical owner identities and
+unit IDs. The approved June Ching Sum backfill keeps its predecessor owner and 949 units
+while retaining the publisher’s Block 2 components. Source hashes guard that continuity
+decision across the inspected deliveries.
+
+June 2025 confidence-based continuity preserves 11 predecessor premise IDs for clear
+renames, spelling corrections, equivalent addresses and publisher record replacements.
+The June confidence fixture records the selected successor, confidence reason, available
+linked evidence and exact publisher payload hashes. Separate street frontages retain
+separate identities. Ambiguous hierarchy changes and new retirements remain subject to
+manual review; closure alone is not proof of demolition.
+
+June review decisions reuse active curations before requesting another decision. Wong
+Teck Building retains its separate frontages under the established frontage policy.
+Ching Tin Estate and Tung Tau (II) Estate Refuse Collection Point keep their existing
+curated identities; approved duplicate predecessor identities become guarded aliases.
+The selected Block 7B typo corrections use the same alias mechanism, preserving both
+street frontages. The June review fixture records eight user decisions and four
+applications of prior authority, with publisher or target-record evidence guards.
+
+The September Get Nice Centre rename decision also supports the June 274 Chatham Road
+North frontage, guarded by its own publisher source evidence.
+
+The final June review retains The Vim and Kei Wah Court names, Anchor Street Refuse
+Collection Point, and the distinct West Kowloon Government Offices complex and its North
+and South towers. The Kodak House building retains its identity without the obsolete
+name. The selected Eastcore rename preserves continuity, and the Shek Pik staff-mess
+address is reconciled through an alias. Ten exact predecessor records have retirement
+approval, distinguishing demolition, facility closure and dropped names without
+inferring demolition from closure alone.
+
+### August 2025 continuity review
+
+Source-guarded curations preserve the established identities for Sky One (Hotel COZi
+Wetland), Sunny House (Pentahotel), Tung Tsz Scout Centre and the South Horizons estate
+address. The South Horizons decision reuses the existing estate-component curation.
+
+Two Yip Wo House address representations keep their separate identities while duplicate
+unit inventories resolve to the established inventory. This requires exact owner
+metadata, complete matching unit tokens, and unchanged canonical unit IDs across both
+releases; partial or changed inventories remain subject to review.
+
+The August 2025 user review retains named buildings and the Palm Springs project name,
+reconciles the Lee Wang frontages and corrected college address, and preserves distinct
+buildings beneath the RMHC, Good Mansion and Silverstrand complexes. Three exact prior
+identities have user-approved retirement decisions. Browser reviews support copying JSON
+directly or downloading the same document; both include the exact report digest.
+
+September 2025 continuity reuses the six existing identity decisions for the four Grand
+Central towers, GR8 Inno-Tech Centre and Lions–YMCA Junk Bay Youth Camp. Exact publisher
+evidence guards preserve the predecessor IDs. Cape Collinson Crematorium retains its
+complex identity across a coordinate and Chinese spelling correction at the same street
+address.
+
+### September 2025 reviewed premises
+
+The 3 September review retains sixteen premise records through guarded publisher
+evidence and explicit identity reconciliation. The kindergarten and management-centre
+frontages reconcile to the selected Laguna Street addresses while other valid frontages
+remain available. Tsing Fung retains its combined frontage alongside the separate shop
+addresses; YKK retains both phase addresses. Named buildings persist when the publisher
+omits their names, Horizon Bay is named De Hua Tower, and Eminence Tower 1 is classified
+as a building. Five Chek Chue Barracks block records have explicit user-approved
+retirement decisions; these decisions do not assert physical demolition. The review
+receipt and fixture preserve the submitted report digest and reasons.
+
+If the reviewed management-centre frontages reappear in later publisher deliveries,
+exact bilingual address and coordinate guards preserve the selected canonical identity
+and retain the returned publisher assertions in curation evidence.
+
+### November 2025 continuity
+
+Six exact publisher continuity rules preserve predecessor identities for Woody House,
+Tanner Hill Towers 1 and 2, Champion Tower, ICBC Tower and the Three Garden Road
+complex. Publisher selectors and payload assertions guard the renamed or reformatted
+premises; existing alternative Tanner Hill addresses remain available. Other November
+premise changes follow the explicit user decisions below.
+
+### November 2025 reviewed premises
+
+The completed 4 November review retains all 113 Shek Kong Barracks identities, including
+the complex. Guarded archived publisher records preserve their original IDs and scope.
+Summerbreeze is a building; Sang On retains its valid frontages. Far East Bank Building
+continues as Silka Far East Hotel, with the two separate predecessor frontages recorded
+as aliases of the combined predecessor identity. The selected HSBC Building address owns
+the reviewed alias. Dorsett Kai Tak, CLP Headquarters, Peng Chau Rural Committee and
+Harbour Mansion remain distinct named premises. The Palm Springs and Royal Palms house
+IDs survive publisher address formatting changes. CUHK Medical Centre retains its
+complex classification. Lok Yuen retains both combined building frontages and seven
+separate shop/unit addresses beneath the matching frontage. AIA Hong Kong Tower has an
+explicit retirement approval; the decision does not assert an exact demolition date.
+
+### Explicit review outcomes
+
+Review JSON schema 2 records the intended operation and affected IDs in `resolution`.
+Options distinguish keeping the previous premise, renaming the same premise, merging
+duplicates with an explicit surviving identity, linking a building to a complex,
+correcting one record's classification, retaining a building alongside selected shops,
+and retaining separate address frontages. Each option previews the result. Shop and
+frontage choices accept multiple candidates; hierarchy choices specify the parent and
+child. Required choices must be complete before copying or downloading JSON. Draft
+imports validate the report digest, membership and operation fields. Review selections
+remain instructions until processed; the page never publishes dataset changes.
+
+The address-structure review option keeps the previous ID while adopting a selected
+candidate street and number. Estate context and real building names are selected
+independently. The export carries bilingual components, clears the erroneous house/block
+prefix, and records the chosen classification. Publisher village fields used for road
+addresses can be moved into street fields without duplicating the old village address.
+For example, 25 Maple Drive can retain The Green as estate context with no building name
+or building classification. This remains a reviewer instruction until processed.
+
+### December 2025 reviewed addresses
+
+The 16 December 2025 review preserves ORIA, Stone Rise and Centre for Food Safety
+building names and canonical identities. Kingdom Power Commercial Building continues as
+Lee Fung Commercial Building. Kailey Tower uses 14–16 Stanley Street with duplicate
+Stanley Street identities recorded as aliases; 23 Wellington Street remains separate.
+The user's written address instructions take precedence over the forced reviewer
+selection, and both are retained in the local decision receipt.
+
+12 Santa Barbara Avenue retains Royal Palms / 加州豪園. 23 and 25 Maple Drive retain The
+Green / 歌賦嶺 as estate context, with the house prefixes removed and Maple Drive stored
+as the street rather than a building name. Explicit street-address classification
+(`unknown`) takes precedence over classification inferred from the estate name. Tsing Yi
+Town Clinic keeps its building identity separately from the clinic complex. The previous
+“39 Sha Tsui Road” identity has retirement approval; the current 37–43 Sha Tsui Road
+address remains. No demolition date is asserted.
+
+The guarded rules are in `hkgov-dpo-address-december-2025-reviewed-retentions.json`; the
+retirement is recorded in `hkgov-dpo-address-approved-retirements.json`. Publisher
+evidence remains unchanged.
+
+### Deferred 2026 investigations
+
+The authorised 2026 import records uncertain address changes as
+`needs-further-investigation`. This permits the publisher's omission to take effect
+without approving retirement or asserting demolition. The deletion report retains
+`requiresReview: true`, with `ingestionDisposition: ready-with-investigations`; the
+unresolved work remains visible after ingestion.
+
+`SAANSEOI_ALS_INVESTIGATION_AUTHORITY` supplies the explicit authority for creating 2026
+deferrals. Each acknowledgement matches the source version, predecessor and exact report
+digest. The durable queue in `fixtures/reviews/hkgov-dpo-address-investigations/`
+preserves previous identities, candidate evidence and lost inventories, including unit
+IDs. Preparation deferrals preserve the sealed evidence for identity drift, unverified
+curations and conflicting reviewed street components. A street conflict retains the
+assembled source assertion, previous correction and conflicting values; it does not
+apply the disputed correction. Missing street fields may be restored only when all
+supplied values agree with the reviewed street. Missing previously reviewed inventories
+retain the expected canonical unit IDs in preparation investigations. Existing
+inventories with changed canonical unit IDs still fail integrity validation. Preparation
+evidence is sealed after these inventory checks. Conflicting hierarchy evidence
+preserves the proposed relationship and all estate records as an investigation before
+any part of that relationship is applied. The disputed correction remains unapplied;
+final parent and membership validation still runs. A change to evidence invalidates the
+matching acknowledgement. Invalid hierarchy, missing parents, file-integrity failures
+and division-linkage errors remain blocking.
+
+Confident continuations require one-to-one evidence. Exact bilingual addresses,
+number-format corrections and omitted names retain the established identity when the
+publisher, location and other premise components agree. House prefixes can become street
+numbers while preserving bilingual estate and phase context. Different house numbers,
+ambiguous matches, site-part scope changes and genuinely different names remain
+investigations. The predecessor preparation is included in the cache fingerprint. Each
+automatic continuation records its reasoning and alias in prepared provenance.
+Estate-restoration rules accept a matching name already supplied by confident
+continuity, retain both provenance records, and reject conflicting derived names.
+
+Exact source assertions also record verified coordinate-only adjustments to earlier
+curations where all bilingual premise fields and publisher identities agree. When a
+publisher reintroduces an additional street address whose provisional ID is already
+owned by a curated address, an explicitly reviewed rule assigns a separate stable ID.
+The shared provisional ID does not become an alias of the additional address. D Hall,
+Ablutions Block and Bauhinia House at 10 Hollywood Road and 16 Old Bailey Street are
+recorded this way in `hkgov-dpo-address-2026-reviewed-continuity.json`. ORIA and Stone
+Rise return with bilingual publisher names from July 2026. Each matches its existing
+reviewed canonical identity; the returned record supplies the location without inserting
+a duplicate retained record. The same exact-evidence handling covers The Stellar, Six
+Pacific Place, Kowloon East Government Offices and CUHK Medical Centre, preserving their
+reviewed classifications when publisher names move between fields.
+
+A subsequent revision can resolve an investigation and restore a previously omitted
+identity. Original publisher assertions, earlier memberships and the investigation
+evidence remain available for that decision. Deferral itself does not establish that a
+record persisted.

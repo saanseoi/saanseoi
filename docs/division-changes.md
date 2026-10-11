@@ -96,13 +96,13 @@ branch order do not matter; vertex order and order within a hierarchy path do ma
 Coordinate equality is structural, not a topological polygon-equivalence test.
 
 Membership geometry follows the [geocoding contract](geocoding.md): the geographic
-`stub` association scoped by cohort. Label points and other area/boundary variants do
-not substitute for authoritative membership polygons. An empty polygon array means no
+`saanseoi` association scoped by cohort. Label points and other area/boundary variants
+do not substitute for authoritative membership polygons. An empty polygon array means no
 authoritative geometry is available for that division, not a known empty territory.
 `meta.coverage` reports division and polygon-coverage counts on each side. The
-checked-in stub inventory currently has no operational containment coverage.
+checked-in saanseoi inventory currently has no operational containment coverage.
 
-Stub polygons are fixture-backed and are not retained in database snapshot journals.
+Saanseoi polygons are fixture-backed and are not retained in database snapshot journals.
 Content hashes protect definition links and pagination against fixture replacement:
 unavailable old content produces an explicit error. Retain an exported definition if it
 must remain available independently of service retention. Database identities and names

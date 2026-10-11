@@ -11,14 +11,14 @@ the publication catalogue explicitly. A release absent from that publication sco
 returns 404.
 
 ```text
-/v0.1/identityBridge?releaseSet=<release-set-code>&domain=hkgov-pland-pu&namespace=PLAND:TPU&identifier=351
+/v0.1/identityBridge?releaseSet=<release-set-code>&domain=hkgov-pland-pu&namespace=hkgov-pland.tpu&identifier=351
 ```
 
 Each `data` entry contains `namespace`, `identifier` and `canonicalId`. Nested
-identifier paths use dots, such as `hkgovCsuId` or `hkgovCenstatd.code`. Strings and
-numbers are returned as strings. Optional `namespace`, `identifier` and `canonicalId`
-filters use exact matching. An empty result is a successful lookup, not a missing
-release.
+identifier paths use dots, such as `hkgov-censtatd.code` or `hkgov-landsd.geoNameId`.
+Strings and numbers are returned as strings. Optional `namespace`, `identifier` and
+`canonicalId` filters use exact matching. An empty result is a successful lookup, not a
+missing release.
 
 `limit` controls the returned mapping count, defaults to 100 and is at most 200. Pass
 the returned `nextCursor` as `cursor`, retaining every selector and filter, until
@@ -28,9 +28,9 @@ are retained. In particular, an ALS CSU value alone does not prove address equiv
 
 Divisions include identifiers from their selected Division Area companions, targeting
 the area's recorded `divisionId`. Planning parent identifiers are excluded from child
-identities. `PLAND:SUBUNIT` values include the TPU, for example `351-30`. C&SD regional
-area IDs encode source codes as `CENSTATD:area:HK`, `CENSTATD:area:KLN` and
-`CENSTATD:area:NT`; these yield `hkgovCenstatd.code` mappings. Curation and correction
+identities. `hkgov-pland.subunit` values include the TPU, for example `351-30`. C&SD
+regional area IDs encode source codes as `CENSTATD:area:HK`, `CENSTATD:area:KLN` and
+`CENSTATD:area:NT`; these yield `hkgov-censtatd.code` mappings. Curation and correction
 metadata are not identity mappings. Places and Streets do not expose a canonical
 `identifiers` field and are not supported by this endpoint.
 

@@ -171,6 +171,13 @@ Patch instructions, including Lok Ma Chau Loop classification and Kowloon restor
 live in `fixtures/meta/patches/`. Shared rule dependencies retain their complete
 definitions, and CLI retention hashes their implementation sources recursively.
 
+API field-lineage release bindings pin the registered completed processing manifest by
+hash and byte length. The lineage audit reader checks that the manifest belongs to the
+bound resource release, and returns its bulk counts, guards and reviewed instruction
+references. It creates no additional retained audit rows. An application count describes
+uses of an instruction; it does not establish which conditional candidate supplied an
+individual API field or turn audit evidence into replayable output effects.
+
 Bulk fixture curations retain the selected reviewed documents in R2. Individual
 curations, translations and QA patches retain their decision, record context and a
 pointer to the selected fixture entry. Translation context includes available parent
@@ -193,8 +200,8 @@ partitions which preserve every entry and the document's root metadata.
 
 `releaseProvenance` records the manifest hash, byte length, individual action count and
 `attemptStatus` (`completed` or `failed`). It identifies the registered attempt for the
-resource release; published registrations are immutable. These producers do not write
-the D1 processing-action summary or evidence-chunk tables.
+resource release; published registrations are immutable. Audit declarations, counts and
+reviewed fixture references are retained in R2.
 
 ## Recorded effects contract
 

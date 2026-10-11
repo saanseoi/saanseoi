@@ -103,14 +103,10 @@ create publisher assertions or advance the validity of an absent publisher recor
 
 ## Schema deployment
 
-The generated source migration `20260911161401_smiling_living_tribunal` renames
-`rawProperties` to `properties` in all 18 feature-source tables. Apply the source
-migration chain to each source shard before running the corresponding ingestion and API
-code. The migration preserves JSON bytes, geometry, source identities, content hashes,
-validity intervals, timestamps and indexes.
-
-Complete pending source deliveries before applying the migration: sealed SQL plans
-retain the column names against which they were prepared.
+The generated SOURCE baseline creates feature-source tables with a `properties` column.
+Apply it to an empty source database before running ingestion and API readers. Complete
+pending source deliveries before rebuilding a database: sealed SQL plans retain the
+schema against which they were prepared.
 
 Source fingerprints retain their established serialisation keys independently of storage
 field names, so unchanged publisher assertions keep the same content version. Prepared
