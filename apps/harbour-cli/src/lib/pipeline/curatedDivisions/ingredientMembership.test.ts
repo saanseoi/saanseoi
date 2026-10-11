@@ -17,7 +17,7 @@ test('membership uses native GEO_NAME_ID and retains GERS identity without row i
   }
   const result = attachIngredientMembership(input)
   expect(result.matched).toBe(1)
-  expect(result.divisions[0]!.identifiers['LANDSD:GEO_NAME_ID']).toBe('42')
+  expect(result.divisions[0]!.identifiers['hkgov-landsd']?.geoNameId).toBe('42')
   expect(result.divisions[0]!.sources.hkgovLandsd).toBeUndefined()
   expect(result.divisions[0]!.sources.overture[0].contributions).toEqual(['identity'])
   expect(result.divisions[0]!.sources.overture[0].recordId).toBe('gers')
@@ -155,4 +155,17 @@ test('curated source exclusions override even an explicit native identity', () =
   })
   expect(result.matched).toBe(0)
   expect(result.divisions[0]!.sources.hkgovLandsd).toBeUndefined()
+})
+
+test('deleted upstream identities do not claim current Overture membership', () => {
+  const result = attachIngredientMembership({
+    divisions: [{ id: 'kept', geometry }],
+    names: labels('kept'),
+    landsd: [],
+    landsdNames: [],
+    landsdRelease: 'landsd-june',
+    overtureIds: new Set<string>(),
+    overtureRelease: 'overture-september',
+  })
+  expect(result.divisions[0]!.sources.overture).toBeUndefined()
 })

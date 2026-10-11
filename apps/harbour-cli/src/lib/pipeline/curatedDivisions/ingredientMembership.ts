@@ -1,4 +1,4 @@
-import { canonicalIdentifiers } from '@repo/core/pipeline/services/sources/canonicalIdentifiers'
+import { divisionIdentifiers } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
 export const LANDSD_NAME_MATCH_DISTANCE_METRES = 5000
 
 /** Positive membership evidence only; unmatched records are not asserted absent. */
@@ -46,10 +46,10 @@ export function attachIngredientMembership<T extends Division>(args: {
     nativeNames = membershipNameIndex(args.landsdNames)
   const candidates = new Map<string, Division[]>()
   for (const division of args.divisions) {
-    const identifiers = canonicalIdentifiers(division.identifiers)
-    const curatedIslandSourceId = object(identifiers?.saanseoiIsland).sourceId
+    const identifiers = divisionIdentifiers(division.identifiers)
+    const curatedIslandSourceId = object(identifiers?.saanseoi).sourceId
     const explicit =
-      identifiers?.['LANDSD:GEO_NAME_ID'] ??
+      identifiers?.['hkgov-landsd']?.geoNameId ??
       (typeof curatedIslandSourceId === 'string' &&
       curatedIslandSourceId.startsWith('LANDSD:PLACE_NAME:')
         ? curatedIslandSourceId.slice('LANDSD:PLACE_NAME:'.length)
@@ -59,7 +59,7 @@ export function attachIngredientMembership<T extends Division>(args: {
       division.id,
       args.landsd.filter(native => {
         if (args.excludedSourceIds?.has(native.id)) return false
-        const key = canonicalIdentifiers(native.identifiers)?.['LANDSD:GEO_NAME_ID']
+        const key = divisionIdentifiers(native.identifiers)?.['hkgov-landsd']?.geoNameId
         if (!key) return false
         if (explicit) return explicit === key
         const upstream = nativeNames.get(native.id)
@@ -74,7 +74,7 @@ export function attachIngredientMembership<T extends Division>(args: {
   let matched = 0
   const divisions = args.divisions.map(division => {
     const sources = object(division.sources),
-      identifiers = canonicalIdentifiers(division.identifiers) ?? {}
+      identifiers = divisionIdentifiers(division.identifiers) ?? {}
     if (args.overtureIds.has(division.id))
       sources.overture = [
         ...(Array.isArray(sources.overture) ? sources.overture : []).filter(
@@ -83,16 +83,16 @@ export function attachIngredientMembership<T extends Division>(args: {
         {
           dataset: 'ds-hk-overture-division',
           recordId: division.id,
-          release: args.overtureRelease,
           contributions: ['identity'],
         },
       ]
     const matches = candidates.get(division.id) ?? []
     if (matches.length === 1 && owners.get(matches[0]!.id) === 1) {
-      const geoNameId = canonicalIdentifiers(matches[0]!.identifiers)![
-        'LANDSD:GEO_NAME_ID'
-      ]
-      identifiers['LANDSD:GEO_NAME_ID'] = geoNameId
+      const geoNameId = divisionIdentifiers(matches[0]!.identifiers)!['hkgov-landsd']!
+        .geoNameId
+      if (geoNameId === undefined)
+        throw new Error(`Matched LandsD record ${matches[0]!.id} has no geoNameId.`)
+      identifiers['hkgov-landsd'] = { ...identifiers['hkgov-landsd'], geoNameId }
       // Dataset presence is represented by the external identifier. It does not
       // assert that names or geometry were taken from this matching record.
 

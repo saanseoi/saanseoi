@@ -46,7 +46,7 @@ test('five curated groups retain official identities and null landform levels', 
     const override = curatedDivisionPolicy.overrides.entries.find(
       row => row.divisionId === group.id,
     )!
-    expect(override.identifiers).toEqual({ 'LANDSD:GEO_NAME_ID': geoNameId })
+    expect(override.identifiers).toEqual({ 'hkgov-landsd': { geoNameId } })
   }
   for (const id of [
     '13363714-2649-4066-935d-c24757ff2a86',

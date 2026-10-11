@@ -1,3 +1,13 @@
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { loadDivisionReviewInputs } from './reviewInputs'
+const reviewRoot = resolve(import.meta.dir, '../../../../../..')
+const archiveAvailable = existsSync(
+  resolve(
+    reviewRoot,
+    '.local/division-review/archives/17e1ee223e0d0c5705c83e2e1b697bf123ab9b3aa55e38d6cb6597eb30357cb0',
+  ),
+)
 import { expect, test } from 'bun:test'
 import { assembleCuratedDivisions } from './assemble'
 import { createFullContainmentAnnotator } from '@repo/core/pipeline/services/divisions/fullContainment.ts'
@@ -36,21 +46,23 @@ const input = {
     },
   ],
   hierarchy,
-  stubs: { features: [{ properties: { divisionId: 'hood' }, geometry: polygon }] },
+  estimatedAreas: {
+    features: [{ properties: { divisionId: 'hood' }, geometry: polygon }],
+  },
   islands: [],
 }
-test('reviewed geometry replaces source coverage without moving any vertex', () => {
+test('curated geometry replaces source coverage without moving any vertex', () => {
   const result = assembleCuratedDivisions(input)
   expect(result.areas).toHaveLength(1)
   expect(result.areas[0]!.variant).toBe('saanseoi')
   expect(JSON.parse(result.areas[0]!.geometry)).toEqual(polygon)
   expect(input.areas[0]!.geometry).toBe(JSON.stringify(polygon))
 })
-test('reviewed geometry publishes its curated core point on the division', () => {
+test('curated geometry publishes its curated core point on the division', () => {
   const result = assembleCuratedDivisions({
     ...input,
     divisions: [{ ...input.divisions[0], geometry: null, bbox: null }],
-    stubs: {
+    estimatedAreas: {
       features: [
         {
           properties: { divisionId: 'hood', corePoint: [0.25, 0.75] },
@@ -67,15 +79,28 @@ test('reviewed geometry publishes its curated core point on the division', () =>
 })
 test('source coverage remains the fallback for divisions without drawings', () => {
   expect(
-    assembleCuratedDivisions({ ...input, stubs: { features: [] } }).areas[0]!.geometry,
+    assembleCuratedDivisions({ ...input, estimatedAreas: { features: [] } }).areas[0]!
+      .geometry,
   ).toBe(JSON.stringify(polygon))
+})
+test('island-group labels outside the canonical area survive assembly', () => {
+  const point = { type: 'Point', coordinates: [2, 2] }
+  const result = assembleCuratedDivisions({
+    ...input,
+    divisions: [
+      { id: 'hood', class: 'island_group', category: 'landform', geometry: point },
+    ],
+    hierarchy: { entries: [] },
+  })
+  expect(result.divisions[0]!.geometry).toEqual(point)
+  expect(JSON.parse(result.areas[0]!.geometry)).toEqual(polygon)
 })
 test('withheld review drawings never become published areas or divisions', () => {
   const original = assembleCuratedDivisions(input)
   const result = assembleCuratedDivisions({
     ...input,
-    stubs: {
-      ...input.stubs,
+    estimatedAreas: {
+      ...input.estimatedAreas,
       withheld: [
         {
           feature: { properties: { divisionId: 'withheld' }, geometry: polygon },
@@ -86,7 +111,7 @@ test('withheld review drawings never become published areas or divisions', () =>
   })
   expect(result).toEqual(original)
 })
-test('publication recomputes containment after drawings replace the reviewed geometry', () => {
+test('publication recomputes containment after drawings replace the curated geometry', () => {
   const parent = structuredClone(polygon) as Polygon
   const child: Polygon = {
     type: 'Polygon',
@@ -100,13 +125,13 @@ test('publication recomputes containment after drawings replace the reviewed geo
       ],
     ],
   }
-  const reviewed = createFullContainmentAnnotator(
+  const curated = createFullContainmentAnnotator(
     new Map([
       ['hood', [child]],
       ['parent', [parent]],
     ]),
   )('hood', { full: [[{ id: 'parent', name: null, class: 'district' }]] })
-  expect(reviewed.full[0]![0]!.full_containment).toBe(true)
+  expect(curated.full[0]![0]!.full_containment).toBe(true)
   const replacement: Polygon = {
     type: 'Polygon',
     coordinates: [
@@ -122,11 +147,11 @@ test('publication recomputes containment after drawings replace the reviewed geo
   const result = assembleCuratedDivisions({
     ...input,
     divisions: [...input.divisions, { id: 'parent', class: 'district', level: 2 }],
-    hierarchy: { entries: [{ ...hierarchy.entries[0], hierarchies: reviewed }] },
+    hierarchy: { entries: [{ ...hierarchy.entries[0], hierarchies: curated }] },
     areas: [
       { id: 'parent-area', divisionId: 'parent', geometry: JSON.stringify(parent) },
     ],
-    stubs: {
+    estimatedAreas: {
       features: [{ properties: { divisionId: 'hood' }, geometry: replacement }],
     },
   })
@@ -136,7 +161,7 @@ test('publication recomputes containment after drawings replace the reviewed geo
   expect(published.containment_geometry.division).toBe(
     containmentGeometryHash([replacement]),
   )
-  expect(reviewed.full[0]![0]!.full_containment).toBe(true)
+  expect(curated.full[0]![0]!.full_containment).toBe(true)
 })
 test('island reference IDs become canonical identities in the hierarchy', () => {
   const result = assembleCuratedDivisions({
@@ -181,7 +206,7 @@ test('invalid rings block assembly', () => {
   expect(() =>
     assembleCuratedDivisions({
       ...input,
-      stubs: {
+      estimatedAreas: {
         features: [
           {
             properties: { divisionId: 'hood' },
@@ -201,7 +226,7 @@ test('invalid rings block assembly', () => {
     }),
   ).toThrow('Invalid polygon rings')
 })
-test('an island geometry correction removes mainland ancestry', () => {
+test('whole polygon overlap supplies island ancestry even when an old core point is outside', () => {
   const result = assembleCuratedDivisions({
     ...input,
     hierarchy: {
@@ -223,13 +248,15 @@ test('an island geometry correction removes mainland ancestry', () => {
       },
     ],
   })
-  expect(JSON.parse(result.divisions[0]!.hierarchies).full).toEqual([])
+  expect(JSON.parse(result.divisions[0]!.hierarchies).full[0][0].class).toBe(
+    'major_island',
+  )
 })
 test('self-intersecting polygons block assembly', () => {
   expect(() =>
     assembleCuratedDivisions({
       ...input,
-      stubs: {
+      estimatedAreas: {
         features: [
           {
             properties: { divisionId: 'hood' },
@@ -251,7 +278,7 @@ test('self-intersecting polygons block assembly', () => {
     }),
   ).toThrow('Invalid polygon topology')
 })
-test('reviewed classification upgrades an existing native microhood during assembly', () => {
+test('curated classification upgrades an existing native microhood during assembly', () => {
   const result = assembleCuratedDivisions({
     ...input,
     divisions: [{ id: 'hood', category: 'hood', class: 'microhood', level: 6 }],
@@ -267,7 +294,7 @@ test('reviewed classification upgrades an existing native microhood during assem
   expect(result.divisions[0]!.level).toBe(5)
 })
 
-test('assembly validates a source class before its locality subtype', () => {
+test('assembly uses the curated class independently of source taxonomy', () => {
   const result = assembleCuratedDivisions({
     ...input,
     divisions: [{ id: 'hood', category: 'locality', class: 'village', level: 5 }],
@@ -290,7 +317,7 @@ test('assembly validates a source class before its locality subtype', () => {
   expect(result.divisions[0]).toMatchObject({ class: 'hamlet', level: 6 })
 })
 
-test('reviewed classification can demote an already normalised neighbourhood', () => {
+test('curated classification can demote an already normalised neighbourhood', () => {
   const result = assembleCuratedDivisions({
     ...input,
     divisions: [{ id: 'hood', category: 'hood', class: 'neighbourhood', level: 5 }],
@@ -314,7 +341,7 @@ test('reviewed classification can demote an already normalised neighbourhood', (
   expect(result.divisions[0]!.level).toBe(6)
 })
 
-test('curated assembly retains reviewed bilingual aliases', () => {
+test('curated assembly retains curated bilingual aliases', () => {
   const result = assembleCuratedDivisions({
     ...input,
     divisions: [{ id: 'hood', category: 'hood', class: 'macrohood', level: 4 }],
@@ -431,6 +458,7 @@ test('matched island identity and ancestor labels follow the area classification
   expect(JSON.parse(result.divisions[0]!.hierarchies).full[0][0]).toEqual({
     id: 'existing',
     class: 'islet',
+    name: null,
     full_containment: null,
   })
 })
@@ -451,54 +479,54 @@ test('existing islets are matched without creating another identity', () => {
   expect(result.divisions).toHaveLength(2)
 })
 
-test('island curation removes rejected identities, drawings and ancestry', async () => {
-  const { default: review } = await import(
-    '../../../../../../fixtures/meta/curations/saanseoi-island-review.json'
-  )
-  const { default: inventory } = await import(
-    '../../../../../../fixtures/divisions/hk/island-areas.json'
-  )
-  const ids = ['BASEMAP:ISLAND:266c51869482fb83', 'BASEMAP:ISLAND:20b1ab86f2fddb31']
-  const rejected = inventory.filter(row => ids.includes(row.id))
-  const result = assembleCuratedDivisions({
-    ...input,
-    islandReview: {
-      ...review,
-      entries: review.entries.filter(row => ids.includes(row.id)),
-    } as any,
-    islands: rejected,
-    divisions: [
-      ...input.divisions,
-      ...ids.map(id => ({ id, class: 'minor_island', level: null })),
-    ],
-    names: ids.map(divisionId => ({ divisionId, locale: 'en', name: 'Rejected' })),
-    areas: ids.map(divisionId => ({ id: `area:${divisionId}`, divisionId })),
-    hierarchy: {
-      entries: [
-        {
-          ...hierarchy.entries[0],
-          hierarchies: { full: [ids.map(id => ({ id, class: 'minor_island' }))] },
-        },
-        ...ids.map(divisionId => ({
-          divisionId,
-          expectedClass: 'minor_island',
-          hierarchies: { full: [] },
-        })),
+test.skipIf(!archiveAvailable)(
+  'island curation removes rejected identities, drawings and ancestry',
+  async () => {
+    const { islands: inventory, islandReview: review } = await loadDivisionReviewInputs(
+      { root: reviewRoot },
+    )
+    const ids = ['BASEMAP:ISLAND:266c51869482fb83', 'BASEMAP:ISLAND:20b1ab86f2fddb31']
+    const rejected = inventory.filter(row => ids.includes(row.id))
+    const result = assembleCuratedDivisions({
+      ...input,
+      islandReview: {
+        ...review,
+        entries: review.entries.filter(row => ids.includes(row.id)),
+      } as any,
+      islands: rejected,
+      divisions: [
+        ...input.divisions,
+        ...ids.map(id => ({ id, class: 'minor_island', level: null })),
       ],
-    },
-    stubs: {
-      features: ids.map(divisionId => ({
-        properties: { divisionId },
-        geometry: polygon,
-      })),
-    },
-  })
-  expect(result.divisions.map(row => row.id)).toEqual(['hood'])
-  expect(result.areas).toEqual([])
-  expect(result.names).toEqual([])
-  expect(result.aliases).toEqual({})
-  expect(JSON.parse(result.divisions[0]!.hierarchies).full).toEqual([])
-})
+      names: ids.map(divisionId => ({ divisionId, locale: 'en', name: 'Rejected' })),
+      areas: ids.map(divisionId => ({ id: `area:${divisionId}`, divisionId })),
+      hierarchy: {
+        entries: [
+          {
+            ...hierarchy.entries[0],
+            hierarchies: { full: [ids.map(id => ({ id, class: 'minor_island' }))] },
+          },
+          ...ids.map(divisionId => ({
+            divisionId,
+            expectedClass: 'minor_island',
+            hierarchies: { full: [] },
+          })),
+        ],
+      },
+      estimatedAreas: {
+        features: ids.map(divisionId => ({
+          properties: { divisionId },
+          geometry: polygon,
+        })),
+      },
+    })
+    expect(result.divisions.map(row => row.id)).toEqual(['hood'])
+    expect(result.areas).toEqual([])
+    expect(result.names).toEqual([])
+    expect(result.aliases).toEqual({})
+    expect(JSON.parse(result.divisions[0]!.hierarchies).full).toEqual([])
+  },
+)
 
 test('merged island references resolve to the accepted canonical island', () => {
   const islands = ['canonical', 'alias'].map(id => ({
@@ -531,7 +559,7 @@ test('merged island references resolve to the accepted canonical island', () => 
         },
       ],
     },
-    stubs: {
+    estimatedAreas: {
       features: [
         {
           properties: { divisionId: 'alias' },
@@ -573,57 +601,230 @@ test('new geometry for a no-geometry decision blocks assembly for review', () =>
   ).toThrow('geometry appeared')
 })
 
-test('Ap Lei Chau and Ap Lei Pai publish their separately reviewed island polygons', async () => {
-  const { default: inventory } = await import(
-    '../../../../../../fixtures/divisions/hk/island-areas.json'
-  )
-  const { default: review } = await import(
-    '../../../../../../fixtures/meta/curations/saanseoi-island-review.json'
-  )
-  const ids = ['LANDSD:PLACE_NAME:28', 'LANDSD:PLACE_NAME:30']
-  const islands = inventory.filter(row => ids.includes(row.id))
+test.skipIf(!archiveAvailable)(
+  'Ap Lei Chau and Ap Lei Pai publish their separately curated island polygons',
+  async () => {
+    const { islands: inventory, islandReview: review } = await loadDivisionReviewInputs(
+      { root: reviewRoot },
+    )
+    const ids = ['LANDSD:PLACE_NAME:28', 'LANDSD:PLACE_NAME:30']
+    const islands = inventory.filter(row => ids.includes(row.id))
+    const result = assembleCuratedDivisions({
+      ...input,
+      islands,
+      hierarchy: {
+        entries: [
+          ...input.hierarchy.entries,
+          {
+            divisionId: 'LANDSD:PLACE_NAME:30',
+            expectedClass: 'major_island',
+            hierarchies: { full: [] },
+          },
+        ],
+      },
+      islandReview: {
+        ...review,
+        entries: review.entries.filter(row => ids.includes(row.id)),
+        curationPolicy: {
+          ...review.curationPolicy,
+          aliasGroups: [],
+          actions: review.curationPolicy!.actions.filter(row => ids.includes(row.id)),
+        },
+      } as any,
+    })
+    for (const island of islands) {
+      const id = result.aliases[island.id]
+      const published = result.areas.find(row => row.divisionId === id)!
+      expect(JSON.parse(published.geometry)).toEqual(
+        island.geometryOptions![0]!.geometry,
+      )
+      expect(JSON.parse(published.geometry)).not.toEqual(island.geometry)
+    }
+    const pai = result.divisions.find(row => row.id === result.aliases[ids[1]!])!
+    expect(pai.class).toBe('minor_island')
+  },
+)
+
+test('curated assembly removes Jordan aliases from Kwun Chung without removing Jordan', () => {
+  const kwunChung = '1aae385b-4843-4ea9-b8b3-d3726764daf3'
   const result = assembleCuratedDivisions({
     ...input,
-    islands,
+    divisions: [
+      { id: kwunChung, class: 'neighbourhood', level: 5 },
+      { id: 'jordan', class: 'neighbourhood', level: 5 },
+    ],
+    names: [
+      {
+        divisionId: kwunChung,
+        locale: 'en',
+        name: 'Kwun Chung',
+        nameAlts: 'Jordan',
+        nameVariant: '["Kwun Chung","Jordan"]',
+        nameRules: '[{"value":"Jordan","variant":"alternate"}]',
+      },
+      { divisionId: 'jordan', locale: 'en', name: 'Jordan' },
+    ],
+    areas: [],
+    estimatedAreas: { features: [] },
     hierarchy: {
       entries: [
-        ...input.hierarchy.entries,
         {
-          divisionId: 'LANDSD:PLACE_NAME:30',
-          expectedClass: 'major_island',
+          divisionId: kwunChung,
+          expectedClass: 'microhood',
+          hierarchies: { full: [] },
+        },
+        {
+          divisionId: 'jordan',
+          expectedClass: 'neighbourhood',
           hierarchies: { full: [] },
         },
       ],
     },
-    islandReview: {
-      ...review,
-      entries: review.entries.filter(row => ids.includes(row.id)),
-      curationPolicy: {
-        ...review.curationPolicy,
-        aliasGroups: [],
-        actions: review.curationPolicy.actions.filter(row => ids.includes(row.id)),
-      },
-    } as any,
   })
-  for (const island of islands) {
-    const id = result.aliases[island.id]
-    const published = result.areas.find(row => row.divisionId === id)!
-    expect(JSON.parse(published.geometry)).toEqual(island.geometryOptions![0]!.geometry)
-    expect(JSON.parse(published.geometry)).not.toEqual(island.geometry)
-  }
-  const pai = result.divisions.find(row => row.id === result.aliases[ids[1]!])!
-  expect(pai.class).toBe('minor_island')
+  expect(result.divisions.find(row => row.id === kwunChung)).toMatchObject({
+    class: 'microhood',
+    level: 6,
+  })
+  expect(
+    JSON.stringify(result.names.filter(row => row.divisionId === kwunChung)),
+  ).not.toContain('Jordan')
+  expect(result.names.find(row => row.divisionId === 'jordan')?.name).toBe('Jordan')
 })
 
-test('island-group labels outside the canonical area survive assembly', () => {
-  const point = { type: 'Point', coordinates: [2, 2] }
+test('curated assembly applies dedicated aliases with name provenance', () => {
+  const id = 'c389923d-1dca-44af-8abe-4ac5a9d90b0b'
   const result = assembleCuratedDivisions({
     ...input,
-    divisions: [
-      { id: 'hood', class: 'island_group', category: 'landform', geometry: point },
+    divisions: [{ id, class: 'neighbourhood', level: 5, sources: '{}' }],
+    names: [
+      {
+        divisionId: id,
+        locale: 'en',
+        name: 'West Kowloon',
+        nameAlts: null,
+        nameVariant: '["West Kowloon"]',
+        nameRules: null,
+        isLocaleInferred: false,
+      },
     ],
-    hierarchy: { entries: [] },
+    areas: [],
+    estimatedAreas: { features: [] },
+    hierarchy: { entries: [{ ...hierarchy.entries[0], divisionId: id }] },
   })
-  expect(result.divisions[0]!.geometry).toEqual(point)
-  expect(JSON.parse(result.areas[0]!.geometry)).toEqual(polygon)
+  expect(result.names[0]!.nameAlts).toBe('West Kowloon Reclamation')
+  expect(JSON.parse(result.names[0]!.nameRules)).toContainEqual({
+    value: 'West Kowloon Reclamation',
+    variant: 'alternate',
+  })
+  expect(JSON.parse(result.divisions[0]!.sources).saanseoi).toContainEqual({
+    dataset: 'ds-hk-saanseoi-division',
+    recordId: id,
+    curation: 'division-names',
+    contributions: ['names'],
+  })
+})
+
+test('islands retain reviewed Protomaps aliases after upstream name tags disappear', () => {
+  const cases = [
+    [
+      'ss-dafc5e29-ba62-5893-8e02-62db26723feb',
+      'BASEMAP:ISLAND:a0ab43fa8853be04',
+      'Tong Hau Pai',
+      '塘口排',
+      ['Wok Tuk Pai'],
+      [],
+    ],
+    [
+      'ss-df42c7e0-3a91-5bf7-b632-bf019e4de27a',
+      'LANDSD:PLACE_NAME:1557',
+      'Pyramid Rock',
+      '尖柱石',
+      ['Wei Sam Chau'],
+      [],
+    ],
+    [
+      'ss-94a5aab8-09bf-5e36-8f43-ca8e9940d600',
+      'LANDSD:PLACE_NAME:2505',
+      'Tuen Tau Chau',
+      '斷頭洲',
+      ['Tse Leung Chau'],
+      [],
+    ],
+    [
+      'ss-6dd4c79e-5605-509e-b056-78d4735278af',
+      'LANDSD:PLACE_NAME:1060',
+      'Magazine Island',
+      '火藥洲',
+      ['Chu Kwu Chau'],
+      ['豬牯洲'],
+    ],
+    [
+      'ss-c6cdfff4-9134-5064-b240-1105af5eb7f6',
+      'LANDSD:PLACE_NAME:99',
+      'Cha Kwo Chau',
+      '茶果洲',
+      ['Yeung Chau'],
+      ['洋洲'],
+    ],
+    [
+      'ss-98822028-8460-53a2-8f1b-7fc229efdc8b',
+      'LANDSD:PLACE_NAME:2717',
+      'Wong Mau Chau',
+      '黃茅洲',
+      ['South Gau', 'Nam Kau'],
+      ['南牛', '南滘'],
+    ],
+  ] as const
+  for (const [
+    id,
+    sourceId,
+    primary,
+    chinese,
+    englishAliases,
+    chineseAliases,
+  ] of cases) {
+    const result = assembleCuratedDivisions({
+      ...input,
+      divisions: [],
+      names: [],
+      areas: [],
+      hierarchy: { entries: [] },
+      estimatedAreas: { features: [] },
+      islands: [
+        {
+          id: sourceId,
+          name: primary,
+          zh: chinese,
+          point: [0.5, 0.5],
+          areaKm2: 0.01,
+          geometry: polygon,
+          matches: [],
+        },
+      ],
+    })
+    expect(result.aliases[sourceId]).toBe(id)
+    for (const [locale, name, aliases] of [
+      ['en', primary, englishAliases],
+      ['zh-hant', chinese, chineseAliases],
+    ] as const) {
+      const row = result.names.find(
+        row => row.divisionId === id && row.locale === locale,
+      )!
+      expect(row.name).toBe(name)
+      for (const alias of aliases) {
+        expect(row.nameAlts.split('|')).toContain(alias)
+        expect(JSON.parse(row.nameVariant)).toContain(alias)
+        expect(JSON.parse(row.nameRules)).toContainEqual({
+          value: alias,
+          variant: 'alternate',
+        })
+      }
+    }
+    expect(JSON.parse(result.divisions[0]!.sources).saanseoi).toContainEqual({
+      dataset: 'ds-hk-saanseoi-division',
+      recordId: id,
+      curation: 'division-names',
+      contributions: ['names'],
+    })
+  }
 })

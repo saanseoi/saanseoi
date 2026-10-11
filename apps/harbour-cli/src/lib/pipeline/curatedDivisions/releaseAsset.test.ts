@@ -1,52 +1,14 @@
-import { normaliseCuratedDivision } from '@repo/core/pipeline/services/divisions/curatedDivision'
 import { afterEach, expect, test } from 'bun:test'
-import { Database } from 'bun:sqlite'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { strFromU8, unzipSync } from 'fflate'
-import {
-  linkCuratedReleaseAsset,
-  prepareCuratedReleaseAsset,
-  uploadCuratedReleaseAsset,
-} from './releaseAsset'
+import { prepareCuratedReleaseAsset } from './releaseAsset'
+import { normaliseCuratedDivision } from '@repo/core/pipeline/services/divisions/curatedDivision'
 
 const directories: string[] = []
 afterEach(async () => {
   await Promise.all(directories.splice(0).map(path => rm(path, { recursive: true })))
-})
-
-test('asset links update both release rows atomically and cannot replace another archive', () => {
-  const db = new Database(':memory:')
-  try {
-    db.exec(`CREATE TABLE sourceReleases (id TEXT PRIMARY KEY, rawObjectKey TEXT, originalFileName TEXT);
-      CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, rawObjectKey TEXT, originalFileName TEXT);
-      INSERT INTO sourceReleases (id) VALUES ('source');
-      INSERT INTO resourceReleases (id) VALUES ('release');`)
-    const input = {
-      sourceReleaseId: 'source',
-      resourceReleaseId: 'release',
-      assetKey: 'archive',
-      fileName: 'edition.zip',
-    }
-    linkCuratedReleaseAsset(db, input)
-    for (const table of ['sourceReleases', 'resourceReleases'])
-      expect(
-        db.query(`SELECT rawObjectKey, originalFileName FROM ${table}`).get(),
-      ).toEqual({ rawObjectKey: 'archive', originalFileName: 'edition.zip' })
-    db.exec('UPDATE sourceReleases SET rawObjectKey=NULL, originalFileName=NULL')
-    expect(() =>
-      linkCuratedReleaseAsset(db, { ...input, assetKey: 'changed' }),
-    ).toThrow('changed while retaining')
-    expect(db.query('SELECT rawObjectKey FROM sourceReleases').get()).toEqual({
-      rawObjectKey: null,
-    })
-    expect(db.query('SELECT rawObjectKey FROM resourceReleases').get()).toEqual({
-      rawObjectKey: 'archive',
-    })
-  } finally {
-    db.close()
-  }
 })
 
 async function fixture() {
@@ -54,7 +16,7 @@ async function fixture() {
   directories.push(directory)
   return {
     directory,
-    datasetCode: 'ds-hk-saanseoi-division-area',
+    datasetCode: 'ds-hk-saanseoi-division',
     releaseCode: 'dr-hk-saanseoi-division-area-2026-09-01.0',
     resourceType: 'divisionArea' as const,
     sourceVersion: '2026-09-01.0',
@@ -70,7 +32,7 @@ test('archive preserves geometry and provenance and is stable across snapshot re
   const first = await prepareCuratedReleaseAsset(input)
   const zip = unzipSync(await readFile(first.filePath))
   expect(JSON.parse(strFromU8(zip['records.json']!))).toEqual({
-    rows: [{ id: 'area', geometry: input.rows[0]!.geometry }],
+    rows: [{ id: 'area', geometry: input.rows[0]!.geometry, sources: {} }],
   })
   expect(JSON.parse(strFromU8(zip['manifest.json']!)).provenance).toEqual(
     input.provenance,
@@ -78,7 +40,17 @@ test('archive preserves geometry and provenance and is stable across snapshot re
   const replay = await prepareCuratedReleaseAsset({
     ...input,
     rows: [
-      { ...input.rows[0], snapshotId: 'new', createdAt: 'today', updatedAt: 'today' },
+      {
+        ...input.rows[0],
+        snapshotId: 'new',
+        createdAt: 'today',
+        updatedAt: 'today',
+        versionHash: 'history-hash',
+        sourceReleaseId: 'upstream',
+        validFromRelease: 'old',
+        validToRelease: null,
+        isCurrent: true,
+      },
     ],
   })
   expect(replay.assetKey).toBe(first.assetKey)
@@ -101,51 +73,6 @@ test('division archive retains multilingual names', async () => {
   expect(
     JSON.parse(strFromU8(zip['records.json']!)).rows[0].names['zh-hant'].name,
   ).toBe('香港')
-})
-
-test('upload verifies an existing edition, rejects changed bytes and propagates failures', async () => {
-  const asset = await prepareCuratedReleaseAsset(await fixture())
-  const target = { environment: 'dev' as const, remote: false }
-  const release = {
-    datasetId: 'dataset',
-    resourceReleaseId: 'release',
-    existingObjectKeys: [null],
-  }
-  let uploads = 0
-  const upload: Parameters<typeof uploadCuratedReleaseAsset>[3] = async (
-    actualTarget,
-    input,
-  ) => {
-    uploads++
-    expect(actualTarget).toBe(target)
-    expect(input.metadata.resourceReleaseId).toBe('release')
-    expect(input.metadata.contentHash).toBe(asset.contentHash)
-    return { assetId: 'asset', url: 'asset-url' }
-  }
-  expect(await uploadCuratedReleaseAsset(target, asset, release, upload)).toBe(
-    asset.assetKey,
-  )
-  await uploadCuratedReleaseAsset(
-    target,
-    asset,
-    { ...release, existingObjectKeys: [asset.assetKey] },
-    upload,
-  )
-  expect(uploads).toBe(2)
-  await expect(
-    uploadCuratedReleaseAsset(
-      target,
-      asset,
-      { ...release, existingObjectKeys: ['different'] },
-      upload,
-    ),
-  ).rejects.toThrow('new release version')
-  expect(uploads).toBe(2)
-  await expect(
-    uploadCuratedReleaseAsset(target, asset, release, async () => {
-      throw Error('upload failed')
-    }),
-  ).rejects.toThrow('upload failed')
 })
 
 test('SaanSeoi archives camelCase inherited JSON and preserve internal containment on ingestion', async () => {
@@ -171,6 +98,7 @@ test('SaanSeoi archives camelCase inherited JSON and preserve internal containme
     sources: {
       overture: [
         {
+          dataset: 'ds-hk-overture-division',
           record_id: 'native-id',
           update_time: 'date',
           extra_data: { nested_key: 'value' },
@@ -182,6 +110,17 @@ test('SaanSeoi archives camelCase inherited JSON and preserve internal containme
   const asset = await prepareCuratedReleaseAsset({
     ...input,
     resourceType: 'division',
+    sourceReleases: [
+      {
+        datasetCode: 'ds-hk-overture-division',
+        releaseCode: 'dr-overture',
+        sourceVersion: '2026-08-19.0',
+        resourceType: 'division',
+        rawObjectKey: 'input',
+        contentHash: 'hash',
+        releaseNotesUrl: null,
+      },
+    ],
     rows: [original],
     names: [{ divisionId: 'division', locale: 'zh-hant', name: '地方' }],
   })
@@ -189,13 +128,13 @@ test('SaanSeoi archives camelCase inherited JSON and preserve internal containme
   const published = JSON.parse(strFromU8(zip['records.json']!)).rows[0]
   expect(published.cartography).toEqual({ minZoom: 14, maxZoom: 24 })
   expect(published.sources.overture).toEqual([
-    { recordId: 'native-id', updateTime: 'date', extraData: { nestedKey: 'value' } },
+    { dataset: 'ds-hk-overture-division', recordId: 'native-id' },
   ])
   expect(published.hierarchies.full[0][0]).toMatchObject({
     fullContainment: true,
     containmentGeometry: { division: 'sha256:a', ancestor: 'sha256:b' },
   })
-  expect(published.identifiers).toEqual(original.identifiers)
+  expect(published.identifiers).toEqual({ 'hkgov-landsd': { geoNameId: '1' } })
   expect(published.names['zh-hant'].name).toBe('地方')
   const ingested = normaliseCuratedDivision({
     id: 'division',
@@ -206,4 +145,31 @@ test('SaanSeoi archives camelCase inherited JSON and preserve internal containme
     containment_geometry: { division: 'sha256:a', ancestor: 'sha256:b' },
   })
   expect(original.sources.overture[0]).toHaveProperty('record_id', 'native-id')
+})
+
+test('area archive serialises database flags as booleans and rejects invalid values', async () => {
+  const input = await fixture()
+  for (const [isLand, isTerritorial] of [
+    [1, 0],
+    [true, false],
+    [null, null],
+  ]) {
+    const asset = await prepareCuratedReleaseAsset({
+      ...input,
+      rows: [{ ...input.rows[0], isLand, isTerritorial }],
+    })
+    const zip = unzipSync(await readFile(asset.filePath))
+    expect(JSON.parse(strFromU8(zip['records.json']!)).rows[0]).toMatchObject({
+      isLand: isLand == null ? null : true,
+      isTerritorial: isTerritorial == null ? null : false,
+    })
+  }
+  for (const field of ['isLand', 'isTerritorial'])
+    for (const value of [2, -1, '0', 'false', [], {}])
+      await expect(
+        prepareCuratedReleaseAsset({
+          ...input,
+          rows: [{ ...input.rows[0], [field]: value }],
+        }),
+      ).rejects.toThrow(`requires boolean ${field}`)
 })

@@ -12,6 +12,7 @@ export const divisionCartography = {
   district: [10, 85],
   city: [8, 90],
   town: [10, 80],
+  rural_area: [12, 70],
   village: [13, 55],
   hamlet: [15, 40],
   macrohood: [12, 70],
@@ -101,18 +102,14 @@ export function applyCuratedRecordContract(
   }
 }
 
-export function applyCuratedAreaContract(
-  rows: Record<string, any>[],
-  overtureRelease: string,
-) {
+export function applyCuratedAreaContract(rows: Record<string, any>[]) {
   for (const row of rows) {
     const sources = object(row.sources) ?? {}
     if (sources.evidence) {
       sources.overture = [
         ...(sources.overture ?? []),
         ...sources.evidence.map((source: any) => ({
-          dataset: 'ds-hk-overture-division-area',
-          release: overtureRelease,
+          dataset: 'ds-hk-overture-division',
           recordId: source.record_id,
           contributions: ['geometry'],
         })),
@@ -122,7 +119,7 @@ export function applyCuratedAreaContract(
     if (sources.saanseoi)
       sources.saanseoi = sources.saanseoi.map((source: any) => ({
         ...source,
-        dataset: 'ds-hk-saanseoi-division-area',
+        dataset: 'ds-hk-saanseoi-division',
         curation: source.curation ?? source.dataset,
         contributions: source.contributions ?? ['geometry'],
       }))

@@ -44,7 +44,6 @@ export function applyRvdMembership(
       {
         collection: 'rvd-areas-and-districts',
         dataset: 'ds-hk-hkgov-rvd-division',
-        release: releaseCode,
         recordId: entry.sourceRecordId,
         key: path,
         keyAuthority: 'saanseoi',

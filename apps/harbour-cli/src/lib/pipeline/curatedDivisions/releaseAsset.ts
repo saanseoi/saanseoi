@@ -1,20 +1,34 @@
+import { curatedRecordSources } from '@repo/core/pipeline/services/sources/curatedRecordSources'
+import {
+  assertInternalSourcePins,
+  assertInternalSourceReferences,
+} from '@repo/core/pipeline/services/sources/internalSourceReferences'
+import { divisionIdentifiers } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
 import { camelCaseJson } from '@repo/core/jsonKeys'
 import { curatedNameObject } from './recordContract'
+import { stableJsonStringify } from '@repo/core/pipeline/utils'
 import { createHash } from 'node:crypto'
 import { writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { strToU8, zipSync } from 'fflate'
-import type { Database } from 'bun:sqlite'
-import type { UploadTarget } from '../../cli/options'
-import {
-  buildSourceReleaseAssetObjectKey,
-  uploadManagedSourceAsset,
-} from '../../sources/sourceAssets'
+import { buildSourceReleaseAssetObjectKey } from '../../sources/sourceAssets'
 
 /** Snapshot placement and ingestion times are not publisher record content. */
 export function curatedContentRows(rows: Record<string, unknown>[]) {
   return rows
-    .map(({ snapshotId: _, createdAt: __, updatedAt: ___, ...row }) => row)
+    .map(
+      ({
+        snapshotId: _,
+        createdAt: __,
+        updatedAt: ___,
+        versionHash: _hash,
+        sourceReleaseId: _source,
+        validFromRelease: _from,
+        validToRelease: _to,
+        isCurrent: _current,
+        ...row
+      }) => row,
+    )
     .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
 }
 
@@ -24,6 +38,7 @@ export async function prepareCuratedReleaseAsset(input: {
   releaseCode: string
   resourceType: 'division' | 'divisionArea'
   sourceVersion: string
+  sourceReleases?: import('./archiveInput').CuratedSourceRelease[]
   provenance: Record<string, unknown>
   rows: Record<string, unknown>[]
   names?: Record<string, unknown>[]
@@ -56,6 +71,18 @@ export async function prepareCuratedReleaseAsset(input: {
       ]),
     ),
   )
+  for (const row of rows) {
+    row.sources = curatedRecordSources(row.sources, String(row.id))
+    if (input.resourceType === 'divisionArea') {
+      for (const field of ['isLand', 'isTerritorial']) {
+        const value = row[field]
+        if (value === 0 || value === 1) row[field] = value === 1
+        else if (value != null && typeof value !== 'boolean')
+          throw new Error(`Curated area ${row.id} requires boolean ${field}.`)
+      }
+    }
+    if ('identifiers' in row) row.identifiers = divisionIdentifiers(row.identifiers)
+  }
   const ids = new Set(rows.map(row => String(row.id)))
   for (const id of names.keys())
     if (!ids.has(id)) throw new Error(`Names reference missing archive division: ${id}`)
@@ -68,18 +95,25 @@ export async function prepareCuratedReleaseAsset(input: {
       ),
     ),
   }
+  assertInternalSourcePins(input.sourceReleases ?? [])
+  for (const row of records.rows)
+    assertInternalSourceReferences(row, {
+      datasetCode: input.datasetCode,
+      sourceReleases: input.sourceReleases ?? [],
+    })
   const manifest = {
     schemaVersion: 1,
     datasetCode: input.datasetCode,
     releaseCode: input.releaseCode,
     resourceType: input.resourceType,
     sourceVersion: input.sourceVersion,
+    sourceReleases: input.sourceReleases ?? [],
     provenance: input.provenance,
   }
   const bytes = zipSync(
     {
-      'manifest.json': strToU8(JSON.stringify(manifest)),
-      'records.json': strToU8(JSON.stringify(records)),
+      'manifest.json': strToU8(stableJsonStringify(manifest)!),
+      'records.json': strToU8(stableJsonStringify(records)!),
     },
     { level: 6, mtime: new Date('1980-01-01T00:00:00Z') },
   )
@@ -95,65 +129,4 @@ export async function prepareCuratedReleaseAsset(input: {
     fileName,
   })
   return { filePath, fileName, assetKey, contentHash, manifest }
-}
-
-export async function uploadCuratedReleaseAsset(
-  target: UploadTarget,
-  asset: Awaited<ReturnType<typeof prepareCuratedReleaseAsset>>,
-  release: {
-    datasetId: string
-    resourceReleaseId: string
-    existingObjectKeys: (string | null)[]
-  },
-  upload = uploadManagedSourceAsset,
-) {
-  if (release.existingObjectKeys.some(key => key && key !== asset.assetKey))
-    throw new Error(
-      'Curated release asset differs from its retained edition; create a new release version.',
-    )
-  await upload(target, {
-    fileName: asset.fileName,
-    filePath: asset.filePath,
-    metadata: {
-      assetKey: asset.assetKey,
-      contentHash: asset.contentHash,
-      datasetId: release.datasetId,
-      resourceReleaseId: release.resourceReleaseId,
-      mediaType: 'application/zip',
-      role: 'sourceArchive',
-      retrievedAt: new Date().toISOString(),
-      manifest: asset.manifest,
-    },
-  })
-  return asset.assetKey
-}
-
-export function linkCuratedReleaseAsset(
-  db: Database,
-  input: {
-    sourceReleaseId: string
-    resourceReleaseId: string
-    assetKey: string
-    fileName: string
-  },
-) {
-  db.transaction(() => {
-    const targets = [
-      ['sourceReleases', input.sourceReleaseId],
-      ['resourceReleases', input.resourceReleaseId],
-    ] as const
-    for (const [table, id] of targets) {
-      const row = db.query(`SELECT rawObjectKey FROM ${table} WHERE id=?`).get(id) as {
-        rawObjectKey: string | null
-      } | null
-      if (!row || (row.rawObjectKey !== null && row.rawObjectKey !== input.assetKey))
-        throw new Error('Curated release changed while retaining its asset.')
-    }
-    for (const [table, id] of targets)
-      db.query(`UPDATE ${table} SET rawObjectKey=?, originalFileName=? WHERE id=?`).run(
-        input.assetKey,
-        input.fileName,
-        id,
-      )
-  }).immediate()
 }

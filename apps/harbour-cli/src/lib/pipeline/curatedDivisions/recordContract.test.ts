@@ -1,5 +1,9 @@
 import { expect, test } from 'bun:test'
-import { applyCuratedRecordContract, curatedNameObject } from './recordContract'
+import {
+  applyCuratedAreaContract,
+  applyCuratedRecordContract,
+  curatedNameObject,
+} from './recordContract'
 test('curated records have point bounds, grouped identifiers and classified cartography with attribution', () => {
   const row: any = {
     id: 'new',
@@ -27,4 +31,38 @@ test('nested name arrays stay structured and null keys are omitted', () => {
     nameVariant: ['Name'],
     nameRules: [{ value: 'Alias', variant: 'alternate' }],
   })
+})
+
+test('geometry references the dataset without embedding its release', () => {
+  const rows = [{ sources: { evidence: [{ record_id: 'area' }] } }]
+  applyCuratedAreaContract(rows)
+  expect((rows[0]!.sources as any).overture).toEqual([
+    {
+      dataset: 'ds-hk-overture-division',
+      recordId: 'area',
+      contributions: ['geometry'],
+    },
+  ])
+})
+
+test('area contract preserves explicit selection and geometry contributions', () => {
+  const rows = [
+    {
+      sources: {
+        saanseoi: [
+          { dataset: 'island-areas', recordId: 'island', contributions: ['selection'] },
+        ],
+        protomaps: [
+          {
+            dataset: 'ds-hk-protomaps-island',
+            recordId: 'OSM:a42',
+            contributions: ['geometry'],
+          },
+        ],
+      },
+    },
+  ]
+  applyCuratedAreaContract(rows)
+  expect(rows[0]!.sources.saanseoi[0]!.contributions).toEqual(['selection'])
+  expect(rows[0]!.sources.protomaps[0]!.contributions).toEqual(['geometry'])
 })

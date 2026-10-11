@@ -13,8 +13,8 @@ test('curated bootstrap selects the initial edition', async () => {
   })
 })
 
-test('curated assembly defaults to the initial pre-release edition', async () => {
+test('curated assembly defaults to the latest jointly versioned edition', async () => {
   await expect(readCuratedDivisionRelease(repoRoot)).resolves.toMatchObject({
-    releaseVersion: '2026-09-01.0',
+    releaseVersion: '2026-10-01.1',
   })
 })
