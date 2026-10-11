@@ -359,7 +359,7 @@ async function fixture(previous = true) {
     },
   ])
     insertProjectionRow(current, 'statsRecords', row)
-  insert(source, 'hkgovCenstatdStatistics', {
+  insert(source, 'hkgovCenstatdFeatures', {
     sourceRecordId: 'native/revised',
     versionHash: 'raw',
     resourceReleaseId: 'release-old',
@@ -459,9 +459,7 @@ test('sealed Statistics rollback restores exact-period packs and missing diction
     const retained = f.retainedRows()
     const receipts = f.retainedReceipts()
     const dictionaryRows = f.current.query('SELECT rowid,* FROM statsFields').all()
-    const sourceRows = f.source
-      .query('SELECT rowid,* FROM hkgovCenstatdStatistics')
-      .all()
+    const sourceRows = f.source.query('SELECT rowid,* FROM hkgovCenstatdFeatures').all()
     const historyRows = f.history
       .query('SELECT rowid,* FROM statsRecords ORDER BY id')
       .all()
@@ -532,7 +530,7 @@ test('sealed Statistics rollback restores exact-period packs and missing diction
     expect(
       f.history.query('SELECT rowid,* FROM statsRecords ORDER BY id').all(),
     ).toEqual(historyRows)
-    expect(f.source.query('SELECT rowid,* FROM hkgovCenstatdStatistics').all()).toEqual(
+    expect(f.source.query('SELECT rowid,* FROM hkgovCenstatdFeatures').all()).toEqual(
       sourceRows,
     )
     f.current
