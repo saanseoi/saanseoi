@@ -138,6 +138,7 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
             microhoodId TEXT,
             villageId TEXT,
             neighbourhoodId TEXT,
+            ruralAreaId TEXT,
             macrohoodId TEXT,
             townId TEXT,
             districtId TEXT,
@@ -161,12 +162,12 @@ function rebuildHistoryVersionTableIfNeeded(db: Database, tableName: string) {
         `
           INSERT INTO address2d (
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId, hamletId, microhoodId, villageId,
-            neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
+            neighbourhoodId, ruralAreaId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
             identifiers, sources, createdAt, updatedAt
           )
           SELECT
             id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId, hamletId, microhoodId, villageId,
-            neighbourhoodId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
+            neighbourhoodId, ruralAreaId, macrohoodId, townId, districtId, areaId, countryId, geometry, bbox,
             identifiers, sources, createdAt, updatedAt
           FROM __LEGACY_TABLE__;
         `,
@@ -736,7 +737,6 @@ id TEXT PRIMARY KEY NOT NULL,
       defaultDomainCode TEXT,
       i18n TEXT,
       status TEXT NOT NULL,
-      notes TEXT,
       versionHash TEXT NOT NULL,
       createdAt INTEGER NOT NULL,
       updatedAt INTEGER NOT NULL
@@ -998,11 +998,11 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
     WHERE apiReleaseSets.versionHash <> excluded.versionHash;
 
     INSERT INTO apiComposition (
-      id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, notes, versionHash, createdAt, updatedAt
+      id, apiVersionId, code, version, primaryResourceType, defaultDomainCode, status, versionHash, createdAt, updatedAt
     ) VALUES
-      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-saanseoi', 1, 'address', 'saanseoi', 'current', null, 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'geographic', 'current', null, 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
-      ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', 'overture', 'current', null, 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
+      ('api-composition-addresses-v1', 'api-version-api-addresses-v0.1', 'api-addresses-saanseoi', 1, 'address', 'saanseoi', 'current', 'vh-api-composition-addresses-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-divisions-v1', 'api-version-api-divisions-v0.1', 'api-divisions-default', 1, 'division', 'geographic', 'current', 'vh-api-composition-divisions-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS}),
+      ('api-composition-places-v1', 'api-version-api-places-v0.1', 'api-places-default', 1, 'place', 'overture', 'current', 'vh-api-composition-places-v1', ${FIXTURE_TIMESTAMP_MS}, ${FIXTURE_TIMESTAMP_MS})
     ON CONFLICT(id) DO UPDATE SET
       apiVersionId = excluded.apiVersionId,
       code = excluded.code,
@@ -1010,7 +1010,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       primaryResourceType = excluded.primaryResourceType,
       defaultDomainCode = excluded.defaultDomainCode,
       status = excluded.status,
-      notes = excluded.notes,
       versionHash = excluded.versionHash,
       updatedAt = excluded.updatedAt;
 
@@ -1299,16 +1298,20 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
     ? `release-${release.supersededByReleaseCode}`
     : null
 
-  const sourceReleaseId = `source-${resourceReleaseId}`
+  const parent = db
+    .query<{ id: string }, [string, string]>(
+      `SELECT s.id FROM sourceReleases s JOIN datasets d ON d.id=s.datasetId WHERE d.code=? AND s.sourceVersion=?`,
+    )
+    .get(datasetCode, release.sourceVersion)
+  const sourceReleaseId = parent?.id ?? `source-${resourceReleaseId}`
   db.query(
     `INSERT OR IGNORE INTO sourceReleases (
-      id, datasetId, code, sourceVersion, cohortKey, rawObjectKey,
-      originalFileName, status, ingestedAt, createdAt, updatedAt
+      id, datasetId, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
       ?1,
       (SELECT d.id FROM datasets d JOIN publishers p ON p.id = d.publisherId
        WHERE p.code = ?2 AND d.code = ?3),
-      ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12
+      ?4, ?5, ?6, ?9, ?10, ?11, ?12
     )`,
   ).run(
     sourceReleaseId,
@@ -1335,8 +1338,6 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
         code,
         sourceVersion,
         cohortKey,
-        rawObjectKey,
-        originalFileName,
         status,
         revokedAt,
         revocationReason,
@@ -1357,8 +1358,6 @@ export function insertFixtureRelease(db: Database, release: FixtureRelease) {
         ?5,
         ?6,
         ?7,
-        ?8,
-        ?9,
         ?10,
         ?11,
         ?12,
