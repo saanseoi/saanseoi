@@ -38,7 +38,7 @@ test('unknown operations cannot silently disappear into normalisation counters',
   expect(writes).toBe(0)
 })
 
-test('retains synthetic Hong Kong area rows as individual patches', async () => {
+test('retains the synthetic Hong Kong area patch with every application counted', async () => {
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {
     async get(key) {
@@ -90,7 +90,8 @@ test('retains synthetic Hong Kong area rows as individual patches', async () => 
   const patches = await readAuditPage(store, retained.manifest, '', 0, 50, {
     category: 'patches',
   })
-  expect(patches.rows).toHaveLength(3)
+  expect(patches.rows).toHaveLength(1)
+  expect(patches.rows[0]).toMatchObject({ context: { applicationCount: 3 } })
 })
 
 test('bulk geometry rules require explicit counts before retaining audit objects', async () => {
@@ -165,7 +166,7 @@ test('bulk geometry rules require explicit counts before retaining audit objects
   }
 })
 
-test('retains Lantau classification and cohort hierarchy decisions as distinct auditable patches', async () => {
+test('retains Lantau classification and cohort hierarchy rule counts', async () => {
   const { buildGeographicHierarchyProcessingActions } = await import(
     '@repo/core/pipeline/services/divisions/geographicHierarchyPatch.ts'
   )
@@ -202,11 +203,11 @@ test('retains Lantau classification and cohort hierarchy decisions as distinct a
     outputCount: 2,
     actions,
   })
-  expect(retained.manifest.applicationCount).toBe(3)
+  expect(retained.manifest.applicationCount).toBe(1)
   const page = await readAuditPage(store, retained.manifest, '', 0, 50, {
     category: 'patches',
   })
-  expect(page.rows).toHaveLength(3)
+  expect(page.rows).toHaveLength(1)
 })
 
 test('translation summary separates record coverage, applied decisions and unused instructions', async () => {

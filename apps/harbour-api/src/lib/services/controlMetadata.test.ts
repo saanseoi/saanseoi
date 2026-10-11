@@ -3,6 +3,7 @@ import { Database } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 
 import {
+  resolveApiReleaseSetMetadataDelta,
   resolvePublishedSnapshotMetadataDeltas,
   resolvePublisherName,
   requireReleaseSetPublicationMetadata,
@@ -71,6 +72,21 @@ test('publication metadata reads locale values from the selected domain member a
         ('composition', 'selected', '{"zh-hant":{"name":"中文"},"en":{"name":"Selected domain","description":"Domain description"}}');
     `)
     const db = drizzle({ client: sqlite }) as never
+    sqlite.exec(
+      "UPDATE apiReleaseSets SET versionHash='content-hash',createdAt='content-created',updatedAt='content-updated'",
+    )
+    expect(
+      await resolveApiReleaseSetMetadataDelta(db, 'release', 'api-divisions-v0.1'),
+    ).toMatchObject({
+      id: 'version-release',
+      apiReleaseSetId: 'release',
+      versionHash: 'hash',
+      contentVersionHash: 'content-hash',
+      contentCreatedAt: 'content-created',
+      contentUpdatedAt: 'content-updated',
+      createdAt: 'now',
+      updatedAt: 'now',
+    })
     expect(await resolvePublisherName(db, 'publisher')).toBe('Publisher name')
     expect(await resolvePublisherName(db, 'missing')).toBe('missing')
     const fallback = {

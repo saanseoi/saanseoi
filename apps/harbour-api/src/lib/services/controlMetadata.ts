@@ -95,6 +95,9 @@ export async function resolveApiReleaseSetMetadataDelta(
     .select({
       id: metaApiVersionReleaseSets.id,
       apiReleaseSetId: metaApiVersionReleaseSets.apiReleaseSetId,
+      contentVersionHash: metaApiReleaseSets.versionHash,
+      contentCreatedAt: metaApiReleaseSets.createdAt,
+      contentUpdatedAt: metaApiReleaseSets.updatedAt,
       apiVersionId: metaApiVersionReleaseSets.apiVersionId,
       apiCompositionId: metaApiVersionReleaseSets.apiCompositionId,
       code: metaApiReleaseSets.code,

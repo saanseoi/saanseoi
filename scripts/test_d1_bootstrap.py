@@ -16,6 +16,23 @@ spec.loader.exec_module(bootstrap)
 
 
 class BootstrapTests(unittest.TestCase):
+    def test_blockers_follow_version_associations_and_processing_runs(self):
+        db = sqlite3.connect(':memory:')
+        self.addCleanup(db.close)
+        db.execute('CREATE TABLE apiReleaseSets(id TEXT)')
+        for table in ('resourceReleases', 'sourceReleases', 'snapshots', 'apiVersionReleaseSets', 'processingRuns'):
+            db.execute(f'CREATE TABLE {table}(status TEXT)')
+        db.execute("INSERT INTO apiVersionReleaseSets VALUES('draft')")
+        db.executemany('INSERT INTO processingRuns VALUES(?)', [('queued',), ('running',), ('completed',)])
+        self.assertEqual(bootstrap.blockers(db), [
+            'apiVersionReleaseSets: 1 draft',
+            'processingRuns: 1 queued',
+            'processingRuns: 1 running',
+        ])
+        db.execute("UPDATE apiVersionReleaseSets SET status='current'")
+        db.execute("UPDATE processingRuns SET status='completed'")
+        self.assertEqual(bootstrap.blockers(db), [])
+
     def test_fts_exports_logical_documents_without_shadow_tables(self):
         with tempfile.TemporaryDirectory() as directory:
             db = sqlite3.connect(':memory:')
@@ -119,7 +136,7 @@ class BootstrapTests(unittest.TestCase):
                                 'database_id': f'00000000-0000-4000-8000-{i:012d}'})
                 with contextlib.closing(sqlite3.connect(path)) as db, db:
                     if binding == 'DB_META':
-                        for table in ('resourceReleases', 'sourceReleases', 'snapshots', 'apiReleaseSets', 'ingestRuns'):
+                        for table in ('resourceReleases', 'sourceReleases', 'snapshots', 'apiVersionReleaseSets', 'processingRuns'):
                             db.execute(f'CREATE TABLE {table}(status TEXT)')
                         db.execute('CREATE TABLE dataShards(id TEXT,bindingName TEXT,environment TEXT,databaseName TEXT,databaseId TEXT,versionHash TEXT)')
                         for name in paths.keys() | {'DB_CURRENT'}:

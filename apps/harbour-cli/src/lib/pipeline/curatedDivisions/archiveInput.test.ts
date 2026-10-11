@@ -128,7 +128,7 @@ test('curated area ingestion preserves geometry and identity without upstream re
     isLand: true,
     isTerritorial: true,
     identifiers: { saanseoi: { test: 'id' } },
-    sources: { saanseoi: [{ record_id: 'drawing' }] },
+    sources: {},
   })
 })
 test('duplicate identities are rejected and both resources use ordinary SQL ingestion', () => {

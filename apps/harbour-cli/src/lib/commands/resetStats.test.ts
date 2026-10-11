@@ -104,7 +104,13 @@ function setup() {
   }
   for (const family of ['stats', 'places']) {
     insert(meta, 'apiVersions', { id: family, code: family, familyType: family })
-    insert(meta, 'apiReleaseSets', { id: family, apiVersionId: family, code: family })
+    insert(meta, 'apiReleaseSets', { id: family, code: family })
+    insert(meta, 'apiVersionReleaseSets', {
+      id: family,
+      apiVersionId: family,
+      apiReleaseSetId: family,
+      status: 'current',
+    })
     insert(meta, 'apiReleaseSetSnapshots', {
       apiReleaseSetId: family,
       snapshotId: family === 'stats' ? 'divisionStatistic' : 'place',
@@ -116,7 +122,7 @@ function setup() {
     })
     insert(meta, 'apiCatalogRevisionReleaseSets', {
       apiCatalogRevisionId: family,
-      apiReleaseSetId: family,
+      apiVersionReleaseSetId: family,
     })
   }
   const context = {
@@ -487,7 +493,13 @@ describe('all-statistics reset', () => {
       familyType: 'divisions',
     })
     for (const id of ['affected', 'unaffected']) {
-      insert(meta, 'apiReleaseSets', { id, code: id, apiVersionId: 'divisions' })
+      insert(meta, 'apiReleaseSets', { id, code: id })
+      insert(meta, 'apiVersionReleaseSets', {
+        id,
+        apiVersionId: 'divisions',
+        apiReleaseSetId: id,
+        status: 'current',
+      })
       insert(meta, 'apiReleaseSetSnapshots', {
         apiReleaseSetId: id,
         snapshotId: 'unrelated',
@@ -500,7 +512,7 @@ describe('all-statistics reset', () => {
       })
       insert(meta, 'apiCatalogRevisionReleaseSets', {
         apiCatalogRevisionId: id,
-        apiReleaseSetId: id,
+        apiVersionReleaseSetId: id,
       })
     }
     insert(meta, 'apiReleaseSetSnapshots', {
@@ -510,7 +522,7 @@ describe('all-statistics reset', () => {
     // A catalogue is immutable: retract it in full, retaining the independent set.
     insert(meta, 'apiCatalogRevisionReleaseSets', {
       apiCatalogRevisionId: 'affected',
-      apiReleaseSetId: 'unaffected',
+      apiVersionReleaseSetId: 'unaffected',
       cohortKey: 'independent',
     })
     const plan = await collectStatsResetPlan(context)

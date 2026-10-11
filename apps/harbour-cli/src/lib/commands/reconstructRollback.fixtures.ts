@@ -134,15 +134,20 @@ export async function fixture(previous = true) {
     })
     insert(meta, 'apiReleaseSets', {
       id: `set-${name}`,
-      apiVersionId: 'api',
       code: `set-${name}`,
       regionCode: 'hk',
       domainCode: name === 'other' ? 'hkgov-pland-pu' : 'geographic',
       cohortKey: '2026',
       revision: name === 'old' ? 0 : 1,
-      supersedesApiReleaseSetId: name === 'new' && previous ? 'set-old' : null,
       schemaVersion: '1',
       rulesetVersion: '1',
+      versionHash: name,
+    })
+    insert(meta, 'apiVersionReleaseSets', {
+      id: `version-set-${name}`,
+      apiVersionId: 'api',
+      apiReleaseSetId: `set-${name}`,
+      supersedesApiReleaseSetId: name === 'new' && previous ? 'set-old' : null,
       status: name === 'old' ? 'archived' : 'current',
       publishedAt: '2026-01-01T00:00:00.000Z',
       versionHash: name,
@@ -173,14 +178,14 @@ export async function fixture(previous = true) {
   })
   insert(meta, 'apiCatalogRevisionReleaseSets', {
     apiCatalogRevisionId: 'catalogue',
-    apiReleaseSetId: 'set-new',
+    apiVersionReleaseSetId: 'version-set-new',
     domainCode: 'geographic',
     cohortKey: '2026',
     isDefault: 1,
   })
   insert(meta, 'apiCatalogRevisionReleaseSets', {
     apiCatalogRevisionId: 'catalogue',
-    apiReleaseSetId: 'set-other',
+    apiVersionReleaseSetId: 'version-set-other',
     domainCode: 'hkgov-pland-pu',
     cohortKey: '2026',
     isDefault: 1,

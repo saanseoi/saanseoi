@@ -76,7 +76,7 @@ test('reconstructed rollback writes only the changed locale and updates FTS whil
     expect(
       f.meta
         .query(
-          'SELECT apiReleaseSetId FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId=? ORDER BY apiReleaseSetId',
+          'SELECT v.apiReleaseSetId FROM apiCatalogRevisionReleaseSets c JOIN apiVersionReleaseSets v ON v.id=c.apiVersionReleaseSetId WHERE c.apiCatalogRevisionId=? ORDER BY v.apiReleaseSetId',
         )
         .all(terminal.catalogId),
     ).toEqual([{ apiReleaseSetId: 'set-old' }, { apiReleaseSetId: 'set-other' }])

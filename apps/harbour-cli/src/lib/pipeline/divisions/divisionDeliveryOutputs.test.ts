@@ -1,3 +1,4 @@
+import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -43,6 +44,7 @@ test('Division retry retains original counts after one target commits and anothe
   const currentBinding = createLocalExecBinding(current, 'DB_CURRENT')
   const phase = {
     context: {
+      metaDb: createLocalHarbourDb(source),
       state: {
         target: 'local',
         dbCacheDir: root,
@@ -56,6 +58,9 @@ test('Division retry retains original counts after one target commits and anothe
     captureOutputs: () => ({ ...counts }),
   }
   try {
+    source.exec(
+      'CREATE TABLE processingRuns (runId TEXT PRIMARY KEY, resourceReleaseId TEXT, snapshotId TEXT, apiReleaseSetId TEXT, stage TEXT NOT NULL, phase TEXT NOT NULL, status TEXT NOT NULL, attempt INTEGER DEFAULT 1 NOT NULL, checkpoint TEXT, results TEXT, error TEXT, startedAt TEXT NOT NULL, finishedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, UNIQUE(resourceReleaseId,phase), UNIQUE(snapshotId,phase), UNIQUE(apiReleaseSetId,phase));',
+    )
     source.exec('CREATE TABLE counter(n); INSERT INTO counter VALUES(0)')
     current.exec(
       "CREATE TABLE counter(n); INSERT INTO counter VALUES(0); CREATE TRIGGER fail BEFORE UPDATE ON counter BEGIN SELECT RAISE(ABORT, 'interrupted'); END;",

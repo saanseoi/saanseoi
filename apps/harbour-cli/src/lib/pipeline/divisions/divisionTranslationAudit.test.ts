@@ -59,8 +59,9 @@ test('C&SD translation applications retain applied decisions and aggregate unuse
   const page = await readAuditPage(store, result.manifest, '')
   expect(page.rows.map(row => row.outcome)).toEqual(['applied'])
   expect(page.rows[0]).toMatchObject({
-    operation: 'division_name_human_translated',
-    record: { id: 'anderson', names: ['Anderson', '安達臣', '安达臣'] },
+    operation: 'apply-division-name-translation',
+    record: { id: '/entries/0', names: ['安达臣'] },
+    context: { recordIds: ['anderson'], entryKey: 'entry' },
     fixture: { pointer: '/entries/0' },
   })
   expect(

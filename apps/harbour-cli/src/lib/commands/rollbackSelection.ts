@@ -126,8 +126,10 @@ export function resolveRollbackSelection(meta: Database, resourceReleaseId: stri
     let previous: ReleaseSet | null = null
     if (candidate.supersedesApiReleaseSetId)
       previous = meta
-        .query<ReleaseSet, [string]>('SELECT * FROM apiReleaseSets WHERE id=?')
-        .get(candidate.supersedesApiReleaseSetId)
+        .query<ReleaseSet, [string, string]>(
+          `SELECT r.*,vrs.id AS apiVersionReleaseSetId,vrs.apiVersionId,vrs.supersedesApiReleaseSetId,vrs.status FROM apiReleaseSets r JOIN apiVersionReleaseSets vrs ON vrs.apiReleaseSetId=r.id WHERE r.id=? AND vrs.apiVersionId=?`,
+        )
+        .get(candidate.supersedesApiReleaseSetId, candidate.apiVersionId)
     if (!previous && parentIds.length === 1)
       previous = meta
         .query<ReleaseSet, [string, string, string, string]>(

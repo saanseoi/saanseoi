@@ -134,6 +134,7 @@ test('frozen history follows sparse ancestry for no-op reissues and exact defini
     ])
     createTables(history, [
       historySchema.statsRecords,
+      historySchema.statsDefinitionSets,
       historySchema.statsFields,
       historySchema.statsFieldsI18n,
       historySchema.snapshotVersionChanges,
@@ -142,11 +143,13 @@ test('frozen history follows sparse ancestry for no-op reissues and exact defini
       INSERT INTO snapshots (id,resourceType,parentSnapshotId) VALUES ('base','divisionStatistic',NULL),('reissue','divisionStatistic','base');
       INSERT INTO datasets (id,code) VALUES ('dataset','a');
       INSERT INTO snapshotResourceReleases (snapshotId,datasetId,resourceReleaseId,role) VALUES ('reissue','dataset','new-source','primary');`)
-    history.exec(`INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,referencePeriodCode,"values",geography,isCurrent,versionHash,fieldDefinitionHashes,fieldSources) VALUES
-      ('yes','a','old-source','2025','{"population":"1"}','{"kind":"district","code":"one"}',0,'v1','{"population":"f1"}','{}'),
-      ('yes','a','later-source','2025','{"population":"2"}','{"kind":"district","code":"one"}',1,'v2','{"population":"f2"}','{}'),
-      ('wrong-period','a','old-source','2024','{}','{}',1,'v3','{}','{}'),
-      ('unselected','a','new-source','2025','{}','{}',1,'v4','{}','{}');
+    history.exec(`INSERT INTO statsDefinitionSets (id,fieldDefinitionHashes) VALUES
+      ('definitions-f1','{"population":"f1"}'),('definitions-f2','{"population":"f2"}'),('definitions-empty','{}');
+      INSERT INTO statsRecords (id,datasetCode,sourceReleaseId,referencePeriodCode,"values",geography,isCurrent,versionHash,definitionSetId,fieldSources) VALUES
+      ('yes','a','old-source','2025','{"population":"1"}','{"kind":"district","code":"one"}',0,'v1','definitions-f1','{}'),
+      ('yes','a','later-source','2025','{"population":"2"}','{"kind":"district","code":"one"}',1,'v2','definitions-f2','{}'),
+      ('wrong-period','a','old-source','2024','{}','{}',1,'v3','definitions-empty','{}'),
+      ('unselected','a','new-source','2025','{}','{}',1,'v4','definitions-empty','{}');
       INSERT INTO snapshotVersionChanges (snapshotId,recordType,recordId,versionHash,operation) VALUES
         ('base','statsRecord','yes','v1','upsert'),('base','statsRecord','wrong-period','v3','upsert');
       INSERT INTO statsFields (datasetCode,fieldName,sourceReleaseId,isCurrent,versionHash) VALUES

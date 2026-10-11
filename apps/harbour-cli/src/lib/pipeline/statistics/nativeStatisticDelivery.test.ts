@@ -1,3 +1,4 @@
+import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -51,6 +52,7 @@ test('native Statistics adapter resumes source/history plans without regeneratin
   const history = new Database(historyPath)
   const resourceReleaseId = `native-statistics-test-${crypto.randomUUID()}`
   const context = {
+    metaDb: createLocalHarbourDb(source),
     sourceBinding: createLocalExecBinding(source, 'DB_SOURCE_HK_BEFORE'),
     historyBinding: createLocalExecBinding(history, 'DB_HISTORY_HK_BEFORE'),
     state: {
@@ -67,6 +69,9 @@ test('native Statistics adapter resumes source/history plans without regeneratin
     inputs: { sourceHash: 'frozen' },
   }
   try {
+    source.exec(
+      'CREATE TABLE processingRuns (runId TEXT PRIMARY KEY, resourceReleaseId TEXT, snapshotId TEXT, apiReleaseSetId TEXT, stage TEXT NOT NULL, phase TEXT NOT NULL, status TEXT NOT NULL, attempt INTEGER DEFAULT 1 NOT NULL, checkpoint TEXT, results TEXT, error TEXT, startedAt TEXT NOT NULL, finishedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, UNIQUE(resourceReleaseId,phase), UNIQUE(snapshotId,phase), UNIQUE(apiReleaseSetId,phase));',
+    )
     let generated = 0
     for (const db of [source, history])
       db.exec('CREATE TABLE counter(n); INSERT INTO counter VALUES(0)')
@@ -119,7 +124,9 @@ test('native Statistics adapter resumes source/history plans without regeneratin
         },
         { delivery: { ...delivery, inputs: { sourceHash: 'changed' } } },
       ),
-    ).rejects.toThrow('context has changed')
+    ).rejects.toThrow(
+      'Processing checkpoint belongs to different inputs, rules or target.',
+    )
 
     const canonicalContext = {
       ...context,

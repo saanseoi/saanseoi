@@ -101,8 +101,8 @@ def blockers(db):
         'resourceReleases': ('uploading', 'staged', 'processing', 'failed'),
         'sourceReleases': ('uploading', 'staged', 'processing', 'failed'),
         'snapshots': ('draft',),
-        'apiReleaseSets': ('draft',),
-        'ingestRuns': ('queued', 'running'),
+        'apiVersionReleaseSets': ('draft',),
+        'processingRuns': ('queued', 'running'),
     }
     names = table_names(db)
     issues = []

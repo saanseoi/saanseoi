@@ -237,7 +237,7 @@ test('first-publication rollback can leave a completely empty search selection a
     f.current.exec("DELETE FROM divisions WHERE snapshotId='other'")
     f.current.exec("DELETE FROM divisionPublicationState WHERE scopeId='other'")
     f.meta.exec(
-      "DELETE FROM apiCatalogRevisionReleaseSets WHERE apiReleaseSetId='set-other'",
+      "DELETE FROM apiCatalogRevisionReleaseSets WHERE apiVersionReleaseSetId='version-set-other'",
     )
     const plan = await f.prepare()
     const terminal = plan.outputs?.terminal as RollbackTerminal | undefined

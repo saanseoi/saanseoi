@@ -163,7 +163,7 @@ describe('Planning Department New Town source identifiers', () => {
 
   test.each([
     ['Sha Tin', 'Sha/Tin', 'duplicate normalised provider identifiers'],
-    ['Sha Tin', ' / - ', 'cannot form a source record identifier'],
+    ['Sha Tin', ' / - ', 'Source-record name cannot form an identity'],
   ])('rejects unsafe source keys from %s and %s', async (first, second, error) => {
     const directory = await mkdtemp(join(tmpdir(), 'pland-new-town-invalid-id-'))
     try {

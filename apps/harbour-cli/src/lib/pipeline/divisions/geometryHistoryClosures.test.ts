@@ -1,3 +1,4 @@
+import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -121,8 +122,14 @@ function fixture(resourceType: ResourceType) {
             {
               ...raw,
               source_cell_ids: [id],
+              source_record_id: id,
+              datasetCode:
+                scope.source === 'hkgov-censtatd'
+                  ? 'ds-hk-hkgov-censtatd-division-hma'
+                  : undefined,
               source_properties: { name: id },
               source_geometry: raw.geometry,
+              source_assertion_geometry: raw.geometry,
             },
             scope.source,
             { variant: scope.variant },
@@ -182,6 +189,10 @@ function fixture(resourceType: ResourceType) {
       rows,
       {
         ...scope,
+        datasetCode:
+          scope.source === 'hkgov-censtatd'
+            ? 'ds-hk-hkgov-censtatd-division-hma'
+            : undefined,
         snapshotId,
         parentSnapshotId,
         snapshotLineageId: lineage(scope),
@@ -439,12 +450,20 @@ for (const resourceType of ['divisionArea', 'divisionBoundary'] as const) {
       expect(await f.replay('latest')).toEqual(latestState)
       const projected = f.current
         .query(`SELECT id,geometry FROM ${f.table} WHERE snapshotId=? ORDER BY id`)
-        .all(f.scopeId(exact)) as Array<{ id: string; geometry: string }>
-      expect(projected).toEqual(
+        .all(f.scopeId(exact)) as Array<{ id: string; geometry: unknown }>
+      expect(
+        projected.map(row => ({
+          ...row,
+          geometry:
+            typeof row.geometry === 'string'
+              ? JSON.parse(row.geometry)
+              : decompressJsonBrotli(row.geometry as Uint8Array),
+        })),
+      ).toEqual(
         [...parentRows, f.row('companion')]
           .map(row => ({
             id: row.canonical.id,
-            geometry: JSON.stringify(row.canonical.geometry),
+            geometry: row.canonical.geometry,
           }))
           .sort((a, b) => a.id.localeCompare(b.id)),
       )

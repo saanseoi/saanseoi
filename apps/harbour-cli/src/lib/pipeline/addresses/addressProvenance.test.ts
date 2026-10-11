@@ -111,26 +111,34 @@ test('ALS retains reviewed documents, individual identity decisions and automati
       ],
     },
   })
+  const preparationResult = result.additional.find(
+    retained => retained.manifest.scope.stage === 'preparation',
+  )!
   await verifyAuditResult(store, result.manifest)
-  expect(result.manifest.applicationCount).toBe(1)
+  await verifyAuditResult(store, preparationResult.manifest)
+  expect(result.manifest.applicationCount).toBe(0)
+  expect(preparationResult.manifest.applicationCount).toBe(1)
   expect(
-    result.manifest.bulk[0]?.counts.decisions.als_exact_source_duplicate_removed,
+    preparationResult.manifest.bulk[0]?.counts.decisions
+      .als_exact_source_duplicate_removed,
   ).toBe(1)
   expect(
-    result.manifest.bulk.find(rule => rule.id === curation.id)?.fixtures.length,
+    preparationResult.manifest.bulk.find(rule => rule.id === curation.id)?.fixtures
+      .length,
   ).toBeGreaterThanOrEqual(alsAuditFixtures.length)
   const text = [...objects.values()].map(b => new TextDecoder().decode(b)).join('')
   expect(text).not.toContain('TRANSIENT_PUBLISHER_PAYLOAD')
   expect(
-    result.manifest.bulk
+    preparationResult.manifest.bulk
       .filter(rule => rule.basis === 'code')
       .every(rule => rule.fixtures.length === 0),
   ).toBe(true)
   expect(
-    result.manifest.bulk.find(rule => rule.id === 'als_exact_source_duplicate_removed')
-      ?.counts.recordsAffected,
+    preparationResult.manifest.bulk.find(
+      rule => rule.id === 'als_exact_source_duplicate_removed',
+    )?.counts.recordsAffected,
   ).toBe(1)
-  const chunk = await readAuditPage(store, result.manifest)
+  const chunk = await readAuditPage(store, preparationResult.manifest)
   expect(chunk).toMatchObject({
     rows: [
       {

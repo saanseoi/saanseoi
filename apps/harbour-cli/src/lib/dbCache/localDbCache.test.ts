@@ -164,9 +164,9 @@ test('uses the bounded family profiles for remote mirrors', () => {
     localDatabaseId: 'acceptance-local-database',
   }))
 
-  expect(countRemoteCacheWorkUnits(targets)).toBe(170)
-  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(41)
-  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(121)
+  expect(countRemoteCacheWorkUnits(targets)).toBe(173)
+  expect(countRemoteCacheWorkUnits(targets, 'division')).toBe(44)
+  expect(countRemoteCacheWorkUnits(targets, 'address')).toBe(124)
   expect(countRemoteCacheWorkUnits(targets, 'places')).toBe(79)
   expect(countRemoteCacheWorkUnits(targets, 'statistics')).toBe(58)
   expect(resolveCacheTablesForBinding('DB_HISTORY_HK_2026', 'street')).not.toContain(
@@ -181,7 +181,7 @@ test('uses the bounded family profiles for remote mirrors', () => {
     'divisionBoundaries',
     'divisionBoundaryPublicationState',
   ])
-  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(54)
+  expect(countRemoteCacheWorkUnits(targets, 'divisionGeometry')).toBe(63)
 })
 
 test('prunes superseded Places history and source rows from annual shards', () => {
@@ -272,6 +272,10 @@ test('inserts an API release set that was created during deferred publication', 
 
   const releaseSet = {
     id: 'api-release-set-new-draft',
+    apiReleaseSetId: 'content-new-draft',
+    contentVersionHash: 'content-hash',
+    contentCreatedAt: '2026-08-01T00:00:00.000Z',
+    contentUpdatedAt: '2026-08-02T00:00:00.000Z',
     apiVersionId: 'api-version-api-divisions-v0.1',
     apiCompositionId: null,
     code: 'data-hk-divisions-2026-08-31.0',
@@ -308,7 +312,7 @@ test('inserts an API release set that was created during deferred publication', 
   expect(
     verify
       .query(
-        'SELECT id, code, status, apiVersionId, versionHash FROM apiReleaseSets WHERE id = ?',
+        'SELECT v.id, r.code, v.status, v.apiVersionId, v.versionHash FROM apiVersionReleaseSets v JOIN apiReleaseSets r ON r.id=v.apiReleaseSetId WHERE v.id = ?',
       )
       .get(releaseSet.id),
   ).toEqual({
@@ -317,6 +321,15 @@ test('inserts an API release set that was created during deferred publication', 
     status: releaseSet.status,
     apiVersionId: releaseSet.apiVersionId,
     versionHash: releaseSet.versionHash,
+  })
+  expect(
+    verify
+      .query('SELECT versionHash,createdAt,updatedAt FROM apiReleaseSets WHERE id=?')
+      .get(releaseSet.apiReleaseSetId),
+  ).toEqual({
+    versionHash: releaseSet.contentVersionHash,
+    createdAt: releaseSet.contentCreatedAt,
+    updatedAt: releaseSet.contentUpdatedAt,
   })
   verify.close()
 })
@@ -328,18 +341,19 @@ test('updates an existing API release set from the complete publication delta', 
   const sqlite = new Database(resolve(cacheDir, 'DB_META.sqlite'))
   sqlite.exec(migrationSql.replaceAll('--> statement-breakpoint', ''))
   sqlite.exec(`
-    INSERT INTO apiReleaseSets (
-      id, apiVersionId, code, domainCode, revision, schemaVersion, rulesetVersion,
-      status, versionHash, createdAt, updatedAt
-    ) VALUES (
-      'api-release-set-existing', 'old-version', 'old-code', 'old-domain', 0, 'old-schema',
-      'old-rules', 'draft', 'old-hash', '2026-08-01T00:00:00.000Z', '2026-08-01T00:00:00.000Z'
-    );
+    INSERT INTO apiReleaseSets (id,code,domainCode,revision,schemaVersion,rulesetVersion,versionHash,createdAt,updatedAt)
+    VALUES ('content-existing','old-code','old-domain',0,'old-schema','old-rules','old-hash','2026-08-01T00:00:00.000Z','2026-08-01T00:00:00.000Z');
+    INSERT INTO apiVersionReleaseSets (id,apiVersionId,apiReleaseSetId,status,versionHash)
+    VALUES ('api-release-set-existing','old-version','content-existing','draft','old-hash');
   `)
   sqlite.close()
 
   const releaseSet = {
     id: 'api-release-set-existing',
+    apiReleaseSetId: 'content-existing',
+    contentVersionHash: 'updated-content-hash',
+    contentCreatedAt: '2026-08-01T00:00:00.000Z',
+    contentUpdatedAt: '2026-08-02T00:00:00.000Z',
     apiVersionId: 'api-version-api-divisions-v0.1',
     apiCompositionId: 'api-composition-current',
     code: 'data-hk-divisions-2026-08-31.0',
@@ -374,9 +388,9 @@ test('updates an existing API release set from the complete publication delta', 
   expect(
     verify
       .query(
-        `SELECT apiVersionId, apiCompositionId, code, domainCode, revision, status,
-          publishedAt, validFrom, validTo, notes, guide, versionHash, createdAt, updatedAt
-         FROM apiReleaseSets WHERE id = ?`,
+        `SELECT v.apiVersionId, v.apiCompositionId, r.code, r.domainCode, r.revision, v.status,
+          v.publishedAt, v.validFrom, v.validTo, v.notes, v.guide, v.versionHash, v.createdAt, v.updatedAt
+         FROM apiVersionReleaseSets v JOIN apiReleaseSets r ON r.id=v.apiReleaseSetId WHERE v.id = ?`,
       )
       .get(releaseSet.id),
   ).toEqual({
@@ -394,6 +408,15 @@ test('updates an existing API release set from the complete publication delta', 
     versionHash: releaseSet.versionHash,
     createdAt: releaseSet.createdAt,
     updatedAt: releaseSet.updatedAt,
+  })
+  expect(
+    verify
+      .query('SELECT versionHash,createdAt,updatedAt FROM apiReleaseSets WHERE id=?')
+      .get(releaseSet.apiReleaseSetId),
+  ).toEqual({
+    versionHash: releaseSet.contentVersionHash,
+    createdAt: releaseSet.contentCreatedAt,
+    updatedAt: releaseSet.contentUpdatedAt,
   })
   verify.close()
 })

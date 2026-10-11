@@ -85,8 +85,10 @@ test('all 30 releases preserve identities, restore omissions and separate Tin Wa
       allRules as unknown as typeof decisions,
     )
     expect(JSON.stringify(features)).toBe(raw)
-    expect(rows.length).toBe(40)
-    expect(new Set(rows.map(r => r.id)).size).toBe(40)
+    expect(rows.map(row => row.id).sort()).toEqual(
+      allRules.map(rule => rule.canonicalId).sort(),
+    )
+    expect(new Set(rows.map(r => r.id)).size).toBe(allRules.length)
     for (const rule of allRules)
       expect(rows.some(r => r.id === rule.canonicalId)).toBeTrue()
     const complex = rows.find(

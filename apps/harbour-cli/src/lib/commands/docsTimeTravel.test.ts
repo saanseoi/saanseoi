@@ -19,7 +19,7 @@ test('renders shared time travel sections for versioned API guides', async () =>
       expect(fixture.frontmatter.timeTravelCatalogRevision).toBeUndefined()
       continue
     }
-    expect(directives?.sort(), path).toEqual(
+    expect(directives ? [...directives].sort() : undefined, path).toEqual(
       ['en', 'zh-Hant', 'zh-Hans']
         .map(locale => `{{timeTravelSection:${locale}}}`)
         .sort(),

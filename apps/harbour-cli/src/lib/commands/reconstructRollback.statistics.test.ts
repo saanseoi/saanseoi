@@ -251,17 +251,22 @@ async function fixture(previous = true) {
     })
     insert(meta, 'apiReleaseSets', {
       id: `set-${name}`,
-      apiVersionId: 'api',
       code: `set-${name}`,
       regionCode: 'hk',
       domainCode,
       cohortKey,
       revision: name === 'new' ? 1 : 0,
-      supersedesApiReleaseSetId: name === 'new' && previous ? 'set-old' : null,
       schemaVersion: '1',
       rulesetVersion: '1',
+      versionHash: name,
+    })
+    insert(meta, 'apiVersionReleaseSets', {
+      id: `version-set-${name}`,
+      apiVersionId: 'api',
+      apiReleaseSetId: `set-${name}`,
+      supersedesApiReleaseSetId: name === 'new' && previous ? 'set-old' : null,
       status: name === 'old' ? 'archived' : 'current',
-      publishedAt: timestamp,
+      publishedAt: '2026-01-01T00:00:00.000Z',
       versionHash: name,
     })
     insert(meta, 'apiReleaseSetSnapshots', {
@@ -291,7 +296,7 @@ async function fixture(previous = true) {
   for (const name of ['new', 'older', 'other']) {
     insert(meta, 'apiCatalogRevisionReleaseSets', {
       apiCatalogRevisionId: 'catalogue',
-      apiReleaseSetId: `set-${name}`,
+      apiVersionReleaseSetId: `version-set-${name}`,
       domainCode: name === 'other' ? 'other-statistics' : 'official-statistics',
       cohortKey: name === 'older' ? '2020-Q4' : period,
       isDefault: name === 'older' ? 0 : 1,
@@ -360,6 +365,8 @@ async function fixture(previous = true) {
   ])
     insertProjectionRow(current, 'statsRecords', row)
   insert(source, 'hkgovCenstatdFeatures', {
+    datasetCode,
+    sourceGeometry: '{}',
     sourceRecordId: 'native/revised',
     versionHash: 'raw',
     resourceReleaseId: 'release-old',
@@ -516,7 +523,7 @@ test('sealed Statistics rollback restores exact-period packs and missing diction
     expect(
       f.meta
         .query(
-          'SELECT apiReleaseSetId FROM apiCatalogRevisionReleaseSets WHERE apiCatalogRevisionId=? ORDER BY apiReleaseSetId',
+          'SELECT v.apiReleaseSetId FROM apiCatalogRevisionReleaseSets c JOIN apiVersionReleaseSets v ON v.id=c.apiVersionReleaseSetId WHERE c.apiCatalogRevisionId=? ORDER BY v.apiReleaseSetId',
         )
         .all(terminal.catalogId),
     ).toEqual([

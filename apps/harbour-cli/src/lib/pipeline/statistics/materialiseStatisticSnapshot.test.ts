@@ -142,8 +142,8 @@ test.each(['2026-Q2', '2023-H2'])(
     // certifies the completed audit and immutable snapshots before API activation.
     sqlite.exec(`
       UPDATE resourceReleases SET status = 'current' WHERE id = 'release';
-      INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount, attemptStatus)
-      VALUES ('release', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed');
+      INSERT INTO processingAudits (stage,ownerId,resourceReleaseId,manifestHash,byteLength,applicationCount,attemptStatus)
+      SELECT 'assembly',id,'release','sha256:${'0'.repeat(64)}',1,1,'completed' FROM snapshots;
       UPDATE snapshots SET status = 'published';
     `)
     const snapshotCount = sqlite

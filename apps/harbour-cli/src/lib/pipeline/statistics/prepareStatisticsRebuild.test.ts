@@ -49,7 +49,8 @@ function fixture() {
     CREATE TABLE dataShards (id TEXT, bindingName TEXT);
     CREATE TABLE snapshotShardAssignments (snapshotId TEXT, dataShardId TEXT);
     CREATE TABLE apiVersions (id TEXT, familyType TEXT);
-    CREATE TABLE apiReleaseSets (id TEXT, apiVersionId TEXT, regionCode TEXT, domainCode TEXT, cohortKey TEXT, revision INTEGER, status TEXT);
+    CREATE TABLE apiReleaseSets (id TEXT, regionCode TEXT, domainCode TEXT, cohortKey TEXT, revision INTEGER);
+    CREATE TABLE apiVersionReleaseSets (id TEXT, apiReleaseSetId TEXT, apiVersionId TEXT, status TEXT);
     CREATE TABLE apiReleaseSetSnapshots (apiReleaseSetId TEXT, snapshotId TEXT);
     INSERT INTO datasets VALUES ('dataset', 'dataset');
     INSERT INTO dataShards VALUES ('before', 'DB_HISTORY_HK_BEFORE');
@@ -81,16 +82,11 @@ function fixture() {
       .query('INSERT INTO snapshotShardAssignments VALUES (?, ?)')
       .run(snapshot, 'before')
     meta
-      .query('INSERT INTO apiReleaseSets VALUES (?, ?, ?, ?, ?, ?, ?)')
-      .run(
-        snapshot,
-        'stats',
-        'hk',
-        'government',
-        '2021',
-        number - 1,
-        status === 'draft' ? 'draft' : 'archived',
-      )
+      .query('INSERT INTO apiReleaseSets VALUES (?, ?, ?, ?, ?)')
+      .run(snapshot, 'hk', 'government', '2021', number - 1)
+    meta
+      .query('INSERT INTO apiVersionReleaseSets VALUES (?, ?, ?, ?)')
+      .run(snapshot, snapshot, 'stats', status === 'draft' ? 'draft' : 'archived')
     meta
       .query('INSERT INTO apiReleaseSetSnapshots VALUES (?, ?)')
       .run(snapshot, snapshot)

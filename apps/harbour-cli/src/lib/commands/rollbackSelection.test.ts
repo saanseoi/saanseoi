@@ -28,7 +28,7 @@ test('rollback retains a companion snapshot used by an unrelated catalogue membe
 for (const [label, mutation] of [
   [
     'catalogue membership',
-    "DELETE FROM apiCatalogRevisionReleaseSets WHERE apiReleaseSetId='set-other'",
+    "DELETE FROM apiCatalogRevisionReleaseSets WHERE apiVersionReleaseSetId='version-set-other'",
   ],
   [
     'predecessor composition',

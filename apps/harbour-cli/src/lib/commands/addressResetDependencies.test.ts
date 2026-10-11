@@ -78,7 +78,8 @@ test('Address full reset protects exact lookup metadata and external API/source 
       INSERT INTO sourceReleases(id,datasetId,code,sourceVersion,cohortKey,status) VALUES ('als-source','als','als-source','2026','2026','current');
       INSERT INTO resourceReleases(id,sourceReleaseId,datasetId,resourceType,code,sourceVersion,cohortKey,status) VALUES ('als-release','als-source','als','address','als-release','2026','2026','current');
       INSERT INTO apiVersions(id,code,familyType,version,status,versionHash) VALUES ('places-api','places-api','places','v0','current','hash');
-      INSERT INTO apiReleaseSets(id,apiVersionId,code,schemaVersion,rulesetVersion,status,versionHash) VALUES ('places','places-api','places','v1','v1','current','hash');
+      INSERT INTO apiReleaseSets(id,code,schemaVersion,rulesetVersion,versionHash) VALUES ('places','places','v1','v1','hash');
+      INSERT INTO apiVersionReleaseSets(id,apiVersionId,apiReleaseSetId,status,versionHash) VALUES ('places-version','places-api','places','current','hash');
       INSERT INTO snapshotRecipes(id,code,resourceType,version,versionHash) VALUES ('assembly','assembly','place',1,'hash');
       INSERT INTO snapshotDependencies(snapshotId,dependencySnapshotId,role) VALUES ('place','address-204','address');
     `)

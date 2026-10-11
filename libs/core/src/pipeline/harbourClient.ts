@@ -4,6 +4,10 @@ export type ApiReleaseSetPublication = {
 }
 
 export type ApiReleaseSetMetadataDelta = {
+  apiReleaseSetId: string
+  contentVersionHash: string
+  contentCreatedAt: string
+  contentUpdatedAt: string
   id: string
   apiVersionId: string
   apiCompositionId: string | null

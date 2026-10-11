@@ -26,18 +26,22 @@ test('reads verified upstream dates from release fixtures', async () => {
 
 test('ignores body dates and rejects invalid fixture dates', async () => {
   const root = await mkdtemp(resolve(tmpdir(), 'publication-date-'))
-  const plan = { datasetCode: 'ds-test', releaseCode: 'dr-test', sourceVersion: '2021' }
-  const directory = resolve(root, 'fixtures/meta/releases/ds-test')
+  const plan = {
+    datasetCode: 'ds-hk-test-division',
+    releaseCode: 'dr-hk-test-division-2021',
+    sourceVersion: '2021',
+  }
+  const directory = resolve(root, 'fixtures/meta/releases/ds-hk-test-division')
   try {
     expect(await readFixturePublicationDate(plan, root)).toBeUndefined()
     await mkdir(directory, { recursive: true })
     await writeFile(
-      resolve(directory, 'dr-test.md'),
+      resolve(directory, 'dr-hk-test-division-2021.md'),
       '---\nsourceVersion: "2021"\n---\npublicationDate: "2022-06-24"\n',
     )
     expect(await readFixturePublicationDate(plan, root)).toBeUndefined()
     await writeFile(
-      resolve(directory, 'dr-test.md'),
+      resolve(directory, 'dr-hk-test-division-2021.md'),
       '---\npublicationDate: "2023-02-29"\n---\n',
     )
     await expect(readFixturePublicationDate(plan, root)).rejects.toThrow(

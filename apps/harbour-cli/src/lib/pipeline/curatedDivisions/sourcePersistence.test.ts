@@ -38,7 +38,9 @@ test('curated division SOURCE preserves names and source fields through replay, 
     names: { en: { name: 'Original' }, 'zh-hant': { name: '群島' } },
     hierarchies: { full: [] },
     geometry: { type: 'Point', coordinates: [114, 22] },
-    sources: { hkgovLandsd: [{ record_id: '3180' }] },
+    sources: {
+      hkgovLandsd: [{ dataset: 'ds-hk-hkgov-landsd-division', recordId: '3180' }],
+    },
   }
   const run = async (version: string, records: (typeof original)[]) => {
     const currentSourceRows = await getCurrentSourceDivisionMap(

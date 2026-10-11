@@ -21,7 +21,7 @@ test('ALS lookup replays inherited names across shards and excludes deleted divi
       db.exec(`
       CREATE TABLE snapshotVersionChanges (snapshotId TEXT, recordType TEXT, recordId TEXT,
         locale TEXT, versionHash TEXT, operation TEXT, sourceReleaseId TEXT);
-      CREATE TABLE divisions (id TEXT, level INTEGER, type TEXT, versionHash TEXT);
+      CREATE TABLE divisions (id TEXT, level INTEGER, category TEXT, class TEXT, hierarchies TEXT, versionHash TEXT);
       CREATE TABLE divisionsI18n (divisionId TEXT, locale TEXT, name TEXT, versionHash TEXT);
     `)
     const add = parent.prepare(
@@ -33,8 +33,8 @@ test('ALS lookup replays inherited names across shards and excludes deleted divi
       add.run('parent', 'division', id, '', 'shape', 'upsert', 'release')
       add.run('parent', 'divisionI18n', id, 'en', `name-${i}`, 'upsert', 'release')
       parent
-        .prepare('INSERT INTO divisions VALUES (?, 1, ?, ?)')
-        .run(id, 'area', 'shape')
+        .prepare('INSERT INTO divisions VALUES (?, 1, ?, ?, ?, ?)')
+        .run(id, 'area', 'area', '{}', 'shape')
       parent
         .prepare('INSERT INTO divisionsI18n VALUES (?, ?, ?, ?)')
         .run(id, 'en', id, `name-${i}`)

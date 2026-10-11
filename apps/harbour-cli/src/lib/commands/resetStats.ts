@@ -271,8 +271,9 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...deleteIds('snapshotResourceReleases', 'snapshotId', snapshotIds),
     ...setIds.map(
       id =>
-        `UPDATE apiReleaseSets SET supersedesApiReleaseSetId = NULL WHERE supersedesApiReleaseSetId = ${literal(id)};`,
+        `UPDATE apiVersionReleaseSets SET supersedesApiReleaseSetId = NULL WHERE supersedesApiReleaseSetId = ${literal(id)};`,
     ),
+    ...deleteIds('apiVersionReleaseSets', 'apiReleaseSetId', setIds),
     ...deleteIds('apiReleaseSets', 'id', setIds),
     `DELETE FROM assets WHERE resourceReleaseId IN (${RELEASES}) AND (role = 'resourceSourceArchive' OR role = 'manifest');`,
     // Keep source evidence assets and fixture identities available for replay.

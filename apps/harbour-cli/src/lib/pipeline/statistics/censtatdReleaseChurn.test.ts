@@ -79,7 +79,6 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
       .get(resourceReleaseId),
   ).toEqual({ status: 'staged' })
 
-  sqlite.exec('UPDATE sourceReleases SET rawObjectKey = NULL')
   await syncStagedReleaseIntoLocalMetaCache(
     metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
     {
@@ -98,31 +97,12 @@ test('resolves churn metadata after a staged C&SD release is synced into a reuse
       resourceType: 'divisionStatistic',
     },
   )
-  expect(sqlite.query('SELECT rawObjectKey FROM sourceReleases').get()).toEqual({
-    rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
-  })
-  sqlite.exec("UPDATE sourceReleases SET rawObjectKey = 'by-source/original.zip'")
-  await syncStagedReleaseIntoLocalMetaCache(
-    metaDb as unknown as Parameters<typeof syncStagedReleaseIntoLocalMetaCache>[0],
+  expect(sqlite.query('SELECT code,sourceVersion FROM sourceReleases').all()).toEqual([
     {
-      datasetCode: 'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      rawObjectKey: 'hk/hkgov-censtatd/2023-H2/division-statistic.parquet',
-      releaseCode:
-        'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
-      resourceReleaseId,
-    },
-    {
-      cohortKey: '2023-H2',
-      regionCode: 'hk',
-      source: 'hkgov-censtatd',
+      code: 'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
       sourceVersion: '2023-H2',
-      theme: 'stats',
-      resourceType: 'divisionStatistic',
     },
-  )
-  expect(sqlite.query('SELECT rawObjectKey FROM sourceReleases').get()).toEqual({
-    rawObjectKey: 'by-source/original.zip',
-  })
+  ])
 
   sqlite.exec(`
     UPDATE resourceReleases SET status = 'processing' WHERE id = '${resourceReleaseId}';

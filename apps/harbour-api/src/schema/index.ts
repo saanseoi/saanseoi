@@ -472,6 +472,10 @@ export const ControlResponseSchema = z
           .array(
             z.object({
               id: z.string().uuid(),
+              apiReleaseSetId: z.string().uuid(),
+              contentVersionHash: z.string(),
+              contentCreatedAt: z.string(),
+              contentUpdatedAt: z.string(),
               apiVersionId: z.string(),
               apiCompositionId: z.string().nullable(),
               code: z.string(),

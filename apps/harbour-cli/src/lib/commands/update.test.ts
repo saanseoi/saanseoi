@@ -251,7 +251,10 @@ test('keeps an explicit C&SD dataset selection exact unless dependencies are req
   const exact = selectUpdateDatasets(datasets, [area], dependencies, false)
   expect(exact.map(dataset => dataset.code)).toEqual([area.code])
   const expanded = selectUpdateDatasets(datasets, [area], dependencies, true)
-  expect(expanded.map(dataset => dataset.code)).toContain('ds-hk-overture-division')
+  expect(expanded.map(dataset => dataset.code)).toEqual([
+    'ds-hk-saanseoi-division',
+    area.code,
+  ])
 })
 
 test('does not record a declined new upload as the source baseline', () => {

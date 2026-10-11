@@ -110,26 +110,9 @@ async function applyPublishMetadataDeltaLocked(
       const updateRelease = sqlite.prepare(
         'UPDATE resourceReleases SET status = ?, updatedAt = ? WHERE id = ?',
       )
-      const updateReleaseSet = sqlite.prepare(
-        `UPDATE apiReleaseSets SET
-          apiVersionId = ?, apiCompositionId = ?, code = ?, regionCode = ?, domainCode = ?,
-          cohortKey = ?, revision = ?, effectiveFrom = ?,
-          supersedesApiReleaseSetId = ?, schemaVersion = ?, rulesetVersion = ?, status = ?,
-          publishedAt = ?, validFrom = ?, validTo = ?, notes = ?, guide = ?, versionHash = ?,
-          createdAt = ?, updatedAt = ?
-        WHERE id = ?`,
-      )
       const updateSnapshot = sqlite.prepare(
         'UPDATE snapshots SET status = ?, publishedAt = ?, validFrom = ?, validTo = ?, updatedAt = ? WHERE id = ?',
       )
-      const insertReleaseSet = sqlite.prepare(`
-        INSERT INTO apiReleaseSets (
-          id, apiVersionId, apiCompositionId, code, regionCode, domainCode, cohortKey,
-          revision, effectiveFrom, supersedesApiReleaseSetId, schemaVersion,
-          rulesetVersion, status, publishedAt, validFrom, validTo, notes, guide, versionHash,
-          createdAt, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `)
       const updatedAt = new Date().toISOString()
       for (const release of delta.releases) {
         const result = updateRelease.run(release.status, updatedAt, release.id)
@@ -151,54 +134,47 @@ async function applyPublishMetadataDeltaLocked(
         }
       }
       for (const releaseSet of delta.apiReleaseSets ?? []) {
-        const result = updateReleaseSet.run(
-          releaseSet.apiVersionId,
-          releaseSet.apiCompositionId,
-          releaseSet.code,
-          releaseSet.regionCode,
-          releaseSet.domainCode,
-          releaseSet.cohortKey,
-          releaseSet.revision,
-          releaseSet.effectiveFrom,
-          releaseSet.supersedesApiReleaseSetId,
-          releaseSet.schemaVersion,
-          releaseSet.rulesetVersion,
-          releaseSet.status,
-          releaseSet.publishedAt,
-          releaseSet.validFrom,
-          releaseSet.validTo,
-          releaseSet.notes,
-          releaseSet.guide,
-          releaseSet.versionHash,
-          releaseSet.createdAt,
-          releaseSet.updatedAt,
-          releaseSet.id,
-        )
-        if (result.changes !== 1) {
-          insertReleaseSet.run(
-            releaseSet.id,
-            releaseSet.apiVersionId,
-            releaseSet.apiCompositionId,
-            releaseSet.code,
-            releaseSet.regionCode,
-            releaseSet.domainCode,
-            releaseSet.cohortKey,
-            releaseSet.revision,
-            releaseSet.effectiveFrom,
-            releaseSet.supersedesApiReleaseSetId,
-            releaseSet.schemaVersion,
-            releaseSet.rulesetVersion,
-            releaseSet.status,
-            releaseSet.publishedAt,
-            releaseSet.validFrom,
-            releaseSet.validTo,
-            releaseSet.notes,
-            releaseSet.guide,
-            releaseSet.versionHash,
-            releaseSet.createdAt,
-            releaseSet.updatedAt,
-          )
+        const upsert = (table: string, row: Record<string, string | number | null>) => {
+          const columns = Object.keys(row)
+          sqlite
+            .prepare(
+              `INSERT INTO ${table} (${columns.join(',')}) VALUES (${columns.map(() => '?').join(',')}) ON CONFLICT(id) DO UPDATE SET ${columns
+                .filter(column => column !== 'id')
+                .map(column => `${column}=excluded.${column}`)
+                .join(',')}`,
+            )
+            .run(...Object.values(row))
         }
+        upsert('apiReleaseSets', {
+          id: releaseSet.apiReleaseSetId,
+          code: releaseSet.code,
+          regionCode: releaseSet.regionCode,
+          domainCode: releaseSet.domainCode,
+          cohortKey: releaseSet.cohortKey,
+          revision: releaseSet.revision,
+          effectiveFrom: releaseSet.effectiveFrom,
+          schemaVersion: releaseSet.schemaVersion,
+          rulesetVersion: releaseSet.rulesetVersion,
+          versionHash: releaseSet.contentVersionHash,
+          createdAt: releaseSet.contentCreatedAt,
+          updatedAt: releaseSet.contentUpdatedAt,
+        })
+        upsert('apiVersionReleaseSets', {
+          id: releaseSet.id,
+          apiReleaseSetId: releaseSet.apiReleaseSetId,
+          apiVersionId: releaseSet.apiVersionId,
+          apiCompositionId: releaseSet.apiCompositionId,
+          supersedesApiReleaseSetId: releaseSet.supersedesApiReleaseSetId,
+          status: releaseSet.status,
+          publishedAt: releaseSet.publishedAt,
+          validFrom: releaseSet.validFrom,
+          validTo: releaseSet.validTo,
+          notes: releaseSet.notes,
+          guide: releaseSet.guide,
+          versionHash: releaseSet.versionHash,
+          createdAt: releaseSet.createdAt,
+          updatedAt: releaseSet.updatedAt,
+        })
       }
     })()
   } finally {

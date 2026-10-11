@@ -59,7 +59,7 @@ test('distinguishes added, changed, removed and unchanged division identities', 
       { id: 'd', versionHash: '1' },
     ],
   )
-  expect(Object.fromEntries(rows.map(row => [row.dimension, row.value]))).toEqual({
+  expect(Object.fromEntries(rows.map(row => [row.measure, row.value]))).toEqual({
     count: 3,
     added_count: 1,
     changed_count: 1,

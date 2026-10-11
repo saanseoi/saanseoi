@@ -9,7 +9,6 @@ import type { UploadPlan } from '@repo/core'
 import { formatInteractiveRetry } from '../cli/interactiveRetry.ts'
 
 const REPO_ROOT = resolve(import.meta.dir, '../../../../..')
-const CACHE_PATH = resolve(REPO_ROOT, '.local/harbour/release-note-cache.json')
 
 type ReleaseNoteCache = {
   version: 2
@@ -29,8 +28,11 @@ function isHttpUrl(value: string) {
   }
 }
 
-async function readCache(): Promise<ReleaseNoteCache> {
-  const raw = await readFile(CACHE_PATH, 'utf8').catch(() => null)
+async function readCache(root: string): Promise<ReleaseNoteCache> {
+  const raw = await readFile(
+    resolve(root, '.local/harbour/release-note-cache.json'),
+    'utf8',
+  ).catch(() => null)
 
   if (!raw) return { version: 2, entries: {} }
 
@@ -42,7 +44,7 @@ async function readCache(): Promise<ReleaseNoteCache> {
 
     if (parsed.version === 1 && isReleaseNoteEntries(parsed.entries)) {
       const cache = { version: 2 as const, entries: migrateV1Entries(parsed.entries) }
-      await writeCache(cache)
+      await writeCache(cache, root)
       return cache
     }
 
@@ -78,9 +80,10 @@ function migrateV1Entries(entries: Record<string, string>) {
   )
 }
 
-async function writeCache(cache: ReleaseNoteCache) {
-  await mkdir(dirname(CACHE_PATH), { recursive: true })
-  await writeFile(CACHE_PATH, `${JSON.stringify(cache, null, 2)}\n`)
+async function writeCache(cache: ReleaseNoteCache, root: string) {
+  const cachePath = resolve(root, '.local/harbour/release-note-cache.json')
+  await mkdir(dirname(cachePath), { recursive: true })
+  await writeFile(cachePath, `${JSON.stringify(cache, null, 2)}\n`)
 }
 
 export function parseFixtureReleaseNotesUrl(content: string) {
@@ -88,9 +91,9 @@ export function parseFixtureReleaseNotesUrl(content: string) {
   return (match?.[1] ?? match?.[2] ?? match?.[3])?.trim()
 }
 
-async function readFixtureReleaseNotesUrl(plan: UploadPlan) {
+async function readFixtureReleaseNotesUrl(plan: UploadPlan, root: string) {
   const fixturePath = resolve(
-    REPO_ROOT,
+    root,
     'fixtures/meta/releases',
     plan.datasetCode,
     `${buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion)}.md`,
@@ -111,13 +114,15 @@ export async function resolveReleaseNotesUrl(
     explicitUrl?: string
     interactiveRetryCommand?: string
     skipPrompt: boolean
+    root?: string
   },
 ) {
+  const root = options.root ?? REPO_ROOT
   const key = cacheKey(plan.releaseCode)
   if (plan.source === 'saanseoi') {
     const notes = await readFile(
       resolve(
-        REPO_ROOT,
+        root,
         'fixtures/meta/releases',
         plan.datasetCode,
         `${buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion)}.md`,
@@ -134,14 +139,14 @@ export async function resolveReleaseNotesUrl(
       throw new Error('Release notes URL must be an absolute HTTP(S) URL.')
     }
 
-    const cache = await readCache()
+    const cache = await readCache(root)
     cache.entries[key] = explicitUrl
-    await writeCache(cache)
+    await writeCache(cache, root)
     return explicitUrl
   }
 
-  const fixtureUrl = await readFixtureReleaseNotesUrl(plan)
-  const cachedUrl = fixtureUrl ?? (await readCache()).entries[key]
+  const fixtureUrl = await readFixtureReleaseNotesUrl(plan, root)
+  const cachedUrl = fixtureUrl ?? (await readCache(root)).entries[key]
   if (cachedUrl) return cachedUrl
   if (plan.source === 'saanseoi') return undefined
 
@@ -167,8 +172,8 @@ export async function resolveReleaseNotesUrl(
   }
 
   const releaseNotesUrl = result.trim()
-  const cache = await readCache()
+  const cache = await readCache(root)
   cache.entries[key] = releaseNotesUrl
-  await writeCache(cache)
+  await writeCache(cache, root)
   return releaseNotesUrl
 }
