@@ -301,7 +301,12 @@ export function resolveCacheTablesForBinding(
     }
 
     if (cacheTableProfile === 'division') {
-      return ['overtureDivisions', 'hkgovPlandPlanningCells', 'hkgovPlandNewTowns']
+      return [
+        'overtureDivisions',
+        'ssDivision',
+        'hkgovPlandPlanningCells',
+        'hkgovPlandNewTowns',
+      ]
     }
 
     if (cacheTableProfile === 'places') {
@@ -311,7 +316,9 @@ export function resolveCacheTablesForBinding(
     if (cacheTableProfile === 'divisionGeometry') {
       return [
         'overtureDivisions',
+        'ssDivision',
         'overtureDivisionAreas',
+        'ssDivisionArea',
         'overtureDivisionBoundaries',
         'hkgovHadDivisionAreas',
         'hkgovCenstatdDivisionAreas',
@@ -325,8 +332,10 @@ export function resolveCacheTablesForBinding(
 
     return [
       'overtureDivisions',
+      'ssDivision',
       'overturePlaces',
       'overtureDivisionAreas',
+      'ssDivisionArea',
       'overtureDivisionBoundaries',
       'hkgovHadDivisionAreas',
       'hkgovCenstatdDivisionAreas',

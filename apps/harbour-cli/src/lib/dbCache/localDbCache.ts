@@ -543,7 +543,9 @@ export async function openSqliteDbWithRetry<TSchema extends Record<string, unkno
       const sqlite = new SQLiteDatabase(filePath)
 
       try {
-        sqlite.exec('PRAGMA foreign_keys = ON;')
+        // Local Workers can briefly hold a write lock while recording progress
+        // or cleaning an archived snapshot. Wait as the native importer does.
+        sqlite.exec('PRAGMA busy_timeout = 30000; PRAGMA foreign_keys = ON;')
       } catch (error) {
         sqlite.close()
         throw error

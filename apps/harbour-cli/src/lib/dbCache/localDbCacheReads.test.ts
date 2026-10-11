@@ -10,7 +10,7 @@ import {
 
 test('completed geometry contributors can precede shared composition publication', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'completed-geometry-'))
-  const meta = new Database(':memory:')
+  const meta = completionMeta()
   const currentPath = join(directory, 'DB_CURRENT.sqlite')
   const current = new Database(currentPath)
   try {
@@ -91,7 +91,7 @@ test('completed geometry contributors can precede shared composition publication
 
 test('initialisation skips published divisions only after their exact delivery is complete', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'completed-divisions-'))
-  const meta = new Database(':memory:')
+  const meta = completionMeta()
   const currentPath = join(directory, 'DB_CURRENT.sqlite')
   const current = new Database(currentPath)
   try {
@@ -136,6 +136,65 @@ test('initialisation skips published divisions only after their exact delivery i
       current.exec(mutation)
       expect(await completed()).toEqual(['landsd-older'])
     }
+    // Cleanup can remove a completed, unselected native projection.
+    current.exec('DELETE FROM divisionPublicationState')
+    meta.exec(`
+      UPDATE snapshotResourceReleases SET selectionMode='exact_ref', selectedByRule='assembly:division:source-release:v1';
+      INSERT INTO processingRuns VALUES ('release','sql:division-data','completed','1','2');
+      INSERT INTO processingRuns VALUES ('release','publishDataset','completed','2','3');
+    `)
+    expect(await completed()).toEqual(['landsd', 'landsd-older'])
+    for (const status of ['draft', 'current']) {
+      meta.exec(`INSERT INTO apiReleaseSets VALUES ('api','api');
+        INSERT INTO apiVersionReleaseSets (id, apiReleaseSetId, status) VALUES ('api-association','api','${status}');
+        INSERT INTO apiReleaseSetSnapshots VALUES ('api','snapshot');`)
+      expect(await completed()).toEqual(
+        status === 'current' ? ['landsd-older'] : ['landsd', 'landsd-older'],
+      )
+      if (status === 'current') {
+        // Address companions use immutable history after a later Division
+        // cohort replaces CURRENT. The native delivery must still be complete.
+        meta.exec("UPDATE apiVersionReleaseSets SET apiVersionId='address-api'")
+        expect(await completed()).toEqual(['landsd', 'landsd-older'])
+        meta.exec(
+          "UPDATE processingRuns SET status='error' WHERE phase='sql:division-data'",
+        )
+        expect(await completed()).toEqual(['landsd-older'])
+        meta.exec(
+          "UPDATE processingRuns SET status='completed' WHERE phase='sql:division-data'",
+        )
+      }
+      meta.exec(
+        'DELETE FROM apiReleaseSets; DELETE FROM apiVersionReleaseSets; DELETE FROM apiReleaseSetSnapshots',
+      )
+    }
+    meta.exec(
+      "INSERT INTO apiReleaseSets VALUES ('api','api'); INSERT INTO apiVersionReleaseSets (id, apiReleaseSetId, status) VALUES ('api-association','api','archived'); INSERT INTO apiReleaseSetSnapshots VALUES ('api','snapshot')",
+    )
+    expect(await completed()).toEqual(['landsd', 'landsd-older'])
+    for (const status of ['running', 'error']) {
+      meta.exec(
+        `UPDATE processingRuns SET status='${status}' WHERE phase='sql:division-data'`,
+      )
+      expect(await completed()).toEqual(['landsd-older'])
+    }
+    meta.exec(
+      "UPDATE processingRuns SET status='completed'; UPDATE processingRuns SET finishedAt='1' WHERE phase='publishDataset'",
+    )
+    expect(await completed()).toEqual(['landsd-older'])
+    meta.exec("UPDATE processingRuns SET finishedAt='3' WHERE phase='publishDataset'")
+    meta.exec(
+      "INSERT INTO processingRuns VALUES ('release','sql:division-data-rebuild-new','error','4',NULL)",
+    )
+    expect(await completed()).toEqual(['landsd-older'])
+    meta.exec(
+      "UPDATE processingRuns SET status='completed', finishedAt='5' WHERE phase='sql:division-data-rebuild-new'; UPDATE processingRuns SET finishedAt='6' WHERE phase='publishDataset'",
+    )
+    expect(await completed()).toEqual(['landsd', 'landsd-older'])
+    current.exec(
+      "INSERT INTO divisionPublicationState VALUES ('snapshot','wrong-scope','publishing',NULL,'delivery')",
+    )
+    expect(await completed()).toEqual(['landsd-older'])
   } finally {
     current.close()
     meta.close()
@@ -145,7 +204,7 @@ test('initialisation skips published divisions only after their exact delivery i
 
 test('curated division delivery proves completion of its retained native baseline', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'completed-curated-divisions-'))
-  const meta = new Database(':memory:')
+  const meta = completionMeta()
   const currentPath = join(directory, 'DB_CURRENT.sqlite')
   const current = new Database(currentPath)
   try {
@@ -195,3 +254,16 @@ test('curated division delivery proves completion of its retained native baselin
     await rm(directory, { recursive: true, force: true })
   }
 })
+
+function completionMeta() {
+  const db = new Database(':memory:')
+  db.exec(`
+    CREATE TABLE apiReleaseSets(id TEXT, code TEXT);
+    CREATE TABLE apiVersionReleaseSets(id TEXT, apiReleaseSetId TEXT, status TEXT, apiVersionId TEXT DEFAULT 'division-api');
+    CREATE TABLE apiVersions(id TEXT, familyType TEXT);
+    INSERT INTO apiVersions VALUES ('division-api','divisions'),('address-api','addresses');
+    CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT, snapshotId TEXT);
+    CREATE TABLE processingRuns(resourceReleaseId TEXT, phase TEXT, status TEXT, startedAt TEXT, finishedAt TEXT);
+  `)
+  return db
+}

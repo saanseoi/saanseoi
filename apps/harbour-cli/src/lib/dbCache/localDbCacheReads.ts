@@ -22,12 +22,15 @@ import {
   readManifest,
 } from './localDbCacheManifest.ts'
 import { openSqliteDb } from './localDbCache.ts'
+import { sourceOnlyCompletion } from './sourceOnlyCompletion'
 
 /** Publication metadata alone does not prove that an initialiser can skip delivery. */
 export async function readLocalCompletedReleaseCodes() {
   const files = mapLocalTargetPaths(
-    (await resolveD1Targets('local')).filter(target =>
-      ['DB_META', 'DB_CURRENT'].includes(target.bindingName),
+    (await resolveD1Targets('local')).filter(
+      target =>
+        ['DB_META', 'DB_CURRENT'].includes(target.bindingName) ||
+        target.bindingName.startsWith('DB_SOURCE_'),
     ),
   )
   const metaPath = requirePath(files.DB_META, 'DB_META')
@@ -139,6 +142,13 @@ export async function findIncompletePublishedReleases(
         continue
       }
 
+      const sourceComplete = sourceOnlyCompletion(metaSqlite, files, release)
+      if (sourceComplete !== null) {
+        if (!sourceComplete)
+          incomplete.push(`${release.code}: missing source-only ingestion evidence`)
+        continue
+      }
+
       const receiptTable = resolveCompletedReleaseReceiptTable(release.resourceType)
 
       // Non-SQL pipelines have no cache-level materialisation contract here.
@@ -150,6 +160,9 @@ export async function findIncompletePublishedReleases(
         .query(
           `
             SELECT s.id AS snapshotId, s.snapshotLineageId AS snapshotLineageId, s.cohortKey AS cohortKey,
+              (s.resourceType = 'division' AND ss.selectionMode = 'exact_ref'
+                AND ss.selectedByRule = 'assembly:division:source-release:v1'
+                AND sl.primaryDatasetId = ss.datasetId) AS isNativeDivision,
               (ss.selectedByRule = 'saanseoi-curated-division-assembly-v1'
                 AND sl.primaryDatasetId = ss.datasetId) AS isCuratedPrimary
             FROM snapshots s
@@ -198,6 +211,7 @@ export async function findIncompletePublishedReleases(
         snapshotLineageId: string
         cohortKey: string
         isCuratedPrimary: number | null
+        isNativeDivision: number | null
       } | null
 
       if (!snapshot?.snapshotId) {
@@ -248,7 +262,18 @@ export async function findIncompletePublishedReleases(
               snapshot.cohortKey,
             ),
           )
-        if (!receipt) {
+        if (
+          !receipt &&
+          !(
+            snapshot.isNativeDivision &&
+            hasRetiredDivisionDelivery(
+              metaSqlite,
+              currentSqlite,
+              release.id,
+              snapshot.snapshotId,
+            )
+          )
+        ) {
           incomplete.push(
             `${release.code}: current snapshot has no complete delivery receipt`,
           )
@@ -264,6 +289,63 @@ export async function findIncompletePublishedReleases(
   }
 
   return incomplete
+}
+
+/**
+ * Native Division SQL runs cover SOURCE, HISTORY and CURRENT together. Once
+ * publication finishes, an unselected snapshot may lose its CURRENT projection.
+ * Reuse those existing run records rather than writing a second cleanup audit.
+ */
+function hasRetiredDivisionDelivery(
+  meta: SQLiteDatabase,
+  current: SQLiteDatabase,
+  releaseId: string,
+  snapshotId: string,
+) {
+  // A present but incomplete/mis-scoped receipt is never evidence of retirement.
+  if (
+    current
+      .query('SELECT 1 FROM divisionPublicationState WHERE snapshotId = ?')
+      .get(snapshotId)
+  )
+    return false
+  // Address companions replay pinned Division history when CURRENT has moved
+  // on (see atlas-api/services/addresses). Other current API selections still
+  // require their serving receipt; drafts do not require a current projection.
+  if (
+    meta
+      .query(`
+    SELECT 1 FROM apiReleaseSetSnapshots member
+    JOIN apiReleaseSets releaseSet ON releaseSet.id = member.apiReleaseSetId
+    JOIN apiVersionReleaseSets association ON association.apiReleaseSetId = releaseSet.id
+    WHERE member.snapshotId = ? AND association.status = 'current'
+      AND NOT EXISTS (
+        SELECT 1 FROM apiVersions version
+        WHERE version.id = association.apiVersionId AND version.familyType = 'addresses'
+      )
+    LIMIT 1
+  `)
+      .get(snapshotId)
+  )
+    return false
+  const delivery = meta
+    .query(`
+    SELECT status, finishedAt FROM processingRuns
+    WHERE resourceReleaseId = ?
+      AND (phase = 'sql:division-data' OR phase GLOB 'sql:division-data-rebuild-*')
+    ORDER BY startedAt DESC, rowid DESC LIMIT 1
+  `)
+    .get(releaseId) as { status: string; finishedAt: string | null } | null
+  if (delivery?.status !== 'completed' || !delivery.finishedAt) return false
+  return Boolean(
+    meta
+      .query(`
+    SELECT 1 FROM processingRuns
+    WHERE resourceReleaseId = ? AND phase = 'publishDataset'
+      AND status = 'completed' AND finishedAt >= ?
+  `)
+      .get(releaseId, delivery.finishedAt),
+  )
 }
 
 function resolveCompletedReleaseReceiptTable(resourceType: string) {
