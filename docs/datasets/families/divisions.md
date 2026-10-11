@@ -241,6 +241,12 @@ without ancestor lookups or locale-dependent label construction. Optional
 `include=hierarchy` loads the distinct ancestor resources, including cities, in
 `included`.
 
+Planning `full` paths contain all publisher ancestors in order: PPU → SPU → TPU for a
+subunit, PPU → SPU for a TPU, and PPU for an SPU. Preparation validates path
+completeness and matching publisher codes before hashing canonical content. Retained
+local repairs must validate pinned source assertions, update content hashes and snapshot
+replay references together, and retain rollback evidence.
+
 Spatial hierarchy branches retain the positive-area remainder outside all matching
 parents at each tier. That remainder continues through narrower tiers with its existing
 ancestry, so a division partly inside a macrohood also retains a path for the portion

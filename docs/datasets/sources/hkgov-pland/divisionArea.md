@@ -440,6 +440,20 @@ Planning divisions and areas use stable `ss-` UUIDs. Subunit ancestry includes P
 and TPU; canonical identifiers use the `hkgov-pland` publisher object and preserve
 native code values.
 
+Preparation requires the complete PPU → SPU → TPU ancestor path for each subunit, PPU →
+SPU for each TPU, and PPU for each SPU. Ancestor identifiers must match the child's
+publisher codes. Incomplete prepared artefacts fail with a request to prepare the
+release again.
+
+`scripts/backfill-planning-hierarchies.ts` repairs retained local Planning paths with
+`--meta`, `--history`, `--source`, `--current` and `--output` database/output paths. It
+defaults to a dry run. Each snapshot inventory is replayed and checked against exact
+pinned publisher assertions and source resolutions; omissions remain intact. `--apply`
+updates canonical paths, content hashes and replay references in one transaction,
+retaining affected rows in `rollback.sqlite` and a `rollback.sql` script. Run rollback
+with the history, current and backup databases attached as `history`, `current` and
+`repairBackup`. Rehearse on copies and verify a repeat dry run before using the repair.
+
 ## Division name completion
 
 Division name completion targets English and Traditional Chinese. Publisher Simplified

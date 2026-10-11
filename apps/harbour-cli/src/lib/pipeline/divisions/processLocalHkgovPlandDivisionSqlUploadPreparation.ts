@@ -21,6 +21,7 @@ import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/divisio
 import { createHash } from '@repo/core/pipeline/utils'
 import { historySchema, metaSchema } from '@repo/db'
 import type { LocalPipelineBucket } from '../local/localBucket.ts'
+import { validatePlanningHierarchy } from './planningHierarchy'
 import { resolveSourceReleaseNameTranslationsBatch } from '../../i18n/sourceReleaseTranslations.ts'
 import type {
   HkgovPlandDivisionUploadPlan,
@@ -119,6 +120,15 @@ async function readPreparedDivisionsInternal(
   return Promise.all(
     translated.map(async record => {
       const rawPath = Array.isArray(record.raw.hierarchy) ? record.raw.hierarchy : []
+      validatePlanningHierarchy(
+        record.base,
+        rawPath.map(entry => {
+          const id = (entry as { division_id: string }).division_id
+          const parent = byId.get(id)
+          if (!parent) throw new Error(`Missing Planning ancestor ${id}.`)
+          return parent.base
+        }),
+      )
       const path = rawPath.map(entry => {
         const id = (entry as { division_id: string }).division_id
         const parent = byId.get(id)
