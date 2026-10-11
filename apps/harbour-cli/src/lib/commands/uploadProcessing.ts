@@ -1,3 +1,5 @@
+import { retainOverturePreparationAudit } from '../sources/overturePreparationAudit'
+import { retainCuratedPreparationAudit } from '../pipeline/curatedDivisions/preparationAudit'
 import { note } from '@clack/prompts'
 import type { prepareUpload } from '@repo/core/uploadLocal'
 import { processLocalAddressSqlUpload } from '../pipeline/addresses/processLocalAddressSqlUpload.ts'
@@ -90,7 +92,8 @@ export function resolveUploadProcessingStrategy(
   if (
     previewResult.plan.resourceType === 'division' &&
     previewResult.plan.theme === 'divisions' &&
-    (previewResult.plan.source === 'overture' ||
+    (previewResult.plan.source === 'saanseoi' ||
+      previewResult.plan.source === 'overture' ||
       previewResult.plan.source === 'hkgov-landsd' ||
       previewResult.plan.source === 'hkgov-censtatd')
   ) {
@@ -103,7 +106,8 @@ export function resolveUploadProcessingStrategy(
     (previewResult.plan.resourceType === 'divisionArea' ||
       previewResult.plan.resourceType === 'divisionBoundary') &&
     previewResult.plan.theme === 'divisions' &&
-    (previewResult.plan.source === 'overture' ||
+    (previewResult.plan.source === 'saanseoi' ||
+      previewResult.plan.source === 'overture' ||
       previewResult.plan.source === 'hkgov-had' ||
       previewResult.plan.source === 'hkgov-censtatd' ||
       previewResult.plan.source === 'hkgov-pland-pu' ||
@@ -140,6 +144,26 @@ export async function processPreparedUpload({
   revisionDraft: () => Parameters<typeof logApiReleaseSetPublication>[1]
   divisionGeometryTransform: 'simplified' | undefined
 }) {
+  if (options.countryPreparation) {
+    if (!uploadResult.resourceReleaseId)
+      throw Error('Country preparation requires a registered source release.')
+    await retainOverturePreparationAudit(
+      target,
+      uploadResult.resourceReleaseId,
+      options.countryPreparation,
+    )
+  }
+  if (options.curatedSourceReleases) {
+    if (!options.curatedPreparation || !uploadResult.resourceReleaseId)
+      throw new Error(
+        'Curated archives require retained preparation evidence. Rebuild the source edition.',
+      )
+    await retainCuratedPreparationAudit(
+      target,
+      uploadResult.resourceReleaseId,
+      options.curatedPreparation,
+    )
+  }
   if (processingStrategy.mode === 'local-address-sql') {
     if (
       previewResult.plan.resourceType !== 'address' ||
@@ -256,7 +280,8 @@ export async function processPreparedUpload({
         source: previewResult.plan.source as
           | 'hkgov-censtatd'
           | 'hkgov-landsd'
-          | 'overture',
+          | 'overture'
+          | 'saanseoi',
         sourceVersion: previewResult.plan.sourceVersion,
         theme: previewResult.plan.theme,
         resourceType: previewResult.plan.resourceType,
@@ -264,6 +289,8 @@ export async function processPreparedUpload({
       uploadResult,
       preparedUploadFile,
       {
+        sourceAuditGuards: options.sourceAuditGuards,
+        curatedSourceReleases: options.curatedSourceReleases,
         deferApiReleaseSet: options.deferApiReleaseSet,
         deferSourcePublish: options.deferSourcePublish,
         rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
@@ -369,7 +396,8 @@ export async function processPreparedUpload({
       (previewResult.plan.resourceType !== 'divisionArea' &&
         previewResult.plan.resourceType !== 'divisionBoundary') ||
       previewResult.plan.theme !== 'divisions' ||
-      (previewResult.plan.source !== 'overture' &&
+      (previewResult.plan.source !== 'saanseoi' &&
+        previewResult.plan.source !== 'overture' &&
         previewResult.plan.source !== 'hkgov-had' &&
         previewResult.plan.source !== 'hkgov-censtatd' &&
         previewResult.plan.source !== 'hkgov-pland-pu' &&
@@ -414,9 +442,12 @@ export async function processPreparedUpload({
       preparedUploadFile,
       {
         cacheArtefacts,
+        sourceAuditGuards: options.sourceAuditGuards,
+        curatedSourceReleases: options.curatedSourceReleases,
         deferApiReleaseSet: options.deferApiReleaseSet,
         deferSourcePublish: options.deferSourcePublish,
         deferPublish: shouldDeriveHkgovSimplifiedGeometry,
+        rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
         releaseCohortKey: previewResult.plan.cohortKey,
         reuseExistingRelease: options.reuseExistingRelease,
         skipSnapshotCleanup: options.skipSnapshotCleanup,
@@ -454,6 +485,7 @@ export async function processPreparedUpload({
           deferSourcePublish: options.deferSourcePublish,
           inputFilePath: preparedUploadFile.filePath,
           normalisedInput: processingResult.normalisedRows,
+          rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
           reuseRunningRelease: true,
           skipRawSeed: true,
           skipSnapshotCleanup: options.skipSnapshotCleanup,

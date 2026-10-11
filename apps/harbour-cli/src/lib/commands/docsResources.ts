@@ -19,12 +19,14 @@ import {
 type ApiCompositionDomainFixture = {
   code: string
   isDefault?: boolean
-  i18n: Array<{
-    description?: string
-    descriptionShort?: string
-    locale: string
-    name: string
-  }>
+  i18n: Record<
+    string,
+    {
+      description?: string
+      descriptionShort?: string
+      name: string
+    }
+  >
 }
 
 type ApiCompositionDocumentationFixture = {
@@ -77,9 +79,7 @@ export async function renderApiFamilyDomains(
 
   return markdown.replace(directive, (_tag, locale: keyof typeof labels) => {
     const rows = domains.map(domain => {
-      const translation = domain.i18n.find(
-        value => value.locale === compositionLocale[locale],
-      )
+      const translation = domain.i18n[compositionLocale[locale]]
       if (!translation) {
         throw new Error(
           `Domain ${domain.code} is missing ${compositionLocale[locale]} localisation.`,
@@ -113,8 +113,11 @@ export function renderApiReleaseSetCompanionResources(
 
   const companionSources = sources.filter(
     source =>
-      source.resourceType === 'divisionArea' ||
-      source.resourceType === 'divisionBoundary',
+      (source.resourceType === 'divisionArea' ||
+        source.resourceType === 'divisionBoundary') &&
+      // Curated snapshot lineage also includes naming and geometry ingredients.
+      // Those sources are evidence, not additional selectable area providers.
+      (source.variant !== 'saanseoi' || source.publisherCode === 'saanseoi'),
   )
   if (companionSources.length === 0) {
     throw new Error(
@@ -189,6 +192,11 @@ function companionResourceShortDescription(
   locale: ApiReleaseSetSourceDocsLocale,
 ) {
   const descriptions = {
+    'areas:saanseoi': {
+      en: 'Curated division areas, island outlines and land-clipped coverage.',
+      'zh-Hant': '經整理的區劃範圍、島嶼輪廓及陸地裁切範圍。',
+      'zh-Hans': '经整理的区划范围、岛屿轮廓及陆地裁切范围。',
+    },
     'areas:hkgov-censtatd': {
       en: 'C&SD annual district and Area/type statistical geometry.',
       'zh-Hant': '政府統計處按年區議會分區及地區／類別統計地理資料。',
@@ -310,7 +318,19 @@ function renderApiReleaseSetSourcesTable(
       }),
   )
 
+  const seen = new Set<string>()
   for (const source of sortedSources) {
+    // A release can contribute directly and through a curated snapshot. The
+    // source table lists releases, rather than each internal lineage path.
+    const identity = JSON.stringify([
+      source.role,
+      source.resourceType,
+      source.publisherCode,
+      source.datasetCode,
+      source.releaseCode,
+    ])
+    if (seen.has(identity)) continue
+    seen.add(identity)
     const key = `${source.role}:${source.resourceType}`
     groups.set(key, [...(groups.get(key) ?? []), source])
   }

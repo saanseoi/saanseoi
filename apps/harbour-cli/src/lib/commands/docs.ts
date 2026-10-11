@@ -182,6 +182,7 @@ async function runApiReleaseSetDocsPublishCommand(
     .sort(compareReleaseSetRows)
   const rowsByScope = groupRowsByDocsScope(rows)
   const updates: Array<{
+    apiVersion: string
     code: string
     guide: string | null
     guidePath: string | null
@@ -219,6 +220,7 @@ async function runApiReleaseSetDocsPublishCommand(
 
       if (row.notes !== notes || row.guide !== guide) {
         updates.push({
+          apiVersion: row.apiVersion,
           code: row.code,
           guide,
           guidePath: guideFixture?.path ?? null,
@@ -231,7 +233,12 @@ async function runApiReleaseSetDocsPublishCommand(
 
   if (!dryRun) {
     for (const update of updates) {
-      await putApiReleaseSetDocumentation(target, update.code, update)
+      await putApiReleaseSetDocumentation(
+        target,
+        update.apiVersion,
+        update.code,
+        update,
+      )
     }
   }
 

@@ -386,12 +386,15 @@ describe('initialisation commands', () => {
         set -g lookup_count 0
         function init_load_completed_release_codes
           set -g lookup_count (math $lookup_count + 1)
-          set -g saanseoi_init_completed_release_codes dr-test-published dr-test-superseded
+          set -g saanseoi_init_completed_release_codes dr-test-published dr-test-superseded dr-hk-overture-division-2026-08-19.0
         end
         init_configure "test init" --target local
         set -gx SAANSEOI_INIT_GUIDES 0,4
         init_run_upload dr-test-published /nonexistent-input.parquet; or exit 1
         init_run_upload dr-test-superseded /nonexistent-input.parquet; or exit 1
+        # Curated island/name changes belong to SaanSeoi assembly. A completed
+        # native Overture source must not be replayed because of a local marker.
+        init_run_upload dr-hk-overture-division-2026-08-19.0 /nonexistent-input.parquet; or exit 1
         test "$lookup_count" -eq 1; or exit 2
         test "$saanseoi_init_last_upload_processed" -eq 0; or exit 3
         test "$saanseoi_init_upload_failures" -eq 0; or exit 4
@@ -409,12 +412,12 @@ describe('initialisation commands', () => {
 
   test('completed Permanent Living Quarters skips dataops and archive preparation without continue', () => {
     const script = readFileSync(
-      resolve(repoRoot, 'scripts/init/divisions-overture.fish'),
+      resolve(repoRoot, 'scripts/init/divisions.fish'),
       'utf8',
     )
     const block = script.slice(
       script.indexOf('set -l censtatd_area_release_code'),
-      script.indexOf('# Do not delay the final summary'),
+      script.indexOf('# Reconcile only after'),
     )
     expect(block).toContain('init_skip_completed_release')
     const result = Bun.spawnSync({

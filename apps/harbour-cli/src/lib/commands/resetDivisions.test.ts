@@ -171,6 +171,19 @@ describe('all-divisions reset', () => {
       resourceReleaseId: 'division',
       assetKey: 'retained-evidence',
     })
+    insert(meta, 'processingRuns', {
+      runId: 'publication-run',
+      apiReleaseSetId: 'divisions',
+      resourceReleaseId: null,
+      snapshotId: null,
+    })
+    insert(current, 'divisionPublicationState', {
+      scopeId: 'division-scope',
+      snapshotId: 'division',
+      status: 'current',
+      publicationToken: 'token',
+      preparedAt: '2026-09-30',
+    })
     expect(await divisionResetBlockers(context)).toEqual([])
     const plan = await collectDivisionResetPlan(context)
     expect(plan.releases).toHaveLength(3)
@@ -192,6 +205,12 @@ describe('all-divisions reset', () => {
     ])
     current.exec(sql.currentSql)
     meta.exec(sql.metaSql)
+    expect(
+      meta.query("SELECT * FROM processingRuns WHERE runId='publication-run'").all(),
+    ).toHaveLength(0)
+    expect(current.query('SELECT * FROM divisionPublicationState').all()).toHaveLength(
+      0,
+    )
     for (const db of [current, history]) {
       for (const table of ['divisions', 'divisionAreas', 'divisionBoundaries']) {
         expect(db.query(`SELECT * FROM ${table}`).all()).toHaveLength(0)
@@ -294,7 +313,7 @@ describe('all-divisions reset', () => {
       releaseSets: [],
     }).sourceSql
     const statements = sql.split('\n')
-    expect(statements).toHaveLength(9 * 5)
+    expect(statements).toHaveLength(13 * 5)
     expect(statements[0]).toContain("'release-''0'")
     expect(statements.every(statement => statement.length < 2000)).toBe(true)
   })

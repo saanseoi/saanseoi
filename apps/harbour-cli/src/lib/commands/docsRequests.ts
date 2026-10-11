@@ -47,12 +47,13 @@ export async function fetchReleaseDocsRows(target: UploadTarget) {
 
 export async function putApiReleaseSetDocumentation(
   target: UploadTarget,
+  apiVersion: string,
   code: string,
   documentation: { guide: string | null; notes: string | null },
 ) {
   const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
   const response = await fetch(
-    `${baseUrl}/api/v1/meta/docs/apiReleaseSets/${encodeURIComponent(code)}`,
+    `${baseUrl}/api/v1/meta/docs/apiReleaseSets/${encodeURIComponent(apiVersion)}/${encodeURIComponent(code)}`,
     {
       body: JSON.stringify(documentation),
       headers: {

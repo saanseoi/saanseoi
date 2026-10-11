@@ -205,8 +205,6 @@ async function countMetaRollbackRows(
     journalRows,
     statsRows,
     processingRunRows,
-    processingActionRows,
-    processingChunkRows,
     shardAssignmentRows,
     dependencyRows,
     assemblyRows,
@@ -244,26 +242,6 @@ async function countMetaRollbackRows(
       metaSchema.processingRuns,
       eq(metaSchema.processingRuns.resourceReleaseId, input.release.resourceReleaseId),
     ),
-    input.operation === 'purge'
-      ? countRows(
-          db,
-          metaSchema.releaseProcessingActions,
-          eq(
-            metaSchema.releaseProcessingActions.resourceReleaseId,
-            input.release.resourceReleaseId,
-          ),
-        )
-      : Promise.resolve(0),
-    input.operation === 'purge'
-      ? countRows(
-          db,
-          metaSchema.releaseProcessingActionChunks,
-          eq(
-            metaSchema.releaseProcessingActionChunks.resourceReleaseId,
-            input.release.resourceReleaseId,
-          ),
-        )
-      : Promise.resolve(0),
     countRows(
       db,
       metaSchema.metaReleaseShardAssignments,
@@ -324,8 +302,6 @@ async function countMetaRollbackRows(
     journalRows +
     statsRows +
     processingRunRows +
-    processingActionRows +
-    processingChunkRows +
     shardAssignmentRows +
     dependencyRows +
     assemblyRows +
@@ -467,8 +443,6 @@ export async function verifyPurgeResult(
     provenanceRows,
     snapshotSourceRows,
     processingRunRows,
-    processingActionRows,
-    processingChunkRows,
   ] = await Promise.all([
     countRows(
       dbContext.metaDb,
@@ -513,22 +487,6 @@ export async function verifyPurgeResult(
       metaSchema.processingRuns,
       eq(metaSchema.processingRuns.resourceReleaseId, input.resourceReleaseId),
     ),
-    countRows(
-      dbContext.metaDb,
-      metaSchema.releaseProcessingActions,
-      eq(
-        metaSchema.releaseProcessingActions.resourceReleaseId,
-        input.resourceReleaseId,
-      ),
-    ),
-    countRows(
-      dbContext.metaDb,
-      metaSchema.releaseProcessingActionChunks,
-      eq(
-        metaSchema.releaseProcessingActionChunks.resourceReleaseId,
-        input.resourceReleaseId,
-      ),
-    ),
   ])
   const remainingRows =
     releaseRows +
@@ -541,9 +499,7 @@ export async function verifyPurgeResult(
     journalRows +
     provenanceRows +
     snapshotSourceRows +
-    processingRunRows +
-    processingActionRows +
-    processingChunkRows
+    processingRunRows
 
   if (remainingRows > 0) {
     throw new Error(

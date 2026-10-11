@@ -176,9 +176,9 @@ export async function resolvePublisherName(publisherCode: string) {
     `${publisherCode}.json`,
   )
   const fixture = JSON.parse(await readFile(path, 'utf8')) as {
-    i18n?: Array<{ locale?: string; name?: string }>
+    i18n?: Record<string, { name?: string }>
   }
-  return fixture.i18n?.find(entry => entry.locale === 'en')?.name ?? publisherCode
+  return fixture.i18n?.en?.name ?? publisherCode
 }
 
 export function appendEnglishRevisionLog(

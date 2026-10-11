@@ -152,7 +152,7 @@ export async function divisionResetBlockers(context: ResetReadContext) {
     await check(
       binding,
       `${label}: addresses reference divisions`,
-      'SELECT 1 FROM address2d WHERE countryId IS NOT NULL OR landformId IS NOT NULL OR areaId IS NOT NULL OR districtId IS NOT NULL OR townId IS NOT NULL OR macrohoodId IS NOT NULL OR villageId IS NOT NULL OR neighbourhoodId IS NOT NULL OR hamletId IS NOT NULL OR microhoodId IS NOT NULL LIMIT 1',
+      'SELECT 1 FROM address2d WHERE countryId IS NOT NULL OR landformId IS NOT NULL OR areaId IS NOT NULL OR districtId IS NOT NULL OR townId IS NOT NULL OR ruralAreaId IS NOT NULL OR macrohoodId IS NOT NULL OR villageId IS NOT NULL OR neighbourhoodId IS NOT NULL OR hamletId IS NOT NULL OR microhoodId IS NOT NULL LIMIT 1',
     )
     await check(
       binding,
@@ -228,16 +228,16 @@ export function buildDivisionResetSql(plan: DivisionResetPlan) {
     `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${RELEASES}) OR apiVersionReleaseSetId IN (SELECT id FROM apiVersionReleaseSets WHERE apiVersionId IN (${VERSIONS}));`,
     `DELETE FROM stats WHERE resourceReleaseId IN (${RELEASES}) OR apiReleaseSetId IN (${SETS});`,
     ...[
-      'releaseProcessingActionChunks',
-      'releaseProcessingActions',
       'processingRuns',
       'releaseShardAssignments',
       'releaseProvenance',
+      'processingAudits',
     ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),
     `DELETE FROM snapshotDependencies WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM snapshotResourceReleases WHERE snapshotId IN (${SNAPSHOTS});`,
     `DELETE FROM apiReleaseSets WHERE id IN (${SETS});`,
+    `DELETE FROM assets WHERE resourceReleaseId IN (${RELEASES}) AND (role = 'resourceSourceArchive' OR role = 'manifest');`,
     // Keep source evidence assets and fixture identities available for replay.
     // assets.resourceReleaseId and journal references use ON DELETE SET NULL.
     `DELETE FROM snapshots WHERE id IN (${SNAPSHOTS});`,

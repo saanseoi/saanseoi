@@ -11,16 +11,24 @@ const division = {
 test('upload preflight accepts reviewed publisher schemas across mapping versions', () => {
   expect(assertUploadApiFieldCompatibility(division, '1.12.0')).toEqual({
     status: 'covered',
-    mappings: ['api-divisions-v0.1@geographic-v1.json'],
+    mappings: [
+      'api-divisions-v0.1@geographic-v1.json',
+      'api-divisions-v0.2@geographic-v1.json',
+    ],
   })
   expect(assertUploadApiFieldCompatibility(division, '1.18.0')).toEqual({
     status: 'covered',
-    mappings: ['api-divisions-v0.1@geographic-v2.json'],
+    mappings: [
+      'api-divisions-v0.1@geographic-v2.json',
+      'api-divisions-v0.1@geographic-v3.json',
+      'api-divisions-v0.2@geographic-v2.json',
+      'api-divisions-v0.2@geographic-v3.json',
+    ],
   })
 })
 
 test('upload preflight blocks unknown future and older schemas with review instructions', () => {
-  for (const version of ['1.19.0', '1.9.0']) {
+  for (const version of ['2.1.0', '1.9.0']) {
     expect(() => assertUploadApiFieldCompatibility(division, version)).toThrow(
       'Review the publisher schema changes',
     )
@@ -40,7 +48,7 @@ test('upload preflight cannot borrow another API family or dataset range', () =>
   expect(() =>
     assertUploadApiFieldCompatibility(
       { ...division, resourceType: 'place', datasetCode: 'ds-hk-overture-place' },
-      '1.19.0',
+      '2.1.0',
     ),
   ).toThrow('preflight failed')
   expect(

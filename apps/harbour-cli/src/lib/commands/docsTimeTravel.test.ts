@@ -19,7 +19,20 @@ test('renders shared time travel sections for versioned API guides', async () =>
       expect(fixture.frontmatter.timeTravelCatalogRevision).toBeUndefined()
       continue
     }
-    expect(directives, path).not.toBeNull()
+    expect(directives?.sort(), path).toEqual(
+      ['en', 'zh-Hant', 'zh-Hans']
+        .map(locale => `{{timeTravelSection:${locale}}}`)
+        .sort(),
+    )
+    for (const key of [
+      'timeTravelEffectiveAt',
+      'timeTravelKnownAt',
+      'timeTravelCatalogRevision',
+    ]) {
+      expect(fixture.frontmatter[key], `${path}: ${key}`).toBeTruthy()
+    }
+    const versionPath = fixture.frontmatter.apiVersion?.match(/-(v\d+(?:\.\d+)*)$/)?.[1]
+    expect(versionPath, path).toBeTruthy()
     const rendered = await renderMarkdownFixtureBody({
       ...fixture,
       body: requireDefined(directives).join('\n'),
@@ -29,11 +42,11 @@ test('renders shared time travel sections for versioned API guides', async () =>
       `catalogRevision=${fixture.frontmatter.timeTravelCatalogRevision}&`,
     )
     expect(rendered).toContain(`releaseSet=${fixture.frontmatter.apiReleaseSet}`)
-    expect(rendered).toContain(`/${fixture.frontmatter.apiFamily}/v0.1?`)
+    expect(rendered).toContain(`/${fixture.frontmatter.apiFamily}/${versionPath}?`)
     expect(rendered).toContain('links.permalink')
     guides++
   }
-  expect(guides).toBe(74)
+  expect(guides).toBeGreaterThan(0)
 })
 
 test('frontmatter overrides supply checkpoint examples and missing values fail clearly', async () => {

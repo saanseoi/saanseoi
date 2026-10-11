@@ -15,10 +15,23 @@ test('shared guide bodies resolve variables and nested profile tables across gui
     root,
   )) {
     const fixture = parseMarkdownFixture(await readFile(resolve(root, path), 'utf8'))
+    if (!fixture.body.trim()) continue
     const directives =
       fixture.body.match(
         /\{\{(?:paginationSection|responseProfilesSection|localeSelectionSection):[^}]+\}\}/g,
       ) ?? []
+    for (const kind of Object.keys(counts) as Array<keyof typeof counts>) {
+      const actual = directives.filter(directive => directive.startsWith(`{{${kind}:`))
+      const required =
+        kind === 'paginationSection' ||
+        (kind === 'responseProfilesSection' &&
+          fixture.frontmatter.apiFamily !== 'stats')
+      if (required || actual.length) {
+        expect(actual.sort(), path).toEqual(
+          ['en', 'zh-Hant', 'zh-Hans'].map(locale => `{{${kind}:${locale}}}`).sort(),
+        )
+      }
+    }
     for (const directive of directives) {
       const kind = directive.slice(2, directive.indexOf(':')) as keyof typeof counts
       counts[kind]++
@@ -52,7 +65,5 @@ test('shared guide bodies resolve variables and nested profile tables across gui
       )
     }
   }
-  expect(counts.paginationSection).toBe(252)
-  expect(counts.responseProfilesSection).toBe(192)
-  expect(counts.localeSelectionSection).toBe(159)
+  for (const count of Object.values(counts)) expect(count).toBeGreaterThan(0)
 })

@@ -1,9 +1,9 @@
-import { reconcileDraftReleaseSets } from '../upload/upload'
-import { publishLocalCuratedDivisions } from '../pipeline/curatedDivisions/publishLocal'
+import { prepareOvertureCountryAnchor } from '../sources/overtureCountryAnchor'
+import { prepareCuratedArchive } from '../pipeline/curatedDivisions/archiveInput'
 import { assertUploadApiFieldCompatibility } from './uploadApiFields'
 import { cancel, confirm, intro, isCancel, log, note, outro } from '@clack/prompts'
 import { resolve } from 'node:path'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/metrics/releaseStats'
 import { resolveSourceSchemaVersion } from '@repo/core'
 import { prepareUpload } from '@repo/core/uploadLocal'
@@ -60,6 +60,15 @@ export async function runUploadCommand(
   args: ParsedArgs,
   target: UploadTarget,
   options: {
+    sourceAuditGuards?: import('@repo/core/provenance').AuditGuard[]
+    countryPreparation?: {
+      reference: import('../sources/overtureCountryAnchor').CountryPreparationReference
+      sourceVersion: string
+      inputCount: number
+      outputCount: number
+    }
+    curatedPreparation?: import('../pipeline/curatedDivisions/preparationAudit').PreparationEvidence
+    curatedSourceReleases?: import('../pipeline/curatedDivisions/archiveInput').CuratedSourceRelease[]
     dryRun: boolean
     forceUpload: boolean
     /** Allows a source-specific local repair to reprocess a published release. */
@@ -120,7 +129,12 @@ export async function runUploadCommand(
     options.printUsage()
     throw new Error('Missing file path.')
   }
-  const sourceArtefactPath = resolve(options.invocationCwd, inputFile)
+  const sourceArtefactPath = resolve(
+    options.invocationCwd,
+    typeof args.options['release-source-file'] === 'string'
+      ? args.options['release-source-file']
+      : inputFile,
+  )
   if (!sourceArchiveReference(args)) {
     assertRetainableSourceReleaseInput(inputFile)
   }
@@ -142,6 +156,30 @@ ${mutedBar}  `)
     const registerOptions = buildRegisterOptions(options.invocationCwd, inputFile, args)
     if (options.allowHistoricalCohort) {
       registerOptions.allowHistoricalCohort = true
+    }
+    const curated = await prepareCuratedArchive(
+      registerOptions.filePath,
+      registerOptions.source,
+    )
+    if (curated) {
+      sourcePreparationCleanup = curated.cleanup
+      for (const key of [
+        'sourceVersion',
+        'cohortKey',
+        'datasetCode',
+        'resourceType',
+      ] as const)
+        if (registerOptions[key] && registerOptions[key] !== curated[key])
+          throw new Error(`Archive ${key} does not match upload options.`)
+      const {
+        cleanup: _cleanup,
+        sourceReleases: _sources,
+        preparation: _preparation,
+        ...archiveOptions
+      } = curated
+      Object.assign(registerOptions, archiveOptions)
+      options.curatedSourceReleases = curated.sourceReleases
+      options.curatedPreparation = curated.preparation
     }
     const hkgovHadPreparation = await prepareHkgovHadGeoJsonUpload(
       registerOptions.filePath,
@@ -207,6 +245,36 @@ ${mutedBar}  `)
       log.message('Prepared LandsD Settlement Place Name GeoJSON.')
     }
     let previewResult = await prepareUpload(registerOptions)
+    if (
+      previewResult.plan.source === 'overture' &&
+      previewResult.plan.resourceType === 'division'
+    ) {
+      const prepared = await prepareOvertureCountryAnchor(
+        registerOptions.filePath,
+        previewResult.plan.sourceVersion,
+      )
+      if (prepared.reference) {
+        const inputCount = previewResult.plan.rowCount
+        Object.assign(registerOptions, {
+          filePath: prepared.filePath,
+          source: previewResult.plan.source,
+          sourceVersion: previewResult.plan.sourceVersion,
+          regionCode: previewResult.plan.regionCode,
+          resourceType: 'division',
+          datasetCode: previewResult.plan.datasetCode,
+          cohortKey: previewResult.plan.cohortKey,
+          originalFileName: previewResult.plan.originalFileName,
+        })
+        delete registerOptions.inspection
+        previewResult = await prepareUpload(registerOptions)
+        options.countryPreparation = {
+          reference: prepared.reference,
+          sourceVersion: previewResult.plan.sourceVersion,
+          inputCount,
+          outputCount: previewResult.plan.rowCount,
+        }
+      }
+    }
     const sourceSchemaVersion = await resolveSourceSchemaVersion({
       source: previewResult.plan.source,
       sourceVersion: previewResult.plan.sourceVersion,
@@ -228,9 +296,7 @@ ${mutedBar}  `)
       new Set([previewResult.plan.datasetCode]),
     )
     const revisionDraft = () => ({
-      datasetName:
-        datasetFixture?.i18n?.find(entry => entry.locale === 'en')?.name ??
-        previewResult.plan.datasetCode,
+      datasetName: datasetFixture?.i18n?.en?.name ?? previewResult.plan.datasetCode,
       prompt: !options.skipConfirm,
       publisherCode: datasetFixture?.publisherCode ?? previewResult.plan.source,
       sourceVersion: previewResult.plan.sourceVersion,
@@ -409,11 +475,15 @@ ${mutedBar}  `)
         const sourceAsset = await uploadSourceReleaseAsset(target, {
           datasetCode: previewResult.plan.datasetCode,
           datasetId,
-          filePath: registerOptions.filePath,
+          filePath: sourceArtefactPath,
           publisherCode: 'overture',
           releaseCode: previewResult.plan.releaseCode,
           resourceReleaseId,
           sourceVersion: previewResult.plan.sourceVersion,
+        })
+        await linkManagedSourceAssetToRelease(target, {
+          assetKey: sourceAsset.assetKey,
+          resourceReleaseId,
         })
         log.message(`Retained Overture source: ${sourceAsset.url}`)
       } else if (!sourceArchive) {
@@ -425,14 +495,33 @@ ${mutedBar}  `)
         const sourceAsset = await uploadSourceReleaseAsset(target, {
           datasetCode: previewResult.plan.datasetCode,
           datasetId,
-          fileName: inputFile,
+          fileName: sourceArtefactPath,
           filePath: sourceArtefactPath,
           publisherCode: previewResult.plan.source,
           releaseCode: previewResult.plan.releaseCode,
           resourceReleaseId,
           sourceVersion: previewResult.plan.sourceVersion,
         })
+        await linkManagedSourceAssetToRelease(target, {
+          assetKey: sourceAsset.assetKey,
+          resourceReleaseId,
+        })
         log.message(`Retained published source artefact: ${sourceAsset.url}`)
+      }
+
+      if (registerOptions.filePath.toLowerCase().endsWith('.parquet')) {
+        if (!resourceReleaseId || typeof uploadResult?.datasetId !== 'string')
+          throw new Error('Resource source retention requires release identifiers.')
+        await uploadSourceReleaseAsset(target, {
+          datasetCode: previewResult.plan.datasetCode,
+          datasetId: uploadResult.datasetId,
+          filePath: registerOptions.filePath,
+          publisherCode: previewResult.plan.source,
+          releaseCode: previewResult.plan.releaseCode,
+          resourceReleaseId,
+          sourceVersion: previewResult.plan.sourceVersion,
+          role: 'resourceSourceArchive',
+        })
       }
 
       await processPreparedUpload({
@@ -441,27 +530,32 @@ ${mutedBar}  `)
         preparedUploadFile,
         target,
         uploadResult,
-        options: { ...options, rebuildPublishedSnapshot },
+        options: {
+          ...options,
+          rebuildPublishedSnapshot,
+          sourceAuditGuards:
+            apiFieldCompatibility.status === 'covered'
+              ? [
+                  {
+                    id: 'source-api-field-compatibility',
+                    summary:
+                      'Require a reviewed API-field mapping for the publisher schema version.',
+                    consequence: 'block-ingestion',
+                    status: 'passed',
+                    checked: 1,
+                    failed: 0,
+                    reason: JSON.stringify({
+                      sourceSchemaVersion,
+                      mappings: apiFieldCompatibility.mappings,
+                    }),
+                  },
+                ]
+              : [],
+        },
         revisionDraft,
         divisionGeometryTransform,
         cacheArtefacts,
       })
-      if (
-        !target.remote &&
-        previewResult.plan.regionCode === 'hk' &&
-        previewResult.plan.source === 'overture' &&
-        ['division', 'divisionArea'].includes(previewResult.plan.resourceType)
-      ) {
-        const curated = await publishLocalCuratedDivisions(target, {
-          cohort: previewResult.plan.cohortKey,
-          waitForBaseline: true,
-        })
-        if (curated)
-          await reconcileDraftReleaseSets(target, {
-            apiFamily: 'divisions',
-            regionCode: 'hk',
-          })
-      }
       await discardSuccessfulReleaseArtefacts(
         cacheArtefacts,
         target,

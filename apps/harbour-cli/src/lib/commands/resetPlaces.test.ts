@@ -108,8 +108,8 @@ function createPlacesOwnershipDb() {
     );
     CREATE TABLE processingRuns (
       runId TEXT PRIMARY KEY,
-      resourceReleaseId TEXT NOT NULL,
-      phase TEXT NOT NULL,
+      sourceReleaseId TEXT, resourceReleaseId TEXT NOT NULL,
+      stage TEXT NOT NULL DEFAULT 'assembly', checkpoint TEXT, attempt INTEGER NOT NULL DEFAULT 1, snapshotId TEXT, apiReleaseSetId TEXT, phase TEXT NOT NULL,
       status TEXT NOT NULL,
       results TEXT,
       error TEXT,
@@ -138,7 +138,7 @@ function createPlacesOwnershipDb() {
     );
     CREATE TABLE assets (
       id TEXT PRIMARY KEY,
-      resourceReleaseId TEXT,
+      sourceReleaseId TEXT, resourceReleaseId TEXT,
       assetKey TEXT NOT NULL
     );
 
@@ -354,15 +354,14 @@ describe('Overture Places initialisation ownership', () => {
   test('fails only abandoned Places phases last updated before the manifest failure', async () => {
     const { db, sqlite } = createPlacesOwnershipDb()
     sqlite.exec(`
-      INSERT INTO processingRuns (
+      INSERT INTO processingRuns (stage,
         runId, resourceReleaseId, phase, status, startedAt, createdAt, updatedAt
-      ) VALUES
-        (
+      ) VALUES ('assembly',
           'abandoned', 'places-release', 'processDataset', 'running',
           '2026-09-06T00:00:00.000Z', '2026-09-06T00:00:00.000Z',
           '2026-09-06T00:01:00.000Z'
         ),
-        (
+        ('assembly',
           'newer', 'places-release', 'extractPlaces', 'running',
           '2026-09-06T00:03:00.000Z', '2026-09-06T00:03:00.000Z',
           '2026-09-06T00:03:00.000Z'
@@ -396,9 +395,9 @@ describe('Overture Places initialisation ownership', () => {
   test('opens interrupted recovery as the retained SQL owner before failing its stale phase', async () => {
     const { db, sqlite } = createPlacesOwnershipDb()
     sqlite.exec(`
-      INSERT INTO processingRuns (
+      INSERT INTO processingRuns (stage,
         runId, resourceReleaseId, phase, status, startedAt, createdAt, updatedAt
-      ) VALUES (
+      ) VALUES ('assembly',
         'abandoned', 'places-release', 'processDataset', 'running',
         '2026-09-06T00:00:00.000Z', '2026-09-06T00:00:00.000Z',
         '2026-09-06T00:01:00.000Z'

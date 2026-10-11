@@ -591,12 +591,12 @@ export async function collectOwnedPlaces(db: HarbourReadableDb): Promise<OwnedPl
     .select({
       assetKey: metaSchema.metaAssets.assetKey,
       id: metaSchema.metaAssets.id,
-      resourceReleaseId: metaSchema.metaAssets.resourceReleaseId,
+      resourceReleaseId: metaSchema.assetReleaseAuthority,
     })
     .from(metaSchema.metaAssets)
     .innerJoin(
       metaSchema.metaResourceReleases,
-      eq(metaSchema.metaAssets.resourceReleaseId, metaSchema.metaResourceReleases.id),
+      eq(metaSchema.assetReleaseAuthority, metaSchema.metaResourceReleases.id),
     )
     .innerJoin(
       metaSchema.metaDatasets,
@@ -872,7 +872,7 @@ async function assertPlacesResetStillSafe(
   const assets = await context.metaDb
     .select({ id: metaSchema.metaAssets.id })
     .from(metaSchema.metaAssets)
-    .where(inArray(metaSchema.metaAssets.resourceReleaseId, owned.releaseIds))
+    .where(inArray(metaSchema.assetReleaseAuthority, owned.releaseIds))
     .all()
   if (
     !sameSet(
@@ -1040,8 +1040,6 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM apiReleaseSetSnapshots WHERE apiReleaseSetId IN (${apiReleaseSets});`,
     `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${releaseIds}) OR relatedResourceReleaseId IN (${releaseIds}) OR apiVersionReleaseSetId IN (SELECT id FROM apiVersionReleaseSets WHERE apiReleaseSetId IN (${apiReleaseSets}));`,
     `DELETE FROM stats WHERE resourceReleaseId IN (${releaseIds}) OR apiReleaseSetId IN (${apiReleaseSets});`,
-    `DELETE FROM releaseProcessingActions WHERE resourceReleaseId IN (${releaseIds});`,
-    `DELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM processingRuns WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM releaseShardAssignments WHERE resourceReleaseId IN (${releaseIds});`,
     `DELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});`,

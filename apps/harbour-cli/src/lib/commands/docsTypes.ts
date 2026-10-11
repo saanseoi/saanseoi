@@ -1,5 +1,6 @@
 export type ApiReleaseSetDocsRow = {
   id: string
+  apiReleaseSetId: string
   apiFamily: string
   apiVersion: string
   code: string

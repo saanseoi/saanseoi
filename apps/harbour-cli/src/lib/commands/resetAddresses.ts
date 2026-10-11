@@ -50,7 +50,6 @@ const LEGACY_OVERTURE_DIVISION_DATASET_CODE = 'ds-hk-overture-division'
 type FileBeforeImage = { exists: boolean; contentBase64?: string; backupPath?: string }
 type DocsState = {
   apiReleaseSets: Array<{ guide: string | null; id: string; notes: string | null }>
-  releases: Array<{ id: string; notes: string | null }>
 }
 export type OfficialAddressInitManifest = {
   baseline: { currentDivisionScopeIds: string[]; docs: DocsState }
@@ -630,10 +629,10 @@ async function collectOwnedRecords(
     .select({
       id: metaSchema.metaAssets.id,
       assetKey: metaSchema.metaAssets.assetKey,
-      resourceReleaseId: metaSchema.metaAssets.resourceReleaseId,
+      resourceReleaseId: metaSchema.assetReleaseAuthority,
     })
     .from(metaSchema.metaAssets)
-    .where(inArray(metaSchema.metaAssets.resourceReleaseId, releaseIds))
+    .where(inArray(metaSchema.assetReleaseAuthority, releaseIds))
     .all()
   const currentDivisionScopeIds = await readCurrentDivisionScopeIds(context)
   return {
@@ -697,7 +696,7 @@ async function collectOwnedRecordsFromRemoteMeta(
     client,
     releaseIds,
     values =>
-      `SELECT id, assetKey, resourceReleaseId FROM assets WHERE resourceReleaseId IN (${sqlList(values)})`,
+      `SELECT id, assetKey, coalesce(resourceReleaseId, (SELECT r.id FROM resourceReleases r WHERE r.sourceReleaseId = assets.sourceReleaseId ORDER BY r.id LIMIT 1)) AS resourceReleaseId FROM assets WHERE coalesce(resourceReleaseId, (SELECT r.id FROM resourceReleases r WHERE r.sourceReleaseId = assets.sourceReleaseId ORDER BY r.id LIMIT 1)) IN (${sqlList(values)})`,
   )
   const currentRows = (await current.query(
     'SELECT DISTINCT snapshotId FROM divisions ORDER BY snapshotId',
@@ -734,7 +733,6 @@ async function readRemoteDocsState(client: RemoteD1QueryClient): Promise<DocsSta
       'apiReleaseSets',
       'id, notes, guide',
     )) as DocsState['apiReleaseSets'],
-    releases: (await read('resourceReleases', 'id, notes')) as DocsState['releases'],
   }
 }
 
@@ -895,7 +893,7 @@ async function assertResetStillSafe(
   const assets = await context.metaDb
     .select({ id: metaSchema.metaAssets.id })
     .from(metaSchema.metaAssets)
-    .where(inArray(metaSchema.metaAssets.resourceReleaseId, owned.releaseIds))
+    .where(inArray(metaSchema.assetReleaseAuthority, owned.releaseIds))
     .all()
   if (
     assets.some(asset => !owned.assetIds.some(ownedAsset => ownedAsset.id === asset.id))
@@ -994,10 +992,10 @@ async function absorbAbandonedStagedAddressReleases(
       .select({
         assetKey: metaSchema.metaAssets.assetKey,
         id: metaSchema.metaAssets.id,
-        resourceReleaseId: metaSchema.metaAssets.resourceReleaseId,
+        resourceReleaseId: metaSchema.assetReleaseAuthority,
       })
       .from(metaSchema.metaAssets)
-      .where(eq(metaSchema.metaAssets.resourceReleaseId, release.id))
+      .where(eq(metaSchema.assetReleaseAuthority, release.id))
       .all()
     owned.assetIds.push(...assets)
     owned.releaseCodes.push(release.code)
@@ -1038,12 +1036,8 @@ async function buildResetSql(
       row =>
         `UPDATE apiVersionReleaseSets SET notes=${literal(row.notes)}, guide=${literal(row.guide)} WHERE id=${literal(row.id)};`,
     ),
-    ...manifest.baseline.docs.releases.map(
-      row =>
-        `UPDATE resourceReleases SET notes=${literal(row.notes)} WHERE id=${literal(row.id)};`,
-    ),
   ].join('\n')
-  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM processingRuns WHERE resourceReleaseId IN (${ids});\nDELETE FROM releaseProcessingActions WHERE resourceReleaseId IN (${ids});\nDELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId IN (${ids});\nDELETE FROM stats WHERE resourceReleaseId IN (${ids}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${ids}) OR relatedResourceReleaseId IN (${ids}) OR apiVersionReleaseSetId IN (SELECT id FROM apiVersionReleaseSets WHERE apiReleaseSetId IN (${apiSets}));\nDELETE FROM apiVersionReleaseSets WHERE apiReleaseSetId IN (${apiSets});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM resourceReleases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
+  const metaSql = `DELETE FROM assets WHERE id IN (${assets});\nDELETE FROM processingRuns WHERE resourceReleaseId IN (${ids});\nDELETE FROM stats WHERE resourceReleaseId IN (${ids}) OR apiReleaseSetId IN (${apiSets});\nDELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId IN (${ids}) OR relatedResourceReleaseId IN (${ids}) OR apiVersionReleaseSetId IN (SELECT id FROM apiVersionReleaseSets WHERE apiReleaseSetId IN (${apiSets}));\nDELETE FROM apiVersionReleaseSets WHERE apiReleaseSetId IN (${apiSets});\nDELETE FROM apiReleaseSets WHERE id IN (${apiSets});\nDELETE FROM snapshotDependencies WHERE snapshotId IN (${snapshots});\nDELETE FROM snapshots WHERE id IN (${snapshots});\nDELETE FROM resourceReleases WHERE id IN (${ids});\nDELETE FROM sourceReleases WHERE id IN (${sourceReleases});\n${docsSql}`
   const source = context.sourceTargets.map(target => ({
     sql: sourceSql,
     target: {
@@ -1085,24 +1079,15 @@ async function buildResetSql(
 async function readDocsState(
   context: Pick<LocalAddressDbContext, 'metaDb'>,
 ): Promise<DocsState> {
-  const [apiReleaseSets, releases] = await Promise.all([
-    context.metaDb
-      .select({
-        id: metaSchema.metaApiVersionReleaseSets.id,
-        notes: metaSchema.metaApiVersionReleaseSets.notes,
-        guide: metaSchema.metaApiVersionReleaseSets.guide,
-      })
-      .from(metaSchema.metaApiVersionReleaseSets)
-      .all(),
-    context.metaDb
-      .select({
-        id: metaSchema.metaResourceReleases.id,
-        notes: metaSchema.metaResourceReleases.notes,
-      })
-      .from(metaSchema.metaResourceReleases)
-      .all(),
-  ])
-  return { apiReleaseSets: apiReleaseSets.sort(byId), releases: releases.sort(byId) }
+  const apiReleaseSets = await context.metaDb
+    .select({
+      id: metaSchema.metaApiVersionReleaseSets.id,
+      notes: metaSchema.metaApiVersionReleaseSets.notes,
+      guide: metaSchema.metaApiVersionReleaseSets.guide,
+    })
+    .from(metaSchema.metaApiVersionReleaseSets)
+    .all()
+  return { apiReleaseSets: apiReleaseSets.sort(byId) }
 }
 async function readCurrentDivisionScopeIds(
   context: Pick<LocalAddressDbContext, 'currentDb'>,
@@ -1240,12 +1225,10 @@ function sameDocs(left: DocsState, right: DocsState) {
 }
 function selectDocsForInitialisation(state: DocsState, baseline: DocsState): DocsState {
   const baselineApiReleaseSetIds = new Set(baseline.apiReleaseSets.map(row => row.id))
-  const baselineReleaseIds = new Set(baseline.releases.map(row => row.id))
   return {
     apiReleaseSets: state.apiReleaseSets.filter(row =>
       baselineApiReleaseSetIds.has(row.id),
     ),
-    releases: state.releases.filter(row => baselineReleaseIds.has(row.id)),
   }
 }
 function byId<T extends { id: string }>(a: T, b: T) {

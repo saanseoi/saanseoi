@@ -176,8 +176,8 @@ export async function runGeometryStatsBackfillCommand(
         }
       }
       const districtGeometry =
-        release.datasetCode === 'ds-hk-overture-division-area' ||
-        release.datasetCode === 'ds-hk-overture-division-boundary'
+        release.datasetCode === 'ds-hk-overture-division' ||
+        release.datasetCode === 'ds-hk-overture-division'
           ? selectDistrictRelevantGeometryRecords(
               release.resourceType,
               typedGeometryRows.map(row => ({
@@ -355,8 +355,8 @@ function isDistrictGeometryRelease(release: BackfillRelease) {
       'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district' ||
     release.datasetCode ===
       'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district' ||
-    release.datasetCode === 'ds-hk-overture-division-area' ||
-    release.datasetCode === 'ds-hk-overture-division-boundary'
+    release.datasetCode === 'ds-hk-overture-division' ||
+    release.datasetCode === 'ds-hk-overture-division'
   )
 }
 

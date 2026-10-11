@@ -75,11 +75,15 @@ export async function assertAddressUploadPrerequisites(
   }
 
   const shardYear = resolveShardYear(plan.cohortKey, plan.sourceVersion)
+  const metaPath = mapLocalTargetPaths(await resolveD1Targets('local')).DB_META
+  const resumeSqlDeliveryReleaseId = metaPath
+    ? await findPendingSqlDeliveryReleaseId(dirname(metaPath), plan.releaseCode)
+    : undefined
   const dbContext = await resolveLocalAddressDbContext(
     target,
     plan.regionCode,
     shardYear,
-    { cacheTableProfile: 'division' },
+    { cacheTableProfile: 'division', resumeSqlDeliveryReleaseId },
   )
 
   try {
@@ -128,7 +132,7 @@ export type DivisionGeometryPlan = Awaited<ReturnType<typeof prepareUpload>>['pl
 
 export type AddressPlan = Awaited<ReturnType<typeof prepareUpload>>['plan']
 
-/** Keep reviewed island evidence in the Geographic divisions upload gate. */
+/** Keep curated island evidence in the Geographic divisions upload gate. */
 export async function assertIslandCurationUploadPrerequisites(
   plan: DivisionGeometryPlan,
 ) {
@@ -300,11 +304,13 @@ export function resolveDivisionDomainCode(
     : 'geographic'
 }
 
-function matchesDivisionDomain(
+export function matchesDivisionDomain(
   source: DivisionGeometryPlan['source'] | undefined,
   datasetCode?: string,
 ) {
   const domainCode = resolveDivisionDomainCode(source, datasetCode)
+  if (source === 'saanseoi')
+    return eq(metaSchema.metaSnapshotLineages.variant, 'saanseoi')
 
   // The initial Overture division snapshot predates snapshot lineages. Its
   // primary dataset is therefore the durable domain identity until it is

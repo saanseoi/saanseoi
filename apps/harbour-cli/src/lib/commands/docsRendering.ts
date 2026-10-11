@@ -60,6 +60,11 @@ export async function renderMarkdownFixtureBody(
       ...frontmatterOverride,
     }
 
+    if (frontmatter.countsRelease && frontmatter.countsRelease !== frontmatter.release)
+      throw new Error(
+        'Refresh division documentation counts for the target release before rendering.',
+      )
+
     const markdown = expandTimeTravelSections(
       expandGuideSections(fixture.body, frontmatter),
       frontmatter,
@@ -130,6 +135,26 @@ function resolveMarkdownTemplateValue(
     throw new Error(
       `Cannot derive API version path from apiVersion: ${apiVersion ?? '-'}`,
     )
+  }
+
+  const releaseDate = /^releaseDate:(en|zh-Hant|zh-Hans)$/.exec(key)
+  if (releaseDate) {
+    const day = frontmatter.releaseVersion?.match(/^(\d{4}-\d{2}-\d{2})\.\d+$/)?.[1]
+    const date = day ? new Date(`${day}T00:00:00Z`) : null
+    if (
+      !date ||
+      !Number.isFinite(date.getTime()) ||
+      date.toISOString().slice(0, 10) !== day
+    )
+      throw new Error(
+        `Cannot derive release date from releaseVersion: ${frontmatter.releaseVersion ?? '-'}`,
+      )
+    return new Intl.DateTimeFormat(releaseDate[1] === 'en' ? 'en-GB' : releaseDate[1], {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      timeZone: 'UTC',
+    }).format(date)
   }
 
   if (key === 'cohortYear') {

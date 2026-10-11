@@ -157,7 +157,7 @@ export async function statsResetBlockers(context: ResetReadContext) {
       await check(
         binding,
         `${label}: addresses reference contributed divisions`,
-        `SELECT 1 FROM address2d WHERE ${['countryId', 'areaId', 'districtId', 'townId', 'macrohoodId', 'villageId', 'neighbourhoodId', 'hamletId', 'microhoodId'].map(column => `${column} IN (${divisions})`).join(' OR ')} LIMIT 1`,
+        `SELECT 1 FROM address2d WHERE ${['countryId', 'areaId', 'districtId', 'townId', 'ruralAreaId', 'macrohoodId', 'villageId', 'neighbourhoodId', 'hamletId', 'microhoodId'].map(column => `${column} IN (${divisions})`).join(' OR ')} LIMIT 1`,
       )
       await check(
         binding,
@@ -255,11 +255,10 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
     ...deleteIds('stats', 'resourceReleaseId', releaseIds),
     ...deleteIds('stats', 'apiReleaseSetId', setIds),
     ...[
-      'releaseProcessingActionChunks',
-      'releaseProcessingActions',
       'processingRuns',
       'releaseShardAssignments',
       'releaseProvenance',
+      'processingAudits',
     ].map(table => `DELETE FROM ${table} WHERE resourceReleaseId IN (${RELEASES});`),
     ...deleteIds('snapshotDependencies', 'snapshotId', snapshotIds),
     ...deleteIds('snapshotAssemblies', 'snapshotId', snapshotIds),
@@ -269,6 +268,7 @@ export function buildStatsResetSql(plan: StatsResetPlan) {
         `UPDATE apiReleaseSets SET supersedesApiReleaseSetId = NULL WHERE supersedesApiReleaseSetId = ${literal(id)};`,
     ),
     ...deleteIds('apiReleaseSets', 'id', setIds),
+    `DELETE FROM assets WHERE resourceReleaseId IN (${RELEASES}) AND (role = 'resourceSourceArchive' OR role = 'manifest');`,
     // Keep source evidence assets and fixture identities available for replay.
     // assets.resourceReleaseId and journal references use ON DELETE SET NULL.
     ...deleteIds('snapshots', 'id', snapshotIds),

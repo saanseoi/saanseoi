@@ -368,7 +368,7 @@ export function prepareRollbackMetadata(
     params: [timestamp, release.id, release.datasetId],
   })
   metadata.push({
-    sql: `INSERT INTO releaseSetLifecycleJournal(id,resourceReleaseId,action,statusFrom,statusTo,reason,metadataJson,createdAt) VALUES(?,?,'rolled_back','current','revoked','Restored retained predecessor projections',?,?)`,
+    sql: `INSERT INTO releaseSetLifecycleJournal(id,resourceReleaseId,action,statusFrom,statusTo,metadataJson,createdAt) VALUES(?,?,'rolled_back','current','revoked',?,?)`,
     params: [
       crypto.randomUUID(),
       release.id,

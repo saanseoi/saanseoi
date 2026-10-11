@@ -263,25 +263,20 @@ test('does not record a declined new upload as the source baseline', () => {
   expect(shouldRecordUpdateStateAfterProcessing(update, 'uploaded')).toBe(true)
 })
 
-test('orders Overture division before its geometry consumers', async () => {
+test('Overture groups its inventory and geometry consumers in one source dataset', async () => {
   const datasets = await loadDatasetFixtures()
-  const geometry = datasets.filter(dataset =>
-    ['ds-hk-overture-division-area', 'ds-hk-overture-division-boundary'].includes(
-      dataset.code,
-    ),
-  )
-
+  const grouped = datasets.find(dataset => dataset.code === 'ds-hk-overture-division')!
+  expect(grouped.resourceTypes).toEqual([
+    'division',
+    'divisionArea',
+    'divisionBoundary',
+  ])
   const ordered = orderDatasetsByCompositionDependencies(
     datasets,
-    geometry,
+    [grouped],
     await loadCurrentCompositionIngestDependencies(),
   )
-
-  expect(ordered.map(dataset => dataset.code)).toEqual([
-    'ds-hk-overture-division',
-    'ds-hk-overture-division-area',
-    'ds-hk-overture-division-boundary',
-  ])
+  expect(ordered.map(dataset => dataset.code)).toEqual(['ds-hk-overture-division'])
 })
 
 test('accepts --scope as an alias for --api-family', async () => {
