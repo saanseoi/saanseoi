@@ -1,4 +1,4 @@
-import { m } from '#lib/bits/internal/i18n.js'
+import { m } from '@repo/i18n/messages'
 import type { CreateAMapSelectionQuery } from '#lib/guides/createAMapSelections.js'
 
 export type MissingPrerequisiteQuestion = {

@@ -93,7 +93,7 @@ export function createCreateAMapGuideAdapter({
 
     const target = `${url.pathname}${url.search}${url.hash}`
     if (target !== `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`) {
-      void goto(target, { reset: false, replaceState: true })
+      void goto(target, { reset: false, replace: true })
     }
   })
 

@@ -609,11 +609,34 @@ Locale codes, provider identifiers and external identifier keys retain their spe
 
 ## Division discovery
 
+For the curated geographic inventory use /divisions/v0.2?domain=geographic&inventory=saanseoi.
+Inventory selects division identities and hierarchy; include=areas selects compatible geometry.
+Optional \`fullContainment\` on each ancestor describes coverage of the owning division’s
+entire canonical area for the selected release: true means complete coverage, false means
+some area lies outside, and null or absence means unknown. It does not apply to transformed
+or alternative geometry. Geometry-validation fingerprints are internal.
+Discover published choices at /divisions/v0.2/inventories and retain the returned releaseSet
+and inventory when fetching detail or paginated data. Use inventory=overture for its
+independent published inventory. A missing inventory returns a selection conflict; do not
+silently retry another inventory. API 0.1 retains the Overture contract. If no 0.2 edition
+is published, report that availability explicitly rather than switching contracts.
+
+
 For Division discovery, request /divisions/v0.1/search?q=水埗. It searches all domains
 unless domain is specified, using names, aliases and codes. English partial text and
 Chinese substrings are supported. Set ancestors=true to also match stored ancestor
 names. Optional locale restricts the matching localisation. This endpoint searches the
 latest published releases; retry HTTP 503 fts_not_ready after finalisation completes.
+
+## Geographic code filters
+
+Use filter[adminCode], filter[localityCode], filter[hoodCode] or filter[landformCode] on resources with Division
+membership. For example, add filter[adminCode]=CW to a Places request. Different
+filters combine with AND. localityCode includes cities, towns, rural areas, villages and hamlets; hoodCode covers
+macrohoods, neighbourhoods and microhoods. adminCode=HKSAR selects all Hong Kong.
+Unknown codes return 422. Follow response links so geographicReleaseSet remains pinned.
+Planning geography requires a published spatial crosswalk; retry 503 only after that
+crosswalk is ready. Overlap fractions must not be used as population weights.
 
 ## Places discovery
 
