@@ -1889,6 +1889,14 @@ curated classification and bilingual names; its reviewed hierarchy, drawn bounda
 polygon core point remain in their dedicated fixtures. It is not an authored addition:
 the curation applies to the source record and does not create it in earlier inventories.
 
+The local editor selects the newest pinned release of each dataset across
+`saanseoi-division-review.json` and `saanseoi-division-release-inputs.json` on every
+input rebuild. Companion resources must all exist at that version; missing or ambiguous
+pins fail preparation. Monthly publication retains its edition-date cutoff. Browser
+drawings, undo and backups use a stable storage cohort. Restored and imported drawings
+are validated against the current editor inventory regardless of their saved cohort, so
+advancing source inputs does not create a separate browser workspace.
+
 SaanSeoi area archives encode `isLand` and `isTerritorial` as JSON booleans. Null or
 absent values mean unknown. Preparation converts internal SQLite `0`/`1` flags to
 booleans before writing the archive. Ingestion rejects numeric, string and structured

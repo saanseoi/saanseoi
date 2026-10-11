@@ -17,6 +17,9 @@ import {
 import { divisionCuration } from '../../apps/harbour-cli/src/lib/pipeline/curatedDivisions/curationInputs'
 import { classifyIslandArea } from '../../libs/db/src/divisionTaxonomy'
 import groups from '../../fixtures/meta/curations/saanseoi-division/island-groups.json'
+import reviewPins from '../../fixtures/meta/datasetInputs/saanseoi-division-review.json'
+import releasePins from '../../fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json'
+import { selectLatestEditorInputs } from './editor-inputs'
 
 const root = resolve(import.meta.dir, '../..')
 const projectPath = resolve(root, '.local/division-review/division-editor-project.json')
@@ -40,10 +43,15 @@ const archiveOptions = {
 }
 const inputs = await loadDivisionReviewInputs({
   ...archiveOptions,
+  sourceReleases:
+    options.sourceReleases ??
+    selectLatestEditorInputs(reviewPins.sourceReleases, releasePins.sourceReleases),
   includeAreas: true,
 })
 const nativePin = inputs.sourceReleases.find(
-  row => row.datasetCode === 'ds-hk-overture-division-area',
+  row =>
+    row.datasetCode === 'ds-hk-overture-division' &&
+    row.resourceType === 'divisionArea',
 )!
 const landPin = inputs.sourceReleases.find(
   row => row.datasetCode === 'ds-hk-protomaps-island',
@@ -139,6 +147,7 @@ const output = {
   purpose:
     'Generated editor reference data. Rebuild from pinned archives and purpose-specific curation; do not edit this cache.',
   inventory: inputs.inventory,
+  storageCohort: reviewPins.cohort,
   hierarchy: inputs.hierarchy,
   islands: inputs.islands,
   islandReview: inputs.islandReview,

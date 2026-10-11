@@ -181,7 +181,7 @@ const prepareEstimatedAreas = (value: SaanseoiEstimatedAreas) => {
   return reconcileReviewEstimatedAreas(
     upgradeSavedDrawingVariants({
       ...value,
-      cohort: value.cohort ?? inventory.cohort,
+      cohort: inventory.cohort,
       features: value.features.filter(
         feature => !derivedReferenceIds.has(feature.properties.divisionId),
       ),
@@ -237,7 +237,7 @@ const publishedIslandReference: FeatureCollection<
   ),
 }
 // Keep the persisted namespace stable: drawings, undo, backups and repair markers share it.
-const key = `saanseoi-division-stubs:${inventory.cohort}`
+const key = `saanseoi-division-stubs:${reviewInputs.storageCohort}`
 const retiredIslandDrawingIds = new Set([
   'LANDSD:PLACE_NAME:146',
   'LANDSD:PLACE_NAME:829',

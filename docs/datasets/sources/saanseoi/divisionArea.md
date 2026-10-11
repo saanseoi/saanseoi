@@ -158,6 +158,14 @@ bytes block loading. `.local/division-review/` is generated and ignored by Git; 
 it or resetting the database does not lose curation. Retained archives can regenerate
 it.
 
+The local editor selects the newest pinned release of each dataset across
+`saanseoi-division-review.json` and `saanseoi-division-release-inputs.json` on every
+input rebuild. Companion resources must all exist at that version; missing or ambiguous
+pins fail preparation. Monthly publication retains its edition-date cutoff. Browser
+drawings, undo and backups use a stable storage cohort. Restored and imported drawings
+are validated against the current editor inventory regardless of their saved cohort, so
+advancing source inputs does not create a separate browser workspace.
+
 Build the pair of archives without publishing or writing canonical database rows:
 
 ```sh
