@@ -194,7 +194,7 @@ function requireStreetAssetRole(
     role !== 'gazettePlanPreview' &&
     role !== 'governmentNotice' &&
     role !== 'historicalGovernmentNotice' &&
-    role !== 'sourceArchive' &&
+    role !== 'releaseSourceArchive' &&
     role !== 'sourcePage' &&
     role !== 'sourcePdf'
   ) {

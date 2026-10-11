@@ -13,6 +13,7 @@ import {
   type PublicationPreparation,
 } from '@repo/core/pipeline/services/publication/sql.ts'
 import { deliverStreetWorkflow } from './streetDelivery.ts'
+import { retainStreetProvenance } from './streetProvenance.ts'
 import { deliveryFileSha256 } from '../local/sqlDeliveryFiles.ts'
 import {
   ensureDraftSnapshotForRelease,
@@ -24,7 +25,6 @@ import {
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { replaceReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import { currentSchema, eq, toIsoTimestamp } from '@repo/db'
@@ -205,12 +205,13 @@ export async function processLocalStreetSqlUpload(
     validatePreparedStreets(records, previewPlan)
     const now = toIsoTimestamp()
 
+    const preparedSha256 = await deliveryFileSha256(preparedUpload.filePath)
     const completionCounts = await deliverStreetWorkflow(
       context,
       resourceReleaseId,
       {
         snapshotId: snapshot.id,
-        preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
+        preparedSha256,
       },
       async context => {
         const metaDb = context.metaDb as unknown as HarbourReadableDb &
@@ -357,7 +358,6 @@ export async function processLocalStreetSqlUpload(
           changedSourceRecords,
           now,
         )
-        await replaceReleaseProcessingActions(metaDb, resourceReleaseId, [])
         await replaceDatasetStats(
           metaDb,
           resourceReleaseId,
@@ -397,6 +397,19 @@ export async function processLocalStreetSqlUpload(
         }
       },
     )
+    await retainStreetProvenance({
+      target,
+      directory: `${releaseRoot}/provenance-street`,
+      resourceReleaseId,
+      datasetCode,
+      snapshotId: snapshot.id,
+      scopeId: snapshot.snapshotLineageId,
+      preparedSha256,
+      records,
+      counts: completionCounts,
+      currentDb: context.currentDb as unknown as HarbourReadableDb,
+      sourceDb: context.sourceDb as unknown as HarbourReadableDb,
+    })
     await client.stageCompleted(
       resourceReleaseId,
       'processDataset',
