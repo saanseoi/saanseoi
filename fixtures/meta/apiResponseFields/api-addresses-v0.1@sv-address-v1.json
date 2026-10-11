@@ -1,0 +1,10 @@
+{
+  "versionHash": "sha256:cca5e0ac69e08314fa2eaca0c9c6006fe07c998af7446ac18b297da10ab54d6a",
+  "apiVersion": "api-addresses-v0.1",
+  "schemaVersion": "sv-address-v1",
+  "resources": {
+    "address": {
+      "relationships.divisions": "address.divisions"
+    }
+  }
+}

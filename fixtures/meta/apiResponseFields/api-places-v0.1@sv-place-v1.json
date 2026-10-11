@@ -1,0 +1,11 @@
+{
+  "versionHash": "sha256:43e5d4d9cba910f229373e3d8c61e0574b1cf7850914144a3e3d4b6f1a24307b",
+  "apiVersion": "api-places-v0.1",
+  "schemaVersion": "sv-place-v1",
+  "resources": {
+    "place": {
+      "relationships.address": "place.addressId",
+      "relationships.divisions": "place.divisions"
+    }
+  }
+}

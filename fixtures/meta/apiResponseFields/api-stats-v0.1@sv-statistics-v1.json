@@ -1,0 +1,11 @@
+{
+  "versionHash": "sha256:acc1d91b5e33c65fad552b418ab2c814530f9c5cdf774ce7ab72f81cc1784898",
+  "apiVersion": "api-stats-v0.1",
+  "schemaVersion": "sv-statistics-v1",
+  "resources": {
+    "statistic": {
+      "relationships.division": "statistic.divisionId"
+    },
+    "statistic-field": {}
+  }
+}
