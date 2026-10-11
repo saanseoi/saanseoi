@@ -33,13 +33,19 @@ const current = {
   ],
 }
 const sources = {
-  division: ['overtureDivisions', 'hkgovPlandNewTowns', 'hkgovPlandPlanningCells'],
+  division: [
+    'ssDivision',
+    'overtureDivisions',
+    'hkgovPlandNewTowns',
+    'hkgovPlandPlanningCells',
+  ],
   street: [
     'hkgovLandsdStreetBaselineRecords',
     'hkgovLandsdStreetNotices',
     'hkgovLandsdStreetNoticeApplications',
   ],
   geometry: [
+    'ssDivisionArea',
     'overtureDivisionAreas',
     'overtureDivisionBoundaries',
     'hkgovHadDivisionAreas',

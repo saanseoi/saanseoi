@@ -1,3 +1,4 @@
+import { createLocalHarbourDb } from '@repo/core/testing/localDb'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm, writeFile } from 'node:fs/promises'
@@ -17,6 +18,7 @@ test('native delivery phases retain workflow outputs without repeating artefact 
   const resourceReleaseId = `phase-output-test-${crypto.randomUUID()}`
   const binding = createLocalExecBinding(db, 'DB_CURRENT')
   const context = {
+    metaDb: createLocalHarbourDb(db),
     currentBinding: binding,
     state: { target: 'local', files: { DB_CURRENT: path }, dbCacheDir: root },
   } as unknown as LocalAddressDbContext
@@ -36,6 +38,9 @@ test('native delivery phases retain workflow outputs without repeating artefact 
   }
   try {
     db.exec('CREATE TABLE counter(n); INSERT INTO counter VALUES(0)')
+    db.exec(
+      `CREATE TABLE processingRuns (runId TEXT PRIMARY KEY, resourceReleaseId TEXT, snapshotId TEXT, apiReleaseSetId TEXT, stage TEXT NOT NULL, phase TEXT NOT NULL, status TEXT NOT NULL, attempt INTEGER DEFAULT 1 NOT NULL, checkpoint TEXT, results TEXT, error TEXT, startedAt TEXT NOT NULL, finishedAt TEXT, createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, UNIQUE(resourceReleaseId,phase), UNIQUE(snapshotId,phase), UNIQUE(apiReleaseSetId,phase));`,
+    )
     const generate = async () => {
       count = 5
       await executeSqlText(

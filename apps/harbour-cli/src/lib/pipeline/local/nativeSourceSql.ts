@@ -1,7 +1,12 @@
+import { writeResourceSourceParquet } from '../../sources/resourceSourceArchive'
+import { prepareSourceOnlyReleaseMetadata } from './sourceOnlyReleaseMetadata'
 import importFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/native-source-import.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import { nativeSourceLocatorDefaults } from './nativeSourceLocators'
-import { linkManagedSourceAssetToRelease } from '../../sources/sourceAssets'
+import {
+  uploadSourceReleaseAsset,
+  linkManagedSourceAssetToRelease,
+} from '../../sources/sourceAssets'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { missingSourceMembershipPredicates } from './sourceMembershipSql.ts'
@@ -29,7 +34,7 @@ import { prepareDivisionVersionInsertContext } from '@repo/core/pipeline/db/divi
 import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'
 import { currentRowChangedSqlText } from '@repo/core/pipeline/services/publication/currentWrites.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
-import { currentSchema, eq, metaSchema } from '@repo/db'
+import { and, currentSchema, eq, metaSchema } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 
 import {
@@ -136,11 +141,31 @@ export async function processNativeSourceSqlRelease(
     assetKey: input.archiveObjectKey,
     resourceReleaseId,
   })
+  const resourceSourcePath = await writeResourceSourceParquet(
+    resolve(
+      RELEASE_ROOT,
+      target.environment,
+      releaseCode.replaceAll('::', '__'),
+      'source-export',
+    ),
+    input.tables,
+  )
+  await uploadSourceReleaseAsset(target, {
+    datasetCode: input.datasetCode,
+    datasetId: requireString(registered.datasetId, 'datasetId'),
+    filePath: resourceSourcePath,
+    publisherCode: input.source,
+    releaseCode,
+    resourceReleaseId,
+    sourceVersion: input.sourceVersion,
+    role: 'resourceSourceArchive',
+  })
   const shardYear = resolveShardYear(input.cohortKey, input.sourceVersion)
   // Native source tables are not part of the canonical street/division cache
   // profiles. Mirror their source records into the local planning cache.
   const context = await resolveLocalAddressDbContext(target, 'hk', shardYear, {
     cacheTableProfile: 'nativeSource',
+    includeAllSourceShardYears: input.sourceOnly,
   })
   const metaDb = context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
   const client = target.remote
@@ -239,6 +264,41 @@ export async function processNativeSourceSqlRelease(
       })
     }
 
+    if (
+      input.sourceOnly &&
+      (input.datasetCode === 'ds-hk-protomaps-island' ||
+        input.datasetCode === 'ds-hk-hkgov-rvd-division')
+    ) {
+      if (!context.metaBinding || !context.sourceBinding?.bindingName)
+        throw new Error('Source-only metadata requires local META and SOURCE bindings.')
+      const metadata = await prepareSourceOnlyReleaseMetadata(
+        context.metaBinding,
+        context.sourceTargets.map(source => {
+          if (!source.binding) throw new Error('Missing source-only source binding.')
+          return source.binding
+        }),
+        {
+          datasetCode: input.datasetCode,
+          resourceReleaseId,
+          sourceVersion: input.sourceVersion,
+          sourceBindingName: context.sourceBinding.bindingName,
+          environment: resolvePipelineEnvironment(target),
+        },
+      )
+      const metadataSql = buildSourceOnlyMetadataSql(resourceReleaseId, metadata)
+      await executeSqlChunks(
+        { binding: context.metaBinding, databaseId: null, name: 'meta' },
+        metadataSql,
+        { isLocal: true },
+      )
+      if (remoteMetaReplay)
+        await executeSqlChunks(remoteMetaReplay.target, metadataSql, {
+          accountId: remoteMetaReplay.accountId,
+          apiToken: remoteMetaReplay.apiToken,
+          isLocal: false,
+        })
+    }
+
     await retainNativeSourceAudit(target, {
       archiveSha256: input.archiveSha256,
       datasetCode: input.datasetCode,
@@ -322,6 +382,13 @@ export async function processNativeSourceSqlRelease(
       },
       {
         nativeRows: input.divisionRows,
+        sourceSelectionAudit: landsdSettlementSelectionAudit(
+          input.tables.flatMap(table =>
+            table.name === 'hkgovLandsdPlaceNames'
+              ? table.rows.map(row => row.properties as Record<string, unknown>)
+              : [],
+          ),
+        ),
         reuseExistingRelease: true,
       },
     )
@@ -514,6 +581,37 @@ export function buildMetaInsertStatements(
   )
 }
 
+export function buildSourceOnlyMetadataSql(
+  resourceReleaseId: string,
+  metadata: Awaited<ReturnType<typeof prepareSourceOnlyReleaseMetadata>>,
+) {
+  return chunkSql([
+    ...buildMetaInsertStatements(
+      'releaseShardAssignments',
+      ['resourceReleaseId', 'dataShardId'],
+      [metadata.assignment],
+      [],
+    ),
+    `DELETE FROM stats WHERE resourceReleaseId = ${sqlValue(resourceReleaseId)} AND category IN ('records', 'changes');`,
+    ...buildMetaInsertStatements(
+      'stats',
+      [
+        'id',
+        'resourceReleaseId',
+        'apiReleaseSetId',
+        'category',
+        'measure',
+        'unit',
+        'value',
+        'dimension',
+        'dimensionValue',
+      ],
+      metadata.stats,
+      [],
+    ),
+  ])
+}
+
 function quoteIdentifier(value: string) {
   return `"${value.replaceAll('"', '""')}"`
 }
@@ -530,28 +628,6 @@ async function retainNativeSourceAudit(
     tables: NativeSourceTable[]
   },
 ) {
-  const selectionRules =
-    input.datasetCode === 'ds-hk-hkgov-landsd-division'
-      ? [
-          landsdSettlementSelectionAudit(
-            input.tables.flatMap(table =>
-              table.name === 'hkgovLandsdPlaceNames'
-                ? table.rows.map(row => {
-                    if (
-                      !row.properties ||
-                      typeof row.properties !== 'object' ||
-                      Array.isArray(row.properties)
-                    )
-                      throw new Error(
-                        'LandsD selection audit requires native publisher properties.',
-                      )
-                    return row.properties as Record<string, unknown>
-                  })
-                : [],
-            ),
-          ),
-        ]
-      : []
   const directory = resolve(
     RELEASE_ROOT,
     target.remote ? 'remote' : 'local',
@@ -566,7 +642,6 @@ async function retainNativeSourceAudit(
       datasetCode: input.datasetCode,
       rowCount: input.rowCount,
       sourceVersion: input.sourceVersion,
-      ...(selectionRules.length ? { selectionRules } : {}),
       tables: input.tables.map(table => ({
         name: table.name,
         rows: table.rows.length,
@@ -574,10 +649,10 @@ async function retainNativeSourceAudit(
     }),
     retain: (store: ProvenanceStore) =>
       retainProducerAudit(store, {
+        scope: { stage: 'ingestion', ownerId: input.resourceReleaseId },
         resourceReleaseId: input.resourceReleaseId,
         datasetCode: input.datasetCode,
         rules: [
-          ...selectionRules,
           {
             declaration: nativeSourceImportRule.declaration,
             inputs: { 'publisher-records': input.rowCount },
@@ -590,14 +665,14 @@ async function retainNativeSourceAudit(
         ],
         guards: [
           {
-            id: 'native-source-row-count',
+            id: 'native-source-records-retained',
             summary:
-              'Every validated publisher record is imported into the source ledger.',
+              'Every publisher record accepted for import is stored as a source record.',
             consequence: 'block-ingestion',
             status: 'passed',
             checked: input.rowCount,
             failed: 0,
-            reason: `Imported ${input.rowCount} validated publisher records across ${input.tables.length} source table(s).`,
+            reason: `Verified that all ${input.rowCount} accepted publisher records are stored. Unchanged records keep their existing versions.`,
           },
         ],
         individuals: [],
@@ -629,8 +704,22 @@ async function resolveNativeSourceRelease(
         const linkedArchive = await context.metaDb
           .select({ assetKey: metaSchema.metaAssets.assetKey })
           .from(metaSchema.metaAssets)
+          .innerJoin(
+            metaSchema.metaResourceReleases,
+            eq(
+              metaSchema.metaAssets.sourceReleaseId,
+              metaSchema.metaResourceReleases.sourceReleaseId,
+            ),
+          )
           .where(
-            eq(metaSchema.metaAssets.resourceReleaseId, existing.resourceReleaseId),
+            and(
+              eq(
+                metaSchema.metaAssets.sourceReleaseId,
+                metaSchema.metaResourceReleases.sourceReleaseId,
+              ),
+              eq(metaSchema.metaResourceReleases.id, existing.resourceReleaseId),
+              eq(metaSchema.metaAssets.role, 'releaseSourceArchive'),
+            ),
           )
           .get()
         assertNativeSourceArchiveMatchesRelease(
@@ -658,6 +747,7 @@ async function resolveNativeSourceRelease(
               receipt.publicationToken === existing.resourceReleaseId
             )
               return {
+                datasetId: existing.datasetId,
                 releaseCode: existing.releaseCode,
                 resourceReleaseId: existing.resourceReleaseId,
                 canonicalCompleted: true,
@@ -665,6 +755,7 @@ async function resolveNativeSourceRelease(
           }
         }
         return {
+          datasetId: existing.datasetId,
           releaseCode: existing.releaseCode,
           resourceReleaseId: existing.resourceReleaseId,
         }
@@ -853,8 +944,25 @@ async function buildNativeSourceSqlInternal(
           `UPDATE "${table.name}" SET "sourceLocator" = ${sqlValue(row.sourceLocator)} WHERE "sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)} AND "sourceLocator" IS NULL;`,
         )
     }
+    statements.push(
+      ...buildNativeSourceVerificationSql(table.name, rows, sourceVersion),
+    )
   }
   return chunkSql(statements)
+}
+
+/** Executed after writes on both the local planning cache and the target shard. */
+export function buildNativeSourceVerificationSql(
+  table: string,
+  rows: Array<{ sourceRecordId: string; versionHash: string }>,
+  sourceVersion: string,
+) {
+  assertIdentifier(table, 'table')
+  return rows.map(
+    row =>
+      // Invalid JSON deliberately raises a SQLite/D1 error if the assertion fails.
+      `SELECT CASE WHEN EXISTS (SELECT 1 FROM "${table}" WHERE sourceRecordId = ${sqlValue(row.sourceRecordId)} AND versionHash = ${sqlValue(row.versionHash)} AND validFromRelease <= ${sqlValue(sourceVersion)} AND (validToRelease IS NULL OR validToRelease > ${sqlValue(sourceVersion)})) THEN 1 ELSE json('Native source import verification failed') END;`,
+  )
 }
 
 export function buildNativeSourceSql(

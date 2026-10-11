@@ -4,12 +4,40 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import {
   buildNativeSourceSql,
+  assertNativeSourceArchiveMatchesRelease,
   versionNativeSourceRows,
   type NativeSourceRow,
 } from './nativeSourceSql.ts'
 import { readHkgovHydStreetArchive } from '../../sources/hkgov/hyd/hkgovHyd.ts'
 import { sourceSchema } from '@repo/db'
 import { getTableConfig } from 'drizzle-orm/sqlite-core'
+
+test('native source recovery checks linked publisher archives, not import artefact keys', () => {
+  const archiveKey =
+    'by-source/hk/hkgov-csdi/landsd_rcd_1648571595120_89752/2026-Q2/archive.zip'
+
+  expect(() =>
+    assertNativeSourceArchiveMatchesRelease(
+      null,
+      archiveKey,
+      'dr-hk-hkgov-landsd-division-2026-06-10.0',
+    ),
+  ).not.toThrow()
+  expect(() =>
+    assertNativeSourceArchiveMatchesRelease(
+      archiveKey,
+      archiveKey,
+      'dr-hk-hkgov-landsd-division-2026-06-10.0',
+    ),
+  ).not.toThrow()
+  expect(() =>
+    assertNativeSourceArchiveMatchesRelease(
+      'by-source/hk/other/archive.zip',
+      archiveKey,
+      'dr-hk-hkgov-landsd-division-2026-06-10.0',
+    ),
+  ).toThrow('Native source archive does not match registered release')
+})
 
 test('native source fingerprints remain stable when properties are renamed', async () => {
   const row: NativeSourceRow = {
@@ -227,3 +255,59 @@ test('imports all three cached HyD archives with lossless geometry and repeatabl
     }
   }
 }, 30000)
+
+test('Protomaps polygons retain native geometry and acquisition evidence in the source ledger', async () => {
+  const db = new Database(':memory:')
+  const config = getTableConfig(sourceSchema.sourceProtomapsIslandFeatures)
+  db.exec(
+    `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}${column.notNull ? ' NOT NULL' : ''}`).join(',')}, PRIMARY KEY(sourceRecordId,versionHash))`,
+  )
+  const geometry = {
+    type: 'Polygon',
+    coordinates: [
+      [
+        [0, 0],
+        [1, 0],
+        [1, 1],
+        [0, 0],
+      ],
+    ],
+  }
+  try {
+    for (const sql of await buildNativeSourceSql(
+      [
+        {
+          name: config.name,
+          provenance: 'required',
+          rows: [
+            {
+              sourceRecordId: 'BASEMAP:ISLAND:test',
+              properties: { name: 'Island', place: 'islet' },
+              sourceGeometry: geometry,
+              sources: [
+                {
+                  dataset: 'ds-hk-protomaps-island',
+                  sourceFile: 'by-source/archive-hash.zip',
+                  sourceArchiveSha256: 'archive-hash',
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      'release-id',
+      '2026-09-01.0',
+    ))
+      db.exec(sql)
+    const row = db.query(`SELECT * FROM "${config.name}"`).get() as Record<
+      string,
+      string
+    >
+    expect(JSON.parse(row.sourceGeometry!)).toEqual(geometry)
+    expect(row).not.toHaveProperty('sourceLocator')
+    expect(row.validFromRelease).toBe('2026-09-01.0')
+    expect(row.resourceReleaseId).toBe('release-id')
+  } finally {
+    db.close()
+  }
+})

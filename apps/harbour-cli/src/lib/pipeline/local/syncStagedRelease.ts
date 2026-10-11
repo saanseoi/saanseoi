@@ -149,8 +149,6 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           sourceSchemaVersion,
           publicationDate,
           cohortKey: plan.cohortKey,
-          rawObjectKey: release.rawObjectKey,
-          originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
           notes: null,
           status: 'staged',
           revokedAt: null,
@@ -162,23 +160,6 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           updatedAt: now,
         })
         .onConflictDoNothing({ target: metaSourceReleases.code })
-        .run()
-
-      // Registration may precede acquisition of the prepared object. Complete
-      // only a missing key on an unpublished source; preserve native archives.
-      await tx
-        .update(metaSourceReleases)
-        .set({ rawObjectKey: release.rawObjectKey, updatedAt: now })
-        .where(
-          and(
-            eq(metaSourceReleases.id, sourceReleaseId),
-            isNull(metaSourceReleases.rawObjectKey),
-            or(
-              eq(metaSourceReleases.status, 'staged'),
-              eq(metaSourceReleases.status, 'failed'),
-            ),
-          ),
-        )
         .run()
 
       return tx
@@ -194,9 +175,6 @@ export async function syncStagedReleaseIntoLocalMetaCache(
           processingRules,
           publicationDate,
           cohortKey: plan.cohortKey,
-          rawObjectKey: release.rawObjectKey,
-          originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
-          notes: null,
           status: 'staged',
           revokedAt: null,
           revocationReason: null,
@@ -216,8 +194,6 @@ export async function syncStagedReleaseIntoLocalMetaCache(
             processingRules,
             publicationDate,
             cohortKey: plan.cohortKey,
-            rawObjectKey: release.rawObjectKey,
-            originalFileName: release.rawObjectKey.split('/').at(-1) ?? null,
             status: 'staged',
             revokedAt: null,
             revocationReason: null,

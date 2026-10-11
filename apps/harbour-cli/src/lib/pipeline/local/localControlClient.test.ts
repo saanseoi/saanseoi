@@ -57,7 +57,7 @@ test.each([
         .get(resourceReleaseId, phase),
     ).toMatchObject({
       status: 'running',
-      stats: JSON.stringify({ processedRows: 0 }),
+      results: JSON.stringify({ processedRows: 0 }),
       finishedAt: null,
     })
     await client.stageFailed(resourceReleaseId, phase, 'retry failed')

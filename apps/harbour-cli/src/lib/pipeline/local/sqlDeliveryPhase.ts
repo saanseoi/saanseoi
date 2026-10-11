@@ -1,3 +1,11 @@
+import { computeVersionHash } from '@repo/db'
+import {
+  recordProcessingRun,
+  readProcessingCheckpoint,
+} from '@repo/core/db/processingRuns'
+import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
+import { processingStageForPhase } from '@repo/core/pipeline/processingStages'
+import { readDeliveryPlan } from './sqlDeliveryFiles'
 import { resolve } from 'node:path'
 import type { LocalAddressDbContext } from '../../dbCache/localDbCacheTypes.ts'
 import {
@@ -42,7 +50,7 @@ export function sqlDeliveryPhaseDirectory(input: SqlDeliveryPhase) {
 }
 
 /** Capture existing family SQL builders without introducing a second planning context. */
-export async function deliverSqlPhase(
+async function executeSqlPhase(
   input: SqlDeliveryPhase,
   generate: () => Promise<unknown>,
 ) {
@@ -131,4 +139,54 @@ export async function deliverSqlPhase(
   if (input.mode !== 'remote')
     await executeReleaseSqlDelivery({ ...execution, mode: 'local' })
   return plan.outputs
+}
+
+/** The run points to the sealed delivery plan; receipts remain owned by delivery. */
+export async function deliverSqlPhase(
+  input: SqlDeliveryPhase,
+  generate: () => Promise<unknown>,
+) {
+  const db = input.context.metaDb as unknown as HarbourReadableDb & HarbourWritableDb
+  const owner = { resourceReleaseId: input.resourceReleaseId }
+  const phase = `sql:${input.phase}`
+  const stage = processingStageForPhase(input.phase)
+  // SQL materialisation is ingestion/assembly; composition is recorded by publication.
+  const runStage = stage === 'composition' ? 'assembly' : stage
+  const identityHash = computeVersionHash({
+    inputs: input.inputs,
+    target: input.context.state.target,
+    bindings: input.context.state.bindings ?? {},
+    files: input.context.state.files ?? {},
+  })
+  await readProcessingCheckpoint(db, owner, phase, identityHash)
+  await recordProcessingRun(db, { ...owner, phase, stage: runStage, status: 'running' })
+  const directory = sqlDeliveryPhaseDirectory(input)
+  const checkpoint = async () => {
+    const plan = await readDeliveryPlan(directory)
+    return plan
+      ? { version: 1 as const, identityHash, artefact: `${directory}/plan.json` }
+      : null
+  }
+  try {
+    const outputs = await executeSqlPhase(input, generate)
+    await recordProcessingRun(db, {
+      ...owner,
+      phase,
+      stage: runStage,
+      status: 'completed',
+      checkpoint: await checkpoint(),
+      results: { outputAvailable: outputs !== undefined },
+    })
+    return outputs
+  } catch (error) {
+    await recordProcessingRun(db, {
+      ...owner,
+      phase,
+      stage: runStage,
+      status: 'error',
+      checkpoint: await checkpoint(),
+      error: error instanceof Error ? error.message : String(error),
+    })
+    throw error
+  }
 }

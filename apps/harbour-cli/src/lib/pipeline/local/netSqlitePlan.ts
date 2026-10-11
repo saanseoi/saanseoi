@@ -209,6 +209,12 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
         postponeNetParentDeletions({ db, journalPath, binding, tables: ordered })
       phase = `batch payloads ${binding}`
       journalPayloads(journal, binding, { maxStatements, maxPayloadBytes }, summary)
+      // Replay and emission read payloads only. Reuse these journal pages for
+      // later shards instead of retaining both representations of every row.
+      journal.transaction(() => {
+        journal.query('DELETE FROM mutations WHERE binding=?').run(binding)
+        journal.query('DELETE FROM lateDeletes WHERE binding=?').run(binding)
+      })()
       // An exhaustive zero-delta comparison already proves replay equality. Keep
       // its schema/ownership/FK checks, but do not copy and replay an unchanged shard.
       if (
@@ -263,6 +269,9 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       } finally {
         replay.close()
       }
+      // Equality and foreign-key checks have finished; this disposable copy
+      // is never read again. Keep failed replays available for diagnostics.
+      await rm(replayPath, { force: true })
     }
     phase = 'emit delivery batches'
     for (const row of journal
