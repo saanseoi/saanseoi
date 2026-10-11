@@ -13,6 +13,8 @@
     "test:coverage": "bun test --coverage"
   },
   "exports": {
+    "./publicDivisionHierarchies": "./src/publicDivisionHierarchies.ts",
+    "./publicSaanseoiDivisionProperties": "./src/publicSaanseoiDivisionProperties.ts",
     "./jsonKeys": "./src/jsonKeys.ts",
     "./displayName": "./src/displayName.ts",
     "./jsonFieldDiff": "./src/jsonFieldDiff.ts",
@@ -35,6 +37,8 @@
     "./apiLocales": "./src/lib/apiLocales.ts",
     "./publicApiKey": "./src/publicApiKey.ts",
     "./productUsage": "./src/productUsage.ts",
+    "./rvdSourceSchema": "./src/rvdSourceSchema.ts",
+    "./landsdPlaceNameSourceSchema": "./src/landsdPlaceNameSourceSchema.ts",
     "./sourceRecordSchemas": "./src/sourceRecordSchemas.ts",
     "./pipeline/*": "./src/pipeline/*",
     "./pipeline/services": "./src/pipeline/services/index.ts",
