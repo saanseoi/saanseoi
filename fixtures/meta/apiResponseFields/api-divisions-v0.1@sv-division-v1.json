@@ -1,0 +1,22 @@
+{
+  "versionHash": "sha256:e1cb23b4be25c079af143479148a2efe76000938c4224742232f7a67a6bc3ec9",
+  "apiVersion": "api-divisions-v0.1",
+  "schemaVersion": "sv-division-v1",
+  "resources": {
+    "division": {
+      "relationships.areas": [
+        "division.id",
+        "divisionArea.divisionId",
+        "divisionArea.id"
+      ],
+      "relationships.boundaries": [
+        "division.id",
+        "divisionBoundary.leftDivisionId",
+        "divisionBoundary.rightDivisionId",
+        "divisionBoundary.id"
+      ]
+    },
+    "divisionArea": {},
+    "divisionBoundary": {}
+  }
+}
