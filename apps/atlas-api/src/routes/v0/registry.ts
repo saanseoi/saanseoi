@@ -1,3 +1,4 @@
+import type { ProvenanceStore } from '../../../../../libs/core/src/provenance/types'
 import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
 
 import {
@@ -58,7 +59,11 @@ type RegistryResource = {
   listOperationId: string
   detailOperationId: string
   list: (db: AppEnv['Variables']['metaDb'], limit?: number) => Promise<unknown[]>
-  detail: (db: AppEnv['Variables']['metaDb'], id: string) => Promise<unknown | null>
+  detail: (
+    db: AppEnv['Variables']['metaDb'],
+    id: string,
+    store: ProvenanceStore,
+  ) => Promise<unknown | null>
 }
 
 const REGISTRY_RESOURCES = [
@@ -70,7 +75,7 @@ const REGISTRY_RESOURCES = [
     listOperationId: 'listRegistryApis',
     detailOperationId: 'getRegistryApi',
     list: listRegistryApis,
-    detail: getRegistryApi,
+    detail: (db, id) => getRegistryApi(db, id),
   },
   {
     publicName: 'releases',
@@ -305,7 +310,7 @@ export const registryRoutes = [
       handler: async c => {
         const resource = REGISTRY_RESOURCES[index] ?? REGISTRY_RESOURCES[0]
         const { id } = c.req.valid('param')
-        const data = await resource.detail(c.var.metaDb, id)
+        const data = await resource.detail(c.var.metaDb, id, c.env.R2_ASSETS)
 
         if (!data) {
           return c.json(
