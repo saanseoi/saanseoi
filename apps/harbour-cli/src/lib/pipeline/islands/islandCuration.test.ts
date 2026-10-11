@@ -74,6 +74,7 @@ test('retains a reviewed Overture identity while selecting Protomaps geometry', 
     overtureDivisionId: '3707878f-080b-42cf-aecf-89fef56a066a',
     overtureRelease: '2026-08-19.0',
     protomapsFeatureId: 'protomaps:island:lantau',
+    geometrySource: { sourceRecordId: 'protomaps:island:lantau' },
   })
   const result = curateIslands([lantau], {
     curationPolicy: { version: 1, actions: [], aliasGroups: [] },
@@ -92,33 +93,31 @@ test('retains a reviewed Overture identity while selecting Protomaps geometry', 
   expect(row.sources).toEqual({
     overture: [
       {
-        dataset: 'overture',
+        dataset: 'ds-hk-overture-division',
         record_id: '3707878f-080b-42cf-aecf-89fef56a066a',
-        release: '2026-08-19.0',
-        contributions: ['identity', 'membership'],
+        contributions: ['identity'],
       },
     ],
     hkgovLandsd: [
       {
-        dataset: 'hkgov-landsd',
+        dataset: 'ds-hk-hkgov-landsd-division',
         record_id: 'LANDSD:PLACE_NAME:838',
-        release: '2026-06-10.0',
         contributions: ['official-name', 'alias'],
       },
     ],
     protomaps: [
       {
-        dataset: 'protomaps',
+        dataset: 'ds-hk-protomaps-island',
         record_id: 'protomaps:island:lantau',
-        release: null,
         contributions: ['geometry'],
       },
     ],
     saanseoi: [
       {
-        dataset: 'saanseoi-island-curation',
+        dataset: 'ds-hk-saanseoi-division',
+        curation: 'island-curation',
         record_id: 'LANDSD:PLACE_NAME:838',
-        contributions: ['geometry-selection'],
+        contributions: ['selection'],
         policy_version: 1,
       },
     ],
@@ -224,7 +223,7 @@ test('selects the single named basemap geometry inside the review radius', () =>
   expect(result.islands[0]?.areaKm2).toBeLessThan(0.02)
 })
 
-test('uses a reviewed geometry override and retains reviewed alternative names', () => {
+test('uses a curated geometry override and retains reviewed alternative names', () => {
   const candidate = entry('landsd:kiu-tau', 'Kiu Tau', {
     alternativesEn: ['Kiu Tau Teng'],
   })

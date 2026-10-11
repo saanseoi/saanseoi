@@ -1,6 +1,11 @@
+import type { ProtomapsIslandSelection } from '@repo/core/pipeline/services/sources/protomapsSourceViews'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
-import { buildDeterministicUuidV5, classifyIslandArea } from '@repo/db'
+import {
+  buildDeterministicUuidV5,
+  canonicalGeneratedId,
+  classifyIslandArea,
+} from '@repo/db'
 import { REPO_ROOT } from '../../sources/sourceUpdatesConfig.ts'
 
 export type IslandGeometry = {
@@ -20,13 +25,15 @@ export type IslandInventoryEntry = {
   sourceRelease?: string
   sourceTags?: Record<string, unknown>
   identifiers?: string[]
-  /** Reviewed crosswalk to the Overture division whose identity is retained. */
+  /** Curated crosswalk to the Overture division whose identity is retained. */
   overtureDivisionId?: string
   /** Overture source version that supplied the retained identity. */
   overtureRelease?: string
   /** Stable native feature ID in the selected Protomaps baseline. */
   protomapsFeatureId?: string
+  geometrySource?: ProtomapsIslandSelection
   geometryOptions?: Array<{
+    geometrySource?: ProtomapsIslandSelection
     label?: string
     geometry: IslandGeometry
     bounds?: number[]
@@ -97,13 +104,14 @@ export type CuratedIsland = {
   }
   areaKm2: number
   geometry: IslandGeometry
+  geometrySource?: ProtomapsIslandSelection
   class: 'island'
   identifiers: string[]
   sources: IslandSourceEvidence[]
   selection: {
     overtureDivisionId: string | null
     overtureRelease: string | null
-    protomapsFeatureId: string
+    protomapsFeatureId: string | null
     protomapsRelease: string | null
     landsdPlaceNameIds: string[]
   }
@@ -129,22 +137,14 @@ export type IslandCurationResult = {
   sourceReleases: {
     landsd: string[]
     basemap: string[]
-    reviewedLandsd: string | null
-    reviewedBasemap: string | null
+    curatedLandsd: string | null
+    curatedBasemap: string | null
   }
   ready: boolean
 }
 
 const CURATED_ISLAND_DIVISION_NAMESPACE = '7a3c5e91-95c2-5c93-8e3c-7d5b5d3bb6e7'
 
-export const ISLAND_REVIEW_FIXTURE_PATH = resolve(
-  REPO_ROOT,
-  'fixtures/meta/curations/saanseoi-island-review.json',
-)
-export const ISLAND_INVENTORY_PATH = resolve(
-  REPO_ROOT,
-  'apps/basemap-viewer/src/local-review/islands/inventory.json',
-)
 export const ISLAND_REVIEW_OUTPUT_PATH = resolve(
   REPO_ROOT,
   '.local/harbour/islands/curated-review.json',
@@ -156,15 +156,30 @@ export async function loadIslandReviewInputs(options?: {
   inventoryPath?: string
   reviewPath?: string
 }) {
+  if (!options?.inventoryPath && !options?.reviewPath) {
+    const { loadDivisionReviewInputs } = await import(
+      '../curatedDivisions/reviewInputs'
+    )
+    const inputs = await loadDivisionReviewInputs({
+      root: REPO_ROOT,
+      apiBaseUrl: process.env.SAANSEOI_REVIEW_API_URL,
+      archiveBaseUrl: process.env.SAANSEOI_REVIEW_ARCHIVE_URL,
+    })
+    return { inventory: inputs.islands, review: inputs.islandReview }
+  }
+  if (!options.inventoryPath || !options.reviewPath)
+    throw Error(
+      'Custom island review requires both generated inventory and review paths.',
+    )
   const [inventory, review] = await Promise.all([
-    readJson<IslandInventoryEntry[]>(options?.inventoryPath ?? ISLAND_INVENTORY_PATH),
-    readJson<IslandReviewFixture>(options?.reviewPath ?? ISLAND_REVIEW_FIXTURE_PATH),
+    readJson<IslandInventoryEntry[]>(options.inventoryPath),
+    readJson<IslandReviewFixture>(options.reviewPath),
   ])
   return { inventory, review }
 }
 
 /**
- * `select_reviewed_protomaps_island_features`: retain only curation-approved
+ * `select_curated_protomaps_island_features`: retain only curation-approved
  * Protomaps geometry selections and block unknown names or geometry changes.
  */
 export function curateIslands(
@@ -237,7 +252,7 @@ export function curateIslands(
       continue
     if (!current)
       throw new Error(
-        `Reviewed island ${entry.id} (${entry.name}) is missing from the inventory.`,
+        `Curated island ${entry.id} (${entry.name}) is missing from the inventory.`,
       )
     const geometry = geometryForAction(current, action)
     if (!geometry && action?.action === 'geometry-correction') continue
@@ -251,11 +266,11 @@ export function curateIslands(
     const aliases =
       group?.aliasIds
         .map(aliasId => {
-          const reviewed = reviewById.get(aliasId)
+          const curated = reviewById.get(aliasId)
           const currentAlias = inventory.find(candidate => candidate.id === aliasId)
-          return reviewed && currentAlias
-            ? { ...currentAlias, ...reviewed }
-            : (reviewed ?? currentAlias)
+          return curated && currentAlias
+            ? { ...currentAlias, ...curated }
+            : (curated ?? currentAlias)
         })
         .filter((alias): alias is IslandReviewEntry => Boolean(alias)) ?? []
     const sourceEntries = [entry, ...aliases]
@@ -288,6 +303,11 @@ export function curateIslands(
         coverage: 'basemap-only',
       })
     }
+    const geometrySource = action?.geometry
+      ? undefined
+      : geometryOption
+        ? geometryOption.geometrySource
+        : current.geometrySource
     emitted.set(entry.id, {
       id: entry.id,
       names: {
@@ -301,6 +321,7 @@ export function curateIslands(
           ? geometryAreaKm2(geometry)
           : numberOrZero(entry.areaKm2 ?? current.areaKm2),
       geometry,
+      geometrySource,
       class: 'island',
       identifiers: unique([
         ...(current.identifiers ?? []),
@@ -313,9 +334,7 @@ export function curateIslands(
           null,
         overtureRelease:
           sourceEntries.find(source => source.overtureRelease)?.overtureRelease ?? null,
-        protomapsFeatureId:
-          sourceEntries.find(source => source.protomapsFeatureId)?.protomapsFeatureId ??
-          `${entry.id}:selected-geometry`,
+        protomapsFeatureId: geometrySource?.sourceRecordId ?? null,
         protomapsRelease:
           review.basemapRelease ??
           sourceEntries.find(source => source.coverage === 'basemap-only')
@@ -335,7 +354,7 @@ export function curateIslands(
               ?.sourceRelease ?? null,
         },
         curation: {
-          fixture: 'saanseoi-island-review',
+          fixture: 'division-exclusions',
           policyVersion: review.curationPolicy?.version ?? 1,
           decision: aliasGroup ? 'merge' : entry.decision,
         },
@@ -356,8 +375,8 @@ export function curateIslands(
         .map(entry => entry.sourceRelease)
         .filter((value): value is string => Boolean(value)),
     ),
-    reviewedLandsd: review.sourceRelease ?? null,
-    reviewedBasemap: review.basemapRelease ?? review.coastlineRelease ?? null,
+    curatedLandsd: review.sourceRelease ?? null,
+    curatedBasemap: review.basemapRelease ?? review.coastlineRelease ?? null,
   }
 
   const islands = [...emitted.values()].sort(
@@ -411,7 +430,9 @@ export function curatedIslandToSaanSeoiDivisionRow(
   return {
     id:
       island.selection.overtureDivisionId ??
-      buildDeterministicUuidV5(CURATED_ISLAND_DIVISION_NAMESPACE, island.id),
+      canonicalGeneratedId(
+        buildDeterministicUuidV5(CURATED_ISLAND_DIVISION_NAMESPACE, island.id),
+      ),
     country: 'HK',
     theme: 'divisions',
     type: 'division',
@@ -421,10 +442,12 @@ export function curatedIslandToSaanSeoiDivisionRow(
     hierarchies: [],
     names: { common: names, primary: island.names.en },
     identifiers: {
-      saanseoiIsland: {
+      saanseoi: {
         sourceId: island.id,
         canonicalClass: island.class,
-        gazetteer: island.sourceProperties.gazetteer,
+        gazetteer: {
+          landsdPlaceName: island.sourceProperties.gazetteer.landsdPlaceName,
+        },
         curation: island.sourceProperties.curation,
       },
     },
@@ -433,10 +456,9 @@ export function curatedIslandToSaanSeoiDivisionRow(
         ? {
             overture: [
               {
-                dataset: 'overture',
+                dataset: 'ds-hk-overture-division',
                 record_id: island.selection.overtureDivisionId,
-                release: island.selection.overtureRelease,
-                contributions: ['identity', 'membership'],
+                contributions: ['identity'],
               },
             ],
           }
@@ -444,26 +466,32 @@ export function curatedIslandToSaanSeoiDivisionRow(
       ...(island.selection.landsdPlaceNameIds.length
         ? {
             hkgovLandsd: island.selection.landsdPlaceNameIds.map(record_id => ({
-              dataset: 'hkgov-landsd',
+              dataset: 'ds-hk-hkgov-landsd-division',
               record_id,
-              release: island.sourceProperties.gazetteer.sourceRelease,
               contributions: ['official-name', 'alias'],
             })),
           }
         : {}),
-      protomaps: [
-        {
-          dataset: 'protomaps',
-          record_id: island.selection.protomapsFeatureId,
-          release: island.selection.protomapsRelease,
-          contributions: ['geometry'],
-        },
-      ],
+      ...(island.geometrySource
+        ? {
+            protomaps: [
+              {
+                dataset: 'ds-hk-protomaps-island',
+                record_id: island.geometrySource.sourceRecordId,
+                contributions: ['geometry'],
+                ...(island.geometrySource.componentIndexes
+                  ? { componentIndexes: island.geometrySource.componentIndexes }
+                  : {}),
+              },
+            ],
+          }
+        : {}),
       saanseoi: [
         {
-          dataset: 'saanseoi-island-curation',
+          dataset: 'ds-hk-saanseoi-division',
+          curation: 'island-curation',
           record_id: island.id,
-          contributions: ['geometry-selection'],
+          contributions: [island.geometrySource ? 'selection' : 'geometry'],
           policy_version: island.sourceProperties.curation.policyVersion,
         },
       ],
@@ -489,7 +517,7 @@ export function curatedIslandToSaanSeoiDivisionAreaRow(
     isLand: true,
     isTerritorial: false,
     identifiers: {
-      saanseoiIsland: {
+      saanseoi: {
         sourceId: island.id,
         selectedProtomapsFeatureId: island.selection.protomapsFeatureId,
       },
@@ -675,7 +703,7 @@ function numberOrZero(value: number | undefined) {
   return typeof value === 'number' && Number.isFinite(value) ? value : 0
 }
 
-function geometryAreaKm2(geometry: IslandGeometry) {
+export function geometryAreaKm2(geometry: IslandGeometry) {
   const coordinates: number[][] = []
   walkCoordinates(geometry.coordinates, coordinates)
   if (coordinates.length < 3) return 0
