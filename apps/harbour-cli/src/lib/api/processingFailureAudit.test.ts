@@ -32,6 +32,7 @@ test('audit delivery failure retains the guard and lets the caller mark its stag
       },
     ])
     await retainProcessingFailure({
+      scope: { stage: 'ingestion', ownerId: 'release' },
       error,
       store,
       target: { remote: false, environment: 'dev' },

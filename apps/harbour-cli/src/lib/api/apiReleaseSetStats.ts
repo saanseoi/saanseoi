@@ -193,14 +193,7 @@ export async function calculateAndStoreApiReleaseSetStats(
                 options.historyTargets ?? [],
                 apiReleaseSetId,
               )
-            : await buildPlaceStatsRows(
-                options.currentDb,
-                snapshotId,
-                await readPlaceLocaleConflicts(
-                  options.metaDb,
-                  options.resourceReleaseId,
-                ),
-              )
+            : await buildPlaceStatsRows(options.currentDb, snapshotId)
 
     options.progress.update(1, {
       label: formatRunningPhaseLabel(colorTeal('Calculate'), colorRed('stats'), 1, 2),
@@ -662,59 +655,6 @@ async function buildPlaceStatsRows(
   return rows
 }
 
-async function readPlaceLocaleConflicts(
-  metaDb: HarbourReadableDb,
-  resourceReleaseId: string,
-) {
-  const rows = await readReleaseAuditDecisions(
-    metaDb,
-    [resourceReleaseId],
-    'overture_place_locale_conflict',
-  )
-  const conflictsByPlace = new Map<string, PlaceLocaleConflict[]>()
-  for (const row of rows) {
-    const evidence = row.evidence
-    if (!evidence || typeof evidence !== 'object') continue
-    const value = evidence as Record<string, unknown>
-    const placeId = typeof value.placeId === 'string' ? value.placeId : null
-    const field =
-      value.field === 'brandName'
-        ? 'brand'
-        : value.field === 'name' || value.field === 'freeformAddress'
-          ? value.field
-          : null
-    const script =
-      value.script === 'han' ||
-      value.script === 'latin' ||
-      value.script === 'mixed' ||
-      value.script === 'other'
-        ? value.script
-        : null
-    if (
-      !placeId ||
-      !field ||
-      typeof value.resolvedLocale !== 'string' ||
-      !script ||
-      value.conflict !== true ||
-      typeof value.sourceText !== 'string'
-    )
-      continue
-    const conflict: PlaceLocaleConflict = {
-      field,
-      sourceLocale: typeof value.sourceLocale === 'string' ? value.sourceLocale : null,
-      resolvedLocale: value.resolvedLocale,
-      script,
-      conflict: true,
-      reason: typeof value.reason === 'string' ? value.reason : null,
-      sourceText: value.sourceText,
-    }
-    const existing = conflictsByPlace.get(placeId) ?? []
-    existing.push(conflict)
-    conflictsByPlace.set(placeId, existing)
-  }
-  return conflictsByPlace
-}
-
 function percentage(value: number, total: number) {
   return total === 0 ? 0 : Number(((value / total) * 100).toFixed(2))
 }
@@ -913,4 +853,3 @@ function sqlLiteral(value: boolean | number | string | null | undefined) {
 
   return `'${value.replaceAll("'", "''")}'`
 }
-import { readReleaseAuditDecisions } from '@repo/core/pipeline/db/processingActionStorage'

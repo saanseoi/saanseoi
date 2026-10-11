@@ -1,4 +1,4 @@
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 
 /** Automatic execution retains bounded operation summaries, never row evidence. */
 export function summariseAutomaticActions(actions: ReleaseProcessingAction[]) {

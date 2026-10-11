@@ -1,3 +1,4 @@
+import type { AuditScope } from '@repo/core/provenance'
 import {
   ProcessingGuardError,
   retainAuditResult,
@@ -11,11 +12,13 @@ export async function retainProcessingFailure(input: {
   error: unknown
   store: ProvenanceStore
   target: UploadTarget
+  scope: AuditScope
   resourceReleaseId: string
   datasetCode: string
 }) {
   if (!(input.error instanceof ProcessingGuardError)) return
   const result = await retainAuditResult(input.store, {
+    scope: input.scope,
     resourceReleaseId: input.resourceReleaseId,
     datasetCode: input.datasetCode,
     attempt: { id: crypto.randomUUID(), status: 'failed' },

@@ -286,6 +286,7 @@ test('audit delivery drains parallel failures and registers only after every dep
     })),
   )
   const { ref } = await retainAuditResult(store, {
+    scope: { stage: 'ingestion', ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'divisions',
     attempt: { id: 'attempt', status: 'completed' },

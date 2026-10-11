@@ -43,32 +43,13 @@ export type StatReportRow = {
   value: number
 }
 
-export type ProcessingActionReportRow = {
-  action: string
-  affectedRecordCount: number
-  createdAt: string
-  datasetCode: string
-  evidence: unknown
-  id: string
-  mode: 'automatic' | 'manual'
-  releaseCode: string
-  resourceReleaseId: string
-  source: string
-  summary: string
-  resourceType: string
-  updatedAt: string
-}
-
 export type ReleaseReportRow = {
   hasStatisticsSnapshot?: boolean
   createdAt: string
   datasetCode: string
   datasetId: string
   ingestedAt: string | null
-  notes: string | null
-  originalFileName: string | null
   publicationDate: string | null
-  rawObjectKey: string | null
   releaseCode: string
   resourceReleaseId: string
   revocationReason: string | null
@@ -89,10 +70,6 @@ type ProcessingRunReportResponse = {
 
 type StatsReportResponse = {
   rows: StatReportRow[]
-}
-
-type ProcessingActionReportResponse = {
-  rows: ProcessingActionReportRow[]
 }
 
 type ReleaseReportResponse = {
@@ -229,33 +206,6 @@ export async function fetchStatsReport(
   }
 
   return fetchReport<StatsReportResponse>(url, 'Harbour stats report')
-}
-
-export async function fetchProcessingActionReport(
-  target: UploadTarget,
-  options?: {
-    limit?: number
-    releaseCode?: string
-    resourceReleaseId?: string
-    source?: string
-    resourceType?: string
-  },
-) {
-  const apiBaseUrl = resolveHarbourApiUrl(target)
-  const url = new URL(`${normaliseBaseUrl(apiBaseUrl)}/v1/reports/processing-actions`)
-
-  if (options?.limit != null)
-    url.searchParams.set('limit', String(parseLimit(options.limit)))
-  if (options?.releaseCode) url.searchParams.set('releaseCode', options.releaseCode)
-  if (options?.resourceReleaseId)
-    url.searchParams.set('resourceReleaseId', options.resourceReleaseId)
-  if (options?.source) url.searchParams.set('source', options.source)
-  if (options?.resourceType) url.searchParams.set('resourceType', options.resourceType)
-
-  return fetchReport<ProcessingActionReportResponse>(
-    url,
-    'Harbour processing-actions report',
-  )
 }
 
 export async function fetchReleaseReport(
