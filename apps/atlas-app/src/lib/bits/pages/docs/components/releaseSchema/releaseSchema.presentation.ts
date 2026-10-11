@@ -224,42 +224,47 @@ export function getSchemaDataArrayEnvelope(
 }
 
 const divisionAttributesByProfile: Record<ApiProfileName, string[]> = {
-  compact: ['level', 'type', 'divisionCode', 'i18n'],
+  compact: ['divisionCode', 'category', 'class', 'level', 'i18n', 'hierarchies'],
   default: [
-    'level',
-    'type',
     'divisionCode',
-    'wikidata',
+    'category',
+    'class',
+    'level',
+    'i18n',
+    'hierarchies',
+    'identifiers',
     'createdAt',
     'updatedAt',
-    'i18n',
   ],
   map: [
-    'level',
-    'type',
     'divisionCode',
-    'wikidata',
-    'createdAt',
-    'updatedAt',
+    'category',
+    'class',
+    'level',
+    'i18n',
+    'hierarchies',
     'geometry',
     'bbox',
     'cartography',
-    'i18n',
+    'identifiers',
+    'createdAt',
+    'updatedAt',
   ],
   full: [
-    'level',
-    'type',
     'divisionCode',
-    'snapshotId',
+    'category',
+    'class',
+    'level',
+    'i18n',
+    'hierarchies',
     'geometry',
     'bbox',
     'cartography',
-    'wikidata',
+    'identifiers',
+    'sources',
+    'snapshotId',
     'createdAt',
     'updatedAt',
-    'sources',
-    'identifiers',
-    'i18n',
   ],
 }
 
@@ -332,4 +337,13 @@ export function getProfileSchema(
   }
 
   return { ...model, schemas }
+}
+
+/** Keep record timestamps after the descriptive fields at every object level. */
+export function getOrderedSchemaProperties(schema: OpenApiSchema) {
+  const rank = (name: string) =>
+    name === 'createdAt' ? 1 : name === 'updatedAt' ? 2 : 0
+  return Object.entries(schema.properties ?? {}).sort(
+    ([left], [right]) => rank(left) - rank(right),
+  )
 }

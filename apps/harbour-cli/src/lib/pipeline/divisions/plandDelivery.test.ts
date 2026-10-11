@@ -88,7 +88,6 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
         sources: {},
         class: 'area',
         category: 'administrative',
-        wikidata: null,
       },
       cells: [],
       i18n: [],

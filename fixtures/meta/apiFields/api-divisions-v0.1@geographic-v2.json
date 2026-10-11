@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:828e5ab7e2ca9fb9151ae34114900dbd1ff6e24d0c8af67daed1a56ccbec930c",
+  "versionHash": "sha256:de81e6e3bf0d72e9e85ded95f65806f7e7e3bc81f25e498278719a7109fccd7d",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 2,
@@ -475,7 +475,7 @@
           ]
         },
         {
-          "apiField": "attributes.wikidataId",
+          "apiField": "attributes.identifiers.wikidata.id",
           "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",

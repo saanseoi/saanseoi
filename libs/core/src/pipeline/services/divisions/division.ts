@@ -9,7 +9,10 @@ import {
   applyCuratedDivisionNames,
 } from './curatedDivisionPolicy'
 import { normaliseCuratedDivision } from './curatedDivision'
-import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
+import {
+  divisionIdentifiers,
+  divisionIdentifiersWithWikidata,
+} from '../sources/divisionIdentifiers'
 import { recordContent } from '../sources/recordContent'
 import {
   beginSnapshotPublication,
@@ -1371,7 +1374,7 @@ function normaliseDivisionRowInternal(
       geometry: normalisedGeometry,
       hierarchies: hierarchyWithHongKongArea.hierarchy,
       id,
-      identifiers: canonicalIdentifiers(row.identifiers),
+      identifiers: divisionIdentifiersWithWikidata(row.identifiers, row.wikidata),
       level,
       category: geographicDivisionClassification(type)?.category ?? null,
       class: type,
@@ -1381,7 +1384,6 @@ function normaliseDivisionRowInternal(
           ? { evidence: [{ record_id: id }] }
           : normaliseOvertureSources(row.sources),
       updatedAt: now,
-      wikidata: asNonEmptyString(row.wikidata),
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n,
     overtureHongKongDivisionClassificationCorrection,
@@ -1601,7 +1603,7 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
   }
   const names = parseJsonRecord(row.names, 'names')
   const geometry = parseJsonGeometry(row.geometry, 'geometry')
-  const identifiers = canonicalIdentifiers(row.identifiers)
+  const identifiers = divisionIdentifiers(row.identifiers)
   const sources = parseJsonValue(row.sources, 'sources')
   const now = new Date().toISOString()
   return {
@@ -1628,7 +1630,6 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
       class: type,
       category: geographicDivisionClassification(type)?.category ?? null,
       updatedAt: now,
-      wikidata: null,
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n: normaliseDivisionI18n(id, names, branchCounts),
     overtureHongKongDivisionClassificationCorrection: null,
@@ -1681,7 +1682,6 @@ export function buildDivisionBaseHashInput(
     sources: recordContent(withoutDivisionPublicationVersion(base.sources)),
     class: base.class,
     category: base.category ?? null,
-    wikidata: base.wikidata ?? null,
   } satisfies Omit<DivisionRow, 'snapshotId' | 'createdAt' | 'updatedAt'>
 }
 

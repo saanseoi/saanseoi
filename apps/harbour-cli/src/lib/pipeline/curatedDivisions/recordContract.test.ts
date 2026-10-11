@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import { applyCuratedRecordContract, curatedNameObject } from './recordContract'
-test('curated records have point bounds, explicit Wikidata and classified cartography with attribution', () => {
+test('curated records have point bounds, grouped identifiers and classified cartography with attribution', () => {
   const row: any = {
     id: 'new',
     class: 'neighbourhood',
@@ -9,7 +9,7 @@ test('curated records have point bounds, explicit Wikidata and classified cartog
   }
   applyCuratedRecordContract([row])
   expect(row.bbox).toEqual([114, 22, 114, 22])
-  expect(row.wikidata).toBeNull()
+  expect(row).not.toHaveProperty('wikidata')
   expect(row.cartography).toEqual({ minZoom: 14, maxZoom: 24, prominence: 60 })
   expect(row.sources.evidence).toBeUndefined()
   expect(row.sources.saanseoi[0].contributions).toContain('identity')

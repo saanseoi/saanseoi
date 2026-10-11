@@ -17,7 +17,7 @@ test('one list preserves independently scoped exclusions without duplicate ident
     exclusions.entries.length,
   )
   expect(scopedExclusions(exclusions.entries, 'result')).toHaveLength(98)
-  expect(scopedExclusions(exclusions.entries, 'overture')).toHaveLength(101)
+  expect(scopedExclusions(exclusions.entries, 'overture')).toHaveLength(105)
   expect(scopedExclusions(exclusions.entries, 'landsd')).toHaveLength(0)
   expect(
     scopedExclusions(

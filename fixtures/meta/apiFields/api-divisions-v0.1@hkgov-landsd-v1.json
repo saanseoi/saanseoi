@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:cc915a58c6663cebef859323718889f9e8912ec0bb45a01b118bd02861b449a7",
+  "versionHash": "sha256:144e7172af9a4a6a17ca5785cf04aadfc4eb6b54c2aded268cf140ce0e8466f5",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-landsd",
   "mappingVersion": 1,
@@ -170,20 +170,6 @@
         },
         {
           "apiField": "attributes.cartography",
-          "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
-          "resolverCode": "direct_copy",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "source",
-              "fieldPath": "properties.geoNameId"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.wikidataId",
           "sourceDatasetCode": "ds-hk-hkgov-landsd-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",

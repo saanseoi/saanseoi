@@ -15,7 +15,6 @@ import {
   ProfileName,
   RequestedLocalesMetadataSchema,
   SourcesSchema,
-  WikidataIdSchema,
 } from './common'
 
 const divisionGeometryTypes = ['land', 'maritime', 'mixed'] as const
@@ -214,8 +213,34 @@ const DivisionGeometrySchema = DivisionPointGeometrySchema.openapi('DivisionGeom
   description: openApiText('openapi_divisions_geometry_field_description'),
 })
 
+const IdentifierValueSchema = z
+  .union([z.string(), z.number(), z.array(z.union([z.string(), z.number()]))])
+  .openapi({
+    description: openApiText('openapi_identifier_type_description'),
+  })
+
+const DivisionIdentifiersSchema = z
+  .record(
+    z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/),
+    z.record(z.string().regex(/^[a-z][a-zA-Z0-9]*$/), IdentifierValueSchema).openapi({
+      'x-additionalPropertiesName': openApiText('openapi_identifier_type_label'),
+      description: openApiText('openapi_identifier_publisher_description'),
+    }),
+  )
+  .openapi('DivisionIdentifiers', {
+    'x-additionalPropertiesName': openApiText('openapi_identifier_publisher_label'),
+  })
+
 const DivisionAttributesSchema = z
   .object({
+    divisionCode: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_division_code_field_description'),
+      }),
+    category: z.enum(['administrative', 'locality', 'hood', 'landform']).nullable(),
+    class: z.string().openapi({ description: 'Canonical division class.' }),
     level: z
       .number()
       .int()
@@ -223,21 +248,10 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_level_field_description'),
       }),
-    class: z.string().openapi({ description: 'Canonical division class.' }),
-    category: z.enum(['administrative', 'locality', 'hood', 'landform']).nullable(),
+    i18n: DivisionI18nSchema.optional().openapi({
+      description: openApiText('openapi_divisions_i18n_field_description'),
+    }),
     hierarchies: DivisionHierarchiesSchema,
-    divisionCode: z
-      .string()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_divisions_division_code_field_description'),
-      }),
-    snapshotId: z
-      .string()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_divisions_snapshot_id_field_description'),
-      }),
     geometry: z
       .union([DivisionGeometrySchema, z.null()])
       .optional()
@@ -256,12 +270,22 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_cartography_field_description'),
       }),
-    wikidataId: z
-      .union([WikidataIdSchema, z.null()])
+    identifiers: DivisionIdentifiersSchema.nullable()
       .optional()
       .openapi({
-        description: openApiText('openapi_divisions_wikidata_id_field_description'),
-        examples: ['Q55621441', 'Q7820922', 'Q16923583', null],
+        description: openApiText('openapi_divisions_identifiers_field_description'),
+      }),
+    sources: z
+      .union([SourcesSchema, z.null()])
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_sources_field_description'),
+      }),
+    snapshotId: z
+      .string()
+      .optional()
+      .openapi({
+        description: openApiText('openapi_divisions_snapshot_id_field_description'),
       }),
     createdAt: z
       .string()
@@ -275,21 +299,6 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_updated_at_field_description'),
       }),
-    sources: z
-      .union([SourcesSchema, z.null()])
-      .optional()
-      .openapi({
-        description: openApiText('openapi_divisions_sources_field_description'),
-      }),
-    identifiers: z
-      .unknown()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_divisions_identifiers_field_description'),
-      }),
-    i18n: DivisionI18nSchema.optional().openapi({
-      description: openApiText('openapi_divisions_i18n_field_description'),
-    }),
   })
   .openapi('DivisionAttributes')
 

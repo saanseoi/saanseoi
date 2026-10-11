@@ -19,7 +19,6 @@ export function planningDivisionContentHash(row: Record<string, unknown>) {
     'identifiers',
     'level',
     'class',
-    'wikidata',
     'hierarchies',
     'cartography',
   ]

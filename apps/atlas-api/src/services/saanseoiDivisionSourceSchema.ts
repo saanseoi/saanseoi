@@ -113,7 +113,6 @@ export const saanseoiDivisionSourceFields: Record<string, Schema> = {
       `Landforms (${classesAtLevel(null)}) have no numeric level (\`null\`).`,
     ].join('\n\n'),
   },
-  wikidata: text('Wikidata entity identifier, when recorded.'),
   hierarchies,
   identifiers: {
     type: 'object',

@@ -4,6 +4,7 @@ import { untrack } from 'svelte'
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 import {
+  getOrderedSchemaProperties,
   getSchemaComposition,
   getExpandableSchemaComposition,
   getSchemaTypeLabel,
@@ -61,7 +62,7 @@ let resolvedSchema = $derived(referenceName ? schemas[referenceName] : undefined
 let displaySchema = $derived(unwrapNullableSchema(resolvedSchema ?? schema))
 let dataArrayEnvelope = $derived(getSchemaDataArrayEnvelope(displaySchema, schemas))
 let childSchema = $derived(dataArrayEnvelope?.itemSchema ?? displaySchema)
-let properties = $derived(Object.entries(childSchema.properties ?? {}))
+let properties = $derived(getOrderedSchemaProperties(childSchema))
 let isCyclicReference = $derived(
   Boolean(referenceName && referencePath.includes(referenceName)),
 )

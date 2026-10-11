@@ -302,7 +302,6 @@ const divisionRecord: DivisionRecord = {
     category: 'administrative',
     geometry: null,
     bbox: null,
-    wikidataId: null,
     hierarchies: { administrative: [], locality: [], landform: [], full: [] },
     cartography: null,
     sources: null,

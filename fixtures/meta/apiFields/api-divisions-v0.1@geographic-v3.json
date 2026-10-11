@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ee5d11cde6765388ee6586803c516797d9200a2427776fb2424afbaec8a41865",
+  "versionHash": "sha256:2e413545faec9370a21344fa25f4b19cc3237447bcfdc2f5be4a2104897d23e3",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 3,
@@ -94,7 +94,6 @@
       "properties.sources": "rows[].sources",
       "properties.class": "rows[].class",
       "properties.bbox": "rows[].bbox",
-      "properties.wikidata": "rows[].wikidata",
       "properties.hierarchies": "rows[].hierarchies",
       "properties.cartography": "rows[].cartography",
       "properties.names.en.name": "rows[].names.en.name",
@@ -104,7 +103,8 @@
       "properties.names.*.nameAlts": "rows[].names.*.nameAlts",
       "properties.names.*.nameRules": "rows[].names.*.nameRules",
       "properties.level": "rows[].level",
-      "properties.category": "rows[].category"
+      "properties.category": "rows[].category",
+      "properties.identifiers.wikidata.id": "rows[].identifiers.wikidata.id"
     }
   },
   "sourceCompositions": [
@@ -271,7 +271,7 @@
           ]
         },
         {
-          "apiField": "attributes.wikidataId",
+          "apiField": "attributes.identifiers.wikidata.id",
           "sourceDatasetCode": "ds-hk-saanseoi-division",
           "resolverCode": "direct_copy",
           "contributionType": "primary",
@@ -280,7 +280,7 @@
           "inputs": [
             {
               "origin": "source",
-              "fieldPath": "properties.wikidata"
+              "fieldPath": "properties.identifiers.wikidata.id"
             }
           ]
         },

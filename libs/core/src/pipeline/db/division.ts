@@ -78,7 +78,6 @@ const divisionPayloadColumns = [
   'category',
   'class',
   'sources',
-  'wikidata',
 ] as const
 const divisionI18nPayloadColumns = [
   'name',
@@ -172,7 +171,6 @@ export async function getCurrentDivisionVersionMap(
       category: historySchema.divisions.category,
       class: historySchema.divisions.class,
       versionHash: historySchema.divisions.versionHash,
-      wikidata: historySchema.divisions.wikidata,
     })
     .from(historySchema.divisions)
     .where(eq(historySchema.divisions.isCurrent, true))
@@ -268,7 +266,6 @@ export async function getDivisionVersionMapForSnapshot(
       sources: currentSchema.divisions.sources,
       category: currentSchema.divisions.category,
       class: currentSchema.divisions.class,
-      wikidata: currentSchema.divisions.wikidata,
     })
     .from(currentSchema.divisions)
     .where(eq(currentSchema.divisions.snapshotId, snapshotId))
@@ -768,7 +765,6 @@ export async function upsertDivisionCurrentStates(
               class: excluded('class'),
               sources: excluded('sources'),
               updatedAt: excluded('updatedAt'),
-              wikidata: excluded('wikidata'),
             },
             setWhere: currentRowChangedSql('divisions', divisionPayloadColumns),
           }),
@@ -902,7 +898,6 @@ export async function insertDivisionVersionRows(
         divisionCode: row.divisionCode,
         geometry: row.geometry,
         bbox: row.bbox,
-        wikidata: row.wikidata,
         hierarchies: row.hierarchies,
         identifiers: row.identifiers,
         cartography: row.cartography,

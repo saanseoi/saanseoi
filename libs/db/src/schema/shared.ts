@@ -161,7 +161,6 @@ export const canonicalDivision = {
     enum: ['administrative', 'locality', 'hood', 'landform'],
   }),
   class: text('class').notNull(),
-  wikidata: text('wikidata'),
   hierarchies: text('hierarchies', { mode: 'json' })
     .$type<DivisionHierarchies>()
     .notNull(),

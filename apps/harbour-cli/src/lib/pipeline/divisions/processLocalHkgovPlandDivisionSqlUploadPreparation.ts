@@ -45,7 +45,6 @@ export async function listCurrentHistoryRows(
       level: historySchema.divisions.level,
       category: historySchema.divisions.category,
       class: historySchema.divisions.class,
-      wikidata: historySchema.divisions.wikidata,
       hierarchies: historySchema.divisions.hierarchies,
       cartography: historySchema.divisions.cartography,
       sources: historySchema.divisions.sources,
@@ -176,7 +175,6 @@ export async function normalisePreparedDivision(
     },
     class: `planning-${level}`,
     category: null,
-    wikidata: null,
   }
   const versionHash = await createHash(recordContent(base))
   const cells =

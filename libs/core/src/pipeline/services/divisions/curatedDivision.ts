@@ -9,6 +9,8 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
   const record = json(row.record) as Record<string, unknown>
   if (!record || record.id !== row.id || typeof record.class !== 'string')
     throw new Error('Invalid curated division record.')
+  if (Object.hasOwn(record, 'wikidata'))
+    throw new Error('Curated Wikidata IDs must use identifiers.wikidata.id.')
   const classification = geographicDivisionClassification(record.class)
   if (!classification) throw new Error(`Unknown curated class: ${record.class}`)
   if (
@@ -57,7 +59,6 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
       identifiers: json(base.identifiers) ?? null,
       sources: json(base.sources) ?? null,
       divisionCode: base.divisionCode ?? null,
-      wikidata: base.wikidata ?? null,
       createdAt: now,
       updatedAt: now,
     } as Omit<NewDivisionRow, 'snapshotId'> & {

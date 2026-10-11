@@ -55,7 +55,6 @@ export type DivisionRecord = {
     geometry: typeof divisions.$inferSelect.geometry
     bbox: typeof divisions.$inferSelect.bbox
     identifiers?: typeof divisions.$inferSelect.identifiers
-    wikidataId: string | null
     hierarchies: typeof divisions.$inferSelect.hierarchies
     cartography: typeof divisions.$inferSelect.cartography
     sources: typeof divisions.$inferSelect.sources
@@ -109,7 +108,6 @@ type DivisionRow = {
   geometry: typeof divisions.$inferSelect.geometry
   bbox: typeof divisions.$inferSelect.bbox
   identifiers: typeof divisions.$inferSelect.identifiers
-  wikidata: string | null
   hierarchies: typeof divisions.$inferSelect.hierarchies
   cartography: typeof divisions.$inferSelect.cartography
   sources: typeof divisions.$inferSelect.sources
@@ -358,7 +356,6 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       geometry: row.geometry,
       bbox: row.bbox,
       identifiers: row.identifiers,
-      wikidataId: row.wikidata,
       hierarchies: row.hierarchies,
       cartography: row.cartography,
       sources: row.sources,
@@ -443,7 +440,6 @@ export async function listReplayedDivisionRecords(
                   geometry: historyDivisions.geometry,
                   bbox: historyDivisions.bbox,
                   identifiers: historyDivisions.identifiers,
-                  wikidata: historyDivisions.wikidata,
                   hierarchies: historyDivisions.hierarchies,
                   cartography: historyDivisions.cartography,
                   sources: historyDivisions.sources,
@@ -606,7 +602,6 @@ export async function listDivisionRecordsCurrent(
       geometry: divisions.geometry,
       bbox: divisions.bbox,
       identifiers: divisions.identifiers,
-      wikidata: divisions.wikidata,
       hierarchies: divisions.hierarchies,
       cartography: divisions.cartography,
       sources: divisions.sources,
@@ -672,7 +667,6 @@ export async function listDivisionRecordsCurrentByIds(
             geometry: divisions.geometry,
             bbox: divisions.bbox,
             identifiers: divisions.identifiers,
-            wikidata: divisions.wikidata,
             hierarchies: divisions.hierarchies,
             cartography: divisions.cartography,
             sources: divisions.sources,

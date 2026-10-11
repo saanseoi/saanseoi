@@ -1,0 +1,304 @@
+{
+  "kind": "field-lineage-operation-catalogue",
+  "schemaVersion": 1,
+  "operations": {
+    "division-geometry-type": {
+      "summary": "Resolve type from effective land and territorial flags, then the publisher class.",
+      "inputs": {
+        "class": "value",
+        "isLand": "condition",
+        "isTerritorial": "condition"
+      },
+      "branches": [
+        {
+          "when": {
+            "all": [
+              {
+                "input": "isLand",
+                "equals": true
+              },
+              {
+                "input": "isTerritorial",
+                "equals": true
+              }
+            ]
+          },
+          "result": "mixed"
+        },
+        {
+          "when": {
+            "input": "class",
+            "in": [
+              "land",
+              "maritime"
+            ]
+          },
+          "copy": "class"
+        }
+      ],
+      "onNoMatch": "error",
+      "governmentAreaFlags": {
+        "sources": [
+          "hkgov-had",
+          "hkgov-censtatd",
+          "hkgov-pland-pu",
+          "hkgov-pland-new-town"
+        ],
+        "isLand": true,
+        "isTerritorial": true
+      },
+      "implementation": {
+        "path": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
+        "symbol": "resolveGeometryType"
+      }
+    },
+    "censtatd-statistic-value": {
+      "summary": "Resolve the output key through the record-pinned field definition and preserve exact decimal strings or publisher status literals.",
+      "outputKey": {
+        "from": "retainedFieldDefinition.fieldName",
+        "pin": "statsRecords.fieldDefinitionHashes[fieldName]"
+      },
+      "sourceKey": "retainedFieldDefinition.sourceField",
+      "branches": [
+        {
+          "when": {
+            "sourceField": "MYPOPN_LAND",
+            "decimalLiteral": true
+          },
+          "operation": "exact-decimal-scale",
+          "factor": 1000
+        },
+        {
+          "when": {
+            "decimalLiteral": true
+          },
+          "operation": "preserve-literal"
+        },
+        {
+          "when": {
+            "sourceValue": "**"
+          },
+          "result": "suppressed"
+        },
+        {
+          "when": {
+            "sourceValueIn": [
+              "-",
+              "N.A.",
+              "NA"
+            ]
+          },
+          "result": "unavailable"
+        },
+        {
+          "when": "otherwise",
+          "operation": "preserve-literal"
+        }
+      ],
+      "duplicateOutputKey": "error",
+      "composition": "Copy statsRecords.values to attributes.values without numeric coercion.",
+      "implementation": {
+        "path": "apps/harbour-cli/src/lib/pipeline/statistics/normaliseHkgovCenstatdStatistics.ts",
+        "symbol": "parseObservationValue"
+      }
+    },
+    "saanseoi-division-name": {
+      "summary": "Materialise a reviewed archive name for its locale and project the canonical locale into the requested response profile.",
+      "preparation": {
+        "input": "archive.rows[]",
+        "output": "prepared.record",
+        "operation": "JSON.stringify"
+      },
+      "ingestion": {
+        "input": "prepared.record",
+        "operation": "JSON.parse",
+        "output": "source.properties.names[locale].name"
+      },
+      "assembly": {
+        "input": "prepared.record",
+        "operation": "JSON.parse",
+        "selection": "Object.entries(record.names)",
+        "output": "divisionI18n[locale].name"
+      },
+      "upstream": "The archive already contains reviewed names. Bind its upstream build lineage and audits; do not reapply those curations during import.",
+      "implementation": {
+        "path": "libs/core/src/pipeline/services/divisions/curatedDivision.ts",
+        "symbol": "normaliseCuratedDivision"
+      }
+    },
+    "planning-unit-geometry": {
+      "summary": "Repair source cells, select members of the planning-unit group and union them before canonical area materialisation.",
+      "preparation": [
+        {
+          "operation": "publisher-geojson-acquisition",
+          "crs": "EPSG:4326",
+          "note": "The SHP acquisition branch has a separate coordinate transformation."
+        },
+        {
+          "when": "geometry is invalid",
+          "operation": "buffer(0)",
+          "guard": "valid Polygon or MultiPolygon"
+        },
+        {
+          "operation": "group-cells",
+          "keys": [
+            "PPU",
+            "SPU",
+            "TPU",
+            "subunit"
+          ],
+          "selection": "requested planning-unit level"
+        },
+        {
+          "operation": "sort-geometries-by-envelope",
+          "purpose": "Deterministic union order."
+        },
+        {
+          "when": "release year is 2021",
+          "operation": "buffer-zero-geometry-collection-union"
+        },
+        {
+          "when": "release year is not 2021",
+          "operation": "balanced-union"
+        },
+        {
+          "operation": "remove-degenerate-interior-rings",
+          "guard": "valid Polygon or MultiPolygon"
+        }
+      ],
+      "sourceEvidence": "Retain original cells independently; canonical assembly consumes the prepared aggregate.",
+      "assembly": "Validate geometry, calculate bbox separately and remove embedded bbox from the canonical geometry.",
+      "composition": "Project the selected canonical geometry when included by the response profile.",
+      "implementation": {
+        "path": "apps/harbour-cli/src/lib/sources/hkgov/pland/hkgovPland.ts",
+        "symbol": "buildPlanningDivisions"
+      }
+    },
+    "division-response-field": {
+      "summary": "Project one field from the selected canonical Division or geometry record; evaluate visibility for the resolved request profile.",
+      "inputs": {
+        "value": "value",
+        "profile": "selection",
+        "localeSelection": "selection"
+      },
+      "profiles": {
+        "division": {
+          "attributes.createdAt": [
+            "default",
+            "map",
+            "full"
+          ],
+          "attributes.updatedAt": [
+            "default",
+            "map",
+            "full"
+          ],
+          "attributes.geometry": [
+            "map",
+            "full"
+          ],
+          "attributes.bbox": [
+            "map",
+            "full"
+          ],
+          "attributes.cartography": [
+            "map",
+            "full"
+          ],
+          "attributes.snapshotId": [
+            "full"
+          ],
+          "attributes.sources": [
+            "full"
+          ],
+          "attributes.identifiers": [
+            "default",
+            "map",
+            "full"
+          ],
+          "attributes.identifiers.wikidata.id": [
+            "default",
+            "map",
+            "full"
+          ]
+        },
+        "divisionArea": {
+          "attributes.sources": [
+            "full"
+          ],
+          "attributes.snapshotId": [
+            "full"
+          ]
+        },
+        "divisionBoundary": {
+          "attributes.sources": [
+            "full"
+          ],
+          "attributes.snapshotId": [
+            "full"
+          ]
+        }
+      },
+      "locale": {
+        "selection": "Select canonical locale rows using the resolved request locale mode: none selects no rows, all selects all rows, requested selects exact members. Full defaults to all; other profiles use their configured default locales. Explicit request locales override defaults.",
+        "fields": {
+          "name": "String value or null.",
+          "nameAlts": "Full profile only. Split stored pipe-delimited strings, trim each item and remove empty items; null remains null; an absent result becomes null.",
+          "nameRules": "Full profile only. Decode stored JSON; an absent result becomes null."
+        },
+        "excluded": [
+          "nameVariant",
+          "isLocaleInferred"
+        ]
+      },
+      "nullCoalescing": [
+        "attributes.bbox",
+        "attributes.cartography",
+        "attributes.sources"
+      ],
+      "geometry": {
+        "division": "Accept finite Point positions with two or three coordinates, Polygon rings of at least four valid positions, or non-empty MultiPolygon composed of such polygons; invalid shapes become null. Return type and coordinates only.",
+        "divisionArea": "Polygon or MultiPolygon type only; other types become null. Preserve the accepted geometry object.",
+        "divisionBoundary": "LineString or MultiLineString type only; other types become null. Preserve the accepted geometry object."
+      },
+      "hierarchies": "Preserve categories, paths and ordering. Retain id, name, class and full_containment when defined; exclude containment_geometry.",
+      "divisionCode": "Emit only when the canonical divisionCode is truthy.",
+      "implementation": {
+        "path": "apps/atlas-api/src/services/divisionsPresentation.ts",
+        "symbol": "createDivisionResource"
+      },
+      "additionalImplementations": [
+        {
+          "path": "apps/atlas-api/src/db/divisions.ts",
+          "symbol": "mapDivisionLocaleValue"
+        }
+      ]
+    },
+    "statistic-response-field": {
+      "summary": "Project Statistics values and metadata without numeric coercion.",
+      "inputs": {
+        "value": "value",
+        "profile": "selection"
+      },
+      "fullOnly": [
+        "attributes.sourceReleaseId",
+        "attributes.sourceFeatureRef",
+        "attributes.fieldSources",
+        "attributes.createdAt",
+        "attributes.updatedAt"
+      ],
+      "values": "Copy statsRecords.values. Select each field definition by datasetCode, fieldName and record.fieldDefinitionHashes[fieldName].",
+      "referencePeriod": {
+        "code": "referencePeriodCode",
+        "start": "referencePeriodStart",
+        "end": "referencePeriodEnd",
+        "endYear": "referencePeriodEndYear",
+        "granularity": "referencePeriodGranularity"
+      },
+      "implementation": {
+        "path": "apps/atlas-api/src/services/statistics.ts",
+        "symbol": "createStatisticResource"
+      }
+    }
+  }
+}

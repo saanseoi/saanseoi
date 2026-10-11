@@ -668,7 +668,7 @@ describe('missingOvertureHongKongAreaRows', () => {
     for (const area of overtureHongKongAreas) {
       const row = rows.find(row => row.id === overtureHongKongAreaDivisionId(area.code))
       expect(row?.names.primary).toBe(area.names.en)
-      expect(row?.wikidata).toBe(area.wikidata)
+      expect(row?.identifiers).toMatchObject({ wikidata: { id: area.wikidata } })
       expect(row?.identifiers.saanseoiCorrection.districtDivisionIds).toHaveLength(
         area.districtNames.length,
       )

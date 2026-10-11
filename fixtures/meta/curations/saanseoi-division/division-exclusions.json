@@ -3,6 +3,50 @@
   "purpose": "Division exclusions. Each entry identifies whether to omit the final identity, an Overture input or a LandsD input. Optional appliesFrom and appliesUntil bound manual entries; releaseEntries contain exact guard-triggered decisions. Island geometry decisions do not delete identities.",
   "entries": [
     {
+      "divisionId": "51a2d974-f50e-4b61-93ea-9553f43ade22",
+      "names": [
+        "Kwong Pan Tin Tsuen Section 1",
+        "光板田村第一段"
+      ],
+      "reason": "Identified by the curator as a bus-stop reference, not an independent village; excluded from Overture sourcing during SaanSeoi division preparation.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "4f2fde43-bef0-44f9-9d96-4f3416bdfa26",
+      "names": [
+        "Kwong Pan Tin Tsuen Section 2",
+        "光板田村第二段"
+      ],
+      "reason": "Section-labelled record excluded from Overture sourcing during SaanSeoi division preparation by curator; retain the unsuffixed Kwong Pan Tin Village entry.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "924809d9-b437-4cae-a0f3-a9c40c7af598",
+      "names": [
+        "Hoi Pa San Tsuen Section II",
+        "海壩新村第二段"
+      ],
+      "reason": "It is unclear what this section-labelled record refers to; excluded from Overture sourcing during SaanSeoi division preparation by curator. Retain the unsuffixed Hoi Pa New Village (Hoi Pa San Tsuen) entry.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
+      "divisionId": "7211dd05-94e0-4e00-b39a-03458396ed62",
+      "names": [
+        "Kwong Pan Tin Tsuen Section 4",
+        "光板田村第四段"
+      ],
+      "reason": "Excluded from Overture sourcing during SaanSeoi division preparation by curator.",
+      "scopes": [
+        "overture"
+      ]
+    },
+    {
       "divisionId": "8b673b40-3502-5f8e-af22-226360825506",
       "reviewId": "BASEMAP:ISLAND:b38ed58be971ac84",
       "names": [

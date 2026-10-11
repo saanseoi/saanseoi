@@ -39,7 +39,6 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
       category: null,
       class: 'planning-subunit',
       level: 6,
-      wikidata: null,
       identifiers: null,
       cartography: null,
       bbox: null,

@@ -1,6 +1,6 @@
 import { expect, test } from 'bun:test'
 import type { DivisionHierarchies, DivisionHierarchyEntry } from '@repo/db'
-import { DivisionHierarchiesSchema } from '../schema/divisions'
+import { DivisionResourceSchema, DivisionHierarchiesSchema } from '../schema/divisions'
 import { division } from './geocoding.fixtures'
 import {
   buildDivisionRouteState,
@@ -110,4 +110,45 @@ test('division resources do not expose polygons as identity geometry', () => {
     record,
   })
   expect(resource.attributes.geometry).toBeNull()
+})
+
+test('Division schema and full responses use the reviewed attribute order', () => {
+  const expected = [
+    'divisionCode',
+    'category',
+    'class',
+    'level',
+    'i18n',
+    'hierarchies',
+    'geometry',
+    'bbox',
+    'cartography',
+    'identifiers',
+    'sources',
+    'snapshotId',
+    'createdAt',
+    'updatedAt',
+  ]
+  expect(Object.keys(DivisionResourceSchema.shape.attributes.shape)).toEqual(expected)
+  const record = division('example')
+  record.division.divisionCode = 'EX'
+  record.division.identifiers = { wikidata: { id: 'Q123' } }
+  for (const profile of ['compact', 'default', 'map', 'full'] as const) {
+    const resource = createDivisionResource({
+      baseUrl: 'https://api.saanseoi.hk',
+      record,
+      routeState: buildDivisionRouteState({
+        requestedVersionPath: 'divisions/v0.1',
+        requestedApiVersion: '0.1',
+        resolvedApiVersion: 'api-divisions-v0.1',
+        profile,
+      }),
+    })
+    const keys = Object.keys(resource.attributes)
+    expect(keys).toEqual(expected.filter(key => keys.includes(key)))
+    expect(resource.attributes).not.toHaveProperty('wikidataId')
+    if (profile === 'full') expect(keys).toEqual(expected)
+    if (profile !== 'compact')
+      expect(resource.attributes.identifiers).toEqual({ wikidata: { id: 'Q123' } })
+  }
 })

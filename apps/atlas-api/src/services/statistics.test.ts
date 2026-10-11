@@ -207,7 +207,6 @@ function dependencies() {
           type: 'district',
           geometry: null,
           bbox: null,
-          wikidata: null,
           hierarchies: {},
           cartography: null,
           sources: null,

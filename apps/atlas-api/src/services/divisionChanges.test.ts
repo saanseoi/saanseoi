@@ -244,7 +244,7 @@ test('label points, descriptive metadata and non-authoritative polygons do not i
   const old = division('a')
   const next = structuredClone(old)
   next.division.geometry = { type: 'Point', coordinates: [1, 2] }
-  next.division.wikidataId = 'Q1'
+  next.division.identifiers = { wikidata: { id: 'Q1' } }
   const body = successful(
     await fixture(
       { records: [old], areas: [] },
@@ -252,7 +252,7 @@ test('label points, descriptive metadata and non-authoritative polygons do not i
     ).run(),
   )
   expect(body.data[0]).toMatchObject({
-    changedFields: ['geometry', 'wikidataId'],
+    changedFields: ['geometry', 'identifiers'],
     canAffectGeocodingMembership: false,
   })
   expect(body.meta.coverage.after.withMembershipGeometry).toBe(0)

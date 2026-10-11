@@ -1,5 +1,18 @@
 # SaanSeoi Division statistics
 
+Division Wikidata links use `identifiers.wikidata.id`, for example
+`{ "wikidata": { "id": "Q123" } }`. Canonical Division rows, prepared SaanSeoi records
+and API attributes have no standalone Wikidata field. Overture's native `wikidata`
+assertion is retained in its source payload and mapped into the grouped identifier
+during canonical processing and SaanSeoi preparation.
+
+The one-off local port uses `scripts/backfill-division-wikidata.ts` with an explicit
+JSON manifest of database paths and a fresh output directory. Run it without `--apply`
+to review the plan, then apply it before the generated current/history column-drop
+migrations. It retains rollback SQL, checks conflicting identifiers, rehashes canonical
+and SaanSeoi source records, updates snapshot/source references and checks database
+integrity. Native publisher records are not rewritten.
+
 Canonical Division identities use representative Points. Canonicalisation preserves a
 valid source point or derives an interior point from polygonal source geometry using JTS
 `InteriorPoint`. The `division-representative-point` audit guard verifies point validity

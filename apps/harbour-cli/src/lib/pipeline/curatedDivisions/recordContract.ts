@@ -1,3 +1,4 @@
+import { divisionIdentifiersWithWikidata } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
 import geographicCodes from '../../../../../../fixtures/meta/divisionCodes/geographic.json'
 import { calculateGeoJsonBbox } from '@repo/core/pipeline/geojson'
 
@@ -46,12 +47,13 @@ export function applyCuratedRecordContract(
       : polygons.length
         ? calculateGeoJsonBbox({ type: 'GeometryCollection', geometries: polygons })
         : (object(row.bbox) ?? null)
-    row.wikidata ??= null
     row.divisionCode ??= null
     const policy = divisionCartography[row.class as keyof typeof divisionCartography]
     if (!policy) throw Error(`Missing cartography policy for ${row.class}`)
     row.cartography = { minZoom: policy[0], maxZoom: 24, prominence: policy[1] }
-    const identifiers = object(row.identifiers) ?? {}
+    const identifiers =
+      divisionIdentifiersWithWikidata(row.identifiers, row.wikidata) ?? {}
+    delete row.wikidata
     const assignment = geographicCodes.assignments.find(
       code => code.canonicalId === row.id,
     )
@@ -79,7 +81,7 @@ export function applyCuratedRecordContract(
           dataset: 'ds-hk-saanseoi-division',
           recordId: row.id,
           contributions: ['identity', 'names', 'classification', 'hierarchy'],
-          curation: identifiers.saanseoiIsland
+          curation: identifiers.saanseoi?.sourceId
             ? 'division-identity-matches'
             : 'division-additions',
         },

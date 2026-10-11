@@ -404,9 +404,9 @@ function seedCurrent(sqlite: Database) {
       run(
         sqlite,
         `INSERT INTO divisions
-          (snapshotId, id, identifiers, level, category, class, geometry, bbox, wikidata,
+          (snapshotId, id, identifiers, level, category, class, geometry, bbox,
            hierarchies, cartography, sources, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           `scope:${snapshotId}`,
           division.id,
@@ -421,7 +421,6 @@ function seedCurrent(sqlite: Database) {
             division.point[0] + 0.01,
             division.point[1] + 0.01,
           ]),
-          null,
           json({
             administrative: division.hierarchy.length
               ? [
@@ -576,9 +575,9 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
       run(
         sqlite,
         `INSERT INTO divisions
-          (id, identifiers, level, category, class, geometry, bbox, wikidata, hierarchies, cartography,
+          (id, identifiers, level, category, class, geometry, bbox, hierarchies, cartography,
            sources, versionHash, sourceReleaseId, snapshotId, isCurrent, createdAt, updatedAt)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           division.id,
           null,
@@ -592,7 +591,6 @@ function seedHistory(sqlite: Database, snapshotIds: string[]) {
             division.point[0] + 0.01,
             division.point[1] + 0.01,
           ]),
-          null,
           json({
             administrative: division.hierarchy.length
               ? [

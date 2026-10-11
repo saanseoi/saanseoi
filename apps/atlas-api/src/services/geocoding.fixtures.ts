@@ -16,7 +16,6 @@ export function division(
       category,
       geometry: null,
       bbox: null,
-      wikidataId: null,
       hierarchies: { ...emptyDivisionHierarchies(), ...paths },
       cartography: null,
       sources: null,

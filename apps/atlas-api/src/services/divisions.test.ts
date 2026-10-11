@@ -96,8 +96,7 @@ const baseRecord: DivisionRecord = {
       coordinates: [114.2262, 22.2788],
     },
     bbox: [114.22, 22.27, 114.23, 22.28],
-    identifiers: null,
-    wikidataId: 'Q123456',
+    identifiers: { wikidata: { id: 'Q123456' } },
     cartography: {
       kind: 'label-center',
     },
@@ -140,7 +139,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       geometry: null,
       bbox: null,
       identifiers: null,
-      wikidataId: null,
       hierarchies: { administrative: [], locality: [], landform: [], full: [] },
       cartography: null,
       sources: null,
@@ -163,7 +161,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       geometry: null,
       bbox: null,
       identifiers: null,
-      wikidataId: null,
       hierarchies: { administrative: [], locality: [], landform: [], full: [] },
       cartography: null,
       sources: null,
@@ -186,7 +183,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       geometry: null,
       bbox: null,
       identifiers: null,
-      wikidataId: null,
       hierarchies: { administrative: [], locality: [], landform: [], full: [] },
       cartography: null,
       sources: null,
@@ -584,7 +580,7 @@ describe('division services', () => {
           class: 'locality',
           category: 'locality',
           hierarchies,
-          wikidataId: 'Q123456',
+          identifiers: { wikidata: { id: 'Q123456' } },
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
         })
@@ -599,7 +595,7 @@ describe('division services', () => {
           class: 'locality',
           category: 'locality',
           hierarchies,
-          wikidataId: 'Q123456',
+          identifiers: { wikidata: { id: 'Q123456' } },
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
           geometry: {
@@ -612,7 +608,7 @@ describe('division services', () => {
           },
         })
         expect(resource.attributes.snapshotId).toBeUndefined()
-        expect(resource.attributes.identifiers).toBeUndefined()
+        expect(resource.attributes.identifiers).toEqual({ wikidata: { id: 'Q123456' } })
       }
 
       if (profile === 'full') {
@@ -627,11 +623,10 @@ describe('division services', () => {
             coordinates: [114.2262, 22.2788],
           },
           bbox: [114.22, 22.27, 114.23, 22.28],
-          identifiers: null,
           cartography: {
             kind: 'label-center',
           },
-          wikidataId: 'Q123456',
+          identifiers: { wikidata: { id: 'Q123456' } },
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
           sources: {

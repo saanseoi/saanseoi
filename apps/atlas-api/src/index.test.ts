@@ -2121,7 +2121,7 @@ describe('atlas-api', () => {
       | undefined
     expect(divisionAttributes?.properties).not.toHaveProperty('sourceKeys')
     expect(divisionAttributes?.properties).not.toHaveProperty('overture')
-    expect(divisionAttributes?.properties).toHaveProperty('wikidataId')
+    expect(divisionAttributes?.properties).not.toHaveProperty('wikidataId')
     expect(divisionAttributes?.properties).not.toHaveProperty('wikidata')
     const divisionsOpenApi = JSON.stringify(divisions)
     expect(divisions.components?.schemas).not.toHaveProperty('Geometry')
@@ -2131,9 +2131,6 @@ describe('atlas-api', () => {
     expect(divisionsOpenApi).toContain('MultiLineString')
     expect(divisionsOpenApi).not.toContain('GeometryCollection')
     expect(divisionsOpenApi).not.toContain('MultiPoint')
-    expect(divisionAttributes?.properties?.wikidataId).toMatchObject({
-      examples: ['Q55621441', 'Q7820922', 'Q16923583', null],
-    })
     expect(divisionsOpenApi).toContain('hkgov-censtatd-landclipped')
     expect(divisionsOpenApi).toContain('hkgov-pland-new-town')
     expect(divisionResource?.properties).not.toHaveProperty('meta')

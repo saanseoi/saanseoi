@@ -1,5 +1,20 @@
 # Division type and level
 
+Division Wikidata links use `identifiers.wikidata.id`, for example
+`{ "wikidata": { "id": "Q123" } }`. Canonical Division rows, prepared SaanSeoi records
+and API attributes have no standalone Wikidata field. Overture's native `wikidata`
+assertion is retained in its source payload and mapped into the grouped identifier
+during canonical processing and SaanSeoi preparation.
+
+Kwong Pan Tin Tsuen Sections 1, 2 and 4 and Hoi Pa San Tsuen Section II are excluded
+from Overture sourcing during SaanSeoi division preparation through the `overture` scope
+in `fixtures/meta/curations/saanseoi-division/division-exclusions.json`. The curator
+identifies Kwong Pan Tin Tsuen Section 1 as a bus-stop reference; what Hoi Pa San Tsuen
+Section II refers to is unclear. The unsuffixed source entries Kwong Pan Tin Village
+(光板田村, `994be2bb-d03d-4a79-b860-ebde916fe86c`) and Hoi Pa New Village (海壩新村,
+also named Hoi Pa San Tsuen, `35053297-d2a0-4ad9-af32-73fc76250c4a`) remain available
+for preparation. All native Overture records remain retained.
+
 Native Overture uploads materialise their own normalised ancestry. The SaanSeoi curated
 hierarchy fixture is an input to the independently versioned synthetic archive builder;
 it is not applied while ingesting native Overture releases. Curated archive publication

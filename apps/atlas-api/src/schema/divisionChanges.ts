@@ -33,7 +33,6 @@ export const DivisionChangedFieldSchema = z.enum([
   'names',
   'divisionCode',
   'identifiers',
-  'wikidataId',
   'geometry',
   'bbox',
   'cartography',

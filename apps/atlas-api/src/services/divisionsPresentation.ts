@@ -1,3 +1,4 @@
+import { divisionIdentifiers } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
 import type { PublicDivisionHierarchies } from '../schema/divisions'
 import type { DivisionHierarchies } from '@repo/db'
 import { divisionHierarchyEntries } from '@repo/core/pipeline/services/divisions/divisionHierarchies.ts'
@@ -99,7 +100,6 @@ type DivisionResourcePayload = {
     geometry?: DivisionGeometry | null
     bbox?: BBox | null
     cartography?: JsonObject | null
-    wikidataId?: string | null
     createdAt?: string
     updatedAt?: string
     sources?: SourcesPayload | null
@@ -469,36 +469,33 @@ export function createDivisionResource(args: {
 }): DivisionResourcePayload {
   const { baseUrl, routeState, record } = args
   const { division, i18n } = record
-  const attributes: DivisionResourcePayload['attributes'] = {
-    level: division.level,
-    class: division.class,
-    category: division.category,
-    hierarchies: publicDivisionHierarchies(division.hierarchies),
-    ...(division.divisionCode ? { divisionCode: division.divisionCode } : {}),
-  }
-
-  if (isDefaultDivisionProfile(routeState.profile)) {
-    attributes.wikidataId = division.wikidataId
-    attributes.createdAt = division.createdAt
-    attributes.updatedAt = division.updatedAt
-  }
-
-  if (isMapDivisionProfile(routeState.profile)) {
-    attributes.geometry = asDivisionGeometry(division.geometry)
-    attributes.bbox = (division.bbox as BBox | null) ?? null
-    attributes.cartography = (division.cartography as JsonObject | null) ?? null
-  }
-
-  if (routeState.profile === 'full') {
-    attributes.snapshotId = division.snapshotId
-    attributes.sources = (division.sources as SourcesPayload | null) ?? null
-    attributes.identifiers = division.identifiers
-  }
-
   const projectedI18n = projectDivisionI18n(i18n, routeState.profile)
-
-  if (projectedI18n) {
-    attributes.i18n = projectedI18n
+  const attributes: DivisionResourcePayload['attributes'] = {
+    ...(division.divisionCode ? { divisionCode: division.divisionCode } : {}),
+    category: division.category,
+    class: division.class,
+    level: division.level,
+    ...(projectedI18n ? { i18n: projectedI18n } : {}),
+    hierarchies: publicDivisionHierarchies(division.hierarchies),
+    ...(isMapDivisionProfile(routeState.profile)
+      ? {
+          geometry: asDivisionGeometry(division.geometry),
+          bbox: (division.bbox as BBox | null) ?? null,
+          cartography: (division.cartography as JsonObject | null) ?? null,
+        }
+      : {}),
+    ...(isDefaultDivisionProfile(routeState.profile)
+      ? { identifiers: divisionIdentifiers(division.identifiers) }
+      : {}),
+    ...(routeState.profile === 'full'
+      ? {
+          sources: (division.sources as SourcesPayload | null) ?? null,
+          snapshotId: division.snapshotId,
+        }
+      : {}),
+    ...(isDefaultDivisionProfile(routeState.profile)
+      ? { createdAt: division.createdAt, updatedAt: division.updatedAt }
+      : {}),
   }
 
   return {

@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 
 import {
+  getOrderedSchemaProperties,
   getSchemaDataArrayEnvelope,
   getOpenApiSchemaForFamily,
   getProfileSchema,
@@ -139,7 +140,7 @@ test('narrows division attributes to the selected response profile', () => {
               level: { type: 'number' },
               sources: { type: 'object' },
               identifiers: { type: 'object' },
-              type: { type: 'string' },
+              class: { type: 'string' },
             },
             type: 'object',
           },
@@ -155,13 +156,13 @@ test('narrows division attributes to the selected response profile', () => {
       getProfileSchema(model, 'divisions', 'compact').schemas.DivisionAttributes
         ?.properties ?? {},
     ),
-  ).toEqual(['level', 'type'])
+  ).toEqual(['level', 'class'])
   expect(
     Object.keys(
       getProfileSchema(model, 'divisions', 'full').schemas.DivisionAttributes
         ?.properties ?? {},
     ).sort(),
-  ).toEqual(['geometry', 'identifiers', 'level', 'sources', 'type'])
+  ).toEqual(['class', 'geometry', 'identifiers', 'level', 'sources'])
 })
 
 test('keeps parsed address components in every non-compact response profile', () => {
@@ -256,4 +257,28 @@ test('compacts only bare scalar alternatives without hiding constraints or objec
       getExpandableSchemaComposition({ anyOf: [{ type: 'string' }, member] }),
     ).toHaveLength(2)
   }
+})
+
+test('schema properties put timestamps last without changing other field order', () => {
+  const properties = {
+    updatedAt: {},
+    name: {},
+    createdAt: {},
+    geometry: {},
+    sources: {},
+  }
+  expect(getOrderedSchemaProperties({ properties }).map(([name]) => name)).toEqual([
+    'name',
+    'geometry',
+    'sources',
+    'createdAt',
+    'updatedAt',
+  ])
+  expect(Object.keys(properties)).toEqual([
+    'updatedAt',
+    'name',
+    'createdAt',
+    'geometry',
+    'sources',
+  ])
 })

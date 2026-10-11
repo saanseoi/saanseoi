@@ -32,7 +32,6 @@ export type PreparedDivision = {
     sources: Record<string, unknown>
     class: string
     category: import('@repo/db').DivisionCategory | null
-    wikidata: null
   }
   cells: Array<{
     ppuCode: string

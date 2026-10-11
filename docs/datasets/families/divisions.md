@@ -1,5 +1,16 @@
 # Divisions dataset family
 
+Division Wikidata links use `identifiers.wikidata.id`, for example
+`{ "wikidata": { "id": "Q123" } }`. Canonical Division rows, prepared SaanSeoi records
+and API attributes have no standalone Wikidata field. Overture's native `wikidata`
+assertion is retained in its source payload and mapped into the grouped identifier
+during canonical processing and SaanSeoi preparation.
+
+API Division attributes are ordered as `divisionCode`, `category`, `class`, `level`,
+`i18n`, `hierarchies`, `geometry`, `bbox`, `cartography`, `identifiers`, `sources`,
+`snapshotId`, `createdAt`, `updatedAt`. Profile omissions preserve this order.
+Identifiers are available in the default, map and full profiles.
+
 ## Representative points and separate areas
 
 A canonical Division carries a representative GeoJSON `Point`, never a polygon.
@@ -57,6 +68,15 @@ purpose and retains names from the pinned ingredients and final edition for read
 searchable labels. Drawn and withheld Division Area inputs have geometry previews; file
 metadata is separate from record counts. See
 [preparation audit](../sources/saanseoi/division.md#preparation-audit).
+
+Kwong Pan Tin Tsuen Sections 1, 2 and 4 and Hoi Pa San Tsuen Section II are excluded
+from Overture sourcing during SaanSeoi division preparation through the `overture` scope
+in `fixtures/meta/curations/saanseoi-division/division-exclusions.json`. The curator
+identifies Kwong Pan Tin Tsuen Section 1 as a bus-stop reference; what Hoi Pa San Tsuen
+Section II refers to is unclear. The unsuffixed source entries Kwong Pan Tin Village
+(光板田村, `994be2bb-d03d-4a79-b860-ebde916fe86c`) and Hoi Pa New Village (海壩新村,
+also named Hoi Pa San Tsuen, `35053297-d2a0-4ad9-af32-73fc76250c4a`) remain available
+for preparation. All native Overture records remain retained.
 
 ## Native Overture source audit
 
