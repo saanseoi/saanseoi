@@ -1,3 +1,5 @@
+import { composeSourceRecordId } from '@repo/core/sourceRecordIdentity'
+import { datasetSourceRecordIdentity } from '@repo/core/pipeline/services/sources/datasetSourceRecordIdentity'
 import {
   canonicalDivisionPoint,
   createDivisionPointGuard,
@@ -256,7 +258,10 @@ function normaliseNewTown(
       sourceProperties.source_geometry,
       'New Town source geometry',
     ),
-    sourceRecordId: requireString(sourceProperties.newtown_id, 'newtown_id'),
+    sourceRecordId: composeSourceRecordId(
+      datasetSourceRecordIdentity('ds-hk-hkgov-pland-division-new-town'),
+      asRecord(asRecord(sourceProperties.sourceFeature).properties),
+    ),
     wasGeometryRepaired: sourceProperties.was_geometry_repaired === true,
   }
 }

@@ -107,7 +107,7 @@ describe('HAD district GeoJSON preparation', () => {
       )
       await expect(
         prepareHkgovHadDistrictUpload(inputFile, outputDir, '2022'),
-      ).rejects.toThrow('unique publisher OBJECTID')
+      ).rejects.toThrow('Duplicate source-record identity')
     } finally {
       await rm(inputDir, { force: true, recursive: true })
       await rm(outputDir, { force: true, recursive: true })

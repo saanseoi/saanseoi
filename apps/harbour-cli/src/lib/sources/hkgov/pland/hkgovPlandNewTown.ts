@@ -1,3 +1,5 @@
+import { composeSourceRecordId } from '@repo/core/sourceRecordIdentity'
+import { datasetSourceRecordIdentity } from '@repo/core/pipeline/services/sources/datasetSourceRecordIdentity'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
@@ -455,25 +457,15 @@ function normaliseFeature(value: unknown, index: number): NewTownRow {
   const repairedGeometry = repairGeometryIfInvalid(originalGeometry, index)
   return {
     geometry: repairedGeometry.geometry,
-    id: normaliseProviderId(names.en),
+    id: composeSourceRecordId(
+      datasetSourceRecordIdentity('ds-hk-hkgov-pland-division-new-town'),
+      properties,
+    ),
     names,
     originalGeometry,
     repaired: repairedGeometry.repaired,
     sourceFeature: feature,
   }
-}
-
-function normaliseProviderId(value: string) {
-  const id = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-  if (!id) {
-    throw new Error(
-      `Planning Department New Town name ${JSON.stringify(value)} cannot form a source record identifier.`,
-    )
-  }
-  return id
 }
 
 function requireName(value: unknown, field: string, index: number) {

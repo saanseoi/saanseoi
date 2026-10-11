@@ -1,3 +1,5 @@
+import { composeSourceRecordId } from '../../../sourceRecordIdentity'
+import { datasetSourceRecordIdentity } from '../sources/datasetSourceRecordIdentity'
 import { curatedRecordSources } from '../sources/curatedRecordSources'
 import { assertInternalSourceReferences } from '../sources/internalSourceReferences'
 import { camelCaseJson } from '../../../jsonKeys'
@@ -759,9 +761,8 @@ function asOptionalInteger(value: unknown) {
 
 function hadPublisherId(row: Record<string, unknown>) {
   const properties = row.source_properties as Record<string, unknown> | undefined
-  const id = properties?.OBJECTID
-  if ((typeof id !== 'number' && typeof id !== 'string') || !String(id).trim()) {
-    throw new Error('HAD publisher record requires OBJECTID.')
-  }
-  return String(id)
+  return composeSourceRecordId(
+    datasetSourceRecordIdentity('ds-hk-hkgov-had-division-area-district'),
+    properties ?? {},
+  )
 }

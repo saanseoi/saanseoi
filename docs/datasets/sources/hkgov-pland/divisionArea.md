@@ -494,3 +494,17 @@ a dry run. `--apply` updates eligible interpretations transactionally after writ
 backups, replay references and rollback SQL. Explicit omissions, source payloads and
 canonical geometry are preserved. Run a second dry run in a separate output directory to
 verify that no further changes are needed.
+
+## Source record identity declarations
+
+Planning cell deliveries contain repeated TPU/subunit codes and no native feature ID.
+The dataset fixture declares the one-based delivery feature ordinal as `sourceRecordId`,
+with dataset-release scope and release-local stability. For example, feature 1040 has ID
+`1040`; its TPU and subunit remain publisher properties used for grouping. A row ordinal
+cannot establish continuity across deliveries.
+
+New Town deliveries use a name-derived source key. Their fixture declares `NewTown_en`
+with `name-slug` normalisation: lowercase ASCII letters and digits, non-alphanumeric
+runs replaced with `-`, and leading/trailing hyphens removed. Empty or duplicate keys
+block intake. These keys have release-local stability; canonical cohort-scoped Division
+IDs remain independent.

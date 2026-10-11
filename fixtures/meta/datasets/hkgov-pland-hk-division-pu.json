@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:36601ab4e0109451834a74ab3cfff2364dc9c782beae9148f3e2bd053c7f71c6",
+  "versionHash": "sha256:533ed9a0f26da68f7d6eb44cda0ce9023f06f7f30a713b5fc39636cd1ecab601",
   "publisherCode": "hkgov-pland",
   "code": "ds-hk-hkgov-pland-division-pu",
   "regionCode": "hk",
@@ -9,6 +9,16 @@
   "kind": "pu",
   "sourceVariant": "hkgov-pland-pu",
   "sourceCrs": "EPSG:4326",
+  "sourceRecordIdentity": {
+    "scope": "dataset-release",
+    "stability": "release",
+    "components": [
+      {
+        "ordinal": true
+      }
+    ],
+    "duplicates": "reject"
+  },
   "resourceTypes": [
     "division",
     "divisionArea"

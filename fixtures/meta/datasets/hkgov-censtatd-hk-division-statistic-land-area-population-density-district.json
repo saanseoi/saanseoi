@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:67ffdfed4b04b3b4bbcd4ead554fd5802701570a9e182752768120af78272911",
+  "versionHash": "sha256:82af6e4fb3bd2022b6688234f5c00bfb0d8d07e4f576f5e67973612a42043fc8",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district",
   "regionCode": "hk",
@@ -19,6 +19,21 @@
     }
   },
   "sourceCrs": "EPSG:2326",
+  "sourceRecordIdentity": {
+    "scope": "dataset-release",
+    "stability": "release",
+    "components": [
+      {
+        "paths": [
+          "gmlId",
+          "id",
+          "fid"
+        ],
+        "fallback": "row-ordinal"
+      }
+    ],
+    "duplicates": "append-row-ordinal"
+  },
   "resourceTypes": [
     "divisionStatistic",
     "divisionArea"

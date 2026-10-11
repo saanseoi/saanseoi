@@ -537,3 +537,13 @@ including companion division areas. `--defer-stats-release-set` postpones compos
 Statistics release-set publication only. A source cohort is complete only when every
 declared resource is published for that cohort. Resuming an incomplete cohort retains
 published resources and ingests its missing companions.
+
+## Source record identity contract
+
+Dataset fixtures declare `sourceRecordIdentity`: the dataset-release uniqueness scope,
+identity stability, ordered input components and duplicate policy. Source IDs omit
+publisher and dataset prefixes because references carry the dataset and release.
+`publisher` stability identifies a native publisher key; `release` stability makes no
+cross-release continuity claim. Delivery ordinals are one-based and refer to the
+original input order. Canonical observation IDs and publisher codes used for grouping
+are separate from retained source record IDs.

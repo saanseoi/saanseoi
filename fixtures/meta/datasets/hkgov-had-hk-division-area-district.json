@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f8203a01f26505c96d0a18cc14accedf784788b5b01119a93fc103d0974214b8",
+  "versionHash": "sha256:dea3187fa4f58ad60dcf7b08b4bd588dfab6e896c8c623efeccda51f077e3c9c",
   "publisherCode": "hkgov-had",
   "code": "ds-hk-hkgov-had-division-area-district",
   "regionCode": "hk",
@@ -8,6 +8,18 @@
   "theme": "divisions",
   "kind": "district",
   "sourceCrs": "EPSG:4326",
+  "sourceRecordIdentity": {
+    "scope": "dataset-release",
+    "stability": "publisher",
+    "components": [
+      {
+        "paths": [
+          "OBJECTID"
+        ]
+      }
+    ],
+    "duplicates": "reject"
+  },
   "resourceTypes": [
     "divisionArea"
   ],

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:0a9a42432de1166ab7cdadb81289a7b991c0e65aed94e1a3a1b63f0da4934880",
+  "versionHash": "sha256:b41ff75a2a1825caa89c33585acd67527f433038fa272d8ceaffa4e741cbf549",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district",
   "regionCode": "hk",
@@ -20,6 +20,21 @@
     }
   },
   "sourceCrs": "EPSG:2326",
+  "sourceRecordIdentity": {
+    "scope": "dataset-release",
+    "stability": "release",
+    "components": [
+      {
+        "paths": [
+          "gmlId",
+          "id",
+          "fid"
+        ],
+        "fallback": "row-ordinal"
+      }
+    ],
+    "duplicates": "append-row-ordinal"
+  },
   "resourceTypes": [
     "divisionStatistic",
     "divisionArea"

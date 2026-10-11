@@ -125,9 +125,7 @@ describe('Planning Department native TPU SHP intake', () => {
       expect(cells).toHaveLength(5088)
       expect(new Set(cells.map(cell => cell.sourceRecordId)).size).toBe(5088)
       for (const cell of cells) {
-        const prefix = `PLAND:${cell.tpuCode}:${cell.subunitCode}:`
-        expect(cell.sourceRecordId.startsWith(prefix)).toBe(true)
-        expect(cell.sourceRecordId.slice(prefix.length)).toMatch(/^[1-9]\d*$/)
+        expect(cell.sourceRecordId).toMatch(/^[1-9]\d*$/)
         expect(cell.properties).toBeDefined()
         expect(cell.sourceGeometry).toBeDefined()
         expect(cell).not.toHaveProperty('repairedGeometry')

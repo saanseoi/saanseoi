@@ -1,3 +1,4 @@
+import { assertSourceRecordIdentity } from '@repo/core/sourceRecordIdentity'
 import { readFile, readdir } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { datasetVariantForSource, type ResourceType } from '@repo/core'
@@ -23,6 +24,8 @@ export async function loadDatasetFixtures(
     ) as Omit<DatasetFixture, 'type'>
     if (datasetCodes && !datasetCodes.has(sourceFixture.code)) continue
 
+    if (sourceFixture.sourceRecordIdentity)
+      assertSourceRecordIdentity(sourceFixture.sourceRecordIdentity)
     const resourceTypes = sourceFixture.resourceTypes ?? []
     if (resourceTypes.length === 0) {
       throw new Error(

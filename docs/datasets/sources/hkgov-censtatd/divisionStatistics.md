@@ -728,6 +728,25 @@ cohort, region and variant. This comparison is independent of publisher feature 
 Simplified area derivatives identify their owning dataset and exact source feature
 version, preserving the link to the original evidence.
 
+## Source record ID composition
+
+Each C&SD dataset fixture declares its source record identity. Native feature attributes
+are tried in order: `gml:id`, `id`, then `fid` (exposed to the composer as `gmlId`, `id`
+and `fid`). A missing feature ID uses the one-based GML member ordinal. Repeated native
+IDs receive `:<memberOrdinal>` on every colliding member; unambiguous IDs retain their
+publisher value. The importer rejects any remaining collision.
+
+Single-layer datasets use only the feature ID. The Housing Market Areas and Building
+Groups dataset uses `<layerName>:<featureId>` because it retains two layers. Components
+of composite IDs are percent-encoded independently before joining with `:`. No publisher
+prefix is added. Acquisition locators retain the layer even where it is absent from the
+ID. IDs with ordinal qualification are local to the delivery and cannot establish
+cross-release continuity.
+
+Derivatives reuse the exact input assertion's ID and `inputVersionHash`; `transform` and
+the output `versionHash` identify the materialised geometry. Statistics provenance uses
+`hkgov-censtatd/<datasetCode>/<sourceVersion>/<sourceRecordId>`.
+
 `hkgovCenstatdFeatureReleases` records exact feature-version membership for each
 resource release. Source samples and schema inventories use this membership rather than
 treating independent census cohorts as one validity timeline. Payload reuse preserves

@@ -1,3 +1,4 @@
+import type { SourceRecordIdentity } from '@repo/core/sourceRecordIdentity'
 import type { CsdiSourceArchive, PreparedSourceArchive } from './sourceArchives.ts'
 
 export const apiFamilyHeaders = {
@@ -138,6 +139,7 @@ export type DatasetRelease = {
 }
 
 export type DatasetFixture = {
+  sourceRecordIdentity?: SourceRecordIdentity
   code: string
   publisherCode: string
   regionCode: string

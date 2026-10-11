@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:281c8309a1e1c6cce01a02b2e5d42bfe9cc6ae39dc8f6a835e55e3476087f293",
+  "versionHash": "sha256:3176e102574fbcda26cf522f3396daadd8f5fb5b64a92afc82e5b36ad0185959",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-population-households-district",
   "regionCode": "hk",
@@ -14,6 +14,21 @@
     }
   },
   "sourceCrs": "EPSG:2326",
+  "sourceRecordIdentity": {
+    "scope": "dataset-release",
+    "stability": "release",
+    "components": [
+      {
+        "paths": [
+          "gmlId",
+          "id",
+          "fid"
+        ],
+        "fallback": "row-ordinal"
+      }
+    ],
+    "duplicates": "append-row-ordinal"
+  },
   "resourceTypes": [
     "divisionStatistic",
     "divisionArea"

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:ad8796915144632d124fd41509be4777bcc2e9a7a5eab03ad7a5fa3eacd40c43",
+  "versionHash": "sha256:b891a9fc6da24b979befbba859fb26ab1e2f605a637654a79d7c850f8bbdc78f",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district",
   "regionCode": "hk",
@@ -14,6 +14,21 @@
     }
   },
   "sourceCrs": "EPSG:2326",
+  "sourceRecordIdentity": {
+    "scope": "dataset-release",
+    "stability": "release",
+    "components": [
+      {
+        "paths": [
+          "gmlId",
+          "id",
+          "fid"
+        ],
+        "fallback": "row-ordinal"
+      }
+    ],
+    "duplicates": "append-row-ordinal"
+  },
   "resourceTypes": [
     "divisionStatistic",
     "divisionArea"

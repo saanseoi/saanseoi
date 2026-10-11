@@ -13,6 +13,7 @@
     "test:coverage": "bun test --coverage"
   },
   "exports": {
+    "./sourceRecordIdentity": "./src/sourceRecordIdentity.ts",
     "./publicDivisionHierarchies": "./src/publicDivisionHierarchies.ts",
     "./publicSaanseoiDivisionProperties": "./src/publicSaanseoiDivisionProperties.ts",
     "./jsonKeys": "./src/jsonKeys.ts",

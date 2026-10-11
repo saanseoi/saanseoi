@@ -1992,6 +1992,16 @@ are separate projections of that evidence.
 Geometry reuse compares canonical materialisations within the same cohort, region and
 variant. Simplified derivatives identify the dataset and exact input feature version.
 
+## Source record identity contract
+
+Dataset fixtures declare `sourceRecordIdentity`: the dataset-release uniqueness scope,
+identity stability, ordered input components and duplicate policy. Source IDs omit
+publisher and dataset prefixes because references carry the dataset and release.
+`publisher` stability identifies a native publisher key; `release` stability makes no
+cross-release continuity claim. Delivery ordinals are one-based and refer to the
+original input order. Canonical Division IDs and publisher codes used for grouping are
+separate from retained source record IDs.
+
 `hkgovCenstatdFeatureReleases` records exact feature-version membership for each
 resource release. Source samples and schema inventories use this membership rather than
 treating independent census cohorts as one validity timeline. Payload reuse preserves

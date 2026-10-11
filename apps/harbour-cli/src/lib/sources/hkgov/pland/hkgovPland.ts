@@ -1,3 +1,5 @@
+import { composeSourceRecordId } from '@repo/core/sourceRecordIdentity'
+import { datasetSourceRecordIdentity } from '@repo/core/pipeline/services/sources/datasetSourceRecordIdentity'
 import { writeFileSync } from 'node:fs'
 import { mkdir, readFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
@@ -313,10 +315,12 @@ function normalisePlanningCell(
     originalGeometry,
     ppu,
     repaired: repairedGeometry.repaired,
-    // Archived TPU deliveries have repeated planning-cell codes and no
-    // publisher feature identifier. The delivery row ordinal distinguishes
-    // those separate native assertions without changing canonical grouping.
-    sourceRecordId: `${sourceCellId({ tpu, subunit })}:${index + 1}`,
+    // No native feature identifier exists; the delivery ordinal is release-local.
+    sourceRecordId: composeSourceRecordId(
+      datasetSourceRecordIdentity('ds-hk-hkgov-pland-division-pu'),
+      {},
+      index + 1,
+    ),
     spu,
     subunit,
     tpu,

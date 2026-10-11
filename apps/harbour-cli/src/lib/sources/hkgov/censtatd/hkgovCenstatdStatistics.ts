@@ -1,3 +1,5 @@
+import { composeSourceRecordIds } from '@repo/core/sourceRecordIdentity'
+import { datasetSourceRecordIdentity } from '@repo/core/pipeline/services/sources/datasetSourceRecordIdentity'
 import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
@@ -356,7 +358,7 @@ export function readHkgovCenstatdStatisticArchive(input: {
   for (const layer of layers) {
     const gml = input.inputGml[`${layer.name}.gml`]
     if (!gml) throw new Error(`CSDI archive is missing ${layer.name}.gml.`)
-    const layerRows = parseCsdiGml(gml, layer.name)
+    const layerRows = parseCsdiGml(gml, layer.name, input.datasetCode)
     if (
       'expectedRowCount' in layer &&
       layer.expectedRowCount !== undefined &&
@@ -488,7 +490,11 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
   return { rowCount: rows.length }
 }
 
-export function parseCsdiGml(input: string, layerName: string): SourceRow[] {
+export function parseCsdiGml(
+  input: string,
+  layerName: string,
+  datasetCode = 'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+): SourceRow[] {
   const parsed = new XMLParser({
     attributeNamePrefix: '@_',
     ignoreAttributes: false,
@@ -516,18 +522,23 @@ export function parseCsdiGml(input: string, layerName: string): SourceRow[] {
       properties[name] = value
     }
     const publisherFeatureId =
-      feature['@_gml:id'] ??
-      feature['@_id'] ??
-      feature['@_fid'] ??
-      `${layerName}.${index + 1}`
+      feature['@_gml:id'] ?? feature['@_id'] ?? feature['@_fid'] ?? String(index + 1)
     return {
+      // Native attribute alternatives are declared in the dataset identity contract.
       featureId: string(publisherFeatureId),
+      gmlId: feature['@_gml:id'],
+      id: feature['@_id'],
+      fid: feature['@_fid'],
       layerName,
       properties,
       sourceGeometry:
         find(feature, 'SHAPE') ?? find(feature, 'geometryProperty') ?? null,
     }
   })
+  const sourceRecordIds = composeSourceRecordIds(
+    datasetSourceRecordIdentity(datasetCode),
+    rows,
+  )
   const featureIdCounts = new Map<string, number>()
   for (const row of rows) {
     featureIdCounts.set(row.featureId, (featureIdCounts.get(row.featureId) ?? 0) + 1)
@@ -543,7 +554,7 @@ export function parseCsdiGml(input: string, layerName: string): SourceRow[] {
     layerName: row.layerName,
     properties: row.properties,
     sourceGeometry: row.sourceGeometry,
-    sourceRecordId: `CENSTATD:${row.layerName}:${(featureIdCounts.get(row.featureId) ?? 0) > 1 ? `${row.featureId}:${index + 1}` : row.featureId}`,
+    sourceRecordId: sourceRecordIds[index]!,
   }))
 }
 

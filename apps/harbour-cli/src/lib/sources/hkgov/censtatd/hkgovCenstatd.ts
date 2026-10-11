@@ -151,7 +151,7 @@ export async function prepareHkgovCenstatdDistrictUpload(
     throw new Error('C&SD district input must be a GML 3.2 WFS FeatureCollection.')
   }
   const cohortKey = options.cohortKey ?? sourceVersion
-  const assertions = parseCsdiGml(input, profile.layerName)
+  const assertions = parseCsdiGml(input, profile.layerName, datasetCode)
   const sourceFeatures = parseHkgovCenstatdDistrictGml(input, profile.layerName).map(
     (feature, index) => ({ ...feature, assertion: assertions[index]! }),
   )

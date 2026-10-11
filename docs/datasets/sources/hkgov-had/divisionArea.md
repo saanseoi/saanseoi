@@ -255,3 +255,9 @@ Original publisher inputs use `releaseSourceArchive` assets owned by their sourc
 release. Resource-specific source exports use Parquet `resourceSourceArchive` assets
 owned by their resource release. Each archive has a downloadable manifest recording its
 original filename and packaging.
+
+## Source record identity declaration
+
+The dataset fixture declares `OBJECTID` as the sole source identity component, within a
+dataset release. The composer preserves its string value, including leading zeroes, and
+adds no publisher prefix. Missing or duplicate keys block intake.

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:04da083db2bc5a732baf7f3302f4fa4993a19839e921d2ca6428719147be734f",
+  "versionHash": "sha256:d3d02f380f6f17da53f0efaaec06656cfd8f238cb49f6edff505da25482d2913",
   "publisherCode": "hkgov-censtatd",
   "code": "ds-hk-hkgov-censtatd-division-statistic-new-towns",
   "regionCode": "hk",
@@ -14,6 +14,21 @@
     }
   },
   "sourceCrs": "EPSG:2326",
+  "sourceRecordIdentity": {
+    "scope": "dataset-release",
+    "stability": "release",
+    "components": [
+      {
+        "paths": [
+          "gmlId",
+          "id",
+          "fid"
+        ],
+        "fallback": "row-ordinal"
+      }
+    ],
+    "duplicates": "append-row-ordinal"
+  },
   "resourceTypes": [
     "divisionStatistic"
   ],
