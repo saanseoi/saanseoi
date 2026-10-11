@@ -1259,8 +1259,7 @@ function seedCompleteOvertureFixtureSources(
       ('${snapshotId}', 'dataset-overture-division', 'release-supporting-boundary'),
       ('${snapshotId}', 'dataset-hkgov-had-district', 'release-supporting-had'),
       ('${snapshotId}', 'dataset-hkgov-censtatd-district', 'release-supporting-censtatd'),
-      ('${snapshotId}', 'dataset-hkgov-censtatd-district-annual', 'release-supporting-censtatd-annual'),
-      ('${snapshotId}', 'dataset-hkgov-censtatd-area-type', 'release-supporting-censtatd-area-type');
+      ('${snapshotId}', 'dataset-hkgov-censtatd-district-annual', 'release-supporting-censtatd-annual');
   `)
   for (const resourceType of [
     'divisionArea',

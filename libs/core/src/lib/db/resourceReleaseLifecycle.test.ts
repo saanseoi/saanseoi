@@ -168,7 +168,7 @@ for (const order of [types, [...types].reverse()]) {
           )
         }
         const audit = await retainAuditResult(store, {
-          scope: { stage: 'ingestion', ownerId: 'test-resource' },
+          scope: { stage: 'ingestion', ownerId: resourceReleaseId },
           resourceReleaseId,
           datasetCode,
           attempt: { id: `${type}-attempt`, status: 'completed' },
@@ -246,9 +246,9 @@ for (const order of [types, [...types].reverse()]) {
         expect(
           sqlite
             .query(
-              'SELECT manifestHash FROM releaseProvenance WHERE resourceReleaseId = ?',
+              "SELECT manifestHash FROM processingAudits WHERE resourceReleaseId = ? AND stage = 'ingestion' AND ownerId = ?",
             )
-            .get(id),
+            .get(id, id),
         ).toEqual({ manifestHash: hashes.get(type) })
         expect(
           sqlite.query('SELECT value FROM stats WHERE resourceReleaseId = ?').get(id),

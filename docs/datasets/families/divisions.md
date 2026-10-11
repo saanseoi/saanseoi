@@ -1975,3 +1975,7 @@ prepared membership. The writer uses the complete inventory, including unchanged
 Divisions, and retains explicit omissions for removed publisher assertions. Native New
 Town assertions resolve their own canonical Division. Division identities remain Points;
 companion DivisionAreas retain polygonal geometry.
+
+Reconstructed city records retain their district ancestry in `hierarchies` and their
+reconstruction reference in `sources`. Construction codes, district member lists and
+geometry methods are not external identifiers.

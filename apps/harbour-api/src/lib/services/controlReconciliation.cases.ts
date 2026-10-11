@@ -88,7 +88,6 @@ test('reconciles a draft division release set once its required C&SD areas are a
       ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-had', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 11),
       ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd:2016', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 12),
       ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd:2021', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 13),
-      ('api-composition-divisions-v1', '{}', 'geographic', 'divisionArea', 'hkgov-censtatd-area', 'geometry', 1, 'latest_at_or_before_cohort_per_dataset', null, null, 15),
       ('api-composition-divisions-v1', '{}', 'geographic', 'divisionBoundary', 'overture', 'geometry', 1, 'exact_ref', null, null, 20);
 
     INSERT INTO apiReleaseSets (
@@ -293,7 +292,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-district' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
 UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-district-annual' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
   `)
-  for (const year of ['2016', '2021']) {
+  function seedCensusArea(year: string) {
     const resourceReleaseId = `release-dr-hk-hkgov-censtatd-division-area-district-${year}`
     sqlite.exec(`
       INSERT INTO sourceReleases (
@@ -334,6 +333,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       .query('UPDATE snapshots SET snapshotLineageId = ? WHERE id = ?')
       .run(`lineage-censtatd-${year}`, snapshotId)
   }
+  seedCensusArea('2016')
 
   sqlite.exec(`
     INSERT INTO sourceReleases (
@@ -389,71 +389,19 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     .query('SELECT status FROM apiVersionReleaseSets WHERE apiReleaseSetId = ?')
     .get(releaseSetId) as { status: string }
 
-  sqlite.exec(`
-    INSERT INTO datasets (
-      id, publisherId, code, regionCode, releaseType, releaseFrequency,
-      theme, sourceVariant, sourceUrl, versionHash, createdAt, updatedAt
-    ) VALUES (
-      'hkgov-censtatd-hk-permanent-living-quarters', 'publisher-hkgov-censtatd',
-      'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-      'hk', 'static', 'half-yearly', 'divisions', 'hkgov-censtatd-area',
-      'https://www.censtatd.gov.hk/', 'vh-censtatd-permanent-living-quarters',
-      1761264000001, 1761264000001
-    );
-
-    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-permanent-living-quarters' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
-
-    INSERT INTO sourceReleases (
-      id, datasetId, code, sourceVersion, sourceSchemaVersion, cohortKey, status,
-      ingestedAt, createdAt, updatedAt
-    ) VALUES (
-      'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
-      'hkgov-censtatd-hk-permanent-living-quarters',
-      'sr-hkgov-censtatd-permanent-living-quarters-2023-H2',
-      '2023-H2', '1.0', '2023-H2', 'current', '2026-06-05T00:02:00.000Z',
-      '2026-06-05T00:02:00.000Z', '2026-06-05T00:02:00.000Z'
-    );
-
-    INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion,
-      sourceSchemaVersion, cohortKey, geometryStatus, status, ingestedAt, createdAt, updatedAt
-    ) VALUES (
-      'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
-      'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
-      'hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea',
-      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
-      '2023-H2', '1.0', '2023-H2', 'authoritative',
-      'current', '2026-06-05T00:02:00.000Z',
-      '2026-06-05T00:02:00.000Z', '2026-06-05T00:02:00.000Z'
-    );
-
-    INSERT INTO snapshotLineages (
-      id, code, regionCode, resourceType, variant, identityMode,
-      primaryDatasetId, versionHash, createdAt, updatedAt
-    ) VALUES (
-      'lineage-censtatd-area-type', 'sl-hk-hkgov-censtatd-area-type',
-      'hk', 'divisionArea', 'hkgov-censtatd-area', 'persistent',
-      'hkgov-censtatd-hk-permanent-living-quarters', 'vh-lineage-censtatd-area-type',
-      1761264000001, 1761264000001
-    );
-  `)
-  const areaTypeSnapshotId = seedSnapshot(sqlite, {
-    code: 'ss-hk-division-area-hkgov-censtatd-area-2023-H2',
-    cohortKey: '2023-H2',
-    datasetId: 'hkgov-censtatd-hk-permanent-living-quarters',
-    resourceType: 'divisionArea',
-    resourceReleaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
-    status: 'published',
-  })
+  seedCensusArea('2021')
+  // Publish the final provider for the deferred Overture cohort.
   sqlite
-    .query('UPDATE snapshots SET snapshotLineageId = ? WHERE id = ?')
-    .run('lineage-censtatd-area-type', areaTypeSnapshotId)
+    .query('UPDATE resourceReleases SET cohortKey = ? WHERE id = ?')
+    .run(cohortKey, 'release-dr-hk-hkgov-censtatd-division-area-district-2021')
+  const finalSnapshotId =
+    'snapshot-release-dr-hk-hkgov-censtatd-division-area-district-2021'
   sqlite
     .query(
       'INSERT INTO snapshotResourceReleases (snapshotId, datasetId, resourceReleaseId, role) VALUES (?, ?, ?, ?)',
     )
     .run(
-      areaTypeSnapshotId,
+      finalSnapshotId,
       'hkgov-censtatd-hk-district-annual',
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       'supporting',
@@ -464,7 +412,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   // deferral must preserve that r0 rather than minting an enrichment r1.
   const deferredPublication = await handlePublishDataset(db, {
     deferApiReleaseSet: true,
-    resourceReleaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+    resourceReleaseId: 'release-dr-hk-hkgov-censtatd-division-area-district-2021',
   })
   const revisionRowsBeforeReconciliation = sqlite
     .query(
@@ -497,7 +445,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     metadataDelta: {
       snapshots: [
         {
-          id: areaTypeSnapshotId,
+          id: finalSnapshotId,
           status: 'published',
           publishedAt: expect.any(String),
           validFrom: expect.any(String),
@@ -588,7 +536,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     .run('current', releaseSetId)
   const deferredAfterReconciliation = await handlePublishDataset(db, {
     deferApiReleaseSet: true,
-    resourceReleaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
+    resourceReleaseId: 'release-dr-hk-hkgov-censtatd-division-area-district-2021',
   })
   const revisionRowsAfterReconciliation = sqlite
     .query(
@@ -597,8 +545,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     .all(cohortKey) as Array<{ code: string; revision: number; status: string }>
 
   expect(deferredAfterReconciliation).toMatchObject({
-    resourceReleaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
-    snapshotId: areaTypeSnapshotId,
+    resourceReleaseId: 'release-dr-hk-hkgov-censtatd-division-area-district-2021',
+    snapshotId: finalSnapshotId,
     status: 'current',
   })
   expect(revisionRowsAfterReconciliation).toEqual([

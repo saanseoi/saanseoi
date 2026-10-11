@@ -2151,9 +2151,9 @@ describe('atlas-api', () => {
       "Resource linkage to related SaanSeoi records. Use `include` to return those records in the document's `included` array.",
     )
     expect(divisionI18n?.description).toBe(
-      'Localised names and naming data, keyed by requested locale (for example `en` or `zh-Hant`).',
+      'Localised names and naming data, grouped by locale.',
     )
-    expect(divisionI18n?.['x-recordKeyName']).toBe('en, zh-hant, …')
+    expect(divisionI18n?.['x-recordKeyName']).toBe('en, zh-hant, zh-hans, …')
     expect(divisionHierarchyIdentifier).toMatchObject({
       required: ['id', 'name', 'class'],
       properties: {
@@ -2164,7 +2164,7 @@ describe('atlas-api', () => {
       },
     })
     expect(sources?.properties?.overture?.description).toBe(
-      'Attribution provided by Overture Maps. Each item identifies the source record for this property.',
+      'Overture Maps source references. Items may identify the contributing Overture record or carry upstream attribution supplied by Overture, including a property, licence or confidence.',
     )
     expect(sources?.additionalProperties?.description).toBe(
       "Attribution from another source provider. The property key identifies the provider; each item's field names use camelCase.",
@@ -2631,11 +2631,9 @@ describe('atlas-api', () => {
     const geometry =
       divisions.components?.schemas?.DivisionAttributes?.properties?.geometry
     expect(geometry?.description).toBe(
-      '分區的地理形狀。如有提供，會以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。',
+      '分區在 WGS 84 中的代表 Point；如無點位或面域依據，則為 null。如來源只提供面域，標準化時會計算其內部的點。查詢加入 include=areas，可透過 relationships.areas 從 included 讀取獨立多邊形；加入 include=boundaries 則可透過 relationships.boundaries 讀取邊界線。',
     )
-    const pointGeometry = geometry?.anyOf?.find(schema =>
-      schema.properties?.type?.enum?.includes('Point'),
-    )
+    const pointGeometry = divisions.components?.schemas?.DivisionGeometry
     expect(pointGeometry?.properties?.coordinates?.description).toBe(
       'WGS 84 座標。其巢狀層級由幾何類型決定。',
     )
@@ -2648,18 +2646,9 @@ describe('atlas-api', () => {
       divisions.components?.schemas?.DivisionAttributes?.properties?.geometry
         ?.description,
     ).toBe(
-      '分區的地理形狀。如有提供，會以 WGS 84 的 Point、Polygon 或 MultiPolygon 表示。',
+      '分區在 WGS 84 中的代表 Point；如無點位或面域依據，則為 null。如來源只提供面域，標準化時會計算其內部的點。查詢加入 include=areas，可透過 relationships.areas 從 included 讀取獨立多邊形；加入 include=boundaries 則可透過 relationships.boundaries 讀取邊界線。',
     )
-    expect(
-      geometry?.anyOf
-        ?.map(schema => schema.properties?.type?.enum?.[0])
-        .filter(type => type !== undefined)
-        .sort(),
-    ).toEqual(['MultiPolygon', 'Point', 'Polygon'])
-    expect(
-      geometry?.anyOf?.find(schema => schema.properties?.type?.enum?.includes('Point'))
-        ?.description,
-    ).toBe('單一座標位置；用於以一個位置而非區域表示的分區。')
+    expect(pointGeometry?.properties?.type?.enum).toEqual(['Point'])
     expect(
       divisions.paths?.['/divisions/v0.1/sources']?.get?.parameters?.find(
         parameter => parameter.name === 'sourceRelease',

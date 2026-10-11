@@ -90,13 +90,6 @@ export function missingOvertureHongKongCityRows(
             name: city.districtNames[index],
           },
         ]),
-        identifiers: {
-          saanseoiCorrection: {
-            code: city.code,
-            districtDivisionIds,
-            method: 'union-overture-district-areas',
-          },
-        },
         sources: [{ dataset: 'SaanSeoi city reconstruction', record_id: city.code }],
       },
     ]

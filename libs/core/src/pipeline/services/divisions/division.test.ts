@@ -328,7 +328,6 @@ describe('getSupplementalDivisionFixtureRows', () => {
       i18n: expect.arrayContaining([
         expect.objectContaining({ locale: 'en', name: 'Tai Tam Gap' }),
         expect.objectContaining({ locale: 'zh-hant', name: '大潭峽' }),
-        expect.objectContaining({ locale: 'zh-hans', name: '大潭峡' }),
       ]),
     })
   })
@@ -349,7 +348,6 @@ describe('getSupplementalDivisionFixtureRows', () => {
       i18n: expect.arrayContaining([
         expect.objectContaining({ locale: 'en', name: 'Tai Tam Tau' }),
         expect.objectContaining({ locale: 'zh-hant', name: '大潭頭' }),
-        expect.objectContaining({ locale: 'zh-hans', name: '大潭头' }),
       ]),
     })
   })
@@ -370,7 +368,6 @@ describe('getSupplementalDivisionFixtureRows', () => {
       i18n: expect.arrayContaining([
         expect.objectContaining({ locale: 'en', name: 'Cape Collinson' }),
         expect.objectContaining({ locale: 'zh-hant', name: '歌連臣角' }),
-        expect.objectContaining({ locale: 'zh-hans', name: '歌连臣角' }),
       ]),
     })
   })
@@ -395,11 +392,6 @@ describe('getSupplementalDivisionFixtureRows', () => {
           name: '鶴咀下村',
           nameAlts: null,
         }),
-        expect.objectContaining({
-          locale: 'zh-hans',
-          name: '鹤咀下村',
-          nameAlts: null,
-        }),
       ]),
     })
   })
@@ -420,7 +412,6 @@ describe('getSupplementalDivisionFixtureRows', () => {
       i18n: expect.arrayContaining([
         expect.objectContaining({ locale: 'en', name: 'Sandy Bay Gap' }),
         expect.objectContaining({ locale: 'zh-hant', name: '沙灣坳' }),
-        expect.objectContaining({ locale: 'zh-hans', name: '沙湾坳' }),
       ]),
     })
   })

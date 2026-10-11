@@ -88,7 +88,7 @@ test.each([
                     results: [
                       {
                         bindingName: 'DB_SOURCE_HK_2026',
-                        datasetCode: `ds-hk-saanseoi-${kind}`,
+                        datasetCode: 'ds-hk-saanseoi-division',
                         resourceReleaseId:
                           version === '2026-09-01.0' ? 'september' : 'october',
                         datasetReleaseIdsJson: JSON.stringify(['september', 'october']),

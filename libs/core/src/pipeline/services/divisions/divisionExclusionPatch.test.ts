@@ -431,15 +431,25 @@ test('Lei Yue Mun Villages retains its guarded alias exclusion', () => {
   )
 })
 
-test('geometry policy excludes areas for every curated excluded division', async () => {
+test('geometry policy excludes native areas and retains Overture areas for curated excluded divisions', async () => {
   const { divisionGeometryExclusionRule } = await import('./divisionGeometry')
-  for (const entry of divisionExclusionFixture.entries)
+  for (const entry of divisionExclusionFixture.entries) {
     expect(
       divisionGeometryExclusionRule.execute({
         kind: 'area',
+        source: 'hkgov-had',
         divisionId: entry.divisionId,
       }),
     ).toBe(true)
+    for (const source of ['overture', 'saanseoi'])
+      expect(
+        divisionGeometryExclusionRule.execute({
+          kind: 'area',
+          source,
+          divisionId: entry.divisionId,
+        }),
+      ).toBe(false)
+  }
 })
 
 test('Tung Tau retains its Overture identity without an exclusion', () => {

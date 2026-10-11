@@ -205,28 +205,14 @@ export function seedCompleteDivisionSourceSignature(
         'ds-hk-hkgov-censtatd-division-statistic-population-households-district', 'hk', 'static', 'yearly',
         'divisions', 'official-statistics', 'https://www.censtatd.gov.hk/',
         'vh-dataset-hkgov-censtatd-hk-district-annual-v1', 1761264000000, 1761264000000
-      ),
-      (
-        'hkgov-censtatd-hk-permanent-living-quarters', 'publisher-hkgov-censtatd',
-        'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters',
-        'hk', 'static', 'half-yearly', 'divisions', 'hkgov-censtatd-area',
-        'https://www.censtatd.gov.hk/',
-        'vh-dataset-hkgov-censtatd-hk-permanent-living-quarters-v1', 1761264000000, 1761264000000
       );
 
     UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-district' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
 UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-district-annual' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
-UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-censtatd-hk-permanent-living-quarters' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
 
     INSERT OR IGNORE INTO sourceReleases
       (id, datasetId, code, sourceVersion, cohortKey, status)
     VALUES
-      (
-        'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
-        'hkgov-censtatd-hk-permanent-living-quarters',
-        'sr-hkgov-censtatd-permanent-living-quarters-2023-H2',
-        '2023-H2', '2023-H2', 'current'
-      ),
       (
         'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
         'hkgov-censtatd-hk-district-annual',
@@ -240,15 +226,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       updatedAt
     ) VALUES
     (
-      'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
-      'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
-      'hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea',
-      'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
-      '2023-H2', '1.0', '2023-H2',
-      'current', '2026-06-05T00:00:00.000Z',
-      '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
-    ),
-    (
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       'hkgov-censtatd-hk-district-annual', 'divisionArea',
@@ -261,10 +238,6 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
     INSERT OR IGNORE INTO snapshotResourceReleases (
       snapshotId, datasetId, resourceReleaseId, role
     ) VALUES
-    (
-      '${snapshotId}', 'hkgov-censtatd-hk-permanent-living-quarters',
-      'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2', 'supporting'
-    ),
     (
       '${snapshotId}', 'hkgov-censtatd-hk-district-annual',
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024', 'supporting'

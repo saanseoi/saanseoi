@@ -447,3 +447,7 @@ level-6 `microhood` classification, bilingual names, hierarchy and drawn geometr
 included only when present in the source inventory, not as an authored addition.
 Stonecutters Island and Lei Cheng Uk also retain their native GERS identities; none is a
 supplemental addition.
+
+Reconstructed city records retain their district ancestry in `hierarchies` and their
+reconstruction reference in `sources`. Construction codes, district member lists and
+geometry methods are not external identifiers.
