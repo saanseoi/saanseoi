@@ -31,14 +31,4 @@ one optional grouping pair; they do not require that full observation model.
 
 Generate schema migrations with `bun run db:migration:generate:meta` from `libs/db`.
 Apply the generated metadata migrations before starting applications that read these
-columns. Then normalise the retained measurement classifications:
-
-```sh
-bun run --cwd libs/db db:stats:normalise /absolute/path/to/meta.sqlite
-bun run --cwd libs/db db:stats:normalise /absolute/path/to/meta.sqlite --apply
-```
-
-The first command reports affected rows. The second applies an idempotent backfill
-without changing IDs, owners, numeric values, units, dimensions or timestamps. For D1
-SQL replay, `bun run --cwd libs/db db:stats:normalise --sql` emits the same
-classification statements; execute them after the generated metadata migrations.
+columns.

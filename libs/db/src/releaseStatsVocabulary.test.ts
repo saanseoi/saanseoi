@@ -1,9 +1,8 @@
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { readFileSync } from 'node:fs'
-import { normaliseReleaseStats } from '../scripts/normaliseReleaseStats'
 
-test('generated renames and classification preserve release stats facts', () => {
+test('generated column renames preserve release stats facts', () => {
   const db = new Database(':memory:')
   try {
     db.exec(`CREATE TABLE stats (
@@ -27,12 +26,6 @@ test('generated renames and classification preserve release stats facts', () => 
           'utf8',
         ),
       )
-    expect(normaliseReleaseStats(db)).toBe(4)
-    expect(db.query("SELECT category FROM stats WHERE id = 'change'").get()).toEqual({
-      category: 'changed_count',
-    })
-    expect(normaliseReleaseStats(db, true)).toBe(4)
-    expect(normaliseReleaseStats(db, true)).toBe(0)
     expect(
       db
         .query(
@@ -51,8 +44,8 @@ test('generated renames and classification preserve release stats facts', () => 
       },
       {
         id: 'change',
-        category: 'changes',
-        measure: 'changed_count',
+        category: 'changed_count',
+        measure: 'churn',
         unit: 'count',
         value: 3,
         dimension: 'level',
@@ -61,7 +54,7 @@ test('generated renames and classification preserve release stats facts', () => 
       {
         id: 'district',
         category: 'records',
-        measure: 'count',
+        measure: 'distribution',
         unit: 'count',
         value: 12,
         dimension: 'district',
@@ -69,8 +62,8 @@ test('generated renames and classification preserve release stats facts', () => 
       },
       {
         id: 'locale',
-        category: 'completeness',
-        measure: 'locale_coverage',
+        category: 'locale_coverage',
+        measure: 'completeness',
         unit: 'percentage',
         value: 62.5,
         dimension: 'locale',
@@ -78,8 +71,8 @@ test('generated renames and classification preserve release stats facts', () => 
       },
       {
         id: 'quality',
-        category: 'quality',
-        measure: 'name_regression_count',
+        category: 'name_regression_count',
+        measure: 'quality',
         unit: 'count',
         value: 1,
         dimension: null,

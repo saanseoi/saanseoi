@@ -9,14 +9,6 @@ after replacement; `revoked` withdraws a release. API catalogue selection separa
 controls which releases serve requests. Snapshot publication uses `draft`, `published`,
 and `archived`.
 
-Existing META databases can normalise stored release states and lifecycle-journal
-transitions with `bun run --cwd libs/db db:releases:normalise-statuses <META.sqlite>`.
-The command reports affected rows without writing; add `--apply` to update them in one
-transaction, or use `--sql` to emit the SQL for a target database. It preserves
-timestamps, replacement links, publication events, and snapshot states. Run it against
-the target META database and any retained metadata caches before using the release
-lifecycle.
-
 ## Processing stages and retained evidence
 
 | Stage                | Input               | Output                                | Retained definition                                       |
