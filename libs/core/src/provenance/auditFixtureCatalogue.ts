@@ -36,7 +36,7 @@ export function auditFixtureCatalogue(
                 !Array.isArray(value) &&
                 rowKeys.some(key => Array.isArray(value[key]))
                   ? null
-                  : auditSearchText(value),
+                  : auditSearchText(value).slice(0, 200_000),
             },
           ]),
         ),

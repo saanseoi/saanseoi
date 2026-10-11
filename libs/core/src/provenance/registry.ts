@@ -1,10 +1,11 @@
+import { registerAuditResult } from './auditRegistry'
 import { and, eq, inArray, metaSchema, sql } from '@repo/db'
 import type { HarbourReadableDb, HarbourWritableDb } from '../lib/db/types'
 import { readObject } from './objects'
 import { verifyProcessingResult } from './bundle'
 import { validateManifest } from './validation'
 import type { ObjectRef, ProvenanceStore } from './types'
-import { validateAuditManifest, verifyAuditResult } from './audit'
+import { validateAuditManifest } from './audit'
 
 /** Verify new R2 closures first; identical registered manifests are idempotent. */
 export async function registerProcessingResult(
@@ -27,6 +28,8 @@ export async function registerProcessingResult(
     | import('./auditTypes').AuditManifest
   if (result.resourceReleaseId !== resourceReleaseId)
     throw new Error('Provenance release mismatch.')
+  if (result.kind === 'processing-audit')
+    return registerAuditResult(db, store, result, ref)
   const table = metaSchema.releaseProvenance
   const releases = metaSchema.metaResourceReleases
   const release = await db
@@ -39,8 +42,6 @@ export async function registerProcessingResult(
     .where(eq(releases.id, resourceReleaseId))
     .get()
   if (!release) throw new Error('Unknown provenance release.')
-  if (release.resourceType === 'street')
-    throw new Error('Streets provenance is outside this implementation.')
   if (
     result.kind === 'processing-result' &&
     result.collections.some(
@@ -56,8 +57,7 @@ export async function registerProcessingResult(
   if (existing?.manifestHash === ref.hash && existing.byteLength === ref.byteLength) {
     return existing
   }
-  if (result.kind === 'processing-audit') await verifyAuditResult(store, result)
-  else await verifyProcessingResult(store, result)
+  await verifyProcessingResult(store, result)
   if (!['staged', 'processing'].includes(release.status))
     throw new Error('Published provenance is immutable.')
   // A release has one processing result. Multiple outputs are declared in its collections.
@@ -70,9 +70,7 @@ export async function registerProcessingResult(
           manifestHash: sql<string>`${ref.hash}`,
           byteLength: sql<number>`${ref.byteLength}`,
           applicationCount: sql<number>`${result.applicationCount}`,
-          attemptStatus: sql<
-            'completed' | 'failed'
-          >`${result.kind === 'processing-audit' ? result.attempt.status : 'completed'}`,
+          attemptStatus: sql<'completed' | 'failed'>`${'completed'}`,
         })
         .from(releases)
         .where(
@@ -88,8 +86,7 @@ export async function registerProcessingResult(
         manifestHash: ref.hash,
         byteLength: ref.byteLength,
         applicationCount: result.applicationCount,
-        attemptStatus:
-          result.kind === 'processing-audit' ? result.attempt.status : 'completed',
+        attemptStatus: 'completed',
       },
     })
     .run()

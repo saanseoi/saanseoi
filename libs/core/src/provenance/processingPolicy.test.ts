@@ -12,7 +12,7 @@ import { resolveRuleFixtureCatalog } from './ruleFixture'
 import population from '../../../../fixtures/meta/processing-rules/assembly/censtatd-population-thousands-to-persons.json'
 
 test('implemented datasets describe SOURCE ingestion with typed field references and localised definitions', () => {
-  expect(initialDatasets.filter(dataset => dataset.processingRules)).toHaveLength(27)
+  expect(initialDatasets.filter(dataset => dataset.processingRules)).toHaveLength(24)
   for (const dataset of initialDatasets) {
     if (!dataset.processingRules) {
       expect(dataset.code).toBe('ds-hk-dpang-street')
@@ -52,7 +52,7 @@ test('Protomaps extraction and retention remain distinct from SaanSeoi snapshot 
   expect(divisions.stage).toBe('assembly')
   expect(
     divisions.rulesets[0]!.rules.some(
-      rule => rule.operationCode === 'assemble-curated-divisions',
+      rule => rule.operationCode === 'normalise-divisions',
     ),
   ).toBe(true)
   expect(() =>
@@ -67,11 +67,11 @@ test('Protomaps extraction and retention remain distinct from SaanSeoi snapshot 
 
 test('Area and Boundary recipes declare only their own geometry operation', () => {
   const area = resolveSnapshotProcessingRules(
-    ['ds-hk-overture-division-area'],
+    ['ds-hk-overture-division'],
     'divisionArea',
   )
   const boundary = resolveSnapshotProcessingRules(
-    ['ds-hk-overture-division-boundary'],
+    ['ds-hk-overture-division'],
     'divisionBoundary',
   )
   expect(area.rulesets[0]!.rules.map(rule => rule.definition?.id)).toEqual([

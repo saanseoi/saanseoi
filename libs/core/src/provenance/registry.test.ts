@@ -14,6 +14,7 @@ test('failed guard attempts remain registered and cannot masquerade as completed
   const f = await fixture()
   try {
     const result = await retainAuditResult(f.store, {
+      scope: { stage: 'ingestion', ownerId: 'r' },
       resourceReleaseId: 'r',
       datasetCode: 'divisions',
       attempt: { id: 'failed-attempt', status: 'failed' },
@@ -41,9 +42,9 @@ test('failed guard attempts remain registered and cannot masquerade as completed
         attempt: { id: 'invalid', status: 'completed' },
       }),
     ).rejects.toThrow()
-    expect(f.sqlite.query('SELECT attemptStatus FROM releaseProvenance').get()).toEqual(
-      { attemptStatus: 'failed' },
-    )
+    expect(f.sqlite.query('SELECT attemptStatus FROM processingAudits').get()).toEqual({
+      attemptStatus: 'failed',
+    })
   } finally {
     f.sqlite.close()
   }
@@ -51,9 +52,10 @@ test('failed guard attempts remain registered and cannot masquerade as completed
 
 async function fixture() {
   const sqlite = new Database(':memory:')
-  sqlite.exec(`CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, status TEXT NOT NULL, resourceType TEXT NOT NULL);
+  sqlite.exec(`CREATE TABLE resourceReleases (id TEXT PRIMARY KEY, status TEXT NOT NULL, resourceType TEXT NOT NULL, code TEXT);
     CREATE TABLE releaseProvenance (resourceReleaseId TEXT PRIMARY KEY REFERENCES resourceReleases(id), manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL, attemptStatus TEXT NOT NULL DEFAULT 'completed');
-    INSERT INTO resourceReleases VALUES ('r', 'processing', 'address');`)
+    CREATE TABLE processingAudits(resourceReleaseId TEXT NOT NULL, stage TEXT NOT NULL, ownerId TEXT NOT NULL, manifestHash TEXT NOT NULL, byteLength INTEGER NOT NULL, applicationCount INTEGER NOT NULL, attemptStatus TEXT NOT NULL, PRIMARY KEY(resourceReleaseId,stage,ownerId));
+    INSERT INTO resourceReleases VALUES ('r', 'processing', 'address', 'r');`)
   const db = createLocalHarbourDb(sqlite)
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {
@@ -182,7 +184,7 @@ test('publication racing registration cannot insert or replace provenance', asyn
   }
 })
 
-test('registry rejects mismatched ownership and Streets', async () => {
+test('registry rejects mismatched ownership', async () => {
   const f = await fixture()
   try {
     const changed = await retainObject(f.store, {
@@ -204,10 +206,106 @@ test('registry rejects mismatched ownership and Streets', async () => {
     await expect(
       registerProcessingResult(f.db, f.store, 'other', f.ref),
     ).rejects.toThrow('mismatch')
+  } finally {
+    f.sqlite.close()
+  }
+})
+
+test('registry verifies and registers a completed Street audit', async () => {
+  const f = await fixture()
+  try {
     f.sqlite.exec("UPDATE resourceReleases SET resourceType='street'")
-    await expect(registerProcessingResult(f.db, f.store, 'r', f.ref)).rejects.toThrow(
-      'Streets',
+    const result = await retainAuditResult(f.store, {
+      scope: { stage: 'ingestion', ownerId: 'r' },
+      resourceReleaseId: 'r',
+      datasetCode: 'landsd-street',
+      attempt: { id: 'street-attempt', status: 'completed' },
+      bulk: [],
+      individuals: [],
+      guards: [
+        {
+          id: 'street-source-hashes',
+          summary: 'Verify delivered source hashes.',
+          consequence: 'block-ingestion',
+          status: 'passed',
+          checked: 1,
+          failed: 0,
+          reason: 'The delivered hash matches.',
+        },
+      ],
+    })
+    const saved = await registerProcessingResult(f.db, f.store, 'r', result.ref)
+    expect(saved.attemptStatus).toBe('completed')
+    expect(saved.manifestHash).toBe(result.ref.hash)
+    await registerProcessingResult(f.db, f.store, 'r', result.ref)
+  } finally {
+    f.sqlite.close()
+  }
+})
+
+test('audits require exact output membership and preserve distinct lifecycle stages', async () => {
+  const f = await fixture()
+  try {
+    f.sqlite.exec(`CREATE TABLE snapshots(id TEXT PRIMARY KEY,status TEXT);
+      CREATE TABLE snapshotResourceReleases(snapshotId TEXT,resourceReleaseId TEXT);
+      CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY);
+      CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT,snapshotId TEXT);
+      CREATE TABLE apiVersionReleaseSets(apiReleaseSetId TEXT,status TEXT);
+      INSERT INTO snapshots VALUES ('s','draft'),('unrelated','draft');
+      INSERT INTO snapshotResourceReleases VALUES ('s','r');
+      INSERT INTO apiReleaseSets VALUES ('set');
+      INSERT INTO apiReleaseSetSnapshots VALUES ('set','s');
+      INSERT INTO apiVersionReleaseSets VALUES ('set','draft');`)
+    const retain = (
+      stage: 'preparation' | 'ingestion' | 'assembly' | 'composition',
+      ownerId: string,
+      id = 'attempt',
+    ) =>
+      retainAuditResult(f.store, {
+        scope: { stage, ownerId },
+        resourceReleaseId: 'r',
+        datasetCode: 'divisions',
+        attempt: { id, status: 'completed' },
+        bulk: [],
+        guards: [],
+        individuals: [],
+      })
+    for (const [stage, owner] of [
+      ['preparation', 'r'],
+      ['ingestion', 'r'],
+      ['assembly', 's'],
+      ['composition', 'set'],
+    ] as const) {
+      const result = await retain(stage, owner)
+      await registerProcessingResult(f.db, f.store, 'r', result.ref)
+    }
+    expect(f.sqlite.query('SELECT COUNT(*) AS n FROM processingAudits').get()).toEqual({
+      n: 4,
+    })
+    for (const [stage, owner] of [
+      ['preparation', 's'],
+      ['assembly', 'unrelated'],
+      ['composition', 'unknown'],
+    ] as const) {
+      const result = await retain(stage, owner)
+      await expect(
+        registerProcessingResult(f.db, f.store, 'r', result.ref),
+      ).rejects.toThrow()
+    }
+    f.sqlite.exec(
+      "UPDATE snapshots SET status='published'; UPDATE apiVersionReleaseSets SET status='current'",
     )
+    for (const [stage, owner] of [
+      ['assembly', 's'],
+      ['composition', 'set'],
+    ] as const) {
+      const same = await retain(stage, owner)
+      await registerProcessingResult(f.db, f.store, 'r', same.ref)
+      const replacement = await retain(stage, owner, 'replacement')
+      await expect(
+        registerProcessingResult(f.db, f.store, 'r', replacement.ref),
+      ).rejects.toThrow('published')
+    }
   } finally {
     f.sqlite.close()
   }

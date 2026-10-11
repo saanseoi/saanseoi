@@ -18,3 +18,8 @@ export * from './guards'
 export * from './fixtures'
 export * from './divisionCodes'
 export * from './branches'
+export * from './curationReferences'
+export * from './fieldLineageAudit'
+export * from './fieldLineageStorage'
+
+export * from './auditScope'

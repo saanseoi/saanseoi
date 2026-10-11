@@ -1,4 +1,5 @@
 import type { Json } from './types'
+import { enrichCurationGroups } from './auditCurations'
 import { auditDivisionCode } from './divisionCodes'
 import { auditSearchText, matchesAudit, matchesAuditText } from './auditSearch'
 const representations = new WeakMap<object, Json[]>()
@@ -20,6 +21,38 @@ export function mergeAuditFixtures(documents: Json[]) {
         ? [...(Array.isArray(previous) ? previous : []), ...value]
         : value
     }
+  if (merged.encoding === 'ordered-json-text' && Array.isArray(merged.parts)) {
+    const parts = merged.parts
+      .map(object)
+      .sort((a, b) => Number(a.ordinal) - Number(b.ordinal))
+    if (
+      parts.some(
+        (part, index) => part.ordinal !== index || typeof part.json !== 'string',
+      )
+    )
+      throw new Error('Incomplete ordered JSON audit evidence')
+    const definitions = object(JSON.parse(parts.map(part => part.json).join('')))
+    // Count authored records, not storage chunks. Keep configuration alongside them.
+    const entries: Json[] = []
+    const metadata: Record<string, Json> = {}
+    for (const [section, definition] of Object.entries(definitions)) {
+      const settings: Record<string, Json> = {}
+      for (const [key, value] of Object.entries(object(definition))) {
+        if (
+          Array.isArray(value) &&
+          value.every(item => item !== null && typeof item === 'object')
+        ) {
+          for (const record of value)
+            entries.push({ section, collection: key, definition: record })
+        } else settings[key] = value
+      }
+      if (
+        Object.keys(settings).some(key => !['schemaVersion', 'purpose'].includes(key))
+      )
+        metadata[section] = settings
+    }
+    return { entries, metadata }
+  }
   for (const key of rowKeys) {
     const rows = merged[key]
     if (!Array.isArray(rows)) continue
@@ -85,6 +118,7 @@ export async function loadAuditFixtures(
   bulk: Array<{ id: string; fixtures: Array<{ type: string }> }>,
   read: (bulkId: string, index: number) => PromiseLike<Json>,
   active = () => true,
+  release?: string,
 ) {
   const jobs = bulk.flatMap(item =>
     item.fixtures.map((fixture, index) => ({
@@ -112,11 +146,14 @@ export async function loadAuditFixtures(
   return Object.fromEntries(
     [...documents].map(([id, groups]) => [
       id,
-      Object.fromEntries(
-        [...groups].map(([type, rows]) => [
-          type,
-          mergeAuditFixtures(rows.filter(value => value !== undefined)),
-        ]),
+      enrichCurationGroups(
+        Object.fromEntries(
+          [...groups].map(([type, rows]) => [
+            type,
+            mergeAuditFixtures(rows.filter(value => value !== undefined)),
+          ]),
+        ),
+        release,
       ),
     ]),
   )

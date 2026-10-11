@@ -30,7 +30,9 @@ test('changing one exclusion policy changes both geometry selections', () => {
     expect(rule.execute({ kind, region: 'CN-GD' })).toBe(false)
   }
   const divisionId = fixture.parameters.excludedAreaDivisionIds[0]!
-  expect(rule.execute({ kind: 'area', divisionId })).toBe(true)
+  expect(rule.execute({ kind: 'area', divisionId, source: 'other' })).toBe(true)
+  expect(rule.execute({ kind: 'area', divisionId, source: 'overture' })).toBe(false)
+  expect(rule.execute({ kind: 'area', divisionId, source: 'saanseoi' })).toBe(false)
   expect(rule.execute({ kind: 'boundary', divisionId })).toBe(false)
   fixture.parameters.excludedRegions.push('CN-GD')
   expect(rule.execute({ kind: 'area', region: 'CN-GD' })).toBe(false)

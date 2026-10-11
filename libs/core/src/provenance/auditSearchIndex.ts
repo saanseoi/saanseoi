@@ -7,12 +7,21 @@ import { auditFixtureCatalogue } from './auditFixtureCatalogue'
 import { alsAuditDecisions } from './auditAlsDecisions'
 
 /** Derived audit presentation exists only in read-side memory. */
-async function fixtureGroups(store: ProvenanceStore, manifest: AuditManifest) {
-  return loadAuditFixtures(manifest.bulk, async (id, index) => {
-    const fixture = manifest.bulk.find(b => b.id === id)?.fixtures[index]
-    if (!fixture) throw new Error('Fixture is not declared by this release.')
-    return readObject(store, fixture.object)
-  })
+async function fixtureGroups(
+  store: ProvenanceStore,
+  manifest: AuditManifest,
+  releaseCode?: string,
+) {
+  return loadAuditFixtures(
+    manifest.bulk,
+    async (id, index) => {
+      const fixture = manifest.bulk.find(b => b.id === id)?.fixtures[index]
+      if (!fixture) throw new Error('Fixture is not declared by this release.')
+      return readObject(store, fixture.object)
+    },
+    () => true,
+    releaseCode,
+  )
 }
 
 export const readAuditPageIndex = buildAuditPageIndex
@@ -22,7 +31,10 @@ export async function readAuditFixtureCatalogue(
   manifest: AuditManifest,
   releaseCode: string,
 ) {
-  return auditFixtureCatalogue(await fixtureGroups(store, manifest), releaseCode)
+  return auditFixtureCatalogue(
+    await fixtureGroups(store, manifest, releaseCode),
+    releaseCode,
+  )
 }
 
 export async function readAuditAlsDecisions(

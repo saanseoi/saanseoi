@@ -1,4 +1,4 @@
-import { readObject, readValue, serialise } from './objects'
+import { readObject, readValue } from './objects'
 import type { IndividualAudit, RuleDeclaration } from './auditTypes'
 import type { ObjectRef, ProvenanceStore, JsonRecord } from './types'
 
@@ -60,8 +60,19 @@ export async function resolveCurationApplication(
     reason: typeof fixture.reason === 'string' ? fixture.reason : declaration.summary,
     definition: entry.definition,
     fixture: entry.fixture,
-    record: { id: String(id), names: [], parents: [] },
-    context: { applicationCount: entry.applicationCount, fixture } as JsonRecord,
+    record: {
+      id: String(id),
+      names:
+        typeof fixture.name === 'string'
+          ? [fixture.name]
+          : Array.isArray(fixture.names)
+            ? fixture.names.filter(
+                (value): value is string => typeof value === 'string',
+              )
+            : [],
+      parents: [],
+    },
+    context: { ...fixture, applicationCount: entry.applicationCount } as JsonRecord,
   }
 }
 

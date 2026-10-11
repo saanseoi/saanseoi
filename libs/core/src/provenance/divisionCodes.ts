@@ -7,5 +7,5 @@ const codes = new Map(
     row => [row.canonicalId, row.divisionCode],
   ),
 )
-/** Display lookup only; never used to change the reviewed identity target. */
+/** Display lookup only; never used to change the curated identity target. */
 export const auditDivisionCode = (canonicalId: string) => codes.get(canonicalId)

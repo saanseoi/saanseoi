@@ -1,4 +1,4 @@
-import { expect, spyOn, test } from 'bun:test'
+import { expect, test } from 'bun:test'
 import {
   retainAuditResult,
   readAuditPage,
@@ -27,40 +27,33 @@ function memoryStore() {
   return { store, reads, objects }
 }
 
-test('individual search reads indexes and only matching action chunks; transfer preserves the complete audit', async () => {
-  const { store, reads } = memoryStore()
+test('retains each curation once with its application count and resolves audit details on demand', async () => {
+  const { store, objects } = memoryStore()
   const definition = await retainObject(store, {
     kind: 'processing-rule',
     schemaVersion: 1,
     id: 'translate',
     scope: 'individual',
     basis: 'fixture',
+    summary: 'Translate a name.',
   })
   const fixture = await retainObject(store, {
-    entries: [{ sourceText: 'River', translation: '河' }],
+    entries: [{ id: 'river', sourceText: 'River', translation: '河' }],
   })
-  const individuals: IndividualAudit[] = Array.from(
-    { length: 300 },
-    (_, i): IndividualAudit => ({
-      id: `action-${i}`,
-      operation: 'translate',
-      basis: 'fixture',
-      outcome: 'applied',
-      summary: 'Translate a name.',
-      reason: 'Reviewed translation.',
-      definition,
-      fixture: { object: fixture, pointer: '/entries/0' },
-      record: {
-        id: `division-${i}`,
-        names: [i === 280 ? '河' : 'River'],
-        parents: [
-          { id: 'parent', names: [i === 280 ? 'North district' : 'South district'] },
-        ],
-      },
-      context: i === 281 ? { replacement: { type: 'macrohood' } } : {},
-    }),
-  )
+  const individuals: IndividualAudit[] = Array.from({ length: 300 }, (_, i) => ({
+    id: `action-${i}`,
+    operation: 'translate',
+    basis: 'fixture',
+    outcome: 'applied',
+    summary: 'Translate a name.',
+    reason: 'Reviewed translation.',
+    definition,
+    fixture: { object: fixture, pointer: '/entries/0' },
+    record: { id: `division-${i}`, names: ['DUPLICATE RECORD NAME'], parents: [] },
+    context: { duplicated: 'DO NOT RETAIN' },
+  }))
   const result = await retainAuditResult(store, {
+    scope: { stage: 'ingestion', ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'divisions',
     attempt: { id: 'attempt', status: 'completed' },
@@ -68,55 +61,24 @@ test('individual search reads indexes and only matching action chunks; transfer 
     guards: [],
     individuals,
   })
-  expect(result.manifest.chunks).toHaveLength(2)
-  expect(
-    (
-      await readAuditPage(store, result.manifest, 'macrohood', 0, 50, {
-        category: 'translations',
-      })
-    ).rows.map(row => row.id),
-  ).toEqual(['action-281'])
-  const fixturePage = await readAuditPage(store, result.manifest, '', 250, 50, {
-    fixture: { hash: fixture.hash, pointer: '/entries/0' },
+  expect(result.manifest.applicationCount).toBe(300)
+  expect(result.manifest.chunks).toHaveLength(1)
+  expect(result.manifest.chunks[0]!.count).toBe(1)
+  expect(objects.size).toBe(4) // definition, fixture, references/counts, manifest
+  const retained = [...objects.values()]
+    .map(bytes => new TextDecoder().decode(bytes))
+    .join('')
+  expect(retained).not.toContain('DO NOT RETAIN')
+  expect(retained).not.toContain('DUPLICATE RECORD NAME')
+  expect(retained).not.toContain('individual-search')
+  const page = await readAuditPage(store, result.manifest, '河', 0, 50, {
+    category: 'translations',
   })
-  expect(fixturePage.rows).toHaveLength(50)
-  expect(fixturePage.rows[0]?.id).toBe('action-250')
-  expect(fixturePage.nextOffset).toBeNull()
+  expect(page.total).toBe(1)
+  expect(page.rows[0]!.context.applicationCount).toBe(300)
   expect(
-    (
-      await readAuditPage(store, result.manifest, '', 0, 50, {
-        fixture: { hash: fixture.hash, pointer: '/entries/1' },
-      })
-    ).total,
-  ).toBe(0)
-  expect(
-    (
-      await readAuditPage(store, result.manifest, '', 0, 50, {
-        fixture: { hash: definition.hash, pointer: '/entries/0' },
-      })
-    ).total,
-  ).toBe(0)
-  expect(
-    (
-      await readAuditPage(store, result.manifest, '', 0, 50, {
-        category: 'translations',
-      })
-    ).total,
-  ).toBe(300)
-  expect(
-    (await readAuditPage(store, result.manifest, '', 0, 50, { category: 'curations' }))
-      .total,
-  ).toBe(0)
-  reads.length = 0
-  const page = await readAuditPage(store, result.manifest, 'north 河')
-  expect(page.rows.map(r => r.id)).toEqual(['action-280'])
-  expect(reads).not.toContain(objectKey(result.manifest.chunks[0]!.hash))
-  expect(reads).toContain(objectKey(result.manifest.chunks[1]!.hash))
-  reads.length = 0
-  expect(
-    (await readAuditDecision(store, result.manifest, 'action-280')).fixture,
-  ).toEqual({ sourceText: 'River', translation: '河' })
-  expect(reads).not.toContain(objectKey(result.manifest.chunks[0]!.hash))
+    (await readAuditDecision(store, result.manifest, page.rows[0]!.id)).fixture,
+  ).toEqual({ id: 'river', sourceText: 'River', translation: '河' })
   await expect(readAuditDecision(store, result.manifest, 'undeclared')).rejects.toThrow(
     'not declared',
   )
@@ -135,27 +97,11 @@ test('individual search reads indexes and only matching action chunks; transfer 
     { concurrency: 4 },
   )
   expect(transferred.at(-1)).toBe(objectKey(result.ref.hash))
-  const fixtureText = new TextDecoder().decode(
-    destination.objects.get(objectKey(fixture.hash)),
-  )
-  const parse = JSON.parse
-  let fixtureParses = 0
-  const parseSpy = spyOn(JSON, 'parse').mockImplementation((text, reviver) => {
-    if (text === fixtureText) fixtureParses += 1
-    return parse(text, reviver)
-  })
-  try {
-    await verifyAuditResult(destination.store, result.manifest)
-    expect(fixtureParses).toBe(1)
-  } finally {
-    parseSpy.mockRestore()
-  }
-  expect(
-    (await readAuditPage(destination.store, result.manifest, '', 250, 50)).rows,
-  ).toHaveLength(50)
+  await verifyAuditResult(destination.store, result.manifest)
+  expect((await readAuditPage(destination.store, result.manifest, '河')).total).toBe(1)
 })
 
-test('bulk search indexes retained fixture contents without reading fixtures during search', async () => {
+test('bulk search resolves retained fixture contents at read time', async () => {
   const { store, reads } = memoryStore()
   const definition = await retainObject(store, {
     kind: 'processing-rule',
@@ -168,6 +114,7 @@ test('bulk search indexes retained fixture contents without reading fixtures dur
     fields: [{ sourceField: 'QTR_PRH_HS', name: 'Housing Society rental flats' }],
   })
   const result = await retainAuditResult(store, {
+    scope: { stage: 'ingestion', ownerId: 'r' },
     resourceReleaseId: 'r',
     datasetCode: 'stats',
     attempt: { id: 'a', status: 'completed' },
@@ -189,7 +136,7 @@ test('bulk search indexes retained fixture contents without reading fixtures dur
   expect(
     (await readAuditPage(store, result.manifest, 'QTR_PRH_HS society')).bulkIds,
   ).toEqual(['fields'])
-  expect(reads).not.toContain(objectKey(fixture.hash))
+  expect(reads).toContain(objectKey(fixture.hash))
   expect(
     (await readAuditPage(store, result.manifest, 'unmatched-text')).bulkIds,
   ).toEqual([])
@@ -216,6 +163,7 @@ test('bulk search bounds large retained fixture indexes', async () => {
     })),
   )
   const result = await retainAuditResult(store, {
+    scope: { stage: 'ingestion', ownerId: 'large-release' },
     resourceReleaseId: 'large-release',
     datasetCode: 'large',
     attempt: { id: 'large-attempt', status: 'completed' },
@@ -233,7 +181,7 @@ test('bulk search bounds large retained fixture indexes', async () => {
       },
     ],
   })
-  expect(result.manifest.bulk[0]?.search?.byteLength).toBeLessThanOrEqual(1024 * 1024)
+  expect(result.manifest.bulk[0]?.search).toBeUndefined()
 }, 30_000)
 
 test('bulk payloads and completed failed guards cannot pass audit validation', async () => {
@@ -244,6 +192,7 @@ test('bulk payloads and completed failed guards cannot pass audit validation', a
     basis: 'code',
   })
   const result = await retainAuditResult(store, {
+    scope: { stage: 'ingestion', ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'stats',
     attempt: { id: 'attempt', status: 'failed' },
@@ -296,6 +245,7 @@ test('automatic rules cannot retain per-record actions or payload fixtures', asy
   })
   const fixture = await retainObject(store, { record: 'publisher-copy' })
   const input = {
+    scope: { stage: 'ingestion' as const, ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'dataset',
     attempt: { id: 'attempt', status: 'completed' as const },

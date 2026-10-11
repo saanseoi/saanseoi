@@ -1,3 +1,4 @@
+import type { AuditScope } from './auditScope'
 import type { JsonRecord, ObjectRef } from './types'
 import type { BranchCounts, RuleBranch } from './branches'
 import classificationPatches from '../../../../fixtures/meta/patches/overture-division-classification.json'
@@ -105,6 +106,7 @@ export function auditActionCategory(action: IndividualAudit) {
   return action.basis === 'fixture' ? ('curations' as const) : ('rules' as const)
 }
 export type AuditManifest = {
+  scope: AuditScope
   kind: 'processing-audit'
   schemaVersion: 1
   resourceReleaseId: string

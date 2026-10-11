@@ -101,6 +101,10 @@ export const individualAuditSchema = object(
 export const auditManifestSchema = object(
   {
     kind: { const: 'processing-audit' },
+    scope: object({
+      stage: { enum: ['preparation', 'ingestion', 'assembly', 'composition'] },
+      ownerId: text,
+    }),
     schemaVersion: { const: 1 },
     resourceReleaseId: text,
     datasetCode: text,

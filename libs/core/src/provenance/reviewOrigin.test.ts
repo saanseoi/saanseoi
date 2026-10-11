@@ -41,6 +41,7 @@ test('review origin survives retention and cannot contradict the rule', async ()
     context: {},
   }
   const input = {
+    scope: { stage: 'ingestion' as const, ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'dataset',
     attempt: { id: 'attempt', status: 'completed' as const },

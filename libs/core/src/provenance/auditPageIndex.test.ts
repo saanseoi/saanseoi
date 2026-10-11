@@ -24,8 +24,11 @@ test('cached category and fixture search reads only page chunks and shares globa
     id: 'translate',
     scope: 'individual',
     basis: 'fixture',
+    summary: 'Translate a name',
   })
-  const fixture = await retainObject(store, { entries: [{ translation: '河' }] })
+  const fixture = await retainObject(store, {
+    entries: [{ translation: '河', replacement: 'macrohood' }],
+  })
   const individuals: IndividualAudit[] = Array.from(
     { length: 300 },
     (_, i): IndividualAudit => ({
@@ -42,6 +45,7 @@ test('cached category and fixture search reads only page chunks and shares globa
     }),
   )
   const { manifest } = await retainAuditResult(store, {
+    scope: { stage: 'ingestion', ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'divisions',
     attempt: { id: 'attempt', status: 'completed' },
@@ -60,11 +64,10 @@ test('cached category and fixture search reads only page chunks and shares globa
     50,
     { category: 'translations' },
   )
-  expect(page.rows.map(row => row.id)).toEqual(['action-280'])
+  expect(page.rows).toHaveLength(1)
   expect(page.total).toBe(1)
-  const secondChunk = manifest.chunks[1]
-  if (!secondChunk) throw new Error('Expected two action chunks')
-  expect(reads).toEqual([objectKey(secondChunk.hash)])
+  expect(page.rows[0]!.context.applicationCount).toBe(300)
+  expect(reads).toContain(objectKey(fixture.hash))
   expect((await readIndexedAuditPage(store, manifest, index, 'macrohood')).total).toBe(
     page.total,
   )
@@ -78,9 +81,8 @@ test('cached category and fixture search reads only page chunks and shares globa
     category: 'translations',
     fixture: { hash: fixture.hash, pointer: '/entries/0' },
   })
-  expect(later.rows).toHaveLength(50)
-  expect(later.rows[0]?.id).toBe('action-250')
-  expect(later.total).toBe(300)
+  expect(later.rows).toHaveLength(0)
+  expect(later.total).toBe(1)
   expect(later.nextOffset).toBeNull()
   reads.length = 0
   const counts = await readIndexedAuditPage(

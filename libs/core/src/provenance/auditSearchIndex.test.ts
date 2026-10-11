@@ -1,15 +1,10 @@
 import { expect, test } from 'bun:test'
 import { retainAuditResult } from './audit'
 import { objectKey, retainObject } from './objects'
-import {
-  auditSearchKey,
-  retainAuditSearchIndex,
-  readAuditPageIndex,
-  readAuditFixtureCatalogue,
-} from './auditSearchIndex'
+import { readAuditPageIndex, readAuditFixtureCatalogue } from './auditSearchIndex'
 import type { ProvenanceStore } from './types'
 
-test('backfill preserves immutable audit objects and serves search without evidence reads', async () => {
+test('audit presentation reads fixtures without retaining derived objects', async () => {
   const objects = new Map<string, ArrayBuffer>()
   const reads: string[] = []
   const store: ProvenanceStore = {
@@ -33,6 +28,7 @@ test('backfill preserves immutable audit objects and serves search without evide
     fields: [{ sourceField: 'population', fieldName: 'Population' }],
   })
   const audit = await retainAuditResult(store, {
+    scope: { stage: 'ingestion', ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'statistics',
     attempt: { id: 'attempt', status: 'completed' },
@@ -50,20 +46,18 @@ test('backfill preserves immutable audit objects and serves search without evide
     guards: [],
     individuals: [],
   })
-  const original = objects.get(objectKey(audit.ref.hash))
-  await retainAuditSearchIndex(store, audit.ref, audit.manifest, '2026-09-10.0')
-  expect(objects.get(objectKey(audit.ref.hash))).toBe(original)
-  expect(objects.has(auditSearchKey(audit.ref.hash))).toBe(true)
   const size = objects.size
-  await retainAuditSearchIndex(store, audit.ref, audit.manifest, '2026-09-10.0')
-  expect(objects.size).toBe(size)
   reads.length = 0
-  const catalogue = await readAuditFixtureCatalogue(store, audit.ref.hash)
-  const page = await readAuditPageIndex(store, audit.ref.hash)
+  const catalogue = await readAuditFixtureCatalogue(
+    store,
+    audit.manifest,
+    '2026-09-10.0',
+  )
+  const page = await readAuditPageIndex(store, audit.manifest)
   expect(catalogue.groups.fields?.fields?.rows).toHaveLength(1)
-  expect(page.bulk[0]?.text).toContain('population')
-  expect(reads).not.toContain(objectKey(fixture.hash))
-  expect(reads).not.toContain(objectKey(definition.hash))
+  expect(page.bulk[0]?.text).toContain('fields')
+  expect(reads).toContain(objectKey(fixture.hash))
+  expect(objects.size).toBe(size)
 })
 
 test('large non-tabular evidence builds bounded search without merging its payloads', async () => {
@@ -88,6 +82,7 @@ test('large non-tabular evidence builds bounded search without merging its paylo
     actions: [{ evidence: `needle ${'retained evidence '.repeat(55000)}` }],
   })
   const audit = await retainAuditResult(store, {
+    scope: { stage: 'ingestion', ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'addresses',
     attempt: { id: 'attempt', status: 'completed' },
@@ -108,8 +103,11 @@ test('large non-tabular evidence builds bounded search without merging its paylo
     guards: [],
     individuals: [],
   })
-  await retainAuditSearchIndex(store, audit.ref, audit.manifest, '2026')
-  const catalogue = await readAuditFixtureCatalogue(store, audit.ref.hash)
+  const catalogue = await readAuditFixtureCatalogue(
+    store,
+    audit.manifest,
+    '2026-09-10.0',
+  )
   expect(catalogue.groups.prepare?.actions?.text).toContain('needle')
   expect(catalogue.groups.prepare?.actions?.text?.length).toBeLessThan(1_048_576)
   expect(objects.get(objectKey(fixture.hash))).toBeDefined()

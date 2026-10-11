@@ -1,3 +1,4 @@
+import { validateAuditScope } from './auditScope'
 import {
   collectCurationApplication,
   resolveCurationApplication,
@@ -5,14 +6,7 @@ import {
   curationApplicationId,
   type CurationApplication,
 } from './curationApplications'
-import {
-  MAX_OBJECT_BYTES,
-  readObject,
-  readValue,
-  retainObject,
-  serialise,
-  validateRef,
-} from './objects'
+import { readObject, readValue, retainObject, serialise, validateRef } from './objects'
 import type { AuditManifest, IndividualAudit } from './auditTypes'
 import type { ObjectRef, ProvenanceStore } from './types'
 import { createProvenanceReader } from './cache'
@@ -35,6 +29,7 @@ function exact(value: object, keys: string[]) {
 export function validateAuditManifest(value: unknown): asserts value is AuditManifest {
   validateShape(value, auditManifestSchema)
   const m = value as AuditManifest
+  validateAuditScope(m.scope)
   if (
     m?.kind !== 'processing-audit' ||
     m.schemaVersion !== 1 ||
@@ -50,6 +45,7 @@ export function validateAuditManifest(value: unknown): asserts value is AuditMan
   )
     throw new Error('Invalid audit manifest.')
   exact(m, [
+    'scope',
     'kind',
     'schemaVersion',
     'resourceReleaseId',
@@ -203,7 +199,6 @@ const searchText = (a: IndividualAudit) =>
     .join(' ')
     .normalize('NFKC')
     .toLowerCase()
-type SearchEntry = { id: string; text: string }
 
 async function bulkSearchText(store: ProvenanceStore, bulk: BulkAudit) {
   const text = createBoundedBulkSearchText()
@@ -240,6 +235,11 @@ export async function retainAuditResult(
   const applications = new Map<string, CurationApplication>()
   for await (const action of individuals) {
     validateIndividual(action)
+    const declaration = (await readObject(store, action.definition)) as {
+      review?: IndividualAudit['review']
+    }
+    if (serialise(declaration.review ?? null) !== serialise(action.review ?? null))
+      throw new Error('Curation review origin does not match its rule declaration.')
     collectCurationApplication(applications, action)
   }
   const manifest: AuditManifest = {
