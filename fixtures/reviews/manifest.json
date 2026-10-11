@@ -160,6 +160,339 @@
       "objectKey": "evidence/sha256/618eead8515b114752261bcee4bdb8c34ed3266f6f94e81a8331f1cd5052144f",
       "kind": "overture-place-address-investigations",
       "sourceVersion": "2025-10-22.0"
+    },
+    {
+      "gitBlobOid": "8c319ba2cc107247d8bd0858298f8d7d25b9fed1",
+      "size": 3979469,
+      "originalPath": "fixtures/divisions/hk/island-areas.json",
+      "path": "fixtures/reviews/retired-git-history/089797aaef54cdc447a8c7046f62e464fc26eddb7125dfdea372c5455e20bc00.json",
+      "sha256": "089797aaef54cdc447a8c7046f62e464fc26eddb7125dfdea372c5455e20bc00",
+      "objectKey": "evidence/sha256/089797aaef54cdc447a8c7046f62e464fc26eddb7125dfdea372c5455e20bc00",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "e5a321acbccd9e2eac443ec4fb45dcb97087effb",
+      "size": 13770242,
+      "originalPath": "fixtures/meta/curations/overture-place-address.jsonl",
+      "path": "fixtures/reviews/retired-git-history/18d168b5402b55b4fe3eb30da19bc894b3d51e4df9cc993711f6c8198babba1a.jsonl",
+      "sha256": "18d168b5402b55b4fe3eb30da19bc894b3d51e4df9cc993711f6c8198babba1a",
+      "objectKey": "evidence/sha256/18d168b5402b55b4fe3eb30da19bc894b3d51e4df9cc993711f6c8198babba1a",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "2fe64ead1e4cc42096febdb1e19dd2e26755da26",
+      "size": 2234166,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/23c65221144f8ba92a1926b547646cbe238898c27776db881138dc9d588fcf83.json",
+      "sha256": "23c65221144f8ba92a1926b547646cbe238898c27776db881138dc9d588fcf83",
+      "objectKey": "evidence/sha256/23c65221144f8ba92a1926b547646cbe238898c27776db881138dc9d588fcf83",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "ba7232f4194d4fd4923448f1c0d258458dcd4c48",
+      "size": 1658941,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/25f6f0f50ad46a45e391856cfe1b7e1c08e12a26205909df90d0113eba203163.json",
+      "sha256": "25f6f0f50ad46a45e391856cfe1b7e1c08e12a26205909df90d0113eba203163",
+      "objectKey": "evidence/sha256/25f6f0f50ad46a45e391856cfe1b7e1c08e12a26205909df90d0113eba203163",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "3d374019531e76ded9511bc6fd0b4e11bd34a68a",
+      "size": 2259147,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/2967c594213095019587f370812971a19186680ef92584baff6cdd36b75f4595.json",
+      "sha256": "2967c594213095019587f370812971a19186680ef92584baff6cdd36b75f4595",
+      "objectKey": "evidence/sha256/2967c594213095019587f370812971a19186680ef92584baff6cdd36b75f4595",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "75c933729c7e9b7a78d76d88d40cebf8cd81a854",
+      "size": 2884394,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/3173985c0fb1fe3f2976eebcbe842c29efeaaeb2afb324d26e51bc7dade65916.json",
+      "sha256": "3173985c0fb1fe3f2976eebcbe842c29efeaaeb2afb324d26e51bc7dade65916",
+      "objectKey": "evidence/sha256/3173985c0fb1fe3f2976eebcbe842c29efeaaeb2afb324d26e51bc7dade65916",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "fb9fd2cc4acac09ac56a406fd09c1bace0d726e4",
+      "size": 2257769,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/31cecac87d257578d0dc28f18fac0710acc8a59c540209005403c5ef0e7b7ca0.json",
+      "sha256": "31cecac87d257578d0dc28f18fac0710acc8a59c540209005403c5ef0e7b7ca0",
+      "objectKey": "evidence/sha256/31cecac87d257578d0dc28f18fac0710acc8a59c540209005403c5ef0e7b7ca0",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "189b8a3ffc591fc1f8b9fbe6355ee7d3d0b7ef56",
+      "size": 3994,
+      "originalPath": "fixtures/meta/curations/overture-place-address.jsonl",
+      "path": "fixtures/reviews/retired-git-history/438e866bc5f464989c2ef791e7bac53eb3ff35d986c1b4882465e68bd7bf655a.jsonl",
+      "sha256": "438e866bc5f464989c2ef791e7bac53eb3ff35d986c1b4882465e68bd7bf655a",
+      "objectKey": "evidence/sha256/438e866bc5f464989c2ef791e7bac53eb3ff35d986c1b4882465e68bd7bf655a",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "34fabe6ad3112ccdc1f312a19d85d71342caf8b8",
+      "size": 4261688,
+      "originalPath": "fixtures/divisions/hk/stub-areas.json",
+      "path": "fixtures/reviews/retired-git-history/43d529dc4df314a82317d6120d6e5ce14929ecc4348caec1b263ccfe311589fb.json",
+      "sha256": "43d529dc4df314a82317d6120d6e5ce14929ecc4348caec1b263ccfe311589fb",
+      "objectKey": "evidence/sha256/43d529dc4df314a82317d6120d6e5ce14929ecc4348caec1b263ccfe311589fb",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "01b3ec3b06f52ebf1320547266f21c361eb2fead",
+      "size": 7884130,
+      "originalPath": "fixtures/divisions/hk/stub-areas.json",
+      "path": "fixtures/reviews/retired-git-history/556da6a7a4d1bcc18f9c272c1b6dc06b1af92955f5af4d5dd3ca5a7490ada724.json",
+      "sha256": "556da6a7a4d1bcc18f9c272c1b6dc06b1af92955f5af4d5dd3ca5a7490ada724",
+      "objectKey": "evidence/sha256/556da6a7a4d1bcc18f9c272c1b6dc06b1af92955f5af4d5dd3ca5a7490ada724",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "437bb98c468688aa7c3b619225ab81e0c5266818",
+      "size": 6713,
+      "originalPath": "fixtures/meta/curations/overture-place-address.jsonl",
+      "path": "fixtures/reviews/retired-git-history/58b6c22555a7c61c110488f90f87a389480a05ee9de758b6c4a417692f37fcef.jsonl",
+      "sha256": "58b6c22555a7c61c110488f90f87a389480a05ee9de758b6c4a417692f37fcef",
+      "objectKey": "evidence/sha256/58b6c22555a7c61c110488f90f87a389480a05ee9de758b6c4a417692f37fcef",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "4327127fef67a9c879911a8d4871aee271104af8",
+      "size": 5306310,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/637034bf329e67c3bba1a43c475682094412dc8d76f6b5e9ca5cf5bab0bb0b75.json",
+      "sha256": "637034bf329e67c3bba1a43c475682094412dc8d76f6b5e9ca5cf5bab0bb0b75",
+      "objectKey": "evidence/sha256/637034bf329e67c3bba1a43c475682094412dc8d76f6b5e9ca5cf5bab0bb0b75",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "d049032bc50e83719b77de21e817f4f0c95c24f8",
+      "size": 2990253,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/64ba26024d55781d59b0db91997c11db5fe86032914204d8e8ab926118f9f189.json",
+      "sha256": "64ba26024d55781d59b0db91997c11db5fe86032914204d8e8ab926118f9f189",
+      "objectKey": "evidence/sha256/64ba26024d55781d59b0db91997c11db5fe86032914204d8e8ab926118f9f189",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "a46f6df40894e82d13873efa33cb53df41b374c4",
+      "size": 1152301,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/6baa4d52cdc894c4183e7ad4c09023f7b5cbcb9f32abe84428d84c867c3c844d.json",
+      "sha256": "6baa4d52cdc894c4183e7ad4c09023f7b5cbcb9f32abe84428d84c867c3c844d",
+      "objectKey": "evidence/sha256/6baa4d52cdc894c4183e7ad4c09023f7b5cbcb9f32abe84428d84c867c3c844d",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "2426be3b00147c62d88cb223f70b0899489221e6",
+      "size": 5438360,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/721b61bf98b71ac65e9a43f898ea9114ffd6b8157cececf7a3edd5b10b575bf0.json",
+      "sha256": "721b61bf98b71ac65e9a43f898ea9114ffd6b8157cececf7a3edd5b10b575bf0",
+      "objectKey": "evidence/sha256/721b61bf98b71ac65e9a43f898ea9114ffd6b8157cececf7a3edd5b10b575bf0",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "08ea378ba13536602888831aeb9f772af7d236d6",
+      "size": 1659784,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/72c0142b9349e23c3efc6c3f52e19c78550fa11aa6854df635b5affda4ed3c06.json",
+      "sha256": "72c0142b9349e23c3efc6c3f52e19c78550fa11aa6854df635b5affda4ed3c06",
+      "objectKey": "evidence/sha256/72c0142b9349e23c3efc6c3f52e19c78550fa11aa6854df635b5affda4ed3c06",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "50b1cc30dc5ce8e12c5d688457798d5acfb7c9b5",
+      "size": 2871442,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/75d3c98c88e0eb36d1bcab03356f01cae0c55798408b3618a81760efd9d1f337.json",
+      "sha256": "75d3c98c88e0eb36d1bcab03356f01cae0c55798408b3618a81760efd9d1f337",
+      "objectKey": "evidence/sha256/75d3c98c88e0eb36d1bcab03356f01cae0c55798408b3618a81760efd9d1f337",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "a1fd6934ab824242026c134aae1ecbc866de8da6",
+      "size": 2884406,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/7bea79136834091c3446c19ca2e3efb9eca7586043a05cb63f5bd2429b74a6fe.json",
+      "sha256": "7bea79136834091c3446c19ca2e3efb9eca7586043a05cb63f5bd2429b74a6fe",
+      "objectKey": "evidence/sha256/7bea79136834091c3446c19ca2e3efb9eca7586043a05cb63f5bd2429b74a6fe",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "1b530373d770a102b0e740286fcdad18ed3d4d3c",
+      "size": 5381012,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/84c628e24a255b634bb8e4cc438226e7fbe8817c8228da7fc3b2a0ea6c945797.json",
+      "sha256": "84c628e24a255b634bb8e4cc438226e7fbe8817c8228da7fc3b2a0ea6c945797",
+      "objectKey": "evidence/sha256/84c628e24a255b634bb8e4cc438226e7fbe8817c8228da7fc3b2a0ea6c945797",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "1f71dadd949906bd8a69b848cfa356e930bdc0a9",
+      "size": 5251148,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/93759fe1345bdd8c7e3474c88840e04c990531efb3881f42f1374e49d37a7e08.json",
+      "sha256": "93759fe1345bdd8c7e3474c88840e04c990531efb3881f42f1374e49d37a7e08",
+      "objectKey": "evidence/sha256/93759fe1345bdd8c7e3474c88840e04c990531efb3881f42f1374e49d37a7e08",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "cf5b4ef8dc2912fda10be8a4740d354accbcf922",
+      "size": 167,
+      "originalPath": "fixtures/divisions/hk/stub-areas.json",
+      "path": "fixtures/reviews/retired-git-history/96f90e90e6f5b9cd9fd60181622d9eeed40b8d6cd144a1ce38984fc33224d219.json",
+      "sha256": "96f90e90e6f5b9cd9fd60181622d9eeed40b8d6cd144a1ce38984fc33224d219",
+      "objectKey": "evidence/sha256/96f90e90e6f5b9cd9fd60181622d9eeed40b8d6cd144a1ce38984fc33224d219",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "2c7bac46f0747196fa0fe818adb73c6f49ff32bb",
+      "size": 2853096,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/98dfc94a635f873735174ca0b3d51451a306deba74c14147fd1d5e8290dcaed0.json",
+      "sha256": "98dfc94a635f873735174ca0b3d51451a306deba74c14147fd1d5e8290dcaed0",
+      "objectKey": "evidence/sha256/98dfc94a635f873735174ca0b3d51451a306deba74c14147fd1d5e8290dcaed0",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "8fde4e8200e4ff5942faa1c52db477f6e07816eb",
+      "size": 12152183,
+      "originalPath": "fixtures/divisions/hk/stub-areas.json",
+      "path": "fixtures/reviews/retired-git-history/9a0aad95e1fbaa6642dae43dfc183f81e379be2d51bebe6d08809bfb29518d28.json",
+      "sha256": "9a0aad95e1fbaa6642dae43dfc183f81e379be2d51bebe6d08809bfb29518d28",
+      "objectKey": "evidence/sha256/9a0aad95e1fbaa6642dae43dfc183f81e379be2d51bebe6d08809bfb29518d28",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "b7cb44b0356b53ac23222f1dd69053fc23ad19b2",
+      "size": 1659796,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/9a58569fdcbe2f0946f016c845b5ba3b5ccc803a935a535ecf05f4fe435d6062.json",
+      "sha256": "9a58569fdcbe2f0946f016c845b5ba3b5ccc803a935a535ecf05f4fe435d6062",
+      "objectKey": "evidence/sha256/9a58569fdcbe2f0946f016c845b5ba3b5ccc803a935a535ecf05f4fe435d6062",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "12d62326bc0dec1ab2da8f4efc9a0547e1799155",
+      "size": 10176,
+      "originalPath": "fixtures/meta/curations/overture-place-address.jsonl",
+      "path": "fixtures/reviews/retired-git-history/9be81b6e8802437e2b80b4682af9f4f1a79b58caced6924d1d0350246c1b7a42.jsonl",
+      "sha256": "9be81b6e8802437e2b80b4682af9f4f1a79b58caced6924d1d0350246c1b7a42",
+      "objectKey": "evidence/sha256/9be81b6e8802437e2b80b4682af9f4f1a79b58caced6924d1d0350246c1b7a42",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "7717d89cb2e62617bb5807ecf42a13920ef16d39",
+      "size": 12942154,
+      "originalPath": "fixtures/divisions/hk/stub-areas.json",
+      "path": "fixtures/reviews/retired-git-history/a207721e2b137b311013aea69c95d7807dc1966e7013cd678955eae9dd6b8450.json",
+      "sha256": "a207721e2b137b311013aea69c95d7807dc1966e7013cd678955eae9dd6b8450",
+      "objectKey": "evidence/sha256/a207721e2b137b311013aea69c95d7807dc1966e7013cd678955eae9dd6b8450",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "8cc886cbe0566995c20b7262347150ea4589df51",
+      "size": 6710,
+      "originalPath": "fixtures/meta/curations/overture-place-address.jsonl",
+      "path": "fixtures/reviews/retired-git-history/a32d6ce4ae37fd7933e9d0c4db54a370fb177eea573837a3f7c068945b3ce2e7.jsonl",
+      "sha256": "a32d6ce4ae37fd7933e9d0c4db54a370fb177eea573837a3f7c068945b3ce2e7",
+      "objectKey": "evidence/sha256/a32d6ce4ae37fd7933e9d0c4db54a370fb177eea573837a3f7c068945b3ce2e7",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "49aaa0913a2baa3fa0a8420797cc8d5ce59e0e07",
+      "size": 2259135,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/a8e185a06a8a4c08b802da92b87624c64e9eece77720c47f1877d9e77f771258.json",
+      "sha256": "a8e185a06a8a4c08b802da92b87624c64e9eece77720c47f1877d9e77f771258",
+      "objectKey": "evidence/sha256/a8e185a06a8a4c08b802da92b87624c64e9eece77720c47f1877d9e77f771258",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "d81b7ea9b1297b35ee3aea7808ea0df475d45880",
+      "size": 2257772,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/b9d985cf0bd9683f5b76d3ecc56636ed6430fdcfa5eccab0676bd4c89efc7047.json",
+      "sha256": "b9d985cf0bd9683f5b76d3ecc56636ed6430fdcfa5eccab0676bd4c89efc7047",
+      "objectKey": "evidence/sha256/b9d985cf0bd9683f5b76d3ecc56636ed6430fdcfa5eccab0676bd4c89efc7047",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "0bb0ac34f3a68bb70ee0b319eb5694f6be8923d4",
+      "size": 5074857,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/c8dcf76ed4e5bd3089183975c32fc8e0d4fc1eb338fa545e3c0b7efd16a45f1c.json",
+      "sha256": "c8dcf76ed4e5bd3089183975c32fc8e0d4fc1eb338fa545e3c0b7efd16a45f1c",
+      "objectKey": "evidence/sha256/c8dcf76ed4e5bd3089183975c32fc8e0d4fc1eb338fa545e3c0b7efd16a45f1c",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "6b6cef1a509c17c7f0d383cfb435c5765307f8b8",
+      "size": 12580877,
+      "originalPath": "fixtures/divisions/hk/stub-areas.json",
+      "path": "fixtures/reviews/retired-git-history/cf02d4331b6a34fbf315a9c05ae93eda018df0e3eff2d4290da7010ec01e2bff.json",
+      "sha256": "cf02d4331b6a34fbf315a9c05ae93eda018df0e3eff2d4290da7010ec01e2bff",
+      "objectKey": "evidence/sha256/cf02d4331b6a34fbf315a9c05ae93eda018df0e3eff2d4290da7010ec01e2bff",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "bb29a408ad6d3450c3d9f8ff8782fa81e1004dcf",
+      "size": 2567,
+      "originalPath": "fixtures/meta/curations/overture-place-address.jsonl",
+      "path": "fixtures/reviews/retired-git-history/e59547507d0f77af230251ca15464561b0b762316e6b31b00b7f35179fdb5199.jsonl",
+      "sha256": "e59547507d0f77af230251ca15464561b0b762316e6b31b00b7f35179fdb5199",
+      "objectKey": "evidence/sha256/e59547507d0f77af230251ca15464561b0b762316e6b31b00b7f35179fdb5199",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "62854ba8f8f6e3eaa0f71e05717c909ca8d3c7b1",
+      "size": 7883790,
+      "originalPath": "fixtures/divisions/hk/stub-areas.json",
+      "path": "fixtures/reviews/retired-git-history/e61b88a1a103c783b238ec4eb6c1ca4aeddc9fe6578b5a4d2d9b80dc71d4143b.json",
+      "sha256": "e61b88a1a103c783b238ec4eb6c1ca4aeddc9fe6578b5a4d2d9b80dc71d4143b",
+      "objectKey": "evidence/sha256/e61b88a1a103c783b238ec4eb6c1ca4aeddc9fe6578b5a4d2d9b80dc71d4143b",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "b67b62a36b55f8c3b45802265029da66fb1e1b3c",
+      "size": 1658944,
+      "originalPath": "fixtures/divisions/hk/geographic-review-inventory.json",
+      "path": "fixtures/reviews/retired-git-history/f1b9ee70589fbcdc93216d23866c8d8153fd13a6b88ca20873dbc46a1ea37b12.json",
+      "sha256": "f1b9ee70589fbcdc93216d23866c8d8153fd13a6b88ca20873dbc46a1ea37b12",
+      "objectKey": "evidence/sha256/f1b9ee70589fbcdc93216d23866c8d8153fd13a6b88ca20873dbc46a1ea37b12",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "f391b5aa00a1e80ddb2411255f17d51a9770413d",
+      "size": 5289588,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/fa4462f05dff79427dc0c5bd12ec681b14f75ed4c72d6ef6d0ab365731b767dd.json",
+      "sha256": "fa4462f05dff79427dc0c5bd12ec681b14f75ed4c72d6ef6d0ab365731b767dd",
+      "objectKey": "evidence/sha256/fa4462f05dff79427dc0c5bd12ec681b14f75ed4c72d6ef6d0ab365731b767dd",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "6cb008fcd2a42271955ac1a0fa4952b9e3d09653",
+      "size": 4427605,
+      "originalPath": "fixtures/divisions/hk/geographic-hierarchy-patch.json",
+      "path": "fixtures/reviews/retired-git-history/fc692005f8061a8270f87381b23bedd5a4df40138e84a034447046d485cad176.json",
+      "sha256": "fc692005f8061a8270f87381b23bedd5a4df40138e84a034447046d485cad176",
+      "objectKey": "evidence/sha256/fc692005f8061a8270f87381b23bedd5a4df40138e84a034447046d485cad176",
+      "kind": "retired-git-history"
+    },
+    {
+      "gitBlobOid": "30989203125738978a1ca0147b874c6212d17da7",
+      "size": 4299261,
+      "originalPath": "fixtures/divisions/hk/island-areas.json",
+      "path": "fixtures/reviews/retired-git-history/fd09b2ea181b84f49480c5b0a66317e67d6f26c0cf80e96ac33e50a77939375c.json",
+      "sha256": "fd09b2ea181b84f49480c5b0a66317e67d6f26c0cf80e96ac33e50a77939375c",
+      "objectKey": "evidence/sha256/fd09b2ea181b84f49480c5b0a66317e67d6f26c0cf80e96ac33e50a77939375c",
+      "kind": "retired-git-history"
     }
   ]
 }
