@@ -1,3 +1,4 @@
+import { geographicMembershipSql } from '../lib/geographicFilterContext'
 import { getPublicationReadiness, publicationLogicalSnapshot } from './publicationState'
 import type { AddressBlockType, CurrentDatabase } from '@repo/db'
 import { addressBlockTypes, and, asc, eq, ne, sql } from '@repo/db'
@@ -52,6 +53,7 @@ export type AddressRecord = {
     areaId: string | null
     districtId: string | null
     townId: string | null
+    ruralAreaId: string | null
     macrohoodId: string | null
     neighbourhoodId: string | null
     microhoodId: string | null
@@ -132,6 +134,7 @@ type AddressRow = {
   areaId: string | null
   districtId: string | null
   townId: string | null
+  ruralAreaId: string | null
   macrohoodId: string | null
   neighbourhoodId: string | null
   microhoodId: string | null
@@ -236,6 +239,7 @@ function mapAddressRow(row: AddressRow): AddressRecord {
       areaId: row.areaId,
       districtId: row.districtId,
       townId: row.townId,
+      ruralAreaId: row.ruralAreaId,
       macrohoodId: row.macrohoodId,
       neighbourhoodId: row.neighbourhoodId,
       microhoodId: row.microhoodId,
@@ -256,6 +260,7 @@ export function addressDivisionRelationshipsFromDedicatedIds(
     | 'areaId'
     | 'districtId'
     | 'townId'
+    | 'ruralAreaId'
     | 'macrohoodId'
     | 'neighbourhoodId'
     | 'microhoodId'
@@ -269,6 +274,7 @@ export function addressDivisionRelationshipsFromDedicatedIds(
     ['area', row.areaId],
     ['district', row.districtId],
     ['town', row.townId],
+    ['rural_area', row.ruralAreaId],
     ['macrohood', row.macrohoodId],
     ['neighbourhood', row.neighbourhoodId],
     ['microhood', row.microhoodId],
@@ -278,6 +284,29 @@ export function addressDivisionRelationshipsFromDedicatedIds(
   return dedicatedRelationships.flatMap(([role, divisionId]) =>
     divisionId ? [{ role, divisionId }] : [],
   )
+}
+
+function addressGeographicCondition() {
+  const roles = {
+    country: address2d.countryId,
+    area: address2d.areaId,
+    district: address2d.districtId,
+    town: address2d.townId,
+    village: address2d.villageId,
+    hamlet: address2d.hamletId,
+    rural_area: address2d.ruralAreaId,
+    macrohood: address2d.macrohoodId,
+    neighbourhood: address2d.neighbourhoodId,
+    microhood: address2d.microhoodId,
+    landform: address2d.landformId,
+  }
+  const all = sql`json_array(${sql.join(Object.values(roles), sql`, `)})`
+  return geographicMembershipSql(all, undefined, targetClass => {
+    const column = roles[targetClass as keyof typeof roles]
+    return column
+      ? sql`case when ${column} is not null then json_array(${column}) else ${all} end`
+      : all
+  })
 }
 
 function buildAddressConditions(
@@ -298,6 +327,7 @@ function buildAddressConditions(
           address2d.areaId,
           address2d.districtId,
           address2d.townId,
+          address2d.ruralAreaId,
           address2d.macrohoodId,
           address2d.neighbourhoodId,
           address2d.microhoodId,
@@ -313,6 +343,7 @@ function buildAddressConditions(
     : undefined
   return [
     sql`${address2d.snapshotId} in (${selectedScopes})`,
+    addressGeographicCondition(),
     lookup.countryId ? eq(address2d.countryId, lookup.countryId) : undefined,
     // Each branch seeks a covering role index. UNION removes repeated role matches
     // while retaining the same address ID in distinct physical scopes.
@@ -350,6 +381,7 @@ export async function getAddressRecordCurrent(
       areaId: address2d.areaId,
       districtId: address2d.districtId,
       townId: address2d.townId,
+      ruralAreaId: address2d.ruralAreaId,
       macrohoodId: address2d.macrohoodId,
       neighbourhoodId: address2d.neighbourhoodId,
       microhoodId: address2d.microhoodId,
@@ -405,6 +437,7 @@ export async function listAddressRecordsCurrent(
       areaId: address2d.areaId,
       districtId: address2d.districtId,
       townId: address2d.townId,
+      ruralAreaId: address2d.ruralAreaId,
       macrohoodId: address2d.macrohoodId,
       neighbourhoodId: address2d.neighbourhoodId,
       microhoodId: address2d.microhoodId,
@@ -464,6 +497,7 @@ export async function listAddressRecordsCurrentByIds(
       areaId: address2d.areaId,
       districtId: address2d.districtId,
       townId: address2d.townId,
+      ruralAreaId: address2d.ruralAreaId,
       macrohoodId: address2d.macrohoodId,
       neighbourhoodId: address2d.neighbourhoodId,
       microhoodId: address2d.microhoodId,

@@ -1,3 +1,4 @@
+import { geographicMembershipSql } from '../lib/geographicFilterContext'
 import {
   getPublicationReadiness,
   publicationScopeCondition,
@@ -147,6 +148,7 @@ export async function getPlaceCurrent(db: CurrentDatabase, lookup: PlaceLookup) 
       and(
         publicationScopeCondition('place', places.snapshotId, [lookup.snapshotId]),
         eq(places.id, lookup.placeId),
+        placeGeographicCondition(),
       ),
     )
     .limit(1)
@@ -233,6 +235,7 @@ export async function listPlacesByH3Cell(db: CurrentDatabase, lookup: H3Lookup) 
         publicationScopeCondition('place', placesCells.snapshotId, [lookup.snapshotId]),
         eq(placesCells.h3Level, lookup.h3Level),
         eq(placesCells.h3Cell, lookup.h3Cell),
+        placeGeographicCondition(),
       ),
     )
     .limit(Math.min(lookup.limit ?? 50, MAX_PLACE_RESULTS))
@@ -277,6 +280,7 @@ export async function searchPlacesFts(db: CurrentDatabase, lookup: FtsLookup) {
           eq(placeSearchScopes.snapshotId, lookup.snapshotId),
           lookup.locale ? eq(placesFts.locale, lookup.locale) : undefined,
           placesFtsMatch(lookup.query),
+          placeGeographicCondition(),
         ),
       )
       .limit(Math.min(lookup.limit ?? 20, MAX_PLACE_RESULTS))
@@ -414,6 +418,17 @@ function parseDivisionIds(value: string) {
   }
 }
 
+function placeGeographicCondition() {
+  const membership = sql`${placesDivision.placeSnapshotId} = ${places.snapshotId} and ${placesDivision.placeId} = ${places.id}`
+  const all = sql`(select json_group_array(${placesDivision.divisionId}) from ${placesDivision} where ${membership})`
+  return geographicMembershipSql(all, undefined, targetClass =>
+    targetClass === 'district'
+      ? sql`case when exists (select 1 from ${placesDivision} where ${membership} and json_extract(${placesDivision.definition}, '$.level') = 2)
+        then (select json_group_array(${placesDivision.divisionId}) from ${placesDivision} where ${membership} and json_extract(${placesDivision.definition}, '$.level') = 2) else ${all} end`
+      : all,
+  )
+}
+
 function buildPlaceConditions(
   lookup: Pick<
     PlaceListLookup,
@@ -426,6 +441,7 @@ function buildPlaceConditions(
 ) {
   return [
     publicationScopeCondition('place', places.snapshotId, [lookup.snapshotId]),
+    placeGeographicCondition(),
     lookup.basicCategory ? eq(places.basicCategory, lookup.basicCategory) : undefined,
     lookup.taxonomyPrimary
       ? eq(places.taxonomyPrimary, lookup.taxonomyPrimary)

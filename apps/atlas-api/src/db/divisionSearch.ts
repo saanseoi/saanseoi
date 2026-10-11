@@ -1,3 +1,4 @@
+import { geographicMembershipRaw } from '../lib/geographicFilterContext'
 import type { SearchScope } from '@repo/core/pipeline/services/search/incrementalIndex'
 import { divisionSearchTerms } from '@repo/core/pipeline/services/search/divisionQuery'
 import type {
@@ -76,6 +77,7 @@ export async function searchDivisions(
     const rank = `CASE WHEN f.codeText = ${bind(query.q.normalize('NFKC').trim())} COLLATE NOCASE OR f.nameText = ${bind(exact)} COLLATE NOCASE THEN 0
       WHEN f.nameText LIKE ${bind(`${exact}%`)} THEN 1 ELSE 2 END`
     const locale = query.locale ? `AND f.locale = ${bind(query.locale)}` : ''
+    const geographic = geographicMembershipRaw('json_array(d.id)', bind, 's.snapshotId')
     const limit = bind(query.limit)
     const result = await db
       .prepare(`
@@ -95,7 +97,7 @@ export async function searchDivisions(
           AND publication.status = 'current' AND publication.preparedAt IS NOT NULL
           AND publication.publicationToken <> ''
         JOIN divisions d ON d.snapshotId = publication.scopeId AND d.id = f.divisionId
-        WHERE true ${locale}
+        WHERE true ${locale} ${geographic}
       ), ranked AS (
         SELECT *, row_number() OVER (
           PARTITION BY domain, divisionId

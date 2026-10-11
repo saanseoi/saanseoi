@@ -1,3 +1,8 @@
+import {
+  geographicMembershipSql,
+  geographicFilterContext,
+  GeographicCrosswalkUnavailableError,
+} from '../lib/geographicFilterContext'
 import { getTableColumns, statisticDefinitionHashes } from '@repo/db'
 import type {
   CanonicalStatsGeography,
@@ -106,11 +111,18 @@ function chunks<T>(items: T[], size = D1_QUERY_BATCH_SIZE) {
 function statisticConditions(
   selection: StatisticReadSelection,
   filters: StatisticFilters = {},
+  applyGeographic = true,
 ) {
   return and(
     sql`exists (select 1 from json_each(${JSON.stringify(selection.publications)}) as publication
       where json_extract(publication.value, '$.datasetCode') = ${statsRecords.datasetCode}
       and json_extract(publication.value, '$.referencePeriodCode') = ${statsRecords.referencePeriodCode})`,
+    applyGeographic
+      ? geographicMembershipSql(sql`json_array(${statsRecords.divisionId})`, {
+          domain: sql`json_extract(${statsRecords.geography}, '$.areaCompanion.domainCode')`,
+          cohort: sql`json_extract(${statsRecords.geography}, '$.areaCompanion.cohortKey')`,
+        })
+      : undefined,
     filters.datasetCode ? eq(statsRecords.datasetCode, filters.datasetCode) : undefined,
     filters.divisionId ? eq(statsRecords.divisionId, filters.divisionId) : undefined,
     filters.referencePeriod
@@ -150,6 +162,40 @@ function sortRecords(rows: StatisticRecord[]) {
   )
 }
 
+async function assertStatisticCrosswalks(
+  dbs: StatisticDatabase[],
+  selection: StatisticReadSelection,
+  filters: StatisticFilters = {},
+) {
+  const context = geographicFilterContext()
+  if (!context?.groups.length) return
+  for (const db of dbs) {
+    const domain = sql<string>`json_extract(${statsRecords.geography}, '$.areaCompanion.domainCode')`
+    const cohort = sql<string>`json_extract(${statsRecords.geography}, '$.areaCompanion.cohortKey')`
+    const companions = await db
+      .selectDistinct({ domain, cohort })
+      .from(statsRecords)
+      .where(
+        and(
+          statisticConditions(selection, filters, false),
+          sql`${domain} = 'hkgov-pland-pu'`,
+        ),
+      )
+      .all()
+    for (const companion of companions)
+      if (
+        !context.crosswalkSelections?.some(
+          row =>
+            row.sourceDomain === companion.domain &&
+            row.sourceCohort === companion.cohort,
+        )
+      )
+        throw new GeographicCrosswalkUnavailableError(
+          `No crosswalk for ${companion.domain}@${companion.cohort} and ${context.releaseSet}.`,
+        )
+  }
+}
+
 export async function listStatisticRecords(
   dbs: StatisticDatabase[],
   lookup: {
@@ -160,6 +206,7 @@ export async function listStatisticRecords(
     offset: number
   },
 ) {
+  await assertStatisticCrosswalks(dbs, lookup.selection, lookup.filters)
   const rows = (
     await Promise.all(
       dbs.map(db =>
@@ -203,6 +250,7 @@ export async function listStatisticRecordsForGeography(
     referencePeriod?: string
   },
 ) {
+  await assertStatisticCrosswalks(dbs, lookup.selection, lookup)
   const rows = (
     await Promise.all(
       dbs.map(db =>
@@ -248,6 +296,7 @@ export async function countStatisticRecords(
     filters: StatisticFilters
   },
 ) {
+  await assertStatisticCrosswalks(dbs, lookup.selection, lookup.filters)
   const rows = await Promise.all(
     dbs.map(db =>
       db
@@ -269,6 +318,9 @@ export async function getStatisticRecord(
   dbs: StatisticDatabase[],
   lookup: { selection: StatisticReadSelection; cohortKey: string; id: string },
 ) {
+  await assertStatisticCrosswalks(dbs, lookup.selection, {
+    referencePeriod: lookup.cohortKey,
+  })
   const rows = await Promise.all(
     dbs.map(db =>
       db

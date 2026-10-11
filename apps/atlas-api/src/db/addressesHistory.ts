@@ -1,3 +1,4 @@
+import { matchesAddressGeographicMembership } from '../lib/geographicFilterContext'
 import type { HistoryDatabase } from '@repo/db'
 import { and, asc, eq, historySchema, sql } from '@repo/db'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
@@ -120,6 +121,7 @@ export async function listReplayedAddressRecords(args: {
         areaId: version.base.areaId,
         districtId: version.base.districtId,
         townId: version.base.townId,
+        ruralAreaId: version.base.ruralAreaId,
         macrohoodId: version.base.macrohoodId,
         neighbourhoodId: version.base.neighbourhoodId,
         microhoodId: version.base.microhoodId,
@@ -207,6 +209,7 @@ export async function listReplayedAddressPage(
       ? searchReplayedAddressRecords(records, args.search)
       : records) {
       if (
+        !matchesAddressGeographicMembership(address.divisionRelationships) ||
         (args.countryId &&
           !address.divisionRelationships.some(
             relationship =>

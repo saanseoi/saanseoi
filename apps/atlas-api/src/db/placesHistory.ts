@@ -1,3 +1,7 @@
+import {
+  matchesGeographicMembership,
+  geographicFilterContext,
+} from '../lib/geographicFilterContext'
 import type { HistoryDatabase } from '@repo/db'
 import { and, asc, eq, historySchema, sql } from '@repo/db'
 import type { RequestedApiLocaleSelection } from '@repo/core/apiLocales'
@@ -170,23 +174,25 @@ export async function listReplayedPlaceRecords(args: {
     localisedByPlace.set(row.placeId, values)
   }
 
-  return places.map(row => {
-    const i18n = Object.fromEntries(
-      Object.entries(localisedByPlace.get(row.id) ?? {}).filter(([locale]) =>
-        localeIsSelected(args.localeSelection, locale),
-      ),
-    )
-    return {
-      place: {
-        ...row,
-        snapshotId: args.snapshotId,
-        bbox: normalisePlaceBbox(row.bbox),
-      },
-      i18n,
-      divisionIds:
-        args.resolveDivisions === false ? [] : recordedDivisionIds(row.sources),
-    } as PlaceRecord
-  })
+  return places
+    .filter(row => matchesGeographicMembership(recordedDivisionIds(row.sources)))
+    .map(row => {
+      const i18n = Object.fromEntries(
+        Object.entries(localisedByPlace.get(row.id) ?? {}).filter(([locale]) =>
+          localeIsSelected(args.localeSelection, locale),
+        ),
+      )
+      return {
+        place: {
+          ...row,
+          snapshotId: args.snapshotId,
+          bbox: normalisePlaceBbox(row.bbox),
+        },
+        i18n,
+        divisionIds:
+          args.resolveDivisions === false ? [] : recordedDivisionIds(row.sources),
+      } as PlaceRecord
+    })
 }
 
 /** Keyset batches bound journal and content memory, including deleted IDs. */
@@ -235,7 +241,7 @@ export async function listReplayedPlacePage(
     const records = await listReplayedPlaceRecords({
       ...args,
       recordIds: candidates,
-      resolveDivisions: Boolean(args.divisionId),
+      resolveDivisions: Boolean(args.divisionId || geographicFilterContext()),
       localeSelection: { mode: 'none', locales: [] },
     })
     const byId = new Map(records.map(record => [record.place.id, record]))
@@ -243,6 +249,7 @@ export async function listReplayedPlacePage(
       const record = byId.get(id)
       if (
         !record ||
+        !matchesGeographicMembership(record.divisionIds) ||
         (args.basicCategory && record.place.basicCategory !== args.basicCategory) ||
         (args.taxonomyPrimary &&
           record.place.taxonomyPrimary !== args.taxonomyPrimary) ||

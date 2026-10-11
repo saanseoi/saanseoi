@@ -32,6 +32,7 @@ test('Address division UNION preserves scoped identity, filters and global pagin
     'areaId',
     'districtId',
     'townId',
+    'ruralAreaId',
     'macrohoodId',
     'neighbourhoodId',
     'microhoodId',
@@ -92,18 +93,24 @@ test('Address division UNION preserves scoped identity, filters and global pagin
     const keys = (rows: Awaited<ReturnType<typeof list>>) =>
       rows.map(row => [row.address.snapshotId, row.address.id])
     const expected = [
-      ...roles.map((_, i) => ['p1', `r${i}`]),
+      ...roles
+        .map((_, i) => `r${i}`)
+        .sort()
+        .map(id => ['p1', id]),
       ['p1', 'same'],
       ['p2', 'same'],
       ['p2', 'unmatched'],
     ]
-    expect(await countAddressRecordsCurrent(db as never, lookup)).toBe(13)
+    expect(await countAddressRecordsCurrent(db as never, lookup)).toBe(roles.length + 3)
     expect(keys(await list())).toEqual(expected)
     expect(keys(await list({ limit: 2, offset: 9 }))).toEqual(expected.slice(9, 11))
     expect(keys(await list({ limit: 2, offset: 11 }))).toEqual(expected.slice(11, 13))
-    expect(keys(await list({ after: 'r8', limit: 2 }))).toEqual(expected.slice(9, 11))
+    expect(keys(await list({ after: 'r8', limit: 2 }))).toEqual([
+      ['p1', 'r9'],
+      ['p1', 'same'],
+    ])
     expect(keys(await list({ countryId: 'hk', districtId: 'target' }))).toEqual(
-      expected.slice(10),
+      expected.slice(roles.length),
     )
     expect(
       await countAddressRecordsCurrent(db as never, {
@@ -125,7 +132,7 @@ test('Address division UNION preserves scoped identity, filters and global pagin
       }
       expect(queryPlan).not.toMatch(/SCAN address2d\b/)
     }
-    // Foreign-key checks know the Division scope, not the Address scope.
+    // Foreign-key checks seek the Division scope, independently of Address roles.
     for (const role of roles) {
       expect(
         plan(
@@ -133,7 +140,7 @@ test('Address division UNION preserves scoped identity, filters and global pagin
           `SELECT rowid FROM address2d WHERE divisionSnapshotId=? AND ${role}=?`,
           ['divisions', 'target'],
         ),
-      ).toContain(`address2d_${role}_scope_id_idx (${role}=?)`)
+      ).toContain('address2d_divisionSnapshotId_idx (divisionSnapshotId=?)')
     }
     expect(() => sqlite.exec("DELETE FROM divisions WHERE id='target'")).toThrow(
       'FOREIGN KEY',

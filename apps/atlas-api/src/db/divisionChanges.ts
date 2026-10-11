@@ -53,12 +53,13 @@ export async function resolveDivisionChangesRelease(
       regionCode: sets.regionCode,
       schemaVersion: sets.schemaVersion,
       rulesetVersion: sets.rulesetVersion,
-      status: sets.status,
-      publishedAt: sets.publishedAt,
+      status: versionSets.status,
+      publishedAt: versionSets.publishedAt,
       apiVersion: versions.code,
     })
     .from(sets)
-    .innerJoin(versions, eq(sets.apiVersionId, versions.id))
+    .innerJoin(versionSets, eq(versionSets.apiReleaseSetId, sets.id))
+    .innerJoin(versions, eq(versionSets.apiVersionId, versions.id))
     .where(or(eq(sets.id, pin), eq(sets.code, pin)))
     .all()
   const published = rows.filter(

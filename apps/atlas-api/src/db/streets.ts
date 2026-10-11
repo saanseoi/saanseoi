@@ -1,6 +1,7 @@
+import { geographicMembershipSql } from '../lib/geographicFilterContext'
 import { publicationScopeCondition } from './publicationState'
 import type { CurrentDatabase, StreetChangelogKind, StreetStatus } from '@repo/db'
-import { and, currentSchema, eq } from '@repo/db'
+import { and, currentSchema, eq, sql } from '@repo/db'
 
 const { streetChangelog, streets, streetsI18n } = currentSchema
 
@@ -48,6 +49,7 @@ export async function getStreetCurrentById(
         publicationScopeCondition('street', streets.snapshotId, [input.snapshotId]),
         eq(streets.id, input.id),
         eq(streets.status, 'active'),
+        geographicMembershipSql(sql`${streets.districtIds}`),
       ),
     )
     .get()

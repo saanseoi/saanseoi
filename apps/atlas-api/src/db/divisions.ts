@@ -1,3 +1,4 @@
+import { geographicMembershipSql } from '../lib/geographicFilterContext'
 import {
   PublicationReadUnavailableError,
   getPublicationReadiness,
@@ -121,7 +122,6 @@ export type DivisionLocaleSelection = RequestedApiLocaleSelection
 export type DivisionGeometryType = 'land' | 'maritime' | 'mixed'
 export type DivisionGeometryVariant =
   | 'saanseoi'
-  | 'stub'
   | 'hkgov-censtatd'
   | 'hkgov-censtatd-landclipped'
   | 'hkgov-had'
@@ -543,6 +543,9 @@ function buildDivisionConditions(
       divisions.snapshotId,
       lookup.snapshotIds ?? [lookup.snapshotId],
     ),
+    geographicMembershipSql(sql`json_array(${divisions.id})`, {
+      snapshotId: publicationLogicalSnapshot('division', divisions.snapshotId),
+    }),
     lookup.level !== undefined ? eq(divisions.level, lookup.level) : undefined,
     lookup.class ? eq(divisions.class, lookup.class) : undefined,
     lookup.category ? eq(divisions.category, lookup.category) : undefined,
