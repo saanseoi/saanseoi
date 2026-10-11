@@ -19,6 +19,7 @@ export type GeometryUploadPlan = {
   releaseCode: string
   rowCount: number
   source:
+    | 'saanseoi'
     | 'overture'
     | 'hkgov-had'
     | 'hkgov-censtatd'

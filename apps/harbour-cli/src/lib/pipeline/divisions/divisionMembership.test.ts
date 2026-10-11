@@ -212,3 +212,23 @@ test('missing coordinates do not turn available polygons into text exclusions', 
       .references,
   ).toMatchObject({ villageId: 'v', townId: 't' })
 })
+
+test('rural areas have independent geometry and ancestry membership alongside villages', () => {
+  const rural = entry('r', 'rural_area')
+  const lookup = createDivisionMembership(
+    [
+      ...base,
+      division('r', 'rural_area', [hk, district, town]),
+      division('v', 'village', [hk, district, town, rural]),
+    ],
+    [polygon('r'), polygon('v', 1, 1, 2)],
+  )
+  expect(lookup.resolve({ lng: 2, lat: 2 }).references).toMatchObject({
+    ruralAreaId: 'r',
+    villageId: 'v',
+  })
+  expect(lookup.resolve({ lng: 5, lat: 5 }).references).toMatchObject({
+    ruralAreaId: 'r',
+  })
+  expect(lookup.resolve({ lng: 5, lat: 5 }).references.villageId).toBeUndefined()
+})

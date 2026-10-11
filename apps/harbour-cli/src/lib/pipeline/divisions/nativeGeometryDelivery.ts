@@ -10,6 +10,7 @@ import {
 import { sqlDeliveryPhaseDirectory } from '../local/sqlDeliveryPhase.ts'
 import { writeGeometryRows } from './processLocalDivisionGeometrySqlUploadRows.ts'
 import { readDeliveryPlan } from '../local/sqlDeliveryFiles.ts'
+import { readPendingSqlDelivery } from '../local/sqlDeliveryPending.ts'
 
 type Churn = Awaited<ReturnType<typeof writeGeometryRows>>['churn']
 
@@ -18,13 +19,16 @@ export function nativeGeometryDeliveryPhase(
   transform?: 'simplified',
   cohortKey?: string,
   sourceVersion?: string,
+  contentHash?: string,
 ) {
   const base = `native-geometry-${type.toLowerCase()}-${transform ?? 'exact'}`
   const snapshotYear = cohortKey?.slice(0, 4)
   const sourceYear = sourceVersion?.slice(0, 4)
-  return snapshotYear && sourceYear && snapshotYear !== sourceYear
-    ? `${base}-${snapshotYear}`
-    : base
+  const cohortPhase =
+    snapshotYear && sourceYear && snapshotYear !== sourceYear
+      ? `${base}-${snapshotYear}`
+      : base
+  return contentHash ? `${cohortPhase}-${contentHash.slice(0, 16)}` : cohortPhase
 }
 
 export async function readNativeGeometryVersion(
@@ -35,14 +39,21 @@ export async function readNativeGeometryVersion(
   cohortKey?: string,
   sourceVersion?: string,
 ) {
-  const plan = await readDeliveryPlan(
-    sqlDeliveryPhaseDirectory({
-      context,
-      resourceReleaseId,
-      phase: nativeGeometryDeliveryPhase(type, transform, cohortKey, sourceVersion),
-      inputs: {},
-    }),
-  )
+  const pending = await readPendingSqlDelivery(context.state.dbCacheDir)
+  if (pending?.resourceReleaseId !== resourceReleaseId) return null
+  const base = nativeGeometryDeliveryPhase(type, transform, cohortKey, sourceVersion)
+  const plan = await (async () => {
+    for (const directory of pending.directories) {
+      const candidate = await readDeliveryPlan(directory)
+      if (
+        candidate?.context.resourceReleaseId === resourceReleaseId &&
+        (candidate.context.phase === base ||
+          candidate.context.phase.startsWith(`${base}-`))
+      )
+        return candidate
+    }
+    return null
+  })()
   if (!plan) return null
   const version = plan.context.inputs.version as
     | Parameters<typeof writeGeometryRows>[3]
@@ -109,19 +120,29 @@ export async function writeGeometryRowsDurably(
   hash.update('publisher-assertions\n')
   for (const row of publisherRows ?? rows)
     hash.update(JSON.stringify(row.source)).update('\n')
+  const normalisedSha256 = hash.digest('hex')
+  // A new snapshot revision needs a new plan even when its geometry is unchanged.
+  const deliveryHash = createHash('sha256')
+    .update(normalisedSha256)
+    .update(JSON.stringify(retainedVersion))
+    .digest('hex')
   const phase = nativeGeometryDeliveryPhase(
     type,
     version.transform,
     version.cohortKey,
     version.sourceVersion,
+    deliveryHash,
   )
   const input = {
     context,
     resourceReleaseId: version.resourceReleaseId,
     phase,
     inputs: {
+      ...(version.source === 'saanseoi'
+        ? { sourceLedgerPolicy: 'curated-source-v1' }
+        : {}),
       version: retainedVersion,
-      normalisedSha256: hash.digest('hex'),
+      normalisedSha256,
       historyMembershipPolicy: 'immutable-geometry-v1',
     },
   }

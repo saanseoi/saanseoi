@@ -1,3 +1,10 @@
+import { retainedDivisionScopeId } from '@repo/core/pipeline/services/publication/scope'
+import { readDivisionBaseline } from './readDivisionBaseline'
+import { curatedDivisionPolicy } from '@repo/core/pipeline/services/divisions/curatedDivisionPolicy'
+import {
+  retainCuratedSourceReleases,
+  curatedInventorySnapshots,
+} from '../curatedDivisions/sourceReleases'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { supplementalNeighbourhoods } from '@repo/core/pipeline/services/divisions/divisionFixtures'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
@@ -28,9 +35,12 @@ import { readDivisionDeliveryOutputs } from './divisionDeliveryOutputs.ts'
 import { completeSqlDeliveryRelease } from '../local/sqlDeliveryPending.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { retainDivisionProvenance } from './divisionProvenance'
+import {
+  retainDivisionProvenance,
+  retainDivisionSourceAudit,
+} from './divisionProvenance'
 import { deliverProcessingResult } from '../../api/provenance'
-import { getMergedCurrentSourceOvertureDivisionMap } from '@repo/core/pipeline/db/source'
+import { getMergedCurrentSourceDivisionMap } from '@repo/core/pipeline/db/source'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
 import type { DivisionVersionSnapshot } from '@repo/core/pipeline/db/division'
 import {
@@ -123,6 +133,7 @@ export async function processLocalDivisionSqlUpload(
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
   options: {
+    sourceAuditGuards?: import('@repo/core/provenance').AuditGuard[]
     /** Publish source data and snapshots, but leave the API release set draft. */
     deferApiReleaseSet?: boolean
     deferSourcePublish?: boolean
@@ -130,8 +141,12 @@ export async function processLocalDivisionSqlUpload(
     rebuildPublishedSnapshot?: boolean
     skipSnapshotCleanup?: boolean
     /** Canonical input decoded directly from the registered native archive. */
+    curatedSourceReleases?: import('../curatedDivisions/archiveInput').CuratedSourceRelease[]
     nativeRows?: Record<string, unknown>[]
-    /** Reviewed rows added to the Overture Geographic canonical snapshot. */
+    sourceSelectionAudit?: ReturnType<
+      typeof import('../../sources/hkgov/landsd/settlementSelection').landsdSettlementSelectionAudit
+    >
+    /** Curated rows added to the Overture Geographic canonical snapshot. */
     supplementalRows?: Record<string, unknown>[]
   } = {},
 ) {
@@ -323,6 +338,11 @@ export async function processLocalDivisionSqlUpload(
     })
   }
 
+  let failureAuditScope: import('@repo/core/provenance').AuditScope = {
+    stage: 'preparation',
+    ownerId: resourceReleaseId,
+  }
+
   try {
     await harbourClient.stageRunning(
       resourceReleaseId,
@@ -357,6 +377,14 @@ export async function processLocalDivisionSqlUpload(
           options.rebuildPublishedSnapshot ?? options.reuseExistingRelease,
       },
     )
+    failureAuditScope = { stage: 'assembly', ownerId: versionInsertContext.snapshotId }
+    if (options.curatedSourceReleases)
+      await retainCuratedSourceReleases(
+        dbContext.metaDb as never,
+        versionInsertContext.snapshotId,
+        resourceReleaseId,
+        options.curatedSourceReleases,
+      )
     if (!target.remote) {
       progress.update(8, {
         label: formatLocalSetupProgressLabel('current state', 8, setupStepCount),
@@ -365,21 +393,42 @@ export async function processLocalDivisionSqlUpload(
     let sqlArtefactCount = 0
     let completionCounts: Record<string, number> = {}
     let importProgressClient: HarbourClient = harbourClient
+    const activePublication = await getPreparedPublication(
+      dbContext.currentDb as never,
+      'divisionPublicationState',
+      versionInsertContext.snapshotLineageId,
+    )
+    // A historical branch must not replace the current scope used by dependent families.
+    const historicalBackfill = Boolean(
+      versionInsertContext.parentSnapshotId &&
+        activePublication &&
+        activePublication.snapshotId !== versionInsertContext.parentSnapshotId,
+    )
     const publication: PublicationPreparation = {
       table: 'divisionPublicationState',
-      scopeId: versionInsertContext.snapshotLineageId,
+      scopeId: historicalBackfill
+        ? retainedDivisionScopeId(
+            versionInsertContext.snapshotLineageId,
+            versionInsertContext.snapshotId,
+          )
+        : versionInsertContext.snapshotLineageId,
       snapshotId: versionInsertContext.snapshotId,
       publicationToken: resourceReleaseId,
       timestamp: processingRunStartedAt,
     }
     const deliveryInputs = {
+      ...(previewPlan.source === 'saanseoi'
+        ? { sourceLedgerPolicy: 'curated-source-v1' }
+        : {}),
       classificationFixtureHash: await createHash({
         classification: divisionClassificationFixture,
+        curatedDivisionPolicy,
         exclusions: divisionExclusionFixture,
       }),
       preparedSha256: await deliveryFileSha256(preparedUpload.filePath),
       snapshotId: versionInsertContext.snapshotId,
-      // Reviewed Geographic rows are an input to the captured SQL plan.
+      publicationScopeId: publication.scopeId,
+      // Curated Geographic rows are an input to the captured SQL plan.
       // Include their content in the cache key so a curation change cannot
       // reuse a source-only delivery for an already registered release.
       supplementalRowsHash: await createHash({
@@ -414,26 +463,25 @@ export async function processLocalDivisionSqlUpload(
           publication.table,
           publication.scopeId,
         )
+        const ownerShardKeys = dbContext.historyTargets.map(target =>
+          buildHistoryOwnerKey(previewPlan.regionCode, shardYear, target.bindingName),
+        )
         const currentRows = versionInsertContext.parentSnapshotId
-          ? await getDivisionVersionMapForSnapshot(
-              dbContext.currentDb as never,
-              publication.scopeId,
-              {
-                buildDivisionBaseHashInput,
-                normaliseDivisionI18nSnapshotRow,
-              },
-              dbContext.historyTargets.map(target =>
-                buildHistoryOwnerKey(
-                  previewPlan.regionCode,
-                  shardYear,
-                  target.bindingName,
-                ),
-              ),
+          ? await readDivisionBaseline(
+              dbContext,
+              versionInsertContext.parentSnapshotId,
+              ownerShardKeys,
             )
           : new Map<string, DivisionVersionSnapshot>()
+        const servingRows = await getDivisionVersionMapForSnapshot(
+          dbContext.currentDb as never,
+          publication.scopeId,
+          { buildDivisionBaseHashInput, normaliseDivisionI18nSnapshotRow },
+          ownerShardKeys,
+        )
         const currentSourceRows =
-          previewPlan.source === 'overture'
-            ? await getMergedCurrentSourceOvertureDivisionMap(
+          previewPlan.source === 'overture' || previewPlan.source === 'saanseoi'
+            ? await getMergedCurrentSourceDivisionMap(
                 dbContext.sourceTargets.map((target, index) => ({
                   db: target.db as never,
                   key: buildSourceOwnerKey(
@@ -443,12 +491,13 @@ export async function processLocalDivisionSqlUpload(
                   ),
                   sortOrder: index,
                 })),
+                previewPlan.source,
               )
             : new Map()
         await assertDivisionCurrentSnapshotComplete(
           dbContext.currentDb,
-          currentRows,
-          versionInsertContext.parentSnapshotId,
+          servingRows,
+          publication.previous?.snapshotId ?? null,
           publication.scopeId,
         )
         if (!target.remote) {
@@ -592,7 +641,18 @@ export async function processLocalDivisionSqlUpload(
           reportProgress =>
             buildDivisionCurrentSqlFile(
               initialMessage,
-              divisionState,
+              {
+                ...divisionState,
+                currentRows: servingRows,
+                records: divisionState.records.map(record => ({
+                  ...record,
+                  currentChanged:
+                    servingRows.get(record.id)?.churnHash !==
+                    divisionState.processedRowsById.get(record.id)?.churnHash,
+                  baseChanged:
+                    servingRows.get(record.id)?.versionHash !== record.versionHash,
+                })),
+              },
               reportProgress,
               publication.scopeId,
             ),
@@ -626,13 +686,71 @@ export async function processLocalDivisionSqlUpload(
           ),
           {},
         )
+        if (previewPlan.source === 'overture' || previewPlan.source === 'saanseoi') {
+          const sourceAudit = await retainDivisionSourceAudit(bucket, {
+            resourceReleaseId,
+            datasetCode,
+            source: previewPlan.source,
+            resourceType: previewPlan.resourceType,
+            sourceVersion: previewPlan.sourceVersion,
+            guards: [
+              ...(options.sourceAuditGuards ?? []),
+              ...divisionState.auditGuards.filter(guard =>
+                [
+                  'division-source-identities',
+                  'overture-division-source-assumptions',
+                ].includes(guard.id),
+              ),
+            ],
+            inputCount: previewPlan.rowCount,
+            outputCount: divisionState.records.filter(record => !record.isSupplemental)
+              .length,
+          })
+          await deliverProcessingResult(target, bucket, sourceAudit.ref)
+        }
         const audit = await retainDivisionProvenance(bucket, {
+          scope: { stage: 'assembly', ownerId: divisionState.snapshotId },
           resourceReleaseId,
           datasetCode,
-          actions: divisionState.processingActions,
+          actions: [
+            ...divisionState.processingActions,
+            ...(options.sourceSelectionAudit
+              ? [
+                  {
+                    action: options.sourceSelectionAudit.declaration.id,
+                    affectedRecordCount: options.sourceSelectionAudit.recordsAffected,
+                    evidence: options.sourceSelectionAudit.decisions,
+                    mode: 'automatic' as const,
+                    summary: options.sourceSelectionAudit.declaration.summary,
+                  },
+                ]
+              : []),
+          ],
+          ...(options.sourceSelectionAudit
+            ? {
+                actionDeclarations: {
+                  [options.sourceSelectionAudit.declaration.id]:
+                    options.sourceSelectionAudit.declaration,
+                },
+                actionCounts: {
+                  [options.sourceSelectionAudit.declaration.id]: {
+                    inputs: options.sourceSelectionAudit.inputs,
+                    outputs: options.sourceSelectionAudit.outputs,
+                    decisions: options.sourceSelectionAudit.decisions,
+                  },
+                },
+              }
+            : {}),
           branchCounts: divisionState.branchCounts,
           curationDocuments: divisionState.curationDocuments,
-          guards: divisionState.auditGuards,
+          guards: divisionState.auditGuards.filter(
+            guard =>
+              !['overture', 'saanseoi'].includes(previewPlan.source) ||
+              ![
+                'division-source-identities',
+                'overture-division-source-assumptions',
+              ].includes(guard.id),
+          ),
           inputCount: previewPlan.rowCount,
           outputCount: divisionState.processedRows,
         })
@@ -917,8 +1035,8 @@ export async function processLocalDivisionSqlUpload(
           resourceReleaseId,
           releaseCode,
           {
-            deferApiReleaseSet:
-              options.deferApiReleaseSet && !options.rebuildPublishedSnapshot,
+            carriedSnapshots: curatedInventorySnapshots(options.curatedSourceReleases),
+            deferApiReleaseSet: options.deferApiReleaseSet,
             deferSourcePublish: options.deferSourcePublish,
             skipSnapshotCleanup: options.skipSnapshotCleanup,
             rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
@@ -976,6 +1094,7 @@ export async function processLocalDivisionSqlUpload(
     )
   } catch (error) {
     await retainProcessingFailure({
+      scope: failureAuditScope,
       error,
       store: bucket,
       target,

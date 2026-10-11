@@ -2,7 +2,7 @@ import { expect, test } from 'bun:test'
 import { overtureHongKongAreaDivisionId } from '@repo/core/pipeline/services/divisions/overtureHongKongAreas'
 import { resolveSyntheticOvertureHongKongAreas } from './processLocalDivisionGeometrySqlUploadSyntheticGeometry'
 
-test('New Territories uses the reviewed Loop identity despite a same-named locality', async () => {
+test('New Territories uses the curated Loop identity despite a same-named locality', async () => {
   const loop = '222b7818-970a-491d-98b6-b88d8c6f0161'
   const locality = 'c8488b42-3b2e-425b-8930-cce3fded69e2'
   const districts = Array.from({ length: 9 }, (_, i) => `district-${i}`)
@@ -52,6 +52,6 @@ test('New Territories uses the reviewed Loop identity despite a same-named local
   expect(result[0]?.districtDivisionIds).toEqual([...districts, loop])
   includeLoop = false
   await expect(resolve()).rejects.toThrow(
-    'expected the reviewed Lok Ma Chau Loop identity',
+    'expected the curated Lok Ma Chau Loop identity',
   )
 })

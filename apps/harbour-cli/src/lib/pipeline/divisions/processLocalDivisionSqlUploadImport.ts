@@ -234,11 +234,13 @@ export function buildExtraSourceSqlOperations(
         changedIdsByOwner.get(ownerKey) ?? [],
         message.sourceVersion,
         now,
+        message.source === 'saanseoi' ? 'ssDivision' : 'overtureDivisions',
       ),
       ...buildCloseSourceVersionStatements(
         missingIdsByOwner.get(ownerKey) ?? [],
         message.sourceVersion,
         now,
+        message.source === 'saanseoi' ? 'ssDivision' : 'overtureDivisions',
       ),
     ]
 

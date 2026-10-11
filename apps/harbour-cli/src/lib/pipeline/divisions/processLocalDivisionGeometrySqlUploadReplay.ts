@@ -195,9 +195,13 @@ export async function generateGeometryReplaySql(
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT "sourceRecordId", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}`,
+                `SELECT "sourceRecordId", "versionHash", ${plan.source === 'overture' ? '"validFromRelease", ' : ''}"isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}`,
               ),
-              ['sourceRecordId', 'versionHash'],
+              [
+                'sourceRecordId',
+                'versionHash',
+                ...(plan.source === 'overture' ? ['validFromRelease'] : []),
+              ],
             )
             yield* geometryReplayStatements(
               sourceTable,
@@ -343,14 +347,6 @@ function readGeometryReplayMetadata(
       `"resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
     ],
     ['snapshotShardAssignments', `"snapshotId" = ${geometrySqlLiteral(snapshotId)}`],
-    [
-      'releaseProcessingActions',
-      `"resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
-    ],
-    [
-      'releaseProcessingActionChunks',
-      `"resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
-    ],
     ['stats', `"resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`],
   ] as const
 
@@ -498,7 +494,7 @@ function geometryBuildChunkedUpsertSql(
   suffix: string,
   immutable = false,
 ) {
-  const keyColumns = geometryReplayKeyColumns(row)
+  const keyColumns = geometryReplayKeyColumns(row, tableName)
   if (!keyColumns) {
     const rowBytes = new TextEncoder().encode(
       `${prefix}(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})${suffix}`,
@@ -600,7 +596,7 @@ function geometryBuildChunkedUpsertSql(
   ].join('\n')
 }
 
-function geometryReplayKeyColumns(row: Record<string, unknown>) {
+function geometryReplayKeyColumns(row: Record<string, unknown>, tableName: string) {
   if (typeof row.id === 'string' && typeof row.versionHash === 'string') {
     return ['id', 'versionHash']
   }
@@ -610,7 +606,13 @@ function geometryReplayKeyColumns(row: Record<string, unknown>) {
   }
 
   if (typeof row.sourceRecordId === 'string' && typeof row.versionHash === 'string') {
-    return ['sourceRecordId', 'versionHash']
+    return [
+      'sourceRecordId',
+      'versionHash',
+      ...(['overtureDivisionAreas', 'overtureDivisionBoundaries'].includes(tableName)
+        ? ['validFromRelease']
+        : []),
+    ]
   }
 
   return null

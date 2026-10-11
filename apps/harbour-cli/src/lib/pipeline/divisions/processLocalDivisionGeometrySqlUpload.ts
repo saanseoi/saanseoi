@@ -1,3 +1,9 @@
+import { geometrySourceChurn } from './geometrySourceChurn'
+import { buildChurnStatsRows } from '@repo/core/pipeline/services/metrics/releaseStats'
+import {
+  retainCuratedSourceReleases,
+  curatedInventorySnapshots,
+} from '../curatedDivisions/sourceReleases'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { resolveCurrentWriteContext } from '../../dbCache/currentWriteContext.ts'
 import { resolveGeometryPreparationContext } from '../../dbCache/geometryPreparationContext.ts'
@@ -16,7 +22,10 @@ import {
   waitForDatasetRecord,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import { retainDivisionProvenance } from './divisionProvenance'
+import {
+  retainDivisionProvenance,
+  retainDivisionSourceAudit,
+} from './divisionProvenance'
 import { deliverProcessingResult } from '../../api/provenance'
 import { replaceDatasetStats } from '@repo/core/pipeline/db/stats'
 import type { HarbourClient } from '@repo/core/pipeline/harbourClient'
@@ -83,12 +92,6 @@ import {
   runGeometryProgressPhase,
   updateDbCacheProgress,
 } from './processLocalDivisionGeometrySqlUploadProgress.ts'
-import {
-  buildSyntheticOvertureHongKongAreaPatchActions,
-  buildSyntheticOvertureHongKongAreaRows,
-  resolveSyntheticOvertureHongKongAreas,
-  selectOvertureHongKongAreasWithoutSourceGeometry,
-} from './processLocalDivisionGeometrySqlUploadSyntheticGeometry.ts'
 import { assertDivisionReferences } from './processLocalDivisionGeometrySqlUploadReferences.ts'
 import {
   readNativeGeometryVersion,
@@ -96,7 +99,6 @@ import {
 } from './nativeGeometryDelivery.ts'
 import {
   buildGeometryStats,
-  buildOvertureGeometryProcessingActions,
   shouldWriteExactGeometryReleaseStats,
 } from './processLocalDivisionGeometrySqlUploadStatistics.ts'
 import { replayGeometryIntoRemote } from './processLocalDivisionGeometrySqlUploadReplay.ts'
@@ -117,10 +119,13 @@ export async function processLocalDivisionGeometrySqlUpload(
   uploadResult: UploadResult,
   preparedUpload: PreparedUploadFile,
   options: {
+    sourceAuditGuards?: import('@repo/core/provenance').AuditGuard[]
     /** Publish source data and snapshots, but leave the API release set draft. */
+    curatedSourceReleases?: import('../curatedDivisions/archiveInput').CuratedSourceRelease[]
     deferApiReleaseSet?: boolean
     deferSourcePublish?: boolean
     deferPublish?: boolean
+    rebuildPublishedSnapshot?: boolean
     inputFilePath?: string
     /**
      * Add a geometry variant to a source release that was initialised by an
@@ -207,6 +212,11 @@ export async function processLocalDivisionGeometrySqlUpload(
   }
   let controlClient: HarbourClient | null = null
   let remotePublished = false
+
+  let failureAuditScope: import('@repo/core/provenance').AuditScope = {
+    stage: 'preparation',
+    ownerId: resourceReleaseId,
+  }
 
   try {
     const releaseMetadataStartedAt = Date.now()
@@ -330,7 +340,6 @@ export async function processLocalDivisionGeometrySqlUpload(
     let normalised: Array<NonNullable<NormalisedGeometry>> = options.normalisedInput
       ? [...options.normalisedInput]
       : []
-    let syntheticRows: Array<NonNullable<NormalisedGeometry>> = []
     const cnGdExcludedRecords: Array<{
       divisionId: string | null
       divisionIds: string[] | null
@@ -388,13 +397,15 @@ export async function processLocalDivisionGeometrySqlUpload(
         for (const row of batch) {
           try {
             const sourceRow =
-              previewPlan.source === 'hkgov-had'
-                ? normaliseHkgovHadInputRow(row, providerBridge)
-                : previewPlan.source === 'hkgov-censtatd'
-                  ? normaliseHkgovCenstatdInputRow(row, providerBridge)
-                  : previewPlan.source === 'hkgov-pland-new-town'
-                    ? normaliseHkgovPlandNewTownInputRow(row)
-                    : row
+              previewPlan.source === 'saanseoi'
+                ? JSON.parse(String(row.record))
+                : previewPlan.source === 'hkgov-had'
+                  ? normaliseHkgovHadInputRow(row, providerBridge)
+                  : previewPlan.source === 'hkgov-censtatd'
+                    ? normaliseHkgovCenstatdInputRow(row, providerBridge)
+                    : previewPlan.source === 'hkgov-pland-new-town'
+                      ? normaliseHkgovPlandNewTownInputRow(row)
+                      : row
             if (previewPlan.source === 'overture' && row.region === 'CN-GD') {
               cnGdExcludedRecords.push({
                 divisionId: asOptionalString(row.division_id),
@@ -440,41 +451,14 @@ export async function processLocalDivisionGeometrySqlUpload(
     }
 
     const publisherRows = [...normalised]
-    const syntheticAreas = await resolveSyntheticOvertureHongKongAreas(
-      dbContext.currentDb,
-      metaDb,
-      previewPlan,
-      dbContext.historyTargets as never,
-    )
-    const areasWithoutSourceGeometry =
-      previewPlan.resourceType === 'divisionArea'
-        ? selectOvertureHongKongAreasWithoutSourceGeometry(syntheticAreas, normalised)
-        : []
-    if (previewPlan.source === 'overture' && areasWithoutSourceGeometry.length > 0) {
-      syntheticRows = buildSyntheticOvertureHongKongAreaRows(
-        areasWithoutSourceGeometry,
-        normalised,
-      )
-      const replacedDivisionIds = new Set(
-        areasWithoutSourceGeometry.map(area => area.divisionId),
-      )
-      normalised = normalised.filter(
-        row =>
-          !('divisionId' in row.canonical) ||
-          !replacedDivisionIds.has(row.canonical.divisionId),
-      )
-      normalised.push(...syntheticRows)
-    }
-
     if (previewPlan.transform === 'simplified') {
       if (previewPlan.resourceType !== 'divisionArea') {
         throw new Error('The simplified display transform is available only for areas.')
       }
-      normalised = (await simplifyHkgovDivisionAreas(
+      normalised = await simplifyHkgovDivisionAreas(
         normalised as NormalisedDivisionArea[],
-      )) as Array<NonNullable<NormalisedGeometry>>
+      )
     }
-
     progress.complete(
       formatGeometryCompletedLabel(
         'Normalise source',
@@ -483,6 +467,7 @@ export async function processLocalDivisionGeometrySqlUpload(
         Date.now() - normalisationStartedAt,
       ),
     )
+
     const validationStartedAt = Date.now()
     progress.beginPhase(
       formatGeometryProgressLabel('Validate', `${previewPlan.resourceType} references`),
@@ -494,6 +479,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     const divisionLookup = !resolveProviderBridgeConfig(previewPlan)
       ? await assertDivisionReferences(
           dbContext.currentDb,
+          dbContext.sourceDb,
           dbContext.historyTargets as never,
           metaDb,
           previewPlan,
@@ -572,8 +558,12 @@ export async function processLocalDivisionGeometrySqlUpload(
         variant: geometryVariant(previewPlan),
         reuseDraftSnapshotForVariant: isCenstatdGeometryCompanionPlan(previewPlan),
         reuseSnapshotLineageForVariant: isCenstatdGeometryCompanionPlan(previewPlan),
+        rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
       }))
 
+    failureAuditScope = reusesExistingGeometrySnapshot
+      ? { stage: 'ingestion', ownerId: resourceReleaseId }
+      : { stage: 'assembly', ownerId: snapshot.id }
     if (reusesExistingGeometrySnapshot) {
       await upsertSnapshotSource(
         metaDb,
@@ -638,6 +628,13 @@ export async function processLocalDivisionGeometrySqlUpload(
       )
       await upsertSnapshotShardAssignment(metaDb, snapshot.id, historyShard.id)
     }
+    if (options.curatedSourceReleases)
+      await retainCuratedSourceReleases(
+        metaDb,
+        snapshot.id,
+        dataset.resourceReleaseId,
+        options.curatedSourceReleases,
+      )
     await recordSnapshotAssembly(metaDb, {
       snapshotId: snapshot.id,
       resourceType: previewPlan.resourceType,
@@ -731,42 +728,89 @@ export async function processLocalDivisionGeometrySqlUpload(
     // A simplified C&SD pass is only a display derivative. Release statistics
     // are permanently tied to the exact canonical source geometry.
     if (shouldWriteExactGeometryReleaseStats(previewPlan.transform)) {
+      const geometryStats = await buildGeometryStats(
+        dbContext.currentDb,
+        dbContext.historyDb,
+        metaDb,
+        previewPlan,
+        normalised,
+        writeResult.churn,
+        dbContext.historyTargets as never,
+      )
+      const sourceStats =
+        previewPlan.source === 'overture'
+          ? buildChurnStatsRows(
+              await geometrySourceChurn(
+                metaDb,
+                [
+                  ...new Set([
+                    dbContext.sourceDb,
+                    ...dbContext.sourceTargets.map(target => target.db),
+                  ]),
+                ] as HarbourReadableDb[],
+                resourceReleaseId,
+                previewPlan.resourceType,
+              ),
+            )
+          : null
       await replaceDatasetStats(
         metaDb,
         resourceReleaseId,
-        await buildGeometryStats(
-          dbContext.currentDb,
-          dbContext.historyDb,
-          metaDb,
-          previewPlan,
-          normalised,
-          writeResult.churn,
-          dbContext.historyTargets as never,
-        ),
+        sourceStats
+          ? [...geometryStats.filter(row => row.category !== 'changes'), ...sourceStats]
+          : geometryStats,
       )
     }
-    const audit = await retainDivisionProvenance(bucket, {
+    const sourceAudit = await retainDivisionSourceAudit(bucket, {
       resourceReleaseId,
       datasetCode,
-      inputCount: previewPlan.rowCount,
-      curationDocuments: curationDocumentsFor(providerBridgeRows),
-      normalisation:
-        previewPlan.resourceType === 'divisionArea'
-          ? divisionAreaGeometryRule.declaration
-          : divisionBoundaryGeometryRule.declaration,
-      actions: [
-        ...buildOvertureGeometryProcessingActions(previewPlan, cnGdExcludedRecords),
-        ...buildSyntheticOvertureHongKongAreaPatchActions(
-          previewPlan,
-          areasWithoutSourceGeometry,
-          syntheticRows,
-        ),
+      source: previewPlan.source,
+      resourceType: previewPlan.resourceType,
+      sourceVersion: previewPlan.sourceVersion,
+      excludedGeometry:
+        previewPlan.source === 'overture' && !options.normalisedInput
+          ? cnGdExcludedRecords
+          : undefined,
+      guards: [
+        ...(options.sourceAuditGuards ?? []),
+        ...(previewPlan.source === 'overture' && divisionLookup
+          ? [
+              {
+                id: 'source-geometry-division-references',
+                summary:
+                  'Require geometry references to resolve against the matching Division cohort.',
+                consequence: 'block-ingestion' as const,
+                status: 'passed' as const,
+                checked: publisherRows.length,
+                failed: 0,
+                reason:
+                  'All retained geometry references resolved against the selected Division cohort.',
+              },
+            ]
+          : []),
       ],
-      // Synthetic area rows are individual patches, so the bulk geometry rule
-      // reports only the source rows it normalised.
+      inputCount: previewPlan.rowCount,
       outputCount: publisherRows.length,
     })
-    await deliverProcessingResult(target, bucket, audit.ref)
+    await deliverProcessingResult(target, bucket, sourceAudit.ref)
+    // Identical reuse does not assemble a new snapshot. Keep its published
+    // assembly evidence immutable; the new intake owns only its source audit.
+    if (!reusesExistingGeometrySnapshot) {
+      const audit = await retainDivisionProvenance(bucket, {
+        scope: { stage: 'assembly', ownerId: snapshot.id },
+        resourceReleaseId,
+        datasetCode,
+        inputCount: previewPlan.rowCount,
+        curationDocuments: curationDocumentsFor(providerBridgeRows),
+        normalisation:
+          previewPlan.resourceType === 'divisionArea'
+            ? divisionAreaGeometryRule.declaration
+            : divisionBoundaryGeometryRule.declaration,
+        actions: [],
+        outputCount: publisherRows.length,
+      })
+      await deliverProcessingResult(target, bucket, audit.ref)
+    }
     progress.complete(
       formatGeometryCompletedLabel(
         'Calculate',
@@ -835,6 +879,8 @@ export async function processLocalDivisionGeometrySqlUpload(
       'source release',
       () =>
         client.publishDataset(resourceReleaseId, releaseCode, {
+          rebuildPublishedSnapshot: options.rebuildPublishedSnapshot,
+          carriedSnapshots: curatedInventorySnapshots(options.curatedSourceReleases),
           deferApiReleaseSet: options.deferApiReleaseSet,
           deferSourcePublish: options.deferSourcePublish,
           skipSnapshotCleanup: options.skipSnapshotCleanup,
@@ -897,6 +943,7 @@ export async function processLocalDivisionGeometrySqlUpload(
     }
   } catch (error) {
     await retainProcessingFailure({
+      scope: failureAuditScope,
       error,
       store: bucket,
       target,

@@ -251,6 +251,70 @@ test('Division reissues inherit unchanged base, every locale and source assertio
     ).toBe('DB_HISTORY_OLD')
   }))
 
+test('a complete published scope without its own version journal resolves unchanged components from matching current history', () =>
+  fixture(async f => {
+    stage(f.candidates)
+    const oldHistory = requireDefined(f.before.DB_HISTORY_OLD)
+    oldHistory.exec("DELETE FROM snapshotVersionChanges WHERE snapshotId='old'")
+    oldHistory.exec(`INSERT INTO divisions(
+      versionHash,sourceReleaseId,isCurrent,snapshotId,id,class,geometry,sources,hierarchies,createdAt,updatedAt
+    ) SELECT 'stale-base','release-stale',1,snapshotId,id,'outdated',geometry,sources,hierarchies,createdAt,updatedAt
+      FROM divisions WHERE versionHash='old-base'`)
+    requireDefined(f.candidates.DB_HISTORY_OLD).db.exec(`INSERT INTO divisions(
+      versionHash,sourceReleaseId,isCurrent,snapshotId,id,class,geometry,sources,hierarchies,createdAt,updatedAt
+    ) SELECT 'stale-base','release-stale',1,snapshotId,id,'outdated',geometry,sources,hierarchies,createdAt,updatedAt
+      FROM divisions WHERE versionHash='old-base'`)
+    await f.coalesce()
+    for (const table of ['divisions', 'divisionsI18n', 'snapshotVersionChanges'])
+      expect(
+        requireDefined(f.candidates.DB_HISTORY_NEW)
+          .db.query(`SELECT count(*) AS n FROM ${table}`)
+          .get(),
+      ).toEqual({ n: 0 })
+    expect(
+      requireDefined(f.candidates.DB_HISTORY_OLD)
+        .db.query('SELECT isCurrent FROM divisions WHERE id=?')
+        .all('district'),
+    ).toEqual([{ isCurrent: 0 }, { isCurrent: 1 }])
+  }))
+
+test('an unjournaled component absent from current history is re-established by the incoming version', () =>
+  fixture(async f => {
+    stage(f.candidates)
+    const oldHistory = requireDefined(f.before.DB_HISTORY_OLD)
+    oldHistory.exec("DELETE FROM snapshotVersionChanges WHERE snapshotId='old'")
+    oldHistory
+      .query(
+        "UPDATE divisionsI18n SET name='Legacy name' WHERE divisionId='district' AND locale='en'",
+      )
+      .run()
+    requireDefined(f.candidates.DB_HISTORY_OLD)
+      .db.query(
+        "UPDATE divisionsI18n SET name='Legacy name' WHERE divisionId='district' AND locale='en'",
+      )
+      .run()
+    await f.coalesce()
+    const oldEnglish = requireDefined(f.candidates.DB_HISTORY_OLD)
+      .db.query('SELECT isCurrent FROM divisionsI18n WHERE divisionId=? AND locale=?')
+      .all('district', 'en')
+    expect(oldEnglish).toEqual([{ isCurrent: 0 }])
+    const next = requireDefined(f.candidates.DB_HISTORY_NEW).db
+    expect(
+      next
+        .query(
+          'SELECT name,isCurrent FROM divisionsI18n WHERE divisionId=? AND locale=?',
+        )
+        .all('district', 'en'),
+    ).toEqual([{ name: 'Original', isCurrent: 1 }])
+    expect(
+      next
+        .query(
+          "SELECT operation,versionHash FROM snapshotVersionChanges WHERE snapshotId='next' AND recordType='divisionI18n' AND recordId='district' AND locale='en'",
+        )
+        .get(),
+    ).toEqual({ operation: 'upsert', versionHash: 'whole-candidate' })
+  }))
+
 test('a Division locale edit closes only that component in its owning shard and replay inherits others', () =>
   fixture(async f => {
     stage(f.candidates, 'Revised')
@@ -422,4 +486,33 @@ test('Division coalescing permits a new locale with no predecessor', () =>
     expect(
       next.query('SELECT locale,versionHash FROM snapshotVersionChanges').all(),
     ).toEqual([{ locale: 'fr', versionHash: 'french' }])
+  }))
+
+test('historical Division reissue compares against its parent even after a later revision occupies current', () =>
+  fixture(async f => {
+    const baseline = requireDefined(f.before.DB_CURRENT)
+    baseline.exec(
+      "UPDATE divisionPublicationState SET snapshotId='later'; UPDATE divisionsI18n SET name='Later',nameVariant='[\"Later\"]' WHERE locale='en'",
+    )
+    stage(f.candidates)
+    await f.coalesce()
+    const state = await resolveSnapshotVersionState(plan, shards(f.candidates), [
+      'division',
+      'divisionI18n',
+    ])
+    expect(state.get('divisionI18n\u0000district\u0000en')?.versionHash).toBe(
+      'old-base',
+    )
+    expect(
+      requireDefined(f.candidates.DB_HISTORY_NEW)
+        .db.query(
+          "SELECT * FROM snapshotVersionChanges WHERE recordType='divisionI18n'",
+        )
+        .all(),
+    ).toHaveLength(0)
+    expect(
+      baseline
+        .query<{ name: string }, []>("SELECT name FROM divisionsI18n WHERE locale='en'")
+        .get()?.name,
+    ).toBe('Later')
   }))

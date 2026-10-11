@@ -6,7 +6,7 @@ import type { RuleDeclaration } from '@repo/core/provenance'
 import geometryPatchFixture from '../../../../../../fixtures/meta/patches/overture-hong-kong-area-geometry-restoration.json'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
@@ -156,7 +156,7 @@ export async function resolveSyntheticOvertureHongKongAreas(
       ]
       if (loopIds.length !== 1)
         throw new Error(
-          `Cannot derive New Territories geometry: expected the reviewed Lok Ma Chau Loop identity ${geometryPatchFixture.parameters.newTerritoriesAdditionalDivisionId}, found ${loopIds.length}.`,
+          `Cannot derive New Territories geometry: expected the curated Lok Ma Chau Loop identity ${geometryPatchFixture.parameters.newTerritoriesAdditionalDivisionId}, found ${loopIds.length}.`,
         )
       const loopId = requireDefined(loopIds[0])
       if (!districtDivisionIds.includes(loopId)) districtDivisionIds.push(loopId)

@@ -3,7 +3,6 @@ import { readGeometrySnapshot } from './readGeometrySnapshot.ts'
 import type { ReplayShard } from '@repo/core/pipeline/db/snapshotReplay'
 import { resolvePublishedSnapshotForResourceTypeRegionCohortKey } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb } from '@repo/core/db/types'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
 import { hashDivisionGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
 import { buildGeometryReleaseStatsRows } from '@repo/core/pipeline/services/metrics/releaseStats'
 import {
@@ -54,6 +53,7 @@ export function shouldCompressCanonicalGeometry(
   transform: GeometryUploadPlan['transform'],
 ) {
   return (
+    source === 'overture' ||
     source === 'hkgov-pland-pu' ||
     (source === 'hkgov-censtatd' && transform === undefined)
   )
@@ -204,7 +204,7 @@ export async function buildGeometryStats(
     // separate division domains. Their geometry needs a domain-specific
     // grouping contract rather than a misleading district assignment, while
     // lifecycle churn remains useful.
-    return churnStats
+    return [...churnStats, ...buildSaanseoiAreaDistributionStats(plan, rows)]
   }
   const districts = await resolveGeometryDistricts(
     currentDb,
@@ -244,6 +244,53 @@ export async function buildGeometryStats(
     ),
     ...buildGeometryDistrictDistributionRows(plan.resourceType, rows, districts),
   ]
+}
+
+function buildSaanseoiAreaDistributionStats(
+  plan: GeometryUploadPlan,
+  rows: Array<NonNullable<NormalisedGeometry>>,
+) {
+  if (
+    plan.datasetCode !== 'ds-hk-saanseoi-division' ||
+    plan.resourceType !== 'divisionArea'
+  )
+    return []
+
+  const areas = rows.flatMap(row =>
+    'divisionId' in row.canonical ? [row.canonical] : [],
+  )
+  const stats = [
+    geometryStatRow('records', 'count', areas.length),
+    geometryStatRow(
+      'records',
+      'division_count',
+      new Set(areas.map(row => row.divisionId)).size,
+    ),
+  ]
+  const addDistribution = (
+    dimension: string,
+    getValue: (row: (typeof areas)[number]) => string,
+  ) => {
+    const counts = new Map<string, number>()
+    for (const row of areas) {
+      const value = getValue(row)
+      counts.set(value, (counts.get(value) ?? 0) + 1)
+    }
+    for (const [value, count] of [...counts].sort(([a], [b]) => a.localeCompare(b)))
+      stats.push(geometryStatRow('records', 'count', count, dimension, value))
+  }
+  addDistribution('type', row => row.type)
+  addDistribution('variant', row => row.variant)
+  addDistribution('coverage', row =>
+    row.isLand
+      ? row.isTerritorial
+        ? 'land-territory'
+        : 'land'
+      : row.isTerritorial
+        ? 'territory'
+        : 'other',
+  )
+  return stats
 }
 
 function isHousingMarketAreaPlan(plan: GeometryUploadPlan) {
@@ -325,7 +372,7 @@ async function resolveGeometryDistricts(
   if (resolveProviderBridgeConfig(plan)) {
     // HAD and C&SD geometries are normalised through cohort-scoped identifier
     // bridges to canonical district IDs. No unrelated division snapshot may
-    // replace that reviewed source mapping.
+    // replace that curated source mapping.
     return new Map<string, string>()
   }
   const snapshot =
@@ -512,38 +559,4 @@ function buildDistrictDistributionRows(counts: ReadonlyMap<string, number>) {
     .map(([dimensionValue, value]) =>
       geometryStatRow('records', 'count', value, 'district', dimensionValue),
     )
-}
-
-export function buildOvertureGeometryProcessingActions(
-  plan: GeometryUploadPlan,
-  excludedRecords: Array<{
-    divisionId: string | null
-    divisionIds: string[] | null
-    id: string | null
-  }>,
-): ReleaseProcessingAction[] {
-  if (plan.source !== 'overture' || excludedRecords.length === 0) {
-    return []
-  }
-
-  const examples = excludedRecords.slice(0, 10)
-  return [
-    {
-      action: 'overture_division_geometry_cn_gd_excluded',
-      affectedRecordCount: excludedRecords.length,
-      evidence: {
-        filter: {
-          field: 'region',
-          equals: 'CN-GD',
-        },
-        resourceType: plan.resourceType,
-        sourceVersion: plan.sourceVersion,
-        examples,
-        omittedExampleCount: excludedRecords.length - examples.length,
-      },
-      mode: 'automatic',
-      summary:
-        'Excluded Guangdong spillover geometry from the Hong Kong Overture release.',
-    },
-  ]
 }

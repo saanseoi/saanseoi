@@ -28,6 +28,8 @@ test('native LandsD settlements deliver canonical rows, source resolutions and a
   const history = new Database(':memory:')
   const meta = new Database(':memory:')
   try {
+    meta.exec(`CREATE TABLE resourceReleases (id TEXT, datasetId TEXT, resourceType TEXT, sourceVersion TEXT, status TEXT, revokedAt TEXT);
+      INSERT INTO resourceReleases VALUES ('release', 'dataset', 'division', '2026-06-10.0', 'current', NULL)`)
     const migrations = resolve(root, 'libs/db/migrations')
     source.exec(loadMigrationSql(migrations, ['source']))
     current.exec(loadMigrationSql(migrations, ['current']))
@@ -91,6 +93,33 @@ test('native LandsD settlements deliver canonical rows, source resolutions and a
       [createLocalHarbourDb(source)],
       rows,
     )
+    expect(state.statsRows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ category: 'records', dimension: null, value: 2706 }),
+        expect.objectContaining({
+          category: 'records',
+          dimensionValue: 'Hydrographic',
+          value: 297,
+        }),
+        expect.objectContaining({
+          category: 'records',
+          dimensionValue: 'Topographic',
+          value: 796,
+        }),
+        expect.objectContaining({
+          category: 'changes',
+          measure: 'added_count',
+          dimension: null,
+          value: 2706,
+        }),
+        expect.objectContaining({
+          category: 'completeness',
+          measure: 'locale_count',
+          dimensionValue: 'zh-hant',
+          value: 2702,
+        }),
+      ]),
+    )
     expect(state.records).toHaveLength(1613)
     expect(state.records.every(record => record.base.class === 'settlement')).toBe(true)
     expect(
@@ -137,13 +166,27 @@ test('native LandsD settlements deliver canonical rows, source resolutions and a
         'SELECT properties FROM hkgovLandsdPlaceNames LIMIT 1',
       )
       .get()
-    expect(JSON.parse(retained!.properties).placeNames.length).toBeGreaterThan(0)
+    expect(JSON.parse(retained!.properties).placeNames).toEqual([
+      { nameEn: 'Hadden Hill', nameZhHant: '麒麟山', nameStatus: 'Official' },
+      { nameEn: 'Ki Lun Shan', nameZhHant: null, nameStatus: 'Alias' },
+    ])
+    expect(retained!.properties).not.toContain('i18n')
+    expect(
+      source
+        .query(`SELECT DISTINCT json_extract(properties, '$.placeClass') AS class
+      FROM hkgovLandsdPlaceNames ORDER BY class`)
+        .all(),
+    ).toEqual([
+      { class: 'Hydrographic' },
+      { class: 'Settlement' },
+      { class: 'Topographic' },
+    ])
     expect(
       source
         .query<{ name: string }, []>('PRAGMA table_info(hkgovLandsdPlaceNames)')
         .all()
         .map(column => column.name),
-    ).not.toContain('placeNames')
+    ).not.toContain('i18n')
     expect(
       current.query('SELECT status, preparedAt FROM divisionPublicationState').get(),
     ).toEqual({

@@ -18,6 +18,7 @@ test('unknown operations cannot silently disappear into normalisation counters',
   for (const action of ['new_operation', 'unknown_name_human_translated']) {
     await expect(
       retainDivisionProvenance(store, {
+        scope: { stage: 'ingestion', ownerId: 'release' },
         resourceReleaseId: 'release',
         datasetCode: 'division',
         inputCount: 1,
@@ -68,6 +69,7 @@ test('retains synthetic Hong Kong area rows as individual patches', async () => 
   }))
 
   const retained = await retainDivisionProvenance(store, {
+    scope: { stage: 'ingestion', ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'overture-hk-division-area',
     inputCount: 141,
@@ -131,6 +133,7 @@ test('bulk geometry rules require explicit counts before retaining audit objects
   for (const outputs of invalidOutputs) {
     await expect(
       retainDivisionProvenance(store, {
+        scope: { stage: 'ingestion', ownerId: 'test-resource' },
         ...input,
         actionCounts: {
           [declaration.id]: {
@@ -144,6 +147,7 @@ test('bulk geometry rules require explicit counts before retaining audit objects
   }
   for (const count of [0, 1, 3]) {
     const retained = await retainDivisionProvenance(store, {
+      scope: { stage: 'ingestion', ownerId: 'test-resource' },
       ...input,
       actionCounts: {
         [declaration.id]: {
@@ -191,6 +195,7 @@ test('retains Lantau classification and cohort hierarchy decisions as distinct a
   ]
   expect(actions[0]!.action).toBe('overture_hong_kong_lantau_reclassified')
   const retained = await retainDivisionProvenance(store, {
+    scope: { stage: 'ingestion', ownerId: 'review' },
     resourceReleaseId: 'review',
     datasetCode: 'divisions',
     inputCount: 2,
@@ -226,5 +231,57 @@ test('translation summary separates record coverage, applied decisions and unuse
     outputs: { 'translated-names': 3 },
     recordsAffected: 2,
     decisions: { applied: 3, selectedInstructions: 2, unusedInstructions: 3 },
+  })
+})
+
+test('LandsD selection records publisher-class decisions under canonical assembly', async () => {
+  const { landsdSettlementSelectionAudit } = await import(
+    '../../sources/hkgov/landsd/settlementSelection'
+  )
+  const rule = landsdSettlementSelectionAudit(
+    ['Settlement', 'Hydrographic', 'Topographic'].map(PLACE_CLASS => ({ PLACE_CLASS })),
+  )
+  const objects = new Map<string, ArrayBuffer>()
+  const store: ProvenanceStore = {
+    async get(key) {
+      const value = objects.get(key)
+      return value ? { arrayBuffer: async () => value } : null
+    },
+    async put(key, value) {
+      objects.set(key, value)
+    },
+  }
+  const retained = await retainDivisionProvenance(store, {
+    scope: { stage: 'assembly', ownerId: 'snapshot' },
+    resourceReleaseId: 'release',
+    datasetCode: 'ds-hk-hkgov-landsd-division',
+    inputCount: 1,
+    outputCount: 1,
+    actions: [
+      {
+        action: rule.declaration.id,
+        affectedRecordCount: 3,
+        evidence: rule.decisions,
+        mode: 'automatic',
+        summary: rule.declaration.summary,
+      },
+    ],
+    actionDeclarations: { [rule.declaration.id]: rule.declaration },
+    actionCounts: {
+      [rule.declaration.id]: {
+        inputs: rule.inputs,
+        outputs: rule.outputs,
+        decisions: rule.decisions,
+      },
+    },
+  })
+  expect(retained.manifest.scope).toEqual({ stage: 'assembly', ownerId: 'snapshot' })
+  expect(
+    retained.manifest.bulk.find(entry => entry.id === rule.declaration.id)?.counts,
+  ).toEqual({
+    inputs: rule.inputs,
+    outputs: rule.outputs,
+    decisions: rule.decisions,
+    recordsAffected: 3,
   })
 })

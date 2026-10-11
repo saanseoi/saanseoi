@@ -124,7 +124,7 @@ test('actual Parquet hierarchy lookup accepts division schemas without admin_lev
   }
 })
 
-test('actual Parquet hierarchy lookup applies the guarded Loop fixture and rejects drift', async () => {
+test('publisher Parquet hierarchy lookup keeps the Loop classification independent of editorial guards', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'division-hierarchy-audit-'))
   const filename = join(directory, 'division.parquet')
   const id = '222b7818-970a-491d-98b6-b88d8c6f0161'
@@ -153,9 +153,7 @@ test('actual Parquet hierarchy lookup applies the guarded Loop fixture and rejec
       await asyncBufferFromFile(filename),
       { source: 'overture', sourceVersion: '2025-09-24.0' },
     )
-    expect(earlierLookup.get(id)).toMatchObject({ level: 4, class: 'macrohood' })
-    // Reach fixture resolution without writing translations: the missing dataset
-    // code is checked only after every source row has been normalised.
+    expect(earlierLookup.get(id)).toMatchObject({ level: 2, class: 'district' })
     const message = {
       datasetId: 'classification-test',
       rawObjectKey: 'division.parquet',
@@ -175,7 +173,7 @@ test('actual Parquet hierarchy lookup applies the guarded Loop fixture and rejec
         'classification-test',
         false,
       ),
-    ).rejects.toThrow('Division i18n fixtures require a dataset code.')
+    ).resolves.toBeInstanceOf(Map)
     await expect(
       resolveDivisionNameTranslations(
         await asyncBufferFromFile(filename),
@@ -184,15 +182,15 @@ test('actual Parquet hierarchy lookup applies the guarded Loop fixture and rejec
         'classification-test',
         false,
       ),
-    ).rejects.toThrow('guard mismatch')
+    ).resolves.toBeInstanceOf(Map)
     write(2)
     const lookup = await buildDivisionHierarchyLookup(
       await asyncBufferFromFile(filename),
       { source: 'overture', sourceVersion: '2026-02-18.0' },
     )
     expect(lookup.get(id)).toMatchObject({
-      level: 4,
-      class: 'macrohood',
+      level: 2,
+      class: 'district',
       i18n: { en: { name: 'Lok Ma Chau Loop' } },
     })
     write(3)
@@ -201,7 +199,7 @@ test('actual Parquet hierarchy lookup applies the guarded Loop fixture and rejec
         source: 'overture',
         sourceVersion: '2026-02-18.0',
       }),
-    ).rejects.toThrow('guard mismatch')
+    ).resolves.toBeInstanceOf(Map)
   } finally {
     await rm(directory, { recursive: true, force: true })
   }

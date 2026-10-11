@@ -8,7 +8,7 @@ import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFi
 import { assertDivisionReferences } from './processLocalDivisionGeometrySqlUploadReferences'
 import type { GeometryUploadPlan } from './processLocalDivisionGeometrySqlUploadTypes'
 
-test('historical C&SD geometry validates against later Overture history without replacing current Divisions', async () => {
+test('historical C&SD geometry validates against later SaanSeoi history without replacing current Divisions', async () => {
   const current = new Database(':memory:')
   const meta = new Database(':memory:')
   const before = new Database(':memory:')
@@ -29,15 +29,15 @@ test('historical C&SD geometry validates against later Overture history without 
         ),
       )
     meta.exec(`PRAGMA foreign_keys = OFF;
-      INSERT INTO publishers(id,code,versionHash) VALUES('overture','overture','hash');
+      INSERT INTO publishers(id,code,versionHash) VALUES('saanseoi','saanseoi','hash');
       INSERT INTO datasets(id,publisherId,code,regionCode,releaseType,releaseFrequency,theme,versionHash)
-        VALUES('divisions','overture','ds-hk-overture-division','hk','versioned','monthly','divisions','hash');
+        VALUES('divisions','saanseoi','ds-hk-saanseoi-division','hk','versioned','monthly','divisions','hash');
       INSERT INTO snapshotLineages(id,code,regionCode,resourceType,variant,identityMode,versionHash)
-        VALUES('lineage','overture','hk','division','overture','persistent','hash');
+        VALUES('lineage','saanseoi','hk','division','saanseoi','persistent','hash');
       INSERT INTO snapshots(id,snapshotLineageId,parentSnapshotId,resourceType,code,cohortKey,status) VALUES
-        ('early','lineage',NULL,'division','overture-2025','2025-01-01.0','published'),
-        ('complete','lineage','early','division','overture-2026-01','2026-01-01.0','published'),
-        ('latest','lineage','complete','division','overture-2026-08','2026-08-19.0','published');
+        ('early','lineage',NULL,'division','saanseoi-2025','2025-01-01.0','published'),
+        ('complete','lineage','early','division','saanseoi-2026-01','2026-01-01.0','published'),
+        ('latest','lineage','complete','division','saanseoi-2026-08','2026-08-19.0','published');
       INSERT INTO snapshotResourceReleases(snapshotId,datasetId,resourceReleaseId,role) VALUES
         ('early','divisions','release-2025','primary'),
         ('complete','divisions','release-2026-01','primary'),
@@ -112,6 +112,7 @@ test('historical C&SD geometry validates against later Overture history without 
     await expect(
       assertDivisionReferences(
         currentDb as never,
+        currentDb as never,
         historyTargets.slice(0, 1),
         metaDb as never,
         plan,
@@ -123,6 +124,7 @@ test('historical C&SD geometry validates against later Overture history without 
     expect(
       await assertDivisionReferences(
         currentDb as never,
+        currentDb as never,
         historyTargets,
         metaDb as never,
         plan,
@@ -130,7 +132,7 @@ test('historical C&SD geometry validates against later Overture history without 
       ),
     ).toEqual({
       id: 'complete',
-      selectedByRule: 'lookup:censtatd-living-quarters:overture-division-references:v1',
+      selectedByRule: 'lookup:censtatd-living-quarters:saanseoi-division-references:v1',
       selectionMode: 'nearest_snapshot_containing_references',
     })
     expect(current.query('SELECT total_changes() AS count').get()).toEqual(
@@ -139,11 +141,53 @@ test('historical C&SD geometry validates against later Overture history without 
     expect(current.query('SELECT snapshotId,id FROM divisions').all()).toEqual([
       { snapshotId: 'lineage', id: 'current-only' },
     ])
+    // An Overture inventory cannot satisfy the SaanSeoi-only area dependency.
+    meta.exec("UPDATE publishers SET code='overture'")
+    await expect(
+      assertDivisionReferences(
+        currentDb as never,
+        currentDb as never,
+        historyTargets,
+        metaDb as never,
+        plan,
+        rows,
+      ),
+    ).rejects.toThrow('No published canonical SaanSeoi division snapshot')
   } finally {
     current.close()
     meta.close()
     before.close()
     history2025.close()
     history2026.close()
+  }
+})
+
+test('curated references use edition validity, including unchanged records and excluding retired or future records', async () => {
+  const meta = new Database(':memory:')
+  const source = new Database(':memory:')
+  try {
+    meta.exec(`CREATE TABLE resourceReleases(id TEXT, sourceVersion TEXT);
+      CREATE TABLE snapshotResourceReleases(snapshotId TEXT, resourceReleaseId TEXT, role TEXT);
+      INSERT INTO resourceReleases VALUES('new-release','2026-10-01.0');
+      INSERT INTO snapshotResourceReleases VALUES('snapshot','new-release','primary');`)
+    source.exec(`CREATE TABLE ssDivision(sourceRecordId TEXT, resourceReleaseId TEXT, validFromRelease TEXT, validToRelease TEXT);
+      INSERT INTO ssDivision VALUES
+        ('unchanged','old-release','2026-09-01.0',NULL),
+        ('added','new-release','2026-10-01.0',NULL),
+        ('retired','old-release','2026-09-01.0','2026-10-01.0'),
+        ('future','future-release','2026-11-01.0',NULL),
+        ('later-retired','old-release','2026-09-01.0','2026-11-01.0');`)
+    const { readCuratedDivisionSourceIds } = await import(
+      './processLocalDivisionGeometrySqlUploadReferences'
+    )
+    const ids = await readCuratedDivisionSourceIds(
+      drizzle({ client: source }) as never,
+      drizzle({ client: meta }) as never,
+      'snapshot',
+    )
+    expect([...ids].sort()).toEqual(['added', 'later-retired', 'unchanged'])
+  } finally {
+    meta.close()
+    source.close()
   }
 })

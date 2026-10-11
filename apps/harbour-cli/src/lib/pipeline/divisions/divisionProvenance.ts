@@ -21,3 +21,5 @@ export function retainDivisionProvenance(
     retainDeclaration: declaration => retainRegisteredRule(store, declaration),
   })
 }
+
+export { retainDivisionSourceAudit } from './divisionSourceAudit'

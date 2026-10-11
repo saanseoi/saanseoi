@@ -4,6 +4,7 @@ type DivisionDeliveryPhaseInput = {
   preparedSha256: string
   supplementalRowsHash: string
   classificationFixtureHash: string
+  snapshotId: string
   nativeRowsHash?: string
   rebuildPublishedSnapshot?: boolean
 }
@@ -20,6 +21,7 @@ export async function resolveDivisionDeliveryPhase(input: DivisionDeliveryPhaseI
     classificationFixtureHash: input.classificationFixtureHash,
     nativeRowsHash: input.nativeRowsHash ?? null,
     preparedSha256: input.preparedSha256,
+    snapshotId: input.snapshotId,
     supplementalRowsHash: input.supplementalRowsHash,
   })
   return `division-data-rebuild-${fingerprint.slice(0, 16)}`

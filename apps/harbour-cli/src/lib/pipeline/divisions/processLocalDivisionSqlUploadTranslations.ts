@@ -2,13 +2,12 @@ import { divisionHierarchyEntries } from '@repo/core/pipeline/services/divisions
 import type { DatasetProcessingMessage } from '@repo/core'
 import { divisionTranslationRule } from '@repo/core/pipeline/services/divisions/divisionTranslationRule'
 import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import {
   type buildDivisionHierarchyLookup,
   normaliseDivisionRow,
 } from '@repo/core/pipeline/services/divisions/division'
 import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisions/divisionFixtures'
-import { applyDivisionExclusionPatch } from '@repo/core/pipeline/services/divisions/divisionExclusionPatch'
 import {
   resolveDatasetNameTranslationsBatch,
   type DatasetTranslationApplication,
@@ -16,22 +15,12 @@ import {
 import { DIVISION_BATCH_SIZE } from './processLocalDivisionSqlUploadConfig.ts'
 import { resolveParentDivisionIdFromHierarchy } from './processLocalDivisionSqlUploadPreparation.ts'
 
-function isCuratedIslandRow(row: Record<string, unknown>) {
-  const identifiers = row.identifiers
-  return Boolean(
-    identifiers &&
-      typeof identifiers === 'object' &&
-      !Array.isArray(identifiers) &&
-      'saanseoiIsland' in identifiers,
-  )
-}
-
 export async function resolveDivisionNameTranslations(
   file: Parameters<typeof buildDivisionHierarchyLookup>[0],
   message: DatasetProcessingMessage,
   hierarchyLookup: Awaited<ReturnType<typeof buildDivisionHierarchyLookup>>,
   sourceRelease: string,
-  allowGeneration: boolean,
+  _allowGeneration: boolean,
   supplementalRows: Record<string, unknown>[] = [],
 ) {
   // Supplemental division rows are emitted after source rows so they can replace an
@@ -54,12 +43,10 @@ export async function resolveDivisionNameTranslations(
     supplementalRows,
   )) {
     for (const row of rows) {
-      if (applyDivisionExclusionPatch(row, message)) continue
       const normalised = normaliseDivisionRow(row, {
         hierarchyLookup,
         source: message,
         deferHierarchyGuard: replacedDivisionIds.has(String(row.id)),
-        skipGeographicHierarchyPatch: isCuratedIslandRow(row),
       })
       const parentDivisionId = resolveParentDivisionIdFromHierarchy(
         normalised.base.hierarchies,
@@ -88,13 +75,21 @@ export async function resolveDivisionNameTranslations(
     }
   }
 
+  if (message.source === 'saanseoi' || message.source === 'overture')
+    return new Map(
+      [...recordsById].map(([id, record]) => [
+        id,
+        { localisations: record.localisations, applications: [] },
+      ]),
+    )
   const datasetCode = message.datasetCode
   if (!datasetCode) {
     throw new Error('Division i18n fixtures require a dataset code.')
   }
 
   return resolveDatasetNameTranslationsBatch({
-    allowGeneration,
+    allowGeneration: false,
+    ignoreAutomated: true,
     datasetCode,
     records: [...recordsById.values()],
     sourceRelease,

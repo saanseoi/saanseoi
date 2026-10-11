@@ -2,6 +2,13 @@ import { requireDefined } from '@repo/core/requireDefined'
 import { describe, expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { geometryIterateUpsertSql } from './processLocalDivisionGeometrySqlUploadReplay.ts'
+import { geometryDisplayTransform } from '../../../../../../libs/db/src/fieldLineageGeometryTransform'
+import { calculateGeoJsonBbox } from '@repo/core/pipeline/geojson'
+import {
+  districtAreaProfiles,
+  governmentAreaSpecification,
+} from '../../../../../../libs/db/src/fieldLineageGovernmentAreas'
+import { hkgovCenstatdDistrictLayerName } from '../../sources/hkgov/censtatd/hkgovCenstatd'
 
 test('geometry SQL consumes a bounded row window and closes its input on early stop', () => {
   let reads = 0
@@ -28,6 +35,23 @@ test('geometry SQL consumes a bounded row window and closes its input on early s
   expect(reads).toBeLessThanOrEqual(4)
   statements.return()
   expect(closed).toBe(true)
+})
+
+test('retained district area profiles select the same native layers as acquisition', () => {
+  for (const [dataset, profiles] of Object.entries(districtAreaProfiles)) {
+    for (const [version, profile] of Object.entries(profiles)) {
+      expect(
+        hkgovCenstatdDistrictLayerName(
+          dataset as Parameters<typeof hkgovCenstatdDistrictLayerName>[0],
+          version as Parameters<typeof hkgovCenstatdDistrictLayerName>[1],
+        ),
+      ).toBe(profile.layerName)
+    }
+    const specification = governmentAreaSpecification(dataset, 'governmentAreaRows')!
+    expect('sourceProfiles' in specification && specification.sourceProfiles).toEqual(
+      profiles,
+    )
+  }
 })
 
 import {
@@ -187,7 +211,15 @@ describe('Hong Kong Government display simplification', () => {
     expect(['Polygon', 'MultiPolygon']).toContain(simplified.canonical.geometry.type)
     expect(simplified.source.derivation).toMatchObject({
       inputValidationRepair: 'make-valid',
+      toleranceMetres: geometryDisplayTransform(
+        'divisionArea',
+        'attributes.geometry',
+        'hkgov-pland-pu:simplified',
+      )!.toleranceMetres,
     })
+    expect(simplified.canonical.bbox).toEqual(
+      calculateGeoJsonBbox(simplified.canonical.geometry),
+    )
     expect(row.canonical.geometry).toEqual(sourceGeometry)
   })
 })
@@ -602,6 +634,7 @@ describe('geometryBuildUpsertSql', () => {
         resourceReleaseId: 'release-1',
         sourceRecordId: 'area-1',
         versionHash: 'hash-1',
+        validFromRelease: '2026-03',
       },
     ])
     const statements = sql.split('\n')
@@ -614,16 +647,26 @@ describe('geometryBuildUpsertSql', () => {
 
     const database = new Database(':memory:')
     database.exec(
-      'CREATE TABLE overtureDivisionAreas (sourceRecordId TEXT NOT NULL, properties TEXT NOT NULL, resourceReleaseId TEXT NOT NULL, versionHash TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash));',
+      'CREATE TABLE overtureDivisionAreas (sourceRecordId TEXT NOT NULL, properties TEXT NOT NULL, resourceReleaseId TEXT NOT NULL, versionHash TEXT NOT NULL, validFromRelease TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash, validFromRelease));',
+    )
+    database.exec(
+      "INSERT INTO overtureDivisionAreas VALUES ('area-1', 'original', 'old-release', 'hash-1', '2026-01')",
     )
     database.exec(sql)
+    expect(
+      database
+        .query(
+          "SELECT properties FROM overtureDivisionAreas WHERE validFromRelease='2026-01'",
+        )
+        .get(),
+    ).toEqual({ properties: 'original' })
 
     expect(
       database
         .query(
-          'SELECT properties FROM overtureDivisionAreas WHERE sourceRecordId = ? AND versionHash = ?',
+          'SELECT properties FROM overtureDivisionAreas WHERE sourceRecordId = ? AND versionHash = ? AND validFromRelease = ?',
         )
-        .get('area-1', 'hash-1'),
+        .get('area-1', 'hash-1', '2026-03'),
     ).toEqual({ properties: propertiesText })
     database.close()
   })
@@ -715,9 +758,9 @@ describe('shouldCompressCanonicalGeometry', () => {
     expect(canonicalGeometryBrotliQuality('hkgov-pland-pu')).toBe(MAX_BROTLI_QUALITY)
   })
 
-  test('keeps the C&SD simplified derivative and other geometry sources as JSON', () => {
+  test('compresses Overture geometry while retaining the smaller C&SD display derivative as JSON', () => {
     expect(shouldCompressCanonicalGeometry('hkgov-censtatd', 'simplified')).toBeFalse()
-    expect(shouldCompressCanonicalGeometry('overture', undefined)).toBeFalse()
+    expect(shouldCompressCanonicalGeometry('overture', undefined)).toBeTrue()
   })
 })
 

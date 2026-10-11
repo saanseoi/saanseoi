@@ -35,7 +35,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       const meta = local.DB_META
       if (!meta) throw new Error('Missing meta')
       meta.exec(
-        "CREATE TABLE snapshots(id,snapshotLineageId); INSERT INTO snapshots VALUES('new',NULL); CREATE TABLE snapshotLineages(id); CREATE TABLE snapshotAssemblies(snapshotId,snapshotRecipeId); CREATE TABLE snapshotRecipes(id); CREATE TABLE snapshotRecipeInputs(snapshotRecipeId); CREATE TABLE snapshotResourceReleases(snapshotId); CREATE TABLE snapshotDependencies(snapshotId,dependencySnapshotId,role); CREATE TABLE releaseShardAssignments(resourceReleaseId); CREATE TABLE snapshotShardAssignments(snapshotId); CREATE TABLE releaseProcessingActions(resourceReleaseId); CREATE TABLE releaseProcessingActionChunks(resourceReleaseId); CREATE TABLE stats(resourceReleaseId);",
+        "CREATE TABLE snapshots(id,snapshotLineageId); INSERT INTO snapshots VALUES('new',NULL); CREATE TABLE snapshotLineages(id); CREATE TABLE snapshotAssemblies(snapshotId,snapshotRecipeId); CREATE TABLE snapshotRecipes(id); CREATE TABLE snapshotRecipeInputs(snapshotRecipeId); CREATE TABLE snapshotResourceReleases(snapshotId); CREATE TABLE snapshotDependencies(snapshotId,dependencySnapshotId,role); CREATE TABLE releaseShardAssignments(resourceReleaseId); CREATE TABLE snapshotShardAssignments(snapshotId); CREATE TABLE stats(resourceReleaseId);",
       )
       for (const db of [local.DB_CURRENT, remote.current])
         db?.exec(
@@ -47,7 +47,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         )
       for (const db of [local[sourceBinding], remote.source]) {
         db?.exec(
-          `CREATE TABLE "${sourceTable}"(resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry,PRIMARY KEY(sourceRecordId,versionHash)); INSERT INTO "${sourceTable}" VALUES('old','changed','v1',1,NULL,'old',X'00FF'),('old','removed','v1',1,NULL,'old',X'01');`,
+          `CREATE TABLE "${sourceTable}"(resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry,validFromRelease DEFAULT '2025-01',PRIMARY KEY(sourceRecordId,versionHash,validFromRelease)); INSERT INTO "${sourceTable}" (resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry) VALUES('old','changed','v1',1,NULL,'old',X'00FF'),('old','removed','v1',1,NULL,'old',X'01');`,
         )
         if (sourceName === 'hkgov-censtatd')
           db?.exec(
@@ -73,7 +73,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         "CREATE TABLE historyMutations(operation); CREATE TRIGGER history_update AFTER UPDATE ON divisionAreas BEGIN INSERT INTO historyMutations VALUES('update'); END; CREATE TRIGGER history_delete AFTER DELETE ON divisionAreas BEGIN INSERT INTO historyMutations VALUES('delete'); END;",
       )
       local[sourceBinding]?.exec(
-        `UPDATE "${sourceTable}" SET isCurrent=0,validToRelease='2026-01',updatedAt='new'; INSERT INTO "${sourceTable}" VALUES('new-release','changed','v2',1,NULL,'new',X'AAFF');`,
+        `UPDATE "${sourceTable}" SET isCurrent=0,validToRelease='2026-01',updatedAt='new'; INSERT INTO "${sourceTable}" (resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry) VALUES('new-release','changed','v2',1,NULL,'new',X'AAFF');`,
       )
       if (sourceName === 'hkgov-censtatd')
         local[sourceBinding]?.exec(

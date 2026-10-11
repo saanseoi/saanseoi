@@ -32,6 +32,7 @@ test('C&SD translation applications retain applied decisions and aggregate unuse
     recordIds: ['anderson'],
   }
   const result = await retainDivisionProvenance(store, {
+    scope: { stage: 'ingestion', ownerId: 'csd-release' },
     resourceReleaseId: 'csd-release',
     datasetCode:
       'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',

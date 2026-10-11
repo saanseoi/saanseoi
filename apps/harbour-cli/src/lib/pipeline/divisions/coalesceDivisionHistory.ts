@@ -1,3 +1,4 @@
+import { restoreSnapshotProjection } from '../../commands/rollback/projection'
 import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { drizzle } from 'drizzle-orm/bun-sqlite'
 import { resolveSnapshotReplayPlan } from '@repo/core/db/metaRegistry'
@@ -119,6 +120,7 @@ export async function coalesceDivisionHistory(input: {
     throw new Error(
       'Division history coalescing requires complete current/history mirrors.',
     )
+  const replayBaselines: Database[] = []
   try {
     for (const receipt of current
       .query<
@@ -143,8 +145,53 @@ export async function coalesceDivisionHistory(input: {
       const meta = input.candidates.DB_META?.drizzle
       if (previous?.snapshotId && !meta)
         throw new Error('Division history replay requires the metadata mirror.')
-      const previousPlan = previous?.snapshotId
-        ? await resolveSnapshotReplayPlan(meta as never, previous.snapshotId)
+      const parent = input.candidates.DB_META?.db
+        .query<{ parentSnapshotId: string | null }, [string]>(
+          'SELECT parentSnapshotId FROM snapshots WHERE id=?',
+        )
+        .get(receipt.snapshotId)
+      const parentSnapshotId = parent?.parentSnapshotId ?? previous?.snapshotId
+      const selectedBaseline = new Database(':memory:')
+      for (const table of ['divisions', 'divisionsI18n']) {
+        const schema = baseline
+          .query<{ sql: string }, [string]>(
+            "SELECT sql FROM sqlite_master WHERE name=? AND type='table'",
+          )
+          .get(table)!
+        selectedBaseline.exec(schema.sql)
+      }
+      replayBaselines.push(selectedBaseline)
+      if (parentSnapshotId && parentSnapshotId !== previous?.snapshotId) {
+        await restoreSnapshotProjection({
+          current: selectedBaseline,
+          metaDb: meta as never,
+          historyTargets: [...baselines]
+            .filter(([binding]) => binding.startsWith('DB_HISTORY'))
+            .map(([bindingName, db]) => ({
+              bindingName,
+              db: drizzle({ client: db }) as never,
+            })),
+          snapshotId: parentSnapshotId,
+          scopeId: receipt.scopeId,
+          resourceType: 'division',
+          deferForeignKeyValidation: true,
+        })
+      } else {
+        for (const table of ['divisions', 'divisionsI18n'])
+          for (const row of baseline
+            .query<Row, [string]>(`SELECT * FROM ${quote(table)} WHERE snapshotId=?`)
+            .iterate(receipt.scopeId))
+            replace(
+              selectedBaseline,
+              table,
+              table === 'divisions'
+                ? ['snapshotId', 'id']
+                : ['snapshotId', 'divisionId', 'locale'],
+              row,
+            )
+      }
+      const previousPlan = parentSnapshotId
+        ? await resolveSnapshotReplayPlan(meta as never, parentSnapshotId)
         : []
       const namedBaselines = new Map(
         [...baselines]
@@ -170,37 +217,75 @@ export async function coalesceDivisionHistory(input: {
         )
       for (const policy of policies) {
         const previousComponent = (identity: Row) => {
-          if (
-            !baseline
-              .query(
-                `SELECT 1 FROM ${quote(policy.table)} WHERE snapshotId=? AND ${policy.identity.map(column => `${quote(column)} IS ?`).join(' AND ')}`,
-              )
-              .get(
-                receipt.scopeId,
-                ...policy.identity.map(column => identity[column] ?? null),
-              )
-          )
-            return undefined
+          const scoped = lookup(
+            selectedBaseline,
+            policy.table,
+            ['snapshotId', ...policy.identity],
+            {
+              snapshotId: receipt.scopeId,
+              ...identity,
+            },
+          )[0]
+          if (!scoped) return undefined
           const version = previousVersions.get(
             `${policy.recordType}\0${identity[policy.id]}\0${policy.table === 'divisionsI18n' ? identity.locale : ''}`,
           )
-          if (!version)
-            throw new Error(
-              `Missing selected Division component ${policy.table}/${identity[policy.id]}.`,
+          if (version) {
+            const binding = version.shard.bindingName
+            const db = baselines.get(binding)
+            const row =
+              db &&
+              lookup(db, policy.table, policy.primary, {
+                ...identity,
+                versionHash: version.versionHash,
+              })[0]
+            if (!row)
+              throw new Error(
+                `Missing selected Division content ${policy.table}/${identity[policy.id]} in ${binding}.`,
+              )
+            return { binding, row }
+          }
+
+          // Some completed local snapshots contain the complete current scope but
+          // no version journal of their own. Recover the selected component only
+          // from a unique current history row whose content exactly matches that
+          // scope; anything less would make coalescing guess at history ownership.
+          const currentVersions = [...baselines]
+            .filter(([binding]) => binding.startsWith('DB_HISTORY'))
+            .flatMap(([binding, db]) =>
+              db
+                .query<Row, SQLQueryBindings[]>(
+                  `SELECT * FROM ${quote(policy.table)} WHERE ${policy.identity.map(column => `${quote(column)} IS ?`).join(' AND ')} AND isCurrent=1`,
+                )
+                .all(...policy.identity.map(column => identity[column] ?? null))
+                .map(row => ({ binding, row })),
             )
-          const binding = version.shard.bindingName
-          const db = baselines.get(binding)
-          const row =
-            db &&
-            lookup(db, policy.table, policy.primary, {
-              ...identity,
-              versionHash: version.versionHash,
-            })[0]
-          if (!row)
+          const matchingVersions = currentVersions.filter(
+            ({ row }) => semantic(row) === semantic(scoped),
+          )
+          if (matchingVersions.length > 1)
             throw new Error(
-              `Missing selected Division content ${policy.table}/${identity[policy.id]} in ${binding}.`,
+              `Ambiguous current Division history for ${policy.table}/${identity[policy.id]}.`,
             )
-          return { binding, row }
+          const recovered = matchingVersions[0]
+          for (const stale of currentVersions) {
+            if (stale === recovered) continue
+            const owner = input.candidates[stale.binding]
+            if (!owner)
+              throw new Error(`Missing Division history owner ${stale.binding}.`)
+            owner.db
+              .query(
+                `UPDATE ${quote(policy.table)} SET isCurrent=0,updatedAt=? WHERE ${policy.primary.map(column => `${quote(column)} IS ?`).join(' AND ')}`,
+              )
+              .run(
+                receipt.updatedAt,
+                ...policy.primary.map(column => stale.row[column] ?? null),
+              )
+          }
+          // No history version represents this component in the published scope.
+          // Let the incoming snapshot's upsert establish its first selectable version.
+          if (!recovered) return undefined
+          return recovered
         }
         for (const [binding, candidate] of Object.entries(input.candidates)) {
           if (!binding.startsWith('DB_HISTORY')) continue
@@ -266,7 +351,17 @@ export async function coalesceDivisionHistory(input: {
             } else {
               if (original) {
                 if (semantic(original) !== semantic(row))
-                  throw new Error('Division component content hash collision.')
+                  throw new Error(
+                    `Division component content hash collision: ${policy.table} ${String(change.recordId)} (${String(change.locale ?? '')}); differing fields: ${Object.keys(
+                      JSON.parse(semantic(original)),
+                    )
+                      .filter(
+                        key =>
+                          canonical(JSON.parse(semantic(original))[key]) !==
+                          canonical(JSON.parse(semantic(row))[key]),
+                      )
+                      .join(', ')}.`,
+                  )
                 replace(candidate.db, policy.table, policy.primary, {
                   ...original,
                   isCurrent: 1,
@@ -285,7 +380,7 @@ export async function coalesceDivisionHistory(input: {
             }
           }
         }
-        for (const identity of baseline
+        for (const identity of selectedBaseline
           .query<Row, [string]>(
             `SELECT ${policy.identity.map(quote).join(',')} FROM ${quote(policy.table)} WHERE snapshotId=?`,
           )
@@ -300,7 +395,21 @@ export async function coalesceDivisionHistory(input: {
             )
           if (present) continue
           const prior = previousComponent(identity)
-          if (!prior) throw new Error('Missing retired Division component history.')
+          if (!prior) {
+            history
+              .query(`INSERT INTO snapshotVersionChanges(snapshotId,recordType,recordId,locale,versionHash,operation,sourceReleaseId,createdAt,updatedAt)
+              VALUES(?,?,?,?,NULL,'delete',?,?,?) ON CONFLICT(snapshotId,recordType,recordId,locale) DO NOTHING`)
+              .run(
+                receipt.snapshotId,
+                policy.recordType,
+                identity[policy.id] ?? null,
+                policy.table === 'divisionsI18n' ? (identity.locale ?? '') : '',
+                receipt.publicationToken,
+                receipt.updatedAt,
+                receipt.updatedAt,
+              )
+            continue
+          }
           input.candidates[prior.binding]?.db
             .query(
               `UPDATE ${quote(policy.table)} SET isCurrent=0,updatedAt=? WHERE ${policy.primary.map(column => `${quote(column)} IS ?`).join(' AND ')} AND isCurrent=1`,
@@ -375,13 +484,15 @@ export async function coalesceDivisionHistory(input: {
           )
             continue
           const present = sources.some(([, source]) =>
-            ['overtureDivisions', 'hkgovPlandNewTowns', 'hkgovPlandPlanningCells'].some(
-              table =>
-                source.db
-                  .query(
-                    `SELECT 1 FROM ${table} WHERE sourceRecordId=? AND isCurrent=1`,
-                  )
-                  .get(sourceRecordId),
+            [
+              'overtureDivisions',
+              'ssDivision',
+              'hkgovPlandNewTowns',
+              'hkgovPlandPlanningCells',
+            ].some(table =>
+              source.db
+                .query(`SELECT 1 FROM ${table} WHERE sourceRecordId=? AND isCurrent=1`)
+                .get(sourceRecordId),
             ),
           )
           if (present) continue
@@ -403,6 +514,7 @@ export async function coalesceDivisionHistory(input: {
       }
     }
   } finally {
+    for (const db of replayBaselines) db.close()
     for (const db of baselines.values()) db.close()
   }
 }

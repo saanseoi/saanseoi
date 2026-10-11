@@ -14,6 +14,7 @@ import { resolveDivisionDeliveryPhase } from './divisionDeliveryPhase.ts'
 const input = {
   classificationFixtureHash: 'classification',
   preparedSha256: 'prepared',
+  snapshotId: 'snapshot-a',
   supplementalRowsHash: 'supplemental',
 }
 
@@ -32,6 +33,13 @@ test('published division rebuilds use a resumable plan distinct from the origina
   expect(first).toMatch(/^division-data-rebuild-[a-f0-9]{16}$/)
   expect(retry).toBe(first)
   expect(first).not.toBe('division-data')
+
+  const nextSnapshot = await resolveDivisionDeliveryPhase({
+    ...input,
+    snapshotId: 'snapshot-b',
+    rebuildPublishedSnapshot: true,
+  })
+  expect(nextSnapshot).not.toBe(first)
 })
 
 test('a published division rebuild retains the completed original delivery plan', async () => {

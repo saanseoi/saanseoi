@@ -26,7 +26,7 @@ export function normaliseHkgovHadInputRow(
   const divisionId = areaId ? bridge?.get(areaId) : undefined
   if (!areaId || !divisionId) {
     throw new Error(
-      `HAD district area ${areaId || '<unknown>'} has no reviewed administrative identifier bridge.`,
+      `HAD district area ${areaId || '<unknown>'} has no curated administrative identifier bridge.`,
     )
   }
   const sources = normaliseJsonArray(row.sources)
@@ -68,7 +68,7 @@ export function normaliseHkgovCenstatdInputRow(
   const divisionId = bridgeKey ? bridge?.get(bridgeKey) : undefined
   if (!bridgeKey || !divisionId) {
     throw new Error(
-      `C&SD district area ${bridgeKey || '<unknown>'} has no reviewed administrative identifier bridge.`,
+      `C&SD district area ${bridgeKey || '<unknown>'} has no curated administrative identifier bridge.`,
     )
   }
   const sources = normaliseJsonArray(row.sources)
@@ -308,7 +308,7 @@ export function resolveProviderBridgeConfig(plan: GeometryUploadPlan) {
       plan.datasetCode ===
         'ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district')
   ) {
-    // The reviewed 2021 C&SD-to-canonical bridge has the same district
+    // The curated 2021 C&SD-to-canonical bridge has the same district
     // identifiers as the annual and PLQ publications. It is deliberately an
     // identity bridge, not a source record that their geometries are the 2021
     // land-clipped geometry.

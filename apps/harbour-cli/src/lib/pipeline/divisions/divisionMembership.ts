@@ -6,6 +6,7 @@ export const divisionFields = {
   area: 'areaId',
   district: 'districtId',
   town: 'townId',
+  rural_area: 'ruralAreaId',
   macrohood: 'macrohoodId',
   neighbourhood: 'neighbourhoodId',
   village: 'villageId',
@@ -133,7 +134,8 @@ export function createDivisionMembership(
   }
   const names = new Map<string, Set<string>>()
   for (const row of divisions) {
-    if (!row.name || !['town', 'village', 'hamlet'].includes(row.class)) continue
+    if (!row.name || !['town', 'rural_area', 'village', 'hamlet'].includes(row.class))
+      continue
     const districts = new Set(
       ancestors(row.id).flatMap(path =>
         path.filter(entry => entry.class === 'district').map(entry => entry.id),
@@ -270,7 +272,12 @@ export function createDivisionMembership(
             text.set(field, ids)
           }
         }
-        for (const field of ['townId', 'villageId', 'hamletId'] as const) {
+        for (const field of [
+          'townId',
+          'ruralAreaId',
+          'villageId',
+          'hamletId',
+        ] as const) {
           const ids = text.get(field)
           if (!ids) continue
           if (candidates.has(field)) continue
@@ -288,6 +295,7 @@ export function createDivisionMembership(
         'areaId',
         'districtId',
         'townId',
+        'ruralAreaId',
         'macrohoodId',
         'neighbourhoodId',
         'villageId',

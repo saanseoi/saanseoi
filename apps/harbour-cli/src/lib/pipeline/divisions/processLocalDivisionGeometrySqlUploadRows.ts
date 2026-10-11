@@ -81,11 +81,13 @@ export async function writeGeometryRows(
       : historySchema.divisionBoundaries
   const sourceTable =
     resourceType === 'divisionArea'
-      ? version.source === 'hkgov-had'
-        ? sourceSchema.sourceHkgovHadDivisionAreas
-        : version.source === 'hkgov-censtatd'
-          ? sourceSchema.sourceHkgovCenstatdDivisionAreas
-          : sourceSchema.sourceOvertureDivisionAreas
+      ? version.source === 'saanseoi'
+        ? sourceSchema.sourceSsDivisionArea
+        : version.source === 'hkgov-had'
+          ? sourceSchema.sourceHkgovHadDivisionAreas
+          : version.source === 'hkgov-censtatd'
+            ? sourceSchema.sourceHkgovCenstatdDivisionAreas
+            : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
   const publicationTable =
     resourceType === 'divisionArea'
@@ -258,6 +260,31 @@ export async function writeGeometryRows(
       },
     )
   }
+  // Repeated content can have disjoint validity periods (A -> B -> A).
+  // Continue an open period only; never reopen a closed occurrence.
+  const periodSource = version.source === 'overture'
+  const openSourcePeriods = periodSource
+    ? await context.sourceDb
+        .select({
+          sourceRecordId: sourceTable.sourceRecordId,
+          versionHash: sourceTable.versionHash,
+          validFromRelease: sourceTable.validFromRelease,
+        })
+        .from(sourceTable)
+        .where(
+          and(
+            eq(sourceTable.isCurrent, true),
+            lte(sourceTable.validFromRelease, version.sourceVersion),
+          ),
+        )
+        .all()
+    : []
+  const sourcePeriodStarts = new Map(
+    openSourcePeriods.map(row => [
+      `${row.sourceRecordId}:${row.versionHash}`,
+      row.validFromRelease,
+    ]),
+  )
   onProgress?.('close source rows')
   if (
     !isDisplayDerivative &&
@@ -399,10 +426,18 @@ export async function writeGeometryRows(
                       censusYear: version.cohortKey,
                       sourceGeometry: compressJsonBrotli(sourceGeometry),
                     }
-                  : { sourceGeometry }),
+                  : {
+                      sourceGeometry:
+                        version.source === 'overture'
+                          ? compressJsonBrotli(sourceGeometry)
+                          : sourceGeometry,
+                    }),
               versionHash: requireGeometryHash(sourceHashes, row.source.sourceRecordId),
               resourceReleaseId: version.resourceReleaseId,
-              validFromRelease: version.sourceVersion,
+              validFromRelease:
+                sourcePeriodStarts.get(
+                  `${row.source.sourceRecordId}:${requireGeometryHash(sourceHashes, row.source.sourceRecordId)}`,
+                ) ?? version.sourceVersion,
               validToRelease: null,
               isCurrent: true,
               createdAt: now,
@@ -475,20 +510,22 @@ export async function writeGeometryRows(
     let writtenSourceRows = 0
     onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
     for (const chunk of chunkRows(sourceRows)) {
-      await context.sourceDb
-        .insert(sourceTable)
-        .values(chunk as never)
-        .onConflictDoUpdate({
-          target: [sourceTable.sourceRecordId, sourceTable.versionHash],
-          setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
-          set: {
-            resourceReleaseId: version.resourceReleaseId,
-            validToRelease: null,
-            isCurrent: true,
-            updatedAt: now,
-          },
-        })
-        .run()
+      const insert = context.sourceDb.insert(sourceTable).values(chunk as never)
+      if (periodSource) {
+        await insert.onConflictDoNothing().run()
+      } else
+        await insert
+          .onConflictDoUpdate({
+            target: [sourceTable.sourceRecordId, sourceTable.versionHash],
+            setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
+            set: {
+              resourceReleaseId: version.resourceReleaseId,
+              validToRelease: null,
+              isCurrent: true,
+              updatedAt: now,
+            },
+          })
+          .run()
       writtenSourceRows += chunk.length
       onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
     }

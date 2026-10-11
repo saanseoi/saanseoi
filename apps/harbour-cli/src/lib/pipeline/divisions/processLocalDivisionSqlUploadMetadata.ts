@@ -140,8 +140,6 @@ export async function buildDivisionMetaSqlFile(
     )
   }
 
-  const auditSql = await readAuditReplaySql(metaDb, resourceReleaseId)
-
   const rows: Record<string, SqlValue>[] = []
 
   for (let index = 0; index < state.statsRows.length; index += DIVISION_BATCH_SIZE) {
@@ -298,7 +296,6 @@ ON CONFLICT(id) DO UPDATE SET
         suffix: `ON CONFLICT(snapshotId, dataShardId) DO NOTHING`,
       },
     ),
-    ...auditSql,
     `DELETE FROM stats WHERE resourceReleaseId = ${sqlLiteral(resourceReleaseId)} AND category != 'processing';`,
     ...buildInsertStatements(
       'stats',
@@ -327,5 +324,4 @@ ON CONFLICT(id) DO UPDATE SET
     statements,
   )
 }
-import { readAuditReplaySql } from '@repo/core/pipeline/db/processingActionReplay'
 import { readSnapshotAssemblySql } from '@repo/core/pipeline/db/snapshotAssembly'

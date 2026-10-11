@@ -1,8 +1,13 @@
 import { createDivisionPointGuard } from '@repo/core/pipeline/services/divisions/divisionPoint'
+import { loadLandsdSourceStats } from '@repo/core/pipeline/services/sources/landsdSourceStats'
+import { buildSaanseoiDivisionSourceStats } from '@repo/core/pipeline/services/sources/saanseoiDivisionSourceStats'
 import { buildSourceChurnCounts } from '@repo/core/pipeline/services/sources/sourceChurn'
-import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
+import {
+  overtureSourcePayload,
+  saanseoiSourcePayload,
+  nativeSourcePayloadHashInput,
+} from '@repo/core/pipeline/services/sources/sourcePayload'
 import { recordContent } from '@repo/core/pipeline/services/sources/recordContent'
-import { buildGeographicHierarchyProcessingActions } from '@repo/core/pipeline/services/divisions/geographicHierarchyPatch.ts'
 import { assertPublishedSnapshotMaterialised } from '@repo/core/pipeline/services/publication/execute.ts'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { landsdPlaceNameResolutions } from '@repo/core/pipeline/db/landsdPlaceNameSources'
@@ -15,7 +20,7 @@ import {
 } from '@repo/core/pipeline/services/metrics/releaseStats'
 import { metaDivisionCodes } from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import { createDivisionBranchCounts } from '@repo/core/pipeline/services/divisions/division'
 import type { DivisionVersionSnapshot } from '@repo/core/pipeline/db/division'
 import {
@@ -42,7 +47,6 @@ import {
   resolveDistrictId,
 } from '@repo/core/pipeline/services/divisions/division'
 import { readDivisionRowsWithFixtures } from '@repo/core/pipeline/services/divisions/divisionFixtures'
-import { applyDivisionExclusionPatch } from '@repo/core/pipeline/services/divisions/divisionExclusionPatch'
 import {
   buildChurnCounts,
   buildChurnStatsRows,
@@ -69,16 +73,6 @@ import {
   resolveDivisionNameTranslations,
 } from './processLocalDivisionSqlUploadTranslations.ts'
 import { DIVISION_BATCH_SIZE } from './processLocalDivisionSqlUploadConfig.ts'
-
-function isCuratedIslandRow(row: Record<string, unknown>) {
-  const identifiers = row.identifiers
-  return Boolean(
-    identifiers &&
-      typeof identifiers === 'object' &&
-      !Array.isArray(identifiers) &&
-      'saanseoiIsland' in identifiers,
-  )
-}
 
 export async function assertDivisionCurrentSnapshotComplete(
   currentDb: Awaited<ReturnType<typeof resolveLocalAddressDbContext>>['currentDb'],
@@ -249,7 +243,6 @@ export async function buildDivisionSqlState(
     processingActions.push(...fixtureActions)
     for (const row of batch) {
       const raw = row as Record<string, unknown>
-      const exclusion = applyDivisionExclusionPatch(raw, message)
       const normalised = normaliseDivisionRow(raw, {
         nativeSourceEvidence: message.source === 'overture' && !isSupplemental,
         deferHierarchyGuard: replacedDivisionIds.has(String(raw.id)),
@@ -258,23 +251,14 @@ export async function buildDivisionSqlState(
         branchCounts,
         hierarchyGuard,
         pointGuard,
-        skipGeographicHierarchyPatch: isCuratedIslandRow(raw),
       })
-      if (!exclusion && normalised.overtureHongKongDivisionClassificationCorrection)
+      if (normalised.overtureHongKongDivisionClassificationCorrection)
         processingActions.push(
           ...buildOvertureHongKongDivisionClassificationProcessingActions(
             normalised.base.id,
           ),
         )
-      if (!exclusion)
-        processingActions.push(
-          ...buildGeographicHierarchyProcessingActions(
-            normalised.base.id,
-            message,
-            normalised.i18n.flatMap(row => (row.name ? [row.name] : [])),
-          ),
-        )
-      if (!exclusion && normalised.overtureHongKongAreaHierarchyAssignment) {
+      if (normalised.overtureHongKongAreaHierarchyAssignment) {
         const { code } = normalised.overtureHongKongAreaHierarchyAssignment
         hongKongAreaHierarchyAssignmentCounts.set(
           code,
@@ -289,22 +273,20 @@ export async function buildDivisionSqlState(
         })
       }
       const resolvedI18n = translationsByDivisionId.get(normalised.base.id)
-      if (!exclusion && !resolvedI18n) {
+      if (!resolvedI18n) {
         throw new Error(
           `Missing source-release i18n result for ${sourceRelease}/${normalised.base.id}.`,
         )
       }
-      const canonicalI18n = exclusion
-        ? buildCanonicalDivisionApiI18n(normalised.i18n, branchCounts)
-        : buildCanonicalDivisionApiI18n(
-            mergeDivisionI18nTranslations(
-              normalised.i18n,
-              resolvedI18n!.localisations,
-              resolvedI18n!.applications,
-            ),
-            branchCounts,
-          )
-      if (!exclusion && message.source === 'overture') {
+      const canonicalI18n = buildCanonicalDivisionApiI18n(
+        mergeDivisionI18nTranslations(
+          normalised.i18n,
+          resolvedI18n!.localisations,
+          resolvedI18n!.applications,
+        ),
+        branchCounts,
+      )
+      if (message.source === 'overture') {
         processingActions.push(
           ...buildOvertureDivisionLocaleProcessingActions({
             canonicalI18n,
@@ -314,22 +296,25 @@ export async function buildDivisionSqlState(
           }),
         )
       }
-      if (!exclusion)
-        processingActions.push(
-          ...buildDivisionTranslationProcessingActions({
-            division: normalised.base,
-            rawNames: normalised.i18n.map(row => row.name),
-            translations: resolvedI18n!.applications,
-            parents: divisionAuditParents(normalised.base.hierarchies),
-          }),
-        )
+      processingActions.push(
+        ...buildDivisionTranslationProcessingActions({
+          division: normalised.base,
+          rawNames: normalised.i18n.map(row => row.name),
+          translations: resolvedI18n!.applications,
+          parents: divisionAuditParents(normalised.base.hierarchies),
+        }),
+      )
       const storedCanonicalI18n = normaliseDivisionI18nForStorage(canonicalI18n)
       const versionHash = await createHash(buildDivisionBaseHashInput(normalised.base))
       const churnHash = await createHash({
         base: buildDivisionBaseHashInput(normalised.base),
         i18n: storedCanonicalI18n,
       })
-      const sourcePayloadHash = await createHash(recordContent(raw))
+      const sourcePayloadHash = await createHash(
+        message.source === 'saanseoi'
+          ? nativeSourcePayloadHashInput(saanseoiSourcePayload(raw))
+          : recordContent(raw),
+      )
       const current = currentRows.get(normalised.base.id)
       const currentChanged = current?.churnHash !== churnHash
       const baseChanged = current?.versionHash !== versionHash
@@ -357,35 +342,6 @@ export async function buildDivisionSqlState(
         sourceChangedRows += 1
       } else if (currentSource && !isSupplemental) {
         sourceUnchangedRows += 1
-      }
-
-      if (exclusion) {
-        processingActions.push({
-          action: exclusion.id,
-          affectedRecordCount: 1,
-          evidence: {
-            divisionId: normalised.base.id,
-            sourceNames: JSON.parse(JSON.stringify(raw.names ?? null)),
-          },
-          mode: 'manual',
-          summary: 'Excluded reviewed Overture division from canonical records.',
-        })
-        records.push({
-          base: normalised.base,
-          baseChanged: false,
-          canonicalI18n: storedCanonicalI18n,
-          currentChanged: false,
-          currentExists: Boolean(current),
-          id: normalised.base.id,
-          i18nVersionHash,
-          isSupplemental,
-          omitCanonical: true,
-          raw,
-          sourceChanged,
-          sourcePayloadHash,
-          versionHash,
-        })
-        continue
       }
 
       processedRows += 1
@@ -482,12 +438,20 @@ export async function buildDivisionSqlState(
     },
   )
 
-  const statsRows = [
-    ...buildLocaleStatsRows(statsAccumulator),
-    ...buildDistrictDistributionStatsRows(districtCounts),
-    ...buildChurnStatsRows(
-      message.source === 'overture'
-        ? buildSourceChurnCounts(
+  const classCounts = new Map<string, number>()
+  for (const record of processedRowsById.values())
+    classCounts.set(record.type, (classCounts.get(record.type) ?? 0) + 1)
+  const statsRows =
+    message.source === 'saanseoi'
+      ? [
+          ...buildLocaleStatsRows(statsAccumulator),
+          ...buildQualityStatsRows(
+            buildQualityCounts(previousRows, processedRowsById, {
+              hasLocaleRegression,
+              hasNameRegression,
+            }),
+          ),
+          ...buildSaanseoiDivisionSourceStats(
             new Map(
               [...currentSourceRows].map(([id, row]) => [
                 id,
@@ -508,19 +472,70 @@ export async function buildDivisionSqlState(
                         sourceGeometry: currentSourceRows.get(record.id)!
                           .sourceGeometry,
                       }
-                    : overtureSourcePayload(record.raw),
+                    : saanseoiSourcePayload(record.raw),
                 ]),
             ),
+          ),
+        ]
+      : message.source === 'hkgov-landsd'
+        ? await loadLandsdSourceStats(
+            sourceDatabases,
+            metaDb as unknown as HarbourReadableDb,
+            message.resourceReleaseId ?? message.datasetId,
+            message.sourceVersion,
           )
-        : buildChurnCounts(previousRows, processedRowsById),
-    ),
-    ...buildQualityStatsRows(
-      buildQualityCounts(previousRows, processedRowsById, {
-        hasLocaleRegression,
-        hasNameRegression,
-      }),
-    ),
-  ]
+        : [
+            ...buildLocaleStatsRows(statsAccumulator),
+            ...buildDistrictDistributionStatsRows(districtCounts),
+            ...[...classCounts]
+              .sort(([left], [right]) => left.localeCompare(right))
+              .map(([type, value]) => ({
+                category: 'records',
+                measure: 'count',
+                unit: 'count',
+                value,
+                dimension: 'type',
+                dimensionValue: type,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              })),
+            ...buildChurnStatsRows(
+              message.source === 'overture'
+                ? buildSourceChurnCounts(
+                    new Map(
+                      [...currentSourceRows].map(([id, row]) => [
+                        id,
+                        {
+                          properties: row.properties,
+                          sourceGeometry: row.sourceGeometry,
+                        },
+                      ]),
+                    ),
+                    new Map(
+                      records
+                        .filter(record => !record.isSupplemental)
+                        .map(record => [
+                          record.id,
+                          !record.sourceChanged && currentSourceRows.has(record.id)
+                            ? {
+                                properties: currentSourceRows.get(record.id)!
+                                  .properties,
+                                sourceGeometry: currentSourceRows.get(record.id)!
+                                  .sourceGeometry,
+                              }
+                            : overtureSourcePayload(record.raw),
+                        ]),
+                    ),
+                  )
+                : buildChurnCounts(previousRows, processedRowsById),
+            ),
+            ...buildQualityStatsRows(
+              buildQualityCounts(previousRows, processedRowsById, {
+                hasLocaleRegression,
+                hasNameRegression,
+              }),
+            ),
+          ]
   processingActions.push(
     ...buildOvertureHongKongAreaHierarchyProcessingActions(
       hongKongAreaHierarchyAssignmentCounts,

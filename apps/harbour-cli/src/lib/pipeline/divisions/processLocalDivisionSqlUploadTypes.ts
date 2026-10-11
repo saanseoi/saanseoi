@@ -2,7 +2,7 @@ import type { ReleaseScopedStatsRow } from '@repo/db/metaSchema'
 import type { NewSourceResolution } from '@repo/db/historySchema'
 import type { DivisionI18nPayload, NewDivisionRow } from '@repo/db/currentSchema'
 import type { CurrentSourceRecord } from '@repo/core/pipeline/db/source'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import type { DivisionVersionSnapshot } from '@repo/core/pipeline/db/division'
 import type { SqlImportTargetContext } from '../local/sqlImport.ts'
 
@@ -19,7 +19,7 @@ export type UploadPlan = {
   regionCode: 'hk' | 'mo'
   releaseCode: string
   rowCount: number
-  source: 'hkgov-censtatd' | 'hkgov-landsd' | 'overture'
+  source: 'hkgov-censtatd' | 'hkgov-landsd' | 'overture' | 'saanseoi'
   sourceVersion: string
   theme: 'divisions'
   resourceType: 'division'
