@@ -49,6 +49,7 @@ export async function writeGeometryRows(
   resourceType: GeometryUploadPlan['resourceType'],
   rows: Array<NonNullable<NormalisedGeometry>>,
   version: {
+    datasetCode?: string
     publisherRows?: Array<NonNullable<NormalisedGeometry>>
     source: GeometryUploadPlan['source']
     variant: string
@@ -86,7 +87,7 @@ export async function writeGeometryRows(
         : version.source === 'hkgov-had'
           ? sourceSchema.sourceHkgovHadDivisionAreas
           : version.source === 'hkgov-censtatd'
-            ? sourceSchema.sourceHkgovCenstatdDivisionAreas
+            ? sourceSchema.sourceHkgovCenstatdFeatures
             : sourceSchema.sourceOvertureDivisionAreas
       : sourceSchema.sourceOvertureDivisionBoundaries
   const publicationTable =
@@ -126,20 +127,6 @@ export async function writeGeometryRows(
   const isDisplayDerivative = version.transform === 'simplified'
   const isCenstatdDerivative =
     version.source === 'hkgov-censtatd' && isDisplayDerivative
-  // Statistics archive geometries are already retained in
-  // hkgovCenstatdStatistics; do not duplicate Area/HMA assertions in the
-  // district-boundary source table.
-  const isCenstatdStatisticGeometry =
-    version.source === 'hkgov-censtatd' &&
-    rows.some(
-      row =>
-        !(
-          row.source.properties &&
-          typeof row.source.properties === 'object' &&
-          !Array.isArray(row.source.properties) &&
-          'dcClass' in row.source.properties
-        ),
-    )
   onProgress?.(
     version.skipCanonicalMaterialisation
       ? 'retain verified geometry snapshot'
@@ -158,17 +145,12 @@ export async function writeGeometryRows(
   }
   for (const row of publisherRows) {
     if (
-      !isCenstatdStatisticGeometry &&
       version.source !== 'hkgov-pland-pu' &&
       version.source !== 'hkgov-pland-new-town'
     ) {
       sourceHashes.set(
         row.source.sourceRecordId,
-        await hashGeometrySourceAssertion(
-          row.source,
-          version.source,
-          version.cohortKey,
-        ),
+        await hashGeometrySourceAssertion(row.source, version.source),
       )
     }
   }
@@ -274,7 +256,7 @@ export async function writeGeometryRows(
         .where(
           and(
             eq(sourceTable.isCurrent, true),
-            lte(sourceTable.validFromRelease, version.sourceVersion),
+            geometrySourceScope(sourceTable, version),
           ),
         )
         .all()
@@ -288,7 +270,6 @@ export async function writeGeometryRows(
   onProgress?.('close source rows')
   if (
     !isDisplayDerivative &&
-    !isCenstatdStatisticGeometry &&
     version.source !== 'hkgov-pland-pu' &&
     version.source !== 'hkgov-pland-new-town'
   ) {
@@ -299,6 +280,7 @@ export async function writeGeometryRows(
       sourceHashes,
       { isCurrent: false, validToRelease: version.sourceVersion },
       geometrySourceScope(sourceTable, version),
+      version.source === 'hkgov-censtatd',
     )
   }
   onProgress?.('build write batches')
@@ -407,7 +389,6 @@ export async function writeGeometryRows(
   const historyRows = [...historyRowsById.values()]
   const sourceRows =
     isDisplayDerivative ||
-    isCenstatdStatisticGeometry ||
     version.source === 'hkgov-pland-pu' ||
     version.source === 'hkgov-pland-new-town'
       ? []
@@ -423,7 +404,11 @@ export async function writeGeometryRows(
                   }
                 : version.source === 'hkgov-censtatd'
                   ? {
-                      censusYear: version.cohortKey,
+                      datasetCode: requireString(
+                        version.datasetCode,
+                        'C&SD datasetCode',
+                      ),
+                      sourceLocator: row.source.sourceLocator ?? null,
                       sourceGeometry: compressJsonBrotli(sourceGeometry),
                     }
                   : {
@@ -509,14 +494,30 @@ export async function writeGeometryRows(
   if (sourceRows.length) {
     let writtenSourceRows = 0
     onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
-    for (const chunk of chunkRows(sourceRows)) {
+    for (const chunk of chunkRows(
+      sourceRows,
+      version.source === 'hkgov-censtatd'
+        ? Math.floor(
+            96 /
+              Object.keys(getTableColumns(sourceSchema.sourceHkgovCenstatdFeatures))
+                .length,
+          )
+        : 32,
+    )) {
       const insert = context.sourceDb.insert(sourceTable).values(chunk as never)
       if (periodSource) {
         await insert.onConflictDoNothing().run()
       } else
         await insert
           .onConflictDoUpdate({
-            target: [sourceTable.sourceRecordId, sourceTable.versionHash],
+            target:
+              version.source === 'hkgov-censtatd'
+                ? [
+                    sourceSchema.sourceHkgovCenstatdFeatures.datasetCode,
+                    sourceTable.sourceRecordId,
+                    sourceTable.versionHash,
+                  ]
+                : [sourceTable.sourceRecordId, sourceTable.versionHash],
             setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
             set: {
               resourceReleaseId: version.resourceReleaseId,
@@ -530,7 +531,25 @@ export async function writeGeometryRows(
       onProgress?.('write source rows', writtenSourceRows, sourceRows.length)
     }
   }
-  if (isCenstatdDerivative && !isCenstatdStatisticGeometry) {
+  if (version.source === 'hkgov-censtatd' && !isDisplayDerivative) {
+    const memberships = sourceSchema.sourceHkgovCenstatdFeatureReleases
+    for (const chunk of chunkRows(
+      publisherRows.map(row => ({
+        datasetCode: requireString(version.datasetCode, 'C&SD datasetCode'),
+        resourceReleaseId: version.resourceReleaseId,
+        sourceRecordId: row.source.sourceRecordId,
+        versionHash: requireGeometryHash(sourceHashes, row.source.sourceRecordId),
+      })),
+      Math.floor(96 / Object.keys(getTableColumns(memberships)).length),
+    )) {
+      await context.sourceDb
+        .insert(memberships)
+        .values(chunk)
+        .onConflictDoNothing()
+        .run()
+    }
+  }
+  if (isCenstatdDerivative) {
     await writeCenstatdSourceDerivatives(
       context.sourceDb as unknown as HarbourReadableDb & HarbourWritableDb,
       rows,
@@ -576,7 +595,6 @@ function requireMaterialisedGeometry(
 function hashGeometrySourceAssertion(
   row: NonNullable<NormalisedGeometry>['source'],
   source: GeometryUploadPlan['source'],
-  cohortKey: string,
 ) {
   if (source === 'overture') return hashDivisionGeometrySourceRow(row)
   return hashDivisionGeometrySourceRow({
@@ -584,7 +602,6 @@ function hashGeometrySourceAssertion(
       properties: row.properties,
       sourceGeometry: row.sourceGeometry,
     }),
-    ...(source === 'hkgov-censtatd' ? { censusYear: cohortKey } : {}),
   })
 }
 
@@ -592,6 +609,7 @@ async function writeCenstatdSourceDerivatives(
   db: HarbourReadableDb & HarbourWritableDb,
   rows: Array<NonNullable<NormalisedGeometry>>,
   version: {
+    datasetCode?: string
     cohortKey: string
     resourceReleaseId: string
     sourceVersion: string
@@ -605,26 +623,33 @@ async function writeCenstatdSourceDerivatives(
     throw new Error('C&SD derivative write requires a named transform.')
   }
 
-  const sources = sourceSchema.sourceHkgovCenstatdDivisionAreas
+  const sources = sourceSchema.sourceHkgovCenstatdFeatures
   const derivatives = sourceSchema.sourceHkgovCenstatdDivisionAreaDerivatives
   const exactRows = await db
     .select({
-      censusYear: sources.censusYear,
       sourceRecordId: sources.sourceRecordId,
       versionHash: sources.versionHash,
     })
     .from(sources)
-    .where(eq(sources.isCurrent, true))
+    .where(
+      and(
+        eq(sources.datasetCode, requireString(version.datasetCode, 'C&SD datasetCode')),
+      ),
+    )
     .all()
   const exactHashByRecordAndCohort = new Map(
-    exactRows.map(row => [`${row.sourceRecordId}:${row.censusYear}`, row.versionHash]),
+    exactRows.map(row => [`${row.sourceRecordId}:${row.versionHash}`, row.versionHash]),
   )
   const nextHashes = new Map<string, string>()
   const derivativeRows = await Promise.all(
     rows.map(async row => {
       const censusYear = version.cohortKey
+      const expectedInputHash = await hashGeometrySourceAssertion(
+        row.source,
+        'hkgov-censtatd',
+      )
       const inputVersionHash = exactHashByRecordAndCohort.get(
-        `${row.source.sourceRecordId}:${censusYear}`,
+        `${row.source.sourceRecordId}:${expectedInputHash}`,
       )
       if (!inputVersionHash) {
         throw new Error(
@@ -640,6 +665,7 @@ async function writeCenstatdSourceDerivatives(
       const versionHash = requireGeometryHash(historyHashes, row.canonical.id)
       nextHashes.set(`${row.source.sourceRecordId}:${inputVersionHash}`, versionHash)
       return {
+        datasetCode: requireString(version.datasetCode, 'C&SD datasetCode'),
         sourceRecordId: row.source.sourceRecordId,
         inputVersionHash,
         transform,
@@ -664,7 +690,16 @@ async function writeCenstatdSourceDerivatives(
       versionHash: derivatives.versionHash,
     })
     .from(derivatives)
-    .where(and(eq(derivatives.isCurrent, true), eq(derivatives.transform, transform)))
+    .where(
+      and(
+        eq(derivatives.isCurrent, true),
+        eq(derivatives.transform, transform),
+        eq(
+          derivatives.datasetCode,
+          requireString(version.datasetCode, 'C&SD datasetCode'),
+        ),
+      ),
+    )
     .all()
   for (const derivative of currentDerivatives) {
     const key = `${derivative.sourceRecordId}:${derivative.inputVersionHash}`
@@ -678,6 +713,10 @@ async function writeCenstatdSourceDerivatives(
       .set({ isCurrent: false, validToRelease: version.sourceVersion })
       .where(
         and(
+          eq(
+            derivatives.datasetCode,
+            requireString(version.datasetCode, 'C&SD datasetCode'),
+          ),
           eq(derivatives.sourceRecordId, derivative.sourceRecordId),
           eq(derivatives.inputVersionHash, derivative.inputVersionHash),
           eq(derivatives.transform, transform),
@@ -687,12 +726,16 @@ async function writeCenstatdSourceDerivatives(
       )
       .run()
   }
-  for (const chunk of chunkRows(derivativeRows)) {
+  for (const chunk of chunkRows(
+    derivativeRows,
+    Math.floor(96 / Object.keys(getTableColumns(derivatives)).length),
+  )) {
     await db
       .insert(derivatives)
       .values(chunk)
       .onConflictDoUpdate({
         target: [
+          derivatives.datasetCode,
           derivatives.sourceRecordId,
           derivatives.inputVersionHash,
           derivatives.transform,
@@ -728,6 +771,7 @@ async function closeChangedRows(
   currentHashes: Map<string, string>,
   values: Record<string, unknown>,
   scope: ReturnType<typeof and>,
+  retainUnrepresented = false,
 ) {
   const typedDb = db as unknown as HarbourReadableDb & HarbourWritableDb
   const existing = await typedDb
@@ -739,12 +783,14 @@ async function closeChangedRows(
   for (const row of existing) {
     const id = requireString(row.id, 'current row id')
     const versionHash = requireString(row.versionHash, 'current row versionHash')
+    if (retainUnrepresented && !currentHashes.has(id)) continue
     if (currentHashes.get(id) === versionHash) continue
     await typedDb
       .update(table)
       .set(values)
       .where(
         and(
+          scope,
           eq(idColumn, id),
           eq(table.versionHash, versionHash),
           eq(table.isCurrent, true),
@@ -759,10 +805,11 @@ async function closeChangedRows(
 function geometrySourceScope(
   table: {
     validFromRelease: AnySQLiteColumn
-    censusYear?: AnySQLiteColumn
+    datasetCode?: AnySQLiteColumn
   },
   version: {
     source: GeometryUploadPlan['source']
+    datasetCode?: string
     cohortKey: string
     sourceVersion: string
   },
@@ -770,7 +817,10 @@ function geometrySourceScope(
   const beforeOrAtRelease = lte(table.validFromRelease, version.sourceVersion)
   if (version.source !== 'hkgov-censtatd') return beforeOrAtRelease
 
-  if (!table.censusYear)
-    throw new Error('C&SD geometry source table has no census-year column.')
-  return and(beforeOrAtRelease, eq(table.censusYear, version.cohortKey))
+  if (!table.datasetCode)
+    throw new Error('C&SD geometry source table has no dataset column.')
+  return and(
+    beforeOrAtRelease,
+    eq(table.datasetCode, requireString(version.datasetCode, 'C&SD datasetCode')),
+  )
 }

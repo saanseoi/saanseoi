@@ -19,10 +19,7 @@ test('Statistics migrations retain publisher payloads and canonical reference pe
       'referencePeriodGranularity',
       'referencePeriodEndYear',
     ]
-    for (const table of [
-      'hkgovCenstatdDistrictLandAreaPopulationDensities',
-      'hkgovCenstatdStatistics',
-    ]) {
+    for (const table of ['hkgovCenstatdFeatures']) {
       const columns = (
         sqlite.query(`PRAGMA table_info("${table}")`).all() as Array<{ name: string }>
       ).map(column => column.name)
@@ -35,8 +32,8 @@ test('Statistics migrations retain publisher payloads and canonical reference pe
         Population: 123,
       })
       sqlite
-        .query(`INSERT INTO "${table}" (sourceRecordId, versionHash, resourceReleaseId, validFromRelease, isCurrent, properties, sourceGeometry)
-        VALUES ('record', 'hash', 'release', '2021', 1, ?, 'null')`)
+        .query(`INSERT INTO "${table}" (datasetCode, sourceRecordId, versionHash, resourceReleaseId, validFromRelease, isCurrent, properties, sourceGeometry)
+        VALUES ('dataset', 'record', 'hash', 'release', '2021', 1, ?, 'null')`)
         .run(payload)
       expect(sqlite.query(`SELECT properties FROM "${table}"`).get()).toEqual({
         properties: payload,

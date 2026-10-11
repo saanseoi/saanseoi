@@ -263,7 +263,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
             delivery('statistics-source-preparation'),
           ),
           inputs: {
-            contract: 'censtatd-district-source-v4',
+            contract: 'censtatd-features-district-source-v1',
             preparedSha256,
             resourceReleaseId,
             releaseCode,
@@ -305,7 +305,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           : undefined,
         areaCompanionByReferencePeriod: dataset.areaCompanionByReferencePeriod,
         properties: object(row.properties, 'properties'),
-        sourceFeatureRef: `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/Density:${row.districtCode}`,
+        sourceFeatureRef: `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/${row.sourceRecordId}`,
         sourceReleaseId: resourceReleaseId,
         sourceVersion: plan.sourceVersion,
       }
@@ -344,8 +344,8 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
         sourceVersion: plan.sourceVersion,
         resourceReleaseId,
         source: {
-          rows: sourceRows.map(row => sourceStatisticAssertion(row)),
-          table: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
+          rows: sourceRows.map(row => sourceStatisticAssertion(row, datasetCode)),
+          table: 'hkgovCenstatdFeatures',
         },
       })
     const referencePeriods = uniqueReferencePeriods(canonical.records)
@@ -389,7 +389,7 @@ export async function processLocalHkgovCenstatdDistrictStatisticSqlUpload(
           canonicalPlan.changedRecords,
           new Map(
             sourceRows.map(row => [
-              `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/Density:${row.districtCode}`,
+              `hkgov-censtatd/${plan.datasetCode}/${plan.sourceVersion}/${row.sourceRecordId}`,
               { sourceRecordId: row.sourceRecordId, versionHash: row.versionHash },
             ]),
           ),

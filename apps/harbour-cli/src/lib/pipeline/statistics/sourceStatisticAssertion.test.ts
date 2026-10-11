@@ -3,27 +3,30 @@ import { sourceStatisticAssertion } from './sourceStatisticAssertion.ts'
 
 test('source statistic persistence retains raw evidence without canonical preparation fields', () => {
   const properties = { DC: 1, MYPOPN_LAND: '12.3', DISTRICT_EN: 'District' }
-  const row = sourceStatisticAssertion({
-    sourceRecordId: 'district:1',
-    properties,
-    sourceGeometry: { type: 'Polygon', coordinates: [] },
-    sources: [{ dataset: 'hkgov-censtatd' }],
-    version: 1,
-    versionHash: 'hash',
-    resourceReleaseId: 'release',
-    validFromRelease: '2024',
-    validToRelease: null,
-    isCurrent: true,
-    createdAt: 'now',
-    updatedAt: 'now',
-    districtCode: 1,
-    districtEn: 'District',
-    midYearPopulation: 12300,
-    referencePeriodCode: '2024',
-    datasetCode: 'dataset',
-    layerName: 'layer',
-    featureId: '1',
-  })
+  const row = sourceStatisticAssertion(
+    {
+      sourceRecordId: 'district:1',
+      properties,
+      sourceGeometry: { type: 'Polygon', coordinates: [] },
+      sources: [{ dataset: 'hkgov-censtatd' }],
+      version: 1,
+      versionHash: 'hash',
+      resourceReleaseId: 'release',
+      validFromRelease: '2024',
+      validToRelease: null,
+      isCurrent: true,
+      createdAt: 'now',
+      updatedAt: 'now',
+      districtCode: 1,
+      districtEn: 'District',
+      midYearPopulation: 12300,
+      referencePeriodCode: '2024',
+      datasetCode: 'dataset',
+      layerName: 'layer',
+      featureId: '1',
+    },
+    'dataset',
+  )
   expect(row.properties).toEqual({
     dc: 1,
     mypopnLand: '12.3',
@@ -32,6 +35,7 @@ test('source statistic persistence retains raw evidence without canonical prepar
   expect(properties).toEqual({ DC: 1, MYPOPN_LAND: '12.3', DISTRICT_EN: 'District' })
   expect(Object.keys(row).sort()).toEqual([
     'createdAt',
+    'datasetCode',
     'isCurrent',
     'properties',
     'resourceReleaseId',

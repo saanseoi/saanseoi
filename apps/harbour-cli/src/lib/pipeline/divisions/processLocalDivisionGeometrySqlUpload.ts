@@ -671,6 +671,7 @@ export async function processLocalDivisionGeometrySqlUpload(
       previewPlan.resourceType,
       normalised,
       {
+        datasetCode,
         source: previewPlan.source,
         publisherRows,
         variant: geometryVariant(previewPlan),

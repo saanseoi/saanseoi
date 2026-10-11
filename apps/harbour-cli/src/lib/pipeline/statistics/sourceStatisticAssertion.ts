@@ -1,3 +1,4 @@
+import { compressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson'
 import { retainSourceProperties } from '@repo/core/pipeline/services/sources/retainedProperties'
 import { sourceLocatorFromReferences } from '@repo/core/pipeline/services/sources/sourcePayload'
 
@@ -16,14 +17,13 @@ export function sourceStatisticAssertion<
     createdAt: string
     updatedAt: string
   },
->(row: T, options: { retainSourceLocator?: boolean } = {}) {
+>(row: T, datasetCode: string) {
   return {
+    datasetCode,
     sourceRecordId: row.sourceRecordId,
     properties: retainSourceProperties(row.properties),
-    sourceGeometry: row.sourceGeometry,
-    ...(options.retainSourceLocator === false
-      ? {}
-      : { sourceLocator: sourceLocatorFromReferences(row.sources) }),
+    sourceGeometry: compressJsonBrotli(row.sourceGeometry),
+    sourceLocator: sourceLocatorFromReferences(row.sources),
     versionHash: row.versionHash,
     resourceReleaseId: row.resourceReleaseId,
     validFromRelease: row.validFromRelease,

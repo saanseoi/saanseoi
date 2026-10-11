@@ -97,6 +97,7 @@ export const CENSTATD_STATISTIC_PROFILES = {
 export type CenstatdStatisticDatasetCode = keyof typeof CENSTATD_STATISTIC_PROFILES
 
 type SourceRow = {
+  sourceRecordId: string
   featureId: string
   layerName: string
   properties: Record<string, unknown>
@@ -182,7 +183,7 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
     )
     if (!divisionId)
       throw new Error(`Unable to build division ID for ${geography.code}.`)
-    const sourceRecordId = `${layerName}:${sourceRow.featureId}`
+    const sourceRecordId = sourceRow.sourceRecordId
     const names = {
       common: {
         en: [geography.nameEn],
@@ -205,6 +206,8 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
         division_id: divisionId,
         geometry: feature.geometry,
         id: `CENSTATD:${geography.type}:${geography.code}`,
+        source_record_id: sourceRecordId,
+        source_assertion_geometry: sourceRow.sourceGeometry,
         source_geometry: feature.sourceGeometry,
         source_properties: sourceRow.properties,
         sources: provenance,
@@ -379,7 +382,7 @@ export function readHkgovCenstatdStatisticArchive(input: {
   }
   const ids = new Set<string>()
   for (const row of rows) {
-    const id = `${row.layerName}:${row.featureId}`
+    const id = row.sourceRecordId
     if (ids.has(id)) throw new Error(`CSDI archive has duplicate feature ${id}.`)
     ids.add(id)
   }
@@ -440,7 +443,7 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
         columnData: [
           strings(
             'id',
-            rows.map(row => `CENSTATD:${row.layerName}:${row.featureId}`),
+            rows.map(row => row.sourceRecordId),
           ),
           strings(
             'dataset_code',
@@ -485,7 +488,7 @@ export async function prepareHkgovCenstatdStatisticUpload(input: {
   return { rowCount: rows.length }
 }
 
-function parseCsdiGml(input: string, layerName: string): SourceRow[] {
+export function parseCsdiGml(input: string, layerName: string): SourceRow[] {
   const parsed = new XMLParser({
     attributeNamePrefix: '@_',
     ignoreAttributes: false,
@@ -518,8 +521,6 @@ function parseCsdiGml(input: string, layerName: string): SourceRow[] {
       feature['@_fid'] ??
       `${layerName}.${index + 1}`
     return {
-      // Preserve the publisher feature identity. The layer is added by the
-      // canonical observation as `<layerName>:<sourceFeatureRef>`.
       featureId: string(publisherFeatureId),
       layerName,
       properties,
@@ -534,11 +535,16 @@ function parseCsdiGml(input: string, layerName: string): SourceRow[] {
   // C&SD's DC_GHS layer reuses its `fid` value across many members. Keep that
   // publisher value, but qualify collisions by their deterministic member
   // ordinal so source records and canonical provenance remain unique.
-  return rows.map((row, index) =>
-    (featureIdCounts.get(row.featureId) ?? 0) > 1
-      ? { ...row, featureId: `${row.featureId}:${index + 1}` }
-      : row,
-  )
+  return rows.map((row, index) => ({
+    featureId:
+      (featureIdCounts.get(row.featureId) ?? 0) > 1
+        ? `${row.featureId}:${index + 1}`
+        : row.featureId,
+    layerName: row.layerName,
+    properties: row.properties,
+    sourceGeometry: row.sourceGeometry,
+    sourceRecordId: `CENSTATD:${row.layerName}:${(featureIdCounts.get(row.featureId) ?? 0) > 1 ? `${row.featureId}:${index + 1}` : row.featureId}`,
+  }))
 }
 
 function strings(name: string, values: string[]) {

@@ -360,6 +360,8 @@ describe('division geometry normalisation', () => {
         division_id: 'division-1',
         geometry: polygon,
         id: 'CENSTATD:A',
+        source_record_id: 'CENSTATD:A',
+        source_assertion_geometry: polygon,
         source_geometry: polygon,
         source_properties: {
           dc: 11,

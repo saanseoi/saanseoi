@@ -53,6 +53,9 @@ test('government area flags override missing publisher flags before geometry typ
         region: 'HK',
         class: 'invalid',
         geometry: polygon,
+        ...(source === 'hkgov-censtatd'
+          ? { source_record_id: 'CENSTATD:A', source_assertion_geometry: polygon }
+          : {}),
         source_geometry: polygon,
         newtown_id: 'town',
         source_cell_ids: ['cell'],
@@ -129,6 +132,9 @@ test('government geometry references follow native identity inputs independently
         id: 'area',
         division_id: 'division',
         geometry: polygon,
+        ...(entry.source === 'hkgov-censtatd'
+          ? { source_record_id: 'CENSTATD:A', source_assertion_geometry: polygon }
+          : {}),
         source_geometry: polygon,
         source_properties: {},
         ...entry.row,
@@ -159,6 +165,8 @@ test('HMA fixture constants match the native government geometry output, includi
       division_id: 'division',
       class: 'land',
       geometry: polygon,
+      source_record_id: 'CENSTATD:A',
+      source_assertion_geometry: polygon,
       source_geometry: polygon,
       source_properties: { hma: 'HMA001' },
       sources: [{ sourceRecordId: 'HMA_21C:1' }],

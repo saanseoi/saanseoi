@@ -407,14 +407,22 @@ function sourcePropertiesReader(dbs: Database[], snapshot: Snapshot) {
       throw new Error(
         `Unrecognised retained source feature reference: ${sourceFeatureRef}.`,
       )
-    const sourceRecordId = `CENSTATD:${sourceFeatureRef.slice(prefix.length)}`
-    const boundary = snapshot.sourceVersion
+    const sourceRecordId = sourceFeatureRef.slice(prefix.length)
     const properties = dbs.flatMap(
       db =>
         db
-          .query(`SELECT properties FROM hkgovCenstatdStatistics
-      WHERE sourceRecordId = ? AND (resourceReleaseId = ? OR (validFromRelease <= ? AND (validToRelease IS NULL OR validToRelease > ?)))`)
-          .all(sourceRecordId, snapshot.sourceReleaseId, boundary, boundary) as Array<{
+          .query(`SELECT feature.properties FROM hkgovCenstatdFeatures AS feature
+      WHERE feature.datasetCode = ? AND feature.sourceRecordId = ?
+      AND EXISTS (SELECT 1 FROM hkgovCenstatdFeatureReleases AS membership
+        WHERE membership.datasetCode = feature.datasetCode
+          AND membership.sourceRecordId = feature.sourceRecordId
+          AND membership.versionHash = feature.versionHash
+          AND membership.resourceReleaseId = ?)`)
+          .all(
+            snapshot.datasetCode,
+            sourceRecordId,
+            snapshot.sourceReleaseId,
+          ) as Array<{
           properties: string
         }>,
     )

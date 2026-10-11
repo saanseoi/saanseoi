@@ -49,16 +49,11 @@ const sources = {
     'overtureDivisionAreas',
     'overtureDivisionBoundaries',
     'hkgovHadDivisionAreas',
-    'hkgovCenstatdDivisionAreas',
+    'hkgovCenstatdFeatureReleases',
+    'hkgovCenstatdFeatures',
     'hkgovCenstatdDivisionAreaDerivatives',
   ],
-  statistics: [
-    'hkgovCenstatdStatistics',
-    'hkgovCenstatdDistrictLandAreaPopulationDensities',
-    // Subdivided Units is ingested by the Statistics workflow but retains its
-    // native district geometry in the shared C&SD district-area source table.
-    'hkgovCenstatdDivisionAreas',
-  ],
+  statistics: ['hkgovCenstatdFeatureReleases', 'hkgovCenstatdFeatures'],
 }
 
 /** Adapters own these tables; publication and search transitions have separate writers. */

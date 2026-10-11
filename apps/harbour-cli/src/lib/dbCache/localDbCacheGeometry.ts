@@ -30,7 +30,7 @@ export function resolveBinaryGeometryColumn(tableName: string) {
     case 'divisionBoundaries':
     case 'hkgovCenstatdDivisionAreaDerivatives':
       return 'geometry'
-    case 'hkgovCenstatdDivisionAreas':
+    case 'hkgovCenstatdFeatures':
       return 'sourceGeometry'
     default:
       return null

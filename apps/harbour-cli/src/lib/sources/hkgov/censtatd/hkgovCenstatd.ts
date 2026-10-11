@@ -1,3 +1,4 @@
+import { parseCsdiGml } from './hkgovCenstatdStatistics'
 import { requireDefined } from '@repo/core/requireDefined'
 import { readFile, writeFile } from 'node:fs/promises'
 import { basename, join, resolve } from 'node:path'
@@ -117,6 +118,8 @@ type PreparedDistrictRow = {
   district_code: number
   geometry: GeoJsonGeometry
   id: string
+  source_record_id: string
+  source_assertion_geometry: unknown
   source_geometry: GeoJsonGeometry
   source_properties: Record<string, unknown>
   sources: Array<Record<string, string | number>>
@@ -148,7 +151,10 @@ export async function prepareHkgovCenstatdDistrictUpload(
     throw new Error('C&SD district input must be a GML 3.2 WFS FeatureCollection.')
   }
   const cohortKey = options.cohortKey ?? sourceVersion
-  const sourceFeatures = parseHkgovCenstatdDistrictGml(input, profile.layerName)
+  const assertions = parseCsdiGml(input, profile.layerName)
+  const sourceFeatures = parseHkgovCenstatdDistrictGml(input, profile.layerName).map(
+    (feature, index) => ({ ...feature, assertion: assertions[index]! }),
+  )
   const referencePeriodField = profile.referencePeriodField
   const features = referencePeriodField
     ? sourceFeatures.filter(
@@ -219,6 +225,16 @@ export async function prepareHkgovCenstatdDistrictUpload(
       stringColumn(
         'census_year',
         rows.map(row => row.census_year),
+        false,
+      ),
+      stringColumn(
+        'source_record_id',
+        rows.map(row => row.source_record_id),
+        false,
+      ),
+      jsonColumn(
+        'source_assertion_geometry',
+        rows.map(row => row.source_assertion_geometry),
         false,
       ),
       jsonColumn(
@@ -313,6 +329,11 @@ function normaliseCsdIDistrictFeature(
   if (!properties) {
     throw new Error(`C&SD district feature ${index + 1} has no properties.`)
   }
+  const assertion = (
+    value as CsdIFeature & { assertion: ReturnType<typeof parseCsdiGml>[number] }
+  ).assertion
+  if (!assertion)
+    throw new Error('C&SD district feature requires its native assertion.')
   const districtClass = optionalString(properties.dc_class ?? properties.DC_CLASS)
   const districtCode = requireInteger(properties.dc ?? properties.DC, 'DC', index)
 
@@ -323,8 +344,10 @@ function normaliseCsdIDistrictFeature(
     district_code: districtCode,
     geometry,
     id: `CENSTATD:${districtClass || districtCode}`,
+    source_record_id: assertion.sourceRecordId,
+    source_assertion_geometry: assertion.sourceGeometry,
     source_geometry: sourceGeometry,
-    source_properties: properties as Record<string, unknown>,
+    source_properties: assertion.properties,
     sources: [
       {
         dataset: HKGOV_CENSTATD_SOURCE,

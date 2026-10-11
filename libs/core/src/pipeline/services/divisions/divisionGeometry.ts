@@ -186,16 +186,24 @@ function normaliseDivisionAreaGeometry(
     },
     source: {
       properties: sourceProperties(row, source),
-      ...(source === 'hkgov-pland-pu'
+      ...(source === 'hkgov-pland-pu' || source === 'hkgov-censtatd'
         ? {
             sourceLocator: sourceLocatorFromReferences(
               normaliseSourceReferences(row.sources),
             ),
           }
         : {}),
-      sourceRecordId: source === 'hkgov-had' ? hadPublisherId(row) : id,
+      sourceRecordId:
+        source === 'hkgov-had'
+          ? hadPublisherId(row)
+          : source === 'hkgov-censtatd'
+            ? censtatdPublisherId(row)
+            : id,
       derivation: sourceDerivation(row, source),
-      sourceGeometry: sourceGeometry(row, source),
+      sourceGeometry:
+        source === 'hkgov-censtatd'
+          ? censtatdPublisherGeometry(row)
+          : sourceGeometry(row, source),
     },
   }
 }
@@ -252,15 +260,23 @@ function normaliseDivisionBoundaryGeometry(
     },
     source: {
       properties: sourceProperties(row, source),
-      ...(source === 'hkgov-pland-pu'
+      ...(source === 'hkgov-pland-pu' || source === 'hkgov-censtatd'
         ? {
             sourceLocator: sourceLocatorFromReferences(
               normaliseSourceReferences(row.sources),
             ),
           }
         : {}),
-      sourceRecordId: source === 'hkgov-had' ? hadPublisherId(row) : id,
-      sourceGeometry: sourceGeometry(row, source),
+      sourceRecordId:
+        source === 'hkgov-had'
+          ? hadPublisherId(row)
+          : source === 'hkgov-censtatd'
+            ? censtatdPublisherId(row)
+            : id,
+      sourceGeometry:
+        source === 'hkgov-censtatd'
+          ? censtatdPublisherGeometry(row)
+          : sourceGeometry(row, source),
     },
   }
 }
@@ -472,6 +488,23 @@ function sourceProperties(row: Record<string, unknown>, source: string) {
   return source === 'saanseoi'
     ? camelCaseJson(divisionIdentifierProperties(properties))
     : (retainSourceProperties(properties) as Record<string, unknown>)
+}
+
+function censtatdPublisherId(row: Record<string, unknown>) {
+  const id = asNonEmptyString(row.source_record_id)
+  if (!id)
+    throw new Error(
+      'C&SD geometry requires a native source_record_id; prepare the release again.',
+    )
+  return id
+}
+
+function censtatdPublisherGeometry(row: Record<string, unknown>) {
+  if (!Object.hasOwn(row, 'source_assertion_geometry'))
+    throw new Error(
+      'C&SD geometry requires native source_assertion_geometry; prepare the release again.',
+    )
+  return row.source_assertion_geometry
 }
 
 function sourceGeometry(row: Record<string, unknown>, source: string) {

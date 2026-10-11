@@ -261,21 +261,6 @@ CREATE TABLE `hkgovHadDivisionAreas` (
 	CONSTRAINT `hkgovHadDivisionAreas_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-CREATE TABLE `hkgovCenstatdDistrictLandAreaPopulationDensities` (
-	`sourceRecordId` text NOT NULL,
-	`properties` text,
-	`versionHash` text NOT NULL,
-	`resourceReleaseId` text NOT NULL,
-	`validFromRelease` text NOT NULL,
-	`validToRelease` text,
-	`isCurrent` integer NOT NULL,
-	`sourceGeometry` text NOT NULL,
-	`sourceLocator` text,
-	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `hkgovCenstatdDistrictLandAreaPopulationDensities_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
-);
---> statement-breakpoint
 CREATE TABLE `hkgovCenstatdDivisionAreaDerivatives` (
 	`sourceRecordId` text NOT NULL,
 	`versionHash` text NOT NULL,
@@ -283,6 +268,7 @@ CREATE TABLE `hkgovCenstatdDivisionAreaDerivatives` (
 	`validFromRelease` text NOT NULL,
 	`validToRelease` text,
 	`isCurrent` integer NOT NULL,
+	`datasetCode` text NOT NULL,
 	`inputVersionHash` text NOT NULL,
 	`transform` text NOT NULL,
 	`derivation` text NOT NULL,
@@ -290,25 +276,20 @@ CREATE TABLE `hkgovCenstatdDivisionAreaDerivatives` (
 	`bbox` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `hkgovCenstatdDivisionAreaDerivatives_pk` PRIMARY KEY(`sourceRecordId`, `inputVersionHash`, `transform`, `versionHash`)
+	CONSTRAINT `hkgovCenstatdDivisionAreaDerivatives_pk` PRIMARY KEY(`datasetCode`, `sourceRecordId`, `inputVersionHash`, `transform`, `versionHash`)
 );
 --> statement-breakpoint
-CREATE TABLE `hkgovCenstatdDivisionAreas` (
-	`sourceRecordId` text NOT NULL,
-	`properties` text,
-	`versionHash` text NOT NULL,
+CREATE TABLE `hkgovCenstatdFeatureReleases` (
+	`datasetCode` text NOT NULL,
 	`resourceReleaseId` text NOT NULL,
-	`validFromRelease` text NOT NULL,
-	`validToRelease` text,
-	`isCurrent` integer NOT NULL,
-	`sourceGeometry` text NOT NULL,
-	`censusYear` text NOT NULL,
+	`sourceRecordId` text NOT NULL,
+	`versionHash` text NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `hkgovCenstatdDivisionAreas_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
+	CONSTRAINT `hkgovCenstatdFeatureReleases_pk` PRIMARY KEY(`datasetCode`, `resourceReleaseId`, `sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
-CREATE TABLE `hkgovCenstatdStatistics` (
+CREATE TABLE `hkgovCenstatdFeatures` (
 	`sourceRecordId` text NOT NULL,
 	`properties` text,
 	`versionHash` text NOT NULL,
@@ -317,10 +298,11 @@ CREATE TABLE `hkgovCenstatdStatistics` (
 	`validToRelease` text,
 	`isCurrent` integer NOT NULL,
 	`sourceGeometry` text NOT NULL,
+	`datasetCode` text NOT NULL,
 	`sourceLocator` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `hkgovCenstatdStatistics_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
+	CONSTRAINT `hkgovCenstatdFeatures_pk` PRIMARY KEY(`datasetCode`, `sourceRecordId`, `versionHash`)
 );
 --> statement-breakpoint
 CREATE TABLE `hkgovPlandNewTowns` (
@@ -449,18 +431,13 @@ CREATE INDEX `hkgovTdPedestrianStreets_kind_idx` ON `hkgovTdPedestrianStreets` (
 CREATE INDEX `hkgovHadDivisionAreas_resourceReleaseId_idx` ON `hkgovHadDivisionAreas` (`resourceReleaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovHadDivisionAreas_open_records_idx` ON `hkgovHadDivisionAreas` (`sourceRecordId`) WHERE "hkgovHadDivisionAreas"."isCurrent" = 1;--> statement-breakpoint
 CREATE INDEX `hkgovHadDivisionAreas_release_validity_idx` ON `hkgovHadDivisionAreas` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
-CREATE INDEX `hkgovCenstatdDistrictLandAreaPopulationDensities_resourceReleaseId_idx` ON `hkgovCenstatdDistrictLandAreaPopulationDensities` (`resourceReleaseId`);--> statement-breakpoint
-CREATE INDEX `hkgovCenstatdDistrictLandAreaPopulationDensities_open_records_idx` ON `hkgovCenstatdDistrictLandAreaPopulationDensities` (`sourceRecordId`) WHERE "hkgovCenstatdDistrictLandAreaPopulationDensities"."isCurrent" = 1;--> statement-breakpoint
-CREATE INDEX `hkgovCenstatdDistrictLandAreaPopulationDensities_release_validity_idx` ON `hkgovCenstatdDistrictLandAreaPopulationDensities` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
 CREATE INDEX `hkgovCenstatdDivisionAreaDerivatives_resourceReleaseId_idx` ON `hkgovCenstatdDivisionAreaDerivatives` (`resourceReleaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovCenstatdDivisionAreaDerivatives_open_records_idx` ON `hkgovCenstatdDivisionAreaDerivatives` (`sourceRecordId`) WHERE "hkgovCenstatdDivisionAreaDerivatives"."isCurrent" = 1;--> statement-breakpoint
 CREATE INDEX `hkgovCenstatdDivisionAreaDerivatives_release_validity_idx` ON `hkgovCenstatdDivisionAreaDerivatives` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
-CREATE INDEX `hkgovCenstatdDivisionAreas_resourceReleaseId_idx` ON `hkgovCenstatdDivisionAreas` (`resourceReleaseId`);--> statement-breakpoint
-CREATE INDEX `hkgovCenstatdDivisionAreas_open_records_idx` ON `hkgovCenstatdDivisionAreas` (`sourceRecordId`) WHERE "hkgovCenstatdDivisionAreas"."isCurrent" = 1;--> statement-breakpoint
-CREATE INDEX `hkgovCenstatdDivisionAreas_release_validity_idx` ON `hkgovCenstatdDivisionAreas` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
-CREATE INDEX `hkgovCenstatdStatistics_resourceReleaseId_idx` ON `hkgovCenstatdStatistics` (`resourceReleaseId`);--> statement-breakpoint
-CREATE INDEX `hkgovCenstatdStatistics_open_records_idx` ON `hkgovCenstatdStatistics` (`sourceRecordId`) WHERE "hkgovCenstatdStatistics"."isCurrent" = 1;--> statement-breakpoint
-CREATE INDEX `hkgovCenstatdStatistics_release_validity_idx` ON `hkgovCenstatdStatistics` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
+CREATE INDEX `hkgovCenstatdFeatureReleases_resourceReleaseId_idx` ON `hkgovCenstatdFeatureReleases` (`resourceReleaseId`);--> statement-breakpoint
+CREATE INDEX `hkgovCenstatdFeatures_resourceReleaseId_idx` ON `hkgovCenstatdFeatures` (`resourceReleaseId`);--> statement-breakpoint
+CREATE INDEX `hkgovCenstatdFeatures_open_records_idx` ON `hkgovCenstatdFeatures` (`sourceRecordId`) WHERE "hkgovCenstatdFeatures"."isCurrent" = 1;--> statement-breakpoint
+CREATE INDEX `hkgovCenstatdFeatures_release_validity_idx` ON `hkgovCenstatdFeatures` (`validFromRelease`,`validToRelease`);--> statement-breakpoint
 CREATE INDEX `hkgovPlandNewTowns_resourceReleaseId_idx` ON `hkgovPlandNewTowns` (`resourceReleaseId`);--> statement-breakpoint
 CREATE INDEX `hkgovPlandNewTowns_open_records_idx` ON `hkgovPlandNewTowns` (`sourceRecordId`) WHERE "hkgovPlandNewTowns"."isCurrent" = 1;--> statement-breakpoint
 CREATE INDEX `hkgovPlandNewTowns_release_validity_idx` ON `hkgovPlandNewTowns` (`validFromRelease`,`validToRelease`);--> statement-breakpoint

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:bcaa01a30900cf4e0ddc2a274f13ab9c7297d198f7421ab3da659f0d9a2c2a7d",
+  "versionHash": "sha256:ee89d23a9d8344df30d0c21a71c078c5cb5c3159cb19cf7a450ad59f68e6768c",
   "code": "rs-source-ingestion-v1",
   "stage": "ingestion",
   "strategy": "ingestion",
@@ -18,82 +18,82 @@
       "targetFields": [
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceRecordId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "versionHash"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "resourceReleaseId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validFromRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validToRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "isCurrent"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceRecordId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "versionHash"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "resourceReleaseId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validFromRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validToRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "isCurrent"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceGeometry"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceGeometry"
         }
       ]
@@ -111,42 +111,42 @@
       "targetFields": [
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceRecordId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "collection": "hkgovCenstatdFeatures",
           "path": "versionHash"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "collection": "hkgovCenstatdFeatures",
           "path": "resourceReleaseId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validFromRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validToRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "collection": "hkgovCenstatdFeatures",
           "path": "isCurrent"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "collection": "hkgovCenstatdFeatures",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDistrictLandAreaPopulationDensities",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceGeometry"
         }
       ]
@@ -164,42 +164,42 @@
       "targetFields": [
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceRecordId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "versionHash"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "resourceReleaseId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validFromRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validToRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "isCurrent"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceGeometry"
         }
       ]
@@ -217,42 +217,42 @@
       "targetFields": [
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceRecordId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "versionHash"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "resourceReleaseId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validFromRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validToRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "isCurrent"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceGeometry"
         }
       ]
@@ -270,42 +270,42 @@
       "targetFields": [
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceRecordId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "versionHash"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "resourceReleaseId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validFromRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validToRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "isCurrent"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceGeometry"
         }
       ]
@@ -323,42 +323,42 @@
       "targetFields": [
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceRecordId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "versionHash"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "resourceReleaseId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validFromRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validToRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "isCurrent"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceGeometry"
         }
       ]
@@ -376,42 +376,42 @@
       "targetFields": [
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceRecordId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "versionHash"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "resourceReleaseId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validFromRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validToRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "isCurrent"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdStatistics",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceGeometry"
         }
       ]
@@ -429,42 +429,42 @@
       "targetFields": [
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceRecordId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "versionHash"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "resourceReleaseId"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validFromRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "validToRelease"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "isCurrent"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "properties"
         },
         {
           "origin": "source",
-          "collection": "hkgovCenstatdDivisionAreas",
+          "collection": "hkgovCenstatdFeatures",
           "path": "sourceGeometry"
         }
       ]

@@ -271,14 +271,11 @@ export function resolveCacheTablesForBinding(
 
   if (/^DB_SOURCE_[A-Z]{2}_(?:\d{4}|BEFORE)$/.test(bindingName)) {
     if (cacheTableProfile === 'divisionStatistic') {
-      return ['hkgovCenstatdDistrictLandAreaPopulationDensities']
+      return ['hkgovCenstatdFeatureReleases', 'hkgovCenstatdFeatures']
     }
 
     if (cacheTableProfile === 'statistics') {
-      return [
-        'hkgovCenstatdDistrictLandAreaPopulationDensities',
-        'hkgovCenstatdStatistics',
-      ]
+      return ['hkgovCenstatdFeatureReleases', 'hkgovCenstatdFeatures']
     }
 
     if (cacheTableProfile === 'nativeSource') {
@@ -287,9 +284,8 @@ export function resolveCacheTablesForBinding(
         'hkgovHydSensitiveStreets',
         'hkgovHydStrategicStreets',
         'hkgovTdPedestrianStreets',
-        'hkgovCenstatdDivisionAreas',
-        'hkgovCenstatdDistrictLandAreaPopulationDensities',
-        'hkgovCenstatdStatistics',
+        'hkgovCenstatdFeatureReleases',
+        'hkgovCenstatdFeatures',
         'hkgovCenstatdDivisionAreaDerivatives',
         'hkgovLandsdPlaceNames',
         'hkgovLandsdRoadCentrelines',
@@ -321,7 +317,8 @@ export function resolveCacheTablesForBinding(
         'ssDivisionArea',
         'overtureDivisionBoundaries',
         'hkgovHadDivisionAreas',
-        'hkgovCenstatdDivisionAreas',
+        'hkgovCenstatdFeatureReleases',
+        'hkgovCenstatdFeatures',
         'hkgovCenstatdDivisionAreaDerivatives',
       ]
     }
@@ -338,7 +335,8 @@ export function resolveCacheTablesForBinding(
       'ssDivisionArea',
       'overtureDivisionBoundaries',
       'hkgovHadDivisionAreas',
-      'hkgovCenstatdDivisionAreas',
+      'hkgovCenstatdFeatureReleases',
+      'hkgovCenstatdFeatures',
       'hkgovCenstatdDivisionAreaDerivatives',
       'hkgovPlandPlanningCells',
       'hkgovPlandNewTowns',
@@ -348,8 +346,6 @@ export function resolveCacheTablesForBinding(
       'hkgovHydSensitiveStreets',
       'hkgovHydStrategicStreets',
       'hkgovTdPedestrianStreets',
-      'hkgovCenstatdDistrictLandAreaPopulationDensities',
-      'hkgovCenstatdStatistics',
       'hkgovLandsdPlaceNames',
       'hkgovLandsdRoadCentrelines',
     ]

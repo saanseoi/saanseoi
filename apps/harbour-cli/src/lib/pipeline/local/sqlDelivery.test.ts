@@ -559,11 +559,12 @@ for (const family of ['statistics', 'geometry'] as const) {
       const schema =
         family === 'geometry'
           ? 'CREATE TABLE divisionAreas (snapshotId TEXT, id TEXT, geometry TEXT, PRIMARY KEY(snapshotId,id));'
-          : `CREATE TABLE hkgovCenstatdStatistics (
-            createdAt TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
+          : `CREATE TABLE hkgovCenstatdFeatures (
+            createdAt TEXT, datasetCode TEXT, isCurrent INTEGER, properties TEXT, resourceReleaseId TEXT,
             sourceGeometry TEXT, sourceRecordId TEXT, sources TEXT, updatedAt TEXT,
             validFromRelease TEXT, validToRelease TEXT, version INTEGER, versionHash TEXT,
-            PRIMARY KEY(sourceRecordId,versionHash));`
+            PRIMARY KEY(datasetCode,sourceRecordId,versionHash));
+            CREATE TABLE hkgovCenstatdFeatureReleases (datasetCode TEXT, resourceReleaseId TEXT, sourceRecordId TEXT, versionHash TEXT, PRIMARY KEY(datasetCode,resourceReleaseId,sourceRecordId,versionHash));`
       const sql =
         family === 'geometry'
           ? geometryBuildUpsertSql('divisionAreas', [
@@ -573,7 +574,7 @@ for (const family of ['statistics', 'geometry'] as const) {
               resourceReleaseId: 'release',
               sourceVersion: '2026-09-07.0',
               source: {
-                table: 'hkgovCenstatdStatistics',
+                table: 'hkgovCenstatdFeatures',
                 rows: Array.from({ length: 40 }, (_, index) => ({
                   createdAt: '2026-09-07',
                   updatedAt: '2026-09-07',
@@ -583,6 +584,7 @@ for (const family of ['statistics', 'geometry'] as const) {
                     value: 'x'.repeat(5000),
                   },
                   resourceReleaseId: 'release',
+                  datasetCode: 'censtatd-dataset',
                   sourceRecordId: `row-${index}`,
                   sources: [],
                   sourceGeometry: null,
@@ -596,7 +598,7 @@ for (const family of ['statistics', 'geometry'] as const) {
       const query =
         family === 'geometry'
           ? 'SELECT * FROM divisionAreas ORDER BY id'
-          : 'SELECT * FROM hkgovCenstatdStatistics ORDER BY sourceRecordId'
+          : 'SELECT * FROM hkgovCenstatdFeatures ORDER BY sourceRecordId'
       const baseline = new Database(':memory:')
       const local = new Database(f.localPath)
       try {
@@ -642,6 +644,16 @@ for (const family of ['statistics', 'geometry'] as const) {
         await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
         await runSqlDelivery(f.directory, { ...f.options, mode: 'local' })
         expect(local.query(query).all()).toEqual(expected)
+        if (family === 'statistics') {
+          const memberships =
+            'SELECT * FROM hkgovCenstatdFeatureReleases ORDER BY sourceRecordId'
+          expect(local.query(memberships).all()).toEqual(
+            baseline.query(memberships).all(),
+          )
+          expect(f.remote.query(memberships).all()).toEqual(
+            baseline.query(memberships).all(),
+          )
+        }
         expect(f.events.filter(event => event === 'ingest')).toHaveLength(
           plan.batches.length,
         )

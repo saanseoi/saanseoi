@@ -1,8 +1,10 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "a250aea8-9865-48db-bf08-b7c3c267c206",
-  "prevIds": ["00000000-0000-0000-0000-000000000000"],
+  "id": "83dd58a8-c6aa-409a-9095-f2fd97252269",
+  "prevIds": [
+    "00000000-0000-0000-0000-000000000000"
+  ],
   "ddl": [
     {
       "name": "overtureDivisionAreas",
@@ -73,19 +75,15 @@
       "entityType": "tables"
     },
     {
-      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities",
-      "entityType": "tables"
-    },
-    {
       "name": "hkgovCenstatdDivisionAreaDerivatives",
       "entityType": "tables"
     },
     {
-      "name": "hkgovCenstatdDivisionAreas",
+      "name": "hkgovCenstatdFeatureReleases",
       "entityType": "tables"
     },
     {
-      "name": "hkgovCenstatdStatistics",
+      "name": "hkgovCenstatdFeatures",
       "entityType": "tables"
     },
     {
@@ -2066,116 +2064,6 @@
       "generated": null,
       "name": "sourceRecordId",
       "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "properties",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "versionHash",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "resourceReleaseId",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "validFromRelease",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "validToRelease",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "isCurrent",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourceGeometry",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourceLocator",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
-      "generated": null,
-      "name": "updatedAt",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "sourceRecordId",
-      "entityType": "columns",
       "table": "hkgovCenstatdDivisionAreaDerivatives"
     },
     {
@@ -2225,6 +2113,16 @@
       "default": null,
       "generated": null,
       "name": "isCurrent",
+      "entityType": "columns",
+      "table": "hkgovCenstatdDivisionAreaDerivatives"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetCode",
       "entityType": "columns",
       "table": "hkgovCenstatdDivisionAreaDerivatives"
     },
@@ -2304,29 +2202,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceRecordId",
+      "name": "datasetCode",
       "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "properties",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "versionHash",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
+      "table": "hkgovCenstatdFeatureReleases"
     },
     {
       "type": "text",
@@ -2336,7 +2214,7 @@
       "generated": null,
       "name": "resourceReleaseId",
       "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
+      "table": "hkgovCenstatdFeatureReleases"
     },
     {
       "type": "text",
@@ -2344,29 +2222,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "validFromRelease",
+      "name": "sourceRecordId",
       "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "validToRelease",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "isCurrent",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
+      "table": "hkgovCenstatdFeatureReleases"
     },
     {
       "type": "text",
@@ -2374,19 +2232,9 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "sourceGeometry",
+      "name": "versionHash",
       "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "censusYear",
-      "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
+      "table": "hkgovCenstatdFeatureReleases"
     },
     {
       "type": "text",
@@ -2396,7 +2244,7 @@
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
+      "table": "hkgovCenstatdFeatureReleases"
     },
     {
       "type": "text",
@@ -2406,7 +2254,7 @@
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
-      "table": "hkgovCenstatdDivisionAreas"
+      "table": "hkgovCenstatdFeatureReleases"
     },
     {
       "type": "text",
@@ -2416,7 +2264,7 @@
       "generated": null,
       "name": "sourceRecordId",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -2426,7 +2274,7 @@
       "generated": null,
       "name": "properties",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -2436,7 +2284,7 @@
       "generated": null,
       "name": "versionHash",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -2446,7 +2294,7 @@
       "generated": null,
       "name": "resourceReleaseId",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -2456,7 +2304,7 @@
       "generated": null,
       "name": "validFromRelease",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -2466,7 +2314,7 @@
       "generated": null,
       "name": "validToRelease",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "integer",
@@ -2476,7 +2324,7 @@
       "generated": null,
       "name": "isCurrent",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -2486,7 +2334,17 @@
       "generated": null,
       "name": "sourceGeometry",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "datasetCode",
+      "entityType": "columns",
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -2496,7 +2354,7 @@
       "generated": null,
       "name": "sourceLocator",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -2506,7 +2364,7 @@
       "generated": null,
       "name": "createdAt",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -2516,7 +2374,7 @@
       "generated": null,
       "name": "updatedAt",
       "entityType": "columns",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "type": "text",
@@ -3019,182 +2877,258 @@
       "table": "hkgovRvdAreas"
     },
     {
-      "columns": ["sourceRecordId", "versionHash", "validFromRelease"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash",
+        "validFromRelease"
+      ],
       "nameExplicit": false,
       "name": "overtureDivisionAreas_pk",
       "entityType": "pks",
       "table": "overtureDivisionAreas"
     },
     {
-      "columns": ["sourceRecordId", "versionHash", "validFromRelease"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash",
+        "validFromRelease"
+      ],
       "nameExplicit": false,
       "name": "overtureDivisionBoundaries_pk",
       "entityType": "pks",
       "table": "overtureDivisionBoundaries"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "overtureDivisions_pk",
       "entityType": "pks",
       "table": "overtureDivisions"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "overturePlaces_pk",
       "entityType": "pks",
       "table": "overturePlaces"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "protomapsIslandFeatures_pk",
       "entityType": "pks",
       "table": "protomapsIslandFeatures"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovAlsAddresses2d_pk",
       "entityType": "pks",
       "table": "hkgovAlsAddresses2d"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovAlsAddresses3d_pk",
       "entityType": "pks",
       "table": "hkgovAlsAddresses3d"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovLandsdPlaceNames_pk",
       "entityType": "pks",
       "table": "hkgovLandsdPlaceNames"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovLandsdRoadCentrelines_pk",
       "entityType": "pks",
       "table": "hkgovLandsdRoadCentrelines"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovLandsdStreetBaselineRecords_pk",
       "entityType": "pks",
       "table": "hkgovLandsdStreetBaselineRecords"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovLandsdStreetNoticeApplications_pk",
       "entityType": "pks",
       "table": "hkgovLandsdStreetNoticeApplications"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovLandsdStreetNotices_pk",
       "entityType": "pks",
       "table": "hkgovLandsdStreetNotices"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovHydSensitiveStreets_pk",
       "entityType": "pks",
       "table": "hkgovHydSensitiveStreets"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovHydStrategicStreets_pk",
       "entityType": "pks",
       "table": "hkgovHydStrategicStreets"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovHydStreetNamePlates_pk",
       "entityType": "pks",
       "table": "hkgovHydStreetNamePlates"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovTdPedestrianStreets_pk",
       "entityType": "pks",
       "table": "hkgovTdPedestrianStreets"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovHadDivisionAreas_pk",
       "entityType": "pks",
       "table": "hkgovHadDivisionAreas"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
-      "nameExplicit": false,
-      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_pk",
-      "entityType": "pks",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "columns": ["sourceRecordId", "inputVersionHash", "transform", "versionHash"],
+      "columns": [
+        "datasetCode",
+        "sourceRecordId",
+        "inputVersionHash",
+        "transform",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovCenstatdDivisionAreaDerivatives_pk",
       "entityType": "pks",
       "table": "hkgovCenstatdDivisionAreaDerivatives"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "datasetCode",
+        "resourceReleaseId",
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
-      "name": "hkgovCenstatdDivisionAreas_pk",
+      "name": "hkgovCenstatdFeatureReleases_pk",
       "entityType": "pks",
-      "table": "hkgovCenstatdDivisionAreas"
+      "table": "hkgovCenstatdFeatureReleases"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "datasetCode",
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
-      "name": "hkgovCenstatdStatistics_pk",
+      "name": "hkgovCenstatdFeatures_pk",
       "entityType": "pks",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovPlandNewTowns_pk",
       "entityType": "pks",
       "table": "hkgovPlandNewTowns"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovPlandPlanningCells_pk",
       "entityType": "pks",
       "table": "hkgovPlandPlanningCells"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "ssDivision_pk",
       "entityType": "pks",
       "table": "ssDivision"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "ssDivisionArea_pk",
       "entityType": "pks",
       "table": "ssDivisionArea"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": [
+        "sourceRecordId",
+        "versionHash"
+      ],
       "nameExplicit": false,
       "name": "hkgovRvdAreas_pk",
       "entityType": "pks",
@@ -4062,52 +3996,6 @@
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_resourceReleaseId_idx",
-      "entityType": "indexes",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "columns": [
-        {
-          "value": "sourceRecordId",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": "\"hkgovCenstatdDistrictLandAreaPopulationDensities\".\"isCurrent\" = 1",
-      "origin": "manual",
-      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_open_records_idx",
-      "entityType": "indexes",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "columns": [
-        {
-          "value": "validFromRelease",
-          "isExpression": false
-        },
-        {
-          "value": "validToRelease",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "hkgovCenstatdDistrictLandAreaPopulationDensities_release_validity_idx",
-      "entityType": "indexes",
-      "table": "hkgovCenstatdDistrictLandAreaPopulationDensities"
-    },
-    {
-      "columns": [
-        {
-          "value": "resourceReleaseId",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
       "name": "hkgovCenstatdDivisionAreaDerivatives_resourceReleaseId_idx",
       "entityType": "indexes",
       "table": "hkgovCenstatdDivisionAreaDerivatives"
@@ -4154,41 +4042,9 @@
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "hkgovCenstatdDivisionAreas_resourceReleaseId_idx",
+      "name": "hkgovCenstatdFeatureReleases_resourceReleaseId_idx",
       "entityType": "indexes",
-      "table": "hkgovCenstatdDivisionAreas"
-    },
-    {
-      "columns": [
-        {
-          "value": "sourceRecordId",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": "\"hkgovCenstatdDivisionAreas\".\"isCurrent\" = 1",
-      "origin": "manual",
-      "name": "hkgovCenstatdDivisionAreas_open_records_idx",
-      "entityType": "indexes",
-      "table": "hkgovCenstatdDivisionAreas"
-    },
-    {
-      "columns": [
-        {
-          "value": "validFromRelease",
-          "isExpression": false
-        },
-        {
-          "value": "validToRelease",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "hkgovCenstatdDivisionAreas_release_validity_idx",
-      "entityType": "indexes",
-      "table": "hkgovCenstatdDivisionAreas"
+      "table": "hkgovCenstatdFeatureReleases"
     },
     {
       "columns": [
@@ -4200,9 +4056,9 @@
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "hkgovCenstatdStatistics_resourceReleaseId_idx",
+      "name": "hkgovCenstatdFeatures_resourceReleaseId_idx",
       "entityType": "indexes",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "columns": [
@@ -4212,11 +4068,11 @@
         }
       ],
       "isUnique": false,
-      "where": "\"hkgovCenstatdStatistics\".\"isCurrent\" = 1",
+      "where": "\"hkgovCenstatdFeatures\".\"isCurrent\" = 1",
       "origin": "manual",
-      "name": "hkgovCenstatdStatistics_open_records_idx",
+      "name": "hkgovCenstatdFeatures_open_records_idx",
       "entityType": "indexes",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "columns": [
@@ -4232,9 +4088,9 @@
       "isUnique": false,
       "where": null,
       "origin": "manual",
-      "name": "hkgovCenstatdStatistics_release_validity_idx",
+      "name": "hkgovCenstatdFeatures_release_validity_idx",
       "entityType": "indexes",
-      "table": "hkgovCenstatdStatistics"
+      "table": "hkgovCenstatdFeatures"
     },
     {
       "columns": [

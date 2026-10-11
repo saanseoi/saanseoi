@@ -53,8 +53,7 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
               'hkgovAlsAddresses2d',
               'hkgovAlsAddresses3d',
               'hkgovPlandPlanningCells',
-              'hkgovCenstatdStatistics',
-              'hkgovCenstatdDistrictLandAreaPopulationDensities',
+              'hkgovCenstatdFeatures',
             ].includes(getTableName(table)),
           )
           expect(actual.slice(-2).map(column => column.name)).toEqual([

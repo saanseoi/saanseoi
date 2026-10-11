@@ -14,7 +14,7 @@ export const CACHE_ROOT = resolve(REPO_ROOT, '.local/harbour-sql/db-cache')
 export const SQLITE_CACHE_WORKER_PATH = resolve(import.meta.dir, 'sqliteCacheWorker.ts')
 
 // v9 binds a complete acknowledged mirror to its configured database identities.
-export const DB_CACHE_MANIFEST_VERSION = 9
+export const DB_CACHE_MANIFEST_VERSION = 10
 
 export const REMOTE_CACHE_BINDING_CONCURRENCY = 4
 

@@ -119,10 +119,11 @@ are materialised in canonical history/current records rather than duplicated in 
 columns. Separately versioned geometry derivatives retain their exact input hash and
 transformation evidence.
 
-Subdivided Units district assertions use the retained district-area schema: publisher
-properties, census year and Brotli geometry, with archive provenance and publisher
-identity. Acquisition coordinates in `sourceLocator` belong to the other native
-Statistics tables.
+All C&SD datasets use `hkgovCenstatdFeatures` with explicit dataset ownership, complete
+publisher properties, acquisition coordinates in `sourceLocator` and Brotli-compressed
+native geometry. `hkgovCenstatdFeatureReleases` retains exact resource-release
+membership independently of shared feature payloads. Geometry derivatives retain their
+dataset and exact input hash separately.
 
 Each reference-period snapshot records its exact-release assembly under the
 [assembly provenance contract](../pipeline.md#snapshot-assembly-provenance). Periods can

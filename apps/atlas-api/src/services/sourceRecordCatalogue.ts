@@ -3,6 +3,8 @@ import type { SourceFamily } from './sourceRecords'
 export type SourceRecordCatalogueEntry = {
   resourceType?: string
   scopeByDataset?: boolean
+  datasetColumn?: 'datasetCode'
+  exactReleaseMembership?: boolean
   geometryColumn?: 'sourceGeometry'
   geometryEncoding?: 'brotli-json'
   randomSampleStrategy?: 'uuid-pivot'
@@ -58,8 +60,8 @@ const ADDRESS_SOURCE_RECORD_CATALOGUE = {
   },
 } as const satisfies Record<string, SourceRecordCatalogueEntry>
 
-const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEntry> = {
-  ...Object.fromEntries(
+const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEntry> =
+  Object.fromEntries(
     [
       'major-housing-estates',
       'new-towns',
@@ -67,27 +69,19 @@ const STATISTIC_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEnt
       'permanent-living-quarters-district',
       'population-households-district',
       'housing-market-areas-building-groups',
+      'subdivided-units-district',
+      'land-area-population-density-district',
     ].map(name => [
       `ds-hk-hkgov-censtatd-division-statistic-${name}`,
       {
-        geometryColumn: 'sourceGeometry' as const,
-        tableName: 'hkgovCenstatdStatistics',
-        scopeByDataset: true,
+        geometryColumn: 'sourceGeometry',
+        geometryEncoding: 'brotli-json',
+        tableName: 'hkgovCenstatdFeatures',
+        datasetColumn: 'datasetCode',
+        exactReleaseMembership: true,
       },
     ]),
-  ),
-  'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district': {
-    resourceType: 'divisionArea',
-    geometryColumn: 'sourceGeometry',
-    geometryEncoding: 'brotli-json',
-    tableName: 'hkgovCenstatdDivisionAreas',
-    scopeByDataset: true,
-  },
-  'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district': {
-    geometryColumn: 'sourceGeometry',
-    tableName: 'hkgovCenstatdDistrictLandAreaPopulationDensities',
-  },
-}
+  )
 
 const PLACE_SOURCE_RECORD_CATALOGUE = {
   'ds-hk-overture-place': {

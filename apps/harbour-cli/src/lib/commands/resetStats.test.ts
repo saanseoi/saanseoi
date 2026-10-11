@@ -150,11 +150,7 @@ describe('all-statistics reset', () => {
         })
       }
     }
-    insert(source, 'hkgovCenstatdStatistics', {
-      sourceRecordId: 's',
-      resourceReleaseId: 'divisionStatistic',
-    })
-    insert(source, 'hkgovCenstatdDistrictLandAreaPopulationDensities', {
+    insert(source, 'hkgovCenstatdFeatures', {
       sourceRecordId: 's',
       resourceReleaseId: 'divisionStatistic',
     })
@@ -236,12 +232,8 @@ describe('all-statistics reset', () => {
     expect(meta.query('SELECT resourceReleaseId FROM assets').all()).toEqual([
       { resourceReleaseId: null },
     ])
-    expect(source.query('SELECT * FROM hkgovCenstatdStatistics').all()).toHaveLength(0)
-    expect(
-      source
-        .query('SELECT * FROM hkgovCenstatdDistrictLandAreaPopulationDensities')
-        .all(),
-    ).toHaveLength(0)
+    expect(source.query('SELECT * FROM hkgovCenstatdFeatures').all()).toHaveLength(0)
+    expect(source.query('SELECT * FROM hkgovCenstatdFeatures').all()).toHaveLength(0)
     expect(source.query('SELECT * FROM overturePlaces').all()).toHaveLength(1)
     expect(
       history.query('SELECT snapshotId FROM snapshotVersionChanges').all(),
@@ -291,7 +283,7 @@ describe('all-statistics reset', () => {
       },
     }).sourceSql
     const statements = sql.split('\n')
-    expect(statements).toHaveLength(4 * 5)
+    expect(statements).toHaveLength(3 * 5)
     expect(statements[0]).toContain("'release-''0'")
     expect(statements.every(statement => statement.length < 2000)).toBe(true)
   })
@@ -323,7 +315,7 @@ describe('all-statistics reset', () => {
       })
     }
     for (const table of [
-      'hkgovCenstatdDivisionAreas',
+      'hkgovCenstatdFeatures',
       'hkgovCenstatdDivisionAreaDerivatives',
     ]) {
       insert(source, table, {
@@ -359,9 +351,7 @@ describe('all-statistics reset', () => {
       expect(db.query('SELECT * FROM divisionsI18n').all()).toHaveLength(0)
       expect(db.query('PRAGMA foreign_key_check').all()).toEqual([])
     }
-    expect(source.query('SELECT * FROM hkgovCenstatdDivisionAreas').all()).toHaveLength(
-      0,
-    )
+    expect(source.query('SELECT * FROM hkgovCenstatdFeatures').all()).toHaveLength(0)
     expect(
       source.query('SELECT * FROM hkgovCenstatdDivisionAreaDerivatives').all(),
     ).toHaveLength(0)
@@ -487,7 +477,7 @@ describe('all-statistics reset', () => {
         insert(db, 'divisionAreas', { id, snapshotId: id, divisionId: id })
       }
     }
-    insert(source, 'hkgovCenstatdDivisionAreas', {
+    insert(source, 'hkgovCenstatdFeatures', {
       sourceRecordId: 'retained',
       resourceReleaseId: 'geography',
     })
@@ -559,7 +549,7 @@ describe('all-statistics reset', () => {
       { id: 'unaffected' },
     ])
     expect(
-      source.query('SELECT resourceReleaseId FROM hkgovCenstatdDivisionAreas').all(),
+      source.query('SELECT resourceReleaseId FROM hkgovCenstatdFeatures').all(),
     ).toEqual([{ resourceReleaseId: 'geography' }])
     expect(meta.query('PRAGMA foreign_key_check').all()).toEqual([])
   })

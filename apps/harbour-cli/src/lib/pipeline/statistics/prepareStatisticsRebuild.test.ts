@@ -325,7 +325,7 @@ test('preparation rejects current records absent from retained history without w
   expect(existsSync(output)).toBe(false)
 })
 
-test('Building Group preparation reads source validity using the complete publisher version', async () => {
+test('Building Group preparation reads exact dataset and resource-release membership', async () => {
   const f = fixture()
   f.release(1, { population: '10' })
   const datasetCode =
@@ -356,27 +356,44 @@ test('Building Group preparation reads source validity using the complete publis
   }
   const sourcePath = join(f.directory, 'source.sqlite')
   const source = new Database(sourcePath)
-  source.exec(`CREATE TABLE hkgovCenstatdStatistics (
-    sourceRecordId TEXT, resourceReleaseId TEXT, properties TEXT,
-    validFromRelease TEXT, validToRelease TEXT
-  )`)
+  source.exec(`CREATE TABLE hkgovCenstatdFeatures (
+    datasetCode TEXT, sourceRecordId TEXT, resourceReleaseId TEXT, properties TEXT,
+    validFromRelease TEXT, validToRelease TEXT, versionHash TEXT
+  );
+  CREATE TABLE hkgovCenstatdFeatureReleases (datasetCode TEXT, sourceRecordId TEXT, versionHash TEXT, resourceReleaseId TEXT);`)
   const insert = source.query(
-    'INSERT INTO hkgovCenstatdStatistics VALUES (?, ?, ?, ?, ?)',
+    'INSERT INTO hkgovCenstatdFeatures VALUES (?, ?, ?, ?, ?, ?, ?)',
   )
   insert.run(
-    'CENSTATD:BuildingGroup:A',
+    datasetCode,
+    'BuildingGroup:A',
     'earlier-release',
     JSON.stringify({ bg: 'A', bg_ind: 'B', hma: 'HMA1' }),
     '2023-H1',
     '2024-H1',
+    'first-hash',
   )
   insert.run(
-    'CENSTATD:BuildingGroup:A',
+    datasetCode,
+    'BuildingGroup:A',
     'later-release',
     JSON.stringify({ bg: 'A', bg_ind: 'B', hma: 'HMA2' }),
     '2024-H1',
     null,
+    'later-hash',
   )
+  insert.run(
+    'another-dataset',
+    'BuildingGroup:A',
+    'other-release',
+    JSON.stringify({ bg: 'A', bg_ind: 'B', hma: 'OTHER' }),
+    '2023-H1',
+    null,
+    'other-hash',
+  )
+  source
+    .query('INSERT INTO hkgovCenstatdFeatureReleases VALUES (?, ?, ?, ?)')
+    .run(datasetCode, 'BuildingGroup:A', 'first-hash', 'release-1')
   source.close()
   f.inputs.source.push(sourcePath)
   f.close()

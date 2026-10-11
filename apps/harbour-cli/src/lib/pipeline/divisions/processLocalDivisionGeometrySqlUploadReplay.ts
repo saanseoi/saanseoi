@@ -195,9 +195,10 @@ export async function generateGeometryReplaySql(
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT "sourceRecordId", "versionHash", ${plan.source === 'overture' ? '"validFromRelease", ' : ''}"isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}`,
+                `SELECT ${plan.source === 'hkgov-censtatd' ? '"datasetCode", ' : ''}"sourceRecordId", "versionHash", ${plan.source === 'overture' ? '"validFromRelease", ' : ''}"isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}${plan.source === 'hkgov-censtatd' ? ` AND "datasetCode" = ${geometrySqlLiteral(plan.datasetCode)}` : ''}`,
               ),
               [
+                ...(plan.source === 'hkgov-censtatd' ? ['datasetCode'] : []),
                 'sourceRecordId',
                 'versionHash',
                 ...(plan.source === 'overture' ? ['validFromRelease'] : []),
@@ -213,6 +214,16 @@ export async function generateGeometryReplaySql(
               ),
             )
           }
+          if (plan.source === 'hkgov-censtatd' && !plan.transform) {
+            yield* geometryIterateUpsertSql(
+              'hkgovCenstatdFeatureReleases',
+              iterateGeometryCacheRows(
+                context.state.dbCacheDir,
+                sourceBindingName,
+                `SELECT * FROM "hkgovCenstatdFeatureReleases" WHERE "resourceReleaseId" = ${geometrySqlLiteral(resourceReleaseId)}`,
+              ),
+            )
+          }
           if (plan.source === 'hkgov-censtatd' && plan.transform === 'simplified') {
             const table = 'hkgovCenstatdDivisionAreaDerivatives'
             yield* geometryIterateClosureSql(
@@ -220,9 +231,15 @@ export async function generateGeometryReplaySql(
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT "sourceRecordId", "inputVersionHash", "transform", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${table}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}`,
+                `SELECT "datasetCode", "sourceRecordId", "inputVersionHash", "transform", "versionHash", "isCurrent", "validToRelease", "updatedAt" FROM "${table}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}${plan.source === 'hkgov-censtatd' ? ` AND "datasetCode" = ${geometrySqlLiteral(plan.datasetCode)}` : ''}`,
               ),
-              ['sourceRecordId', 'inputVersionHash', 'transform', 'versionHash'],
+              [
+                'datasetCode',
+                'sourceRecordId',
+                'inputVersionHash',
+                'transform',
+                'versionHash',
+              ],
             )
             yield geometrySqlLiteralDelete(
               table,
@@ -297,6 +314,7 @@ export async function replayGeometryIntoRemote(
         inputs: {
           preparedSha256,
           historyMembershipPolicy: 'immutable-geometry-v1',
+          sourceFeatureContract: 'censtatd-features-v1',
           snapshotId,
           sourceVersion: plan.sourceVersion,
           releaseCode,
@@ -607,6 +625,7 @@ function geometryReplayKeyColumns(row: Record<string, unknown>, tableName: strin
 
   if (typeof row.sourceRecordId === 'string' && typeof row.versionHash === 'string') {
     return [
+      ...(typeof row.datasetCode === 'string' ? ['datasetCode'] : []),
       'sourceRecordId',
       'versionHash',
       ...(['overtureDivisionAreas', 'overtureDivisionBoundaries'].includes(tableName)
@@ -683,7 +702,7 @@ function geometrySqlLiteral(value: unknown): string {
 function resolveGeometrySourceTable(plan: GeometryUploadPlan) {
   if (plan.resourceType === 'divisionBoundary') return 'overtureDivisionBoundaries'
   if (plan.source === 'hkgov-had') return 'hkgovHadDivisionAreas'
-  if (plan.source === 'hkgov-censtatd') return 'hkgovCenstatdDivisionAreas'
+  if (plan.source === 'hkgov-censtatd') return 'hkgovCenstatdFeatures'
   if (plan.source === 'overture') return 'overtureDivisionAreas'
   return null
 }

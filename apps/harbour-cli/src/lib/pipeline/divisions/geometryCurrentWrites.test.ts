@@ -51,6 +51,18 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
           class: 'land',
           ...(sourceName === 'hkgov-censtatd'
             ? {
+                source_record_id: id,
+                source_assertion_geometry: {
+                  type: 'Polygon',
+                  coordinates: [
+                    [
+                      [114, 22],
+                      [edge, 22],
+                      [edge, 23],
+                      [114, 22],
+                    ],
+                  ],
+                },
                 source_properties: { dcClass: 'district' },
                 source_geometry: {
                   type: 'Polygon',
@@ -92,6 +104,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
     ) => {
       current.exec('DELETE FROM writes')
       const result = await writeGeometryRows(context, 'divisionArea', rows, {
+        datasetCode: 'dataset',
         source: sourceName,
         variant: 'variant',
         resourceReleaseId: snapshotId,
@@ -140,22 +153,19 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         expect(
           source
             .query(
-              'SELECT DISTINCT typeof(sourceGeometry) AS storage FROM hkgovCenstatdDivisionAreas',
+              'SELECT DISTINCT typeof(sourceGeometry) AS storage FROM hkgovCenstatdFeatures',
             )
             .all(),
         ).toEqual([{ storage: 'blob' }])
         expect(
           source
             .query(
-              `SELECT censusYear,count(*) AS versions,max(isCurrent) AS current
-               FROM hkgovCenstatdDivisionAreas WHERE sourceRecordId='a'
-               GROUP BY censusYear ORDER BY censusYear`,
+              `SELECT datasetCode,count(*) AS versions,max(isCurrent) AS current
+               FROM hkgovCenstatdFeatures WHERE sourceRecordId='a'
+               GROUP BY datasetCode`,
             )
             .all(),
-        ).toEqual([
-          { censusYear: '2026', versions: 2, current: 1 },
-          { censusYear: '2027', versions: 1, current: 1 },
-        ])
+        ).toEqual([{ datasetCode: 'dataset', versions: 2, current: 1 }])
       }
     } finally {
       current.close()

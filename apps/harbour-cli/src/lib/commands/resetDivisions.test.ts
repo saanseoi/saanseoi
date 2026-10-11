@@ -245,6 +245,39 @@ describe('all-divisions reset', () => {
     ])
   })
 
+  test('retains a C&SD feature shared with a surviving statistics release', async () => {
+    const { source, context } = setup()
+    for (const sourceRecordId of ['shared', 'division-only']) {
+      insert(source, 'hkgovCenstatdFeatures', {
+        datasetCode: 'censtatd-dataset',
+        sourceRecordId,
+        versionHash: 'v',
+        resourceReleaseId: 'divisionArea',
+      })
+      insert(source, 'hkgovCenstatdFeatureReleases', {
+        datasetCode: 'censtatd-dataset',
+        sourceRecordId,
+        versionHash: 'v',
+        resourceReleaseId: 'divisionArea',
+      })
+    }
+    insert(source, 'hkgovCenstatdFeatureReleases', {
+      datasetCode: 'censtatd-dataset',
+      sourceRecordId: 'shared',
+      versionHash: 'v',
+      resourceReleaseId: 'statistics',
+    })
+    source.exec(
+      buildDivisionResetSql(await collectDivisionResetPlan(context)).sourceSql,
+    )
+    expect(
+      source.query('SELECT sourceRecordId FROM hkgovCenstatdFeatures').all(),
+    ).toEqual([{ sourceRecordId: 'shared' }])
+    expect(
+      source.query('SELECT resourceReleaseId FROM hkgovCenstatdFeatureReleases').all(),
+    ).toEqual([{ resourceReleaseId: 'statistics' }])
+  })
+
   test('blocks other snapshot sources and API anchor dependencies', async () => {
     const { meta, context } = setup()
     insert(meta, 'snapshotResourceReleases', {
@@ -313,7 +346,7 @@ describe('all-divisions reset', () => {
       releaseSets: [],
     }).sourceSql
     const statements = sql.split('\n')
-    expect(statements).toHaveLength(13 * 5)
+    expect(statements).toHaveLength(14 * 5)
     expect(statements[0]).toContain("'release-''0'")
     expect(statements.every(statement => statement.length < 2000)).toBe(true)
   })

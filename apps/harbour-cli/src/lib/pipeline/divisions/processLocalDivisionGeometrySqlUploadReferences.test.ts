@@ -88,6 +88,8 @@ test('historical C&SD geometry validates against later SaanSeoi history without 
       const row = normaliseDivisionAreaGeometryRow(
         {
           id: `CENSTATD:${id}`,
+          source_record_id: `CENSTATD:${id}`,
+          source_assertion_geometry: geometry,
           division_id: id,
           source_properties: { name: id },
           source_geometry: geometry,

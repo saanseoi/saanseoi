@@ -1,4 +1,4 @@
-import { primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
+import { index, primaryKey, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 
 import { binaryText, geoBbox, jsonText, timestamps } from '../shared'
 import {
@@ -7,61 +7,46 @@ import {
   sourceRecordColumns,
 } from './shared'
 
-/**
- * C&SD District Council source records. `sourceGeometry` remains as
- * a Brotli-compressed publisher-CRS BLOB. Current and history retain the
- * exact canonical geometry as a Brotli BLOB too, alongside the map-ready
- * EPSG:4326 display derivative.
- */
-export const sourceHkgovCenstatdDivisionAreas = sqliteTable(
-  'hkgovCenstatdDivisionAreas',
+/** Complete publisher features, shared by statistics and geography ingestion. */
+export const sourceHkgovCenstatdFeatures = sqliteTable(
+  'hkgovCenstatdFeatures',
   {
     ...sourceSpatialAssertionColumns(),
+    datasetCode: text('datasetCode').notNull(),
     sourceGeometry: binaryText('sourceGeometry').notNull(),
-    // Source cohort identity resolves version-linked geometry derivatives.
-    censusYear: text('censusYear').notNull(),
-    ...timestamps,
-  },
-  table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
-    ...sourceVersionIndexes(table, 'hkgovCenstatdDivisionAreas'),
-  ],
-)
-
-/**
- * District-level land area, mid-year population, and population-density
- * assertions supplied by C&SD. Geometry remains publisher evidence: these
- * statistics are not a replacement district-boundary release.
- */
-export const sourceHkgovCenstatdDistrictLandAreaPopulationDensities = sqliteTable(
-  'hkgovCenstatdDistrictLandAreaPopulationDensities',
-  {
-    ...sourceSpatialAssertionColumns(),
     sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
-    ...sourceVersionIndexes(table, 'hkgovCenstatdDistrictLandAreaPopulationDensities'),
+    primaryKey({
+      columns: [table.datasetCode, table.sourceRecordId, table.versionHash],
+    }),
+    ...sourceVersionIndexes(table, 'hkgovCenstatdFeatures'),
   ],
 )
 
-/**
- * Native CSDI feature records for C&SD's non-district-density statistical
- * releases. Their measures differ by publisher layer, so they remain a
- * complete, queryable publisher property set rather than losing fields to a
- * premature shared measure schema.
- */
-export const sourceHkgovCenstatdStatistics = sqliteTable(
-  'hkgovCenstatdStatistics',
+/** Exact input membership; feature payloads can be shared by several resource releases. */
+export const sourceHkgovCenstatdFeatureReleases = sqliteTable(
+  'hkgovCenstatdFeatureReleases',
   {
-    ...sourceSpatialAssertionColumns(),
-    sourceLocator: jsonText<Record<string, unknown>>('sourceLocator'),
+    datasetCode: text('datasetCode').notNull(),
+    resourceReleaseId: text('resourceReleaseId').notNull(),
+    sourceRecordId: text('sourceRecordId').notNull(),
+    versionHash: text('versionHash').notNull(),
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
-    ...sourceVersionIndexes(table, 'hkgovCenstatdStatistics'),
+    primaryKey({
+      columns: [
+        table.datasetCode,
+        table.resourceReleaseId,
+        table.sourceRecordId,
+        table.versionHash,
+      ],
+    }),
+    index('hkgovCenstatdFeatureReleases_resourceReleaseId_idx').on(
+      table.resourceReleaseId,
+    ),
   ],
 )
 
@@ -76,6 +61,7 @@ export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
   'hkgovCenstatdDivisionAreaDerivatives',
   {
     ...sourceRecordColumns(),
+    datasetCode: text('datasetCode').notNull(),
     inputVersionHash: text('inputVersionHash').notNull(),
     transform: text('transform').notNull(),
     derivation: jsonText('derivation').notNull(),
@@ -85,6 +71,7 @@ export const sourceHkgovCenstatdDivisionAreaDerivatives = sqliteTable(
   table => [
     primaryKey({
       columns: [
+        table.datasetCode,
         table.sourceRecordId,
         table.inputVersionHash,
         table.transform,

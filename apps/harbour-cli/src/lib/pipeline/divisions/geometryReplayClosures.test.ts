@@ -30,7 +30,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       source: new Database(':memory:'),
     }
     const sourceTable =
-      sourceName === 'overture' ? 'overtureDivisionAreas' : 'hkgovCenstatdDivisionAreas'
+      sourceName === 'overture' ? 'overtureDivisionAreas' : 'hkgovCenstatdFeatures'
     try {
       const meta = local.DB_META
       if (!meta) throw new Error('Missing meta')
@@ -47,11 +47,11 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         )
       for (const db of [local[sourceBinding], remote.source]) {
         db?.exec(
-          `CREATE TABLE "${sourceTable}"(resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry,validFromRelease DEFAULT '2025-01',PRIMARY KEY(sourceRecordId,versionHash,validFromRelease)); INSERT INTO "${sourceTable}" (resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry) VALUES('old','changed','v1',1,NULL,'old',X'00FF'),('old','removed','v1',1,NULL,'old',X'01');`,
+          `CREATE TABLE "${sourceTable}"(datasetCode DEFAULT 'dataset',resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry,validFromRelease DEFAULT '2025-01',PRIMARY KEY(${sourceName === 'hkgov-censtatd' ? 'datasetCode,sourceRecordId,versionHash' : 'sourceRecordId,versionHash,validFromRelease'})); INSERT INTO "${sourceTable}" (resourceReleaseId,sourceRecordId,versionHash,isCurrent,validToRelease,updatedAt,geometry) VALUES('old','changed','v1',1,NULL,'old',X'00FF'),('old','removed','v1',1,NULL,'old',X'01');`,
         )
         if (sourceName === 'hkgov-censtatd')
           db?.exec(
-            "CREATE TABLE hkgovCenstatdDivisionAreaDerivatives(resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt,PRIMARY KEY(sourceRecordId,inputVersionHash,transform,versionHash)); INSERT INTO hkgovCenstatdDivisionAreaDerivatives VALUES('old','changed','exact','simplified','d1',1,NULL,'old'),('other','changed','other-exact','simplified','d1',1,NULL,'old');",
+            "CREATE TABLE hkgovCenstatdDivisionAreaDerivatives(datasetCode DEFAULT 'dataset',resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt,PRIMARY KEY(sourceRecordId,inputVersionHash,transform,versionHash)); INSERT INTO hkgovCenstatdDivisionAreaDerivatives (resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt) VALUES('old','changed','exact','simplified','d1',1,NULL,'old'),('other','changed','other-exact','simplified','d1',1,NULL,'old');",
           )
       }
       local.DB_CURRENT?.exec(
@@ -77,11 +77,11 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       )
       if (sourceName === 'hkgov-censtatd')
         local[sourceBinding]?.exec(
-          "UPDATE hkgovCenstatdDivisionAreaDerivatives SET isCurrent=0,validToRelease='2026-01',updatedAt='new' WHERE inputVersionHash='exact'; INSERT INTO hkgovCenstatdDivisionAreaDerivatives VALUES('new-release','changed','exact','simplified','d2',1,NULL,'new');",
+          "UPDATE hkgovCenstatdDivisionAreaDerivatives SET isCurrent=0,validToRelease='2026-01',updatedAt='new' WHERE inputVersionHash='exact'; INSERT INTO hkgovCenstatdDivisionAreaDerivatives (resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt) VALUES('new-release','changed','exact','simplified','d2',1,NULL,'new');",
         )
       if (sourceName === 'hkgov-censtatd')
         remote.source.exec(
-          "INSERT INTO hkgovCenstatdDivisionAreaDerivatives VALUES('new-release','removed','exact','simplified','stale',1,NULL,'stale')",
+          "INSERT INTO hkgovCenstatdDivisionAreaDerivatives (resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt) VALUES('new-release','removed','exact','simplified','stale',1,NULL,'stale')",
         )
       const payloads: Array<{ target: string; sql: string }> = []
       // Local context selects generation only; explicit capture forbids network writes.
@@ -111,6 +111,7 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
             { remote: true, environment: 'preview' },
             context,
             {
+              datasetCode: 'dataset',
               regionCode: 'hk',
               source: sourceName,
               sourceVersion: '2026-01',

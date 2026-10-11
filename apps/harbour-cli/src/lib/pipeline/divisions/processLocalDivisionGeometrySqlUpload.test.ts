@@ -276,6 +276,8 @@ describe('createGeometryChurnCounts', () => {
         division_id: 'district-2016-1',
         geometry,
         id: 'censtatd-2016-1',
+        source_record_id: 'CENSTATD:DC_16BC_SDU:publisher-1',
+        source_assertion_geometry: geometry,
         source_geometry: geometry,
         source_properties: {
           dc: '11.00000000',
@@ -676,7 +678,7 @@ describe('geometryBuildUpsertSql', () => {
       { length: MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES },
       (_, index) => index % 251,
     )
-    const sql = geometryBuildUpsertSql('hkgovCenstatdDivisionAreas', [
+    const sql = geometryBuildUpsertSql('hkgovCenstatdFeatures', [
       {
         sourceGeometry,
         sourceRecordId: 'CENSTATD:T',
@@ -693,14 +695,14 @@ describe('geometryBuildUpsertSql', () => {
 
     const database = new Database(':memory:')
     database.exec(
-      'CREATE TABLE hkgovCenstatdDivisionAreas (sourceRecordId TEXT NOT NULL, sourceGeometry BLOB NOT NULL, versionHash TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash));',
+      'CREATE TABLE hkgovCenstatdFeatures (sourceRecordId TEXT NOT NULL, sourceGeometry BLOB NOT NULL, versionHash TEXT NOT NULL, PRIMARY KEY (sourceRecordId, versionHash));',
     )
     database.exec(sql)
 
     expect(
       database
         .query(
-          'SELECT sourceGeometry FROM hkgovCenstatdDivisionAreas WHERE sourceRecordId = ? AND versionHash = ?',
+          'SELECT sourceGeometry FROM hkgovCenstatdFeatures WHERE sourceRecordId = ? AND versionHash = ?',
         )
         .get('CENSTATD:T', 'hash-1'),
     ).toEqual({ sourceGeometry: Buffer.from(sourceGeometry) })

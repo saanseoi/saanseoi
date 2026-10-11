@@ -1979,3 +1979,18 @@ companion DivisionAreas retain polygonal geometry.
 Reconstructed city records retain their district ancestry in `hierarchies` and their
 reconstruction reference in `sources`. Construction codes, district member lists and
 geometry methods are not external identifiers.
+
+## C&SD publisher feature storage
+
+C&SD statistics and geography intake share `hkgovCenstatdFeatures`. Publisher features
+retain explicit dataset ownership, native identities, complete properties, acquisition
+locators and Brotli-compressed native geometry. Canonical statistics and DivisionAreas
+are separate projections of that evidence.
+
+Geometry reuse compares canonical materialisations within the same cohort, region and
+variant. Simplified derivatives identify the dataset and exact input feature version.
+
+`hkgovCenstatdFeatureReleases` records exact feature-version membership for each
+resource release. Source samples and schema inventories use this membership rather than
+treating independent census cohorts as one validity timeline. Payload reuse preserves
+separate memberships for the statistics and geometry resources.

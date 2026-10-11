@@ -306,9 +306,7 @@ async function readShardSourceRecordPage(args: {
     .prepare(
       `SELECT sourceRecordId, versionHash, properties, ${geometrySelection}
        FROM ${args.entry.tableName}
-       WHERE validFromRelease <= ?
-         AND (validToRelease IS NULL OR validToRelease > ?)
-         AND ${sourceDatasetCondition(args.entry)}
+       WHERE ${sourceReleaseCondition(args.entry)}
        ${cursorCondition}
        ORDER BY sourceRecordId ASC, versionHash ASC
        LIMIT ?`,
@@ -406,9 +404,7 @@ async function readRandomOrderedSourceRecordPage(args: {
     .prepare(
       `SELECT sourceRecordId, versionHash, properties, ${geometrySelection}
        FROM ${args.entry.tableName}
-       WHERE validFromRelease <= ?
-         AND (validToRelease IS NULL OR validToRelease > ?)
-         AND ${sourceDatasetCondition(args.entry)}
+       WHERE ${sourceReleaseCondition(args.entry)}
        ORDER BY RANDOM()
        LIMIT ?`,
     )
@@ -417,7 +413,16 @@ async function readRandomOrderedSourceRecordPage(args: {
   return result.results
 }
 
+function sourceReleaseCondition(entry: SourceRecordCatalogueEntry, prefix = '') {
+  if (entry.exactReleaseMembership) {
+    const record = prefix || `${entry.tableName}.`
+    return `${record}datasetCode = ? AND EXISTS (SELECT 1 FROM hkgovCenstatdFeatureReleases AS membership WHERE membership.datasetCode = ${record}datasetCode AND membership.sourceRecordId = ${record}sourceRecordId AND membership.versionHash = ${record}versionHash AND membership.resourceReleaseId = ?)`
+  }
+  return `${prefix}validFromRelease <= ? AND (${prefix}validToRelease IS NULL OR ${prefix}validToRelease > ?) AND ${sourceDatasetCondition(entry, prefix)}`
+}
+
 function sourceDatasetCondition(entry: SourceRecordCatalogueEntry, prefix = '') {
+  if (entry.datasetColumn) return `${prefix}${entry.datasetColumn} = ?`
   return entry.scopeByDataset
     ? `${prefix}resourceReleaseId IN (SELECT value FROM json_each(?))`
     : '1 = 1'
@@ -427,7 +432,13 @@ function sourceValidityValues(args: {
   entry: SourceRecordCatalogueEntry
   release: SourceReleaseRow
 }): string[] {
+  if (args.entry.exactReleaseMembership)
+    return [args.release.datasetCode, args.release.resourceReleaseId]
   const values = [args.release.sourceVersion, args.release.sourceVersion]
+  if (args.entry.datasetColumn) {
+    values.push(args.release.datasetCode)
+    return values
+  }
   // Shared publisher tables retain dataset ownership through resourceReleaseId. Version
   // strings describe time only and cannot identify which dataset owns an assertion.
   if (args.entry.scopeByDataset) {
@@ -590,9 +601,7 @@ export async function getSourceRecordSchema(args: {
         .prepare(`
     WITH records AS (
       SELECT properties FROM ${entry.tableName} AS record
-      WHERE record.validFromRelease <= ?
-        AND (record.validToRelease IS NULL OR record.validToRelease > ?)
-        AND ${sourceDatasetCondition(entry, 'record.')}
+      WHERE ${sourceReleaseCondition(entry, 'record.')}
     )
     SELECT field.key AS name, field.type AS type, COUNT(field.key) AS occurrences,
       (SELECT COUNT(*) FROM records) AS total

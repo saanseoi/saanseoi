@@ -114,7 +114,7 @@ geometry-derived extent.
 
 To keep exact C&SD geometry available from the inline source-record API within D1's row
 limit, the source shard stores the publisher geometry as a Brotli-compressed BLOB. The
-API decompresses it before responding, so consumers receive the unchanged GeoJSON
+API decompresses it before responding, so consumers receive the unchanged native GML
 geometry and do not need to negotiate a separate download or decompression format. The
 exact WGS84 variant is likewise compressed in the current and history shards, then
 decompressed by the divisions API. The named `simplified` derivative remains ordinary
@@ -166,11 +166,10 @@ geometry. `dc_class` is bridged through a reviewed `hkgov-censtatd` identifier b
 for each reference-year cohort; canonical `identifiers` expose the provider's `class`
 and numeric `code`.
 
-The source `censusYear` identifies the source cohort used to resolve exact input
-versions for geometry derivatives; it is release identity, not a canonical field. It
-also participates in the C&SD source assertion identity, so byte-identical geometry from
-two census cohorts remains independently addressable and one cohort's source retirement
-cannot close the other cohort's current assertion.
+The reference-year cohort belongs to release and canonical snapshot identity. Native
+source assertions use dataset ownership, publisher feature identity and a content hash.
+Exact resource-release membership selects the source input version for each cohort;
+geometry derivatives reference that dataset and input hash.
 
 The source materialises into two C&SD companion families. The provider's census
 subdivided-unit district geometry is land-clipped; annual district geometry and the
@@ -454,3 +453,18 @@ separates captured ingestion and snapshot assembly definitions.
 The HMA lineage fixture traces HMA_21C native polygons and publisher names into Division
 and DivisionArea resources. Government Area flags are both true, so the canonical
 geometry type is mixed. Building Group centroids do not create DivisionArea members.
+
+## C&SD publisher feature storage
+
+C&SD statistics and geography intake share `hkgovCenstatdFeatures`. Publisher features
+retain explicit dataset ownership, native identities, complete properties, acquisition
+locators and Brotli-compressed native geometry. Canonical statistics and DivisionAreas
+are separate projections of that evidence.
+
+Geometry reuse compares canonical materialisations within the same cohort, region and
+variant. Simplified derivatives identify the dataset and exact input feature version.
+
+`hkgovCenstatdFeatureReleases` records exact feature-version membership for each
+resource release. Source samples and schema inventories use this membership rather than
+treating independent census cohorts as one validity timeline. Payload reuse preserves
+separate memberships for the statistics and geometry resources.

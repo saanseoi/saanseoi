@@ -1,3 +1,4 @@
+import { parseCsdiGml } from './hkgovCenstatdStatistics'
 import { readFile, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
@@ -20,7 +21,9 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
   sourceVersion: '2022' | '2024'
 }): Promise<PreparedHkgovCenstatdDistrictStatistic> {
   const gml = await readFile(resolve(input.inputFile), 'utf8')
-  const features = parseHkgovCenstatdDistrictGml(gml, `Density_${input.sourceVersion}`)
+  const layerName = `Density_${input.sourceVersion}`
+  const assertions = parseCsdiGml(gml, layerName)
+  const features = parseHkgovCenstatdDistrictGml(gml, layerName)
   if (features.length !== 18) {
     throw new Error(
       `C&SD Density_${input.sourceVersion}.gml must contain 18 district rows; found ${features.length}.`,
@@ -28,7 +31,9 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
   }
 
   const rows = features.map((feature, index) => {
-    const properties = feature.properties
+    const assertion = assertions[index]
+    if (!assertion) throw new Error(`Missing Density feature ${index + 1}.`)
+    const properties = assertion.properties
     const districtCode = integer(properties.DC, 'DC', index)
     const referencePeriod = parseStatisticsReferencePeriod(
       text(properties.PERIOD, 'PERIOD', index),
@@ -40,9 +45,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
     }
     return {
       district_code: districtCode,
-      // A publisher source record remains the same feature across source
-      // releases; its reference year is a versioned property, not its identity.
-      id: `CENSTATD:DENSITY:${districtCode}`,
+      id: assertion.sourceRecordId,
       land_area_sq_km: number(properties.LA, 'LA', index),
       mid_year_population_density_per_sq_km: integer(
         properties.POPN_D,
@@ -58,7 +61,7 @@ export async function prepareHkgovCenstatdDistrictStatisticUpload(input: {
       reference_period_end_year: referencePeriod.endYear,
       reference_period_granularity: referencePeriod.granularity,
       reference_period_start: referencePeriod.start,
-      source_geometry: JSON.stringify(feature.sourceGeometry),
+      source_geometry: JSON.stringify(assertion.sourceGeometry),
       sources: JSON.stringify([
         {
           dataset: 'hkgov-censtatd',

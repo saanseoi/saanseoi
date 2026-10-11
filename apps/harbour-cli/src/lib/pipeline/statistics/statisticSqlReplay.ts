@@ -33,10 +33,7 @@ export type StatisticSqlReplayInput = {
   resourceReleaseId: string
   source: {
     rows: StatisticRow[]
-    table:
-      | 'hkgovCenstatdDivisionAreas'
-      | 'hkgovCenstatdDistrictLandAreaPopulationDensities'
-      | 'hkgovCenstatdStatistics'
+    table: 'hkgovCenstatdFeatures'
   }
 }
 
@@ -66,6 +63,11 @@ export function buildStatisticSqlBatches(
   input: StatisticSqlReplayInput,
 ): StatisticSqlBatches {
   const sourceRows = sortRows(input.source.rows, 'sourceRecordId')
+  const datasetCodes = new Set(
+    sourceRows.map(row => requiredString(valueFor(row, 'datasetCode'), 'datasetCode')),
+  )
+  if (datasetCodes.size > 1)
+    throw new Error('A feature replay batch must belong to one dataset.')
   const sourceIds = sourceRows.map(row =>
     requiredString(valueFor(row, 'sourceRecordId'), 'sourceRecordId'),
   )
@@ -80,7 +82,7 @@ export function buildStatisticSqlBatches(
     ...buildUpsertStatements(
       input.source.table,
       sourceRows,
-      ['sourceRecordId', 'versionHash'],
+      ['datasetCode', 'sourceRecordId', 'versionHash'],
       [
         'isCurrent',
         'resourceReleaseId',
@@ -89,6 +91,10 @@ export function buildStatisticSqlBatches(
         'sourceGeometry',
       ],
       ['sourceGeometry'],
+    ),
+    ...sourceRows.map(
+      row =>
+        `INSERT INTO "hkgovCenstatdFeatureReleases" ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") VALUES (${sqlValue(valueFor(row, 'datasetCode'))}, ${sqlValue(input.resourceReleaseId)}, ${sqlValue(valueFor(row, 'sourceRecordId'))}, ${sqlValue(valueFor(row, 'versionHash'))}) ON CONFLICT ("datasetCode", "resourceReleaseId", "sourceRecordId", "versionHash") DO NOTHING;`,
     ),
   ]
 
@@ -253,7 +259,7 @@ function buildCloseSourceStatements(
     hashes.add(requiredString(valueFor(row, 'versionHash'), 'versionHash'))
     hashesById.set(id, hashes)
   }
-  const update = `UPDATE ${sqlIdentifier(table)} SET "isCurrent" = 0, "validToRelease" = ${sqlValue(sourceVersion)}, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1`
+  const update = `UPDATE ${sqlIdentifier(table)} SET "isCurrent" = 0, "validToRelease" = ${sqlValue(sourceVersion)}, "updatedAt" = ${sqlValue(updatedAt)} WHERE "isCurrent" = 1 AND "datasetCode" = ${sqlValue(requiredString(valueFor(firstRow, 'datasetCode'), 'datasetCode'))}`
   return [
     ...[...hashesById].map(
       ([id, hashes]) =>
