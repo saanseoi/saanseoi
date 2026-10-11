@@ -48,6 +48,31 @@ export function retainedPropertyName(name: string): string {
 const dictionaries = new Set(['common', 'variant', 'perspectives'])
 const localeKey = /^[a-z]{2,3}-(?:[A-Za-z]{2,8})(?:-[A-Za-z\d]{2,8})*$/
 
+/** Project schema field names with the same rules as retained publisher records. */
+export function retainedSourceSchema(
+  schema: SourceRecordSchemaDefinition,
+  dictionary = false,
+): SourceRecordSchemaDefinition {
+  const fieldName = (name: string) =>
+    dictionary || localeKey.test(name) ? name : retainedPropertyName(name)
+  const properties: Record<string, SourceRecordSchemaDefinition> = {}
+  for (const [name, child] of Object.entries(schema.properties ?? {})) {
+    const key = fieldName(name)
+    if (Object.hasOwn(properties, key))
+      throw new Error(`Retained source property collision: ${name} -> ${key}`)
+    properties[key] = retainedSourceSchema(child, dictionaries.has(name))
+  }
+  return {
+    ...schema,
+    ...(schema.properties ? { properties } : {}),
+    ...(schema.required ? { required: schema.required.map(fieldName) } : {}),
+    ...(schema.items ? { items: retainedSourceSchema(schema.items) } : {}),
+    ...(typeof schema.additionalProperties === 'object'
+      ? { additionalProperties: retainedSourceSchema(schema.additionalProperties) }
+      : {}),
+  }
+}
+
 export function retainSourceProperties(value: unknown, dictionary = false): unknown {
   if (Array.isArray(value)) return value.map(item => retainSourceProperties(item))
   if (!value || typeof value !== 'object') return value
@@ -66,3 +91,4 @@ export function retainSourceProperties(value: unknown, dictionary = false): unkn
   }
   return result
 }
+import type { SourceRecordSchemaDefinition } from '../../../sourceRecordSchemas'

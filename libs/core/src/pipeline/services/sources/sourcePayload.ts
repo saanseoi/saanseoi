@@ -1,3 +1,6 @@
+import { curatedRecordSources } from './curatedRecordSources'
+import { assertInternalSourceReferences } from './internalSourceReferences'
+import { divisionIdentifierProperties } from './divisionIdentifiers'
 import { camelCaseJson } from '../../../jsonKeys'
 import { registerRule } from '../../../provenance/auditTypes'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
@@ -123,9 +126,15 @@ function saanseoiSourcePayloadInternal(row: Record<string, unknown>) {
     record.id !== row.id
   )
     throw new Error('Invalid SaanSeoi source record.')
+  assertInternalSourceReferences(record)
   const { id: _id, geometry, ...properties } = record
   return {
-    properties: camelCaseJson(properties),
+    properties: camelCaseJson(
+      divisionIdentifierProperties({
+        ...properties,
+        sources: curatedRecordSources(properties.sources, String(row.id)),
+      }),
+    ),
     sourceGeometry:
       typeof geometry === 'string' ? JSON.parse(geometry) : (geometry ?? null),
   }

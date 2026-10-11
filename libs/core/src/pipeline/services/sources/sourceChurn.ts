@@ -20,6 +20,7 @@ function content(row: SourceChurnRecord) {
 export function buildSourceChurnCounts(
   previous: ReadonlyMap<string, SourceChurnRecord>,
   current: ReadonlyMap<string, SourceChurnRecord>,
+  groupBy?: (properties: Record<string, unknown> | null) => string,
 ) {
   const empty = (): ChurnCounts => ({
     count: 0,
@@ -32,7 +33,9 @@ export function buildSourceChurnCounts(
   const byType = new Map<string, ChurnCounts>()
   const group = (row: SourceChurnRecord) => {
     const properties = content(row).properties as Record<string, unknown> | null
-    const type = String(properties?.subtype ?? properties?.type ?? 'unknown')
+    const type =
+      groupBy?.(properties) ??
+      String(properties?.subtype ?? properties?.type ?? properties?.class ?? 'unknown')
     if (!byType.has(type)) byType.set(type, empty())
     return byType.get(type)!
   }

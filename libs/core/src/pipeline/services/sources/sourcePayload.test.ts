@@ -170,7 +170,7 @@ test('compact acquisition locators reject conflicting source occurrences', () =>
 test('native source versions include joined place names in properties', async () => {
   const properties = {
     geoNameId: '1022',
-    placeNames: [{ nameEn: 'Original', nameZhHant: '原名', status: 'Official' }],
+    placeNames: [{ nameEn: 'Original', nameZhHant: '原名', nameStatus: 'Official' }],
   }
   const original = await createHash(nativeSourcePayloadHashInput({ properties }))
   expect(nativeSourcePayloadHashInput({ properties })).toEqual({
