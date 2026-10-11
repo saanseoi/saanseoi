@@ -8,6 +8,7 @@ import type { AppEnv } from '../../types'
 const ApiReleaseSetDocsRowSchema = z
   .object({
     id: z.string(),
+    apiReleaseSetId: z.string(),
     apiFamily: z.string(),
     apiVersion: z.string(),
     code: z.string(),
@@ -72,6 +73,7 @@ const ApiReleaseSetDocsUpdateResponseSchema = z
   .openapi('HarbourApiReleaseSetDocsUpdateResponse')
 
 const ApiReleaseSetDocsParamSchema = z.object({
+  apiVersion: z.string().min(1),
   code: z.string().min(1),
 })
 
@@ -151,7 +153,7 @@ const apiReleaseSetDocsListRouteConfig = createRoute({
 
 const apiReleaseSetDocsUpdateRouteConfig = createRoute({
   method: 'put',
-  path: '/api/v1/meta/docs/apiReleaseSets/{code}',
+  path: '/api/v1/meta/docs/apiReleaseSets/{apiVersion}/{code}',
   tags: ['Meta'],
   request: {
     params: ApiReleaseSetDocsParamSchema,
@@ -273,7 +275,7 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
   handler: async c => {
     c.header('cache-control', 'no-store')
 
-    const { code } = c.req.valid('param')
+    const { apiVersion, code } = c.req.valid('param')
     const { guide, notes } = c.req.valid('json')
     const db = withPrimarySession(c.env.DB_META)
     const existing = await db
@@ -281,13 +283,14 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
         `
         SELECT
           ars.id,
+          ars.apiReleaseSetId,
           av.familyType AS apiFamily,
           av.code AS apiVersion,
-          ars.code,
-          ars.domainCode,
+          content.code,
+          content.domainCode,
           ars.status,
-          ars.schemaVersion,
-          ars.rulesetVersion,
+          content.schemaVersion,
+          content.rulesetVersion,
           ars.publishedAt,
           ars.validFrom,
           ars.validTo,
@@ -298,11 +301,11 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
         FROM apiVersionReleaseSets ars
         INNER JOIN apiReleaseSets content ON content.id = ars.apiReleaseSetId
         INNER JOIN apiVersions av ON av.id = ars.apiVersionId
-        WHERE ars.code = ?
+        WHERE content.code = ? AND av.code = ?
         LIMIT 1
         `,
       )
-      .bind(code)
+      .bind(code, apiVersion)
       .first<ApiReleaseSetDocsRow>()
 
     if (!existing) {
@@ -337,10 +340,10 @@ export const apiReleaseSetDocsUpdateRoute = defineOpenAPIRoute<
         `
         UPDATE apiVersionReleaseSets
         SET notes = ?, guide = ?, versionHash = ?, updatedAt = ?
-        WHERE code = ?
+        WHERE id = ?
         `,
       )
-      .bind(notes, guide, versionHash, updatedAt, code)
+      .bind(notes, guide, versionHash, updatedAt, existing.id)
       .run()
 
     return c.json(
@@ -431,13 +434,14 @@ async function listApiReleaseSetDocsRows(dbBinding: D1Database) {
       `
       SELECT
         ars.id,
+        ars.apiReleaseSetId,
         av.familyType AS apiFamily,
         av.code AS apiVersion,
-        ars.code,
-        ars.domainCode,
+        content.code,
+        content.domainCode,
         ars.status,
-        ars.schemaVersion,
-        ars.rulesetVersion,
+        content.schemaVersion,
+        content.rulesetVersion,
         ars.publishedAt,
         ars.validFrom,
         ars.validTo,
@@ -448,7 +452,7 @@ async function listApiReleaseSetDocsRows(dbBinding: D1Database) {
       FROM apiVersionReleaseSets ars
       INNER JOIN apiReleaseSets content ON content.id = ars.apiReleaseSetId
       INNER JOIN apiVersions av ON av.id = ars.apiVersionId
-      ORDER BY av.familyType, ars.publishedAt, ars.createdAt, ars.code
+      ORDER BY av.familyType, ars.publishedAt, ars.createdAt, content.code
       `,
     )
     .all<ApiReleaseSetDocsRow>()
@@ -462,7 +466,7 @@ async function withApiReleaseSetSources(dbBinding: D1Database) {
 
   return rows.map(row => ({
     ...row,
-    sources: sourcesByReleaseSetId.get(row.id) ?? [],
+    sources: sourcesByReleaseSetId.get(row.apiReleaseSetId) ?? [],
   }))
 }
 
@@ -525,12 +529,12 @@ async function listApiReleaseSetSources(dbBinding: D1Database) {
       .all<ApiReleaseSetSourceQueryRow>(),
     db
       .prepare(
-        `SELECT d.id, json_extract(t.value, '$.locale') AS locale, json_extract(t.value, '$.name') AS name, json_extract(t.value, '$.description') AS description FROM datasets d, json_each(d.i18n) t`,
+        `SELECT d.id, t.key AS locale, json_extract(t.value, '$.name') AS name, json_extract(t.value, '$.description') AS description FROM datasets d, json_each(d.i18n) t`,
       )
       .all<LocalisedDocsNameRow>(),
     db
       .prepare(
-        `SELECT p.id, json_extract(t.value, '$.locale') AS locale, json_extract(t.value, '$.name') AS name, json_extract(t.value, '$.nameShort') AS nameShort, json_extract(t.value, '$.description') AS description FROM publishers p, json_each(p.i18n) t`,
+        `SELECT p.id, t.key AS locale, json_extract(t.value, '$.name') AS name, json_extract(t.value, '$.nameShort') AS nameShort, json_extract(t.value, '$.description') AS description FROM publishers p, json_each(p.i18n) t`,
       )
       .all<LocalisedDocsNameRow>(),
   ])

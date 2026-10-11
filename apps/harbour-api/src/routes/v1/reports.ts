@@ -1,9 +1,10 @@
-import { createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
+import { desc, eq, and } from 'drizzle-orm'
+import { metaSchema } from '@repo/db'
+import { z, createRoute, defineOpenAPIRoute } from '@hono/zod-openapi'
 
 import {
   ErrorResponseSchema,
   ProcessingRunReportResponseSchema,
-  ProcessingActionReportResponseSchema,
   ReleaseReportResponseSchema,
   ReportQuerySchema,
   StatsReportQuerySchema,
@@ -12,7 +13,6 @@ import {
 } from '../../schema'
 import {
   listProcessingRuns,
-  listProcessingActions,
   listReleases,
   listStats,
 } from '../../lib/services/reporting'
@@ -98,26 +98,6 @@ const releasesRouteConfig = createRoute({
           schema: ErrorResponseSchema,
         },
       },
-      description: 'Report query failed.',
-    },
-    422: ValidationErrorOpenAPIResponse,
-  },
-})
-
-const processingActionsRouteConfig = createRoute({
-  method: 'get',
-  path: '/v1/reports/processing-actions',
-  tags: ['Reports'],
-  request: { query: ReportQuerySchema },
-  responses: {
-    200: {
-      content: {
-        'application/json': { schema: ProcessingActionReportResponseSchema },
-      },
-      description: 'Auditable automatic and manual processing actions by release.',
-    },
-    400: {
-      content: { 'application/json': { schema: ErrorResponseSchema } },
       description: 'Report query failed.',
     },
     422: ValidationErrorOpenAPIResponse,
@@ -221,29 +201,57 @@ export const releasesReportRoute = defineOpenAPIRoute<
   },
 })
 
-export const processingActionsReportRoute = defineOpenAPIRoute<
-  typeof processingActionsRouteConfig,
+const processingRouteConfig = createRoute({
+  method: 'get',
+  path: '/v1/reports/processing',
+  tags: ['Reports'],
+  request: {
+    query: z.object({
+      stage: z.enum(['ingestion', 'assembly', 'composition']).optional(),
+      status: z.enum(['queued', 'running', 'completed', 'error']).optional(),
+      limit: z.coerce.number().int().min(1).max(1000).default(100),
+    }),
+  },
+  responses: {
+    200: {
+      description: 'Current processing tasks across all owners and stages.',
+      content: {
+        'application/json': {
+          schema: z.object({ rows: z.array(z.record(z.string(), z.unknown())) }),
+        },
+      },
+    },
+    400: {
+      description: 'Report query failed.',
+      content: { 'application/json': { schema: ErrorResponseSchema } },
+    },
+  },
+})
+
+export const processingReportRoute = defineOpenAPIRoute<
+  typeof processingRouteConfig,
   AppEnv
 >({
-  route: processingActionsRouteConfig,
+  route: processingRouteConfig,
   handler: async c => {
     c.header('cache-control', 'no-store')
+    const query = c.req.valid('query')
+    const table = metaSchema.processingRuns
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const query = c.req.valid('query')
-      return c.json(
-        {
-          rows: await listProcessingActions(db, {
-            datasetCode: query.datasetCode,
-            limit: query.limit,
-            releaseCode: query.releaseCode,
-            resourceReleaseId: query.resourceReleaseId,
-            source: query.source,
-            resourceType: query.resourceType,
-          }),
-        },
-        200,
-      )
+      const rows = await db
+        .select()
+        .from(table)
+        .where(
+          and(
+            query.stage ? eq(table.stage, query.stage) : undefined,
+            query.status ? eq(table.status, query.status) : undefined,
+          ),
+        )
+        .orderBy(desc(table.updatedAt), table.runId)
+        .limit(query.limit)
+        .all()
+      return c.json({ rows }, 200)
     } catch (error) {
       return c.json(createReportError(error), 400)
     }
@@ -251,8 +259,8 @@ export const processingActionsReportRoute = defineOpenAPIRoute<
 })
 
 export const reportRoutes = [
+  processingReportRoute,
   ingestionReportRoute,
   statsReportRoute,
   releasesReportRoute,
-  processingActionsReportRoute,
 ] as const

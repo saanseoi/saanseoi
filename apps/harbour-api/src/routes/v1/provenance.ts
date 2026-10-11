@@ -1,5 +1,5 @@
 import { createRoute, defineOpenAPIRoute, z } from '@hono/zod-openapi'
-import { eq, metaSchema } from '@repo/db'
+import { and, eq, metaSchema } from '@repo/db'
 import {
   apiFieldView,
   auditView,
@@ -176,12 +176,25 @@ const getRoute = defineOpenAPIRoute<typeof get, AppEnv>({
   handler: async c => {
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const table = metaSchema.releaseProvenance
-      const row = await db
+      const table = metaSchema.processingAudits
+      const auditRow = await db
         .select({ manifestHash: table.manifestHash, byteLength: table.byteLength })
         .from(table)
-        .where(eq(table.resourceReleaseId, c.req.valid('param').resourceReleaseId))
+        .where(
+          and(
+            eq(table.resourceReleaseId, c.req.valid('param').resourceReleaseId),
+            eq(table.manifestHash, c.req.valid('query').manifestHash ?? ''),
+          ),
+        )
         .get()
+      const replay = metaSchema.releaseProvenance
+      const row =
+        auditRow ??
+        (await db
+          .select({ manifestHash: replay.manifestHash, byteLength: replay.byteLength })
+          .from(replay)
+          .where(eq(replay.resourceReleaseId, c.req.valid('param').resourceReleaseId))
+          .get())
       if (!row) throw new Error('Release has no retained processing result.')
       if (
         c.req.valid('query').manifestHash &&

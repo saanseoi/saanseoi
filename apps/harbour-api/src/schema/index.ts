@@ -279,7 +279,7 @@ export const LocalUploadRegistrationResponseSchema = z
     datasetCode: DatasetCodeSchema,
     rawObjectKey: RawObjectKeySchema.openapi({
       description:
-        'Key of the prepared raw source object, used by the CLI during processing and retained in release metadata.',
+        'Key of the prepared raw source object, used only by the CLI during processing.',
     }),
     releaseCode: ReleaseCodeSchema,
     resourceReleaseId: ReleaseIdSchema,
@@ -602,39 +602,13 @@ export const StatsReportResponseSchema = z
   })
   .openapi('HarbourStatsReportResponse')
 
-export const ProcessingActionReportRowSchema = z
-  .object({
-    action: z.string(),
-    affectedRecordCount: z.number().int().nonnegative(),
-    createdAt: z.string(),
-    datasetCode: DatasetCodeSchema,
-    evidence: z.unknown(),
-    id: z.string(),
-    mode: z.enum(['automatic', 'manual']),
-    releaseCode: ReleaseCodeSchema,
-    resourceReleaseId: ReleaseIdSchema,
-    source: SourceSchema,
-    summary: z.string(),
-    resourceType: z.string(),
-    updatedAt: z.string(),
-  })
-  .openapi('HarbourProcessingActionReportRow')
-
-export const ProcessingActionReportResponseSchema = z
-  .object({
-    rows: z.array(ProcessingActionReportRowSchema),
-  })
-  .openapi('HarbourProcessingActionReportResponse')
-
 export const ReleaseReportRowSchema = z
   .object({
     createdAt: z.string(),
     datasetCode: DatasetCodeSchema,
     datasetId: DatasetIdSchema,
     ingestedAt: z.string().nullable(),
-    originalFileName: z.string().nullable(),
     publicationDate: z.string().nullable(),
-    rawObjectKey: RawObjectKeySchema,
     releaseCode: ReleaseCodeSchema,
     resourceReleaseId: ReleaseIdSchema,
     revocationReason: z.string().nullable(),

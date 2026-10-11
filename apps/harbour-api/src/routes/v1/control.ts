@@ -328,10 +328,10 @@ export const publishDatasetRoute = defineOpenAPIRoute<
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
-      const result = await handlePublishDataset(db, request, c.env.DATASET_QUEUE)
-      const deferred =
-        (request.deferApiReleaseSet && !request.rebuildPublishedSnapshot) ||
-        request.deferSourcePublish
+      const result = await handlePublishDataset(db, request, c.env.DATASET_QUEUE, {
+        lineageStore: c.env.R2_ASSETS,
+      })
+      const deferred = request.deferApiReleaseSet || request.deferSourcePublish
       await finalisePublishedResources(db, c.env.DB_CURRENT, {
         deferred,
         publishedFamilies: (result.apiReleaseSetPublications ?? []).map(
@@ -389,7 +389,7 @@ export const reconcileDraftReleaseSetsRoute = defineOpenAPIRoute<
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
       const request = c.req.valid('json')
-      const result = await handleReconcileDraftReleaseSets(db, request)
+      const result = await handleReconcileDraftReleaseSets(db, request, c.env.R2_ASSETS)
       const options = {
         publishedFamilies: request.apiFamily ? [request.apiFamily] : undefined,
       }
@@ -420,7 +420,11 @@ export const bootstrapStatsReleaseSetsRoute = defineOpenAPIRoute<
   handler: async c => {
     try {
       const db = createPrimaryMetaRepoDb(c.env.DB_META)
-      const result = await handleBootstrapStatsReleaseSets(db, c.req.valid('json'))
+      const result = await handleBootstrapStatsReleaseSets(
+        db,
+        c.req.valid('json'),
+        c.env.R2_ASSETS,
+      )
       const options = { publishedFamilies: ['stats'] }
       await finalisePublishedResources(db, c.env.DB_CURRENT, options)
       await finalisePublishedStatistics(db, c.env, options)
