@@ -15,9 +15,9 @@ test('groups Kwai Tsing with the New Territories', () => {
     division => division.attributes.divisionCode === 'KC',
   )
 
-  expect(kwaiTsing?.attributes.hierarchies.administrative.flat()).toContainEqual({
+  expect(kwaiTsing?.attributes.hierarchies.administrative?.flat()).toContainEqual({
     class: 'area',
-    id: '780c42b7-213b-5076-9d36-6ae0024e3bd3',
+    id: 'ss-780c42b7-213b-5076-9d36-6ae0024e3bd3',
     name: 'New Territories',
   })
 

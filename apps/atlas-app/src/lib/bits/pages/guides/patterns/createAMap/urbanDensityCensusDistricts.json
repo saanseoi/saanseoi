@@ -6,7 +6,7 @@
       "properties": {
         "divisionCode": "CW",
         "area": "Hong Kong Island",
-        "areaId": "25cec859-44f3-5e1d-a72b-952f804e56ab"
+        "areaId": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab"
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -235,7 +235,7 @@
       "properties": {
         "divisionCode": "WC",
         "area": "Hong Kong Island",
-        "areaId": "25cec859-44f3-5e1d-a72b-952f804e56ab"
+        "areaId": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab"
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -446,7 +446,7 @@
       "properties": {
         "divisionCode": "EST",
         "area": "Hong Kong Island",
-        "areaId": "25cec859-44f3-5e1d-a72b-952f804e56ab"
+        "areaId": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab"
       },
       "geometry": {
         "type": "MultiPolygon",
@@ -725,7 +725,7 @@
       "properties": {
         "divisionCode": "STH",
         "area": "Hong Kong Island",
-        "areaId": "25cec859-44f3-5e1d-a72b-952f804e56ab"
+        "areaId": "ss-25cec859-44f3-5e1d-a72b-952f804e56ab"
       },
       "geometry": {
         "type": "MultiPolygon",

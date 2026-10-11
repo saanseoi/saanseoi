@@ -5,12 +5,13 @@ import { Main } from '#lib/bits/primitives/main/index.js'
 import { m } from '#lib/bits/internal/i18n.js'
 
 type Props = {
-  error: App.Error
+  error: App.Error | null
 }
 
 let { error }: Props = $props()
 let isStaleOptimisedDependency = $derived(
-  dev && error.message.includes('Failed to fetch dynamically imported module'),
+  dev &&
+    (error?.message.includes('Failed to fetch dynamically imported module') ?? false),
 )
 </script>
 
@@ -26,14 +27,14 @@ let isStaleOptimisedDependency = $derived(
     </h1>
     <p class="text-lg leading-relaxed text-foreground-alt">
       {isStaleOptimisedDependency
-  ? m.error_stale_dependency_description()
-  : m.error_description()}
+        ? m.error_stale_dependency_description()
+        : m.error_description()}
     </p>
     {#if isStaleOptimisedDependency}
       <p
         class="rounded-lg border border-data-warning/35 bg-data-warning/10 p-4 font-mono text-sm break-all text-foreground-alt"
       >
-        {error.message}
+        {error?.message}
       </p>
     {/if}
     <a

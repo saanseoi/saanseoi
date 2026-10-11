@@ -47,7 +47,7 @@ type DivisionsResponse = { data: Division[]; included: IncludedResource[] }
 const areas = {
   'Hong Kong Island': {
     codes: ['CW', 'WC', 'EST', 'STH'],
-    id: '25cec859-44f3-5e1d-a72b-952f804e56ab',
+    id: 'ss-25cec859-44f3-5e1d-a72b-952f804e56ab',
   },
   Kowloon: {
     codes: ['YTM', 'SSP', 'KLC', 'WTS', 'KT'],
@@ -55,7 +55,7 @@ const areas = {
   },
   'New Territories': {
     codes: ['KC', 'TW', 'TM', 'YL', 'NTH', 'TP', 'ST', 'SK', 'ILD'],
-    id: '780c42b7-213b-5076-9d36-6ae0024e3bd3',
+    id: 'ss-780c42b7-213b-5076-9d36-6ae0024e3bd3',
   },
 } as const
 
@@ -222,8 +222,8 @@ export function calculateUrbanDensityMetrics(
   const districts = response.data.map(division => {
     const code = division.attributes.divisionCode
     const area = division.attributes.hierarchies.administrative
-      .flat()
-      .find(item => item.class === 'area')
+      ?.flat()
+      .find(item => item?.class === 'area')
 
     if (!area) throw new Error(`No Area ancestor for ${code}`)
     return {
