@@ -39,6 +39,7 @@
     "**/.turbo/**",
     "**/dist/**",
     "**/coverage/**",
+    "fixtures/**",
     "output/**",
     "tmp/**"
   ]
