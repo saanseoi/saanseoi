@@ -119,7 +119,7 @@ describe('CSDI source archives', () => {
       expect(uploads).toHaveLength(2)
       expect(uploads.map(upload => upload.role).sort()).toEqual([
         'manifest',
-        'sourceArchive',
+        'releaseSourceArchive',
       ])
       expect(uploads[1]?.sourceAssetId).toBe('00000000-0000-4000-8000-000000000001')
       expect(mirrored).toEqual({

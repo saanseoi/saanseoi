@@ -9,6 +9,7 @@ import { packageSourceReleaseFile } from './sourceReleasePackaging.ts'
 
 import { resolveAtlasBaseUrl } from '@repo/core'
 import {
+  resolveManagedAssetOwnership,
   assertSourceAssetManifestLink,
   linkSourceAssetManifest,
   linkManagedSourceAssetToRelease as linkManagedSourceAssetToReleaseInDb,
@@ -32,7 +33,8 @@ export type SourceAssetRole =
   | 'governmentNotice'
   | 'historicalGovernmentNotice'
   | 'manifest'
-  | 'sourceArchive'
+  | 'releaseSourceArchive'
+  | 'resourceSourceArchive'
   | 'sourcePage'
   | 'sourcePdf'
 
@@ -81,6 +83,7 @@ export type ManagedSourceAssetUpload = {
     mediaType: string
     originalUrl?: string
     resourceReleaseId?: string
+    sourceReleaseId?: string
     retrievedAt: string
     role: SourceAssetRole
     sourcePageLocale?: 'en' | 'zh-Hant'
@@ -98,6 +101,7 @@ export type SourceReleaseAssetInput = {
   releaseCode: string
   resourceReleaseId: string
   sourceVersion: string
+  role?: 'releaseSourceArchive' | 'resourceSourceArchive'
 }
 
 type LocalSourceAssetObjectUpload = (input: {
@@ -332,6 +336,12 @@ export async function uploadSourceReleaseAsset(
     upload?: typeof uploadManagedSourceAsset
   } = {},
 ) {
+  const role = input.role ?? 'releaseSourceArchive'
+  if (
+    role === 'resourceSourceArchive' &&
+    extname(input.filePath).toLowerCase() !== '.parquet'
+  )
+    throw new Error('Resource source archives must be Parquet.')
   const retained = await prepareSourceReleaseAsset(input)
   try {
     const contentHash = retained.sha256
@@ -339,7 +349,10 @@ export async function uploadSourceReleaseAsset(
       datasetCode: input.datasetCode,
       fileName: retained.fileName,
       publisherCode: input.publisherCode,
-      releaseCode: input.releaseCode,
+      releaseCode:
+        role === 'resourceSourceArchive'
+          ? `${input.releaseCode}__${role}`
+          : input.releaseCode,
       sha256: contentHash,
     })
     const retrievedAt = (options.now ?? (() => new Date()))().toISOString()
@@ -351,10 +364,11 @@ export async function uploadSourceReleaseAsset(
         byteLength: retained.byteLength,
         mediaType: retained.mediaType,
         objectKey: assetKey,
-        role: 'sourceArchive',
+        role,
         sha256: contentHash,
       },
       dataset: { code: input.datasetCode },
+      originalFileName: basename(input.fileName ?? input.filePath),
       ...(retained.original ? { original: retained.original } : {}),
       ...(retained.packaging ? { packaging: retained.packaging } : {}),
       provenance: {
@@ -373,7 +387,7 @@ export async function uploadSourceReleaseAsset(
         mediaType: retained.mediaType,
         resourceReleaseId: input.resourceReleaseId,
         retrievedAt,
-        role: 'sourceArchive',
+        role,
       },
     })
     const manifestBytes = new TextEncoder().encode(
@@ -384,7 +398,10 @@ export async function uploadSourceReleaseAsset(
       datasetCode: input.datasetCode,
       fileName: 'manifest.json',
       publisherCode: input.publisherCode,
-      releaseCode: input.releaseCode,
+      releaseCode:
+        role === 'resourceSourceArchive'
+          ? `${input.releaseCode}__${role}`
+          : input.releaseCode,
       sha256: manifestHash,
     })
     await mkdir(SOURCE_PACKAGE_CACHE_ROOT, { recursive: true })
@@ -677,6 +694,7 @@ export async function registerLocalManagedSourceAsset(
 ) {
   assertSourceAssetMetadata(input.metadata)
   await assertSourceAssetManifestLink(metaDb, input.metadata)
+  const ownership = await resolveManagedAssetOwnership(metaDb, input.metadata)
   const file = await inspectSourceAssetFile(input.filePath)
   const contentHash = file.sha256
   if (contentHash !== input.metadata.contentHash) {
@@ -725,8 +743,7 @@ export async function registerLocalManagedSourceAsset(
       sourcePageLocale: input.metadata.sourcePageLocale ?? null,
       sourcePageUrl: input.metadata.sourcePageUrl ?? null,
       sourceRecordId: null,
-      datasetId: input.metadata.datasetId ?? null,
-      resourceReleaseId: input.metadata.resourceReleaseId ?? null,
+      ...ownership,
     })
     .onConflictDoNothing()
     .run()

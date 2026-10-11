@@ -37,7 +37,7 @@ async function fixture() {
       assetKey: `by-source/hk/test/${hash(bytes)}-source.zip`,
       contentHash: hash(bytes),
       mediaType: 'application/zip',
-      role: 'sourceArchive',
+      role: 'releaseSourceArchive',
       retrievedAt: '2026-09-12T00:00:00Z',
     },
   }

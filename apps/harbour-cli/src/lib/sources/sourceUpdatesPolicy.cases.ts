@@ -36,10 +36,10 @@ test('selects the English dataset name', () => {
       theme: 'places',
       resourceType: 'place',
       versionPolicy: { scheme: 'upstream', correctionSuffixSource: 'none' },
-      i18n: [
-        { locale: 'zh-hant', name: '例子' },
-        { locale: 'en', name: 'Example' },
-      ],
+      i18n: {
+        'zh-hant': { name: '例子' },
+        en: { name: 'Example' },
+      },
     }),
   ).toBe('Example')
 })
@@ -400,15 +400,10 @@ test('records DPO as an irregular rolling series with daily archive checks', asy
 
 test('records Overture as a regular rolling series with conditional checks', async () => {
   const datasets = await loadDatasetFixtures(
-    new Set([
-      'ds-hk-overture-division',
-      'ds-hk-overture-division-area',
-      'ds-hk-overture-division-boundary',
-      'ds-hk-overture-place',
-    ]),
+    new Set(['ds-hk-overture-division', 'ds-hk-overture-place']),
   )
 
-  expect(datasets).toHaveLength(4)
+  expect(datasets).toHaveLength(2)
   expect(
     datasets.every(
       dataset =>

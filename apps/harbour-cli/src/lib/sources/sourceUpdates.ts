@@ -133,9 +133,7 @@ export function isNewUpdate(update: DatasetUpdate, previous?: UpdateState[string
 
 export function datasetName(dataset: DatasetFixture) {
   return (
-    dataset.i18n?.find(item => item.locale === 'en')?.name ??
-    dataset.i18n?.[0]?.name ??
-    dataset.code
+    dataset.i18n?.en?.name ?? Object.values(dataset.i18n ?? {})[0]?.name ?? dataset.code
   )
 }
 

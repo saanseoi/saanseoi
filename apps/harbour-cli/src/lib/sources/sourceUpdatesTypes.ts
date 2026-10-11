@@ -171,7 +171,7 @@ export type DatasetFixture = {
     operationCodes: string[]
   }>
   theme: string
-  i18n?: Array<{ locale: string; name?: string }>
+  i18n?: Record<string, { name?: string }>
 }
 
 export type CompositionMemberReference = {

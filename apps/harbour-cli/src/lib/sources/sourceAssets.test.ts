@@ -113,7 +113,7 @@ test('retains an Overture release Parquet as a managed source asset', async () =
           datasetId: '00000000-0000-4000-8000-000000000001',
           mediaType: 'application/vnd.apache.parquet',
           resourceReleaseId: '00000000-0000-4000-8000-000000000002',
-          role: 'sourceArchive',
+          role: 'releaseSourceArchive',
         }),
       }),
     )
@@ -185,7 +185,7 @@ test('retains a published source archive with its original filename and media ty
     expect(uploads[0]?.fileName).toBe('published-boundaries.zip')
     expect(uploads[0]?.metadata.mediaType).toBe('application/zip')
     expect(JSON.parse(await readFile(uploads[1]!.filePath, 'utf8'))).toMatchObject({
-      artefact: { mediaType: 'application/zip', role: 'sourceArchive' },
+      artefact: { mediaType: 'application/zip', role: 'releaseSourceArchive' },
     })
   } finally {
     await rm(outputDir, { force: true, recursive: true })
@@ -220,7 +220,7 @@ test.each([
         },
         {
           upload: async (_target, input) => {
-            if (input.metadata.role === 'sourceArchive')
+            if (input.metadata.role === 'releaseSourceArchive')
               retainedBytes = await readFile(input.filePath)
             uploads.push(input)
             return { assetId: 'asset-id', url: 'https://example.test/asset-id' }
@@ -232,7 +232,7 @@ test.each([
       expect(uploads[0]?.fileName).toBe(`${sourceFileName}.zip`)
       expect(uploads[0]?.metadata.mediaType).toBe('application/zip')
       expect(JSON.parse(await readFile(uploads[1]!.filePath, 'utf8'))).toMatchObject({
-        artefact: { mediaType: 'application/zip', role: 'sourceArchive' },
+        artefact: { mediaType: 'application/zip', role: 'releaseSourceArchive' },
         original: {
           byteLength: sourceBytes.byteLength,
           fileName: sourceFileName,

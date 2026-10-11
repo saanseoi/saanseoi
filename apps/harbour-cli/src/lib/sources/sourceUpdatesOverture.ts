@@ -8,7 +8,6 @@ import type {
   LookupContext,
   UpdateSourceState,
 } from './sourceUpdatesTypes.ts'
-import { requireSingleResourceType } from './sourceUpdates.ts'
 import { compareVersions, resolveDatasetStatus } from './sourceUpdatesVersions.ts'
 import {
   OVERTURE_HONG_KONG_DIVISION_ID,
@@ -41,49 +40,48 @@ export async function lookupOverture({
   const version = s3Versions[0] ?? payload.latest
   // The Places processor materialises its supplementary Address output from
   // the same retained Place input; there is no separate upstream Address file.
-  const resourceType = dataset.code.endsWith('-overture-place')
-    ? 'place'
-    : requireSingleResourceType(dataset)
-  const outputFileName = overtureOutputFileName(resourceType)
-  const latestUpdate = createOvertureUpdate({
-    dataset,
-    version,
-    localVersion: targetHasNoRelease ? undefined : localVersion,
-    previous: targetHasNoRelease ? undefined : previous,
-    outputFileName,
-    resourceType,
-    sourceUrl,
-  })
-  if (dataset.releasePolicy?.archives.operation !== 'overture-release-catalog') {
-    return latestUpdate
-  }
-
-  const archiveUpdates = s3Versions
-    .filter(archiveVersion => archiveVersion !== version)
-    .map(archiveVersion => {
-      const archiveLocalVersion = targetHasNoRelease
-        ? undefined
-        : (targetVersions?.get(archiveVersion) ??
-          previous?.sourceChecks?.[archiveVersion]?.version)
-      return createOvertureUpdate({
-        dataset,
-        version: archiveVersion,
-        localVersion: archiveLocalVersion,
-        previous: targetHasNoRelease
-          ? undefined
-          : previous?.sourceChecks?.[archiveVersion],
-        outputFileName,
-        resourceType,
-        sourceUrl,
-        phase: 'archives',
-      })
+  const resourceTypes = dataset.code.endsWith('-overture-place')
+    ? ['place']
+    : (dataset.resourceTypes ?? (dataset.resourceType ? [dataset.resourceType] : []))
+  if (!resourceTypes.length) throw Error(`Missing resource types for ${dataset.code}.`)
+  const updates = resourceTypes.flatMap(resourceType => {
+    const outputFileName = overtureOutputFileName(resourceType)
+    const latestUpdate = createOvertureUpdate({
+      dataset,
+      version,
+      localVersion: targetHasNoRelease ? undefined : localVersion,
+      previous: targetHasNoRelease ? undefined : previous,
+      outputFileName,
+      resourceType,
+      sourceUrl,
     })
-
-  if (targetHasNoRelease) {
-    archiveUpdates.sort((left, right) => compareVersions(left.version, right.version))
-  }
-
-  return [latestUpdate, ...archiveUpdates]
+    if (dataset.releasePolicy?.archives.operation !== 'overture-release-catalog')
+      return [latestUpdate]
+    return [
+      latestUpdate,
+      ...s3Versions
+        .filter(candidate => candidate !== version)
+        .map(archiveVersion =>
+          createOvertureUpdate({
+            dataset,
+            version: archiveVersion,
+            localVersion: targetHasNoRelease
+              ? undefined
+              : (targetVersions?.get(archiveVersion) ??
+                previous?.sourceChecks?.[`${archiveVersion}:${resourceType}`]?.version),
+            previous: targetHasNoRelease
+              ? undefined
+              : previous?.sourceChecks?.[`${archiveVersion}:${resourceType}`],
+            outputFileName,
+            resourceType,
+            sourceUrl,
+            phase: 'archives',
+          }),
+        ),
+    ]
+  })
+  if (targetHasNoRelease) updates.sort((a, b) => compareVersions(a.version, b.version))
+  return updates.length === 1 ? updates[0]! : updates
 }
 
 function createOvertureUpdate({
@@ -118,7 +116,7 @@ function createOvertureUpdate({
       ? {
           deferStateUntilProcessed: true,
           phase,
-          sourceKey: version,
+          sourceKey: `${version}:${resourceType}`,
           targetSourceKey: version,
         }
       : {}),
@@ -134,7 +132,8 @@ function createOvertureUpdate({
     versionKey: version,
     sourceUrl,
     downloadUrl: releaseCatalogUrl,
-    downloadPath,
+    // Division preparation verifies the publisher ancestor even for cached extracts.
+    downloadPath: resourceType === 'division' ? undefined : downloadPath,
     releaseLastRevisedAt: version,
     download: async () => downloadOverture(version, dataset.theme, outputFileName),
     ...(phase
@@ -227,7 +226,8 @@ async function downloadOverture(
   const existingJob = overtureDownloadJobs.get(jobKey)
   const releaseRoot = existingJob ?? runOverturist(version, theme)
   if (!existingJob) overtureDownloadJobs.set(jobKey, releaseRoot)
-  return resolve(await releaseRoot, outputFileName)
+  const downloaded = resolve(await releaseRoot, outputFileName)
+  return downloaded
 }
 
 function overtureOutputFileName(type: string) {

@@ -186,7 +186,7 @@ export async function mirrorCsdiSourceArchive(
       mediaType: 'application/zip',
       originalUrl: archive.sourceUrl,
       retrievedAt,
-      role: 'sourceArchive',
+      role: 'releaseSourceArchive',
     },
   })
   const manifest = await upload(target, {
