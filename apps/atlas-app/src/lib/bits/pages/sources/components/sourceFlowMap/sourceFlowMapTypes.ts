@@ -1,5 +1,6 @@
 export type SourceFlowInput = {
   id: string
+  inputs?: SourceFlowInput[]
   publisher: string
   source: string
   href?: string

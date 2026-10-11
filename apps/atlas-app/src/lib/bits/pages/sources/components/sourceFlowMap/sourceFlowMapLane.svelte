@@ -123,6 +123,9 @@ let isPrimaryGroupVisible = $derived(
 </script>
 
 <SourceFlowMapGroup
+  {showPlanned}
+  {expandAll}
+  {sourceFilterActive}
   {lane}
   {laneIndex}
   inputs={primaryGroupInputs}
@@ -143,6 +146,9 @@ let isPrimaryGroupVisible = $derived(
 {#each lane.domains as domain (domain.id)}
   {#if domain !== primaryDomain}
     <SourceFlowMapGroup
+      {showPlanned}
+      {expandAll}
+      {sourceFilterActive}
       {lane}
       {laneIndex}
       inputs={visibleDomainInputs(domain)}

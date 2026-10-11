@@ -20,7 +20,7 @@ let { input }: Props = $props()
 
 <svelte:element
   this={input.href ? 'a' : 'div'}
-  class={`source-flow-input group ${input.cardTone === 'soft' ? 'source-flow-input-soft' : ''}`}
+  class={`source-flow-input group ${input.inputs?.length ? 'max-sm:pb-10!' : ''} ${input.cardTone === 'soft' ? 'source-flow-input-soft' : ''}`}
   style={`--source-accent: ${input.accent};`}
   href={input.href}
   aria-label={input.href ? `${input.publisher}: ${input.source}` : undefined}

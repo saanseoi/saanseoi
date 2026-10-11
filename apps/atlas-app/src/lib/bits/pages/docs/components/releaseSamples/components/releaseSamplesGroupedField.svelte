@@ -66,8 +66,8 @@ function getTone(sampleId: string) {
     <dd class="flex min-w-0 flex-wrap items-start gap-x-3 gap-y-3">
       {#each field.values as entry (entry.value)}
         {#if field.key === 'id'}
-          <span
-            class="inline-flex min-w-0 max-w-full text-left transition-opacity duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          <fieldset
+            class="m-0 inline-flex min-w-0 max-w-full border-0 p-0 text-left transition-opacity duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             class:opacity-25={highlightedSampleIds !== null &&
               !entry.sampleIds.some(id => highlightedSampleIds?.includes(id))}
             data-sample-ids={entry.sampleIds.join(' ')}
@@ -88,7 +88,7 @@ function getTone(sampleId: string) {
               id={entry.value}
               marker={getTone(entry.sampleIds[0]).marker}
             />
-          </span>
+          </fieldset>
         {:else}
           <button
             type="button"

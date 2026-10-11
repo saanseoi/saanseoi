@@ -3,7 +3,7 @@ import { scale } from 'svelte/transition'
 
 import { m } from '#lib/bits/internal/i18n.js'
 import SourceFlowMapConnectors from './sourceFlowMapConnectors.svelte'
-import SourceFlowMapInput from './sourceFlowMapInput.svelte'
+import SourceFlowMapSourceTree from './sourceFlowMapSourceTree.svelte'
 import SourceFlowMapOutput from './sourceFlowMapOutput.svelte'
 import type {
   SourceFlowDomain,
@@ -12,6 +12,9 @@ import type {
 } from './sourceFlowMapTypes'
 
 type Props = {
+  showPlanned?: boolean
+  expandAll?: boolean
+  sourceFilterActive?: boolean
   lane: SourceFlowLane
   laneIndex: number
   inputs: SourceFlowInput[]
@@ -30,6 +33,9 @@ type Props = {
 }
 
 let {
+  showPlanned = true,
+  expandAll = false,
+  sourceFilterActive = false,
   lane,
   laneIndex,
   inputs,
@@ -91,7 +97,12 @@ let shouldShowLaneToggle = $derived(
   >
     <div class="source-flow-inputs">
       {#each inputs as input (input.id)}
-        <SourceFlowMapInput {input} />
+        <SourceFlowMapSourceTree
+          {input}
+          {showPlanned}
+          {expandAll}
+          {sourceFilterActive}
+        />
       {/each}
 
       {#if shouldShowDomainToggle && domain}
