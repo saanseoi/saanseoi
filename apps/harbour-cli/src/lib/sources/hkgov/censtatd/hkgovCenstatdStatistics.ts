@@ -173,7 +173,7 @@ export async function prepareHkgovCenstatdStatisticGeographyUploads(input: {
     )
     if (!geography) {
       throw new Error(
-        `${layerName} feature ${sourceRow.featureId} has no reviewed division identity.`,
+        `${layerName} feature ${sourceRow.featureId} has no curated division identity.`,
       )
     }
     const divisionId = hkgovCenstatdStatisticDivisionId(

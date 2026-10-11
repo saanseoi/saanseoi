@@ -202,7 +202,7 @@ describe('C&SD native statistics archives', () => {
     ).rejects.toThrow('CSDI archive is missing NewTown_21C.gml.')
   })
 
-  test('fans native Permanent Living Quarters and HMA polygons into reviewed division contracts', async () => {
+  test('fans native Permanent Living Quarters and HMA polygons into curated division contracts', async () => {
     for (const entry of [requireDefined(CASES[0]), requireDefined(CASES[3])]) {
       const dir = await unpack(entry.archive)
       const archive = unzipSync(await readFile(resolve(REPO_ROOT, entry.archive)))
