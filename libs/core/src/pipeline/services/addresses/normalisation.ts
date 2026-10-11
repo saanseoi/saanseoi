@@ -212,8 +212,11 @@ function normalisePreparedHkgovAddressRow(
       granularity:
         row.hierarchyCuration &&
         (row.curatedGranularity === 'complex' ||
+          row.curatedGranularity === 'phase' ||
           row.curatedGranularity === 'building' ||
-          row.curatedGranularity === 'section')
+          row.curatedGranularity === 'section' ||
+          row.curatedGranularity === 'unit' ||
+          row.curatedGranularity === 'unknown')
           ? row.curatedGranularity
           : establishAddressGranularity({
               addressId: canonicalId,
@@ -232,6 +235,7 @@ function normalisePreparedHkgovAddressRow(
       microhoodId: asNonEmptyString(row.microhoodId),
       villageId: asNonEmptyString(row.villageId),
       neighbourhoodId: asNonEmptyString(row.neighbourhoodId),
+      ruralAreaId: asNonEmptyString(row.ruralAreaId),
       macrohoodId: asNonEmptyString(row.macrohoodId),
       townId: asNonEmptyString(row.townId),
       districtId,
@@ -264,6 +268,7 @@ export function buildAddressBaseHashInput(
     microhoodId: base.microhoodId,
     villageId: base.villageId,
     neighbourhoodId: base.neighbourhoodId,
+    ruralAreaId: base.ruralAreaId,
     macrohoodId: base.macrohoodId,
     townId: base.townId,
     districtId: base.districtId,

@@ -22,6 +22,7 @@ const buildBase = (sources: unknown) =>
     landformId: null,
     parentAddressId: null,
     identifiers: null,
+    ruralAreaId: null,
     macrohoodId: null,
     microhoodId: null,
     neighbourhoodId: null,
@@ -356,6 +357,22 @@ test('reads phase fields from retained ALS JSON when older prepared rows lack co
       phaseRef: '2',
     },
   ])
+})
+
+test('reviewed shop addresses remain units beneath their building owner', () => {
+  const result = normaliseAddressRowForPipeline({
+    canonicalId: 'shop-1',
+    id: 'shop-1',
+    divisionSnapshotId: 'division-1',
+    enFormattedAddress: "WONG'S BUILDING, 88 TAM KUNG ROAD",
+    enBuildingName: "WONG'S BUILDING",
+    enStreetNumberFrom: '88',
+    parentAddressId: 'building-1',
+    curatedGranularity: 'unit',
+    hierarchyCuration: 'reviewed-shop-address',
+  })
+  expect(result.base.granularity).toBe('unit')
+  expect(result.base.parentAddressId).toBe('building-1')
 })
 
 test('retains prepared town membership and versions town reassignment', () => {

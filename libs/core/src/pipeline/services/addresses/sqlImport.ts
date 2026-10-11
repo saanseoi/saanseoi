@@ -69,6 +69,7 @@ const NORMALIZED_ROW_COLUMNS = [
   'microhoodId',
   'villageId',
   'neighbourhoodId',
+  'ruralAreaId',
   'macrohoodId',
   'townId',
   'districtId',
@@ -123,6 +124,7 @@ const RESOLVED_ROW_COLUMNS = [
   'microhoodId',
   'villageId',
   'neighbourhoodId',
+  'ruralAreaId',
   'macrohoodId',
   'townId',
   'districtId',
@@ -224,6 +226,7 @@ export function buildAddressSourceSqlImportFiles(
         microhoodId: row.base.microhoodId,
         villageId: row.base.villageId,
         neighbourhoodId: row.base.neighbourhoodId,
+        ruralAreaId: row.base.ruralAreaId,
         macrohoodId: row.base.macrohoodId,
         townId: row.base.townId,
         districtId: row.base.districtId,
@@ -284,27 +287,42 @@ export function buildAddressSourceSqlImportFiles(
 
   if (message.source === 'hkgov-dpo') {
     const aliasRows = artefact.rows.flatMap(row => {
-      const aliasValue = asNonEmptyString(row.raw.identityAlias)
       const canonicalId = asNonEmptyString(row.raw.canonicalId)
-      if (!aliasValue || !canonicalId || aliasValue === canonicalId) return []
+      if (!canonicalId) return []
+      const processingSources: unknown =
+        typeof row.raw.sources === 'string'
+          ? JSON.parse(row.raw.sources)
+          : row.raw.sources
+      const reviewedAliases =
+        processingSources &&
+        typeof processingSources === 'object' &&
+        'reviewedIdentityAliases' in processingSources
+          ? processingSources.reviewedIdentityAliases
+          : []
+      if (
+        !Array.isArray(reviewedAliases) ||
+        reviewedAliases.some(value => typeof value !== 'string')
+      )
+        throw new Error('ALS identity aliases must be an array of strings.')
+      const aliases = [...new Set([row.raw.identityAlias, ...reviewedAliases])]
+        .map(asNonEmptyString)
+        .filter((value): value is string => Boolean(value) && value !== canonicalId)
       const now = artefact.processingRunStartedAt
 
-      return [
-        {
-          aliasId: buildDeterministicUuidV5(
-            ADDRESS_ALIAS_ID_NAMESPACE,
-            `address:${aliasValue}`,
-          ),
-          entityType: 'address',
-          aliasValue,
-          canonicalId,
-          sourceSystem: 'hkgov-dpo',
-          isCurrent: true,
-          notes: `ALS identity promoted by ${asNonEmptyString(row.raw.identityMatchMethod) ?? 'bridge'}.`,
-          createdAt: now,
-          updatedAt: now,
-        },
-      ]
+      return aliases.map(aliasValue => ({
+        aliasId: buildDeterministicUuidV5(
+          ADDRESS_ALIAS_ID_NAMESPACE,
+          `address:${aliasValue}`,
+        ),
+        entityType: 'address',
+        aliasValue,
+        canonicalId,
+        sourceSystem: 'hkgov-dpo',
+        isCurrent: true,
+        notes: `ALS identity promoted by ${asNonEmptyString(row.raw.identityMatchMethod) ?? 'bridge'}.`,
+        createdAt: now,
+        updatedAt: now,
+      }))
     })
 
     if (aliasRows.length > 0) {
@@ -385,6 +403,7 @@ export function buildAddressHistorySqlImportFile(
         microhoodId: row.base.microhoodId,
         villageId: row.base.villageId,
         neighbourhoodId: row.base.neighbourhoodId,
+        ruralAreaId: row.base.ruralAreaId,
         macrohoodId: row.base.macrohoodId,
         townId: row.base.townId,
         districtId: row.base.districtId,
@@ -478,6 +497,7 @@ export function buildAddressCurrentSqlImportFile(
         microhoodId: row.base.microhoodId,
         villageId: row.base.villageId,
         neighbourhoodId: row.base.neighbourhoodId,
+        ruralAreaId: row.base.ruralAreaId,
         macrohoodId: row.base.macrohoodId,
         townId: row.base.townId,
         districtId: row.base.districtId,
@@ -669,6 +689,7 @@ CREATE TABLE IF NOT EXISTS ${NORMALIZED_ROWS_TABLE} (
   microhoodId TEXT,
   villageId TEXT,
   neighbourhoodId TEXT,
+  ruralAreaId TEXT,
   macrohoodId TEXT,
   townId TEXT,
   districtId TEXT,
@@ -734,6 +755,7 @@ CREATE TABLE IF NOT EXISTS ${RESOLVED_ROWS_TABLE} (
   microhoodId TEXT,
   villageId TEXT,
   neighbourhoodId TEXT,
+  ruralAreaId TEXT,
   macrohoodId TEXT,
   townId TEXT,
   districtId TEXT,
@@ -932,13 +954,13 @@ WHERE address2dBuildingNumberLookup.isCurrent = 1
   AND address2dBuildingNumberLookup.addressId = changedExisting.addressId;
 INSERT INTO address2d (
   id, versionHash, sourceReleaseId, snapshotId, isCurrent, streetId,
-  hamletId, microhoodId, villageId, neighbourhoodId, macrohoodId, townId,
+  hamletId, microhoodId, villageId, neighbourhoodId, ruralAreaId, macrohoodId, townId,
   districtId, landformId, areaId, countryId, geometry, bbox, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
 )
 SELECT
   r.addressId, r.versionHash, ${resourceReleaseId}, r.snapshotId,
   1, r.streetId, r.hamletId, r.microhoodId, r.villageId,
-  r.neighbourhoodId, r.macrohoodId, r.townId, r.districtId, r.landformId, r.areaId, r.countryId,
+  r.neighbourhoodId, r.ruralAreaId, r.macrohoodId, r.townId, r.districtId, r.landformId, r.areaId, r.countryId,
   r.geometry, r.bbox, r.identifiers, r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
 FROM ${RESOLVED_ROWS_TABLE} r
 WHERE r.runId = ${run}
@@ -1059,12 +1081,12 @@ function buildAddressCurrentApplySql(runId: string) {
   return `
 INSERT INTO address2d (
   snapshotId, id, geometry, bbox, divisionSnapshotId, countryId, landformId, areaId,
-  districtId, townId, macrohoodId, villageId, neighbourhoodId, hamletId,
+  districtId, townId, ruralAreaId, macrohoodId, villageId, neighbourhoodId, hamletId,
   microhoodId, streetSnapshotId, streetId, identifiers, sources, parentAddressId, granularity, createdAt, updatedAt
 )
 SELECT
   r.snapshotId, r.addressId, r.geometry, r.bbox, r.divisionSnapshotId, r.countryId,
-  r.landformId, r.areaId, r.districtId, r.townId, r.macrohoodId, r.villageId, r.neighbourhoodId,
+  r.landformId, r.areaId, r.districtId, r.townId, r.ruralAreaId, r.macrohoodId, r.villageId, r.neighbourhoodId,
   r.hamletId, r.microhoodId, r.streetSnapshotId, r.streetId, r.identifiers,
   r.sources, r.parentAddressId, r.granularity, r.createdAt, r.updatedAt
 FROM ${RESOLVED_ROWS_TABLE} r
@@ -1078,6 +1100,7 @@ ON CONFLICT(snapshotId, id) DO UPDATE SET
   microhoodId = excluded.microhoodId,
   villageId = excluded.villageId,
   neighbourhoodId = excluded.neighbourhoodId,
+  ruralAreaId = excluded.ruralAreaId,
   macrohoodId = excluded.macrohoodId,
   townId = excluded.townId,
   districtId = excluded.districtId,
@@ -1098,6 +1121,7 @@ WHERE address2d.divisionSnapshotId IS NOT excluded.divisionSnapshotId
   OR address2d.microhoodId IS NOT excluded.microhoodId
   OR address2d.villageId IS NOT excluded.villageId
   OR address2d.neighbourhoodId IS NOT excluded.neighbourhoodId
+  OR address2d.ruralAreaId IS NOT excluded.ruralAreaId
   OR address2d.macrohoodId IS NOT excluded.macrohoodId
   OR address2d.townId IS NOT excluded.townId
   OR address2d.districtId IS NOT excluded.districtId

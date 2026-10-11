@@ -67,6 +67,10 @@ test('empty Address SQL metadata delivery retains lineage and exact Division loo
     source.exec('PRAGMA foreign_keys = OFF;')
     delivered.exec('PRAGMA foreign_keys = OFF;')
     source.exec(`
+      INSERT INTO datasets(id, code, publisherId, releaseType, releaseFrequency, theme, regionCode, versionHash)
+      VALUES ('dataset-address', 'ds-hk-hkgov-dpo-address', 'publisher', 'static', 'monthly', 'addresses', 'hk', 'address'),
+        ('dataset-division', 'ds-hk-overture-division', 'publisher', 'static', 'monthly', 'divisions', 'hk', 'division'),
+        ('dataset-area', 'ds-hk-overture-division-area', 'publisher', 'static', 'monthly', 'divisions', 'hk', 'area');
       INSERT INTO snapshotLineages (
         id, code, regionCode, resourceType, variant, identityMode,
         primaryDatasetId, versionHash, createdAt, updatedAt
@@ -445,6 +449,12 @@ describe('HKGov ALS identity alias SQL', () => {
           raw: {
             canonicalId: '04bb2336-9590-449b-b6dd-57e22a0462f1',
             identityAlias: 'ss-aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaaa',
+            sources: JSON.stringify({
+              reviewedIdentityAliases: [
+                'ss-bbbbbbbb-bbbb-5bbb-8bbb-bbbbbbbbbbbb',
+                'ss-aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaaa',
+              ],
+            }),
             identityMatchMethod: 'hkgov-als',
           },
           source: {},
@@ -461,6 +471,7 @@ describe('HKGov ALS identity alias SQL', () => {
 
     expect(metaFile?.sql).toContain('INSERT OR IGNORE INTO entityAliases')
     expect(metaFile?.sql).toContain('ss-aaaaaaaa-aaaa-5aaa-8aaa-aaaaaaaaaaaa')
+    expect(metaFile?.sql).toContain('ss-bbbbbbbb-bbbb-5bbb-8bbb-bbbbbbbbbbbb')
     expect(metaFile?.sql).toContain('04bb2336-9590-449b-b6dd-57e22a0462f1')
   })
 })
@@ -562,6 +573,7 @@ describe('address SQL string literals', () => {
             microhoodId: null,
             villageId: null,
             neighbourhoodId: null,
+            ruralAreaId: null,
             macrohoodId: null,
             townId: null,
             districtId: '8d17afe0-5631-49c5-b86d-d53c5d4b2f9d',
