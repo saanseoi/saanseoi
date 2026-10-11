@@ -61,7 +61,7 @@ function resolveIdentityCurationInternal(
   )
   if (fixtures.length !== 1)
     throw new Error(
-      `Expected one reviewed identity curation for ${authority}/${domain}/${cohortKey}; found ${fixtures.length}.`,
+      `Expected one curated identity curation for ${authority}/${domain}/${cohortKey}; found ${fixtures.length}.`,
     )
   const rows = requireDefined(fixtures[0]).mappings
   if (

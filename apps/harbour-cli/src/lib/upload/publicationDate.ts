@@ -1,3 +1,4 @@
+import { buildSourceReleaseCode } from '@repo/core/db/metaRegistry'
 import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { releasePublicationDate } from '@repo/core/db/metaRegistry'
@@ -13,7 +14,7 @@ export async function readFixturePublicationDate(
     root,
     'fixtures/meta/releases',
     plan.datasetCode,
-    `${plan.releaseCode.split('::')[0]}.md`,
+    `${buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion)}.md`,
   )
   const content = await readFile(path, 'utf8').catch((error: NodeJS.ErrnoException) => {
     if (error.code === 'ENOENT') return null

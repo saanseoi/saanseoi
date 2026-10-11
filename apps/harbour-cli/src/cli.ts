@@ -109,7 +109,6 @@ async function main() {
       return
     case 'reports:ingestion':
     case 'reports:stats':
-    case 'reports:processing-actions':
     case 'reports:releases':
       await runReportCommand(args, target)
       return

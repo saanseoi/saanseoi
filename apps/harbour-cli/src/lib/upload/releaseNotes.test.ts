@@ -1,3 +1,5 @@
+import { mkdtemp, writeFile, rm } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { describe, expect, test } from 'bun:test'
 import { resolve } from 'node:path'
 
@@ -118,6 +120,16 @@ describe('release-notes fixtures', () => {
       const releaseCode = content.match(/^release:\s*"([^"]+)"$/m)?.[1]
       const url = parseFixtureReleaseNotesUrl(content)
 
+      const source = content.match(/^source:\s*"([^"]+)"$/m)?.[1]
+      if (source === 'saanseoi' && datasetCode && releaseCode && !url) {
+        expect(content).toContain('## Changelog')
+        const resolved = await resolveReleaseNotesUrl(
+          { source, datasetCode, releaseCode } as UploadPlan,
+          { skipPrompt: true },
+        )
+        if (resolved !== undefined) expect(resolved).toMatch(/^https?:\/\//)
+        continue
+      }
       if (!datasetCode || !releaseCode || !url) {
         throw new Error(`Incomplete release fixture: ${path}`)
       }
@@ -150,4 +162,25 @@ releaseNotesUrl: "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=had_rc
       parseFixtureReleaseNotesUrl('---\nrelease: "dr-hk-example"\n---\n'),
     ).toBeUndefined()
   })
+})
+
+test('curated releases cannot bypass their fixture changelog with an explicit URL', async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), 'curated-notes-'))
+  try {
+    await writeFile(resolve(directory, 'test.md'), '# Introduction\n')
+    const plan: UploadPlan = {
+      ...buildOvertureDivisionPlan('division'),
+      source: 'saanseoi',
+      datasetCode: directory,
+      releaseCode: 'test',
+    }
+    await expect(
+      resolveReleaseNotesUrl(plan, {
+        skipPrompt: true,
+        explicitUrl: 'https://example.com/notes',
+      }),
+    ).rejects.toThrow('Curated releases require their own fixture changelog.')
+  } finally {
+    await rm(directory, { recursive: true })
+  }
 })

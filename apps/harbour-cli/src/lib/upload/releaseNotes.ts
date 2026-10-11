@@ -1,3 +1,4 @@
+import { buildSourceReleaseCode } from '@repo/core/db/metaRegistry'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { dirname, resolve } from 'node:path'
 
@@ -92,7 +93,7 @@ async function readFixtureReleaseNotesUrl(plan: UploadPlan) {
     REPO_ROOT,
     'fixtures/meta/releases',
     plan.datasetCode,
-    `${plan.releaseCode.split('::')[0]}.md`,
+    `${buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion)}.md`,
   )
   const content = await readFile(fixturePath, 'utf8').catch(() => null)
   const url = content ? parseFixtureReleaseNotesUrl(content) : undefined
@@ -113,6 +114,19 @@ export async function resolveReleaseNotesUrl(
   },
 ) {
   const key = cacheKey(plan.releaseCode)
+  if (plan.source === 'saanseoi') {
+    const notes = await readFile(
+      resolve(
+        REPO_ROOT,
+        'fixtures/meta/releases',
+        plan.datasetCode,
+        `${buildSourceReleaseCode(plan.datasetCode, plan.sourceVersion)}.md`,
+      ),
+      'utf8',
+    )
+    if (!notes.includes('## Changelog'))
+      throw new Error('Curated releases require their own fixture changelog.')
+  }
   const explicitUrl = options.explicitUrl?.trim()
 
   if (explicitUrl) {
@@ -129,6 +143,7 @@ export async function resolveReleaseNotesUrl(
   const fixtureUrl = await readFixtureReleaseNotesUrl(plan)
   const cachedUrl = fixtureUrl ?? (await readCache()).entries[key]
   if (cachedUrl) return cachedUrl
+  if (plan.source === 'saanseoi') return undefined
 
   if (options.skipPrompt) {
     const retry = options.interactiveRetryCommand

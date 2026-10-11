@@ -5,7 +5,7 @@ import {
   resolveHkgovCenstatdNewTownBridge,
 } from './pipeline/statistics/censtatdDistrictBridge'
 
-test('reviewed identity curations retain all 85 mappings without a database', async () => {
+test('curated identity curations retain all 85 mappings without a database', async () => {
   const fixtures = readIdentityCurations()
   expect(fixtures).toHaveLength(5)
   expect(fixtures.reduce((total, fixture) => total + fixture.mappings.length, 0)).toBe(
@@ -17,5 +17,5 @@ test('reviewed identity curations retain all 85 mappings without a database', as
   expect((await resolveHkgovCenstatdNewTownBridge('2021')).size).toBe(13)
   expect(() =>
     resolveIdentityCuration('hkgov-censtatd', '2099', 'administrative'),
-  ).toThrow('Expected one reviewed identity curation')
+  ).toThrow('Expected one curated identity curation')
 })

@@ -255,8 +255,8 @@ async function registerUploadLocally(
         : ['staged']
       : options.resumeStagedRelease
         ? options.reuseExistingRelease
-          ? ['staged', 'processing']
-          : ['staged']
+          ? ['staged', 'processing', 'failed']
+          : ['staged', 'failed']
         : options.reuseExistingRelease
           ? ['processing']
           : undefined
@@ -487,9 +487,15 @@ export async function reconcileDraftReleaseSets(
 
     if (
       !target.remote &&
-      response.status === 500 &&
       attempt < LOCAL_RECONCILIATION_PROXY_RETRY_DELAYS_MS.length &&
-      (await isLocalProxyConnectionFailure(response))
+      ((response.status === 500 && (await isLocalProxyConnectionFailure(response))) ||
+        (response.status === 503 &&
+          (
+            (await response
+              .clone()
+              .json()
+              .catch(() => null)) as { error?: unknown } | null
+          )?.error === 'control_unavailable'))
     ) {
       await sleep(LOCAL_RECONCILIATION_PROXY_RETRY_DELAYS_MS[attempt] ?? 0)
       continue

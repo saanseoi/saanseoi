@@ -243,6 +243,59 @@ describe('upload helpers', () => {
     expect(delays).toEqual([250, 1_000, 3_000])
   })
 
+  test.each([
+    [false, 'control_unavailable', 2],
+    [false, 'internal_error', 1],
+    [true, 'control_unavailable', 1],
+  ] as const)(
+    'local reconciliation retries only recognised transient 503 errors (remote=%s, error=%s)',
+    async (remote, error, expectedCalls) => {
+      process.env.HARBOUR_API_KEY = 'test-api-key'
+      let calls = 0
+      const delays: number[] = []
+      const result = reconcileDraftReleaseSets(
+        { environment: 'dev', remote },
+        {},
+        {
+          fetchImpl: async () =>
+            ++calls === 1
+              ? Response.json({ error }, { status: 503 })
+              : Response.json({ inspected: 1 }),
+          sleep: async delay => {
+            delays.push(delay)
+          },
+        },
+      )
+      if (expectedCalls === 2) {
+        expect((await result).inspected).toBe(1)
+        expect(delays).toEqual([250])
+      } else {
+        await expect(result).rejects.toThrow('status 503')
+        expect(delays).toEqual([])
+      }
+      expect(calls).toBe(expectedCalls)
+    },
+  )
+
+  test('local transient 503 reconciliation retries remain bounded', async () => {
+    process.env.HARBOUR_API_KEY = 'test-api-key'
+    let calls = 0
+    await expect(
+      reconcileDraftReleaseSets(
+        { environment: 'dev', remote: false },
+        {},
+        {
+          fetchImpl: async () => {
+            calls++
+            return Response.json({ error: 'control_unavailable' }, { status: 503 })
+          },
+          sleep: async () => {},
+        },
+      ),
+    ).rejects.toThrow('status 503')
+    expect(calls).toBe(4)
+  })
+
   test('automatically resumes every retained SQL plan before upload planning', async () => {
     const root = await mkdtemp(join(tmpdir(), 'upload-sql-recovery-'))
     const calls: string[] = []
