@@ -1,6 +1,6 @@
 import type { ReleaseScopedStatsRow, ReleaseStatsRow } from '@repo/db/metaSchema'
 
-import type { ReleaseProcessingAction } from '../../db/processingActions'
+import type { ReleaseProcessingAction } from '../../../provenance/processingAction'
 
 export type CenstatdGeographyLinkPolicy =
   | { kind: 'reviewed_canonical_link'; domain: 'administrative'; cohortKey: string }

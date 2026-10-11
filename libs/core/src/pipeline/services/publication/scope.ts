@@ -8,3 +8,8 @@ export function publicationScopeId(
     ? JSON.stringify([snapshotLineageId, cohortKey])
     : snapshotLineageId
 }
+
+/** Exact history replays retain an older Division inventory beside its latest lineage. */
+export function retainedDivisionScopeId(snapshotLineageId: string, snapshotId: string) {
+  return JSON.stringify([snapshotLineageId, 'snapshot', snapshotId])
+}
