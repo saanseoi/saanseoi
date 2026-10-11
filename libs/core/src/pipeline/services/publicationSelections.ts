@@ -53,26 +53,31 @@ export async function resolvePublicationSelections(meta: HarbourReadableDb) {
       'domainCodes' in definition && definition.domainCodes
         ? definition.domainCodes
         : [definition.domainCode]
-    for (const regionCode of ['hk', 'mo'] as const) {
-      for (const domainCode of domains) {
-        const catalogue = await listApiReleaseSetSnapshotsForRegistryRequest(
-          meta,
-          definition.resourceType,
-          {
-            regionCode,
-            domainCode,
-          },
-        )
-        for (const releaseSet of catalogue?.releaseSets ?? []) {
-          // A current catalogue keeps archived releases discoverable, but their
-          // geometry has already been superseded in DB_CURRENT. A current set
-          // may still pin a companion from an archived source release, so
-          // select by release-set status rather than source-release status.
-          if (releaseSet.status !== 'current') continue
-          for (const snapshot of releaseSet.snapshots) {
-            const type = snapshot.snapshotResourceType
-            if (type === 'divisionArea' || type === 'divisionBoundary')
-              selected[type].add(snapshot.snapshotId)
+    for (const apiVersion of definition.resourceType === 'division'
+      ? ['api-divisions-v0.1', 'api-divisions-v0.2']
+      : [undefined]) {
+      for (const regionCode of ['hk', 'mo'] as const) {
+        for (const domainCode of domains) {
+          const catalogue = await listApiReleaseSetSnapshotsForRegistryRequest(
+            meta,
+            definition.resourceType,
+            {
+              apiVersion,
+              regionCode,
+              domainCode,
+            },
+          )
+          for (const releaseSet of catalogue?.releaseSets ?? []) {
+            // A current catalogue keeps archived releases discoverable, but their
+            // geometry has already been superseded in DB_CURRENT. A current set
+            // may still pin a companion from an archived source release, so
+            // select by release-set status rather than source-release status.
+            if (releaseSet.status !== 'current') continue
+            for (const snapshot of releaseSet.snapshots) {
+              const type = snapshot.snapshotResourceType
+              if (type === 'divisionArea' || type === 'divisionBoundary')
+                selected[type].add(snapshot.snapshotId)
+            }
           }
         }
       }

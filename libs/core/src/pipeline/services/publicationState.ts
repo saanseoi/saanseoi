@@ -1,7 +1,7 @@
 import { eq, metaSnapshots } from '@repo/db'
 import type { HarbourReadableDb } from '../../lib/db/types'
 import { resolvePublicationSelections } from './publicationSelections'
-import { publicationScopeId } from './publication/scope'
+import { publicationScopeId, retainedDivisionScopeId } from './publication/scope'
 
 export const publicationFamilies = [
   'division',
@@ -103,7 +103,12 @@ export async function finalisePublishedResources(
         )
       if (
         publicationScopeId(family, snapshot.lineage, snapshot.cohort) !==
-        receipt.scopeId
+          receipt.scopeId &&
+        !(
+          family === 'division' &&
+          retainedDivisionScopeId(snapshot.lineage, receipt.snapshotId) ===
+            receipt.scopeId
+        )
       )
         throw new Error(`Publication scope mismatch for ${receipt.snapshotId}.`)
       await current

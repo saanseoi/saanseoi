@@ -95,7 +95,7 @@ function fixture() {
   ) {
     sqlite
       .query(
-        "INSERT INTO apiReleaseSets VALUES (?,?,'2026-09-01',0,'schema','rules','current')",
+        "INSERT INTO apiReleaseSets (id,code,regionCode,domainCode,cohortKey,effectiveFrom,revision,schemaVersion,rulesetVersion) VALUES (?,?,'hk',?,'2026-08','2026-09-01',0,'schema','rules')",
       )
       .run(id, id, options.domain ?? 'geographic')
     const version = sqlite

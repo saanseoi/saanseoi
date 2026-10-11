@@ -3,7 +3,7 @@ import { Database, type SQLQueryBindings } from 'bun:sqlite'
 import { resolve } from 'node:path'
 import { createLocalHarbourDb } from '../../testing/localDb'
 import { loadMigrationSql } from '../../testing/metaFixtures'
-import { publicationScopeId } from './publication/scope'
+import { publicationScopeId, retainedDivisionScopeId } from './publication/scope'
 import {
   finalisePublishedResources,
   publicationFamilies,
@@ -98,6 +98,48 @@ function fixture() {
 }
 
 describe('publication completion', () => {
+  test('verified historical Division scopes preserve the latest inventory and reject another snapshot scope', async () => {
+    const f = fixture()
+    try {
+      f.add('september', { lineage: 'overture', current: true })
+      f.add('august', { lineage: 'overture', receipt: false })
+      const scope = retainedDivisionScopeId('overture', 'august')
+      f.current
+        .query(
+          "INSERT INTO divisionPublicationState(scopeId,snapshotId,status,publicationToken,preparedAt) VALUES (?,'august','publishing','replay',NULL)",
+        )
+        .run(scope)
+      await expect(f.finalise()).rejects.toThrow('complete delivery receipts')
+      f.current.exec(
+        "UPDATE divisionPublicationState SET preparedAt='verified' WHERE snapshotId='august'",
+      )
+      f.current
+        .query(
+          "UPDATE divisionPublicationState SET scopeId=? WHERE snapshotId='august'",
+        )
+        .run(retainedDivisionScopeId('overture', 'wrong-snapshot'))
+      await expect(f.finalise()).rejects.toThrow('Publication scope mismatch')
+      f.current
+        .query(
+          "UPDATE divisionPublicationState SET scopeId=? WHERE snapshotId='august'",
+        )
+        .run(scope)
+      await f.finalise()
+      expect(
+        f.current
+          .query(
+            'SELECT snapshotId,status FROM divisionPublicationState ORDER BY snapshotId',
+          )
+          .all(),
+      ).toEqual([
+        { snapshotId: 'august', status: 'current' },
+        { snapshotId: 'september', status: 'current' },
+      ])
+    } finally {
+      f.close()
+    }
+  })
+
   test('a curated current selection requires its retained older Overture inventory delivery', async () => {
     const f = fixture()
     try {
