@@ -16,7 +16,10 @@ export const GET: RequestHandler = async ({ fetch, params, request, url }) => {
   if (
     typeof family !== 'string' ||
     !apiFamilies.has(family) ||
-    (version !== 'v0' && version !== 'v0.1')
+    (version !== 'v0' &&
+      version !== 'v0.1' &&
+      !(family === 'divisions' && version === 'v0.2') &&
+      !(['addresses', 'divisions'].includes(family) && version === 'v1'))
   ) {
     error(404, 'OpenAPI document is unavailable.')
   }
