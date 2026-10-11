@@ -28,7 +28,7 @@ import {
   resolveLatestPublishedSnapshotForResourceTypeRegionAtOrBeforeCohortKey,
 } from '@repo/core/db/metaRegistry'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import {
   createAsyncBufferFromR2,
   readParquetObjectsInBatches,
@@ -344,6 +344,7 @@ export async function stageEnrichedPlaces(
       hamletId: currentSchema.address2d.hamletId,
       id: currentSchema.address2d.id,
       parentAddressId: currentSchema.address2d.parentAddressId,
+      ruralAreaId: currentSchema.address2d.ruralAreaId,
       macrohoodId: currentSchema.address2d.macrohoodId,
       microhoodId: currentSchema.address2d.microhoodId,
       neighbourhoodId: currentSchema.address2d.neighbourhoodId,
@@ -425,6 +426,12 @@ export async function stageEnrichedPlaces(
           async ({ place, resolution }) => {
             if (resolution.tier === 'review')
               throw new Error(`Unresolved Place Address ${place.id}.`)
+            if (
+              resolution.tier === 'investigation' &&
+              (resolution.addressId !== null ||
+                resolution.investigation?.status !== 'needs-further-investigation')
+            )
+              throw new Error(`Invalid deferred Place Address ${place.id}.`)
             const addressId = resolution.addressId
             const addressSnapshotId =
               resolution.tier === 'supplementary'

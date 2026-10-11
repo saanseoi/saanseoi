@@ -3,6 +3,7 @@ import { mkdtemp, writeFile, rm } from 'node:fs/promises'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { verifyAuditResult, readAuditPage } from '@repo/core/provenance'
+import { readObject } from '../../../../../../libs/core/src/provenance/objects'
 import { LocalPipelineBucket } from '../local/localBucket'
 import { retainPlaceProvenance } from './placeProvenance'
 import {
@@ -15,6 +16,62 @@ const directories: string[] = []
 afterEach(async () => {
   for (const directory of directories.splice(0))
     await rm(directory, { recursive: true, force: true })
+})
+
+test('Places retain replayable reviewed decisions without adding automatic record audit rows', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'place-replay-provenance-'))
+  directories.push(directory)
+  const resolutionPath = join(directory, 'resolutions.jsonl')
+  const decision = {
+    placeId: 'replayed',
+    sourceRelease: '2026-08',
+    fingerprint: 'same',
+    previousAddressId: null,
+    resolution: 'leave_unlinked' as const,
+    addressId: null,
+    reason: 'Reviewed retirement.',
+  }
+  const fixture = {
+    ...parseSupplementaryCuration(structuredClone(policy)),
+    entries: [],
+    decisions: [
+      decision,
+      { ...decision, sourceRelease: '2026-10' },
+      { ...decision, placeId: 'not-observed' },
+    ],
+  }
+  await writeFile(
+    resolutionPath,
+    `${JSON.stringify({
+      placeId: 'replayed',
+      fingerprint: 'same',
+      tier: 'delayed',
+      addressId: null,
+    })}\n`,
+  )
+  const store = new LocalPipelineBucket(join(directory, 'objects'))
+  const result = await retainPlaceProvenance(store, {
+    snapshotId: 'test-snapshot',
+    resourceReleaseId: 'release',
+    datasetCode: 'ds-hk-overture-place',
+    addresses: {
+      snapshotId: 'test-snapshot',
+      fixture,
+      resolutionPath,
+      sourceVersion: '2026-09',
+      supplementaryCount: 0,
+    },
+  })
+  const retained = result.manifest.bulk
+    .flatMap(rule => rule.fixtures)
+    .filter(value => value.type === 'place-address-decisions')
+  expect(retained).toHaveLength(1)
+  expect(await readObject(store, retained[0]!.object)).toMatchObject({
+    decisions: [decision],
+  })
+  expect(result.manifest.applicationCount).toBe(0)
+  expect(result.manifest.chunks).toHaveLength(0)
+  await verifyAuditResult(store, result.manifest)
 })
 
 test('Places audit retains unresolved review evidence without claiming an applied decision', async () => {
@@ -57,9 +114,11 @@ test('Places audit retains unresolved review evidence without claiming an applie
   )
   const store = new LocalPipelineBucket(directory)
   const result = await retainPlaceProvenance(store, {
+    snapshotId: 'test-snapshot',
     resourceReleaseId: 'place-release',
     datasetCode: 'places',
     addresses: {
+      snapshotId: 'test-snapshot',
       fixture,
       resolutionPath,
       sourceVersion: '2026-09',
@@ -97,7 +156,7 @@ test('Places audit retains unresolved review evidence without claiming an applie
       {
         reason: 'No matching official premise.',
         record: { id: 'reviewed' },
-        fixture: { pointer: '/decisions/0' },
+        fixture: { pointer: '' },
       },
     ],
   })
@@ -136,9 +195,11 @@ test('automatic Place matching grows counts without generating per-record audit 
       },
     }
     const result = await retainPlaceProvenance(store, {
+      snapshotId: 'test-snapshot',
       resourceReleaseId: 'release',
       datasetCode: 'places',
       addresses: {
+        snapshotId: 'test-snapshot',
         fixture,
         resolutionPath,
         sourceVersion: '2026-09',
@@ -158,4 +219,55 @@ test('automatic Place matching grows counts without generating per-record audit 
   }
   expect(sizes[1]!.objects).toBe(sizes[0]!.objects)
   expect(sizes[1]!.bytes - sizes[0]!.bytes).toBeLessThan(100)
+})
+
+test('deferred investigations pass the review gate without claiming a resolved identity', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'place-deferred-audit-'))
+  directories.push(directory)
+  const resolutionPath = join(directory, 'resolutions.jsonl')
+  await writeFile(
+    resolutionPath,
+    JSON.stringify({
+      placeId: 'pending',
+      fingerprint: 'pending',
+      tier: 'investigation',
+      addressId: null,
+      reason: 'multiple_close_matches',
+      sourceTexts: ['publisher address'],
+      candidates: [],
+      investigation: {
+        status: 'needs-further-investigation',
+        priority: 'low',
+        evidenceId: 'retained.json',
+      },
+    }) + '\n',
+  )
+  const store = new LocalPipelineBucket(directory)
+  const result = await retainPlaceProvenance(store, {
+    snapshotId: 'test-snapshot',
+    resourceReleaseId: 'place-release',
+    datasetCode: 'places',
+    addresses: {
+      snapshotId: 'test-snapshot',
+      fixture: {
+        ...parseSupplementaryCuration(structuredClone(policy)),
+        entries: [],
+        decisions: [],
+      },
+      resolutionPath,
+      sourceVersion: '2026-09',
+      supplementaryCount: 0,
+    },
+  })
+  await verifyAuditResult(store, result.manifest)
+  expect(result.manifest.guards[0]).toMatchObject({
+    failed: 0,
+    checked: 1,
+    status: 'passed',
+  })
+  expect(result.manifest.applicationCount).toBe(0)
+  expect(result.manifest.bulk[0]?.counts.decisions).toMatchObject({
+    investigation: 1,
+    review: 0,
+  })
 })

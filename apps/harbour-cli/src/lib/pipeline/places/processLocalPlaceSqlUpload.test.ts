@@ -152,7 +152,7 @@ describe('Places SQL materialisation', () => {
     sqlite.exec(`
       PRAGMA foreign_keys = ON;
       CREATE TABLE overturePlaces (
-        sourceRecordId TEXT, sourceLocator TEXT, properties TEXT, sourceGeometry TEXT, version INTEGER,
+        sourceRecordId TEXT, properties TEXT, sourceGeometry TEXT, version INTEGER,
         versionHash TEXT, resourceReleaseId TEXT, validFromRelease TEXT, validToRelease TEXT,
         isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
         PRIMARY KEY (sourceRecordId, versionHash)

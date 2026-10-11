@@ -107,6 +107,11 @@ export async function processLocalPlaceSqlUpload(
   let postPublishCacheError: Error | null = null
   let publishResult: PublishDatasetResult | void | null = null
 
+  let failureAuditScope: import('@repo/core/provenance').AuditScope = {
+    stage: 'preparation',
+    ownerId: resourceReleaseId,
+  }
+
   try {
     recordCache = new PlaceRecordCache(
       resolve(
@@ -199,6 +204,7 @@ export async function processLocalPlaceSqlUpload(
           dependencies,
         ),
     )
+    failureAuditScope = { stage: 'assembly', ownerId: snapshots.snapshotId }
     const publicationPrevious = await getPreparedPublication(
       context.currentDb as unknown as HarbourReadableDb,
       'placePublicationState',
@@ -272,6 +278,7 @@ export async function processLocalPlaceSqlUpload(
                 }),
               retain: store =>
                 retainPlaceProvenance(store, {
+                  snapshotId: addresses.snapshotId,
                   resourceReleaseId: auditReleaseId,
                   datasetCode: auditDatasetCode,
                   addresses,
@@ -457,6 +464,7 @@ export async function processLocalPlaceSqlUpload(
           }),
           retain: store =>
             retainPlaceProvenance(store, {
+              snapshotId: snapshots.snapshotId,
               resourceReleaseId,
               datasetCode,
               staged: stagedPlaces,
@@ -591,6 +599,7 @@ export async function processLocalPlaceSqlUpload(
     completed = true
   } catch (error) {
     await retainProcessingFailure({
+      scope: failureAuditScope,
       error,
       target,
       resourceReleaseId,

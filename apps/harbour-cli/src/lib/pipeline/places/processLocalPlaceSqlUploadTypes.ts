@@ -1,5 +1,5 @@
 import type { DatasetProcessingMessage } from '@repo/core'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import type {
   PlaceLocalisationStatistics,
   NormalisedPlace,

@@ -127,7 +127,12 @@ export type AddressResolution = {
   fingerprint: string
   lng?: number
   lat?: number
-  tier: 'direct' | 'supplementary' | 'review' | 'delayed'
+  tier: 'direct' | 'supplementary' | 'review' | 'delayed' | 'investigation'
+  investigation?: {
+    status: 'needs-further-investigation'
+    priority: 'low'
+    evidenceId: string
+  }
   addressId: string | null
   entry?: SupplementaryEntry
   previous: PreviousAddressLink | SupplementaryEntry | null

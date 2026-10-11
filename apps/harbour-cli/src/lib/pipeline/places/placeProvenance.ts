@@ -1,5 +1,5 @@
 import {
-  retainFixturePartitions,
+  retainCurationReference,
   type AuditGuard,
   type IndividualAudit,
   type ProvenanceStore,
@@ -21,6 +21,7 @@ import {
 import type { StagedPlaces } from './processLocalPlaceSqlUploadTypes'
 
 export type PlaceAddressAuditInput = {
+  snapshotId: string
   materialisationHash?: string
   fixture: SupplementaryCuration
   resolutionPath: string
@@ -31,6 +32,7 @@ export type PlaceAddressAuditInput = {
 export async function retainPlaceProvenance(
   store: ProvenanceStore,
   input: {
+    snapshotId: string
     resourceReleaseId: string
     datasetCode: string
     addresses: PlaceAddressAuditInput
@@ -55,14 +57,20 @@ export async function retainPlaceProvenance(
     observedPlaces.add(resolution.placeId)
     counts[resolution.tier] = (counts[resolution.tier] ?? 0) + 1
     if (resolution.addressId) linked++
-    if (resolution.tier === 'review') unreviewed.push(resolution)
+    if (resolution.tier === 'review' || resolution.tier === 'investigation')
+      unreviewed.push(resolution)
     const index = input.addresses.fixture.decisions.findIndex(
       d =>
         d.placeId === resolution.placeId &&
         d.sourceRelease === input.addresses.sourceVersion &&
         d.fingerprint === resolution.fingerprint,
     )
-    if (index >= 0 && resolution.tier !== 'review') selectedDecisions.add(index)
+    if (
+      index >= 0 &&
+      resolution.tier !== 'review' &&
+      resolution.tier !== 'investigation'
+    )
+      selectedDecisions.add(index)
   }
   const total = Object.values(counts).reduce((a, b) => a + b, 0)
   const decisions = input.addresses.fixture.decisions.filter((_, index) =>
@@ -79,52 +87,39 @@ export async function retainPlaceProvenance(
     store,
     placeAddressAnalysisRule.declaration,
   )
-  const parts = await retainFixturePartitions(
-    store,
-    {
-      kind: 'place-address-decisions',
-      schemaVersion: 1,
-      sourceVersion: input.addresses.sourceVersion,
-      decisions,
-    },
-    'decisions',
+  const individuals: IndividualAudit[] = await Promise.all(
+    decisions.map(async (decision, index) => {
+      return {
+        id: `place-address:${decision.placeId}:${index}`,
+        operation: placeAddressAnalysisRule.declaration.id,
+        basis: 'fixture',
+        outcome: 'applied',
+        summary: `Reviewed Place Address: ${decision.resolution}.`,
+        reason: decision.reason,
+        definition,
+        fixture: await retainCurationReference(store, decision),
+        record: {
+          id: decision.placeId,
+          names: decision.address?.values.map(v => v.formattedAddress) ?? [],
+          parents: [],
+        },
+        context: JSON.parse(JSON.stringify(decision)) as JsonRecord,
+      }
+    }),
   )
-  const individuals: IndividualAudit[] = decisions.map((decision, index) => {
-    const part = requireDefined(
-      parts.find(p => index >= p.firstOrdinal && index < p.firstOrdinal + p.count),
-    )
-    return {
-      id: `place-address:${decision.placeId}:${index}`,
-      operation: placeAddressAnalysisRule.declaration.id,
-      basis: 'fixture',
-      outcome: 'applied',
-      summary: `Reviewed Place Address: ${decision.resolution}.`,
-      reason: decision.reason,
-      definition,
-      fixture: {
-        object: part.object,
-        pointer: `/decisions/${index - part.firstOrdinal}`,
-      },
-      record: {
-        id: decision.placeId,
-        names: decision.address?.values.map(v => v.formattedAddress) ?? [],
-        parents: [],
-      },
-      context: JSON.parse(JSON.stringify(decision)) as JsonRecord,
-    }
-  })
   const reviewCount = counts.review ?? 0
   const guards: AuditGuard[] = [
     {
       id: 'place-address-review',
-      summary: 'Every Place Address identity must have a resolved disposition.',
+      summary:
+        'Every Place Address identity must be resolved or explicitly deferred without a link.',
       consequence: 'block-ingestion',
       status: reviewCount ? 'failed' : 'passed',
       checked: total,
       failed: reviewCount,
       reason: reviewCount
         ? `${reviewCount} Place Address identities require explicit review.`
-        : 'All analysed Place Address identities have a resolved disposition.',
+        : 'All analysed Place Address identities are resolved or retained as non-blocking investigations without links.',
     },
     {
       id: 'unique-place-address-identities',
@@ -150,6 +145,17 @@ export async function retainPlaceProvenance(
       decisions: counts,
       fixtures: [
         { type: 'place-address-curations', document: fixture, arrayKey: 'entries' },
+        {
+          type: 'place-address-decisions',
+          document: {
+            decisions: input.addresses.fixture.decisions.filter(
+              decision =>
+                observedPlaces.has(decision.placeId) &&
+                decision.sourceRelease <= input.addresses.sourceVersion,
+            ),
+          },
+          arrayKey: 'decisions',
+        },
         ...(unreviewed.length
           ? [
               {
@@ -210,6 +216,7 @@ export async function retainPlaceProvenance(
     })
   }
   return retainProducerAudit(store, {
+    scope: { stage: 'assembly', ownerId: input.snapshotId },
     ...input,
     rules,
     individuals,
@@ -217,4 +224,3 @@ export async function retainPlaceProvenance(
     ...(input.staged ? { apiFields } : {}),
   })
 }
-import { requireDefined } from '@repo/core/requireDefined'

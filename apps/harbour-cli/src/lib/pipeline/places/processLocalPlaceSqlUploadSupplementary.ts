@@ -1,3 +1,8 @@
+import { reviewEvidenceId } from '../../storage/evidenceArchive.ts'
+import {
+  deferPlaceAddressReviews,
+  deferredPlaceAddressResolution,
+} from './placeAddressInvestigations'
 import { deliverResolvedAddressSqlPhase } from '../addresses/resolvedAddressSqlPhase.ts'
 import type { PlaceRecordCache } from './placeRecordCache.ts'
 import {
@@ -280,6 +285,7 @@ async function prepareSupplementaryAddressesLocked(
       geometry: currentSchema.address2d.geometry,
       hamletId: currentSchema.address2d.hamletId,
       id: currentSchema.address2d.id,
+      ruralAreaId: currentSchema.address2d.ruralAreaId,
       macrohoodId: currentSchema.address2d.macrohoodId,
       microhoodId: currentSchema.address2d.microhoodId,
       neighbourhoodId: currentSchema.address2d.neighbourhoodId,
@@ -301,6 +307,7 @@ async function prepareSupplementaryAddressesLocked(
     | 'geometry'
     | 'hamletId'
     | 'id'
+    | 'ruralAreaId'
     | 'macrohoodId'
     | 'microhoodId'
     | 'neighbourhoodId'
@@ -467,10 +474,30 @@ async function prepareSupplementaryAddressesLocked(
   if ((await readOptionalFile(entryLedgerPath)) !== entryLedgerText)
     throw new Error('Generated Place Address entries changed during analysis; retry.')
   if (reviewCount) {
-    input.recordCache?.flush()
-    throw new Error(
-      `Address assembly blocked by ${reviewCount} unresolved identity reviews. Resolve the cases in ${reviewPath} and retry.`,
-    )
+    const investigationPath = await deferPlaceAddressReviews({
+      reviewPath,
+      authority: process.env.SAANSEOI_PLACES_INVESTIGATION_AUTHORITY,
+    })
+    if (!investigationPath) {
+      input.recordCache?.flush()
+      throw new Error(
+        `Address assembly blocked by ${reviewCount} unresolved identity reviews. Resolve the cases in ${reviewPath} and retry.`,
+      )
+    }
+    const investigationEvidenceId = await reviewEvidenceId(investigationPath)
+    const deferredPath = temporaryPath(resolutionPath)
+    const deferredOutput = await open(deferredPath, 'w')
+    try {
+      for await (const row of readStagedJsonLines<StagedAddressResolution>(
+        resolutionPath,
+      ))
+        await deferredOutput.write(
+          `${JSON.stringify(deferredPlaceAddressResolution(row, investigationEvidenceId))}\n`,
+        )
+    } finally {
+      await deferredOutput.close()
+    }
+    await rename(deferredPath, resolutionPath)
   }
   // A Places release is complete. Once a generated Address's Place no longer
   // appears after it was first seen, retain the entry but close its lifecycle.
@@ -683,6 +710,7 @@ async function prepareSupplementaryAddressesLocked(
     }
     await writeSupplementaryEntryLedger(entryLedgerPath, nextEntryLedger)
     await input.retainAudit(resourceReleaseId, datasetCode, {
+      snapshotId: snapshot.id,
       materialisationHash,
       fixture,
       resolutionPath,
@@ -790,6 +818,7 @@ async function prepareSupplementaryAddressesLocked(
     input.onStage?.('verify supplementary Address rows')
     await assertSupplementaryAddressRows(currentDb, currentScopeId, addresses)
     await input.retainAudit(resourceReleaseId, datasetCode, {
+      snapshotId: snapshot.id,
       materialisationHash,
       fixture,
       resolutionPath,
@@ -837,6 +866,7 @@ async function prepareSupplementaryAddressesLocked(
   })
   return {
     audit: {
+      snapshotId: input.snapshots.snapshotId,
       materialisationHash,
       fixture,
       resolutionPath,

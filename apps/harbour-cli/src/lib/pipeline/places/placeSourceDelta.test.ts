@@ -63,14 +63,14 @@ function database() {
   db.exec(`CREATE TABLE overturePlaces (
     sourceRecordId TEXT, versionHash TEXT, resourceReleaseId TEXT, validFromRelease TEXT,
     validToRelease TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
-    sourceLocator TEXT, properties TEXT, sourceGeometry TEXT, version INTEGER,
+    properties TEXT, sourceGeometry TEXT, version INTEGER,
     PRIMARY KEY (sourceRecordId, versionHash));`)
   return db
 }
 
 function seed(db: Database, id: string, hash = 'same', current = 1) {
   db.query(
-    'INSERT INTO overturePlaces (sourceRecordId, versionHash, resourceReleaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, sourceLocator, properties, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT INTO overturePlaces (sourceRecordId, versionHash, resourceReleaseId, validFromRelease, validToRelease, isCurrent, createdAt, updatedAt, properties, version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
   ).run(
     id,
     hash,
@@ -80,7 +80,6 @@ function seed(db: Database, id: string, hash = 'same', current = 1) {
     current,
     'original',
     'original',
-    '[]',
     '{"retained":true}',
     1,
   )

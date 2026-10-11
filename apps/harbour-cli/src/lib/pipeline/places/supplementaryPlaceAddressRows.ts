@@ -16,6 +16,7 @@ export const ADDRESS_DIVISION_FIELDS = [
   'areaId',
   'districtId',
   'townId',
+  'ruralAreaId',
   'macrohoodId',
   'villageId',
   'neighbourhoodId',
@@ -32,6 +33,7 @@ type AddressDivisionReference = Pick<
   | 'divisionSnapshotId'
   | 'hamletId'
   | 'id'
+  | 'ruralAreaId'
   | 'macrohoodId'
   | 'microhoodId'
   | 'neighbourhoodId'
