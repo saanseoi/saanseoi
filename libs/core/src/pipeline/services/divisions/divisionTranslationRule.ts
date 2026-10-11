@@ -19,7 +19,10 @@ export const divisionTranslationRule = registerRule(
     return [
       ...input.source,
       ...input.localisations.flatMap(localised =>
-        localised.locale.toLowerCase() === 'zh-hans' || existing.has(localised.locale)
+        localised.locale.toLowerCase() === 'zh-hans' ||
+        existing.has(localised.locale) ||
+        input.applications.find(a => a.locale === localised.locale)?.provenance !==
+          'human-translated'
           ? []
           : [
               {

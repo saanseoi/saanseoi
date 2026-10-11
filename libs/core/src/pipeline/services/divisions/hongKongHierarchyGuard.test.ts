@@ -4,7 +4,10 @@ import {
   checkHongKongHierarchy,
   createHongKongHierarchyGuard,
 } from './hongKongHierarchyGuard'
-import { normaliseDivisionRow, divisionNormalisationRule } from './division'
+import {
+  prepareCuratedDivisionRow as normaliseDivisionRow,
+  divisionNormalisationRule,
+} from './division'
 import {
   OVERTURE_HONG_KONG_SAR_DIVISION_ID,
   overtureHongKongAreaDivisionId,
@@ -79,7 +82,7 @@ test('district descendants require a single correctly ordered recognised Area', 
     [sar, area, { ...district, i18n: { en: { name: 'Unrecognised District' } } }],
   ]) {
     expect(() => checkHongKongHierarchy({ ...child, hierarchy })).toThrow(
-      'Requires reviewed hierarchy resolution',
+      'Requires curated hierarchy resolution',
     )
   }
 })
@@ -114,7 +117,7 @@ test('district descendants may contain legitimate nested areas after the distric
   expect(guard.status).toBe('passed')
 })
 
-test('reviewed replacements defer only the intermediate hierarchy guard', () => {
+test('curated replacements defer only the intermediate hierarchy guard', () => {
   const hierarchyGuard = createHongKongHierarchyGuard()
   const row = {
     id: '17009785-57fd-4e5b-af86-2d27352e4718',
@@ -130,7 +133,7 @@ test('reviewed replacements defer only the intermediate hierarchy guard', () => 
     ],
   }
   expect(() => normaliseDivisionRow(row)).toThrow(
-    'Requires reviewed hierarchy resolution',
+    'Requires curated hierarchy resolution',
   )
   normaliseDivisionRow(row, { hierarchyGuard, deferHierarchyGuard: true })
   expect(hierarchyGuard.checked).toBe(0)
@@ -157,7 +160,7 @@ test('unknown districts fail after attempted normalisation; unrelated branches a
       },
       { hierarchyGuard: guard },
     ),
-  ).toThrow('Requires reviewed hierarchy resolution')
+  ).toThrow('Requires curated hierarchy resolution')
   expect(guard).toMatchObject({ status: 'failed', checked: 1, failed: 1 })
   const irrelevant = createHongKongHierarchyGuard()
   checkHongKongHierarchy({ ...child, country: 'MO', hierarchy: [] }, irrelevant)

@@ -1,14 +1,31 @@
-import supplementalNeighbourhoods from '../../../../../../fixtures/divisions/hk/supplemental-neighbourhoods.json'
-import { overtureHongKongCityRestorationActions } from './overtureHongKongCityRestoration'
+import additions from '../../../../../../fixtures/meta/curations/saanseoi-division/division-additions.json'
+const supplementalNeighbourhoods = additions.entries
+  .filter(row => 'key' in row)
+  .map(row => ({
+    id: row.id,
+    country: 'HK',
+    theme: 'divisions',
+    type: 'division',
+    subtype: 'neighborhood',
+    class: row.class,
+    admin_level: null,
+    geometry: row.point ? { type: 'Point', coordinates: row.point } : null,
+    bbox: null,
+    hierarchies: [],
+    names: {
+      primary: [row.names['zh-hant'], row.names.en].filter(Boolean).join(' '),
+      common: Object.entries(row.names).map(([language, value]) => ({
+        language: language === 'zh-hant' ? 'zh-Hant' : language,
+        value,
+      })),
+    },
+    sources: [{ dataset: 'SaanSeoi curated additions', record_id: row.key }],
+    fixture: row.evidence,
+  }))
 import { readDivisionInputBatches, type DivisionInput } from './divisionInput'
 
 import type { DatasetProcessingMessage } from '../../../types'
-import prcCountryAnchor from '../../../../../../fixtures/divisions/overture/hk-prc-country-anchor.json'
-import { missingOvertureHongKongAreaRows } from './overtureHongKongAreas'
-import { missingOvertureHongKongCityRows } from './overtureHongKongCities'
-import { kowloonRestorationActions } from './kowloonRestoration'
-import { overtureHongKongAreaRestorationActions } from './overtureHongKongAreaRestoration'
-import type { ReleaseProcessingAction } from '../../db/processingActions'
+import type { ReleaseProcessingAction } from '../../../provenance/processingAction'
 
 export { supplementalNeighbourhoods }
 
@@ -22,7 +39,7 @@ type DivisionRowBatch = {
 }
 
 /**
- * Returns reviewed rows that supplement a scoped division extract. These rows are
+ * Returns curated rows that supplement a scoped division extract. These rows are
  * part of the division snapshot, rather than an identifier bridge: geometry rows
  * and address rows must be able to resolve their canonical IDs in that snapshot.
  */
@@ -31,56 +48,30 @@ export function getSupplementalDivisionFixtureRows(
   supplementalRows: readonly DivisionFixtureRow[] = [],
 ): DivisionFixtureRow[] {
   if (
-    message.source !== 'overture' ||
+    message.source !== 'saanseoi' ||
     message.resourceType !== 'division' ||
     message.regionCode !== 'hk'
-  ) {
+  )
     return []
-  }
-
   return [
     ...supplementalRows.map(row => structuredClone(row)),
-    structuredClone(prcCountryAnchor) as DivisionFixtureRow,
     ...supplementalNeighbourhoods.map(row => structuredClone(row)),
   ]
 }
 
+/** Publisher ingestion never adds, replaces or excludes editorial identities. */
 export async function* readDivisionRowsWithFixtures(
   file: DivisionInput,
-  message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'resourceType'>,
+  _message: Pick<DatasetProcessingMessage, 'regionCode' | 'source' | 'resourceType'>,
   batchSize: number,
-  supplementalRows: readonly DivisionFixtureRow[] = [],
+  _supplementalRows: readonly DivisionFixtureRow[] = [],
 ): AsyncGenerator<DivisionRowBatch> {
-  const sourceRows: DivisionFixtureRow[] = []
   for await (const rows of readDivisionInputBatches(file, batchSize)) {
-    sourceRows.push(...rows)
-  }
-
-  const rows = [
-    ...getSupplementalDivisionFixtureRows(message, supplementalRows),
-    ...missingOvertureHongKongAreaRows(message, sourceRows),
-    ...missingOvertureHongKongCityRows(message, sourceRows),
-  ]
-  const replacedDivisionIds = new Set(rows.map(row => String(row.id)))
-  for (let offset = 0; offset < sourceRows.length; offset += batchSize) {
     yield {
       isSupplemental: false,
-      replacedDivisionIds,
-      rows: sourceRows.slice(offset, offset + batchSize),
-      processingActions: [],
-    }
-  }
-
-  if (rows.length > 0) {
-    yield {
-      isSupplemental: true,
       replacedDivisionIds: new Set(),
       rows,
-      processingActions: [
-        ...kowloonRestorationActions(sourceRows, rows),
-        ...overtureHongKongCityRestorationActions(rows),
-        ...overtureHongKongAreaRestorationActions(sourceRows, rows),
-      ],
+      processingActions: [],
     }
   }
 }

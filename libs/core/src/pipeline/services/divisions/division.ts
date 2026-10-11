@@ -1,5 +1,7 @@
 import { canonicalDivisionPoint, createDivisionPointGuard } from './divisionPoint'
 import { buildSourceChurnCounts, type SourceChurnRecord } from '../sources/sourceChurn'
+import { buildSaanseoiDivisionSourceStats } from '../sources/saanseoiDivisionSourceStats'
+import { applyDivisionNamePatch } from './divisionNamePatch'
 import {
   saanseoiSourcePayload,
   nativeSourcePayloadHashInput,
@@ -25,8 +27,6 @@ import {
   buildPublicationRowCountSql,
   type PublicationPreparation,
 } from '../publication/sql'
-import { missingOvertureHongKongAreaRows } from './overtureHongKongAreas'
-import { missingOvertureHongKongCityRows } from './overtureHongKongCities'
 import { geographicDivisionClassification, emptyDivisionHierarchies } from '@repo/db'
 import { materialiseDivisionHierarchies } from './divisionHierarchies'
 import { recordSourceResolutions, resolvedEntities } from '../../db/sourceResolutions'
@@ -66,7 +66,6 @@ import {
   applyDivisionClassificationPatch,
   divisionClassificationFixture,
 } from './divisionClassificationPatch'
-import { applyDivisionExclusionPatch } from './divisionExclusionPatch'
 import type { ApiLocale } from '../../../lib/apiLocales'
 import {
   resolveLatestPublishedSnapshotForResourceTypeRegion,
@@ -119,7 +118,7 @@ import {
   type DivisionHistoryComponent,
 } from '../../db/divisionHistory'
 import { replaceDatasetStats } from '../../db/stats'
-import type { ReleaseProcessingAction } from '../../db/processingActions'
+import type { ReleaseProcessingAction } from '../../../provenance/processingAction'
 import {
   buildSourceReleaseId,
   closeSourceDivisionVersions,
@@ -230,6 +229,8 @@ type DivisionHierarchyLookupEntry = {
 export type DivisionHierarchyLookup = ReadonlyMap<string, DivisionHierarchyLookupEntry>
 
 type DivisionNormaliseOptions = {
+  /** Only the SaanSeoi source preparation builder may apply editorial decisions. */
+  editorial?: boolean
   nativeSourceEvidence?: boolean
   pointGuard?: ReturnType<typeof createDivisionPointGuard>
   hierarchyGuard?: import('../../../provenance').AuditGuard
@@ -244,6 +245,7 @@ type DivisionNormaliseOptions = {
 const DIVISION_BATCH_SIZE = 128
 const OVERTURE_HK_DIVISION_PREFLIGHT_COLUMNS = [
   'id',
+  'subtype',
   'theme',
   'type',
   'country',
@@ -597,7 +599,6 @@ export async function processDivisionDataset(
     const unchangedSourceIds = new Set<string>()
 
     for (const row of batch) {
-      const exclusion = applyDivisionExclusionPatch(row, message)
       const normalised = normaliseDivisionRow(row, {
         nativeSourceEvidence: message.source === 'overture' && !isSupplemental,
         deferHierarchyGuard: replacedDivisionIds.has(String(row.id)),
@@ -665,16 +666,17 @@ export async function processDivisionDataset(
         })
         const currentSource = currentSourceRows?.get(normalised.base.id) ?? null
         sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
-        if (message.source === 'overture')
-          publisherPayloads.set(
-            normalised.base.id,
-            !sourceChanged && currentSource
-              ? {
-                  properties: currentSource.properties,
-                  sourceGeometry: currentSource.sourceGeometry,
-                }
+        publisherPayloads.set(
+          normalised.base.id,
+          !sourceChanged && currentSource
+            ? {
+                properties: currentSource.properties,
+                sourceGeometry: currentSource.sourceGeometry,
+              }
+            : message.source === 'saanseoi'
+              ? saanseoiSourcePayload(row)
               : overtureSourcePayload(row),
-          )
+        )
 
         if (sourceChanged) {
           sourceChangedRows += 1
@@ -699,23 +701,6 @@ export async function processDivisionDataset(
           sourceUnchangedRows += 1
           unchangedSourceIds.add(normalised.base.id)
         }
-      }
-
-      if (exclusion) {
-        processingActions.push({
-          action: exclusion.id,
-          affectedRecordCount: 1,
-          evidence: {
-            divisionId: normalised.base.id,
-            // Parquet optional name fields can be undefined. Retain their JSON
-            // representation without passing absent properties to the audit store.
-            sourceNames: JSON.parse(JSON.stringify(row.names ?? null)),
-          },
-          mode: 'manual',
-          summary:
-            'Excluded Overture division by curated policy from canonical records.',
-        })
-        continue
       }
 
       // A curated fixture supplies the final canonical row for this identity.
@@ -956,8 +941,20 @@ export async function processDivisionDataset(
   const statsRows = await timings.measure('replaceDatasetStatsMs', () =>
     replaceDatasetStats(metaRepoDb, message.resourceReleaseId ?? message.datasetId, [
       ...buildLocaleStatsRows(statsAccumulator),
-      ...buildDistrictDistributionStatsRows(districtCounts),
-      ...churnStats,
+      ...(message.source === 'saanseoi'
+        ? buildSaanseoiDivisionSourceStats(
+            new Map(
+              [...(currentSourceRows ?? new Map())].map(([id, row]) => [
+                id,
+                {
+                  properties: row.properties,
+                  sourceGeometry: row.sourceGeometry,
+                },
+              ]),
+            ),
+            publisherPayloads,
+          )
+        : [...buildDistrictDistributionStatsRows(districtCounts), ...churnStats]),
       ...qualityStats,
     ]),
   )
@@ -967,6 +964,7 @@ export async function processDivisionDataset(
     ),
   )
   const audit = await retainDivisionProvenance(options.auditStore, {
+    scope: { stage: 'assembly', ownerId: versionInsertContext.snapshotId },
     resourceReleaseId: message.resourceReleaseId ?? message.datasetId,
     datasetCode: message.datasetCode ?? message.datasetId,
     actions: processingActions,
@@ -1116,6 +1114,15 @@ export function collectOvertureHongKongDivisionSourceAssumptionViolations(
       )
     }
 
+    // The prepared country reference is retained to close Hong Kong's ancestry.
+    // Hong Kong-only dropped-field assumptions do not apply to that country row.
+    if (
+      rowId === 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be' &&
+      row.subtype === 'country' &&
+      row.country === 'CN'
+    )
+      return
+
     if (row.country !== 'HK') {
       addViolation(
         `${rowLabel}: expected country=HK, got ${formatSourceValue(row.country)}`,
@@ -1223,9 +1230,8 @@ function formatSourceValue(value: unknown) {
 }
 
 /**
- * Normalises publisher evidence and applies independently curated classification
- * and names by identity. Source taxonomy is only a fallback for non-curated rows;
- * curated publication selects its inventory explicitly.
+ * Maps publisher evidence to the shared schema. Identity-specific editorial
+ * decisions require the explicit SaanSeoi preparation option.
  */
 function normaliseDivisionRowInternal(
   row: Record<string, unknown>,
@@ -1246,9 +1252,11 @@ function normaliseDivisionRowInternal(
   const parentDivisionId = asNonEmptyString(row.parent_division_id)
   const otSubtype = asNonEmptyString(row.subtype)
   const otClass = asNonEmptyString(row.class)
-  const overtureHongKongDivisionClassificationCorrection =
-    applyDivisionClassificationPatch(row, options.source)
+  const overtureHongKongDivisionClassificationCorrection = options.editorial
+    ? applyDivisionClassificationPatch(row, options.source)
+    : null
   const curatedClassification =
+    options.editorial &&
     (!options.source || options.source.source === 'overture') &&
     (!row.source || row.source === 'overture')
       ? curatedDivisionClassification(id)
@@ -1256,8 +1264,8 @@ function normaliseDivisionRowInternal(
   const landsdPlaceName = row.source === 'hkgov-landsd'
   const type = landsdPlaceName
     ? 'settlement'
-    : (curatedClassification?.class ??
-      overtureHongKongDivisionClassificationCorrection?.class ??
+    : (overtureHongKongDivisionClassificationCorrection?.class ??
+      curatedClassification?.class ??
       resolveDivisionClass({
         row,
         otClass,
@@ -1267,10 +1275,10 @@ function normaliseDivisionRowInternal(
       }))
   const level = landsdPlaceName
     ? 5
-    : curatedClassification
-      ? curatedClassification.level
-      : overtureHongKongDivisionClassificationCorrection
-        ? overtureHongKongDivisionClassificationCorrection.level
+    : overtureHongKongDivisionClassificationCorrection
+      ? overtureHongKongDivisionClassificationCorrection.level
+      : curatedClassification
+        ? curatedClassification.level
         : resolveDivisionLevel({
             row,
             otClass,
@@ -1279,66 +1287,25 @@ function normaliseDivisionRowInternal(
             branchCounts: options.branchCounts,
           })
   let i18n = normaliseDivisionI18n(id, row.names, options.branchCounts)
-  if (
-    overtureHongKongDivisionClassificationCorrection?.nameEn ||
-    overtureHongKongDivisionClassificationCorrection?.nameAltsEn ||
-    overtureHongKongDivisionClassificationCorrection?.nameAltsZhHant
-  ) {
-    const english = i18n.find(entry => entry.locale === 'en')
-    if (english) {
-      if (overtureHongKongDivisionClassificationCorrection.nameEn)
-        english.name = overtureHongKongDivisionClassificationCorrection.nameEn
-      const nameAlts = [
-        ...(english.nameAlts?.split('|').filter(Boolean) ?? []),
-        ...(overtureHongKongDivisionClassificationCorrection.nameAltsEn ?? []),
-      ].filter(name => name !== english.name)
-      const dedupedNameAlts = [...new Set(nameAlts)]
-      english.nameAlts = dedupedNameAlts.length > 0 ? dedupedNameAlts.join('|') : null
-      english.nameVariant = [...(english.nameVariant ?? []), ...dedupedNameAlts].filter(
-        (name, index, values) => values.indexOf(name) === index,
-      )
-    } else
-      i18n.push({
-        divisionId: id,
-        locale: 'en',
-        name: overtureHongKongDivisionClassificationCorrection.nameEn ?? null,
-        nameAlts:
-          overtureHongKongDivisionClassificationCorrection.nameAltsEn?.join('|') ??
-          null,
-        nameRules: null,
-        nameVariant: [
-          ...(overtureHongKongDivisionClassificationCorrection.nameEn
-            ? [overtureHongKongDivisionClassificationCorrection.nameEn]
-            : []),
-          ...(overtureHongKongDivisionClassificationCorrection.nameAltsEn ?? []),
-        ],
-        isLocaleInferred: false,
-      })
-    const zhHant = i18n.find(entry => entry.locale === 'zh-hant')
-    if (zhHant && overtureHongKongDivisionClassificationCorrection.nameAltsZhHant) {
-      const nameAlts = [
-        ...(zhHant.nameAlts?.split('|').filter(Boolean) ?? []),
-        ...overtureHongKongDivisionClassificationCorrection.nameAltsZhHant,
-      ].filter(name => name !== zhHant.name)
-      const dedupedNameAlts = [...new Set(nameAlts)]
-      zhHant.nameAlts = dedupedNameAlts.length > 0 ? dedupedNameAlts.join('|') : null
-      zhHant.nameVariant = [...(zhHant.nameVariant ?? []), ...dedupedNameAlts].filter(
-        (name, index, values) => values.indexOf(name) === index,
-      )
-    }
-  }
-  i18n = applyCuratedDivisionNames(id, i18n)
+  if (options.editorial)
+    i18n = applyDivisionNamePatch(
+      id,
+      applyCuratedDivisionNames(id, i18n),
+      overtureHongKongDivisionClassificationCorrection,
+    )
   const normalisedHierarchies = normaliseDivisionHierarchies(
     row.hierarchies,
     id,
     options.hierarchyLookup,
   )
   const enrichedPaths = normalisedHierarchies.map(hierarchy =>
-    insertOvertureHongKongAreaIntoHierarchy({
-      division: { id, level, class: type },
-      hierarchy,
-      i18n,
-    }),
+    options.editorial
+      ? insertOvertureHongKongAreaIntoHierarchy({
+          division: { id, level, class: type },
+          hierarchy,
+          i18n,
+        })
+      : { hierarchy, assignment: null },
   )
   const hierarchyWithHongKongArea = {
     hierarchy: materialiseDivisionHierarchies(
@@ -1348,7 +1315,7 @@ function normaliseDivisionRowInternal(
     assignment: enrichedPaths.find(path => path.assignment)?.assignment ?? null,
   }
   const normalisedGeometry = parseWkbGeometry(row.geometry)
-  if (!options.deferHierarchyGuard)
+  if (options.editorial && !options.deferHierarchyGuard)
     for (const enrichedPath of enrichedPaths)
       checkHongKongHierarchy(
         {
@@ -1500,6 +1467,14 @@ export const divisionNormalisationRule = registerRule(
     options: DivisionNormaliseOptions
   }) => normaliseDivisionRowInternal(row, options),
 )
+
+/** Editorial normalisation is reserved for preparing the SaanSeoi publisher archive. */
+export function prepareCuratedDivisionRow(
+  row: Record<string, unknown>,
+  options: DivisionNormaliseOptions = {},
+) {
+  return normaliseDivisionRow(row, { ...options, editorial: true })
+}
 
 export function normaliseDivisionRow(
   row: Record<string, unknown>,
@@ -1870,7 +1845,7 @@ function hasOvertureSourceReference(value: unknown): boolean {
 /**
  * Builds localised division name/type rows from mixed source fields.
  */
-function normaliseDivisionI18n(
+export function normaliseDivisionI18n(
   divisionId: string,
   names: unknown,
   branchCounts?: BranchCounts,
@@ -2096,7 +2071,7 @@ function collectLocalisedRuleValues(
       appendValue(inferredValue.locale, inferredValue.value, {
         inferred: true,
         rule: {
-          value: directValue ?? directVariant ?? inferredValue.value,
+          value: inferredValue.value,
           variant: directVariant,
         },
       })
@@ -2156,8 +2131,6 @@ export async function buildDivisionHierarchyLookup(
         ])
       }
 
-      if (applyDivisionExclusionPatch(row, source)) continue
-
       if (source.source === 'saanseoi') {
         const curated = normaliseCuratedDivision(row)
         lookup.set(id, {
@@ -2175,7 +2148,7 @@ export async function buildDivisionHierarchyLookup(
       const otClass = asNonEmptyString(row.class)
       const parentDivisionId = asNonEmptyString(row.parent_division_id)
       const canonicalI18n = buildCanonicalDivisionApiI18n(
-        applyCuratedDivisionNames(id, normaliseDivisionI18n(id, row.names)),
+        normaliseDivisionI18n(id, row.names),
       )
       const i18n = Object.fromEntries(
         canonicalI18n
@@ -2187,59 +2160,26 @@ export async function buildDivisionHierarchyLookup(
           .map(localised => [localised.locale, { name: localised.name }]),
       ) as DivisionHierarchyI18n
 
-      const classification =
-        curatedDivisionClassification(id) ??
-        applyDivisionClassificationPatch(row, source)
       lookup.set(id, {
         i18n,
         displayEquivalentDivisionId:
           asNonEmptyString(row.displayEquivalentDivisionId) ?? undefined,
-        level: classification
-          ? classification.level
-          : resolveDivisionLevel({
-              row,
-              otClass,
-              otSubtype,
-              parentDivisionId,
-            }),
-        class:
-          classification?.class ??
-          resolveDivisionClass({
-            row,
-            otClass,
-            otSubtype,
-            parentDivisionId,
-          }),
+        level: resolveDivisionLevel({
+          row,
+          otClass,
+          otSubtype,
+          parentDivisionId,
+        }),
+        class: resolveDivisionClass({
+          row,
+          otClass,
+          otSubtype,
+          parentDivisionId,
+        }),
       })
     }
   }
 
-  if (source.source === 'overture' && source.regionCode === 'hk') {
-    const message = {
-      source: 'overture',
-      regionCode: 'hk',
-      resourceType: 'division',
-    } as const
-    const supplemental = [
-      ...missingOvertureHongKongAreaRows(message, sourceRows),
-      ...missingOvertureHongKongCityRows(message, sourceRows),
-    ]
-    for (const row of supplemental) {
-      const normalised = normaliseDivisionRow(row, {
-        hierarchyLookup: lookup,
-        deferHierarchyGuard: true,
-      })
-      lookup.set(normalised.base.id, {
-        class: normalised.base.class,
-        level: normalised.base.level ?? 0,
-        i18n: Object.fromEntries(
-          normalised.i18n
-            .filter(entry => entry.name)
-            .map(entry => [entry.locale, { name: entry.name! }]),
-        ),
-      })
-    }
-  }
   return lookup
 }
 

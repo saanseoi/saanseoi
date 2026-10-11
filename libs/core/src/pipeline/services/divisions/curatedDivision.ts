@@ -1,3 +1,5 @@
+import { curatedRecordSources } from '../sources/curatedRecordSources'
+import { assertInternalSourceReferences } from '../sources/internalSourceReferences'
 import { geographicDivisionClassification } from '@repo/db'
 import type { GeoJsonGeometry } from '../../geojson'
 import type { NewDivisionRow, DivisionI18nPayload } from '@repo/db/currentSchema'
@@ -11,6 +13,7 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
     throw new Error('Invalid curated division record.')
   if (Object.hasOwn(record, 'wikidata'))
     throw new Error('Curated Wikidata IDs must use identifiers.wikidata.id.')
+  assertInternalSourceReferences(record)
   const classification = geographicDivisionClassification(record.class)
   if (!classification) throw new Error(`Unknown curated class: ${record.class}`)
   if (
@@ -57,7 +60,7 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
       bbox: json(base.bbox) ?? null,
       cartography: json(base.cartography) ?? null,
       identifiers: json(base.identifiers) ?? null,
-      sources: json(base.sources) ?? null,
+      sources: curatedRecordSources(base.sources, String(record.id)),
       divisionCode: base.divisionCode ?? null,
       createdAt: now,
       updatedAt: now,

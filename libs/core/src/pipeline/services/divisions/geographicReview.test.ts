@@ -2,11 +2,11 @@ import { expect, test } from 'bun:test'
 import {
   containsReviewPoint,
   deriveHierarchyPatch,
-  validateStubAreas,
+  validateSaanseoiEstimatedAreas,
   type ReviewDivision,
   type ReviewInventory,
   type ReviewArea,
-  type StubAreas,
+  type SaanseoiEstimatedAreas,
 } from './geographicReview'
 const empty = () => ({ administrative: [], locality: [], landform: [], full: [] })
 const division = (id: string, level: number, category = 'hood'): ReviewDivision => ({
@@ -18,7 +18,7 @@ const division = (id: string, level: number, category = 'hood'): ReviewDivision 
   point: [2, 2],
   hierarchies: empty(),
 })
-const square = (id: string, size: number, variant = 'stub'): ReviewArea => ({
+const square = (id: string, size: number, variant = 'saanseoi'): ReviewArea => ({
   type: 'Feature',
   properties: { divisionId: id, variant },
   geometry: {
@@ -47,13 +47,13 @@ const inventory: ReviewInventory = {
     division('child', 6),
   ],
 }
-const stubs = (features: ReviewArea[]): StubAreas => ({
+const estimatedAreas = (features: ReviewArea[]): SaanseoiEstimatedAreas => ({
   type: 'FeatureCollection',
   schemaVersion: 1,
   region: 'hk',
   domain: 'geographic',
   cohort: 'test',
-  variant: 'stub',
+  variant: 'saanseoi',
   features,
 })
 test('point evidence assigns level 6 without needing a level-6 polygon, with deterministic overlap resolution', () => {
@@ -62,7 +62,7 @@ test('point evidence assigns level 6 without needing a level-6 polygon, with det
     deriveHierarchyPatch(
       inventory,
       [square('district', 10, 'overture')],
-      stubs(fs),
+      estimatedAreas(fs),
       false,
     ).entries.find(e => e.divisionId === 'child')!
   const result = derive(features)
@@ -71,7 +71,9 @@ test('point evidence assigns level 6 without needing a level-6 polygon, with det
   expect(result.competingParentIds).toEqual(['large'])
   expect(result.hierarchies.full[0]!.map(d => d.id)).toEqual(['district', 'small'])
   expect(derive(features.toReversed())).toEqual(result)
-  expect(() => validateStubAreas(stubs([square('child', 1)]), inventory)).not.toThrow()
+  expect(() =>
+    validateSaanseoiEstimatedAreas(estimatedAreas([square('child', 1)]), inventory),
+  ).not.toThrow()
 })
 test('a reviewed core point replaces the source point for hierarchy derivation', () => {
   const child = square('child', 3)
@@ -79,7 +81,7 @@ test('a reviewed core point replaces the source point for hierarchy derivation',
   const result = deriveHierarchyPatch(
     inventory,
     [square('district', 10, 'overture'), square('small', 1, 'overture')],
-    stubs([child]),
+    estimatedAreas([child]),
     false,
   ).entries.find(entry => entry.divisionId === 'child')!
   expect(result.point).toEqual([0.5, 0.5])
@@ -90,7 +92,7 @@ test('editor export annotates every hierarchy projection from the current drawin
     deriveHierarchyPatch(
       inventory,
       [square('district', 10, 'overture')],
-      stubs(features),
+      estimatedAreas(features),
       false,
     ).entries.find(entry => entry.divisionId === 'child')!
   const result = derive([square('small', 4), square('child', 3)])
@@ -130,7 +132,7 @@ test('holes, boundaries and disconnected polygon parts have defined point member
   ).toBe(true)
 })
 test('invalid imports do not pass validation and missing geometry remains explicit for every division', () => {
-  const invalid = stubs([square('small', 4)])
+  const invalid = estimatedAreas([square('small', 4)])
   invalid.features[0]!.geometry = {
     type: 'Polygon',
     coordinates: [
@@ -143,15 +145,18 @@ test('invalid imports do not pass validation and missing geometry remains explic
       ],
     ],
   }
-  expect(() => validateStubAreas(invalid, inventory)).toThrow('intersects')
-  expect(() => validateStubAreas({ ...stubs([]), cohort: 'other' }, inventory)).toThrow(
-    'cohort',
-  )
-  const patch = deriveHierarchyPatch(inventory, [], stubs([]), false)
+  expect(() => validateSaanseoiEstimatedAreas(invalid, inventory)).toThrow('intersects')
+  expect(() =>
+    validateSaanseoiEstimatedAreas(
+      { ...estimatedAreas([]), cohort: 'other' },
+      inventory,
+    ),
+  ).toThrow('cohort')
+  const patch = deriveHierarchyPatch(inventory, [], estimatedAreas([]), false)
   expect(patch.entries).toHaveLength(inventory.divisions.length)
   expect(patch.entries.every(entry => entry.status === 'unresolved')).toBe(true)
   expect(
-    deriveHierarchyPatch(inventory, [], stubs([]), true).entries.every(
+    deriveHierarchyPatch(inventory, [], estimatedAreas([]), true).entries.every(
       entry => entry.status === 'provisional',
     ),
   ).toBe(true)
@@ -160,11 +165,17 @@ test('invalid imports do not pass validation and missing geometry remains explic
 test('reviewed core points must be valid coordinates inside their polygon', () => {
   const feature = square('child', 1)
   feature.properties.corePoint = [0.5, 0.5]
-  expect(() => validateStubAreas(stubs([feature]), inventory)).not.toThrow()
+  expect(() =>
+    validateSaanseoiEstimatedAreas(estimatedAreas([feature]), inventory),
+  ).not.toThrow()
   feature.properties.corePoint = [2, 2]
-  expect(() => validateStubAreas(stubs([feature]), inventory)).toThrow('inside')
+  expect(() =>
+    validateSaanseoiEstimatedAreas(estimatedAreas([feature]), inventory),
+  ).toThrow('inside')
   feature.properties.corePoint = [Number.NaN, 0]
-  expect(() => validateStubAreas(stubs([feature]), inventory)).toThrow('Invalid')
+  expect(() =>
+    validateSaanseoiEstimatedAreas(estimatedAreas([feature]), inventory),
+  ).toThrow('Invalid')
 })
 
 test('ignores a non-polygon reference feature at runtime', () => {
@@ -175,7 +186,7 @@ test('ignores a non-polygon reference feature at runtime', () => {
   } as unknown as ReviewArea
 
   expect(
-    deriveHierarchyPatch(inventory, [pointReference], stubs([]), false),
+    deriveHierarchyPatch(inventory, [pointReference], estimatedAreas([]), false),
   ).toMatchObject({
     entries: expect.arrayContaining([
       expect.objectContaining({ divisionId: 'child', status: 'unresolved' }),
@@ -191,8 +202,12 @@ test('detailed source rings retain all vertices and still reject crossings', () 
   })
   ring.push([...ring[0]!])
   feature.geometry = { type: 'Polygon', coordinates: [ring] }
-  expect(() => validateStubAreas(stubs([feature]), inventory)).not.toThrow()
+  expect(() =>
+    validateSaanseoiEstimatedAreas(estimatedAreas([feature]), inventory),
+  ).not.toThrow()
   expect(ring).toHaveLength(12001)
   ;[ring[100], ring[6100]] = [ring[6100]!, ring[100]!]
-  expect(() => validateStubAreas(stubs([feature]), inventory)).toThrow('intersects')
+  expect(() =>
+    validateSaanseoiEstimatedAreas(estimatedAreas([feature]), inventory),
+  ).toThrow('intersects')
 })

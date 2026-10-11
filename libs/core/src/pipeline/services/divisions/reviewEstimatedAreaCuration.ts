@@ -1,17 +1,17 @@
 import {
-  validateStubAreas,
+  validateSaanseoiEstimatedAreas,
   type ReviewInventory,
-  type StubAreas,
+  type SaanseoiEstimatedAreas,
 } from './geographicReview'
 
 /** Preserve withheld geometry while keeping active editor inputs consistent with curation. */
-export function reconcileReviewStubs(
-  value: StubAreas,
+export function reconcileReviewEstimatedAreas(
+  value: SaanseoiEstimatedAreas,
   inventory: ReviewInventory,
   holds: ReadonlyMap<string, string>,
-): StubAreas {
-  if (!Array.isArray(value?.features)) validateStubAreas(value, inventory)
-  const result: StubAreas = { ...value, features: [], withheld: [] }
+): SaanseoiEstimatedAreas {
+  if (!Array.isArray(value?.features)) validateSaanseoiEstimatedAreas(value, inventory)
+  const result: SaanseoiEstimatedAreas = { ...value, features: [], withheld: [] }
   const known = new Set(inventory.divisions.map(division => division.id))
   const seen = new Set<string>()
   for (const item of [
@@ -29,7 +29,7 @@ export function reconcileReviewStubs(
     if (reason) result.withheld!.push({ feature: item.feature, reason })
     else result.features.push(item.feature)
   }
-  validateStubAreas(result, inventory)
+  validateSaanseoiEstimatedAreas(result, inventory)
   // Withheld drawings still need valid geometry; only their eligibility differs.
   if (result.withheld!.length) {
     const withheldInventory = {
@@ -44,7 +44,7 @@ export function reconcileReviewStubs(
         hierarchies: { full: [] },
       })),
     }
-    validateStubAreas(
+    validateSaanseoiEstimatedAreas(
       { ...result, features: result.withheld!.map(item => item.feature) },
       withheldInventory,
     )
@@ -53,7 +53,10 @@ export function reconcileReviewStubs(
 }
 
 /** Import replaces matching drawings and retains every unrelated active/withheld drawing. */
-export function mergeReviewStubs(current: StubAreas, imported: StubAreas): StubAreas {
+export function mergeReviewEstimatedAreas(
+  current: SaanseoiEstimatedAreas,
+  imported: SaanseoiEstimatedAreas,
+): SaanseoiEstimatedAreas {
   const replaced = new Set([
     ...imported.features.map(feature => feature.properties.divisionId),
     ...(imported.withheld ?? []).map(item => item.feature.properties.divisionId),

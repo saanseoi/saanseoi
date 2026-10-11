@@ -1,69 +1,39 @@
 import { expect, test } from 'bun:test'
-import patch from '../../../../../../fixtures/divisions/hk/geographic-hierarchy-patch.json'
-import inventory from '../../../../../../fixtures/divisions/hk/geographic-review-inventory.json'
-import islands from '../../../../../../fixtures/divisions/hk/island-areas.json'
-import islandReview from '../../../../../../fixtures/meta/curations/saanseoi-island-review.json'
-import { classifyIslandArea } from '../../../../../db/src/divisionTaxonomy'
-import { geographicHierarchyPatchRule } from './geographicHierarchyPatch'
+import {
+  geographicHierarchyFixture,
+  geographicHierarchyPatchRule,
+} from './geographicHierarchyPatch'
+import { curationHierarchy } from './curationInventory'
+import { expandedInventory } from './reviewGraph.fixtures'
 
-test('the hierarchy patch covers retained identities once and only references known review identities', () => {
-  const originals = new Map([
-    ...inventory.divisions.map(d => [d.id, d.class] as const),
-    ...islands.map(
-      island =>
-        [
-          island.id,
-          island.areaKm2 > 0 ? classifyIslandArea(island.areaKm2) : 'minor_island',
-        ] as const,
-    ),
-  ])
-  const actions = new Map<string, { action: string; reviewRequired?: boolean }>(
-    islandReview.curationPolicy.actions.map(action => [action.id, action]),
-  )
-  const aliases = new Set(
-    islandReview.curationPolicy.aliasGroups.flatMap(group => group.aliasIds),
-  )
-  const required = new Set([
-    ...inventory.divisions.map(division => division.id),
-    ...islands
-      .filter(island => {
-        const action = actions.get(island.id)
-        return (
-          island.areaKm2 > 0 &&
-          !aliases.has(island.id) &&
-          !action?.reviewRequired &&
-          !['exclude', 'no-geometry', 'reclassify', 'manual-review'].includes(
-            action?.action ?? '',
-          )
-        )
-      })
-      .map(island => island.id),
-  ])
-  const ids = new Set(patch.entries.map(entry => entry.divisionId))
-  expect(patch.entries).toHaveLength(ids.size)
-  expect([...required].filter(id => !ids.has(id))).toEqual([])
-  // Rejected supplemental rows may remain as review evidence until the next export.
-  expect([...ids].filter(id => !originals.has(id))).toEqual([])
-  for (const decision of patch.entries)
-    expect(decision.expectedClass).toBe(originals.get(decision.divisionId)!)
-})
-test('applies the exact cohort after classification, preserving other sources and rejecting class drift', () => {
-  const input = {
-    id: '3707878f-080b-42cf-aecf-89fef56a066a',
-    class: 'major_island',
-    hierarchies: { administrative: [], locality: [], landform: [], full: [] },
-    source: { source: 'overture', regionCode: 'hk', sourceVersion: '2026-08-19.0' },
+test('explicit parent decisions contain identities rather than copied labels or classifications', () => {
+  expect(geographicHierarchyFixture.purpose).toBeTruthy()
+  const ids = new Set<string>()
+  for (const entry of geographicHierarchyFixture.entries) {
+    expect(ids.has(entry.divisionId)).toBe(false)
+    ids.add(entry.divisionId)
+    for (const path of entry.paths) {
+      expect(new Set(path).size).toBe(path.length)
+      expect(path).not.toContain(entry.divisionId)
+      expect(path.every(id => typeof id === 'string')).toBe(true)
+    }
   }
-  expect(geographicHierarchyPatchRule.execute(input)).toEqual(
-    patch.entries.find(e => e.divisionId === input.id)!.hierarchies,
-  )
+})
+test('a non-overridden hierarchy is preserved without a generated fixture dependency', () => {
+  const child = expandedInventory.divisions[0]!
   expect(
     geographicHierarchyPatchRule.execute({
-      ...input,
-      source: { ...input.source, sourceVersion: '2026-07-22.0' },
+      id: child.id,
+      class: child.class,
+      hierarchies: child.hierarchies,
+      inventory: expandedInventory,
     }),
-  ).toBe(input.hierarchies)
-  expect(() =>
-    geographicHierarchyPatchRule.execute({ ...input, class: 'area' }),
-  ).toThrow('does not match')
+  ).toBe(child.hierarchies)
+})
+test('an explicit child cannot reference an absent ancestor', () => {
+  const decision = geographicHierarchyFixture.entries[0]!
+  const child = { ...expandedInventory.divisions[0]!, id: decision.divisionId }
+  expect(() => curationHierarchy({ ...expandedInventory, divisions: [child] })).toThrow(
+    'Unknown curated ancestor',
+  )
 })

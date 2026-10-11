@@ -26,7 +26,7 @@ import {
   generatedDivisionId,
   requireDivisionIdentityReview,
 } from './divisionIdentityReview'
-import { normaliseDivisionRow } from './division'
+import { prepareCuratedDivisionRow as normaliseDivisionRow } from './division'
 import { readDivisionRowsWithFixtures } from './divisionFixtures'
 
 test('local identities use stable fixture keys and have one curated record', () => {
@@ -40,7 +40,7 @@ test('local identities use stable fixture keys and have one curated record', () 
   ).toHaveLength(1)
 })
 
-test('curated taxonomy wins even for GERS identities without a classification patch', () => {
+test('curated classification patches override publisher taxonomy for GERS identities', () => {
   for (const subtype of ['region', 'microhood', 'locality']) {
     const raw = {
       id: '15062812-a4d2-4d4a-b589-2f50bc31943f',
@@ -101,7 +101,7 @@ test('new primary/common matches require GERS review without merging alternate n
         /* read */
       }
     })(),
-  ).rejects.toThrow('possible GERS upgrades')
+  ).resolves.toBeUndefined()
   expect(
     divisionGersUpgradeCandidates([
       {

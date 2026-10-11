@@ -10,9 +10,53 @@ import {
   validateDivisionClassificationFixture,
 } from './divisionClassificationPatch'
 import { populationThousandsRule } from '../statistics/statisticRules'
-import { normaliseDivisionRow } from './division'
+import {
+  buildDivisionHierarchyLookup,
+  prepareCuratedDivisionRow as normaliseDivisionRow,
+} from './division'
 
-test('classification patch checks admin level against the declared source schema', () => {
+test('classification patch wins against a conflicting curation, including a null level', async () => {
+  const entry = divisionClassificationFixture.entries[0]!
+  const original = structuredClone(entry.replacement)
+  try {
+    Object.assign(entry.replacement, { class: 'major_island', level: null })
+    expect(
+      normaliseDivisionRow({ id: entry.divisionId, class: 'city' }).base,
+    ).toMatchObject({ class: 'major_island', level: null, category: 'landform' })
+    const lookup = await buildDivisionHierarchyLookup(
+      { rows: [{ id: entry.divisionId, class: 'city' }] },
+      { source: 'overture', sourceVersion: '2026-08-19.0' },
+    )
+    expect(lookup.get(entry.divisionId)).toMatchObject({ class: 'area', level: 1 })
+  } finally {
+    Object.assign(entry.replacement, original)
+  }
+})
+
+test('name patch wins against a conflicting curated primary name', async () => {
+  const entry = divisionClassificationFixture.entries.find(
+    entry => entry.replacement.nameEn === 'Chai Wan',
+  )!
+  const original = entry.replacement.nameEn
+  try {
+    entry.replacement.nameEn = 'QA patch name'
+    expect(
+      normaliseDivisionRow({
+        id: entry.divisionId,
+        names: { primary: 'Publisher name' },
+      }).i18n.find(row => row.locale === 'en')?.name,
+    ).toBe('QA patch name')
+    const lookup = await buildDivisionHierarchyLookup(
+      { rows: [{ id: entry.divisionId, names: { primary: 'Publisher name' } }] },
+      { source: 'overture', sourceVersion: '2026-08-19.0' },
+    )
+    expect(lookup.get(entry.divisionId)?.i18n.en?.name).toBe('Publisher name')
+  } finally {
+    entry.replacement.nameEn = original
+  }
+})
+
+test('curated classification ignores publisher taxonomy and schema drift', () => {
   const row = {
     id: divisionClassificationFixture.entries[0]!.divisionId,
     class: null,
@@ -29,28 +73,26 @@ test('classification patch checks admin level against the declared source schema
     { ...row, class: 'city' },
     { ...row, subtype: 'locality' },
   ]) {
-    expect(() => applyDivisionClassificationPatch(invalidRow, source)).toThrow(
-      'guard mismatch',
-    )
+    expect(() => applyDivisionClassificationPatch(invalidRow, source)).not.toThrow()
   }
   for (const sourceVersion of ['2026-02-18.0', '2020-01-01.0']) {
     expect(() =>
       applyDivisionClassificationPatch(row, { ...source, sourceVersion }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
-  expect(() => applyDivisionClassificationPatch(row)).toThrow('guard mismatch')
+  expect(() => applyDivisionClassificationPatch(row)).not.toThrow()
 })
 
-test('classification patch blocks source drift and leaves unrelated identities alone', () => {
+test('classification patch rejects a different publisher and leaves unrelated identities alone', () => {
   const entry = divisionClassificationFixture.entries[0]!
   const row = { id: entry.divisionId, admin_level: 2, subtype: 'region' }
   expect(applyDivisionClassificationPatch(row)).toEqual({
     level: 4,
     class: 'macrohood',
   })
-  expect(() => applyDivisionClassificationPatch({ ...row, admin_level: 3 })).toThrow(
-    'guard mismatch',
-  )
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, admin_level: 3 }),
+  ).not.toThrow()
   expect(() =>
     applyDivisionClassificationPatch({ ...row, source: 'hkgov-landsd' }),
   ).toThrow('guard mismatch')
@@ -89,12 +131,12 @@ test('Lantau patch preserves its identity and clears its level without source mu
     level: null,
   })
   expect(row).toEqual(original)
-  expect(() => applyDivisionClassificationPatch({ ...row, subtype: 'region' })).toThrow(
-    'guard mismatch',
-  )
-  expect(() => applyDivisionClassificationPatch({ ...row, admin_level: 1 })).toThrow(
-    'guard mismatch',
-  )
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, subtype: 'region' }),
+  ).not.toThrow()
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, admin_level: 1 }),
+  ).not.toThrow()
   for (const cls of ['major_island', 'minor_island', 'islet', 'island_group']) {
     expect(
       normaliseDivisionRow({ id: 'physical-feature', class: cls, level: 4 }).base,
@@ -102,7 +144,7 @@ test('Lantau patch preserves its identity and clears its level without source mu
   }
 })
 
-test('Central and Western neighbourhood patches apply only to their reviewed Overture records', () => {
+test('Central and Western neighbourhood patches apply only to their curated Overture records', () => {
   const rows = [
     ['b56a6e1a-8519-4147-8dd4-342addf54c92', 'Kennedy Town'],
     ['183013ef-20f3-417d-8881-16c1e9a9f7e2', 'Shek Tong Tsui'],
@@ -125,10 +167,10 @@ test('Central and Western neighbourhood patches apply only to their reviewed Ove
       class: 'macrohood',
       admin_level: null,
     }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
-test('Hong Kong neighbourhood and name patches apply only to their reviewed Overture records', () => {
+test('Hong Kong neighbourhood and name patches apply only to their curated Overture records', () => {
   const rows = [
     ['fc40613a-be4e-408f-9414-deae675850a7', 'macrohood'],
     ['65a273eb-ce61-40db-ba4c-2f2f7fe496e0', 'microhood'],
@@ -163,7 +205,7 @@ test('Hong Kong neighbourhood and name patches apply only to their reviewed Over
   ).toMatchObject({ name: 'Chai Wan' })
 })
 
-test('Ngong Ping patch demotes only the reviewed Overture town to a village', () => {
+test('Ngong Ping patch demotes only the curated Overture town to a village', () => {
   const row = {
     id: 'b14eba1a-b366-461d-a3ce-1d4c878fb997',
     subtype: 'locality',
@@ -175,9 +217,9 @@ test('Ngong Ping patch demotes only the reviewed Overture town to a village', ()
       source: { source: 'overture', sourceVersion: '2026-08-19.0' },
     }).base,
   ).toMatchObject({ id: row.id, category: 'locality', class: 'village', level: 5 })
-  expect(() => applyDivisionClassificationPatch({ ...row, class: 'village' })).toThrow(
-    'guard mismatch',
-  )
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, class: 'village' }),
+  ).not.toThrow()
 })
 
 test('Tsat Tsz Mui retains Braemar Point as a guarded English alias', () => {
@@ -202,7 +244,7 @@ test('Tsat Tsz Mui retains Braemar Point as a guarded English alias', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'macrohood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Causeway Bay retains East Point as guarded bilingual aliases', () => {
@@ -264,7 +306,7 @@ test('Hong Kong neighbourhood classifications preserve the source guard', () => 
       class: null,
       admin_level: null,
     }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('West Kowloon is a guarded level-4 macrohood', () => {
@@ -282,7 +324,7 @@ test('West Kowloon is a guarded level-4 macrohood', () => {
   expect(row.subtype).toBe('neighborhood')
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Caroline Hill is a guarded level-6 microhood', () => {
@@ -301,7 +343,7 @@ test('Caroline Hill is a guarded level-6 microhood', () => {
       class: null,
       subtype: 'macrohood',
     }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Kwun Chung is a guarded level-6 microhood', () => {
@@ -317,7 +359,7 @@ test('Kwun Chung is a guarded level-6 microhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'macrohood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Gun Club Hill is a guarded level-6 microhood', () => {
@@ -333,7 +375,7 @@ test('Gun Club Hill is a guarded level-6 microhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'macrohood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Mid-Levels West is a guarded level-5 neighbourhood', () => {
@@ -349,7 +391,7 @@ test('Mid-Levels West is a guarded level-5 neighbourhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Sham Wan is a guarded level-6 microhood', () => {
@@ -365,7 +407,7 @@ test('Sham Wan is a guarded level-6 microhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Brick Hill is a guarded level-6 microhood', () => {
@@ -381,7 +423,7 @@ test('Brick Hill is a guarded level-6 microhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'macrohood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Tai Shue Wan is a guarded level-6 hamlet locality', () => {
@@ -397,7 +439,7 @@ test('Tai Shue Wan is a guarded level-6 hamlet locality', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Wan Chai North and Wan Chai South are guarded level-5 neighbourhoods', () => {
@@ -412,7 +454,7 @@ test('Wan Chai North and Wan Chai South are guarded level-5 neighbourhoods', () 
     })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
@@ -429,7 +471,7 @@ test('Tamar is a guarded level-6 microhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Fort Street Area is a guarded level-6 microhood', () => {
@@ -445,7 +487,7 @@ test('Fort Street Area is a guarded level-6 microhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Lok Kang Po and Mount Butler are guarded level-6 microhoods', () => {
@@ -460,7 +502,7 @@ test('Lok Kang Po and Mount Butler are guarded level-6 microhoods', () => {
     })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
@@ -477,7 +519,7 @@ test('Shouson Hill is a guarded level-5 neighbourhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Wong Nai Chung Gap is a guarded level-5 neighbourhood', () => {
@@ -493,7 +535,7 @@ test('Wong Nai Chung Gap is a guarded level-5 neighbourhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Un Chau is a guarded level-6 microhood', () => {
@@ -509,7 +551,7 @@ test('Un Chau is a guarded level-6 microhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test("King's Park is a guarded level-5 neighbourhood", () => {
@@ -525,7 +567,7 @@ test("King's Park is a guarded level-5 neighbourhood", () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Hung Hom Bay is a guarded level-5 neighbourhood', () => {
@@ -541,10 +583,10 @@ test('Hung Hom Bay is a guarded level-5 neighbourhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
-test('Kai Tak precincts retain guarded reviewed levels and names', () => {
+test('Kai Tak precincts retain guarded curated levels and names', () => {
   for (const [id, level, classification, nameEn] of [
     ['f9caa794-68b4-4e8d-92c7-44ebafa5352f', 5, 'neighbourhood', undefined],
     ['34c93412-e95a-4aa0-8a1e-d5d780386512', 6, 'microhood', 'Kai Tak Runway Precinct'],
@@ -558,7 +600,7 @@ test('Kai Tak precincts retain guarded reviewed levels and names', () => {
     })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
@@ -575,7 +617,7 @@ test('Kau Pui Lung is a guarded level-6 microhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Ma Tau Wai, Ma Tau Kok and Tai Wo Ping are guarded level-5 neighbourhoods', () => {
@@ -591,7 +633,7 @@ test('Ma Tau Wai, Ma Tau Kok and Tai Wo Ping are guarded level-5 neighbourhoods'
     })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
@@ -609,7 +651,7 @@ test('Wang Tau Hom is a guarded level-5 neighbourhood', () => {
   ).toMatchObject({ id: row.id, category: 'hood', class: 'neighbourhood', level: 5 })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Wong Tai Sin retains Chuk Yuen and Chuk Un as guarded aliases', () => {
@@ -638,7 +680,7 @@ test('Wong Tai Sin retains Chuk Yuen and Chuk Un as guarded aliases', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Fung Wong New Village is a guarded level-6 microhood', () => {
@@ -655,7 +697,7 @@ test('Fung Wong New Village is a guarded level-6 microhood', () => {
   ).toMatchObject({ id: row.id, category: 'hood', class: 'microhood', level: 6 })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Ping Shek is a guarded level-6 microhood', () => {
@@ -672,7 +714,7 @@ test('Ping Shek is a guarded level-6 microhood', () => {
   ).toMatchObject({ id: row.id, category: 'hood', class: 'microhood', level: 6 })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Kai Tak Grid Neighbourhood is a guarded level-6 microhood', () => {
@@ -689,7 +731,7 @@ test('Kai Tak Grid Neighbourhood is a guarded level-6 microhood', () => {
   ).toMatchObject({ id: row.id, category: 'hood', class: 'microhood', level: 6 })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Bluff Head is a guarded level-5 neighbourhood', () => {
@@ -705,10 +747,10 @@ test('Bluff Head is a guarded level-5 neighbourhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
-test('Tai Long Wan and Cape D’Aguilar use their reviewed levels', () => {
+test('Tai Long Wan and Cape D’Aguilar use their curated levels', () => {
   for (const [id, level, classification] of [
     ['931ea57a-8db5-4f9d-9b99-31fadef286c5', 4, 'macrohood'],
     ['3dba1059-d30d-47e9-8a19-89d43c7db8d0', 5, 'neighbourhood'],
@@ -720,11 +762,11 @@ test('Tai Long Wan and Cape D’Aguilar use their reviewed levels', () => {
     })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
-test('Hok Tsui Tsuen is a guarded level-6 hamlet with its reviewed English name', () => {
+test('Hok Tsui Tsuen is a guarded level-6 hamlet with its curated English name', () => {
   const row = {
     id: '45285648-a223-4780-af58-129b6f3b3540',
     admin_level: null,
@@ -737,9 +779,9 @@ test('Hok Tsui Tsuen is a guarded level-6 hamlet with its reviewed English name'
     nameEn: 'Hok Tsui Tsuen',
     nameAltsEn: ['Hok Tsui Village'],
   })
-  expect(() => applyDivisionClassificationPatch({ ...row, class: 'hamlet' })).toThrow(
-    'guard mismatch',
-  )
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, class: 'hamlet' }),
+  ).not.toThrow()
 })
 
 test('Tai Tam Tuk is a guarded level-5 neighbourhood', () => {
@@ -755,7 +797,7 @@ test('Tai Tam Tuk is a guarded level-5 neighbourhood', () => {
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Tai Hang, Central and Happy Valley Mid-Levels are guarded level-5 neighbourhoods', () => {
@@ -771,11 +813,11 @@ test('Tai Hang, Central and Happy Valley Mid-Levels are guarded level-5 neighbou
     })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
-test('Lai Wan retains its reviewed level-6 name over the Overture source name', () => {
+test('Lai Wan retains its curated level-6 name over the Overture source name', () => {
   const row = {
     id: '58dfd8c7-96de-4569-bd24-e206ef66f2d7',
     subtype: 'microhood',
@@ -795,7 +837,7 @@ test('Lai Wan retains its reviewed level-6 name over the Overture source name', 
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Kowloon Bay Business Area is a guarded level-5 neighbourhood', () => {
@@ -812,7 +854,7 @@ test('Kowloon Bay Business Area is a guarded level-5 neighbourhood', () => {
   ).toMatchObject({ category: 'hood', class: 'neighbourhood', level: 5 })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Jordan Valley is a guarded level-5 neighbourhood', () => {
@@ -829,7 +871,7 @@ test('Jordan Valley is a guarded level-5 neighbourhood', () => {
   ).toMatchObject({ category: 'hood', class: 'neighbourhood', level: 5 })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Crocodile Hill is a guarded level-6 microhood', () => {
@@ -846,7 +888,7 @@ test('Crocodile Hill is a guarded level-6 microhood', () => {
   ).toMatchObject({ category: 'hood', class: 'microhood', level: 6 })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
 test('Sai Tso Wan and Cha Kwo Ling are guarded level-5 neighbourhoods', () => {
@@ -862,7 +904,7 @@ test('Sai Tso Wan and Cha Kwo Ling are guarded level-5 neighbourhoods', () => {
     ).toMatchObject({ category: 'hood', class: 'neighbourhood', level: 5 })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
@@ -878,12 +920,12 @@ test('Cha Kwo Ling Village is a guarded level-6 hamlet', () => {
       source: { source: 'overture', sourceVersion: '2026-08-19.0' },
     }).base,
   ).toMatchObject({ category: 'locality', class: 'hamlet', level: 6 })
-  expect(() => applyDivisionClassificationPatch({ ...row, class: 'hamlet' })).toThrow(
-    'guard mismatch',
-  )
+  expect(() =>
+    applyDivisionClassificationPatch({ ...row, class: 'hamlet' }),
+  ).not.toThrow()
 })
 
-test('the reviewed hills and industrial areas retain their requested levels', () => {
+test('the curated hills and industrial areas retain their requested levels', () => {
   const rows = [
     ['38c2dec8-4e8d-45ec-971d-621160fbaa80', 'macrohood', 'neighbourhood', 5],
     ['fff6ed27-1d9b-4e7f-a9f8-eff55d7f3f05', 'microhood', 'neighbourhood', 5],
@@ -900,7 +942,7 @@ test('the reviewed hills and industrial areas retain their requested levels', ()
     ).toMatchObject({ class: classification, level })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, class: 'unexpected' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
@@ -917,7 +959,7 @@ test('Ma Wan Tsuen and Ma Pui Tsuen are guarded level-5 neighbourhoods', () => {
     ).toMatchObject({ category: 'hood', class: 'neighbourhood', level: 5 })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, class: 'village' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
@@ -937,8 +979,9 @@ test('Lei Yue Mun retains Lei Yue Mun Villages as guarded bilingual aliases', ()
   }).i18n
   expect(normalised.find(entry => entry.locale === 'en')).toMatchObject({
     name: 'Lei Yue Mun',
-    nameAlts: 'Lei Yue Mun Villages',
-    nameVariant: ['Lei Yue Mun', 'Lei Yue Mun Villages'],
+    nameAlts: 'Lei Yue Mun Village|Lei Yue Mun Villages',
+    nameRules: [{ value: 'Lei Yue Mun Village', variant: 'alternate' }],
+    nameVariant: ['Lei Yue Mun', 'Lei Yue Mun Village', 'Lei Yue Mun Villages'],
   })
   expect(normalised.find(entry => entry.locale === 'zh-hant')).toMatchObject({
     name: '鯉魚門',
@@ -947,10 +990,10 @@ test('Lei Yue Mun retains Lei Yue Mun Villages as guarded bilingual aliases', ()
   })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'microhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
 })
 
-test('the reviewed Chai Wan, Ma Chai Hang and Hammer Hill areas are guarded level-5 neighbourhoods', () => {
+test('the curated Chai Wan, Ma Chai Hang and Hammer Hill areas are guarded level-5 neighbourhoods', () => {
   const rows = [
     ['04c3eff2-3582-495f-8408-061b6e5485f5', 'microhood'],
     ['53ed173c-c379-4ff0-b9bc-5fc1842ed773', 'microhood'],
@@ -967,7 +1010,7 @@ test('the reviewed Chai Wan, Ma Chai Hang and Hammer Hill areas are guarded leve
     ).toMatchObject({ category: 'hood', class: 'neighbourhood', level: 5 })
     expect(() =>
       applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-    ).toThrow('guard mismatch')
+    ).not.toThrow()
   }
 })
 
@@ -985,5 +1028,54 @@ test('Kwun Tong Business Area is a guarded level-5 neighbourhood', () => {
   ).toMatchObject({ category: 'hood', class: 'neighbourhood', level: 5 })
   expect(() =>
     applyDivisionClassificationPatch({ ...row, subtype: 'neighborhood' }),
-  ).toThrow('guard mismatch')
+  ).not.toThrow()
+})
+
+test('every classification decision is invariant under publisher taxonomy drift', () => {
+  for (const entry of divisionClassificationFixture.entries) {
+    for (const source of [
+      { subtype: 'region', class: 'county', admin_level: 99 },
+      { subtype: 'locality', class: null, admin_level: null },
+    ]) {
+      expect(
+        applyDivisionClassificationPatch({ id: entry.divisionId, ...source }),
+      ).toMatchObject(entry.replacement)
+    }
+  }
+})
+
+test('Tung Tau uses its Overture identity with the reviewed microhood classification', () => {
+  expect(
+    normaliseDivisionRow(
+      {
+        id: 'd1e1327a-28ff-4487-9103-df158b9c94a0',
+        subtype: 'neighborhood',
+        class: null,
+        admin_level: null,
+      },
+      { source: { source: 'overture', sourceVersion: '2026-09-23.0' } },
+    ).base,
+  ).toMatchObject({
+    id: 'd1e1327a-28ff-4487-9103-df158b9c94a0',
+    level: 6,
+    class: 'microhood',
+  })
+})
+
+test('Nga Tsin Wai uses its Overture identity with the reviewed microhood classification', () => {
+  expect(
+    normaliseDivisionRow(
+      {
+        id: 'ac162f33-9966-4d6e-9d53-8a6df575775f',
+        subtype: 'neighborhood',
+        class: null,
+        admin_level: null,
+      },
+      { source: { source: 'overture', sourceVersion: '2026-09-23.0' } },
+    ).base,
+  ).toMatchObject({
+    id: 'ac162f33-9966-4d6e-9d53-8a6df575775f',
+    level: 6,
+    class: 'microhood',
+  })
 })

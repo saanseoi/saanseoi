@@ -1,4 +1,4 @@
-import { buildDeterministicUuidV5 } from '@repo/db'
+import { buildDeterministicUuidV5, canonicalGeneratedId } from '@repo/db'
 
 import type { DatasetProcessingMessage } from '../../../types'
 
@@ -61,9 +61,11 @@ export type OvertureHongKongArea = (typeof overtureHongKongAreas)[number]
 export function overtureHongKongAreaDivisionId(code: string) {
   const area = overtureHongKongAreas.find(candidate => candidate.code === code)
   if (!area) return null
-  return buildDeterministicUuidV5(
-    CANONICAL_DIVISION_ID_NAMESPACE,
-    `overture:hk:area:${area.code}`,
+  return canonicalGeneratedId(
+    buildDeterministicUuidV5(
+      CANONICAL_DIVISION_ID_NAMESPACE,
+      `overture:hk:area:${area.code}`,
+    ),
   )
 }
 

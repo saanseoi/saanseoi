@@ -38,7 +38,7 @@ export type ReviewArea = Feature<
     [key: string]: unknown
   }
 >
-export type StubAreas = FeatureCollection<
+export type SaanseoiEstimatedAreas = FeatureCollection<
   Polygon | MultiPolygon,
   ReviewArea['properties']
 > & {
@@ -46,7 +46,7 @@ export type StubAreas = FeatureCollection<
   region: string
   domain: string
   cohort: string
-  variant: 'stub'
+  variant: 'saanseoi'
   /** Review-only drawings excluded by explicit curation; never area inputs. */
   withheld?: Array<{ feature: ReviewArea; reason: string }>
 }
@@ -144,34 +144,34 @@ function areaSize(geometry: Polygon | MultiPolygon) {
   )
 }
 
-export function validateStubAreas(
+export function validateSaanseoiEstimatedAreas(
   value: unknown,
   inventory: ReviewInventory,
-): asserts value is StubAreas {
-  const data = value as StubAreas
+): asserts value is SaanseoiEstimatedAreas {
+  const data = value as SaanseoiEstimatedAreas
   if (
     data?.type !== 'FeatureCollection' ||
     data.schemaVersion !== 1 ||
-    data.variant !== 'stub' ||
+    data.variant !== 'saanseoi' ||
     data.domain !== 'geographic' ||
     data.region !== inventory.region ||
     data.cohort !== inventory.cohort ||
     !Array.isArray(data.features)
   )
-    throw new Error('Stub fixture does not match this geographic cohort.')
+    throw new Error('Estimated-area fixture does not match this geographic cohort.')
   const divisions = new Map(inventory.divisions.map(d => [d.id, d]))
   const ids = new Set<string>()
   for (const feature of data.features) {
     const id = feature?.properties?.divisionId
     const division = divisions.get(id)
-    if (!division || ids.has(id) || feature.properties.variant !== 'stub')
-      throw new Error('Every stub needs one unique, known division identity.')
+    if (!division || ids.has(id) || feature.properties.variant !== 'saanseoi')
+      throw new Error('Every estimated area needs one unique, known division identity.')
     ids.add(id)
     if (
       !feature.geometry ||
       !['Polygon', 'MultiPolygon'].includes(feature.geometry.type)
     )
-      throw new Error('Stub geometry must be a Polygon or MultiPolygon.')
+      throw new Error('Saanseoi geometry must be a Polygon or MultiPolygon.')
     const polygons =
       feature.geometry.type === 'Polygon'
         ? [feature.geometry.coordinates]
@@ -285,13 +285,13 @@ function eligibleParent(child: ReviewDivision, parent: ReviewDivision) {
 export function selectReviewAreas(
   inventory: ReviewInventory,
   reference: ReviewArea[],
-  stubs: StubAreas,
+  estimatedAreas: SaanseoiEstimatedAreas,
 ): Map<string, ReviewArea> {
-  validateStubAreas(stubs, inventory)
+  validateSaanseoiEstimatedAreas(estimatedAreas, inventory)
   const divisions = new Map(inventory.divisions.map(d => [d.id, d]))
-  const stubIds = new Set(stubs.features.map(f => f.properties.divisionId))
+  const saanseoiIds = new Set(estimatedAreas.features.map(f => f.properties.divisionId))
   const priority = (variant: string) =>
-    variant === 'stub'
+    variant === 'saanseoi'
       ? 0
       : variant === 'hkgov-had'
         ? 1
@@ -299,13 +299,13 @@ export function selectReviewAreas(
           ? 2
           : 3
   const byDivision = new Map<string, ReviewArea>()
-  for (const feature of [...reference, ...stubs.features]) {
+  for (const feature of [...reference, ...estimatedAreas.features]) {
     if (feature.geometry.type !== 'Polygon' && feature.geometry.type !== 'MultiPolygon')
       continue
     if (!divisions.has(feature.properties.divisionId)) continue
     if (
-      stubIds.has(feature.properties.divisionId) &&
-      feature.properties.variant !== 'stub'
+      saanseoiIds.has(feature.properties.divisionId) &&
+      feature.properties.variant !== 'saanseoi'
     )
       continue
     const old = byDivision.get(feature.properties.divisionId)
@@ -336,10 +336,10 @@ export function selectReviewAreas(
 export function deriveHierarchyPatch(
   inventory: ReviewInventory,
   reference: ReviewArea[],
-  stubs: StubAreas,
+  estimatedAreas: SaanseoiEstimatedAreas,
   retainProvisional: boolean,
 ): HierarchyPatch {
-  const byDivision = selectReviewAreas(inventory, reference, stubs)
+  const byDivision = selectReviewAreas(inventory, reference, estimatedAreas)
   const divisions = new Map(inventory.divisions.map(d => [d.id, d]))
   const annotateContainment = createFullContainmentAnnotator(
     new Map([...byDivision].map(([id, feature]) => [id, [feature.geometry]])),

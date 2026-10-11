@@ -1,5 +1,10 @@
+import { curatedRecordSources } from '../sources/curatedRecordSources'
+import { assertInternalSourceReferences } from '../sources/internalSourceReferences'
 import { camelCaseJson } from '../../../jsonKeys'
-import { canonicalIdentifiers } from '../sources/canonicalIdentifiers'
+import {
+  divisionIdentifiers,
+  divisionIdentifierProperties,
+} from '../sources/divisionIdentifiers'
 import { canonicalGeometryId } from '@repo/db'
 import { recordContent } from '../sources/recordContent'
 import { retainSourceProperties } from '../sources/retainedProperties'
@@ -43,6 +48,7 @@ export function createGeometryExclusionRule(fixture: typeof exclusionDeclaration
     (
       input: {
         kind: 'area' | 'boundary'
+        source?: string
         region?: unknown
         divisionId?: string | null
       },
@@ -50,6 +56,7 @@ export function createGeometryExclusionRule(fixture: typeof exclusionDeclaration
     ) =>
       parameters.excludedRegions.some(region => region === input.region) ||
       (input.kind === 'area' &&
+        !parameters.areaIdExclusionBypassSources.includes(input.source ?? 'overture') &&
         Boolean(
           input.divisionId &&
             parameters.excludedAreaDivisionIds.includes(input.divisionId),
@@ -126,10 +133,7 @@ function normaliseDivisionAreaGeometry(
     throw new Error('Division area row requires a non-empty `id`.')
   }
   const divisionId = asNonEmptyString(row.division_id)
-  if (
-    source !== 'saanseoi' &&
-    divisionGeometryExclusionRule.execute({ kind: 'area', divisionId })
-  ) {
+  if (divisionGeometryExclusionRule.execute({ kind: 'area', divisionId, source })) {
     return null
   }
   const geometry = requireGeometry(
@@ -159,7 +163,7 @@ function normaliseDivisionAreaGeometry(
     throw new Error('Division area row requires non-empty `id` and `division_id`.')
   }
 
-  const identifiers = canonicalIdentifiers(buildIdentifiers(row, source))
+  const identifiers = divisionIdentifiers(buildIdentifiers(row, source))
   const canonicalId =
     source === 'saanseoi' ? id : canonicalGeometryId('divisionArea', source, id)
   const sources = geometrySourceReferences(row, source, canonicalId)
@@ -225,7 +229,7 @@ function normaliseDivisionBoundaryGeometry(
     throw new Error(`Division boundary ${id} contains dropped perspectives data.`)
   }
 
-  const identifiers = canonicalIdentifiers(buildIdentifiers(row, source))
+  const identifiers = divisionIdentifiers(buildIdentifiers(row, source))
   const canonicalId = canonicalGeometryId('divisionBoundary', source, id)
   const sources = geometrySourceReferences(row, source, canonicalId)
   const base: GeometryBase = {
@@ -316,7 +320,7 @@ function geometrySourceReferences(
   source: string,
   id: string,
 ) {
-  if (source === 'saanseoi') return row.sources as Record<string, unknown>
+  if (source === 'saanseoi') return curatedRecordSources(row.sources, String(row.id))
   if (source === 'hkgov-pland-new-town') {
     const recordId = asNonEmptyString(row.newtown_id)
     if (!recordId)
@@ -400,10 +404,10 @@ function buildIdentifiers(
   if (source === 'hkgov-pland-pu') {
     return {
       hkgovPland: {
-        ppu: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:PPU')),
-        spu: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:SPU')),
-        tpu: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:TPU')),
-        subunit: asNonEmptyString(readIdentifier(row.identifiers, 'PLAND:SUBUNIT')),
+        ppu: asNonEmptyString(readIdentifier(row.identifiers, 'PPU')),
+        spu: asNonEmptyString(readIdentifier(row.identifiers, 'SPU')),
+        tpu: asNonEmptyString(readIdentifier(row.identifiers, 'TPU')),
+        subunit: asNonEmptyString(readIdentifier(row.identifiers, 'SUBUNIT')),
       },
     }
   }
@@ -433,7 +437,16 @@ function sourceProperties(row: Record<string, unknown>, source: string) {
   if (source !== 'hkgov-had' && source !== 'hkgov-censtatd' && source !== 'saanseoi')
     return { ...row }
 
+  if (source === 'saanseoi') assertInternalSourceReferences(row)
   const properties = row.source_properties
+  if (source === 'saanseoi') {
+    const retained = isRecord(properties) ? properties : row
+    for (const field of ['isLand', 'isTerritorial', 'is_land', 'is_territorial']) {
+      const value = retained[field]
+      if (value != null && typeof value !== 'boolean')
+        throw new Error(`Curated area ${row.id} requires boolean ${field}.`)
+    }
+  }
   if (source === 'saanseoi' && !isRecord(properties)) {
     const derived = new Set([
       'class',
@@ -443,10 +456,12 @@ function sourceProperties(row: Record<string, unknown>, source: string) {
       'source_geometry',
       'source_properties',
     ])
-    return camelCaseJson(
-      Object.fromEntries(
-        Object.entries(row).filter(
-          ([key]) => key !== 'id' && key !== 'geometry' && !derived.has(key),
+    return divisionIdentifierProperties(
+      camelCaseJson(
+        Object.fromEntries(
+          Object.entries(row).filter(
+            ([key]) => key !== 'id' && key !== 'geometry' && !derived.has(key),
+          ),
         ),
       ),
     )
@@ -455,7 +470,7 @@ function sourceProperties(row: Record<string, unknown>, source: string) {
     throw new Error(`${source} district area requires publisher \`source_properties\`.`)
   }
   return source === 'saanseoi'
-    ? camelCaseJson(properties)
+    ? camelCaseJson(divisionIdentifierProperties(properties))
     : (retainSourceProperties(properties) as Record<string, unknown>)
 }
 
@@ -482,7 +497,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function readIdentifier(value: unknown, key: string) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined
-  return (value as Record<string, unknown>)[key]
+  return divisionIdentifiers(value)?.['hkgov-pland']?.[key.toLowerCase()]
 }
 
 function resolveGeometryType(

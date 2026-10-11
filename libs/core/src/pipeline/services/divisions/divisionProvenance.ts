@@ -1,3 +1,4 @@
+import type { AuditScope } from '../../../provenance'
 import translationSummaryFixture from '../../../../../../fixtures/meta/processing-rules/assembly/division-translation-summary.json'
 import { registerRule } from '../../../provenance/auditTypes'
 import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
@@ -28,7 +29,7 @@ import { divisionTranslationRule } from './divisionTranslationRule'
 import { divisionExclusionFixture } from './divisionExclusionPatch'
 import { divisionNormalisationRule } from './division'
 import { requireDefined } from '../../../requireDefined'
-import type { ReleaseProcessingAction } from '../../db/processingActions'
+import type { ReleaseProcessingAction } from '../../../provenance/processingAction'
 import { retainFixturePartitions } from '../../../provenance/fixtures'
 import {
   kowloonRestorationDeclaration,
@@ -133,6 +134,7 @@ export const divisionTranslationSummaryRule = registerRule(
 export async function retainDivisionProvenance(
   store: ProvenanceStore,
   input: {
+    scope: AuditScope
     resourceReleaseId: string
     datasetCode: string
     actions: ReleaseProcessingAction[]
@@ -148,7 +150,8 @@ export async function retainDivisionProvenance(
     patchDefinitions?: Record<string, PatchDefinition>
     actionCounts?: Record<
       string,
-      Pick<import('../../../provenance').AuditCounts, 'inputs' | 'outputs'>
+      Pick<import('../../../provenance').AuditCounts, 'inputs' | 'outputs'> &
+        Partial<Pick<import('../../../provenance').AuditCounts, 'decisions'>>
     >
   },
 ) {
@@ -387,7 +390,7 @@ export async function retainDivisionProvenance(
                       values.reduce((n, a) => n + a.affectedRecordCount, 0),
                     ]),
                 ])
-              : { applied: affected },
+              : (input.actionCounts?.[id]?.decisions ?? { applied: affected }),
         },
         fixtures: [],
       })
@@ -524,6 +527,7 @@ export async function retainDivisionProvenance(
     })
   }
   return retainAuditResult(store, {
+    scope: input.scope,
     resourceReleaseId: input.resourceReleaseId,
     datasetCode: input.datasetCode,
     attempt: { id: input.resourceReleaseId, status: 'completed' },

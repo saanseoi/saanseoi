@@ -9,7 +9,7 @@ import {
   overtureHongKongAreas,
   overtureHongKongAreaDivisionId,
 } from './overtureHongKongAreas'
-import { normaliseDivisionRow } from './division'
+import { prepareCuratedDivisionRow as normaliseDivisionRow } from './division'
 
 const message = {
   source: 'overture',

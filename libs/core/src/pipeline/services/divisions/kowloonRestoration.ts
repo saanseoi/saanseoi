@@ -1,6 +1,6 @@
 import fixture from '../../../../../../fixtures/meta/patches/overture-kowloon-restoration.json'
 import type { RuleDeclaration } from '../../../provenance'
-import type { ReleaseProcessingAction } from '../../db/processingActions'
+import type { ReleaseProcessingAction } from '../../../provenance/processingAction'
 
 export const kowloonRestorationFixture = fixture
 export const kowloonRestorationDeclaration: RuleDeclaration = {

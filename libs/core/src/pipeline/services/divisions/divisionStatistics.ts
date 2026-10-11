@@ -23,7 +23,7 @@ export type HkgovCenstatdDistrictStatisticSource = {
 }
 
 /**
- * Builds the reviewed C&SD-number to canonical-district bridge used only by
+ * Builds the curated C&SD-number to canonical-district bridge used only by
  * the published statistics layer. Source records include their raw `DC`.
  */
 export function createHkgovCenstatdDistrictResolution(
@@ -51,7 +51,7 @@ export function createHkgovCenstatdDistrictResolution(
     const districtCode = districtCodeByCanonicalId.get(row.canonicalId)
     if (!districtCode) {
       throw new Error(
-        `C&SD district code=${sourceDistrictCode} has no reviewed canonical district code.`,
+        `C&SD district code=${sourceDistrictCode} has no curated canonical district code.`,
       )
     }
     if (resolved.has(sourceDistrictCode)) {
@@ -65,7 +65,7 @@ export function createHkgovCenstatdDistrictResolution(
 
   if (resolved.size !== hkDistricts.length) {
     throw new Error(
-      `Expected ${hkDistricts.length} reviewed C&SD district mappings; found ${resolved.size}.`,
+      `Expected ${hkDistricts.length} curated C&SD district mappings; found ${resolved.size}.`,
     )
   }
   const resolvedDistrictCodes = new Set(
@@ -74,7 +74,7 @@ export function createHkgovCenstatdDistrictResolution(
   for (const districtCode of hkDistricts) {
     if (!resolvedDistrictCodes.has(districtCode)) {
       throw new Error(
-        `The reviewed identifier bridges have no C&SD mapping for districtCode=${districtCode}.`,
+        `The curated identifier bridges have no C&SD mapping for districtCode=${districtCode}.`,
       )
     }
   }

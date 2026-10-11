@@ -1,4 +1,4 @@
-import { buildDeterministicUuidV5 } from '@repo/db'
+import { buildDeterministicUuidV5, canonicalGeneratedId } from '@repo/db'
 import type { DatasetProcessingMessage } from '../../../types'
 import {
   collectNames,
@@ -16,9 +16,11 @@ export const overtureHongKongCities = [
   },
   {
     code: 'hong-kong-city',
-    id: buildDeterministicUuidV5(
-      '68cfb529-cbcb-58c9-bdf1-ff9c8e5b9c7c',
-      'saanseoi:hk:city:hong-kong',
+    id: canonicalGeneratedId(
+      buildDeterministicUuidV5(
+        '68cfb529-cbcb-58c9-bdf1-ff9c8e5b9c7c',
+        'saanseoi:hk:city:hong-kong',
+      ),
     ),
     names: { en: 'Hong Kong', 'zh-hant': '香港', 'zh-hans': '香港' },
     districtNames: overtureHongKongAreas[0].districtNames.filter(

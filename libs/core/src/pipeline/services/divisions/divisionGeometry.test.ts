@@ -31,9 +31,9 @@ describe('division geometry normalisation', () => {
         divisionId: 'division-1',
         geometry: polygon,
         id: 'ss-area-1',
-        identifiers: { curation: { method: 'drawn' } },
-        isLand: 1,
-        isTerritorial: 0,
+        identifiers: { saanseoi: { sourceId: 'drawing-1' } },
+        isLand: true,
+        isTerritorial: false,
         is_land: true,
         is_territorial: false,
         sources: {
@@ -49,9 +49,9 @@ describe('division geometry normalisation', () => {
     expect(normalised.source.properties).toEqual({
       bbox: [0, 0, 1, 1],
       divisionId: 'division-1',
-      identifiers: { curation: { method: 'drawn' } },
-      isLand: 1,
-      isTerritorial: 0,
+      identifiers: { saanseoi: { sourceId: 'drawing-1' } },
+      isLand: true,
+      isTerritorial: false,
       sources: { saanseoi: [{ dataset: 'division-drawings', recordId: 'drawing-1' }] },
       type: 'land',
       variant: 'saanseoi',
@@ -98,15 +98,16 @@ describe('division geometry normalisation', () => {
     ).toBeNull()
   })
 
-  test('rejects PRC areas but retains boundaries that reference the PRC anchor', () => {
+  test('retains Overture areas and boundaries even for IDs excluded by SaanSeoi', () => {
     const prcId = 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be'
     expect(
       normaliseDivisionAreaGeometryRow({
         division_id: prcId,
         geometry: polygon,
         id: 'prc-area',
-      }),
-    ).toBeNull()
+        class: 'land',
+      })?.canonical.divisionId,
+    ).toBe(prcId)
     const boundary = normaliseDivisionBoundaryGeometryRow({
       class: 'land',
       division_ids: [prcId, 'hk'],
@@ -335,10 +336,7 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical.isLand).toBe(true)
     expect(normalised.canonical.isTerritorial).toBe(true)
     expect(normalised.canonical.identifiers).toEqual({
-      'HAD:OBJECTID': 7,
-      'HAD:CSDI_ADMIN_AREA_ID': 42,
-      'HAD:AREA_ID': 'A',
-      'HAD:AREA_CODE': 'CW',
+      'hkgov-had': { objectId: 7, csdiAdminAreaId: 42, areaId: 'A', areaCode: 'CW' },
     })
     expect((normalised.source.properties as Record<string, unknown>).areaCode).toBe(
       'CW',
@@ -378,8 +376,7 @@ describe('division geometry normalisation', () => {
 
     expect(normalised.canonical.variant).toBe('hkgov-censtatd:simplified')
     expect(normalised.canonical.identifiers).toEqual({
-      'CENSTATD:dcClass': 'A',
-      'CENSTATD:dcCode': 11,
+      'hkgov-censtatd': { dcClass: 'A', dcCode: 11 },
     })
     expect(normalised.canonical.sources).toEqual({
       evidence: [{ record_id: normalised.canonical.id }],
@@ -414,7 +411,7 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical.divisionId).toBe('b3a5b954-9d05-5aa5-bd74-ee2b0c2824e2')
     expect(normalised.canonical.variant).toBe('hkgov-pland-new-town')
     expect(normalised.canonical.identifiers).toEqual({
-      'PLAND:NEWTOWN': 'tseung-kwan-o',
+      'hkgov-pland': { newTownId: 'tseung-kwan-o' },
     })
     expect(normalised.canonical.geometry).toEqual(polygon)
     expect(normalised.canonical.bbox).toEqual([0, 0, 1, 1])

@@ -5,7 +5,7 @@ import {
   validateDivisionExclusionFixture,
 } from './divisionExclusionPatch'
 
-test('Central District exclusion accepts only its reviewed Overture source assertion', () => {
+test('Central District exclusion accepts only its curated Overture source assertion', () => {
   const row = {
     id: 'f9321bdb-1e1e-49e6-89c8-662f988b29a3',
     subtype: 'macrohood',
@@ -32,7 +32,7 @@ test('Central District exclusion accepts only its reviewed Overture source asser
   ).toThrow('patch entry')
 })
 
-test('B Block is excluded only when its reviewed source assertion matches', () => {
+test('B Block is excluded only when its curated source assertion matches', () => {
   const row = {
     id: 'cbfab9fe-5b9a-493d-b710-2cfd0a2ba6db',
     subtype: 'microhood',
@@ -50,7 +50,7 @@ test('B Block is excluded only when its reviewed source assertion matches', () =
   ).toThrow('guard mismatch')
 })
 
-test('Kap Ma Kum Tong exclusion retains its reviewed source guard', () => {
+test('Kap Ma Kum Tong exclusion retains its curated source guard', () => {
   const row = {
     id: '4694b2f9-3257-411a-91e1-421ad4fdbf45',
     subtype: 'macrohood',
@@ -68,7 +68,7 @@ test('Kap Ma Kum Tong exclusion retains its reviewed source guard', () => {
   ).toBeNull()
 })
 
-test('South Bay Garden is excluded only when its reviewed source assertion matches', () => {
+test('South Bay Garden is excluded only when its curated source assertion matches', () => {
   const row = {
     id: '1deda0f6-c887-4987-8d29-74ae24b90780',
     subtype: 'neighborhood',
@@ -83,7 +83,7 @@ test('South Bay Garden is excluded only when its reviewed source assertion match
   )
 })
 
-test('Shek Pai Wan is excluded only when its reviewed source assertion matches', () => {
+test('Shek Pai Wan is excluded only when its curated source assertion matches', () => {
   const row = {
     id: '5b44a59f-8a88-4b7f-addc-d74b79aad31a',
     subtype: 'microhood',
@@ -157,20 +157,15 @@ test('Ngau Chi Wan Village retains a guarded exclusion', () => {
   )
 })
 
-test('Tung Tau and Nga Tsin Wai retain guarded exclusions', () => {
-  for (const [id, patchId] of [
-    ['d1e1327a-28ff-4487-9103-df158b9c94a0', 'overture_hong_kong_tung_tau_excluded'],
-    [
-      'ac162f33-9966-4d6e-9d53-8a6df575775f',
-      'overture_hong_kong_nga_tsin_wai_excluded',
-    ],
-  ] as const) {
-    const row = { id, subtype: 'neighborhood', class: null, admin_level: null }
-    expect(applyDivisionExclusionPatch(row)?.id).toBe(patchId)
-    expect(() => applyDivisionExclusionPatch({ ...row, subtype: 'microhood' })).toThrow(
-      'guard mismatch',
-    )
-  }
+test('Nga Tsin Wai retains its Overture identity without an exclusion', () => {
+  expect(
+    applyDivisionExclusionPatch({
+      id: 'ac162f33-9966-4d6e-9d53-8a6df575775f',
+      subtype: 'neighborhood',
+      class: null,
+      admin_level: null,
+    }),
+  ).toBeNull()
 })
 
 test('the level-6 Tsim Sha Tsui duplicate retains a guarded exclusion', () => {
@@ -218,27 +213,15 @@ test('Kai Tak North retains a guarded exclusion', () => {
   )
 })
 
-test('whole-island and island-group macrohoods retain guarded exclusions', () => {
+test('excluded whole-island macrohoods retain guarded exclusions', () => {
   for (const [id, patchId] of [
     [
       '0eb68e06-4951-41ef-afe9-cbced12cd7e6',
       'overture_hong_kong_high_island_macrohood_excluded',
     ],
     [
-      '13363714-2649-4066-935d-c24757ff2a86',
-      'overture_hong_kong_po_toi_islands_macrohood_excluded',
-    ],
-    [
-      '15de4c83-f54a-4eaa-b002-c88de1f8c310',
-      'overture_hong_kong_soko_islands_macrohood_excluded',
-    ],
-    [
       '2a938b4b-1803-4e35-97ca-f4c4ed2ed108',
       'overture_hong_kong_lamma_island_macrohood_excluded',
-    ],
-    [
-      'c81690db-fae9-4802-8745-fd6d96ca9f60',
-      'overture_hong_kong_stonecutters_island_macrohood_excluded',
     ],
     [
       'd5ea5db9-fe81-4156-abeb-f00c0debb48a',
@@ -288,7 +271,7 @@ test('visitor-attraction and campus-walkway POIs retain guarded exclusions', () 
   }
 })
 
-test('reviewed Hong Kong curation exclusions retain their source guards', () => {
+test('curated Hong Kong curation exclusions retain their source guards', () => {
   const cases = [
     [
       '37e9807f-5404-461c-ba18-db54e942a898',
@@ -448,7 +431,7 @@ test('Lei Yue Mun Villages retains its guarded alias exclusion', () => {
   )
 })
 
-test('geometry policy excludes areas for every reviewed excluded division', async () => {
+test('geometry policy excludes areas for every curated excluded division', async () => {
   const { divisionGeometryExclusionRule } = await import('./divisionGeometry')
   for (const entry of divisionExclusionFixture.entries)
     expect(
@@ -457,4 +440,15 @@ test('geometry policy excludes areas for every reviewed excluded division', asyn
         divisionId: entry.divisionId,
       }),
     ).toBe(true)
+})
+
+test('Tung Tau retains its Overture identity without an exclusion', () => {
+  expect(
+    applyDivisionExclusionPatch({
+      id: 'd1e1327a-28ff-4487-9103-df158b9c94a0',
+      subtype: 'neighborhood',
+      class: null,
+      admin_level: null,
+    }),
+  ).toBeNull()
 })

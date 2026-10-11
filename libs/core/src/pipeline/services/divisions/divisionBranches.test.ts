@@ -102,6 +102,7 @@ test('bulk retention round-trips branch counts without individual record actions
     { branchCounts },
   )
   const input = {
+    scope: { stage: 'ingestion' as const, ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'divisions',
     inputCount: 1,

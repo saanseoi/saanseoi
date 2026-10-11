@@ -10,7 +10,7 @@ import {
   collectOvertureHongKongDivisionSourceAssumptionViolations,
   type DivisionHierarchyLookup,
   normaliseDivisionI18nForStorage,
-  normaliseDivisionRow,
+  prepareCuratedDivisionRow as normaliseDivisionRow,
 } from './division'
 import { getSupplementalDivisionFixtureRows } from './divisionFixtures'
 import {
@@ -55,6 +55,33 @@ const hierarchyLookup: DivisionHierarchyLookup = new Map([
 ])
 
 describe('collectOvertureHongKongDivisionSourceAssumptionViolations', () => {
+  test('accepts only the pinned PRC publisher ancestor alongside the Hong Kong extract', () => {
+    const rows = [
+      {
+        id: 'hk',
+        theme: 'divisions',
+        type: 'division',
+        country: 'HK',
+        norms: { driving_side: 'left' },
+      },
+      {
+        id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
+        theme: 'divisions',
+        type: 'division',
+        subtype: 'country',
+        country: 'CN',
+        norms: { driving_side: 'right' },
+      },
+    ]
+    expect(collectOvertureHongKongDivisionSourceAssumptionViolations(rows)).toEqual([])
+    expect(
+      collectOvertureHongKongDivisionSourceAssumptionViolations([
+        rows[0]!,
+        { ...rows[1]!, id: 'another-country' },
+      ]),
+    ).not.toEqual([])
+  })
+
   test('accepts current dropped-field assumptions', () => {
     expect(
       collectOvertureHongKongDivisionSourceAssumptionViolations([
@@ -200,32 +227,32 @@ describe('collectOvertureHongKongDivisionSourceAssumptionViolations', () => {
 describe('getSupplementalDivisionFixtureRows', () => {
   test('adds the missing Kai Tak level-6 precinct markers', () => {
     const rows = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
     })
     for (const [id, name, zhHant, coordinates] of [
       [
-        '7a719ce4-ef50-5a85-9f9a-1d0375c3eeaa',
+        'ss-17f64895-23b4-5b58-87e1-085b6991efd0',
         'Kai Tak Sports Park',
         '啟德體育園',
         [114.1978125, 22.3236344],
       ],
       [
-        'f8470431-cc49-5c1a-9c97-7b75f809f125',
+        'ss-4b0d5eea-5f94-59d1-8066-269e75c2c343',
         'Kai Tak Metro Park',
         '啟德都會公園',
         [114.1996688, 22.318758],
       ],
       [
-        'c96f4670-4aba-566f-85e2-e7bfd905fa49',
+        'ss-a8d56eb6-21ae-5745-b03a-3750530c1c71',
         'Kai Tak Cruise Terminal',
         '啟德郵輪碼頭',
         [114.2120721, 22.3070126],
       ],
     ] as const) {
       const row = rows.find(row => row.id === id)!
-      expect(row.parent_division_id).toBe('537c8fc4-5ea5-40e8-bdb1-825d93d45059')
+      expect(row.hierarchies).toEqual([])
       expect(normaliseDivisionRow(row)).toMatchObject({
         base: {
           class: 'microhood',
@@ -240,12 +267,12 @@ describe('getSupplementalDivisionFixtureRows', () => {
     }
   })
 
-  test('adds Lan Kwai Fong as a reviewed microhood', () => {
+  test('adds Lan Kwai Fong as a curated microhood', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === '86e53121-284a-5640-aaa3-bc28a3703ff7')!
+    }).find(row => row.id === 'ss-d574ef9f-1f94-5f55-b13f-0f287ec06440')!
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: {
         class: 'microhood',
@@ -259,48 +286,44 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
-  test('adds Thirty Houses as a reviewed Sheung Wan microhood', () => {
+  test('adds Thirty Houses as a curated Sheung Wan microhood', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === 'f6207b8e-e4a4-54a2-9c1b-0a9a6291447e')!
-    expect(row.parent_division_id).toBe('64a1b3b8-ee9e-4193-bc22-e5abca06cf1c')
+    }).find(row => row.id === 'ss-dbc94110-6e0d-584b-ae9d-fe87eb7857a2')!
+    expect(row.hierarchies).toEqual([])
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: {
         class: 'microhood',
         geometry: { type: 'Point', coordinates: [114.1511702, 22.2833691] },
         level: 6,
-        wikidata: 'Q10905033',
       },
       i18n: expect.arrayContaining([
         expect.objectContaining({
           locale: 'en',
           name: 'Thirty Houses',
-          nameAlts: '30 Houses',
         }),
         expect.objectContaining({
           locale: 'zh-hant',
           name: '卅間',
-          nameAlts: '三十間',
         }),
       ]),
     })
   })
 
-  test('adds Tai Tam Gap as a reviewed Eastern District neighbourhood', () => {
+  test('adds Tai Tam Gap as a curated Eastern District neighbourhood', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === '7a3c5e91-95c2-5c93-8e3c-7d5b5d3bb6e7')!
-    expect(row.parent_division_id).toBe('01b58985-268d-4b8a-8e09-64604668b13e')
+    }).find(row => row.id === 'ss-e0b47921-ffd5-5ee6-9d70-c29d74b7092e')!
+    expect(row.hierarchies).toEqual([])
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: {
         class: 'neighbourhood',
         geometry: { type: 'Point', coordinates: [114.2281758, 22.2574719] },
         level: 5,
-        wikidata: 'Q10936624',
       },
       i18n: expect.arrayContaining([
         expect.objectContaining({ locale: 'en', name: 'Tai Tam Gap' }),
@@ -310,17 +333,13 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
-  test('adds Tai Tam Tau as a reviewed Southern District microhood', () => {
+  test('adds Tai Tam Tau as a curated Southern District microhood', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === '1105e168-19e9-5c1c-abda-588f9f15d84c')!
-    expect(row.parent_division_id).toBe('1dff7a5f-afe1-4db2-8ca7-cda8bb25754a')
-    expect(row.sources).toContainEqual({
-      dataset: 'OpenStreetMap',
-      record_id: 'node/1128001275',
-    })
+    }).find(row => row.id === 'ss-da8b4297-eee1-5acc-a731-743d590d4ebc')!
+    expect(row.hierarchies).toEqual([])
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: {
         class: 'microhood',
@@ -335,17 +354,13 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
-  test('adds Cape Collinson as a reviewed Eastern District neighbourhood', () => {
+  test('adds Cape Collinson as a curated Eastern District neighbourhood', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === '0ae98281-dc7d-52f3-861d-dd47af906fe1')!
-    expect(row.parent_division_id).toBe('01b58985-268d-4b8a-8e09-64604668b13e')
-    expect(row.sources).toContainEqual({
-      dataset: 'OpenStreetMap',
-      record_id: 'node/8736436992',
-    })
+    }).find(row => row.id === 'ss-d8e22301-6c35-509e-aa53-9c437457891d')!
+    expect(row.hierarchies).toEqual([])
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: {
         class: 'neighbourhood',
@@ -360,17 +375,13 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
-  test('adds Hok Tsui Lower Village as a reviewed Southern District hamlet', () => {
+  test('adds Hok Tsui Lower Village as a curated Southern District hamlet', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === '182d0a4c-99b4-5811-bd28-15d5c3bc339d')!
-    expect(row.parent_division_id).toBe('1dff7a5f-afe1-4db2-8ca7-cda8bb25754a')
-    expect(row.sources).toContainEqual({
-      dataset: 'OpenStreetMap',
-      record_id: 'node/2741299690',
-    })
+    }).find(row => row.id === 'ss-59b37ac9-f5f5-5eef-937f-b99539820ac1')!
+    expect(row.hierarchies).toEqual([])
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: {
         class: 'hamlet',
@@ -381,29 +392,25 @@ describe('getSupplementalDivisionFixtureRows', () => {
         expect.objectContaining({ locale: 'en', name: 'Hok Tsui Lower Village' }),
         expect.objectContaining({
           locale: 'zh-hant',
-          name: '鶴咀村',
-          nameAlts: '鶴咀下村',
+          name: '鶴咀下村',
+          nameAlts: null,
         }),
         expect.objectContaining({
           locale: 'zh-hans',
-          name: '鹤咀村',
-          nameAlts: '鹤咀下村',
+          name: '鹤咀下村',
+          nameAlts: null,
         }),
       ]),
     })
   })
 
-  test('adds Sandy Bay Gap as a reviewed Central and Western District microhood', () => {
+  test('adds Sandy Bay Gap as a curated Central and Western District microhood', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === '7bf6763f-7384-5233-8568-a24c10789432')!
-    expect(row.parent_division_id).toBe('8d17afe0-5631-49c5-b86d-d53c5d4b2f9d')
-    expect(row.sources).toContainEqual({
-      dataset: 'OpenStreetMap',
-      record_id: 'node/9520791845',
-    })
+    }).find(row => row.id === 'ss-724d3274-b81e-5b55-8d8a-c11109d5ca40')!
+    expect(row.hierarchies).toEqual([])
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: {
         class: 'microhood',
@@ -418,28 +425,40 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
-  test('adds Lei Cheng Uk under Sham Shui Po', () => {
-    const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
-      resourceType: 'division',
-      regionCode: 'hk',
-    }).find(row => row.id === '3fc693e1-2038-58e4-8ef3-8ce7b01e97a8')!
-    expect(row.parent_division_id).toBe('73e4cfa9-558b-4017-84a3-f5c0b3507aa5')
-    expect(normaliseDivisionRow(row)).toMatchObject({
-      base: { class: 'neighbourhood', level: 5 },
+  test('retains the Lei Cheng Uk GERS identity with Li Cheng Uk as an alias', () => {
+    const row = {
+      id: '56dad78a-02e0-4a7d-8f3c-1f264766023b',
+      subtype: 'neighborhood',
+      names: {
+        primary: '李鄭屋 Li Cheng Uk',
+        common: { en: 'Li Cheng Uk', 'zh-Hant': '李鄭屋' },
+      },
+    }
+    expect(
+      getSupplementalDivisionFixtureRows({
+        source: 'saanseoi',
+        resourceType: 'division',
+        regionCode: 'hk',
+      }).some(entry => entry.id === row.id),
+    ).toBe(false)
+    expect(normaliseDivisionRow({ ...row, class: 'neighbourhood' })).toMatchObject({
+      base: { id: row.id, class: 'neighbourhood', level: 5 },
       i18n: expect.arrayContaining([
-        expect.objectContaining({ locale: 'en', name: 'Lei Cheng Uk' }),
-        expect.objectContaining({ locale: 'zh-hant', name: '李鄭屋' }),
+        expect.objectContaining({
+          locale: 'en',
+          name: 'Lei Cheng Uk',
+          nameAlts: 'Li Cheng Uk',
+        }),
       ]),
     })
   })
-  test('adds Austin as a reviewed neighbourhood under Yau Tsim Mong', () => {
+  test('adds Austin as a curated neighbourhood under Yau Tsim Mong', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === '2cfb80d9-7390-5474-962d-d33c6d08c04d')!
-    expect(row.parent_division_id).toBe('c8ca7da1-2688-402a-8eb9-199b69b5691c')
+    }).find(row => row.id === 'ss-04e117cb-f696-51f4-abe2-709a52100253')!
+    expect(row.hierarchies).toEqual([])
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: { class: 'neighbourhood', level: 5 },
       i18n: expect.arrayContaining([
@@ -448,16 +467,16 @@ describe('getSupplementalDivisionFixtureRows', () => {
       ]),
     })
     expect(row.sources).toEqual([
-      { dataset: 'SaanSeoi reviewed neighbourhood additions', record_id: 'austin' },
+      { dataset: 'SaanSeoi curated additions', record_id: 'saanseoi-hk-austin' },
     ])
   })
-  test('adds Jordan as a reviewed neighbourhood under Yau Tsim Mong', () => {
+  test('adds Jordan as a curated neighbourhood under Yau Tsim Mong', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === 'b3809d1e-fdac-5cd5-9a06-9ab9a5859491')!
-    expect(row.parent_division_id).toBe('c8ca7da1-2688-402a-8eb9-199b69b5691c')
+    }).find(row => row.id === 'ss-fbd43b34-3972-58cd-82ce-d431f834af2e')!
+    expect(row.hierarchies).toEqual([])
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: { class: 'neighbourhood', level: 5 },
       i18n: expect.arrayContaining([
@@ -466,15 +485,15 @@ describe('getSupplementalDivisionFixtureRows', () => {
       ]),
     })
     expect(row.sources).toEqual([
-      { dataset: 'SaanSeoi reviewed neighbourhood additions', record_id: 'jordan' },
+      { dataset: 'SaanSeoi curated additions', record_id: 'saanseoi-hk-jordan' },
     ])
   })
-  test('adds Prince Edward as a reviewed neighbourhood', () => {
+  test('adds Prince Edward as a curated neighbourhood', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === '98d5760d-f07a-5c44-9ae4-847efd8dc408')!
+    }).find(row => row.id === 'ss-28506769-02c3-5edf-9e23-99999e25bfe8')!
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: { class: 'neighbourhood', level: 5 },
       i18n: expect.arrayContaining([
@@ -484,21 +503,21 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
     expect(row.sources).toEqual([
       {
-        dataset: 'SaanSeoi reviewed neighbourhood additions',
-        record_id: 'prince-edward',
+        dataset: 'SaanSeoi curated additions',
+        record_id: 'saanseoi-hk-prince-edward',
       },
     ])
   })
-  test('adds reviewed Waterfall Bay as a neighbourhood with SaanSeoi provenance', () => {
+  test('adds curated Waterfall Bay as a neighbourhood with SaanSeoi provenance', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === 'b74bf860-5daf-50fb-8382-84975c7c8be0')!
+    }).find(row => row.id === 'ss-03386e65-c456-5b59-a1e7-3eac52cd3a97')!
     expect(row.sources).toEqual([
       {
-        dataset: 'SaanSeoi reviewed neighbourhood additions',
-        record_id: 'waterfall-bay',
+        dataset: 'SaanSeoi curated additions',
+        record_id: 'saanseoi-hk-waterfall-bay',
       },
     ])
     expect(normaliseDivisionRow(row)).toMatchObject({
@@ -510,39 +529,38 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
-  test('adds reviewed Sheung and Ha Yuen Leng divisions under Wong Tai Sin', () => {
+  test('adds curated Sheung and Ha Yuen Leng divisions under Wong Tai Sin', () => {
     const rows = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
     })
-    for (const [id, name, zhHant, classification, level, coordinates, recordId] of [
+    for (const [id, name, zhHant, classification, level, coordinates] of [
       [
-        '00c5bf41-782b-5eea-8e1f-9c3c94dfe6e9',
+        'ss-f39f079d-ee2d-56c5-9071-3ec16421401a',
         'Sheung Yuen Leng',
         '上元嶺',
         'neighbourhood',
         5,
         [114.2059129, 22.3415699],
-        'node/4503903852',
       ],
       [
-        '5b8a5036-d099-53d2-81a3-7be83837766f',
+        'ss-d988dc78-d63d-5deb-a4b9-7b596a748e39',
         'Ha Yuen Leng',
         '下元嶺',
         'microhood',
         6,
         [114.204061, 22.338932],
-        'node/5104835121',
       ],
     ] as const) {
       const row = rows.find(row => row.id === id)!
       expect(row).toMatchObject({
-        parent_division_id: '8cb650f2-5721-4c32-bb57-330ecc13987d',
+        hierarchies: [],
         geometry: { type: 'Point', coordinates },
-        sources: expect.arrayContaining([
-          { dataset: 'OpenStreetMap', record_id: recordId },
-        ]),
+        fixture: {
+          code: expect.stringMatching(/^saanseoi-hk-/),
+          reviewStatus: 'reviewed',
+        },
       })
       expect(normaliseDivisionRow(row)).toMatchObject({
         base: { id, class: classification, level },
@@ -554,18 +572,16 @@ describe('getSupplementalDivisionFixtureRows', () => {
     }
   })
 
-  test('adds Cha Liu Au as a reviewed Kwun Tong level-4 macrohood', () => {
+  test('adds Cha Liu Au as a curated Kwun Tong level-4 macrohood', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === '3c8839d0-9013-5e3f-8669-0ad60ed5eeb4')!
+    }).find(row => row.id === 'ss-cf671d96-6ff6-5e99-b5f4-d6ffc3133f2a')!
     expect(row).toMatchObject({
-      parent_division_id: 'cf79b69e-8575-4e9b-b15a-a4a8901e685b',
+      hierarchies: [],
       geometry: { type: 'Point', coordinates: [114.2250772, 22.3341772] },
-      sources: expect.arrayContaining([
-        { dataset: 'OpenStreetMap', record_id: 'node/7688146514' },
-      ]),
+      fixture: { code: 'saanseoi-hk-cha-liu-au', reviewStatus: 'reviewed' },
     })
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: { class: 'macrohood', level: 4 },
@@ -576,18 +592,16 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
-  test('adds Ping Shan as a reviewed Kwun Tong level-5 neighbourhood', () => {
+  test('adds Ping Shan as a curated Kwun Tong level-5 neighbourhood', () => {
     const row = getSupplementalDivisionFixtureRows({
-      source: 'overture',
+      source: 'saanseoi',
       resourceType: 'division',
       regionCode: 'hk',
-    }).find(row => row.id === 'e4500843-e738-4b02-a64c-fa5f4af63263')!
+    }).find(row => row.id === 'ss-8b1c69bf-eff8-5bcd-acd7-3e5071bee1d6')!
     expect(row).toMatchObject({
-      parent_division_id: 'cf79b69e-8575-4e9b-b15a-a4a8901e685b',
+      hierarchies: [],
       geometry: { type: 'Point', coordinates: [114.2188153, 22.3307477] },
-      sources: expect.arrayContaining([
-        { dataset: 'OpenStreetMap', record_id: 'node/3192519568' },
-      ]),
+      fixture: { code: 'saanseoi-hk-ping-shan', reviewStatus: 'reviewed' },
     })
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: { class: 'neighbourhood', level: 5 },
@@ -598,44 +612,10 @@ describe('getSupplementalDivisionFixtureRows', () => {
     })
   })
 
-  test('adds the PRC country anchor to Overture Hong Kong division snapshots', () => {
-    const [fixture] = getSupplementalDivisionFixtureRows({
-      source: 'overture',
-      resourceType: 'division',
-      regionCode: 'hk',
-    })
-
-    expect(fixture).toEqual(
-      expect.objectContaining({
-        id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
-        subtype: 'country',
-        geometry: null,
-      }),
-    )
-    expect(normaliseDivisionRow(fixture ?? {})).toMatchObject({
-      base: {
-        id: 'fb68fc73-3ac6-41c9-a692-22fcf20cb5be',
-        level: 0,
-        class: 'country',
-        geometry: null,
-      },
-      i18n: expect.arrayContaining([
-        expect.objectContaining({ locale: 'en', name: 'China' }),
-        expect.objectContaining({ locale: 'zh-hant', name: '中國' }),
-      ]),
-    })
-    expect(
-      getSupplementalDivisionFixtureRows(
-        { source: 'overture', resourceType: 'division', regionCode: 'hk' },
-        [{ id: 'island', class: 'minor_island' }],
-      ),
-    ).toEqual(expect.arrayContaining([expect.objectContaining({ id: 'island' })]))
-  })
-
   test('does not add the anchor to unrelated snapshots', () => {
     expect(
       getSupplementalDivisionFixtureRows({
-        source: 'overture',
+        source: 'saanseoi',
         resourceType: 'divisionBoundary',
         regionCode: 'hk',
       }),
@@ -668,7 +648,7 @@ describe('missingOvertureHongKongAreaRows', () => {
     for (const area of overtureHongKongAreas) {
       const row = rows.find(row => row.id === overtureHongKongAreaDivisionId(area.code))
       expect(row?.names.primary).toBe(area.names.en)
-      expect(row?.identifiers).toMatchObject({ wikidata: { id: area.wikidata } })
+      expect(row?.wikidata).toBe(area.wikidata)
       expect(row?.identifiers.saanseoiCorrection.districtDivisionIds).toHaveLength(
         area.districtNames.length,
       )
@@ -1031,7 +1011,7 @@ describe('normaliseDivisionRow hierarchy', () => {
             name: '香港特別行政區 Hong Kong SAR',
           },
           {
-            id: '25cec859-44f3-5e1d-a72b-952f804e56ab',
+            id: 'ss-25cec859-44f3-5e1d-a72b-952f804e56ab',
             class: 'area',
             name: '香港島 Hong Kong Island',
           },
@@ -1050,7 +1030,7 @@ describe('normaliseDivisionRow hierarchy', () => {
             name: '香港特別行政區 Hong Kong SAR',
           },
           {
-            id: '25cec859-44f3-5e1d-a72b-952f804e56ab',
+            id: 'ss-25cec859-44f3-5e1d-a72b-952f804e56ab',
             class: 'area',
             name: '香港島 Hong Kong Island',
           },
@@ -1139,7 +1119,10 @@ describe('normaliseDivisionRow hierarchy', () => {
     )
 
     expect(requireDefined(normalised.base.hierarchies.administrative)[0]).toMatchObject(
-      [{ class: 'sar' }, { class: 'area', id: '25cec859-44f3-5e1d-a72b-952f804e56ab' }],
+      [
+        { class: 'sar' },
+        { class: 'area', id: 'ss-25cec859-44f3-5e1d-a72b-952f804e56ab' },
+      ],
     )
     expect(normalised.overtureHongKongAreaHierarchyAssignment).toMatchObject({
       code: 'hong-kong-island',
@@ -1183,7 +1166,6 @@ describe('buildOvertureHongKongDivisionClassificationProcessingActions', () => {
         evidence: expect.objectContaining({
           canonical: { level: 4, class: 'macrohood' },
           divisionId: '222b7818-970a-491d-98b6-b88d8c6f0161',
-          source: { adminLevel: 2, class: null, subtype: 'region' },
         }),
         mode: 'automatic',
       }),

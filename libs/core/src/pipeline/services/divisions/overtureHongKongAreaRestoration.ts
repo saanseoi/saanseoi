@@ -1,5 +1,5 @@
 import fixture from '../../../../../../fixtures/meta/patches/overture-hong-kong-area-restoration.json'
-import type { ReleaseProcessingAction } from '../../db/processingActions'
+import type { ReleaseProcessingAction } from '../../../provenance/processingAction'
 import type { RuleDeclaration } from '../../../provenance'
 import {
   overtureHongKongAreas,

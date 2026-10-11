@@ -63,7 +63,7 @@ test('resolves C&SD DC only while creating the history observation', () => {
   })
 })
 
-test('rejects an incomplete reviewed district bridge', () => {
+test('rejects an incomplete curated district bridge', () => {
   expect(() =>
     createHkgovCenstatdDistrictResolution(
       districtCodes.slice(0, -1).map((_, index) => ({
@@ -75,5 +75,5 @@ test('rejects an incomplete reviewed district bridge', () => {
         externalCode: districtCode,
       })),
     ),
-  ).toThrow('Expected 18 reviewed C&SD district mappings; found 17.')
+  ).toThrow('Expected 18 curated C&SD district mappings; found 17.')
 })

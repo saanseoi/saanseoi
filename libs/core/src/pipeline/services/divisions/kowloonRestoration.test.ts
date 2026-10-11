@@ -80,6 +80,7 @@ test('retains a searchable individual restoration only when ingestion supplied e
   )
   for (const retainedActions of [actions, []]) {
     const result = await retainDivisionProvenance(store, {
+      scope: { stage: 'ingestion', ownerId: 'release' },
       resourceReleaseId: 'release',
       datasetCode: 'ds-hk-overture-division',
       inputCount: 18,
@@ -95,7 +96,13 @@ test('retains a searchable individual restoration only when ingestion supplied e
         operation: kowloonRestorationFixture.id,
         fixture: { pointer: '' },
         record: { id: kowloonRestorationFixture.divisionId },
-        context: { decision: 'restore-missing-source-row' },
+        context: {
+          id: kowloonRestorationFixture.id,
+          method: 'union-overture-district-areas',
+          applicationCount: 1,
+        },
+        outcome: 'applied',
+        reason: kowloonRestorationFixture.reason,
       })
   }
 })

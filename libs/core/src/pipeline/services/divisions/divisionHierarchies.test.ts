@@ -114,3 +114,33 @@ test('retains island-group ancestry and suppresses only explicit administrative 
   ])
   expect(ids(group.landform)).toEqual([['ninepin', 'north-ninepin']])
 })
+
+test('preserves a rural area above its nearest settlement in locality and full paths', () => {
+  const result = materialiseDivisionHierarchies('child', [
+    [
+      entry('sar', 'sar'),
+      entry('town', 'town'),
+      entry('rural', 'rural_area'),
+      entry('village', 'village'),
+      entry('micro', 'microhood'),
+    ],
+  ])
+  expect(ids(result.locality)).toEqual([['rural', 'village', 'micro']])
+  expect(ids(result.full)).toEqual([['sar', 'rural', 'village', 'micro']])
+  expect(
+    ids(
+      materialiseDivisionHierarchies('child', [
+        [entry('town', 'town'), entry('rural', 'rural_area')],
+      ]).full,
+    ),
+  ).toEqual([['town', 'rural']])
+})
+
+test('canonical Hong Kong Island is omitted from stored full even without its area', () => {
+  const island = entry('ss-5999ed90-1c47-51e7-b79d-80f9251c1e01', 'major_island')
+  const result = materialiseDivisionHierarchies('child', [
+    [island, entry('city', 'city'), entry('rural', 'rural_area')],
+  ])
+  expect(ids(result.full)).toEqual([['rural']])
+  expect(ids(result.landform)).toEqual([[island.division_id]])
+})

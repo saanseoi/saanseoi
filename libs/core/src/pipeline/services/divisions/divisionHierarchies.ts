@@ -54,21 +54,29 @@ export function materialiseDivisionHierarchies(
       )?.displayEquivalentDivisionId
       return !equivalent || !administrative.some(ancestor => ancestor.id === equivalent)
     })
-    const locality = entries.findLast(entry => category(entry) === 'locality')
+    const locality = entries.findLast(
+      entry => category(entry) === 'locality' && entry.class !== 'rural_area',
+    )
     const hoods = entries.filter(entry => category(entry) === 'hood')
-    const localPath = [...(locality ? [locality] : []), ...hoods]
+    const localities = entries.filter(
+      entry => entry === locality || entry.class === 'rural_area',
+    )
+    const localPath = [...localities, ...hoods]
     // Other geographic domains retain their evidenced ancestry without pretending
     // their planning/statistical classes belong to the geographic taxonomy.
     const other = entries.filter(entry => !category(entry))
     appendUniquePath(result.administrative!, administrative)
     appendUniquePath(result.locality!, localPath)
     appendUniquePath(result.landform!, landforms)
-    appendUniquePath(result.full, [
-      ...administrative,
-      ...displayedLandforms,
-      ...localPath.filter(entry => entry.class !== 'city'),
-      ...other,
-    ])
+    appendUniquePath(
+      result.full,
+      [
+        ...administrative,
+        ...displayedLandforms,
+        ...localPath.filter(entry => entry.class !== 'city'),
+        ...other,
+      ].filter(belongsInFullHierarchy),
+    )
   }
   for (const key of ['administrative', 'locality', 'landform'] as const) {
     if (!result[key]?.length) delete result[key]

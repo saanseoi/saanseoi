@@ -4,7 +4,7 @@ import { retainDivisionProvenance } from './divisionProvenance'
 import { readAuditPage } from '../../../provenance/audit'
 import type { ProvenanceStore } from '../../../provenance'
 
-test('every reviewed exclusion retains its individual fixture and reason', async () => {
+test('every curated exclusion retains its individual fixture and reason', async () => {
   const objects = new Map<string, ArrayBuffer>()
   const store: ProvenanceStore = {
     async get(key) {
@@ -17,6 +17,7 @@ test('every reviewed exclusion retains its individual fixture and reason', async
   }
   const entries = divisionExclusionFixture.entries
   const result = await retainDivisionProvenance(store, {
+    scope: { stage: 'ingestion', ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode: 'ds-hk-overture-division',
     inputCount: entries.length,
@@ -25,7 +26,7 @@ test('every reviewed exclusion retains its individual fixture and reason', async
       action: entry.id,
       affectedRecordCount: 1,
       mode: 'manual',
-      summary: 'Excluded reviewed Overture division from canonical records.',
+      summary: 'Excluded Overture division by curated policy from canonical records.',
       evidence: { divisionId: entry.divisionId },
     })),
   })

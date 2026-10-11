@@ -7,7 +7,6 @@ import { ruleDeclarationFromFixture } from '../../../provenance/ruleFixture'
 import fixture from '../../../../../../fixtures/meta/patches/overture-division-classification.json'
 import { ProcessingGuardError } from '../../../provenance/guards'
 import { registerRule } from '../../../provenance/auditTypes'
-import { resolveSourceRecordSchema } from '../../../sourceRecordSchemas'
 import type { DatasetProcessingMessage } from '../../../types'
 
 type ClassificationSource = Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'>
@@ -31,9 +30,6 @@ export function validateDivisionClassificationFixture(value: unknown) {
       !e.names.length ||
       !e.names.every(n => typeof n === 'string' && n.length) ||
       !e.reason ||
-      !(e.expected?.adminLevel === null || Number.isInteger(e.expected?.adminLevel)) ||
-      !(e.expected.class === null || typeof e.expected.class === 'string') ||
-      !e.expected.subtype ||
       !geographicDivisionClassification(e.replacement?.class) ||
       e.replacement.level !==
         geographicDivisionClassification(e.replacement.class)?.level ||
@@ -74,25 +70,9 @@ function applyClassification({
 }) {
   const entry = divisionClassificationFixture.entries.find(e => e.divisionId === row.id)
   if (!entry) return null
-  const rawAdminLevel = Object.hasOwn(row, 'admin_level')
-    ? row.admin_level
-    : row.adminLevel
-  const adminLevel = rawAdminLevel == null ? null : Number(rawAdminLevel)
-  const schema =
-    source && resolveSourceRecordSchema({ ...source, resourceType: 'division' })
-  const adminLevelAbsentFromSchema =
-    source?.source === 'overture' &&
-    schema &&
-    !schema.fields.some(field => field.name === 'admin_level')
-  const adminLevelOmitted =
-    !Object.hasOwn(row, 'admin_level') && !Object.hasOwn(row, 'adminLevel')
   if (
     (source && source.source !== 'overture') ||
-    (row.source && row.source !== 'overture') ||
-    (!(adminLevelAbsentFromSchema && adminLevelOmitted) &&
-      adminLevel !== entry.expected.adminLevel) ||
-    (row.class ?? null) !== entry.expected.class ||
-    row.subtype !== entry.expected.subtype
+    (row.source && row.source !== 'overture')
   )
     throw new ProcessingGuardError(
       `Division classification guard mismatch: ${entry.id}.`,
@@ -100,12 +80,12 @@ function applyClassification({
         {
           id: 'division-classification-expectations',
           summary:
-            'The reviewed classification correction must match the current source identity and classification.',
+            'The curated classification correction must match the publisher identity.',
           consequence: 'block-ingestion',
           status: 'failed',
           checked: 1,
           failed: 1,
-          reason: `Source classification does not match fixture ${entry.id}.`,
+          reason: `Source identity does not match fixture ${entry.id}.`,
         },
       ],
     )

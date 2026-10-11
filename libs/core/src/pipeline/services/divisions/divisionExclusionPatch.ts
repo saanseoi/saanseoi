@@ -62,7 +62,7 @@ export function applyDivisionExclusionPatch(
       {
         id: 'division-exclusion-expectations',
         summary:
-          'The reviewed division exclusion must match the current source identity and classification.',
+          'The curated division exclusion must match the current source identity and classification.',
         consequence: 'block-ingestion',
         status: 'failed',
         checked: 1,

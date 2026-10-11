@@ -1,6 +1,13 @@
 import { expect, test } from 'bun:test'
-import { reconcileReviewStubs, mergeReviewStubs } from './reviewStubCuration'
-import type { ReviewArea, ReviewInventory, StubAreas } from './geographicReview'
+import {
+  reconcileReviewEstimatedAreas,
+  mergeReviewEstimatedAreas,
+} from './reviewEstimatedAreaCuration'
+import type {
+  ReviewArea,
+  ReviewInventory,
+  SaanseoiEstimatedAreas,
+} from './geographicReview'
 const inventory: ReviewInventory = {
   schemaVersion: 1,
   region: 'hk',
@@ -21,7 +28,7 @@ const inventory: ReviewInventory = {
 }
 const feature = (id: string): ReviewArea => ({
   type: 'Feature',
-  properties: { divisionId: id, variant: 'stub', sourceAreaId: 'original' },
+  properties: { divisionId: id, variant: 'saanseoi', sourceAreaId: 'original' },
   geometry: {
     type: 'Polygon',
     coordinates: [
@@ -35,13 +42,13 @@ const feature = (id: string): ReviewArea => ({
     ],
   },
 })
-const stubs = (ids: string[]): StubAreas => ({
+const estimatedAreas = (ids: string[]): SaanseoiEstimatedAreas => ({
   type: 'FeatureCollection',
   schemaVersion: 1,
   region: 'hk',
   domain: 'geographic',
   cohort: 'test',
-  variant: 'stub',
+  variant: 'saanseoi',
   features: ids.map(feature),
 })
 const holds = new Map([
@@ -50,8 +57,8 @@ const holds = new Map([
 ])
 
 test('explicit curation withholds drawings without changing geometry or the input', () => {
-  const original = stubs(['active', 'excluded', 'no-area'])
-  const result = reconcileReviewStubs(original, inventory, holds)
+  const original = estimatedAreas(['active', 'excluded', 'no-area'])
+  const result = reconcileReviewEstimatedAreas(original, inventory, holds)
   expect(result.features).toEqual([original.features[0]!])
   expect(result.withheld).toEqual([
     { feature: original.features[1]!, reason: 'Excluded by curator.' },
@@ -59,32 +66,42 @@ test('explicit curation withholds drawings without changing geometry or the inpu
   ])
   expect(original.features).toHaveLength(3)
   expect(
-    reconcileReviewStubs(JSON.parse(JSON.stringify(result)), inventory, holds),
+    reconcileReviewEstimatedAreas(JSON.parse(JSON.stringify(result)), inventory, holds),
   ).toEqual(result)
 })
 
 test('unknown IDs, duplicate IDs and invalid withheld geometry still block imports', () => {
-  expect(() => reconcileReviewStubs(stubs(['unknown']), inventory, holds)).toThrow(
-    'unique, known',
-  )
   expect(() =>
-    reconcileReviewStubs(stubs(['active', 'active']), inventory, holds),
+    reconcileReviewEstimatedAreas(estimatedAreas(['unknown']), inventory, holds),
+  ).toThrow('unique, known')
+  expect(() =>
+    reconcileReviewEstimatedAreas(
+      estimatedAreas(['active', 'active']),
+      inventory,
+      holds,
+    ),
   ).toThrow('Duplicate')
-  const invalid = stubs(['excluded'])
+  const invalid = estimatedAreas(['excluded'])
   invalid.features[0]!.geometry = { type: 'Polygon', coordinates: [] }
-  expect(() => reconcileReviewStubs(invalid, inventory, holds)).toThrow('Empty polygon')
+  expect(() => reconcileReviewEstimatedAreas(invalid, inventory, holds)).toThrow(
+    'Empty polygon',
+  )
 })
 
 test('imports replace matching drawings while preserving unrelated withheld work', () => {
-  const current = reconcileReviewStubs(
-    stubs(['active', 'excluded', 'no-area']),
+  const current = reconcileReviewEstimatedAreas(
+    estimatedAreas(['active', 'excluded', 'no-area']),
     inventory,
     holds,
   )
-  const imported = reconcileReviewStubs(stubs(['excluded']), inventory, holds)
+  const imported = reconcileReviewEstimatedAreas(
+    estimatedAreas(['excluded']),
+    inventory,
+    holds,
+  )
   imported.withheld![0]!.feature.properties.sourceAreaId = 'new drawing'
-  const result = reconcileReviewStubs(
-    mergeReviewStubs(current, imported),
+  const result = reconcileReviewEstimatedAreas(
+    mergeReviewEstimatedAreas(current, imported),
     inventory,
     holds,
   )
@@ -98,12 +115,16 @@ test('imports replace matching drawings while preserving unrelated withheld work
 })
 
 test('a drawing becomes active when curation admits its identity', () => {
-  const current = reconcileReviewStubs(stubs(['active', 'excluded']), inventory, holds)
+  const current = reconcileReviewEstimatedAreas(
+    estimatedAreas(['active', 'excluded']),
+    inventory,
+    holds,
+  )
   const admitted = {
     ...inventory,
     divisions: [...inventory.divisions, { ...inventory.divisions[0]!, id: 'excluded' }],
   }
-  const result = reconcileReviewStubs(current, admitted, new Map())
+  const result = reconcileReviewEstimatedAreas(current, admitted, new Map())
   expect(result.features.map(f => f.properties.divisionId)).toEqual([
     'active',
     'excluded',
