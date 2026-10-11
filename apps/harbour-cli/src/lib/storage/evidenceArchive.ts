@@ -245,10 +245,19 @@ export async function openEvidenceStore(
     await rm(directory, { recursive: true, force: true })
     throw error
   }
+  let sequence = 0
   return {
     async retain(entry, path) {
-      await verifyEvidence(entry, path)
-      await client.retain(entry.objectKey, path, { contentType: 'application/json' })
+      const bytes = await verifyEvidence(entry, path)
+      const sealed = resolve(directory, `${++sequence}.object`)
+      await writeFile(sealed, bytes, { flag: 'wx' })
+      try {
+        await client.retain(entry.objectKey, sealed, {
+          contentType: 'application/json',
+        })
+      } finally {
+        await rm(sealed, { force: true })
+      }
     },
     async download(entry, path) {
       await client.retain(
