@@ -1,21 +1,10 @@
-import {
-  and,
-  currentSchema,
-  desc,
-  eq,
-  historySchema,
-  inArray,
-  metaDataShards,
-  metaSnapshotLineages,
-  metaSnapshotShardAssignments,
-  metaSnapshots,
-} from '@repo/db'
+import { and, currentSchema, desc, inArray } from '@repo/db'
 import { query } from '$app/server'
 import { z } from 'zod'
 
-import { getCurrentDb, getHistoryDb, getMetaDb, recordRegistryDataLoad } from './server'
+import { getCurrentDb, getMetaDb, recordRegistryDataLoad } from './server'
 
-const DISTRICT_COVERAGE_MAP_VARIANT = 'hkgov-censtatd-landclipped:simplified'
+import { readDistrictCoverageAreas } from './districtCoverage'
 const districtMapLocaleSchema = z.enum(['en', 'zh-Hant', 'zh-Hans'])
 const districtGeometryNamesSchema = z.object({
   districtIds: z.array(z.string().trim().min(1).max(200)).max(100),
@@ -28,77 +17,13 @@ const UNOFFICIAL_DISTRICT_IDS = new Set([
   '222b7818-970a-491d-98b6-b88d8c6f0161',
 ])
 
-/**
- * The district-coverage map prefers the C&SD 2021 Census District Boundary's
- * simplified display geometry. Its immutable snapshot can live in a history
- * shard, so resolve the published snapshot and read its assigned shard rather
- * than substituting Overture geometry.
- */
+/** Read published SaanSeoi district land polygons for every source/API Stats map. */
 export const getDistrictCoverageMapData = query(
   districtMapLocaleSchema,
   async locale => {
-    const { divisionAreas, divisionsI18n } = currentSchema
+    const { divisionsI18n } = currentSchema
     const i18nLocale = locale.toLowerCase()
-    const selectCurrentDistrictAreas = () =>
-      getCurrentDb()
-        .select({
-          divisionId: divisionAreas.divisionId,
-          geometry: divisionAreas.geometry,
-          updatedAt: divisionAreas.updatedAt,
-          variant: divisionAreas.variant,
-        })
-        .from(divisionAreas)
-        .where(eq(divisionAreas.variant, DISTRICT_COVERAGE_MAP_VARIANT))
-        .orderBy(desc(divisionAreas.updatedAt))
-        .all()
-    const currentRows = await selectCurrentDistrictAreas()
-    const snapshot =
-      currentRows.length > 0
-        ? null
-        : await getMetaDb()
-            .select({
-              bindingName: metaDataShards.bindingName,
-              snapshotId: metaSnapshots.id,
-            })
-            .from(metaSnapshots)
-            .innerJoin(
-              metaSnapshotLineages,
-              eq(metaSnapshots.snapshotLineageId, metaSnapshotLineages.id),
-            )
-            .innerJoin(
-              metaSnapshotShardAssignments,
-              eq(metaSnapshots.id, metaSnapshotShardAssignments.snapshotId),
-            )
-            .innerJoin(
-              metaDataShards,
-              eq(metaSnapshotShardAssignments.dataShardId, metaDataShards.id),
-            )
-            .where(
-              and(
-                eq(metaSnapshots.resourceType, 'divisionArea'),
-                eq(metaSnapshots.status, 'published'),
-                eq(metaSnapshotLineages.variant, DISTRICT_COVERAGE_MAP_VARIANT),
-              ),
-            )
-            .orderBy(desc(metaSnapshots.publishedAt), desc(metaSnapshots.createdAt))
-            .limit(1)
-            .get()
-    const rows =
-      currentRows.length > 0
-        ? currentRows
-        : snapshot
-          ? await getHistoryDb(snapshot.bindingName)
-              .select({
-                divisionId: historySchema.divisionAreas.divisionId,
-                geometry: historySchema.divisionAreas.geometry,
-                updatedAt: historySchema.divisionAreas.updatedAt,
-                variant: historySchema.divisionAreas.variant,
-              })
-              .from(historySchema.divisionAreas)
-              .where(eq(historySchema.divisionAreas.snapshotId, snapshot.snapshotId))
-              .orderBy(desc(historySchema.divisionAreas.updatedAt))
-              .all()
-          : []
+    const rows = await readDistrictCoverageAreas(getMetaDb(), getCurrentDb())
 
     const latestByDistrict = new Map<string, (typeof rows)[number]>()
     for (const row of rows) {

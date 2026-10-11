@@ -55,11 +55,16 @@ async function readAuditManifests<
 }
 
 async function manifestFor(resourceReleaseId: string, hash?: string) {
-  const table = metaSchema.releaseProvenance
+  const table = metaSchema.processingAudits
   const row = await getMetaDb()
     .select()
     .from(table)
-    .where(eq(table.resourceReleaseId, resourceReleaseId))
+    .where(
+      and(
+        eq(table.resourceReleaseId, resourceReleaseId),
+        eq(table.manifestHash, hash ?? ''),
+      ),
+    )
     .get()
   if (!row) throw new Error('Release has no audit.')
   if (hash && hash !== row.manifestHash)
@@ -76,7 +81,7 @@ export const getSourceAudit = query(
   z.object({ datasetCode: z.string(), releaseCode: z.string() }),
   async input => {
     const {
-      releaseProvenance: p,
+      processingAudits: p,
       metaResourceReleases: r,
       metaSourceReleases: s,
       metaDatasets: d,
@@ -86,6 +91,8 @@ export const getSourceAudit = query(
       getMetaDb()
         .select({
           resourceReleaseId: r.id,
+          stage: p.stage,
+          ownerId: p.ownerId,
           code: r.code,
           resourceType: r.resourceType,
           sourcePublisherName: sql<string>`coalesce(json_extract(${publishers.i18n}, '$.en.name'), (select json_extract(value, '$.name') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), ${publishers.code})`,
@@ -99,7 +106,13 @@ export const getSourceAudit = query(
         .innerJoin(s, eq(s.id, r.sourceReleaseId))
         .innerJoin(d, eq(d.id, s.datasetId))
         .innerJoin(publishers, eq(d.publisherId, publishers.id))
-        .where(and(eq(d.code, input.datasetCode), eq(s.code, input.releaseCode)))
+        .where(
+          and(
+            eq(d.code, input.datasetCode),
+            eq(s.code, input.releaseCode),
+            sql`${p.stage} in ('preparation', 'ingestion')`,
+          ),
+        )
         .all(),
     )
     return readAuditManifests(rows)
@@ -110,9 +123,10 @@ export const getApiAudit = query(
   z.object({ familyType: z.string(), releaseCode: z.string() }),
   async input => {
     const {
-      releaseProvenance: p,
+      processingAudits: p,
       metaResourceReleases: r,
       metaSnapshotResourceReleases: sources,
+      metaSnapshotDependencies: dependencies,
       metaApiReleaseSetSnapshots: members,
       metaApiVersionReleaseSets: versionSets,
       metaApiReleaseSets: sets,
@@ -125,9 +139,11 @@ export const getApiAudit = query(
       getMetaDb()
         .select({
           resourceReleaseId: r.id,
+          stage: p.stage,
+          ownerId: p.ownerId,
           code: r.code,
           resourceType: r.resourceType,
-          apiReleaseSetRole: sql<string>`coalesce((select ${members.role} from ${sources} inner join ${members} on ${members.snapshotId} = ${sources.snapshotId} inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId} inner join ${versions} on ${versions.id} = ${sets.apiVersionId} where ${sources.resourceReleaseId} = ${r.id} and ${sources.role} <> 'lookup' and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode} limit 1), 'supporting')`,
+          apiReleaseSetRole: sql<string>`coalesce((select ${members.role} from ${sources} inner join ${members} on ${members.snapshotId} = ${sources.snapshotId} inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId} inner join ${versionSets} on ${versionSets.apiReleaseSetId} = ${sets.id} inner join ${versions} on ${versions.id} = ${versionSets.apiVersionId} where ${sources.resourceReleaseId} = ${r.id} and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode} limit 1), 'supporting')`,
           sourcePublisherName: sql<string>`coalesce(json_extract(${publishers.i18n}, '$.en.name'), (select json_extract(value, '$.name') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), ${publishers.code})`,
           sourcePublisherShortName: sql<string>`coalesce(json_extract(${publishers.i18n}, '$.en.nameShort'), (select json_extract(value, '$.nameShort') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), json_extract(${publishers.i18n}, '$.en.name'), (select json_extract(value, '$.name') from json_each(${publishers.i18n}) where json_extract(value, '$.locale') = 'en' limit 1), ${publishers.code})`,
           sourceKind: datasets.kind,
@@ -141,12 +157,19 @@ export const getApiAudit = query(
         .innerJoin(datasets, eq(sourceReleases.datasetId, datasets.id))
         .innerJoin(publishers, eq(datasets.publisherId, publishers.id))
         .where(sql`exists (
-    select 1 from ${sources}
-    inner join ${members} on ${members.snapshotId} = ${sources.snapshotId}
-    inner join ${sets} on ${sets.id} = ${members.apiReleaseSetId}
-    inner join ${versions} on ${versions.id} = ${sets.apiVersionId}
-    where ${sources.resourceReleaseId} = ${r.id} and ${sources.role} <> 'lookup' and ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode}
-  )`)
+          with recursive selectedSets(id) as (
+            select ${sets.id} from ${sets}
+            join ${versionSets} on ${versionSets.apiReleaseSetId} = ${sets.id}
+            join ${versions} on ${versions.id} = ${versionSets.apiVersionId}
+            where ${versions.familyType} = ${input.familyType} and ${sets.code} = ${input.releaseCode}
+          ), selectedSnapshots(id) as (
+            select ${members.snapshotId} from ${members} join selectedSets on selectedSets.id = ${members.apiReleaseSetId}
+            union
+            select ${dependencies.dependencySnapshotId} from ${dependencies} join selectedSnapshots on selectedSnapshots.id = ${dependencies.snapshotId}
+          )
+          select 1 where (${p.stage} = 'assembly' and ${p.ownerId} in (select id from selectedSnapshots))
+            or (${p.stage} = 'composition' and ${p.ownerId} in (select id from selectedSets))
+        )`)
         .all(),
     )
     return readAuditManifests(
@@ -220,7 +243,7 @@ export const getAuditFixtureCatalogue = query(
   async input => {
     const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     return cachedAuditData(
-      `fixtures/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
+      `fixtures-preprocessing-v5/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
       () => readAuditFixtureCatalogue(store(), manifest, input.releaseCode),
     )
   },
@@ -230,13 +253,17 @@ export const getAuditFixtureGroup = query(
   auditScope.extend({
     bulkId: z.string(),
     type: z.string(),
+    releaseCode: z.string().optional(),
     q: z.string().max(300).default(''),
   }),
   async input => {
     const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     const bulk = manifest.bulk.find(b => b.id === input.bulkId)
     if (!bulk) throw new Error('Rule is not declared by this release.')
-    const fixtures = bulk.fixtures.filter(f => f.type === input.type)
+    const fixtures =
+      bulk.id === 'prepare-curated-division-edition'
+        ? bulk.fixtures
+        : bulk.fixtures.filter(f => f.type === input.type)
     if (!fixtures.length) throw new Error('Fixture is not declared by this release.')
     const groups = await loadAuditFixtures(
       [{ id: bulk.id, fixtures }],
@@ -245,6 +272,8 @@ export const getAuditFixtureGroup = query(
         if (!fixture) throw new Error('Fixture is not declared by this release.')
         return readObject(store(), fixture.object)
       },
+      () => true,
+      input.releaseCode,
     )
     const group = groups[bulk.id]?.[input.type]
     if (group === undefined) throw new Error('Fixture group could not be loaded.')
@@ -263,7 +292,7 @@ export const getAuditAlsDecisions = query(
   async input => {
     const { manifest } = await manifestFor(input.resourceReleaseId, input.hash)
     const catalogue = await cachedAuditData(
-      `fixtures/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
+      `fixtures-preprocessing-v5/${input.hash}/${encodeURIComponent(input.releaseCode)}`,
       () => readAuditFixtureCatalogue(store(), manifest, input.releaseCode),
     )
     const rows = catalogue.als.filter(

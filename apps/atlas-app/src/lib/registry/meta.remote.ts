@@ -1,9 +1,5 @@
 import {
   getRegistryApi,
-  listRegistryApiReleaseProcessingActions,
-  listRegistryApiReleaseProcessingActionSections,
-  listRegistrySourceReleaseProcessingActions,
-  listRegistrySourceReleaseProcessingActionSections,
   getRegistrySourceRelease,
   getRegistrySourceReleaseShell,
   getRegistrySource,
@@ -53,21 +49,9 @@ const sourceReleaseContentSchema = sourceReleaseShellSchema.extend({
   previousReleaseCode: registryCodeSchema.nullable().optional(),
   tab: z.enum(['notes', 'schema', 'samples', 'releases', 'assembly', 'stats', 'audit']),
 })
-const apiReleaseAuditSchema = z.object({
+const apiReleaseDetailSchema = z.object({
   familyType: registryCodeSchema,
   releaseCode: registryCodeSchema,
-})
-const apiReleaseDetailSchema = apiReleaseAuditSchema
-const apiReleaseAuditPageSchema = apiReleaseAuditSchema.extend({
-  action: registryCodeSchema,
-  limit: z.number().int().min(1).max(500).default(50),
-  offset: z.number().int().min(0).max(100_000),
-})
-const sourceReleaseAuditSchema = sourceReleaseShellSchema
-const sourceReleaseAuditPageSchema = sourceReleaseAuditSchema.extend({
-  action: registryCodeSchema,
-  limit: z.number().int().min(1).max(500).default(50),
-  offset: z.number().int().min(0).max(100_000),
 })
 const registryAccessMetricsSchema = z.object({
   entityId: registryCodeSchema,
@@ -298,7 +282,7 @@ export const getSourceReleaseContentData = query(
       const source = await getRegistrySourceRelease(db, datasetCode, releaseCode, {
         content:
           tab === 'schema' || tab === 'samples'
-            ? 'minimal'
+            ? 'resources'
             : tab === 'releases'
               ? 'releases'
               : tab,
@@ -345,7 +329,7 @@ export const getSourceReleaseContentData = query(
                     : null
                 })
 
-      const [previousNotes, archive] = await Promise.all([
+      const [previousNotes, archive, resourceSourceArchives] = await Promise.all([
         previousNotesPromise,
         tab === 'audit'
           ? db
@@ -357,14 +341,34 @@ export const getSourceReleaseContentData = query(
               )
               .where(
                 and(
-                  eq(metaAssets.role, 'sourceArchive'),
-                  eq(metaResourceReleases.sourceReleaseId, version.id),
+                  eq(metaAssets.role, 'releaseSourceArchive'),
+                  eq(metaAssets.sourceReleaseId, version.id),
                 ),
               )
               .orderBy(desc(metaAssets.retrievedAt))
               .limit(1)
               .get()
           : Promise.resolve(undefined),
+        tab === 'audit'
+          ? db
+              .select({
+                assetId: metaAssets.id,
+                resourceType: metaResourceReleases.resourceType,
+              })
+              .from(metaAssets)
+              .innerJoin(
+                metaResourceReleases,
+                eq(metaAssets.resourceReleaseId, metaResourceReleases.id),
+              )
+              .where(
+                and(
+                  eq(metaResourceReleases.sourceReleaseId, version.id),
+                  eq(metaAssets.role, 'resourceSourceArchive'),
+                ),
+              )
+              .orderBy(metaResourceReleases.resourceType, desc(metaAssets.retrievedAt))
+              .all()
+          : Promise.resolve([]),
       ])
 
       const measures =
@@ -376,9 +380,11 @@ export const getSourceReleaseContentData = query(
             })
           : []
       const result = {
-        version: archive
-          ? { ...version, sourceArchiveAssetId: archive.assetId }
-          : version,
+        version: {
+          ...version,
+          resourceSourceArchives,
+          ...(archive ? { sourceArchiveAssetId: archive.assetId } : {}),
+        },
         previousNotes,
         measures,
       } as {
@@ -453,7 +459,7 @@ async function getSourceReleaseMeasures(input: {
 
 export const getApiFamilyPageData = query(registryCodeSchema, async familyType => {
   const api = (await runWithD1ReadRetry(() =>
-    getRegistryApi(getMetaDb(), familyType, { includeProcessingActions: false }),
+    getRegistryApi(getMetaDb(), familyType),
   )) as RegistryApi | null
   if (!api) error(404, 'API family not found.')
 
@@ -474,7 +480,6 @@ export const getApiReleaseShellData = query(
     const db = getMetaDb()
     const api = (await runWithD1ReadRetry(() =>
       getRegistryApi(db, familyType, {
-        includeProcessingActions: false,
         releaseCode,
       }),
     )) as RegistryApi | null
@@ -491,7 +496,6 @@ export const getApiReleasePageData = query(
     const db = getMetaDb()
     const api = (await runWithD1ReadRetry(() =>
       getRegistryApi(db, familyType, {
-        includeProcessingActions: false,
         releaseCode,
       }),
     )) as RegistryApi | null
@@ -520,16 +524,12 @@ export const getApiReleasePageData = query(
                 })
                 .from(metaAssets)
                 .innerJoin(
-                  metaResourceReleases,
-                  eq(metaAssets.resourceReleaseId, metaResourceReleases.id),
-                )
-                .innerJoin(
                   metaSourceReleases,
-                  eq(metaResourceReleases.sourceReleaseId, metaSourceReleases.id),
+                  eq(metaAssets.sourceReleaseId, metaSourceReleases.id),
                 )
                 .where(
                   and(
-                    eq(metaAssets.role, 'sourceArchive'),
+                    eq(metaAssets.role, 'releaseSourceArchive'),
                     inArray(metaSourceReleases.code, releaseCodes),
                   ),
                 )
@@ -616,95 +616,5 @@ export const getApiReleasePageData = query(
     }
     recordRegistryDataLoad('/apis/:id/:id', 'api_release', familyType)
     return result
-  },
-)
-
-const processingActionPage = async (input: {
-  action: string
-  familyType: string
-  limit: number
-  offset: number
-  releaseCode: string
-}) => {
-  const rows = await runWithD1ReadRetry(() =>
-    listRegistryApiReleaseProcessingActions(getMetaDb(), {
-      ...input,
-      limit: input.limit + 1,
-    }),
-  )
-  if (!rows) error(404, 'API release not found.')
-
-  const pageRows = rows.slice(0, input.limit)
-  return {
-    rows: pageRows,
-    hasMore: rows.length > input.limit,
-    nextOffset: input.offset + pageRows.length,
-  }
-}
-
-export const getApiReleaseAuditData = query(apiReleaseAuditSchema, async input => {
-  const sections = await runWithD1ReadRetry(() =>
-    listRegistryApiReleaseProcessingActionSections(getMetaDb(), input),
-  )
-  if (!sections) error(404, 'API release not found.')
-
-  return {
-    sections: sections.filter(
-      section => section.action !== 'als_number_range_singleton_variant_consolidated',
-    ),
-  }
-})
-
-export const getApiReleaseAuditActionPage = query.batch(
-  apiReleaseAuditPageSchema,
-  async inputs => {
-    const pages = await Promise.all(inputs.map(processingActionPage))
-    return (_input, index) => {
-      const page = pages[index]
-      if (!page) throw new Error('Missing batched API audit page result.')
-      return page
-    }
-  },
-)
-
-const sourceProcessingActionPage = async (input: {
-  action: string
-  datasetCode: string
-  limit: number
-  offset: number
-  releaseCode: string
-}) => {
-  const rows = await runWithD1ReadRetry(() =>
-    listRegistrySourceReleaseProcessingActions(getMetaDb(), {
-      ...input,
-      limit: input.limit + 1,
-    }),
-  )
-  const pageRows = rows.slice(0, input.limit)
-  return {
-    rows: pageRows,
-    hasMore: rows.length > input.limit,
-    nextOffset: input.offset + pageRows.length,
-  }
-}
-
-export const getSourceReleaseAuditData = query(
-  sourceReleaseAuditSchema,
-  async input => ({
-    sections: await runWithD1ReadRetry(() =>
-      listRegistrySourceReleaseProcessingActionSections(getMetaDb(), input),
-    ),
-  }),
-)
-
-export const getSourceReleaseAuditActionPage = query.batch(
-  sourceReleaseAuditPageSchema,
-  async inputs => {
-    const pages = await Promise.all(inputs.map(sourceProcessingActionPage))
-    return (_input, index) => {
-      const page = pages[index]
-      if (!page) throw new Error('Missing batched source audit page result.')
-      return page
-    }
   },
 )

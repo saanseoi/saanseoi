@@ -1,4 +1,7 @@
 // Individual icon components are bundled by Iconify and rendered inline.
+import IconProiconsDownload from '@iconify-svelte/proicons/arrow-download'
+import IconProiconsChevronDown from '@iconify-svelte/proicons/chevron-down'
+import IconProiconsChevronUp from '@iconify-svelte/proicons/chevron-up'
 import IconEmojioneMonotoneFlagForHongKongSarChina from '@iconify-svelte/emojione-monotone/flag-for-hong-kong-sar-china'
 import IconHugeiconsScroll01 from '@iconify-svelte/hugeicons/scroll-01'
 import IconIonArrowForwardOutline from '@iconify-svelte/ion/arrow-forward-outline'
@@ -157,6 +160,9 @@ import IconSimpleIconsZedindustries from '@iconify-svelte/simple-icons/zedindust
 import IconLucideMail from '@iconify-svelte/lucide/mail'
 
 export const localIconComponents = {
+  'proicons:arrow-download': IconProiconsDownload,
+  'proicons:chevron-down': IconProiconsChevronDown,
+  'proicons:chevron-up': IconProiconsChevronUp,
   'emojione-monotone:flag-for-hong-kong-sar-china':
     IconEmojioneMonotoneFlagForHongKongSarChina,
   'hugeicons:scroll-01': IconHugeiconsScroll01,

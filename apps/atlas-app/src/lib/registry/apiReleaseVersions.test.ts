@@ -75,3 +75,41 @@ describe('API release versions', () => {
     ).toEqual(['v2026-02-18.0-r1', 'v2025-10-22.0-r2', 'v2025-09-24.0'])
   })
 })
+
+test('groups API contracts newest first before sorting release dates', () => {
+  const grouped = getVisibleApiReleaseVersions(
+    [
+      {
+        code: 'old-contract-new-date',
+        apiVersion: 'v0.1',
+        label: 'v2026-09-23.0',
+        href: '/',
+      },
+      {
+        code: 'curated-september',
+        apiVersion: 'v0.2',
+        label: 'v2026-09-01.0',
+        href: '/',
+      },
+      {
+        code: 'old-contract-august',
+        apiVersion: 'v0.1',
+        label: 'v2026-08-19.0',
+        href: '/',
+      },
+      {
+        code: 'curated-october',
+        apiVersion: 'v0.2',
+        label: 'v2026-10-01.0',
+        href: '/',
+      },
+    ],
+    false,
+  )
+  expect(grouped.map(version => version.code)).toEqual([
+    'curated-october',
+    'curated-september',
+    'old-contract-new-date',
+    'old-contract-august',
+  ])
+})

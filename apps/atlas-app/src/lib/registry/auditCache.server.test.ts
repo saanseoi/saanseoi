@@ -4,6 +4,9 @@ const entries = new Map<string, Response>()
 const writes: Promise<unknown>[] = []
 mock.module('$app/server', () => ({
   getRequestEvent: () => ({
+    get platform(): never {
+      throw new Error('Cloudflare APIs are not available on event.platform')
+    },
     get url(): never {
       throw new Error('Cannot access event.url in a query')
     },
@@ -52,4 +55,21 @@ test('remote queries populate and reuse the cache without accessing event.url', 
   expect(builds).toBe(1)
   await cachedAuditData('actions/hash-b', build)
   expect(builds).toBe(2)
+})
+
+test('builds without caching when the global Cache API is unavailable', async () => {
+  const caches = globalThis.caches
+  Reflect.deleteProperty(globalThis, 'caches')
+  try {
+    let builds = 0
+    const build = async () => ({ count: ++builds })
+    expect(await cachedAuditData('actions/uncached', build)).toEqual({ count: 1 })
+    expect(await cachedAuditData('actions/uncached', build)).toEqual({ count: 2 })
+    expect(builds).toBe(2)
+  } finally {
+    Object.defineProperty(globalThis, 'caches', {
+      configurable: true,
+      value: caches,
+    })
+  }
 })

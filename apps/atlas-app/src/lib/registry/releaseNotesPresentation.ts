@@ -1,16 +1,14 @@
+import { resolveReleaseNotesContent } from './releaseNotesContent'
 import {
   reference_close_transclusion,
   reference_show_transclusion,
   source_notes_empty,
+  source_notes_locale_empty,
 } from '@repo/i18n/messages'
 import type { AppLocale } from '#lib/bits/internal/i18n.js'
 import type { ReleaseNotesPresentation } from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 
-import {
-  getMarkdownHeadings,
-  selectLocaleMarkdown,
-  styliseSaanseoiInMarkdown,
-} from './markdown'
+import { getMarkdownHeadings, styliseSaanseoiInMarkdown } from './markdown'
 import {
   getMarkdownTransclusion,
   getMarkdownTransclusionDisplayTitle,
@@ -22,11 +20,16 @@ export function getReleaseNotesPresentation(
   locale: AppLocale,
   relatedMarkdown: Array<string | null | undefined> = [],
 ): ReleaseNotesPresentation {
-  return buildReleaseNotesPresentation(
-    selectReleaseNotesMarkdown(source, locale),
+  const content = resolveReleaseNotesContent(source, locale)
+  const presentation = buildReleaseNotesPresentation(
+    content.markdown,
     locale,
     relatedMarkdown.map(document => selectReleaseNotesMarkdown(document, locale)),
   )
+  if (content.hasPublishedNotes && !content.markdown) {
+    presentation.labels.empty = source_notes_locale_empty({}, { locale })
+  }
+  return presentation
 }
 
 /** Selects a release's locale before any presentational Markdown transforms. */
@@ -34,7 +37,7 @@ export function selectReleaseNotesMarkdown(
   source: string | null | undefined,
   locale: AppLocale,
 ) {
-  return selectLocaleMarkdown(source, locale)
+  return resolveReleaseNotesContent(source, locale).markdown
 }
 
 /** Builds the resolved, presentation-only contract consumed by release-note UI. */

@@ -5,7 +5,10 @@ export async function cachedAuditData<T>(
   key: string,
   build: () => Promise<T>,
 ): Promise<T> {
-  const cache = await caches.open('audit-presentation')
+  // The Cloudflare adapter supplies the global Cache API in development too.
+  const storage = globalThis.caches
+  if (!storage) return build()
+  const cache = await storage.open('audit-presentation')
   if (!cache) return build()
   // Remote queries prohibit event.url access. This URL names a cache entry only;
   // it is never fetched, and the named cache belongs to the current environment.

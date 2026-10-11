@@ -176,6 +176,7 @@ export type SourceVersion = {
   processingRules?: ReleaseMergeRules | null
   publicationDate?: string | null
   cohortKey?: string | null
+  resourceSourceArchives?: Array<{ assetId: string; resourceType: string }>
   sourceArchiveAssetId?: string
   releaseNotesUrl?: string | null
   notes?: string | null
@@ -246,6 +247,7 @@ export type RegistrySource = {
   sourceVariant: string
   resourceTypes: string[]
   sourceUrl?: string | null
+  sourceCrs?: string | null
   schemaURL?: string | null
   licenseId?: string | null
   license?: {
