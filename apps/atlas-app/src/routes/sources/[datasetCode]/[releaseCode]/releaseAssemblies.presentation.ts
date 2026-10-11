@@ -41,7 +41,7 @@ export function buildSourceReleaseAssembliesPresentation(
             detail: 'Release',
             eyebrow: 'Source release',
             eyebrowColour: 'var(--secondary)',
-            href: `${source.href}?tab=assembly`,
+            href: `${source.href}?tab=usage&view=assembly`,
             id: assemblyEntryId(source),
             title: source.sourceVersion,
             titleColour: 'var(--secondary)',

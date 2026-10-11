@@ -1,16 +1,19 @@
 <script lang="ts">
+import { rvdSourceFields } from '@repo/core/rvdSourceSchema'
+import { landsdPlaceNameSourceFields } from '@repo/core/landsdPlaceNameSourceSchema'
 import {
   resolveOvertureSourceRecordFieldDefinition,
   resolveSourceRecordSchema,
+  retainedSourceSchema,
   sourceRecordRawPropertyFields,
   type SourceRecordSchema,
+  type SourceRecordSchemaDefinition,
   type SourceRecordSchemaField,
   type ResourceType,
 } from '@repo/core/sourceRecordSchemas'
-import { page } from '$app/state'
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 
-import { m } from '#lib/bits/internal/i18n.js'
+import { m, getLocale } from '#lib/bits/internal/i18n.js'
 import Node from '#lib/bits/pages/docs/components/releaseSchema/components/releaseSchemaNode.svelte'
 import type { OpenApiSchema } from '#lib/bits/pages/docs/components/releaseSchema/releaseSchema.types.js'
 import type { ReleaseStatsMeasure } from '#lib/bits/pages/docs/components/releaseStats/releaseStats.types.js'
@@ -20,10 +23,9 @@ type Props = {
   measures?: ReleaseStatsMeasure[]
   family: string
   sourceReleaseCode: string
+  resourceReleaseId?: string
   resourceType: string
   source: string
-  sourceSchemaUrl?: string | null
-  sourceSchemaVersion?: string | null
   sourceVersion: string
 }
 
@@ -31,14 +33,13 @@ let {
   measures = [],
   family,
   sourceReleaseCode,
+  resourceReleaseId,
   resourceType,
   source,
-  sourceSchemaUrl,
-  sourceSchemaVersion,
   sourceVersion,
 }: Props = $props()
 let expandedNodeStates = $state<Record<string, boolean>>({
-  'SourceRecord.properties': true,
+  'sourceRecord.properties': true,
 })
 let expandAllToken = $state(0)
 let retainedSchema = $state<OpenApiSchema | null>(null)
@@ -55,7 +56,7 @@ $effect(() => {
     '',
   )
   const url = new URL(`${base}/${family}/v0.1/source-schema`)
-  url.searchParams.set('sourceRelease', sourceReleaseCode)
+  url.searchParams.set('sourceRelease', resourceReleaseId ?? sourceReleaseCode)
   loading = true
   void fetch(url, { signal: controller.signal })
     .then(async response => {
@@ -72,7 +73,6 @@ $effect(() => {
   return () => controller.abort()
 })
 
-let samplesUrl = $derived(`${page.url.pathname}?tab=samples`)
 let sourceSchema = $derived(
   resolveSourceRecordSchema({
     resourceType: resourceType as ResourceType,
@@ -84,7 +84,7 @@ let sourceSchema = $derived(
 function sourceFieldSchema(
   sourceSchema: SourceRecordSchema,
   field: SourceRecordSchemaField,
-): OpenApiSchema {
+): SourceRecordSchemaDefinition {
   const definition = resolveOvertureSourceRecordFieldDefinition(sourceSchema, field)
   const type = field.type
   const sourceTypeDescription = m.source_record_schema_field_type({ type })
@@ -157,7 +157,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
   if (!sourceSchema && !retainedSchema && !measures.length) return null
 
   const properties: OpenApiSchema = sourceSchema
-    ? {
+    ? retainedSourceSchema({
         description: m.source_record_schema_properties_description(),
         properties: Object.fromEntries(
           sourceRecordRawPropertyFields(sourceSchema).map(field => [
@@ -169,7 +169,7 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
           ]),
         ),
         type: 'object',
-      }
+      })
     : retainedSchema
       ? {
           ...retainedSchema,
@@ -197,6 +197,16 @@ let recordSchema = $derived.by((): OpenApiSchema | null => {
     )
     properties.properties = Object.fromEntries(
       Object.entries(properties.properties).map(([field, schema]) => {
+        if (sourceReleaseCode.startsWith('dr-hk-hkgov-landsd-division-')) {
+          const definition = landsdPlaceNameSourceFields(getLocale())[field]
+          if (definition && schema.type === definition.type)
+            return [field, { ...schema, ...definition }]
+        }
+        if (sourceReleaseCode.startsWith('dr-hk-hkgov-rvd-division-')) {
+          const definition = rvdSourceFields(getLocale())[field]
+          if (definition && schema.type === definition.type)
+            return [field, { ...schema, ...definition }]
+        }
         const measure = measuresByField.get(field)
         const description = sourceRecordFieldDescription(sourceReleaseCode, field)
         if (description) return [field, { ...schema, description }]
@@ -268,36 +278,6 @@ function setExpandedNodeState(path: string, expanded: boolean) {
 </script>
 
 <section class="space-y-4" aria-label={m.source_record_schema_aria_label()}>
-  <p class="font-body text-body-md leading-relaxed text-foreground-alt">
-    {m.source_record_schema_intro()}
-  </p>
-
-  <p class="font-body text-body-md leading-relaxed text-foreground-alt">
-    {m.source_record_schema_not_one_to_one_before()} <code>properties</code>
-    {family === 'streets'
-      ? m.source_record_schema_not_one_to_one_after()
-      : m.source_record_schema_native_envelope_description()}
-  </p>
-
-  <p class="font-body text-body-md leading-relaxed text-foreground-alt">
-    {#if sourceSchemaUrl}
-      {m.source_record_schema_upstream_specification()}
-      <a
-        class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
-        href={sourceSchemaUrl}
-        >{m.source_record_schema_upstream_specification_link({
-          version: sourceSchemaVersion ?? 'latest',
-        })}</a
-      >.
-    {/if}
-    {m.source_record_schema_examples()}
-    <a
-      class="font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
-      href={samplesUrl}
-      >{m.source_record_schema_samples_tab()}</a
-    >.
-  </p>
-
   {#if recordSchema}
     <div
       class="overflow-hidden rounded-md border border-outline-variant/70 bg-surface-container-lowest"
@@ -305,10 +285,10 @@ function setExpandedNodeState(path: string, expanded: boolean) {
       <Node
         {expandAllToken}
         {expandedNodeStates}
-        name="SourceRecord"
+        name="sourceRecord"
         onExpandAll={() => (expandAllToken += 1)}
         onExpandedNodeStateChange={setExpandedNodeState}
-        referencePath={['SourceRecord']}
+        referencePath={['sourceRecord']}
         schema={recordSchema}
         schemas={{}}
       />

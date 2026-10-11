@@ -1,4 +1,5 @@
 <script lang="ts">
+import curatedDivisionRelationship from '../../../../../fixtures/meta/datasetInputs/saanseoi-division.json'
 import { fade } from 'svelte/transition'
 import { navigating } from '$app/state'
 import { Popover } from 'bits-ui'
@@ -156,6 +157,8 @@ const variantLabel = (
   primaryType: string,
   familyType: string,
 ) => {
+  if (familyType === 'addresses' && source.publisherCode === 'overture')
+    return 'SUPPLEMENTARY'
   if (familyType === 'streets') return streetGeometryLabels[source.code]
   if (source.resourceTypes.includes('divisionArea')) return 'AREA'
   if (source.resourceTypes.includes('divisionBoundary')) return 'BOUNDARY'
@@ -180,7 +183,7 @@ const sourceFlowInput = (
   familyType: string,
 ): SourceFlowInput => {
   const variant =
-    familyType === 'divisions' || familyType === 'streets'
+    familyType === 'divisions' || familyType === 'streets' || familyType === 'addresses'
       ? variantLabel(source, primaryType, familyType)
       : undefined
   const release = sourceVersion(source)
@@ -217,10 +220,26 @@ const sourceFlowInput = (
       ...(recordCount ? [{ label: 'records', value: recordCount }] : []),
       ...(year ? [{ label: 'year', value: year }] : []),
     ],
-    planned: !release,
+    planned:
+      !release ||
+      (familyType === 'addresses' &&
+        source.publisherCode === 'overture' &&
+        !source.sourceVersions?.some(
+          version =>
+            version.status === 'current' &&
+            version.releaseAs.some(release => release.apiFamily === 'addresses'),
+        )),
     variant,
   }
 }
+
+const curatedRelationships = [curatedDivisionRelationship]
+const curatedInputsByDataset = new Map(
+  curatedRelationships.map(relationship => [
+    relationship.datasetCode,
+    relationship.inputs,
+  ]),
+)
 
 const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
   !sourcesPageData
@@ -236,14 +255,15 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
         const familySources = sources
           .filter(
             source =>
-              (source.theme === familyType ||
-                (familyType === 'divisions' &&
-                  source.resourceTypes.some(resourceType =>
-                    ['division', 'divisionArea', 'divisionBoundary'].includes(
-                      resourceType,
-                    ),
-                  ))) &&
-              !(familyType === 'addresses' && source.publisherCode === 'overture'),
+              source.theme === familyType ||
+              (familyType === 'addresses' &&
+                source.resourceTypes.includes('address')) ||
+              (familyType === 'divisions' &&
+                source.resourceTypes.some(resourceType =>
+                  ['division', 'divisionArea', 'divisionBoundary'].includes(
+                    resourceType,
+                  ),
+                )),
           )
           .filter(sourceMatchesSearch)
           .sort((left, right) => {
@@ -270,13 +290,58 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
             return left.code.localeCompare(right.code)
           })
 
+        if (familyType === 'divisions') {
+          for (const relationship of curatedRelationships) {
+            const parent = familySources.find(
+              source => source.code === relationship.datasetCode,
+            )
+            const matchedInput = sources.some(
+              source =>
+                relationship.inputs.includes(source.code) &&
+                sourceMatchesSearch(source),
+            )
+            if (!parent && matchedInput) {
+              const curated = sources.find(
+                source => source.code === relationship.datasetCode,
+              )
+              if (curated) familySources.unshift(curated)
+            }
+          }
+        }
+        const nestedInputCodes = new Set(
+          familyType === 'divisions'
+            ? curatedRelationships.flatMap(relationship =>
+                familySources.some(source => source.code === relationship.datasetCode)
+                  ? relationship.inputs.filter(
+                      code => code !== 'ds-hk-hkgov-landsd-division',
+                    )
+                  : [],
+              )
+            : [],
+        )
+        const inputWithSources = (source: SourcesPageSource): SourceFlowInput => ({
+          ...sourceFlowInput(source, primaryType, familyType),
+          inputs: (curatedInputsByDataset.get(source.code) ?? []).flatMap(code => {
+            const upstream = sources.find(item => item.code === code)
+            if (!upstream) return []
+            const input = sourceFlowInput(upstream, primaryType, familyType)
+            // Islands also contribute area geometry to the curated divisions.
+            if (
+              source.code === 'ds-hk-saanseoi-division' &&
+              upstream.code !== 'ds-hk-protomaps-island'
+            )
+              input.variant = undefined
+            return [input]
+          }),
+        })
         if (!familySources.length) return []
 
         const theme = apiFamilyThemes[familyType]
         const domains = [...new Set(familySources.map(sourceGroup))].flatMap(
           groupCode => {
             const domainSources = familySources.filter(
-              source => sourceGroup(source) === groupCode,
+              source =>
+                sourceGroup(source) === groupCode && !nestedInputCodes.has(source.code),
             )
             const primary = domainSources[0]
             if (!primary) return []
@@ -290,10 +355,10 @@ const sourceFlowLanes = $derived.by<SourceFlowLane[]>(() =>
                     member => member.domainCode === groupCode,
                   )?.i18n,
                 ),
-                primary: sourceFlowInput(primary, primaryType, familyType),
+                primary: inputWithSources(primary),
                 variants: domainSources
                   .filter(source => source.code !== primary.code)
-                  .map(source => sourceFlowInput(source, primaryType, familyType)),
+                  .map(inputWithSources),
               },
             ]
           },

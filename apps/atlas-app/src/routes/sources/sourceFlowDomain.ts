@@ -11,11 +11,7 @@ export const sourceFlowDomain = (source: SourcesPageSource, familyType: string) 
   if (familyType === 'streets') return 'saanseoi'
   if (
     familyType === 'divisions' &&
-    [
-      'ds-hk-protomaps-island',
-      'ds-hk-saanseoi-division',
-      'ds-hk-saanseoi-division-area',
-    ].includes(source.code)
+    ['ds-hk-protomaps-island', 'ds-hk-saanseoi-division'].includes(source.code)
   )
     return 'geographic'
 
@@ -77,7 +73,6 @@ export const sourceFlowPriority = (
   }
 
   if (familyType === 'divisions' && domain === 'geographic') {
-    if (source.code === 'ds-hk-saanseoi-division-area') return 1
     if (source.code === 'ds-hk-overture-division') return 2
     return source.resourceTypes.includes(primaryType) ? 3 : 4
   }

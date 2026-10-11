@@ -21,7 +21,7 @@ import type { MarkdownHeading } from '#lib/registry/markdown.js'
 import type { ReleaseContentHeading } from '#lib/bits/pages/docs/components/releaseContentOutline/index.js'
 import type { ReleaseStatsDistrictArea } from '#lib/bits/pages/docs/components/releaseStats/index.js'
 import {
-  buildReleaseNotesPresentation,
+  getReleaseNotesPresentation,
   selectReleaseNotesMarkdown,
 } from '#lib/registry/releaseNotesPresentation.js'
 import { buildSourceReleaseAssembliesPresentation } from './releaseAssemblies.presentation'
@@ -32,11 +32,7 @@ import type {
   ReleaseNavTab,
   ReleaseNavVersion,
 } from '#lib/bits/pages/docs/components/releaseNav/releaseNav.types.js'
-import {
-  getRegistryAccessMetricsData,
-  getSourceReleaseAuditActionPage,
-  getSourceReleaseAuditData,
-} from '#lib/registry/meta.remote.js'
+import { getRegistryAccessMetricsData } from '#lib/registry/meta.remote.js'
 import { getDistrictCoverageMapData } from '#lib/registry/district.remote.js'
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import SourceReleasePageSkeleton from './sourceReleasePageSkeleton.svelte'
@@ -46,6 +42,7 @@ import { sourceRecordChangesCopy } from '#lib/bits/pages/sources/components/sour
 import SourceRecordChanges from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.svelte'
 import type { SourceChangeType } from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.copy.js'
 import SourceRecordSchema from './sourceRecordSchema.svelte'
+import SourceRecordInfo from './sourceRecordInfo.svelte'
 import { resourceLabel } from '#lib/registry/resourceLabels.js'
 import {
   getSourceReleaseContentQuery,
@@ -188,7 +185,9 @@ let seoDescription = $derived(`${seoTitle} — ${m.source_release_notes()}.`)
 let notes = $derived(selectReleaseNotesMarkdown(content?.version?.notes, locale))
 let previousNotes = $derived(selectReleaseNotesMarkdown(content?.previousNotes, locale))
 let notesPresentation = $derived(
-  buildReleaseNotesPresentation(notes, locale, [previousNotes]),
+  getReleaseNotesPresentation(content?.version?.notes, locale, [
+    content?.previousNotes,
+  ]),
 )
 let noteDiff = $derived(diffMarkdown(previousNotes, notes))
 let noteHeadings = $derived(notesPresentation.headings)
@@ -211,7 +210,19 @@ let bulkActions = $derived(
     .flatMap(ruleset => ruleset.rules)
     .filter(rule => rule.kind === 'bulk') ?? [],
 )
-let sourceRecordFamily = $derived(getSourceRecordFamily(source?.resourceTypes ?? []))
+let selectedResourceId = $state('')
+let resources = $derived(version?.resources ?? [])
+let selectedResource = $derived(
+  resources.find(resource => resource.id === selectedResourceId) ?? resources[0],
+)
+$effect(() => {
+  if (selectedResource) selectedResourceId = selectedResource.id
+})
+let sourceRecordFamily = $derived(
+  getSourceRecordFamily(
+    selectedResource ? [selectedResource.resourceType] : (source?.resourceTypes ?? []),
+  ),
+)
 let hasAuditFamily = $derived(
   source?.resourceTypes.some(type =>
     ['division', 'divisionArea', 'divisionBoundary', 'divisionStatistic'].includes(
@@ -221,10 +232,11 @@ let hasAuditFamily = $derived(
 )
 let sourceRecordsAvailable = $state<boolean | null>(null)
 let sourceSampleRequest = $state(0)
-let sourceSampleInclude = $state('')
 let sourceSampleTarget = $state<string | null>(null)
 $effect(() => {
-  const target = sourceRecordFamily ? `${sourceRecordFamily}:${version?.code}` : null
+  const target = sourceRecordFamily
+    ? `${sourceRecordFamily}:${selectedResource?.id ?? version?.code}`
+    : null
   if (sourceSampleTarget === target) return
   sourceSampleTarget = target
   sourceRecordsAvailable = null
@@ -233,52 +245,6 @@ $effect(() => {
 let districtMapData = $derived(
   activeTab === 'stats' ? getDistrictCoverageMapData(locale) : null,
 )
-let auditDataQuery = $derived(
-  activeTab === 'audit' && (version?.processingActionCount ?? 0) > 0
-    ? getSourceReleaseAuditData({
-        datasetCode: params.datasetCode,
-        releaseCode: params.releaseCode,
-      })
-    : null,
-)
-let auditSectionPageQueries = $derived(
-  auditDataQuery?.ready
-    ? auditDataQuery.current.sections.map(section => ({
-        section,
-        query: getSourceReleaseAuditActionPage({
-          action: section.action,
-          datasetCode: params.datasetCode,
-          limit: 50,
-          offset: 0,
-          releaseCode: params.releaseCode,
-        }),
-      }))
-    : [],
-)
-let auditData = $derived.by(() => {
-  if (!auditDataQuery?.ready) return null
-
-  const pageReadiness = auditSectionPageQueries.map(item => item.query.ready)
-  if (pageReadiness.some(ready => !ready)) return null
-
-  return {
-    sections: auditSectionPageQueries.map(item => ({
-      ...item.section,
-      rows: item.query.current?.rows ?? [],
-      hasMore: item.query.current?.hasMore ?? false,
-      nextOffset: item.query.current?.nextOffset ?? 0,
-    })),
-  }
-})
-const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
-  getSourceReleaseAuditActionPage({
-    action,
-    datasetCode: params.datasetCode,
-    limit,
-    offset,
-    releaseCode: params.releaseCode,
-  })
-
 let districtAreas = $state<ReleaseStatsDistrictArea[]>([])
 
 $effect(() => {
@@ -325,14 +291,6 @@ function toggleAssembly() {
 }
 
 let statsPresentation = $derived(buildSourceReleaseStatsPresentation(locale))
-let selectedResourceId = $state('')
-let resources = $derived(version?.resources ?? [])
-let selectedResource = $derived(
-  resources.find(resource => resource.id === selectedResourceId) ?? resources[0],
-)
-$effect(() => {
-  if (selectedResource) selectedResourceId = selectedResource.id
-})
 let hasContent = $derived.by(() => {
   if (isContentLoading) return true
   if (activeTab === 'notes') {
@@ -346,12 +304,7 @@ let hasContent = $derived.by(() => {
   if (activeTab === 'schema' || activeTab === 'samples')
     return Boolean(sourceRecordFamily)
   if (activeTab === 'audit') {
-    return Boolean(
-      hasAuditFamily ||
-        (version?.processingActionCount ?? version?.processingActions?.length ?? 0) >
-          0 ||
-        bulkActions.length,
-    )
+    return Boolean(hasAuditFamily || bulkActions.length)
   }
   if (activeTab === 'usage' && showAssembly)
     return Boolean(version?.assembledWith?.length)
@@ -454,7 +407,6 @@ let tabs = $derived<ReleaseNavTab[]>([
   { id: 'stats', label: m.source_tab_stats() },
   ...((activeTab === 'audit' && isContentLoading) ||
   hasAuditFamily ||
-  (version?.processingActionCount ?? version?.processingActions?.length ?? 0) > 0 ||
   bulkActions.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
@@ -475,18 +427,16 @@ $effect(() => {
     (activeTab === 'audit' &&
       !hasAuditFamily &&
       !isContentLoading &&
-      (version?.processingActionCount ?? version?.processingActions?.length ?? 0) ===
-        0 &&
       bulkActions.length === 0)
 
   if (unavailable) activeTab = 'notes'
 })
 
-let actions = $derived<ReleaseNavAction[]>(
+let tabActions = $derived<ReleaseNavAction[]>(
   (activeTab === 'stats' || activeTab === 'changes') && resources.length > 1
     ? [
         {
-          id: 'stats-resource',
+          id: 'resourceType',
           label: m.source_resource_type(),
           value: selectedResourceId,
           options: resources.map(resource => ({
@@ -514,8 +464,8 @@ let actions = $derived<ReleaseNavAction[]>(
               id: 'assembly',
               icon: 'proicons:layers',
               label: showAssembly
-                ? m.source_tab_released_as()
-                : m.source_tab_assembly(),
+                ? m.source_tab_assembly()
+                : m.source_tab_released_as(),
               onSelect: toggleAssembly,
             },
           ]
@@ -524,21 +474,9 @@ let actions = $derived<ReleaseNavAction[]>(
             sourceRecordsAvailable !== false
           ? [
               {
-                id: 'include',
-                label: m.source_samples_include(),
-                value: sourceSampleInclude,
-                options: [
-                  { value: '', label: m.source_samples_include_none() },
-                  { value: 'geometry', label: 'geometry' },
-                ],
-                onValueChange: value => {
-                  sourceSampleInclude = value
-                },
-              },
-              {
                 icon: 'ion:reload-outline',
                 id: 'more-samples',
-                label: m.source_show_more(),
+                label: m.source_samples_more(),
                 onSelect: () => {
                   sourceSampleRequest += 1
                   trackClientProductUsage({
@@ -556,17 +494,43 @@ let actions = $derived<ReleaseNavAction[]>(
                   ? {
                       download: true,
                       href: sourceArchiveUrl,
-                      icon: 'ion:download-outline',
-                      id: 'download',
-                      label: m.source_download_archive(),
+                      icon: 'proicons:arrow-download',
+                      id: 'download-raw',
+                      label: m.source_download_raw(),
+                      tooltip: m.source_download_raw_tooltip(),
                       analyticsSurface: 'source_release',
                     }
                   : {
                       disabled: true,
-                      icon: 'ion:download-outline',
-                      id: 'download',
-                      label: m.source_download_archive(),
+                      icon: 'proicons:arrow-download',
+                      id: 'download-raw',
+                      label: m.source_download_raw(),
+                      tooltip: m.source_download_raw_tooltip(),
                     },
+                ...((version?.resourceSourceArchives?.length ?? 0) > 0
+                  ? [
+                      {
+                        id: 'download-source',
+                        icon: 'proicons:arrow-download',
+                        label: m.source_download_processed(),
+                        tooltip: m.source_download_processed_tooltip(),
+                        analyticsSurface: 'source_release' as const,
+                        ...(version!.resourceSourceArchives!.length === 1
+                          ? {
+                              download: true,
+                              href: `${(PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(/\/+$/, '')}/v0/assets/${version!.resourceSourceArchives![0]!.assetId}`,
+                            }
+                          : {
+                              downloadLinks: version!.resourceSourceArchives!.map(
+                                archive => ({
+                                  href: `${(PUBLIC_ATLAS_API_BASE_URL || 'http://localhost:8787').replace(/\/+$/, '')}/v0/assets/${archive.assetId}`,
+                                  label: `${resourceLabel(archive.resourceType)} (Parquet)`,
+                                }),
+                              ),
+                            }),
+                      },
+                    ]
+                  : []),
                 ...(auditResourceTypes.length > 1
                   ? [
                       {
@@ -586,6 +550,38 @@ let actions = $derived<ReleaseNavAction[]>(
               ]
             : [],
 )
+let actions = $derived<ReleaseNavAction[]>([
+  ...((activeTab === 'schema' || activeTab === 'samples') && resources.length > 1
+    ? [
+        {
+          id: 'resourceType',
+          label: m.source_resource_type(),
+          value: selectedResourceId,
+          options: resources.map(resource => ({
+            value: resource.id,
+            label: resourceLabel(resource.resourceType),
+          })),
+          onValueChange: (value: string) => {
+            selectedResourceId = value
+          },
+        },
+      ]
+    : []),
+  ...tabActions,
+  ...(activeTab === 'schema' || activeTab === 'samples'
+    ? [
+        {
+          id: 'source-info',
+          icon: 'proicons:info',
+          label:
+            activeTab === 'schema'
+              ? m.source_record_schema_aria_label()
+              : m.source_record_samples_aria_label(),
+          infoContent: sourceInfo,
+        },
+      ]
+    : []),
+])
 let sourceReleaseLinksPresentation = $derived(
   buildSourceReleaseLinksPresentation(version?.releaseAs),
 )
@@ -603,6 +599,10 @@ $effect(() => {
   activeAuditHeadingId = null
 })
 </script>
+
+{#snippet sourceInfo()}
+  <SourceRecordInfo tab={activeTab} family={sourceRecordFamily} />
+{/snippet}
 
 <Seo
   title={seoTitle}
@@ -742,20 +742,20 @@ $effect(() => {
               measures={content?.measures ?? []}
               family={sourceRecordFamily}
               sourceReleaseCode={version.code}
-              resourceType={source.resourceTypes[0] ?? ''}
+              resourceReleaseId={selectedResource?.id}
+              resourceType={selectedResource?.resourceType ??
+                source.resourceTypes[0] ??
+                ''}
               source={source.publisherCode}
-              sourceSchemaUrl={source.schemaURL}
-              sourceSchemaVersion={version.sourceSchemaVersion}
               sourceVersion={version.sourceVersion}
             />
           {:else if activeTab === 'samples' && sourceRecordFamily}
-            {#key `${sourceRecordFamily}:${version.code}:${sourceSampleInclude}`}
+            {#key `${sourceRecordFamily}:${selectedResource?.id ?? version.code}}`}
               <SourceRecordSamples
-                includeGeometry={sourceSampleInclude === 'geometry'}
                 family={sourceRecordFamily}
                 onAvailabilityChange={available => (sourceRecordsAvailable = available)}
                 request={sourceSampleRequest}
-                sourceReleaseCode={version.code}
+                sourceReleaseCode={selectedResource?.id ?? version.code}
               />
             {/key}
           {:else if activeTab === 'audit'}
@@ -764,32 +764,12 @@ $effect(() => {
                 <ReleaseNav.ContentSkeleton tab="audit" />
               {:then modules}
                 {@const Audit = modules[0].default}
-                {@const ReleaseAuditRoot = modules[1].default}
                 <Audit
-                  selectedResourceType={selectedAuditResourceType}
-                  onResourceTypesChange={resourceTypes => {
-                    auditResourceTypes = resourceTypes
-                    if (!resourceTypes.includes(selectedAuditResourceType)) {
-                      selectedAuditResourceType = resourceTypes[0] ?? ''
-                    }
-                  }}
                   bind:headings={auditHeadings}
                   bind:activeHeadingId={activeAuditHeadingId}
                   datasetCode={params.datasetCode}
                   releaseCode={params.releaseCode}
-                >
-                  <ReleaseAuditRoot
-                    analyticsSurface="source_release"
-                    actions={version.processingActions}
-                    actionSections={auditData?.sections}
-                    {bulkActions}
-                    {locale}
-                    {showBulkActions}
-                    onLoadMoreSection={loadMoreAuditSection}
-                    bind:headings={auditHeadings}
-                    bind:activeHeadingId={activeAuditHeadingId}
-                  />
-                </Audit>
+                > </Audit>
               {:catch}
                 <SourceReleaseLoadError
                   message={m.source_release_load_error()}

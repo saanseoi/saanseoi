@@ -16,7 +16,7 @@ describe('buildSourceReleaseAssembliesPresentation', () => {
     ])
 
     expect(presentation.groups[0]?.entries[0]?.href).toBe(
-      '/sources/district-boundaries/2021?tab=assembly',
+      '/sources/district-boundaries/2021?tab=usage&view=assembly',
     )
   })
 })

@@ -73,7 +73,7 @@ test('renders the first source record without fetching surplus candidates', asyn
   )
   expect(fetch).toHaveBeenCalledWith(
     expect.objectContaining({
-      search: expect.not.stringContaining('include=geometry'),
+      search: expect.stringContaining('include=geometry'),
     }),
   )
   expect(fetch).toHaveBeenCalledWith(
@@ -118,6 +118,14 @@ test('keeps the first sample in place while more samples load', async () => {
       sourceReleaseCode: 'dr-hk-overture-division-2026-08-19.0',
     })
     await expect.element(screen.getByText('record-1')).toBeVisible()
+    await expect
+      .element(screen.getByText('sourceRecordId', { exact: true }))
+      .toBeVisible()
+    await expect
+      .element(screen.getByText('id', { exact: true }))
+      .not.toBeInTheDocument()
+    const table = screen.container.querySelector('dl')!
+    const firstRow = table.firstElementChild
 
     await screen.rerender({
       family: 'divisions',
@@ -128,7 +136,8 @@ test('keeps the first sample in place while more samples load', async () => {
     expect(fetch).toHaveBeenCalledTimes(2)
     await expect.element(screen.getByText('record-1')).toBeVisible()
     await expect.element(screen.getByRole('status')).not.toBeInTheDocument()
-    const table = screen.container.querySelector('dl')!
+    expect(screen.container.querySelector('dl')).toBe(table)
+    expect(table.firstElementChild).toBe(firstRow)
     const top = table.getBoundingClientRect().top
     resolveMore?.(
       new Response(
@@ -143,6 +152,9 @@ test('keeps the first sample in place while more samples load', async () => {
       ),
     )
     await expect.element(screen.getByText('record-5')).toBeVisible()
+    await expect
+      .element(screen.getByText('sourceRecordId', { exact: true }))
+      .toBeVisible()
     expect(screen.container.querySelector('dl')).toBe(table)
     expect(table.getBoundingClientRect().top).toBe(top)
     expect(screen.container.querySelectorAll('section > div > div')).toHaveLength(1)
@@ -170,7 +182,6 @@ test('requests and presents native geometry when included', async () => {
   try {
     const screen = await render(SourceRecordSamples, {
       family: 'places',
-      includeGeometry: true,
       request: 0,
       sourceReleaseCode: 'dr-hk-overture-place-2026-08-19.0',
     })
