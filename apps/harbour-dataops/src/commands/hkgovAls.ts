@@ -710,7 +710,6 @@ async function loadReplayedDivisionRows(versions: ResolvedSnapshotVersion[]) {
           category: historySchema.divisions.category,
           class: historySchema.divisions.class,
           versionHash: historySchema.divisions.versionHash,
-          wikidata: historySchema.divisions.wikidata,
         })
         .from(historySchema.divisions)
         .where(inArray(historySchema.divisions.versionHash, versionHashes))

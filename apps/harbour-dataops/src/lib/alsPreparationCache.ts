@@ -1,4 +1,5 @@
 import { continuityPredecessorFingerprint } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsConfidentContinuity'
+import { emptyHkgovAlsIdentityHistory } from '../../../harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDrift'
 import { readFile, open, rename, rm, mkdir } from 'node:fs/promises'
 import { createHash, randomUUID } from 'node:crypto'
 import { dirname, join, resolve } from 'node:path'
@@ -60,7 +61,7 @@ export async function alsPreparationKey(
     continuityPredecessor: await continuityPredecessorFingerprint(
       input.outputFile,
       input.sourceVersion,
-      input.history,
+      input.history ?? emptyHkgovAlsIdentityHistory(),
     ),
     runtime: Bun.version,
     dependencies,

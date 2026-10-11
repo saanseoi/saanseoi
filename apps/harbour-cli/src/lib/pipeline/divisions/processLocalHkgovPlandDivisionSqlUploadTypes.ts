@@ -27,7 +27,7 @@ export type PreparedDivision = {
     geometry: unknown
     hierarchies: import('@repo/db').DivisionHierarchies
     id: string
-    identifiers: unknown
+    identifiers: Record<string, unknown> | null
     level: number
     sources: Record<string, unknown>
     class: string
