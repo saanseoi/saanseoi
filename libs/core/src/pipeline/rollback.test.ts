@@ -175,3 +175,22 @@ test('draft purge resolves the selected logical revision to its scope and leaves
     db.close()
   }
 })
+
+test('draft SaanSeoi rollback targets its own source assertions', () => {
+  for (const [resourceType, table] of [
+    ['division', 'ssDivision'],
+    ['divisionArea', 'ssDivisionArea'],
+  ] as const) {
+    const result = buildDraftReleasePurgeSql({
+      apiReleaseSetId: 'draft-set',
+      resourceReleaseId: 'draft-release',
+      snapshotId: 'draft-snapshot',
+      source: 'saanseoi',
+      sourceVersion: '2026-09-01.0',
+      resourceType,
+    })
+    expect(result.source).toBe(
+      `DELETE FROM ${table} WHERE resourceReleaseId = 'draft-release';\n`,
+    )
+  }
+})

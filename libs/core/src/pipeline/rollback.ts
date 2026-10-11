@@ -206,8 +206,6 @@ function buildPurgeMetaSql(input: DraftReleasePurgeInput) {
     `DELETE FROM releaseSetLifecycleJournal WHERE resourceReleaseId = ${literal(input.resourceReleaseId)} OR relatedResourceReleaseId = ${literal(input.resourceReleaseId)};`,
     `DELETE FROM stats WHERE resourceReleaseId = ${literal(input.resourceReleaseId)} OR apiReleaseSetId = ${literal(input.apiReleaseSetId)};`,
     `DELETE FROM processingRuns WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
-    `DELETE FROM releaseProcessingActions WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
-    `DELETE FROM releaseProcessingActionChunks WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
     `DELETE FROM releaseShardAssignments WHERE resourceReleaseId = ${literal(input.resourceReleaseId)};`,
     `DELETE FROM snapshotDependencies WHERE snapshotId = ${literal(input.snapshotId)};`,
     `DELETE FROM snapshotAssemblies WHERE snapshotId = ${literal(input.snapshotId)};`,
