@@ -1,1 +1,0 @@
-ALTER TABLE `snapshotRecipes` ADD `processingRules` text;

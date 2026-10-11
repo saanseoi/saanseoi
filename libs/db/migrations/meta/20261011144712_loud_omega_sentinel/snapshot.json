@@ -1,8 +1,8 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "d7071668-9cce-4364-8cce-320f5356ea1e",
-  "prevIds": ["dbe79cc9-4413-4c62-83b2-c3a164c27cc2"],
+  "id": "9c8dcf20-e50c-4e02-b9e6-8191840d1841",
+  "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
       "name": "publishers",
@@ -137,14 +137,6 @@
       "entityType": "tables"
     },
     {
-      "name": "releaseProcessingActionChunks",
-      "entityType": "tables"
-    },
-    {
-      "name": "releaseProcessingActions",
-      "entityType": "tables"
-    },
-    {
       "name": "stats",
       "entityType": "tables"
     },
@@ -198,6 +190,10 @@
     },
     {
       "name": "assets",
+      "entityType": "tables"
+    },
+    {
+      "name": "processingAudits",
       "entityType": "tables"
     },
     {
@@ -1668,6 +1664,16 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
+      "name": "binding",
+      "entityType": "columns",
+      "table": "apiFieldProvenance"
+    },
+    {
+      "type": "text",
+      "notNull": false,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
       "name": "id",
       "entityType": "columns",
       "table": "apiLifecycleJournal"
@@ -2163,12 +2169,32 @@
       "table": "fieldLineageDefinitions"
     },
     {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "schemaVersion",
+      "entityType": "columns",
+      "table": "fieldLineageDefinitions"
+    },
+    {
       "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "definition",
+      "name": "manifestHash",
+      "entityType": "columns",
+      "table": "fieldLineageDefinitions"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "manifestByteLength",
       "entityType": "columns",
       "table": "fieldLineageDefinitions"
     },
@@ -2258,16 +2284,6 @@
       "autoincrement": false,
       "default": null,
       "generated": null,
-      "name": "reason",
-      "entityType": "columns",
-      "table": "releaseSetLifecycleJournal"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
       "name": "metadataJson",
       "entityType": "columns",
       "table": "releaseSetLifecycleJournal"
@@ -2339,26 +2355,6 @@
       "default": null,
       "generated": null,
       "name": "status",
-      "entityType": "columns",
-      "table": "snapshotAssemblies"
-    },
-    {
-      "type": "integer",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "reviewRequired",
-      "entityType": "columns",
-      "table": "snapshotAssemblies"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "detailsJson",
       "entityType": "columns",
       "table": "snapshotAssemblies"
     },
@@ -2884,16 +2880,6 @@
     },
     {
       "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "notes",
-      "entityType": "columns",
-      "table": "snapshots"
-    },
-    {
-      "type": "text",
       "notNull": true,
       "autoincrement": false,
       "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
@@ -3311,206 +3297,6 @@
       "name": "updatedAt",
       "entityType": "columns",
       "table": "processingRuns"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "resourceReleaseId",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "actionId",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "generation",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "firstOrdinal",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "decisionCount",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "part",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "parts",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "encoding",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "checksum",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "blob",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "payload",
-      "entityType": "columns",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "type": "text",
-      "notNull": false,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "id",
-      "entityType": "columns",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "resourceReleaseId",
-      "entityType": "columns",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "action",
-      "entityType": "columns",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "mode",
-      "entityType": "columns",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "generation",
-      "entityType": "columns",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "decisionCount",
-      "entityType": "columns",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "type": "integer",
-      "notNull": true,
-      "autoincrement": false,
-      "default": null,
-      "generated": null,
-      "name": "affectedRecordCount",
-      "entityType": "columns",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
-      "generated": null,
-      "name": "createdAt",
-      "entityType": "columns",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "type": "text",
-      "notNull": true,
-      "autoincrement": false,
-      "default": "(strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))",
-      "generated": null,
-      "name": "updatedAt",
-      "entityType": "columns",
-      "table": "releaseProcessingActions"
     },
     {
       "type": "text",
@@ -4694,6 +4480,76 @@
     },
     {
       "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "resourceReleaseId",
+      "entityType": "columns",
+      "table": "processingAudits"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "stage",
+      "entityType": "columns",
+      "table": "processingAudits"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "ownerId",
+      "entityType": "columns",
+      "table": "processingAudits"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "manifestHash",
+      "entityType": "columns",
+      "table": "processingAudits"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "byteLength",
+      "entityType": "columns",
+      "table": "processingAudits"
+    },
+    {
+      "type": "integer",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "applicationCount",
+      "entityType": "columns",
+      "table": "processingAudits"
+    },
+    {
+      "type": "text",
+      "notNull": true,
+      "autoincrement": false,
+      "default": null,
+      "generated": null,
+      "name": "attemptStatus",
+      "entityType": "columns",
+      "table": "processingAudits"
+    },
+    {
+      "type": "text",
       "notNull": false,
       "autoincrement": false,
       "default": null,
@@ -5154,7 +5010,7 @@
       "onUpdate": "NO ACTION",
       "onDelete": "RESTRICT",
       "nameExplicit": false,
-      "name": "fk_publishedDataJournal_resourceReleaseId_resourceReleases_id_fk",
+      "name": "fk_releaseSetLifecycleJournal_resourceReleaseId_resourceReleases_id_fk",
       "entityType": "fks",
       "table": "releaseSetLifecycleJournal"
     },
@@ -5165,7 +5021,7 @@
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
-      "name": "fk_publishedDataJournal_relatedResourceReleaseId_resourceReleases_id_fk",
+      "name": "fk_releaseSetLifecycleJournal_relatedResourceReleaseId_resourceReleases_id_fk",
       "entityType": "fks",
       "table": "releaseSetLifecycleJournal"
     },
@@ -5176,7 +5032,7 @@
       "onUpdate": "NO ACTION",
       "onDelete": "SET NULL",
       "nameExplicit": false,
-      "name": "fk_publishedDataJournal_snapshotId_snapshots_id_fk",
+      "name": "fk_releaseSetLifecycleJournal_snapshotId_snapshots_id_fk",
       "entityType": "fks",
       "table": "releaseSetLifecycleJournal"
     },
@@ -5405,28 +5261,6 @@
       "tableTo": "resourceReleases",
       "columnsTo": ["id"],
       "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": false,
-      "name": "fk_releaseProcessingActionChunks_resourceReleaseId_resourceReleases_id_fk",
-      "entityType": "fks",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "columns": ["resourceReleaseId"],
-      "tableTo": "resourceReleases",
-      "columnsTo": ["id"],
-      "onUpdate": "NO ACTION",
-      "onDelete": "CASCADE",
-      "nameExplicit": false,
-      "name": "fk_releaseProcessingActions_resourceReleaseId_resourceReleases_id_fk",
-      "entityType": "fks",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "columns": ["resourceReleaseId"],
-      "tableTo": "resourceReleases",
-      "columnsTo": ["id"],
-      "onUpdate": "NO ACTION",
       "onDelete": "NO ACTION",
       "nameExplicit": false,
       "name": "fk_stats_resourceReleaseId_resourceReleases_id_fk",
@@ -5561,6 +5395,17 @@
       "onUpdate": "NO ACTION",
       "onDelete": "CASCADE",
       "nameExplicit": false,
+      "name": "fk_processingAudits_resourceReleaseId_resourceReleases_id_fk",
+      "entityType": "fks",
+      "table": "processingAudits"
+    },
+    {
+      "columns": ["resourceReleaseId"],
+      "tableTo": "resourceReleases",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "nameExplicit": false,
       "name": "fk_releaseProvenance_resourceReleaseId_resourceReleases_id_fk",
       "entityType": "fks",
       "table": "releaseProvenance"
@@ -5648,6 +5493,13 @@
       "name": "divisionCodes_pk",
       "entityType": "pks",
       "table": "divisionCodes"
+    },
+    {
+      "columns": ["resourceReleaseId", "stage", "ownerId"],
+      "nameExplicit": false,
+      "name": "processingAudits_pk",
+      "entityType": "pks",
+      "table": "processingAudits"
     },
     {
       "columns": ["day", "scope", "entityId"],
@@ -5778,7 +5630,7 @@
     {
       "columns": ["id"],
       "nameExplicit": false,
-      "name": "publishedDataJournal_pk",
+      "name": "releaseSetLifecycleJournal_pk",
       "table": "releaseSetLifecycleJournal",
       "entityType": "pks"
     },
@@ -5829,20 +5681,6 @@
       "nameExplicit": false,
       "name": "processingRuns_pk",
       "table": "processingRuns",
-      "entityType": "pks"
-    },
-    {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "releaseProcessingActionChunks_pk",
-      "table": "releaseProcessingActionChunks",
-      "entityType": "pks"
-    },
-    {
-      "columns": ["id"],
-      "nameExplicit": false,
-      "name": "releaseProcessingActions_pk",
-      "table": "releaseProcessingActions",
       "entityType": "pks"
     },
     {
@@ -6896,78 +6734,6 @@
     {
       "columns": [
         {
-          "value": "actionId",
-          "isExpression": false
-        },
-        {
-          "value": "generation",
-          "isExpression": false
-        },
-        {
-          "value": "firstOrdinal",
-          "isExpression": false
-        },
-        {
-          "value": "part",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "releaseProcessingActionChunks_page_idx",
-      "entityType": "indexes",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "columns": [
-        {
-          "value": "resourceReleaseId",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "releaseProcessingActionChunks_release_idx",
-      "entityType": "indexes",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
-      "columns": [
-        {
-          "value": "resourceReleaseId",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "releaseProcessingActions_resourceReleaseId_idx",
-      "entityType": "indexes",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "columns": [
-        {
-          "value": "action",
-          "isExpression": false
-        },
-        {
-          "value": "mode",
-          "isExpression": false
-        }
-      ],
-      "isUnique": false,
-      "where": null,
-      "origin": "manual",
-      "name": "releaseProcessingActions_action_idx",
-      "entityType": "indexes",
-      "table": "releaseProcessingActions"
-    },
-    {
-      "columns": [
-        {
           "value": "resourceReleaseId",
           "isExpression": false
         }
@@ -7193,7 +6959,7 @@
         }
       ],
       "isUnique": true,
-      "where": "\"divisionCodes\".\"domainCode\" = 'geographic' AND \"divisionCodes\".\"divisionClass\" IN ('city', 'town', 'village', 'hamlet')",
+      "where": "\"divisionCodes\".\"domainCode\" = 'geographic' AND \"divisionCodes\".\"divisionClass\" IN ('city', 'town', 'rural_area', 'village', 'hamlet')",
       "origin": "manual",
       "name": "divisionCodes_geographic_locality_code",
       "entityType": "indexes",
@@ -7324,6 +7090,24 @@
       "name": "assets_sourceAssetId_idx",
       "entityType": "indexes",
       "table": "assets"
+    },
+    {
+      "columns": [
+        {
+          "value": "stage",
+          "isExpression": false
+        },
+        {
+          "value": "ownerId",
+          "isExpression": false
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "origin": "manual",
+      "name": "processingAudits_owner_idx",
+      "entityType": "indexes",
+      "table": "processingAudits"
     },
     {
       "columns": [
@@ -7465,19 +7249,13 @@
       "table": "processingRuns"
     },
     {
-      "value": "length(\"payload\") <= 32768",
-      "name": "releaseProcessingActionChunks_payload_chk",
-      "entityType": "checks",
-      "table": "releaseProcessingActionChunks"
-    },
-    {
       "value": "(\"resourceReleaseId\" IS NOT NULL) != (\"apiReleaseSetId\" IS NOT NULL)",
       "name": "stats_owner_chk",
       "entityType": "checks",
       "table": "stats"
     },
     {
-      "value": "\"domainCode\" <> 'geographic' OR \"divisionClass\" IN ('country', 'sar', 'area', 'district', 'city', 'town', 'village', 'hamlet', 'macrohood', 'neighbourhood', 'microhood', 'major_island', 'minor_island', 'islet', 'island_group')",
+      "value": "\"domainCode\" <> 'geographic' OR \"divisionClass\" IN ('country', 'sar', 'area', 'district', 'city', 'town', 'rural_area', 'village', 'hamlet', 'macrohood', 'neighbourhood', 'microhood', 'major_island', 'minor_island', 'islet', 'island_group')",
       "name": "divisionCodes_geographic_class",
       "entityType": "checks",
       "table": "divisionCodes"

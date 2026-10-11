@@ -1,1 +1,0 @@
-ALTER TABLE `apiVersions` ADD `archivedAt` text;

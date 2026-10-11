@@ -18,7 +18,7 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
         .filter(entry => entry.isDirectory())
         .map(entry => entry.name)
         .sort()
-      expect(migrations.length).toBeGreaterThan(0)
+      expect(migrations).toHaveLength(1)
       for (const migration of migrations) {
         db.exec(readFileSync(resolve(root, migration, 'migration.sql'), 'utf8'))
       }

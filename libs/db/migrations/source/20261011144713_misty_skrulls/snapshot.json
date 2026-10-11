@@ -1,7 +1,7 @@
 {
   "version": "7",
   "dialect": "sqlite",
-  "id": "4d1a164f-e448-4e66-bf22-f735256d5cf4",
+  "id": "a250aea8-9865-48db-bf08-b7c3c267c206",
   "prevIds": ["00000000-0000-0000-0000-000000000000"],
   "ddl": [
     {
@@ -3019,14 +3019,14 @@
       "table": "hkgovRvdAreas"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": ["sourceRecordId", "versionHash", "validFromRelease"],
       "nameExplicit": false,
       "name": "overtureDivisionAreas_pk",
       "entityType": "pks",
       "table": "overtureDivisionAreas"
     },
     {
-      "columns": ["sourceRecordId", "versionHash"],
+      "columns": ["sourceRecordId", "versionHash", "validFromRelease"],
       "nameExplicit": false,
       "name": "overtureDivisionBoundaries_pk",
       "entityType": "pks",

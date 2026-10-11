@@ -10,6 +10,7 @@ CREATE TABLE `address2d` (
 	`microhoodId` text,
 	`villageId` text,
 	`neighbourhoodId` text,
+	`ruralAreaId` text,
 	`macrohoodId` text,
 	`townId` text,
 	`districtId` text,
@@ -28,6 +29,7 @@ CREATE TABLE `address2d` (
 	CONSTRAINT `address2d_divisionSnapshotId_areaId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`areaId`) REFERENCES `divisions`(`snapshotId`,`id`),
 	CONSTRAINT `address2d_divisionSnapshotId_districtId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`districtId`) REFERENCES `divisions`(`snapshotId`,`id`),
 	CONSTRAINT `address2d_divisionSnapshotId_townId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`townId`) REFERENCES `divisions`(`snapshotId`,`id`),
+	CONSTRAINT `address2d_divisionSnapshotId_ruralAreaId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`ruralAreaId`) REFERENCES `divisions`(`snapshotId`,`id`),
 	CONSTRAINT `address2d_divisionSnapshotId_macrohoodId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`macrohoodId`) REFERENCES `divisions`(`snapshotId`,`id`),
 	CONSTRAINT `address2d_divisionSnapshotId_villageId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`villageId`) REFERENCES `divisions`(`snapshotId`,`id`),
 	CONSTRAINT `address2d_divisionSnapshotId_neighbourhoodId_divisions_fk` FOREIGN KEY (`divisionSnapshotId`,`neighbourhoodId`) REFERENCES `divisions`(`snapshotId`,`id`),
@@ -208,7 +210,6 @@ CREATE TABLE `divisions` (
 	`level` integer,
 	`category` text,
 	`class` text NOT NULL,
-	`wikidata` text,
 	`hierarchies` text NOT NULL,
 	`cartography` text,
 	`sources` text,
@@ -568,6 +569,7 @@ CREATE INDEX `address2d_landformId_scope_id_idx` ON `address2d` (`landformId`,`s
 CREATE INDEX `address2d_areaId_scope_id_idx` ON `address2d` (`areaId`,`snapshotId`,`id`) WHERE "address2d"."areaId" IS NOT NULL;--> statement-breakpoint
 CREATE INDEX `address2d_districtId_scope_id_idx` ON `address2d` (`districtId`,`snapshotId`,`id`) WHERE "address2d"."districtId" IS NOT NULL;--> statement-breakpoint
 CREATE INDEX `address2d_townId_scope_id_idx` ON `address2d` (`townId`,`snapshotId`,`id`) WHERE "address2d"."townId" IS NOT NULL;--> statement-breakpoint
+CREATE INDEX `address2d_ruralAreaId_scope_id_idx` ON `address2d` (`ruralAreaId`,`snapshotId`,`id`) WHERE "address2d"."ruralAreaId" IS NOT NULL;--> statement-breakpoint
 CREATE INDEX `address2d_macrohoodId_scope_id_idx` ON `address2d` (`macrohoodId`,`snapshotId`,`id`) WHERE "address2d"."macrohoodId" IS NOT NULL;--> statement-breakpoint
 CREATE INDEX `address2d_neighbourhoodId_scope_id_idx` ON `address2d` (`neighbourhoodId`,`snapshotId`,`id`) WHERE "address2d"."neighbourhoodId" IS NOT NULL;--> statement-breakpoint
 CREATE INDEX `address2d_microhoodId_scope_id_idx` ON `address2d` (`microhoodId`,`snapshotId`,`id`) WHERE "address2d"."microhoodId" IS NOT NULL;--> statement-breakpoint

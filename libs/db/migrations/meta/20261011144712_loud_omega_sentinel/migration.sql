@@ -91,10 +91,7 @@ CREATE TABLE `resourceReleases` (
 	`publicationDate` text,
 	`cohortKey` text,
 	`geometryStatus` text,
-	`rawObjectKey` text,
-	`originalFileName` text,
 	`releaseNotesUrl` text,
-	`notes` text,
 	`status` text NOT NULL,
 	`processingRules` text,
 	`ingestedAt` text,
@@ -117,8 +114,6 @@ CREATE TABLE `sourceReleases` (
 	`sourceSchemaVersion` text,
 	`publicationDate` text,
 	`cohortKey` text,
-	`rawObjectKey` text,
-	`originalFileName` text,
 	`releaseNotesUrl` text,
 	`notes` text,
 	`status` text NOT NULL,
@@ -135,14 +130,14 @@ CREATE TABLE `sourceReleases` (
 --> statement-breakpoint
 CREATE TABLE `apiCatalogRevisionReleaseSets` (
 	`apiCatalogRevisionId` text NOT NULL,
-	`apiReleaseSetId` text NOT NULL,
+	`apiVersionReleaseSetId` text NOT NULL,
 	`domainCode` text NOT NULL,
 	`cohortKey` text NOT NULL,
 	`isDefault` integer DEFAULT false NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `apiCatalogRevisionReleaseSets_pk` PRIMARY KEY(`apiCatalogRevisionId`, `domainCode`, `cohortKey`),
 	CONSTRAINT `fk_apiCatalogRevisionReleaseSets_apiCatalogRevisionId_apiCatalogRevisions_id_fk` FOREIGN KEY (`apiCatalogRevisionId`) REFERENCES `apiCatalogRevisions`(`id`) ON DELETE CASCADE,
-	CONSTRAINT `fk_apiCatalogRevisionReleaseSets_apiReleaseSetId_apiReleaseSets_id_fk` FOREIGN KEY (`apiReleaseSetId`) REFERENCES `apiReleaseSets`(`id`) ON DELETE CASCADE
+	CONSTRAINT `fk_apiCatalogRevisionReleaseSets_apiVersionReleaseSetId_apiVersionReleaseSets_id_fk` FOREIGN KEY (`apiVersionReleaseSetId`) REFERENCES `apiVersionReleaseSets`(`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
 CREATE TABLE `apiCatalogRevisions` (
@@ -154,8 +149,8 @@ CREATE TABLE `apiCatalogRevisions` (
 	`revision` integer NOT NULL,
 	`defaultDomainCode` text,
 	`status` text NOT NULL,
-	`publishedAt` text NOT NULL,
 	`versionHash` text NOT NULL,
+	`publishedAt` text NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `fk_apiCatalogRevisions_apiVersionId_apiVersions_id_fk` FOREIGN KEY (`apiVersionId`) REFERENCES `apiVersions`(`id`) ON DELETE RESTRICT
@@ -169,7 +164,6 @@ CREATE TABLE `apiComposition` (
 	`primaryResourceType` text NOT NULL,
 	`defaultDomainCode` text,
 	`status` text NOT NULL,
-	`notes` text,
 	`versionHash` text NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
@@ -207,8 +201,20 @@ CREATE TABLE `apiEndpoints` (
 CREATE TABLE `apiFieldProvenance` (
 	`apiReleaseSetId` text PRIMARY KEY,
 	`definitionId` text NOT NULL,
+	`binding` text,
 	CONSTRAINT `fk_apiFieldProvenance_apiReleaseSetId_apiReleaseSets_id_fk` FOREIGN KEY (`apiReleaseSetId`) REFERENCES `apiReleaseSets`(`id`) ON DELETE CASCADE,
 	CONSTRAINT `fk_apiFieldProvenance_definitionId_fieldLineageDefinitions_id_fk` FOREIGN KEY (`definitionId`) REFERENCES `fieldLineageDefinitions`(`id`) ON DELETE RESTRICT
+);
+--> statement-breakpoint
+CREATE TABLE `apiLifecycleJournal` (
+	`id` text PRIMARY KEY,
+	`apiVersionId` text NOT NULL,
+	`statusFrom` text,
+	`statusTo` text NOT NULL,
+	`reason` text,
+	`metadataJson` text,
+	`occurredAt` text NOT NULL,
+	CONSTRAINT `fk_apiLifecycleJournal_apiVersionId_apiVersions_id_fk` FOREIGN KEY (`apiVersionId`) REFERENCES `apiVersions`(`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
 CREATE TABLE `apiReleaseSetSnapshots` (
@@ -228,17 +234,25 @@ CREATE TABLE `apiReleaseSetSnapshots` (
 --> statement-breakpoint
 CREATE TABLE `apiReleaseSets` (
 	`id` text PRIMARY KEY,
-	`apiVersionId` text NOT NULL,
-	`apiCompositionId` text,
 	`code` text NOT NULL,
 	`regionCode` text,
 	`domainCode` text DEFAULT 'default' NOT NULL,
 	`cohortKey` text,
 	`revision` integer DEFAULT 0 NOT NULL,
 	`effectiveFrom` text,
-	`supersedesApiReleaseSetId` text,
 	`schemaVersion` text NOT NULL,
 	`rulesetVersion` text NOT NULL,
+	`versionHash` text NOT NULL,
+	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE `apiVersionReleaseSets` (
+	`id` text PRIMARY KEY,
+	`apiVersionId` text NOT NULL,
+	`apiReleaseSetId` text NOT NULL,
+	`apiCompositionId` text,
+	`supersedesApiReleaseSetId` text,
 	`status` text NOT NULL,
 	`publishedAt` text,
 	`validFrom` text,
@@ -248,8 +262,10 @@ CREATE TABLE `apiReleaseSets` (
 	`versionHash` text NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `fk_apiReleaseSets_apiVersionId_apiVersions_id_fk` FOREIGN KEY (`apiVersionId`) REFERENCES `apiVersions`(`id`) ON DELETE RESTRICT,
-	CONSTRAINT `fk_apiReleaseSets_apiCompositionId_apiComposition_id_fk` FOREIGN KEY (`apiCompositionId`) REFERENCES `apiComposition`(`id`) ON DELETE RESTRICT
+	CONSTRAINT `fk_apiVersionReleaseSets_apiVersionId_apiVersions_id_fk` FOREIGN KEY (`apiVersionId`) REFERENCES `apiVersions`(`id`) ON DELETE RESTRICT,
+	CONSTRAINT `fk_apiVersionReleaseSets_apiReleaseSetId_apiReleaseSets_id_fk` FOREIGN KEY (`apiReleaseSetId`) REFERENCES `apiReleaseSets`(`id`) ON DELETE CASCADE,
+	CONSTRAINT `fk_apiVersionReleaseSets_apiCompositionId_apiComposition_id_fk` FOREIGN KEY (`apiCompositionId`) REFERENCES `apiComposition`(`id`) ON DELETE RESTRICT,
+	CONSTRAINT `fk_apiVersionReleaseSets_supersedesApiReleaseSetId_apiReleaseSets_id_fk` FOREIGN KEY (`supersedesApiReleaseSetId`) REFERENCES `apiReleaseSets`(`id`) ON DELETE RESTRICT
 );
 --> statement-breakpoint
 CREATE TABLE `apiVersions` (
@@ -258,9 +274,6 @@ CREATE TABLE `apiVersions` (
 	`familyType` text NOT NULL,
 	`version` text NOT NULL,
 	`status` text NOT NULL,
-	`publishedAt` text,
-	`deprecatedAt` text,
-	`retiredAt` text,
 	`versionHash` text NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
@@ -268,25 +281,26 @@ CREATE TABLE `apiVersions` (
 --> statement-breakpoint
 CREATE TABLE `fieldLineageDefinitions` (
 	`id` text PRIMARY KEY,
-	`definition` text NOT NULL
+	`schemaVersion` integer NOT NULL,
+	`manifestHash` text NOT NULL,
+	`manifestByteLength` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `publishedDataJournal` (
+CREATE TABLE `releaseSetLifecycleJournal` (
 	`id` text PRIMARY KEY,
 	`resourceReleaseId` text NOT NULL,
 	`relatedResourceReleaseId` text,
 	`snapshotId` text,
-	`apiReleaseSetId` text,
+	`apiVersionReleaseSetId` text,
 	`action` text NOT NULL,
 	`statusFrom` text,
 	`statusTo` text,
-	`reason` text,
 	`metadataJson` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `fk_publishedDataJournal_resourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`resourceReleaseId`) REFERENCES `resourceReleases`(`id`) ON DELETE RESTRICT,
-	CONSTRAINT `fk_publishedDataJournal_relatedResourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`relatedResourceReleaseId`) REFERENCES `resourceReleases`(`id`) ON DELETE SET NULL,
-	CONSTRAINT `fk_publishedDataJournal_snapshotId_snapshots_id_fk` FOREIGN KEY (`snapshotId`) REFERENCES `snapshots`(`id`) ON DELETE SET NULL,
-	CONSTRAINT `fk_publishedDataJournal_apiReleaseSetId_apiReleaseSets_id_fk` FOREIGN KEY (`apiReleaseSetId`) REFERENCES `apiReleaseSets`(`id`) ON DELETE SET NULL
+	CONSTRAINT `fk_releaseSetLifecycleJournal_resourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`resourceReleaseId`) REFERENCES `resourceReleases`(`id`) ON DELETE RESTRICT,
+	CONSTRAINT `fk_releaseSetLifecycleJournal_relatedResourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`relatedResourceReleaseId`) REFERENCES `resourceReleases`(`id`) ON DELETE SET NULL,
+	CONSTRAINT `fk_releaseSetLifecycleJournal_snapshotId_snapshots_id_fk` FOREIGN KEY (`snapshotId`) REFERENCES `snapshots`(`id`) ON DELETE SET NULL,
+	CONSTRAINT `fk_releaseSetLifecycleJournal_apiVersionReleaseSetId_apiVersionReleaseSets_id_fk` FOREIGN KEY (`apiVersionReleaseSetId`) REFERENCES `apiVersionReleaseSets`(`id`) ON DELETE SET NULL
 );
 --> statement-breakpoint
 CREATE TABLE `snapshotAssemblies` (
@@ -296,8 +310,6 @@ CREATE TABLE `snapshotAssemblies` (
 	`anchorReleaseId` text,
 	`anchorCohortKey` text,
 	`status` text NOT NULL,
-	`reviewRequired` integer,
-	`detailsJson` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `fk_snapshotAssemblies_snapshotId_snapshots_id_fk` FOREIGN KEY (`snapshotId`) REFERENCES `snapshots`(`id`) ON DELETE CASCADE,
@@ -347,8 +359,7 @@ CREATE TABLE `snapshotRecipes` (
 	`code` text NOT NULL UNIQUE,
 	`resourceType` text NOT NULL,
 	`version` integer NOT NULL,
-	`status` text NOT NULL,
-	`notes` text,
+	`processingRules` text,
 	`versionHash` text NOT NULL,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL
@@ -383,7 +394,6 @@ CREATE TABLE `snapshots` (
 	`publishedAt` text,
 	`validFrom` text,
 	`validTo` text,
-	`notes` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `fk_snapshots_snapshotLineageId_snapshotLineages_id_fk` FOREIGN KEY (`snapshotLineageId`) REFERENCES `snapshotLineages`(`id`) ON DELETE RESTRICT
@@ -435,12 +445,12 @@ CREATE TABLE `entityAliases` (
 CREATE TABLE `processingRuns` (
 	`runId` text PRIMARY KEY,
 	`resourceReleaseId` text,
+	`snapshotId` text,
+	`apiReleaseSetId` text,
 	`stage` text NOT NULL,
 	`phase` text NOT NULL,
 	`checkpoint` text,
 	`attempt` integer DEFAULT 1 NOT NULL,
-	`snapshotId` text,
-	`apiReleaseSetId` text,
 	`status` text NOT NULL,
 	`results` text,
 	`error` text,
@@ -454,45 +464,16 @@ CREATE TABLE `processingRuns` (
 	CONSTRAINT "processingRuns_owner_chk" CHECK(("resourceReleaseId" IS NOT NULL) + ("snapshotId" IS NOT NULL) + ("apiReleaseSetId" IS NOT NULL) = 1)
 );
 --> statement-breakpoint
-CREATE TABLE `releaseProcessingActionChunks` (
-	`id` text PRIMARY KEY,
-	`resourceReleaseId` text NOT NULL,
-	`actionId` text NOT NULL,
-	`generation` text NOT NULL,
-	`firstOrdinal` integer NOT NULL,
-	`decisionCount` integer NOT NULL,
-	`part` integer NOT NULL,
-	`parts` integer NOT NULL,
-	`encoding` text NOT NULL,
-	`checksum` text NOT NULL,
-	`payload` blob NOT NULL,
-	CONSTRAINT `fk_releaseProcessingActionChunks_resourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`resourceReleaseId`) REFERENCES `resourceReleases`(`id`) ON DELETE CASCADE,
-	CONSTRAINT "releaseProcessingActionChunks_payload_chk" CHECK(length("payload") <= 32768)
-);
---> statement-breakpoint
-CREATE TABLE `releaseProcessingActions` (
-	`id` text PRIMARY KEY,
-	`resourceReleaseId` text NOT NULL,
-	`action` text NOT NULL,
-	`mode` text NOT NULL,
-	`generation` text NOT NULL,
-	`decisionCount` integer NOT NULL,
-	`affectedRecordCount` integer NOT NULL,
-	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `fk_releaseProcessingActions_resourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`resourceReleaseId`) REFERENCES `resourceReleases`(`id`) ON DELETE CASCADE
-);
---> statement-breakpoint
 CREATE TABLE `stats` (
 	`id` text PRIMARY KEY,
 	`resourceReleaseId` text,
 	`apiReleaseSetId` text,
-	`dimension` text NOT NULL,
-	`metric` text NOT NULL,
-	`metricUnit` text NOT NULL,
+	`category` text NOT NULL,
+	`measure` text NOT NULL,
+	`unit` text NOT NULL,
 	`value` real NOT NULL,
-	`groupBy` text,
-	`groupValue` text,
+	`dimension` text,
+	`dimensionValue` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `fk_stats_resourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`resourceReleaseId`) REFERENCES `resourceReleases`(`id`),
@@ -633,13 +614,14 @@ CREATE TABLE `divisionCodes` (
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	CONSTRAINT `divisionCodes_pk` PRIMARY KEY(`domainCode`, `divisionClass`, `divisionCode`),
-	CONSTRAINT "divisionCodes_geographic_class" CHECK("domainCode" <> 'geographic' OR "divisionClass" IN ('country', 'sar', 'area', 'district', 'city', 'town', 'village', 'hamlet', 'macrohood', 'neighbourhood', 'microhood', 'major_island', 'minor_island', 'islet', 'island_group'))
+	CONSTRAINT "divisionCodes_geographic_class" CHECK("domainCode" <> 'geographic' OR "divisionClass" IN ('country', 'sar', 'area', 'district', 'city', 'town', 'rural_area', 'village', 'hamlet', 'macrohood', 'neighbourhood', 'microhood', 'major_island', 'minor_island', 'islet', 'island_group'))
 );
 --> statement-breakpoint
 CREATE TABLE `assets` (
 	`id` text PRIMARY KEY,
 	`datasetId` text,
 	`resourceReleaseId` text,
+	`sourceReleaseId` text,
 	`sourceRecordId` text,
 	`assetKey` text NOT NULL,
 	`contentHash` text NOT NULL,
@@ -650,11 +632,26 @@ CREATE TABLE `assets` (
 	`sourcePageLocale` text,
 	`sourcePageUrl` text,
 	`retrievedAt` text NOT NULL,
-	`manifest` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
+	`sourceAssetId` text,
 	CONSTRAINT `fk_assets_datasetId_datasets_id_fk` FOREIGN KEY (`datasetId`) REFERENCES `datasets`(`id`) ON DELETE RESTRICT,
-	CONSTRAINT `fk_assets_resourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`resourceReleaseId`) REFERENCES `resourceReleases`(`id`) ON DELETE SET NULL
+	CONSTRAINT `fk_assets_resourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`resourceReleaseId`) REFERENCES `resourceReleases`(`id`) ON DELETE SET NULL,
+	CONSTRAINT `fk_assets_sourceReleaseId_sourceReleases_id_fk` FOREIGN KEY (`sourceReleaseId`) REFERENCES `sourceReleases`(`id`) ON DELETE SET NULL,
+	CONSTRAINT `fk_assets_sourceAssetId_assets_id_fk` FOREIGN KEY (`sourceAssetId`) REFERENCES `assets`(`id`) ON DELETE SET NULL,
+	CONSTRAINT "assets_archive_owner_check" CHECK(("role" != 'releaseSourceArchive' OR "resourceReleaseId" IS NULL) AND ("role" != 'resourceSourceArchive' OR ("resourceReleaseId" IS NOT NULL AND "sourceReleaseId" IS NULL AND "mediaType" = 'application/vnd.apache.parquet')) AND "role" != 'sourceArchive')
+);
+--> statement-breakpoint
+CREATE TABLE `processingAudits` (
+	`resourceReleaseId` text NOT NULL,
+	`stage` text NOT NULL,
+	`ownerId` text NOT NULL,
+	`manifestHash` text NOT NULL,
+	`byteLength` integer NOT NULL,
+	`applicationCount` integer NOT NULL,
+	`attemptStatus` text NOT NULL,
+	CONSTRAINT `processingAudits_pk` PRIMARY KEY(`resourceReleaseId`, `stage`, `ownerId`),
+	CONSTRAINT `fk_processingAudits_resourceReleaseId_resourceReleases_id_fk` FOREIGN KEY (`resourceReleaseId`) REFERENCES `resourceReleases`(`id`) ON DELETE CASCADE
 );
 --> statement-breakpoint
 CREATE TABLE `releaseProvenance` (
@@ -700,25 +697,29 @@ CREATE UNIQUE INDEX `sourceReleases_datasetId_sourceVersion_unique_idx` ON `sour
 CREATE UNIQUE INDEX `sourceReleases_id_datasetId_unique_idx` ON `sourceReleases` (`id`,`datasetId`);--> statement-breakpoint
 CREATE INDEX `sourceReleases_status_idx` ON `sourceReleases` (`status`);--> statement-breakpoint
 CREATE INDEX `sourceReleases_supersededBySourceReleaseId_idx` ON `sourceReleases` (`supersededBySourceReleaseId`);--> statement-breakpoint
-CREATE UNIQUE INDEX `apiCatalogRevisionReleaseSets_release_unique_idx` ON `apiCatalogRevisionReleaseSets` (`apiCatalogRevisionId`,`apiReleaseSetId`);--> statement-breakpoint
-CREATE INDEX `apiCatalogRevisionReleaseSets_release_idx` ON `apiCatalogRevisionReleaseSets` (`apiReleaseSetId`);--> statement-breakpoint
+CREATE UNIQUE INDEX `apiCatalogRevisionReleaseSets_release_unique_idx` ON `apiCatalogRevisionReleaseSets` (`apiCatalogRevisionId`,`apiVersionReleaseSetId`);--> statement-breakpoint
+CREATE INDEX `apiCatalogRevisionReleaseSets_release_idx` ON `apiCatalogRevisionReleaseSets` (`apiVersionReleaseSetId`);--> statement-breakpoint
 CREATE UNIQUE INDEX `apiCatalogRevisions_scope_publication_revision_unique_idx` ON `apiCatalogRevisions` (`apiVersionId`,`regionCode`,`publicationDate`,`revision`);--> statement-breakpoint
 CREATE INDEX `apiCatalogRevisions_scope_published_idx` ON `apiCatalogRevisions` (`apiVersionId`,`regionCode`,`publishedAt`);--> statement-breakpoint
 CREATE UNIQUE INDEX `apiComposition_apiVersionId_version_unique_idx` ON `apiComposition` (`apiVersionId`,`version`);--> statement-breakpoint
 CREATE UNIQUE INDEX `apiEndpoints_apiVersion_method_path_unique_idx` ON `apiEndpoints` (`apiVersionId`,`method`,`path`);--> statement-breakpoint
+CREATE INDEX `apiLifecycleJournal_apiVersionId_occurredAt_idx` ON `apiLifecycleJournal` (`apiVersionId`,`occurredAt`);--> statement-breakpoint
+CREATE INDEX `apiLifecycleJournal_statusTo_idx` ON `apiLifecycleJournal` (`statusTo`);--> statement-breakpoint
 CREATE INDEX `apiReleaseSetSnapshots_snapshotId_idx` ON `apiReleaseSetSnapshots` (`snapshotId`);--> statement-breakpoint
-CREATE UNIQUE INDEX `apiReleaseSets_apiVersionId_code_unique_idx` ON `apiReleaseSets` (`apiVersionId`,`code`);--> statement-breakpoint
-CREATE INDEX `apiReleaseSets_status_idx` ON `apiReleaseSets` (`status`);--> statement-breakpoint
-CREATE UNIQUE INDEX `apiReleaseSets_domain_cohort_revision_unique_idx` ON `apiReleaseSets` (`apiVersionId`,`regionCode`,`domainCode`,`cohortKey`,`revision`);--> statement-breakpoint
+CREATE UNIQUE INDEX `apiReleaseSets_code_schema_ruleset_unique_idx` ON `apiReleaseSets` (`code`,`schemaVersion`,`rulesetVersion`);--> statement-breakpoint
+CREATE UNIQUE INDEX `apiReleaseSets_domain_cohort_revision_unique_idx` ON `apiReleaseSets` (`regionCode`,`domainCode`,`cohortKey`,`revision`,`schemaVersion`,`rulesetVersion`);--> statement-breakpoint
+CREATE UNIQUE INDEX `apiVersionReleaseSets_version_release_unique_idx` ON `apiVersionReleaseSets` (`apiVersionId`,`apiReleaseSetId`);--> statement-breakpoint
+CREATE INDEX `apiVersionReleaseSets_version_status_idx` ON `apiVersionReleaseSets` (`apiVersionId`,`status`);--> statement-breakpoint
+CREATE INDEX `apiVersionReleaseSets_release_idx` ON `apiVersionReleaseSets` (`apiReleaseSetId`);--> statement-breakpoint
 CREATE INDEX `apiVersions_familyType_status_idx` ON `apiVersions` (`familyType`,`status`);--> statement-breakpoint
-CREATE INDEX `publishedDataJournal_resourceReleaseId_idx` ON `publishedDataJournal` (`resourceReleaseId`);--> statement-breakpoint
-CREATE INDEX `publishedDataJournal_relatedReleaseId_idx` ON `publishedDataJournal` (`relatedResourceReleaseId`);--> statement-breakpoint
-CREATE INDEX `publishedDataJournal_action_idx` ON `publishedDataJournal` (`action`);--> statement-breakpoint
+CREATE INDEX `releaseSetLifecycleJournal_resourceReleaseId_idx` ON `releaseSetLifecycleJournal` (`resourceReleaseId`);--> statement-breakpoint
+CREATE INDEX `releaseSetLifecycleJournal_relatedReleaseId_idx` ON `releaseSetLifecycleJournal` (`relatedResourceReleaseId`);--> statement-breakpoint
+CREATE INDEX `releaseSetLifecycleJournal_action_idx` ON `releaseSetLifecycleJournal` (`action`);--> statement-breakpoint
 CREATE UNIQUE INDEX `snapshotAssemblies_snapshotId_idx` ON `snapshotAssemblies` (`snapshotId`);--> statement-breakpoint
 CREATE INDEX `snapshotDependencies_dependencySnapshotId_idx` ON `snapshotDependencies` (`dependencySnapshotId`);--> statement-breakpoint
 CREATE UNIQUE INDEX `snapshotLineages_primaryDataset_resourceType_variant_unique_idx` ON `snapshotLineages` (`primaryDatasetId`,`resourceType`,`variant`);--> statement-breakpoint
 CREATE INDEX `snapshotLineages_region_resource_variant_idx` ON `snapshotLineages` (`regionCode`,`resourceType`,`variant`);--> statement-breakpoint
-CREATE INDEX `snapshotRecipes_resourceType_status_idx` ON `snapshotRecipes` (`resourceType`,`status`);--> statement-breakpoint
+CREATE INDEX `snapshotRecipes_resourceType_idx` ON `snapshotRecipes` (`resourceType`);--> statement-breakpoint
 CREATE INDEX `snapshotResourceReleases_datasetId_idx` ON `snapshotResourceReleases` (`datasetId`);--> statement-breakpoint
 CREATE INDEX `snapshotResourceReleases_resourceReleaseId_idx` ON `snapshotResourceReleases` (`resourceReleaseId`);--> statement-breakpoint
 CREATE UNIQUE INDEX `snapshots_resourceType_code_unique_idx` ON `snapshots` (`resourceType`,`code`);--> statement-breakpoint
@@ -737,13 +738,9 @@ CREATE INDEX `entityAliases_canonical_lookup_idx` ON `entityAliases` (`entityTyp
 CREATE UNIQUE INDEX `processingRuns_snapshot_phase_unique_idx` ON `processingRuns` (`snapshotId`,`phase`);--> statement-breakpoint
 CREATE UNIQUE INDEX `processingRuns_composition_phase_unique_idx` ON `processingRuns` (`apiReleaseSetId`,`phase`);--> statement-breakpoint
 CREATE UNIQUE INDEX `processingRuns_release_phase_unique_idx` ON `processingRuns` (`resourceReleaseId`,`phase`);--> statement-breakpoint
-CREATE INDEX `releaseProcessingActionChunks_page_idx` ON `releaseProcessingActionChunks` (`actionId`,`generation`,`firstOrdinal`,`part`);--> statement-breakpoint
-CREATE INDEX `releaseProcessingActionChunks_release_idx` ON `releaseProcessingActionChunks` (`resourceReleaseId`);--> statement-breakpoint
-CREATE INDEX `releaseProcessingActions_resourceReleaseId_idx` ON `releaseProcessingActions` (`resourceReleaseId`);--> statement-breakpoint
-CREATE INDEX `releaseProcessingActions_action_idx` ON `releaseProcessingActions` (`action`,`mode`);--> statement-breakpoint
 CREATE INDEX `stats_resourceReleaseId_idx` ON `stats` (`resourceReleaseId`);--> statement-breakpoint
 CREATE INDEX `stats_apiReleaseSetId_idx` ON `stats` (`apiReleaseSetId`);--> statement-breakpoint
-CREATE INDEX `stats_dimension_idx` ON `stats` (`dimension`,`metric`,`groupBy`,`groupValue`);--> statement-breakpoint
+CREATE INDEX `stats_dimension_idx` ON `stats` (`category`,`measure`,`dimension`,`dimensionValue`);--> statement-breakpoint
 CREATE UNIQUE INDEX `account_providerId_accountId_uidx` ON `account` (`provider_id`,`account_id`);--> statement-breakpoint
 CREATE INDEX `account_userId_idx` ON `account` (`user_id`);--> statement-breakpoint
 CREATE INDEX `api_key_userId_idx` ON `apiKey` (`user_id`);--> statement-breakpoint
@@ -755,13 +752,16 @@ CREATE INDEX `session_userId_idx` ON `session` (`user_id`);--> statement-breakpo
 CREATE INDEX `verification_identifier_idx` ON `verification` (`identifier`);--> statement-breakpoint
 CREATE INDEX `divisionCodes_canonical_idx` ON `divisionCodes` (`domainCode`,`canonicalId`);--> statement-breakpoint
 CREATE UNIQUE INDEX `divisionCodes_geographic_administrative_code` ON `divisionCodes` (`divisionCode`) WHERE "divisionCodes"."domainCode" = 'geographic' AND "divisionCodes"."divisionClass" IN ('country', 'sar', 'area', 'district');--> statement-breakpoint
-CREATE UNIQUE INDEX `divisionCodes_geographic_locality_code` ON `divisionCodes` (`divisionCode`) WHERE "divisionCodes"."domainCode" = 'geographic' AND "divisionCodes"."divisionClass" IN ('city', 'town', 'village', 'hamlet');--> statement-breakpoint
+CREATE UNIQUE INDEX `divisionCodes_geographic_locality_code` ON `divisionCodes` (`divisionCode`) WHERE "divisionCodes"."domainCode" = 'geographic' AND "divisionCodes"."divisionClass" IN ('city', 'town', 'rural_area', 'village', 'hamlet');--> statement-breakpoint
 CREATE UNIQUE INDEX `divisionCodes_geographic_hood_code` ON `divisionCodes` (`divisionCode`) WHERE "divisionCodes"."domainCode" = 'geographic' AND "divisionCodes"."divisionClass" IN ('macrohood', 'neighbourhood', 'microhood');--> statement-breakpoint
 CREATE UNIQUE INDEX `divisionCodes_geographic_landform_code` ON `divisionCodes` (`divisionCode`) WHERE "divisionCodes"."domainCode" = 'geographic' AND "divisionCodes"."divisionClass" IN ('major_island', 'minor_island', 'islet', 'island_group');--> statement-breakpoint
 CREATE UNIQUE INDEX `assets_assetKey_unique_idx` ON `assets` (`assetKey`);--> statement-breakpoint
 CREATE INDEX `assets_contentHash_idx` ON `assets` (`contentHash`);--> statement-breakpoint
 CREATE INDEX `assets_datasetId_idx` ON `assets` (`datasetId`);--> statement-breakpoint
 CREATE INDEX `assets_resourceReleaseId_idx` ON `assets` (`resourceReleaseId`);--> statement-breakpoint
+CREATE INDEX `assets_sourceReleaseId_idx` ON `assets` (`sourceReleaseId`);--> statement-breakpoint
 CREATE INDEX `assets_sourceRecordId_idx` ON `assets` (`sourceRecordId`);--> statement-breakpoint
+CREATE INDEX `assets_sourceAssetId_idx` ON `assets` (`sourceAssetId`);--> statement-breakpoint
+CREATE INDEX `processingAudits_owner_idx` ON `processingAudits` (`stage`,`ownerId`);--> statement-breakpoint
 CREATE INDEX `accessAnalyticsDaily_entityId_idx` ON `accessAnalyticsDaily` (`entityId`);--> statement-breakpoint
 CREATE INDEX `accessAnalyticsRollups_entityId_idx` ON `accessAnalyticsRollups` (`entityId`);

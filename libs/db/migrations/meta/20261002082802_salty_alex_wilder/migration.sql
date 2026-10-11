@@ -1,1 +1,0 @@
-ALTER TABLE `apiComposition` DROP COLUMN `rulesetVersions`;

@@ -1,11 +1,11 @@
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
-import { mkdtempSync, rmSync, readFileSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { backfillDivisionWikidata } from './backfill-division-wikidata'
 
-test('ports Wikidata, repairs replay hashes, drops the column and is idempotent', async () => {
+test('ports Wikidata, repairs replay hashes and is idempotent', async () => {
   const dir = mkdtempSync(join(tmpdir(), 'division-wikidata-test-'))
   const path = join(dir, 'history.sqlite')
   const db = new Database(path)
@@ -53,20 +53,6 @@ test('ports Wikidata, repairs replay hashes, drops the column and is idempotent'
       (db.query('SELECT sourceVersionHash FROM sourceResolutions').get() as any)
         .sourceVersionHash,
     ).toBe(source.versionHash)
-    db.exec(
-      readFileSync(
-        new URL(
-          '../libs/db/migrations/history/20261011052313_little_nemesis/migration.sql',
-          import.meta.url,
-        ),
-        'utf8',
-      ),
-    )
-    expect(
-      (db.query('PRAGMA table_info(divisions)').all() as any[]).some(
-        r => r.name === 'wikidata',
-      ),
-    ).toBe(false)
     expect(
       (await backfillDivisionWikidata([path], join(dir, 'repeat'))).counts,
     ).toEqual({})

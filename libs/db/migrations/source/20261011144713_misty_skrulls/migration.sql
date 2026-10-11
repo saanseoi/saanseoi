@@ -9,7 +9,7 @@ CREATE TABLE `overtureDivisionAreas` (
 	`sourceGeometry` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `overtureDivisionAreas_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
+	CONSTRAINT `overtureDivisionAreas_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`, `validFromRelease`)
 );
 --> statement-breakpoint
 CREATE TABLE `overtureDivisionBoundaries` (
@@ -23,7 +23,7 @@ CREATE TABLE `overtureDivisionBoundaries` (
 	`sourceGeometry` text,
 	`createdAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
 	`updatedAt` text DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')) NOT NULL,
-	CONSTRAINT `overtureDivisionBoundaries_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`)
+	CONSTRAINT `overtureDivisionBoundaries_pk` PRIMARY KEY(`sourceRecordId`, `versionHash`, `validFromRelease`)
 );
 --> statement-breakpoint
 CREATE TABLE `overtureDivisions` (
