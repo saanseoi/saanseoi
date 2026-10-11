@@ -15,7 +15,7 @@ let { actions = [], analyticsSurface }: Props = $props()
 </script>
 
 <div
-  class={`ml-auto flex h-10 shrink-0 items-center gap-1 ${actions.some(action => action.id === 'resourceType') ? 'md:gap-2' : 'md:gap-4'}`}
+  class={`flex h-10 shrink-0 items-center gap-1 ${actions.some(action => action.id === 'changes-mode') ? 'grow' : ''} ${actions.some(action => action.id === 'resourceType') ? 'md:gap-2' : 'md:gap-4'}`}
 >
   {#each actions as action (action.id)}
     {#if (action.infoDescription || action.infoContent) && action.icon}
@@ -29,10 +29,11 @@ let { actions = [], analyticsSurface }: Props = $props()
       <ReleaseNavDownloadMenu {action} {analyticsSurface} />
     {:else if action.options}
       <label
-        class={`inline-flex items-center ${action.id === 'resourceType' ? 'gap-2' : 'gap-5'}`}
+        class={`inline-flex items-center ${['resourceType', 'variant'].includes(action.id) ? 'gap-2' : 'gap-5'}`}
       >
         {#if action.id === 'profile' ||
           action.id === 'include' ||
+          action.id === 'variant' ||
           action.id === 'resourceType'}
           <span class="font-mono text-label-md text-data-primary">{action.id}</span>
         {:else}
@@ -84,7 +85,7 @@ let { actions = [], analyticsSurface }: Props = $props()
     {:else}
       <button
         transition:fade={{ duration: 150 }}
-        class={`inline-flex size-10 items-center justify-center border border-data-outline-variant/70 font-body text-label-md font-semibold transition ${action.disabled ? 'cursor-not-allowed text-foreground-alt/50' : action.pressed ? 'cursor-pointer text-data-primary hover:bg-data-surface-container-high' : 'cursor-pointer text-foreground-alt hover:bg-data-surface-container-high hover:text-data-primary'} md:h-8 md:w-auto md:justify-start md:gap-2 md:px-3`}
+        class={`${action.id === 'changes-mode' ? 'ml-auto' : ''} inline-flex size-10 items-center justify-center border border-data-outline-variant/70 font-body text-label-md font-semibold transition ${action.disabled ? 'cursor-not-allowed text-foreground-alt/50' : action.pressed ? 'cursor-pointer text-data-primary hover:bg-data-surface-container-high' : 'cursor-pointer text-foreground-alt hover:bg-data-surface-container-high hover:text-data-primary'} md:h-8 md:w-auto md:justify-start md:gap-2 md:px-3`}
         type="button"
         title={action.tooltip}
         aria-label={action.label}

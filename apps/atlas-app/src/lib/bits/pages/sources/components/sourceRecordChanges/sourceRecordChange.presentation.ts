@@ -212,6 +212,7 @@ export function recordSummary(
       name(props.name) ??
       name(props.names) ??
       name(props.label) ??
+      name(props.translations) ??
       name(props.address) ??
       fallback,
     detail: [props.type, props.subtype, props.class, props.status]

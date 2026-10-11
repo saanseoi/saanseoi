@@ -296,3 +296,15 @@ test('ambiguous repeated-language edits are not paired arbitrarily and preserve 
     )[0]?.children,
   ).toHaveLength(1)
 })
+
+test('assembled record summaries select locale-keyed translations', () => {
+  const record = {
+    class: 'village',
+    translations: { en: { name: 'Village' }, 'zh-Hant': { name: '村' } },
+  }
+  expect(recordSummary(record, 'zh-Hant', 'id')).toEqual({
+    name: '村',
+    detail: 'village',
+  })
+  expect(recordSummary(record, 'zh-Hans', 'id').name).toBe('Village')
+})

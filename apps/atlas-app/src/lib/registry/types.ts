@@ -23,7 +23,15 @@ export type AccessMetrics = {
   asOf: string | null
 }
 
+export type ApiReleaseSnapshot = {
+  snapshotId: string
+  variant: string
+  role: string
+  snapshot: { id: string; resourceType: string; code: string }
+}
+
 export type ApiRelease = {
+  apiReleaseSetSnapshots?: ApiReleaseSnapshot[]
   id: string
   apiVersionId: string
   apiFamily: string

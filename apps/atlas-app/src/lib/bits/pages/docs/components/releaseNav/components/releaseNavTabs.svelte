@@ -14,7 +14,7 @@ type Props = {
 let { activeTab, compact = false, onSelect, tabs }: Props = $props()
 </script>
 
-<div class="flex h-10 min-w-0 justify-start">
+<div class="flex h-10 min-w-0 grow justify-start">
   <div
     class={`flex min-w-0 flex-1 overflow-x-auto ${compact ? 'gap-3' : 'gap-5'}`}
     role="tablist"

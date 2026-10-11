@@ -1,4 +1,15 @@
 <script lang="ts">
+import {
+  buildApiReleaseResourceActions,
+  getApiResourceKey as resourceKey,
+} from '#lib/registry/apiReleaseResourceActions.js'
+import { resourceLabel } from '#lib/registry/resourceLabels.js'
+import { getApiReleaseResources } from '#lib/registry/apiSnapshotChanges.remote.js'
+import ApiReleaseChanges from '#lib/bits/pages/docs/components/releaseStats/components/apiReleaseChanges.svelte'
+import {
+  sourceRecordChangesCopy,
+  type SourceChangeType,
+} from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.copy.js'
 import { Audit } from '#lib/bits/pages/docs/components/releaseAudit/index.js'
 import { goto } from '$app/navigation'
 import { page } from '$app/state'
@@ -130,6 +141,49 @@ let previousRelease = $derived.by(() => {
   return currentIndex >= 0 ? releases[currentIndex + 1] : undefined
 })
 
+let resources = $derived(release.apiReleaseSetSnapshots ?? [])
+let selectedResource = $derived(
+  resources.find(
+    resource => resourceKey(resource) === currentUrl.searchParams.get('resource'),
+  ) ??
+    resources.find(resource => resource.role === 'primary') ??
+    resources[0],
+)
+let previousResources = $derived(
+  currentUrl.searchParams.get('tab') === 'changes' && previousRelease
+    ? getApiReleaseResources({
+        familyType: api.familyType,
+        releaseCode: previousRelease.code,
+      })
+    : null,
+)
+let previousResource = $derived(
+  previousResources?.current?.find(
+    resource =>
+      selectedResource && resourceKey(resource) === resourceKey(selectedResource),
+  ),
+)
+let changesOnly = $state(true)
+let changeCopy = $derived(sourceRecordChangesCopy[locale])
+let changeType = $derived.by(() => {
+  const value = currentUrl.searchParams.get('changes')
+  return ['added', 'changed', 'removed'].includes(value ?? '')
+    ? (value as SourceChangeType)
+    : undefined
+})
+function setChangeResource(value: string) {
+  const url = new URL(currentUrl.href)
+  url.searchParams.set('resource', value)
+  void goto(`${url.pathname}${url.search}`, { shallow: true, state: {} })
+}
+function selectRecordChanges(type?: SourceChangeType) {
+  const url = new URL(currentUrl.href)
+  url.searchParams.set('tab', 'changes')
+  if (type && type !== changeType) url.searchParams.set('changes', type)
+  else url.searchParams.delete('changes')
+  void goto(`${url.pathname}${url.search}`, { shallow: true, state: {} })
+}
+
 let notes = $derived(selectReleaseNotesMarkdown(release.notes, locale))
 let previousNotes = $derived(selectReleaseNotesMarkdown(previousRelease?.notes, locale))
 let notesPresentation = $derived(
@@ -147,6 +201,7 @@ type ApiReleaseTab =
   | 'guide'
   | 'schema'
   | 'samples'
+  | 'changes'
   | 'stats'
   | 'audit'
   | 'sources'
@@ -162,6 +217,7 @@ const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
     'guide',
     'schema',
     'samples',
+    'changes',
     'stats',
     'audit',
     'sources',
@@ -549,6 +605,7 @@ let tabs = $derived<ReleaseNavTab[]>([
   { id: 'guide', label: m.api_release_guide() },
   { id: 'schema', label: m.api_release_schema() },
   { id: 'samples', label: m.api_release_samples() },
+  { id: 'changes', label: changeCopy.changes },
   { id: 'stats', label: m.api_release_stats() },
   ...(['divisions', 'stats'].includes(api.familyType) || release.bulkActions?.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
@@ -563,38 +620,55 @@ $effect(() => {
 })
 
 let actions = $derived<ReleaseNavAction[]>(
-  (activeTab === 'release' || activeTab === 'guide') && versions[1]
+  activeTab === 'changes'
     ? [
+        ...buildApiReleaseResourceActions(
+          resources,
+          selectedResource,
+          setChangeResource,
+        ),
         {
-          icon: 'proicons:diff',
-          id: 'diff',
-          label: m.source_diff_since_last_release(),
-          onSelect: () => setShowNoteDiff(!showNoteDiff),
-          pressed: showNoteDiff,
+          id: 'changes-mode',
+          icon: changesOnly ? 'proicons:diff' : 'proicons:brackets',
+          label: changesOnly ? changeCopy.changesOnly : changeCopy.full,
+          pressed: !changesOnly,
+          onSelect: () => {
+            changesOnly = !changesOnly
+          },
         },
       ]
-    : activeTab === 'samples' && supportsReleaseSamples(release.apiVersion)
+    : (activeTab === 'release' || activeTab === 'guide') && versions[1]
       ? [
-          profileAction,
           {
-            icon: 'ion:reload-outline',
-            id: 'more-samples',
-            label: m.source_samples_more(),
-            onSelect: () => {
-              sampleRequest += 1
-              trackClientProductUsage({
-                event: 'client.sample_control',
-                surface: 'api_release',
-                entityType: 'sample',
-                entityId: 'show_more',
-              })
-            },
+            icon: 'proicons:diff',
+            id: 'diff',
+            label: m.source_diff_since_last_release(),
+            onSelect: () => setShowNoteDiff(!showNoteDiff),
+            pressed: showNoteDiff,
           },
-          infoAction,
         ]
-      : activeTab === 'schema'
-        ? [profileAction, infoAction]
-        : [],
+      : activeTab === 'samples' && supportsReleaseSamples(release.apiVersion)
+        ? [
+            profileAction,
+            {
+              icon: 'ion:reload-outline',
+              id: 'more-samples',
+              label: m.source_samples_more(),
+              onSelect: () => {
+                sampleRequest += 1
+                trackClientProductUsage({
+                  event: 'client.sample_control',
+                  surface: 'api_release',
+                  entityType: 'sample',
+                  entityId: 'show_more',
+                })
+              },
+            },
+            infoAction,
+          ]
+        : activeTab === 'schema'
+          ? [profileAction, infoAction]
+          : [],
 )
 
 let sourceReleaseLinksPresentation = $derived(
@@ -655,6 +729,7 @@ let hasContent = $derived.by(() => {
   if (activeTab === 'guide') {
     return showNoteDiff ? !previousRelease || guideDiff.changes.length > 0 : true
   }
+  if (activeTab === 'changes') return true
   if (activeTab === 'stats') return Boolean(release.stats?.length)
   if (activeTab === 'schema') return true
   if (activeTab === 'samples') return true
@@ -789,6 +864,23 @@ $effect(() => {
               />
             {/if}
           </div>
+        {:else if activeTab === 'changes'}
+          {#if previousResources && !previousResources.ready}
+            <ReleaseNav.ContentSkeleton tab="changes" />
+          {:else if selectedResource}
+            {#key `${release.id}:${selectedResource.snapshotId}:${changeType}`}
+              <ApiReleaseChanges
+                resourceLabel={resourceLabel(selectedResource.snapshot.resourceType)}
+                fromSnapshot={previousResource?.snapshotId}
+                toSnapshot={selectedResource.snapshotId}
+                type={changeType}
+                onTypeChange={selectRecordChanges}
+                diff={changesOnly}
+                {locale}
+                presentation={statsPresentation}
+              />
+            {/key}
+          {/if}
         {:else if activeTab === 'stats'}
           {#if statsRoot}
             {#await statsRoot then module}
