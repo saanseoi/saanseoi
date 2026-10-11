@@ -295,7 +295,7 @@ function insertFixtureProcessingRun(
     resourceReleaseId: string
     phase: string
     status: string
-    stats?: string | null
+    results?: string | null
     error?: string | null
     startedAt: string
     finishedAt?: string | null
@@ -303,7 +303,7 @@ function insertFixtureProcessingRun(
 ) {
   db.query(
     `
-      INSERT INTO processingRuns (
+      INSERT INTO processingRuns (stage,
         runId,
         resourceReleaseId,
         phase,
@@ -314,14 +314,14 @@ function insertFixtureProcessingRun(
         finishedAt,
         createdAt,
         updatedAt
-      ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
+      ) VALUES ('assembly', ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
     `,
   ).run(
     run.runId,
     run.resourceReleaseId,
     run.phase,
     run.status,
-    run.stats ?? null,
+    run.results ?? null,
     run.error ?? null,
     run.startedAt,
     run.finishedAt ?? null,
@@ -581,9 +581,7 @@ describe('upload', () => {
 
     const sqliteCheck = new Database(dbPath)
     const dataset = sqliteCheck
-      .query(
-        'SELECT code AS datasetId, status, rawObjectKey, originalFileName FROM resourceReleases WHERE code = ?',
-      )
+      .query('SELECT code AS datasetId, status FROM resourceReleases WHERE code = ?')
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       status: string
@@ -598,8 +596,8 @@ describe('upload', () => {
 
     const sourceMetadata = sqliteCheck
       .query(`
-      SELECT s.rawObjectKey, s.processingRules AS sourceRules,
-        r.processingRules AS resourceRules, d.processingRules AS datasetRules
+      SELECT (SELECT definition FROM processingRuleDefinitions WHERE id = s.processingRules) AS sourceRules,
+        (SELECT definition FROM processingRuleDefinitions WHERE id = r.processingRules) AS resourceRules, d.processingRules AS datasetRules
       FROM resourceReleases r JOIN sourceReleases s ON s.id = r.sourceReleaseId
       JOIN datasets d ON d.id = r.datasetId WHERE r.code = ?
     `)
@@ -609,7 +607,6 @@ describe('upload', () => {
       resourceRules: string
       datasetRules: string
     }
-    expect(sourceMetadata.rawObjectKey).toBe(result.rawObjectKey!)
     expect(sourceMetadata.datasetRules).not.toBeNull()
     expect(sourceMetadata.sourceRules).toBe(sourceMetadata.datasetRules)
     expect(sourceMetadata.resourceRules).toBe(sourceMetadata.datasetRules)
@@ -618,8 +615,6 @@ describe('upload', () => {
 
     expect(dataset).not.toBeNull()
     expect(dataset?.status).toBe('staged')
-    expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
-    expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(processingRunCount.count).toBe(2)
   })
 
@@ -829,9 +824,7 @@ describe('upload', () => {
     })
 
     const dataset = sqlite
-      .query(
-        'SELECT code AS datasetId, rawObjectKey FROM resourceReleases WHERE code = ?',
-      )
+      .query('SELECT code AS datasetId FROM resourceReleases WHERE code = ?')
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
       rawObjectKey: string
@@ -840,7 +833,6 @@ describe('upload', () => {
     sqlite.close()
 
     expect(result.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
-    expect(dataset?.rawObjectKey).toBe(result.rawObjectKey ?? undefined)
   })
 
   test('allows only the ALS publisher envelope addition without concealing other drift', async () => {
@@ -962,7 +954,7 @@ describe('upload', () => {
 
     const dataset = sqlite
       .query(
-        'SELECT code AS datasetId, status, rawObjectKey, originalFileName, processingRules FROM resourceReleases WHERE code = ?',
+        `SELECT code AS datasetId, status, (SELECT definition FROM processingRuleDefinitions WHERE id = resourceReleases.processingRules) AS processingRules FROM resourceReleases WHERE code = ?`,
       )
       .get('dr-hk-overture-division-2026-05-20.0') as {
       datasetId: string
@@ -994,8 +986,6 @@ describe('upload', () => {
     expect(result.plan.datasetId).toBe('dr-hk-overture-division-2026-05-20.0')
     expect(dataset).not.toBeNull()
     expect(dataset?.status).toBe('staged')
-    expect(dataset?.rawObjectKey).toBe('hk/overture/2026-05-20.0/division.parquet')
-    expect(dataset?.originalFileName).toBe('hk-division-2026-05.parquet')
     expect(dataset?.processingRules).toBe(processingRules?.processingRules)
     expect(processingRunCount.count).toBe(2)
   })
@@ -1034,7 +1024,7 @@ describe('upload', () => {
       resourceReleaseId,
       phase: 'stageDataset',
       status: 'error',
-      stats:
+      results:
         '"{\\"rawObjectKey\\":\\"hk/overture/2026-05-20.0/division-old.parquet\\"}"',
       error: '"{\\"message\\":\\"old failure\\"}"',
       startedAt: '2026-06-02T00:00:01.000Z',
@@ -1059,7 +1049,7 @@ describe('upload', () => {
       phase: string
       runId: string
       startedAt: string
-      stats: string | null
+      results: string | null
       status: string
     }>
 
@@ -1072,7 +1062,7 @@ describe('upload', () => {
         phase: 'registerDataset',
         runId: 'run-register-dataset-old',
         startedAt: expect.any(String),
-        stats: expect.stringContaining('"schemaFingerprint"'),
+        results: expect.stringContaining('"schemaFingerprint"'),
         status: 'completed',
       },
       {
@@ -1080,7 +1070,7 @@ describe('upload', () => {
         phase: 'stageDataset',
         runId: 'run-stage-dataset-old',
         startedAt: expect.any(String),
-        stats: JSON.stringify({
+        results: JSON.stringify({
           rawObjectKey: 'hk/overture/2026-05-20.0/division.parquet',
           rowCount: 3,
           schemaFieldCount: 5,

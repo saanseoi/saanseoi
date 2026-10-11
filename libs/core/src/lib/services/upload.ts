@@ -95,6 +95,8 @@ const REGION_ALIASES: Record<string, RegionCode> = {
 }
 
 const SOURCE_ALIASES: Record<string, string> = {
+  saanseoi: 'saanseoi',
+  protomaps: 'protomaps',
   overture: 'overture',
   'overture-maps': 'overture',
   hkgov: 'hkgov',
@@ -102,6 +104,7 @@ const SOURCE_ALIASES: Record<string, string> = {
   'hkgov-censtatd': 'hkgov-censtatd',
   'hkgov-hyd': 'hkgov-hyd',
   'hkgov-landsd': 'hkgov-landsd',
+  'hkgov-rvd': 'hkgov-rvd',
   'hkgov-pland-pu': 'hkgov-pland-pu',
   'hkgov-pland-new-town': 'hkgov-pland-new-town',
   'hkgov-dpo': 'hkgov-dpo',
@@ -577,10 +580,7 @@ async function ensureSchemaCompatible(
   }
 
   const previousFingerprint = resolveSchemaFingerprint
-    ? await resolveSchemaFingerprint(
-        latestDataset.rawObjectKey,
-        latestDataset.releaseCode,
-      )
+    ? await resolveSchemaFingerprint(null, latestDataset.releaseCode)
     : null
 
   if (!previousFingerprint) {
@@ -1348,11 +1348,11 @@ export async function registerUpload(
 
   if (existingDataset) {
     await assertExistingDatasetCanBeReuploaded(db, existingDataset, options)
-    await resetFailedDataset(db, plan, rawObjectKey, now, 'staged', {
+    await resetFailedDataset(db, plan, now, 'staged', {
       preservePublishedSourceRelease: options.reuseExistingRelease,
     })
   } else {
-    await insertDataset(db, plan, rawObjectKey, now)
+    await insertDataset(db, plan, now)
   }
   const release = await getDatasetById(db, plan.releaseCode)
 

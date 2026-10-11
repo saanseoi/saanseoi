@@ -20,7 +20,7 @@ const input = {
   parts: [a, b].map(bytes => ({ sha256: hash(bytes), byteLength: bytes.length })),
   mediaType: 'application/zip',
   fileName: 'source.zip',
-  role: 'sourceArchive',
+  role: 'releaseSourceArchive',
 }
 async function staged() {
   const f = createSourceAssetTestStore()

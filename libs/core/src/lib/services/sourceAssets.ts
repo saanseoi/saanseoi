@@ -1,4 +1,12 @@
-import { and, eq, isNull, metaAssets, metaResourceReleases } from '@repo/db'
+import {
+  and,
+  eq,
+  isNull,
+  sql,
+  metaAssets,
+  metaResourceReleases,
+  metaSourceReleases,
+} from '@repo/db'
 import type { MetaDatabase } from '@repo/db'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '../db/types'
@@ -56,114 +64,186 @@ export async function linkSourceAssetManifest(
     .get()
   if (asset?.role !== 'manifest' || asset.sourceAssetId !== metadata.sourceAssetId)
     throw new Error('Manifest asset is already linked to a different source object.')
+  await repository
+    .update(metaAssets)
+    .set({
+      sourceReleaseId: sql`(SELECT source.sourceReleaseId FROM assets AS source WHERE source.id = ${metadata.sourceAssetId})`,
+      resourceReleaseId: sql`(SELECT source.resourceReleaseId FROM assets AS source WHERE source.id = ${metadata.sourceAssetId})`,
+      datasetId: sql`coalesce((SELECT source.datasetId FROM assets AS source WHERE source.id = ${metadata.sourceAssetId}), ${metaAssets.datasetId})`,
+    })
+    .where(eq(metaAssets.id, assetId))
+    .run()
 }
 
+/** Resolve archive ownership at registration; acquisition can precede a release. */
+export async function resolveManagedAssetOwnership(
+  db: (HarbourReadableDb & HarbourWritableDb) | MetaDatabase,
+  metadata: {
+    role: string
+    mediaType: string
+    datasetId?: string
+    sourceReleaseId?: string
+    resourceReleaseId?: string
+    sourceAssetId?: string
+  },
+) {
+  const repository = db as HarbourReadableDb & HarbourWritableDb
+  if (metadata.role === 'sourceArchive')
+    throw new Error('Use releaseSourceArchive or resourceSourceArchive.')
+  if (
+    metadata.role === 'resourceSourceArchive' &&
+    (metadata.mediaType !== 'application/vnd.apache.parquet' ||
+      !metadata.resourceReleaseId ||
+      metadata.sourceReleaseId)
+  )
+    throw new Error(
+      'Resource source archives require Parquet and a resource release owner.',
+    )
+  if (metadata.role === 'manifest' && metadata.sourceAssetId) {
+    const source = await repository
+      .select({
+        datasetId: metaAssets.datasetId,
+        sourceReleaseId: metaAssets.sourceReleaseId,
+        resourceReleaseId: metaAssets.resourceReleaseId,
+      })
+      .from(metaAssets)
+      .where(eq(metaAssets.id, metadata.sourceAssetId))
+      .get()
+    if (!source)
+      throw new Error(
+        'Manifest sourceAssetId must identify a registered source object.',
+      )
+    return source
+  }
+  if (metadata.role === 'releaseSourceArchive' && metadata.resourceReleaseId) {
+    const release = await repository
+      .select({
+        datasetId: metaResourceReleases.datasetId,
+        sourceReleaseId: metaResourceReleases.sourceReleaseId,
+      })
+      .from(metaResourceReleases)
+      .where(eq(metaResourceReleases.id, metadata.resourceReleaseId))
+      .get()
+    if (
+      !release ||
+      (metadata.sourceReleaseId && metadata.sourceReleaseId !== release.sourceReleaseId)
+    )
+      throw new Error('Source archive release ownership conflicts.')
+    return { ...release, resourceReleaseId: null }
+  }
+  if (metadata.role === 'releaseSourceArchive' && metadata.sourceReleaseId) {
+    const source = await repository
+      .select({ datasetId: metaSourceReleases.datasetId })
+      .from(metaSourceReleases)
+      .where(eq(metaSourceReleases.id, metadata.sourceReleaseId))
+      .get()
+    if (!source || (metadata.datasetId && metadata.datasetId !== source.datasetId))
+      throw new Error('Source archive dataset ownership conflicts.')
+    return {
+      datasetId: source.datasetId,
+      sourceReleaseId: metadata.sourceReleaseId,
+      resourceReleaseId: null,
+    }
+  }
+  return {
+    datasetId: metadata.datasetId ?? null,
+    sourceReleaseId: metadata.sourceReleaseId ?? null,
+    resourceReleaseId: metadata.resourceReleaseId ?? null,
+  }
+}
+
+/** Link original archives to their source release, resource archives to their resource. */
 export async function linkManagedSourceAssetToRelease(
   db: (HarbourReadableDb & HarbourWritableDb) | MetaDatabase,
   input: { assetKey: string; resourceReleaseId: string },
 ) {
   const repository = db as HarbourReadableDb & HarbourWritableDb
-  const [asset, targetRelease] = await Promise.all([
-    repository
-      .select({
-        assetId: metaAssets.id,
-        resourceReleaseId: metaAssets.resourceReleaseId,
-      })
-      .from(metaAssets)
-      .where(eq(metaAssets.assetKey, input.assetKey))
-      .get(),
-    repository
-      .select({ sourceReleaseId: metaResourceReleases.sourceReleaseId })
-      .from(metaResourceReleases)
-      .where(eq(metaResourceReleases.id, input.resourceReleaseId))
-      .get(),
-  ])
-
-  if (!asset) throw new Error(`Source asset not found: ${input.assetKey}`)
-  if (!targetRelease) throw new Error(`Release not found: ${input.resourceReleaseId}`)
-  if (!targetRelease.sourceReleaseId) {
-    throw new Error(`Release has no source-release lineage: ${input.resourceReleaseId}`)
-  }
-
-  if (asset.resourceReleaseId) {
-    const linkedRelease = await getReleaseSourceLineage(
-      repository,
-      asset.resourceReleaseId,
-    )
-    if (linkedRelease.sourceReleaseId !== targetRelease.sourceReleaseId) {
-      if (linkedRelease.status === 'failed') {
-        await repository
-          .update(metaAssets)
-          .set({ resourceReleaseId: input.resourceReleaseId })
-          .where(
-            and(
-              eq(metaAssets.assetKey, input.assetKey),
-              eq(metaAssets.resourceReleaseId, asset.resourceReleaseId),
-            ),
-          )
-          .run()
-        return { assetId: asset.assetId, status: 'linked' as const }
-      }
-      throw new Error(
-        `Source asset ${input.assetKey} is already linked to a different source release.`,
-      )
-    }
-    return { assetId: asset.assetId, status: 'existing' as const }
-  }
-
-  await repository
-    .update(metaAssets)
-    .set({ resourceReleaseId: input.resourceReleaseId })
-    .where(
-      and(
-        eq(metaAssets.assetKey, input.assetKey),
-        isNull(metaAssets.resourceReleaseId),
-      ),
-    )
-    .run()
-
-  const linkedAsset = await repository
-    .select({ resourceReleaseId: metaAssets.resourceReleaseId })
+  const asset = await repository
+    .select({
+      id: metaAssets.id,
+      role: metaAssets.role,
+      sourceReleaseId: metaAssets.sourceReleaseId,
+      resourceReleaseId: metaAssets.resourceReleaseId,
+    })
     .from(metaAssets)
     .where(eq(metaAssets.assetKey, input.assetKey))
     .get()
-  if (!linkedAsset?.resourceReleaseId) {
-    throw new Error(`Source asset ${input.assetKey} could not be linked to a release.`)
-  }
-
-  const linkedSourceReleaseId = await getReleaseSourceLineage(
-    repository,
-    linkedAsset.resourceReleaseId,
-  )
-  if (linkedSourceReleaseId.sourceReleaseId !== targetRelease.sourceReleaseId) {
-    throw new Error(
-      `Source asset ${input.assetKey} is already linked to a different source release.`,
-    )
-  }
-
-  return {
-    assetId: asset.assetId,
-    status:
-      linkedAsset.resourceReleaseId === input.resourceReleaseId
-        ? ('linked' as const)
-        : ('existing' as const),
-  }
-}
-
-async function getReleaseSourceLineage(
-  db: HarbourReadableDb,
-  resourceReleaseId: string,
-) {
-  const release = await db
+  const target = await repository
     .select({
+      datasetId: metaResourceReleases.datasetId,
       sourceReleaseId: metaResourceReleases.sourceReleaseId,
-      status: metaResourceReleases.status,
     })
     .from(metaResourceReleases)
-    .where(eq(metaResourceReleases.id, resourceReleaseId))
+    .where(eq(metaResourceReleases.id, input.resourceReleaseId))
     .get()
-  if (!release?.sourceReleaseId) {
-    throw new Error(`Release has no source-release lineage: ${resourceReleaseId}`)
+  if (!asset || !target) throw new Error('Archive asset or release not found.')
+  if (!['releaseSourceArchive', 'resourceSourceArchive'].includes(asset.role))
+    throw new Error('Only archive assets can be linked to a release.')
+  const sourceOwned = asset.role === 'releaseSourceArchive'
+  const ownerColumn = sourceOwned
+    ? metaAssets.sourceReleaseId
+    : metaAssets.resourceReleaseId
+  const owner = sourceOwned ? target.sourceReleaseId : input.resourceReleaseId
+  const existing = sourceOwned ? asset.sourceReleaseId : asset.resourceReleaseId
+  if (existing && existing !== owner) {
+    const previous = sourceOwned
+      ? await repository
+          .select({ status: metaSourceReleases.status })
+          .from(metaSourceReleases)
+          .where(eq(metaSourceReleases.id, existing))
+          .get()
+      : await repository
+          .select({ status: metaResourceReleases.status })
+          .from(metaResourceReleases)
+          .where(eq(metaResourceReleases.id, existing))
+          .get()
+    if (previous?.status !== 'failed')
+      throw new Error('Source asset is already linked to a different release.')
   }
-  return release
+  const result = await repository
+    .update(metaAssets)
+    .set({
+      datasetId: target.datasetId,
+      sourceReleaseId: sourceOwned ? owner : null,
+      resourceReleaseId: sourceOwned ? null : owner,
+    })
+    .where(
+      and(
+        eq(metaAssets.id, asset.id),
+        existing ? eq(ownerColumn, existing) : isNull(ownerColumn),
+      ),
+    )
+    .run()
+  const linked = await repository
+    .select({
+      id: metaAssets.id,
+      role: metaAssets.role,
+      sourceReleaseId: metaAssets.sourceReleaseId,
+      resourceReleaseId: metaAssets.resourceReleaseId,
+    })
+    .from(metaAssets)
+    .where(eq(metaAssets.id, asset.id))
+    .get()
+  if (
+    !linked ||
+    (sourceOwned ? linked.sourceReleaseId : linked.resourceReleaseId) !== owner
+  )
+    throw new Error('Concurrent archive ownership conflict.')
+  await repository
+    .update(metaAssets)
+    .set({
+      datasetId: target.datasetId,
+      sourceReleaseId: linked.sourceReleaseId,
+      resourceReleaseId: linked.resourceReleaseId,
+    })
+    .where(eq(metaAssets.sourceAssetId, asset.id))
+    .run()
+  const receipt = result as { changes?: number; meta?: { changes?: number } }
+  return {
+    assetId: asset.id,
+    status:
+      existing === owner || (receipt.changes ?? receipt.meta?.changes) === 0
+        ? ('existing' as const)
+        : ('linked' as const),
+  }
 }
