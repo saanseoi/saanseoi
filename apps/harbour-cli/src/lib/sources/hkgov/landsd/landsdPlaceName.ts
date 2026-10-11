@@ -1,3 +1,7 @@
+import {
+  type LandsdPlaceName,
+  landsdPlaceNameLocales,
+} from '@repo/core/pipeline/services/sources/landsdPlaceNames'
 import { projectHk80Geometry } from '../hk1980'
 import { canonicalGeometryId } from '@repo/db'
 import { readFile } from 'node:fs/promises'
@@ -39,11 +43,7 @@ export type PreparedLandsdPlaceNameUpload = {
 
 export type NativeLandsdPlaceName = LandsdPlaceNameFeature & {
   sourceGeometry: GeoJsonGeometry
-  placeNames: Array<{
-    nameEn: string | null
-    nameZhHant: string | null
-    status: 'Alias' | 'Official'
-  }>
+  placeNames: LandsdPlaceName[]
 }
 
 /**
@@ -90,7 +90,7 @@ export async function readLandsdPlaceNameArchive(
   if (nativeById.size !== nativeLayer.features.length)
     throw new Error('Duplicate LandsD native place identity.')
 
-  const namesByGeoNameId = new Map<string, NativeLandsdPlaceName['placeNames']>()
+  const namesByGeoNameId = new Map<string, LandsdPlaceName[]>()
   for (const [index, value] of placeNameRows.entries()) {
     if (!isRecord(value)) {
       throw new Error(`LandsD PLACE_NAME row ${index + 1} is invalid.`)
@@ -105,7 +105,7 @@ export async function readLandsdPlaceNameArchive(
       {
         nameEn: decodePublisherText(value.NAME_EN),
         nameZhHant: decodePublisherText(value.NAME_TC),
-        status,
+        nameStatus: status,
       },
     ])
   }
@@ -129,7 +129,7 @@ export async function readLandsdPlaceNameArchive(
       throw new Error('LandsD place has invalid native point geometry.')
     }
     const placeNames = namesByGeoNameId.get(geoNameId) ?? []
-    if (!placeNames.some(name => name.status === 'Official')) {
+    if (!placeNames.some(name => name.nameStatus === 'Official')) {
       throw new Error(
         `LandsD GEO_PLACE_NAME ${geoNameId} has no official PLACE_NAME label.`,
       )
@@ -192,11 +192,8 @@ export function landsdSettlementDivisionRows(features: NativeLandsdPlaceName[]) 
     if (landsdSettlementSelectionRule.execute(feature.properties) !== 'selected')
       return []
     const row = normaliseLandsdSettlement(feature, index)
-    const labels = [
-      ...feature.placeNames.filter(name => name.status === 'Official'),
-      ...feature.placeNames.filter(name => name.status === 'Alias'),
-    ]
-    if (!labels.some(name => name.status === 'Official'))
+    const i18n = landsdPlaceNameLocales(feature.placeNames)
+    if (!Object.values(i18n).some(name => name.official !== null))
       throw new Error(`LandsD settlement ${row.geoNameId} has no official label.`)
     return [
       {
@@ -210,12 +207,12 @@ export function landsdSettlementDivisionRows(features: NativeLandsdPlaceName[]) 
         geometry: row.geometry,
         identifiers: row.identifiers,
         names: {
-          common: {
-            en: labels.flatMap(name => (name.nameEn ? [name.nameEn] : [])),
-            'zh-hant': labels.flatMap(name =>
-              name.nameZhHant ? [name.nameZhHant] : [],
-            ),
-          },
+          common: Object.fromEntries(
+            Object.entries(i18n).map(([locale, names]) => [
+              locale,
+              [...(names.official === null ? [] : [names.official]), ...names.alias],
+            ]),
+          ),
         },
         source_feature: row.sourceFeature,
         source_properties: row.sourceProperties,

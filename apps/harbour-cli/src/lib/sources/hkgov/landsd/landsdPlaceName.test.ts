@@ -31,8 +31,8 @@ describe('LandsD native Place Name FileGDB intake', () => {
         PLACE_TYPE: 'Village',
       },
       placeNames: [
-        { nameEn: 'Alias', nameZhHant: '別名', status: 'Alias' as const },
-        { nameEn: 'Official', nameZhHant: '正名', status: 'Official' as const },
+        { nameEn: 'Alias', nameZhHant: '別名', nameStatus: 'Alias' },
+        { nameEn: 'Official', nameZhHant: '正名', nameStatus: 'Official' },
       ],
     }
     const original = structuredClone(feature)
@@ -92,11 +92,9 @@ describe('LandsD native Place Name FileGDB intake', () => {
         PLACE_TYPE: 'Hill',
       },
     })
-    expect(features.find(feature => feature.id === '1')?.placeNames).toContainEqual({
-      nameEn: 'A Chau',
-      nameZhHant: '鴉洲',
-      status: 'Official',
-    })
+    expect(features.find(feature => feature.id === '1')?.placeNames).toEqual([
+      { nameEn: 'A Chau', nameZhHant: '鴉洲', nameStatus: 'Official' },
+    ])
   })
 
   test('writes the common hierarchy preflight columns for settlement divisions', async () => {

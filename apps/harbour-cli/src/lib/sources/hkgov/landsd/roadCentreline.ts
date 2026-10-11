@@ -8,7 +8,7 @@ import {
   type GeoJsonGeometry,
   type GeoJsonPosition,
 } from '@repo/core/pipeline/geojson'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import { readNativeFileGeodatabaseArchive } from '../../fileGeodatabaseNative.ts'
 
 export const LANDSD_ROAD_CENTRELINE_DATASET_CODE = 'ds-hk-hkgov-landsd-road-centreline'
