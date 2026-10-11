@@ -194,6 +194,13 @@ without ancestor lookups or locale-dependent label construction. Optional
 `include=hierarchy` loads the distinct ancestor resources, including cities, in
 `included`.
 
+Spatial hierarchy branches retain the positive-area remainder outside all matching
+parents at each tier. That remainder continues through narrower tiers with its existing
+ancestry, so a division partly inside a macrohood also retains a path for the portion
+outside it. Overlapping parents are subtracted together; boundary contact alone does not
+create a branch. Containment flags describe the whole division against each ancestor and
+do not themselves determine the number of paths.
+
 Hong Kong Island, Kowloon and New Territories administrative areas have deterministic
 SaanSeoi UUIDs and district-union geometry. Kowloon city retains its source UUID
 `17009785-57fd-4e5b-af86-2d27352e4718`; Kowloon area uses

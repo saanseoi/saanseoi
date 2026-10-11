@@ -6,6 +6,13 @@ import {
 } from '@repo/db'
 import { buildDisplayName } from '../../../displayName'
 
+// Stable curated identity, independent of display-name locale.
+const HONG_KONG_ISLAND_LANDFORM_ID = 'ss-5999ed90-1c47-51e7-b79d-80f9251c1e01'
+
+export function belongsInFullHierarchy(entry: { id: string; class: string }): boolean {
+  return entry.class !== 'city' && entry.id !== HONG_KONG_ISLAND_LANDFORM_ID
+}
+
 export type ClassifiedAncestor = {
   division_id: string
   class: string

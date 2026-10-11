@@ -5,6 +5,13 @@ Ha (灰窰下村) and Tui Min Hoi (對面海村), with ` Village` appended to ea
 name. Their standalone `Village` and `村` alternatives are removed during assembly,
 while unsuffixed source alternatives are retained.
 
+Spatial hierarchy assembly keeps both parent intersections and any positive-area
+remainder outside those parents. The remainder retains its existing ancestry and is
+checked against subsequent tiers. This preserves paths for portions outside a partially
+covering macrohood without inventing combinations of unrelated ancestors.
+`fullContainment` measures each ancestor against the whole division; it is annotated
+after paths are resolved and does not create branches.
+
 Expanded representative-point audit cards show a marker on the SaanSeoi basemap beside
 the retained coordinates. The preview loads only while the card is expanded.
 
