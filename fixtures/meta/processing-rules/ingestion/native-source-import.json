@@ -4,7 +4,7 @@
   "id": "saanseoi.native-source-import.v1",
   "scope": "bulk",
   "basis": "code",
-  "summary": "Validate SOURCE table and column identifiers; hash publisher assertions, preserve unchanged open versions, close omitted replacement members and compile replayable SOURCE mutations.",
+  "summary": "Store the publisher’s records so each release can be inspected and compared. Keep unchanged records, save a new version when their contents change, and retain earlier versions for comparison. For a complete replacement release, records no longer supplied are marked as absent from that release.",
   "inputs": [
     "publisher-records"
   ],
@@ -20,13 +20,13 @@
   },
   "i18n": {
     "en": {
-      "description": "Validate SOURCE table and column identifiers; hash publisher assertions, preserve unchanged open versions, close omitted replacement members and compile replayable SOURCE mutations."
+      "description": "Store the publisher’s records so each release can be inspected and compared. Keep unchanged records, save a new version when their contents change, and retain earlier versions for comparison. For a complete replacement release, records no longer supplied are marked as absent from that release."
     },
     "zh-hant": {
-      "description": "驗證 SOURCE 表格及欄位識別碼；計算發布者斷言雜湊、保留未變更的有效版本、關閉替代版本中省略的成員，並編譯可重播的 SOURCE 更新。"
+      "description": "儲存發布者的記錄，讓每個版本都可供查閱及比較。未變更的記錄會保留原有版本；內容有變更時會儲存新版本，並保留舊版本供比較。對於完整替換的版本，不再提供的記錄會標記為不屬於該版本。"
     },
     "zh-hans": {
-      "description": "验证 SOURCE 表格及栏位识别码；计算发布者断言哈希、保留未变更的有效版本、关闭替代版本中省略的成员，并编译可重播的 SOURCE 更新。"
+      "description": "存储发布者的记录，让每个版本都可供查阅及比较。未变更的记录会保留原有版本；内容有变更时会存储新版本，并保留旧版本供比较。对于完整替换的版本，不再提供的记录会标记为不属于该版本。"
     }
   }
 }
