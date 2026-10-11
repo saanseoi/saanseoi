@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'bun:test'
 import { createHmac } from 'node:crypto'
-import type { Handle, RequestEvent } from '@sveltejs/kit'
+import type { Handle } from '@sveltejs/kit/hooks'
+import type { RequestEvent } from '@sveltejs/kit'
 import { betterAuth } from 'better-auth/minimal'
 import { memoryAdapter } from 'better-auth/adapters/memory'
 import { createAuthEndpoint } from 'better-auth/api'
