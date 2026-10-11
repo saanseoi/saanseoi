@@ -5,7 +5,7 @@ init_configure "saanseoi init:divisions:hkgov-landsd" $argv
 
 set -l file "$saanseoi_init_repo/data/hkgov/csdi/archive/landsd_rcd_1648571595120_89752/2026-Q2/source.zip"
 set -l release_notes_url "https://portal.csdi.gov.hk/geoportal/?lang=en&datasetId=landsd_rcd_1648571595120_89752"
-set -l source_archive_key "by-source/hk/hkgov-csdi/landsd_rcd_1648571595120_89752/cf340ddceea2bbb60b54e366db7e09c752cece053a51963022a918a4c4d69c71-source.zip"
+set -l source_archive_key "by-source/hk/hkgov-csdi/landsd_rcd_1648571595120_89752/2026-Q2/cf340ddceea2bbb60b54e366db7e09c752cece053a51963022a918a4c4d69c71-source.zip"
 set -l source_archive_sha256 "cf340ddceea2bbb60b54e366db7e09c752cece053a51963022a918a4c4d69c71"
 
 if not test -f "$file"

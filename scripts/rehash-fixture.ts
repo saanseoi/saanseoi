@@ -11,6 +11,7 @@ const fixtureGroups = [
   'apiCompositions',
   'apiEndpoints',
   'apiFields',
+  'apiResponseFields',
   'apiVersions',
   'dataLicenses',
   'dataPublishers',
