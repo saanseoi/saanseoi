@@ -1,13 +1,15 @@
 <script lang="ts">
 import { Audit } from '#lib/bits/pages/docs/components/releaseAudit/index.js'
-import { afterNavigate, goto } from '$app/navigation'
+import { goto } from '$app/navigation'
 import { page } from '$app/state'
+
 import { PUBLIC_ATLAS_API_BASE_URL } from '$app/env/public'
 import { apiProfileNames, type ApiProfileName } from '@repo/core/apiLocales'
 import { prefersReducedMotion } from 'svelte/motion'
 import { fade } from 'svelte/transition'
 import * as ReleaseDiff from '#lib/bits/pages/docs/components/releaseDiff/index.js'
 import * as ReleaseHeader from '#lib/bits/pages/docs/components/releaseHeader/index.js'
+import * as ReleaseSchema from '#lib/bits/pages/docs/components/releaseSchema/index.js'
 import * as ReleaseNav from '#lib/bits/pages/docs/components/releaseNav/index.js'
 import * as ReleaseNotes from '#lib/bits/pages/docs/components/releaseNotes/index.js'
 import { Main } from '#lib/bits/primitives/main/index.js'
@@ -16,8 +18,6 @@ import { Seo } from '#lib/bits/patterns/seo/index.js'
 import { getCurrentLocale, m, selectLocalisedRow } from '#lib/bits/internal/i18n.js'
 import { createDeferredRemoteResource } from '#lib/remote/createDeferredRemoteResource.svelte.js'
 import {
-  getApiReleaseAuditActionPage,
-  getApiReleaseAuditData,
   getApiReleasePageData,
   getRegistryAccessMetricsData,
 } from '#lib/registry/meta.remote.js'
@@ -33,6 +33,7 @@ import { getReleaseHeaderDomainOptions } from '#lib/bits/pages/docs/components/r
 import { trackClientProductUsage } from '#lib/analytics/clientProductUsage.js'
 import {
   buildReleaseNotesPresentation,
+  getReleaseNotesPresentation,
   selectReleaseNotesMarkdown,
 } from '#lib/registry/releaseNotesPresentation.js'
 import { supportsReleaseSamples } from '#lib/bits/pages/docs/components/releaseSamples/releaseSamplesPresentation.js'
@@ -52,6 +53,7 @@ import { error } from '@sveltejs/kit'
 import { buildApiReleaseLinksPresentation } from './releaseLinks.presentation'
 
 let { params, data } = $props()
+let currentUrl = $derived(page.shallow?.url ?? page.url)
 let initialShell = $derived(data.apiReleaseShell)
 let lastReadyShell = $state<typeof initialShell | null>(null)
 $effect(() => {
@@ -109,8 +111,14 @@ let domainReleases = $derived(
     .filter(item => (item.domainCode ?? 'default') === currentDomainCode)
     .sort((left, right) =>
       compareApiReleaseVersions(
-        { label: getReleaseVersionLabel(left.code, api.familyType) },
-        { label: getReleaseVersionLabel(right.code, api.familyType) },
+        {
+          label: getReleaseVersionLabel(left.code, api.familyType),
+          apiVersion: left.apiVersion,
+        },
+        {
+          label: getReleaseVersionLabel(right.code, api.familyType),
+          apiVersion: right.apiVersion,
+        },
       ),
     ),
 )
@@ -125,7 +133,7 @@ let previousRelease = $derived.by(() => {
 let notes = $derived(selectReleaseNotesMarkdown(release.notes, locale))
 let previousNotes = $derived(selectReleaseNotesMarkdown(previousRelease?.notes, locale))
 let notesPresentation = $derived(
-  buildReleaseNotesPresentation(notes, locale, [previousNotes]),
+  getReleaseNotesPresentation(release.notes, locale, [previousRelease?.notes]),
 )
 let noteDiff = $derived(diffMarkdown(previousNotes, notes))
 let noteHeadings = $derived(notesPresentation.headings)
@@ -161,7 +169,9 @@ const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
     ? (tab as ApiReleaseTab)
     : 'release'
 }
-let activeTab = $state<ApiReleaseTab>(getApiReleaseTabFromUrl(page.url))
+let activeTab = $state<ApiReleaseTab>(
+  getApiReleaseTabFromUrl(page.shallow?.url ?? page.url),
+)
 let hasPreloadedSkeletons = $state(false)
 let statsRoot = $derived(
   activeTab === 'stats'
@@ -188,13 +198,6 @@ let auditRoot = $derived(
   activeTab === 'audit'
     ? import(
         '#lib/bits/pages/docs/components/releaseAudit/components/releaseAuditRoot.svelte'
-      )
-    : undefined,
-)
-let auditSkeleton = $derived(
-  activeTab === 'audit'
-    ? import(
-        '#lib/bits/pages/docs/components/releaseAudit/components/releaseAuditSkeleton.svelte'
       )
     : undefined,
 )
@@ -259,9 +262,11 @@ let statsHeadings = $state<ReleaseContentHeading[]>([])
 let activeStatsHeadingId = $state<string | null>(null)
 let auditHeadings = $state<MarkdownHeading[]>([])
 let activeAuditHeadingId = $state<string | null>(null)
-let showNoteDiff = $state(page.url.searchParams.get('view') === 'diff')
+let showNoteDiff = $state(
+  (page.shallow?.url ?? page.url).searchParams.get('view') === 'diff',
+)
 $effect(() => {
-  showNoteDiff = page.url.searchParams.get('view') === 'diff'
+  showNoteDiff = currentUrl.searchParams.get('view') === 'diff'
 })
 let showBulkActions = $state(false)
 let sampleRequest = $state(0)
@@ -272,9 +277,11 @@ const getApiProfileFromUrl = (url: ApiReleaseUrl): ApiProfileName => {
     ? (profile as ApiProfileName)
     : 'default'
 }
-let apiProfile = $state<ApiProfileName>(getApiProfileFromUrl(page.url))
+let apiProfile = $state<ApiProfileName>(
+  getApiProfileFromUrl(page.shallow?.url ?? page.url),
+)
 $effect(() => {
-  apiProfile = getApiProfileFromUrl(page.url)
+  apiProfile = getApiProfileFromUrl(currentUrl)
 })
 $effect(() => {
   const nextTarget = `${release.apiVersion}:${release.code}:${apiProfile}`
@@ -420,6 +427,7 @@ let statsPresentation = $derived<ReleaseStatsCopy>({
 let allVersions = $derived(
   domainReleases.map((item, index, releases) => ({
     code: item.code,
+    apiVersion: item.apiVersion.replace(`api-${api.familyType}-`, ''),
     cohortKey: item.cohortKey,
     href: (() => {
       const searchParams = new URLSearchParams()
@@ -456,8 +464,12 @@ let domains = $derived(
   getReleaseHeaderDomainOptions(api, release, activeTab).map(option => ({
     ...option,
     label:
-      selectLocalisedRow(currentComposition?.i18n?.[option.code], locale)?.name ??
-      option.code,
+      selectLocalisedRow(
+        currentComposition?.apiCompositionMembers?.find(
+          member => member.domainCode === option.code,
+        )?.i18n,
+        locale,
+      )?.name ?? option.code,
   })),
 )
 function setShowNoteDiff(enabled: boolean) {
@@ -468,7 +480,7 @@ function setShowNoteDiff(enabled: boolean) {
     entityType: 'action',
     entityId: enabled ? 'open' : 'close',
   })
-  const url = new URL(page.url.href)
+  const url = new URL(currentUrl.href)
   if (enabled) url.searchParams.set('view', 'diff')
   else url.searchParams.delete('view')
   void goto(`${url.pathname}${url.search}${url.hash}`, {
@@ -487,7 +499,7 @@ function setApiProfile(profile: string) {
     entityType: 'action',
     entityId: `profile:${nextProfile}`,
   })
-  const url = new URL(page.url.href)
+  const url = new URL(currentUrl.href)
   if (nextProfile === 'default') url.searchParams.delete('profile')
   else url.searchParams.set('profile', nextProfile)
   void goto(`${url.pathname}${url.search}${url.hash}`, {
@@ -496,6 +508,16 @@ function setApiProfile(profile: string) {
     state: {},
   })
 }
+const infoAction = $derived<ReleaseNavAction>({
+  id: 'api-info',
+  icon: 'proicons:info',
+  label: activeTab === 'schema' ? 'About the API schema' : 'About API samples',
+  ...(activeTab === 'schema'
+    ? { infoContent: schemaInfo }
+    : {
+        infoDescription: `A random ${apiProfile} record from this release set. Null fields are omitted and subsequent examples are deduplicated.`,
+      }),
+})
 const profileAction = $derived<ReleaseNavAction>({
   id: 'profile',
   label: 'Profile',
@@ -511,7 +533,7 @@ function setActiveTab(tab: string) {
     entityType: 'tab',
     entityId: tab,
   })
-  const url = new URL(page.url.href)
+  const url = new URL(currentUrl.href)
   if (tab === 'release') url.searchParams.delete('tab')
   else url.searchParams.set('tab', tab)
   if (apiProfile === 'default') url.searchParams.delete('profile')
@@ -528,18 +550,15 @@ let tabs = $derived<ReleaseNavTab[]>([
   { id: 'schema', label: m.api_release_schema() },
   { id: 'samples', label: m.api_release_samples() },
   { id: 'stats', label: m.api_release_stats() },
-  ...(['divisions', 'stats'].includes(api.familyType) ||
-  (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
-  release.bulkActions?.length
+  ...(['divisions', 'stats'].includes(api.familyType) || release.bulkActions?.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
 
-afterNavigate(({ to }) => {
-  if (!to) return
-
-  const tab = getApiReleaseTabFromUrl(to.url)
+// Restore the selected tab when the visible URL changes, including shallow history.
+$effect(() => {
+  const tab = getApiReleaseTabFromUrl(currentUrl)
   activeTab = tabs.some(({ id }) => id === tab) ? tab : 'release'
 })
 
@@ -560,7 +579,7 @@ let actions = $derived<ReleaseNavAction[]>(
           {
             icon: 'ion:reload-outline',
             id: 'more-samples',
-            label: 'Show more',
+            label: m.source_samples_more(),
             onSelect: () => {
               sampleRequest += 1
               trackClientProductUsage({
@@ -571,9 +590,10 @@ let actions = $derived<ReleaseNavAction[]>(
               })
             },
           },
+          infoAction,
         ]
       : activeTab === 'schema'
-        ? [profileAction]
+        ? [profileAction, infoAction]
         : [],
 )
 
@@ -640,9 +660,7 @@ let hasContent = $derived.by(() => {
   if (activeTab === 'samples') return true
   if (activeTab === 'audit') {
     return Boolean(
-      ['divisions', 'stats'].includes(api.familyType) ||
-        (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0 ||
-        release.bulkActions?.length,
+      ['divisions', 'stats'].includes(api.familyType) || release.bulkActions?.length,
     )
   }
   return Boolean(release.contributingSources?.length)
@@ -653,54 +671,11 @@ $effect(() => {
   activeStatsHeadingId = null
   activeAuditHeadingId = null
 })
-
-let auditDataQuery = $derived(
-  activeTab === 'audit' &&
-    (release.processingActionCount ?? release.processingActions?.length ?? 0) > 0
-    ? getApiReleaseAuditData({
-        familyType: api.familyType,
-        releaseCode: release.code,
-      })
-    : null,
-)
-let auditSectionPageQueries = $derived(
-  auditDataQuery?.ready
-    ? auditDataQuery.current.sections.map(section => ({
-        section,
-        query: getApiReleaseAuditActionPage({
-          action: section.action,
-          familyType: api.familyType,
-          limit: 50,
-          offset: 0,
-          releaseCode: release.code,
-        }),
-      }))
-    : [],
-)
-let auditData = $derived.by(() => {
-  if (!auditDataQuery?.ready) return null
-
-  const pageReadiness = auditSectionPageQueries.map(item => item.query.ready)
-  if (pageReadiness.some(ready => !ready)) return null
-
-  return {
-    sections: auditSectionPageQueries.map(item => ({
-      ...item.section,
-      rows: item.query.current?.rows ?? [],
-      hasMore: item.query.current?.hasMore ?? false,
-      nextOffset: item.query.current?.nextOffset ?? 0,
-    })),
-  }
-})
-const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
-  getApiReleaseAuditActionPage({
-    action,
-    familyType: api.familyType,
-    limit,
-    offset,
-    releaseCode: release.code,
-  })
 </script>
+
+{#snippet schemaInfo()}
+  <ReleaseSchema.Info apiFamily={api.familyType} />
+{/snippet}
 
 <Seo
   title={seoTitle}
@@ -708,7 +683,7 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
   type="article"
   publishedTime={release.publishedAt ?? release.createdAt}
   modifiedTime={release.updatedAt}
-  noindex={page.url.searchParams.size > 0}
+  noindex={currentUrl.searchParams.size > 0}
 />
 
 <Main class="mx-auto w-full max-w-(--spacing-container-max) px-6 py-8 md:px-8">
@@ -876,26 +851,16 @@ const loadMoreAuditSection = (action: string, offset: number, limit: number) =>
             {#if auditRoot}
               {#await auditRoot then module}
                 {@const ReleaseAuditRoot = module.default}
-                {#if auditData || !auditDataQuery}
-                  {#key release.code}
-                    <ReleaseAuditRoot
-                      analyticsSurface="api_release"
-                      actions={release.processingActions}
-                      actionSections={auditData?.sections}
-                      bulkActions={release.bulkActions}
-                      {locale}
-                      {showBulkActions}
-                      onLoadMoreSection={loadMoreAuditSection}
-                      bind:headings={auditHeadings}
-                      bind:activeHeadingId={activeAuditHeadingId}
-                    />
-                  {/key}
-                {:else if auditSkeleton}
-                  {#await auditSkeleton then skeletonModule}
-                    {@const ReleaseAuditSkeleton = skeletonModule.default}
-                    <ReleaseAuditSkeleton />
-                  {/await}
-                {/if}
+                {#key release.code}
+                  <ReleaseAuditRoot
+                    analyticsSurface="api_release"
+                    bulkActions={release.bulkActions}
+                    {locale}
+                    {showBulkActions}
+                    bind:headings={auditHeadings}
+                    bind:activeHeadingId={activeAuditHeadingId}
+                  />
+                {/key}
               {/await}
             {/if}
           </Audit>

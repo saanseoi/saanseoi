@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers'
-import { json, type RequestHandler } from '@sveltejs/kit'
+import type { RequestHandler } from '@sveltejs/kit'
 import {
   isClientProductUsageEventName,
   PRODUCT_USAGE_ENTITY_TYPES,
@@ -32,7 +32,7 @@ export const POST: RequestHandler = async ({ request }) => {
   try {
     payload = (await request.json()) as ClientPayload
   } catch {
-    return json({ error: 'invalid_analytics_event' }, { status: 400 })
+    return Response.json({ error: 'invalid_analytics_event' }, { status: 400 })
   }
 
   if (
@@ -47,7 +47,7 @@ export const POST: RequestHandler = async ({ request }) => {
     (payload.entityId !== undefined && !isString(payload.entityId)) ||
     (payload.entityId2 !== undefined && !isString(payload.entityId2))
   ) {
-    return json({ error: 'invalid_analytics_event' }, { status: 400 })
+    return Response.json({ error: 'invalid_analytics_event' }, { status: 400 })
   }
 
   recordProductUsage(env.PRODUCT_USAGE, {
