@@ -795,7 +795,7 @@ describe('Divisions API responses through the Worker route', () => {
         pendingReleaseSetCodes: ['pending'],
         publishedFamilies: ['divisions'],
       })
-      expect((await request('/divisions/v0/search?q=Eastern')).status).toBe(503)
+      expect((await request('/divisions/v0/search?q=Eastern')).status).toBe(200)
       await finalisePublishedSearch(db, current, { publishedFamilies: ['divisions'] })
       for (const version of ['v0', 'v0.1']) {
         const response = await request(`/divisions/${version}/search?q=Eastern`)

@@ -95,16 +95,22 @@ function fixture() {
     insert(meta, 'apiReleaseSets', {
       id: `id-${code}`,
       code,
-      apiVersionId: 'version',
       regionCode: 'hk',
       domainCode: domain,
       cohortKey: code,
       revision: 0,
       schemaVersion: '1',
       rulesetVersion: '1',
+      versionHash: code,
+      ...timestamps,
+    })
+    insert(meta, 'apiVersionReleaseSets', {
+      id: `association-${code}`,
+      apiVersionId: 'version',
+      apiReleaseSetId: `id-${code}`,
+      versionHash: code,
       status,
       publishedAt: status === 'draft' ? null : stamp,
-      versionHash: code,
       ...timestamps,
     })
     insert(meta, 'apiReleaseSetSnapshots', {
@@ -124,7 +130,7 @@ function fixture() {
       meta.exec('UPDATE apiCatalogRevisionReleaseSets SET isDefault=0')
       insert(meta, 'apiCatalogRevisionReleaseSets', {
         apiCatalogRevisionId: 'catalogue',
-        apiReleaseSetId: `id-${code}`,
+        apiVersionReleaseSetId: `association-${code}`,
         domainCode: domain,
         cohortKey: code,
         isDefault: 1,
