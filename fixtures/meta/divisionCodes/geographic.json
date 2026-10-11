@@ -185,8 +185,8 @@
     {
       "divisionCode": "CLB",
       "canonicalId": "33a3a221-2046-4fbd-a85b-4496ea198ff4",
-      "divisionClass": "macrohood",
-      "divisionCategory": "hood"
+      "divisionClass": "rural_area",
+      "divisionCategory": "locality"
     },
     {
       "divisionCode": "DH",
