@@ -91,3 +91,43 @@ test('preserves supplied valid points and does not invent missing coordinates', 
     canonicalDivisionPoint({ type: 'Point', coordinates: [NaN, 1] }, { id: 'invalid' }),
   ).toThrow()
 })
+
+test('island-group labels may lie outside their member geometry while individual islands may not', () => {
+  const point = { type: 'Point' as const, coordinates: [3, 4] as [number, number] }
+  expect(
+    canonicalDivisionPoint(point, { id: 'group', class: 'island_group', area: u }),
+  ).toEqual(point)
+  for (const klass of ['major_island', 'minor_island', 'islet', 'town'])
+    expect(() =>
+      canonicalDivisionPoint(point, { id: 'other', class: klass, area: u }),
+    ).toThrow('outside the interior')
+  for (const coordinates of [
+    [NaN, 1],
+    [181, 1],
+    [1, 91],
+  ])
+    expect(() =>
+      canonicalDivisionPoint(
+        { type: 'Point', coordinates },
+        { id: 'group', class: 'island_group', area: u },
+      ),
+    ).toThrow('invalid WGS 84')
+  expect(() =>
+    canonicalDivisionPoint(point, {
+      id: 'group',
+      class: 'island_group',
+      area: {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [0, 0],
+            [2, 2],
+            [0, 2],
+            [2, 0],
+            [0, 0],
+          ],
+        ],
+      },
+    }),
+  ).toThrow('invalid or empty area')
+})

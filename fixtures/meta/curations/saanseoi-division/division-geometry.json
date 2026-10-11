@@ -51038,11 +51038,15 @@
     },
     {
       "type": "Feature",
-      "id": "stub:bdb9c4be-d63c-4f59-8841-a28edc314d81",
+      "id": "saanseoi:bdb9c4be-d63c-4f59-8841-a28edc314d81",
       "properties": {
         "divisionId": "bdb9c4be-d63c-4f59-8841-a28edc314d81",
         "variant": "saanseoi",
-        "reviewedAt": "2026-09-14T06:05:12.446Z"
+        "reviewedAt": "2026-10-11T06:07:36.834Z",
+        "corePoint": [
+          113.86301225825224,
+          22.253648978814084
+        ]
       },
       "geometry": {
         "type": "MultiPolygon",

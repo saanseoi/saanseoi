@@ -571,6 +571,7 @@ function assembleCuratedDivisionsInternal(input: {
         : division.geometry
     const point = canonicalDivisionPoint(geometry ?? null, {
       id: division.id,
+      class: division.class,
       area: divisionAreaUnion(
         (containmentAreas.get(division.id) ?? []) as GeoJsonGeometry[],
       ),

@@ -1510,6 +1510,7 @@ export function normaliseDivisionRow(
     const sourceGeometry = normalised.base.geometry as GeoJsonGeometry | null
     const geometry = canonicalDivisionPoint(sourceGeometry, {
       id: normalised.base.id,
+      class: normalised.base.class,
       guard: options.pointGuard,
     })
     normalised.base.geometry = geometry

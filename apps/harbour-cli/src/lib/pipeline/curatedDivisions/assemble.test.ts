@@ -614,3 +614,16 @@ test('Ap Lei Chau and Ap Lei Pai publish their separately reviewed island polygo
   const pai = result.divisions.find(row => row.id === result.aliases[ids[1]!])!
   expect(pai.class).toBe('minor_island')
 })
+
+test('island-group labels outside the canonical area survive assembly', () => {
+  const point = { type: 'Point', coordinates: [2, 2] }
+  const result = assembleCuratedDivisions({
+    ...input,
+    divisions: [
+      { id: 'hood', class: 'island_group', category: 'landform', geometry: point },
+    ],
+    hierarchy: { entries: [] },
+  })
+  expect(result.divisions[0]!.geometry).toEqual(point)
+  expect(JSON.parse(result.areas[0]!.geometry)).toEqual(polygon)
+})

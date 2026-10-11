@@ -49,28 +49,28 @@ describe('polygon display labels', () => {
     })
   })
 
-  it('accounts for holes when calculating the polygon centre', () => {
-    expect(
-      largestPolygonLabelPoint({
-        type: 'Polygon',
-        coordinates: [
-          [
-            [0, 0],
-            [6, 0],
-            [6, 4],
-            [0, 4],
-            [0, 0],
-          ],
-          [
-            [4, 1],
-            [5, 1],
-            [5, 3],
-            [4, 3],
-            [4, 1],
-          ],
+  it('places the label in the broad interior away from the hole', () => {
+    const point = largestPolygonLabelPoint({
+      type: 'Polygon',
+      coordinates: [
+        [
+          [0, 0],
+          [6, 0],
+          [6, 4],
+          [0, 4],
+          [0, 0],
         ],
-      }),
-    ).toEqual([2.8636363636363638, 2])
+        [
+          [4, 1],
+          [5, 1],
+          [5, 3],
+          [4, 3],
+          [4, 1],
+        ],
+      ],
+    })
+    expect(point[0]).toBeCloseTo(2, 2)
+    expect(point[1]).toBeCloseTo(2, 2)
   })
 
   it('removes detached smaller parts without changing the largest polygon', () => {

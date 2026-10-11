@@ -57,3 +57,19 @@ test('unknown and invalid land areas cannot silently become a size class', () =>
   for (const area of [0, -1, NaN, Infinity])
     expect(() => classifyIslandArea(area)).toThrow('finite, positive')
 })
+
+integration(
+  'Bun Sha Pui receives an interior label rather than a bounding-box midpoint',
+  () => {
+    const island = islands.find(row => row.name === 'Bun Sha Pui')!
+    expect(island).toBeDefined()
+    expect(
+      containsReviewPoint(island.point, island.geometry as Polygon | MultiPolygon),
+    ).toBe(true)
+    const bounds = island.bounds!
+    expect(island.point).not.toEqual([
+      (bounds[0]! + bounds[2]!) / 2,
+      (bounds[1]! + bounds[3]!) / 2,
+    ])
+  },
+)

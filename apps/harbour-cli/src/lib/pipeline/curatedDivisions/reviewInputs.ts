@@ -1,3 +1,4 @@
+import { polygonLabelPoint } from '@repo/core/pipeline/services/divisions/polygonLabelPoint'
 import { landsdPlaceNameLocales } from '@repo/core/pipeline/services/sources/landsdPlaceNames'
 import { divisionCuration } from './curationInputs'
 import pins from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-review.json'
@@ -96,10 +97,11 @@ export async function loadDivisionReviewInputs(
       name: labels.en!,
       ...(labels['zh-hant'] ? { zh: labels['zh-hant']! } : {}),
       point: (points.get(row.id) ??
-        place?.geometry.coordinates ?? [
-          (bounds[0] + bounds[2]) / 2,
-          (bounds[1] + bounds[3]) / 2,
-        ]) as [number, number],
+        place?.geometry.coordinates ??
+        (shape.type === 'Point' ? shape.coordinates : polygonLabelPoint(shape))) as [
+        number,
+        number,
+      ],
       geometry: shape,
       geometrySource: selection.geometry ? undefined : feature?.geometrySource,
       bounds,

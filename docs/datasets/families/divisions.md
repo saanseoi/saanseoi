@@ -15,11 +15,17 @@ Identifiers are available in the default, map and full profiles.
 
 A canonical Division carries a representative GeoJSON `Point`, never a polygon.
 Publisher points are preserved when valid. If the publisher supplies only a Polygon or
-MultiPolygon, canonicalisation uses JTS `InteriorPoint` to select a point strictly
-inside the area. The `division-representative-point` audit guard rejects invalid areas,
+MultiPolygon, canonicalisation selects the centre of the largest inscribed circle in the
+largest connected polygon part. The point stays strictly inside the area, away from
+edges and holes. The `division-representative-point` audit guard rejects invalid areas,
 non-finite coordinates and supplied points outside the canonical area, inside a hole, or
 on its boundary. This handles concave shapes and disconnected polygon parts without
 using a centroid that may fall outside the area.
+
+An `island_group` label point may sit outside its member-island geometry, including in
+the water between islands. Its coordinates must still be finite WGS 84 coordinates, and
+its canonical area must remain valid. Individual islands and other divisions must retain
+a point strictly inside their canonical area.
 
 Area polygons remain in separate DivisionArea resources; boundary lines remain in
 DivisionBoundary resources. Publisher source geometry is retained unchanged. Containment

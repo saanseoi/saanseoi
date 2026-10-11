@@ -2,7 +2,8 @@ import GeoJSONWriter from 'jsts/org/locationtech/jts/io/GeoJSONWriter.js'
 import UnaryUnionOp from 'jsts/org/locationtech/jts/operation/union/UnaryUnionOp.js'
 import GeoJSONReader from 'jsts/org/locationtech/jts/io/GeoJSONReader.js'
 import GeometryFactory from 'jsts/org/locationtech/jts/geom/GeometryFactory.js'
-import InteriorPoint from 'jsts/org/locationtech/jts/algorithm/InteriorPoint.js'
+import { polygonLabelPoint } from './polygonLabelPoint'
+import type { Polygon, MultiPolygon } from 'geojson'
 import RelateOp from 'jsts/org/locationtech/jts/operation/relate/RelateOp.js'
 import IsValidOp from 'jsts/org/locationtech/jts/operation/valid/IsValidOp.js'
 import { guardSession } from '../../../provenance/guards'
@@ -12,7 +13,7 @@ export type DivisionPoint = { type: 'Point'; coordinates: GeoJsonPosition }
 export const divisionPointGuardDefinition = {
   id: 'division-representative-point',
   summary:
-    'Require a finite WGS 84 Point inside its canonical area when area evidence is available; derive an interior point from polygonal input.',
+    'Require a finite WGS 84 Point inside its canonical area when area evidence is available, except island-group labels; derive an interior point from polygonal input.',
   consequence: 'block-ingestion' as const,
 }
 export const createDivisionPointGuard = () =>
@@ -22,7 +23,12 @@ type PointGuard = ReturnType<typeof createDivisionPointGuard>
 /** Canonical identities carry points; publisher polygons remain in DivisionAreas. */
 export function canonicalDivisionPoint(
   geometry: GeoJsonGeometry | null,
-  options: { id: string; area?: GeoJsonGeometry | null; guard?: PointGuard },
+  options: {
+    id: string
+    class?: string | null
+    area?: GeoJsonGeometry | null
+    guard?: PointGuard
+  },
 ): DivisionPoint | null {
   return (options.guard ?? createDivisionPointGuard()).check(
     divisionPointGuardDefinition.id,
@@ -47,10 +53,10 @@ export function canonicalDivisionPoint(
       let point: DivisionPoint
       if (geometry?.type === 'Point') point = geometry
       else {
-        const interior = polygon && InteriorPoint.getInteriorPoint(polygon)
+        const interior = area && polygonLabelPoint(area as Polygon | MultiPolygon)
         if (!interior)
           throw new Error(`Cannot derive an interior point for division ${options.id}.`)
-        point = { type: 'Point', coordinates: [interior.x, interior.y] }
+        point = { type: 'Point', coordinates: interior }
       }
       const [longitude, latitude] = point.coordinates
       if (
@@ -61,8 +67,13 @@ export function canonicalDivisionPoint(
         Math.abs(latitude) > 90
       )
         throw new Error(`Division ${options.id} has invalid WGS 84 point coordinates.`)
-      // contains is deliberately strict: holes and polygon boundaries are excluded.
-      if (polygon && !RelateOp.contains(polygon, reader.read(point)))
+      // Island-group labels may sit between their disconnected member islands.
+      // Other divisions exclude holes and polygon boundaries deliberately.
+      if (
+        polygon &&
+        options.class !== 'island_group' &&
+        !RelateOp.contains(polygon, reader.read(point))
+      )
         throw new Error(
           `Division ${options.id} point lies outside the interior of its canonical area.`,
         )

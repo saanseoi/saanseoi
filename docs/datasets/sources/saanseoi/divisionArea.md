@@ -62,8 +62,17 @@ marker with that polygon. The point must be finite and inside the curated geomet
 Hierarchy derivation and Division publication use it in place of the source point;
 DivisionArea publication continues to retain the polygon unchanged. Drawings without a
 curated core point keep their source point. When an identity has no point, the input
-loader derives an interior point from its active authored polygon. Derived coordinates
-are generated for the editor and ingestion, rather than duplicated in additions.
+loader derives a label point at the centre of the largest inscribed circle in the
+largest connected polygon part. Generated island points and editor label anchors use the
+same rule; explicit point overrides and publisher points retain precedence. The search
+tolerance is one ten-thousandth of the smaller bounding-box dimension, with a minimum of
+one billionth of a degree. Derived coordinates are generated for the editor and
+ingestion, rather than duplicated in additions.
+
+Island-group representative points may label the water between member islands. Assembly
+preserves these points without requiring containment in the member-island geometry;
+finite WGS 84 coordinates and valid canonical polygons remain mandatory. This exception
+does not apply to individual islands or other division classes.
 
 The editor applies a one-time cleanup to browser-saved multipart drawings. It removes a
 detached locality polygon only when it is smaller than one hectare and less than one per

@@ -1,3 +1,4 @@
+import { polygonLabelPoint } from '@repo/core/pipeline/services/divisions/polygonLabelPoint'
 import type {
   Feature,
   FeatureCollection,
@@ -46,22 +47,9 @@ export function largestPolygonGeometry(geometry: Polygon | MultiPolygon): Polygo
   return { type: 'Polygon', coordinates: structuredClone(coordinates) }
 }
 
-/** Returns the area-weighted centre of the largest polygon part. */
+/** Returns an interior label anchor away from edges and holes. */
 export function largestPolygonLabelPoint(geometry: Polygon | MultiPolygon): Position {
-  const largest = largestPolygonGeometry(geometry).coordinates
-  const outer = ringAreaAndCentroid(largest[0] ?? [])
-  if (!outer.area) return outer.centroid
-
-  let weightedX = outer.centroid[0]! * outer.area
-  let weightedY = outer.centroid[1]! * outer.area
-  let weight = outer.area
-  for (const hole of largest.slice(1)) {
-    const part = ringAreaAndCentroid(hole)
-    weightedX -= part.centroid[0]! * part.area
-    weightedY -= part.centroid[1]! * part.area
-    weight -= part.area
-  }
-  return weight > 0 ? [weightedX / weight, weightedY / weight] : outer.centroid
+  return polygonLabelPoint(geometry)
 }
 
 /** Converts each displayed area into exactly one label anchor. */
