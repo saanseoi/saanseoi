@@ -14,7 +14,6 @@ export const {
   metaPublishers,
   metaReleaseShardAssignments,
   metaResourceReleases,
-  releaseProcessingActions,
   stats,
 } = metaSchema
 
@@ -541,6 +540,18 @@ function resolveSourceCountSpecs(release: ReleaseContext): CountSpec[] {
   const sourceFamily = resolveSourceFamily(release)
 
   switch (sourceFamily) {
+    case 'saanseoi':
+      return release.resourceType === 'division' ||
+        release.resourceType === 'divisionArea'
+        ? [
+            {
+              label: 'source',
+              strategy: 'source-validity',
+              tableName:
+                release.resourceType === 'division' ? 'ssDivision' : 'ssDivisionArea',
+            },
+          ]
+        : []
     case 'hkgov-dpo':
       return [
         {

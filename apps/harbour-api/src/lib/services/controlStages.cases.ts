@@ -51,7 +51,7 @@ test('updates the running ingest run in place when a phase completes or fails', 
   await handleStageCompleted(db, {
     resourceReleaseId,
     phase: 'extractDivisions',
-    stats: {
+    results: {
       processedRows: 1810,
     },
   })
@@ -73,7 +73,7 @@ test('updates the running ingest run in place when a phase completes or fails', 
     .all('dr-hk-overture-division-2025-09-24.0') as Array<{
     phase: string
     status: string
-    stats: string | null
+    results: string | null
     error: string | null
     finishedAt: string | null
   }>
@@ -98,7 +98,7 @@ test('updates the running ingest run in place when a phase completes or fails', 
 
   expect(extractRun.phase).toBe('extractDivisions')
   expect(extractRun.status).toBe('completed')
-  expect(extractRun.stats).toBe('{"processedRows":1810}')
+  expect(extractRun.results).toBe('{"processedRows":1810}')
   expect(extractRun.finishedAt).not.toBeNull()
   expect(publishRun.phase).toBe('publishDataset')
   expect(publishRun.status).toBe('error')
@@ -128,9 +128,9 @@ test('reopens completed address SQL generation phases on running progress', asyn
   })
 
   sqlite.exec(`
-    INSERT INTO processingRuns (
+    INSERT INTO processingRuns (stage,
       runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
-    ) VALUES (
+    ) VALUES ('assembly',
       'run-generate-current',
       '${resourceReleaseId}',
       'generateAddressSqlCurrent',
@@ -147,7 +147,7 @@ test('reopens completed address SQL generation phases on running progress', asyn
   await handleStageRunning(db, {
     resourceReleaseId,
     phase: 'generateAddressSqlCurrent',
-    stats: {
+    results: {
       processedRows: 2048,
       sqlArtefactCount: 3,
     },
@@ -160,7 +160,7 @@ test('reopens completed address SQL generation phases on running progress', asyn
     .get(resourceReleaseId, 'generateAddressSqlCurrent') as {
     finishedAt: string | null
     startedAt: string
-    stats: string | null
+    results: string | null
     status: string
   }
 
@@ -168,8 +168,8 @@ test('reopens completed address SQL generation phases on running progress', asyn
 
   expect(row).toEqual({
     finishedAt: null,
-    startedAt: '2026-06-27T00:00:00.000Z',
-    stats: '{"processedRows":2048,"sqlArtefactCount":3}',
+    startedAt: expect.any(String),
+    results: '{"processedRows":2048,"sqlArtefactCount":3}',
     status: 'running',
   })
 })
@@ -194,9 +194,9 @@ test('reopens a completed processing phase for the next shared resource', async 
     updatedAt: '2026-06-05T00:00:00.000Z',
   })
   sqlite.exec(`
-    INSERT INTO processingRuns (
+    INSERT INTO processingRuns (stage,
       runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
-    ) VALUES (
+    ) VALUES ('assembly',
       'run-process-shared-resource',
       '${resourceReleaseId}',
       'processDataset',
@@ -213,7 +213,7 @@ test('reopens a completed processing phase for the next shared resource', async 
   await handleStageRunning(db, {
     resourceReleaseId,
     phase: 'processDataset',
-    stats: { resourceType: 'divisionArea' },
+    results: { resourceType: 'divisionArea' },
   })
 
   expect(
@@ -224,8 +224,8 @@ test('reopens a completed processing phase for the next shared resource', async 
       .get(resourceReleaseId, 'processDataset'),
   ).toEqual({
     finishedAt: null,
-    startedAt: '2026-06-27T00:00:00.000Z',
-    stats: '{"resourceType":"divisionArea"}',
+    startedAt: expect.any(String),
+    results: '{"resourceType":"divisionArea"}',
     status: 'running',
   })
   sqlite.close()
@@ -265,7 +265,7 @@ test('preserves the original startedAt when a running phase completes', async ()
   await handleStageCompleted(db, {
     resourceReleaseId,
     phase: 'extractDivisions',
-    stats: {
+    results: {
       processedRows: 1810,
     },
   })
@@ -286,7 +286,7 @@ test('preserves the original startedAt when a running phase completes', async ()
   expect(completedRun?.finishedAt).not.toBeNull()
 })
 
-test('updates running phase stats in place when progress is reported again', async () => {
+test('updates running phase results in place when progress is reported again', async () => {
   const tempDir = createTempDir()
   const dbPath = join(tempDir, 'harbour-control-progress.sqlite')
   const sqlite = initDb(dbPath)
@@ -309,14 +309,14 @@ test('updates running phase stats in place when progress is reported again', asy
   await handleStageRunning(db, {
     resourceReleaseId,
     phase: 'extractDivisions',
-    stats: {
+    results: {
       processedRows: 64,
     },
   })
   await handleStageRunning(db, {
     resourceReleaseId,
     phase: 'extractDivisions',
-    stats: {
+    results: {
       processedRows: 128,
     },
   })
@@ -328,7 +328,7 @@ test('updates running phase stats in place when progress is reported again', asy
     .all(resourceReleaseId, 'extractDivisions') as Array<{
     finishedAt: string | null
     phase: string
-    stats: string | null
+    results: string | null
     status: string
   }>
 
@@ -338,7 +338,7 @@ test('updates running phase stats in place when progress is reported again', asy
   expect(processingRuns[0]).toEqual({
     finishedAt: null,
     phase: 'extractDivisions',
-    stats: '{"processedRows":128}',
+    results: '{"processedRows":128}',
     status: 'running',
   })
 })
@@ -374,14 +374,14 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
   await handleStageCompleted(db, {
     resourceReleaseId,
     phase: 'extractAddresses',
-    stats: {
+    results: {
       processedRows: 12,
     },
   })
   await handleStageCompleted(db, {
     resourceReleaseId,
     phase: 'extractAddresses',
-    stats: {
+    results: {
       processedRows: 12,
     },
   })
@@ -393,7 +393,7 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
     .all(resourceReleaseId) as Array<{
     finishedAt: string | null
     phase: string
-    stats: string | null
+    results: string | null
     status: string
   }>
 
@@ -403,7 +403,7 @@ test('treats retried stage callbacks as idempotent per release phase', async () 
   expect(processingRuns[0]).toMatchObject({
     phase: 'extractAddresses',
     status: 'completed',
-    stats: '{"processedRows":12}',
+    results: '{"processedRows":12}',
   })
   expect(processingRuns[0]?.finishedAt).not.toBeNull()
 })

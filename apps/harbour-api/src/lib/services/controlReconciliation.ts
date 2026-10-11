@@ -1,3 +1,4 @@
+import type { ProvenanceStore } from '../../../../../libs/core/src/provenance/types'
 import { releaseSetVersionsForPublication } from './releaseSetVersions'
 import { resolveDivisionPublicationVersion } from './divisionPublicationVersion'
 import {
@@ -45,11 +46,12 @@ import { handlePublishDataset } from './control.ts'
  */
 export async function handleReconcileDraftReleaseSets(
   db: HarbourReadableDb & HarbourWritableDb,
-  request: ReconcileDraftReleaseSetsRequest = {},
+  request: ReconcileDraftReleaseSetsRequest,
+  lineageStore: ProvenanceStore,
 ): Promise<ReconcileDraftReleaseSetsResult> {
   return runWithTransientControlRetry(async () => {
     if (request.apiFamily === 'divisions') {
-      await restoreMissingDivisionReleaseSets(db, request.regionCode)
+      await restoreMissingDivisionReleaseSets(db, lineageStore, request.regionCode)
     }
     const [draftReleaseSets, primaryReleases, recoverableCurrentStatsTargets] =
       await Promise.all([
@@ -96,6 +98,7 @@ export async function handleReconcileDraftReleaseSets(
         },
         undefined,
         {
+          lineageStore,
           reconcileDraftReleaseSet: true,
           releaseSet,
           apiVersion: releaseSet.apiVersion,
@@ -164,6 +167,7 @@ export async function handleReconcileDraftReleaseSets(
 /** A stats reset retracts compositions but retains independent primary geography. */
 async function restoreMissingDivisionReleaseSets(
   db: HarbourReadableDb & HarbourWritableDb,
+  lineageStore: ProvenanceStore,
   regionCode?: 'hk' | 'mo',
 ) {
   const releases = await db
@@ -228,7 +232,7 @@ async function restoreMissingDivisionReleaseSets(
         skipSnapshotCleanup: true,
       },
       undefined,
-      { reconcileDraftReleaseSet: true, apiVersion },
+      { lineageStore, reconcileDraftReleaseSet: true, apiVersion },
     )
   }
 }
@@ -368,7 +372,8 @@ async function listCurrentReleaseSetStatsTargets(
  */
 export async function handleBootstrapStatsReleaseSets(
   db: HarbourReadableDb & HarbourWritableDb,
-  request: BootstrapStatsReleaseSetsRequest = {},
+  request: BootstrapStatsReleaseSetsRequest,
+  lineageStore: ProvenanceStore,
 ): Promise<BootstrapStatsReleaseSetsResult> {
   return runWithTransientControlRetry(async () => {
     const regionCode = request.regionCode ?? 'hk'
@@ -547,6 +552,7 @@ export async function handleBootstrapStatsReleaseSets(
 
       for (const candidate of orderedCandidates) {
         await publishReleaseArtefacts(db, {
+          lineageStore,
           carriedSnapshots: [],
           currentRelease: null,
           currentReleaseIsCorrected: false,
@@ -560,6 +566,7 @@ export async function handleBootstrapStatsReleaseSets(
       }
 
       await publishReleaseArtefacts(db, {
+        lineageStore,
         carriedSnapshots: [],
         currentRelease: null,
         currentReleaseIsCorrected: false,

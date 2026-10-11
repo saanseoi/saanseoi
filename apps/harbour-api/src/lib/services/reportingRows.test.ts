@@ -99,3 +99,72 @@ test('Place reporting counts valid rows across all assigned source shards', asyn
     active.database.close()
   }
 })
+
+test('SaanSeoi release reports count inherited assertions by release validity', async () => {
+  const { buildReleaseCountPlans } = await import('./reportingRows')
+  const { createLocalHarbourDb } = await import('@repo/core/testing/localDb')
+  const { loadMigrationSql } = await import(
+    '../../../../../libs/core/src/testing/metaFixtures'
+  )
+  const { resolve } = await import('node:path')
+  const meta = new Database(':memory:')
+  const source = sourceDatabase([
+    {
+      sourceRecordId: 'inherited',
+      validFromRelease: '2026-08-01.0',
+      validToRelease: null,
+    },
+    { sourceRecordId: 'added', validFromRelease: '2026-09-01.0', validToRelease: null },
+    {
+      sourceRecordId: 'retired',
+      validFromRelease: '2026-08-01.0',
+      validToRelease: '2026-09-01.0',
+    },
+  ])
+  try {
+    meta.exec(
+      loadMigrationSql(resolve(import.meta.dir, '../../../../../libs/db/migrations'), [
+        'meta',
+      ]),
+    )
+    meta.exec(
+      "INSERT INTO dataShards(id,shardType,regionCode,year,environment,databaseName,databaseId,bindingName,status,versionHash) VALUES('source','source','hk','2026','preview','source','source','DB_SOURCE_HK_2026','active','hash')",
+    )
+    source.database.exec(
+      'ALTER TABLE overturePlaces RENAME TO ssDivision; CREATE TABLE ssDivisionArea AS SELECT * FROM ssDivision;',
+    )
+    const plans = await buildReleaseCountPlans(
+      createLocalHarbourDb(meta),
+      { DB_SOURCE_HK_2026: source.binding },
+      'preview',
+      [
+        {
+          resourceReleaseId: 'division-release',
+          resourceType: 'division',
+          source: 'saanseoi',
+          sourceUrl: null,
+          sourceVersion: '2026-09-01.0',
+          cohortKey: '2026-09-01.0',
+          regionCode: 'hk',
+        },
+        {
+          resourceReleaseId: 'area-release',
+          resourceType: 'divisionArea',
+          source: 'saanseoi',
+          sourceUrl: null,
+          sourceVersion: '2026-09-01.0',
+          cohortKey: '2026-09-01.0',
+          regionCode: 'hk',
+        },
+      ],
+    )
+    const counts = await collectCountRowsByRelease(plans)
+    expect(plans.map(plan => buildReportRowCounts(plan.source, counts))).toEqual([
+      [{ kind: 'source', label: 'source', tableName: 'ssDivision', rowCount: 2 }],
+      [{ kind: 'source', label: 'source', tableName: 'ssDivisionArea', rowCount: 2 }],
+    ])
+  } finally {
+    meta.close()
+    source.database.close()
+  }
+})

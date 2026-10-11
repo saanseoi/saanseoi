@@ -20,7 +20,8 @@ function fixture() {
       cohortKey TEXT,geometryStatus TEXT,revision INTEGER,status TEXT,publishedAt TEXT,createdAt TEXT);
     CREATE TABLE snapshotResourceReleases(snapshotId TEXT,datasetId TEXT,resourceReleaseId TEXT,role TEXT);
     CREATE TABLE apiVersions(id TEXT PRIMARY KEY,familyType TEXT);
-    CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,apiVersionId TEXT,regionCode TEXT,status TEXT);
+    CREATE TABLE apiReleaseSets(id TEXT PRIMARY KEY,regionCode TEXT);
+    CREATE TABLE apiVersionReleaseSets(apiReleaseSetId TEXT,apiVersionId TEXT,status TEXT);
     CREATE TABLE apiReleaseSetSnapshots(apiReleaseSetId TEXT,snapshotId TEXT);
     CREATE TABLE divisionAreaPublicationState(scopeId TEXT PRIMARY KEY,snapshotId TEXT UNIQUE NOT NULL,
       status TEXT,publicationToken TEXT,preparedAt TEXT);
@@ -48,13 +49,11 @@ function fixture() {
     } = {},
   ) {
     sqlite
-      .query('INSERT INTO apiReleaseSets VALUES (?,?,?,?)')
-      .run(
-        id,
-        options.family ?? 'divisions',
-        options.region ?? 'hk',
-        options.status ?? 'archived',
-      )
+      .query('INSERT INTO apiReleaseSets VALUES (?,?)')
+      .run(id, options.region ?? 'hk')
+    sqlite
+      .query('INSERT INTO apiVersionReleaseSets VALUES (?,?,?)')
+      .run(id, options.family ?? 'divisions', options.status ?? 'archived')
     sqlite.query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)').run(id, id)
     sqlite
       .query("INSERT INTO resourceReleases VALUES (?,'geometry','divisionArea',?)")
@@ -104,7 +103,9 @@ test('reconciliation cleans completed deferred cohorts after their release sets 
     ).toBe(0)
     expect((await f.reconcile()).candidateCount).toBe(0)
 
-    f.sqlite.exec("UPDATE apiReleaseSets SET status='archived' WHERE status='draft'")
+    f.sqlite.exec(
+      "UPDATE apiVersionReleaseSets SET status='archived' WHERE status='draft'",
+    )
     const metadata = f.sqlite.query('SELECT * FROM snapshots').all()
     expect((await f.reconcile()).snapshotIds.sort()).toEqual(['2006', '2011', '2016'])
     await f.consume()
@@ -138,9 +139,10 @@ test('reconciliation scopes cleanup and protects retained members and active del
     f.add('other-family', { family: 'stats' })
     for (const status of ['draft', 'current']) {
       f.add(`pinned-${status}`)
+      f.sqlite.query('INSERT INTO apiReleaseSets VALUES (?,?)').run(status, 'hk')
       f.sqlite
-        .query('INSERT INTO apiReleaseSets VALUES (?,?,?,?)')
-        .run(status, 'stats', 'hk', status)
+        .query('INSERT INTO apiVersionReleaseSets VALUES (?,?,?)')
+        .run(status, 'stats', status)
       f.sqlite
         .query('INSERT INTO apiReleaseSetSnapshots VALUES (?,?)')
         .run(status, `pinned-${status}`)
@@ -167,7 +169,9 @@ test('reconciliation scopes cleanup and protects retained members and active del
     // A queued candidate can become protected before the consumer runs.
     f.add('repinned')
     await f.reconcile()
-    f.sqlite.exec("UPDATE apiReleaseSets SET status='current' WHERE id='repinned'")
+    f.sqlite.exec(
+      "UPDATE apiVersionReleaseSets SET status='current' WHERE apiReleaseSetId='repinned'",
+    )
     await f.consume()
     expect(
       f.sqlite.query("SELECT id FROM divisionAreas WHERE id='repinned'").get(),

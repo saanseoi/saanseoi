@@ -20,11 +20,16 @@ function createLinkDb(options: {
                   selectCount += 1
                   if (selectCount === 1) {
                     return {
-                      assetId: 'asset-1',
-                      resourceReleaseId: options.assetReleaseId ?? null,
+                      id: 'asset-1',
+                      role: 'releaseSourceArchive',
+                      sourceReleaseId: options.assetReleaseId
+                        ? options.linkedSourceReleaseId
+                        : null,
+                      resourceReleaseId: null,
                     }
                   }
-                  if (selectCount === 2) return { sourceReleaseId: 'source-1' }
+                  if (selectCount === 2)
+                    return { datasetId: 'dataset', sourceReleaseId: 'source-1' }
                   if (options.assetReleaseId && selectCount === 3) {
                     return {
                       sourceReleaseId: options.linkedSourceReleaseId,
@@ -32,11 +37,16 @@ function createLinkDb(options: {
                     }
                   }
                   if (selectCount === 3) {
-                    return { resourceReleaseId: 'winning-release' }
+                    return {
+                      id: 'asset-1',
+                      sourceReleaseId: options.linkedSourceReleaseId,
+                      resourceReleaseId: null,
+                    }
                   }
                   return {
-                    sourceReleaseId: options.linkedSourceReleaseId,
-                    status: options.linkedReleaseStatus ?? 'published',
+                    id: 'asset-1',
+                    sourceReleaseId: 'source-1',
+                    resourceReleaseId: null,
                   }
                 },
               }
@@ -83,7 +93,7 @@ test('rejects a concurrent link that wins for a different source release', async
         resourceReleaseId: 'target-release',
       },
     ),
-  ).rejects.toThrow('already linked to a different source release')
+  ).rejects.toThrow('Concurrent archive ownership conflict')
 })
 
 test('relinks an immutable source asset when its previous release failed', async () => {

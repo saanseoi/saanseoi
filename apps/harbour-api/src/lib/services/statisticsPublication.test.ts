@@ -316,20 +316,22 @@ describe('packed statistic publication', () => {
       ALTER TABLE snapshots ADD COLUMN resourceType TEXT;
       UPDATE snapshots SET cohortKey = '${period}', resourceType = 'divisionStatistic';
       CREATE TABLE apiVersions (id TEXT, familyType TEXT);
-      CREATE TABLE apiReleaseSets (id TEXT, apiVersionId TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER, status TEXT);
+      CREATE TABLE apiReleaseSets (id TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER);
+      CREATE TABLE apiVersionReleaseSets (apiReleaseSetId TEXT, apiVersionId TEXT, status TEXT);
       CREATE TABLE apiReleaseSetSnapshots (apiReleaseSetId TEXT, snapshotId TEXT);
       CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, role TEXT);
       CREATE TABLE datasets (id TEXT, code TEXT);
       INSERT INTO apiVersions VALUES ('stats', 'stats');
       INSERT INTO datasets VALUES ('dataset', '${datasetCode}');
-      INSERT INTO apiReleaseSets VALUES ('published', 'stats', '${period}', 'government', 'hk', 0, 'draft');
+      INSERT INTO apiReleaseSets VALUES ('published', '${period}', 'government', 'hk', 0);
+      INSERT INTO apiVersionReleaseSets VALUES ('published', 'stats', 'draft');
       INSERT INTO apiReleaseSetSnapshots VALUES ('published', 'base');
       INSERT INTO snapshotResourceReleases VALUES ('base', 'dataset', 'primary');
     `)
     await f.finalise()
     expect(f.writes()).toEqual([])
     expect(f.current.query('SELECT * FROM statsPublicationState').all()).toEqual([])
-    f.meta.exec("UPDATE apiReleaseSets SET status = 'archived'")
+    f.meta.exec("UPDATE apiVersionReleaseSets SET status = 'archived'")
     await f.finalise(['addresses'])
     expect(f.writes()).toEqual([])
     await f.finalise(['stats'])
@@ -347,7 +349,8 @@ describe('packed statistic publication', () => {
     const meta = new Database(':memory:')
     meta.exec(`
       CREATE TABLE apiVersions (id TEXT, familyType TEXT);
-      CREATE TABLE apiReleaseSets (id TEXT, apiVersionId TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER, status TEXT);
+      CREATE TABLE apiReleaseSets (id TEXT, cohortKey TEXT, domainCode TEXT, regionCode TEXT, revision INTEGER);
+      CREATE TABLE apiVersionReleaseSets (apiReleaseSetId TEXT, apiVersionId TEXT, status TEXT);
       CREATE TABLE apiReleaseSetSnapshots (apiReleaseSetId TEXT, snapshotId TEXT);
       CREATE TABLE snapshots (id TEXT, cohortKey TEXT, resourceType TEXT);
       CREATE TABLE snapshotResourceReleases (snapshotId TEXT, datasetId TEXT, role TEXT);
@@ -355,10 +358,13 @@ describe('packed statistic publication', () => {
       INSERT INTO apiVersions VALUES ('stats', 'stats');
       INSERT INTO datasets VALUES ('dataset', '${datasetCode}');
       INSERT INTO apiReleaseSets VALUES
-        ('2020-r0', 'stats', '2020', 'government', 'hk', 0, 'archived'),
-        ('2020-r1', 'stats', '2020', 'government', 'hk', 1, 'archived'),
-        ('2020-r2', 'stats', '2020', 'government', 'hk', 2, 'draft'),
-        ('2021-r0', 'stats', '2021', 'government', 'hk', 0, 'current');
+        ('2020-r0', '2020', 'government', 'hk', 0),
+        ('2020-r1', '2020', 'government', 'hk', 1),
+        ('2020-r2', '2020', 'government', 'hk', 2),
+        ('2021-r0', '2021', 'government', 'hk', 0);
+      INSERT INTO apiVersionReleaseSets VALUES
+        ('2020-r0', 'stats', 'archived'), ('2020-r1', 'stats', 'archived'),
+        ('2020-r2', 'stats', 'draft'), ('2021-r0', 'stats', 'current');
       INSERT INTO apiReleaseSetSnapshots VALUES ('2020-r0', 'old'), ('2020-r1', 'corrected'), ('2020-r2', 'draft'), ('2021-r0', 'new-period');
       INSERT INTO snapshots VALUES ('old', '2020', 'divisionStatistic'), ('corrected', '2020', 'divisionStatistic'), ('draft', '2020', 'divisionStatistic'), ('new-period', '2021', 'divisionStatistic');
       INSERT INTO snapshotResourceReleases VALUES ('old', 'dataset', 'primary'), ('corrected', 'dataset', 'primary'), ('draft', 'dataset', 'primary'), ('new-period', 'dataset', 'primary');

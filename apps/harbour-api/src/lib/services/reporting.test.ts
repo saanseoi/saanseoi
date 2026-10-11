@@ -118,7 +118,7 @@ describe('reporting service', () => {
       ])
 
       expect(ingestRows).toHaveLength(1)
-      expect(ingestRows[0]?.stats).toEqual({
+      expect(ingestRows[0]?.results).toEqual({
         inserted: 1,
       })
       expect(statRows).toHaveLength(1)
@@ -152,9 +152,7 @@ describe('reporting service', () => {
           ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'current'),
           ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'current'),
           ('release-4', 'hkgov-dpo-hk-address', 'sr-release-4', '2026-06-23.0', '2026-06', 'current');
-        INSERT INTO resourceReleases (
-          id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
-        ) VALUES
+        INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES
           (
             'release-1',
             'release-1',
@@ -165,8 +163,6 @@ describe('reporting service', () => {
             null,
             null,
             '2026-06',
-            null,
-            null,
             'current',
             null,
             null,
@@ -185,8 +181,6 @@ describe('reporting service', () => {
             null,
             null,
             '2026-06',
-            null,
-            null,
             'current',
             null,
             null,
@@ -205,8 +199,6 @@ describe('reporting service', () => {
             null,
             null,
             '2026-06',
-            null,
-            null,
             'current',
             null,
             null,
@@ -225,8 +217,6 @@ describe('reporting service', () => {
             null,
             null,
             '2026-06',
-            null,
-            null,
             'current',
             null,
             null,
@@ -309,9 +299,7 @@ describe('reporting service', () => {
           ('release-1', 'hkgov-dpo-hk-address', 'sr-release-1', '2026-06-26.0', '2026-06', 'current'),
           ('release-2', 'hkgov-dpo-hk-address', 'sr-release-2', '2026-06-25.0', '2026-06', 'current'),
           ('release-3', 'hkgov-dpo-hk-address', 'sr-release-3', '2026-06-24.0', '2026-06', 'current');
-        INSERT INTO resourceReleases (
-          id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
-        ) VALUES
+        INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES
           (
             'release-1',
             'release-1',
@@ -322,8 +310,6 @@ describe('reporting service', () => {
             null,
             null,
             '2026-06',
-            null,
-            null,
             'current',
             null,
             null,
@@ -342,8 +328,6 @@ describe('reporting service', () => {
             null,
             null,
             '2026-06',
-            null,
-            null,
             'current',
             null,
             null,
@@ -362,8 +346,6 @@ describe('reporting service', () => {
             null,
             null,
             '2026-06',
-            null,
-            null,
             'current',
             null,
             null,
@@ -373,13 +355,12 @@ describe('reporting service', () => {
             1761264000000
           );
 
-        INSERT INTO processingRuns (
+        INSERT INTO processingRuns (stage, 
           runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
-        ) VALUES
-          ('run-1a', 'release-1', 'extractAddresses', 'completed', '{"release":1,"run":"a"}', null, '2026-06-26T10:00:00.000Z', '2026-06-26T10:05:00.000Z', 1761434400000, 1761434700000),
-          ('run-1b', 'release-1', 'normaliseAddresses', 'completed', '{"release":1,"run":"b"}', null, '2026-06-26T09:00:00.000Z', '2026-06-26T09:05:00.000Z', 1761430800000, 1761431100000),
-          ('run-2a', 'release-2', 'extractAddresses', 'completed', '{"release":2,"run":"a"}', null, '2026-06-25T10:00:00.000Z', '2026-06-25T10:05:00.000Z', 1761348000000, 1761348300000),
-          ('run-3a', 'release-3', 'extractAddresses', 'completed', '{"release":3,"run":"a"}', null, '2026-06-24T10:00:00.000Z', '2026-06-24T10:05:00.000Z', 1761261600000, 1761261900000);
+        ) VALUES ('assembly', 'run-1a', 'release-1', 'extractAddresses', 'completed', '{"release":1,"run":"a"}', null, '2026-06-26T10:00:00.000Z', '2026-06-26T10:05:00.000Z', 1761434400000, 1761434700000),
+          ('assembly', 'run-1b', 'release-1', 'normaliseAddresses', 'completed', '{"release":1,"run":"b"}', null, '2026-06-26T09:00:00.000Z', '2026-06-26T09:05:00.000Z', 1761430800000, 1761431100000),
+          ('assembly', 'run-2a', 'release-2', 'extractAddresses', 'completed', '{"release":2,"run":"a"}', null, '2026-06-25T10:00:00.000Z', '2026-06-25T10:05:00.000Z', 1761348000000, 1761348300000),
+          ('assembly', 'run-3a', 'release-3', 'extractAddresses', 'completed', '{"release":3,"run":"a"}', null, '2026-06-24T10:00:00.000Z', '2026-06-24T10:05:00.000Z', 1761261600000, 1761261900000);
       `)
 
       const metaDb = createLocalHarbourDb(metaSqlite)
@@ -391,7 +372,7 @@ describe('reporting service', () => {
         'release-2',
       ])
       expect(rows.every(row => row.resourceReleaseId !== 'release-3')).toBe(true)
-      expect(rows[0]?.stats).toEqual({ release: 1, run: 'a' })
+      expect(rows[0]?.results).toEqual({ release: 1, run: 'a' })
 
       metaSqlite.close()
     } finally {
@@ -598,9 +579,7 @@ function seedRelease(
       '${sourceVersion}', '2026-06', 'current',
       ${timestamp}, ${timestamp}, ${timestamp}
     );
-    INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, rawObjectKey, originalFileName, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt
-    ) VALUES (
+    INSERT INTO resourceReleases (id, sourceReleaseId, datasetId, code, resourceType, sourceVersion, sourceSchemaVersion, publicationDate, cohortKey, status, revokedAt, revocationReason, supersededByResourceReleaseId, ingestedAt, createdAt, updatedAt) VALUES (
       '${resourceReleaseId}',
       '${resourceReleaseId}',
       'hkgov-dpo-hk-address',
@@ -610,8 +589,6 @@ function seedRelease(
       null,
       null,
       '2026-06',
-      'hk/hkgov-dpo/${sourceVersion}/address.parquet',
-      'address.parquet',
       'current',
       null,
       null,
@@ -630,9 +607,9 @@ function seedRelease(
 
 function seedProcessingRun(sqlite: SQLiteDatabase) {
   sqlite.exec(`
-    INSERT INTO processingRuns (
+    INSERT INTO processingRuns (stage, 
       runId, resourceReleaseId, phase, status, results, error, startedAt, finishedAt, createdAt, updatedAt
-    ) VALUES (
+    ) VALUES ('assembly', 
       'run-dr-hk-hkgov-dpo-address-2026-06-24.0',
       'release-dr-hk-hkgov-dpo-address-2026-06-24.0',
       'extractAddresses',

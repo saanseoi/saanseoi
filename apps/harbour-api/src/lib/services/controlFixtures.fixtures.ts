@@ -1,3 +1,9 @@
+import { createMemoryProvenanceStore } from '../../../../../libs/core/src/testing/provenanceStore'
+import {
+  readFieldLineage,
+  type FieldLineageReference,
+} from '../../../../../libs/core/src/provenance/fieldLineageStorage'
+export const { store: lineageStore } = createMemoryProvenanceStore()
 import { resolveSnapshotProcessingRules } from '../../../../../libs/core/src/provenance/processingPolicyCatalogue'
 import { computeVersionHash } from '@repo/db'
 import { datasetVariantForSource } from '@repo/core/codes'
@@ -17,9 +23,9 @@ const migrationsDir = resolve(import.meta.dir, '../../../../../libs/db/migration
 const migrationSql = loadMigrationSql(migrationsDir, ['meta'])
 
 export const {
-  handleBootstrapStatsReleaseSets,
-  handlePublishDataset,
-  handleReconcileDraftReleaseSets,
+  handleBootstrapStatsReleaseSets: bootstrapStats,
+  handlePublishDataset: publishDataset,
+  handleReconcileDraftReleaseSets: reconcileDraft,
   handleStageCompleted,
   handleStageFailed,
   handleStageRunning,
@@ -68,7 +74,7 @@ export function initDb(dbPath: string) {
       )
     db.query('INSERT INTO fixturePolicies VALUES (?, ?)').run(
       dataset.code,
-      definitionId ? JSON.stringify({ definitionId }) : null,
+      definitionId ?? null,
     )
   }
   db.exec(`CREATE TRIGGER fixture_capture_release_rules AFTER INSERT ON resourceReleases
@@ -79,9 +85,9 @@ export function initDb(dbPath: string) {
 }
 
 export function seedCompletedAudits(db: Database) {
-  db.exec(`INSERT OR IGNORE INTO releaseProvenance
-    (resourceReleaseId, manifestHash, byteLength, applicationCount, attemptStatus)
-    SELECT id, 'sha256:${'0'.repeat(64)}', 1, 0, 'completed' FROM resourceReleases`)
+  db.exec(`INSERT OR IGNORE INTO processingAudits
+    (resourceReleaseId, stage, ownerId, manifestHash, byteLength, applicationCount, attemptStatus)
+    SELECT id, 'ingestion', id, 'sha256:${'0'.repeat(64)}', 1, 0, 'completed' FROM resourceReleases`)
 }
 
 export function seedSnapshot(
@@ -111,7 +117,7 @@ export function seedSnapshot(
 
   sqlite.exec(`
     INSERT INTO snapshots (
-      id, resourceType, code, cohortKey, status, publishedAt, validFrom, validTo, notes, createdAt, updatedAt
+      id, resourceType, code, cohortKey, status, publishedAt, validFrom, validTo, createdAt, updatedAt
     ) VALUES (
       '${snapshotId}',
       '${resourceType}',
@@ -120,7 +126,6 @@ export function seedSnapshot(
       '${status}',
       ${publishedAt},
       ${publishedAt},
-      null,
       null,
       ${timestamp},
       ${timestamp}
@@ -231,7 +236,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 
     INSERT OR IGNORE INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, sourceSchemaVersion,
-      cohortKey, rawObjectKey, originalFileName, status, ingestedAt, createdAt,
+      cohortKey, status, ingestedAt, createdAt,
       updatedAt
     ) VALUES
     (
@@ -240,8 +245,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea',
       'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
       '2023-H2', '1.0', '2023-H2',
-      'hk/hkgov-censtatd/2023-H2/division-area.parquet',
-      'division-area.parquet', 'current', '2026-06-05T00:00:00.000Z',
+      'current', '2026-06-05T00:00:00.000Z',
       '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
     ),
     (
@@ -250,8 +254,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'hkgov-censtatd-hk-district-annual', 'divisionArea',
       'dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       '2024', '1.0', '2024',
-      'hk/hkgov-censtatd/2024/division-area.parquet',
-      'division-area.parquet', 'current', '2026-06-05T00:00:00.000Z',
+      'current', '2026-06-05T00:00:00.000Z',
       '2026-06-05T00:00:00.000Z', '2026-06-05T00:00:00.000Z'
     );
 
@@ -355,6 +358,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 
 /** Fixtures retain the same selected assembly policies as real snapshot publication. */
 export function seedSnapshotAssembly(sqlite: Database, snapshotId: string) {
+  sqlite
+    .query(`INSERT OR IGNORE INTO processingAudits (resourceReleaseId,stage,ownerId,manifestHash,byteLength,applicationCount,attemptStatus)
+    SELECT resourceReleaseId, 'assembly', snapshotId, ?, 1, 0, 'completed' FROM snapshotResourceReleases WHERE snapshotId = ?`)
+    .run('sha256:' + '0'.repeat(64), snapshotId)
   const snapshot = sqlite
     .query<{ resourceType: string; cohortKey: string }, [string]>(
       'SELECT resourceType, cohortKey FROM snapshots WHERE id = ?',
@@ -380,16 +387,38 @@ export function seedSnapshotAssembly(sqlite: Database, snapshotId: string) {
   sqlite
     .query(`INSERT OR IGNORE INTO snapshotRecipes (id, code, resourceType, version, processingRules, versionHash)
     VALUES (?, ?, ?, 1, ?, ?)`)
-    .run(
-      recipeId,
-      recipeId,
-      snapshot.resourceType,
-      JSON.stringify({ definitionId }),
-      definitionId,
-    )
+    .run(recipeId, recipeId, snapshot.resourceType, definitionId, definitionId)
   sqlite
     .query(`INSERT INTO snapshotAssemblies (id, snapshotId, snapshotRecipeId, anchorCohortKey, status)
     VALUES (?, ?, ?, ?, 'completed')
     ON CONFLICT(snapshotId) DO UPDATE SET snapshotRecipeId = excluded.snapshotRecipeId`)
     .run(`fixture-assembly-${snapshotId}`, snapshotId, recipeId, snapshot.cohortKey)
+}
+
+export function handlePublishDataset(
+  db: Parameters<typeof publishDataset>[0],
+  request: Parameters<typeof publishDataset>[1],
+  queue?: Parameters<typeof publishDataset>[2],
+  options: Omit<Parameters<typeof publishDataset>[3], 'lineageStore'> = {},
+) {
+  return publishDataset(db, request, queue, { ...options, lineageStore })
+}
+export function handleBootstrapStatsReleaseSets(
+  db: Parameters<typeof bootstrapStats>[0],
+  request: Parameters<typeof bootstrapStats>[1] = {},
+) {
+  return bootstrapStats(db, request, lineageStore)
+}
+export function handleReconcileDraftReleaseSets(
+  db: Parameters<typeof reconcileDraft>[0],
+  request: Parameters<typeof reconcileDraft>[1] = {},
+) {
+  return reconcileDraft(db, request, lineageStore)
+}
+export async function readFixtureLineage(db: Database, releaseSetId: string) {
+  const row = db
+    .query(`SELECT d.* FROM fieldLineageDefinitions d
+    JOIN apiFieldProvenance p ON p.definitionId=d.id WHERE p.apiReleaseSetId=?`)
+    .get(releaseSetId) as FieldLineageReference | null
+  return row ? readFieldLineage(lineageStore, row) : null
 }

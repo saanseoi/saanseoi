@@ -86,7 +86,7 @@ describe('local upload registration', () => {
 
     await expect(
       registerFixtureUpload(db, '2026-05-20.0', '2026-05', true, false, true),
-    ).rejects.toThrow('Dataset already exists with status published')
+    ).rejects.toThrow('Dataset already exists with status current')
 
     expect(
       sqliteHandles.at(-1)?.query('SELECT status FROM sourceReleases').get(),
@@ -105,7 +105,7 @@ describe('local upload registration', () => {
 
     await expect(
       registerFixtureUpload(db, '2026-05-20.0', '2026-05', false, true),
-    ).rejects.toThrow('Dataset already exists with status published')
+    ).rejects.toThrow('Dataset already exists with status current')
   })
 
   test('only reuses a processing release for an explicit companion resource', async () => {

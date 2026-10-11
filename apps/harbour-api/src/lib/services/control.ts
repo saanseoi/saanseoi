@@ -1,3 +1,4 @@
+import type { ProvenanceStore } from '../../../../../libs/core/src/provenance/types'
 import { releaseSetVersionsForPublication } from './releaseSetVersions'
 import { resolveDivisionPublicationVersion } from './divisionPublicationVersion'
 import { readSnapshotDependencies } from '@repo/core/pipeline/db/snapshotDependencies'
@@ -10,7 +11,6 @@ import {
   listOvertureReleaseSetCohortsAtOrAfterCohortKey,
   listDraftReleaseSetsForTypeRegionAtOrAfterCohortKey,
   listCurrentApiCompositionMembersForType,
-  listApiReleaseSetSnapshots,
   resolveLatestReleaseSetForTypeDomainCohort,
   resolveReleaseSetForRelease,
   updateDatasetStatus,
@@ -118,8 +118,9 @@ export async function assertPlaceAddressDependencies(
 export async function handlePublishDataset(
   db: HarbourReadableDb & HarbourWritableDb,
   request: PublishRequest,
-  cleanupQueue?: HarbourJobQueue,
+  cleanupQueue: HarbourJobQueue | undefined,
   options: {
+    lineageStore: ProvenanceStore
     reconcileDraftReleaseSet?: boolean
     apiVersion?: string
     releaseSet?: {
@@ -128,31 +129,42 @@ export async function handlePublishDataset(
       id: string
       status?: 'draft' | 'current' | 'archived'
     }
-  } = {},
+  },
 ): Promise<ControlResult> {
   return runWithTransientControlRetry(async () => {
     const dataset = await requireDataset(db, request)
     const datasetType = dataset.resourceType as ResourceType
-    const failedAudit = await db
-      .select({ status: metaSchema.releaseProvenance.attemptStatus })
-      .from(metaSchema.releaseProvenance)
+    const audits = await db
+      .select({
+        status: metaSchema.processingAudits.attemptStatus,
+        stage: metaSchema.processingAudits.stage,
+        ownerId: metaSchema.processingAudits.ownerId,
+      })
+      .from(metaSchema.processingAudits)
       .where(
-        eq(metaSchema.releaseProvenance.resourceReleaseId, dataset.resourceReleaseId),
+        eq(metaSchema.processingAudits.resourceReleaseId, dataset.resourceReleaseId),
       )
-      .get()
-    if (failedAudit?.status === 'failed')
-      throw new ControlRequestError(
-        'Publication is blocked by the failed processing audit attempt.',
-      )
-    if (failedAudit?.status !== 'completed')
-      throw new ControlRequestError(
-        'Release publication requires a verified retained processing result with a completed audit attempt.',
-      )
+      .all()
     const materialisedSnapshots = await listSnapshotsForRelease(
       db,
       dataset.resourceReleaseId,
       datasetType,
     )
+    const owners = new Set(materialisedSnapshots.map(snapshot => snapshot.id))
+    const relevantAudits = audits.filter(
+      audit =>
+        audit.stage === 'preparation' ||
+        audit.stage === 'ingestion' ||
+        (audit.stage === 'assembly' && owners.has(audit.ownerId)),
+    )
+    if (relevantAudits.some(audit => audit.status === 'failed'))
+      throw new ControlRequestError(
+        'Publication is blocked by the failed processing audit attempt.',
+      )
+    if (!relevantAudits.some(audit => audit.status === 'completed'))
+      throw new ControlRequestError(
+        'Release publication requires a verified retained processing result with a completed audit attempt.',
+      )
     const datasetVariant =
       materialisedSnapshots.find(snapshot => !snapshot.variant.endsWith(':simplified'))
         ?.variant ??
@@ -258,8 +270,9 @@ export async function handlePublishDataset(
     const domainCode = datasetMember.domainCode
     const rebuildPublishedSnapshot =
       request.rebuildPublishedSnapshot === true &&
-      datasetType === 'division' &&
-      dataset.source === 'overture'
+      ((datasetType === 'division' && dataset.source === 'overture') ||
+        (dataset.source === 'saanseoi' &&
+          (datasetType === 'division' || datasetType === 'divisionArea')))
     // Only the Geographic domain attaches separately selectable C&SD geometry to
     // Overture cohorts. Publisher-defined C&SD domains (such as Housing Market
     // Areas) publish their own canonical division and divisionArea release set.
@@ -605,22 +618,6 @@ export async function handlePublishDataset(
           continue
         }
 
-        if (member.cohortMatchingMode === 'curated_input') {
-          const retained = (await listApiReleaseSetSnapshots(db, releaseSet.id)).find(
-            s =>
-              s.snapshotResourceType === member.resourceType &&
-              s.variant === member.variant,
-          )
-          if (retained) {
-            carriedSnapshots.push({
-              resourceType: member.resourceType,
-              variant: member.variant,
-              snapshotId: retained.snapshotId,
-            })
-            satisfiedRequiredMembers.add(memberKey)
-          }
-          continue
-        }
         const supportingSnapshots = await resolveSupportingSnapshotsForMember(
           db,
           member,
@@ -683,6 +680,7 @@ export async function handlePublishDataset(
       }
       const publishedAt = new Date(publishedAtMs + index).toISOString()
       const apiCatalogRevision = await publishReleaseArtefacts(db, {
+        lineageStore: options.lineageStore,
         carriedSnapshots,
         currentRelease,
         currentReleaseIsCorrected: currentRelease

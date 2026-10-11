@@ -1,3 +1,4 @@
+import { readFixtureLineage } from './controlFixtures.fixtures'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
 import divisionFixtureOverture116To118 from '../../../../../fixtures/meta/apiFields/api-divisions-v0.1@geographic-v2.json'
@@ -11,7 +12,6 @@ import {
   seedCompleteDivisionSourceSignature,
   seedSnapshot,
   seedCompletedAudits,
-  sortProvenanceRows,
 } from './controlFixtures.fixtures.ts'
 
 test('retains a dataset source variant when reading a release for publication', async () => {
@@ -42,11 +42,11 @@ test('retains a dataset source variant when reading a release for publication', 
 
     INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      status, ingestedAt, createdAt, updatedAt
     )
     SELECT
       '${resourceReleaseId}', '${resourceReleaseId}', id, 'divisionArea', 'dr-hk-hkgov-censtatd-hma-2021', '2021', '2021',
-      'hk/hkgov-censtatd/2021/division-area.parquet', 'division-area.parquet', 'staged',
+      'staged',
       '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z', '2026-08-19T00:00:00.000Z'
     FROM datasets
     WHERE code = 'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups';
@@ -64,6 +64,10 @@ test.each([false, true])(
     const tempDir = createTempDir()
     const dbPath = join(tempDir, 'harbour-publish-historic.sqlite')
     const sqlite = initDb(dbPath)
+    sqlite.exec(`DELETE FROM apiCatalogRevisionReleaseSets;
+      DELETE FROM apiCatalogRevisions;
+      DELETE FROM apiVersionReleaseSets;
+      DELETE FROM apiReleaseSets;`)
     const db = createLocalHarbourDb(sqlite)
 
     insertFixtureRelease(sqlite, {
@@ -121,7 +125,7 @@ test.each([false, true])(
       .query(
         `SELECT code AS datasetId, status, revokedAt, revocationReason
        FROM resourceReleases
-       WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
+       WHERE resourceType = 'division' AND datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
       )
       .all() as Array<{
@@ -143,14 +147,15 @@ test.each([false, true])(
       .get('snapshot-release-dr-hk-overture-division-2026-02-18.0') as {
       apiReleaseSetId: string
     }
-    const provenanceRows = sqlite
-      .query(
-        `SELECT json_extract(f.value, '$.apiField') AS apiField, json_extract(f.value, '$.inputs') AS inputs FROM apiFieldProvenance p JOIN fieldLineageDefinitions d ON d.id=p.definitionId, json_each(d.definition, '$.fields') f WHERE p.apiReleaseSetId = ? ORDER BY apiField`,
-      )
-      .all(publishedReleaseSet.apiReleaseSetId) as Array<{
-      apiField: string
-      inputs: string
-    }>
+    const provenanceRows = (await readFixtureLineage(
+      sqlite,
+      publishedReleaseSet.apiReleaseSetId,
+    ))!.fields
+      .map(field => ({
+        ...field,
+        composition: JSON.stringify(field.provenance.composition),
+      }))
+      .sort((a, b) => a.apiField.localeCompare(b.apiField))
 
     expect(
       sqlite.query('SELECT COUNT(*) AS count FROM apiCatalogRevisions').get(),
@@ -192,17 +197,17 @@ test.each([false, true])(
         revocationReason: null,
       },
     ])
-    expect(sortProvenanceRows(provenanceRows)).toEqual(
-      sortProvenanceRows(
-        divisionFixtureOverture116To118.resources
-          .flatMap(group =>
-            group.fields.map(field => ({ ...field, resourceType: group.resourceType })),
-          )
-          .map(field => ({
-            apiField: field.apiField,
-            inputs: JSON.stringify(field.inputs),
-          })),
+    const keys = provenanceRows
+      .map(row => JSON.stringify([row.resourceType, row.apiField, row.variant ?? null]))
+      .sort()
+    const expected = divisionFixtureOverture116To118.resources.flatMap(group =>
+      group.fields.map(field =>
+        JSON.stringify([group.resourceType, field.apiField, field.variant ?? null]),
       ),
+    )
+    expect(keys).toEqual([...new Set(expected)].sort())
+    expect(provenanceRows.every(row => JSON.parse(row.composition).length > 0)).toBe(
+      true,
     )
   },
 )
@@ -324,7 +329,7 @@ test('revokes the superseded dataset only for corrected same-release publishes',
     .query(
       `SELECT code AS datasetId, status, revokedAt, revocationReason
        FROM resourceReleases
-       WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
+       WHERE resourceType = 'division' AND datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
     )
     .all() as Array<{
@@ -518,7 +523,7 @@ test('marks the superseded dataset historic for same-cohort releases with differ
     .query(
       `SELECT code AS datasetId, status, revokedAt, revocationReason
        FROM resourceReleases
-       WHERE datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
+       WHERE resourceType = 'division' AND datasetId = (SELECT id FROM datasets WHERE code = 'ds-hk-overture-division')
        ORDER BY code`,
     )
     .all() as Array<{

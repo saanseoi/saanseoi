@@ -40,7 +40,7 @@ test('every resource release requires an audit, including deferred publication',
   })
   const release = { id: fixture.resourceReleaseId }
   sqlite
-    .query('DELETE FROM releaseProvenance WHERE resourceReleaseId = ?')
+    .query('DELETE FROM processingAudits WHERE resourceReleaseId = ?')
     .run(release.id)
   for (const type of [
     'division',
@@ -145,7 +145,7 @@ test('requires retained processing audits for Addresses and Places before publis
     )
     sqlite
       .query(
-        'INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount, attemptStatus) VALUES (?, ?, 1, 0, ?)',
+        "INSERT INTO processingAudits (resourceReleaseId, stage, ownerId, manifestHash, byteLength, applicationCount, attemptStatus) VALUES (?1, 'ingestion', ?1, ?2, 1, 0, ?3)",
       )
       .run(resourceReleaseId, `sha256:${'0'.repeat(64)}`, 'failed')
     await expect(handlePublishDataset(db, { resourceReleaseId })).rejects.toThrow(
@@ -158,7 +158,7 @@ test('requires retained processing audits for Addresses and Places before publis
     ).toEqual({ status: 'staged' })
     sqlite
       .query(
-        "UPDATE releaseProvenance SET attemptStatus = 'completed' WHERE resourceReleaseId = ?",
+        "UPDATE processingAudits SET attemptStatus = 'completed' WHERE resourceReleaseId = ?",
       )
       .run(resourceReleaseId)
     if (datasetType === 'address') {

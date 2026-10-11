@@ -115,12 +115,10 @@ test('reconciles a draft division release set once its required C&SD areas are a
       id, publisherId, code, regionCode, releaseType, releaseFrequency,
       theme, sourceUrl, versionHash, createdAt, updatedAt
     ) VALUES
-      ('overture-hk-divisionArea', 'publisher-overture', 'ds-hk-overture-division-area', 'hk', 'static', 'monthly', 'divisions', 'https://docs.overturemaps.org/', 'vh-overture-area', 1761264000001, 1761264000001),
-      ('overture-hk-divisionBoundary', 'publisher-overture', 'ds-hk-overture-division-boundary', 'hk', 'static', 'monthly', 'divisions', 'https://docs.overturemaps.org/', 'vh-overture-boundary', 1761264000001, 1761264000001),
       ('hkgov-had-hk-district', 'publisher-hkgov-had', 'ds-hk-hkgov-had-division-area-district', 'hk', 'static', 'as-needed', 'divisions', 'https://data.gov.hk/', 'vh-had-district', 1761264000001, 1761264000001);
 
-    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'overture-hk-divisionArea' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
-UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionBoundary') WHERE id = 'overture-hk-divisionBoundary' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionBoundary');
+    UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'overture-hk-division' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
+UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionBoundary') WHERE id = 'overture-hk-division' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionBoundary');
 UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'divisionArea') WHERE id = 'hkgov-had-hk-district' AND NOT EXISTS (SELECT 1 FROM json_each(datasets.resourceTypes) WHERE value = 'divisionArea');
   `)
 
@@ -175,16 +173,14 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       'sr-${hadArea.releaseCode}', '2022', '2022', 'staged'
     );
     INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, rawObjectKey,
-      originalFileName, status, ingestedAt, createdAt, updatedAt
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
       '${hadArea.resourceReleaseId}',
       '${hadArea.resourceReleaseId}',
       'hkgov-had-hk-district',
       'divisionArea',
       '${hadArea.releaseCode}',
-      '2022', '2022', 'hk/hkgov-had/2022/division-area.geojson',
-      'division-area.geojson', 'staged',
+      '2022', '2022', 'staged',
       '2026-06-05T00:01:00.000Z',
       '2026-06-05T00:01:00.000Z',
       '2026-06-05T00:01:00.000Z'
@@ -207,7 +203,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-area-2025-09-24.0',
     cohortKey,
-    datasetId: 'overture-hk-divisionArea',
+    datasetId: 'overture-hk-division',
     resourceType: 'divisionArea',
     resourceReleaseId: overtureArea.resourceReleaseId,
     status: 'published',
@@ -215,7 +211,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   seedSnapshot(sqlite, {
     code: 'ss-hk-division-boundary-2025-09-24.0',
     cohortKey,
-    datasetId: 'overture-hk-divisionBoundary',
+    datasetId: 'overture-hk-division',
     resourceType: 'divisionBoundary',
     resourceReleaseId: boundary.resourceReleaseId,
     status: 'published',
@@ -233,8 +229,8 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
       primaryDatasetId, versionHash, createdAt, updatedAt
     ) VALUES
       ('lineage-overture-division', 'sl-hk-overture-division', 'hk', 'division', 'overture', 'persistent', 'overture-hk-division', 'vh-lineage-overture-division', 1761264000001, 1761264000001),
-      ('lineage-overture-division-area', 'sl-hk-overture-division-area', 'hk', 'divisionArea', 'overture', 'persistent', 'overture-hk-divisionArea', 'vh-lineage-overture-division-area', 1761264000001, 1761264000001),
-      ('lineage-overture-division-boundary', 'sl-hk-overture-division-boundary', 'hk', 'divisionBoundary', 'overture', 'persistent', 'overture-hk-divisionBoundary', 'vh-lineage-overture-division-boundary', 1761264000001, 1761264000001),
+      ('lineage-overture-division-area', 'sl-hk-overture-division-area', 'hk', 'divisionArea', 'overture', 'persistent', 'overture-hk-division', 'vh-lineage-overture-division-area', 1761264000001, 1761264000001),
+      ('lineage-overture-division-boundary', 'sl-hk-overture-division-boundary', 'hk', 'divisionBoundary', 'overture', 'persistent', 'overture-hk-division', 'vh-lineage-overture-division-boundary', 1761264000001, 1761264000001),
       ('lineage-hkgov-had-division-area', 'sl-hk-hkgov-had-division-area-district', 'hk', 'divisionArea', 'hkgov-had', 'persistent', 'hkgov-had-hk-district', 'vh-lineage-hkgov-had-division-area', 1761264000001, 1761264000001);
 
     UPDATE snapshots
@@ -312,12 +308,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 
       INSERT INTO resourceReleases (
         id, sourceReleaseId, datasetId, resourceType, code, sourceVersion,
-        sourceSchemaVersion, cohortKey,
-        rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+        sourceSchemaVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
         '${resourceReleaseId}', '${resourceReleaseId}', 'hkgov-censtatd-hk-district', 'divisionArea',
-        'dr-hk-hkgov-censtatd-division-area-district-${year}', '${year}', '1.0', '${year}',
-        'hk/hkgov-censtatd/${year}/division-area.gml', 'division-area.gml', 'current',
+        'dr-hk-hkgov-censtatd-division-area-district-${year}', '${year}', '1.0', '${year}', 'current',
         '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
       );
 
@@ -355,14 +349,12 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 
     INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion,
-      sourceSchemaVersion, cohortKey,
-      rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      sourceSchemaVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       'release-dr-hk-hkgov-censtatd-division-area-district-annual-2024',
       'hkgov-censtatd-hk-district-annual', 'divisionArea',
-      'dr-hk-hkgov-censtatd-division-area-district-annual-2024', '2024', '1.0', '2024',
-      'hk/hkgov-censtatd/2024/division-area.gml', 'division-area.gml', 'current',
+      'dr-hk-hkgov-censtatd-division-area-district-annual-2024', '2024', '1.0', '2024', 'current',
       '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z', '2026-06-05T00:01:00.000Z'
     );
     INSERT INTO snapshotLineages (
@@ -424,15 +416,13 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
 
     INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion,
-      sourceSchemaVersion, cohortKey, geometryStatus,
-      rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      sourceSchemaVersion, cohortKey, geometryStatus, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
       'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
       'hkgov-censtatd-hk-permanent-living-quarters', 'divisionArea',
       'dr-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-2023-H2',
       '2023-H2', '1.0', '2023-H2', 'authoritative',
-      'hk/hkgov-censtatd/2023-H2/division-area.parquet', 'division-area.parquet',
       'current', '2026-06-05T00:02:00.000Z',
       '2026-06-05T00:02:00.000Z', '2026-06-05T00:02:00.000Z'
     );
@@ -609,7 +599,7 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'division
   expect(deferredAfterReconciliation).toMatchObject({
     resourceReleaseId: 'release-dr-hk-hkgov-censtatd-permanent-living-quarters-2023-H2',
     snapshotId: areaTypeSnapshotId,
-    status: 'published',
+    status: 'current',
   })
   expect(revisionRowsAfterReconciliation).toEqual([
     {

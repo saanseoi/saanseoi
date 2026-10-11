@@ -1,4 +1,4 @@
-import { handleReconcileDraftReleaseSets } from './controlReconciliation'
+import { handleReconcileDraftReleaseSets } from './controlFixtures.fixtures'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
 import {
@@ -97,9 +97,8 @@ test('publishes a dataset snapshot without finalising a shared source release', 
   sqlite
     .query(
       `INSERT INTO resourceReleases (
-        id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-        rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .run(
       resourceReleaseId,
@@ -109,8 +108,6 @@ test('publishes a dataset snapshot without finalising a shared source release', 
       'dr-hk-hkgov-censtatd-division-statistic-land-area-population-density-district-2022',
       '2022',
       '2022',
-      'hk/hkgov-censtatd/2022/division-statistic.parquet',
-      'division-statistic.parquet',
       'processing',
       '2026-08-16T00:00:00.000Z',
       '2026-08-16T00:00:00.000Z',
@@ -126,7 +123,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
   })
   sqlite
     .query(
-      'INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount) VALUES (?, ?, ?, ?)',
+      "INSERT INTO processingAudits (resourceReleaseId, stage, ownerId, manifestHash, byteLength, applicationCount, attemptStatus) VALUES (?1, 'ingestion', ?1, ?2, ?3, ?4, 'completed')",
     )
     .run(resourceReleaseId, `sha256:${'0'.repeat(64)}`, 1, 1)
   await upsertSnapshotSource(db, snapshot.id, dataset.id, resourceReleaseId, 'primary')
@@ -134,7 +131,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
 
   sqlite
     .query(
-      "UPDATE releaseProvenance SET attemptStatus = 'failed' WHERE resourceReleaseId = ?",
+      "UPDATE processingAudits SET attemptStatus = 'failed' WHERE resourceReleaseId = ?",
     )
     .run(resourceReleaseId)
   const beforeFailedPublish = sqlite
@@ -150,7 +147,7 @@ test('publishes a dataset snapshot without finalising a shared source release', 
   ).toEqual(beforeFailedPublish)
   sqlite
     .query(
-      "UPDATE releaseProvenance SET attemptStatus = 'completed' WHERE resourceReleaseId = ?",
+      "UPDATE processingAudits SET attemptStatus = 'completed' WHERE resourceReleaseId = ?",
     )
     .run(resourceReleaseId)
 
@@ -225,11 +222,11 @@ test('publishes every annual snapshot attached to fallback C&SD geometry', async
     );
     INSERT INTO resourceReleases (
       id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      geometryStatus, rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      geometryStatus, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
       '${resourceReleaseId}', '${resourceReleaseId}', '${datasetId}', 'divisionArea',
       'dr-hk-hkgov-censtatd-annual-district-2026-q2-area', '2026-Q2', '2026-Q2',
-      'fallback', 'hk/hkgov-censtatd/2026-Q2/area.parquet', 'area.parquet',
+      'fallback',
       'processing', '2026-09-13T00:00:00.000Z', '2026-09-13T00:00:00.000Z',
       '2026-09-13T00:00:00.000Z'
     );
@@ -328,16 +325,15 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
         'processing'
       );
       INSERT INTO resourceReleases (
-        id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-        rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+        id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
       ) VALUES (
         '${resourceReleaseId}', '${resourceReleaseId}', '${datasetId}', 'divisionStatistic', 'dr-hk-test-${index}-2026-Q2',
-        '2026-Q2', '2026-Q2', 'hk/test/2026-Q2/${index}.parquet', '${index}.parquet',
+        '2026-Q2', '2026-Q2',
         'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
         '2026-08-25T00:00:00.000Z'
       );
-      INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount)
-      VALUES ('${resourceReleaseId}', 'sha256:${'0'.repeat(64)}', 1, 1);
+      INSERT INTO processingAudits (resourceReleaseId, stage, ownerId, manifestHash, byteLength, applicationCount, attemptStatus)
+      VALUES ('${resourceReleaseId}', 'ingestion', '${resourceReleaseId}', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed');
     `)
     const snapshot = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
       cohortKey: '2026-Q2',
@@ -488,11 +484,10 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
       '2022', '2022', 'processing'
     );
     INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
       'legacy-release-2022', 'legacy-release-2022', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2022',
-      '2022', '2022', 'hk/test/2022/legacy.parquet', 'legacy.parquet',
+      '2022', '2022',
       'processing', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
       '2026-08-25T00:00:00.000Z'
     );
@@ -521,11 +516,10 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
       '2023', '2023', 'staged'
     );
     INSERT INTO resourceReleases (
-      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey,
-      rawObjectKey, originalFileName, status, ingestedAt, createdAt, updatedAt
+      id, sourceReleaseId, datasetId, resourceType, code, sourceVersion, cohortKey, status, ingestedAt, createdAt, updatedAt
     ) VALUES (
       'staged-release-2023', 'staged-release-2023', 'dataset-0', 'divisionStatistic', 'dr-hk-test-2023',
-      '2023', '2023', 'hk/test/2023/staged.parquet', 'staged.parquet',
+      '2023', '2023',
       'staged', '2026-08-25T00:00:00.000Z', '2026-08-25T00:00:00.000Z',
       '2026-08-25T00:00:00.000Z'
     );
@@ -578,8 +572,8 @@ test('bootstraps one cohort-complete initial Statistics release set', async () =
   ).toEqual({ count: 0 })
 
   sqlite.exec(
-    `INSERT INTO releaseProvenance (resourceReleaseId, manifestHash, byteLength, applicationCount, attemptStatus)
-      VALUES ('legacy-release-2022', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed')`,
+    `INSERT INTO processingAudits (resourceReleaseId, stage, ownerId, manifestHash, byteLength, applicationCount, attemptStatus)
+      VALUES ('legacy-release-2022', 'ingestion', 'legacy-release-2022', 'sha256:${'0'.repeat(64)}', 1, 1, 'completed')`,
   )
   await handlePublishDataset(db, {
     resourceReleaseId: 'legacy-release-2022',

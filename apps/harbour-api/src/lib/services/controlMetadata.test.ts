@@ -80,7 +80,12 @@ test('publication metadata reads locale values from the selected domain member a
       regionCode: 'hk',
     }
     expect(
-      await requireReleaseSetPublicationMetadata(db, 'release', fallback),
+      await requireReleaseSetPublicationMetadata(
+        db,
+        'release',
+        'api-divisions-v0.1',
+        fallback,
+      ),
     ).toMatchObject({
       domainCode: 'selected',
       domainName: 'Selected domain',
@@ -88,7 +93,12 @@ test('publication metadata reads locale values from the selected domain member a
     })
     sqlite.exec('UPDATE apiVersionReleaseSets SET apiCompositionId = NULL')
     expect(
-      await requireReleaseSetPublicationMetadata(db, 'release', fallback),
+      await requireReleaseSetPublicationMetadata(
+        db,
+        'release',
+        'api-divisions-v0.1',
+        fallback,
+      ),
     ).toMatchObject({
       domainName: 'Selected domain',
     })

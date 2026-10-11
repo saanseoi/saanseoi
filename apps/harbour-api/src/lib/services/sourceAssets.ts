@@ -1,7 +1,8 @@
-import { and, eq, metaAssets } from '@repo/db'
+import { and, eq, or, sql, metaAssets } from '@repo/db'
 
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 import {
+  resolveManagedAssetOwnership,
   assertSourceAssetManifestLink,
   linkSourceAssetManifest,
 } from '@repo/core/sourceAssets'
@@ -28,6 +29,7 @@ export type SourceAssetMetadata = {
   sourceAssetId?: string
   originalUrl?: string
   resourceReleaseId?: string
+  sourceReleaseId?: string
   sourcePageLocale?: string
   sourcePageUrl?: string
 }
@@ -38,6 +40,7 @@ export async function preflightManagedSourceAsset(
   input: { byteLength: number; metadata: SourceAssetMetadata },
 ) {
   assertMetadata(input.metadata)
+  await resolveManagedAssetOwnership(db, input.metadata)
   await assertSourceAssetManifestLink(db, input.metadata)
   if (!Number.isSafeInteger(input.byteLength) || input.byteLength < 0) {
     throw new Error('Source asset byteLength must be a non-negative integer.')
@@ -72,6 +75,7 @@ export async function registerManagedSourceAsset(
   },
 ) {
   assertMetadata(input.metadata)
+  await resolveManagedAssetOwnership(db, input.metadata)
   await assertSourceAssetManifestLink(db, input.metadata)
   const status = await completeSourceAssetTransfer(bucket, {
     ...input.metadata,
@@ -107,7 +111,10 @@ export async function deleteManagedSourceAsset(
     .where(
       and(
         eq(metaAssets.id, input.assetId),
-        eq(metaAssets.resourceReleaseId, input.resourceReleaseId),
+        or(
+          eq(metaAssets.resourceReleaseId, input.resourceReleaseId),
+          sql`${metaAssets.sourceReleaseId} = (SELECT sourceReleaseId FROM resourceReleases WHERE id = ${input.resourceReleaseId})`,
+        ),
       ),
     )
     .get()
@@ -139,6 +146,7 @@ async function registerSourceAssetMetadata(
     return existingAsset.id
   }
 
+  const ownership = await resolveManagedAssetOwnership(db, metadata)
   const assetId = crypto.randomUUID()
   await db
     .insert(metaAssets)
@@ -155,8 +163,7 @@ async function registerSourceAssetMetadata(
       sourcePageLocale: metadata.sourcePageLocale ?? null,
       sourcePageUrl: metadata.sourcePageUrl ?? null,
       sourceRecordId: null,
-      datasetId: metadata.datasetId ?? null,
-      resourceReleaseId: metadata.resourceReleaseId ?? null,
+      ...ownership,
     })
     .onConflictDoNothing()
     .run()

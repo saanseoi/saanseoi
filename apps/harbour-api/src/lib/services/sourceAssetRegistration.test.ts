@@ -25,7 +25,7 @@ test('only verified completed objects enter metadata and registration failure re
     assetKey: `by-source/hk/test/${sha256}-source.zip`,
     contentHash: sha256,
     mediaType: 'application/zip',
-    role: 'sourceArchive',
+    role: 'releaseSourceArchive',
     retrievedAt: '2026-09-12T00:00:00.000Z',
   }
   const input = {
@@ -83,7 +83,7 @@ test('preflight never registers an object carrying only a false declared hash', 
     assetKey: `by-source/hk/test/${'0'.repeat(64)}-source.zip`,
     contentHash: '0'.repeat(64),
     mediaType: 'application/zip',
-    role: 'sourceArchive',
+    role: 'releaseSourceArchive',
     retrievedAt: '2026-09-12T00:00:00Z',
   }
   f.objects.set(metadata.assetKey, {
@@ -139,7 +139,7 @@ test('registers independently downloadable sidecars with exact source links and 
     return { ...result, metadata, byteLength: bytes.length }
   }
   try {
-    const source = await retain('publisher ZIP bytes', 'sourceArchive')
+    const source = await retain('publisher ZIP bytes', 'releaseSourceArchive')
     const first = await retain(
       JSON.stringify({
         archive: { objectKey: source.metadata.assetKey },
@@ -179,7 +179,7 @@ test('registers independently downloadable sidecars with exact source links and 
     expect(
       sqlite.query('SELECT sourceAssetId FROM assets WHERE id = ?').get(first.assetId),
     ).toEqual({ sourceAssetId: source.assetId })
-    const other = await retain('different publisher ZIP', 'sourceArchive')
+    const other = await retain('different publisher ZIP', 'releaseSourceArchive')
     await expect(
       preflightManagedSourceAsset(db, f.store, {
         ...first,
@@ -229,7 +229,7 @@ test('rejects inline manifests, unlinked sidecars and links to another manifest 
         byteLength: 1,
         metadata: {
           ...metadata,
-          role: 'sourceArchive',
+          role: 'releaseSourceArchive',
           sourceAssetId: crypto.randomUUID(),
         },
       }),

@@ -89,6 +89,7 @@ export async function resolvePublishedSnapshotMetadataDeltas(
 export async function resolveApiReleaseSetMetadataDelta(
   db: HarbourReadableDb,
   releaseSetId: string,
+  apiVersionCode: string,
 ): Promise<ApiReleaseSetMetadataDelta | undefined> {
   const releaseSet = await db
     .select({
@@ -166,6 +167,7 @@ export async function resolvePublisherName(
 export async function requireReleaseSetPublicationMetadata(
   db: HarbourReadableDb,
   releaseSetId: string,
+  apiVersionCode: string,
   fallback: {
     apiFamily: string
     cohortKey: string

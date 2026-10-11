@@ -12,7 +12,6 @@ import {
   metaPublishers,
   metaResourceReleases,
   normaliseJsonField,
-  releaseProcessingActions,
   stats,
   toIsoString,
   type ReleaseContext,
@@ -23,7 +22,6 @@ import {
 import type {
   ProcessingRunReportRow,
   ListStatsOptions,
-  ProcessingActionReportRow,
   ReleaseQueryRow,
   ReleaseReportRow,
   StatQueryRow,
@@ -146,67 +144,6 @@ export async function listStats(
   }))
 }
 
-export async function listProcessingActions(
-  db: HarbourReadableDb,
-  options: ReportFilters,
-): Promise<ProcessingActionReportRow[]> {
-  const query = db
-    .select({
-      ...auditSummarySelection,
-      datasetCode: metaDatasets.code,
-      releaseCode: metaResourceReleases.code,
-      resourceReleaseId: metaResourceReleases.id,
-      source: metaPublishers.code,
-      resourceType: metaResourceReleases.resourceType,
-      updatedAt: releaseProcessingActions.updatedAt,
-    })
-    .from(releaseProcessingActions)
-    .innerJoin(
-      metaResourceReleases,
-      eq(releaseProcessingActions.resourceReleaseId, metaResourceReleases.id),
-    )
-    .innerJoin(metaDatasets, eq(metaResourceReleases.datasetId, metaDatasets.id))
-    .innerJoin(metaPublishers, eq(metaDatasets.publisherId, metaPublishers.id))
-    .orderBy(
-      desc(releaseProcessingActions.createdAt),
-      desc(releaseProcessingActions.id),
-    )
-  const releaseIds = options.resourceReleaseId
-    ? [options.resourceReleaseId]
-    : await listLatestStatsReleaseIds(db, {
-        limit: options.limit ?? 1,
-        source: options.source,
-        resourceType: options.resourceType,
-      })
-
-  if (releaseIds.length === 0) return []
-
-  const whereClause = buildReportFilterWhereClause(options)
-  const releaseIdBatches = chunkArray(
-    releaseIds,
-    getMaxItemsPerInClause(1, countReportFilterVariables(options)),
-  )
-  const rows = (
-    await Promise.all(
-      releaseIdBatches.map(releaseIdBatch =>
-        whereClause
-          ? query
-              .where(and(whereClause, inArray(metaResourceReleases.id, releaseIdBatch)))
-              .all()
-          : query.where(inArray(metaResourceReleases.id, releaseIdBatch)).all(),
-      ),
-    )
-  ).flat()
-
-  return (await readAuditPages(db, rows)).map(row => ({
-    ...row,
-    createdAt: toIsoString(row.createdAt) ?? '',
-    evidence: normaliseJsonField(row.evidence),
-    mode: row.mode === 'manual' ? 'manual' : 'automatic',
-    updatedAt: toIsoString(row.updatedAt) ?? '',
-  }))
-}
-
 export async function listReleases(
   db: HarbourReadableDb,
   bindings: ReportBindings,
@@ -219,10 +156,7 @@ export async function listReleases(
       datasetCode: metaDatasets.code,
       datasetId: metaDatasets.id,
       ingestedAt: metaResourceReleases.ingestedAt,
-      notes: metaResourceReleases.notes,
-      originalFileName: metaResourceReleases.originalFileName,
       publicationDate: metaResourceReleases.publicationDate,
-      rawObjectKey: metaResourceReleases.rawObjectKey,
       hasStatisticsSnapshot: sql<boolean>`EXISTS (
         SELECT 1 FROM ${metaSnapshotResourceReleases}
         JOIN ${metaSnapshots} ON ${metaSnapshots.id} = ${metaSnapshotResourceReleases.snapshotId}
@@ -273,10 +207,7 @@ export async function listReleases(
     datasetCode: row.datasetCode,
     datasetId: row.datasetId,
     ingestedAt: toIsoString(row.ingestedAt),
-    notes: row.notes,
-    originalFileName: row.originalFileName,
     publicationDate: row.publicationDate,
-    rawObjectKey: row.rawObjectKey,
     releaseCode: row.releaseCode,
     resourceReleaseId: row.resourceReleaseId,
     revocationReason: row.revocationReason,
@@ -420,11 +351,6 @@ export type {
 export type {
   ProcessingRunReportRow,
   StatReportRow,
-  ProcessingActionReportRow,
   ListStatsOptions,
   ReleaseReportRow,
 } from './reportingTypes.ts'
-import {
-  auditSummarySelection,
-  readAuditPages,
-} from '@repo/core/pipeline/db/processingActionStorage'

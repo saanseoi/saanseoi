@@ -33,31 +33,7 @@ export type StatReportRow = {
   value: number
 }
 
-export type ProcessingActionReportRow = {
-  action: string
-  affectedRecordCount: number
-  createdAt: string
-  datasetCode: string
-  evidence: unknown
-  id: string
-  mode: 'automatic' | 'manual'
-  releaseCode: string
-  resourceReleaseId: string
-  source: string
-  summary: string
-  resourceType: string
-  updatedAt: string
-}
-
 export type StatQueryRow = Omit<StatReportRow, 'createdAt' | 'updatedAt'> & {
-  createdAt: Date | string
-  updatedAt: Date | string
-}
-
-export type ProcessingActionQueryRow = Omit<
-  ProcessingActionReportRow,
-  'createdAt' | 'updatedAt'
-> & {
   createdAt: Date | string
   updatedAt: Date | string
 }
@@ -72,10 +48,7 @@ export type ReleaseReportRow = {
   datasetCode: string
   datasetId: string
   ingestedAt: string | null
-  notes: string | null
-  originalFileName: string | null
   publicationDate: string | null
-  rawObjectKey: string | null
   releaseCode: string
   resourceReleaseId: string
   revocationReason: string | null
