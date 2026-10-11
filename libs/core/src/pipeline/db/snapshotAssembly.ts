@@ -224,14 +224,13 @@ export async function readSnapshotAssemblySql(
       .get()
     if (!assembly) throw new Error(`Snapshot assembly recipe is missing: ${id}.`)
     if (assembly.processingRules) {
+      if (typeof assembly.processingRules !== 'string')
+        throw new Error(`Snapshot assembly processing reference must be a hash: ${id}.`)
       const definition = await db
         .select()
         .from(metaSchema.metaProcessingRuleDefinitions)
         .where(
-          eq(
-            metaSchema.metaProcessingRuleDefinitions.id,
-            (assembly.processingRules as { definitionId: string }).definitionId,
-          ),
+          eq(metaSchema.metaProcessingRuleDefinitions.id, assembly.processingRules),
         )
         .get()
       if (!definition)

@@ -286,7 +286,7 @@ test('snapshot recipes freeze assembly policy, hash revisions and replay their i
     const first = run(local.sqlite)
     const saved = local.sqlite
       .query(
-        "SELECT p.definition FROM snapshotRecipes r JOIN processingRuleDefinitions p ON p.id=json_extract(r.processingRules, '$.definitionId') WHERE r.id=?",
+        'SELECT p.definition FROM snapshotRecipes r JOIN processingRuleDefinitions p ON p.id=r.processingRules WHERE r.id=?',
       )
       .get(first.snapshotRecipeId) as { definition: string }
     const policy = JSON.parse(saved.definition)
@@ -329,7 +329,7 @@ test('snapshot recipes freeze assembly policy, hash revisions and replay their i
     for (const statement of sql) target.sqlite.exec(statement)
     const replayed = target.sqlite
       .query(
-        "SELECT p.definition FROM snapshotRecipes r JOIN processingRuleDefinitions p ON p.id=json_extract(r.processingRules, '$.definitionId') WHERE r.id=?",
+        'SELECT p.definition FROM snapshotRecipes r JOIN processingRuleDefinitions p ON p.id=r.processingRules WHERE r.id=?',
       )
       .get(second.snapshotRecipeId) as { definition: string }
     expect(JSON.parse(replayed.definition)).toEqual(revised)

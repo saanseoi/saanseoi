@@ -52,6 +52,7 @@ const ADDRESS_DIVISION_REFERENCE_COLUMNS = [
   'areaId',
   'districtId',
   'townId',
+  'ruralAreaId',
   'macrohoodId',
   'villageId',
   'neighbourhoodId',
@@ -120,6 +121,7 @@ type CurrentAddressVersionLookupRow = Pick<
   | 'hamletId'
   | 'id'
   | 'identifiers'
+  | 'ruralAreaId'
   | 'macrohoodId'
   | 'microhoodId'
   | 'neighbourhoodId'
@@ -195,6 +197,7 @@ function selectCurrentAddressVersionFields() {
     microhoodId: historySchema.address2d.microhoodId,
     villageId: historySchema.address2d.villageId,
     neighbourhoodId: historySchema.address2d.neighbourhoodId,
+    ruralAreaId: historySchema.address2d.ruralAreaId,
     macrohoodId: historySchema.address2d.macrohoodId,
     townId: historySchema.address2d.townId,
     districtId: historySchema.address2d.districtId,
@@ -891,6 +894,7 @@ export async function cloneAddressCurrentSnapshot(
             microhoodId: currentSchema.address2d.microhoodId,
             villageId: currentSchema.address2d.villageId,
             neighbourhoodId: currentSchema.address2d.neighbourhoodId,
+            ruralAreaId: currentSchema.address2d.ruralAreaId,
             macrohoodId: currentSchema.address2d.macrohoodId,
             townId: currentSchema.address2d.townId,
             districtId: currentSchema.address2d.districtId,
@@ -1434,6 +1438,7 @@ export async function upsertAddressCurrentStates(
             microhoodId: excluded('microhoodId'),
             villageId: excluded('villageId'),
             neighbourhoodId: excluded('neighbourhoodId'),
+            ruralAreaId: excluded('ruralAreaId'),
             macrohoodId: excluded('macrohoodId'),
             townId: excluded('townId'),
             districtId: excluded('districtId'),
@@ -1568,6 +1573,7 @@ export async function materialiseReplayedAddressCurrentSnapshot(
     areaId: resolveReplayedDivisionReference(base.areaId, divisionIds),
     districtId: resolveReplayedDivisionReference(base.districtId, divisionIds),
     townId: resolveReplayedDivisionReference(base.townId, divisionIds),
+    ruralAreaId: resolveReplayedDivisionReference(base.ruralAreaId, divisionIds),
     macrohoodId: resolveReplayedDivisionReference(base.macrohoodId, divisionIds),
     villageId: resolveReplayedDivisionReference(base.villageId, divisionIds),
     neighbourhoodId: resolveReplayedDivisionReference(
@@ -1686,6 +1692,7 @@ export async function insertAddressVersionRows(
             microhoodId: row.microhoodId,
             villageId: row.villageId,
             neighbourhoodId: row.neighbourhoodId,
+            ruralAreaId: row.ruralAreaId,
             macrohoodId: row.macrohoodId,
             townId: row.townId,
             districtId: row.districtId,

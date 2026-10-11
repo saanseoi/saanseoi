@@ -11,6 +11,7 @@ const addressRow = (id: string, versionHash: string) => ({
   hamletId: null,
   id,
   identifiers: {},
+  ruralAreaId: null,
   macrohoodId: null,
   microhoodId: null,
   neighbourhoodId: null,
