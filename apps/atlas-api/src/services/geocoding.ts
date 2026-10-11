@@ -1,3 +1,7 @@
+import {
+  matchesGeographicMembership,
+  matchesAddressGeographicMembership,
+} from '../lib/geographicFilterContext'
 import { GeocodingResponseSchema } from '../schema/geocoding'
 import { presentGeocoding } from './geocodingPresentation'
 import type { GeocodingQuery } from '../schema/geocoding'
@@ -127,10 +131,12 @@ export async function resolveGeocode(
       : null
     const resolver = divisions
       ? createDivisionResolver(
-          divisions.records.map(record => ({
-            ...record,
-            i18n: requestedNames(record.i18n, query.locales),
-          })),
+          divisions.records
+            .filter(record => matchesGeographicMembership([record.division.id]))
+            .map(record => ({
+              ...record,
+              i18n: requestedNames(record.i18n, query.locales),
+            })),
           divisions.areas,
         )
       : null
@@ -158,6 +164,7 @@ export async function resolveGeocode(
       }
     if (args.family === 'division' && query.placename !== undefined) {
       const candidates = divisions!.records
+        .filter(record => matchesGeographicMembership([record.division.id]))
         .map(record => ({
           record,
           score: nameScore(
@@ -189,7 +196,7 @@ export async function resolveGeocode(
               class: record.division.class,
               level: record.division.level,
               names: requestedNames(record.i18n, query.locales),
-              // The label point locates a forward candidate; only stub polygons
+              // The label point locates a forward candidate; only SaanSeoi polygons
               // determine containment, and may disagree with this named identity.
               coordinates: coordinate,
               coordinateRole: 'label',
@@ -218,6 +225,9 @@ export async function resolveGeocode(
     }
     const addresses = await deps.loadGeocodingAddresses(args, addressRelease!, query)
     const candidates = addresses.records
+      .filter(record =>
+        matchesAddressGeographicMembership(record.address.divisionRelationships),
+      )
       .flatMap(record => {
         const ranked = rankAddress(record, query)
         return ranked ? [ranked] : []

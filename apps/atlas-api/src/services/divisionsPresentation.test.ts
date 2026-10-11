@@ -1,8 +1,10 @@
 import { expect, test } from 'bun:test'
 import type { DivisionHierarchies, DivisionHierarchyEntry } from '@repo/db'
+import { z } from '@hono/zod-openapi'
 import { DivisionResourceSchema, DivisionHierarchiesSchema } from '../schema/divisions'
 import { division } from './geocoding.fixtures'
 import {
+  publicDivisionHierarchies,
   buildDivisionRouteState,
   createDivisionResource,
   createIncludedDivisionResource,
@@ -69,10 +71,10 @@ test('public division hierarchies retain containment flags without leaking or mu
           full: [expected, [expected[0]!]],
         })
         expect(JSON.stringify(resource)).not.toContain('containment_geometry')
+        expect(JSON.stringify(resource)).not.toContain('nameVariant')
         if (profile === 'full')
           expect(resource.attributes.i18n?.en).toEqual({
             name: 'Child',
-            nameVariant: ['Child', 'Alias'],
             nameAlts: ['Alias'],
             nameRules: [{ value: 'Alias', variant: 'alternate' }],
           })
@@ -83,6 +85,48 @@ test('public division hierarchies retain containment flags without leaking or mu
       expect(record).toEqual(original)
     }
   }
+})
+
+test('public Division schema omits redundant name variants', () => {
+  const schema = JSON.stringify(z.toJSONSchema(DivisionResourceSchema))
+  expect(schema).not.toContain('nameVariant')
+  expect(schema).toContain('nameAlts')
+  expect(schema).toContain('nameRules')
+})
+
+test('public full paths always omit cities and Hong Kong Island landform', () => {
+  const district = {
+    id: 'district',
+    class: 'district',
+    name: '觀塘區 Kwun Tong District',
+  }
+  const city = { id: 'kowloon', class: 'city', name: '九龍 Kowloon' }
+  const island = {
+    id: 'ss-5999ed90-1c47-51e7-b79d-80f9251c1e01',
+    class: 'major_island',
+    name: '香港島',
+  }
+  const otherIsland = {
+    id: 'lantau',
+    class: 'major_island',
+    name: '大嶼山 Lantau Island',
+  }
+  const rural = { id: 'lei-yue-mun', class: 'rural_area', name: '鯉魚門 Lei Yue Mun' }
+  const stored: DivisionHierarchies = {
+    full: [
+      [district, city, rural],
+      [island, rural],
+      [otherIsland, city],
+    ],
+    locality: [[city, rural]],
+    landform: [[island], [otherIsland]],
+  }
+  const original = structuredClone(stored)
+  const projected = publicDivisionHierarchies(stored)
+  expect(projected.full).toEqual([[district, rural], [rural], [otherIsland]])
+  expect(projected.locality).toEqual(stored.locality)
+  expect(projected.landform).toEqual(stored.landform)
+  expect(stored).toEqual(original)
 })
 
 test('division resources do not expose polygons as identity geometry', () => {

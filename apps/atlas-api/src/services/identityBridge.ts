@@ -40,8 +40,9 @@ export function extractIdentityMappings(
   const object = identifiers as Record<string, unknown>
   const result: IdentityMapping[] = []
   const planning =
-    object.hkgovPland && typeof object.hkgovPland === 'object'
-      ? (object.hkgovPland as Record<string, unknown>)
+    (object['hkgov-pland'] ?? object.hkgovPland) &&
+    typeof (object['hkgov-pland'] ?? object.hkgovPland) === 'object'
+      ? ((object['hkgov-pland'] ?? object.hkgovPland) as Record<string, unknown>)
       : object
   const code = (level: string) =>
     planning[`PLAND:${level.toUpperCase()}`] ?? planning[level]
@@ -55,7 +56,9 @@ export function extractIdentityMappings(
         : String(code(ownLevel))
     if (ownLevel !== 'subunit' || code('tpu') != null)
       result.push({
-        namespace: `PLAND:${ownLevel.toUpperCase()}`,
+        namespace: object['hkgov-pland']
+          ? `hkgov-pland.${ownLevel}`
+          : `PLAND:${ownLevel.toUpperCase()}`,
         identifier: value,
         canonicalId,
       })
@@ -67,8 +70,10 @@ export function extractIdentityMappings(
     } else if (Array.isArray(value)) {
       for (const item of value) visit(item, path)
     } else if (value && typeof value === 'object') {
-      for (const [key, child] of Object.entries(value))
+      for (const [key, child] of Object.entries(value)) {
+        if (/curation|correction/i.test(key)) continue
         visit(child, path ? `${path}.${key}` : key)
+      }
     }
   }
   for (const [key, value] of Object.entries(object)) {
@@ -78,6 +83,13 @@ export function extractIdentityMappings(
       /curation|correction/i.test(key)
     )
       continue
+    if (key === 'hkgov-pland' && value && typeof value === 'object') {
+      for (const [field, identifier] of Object.entries(value)) {
+        if (!['ppu', 'spu', 'tpu', 'subunit'].includes(field))
+          visit(identifier, `${key}.${field}`)
+      }
+      continue
+    }
     visit(value, key)
   }
   return result

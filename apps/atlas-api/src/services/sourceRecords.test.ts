@@ -137,7 +137,7 @@ describe('source records', () => {
             includeGeometry: false,
             sourceReleaseCode: code,
             metaDb: metaDatabase({
-              datasetCode: `ds-hk-overture-division-${kind}`,
+              datasetCode: 'ds-hk-overture-division',
               resourceType: kind === 'area' ? 'divisionArea' : 'divisionBoundary',
               sourceReleaseCode: code,
               sourceVersion: version,
@@ -485,7 +485,7 @@ describe('source records', () => {
         metaDb,
       })
 
-      expect(queries[0]).toContain("apiReleaseSets.status <> 'draft'")
+      expect(queries[0]).toContain("apiVersionReleaseSets.status <> 'draft'")
       expect(queries[1]).toContain("resourceReleases.status IN ('current', 'archived')")
       expect(queries[1]).toContain('resourceReleases.revokedAt IS NULL')
       expect(queries[1]).toContain("sourceReleases.status IN ('current', 'archived')")
@@ -851,55 +851,61 @@ describe('source records', () => {
     expect(result?.records[0]).toMatchObject({ geometry })
   })
 
-  test('decompresses exact C&SD geometry stored as a Brotli BLOB', async () => {
-    const geometry = {
-      coordinates: [
-        [114.1, 22.2],
-        [114.2, 22.2],
-        [114.1, 22.2],
-      ],
-      type: 'Polygon',
-    }
-    const censtatdRelease =
-      'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016'
-    const result = await listSourceRecords({
-      env: {
-        DB_SOURCE_HK_2025: sourceDatabase([]),
-        DB_SOURCE_HK_2026: sourceDatabase(
-          [
-            {
-              properties: JSON.stringify({ dc: 1, dc_eng: 'Central and Western' }),
-              sourceGeometry: compressJsonBrotli(geometry),
-              sourceRecordId: 'CENSTATD:A',
-              versionHash: 'version-1',
-            },
-          ],
-          'hkgovCenstatdDivisionAreas',
-          '2016',
-        ),
-        DB_SOURCE_HK_BEFORE: sourceDatabase([]),
-      } as never,
-      family: 'divisions',
-      includeGeometry: true,
-      metaDb: metaDatabase({
-        datasetCode:
-          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
-        resourceType: 'divisionArea',
+  test.each(['typed buffer', 'D1 byte array'] as const)(
+    'decompresses exact C&SD geometry from a %s',
+    async representation => {
+      const geometry = {
+        coordinates: [
+          [114.1, 22.2],
+          [114.2, 22.2],
+          [114.1, 22.2],
+        ],
+        type: 'Polygon',
+      }
+      const censtatdRelease =
+        'dr-hk-hkgov-censtatd-division-statistic-subdivided-units-district-2016'
+      const result = await listSourceRecords({
+        env: {
+          DB_SOURCE_HK_2025: sourceDatabase([]),
+          DB_SOURCE_HK_2026: sourceDatabase(
+            [
+              {
+                properties: JSON.stringify({ dc: 1, dc_eng: 'Central and Western' }),
+                sourceGeometry:
+                  representation === 'D1 byte array'
+                    ? Array.from(compressJsonBrotli(geometry))
+                    : compressJsonBrotli(geometry),
+                sourceRecordId: 'CENSTATD:A',
+                versionHash: 'version-1',
+              },
+            ],
+            'hkgovCenstatdDivisionAreas',
+            '2016',
+          ),
+          DB_SOURCE_HK_BEFORE: sourceDatabase([]),
+        } as never,
+        family: 'divisions',
+        includeGeometry: true,
+        metaDb: metaDatabase({
+          datasetCode:
+            'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+          resourceType: 'divisionArea',
+          sourceReleaseCode: censtatdRelease,
+          sourceVersion: '2016',
+          sourceVariant: 'hkgov-censtatd:2016',
+        }),
         sourceReleaseCode: censtatdRelease,
-        sourceVersion: '2016',
-        sourceVariant: 'hkgov-censtatd:2016',
-      }),
-      sourceReleaseCode: censtatdRelease,
-    })
+      })
 
-    expect(result?.records).toEqual([
-      {
-        geometry,
-        properties: { dc: 1, dc_eng: 'Central and Western' },
-        sourceRecordId: 'CENSTATD:A',
-      },
-    ])
-  })
+      expect(result?.records).toEqual([
+        {
+          geometry,
+          properties: { dc: 1, dc_eng: 'Central and Western' },
+          sourceRecordId: 'CENSTATD:A',
+        },
+      ])
+    },
+  )
 
   test('rejects a malformed opaque source cursor', async () => {
     await expect(
@@ -950,6 +956,13 @@ describe('source records', () => {
 for (const [family, datasetCode, tableName, resourceType] of [
   ['addresses', 'ds-hk-hkgov-dpo-address', '', 'address'],
   ['divisions', 'ds-hk-overture-division', 'overtureDivisions', 'division'],
+  ['divisions', 'ds-hk-overture-division', 'overtureDivisionAreas', 'divisionArea'],
+  [
+    'divisions',
+    'ds-hk-overture-division',
+    'overtureDivisionBoundaries',
+    'divisionBoundary',
+  ],
   ['places', 'ds-hk-overture-place', 'overturePlaces', 'place'],
   [
     'stats',
@@ -971,7 +984,10 @@ for (const [family, datasetCode, tableName, resourceType] of [
       sourceRecordId: 'publisher',
       versionHash: 'hash',
       properties: '{"publisherValue":" original "}',
-      sourceGeometry: JSON.stringify(geometry),
+      sourceGeometry:
+        resourceType === 'divisionArea' || resourceType === 'divisionBoundary'
+          ? compressJsonBrotli(geometry)
+          : JSON.stringify(geometry),
     }
     const db = tableName
       ? sourceDatabase([row], tableName, '2026-07-22.0')
@@ -1009,6 +1025,53 @@ for (const [family, datasetCode, tableName, resourceType] of [
     ).toEqual([expected])
   })
 }
+
+test('SaanSeoi Areas schema describes every retained field and preserves flag types', async () => {
+  const sourceReleaseCode = 'dr-hk-saanseoi-division-2026-07-22.0'
+  const fields = [
+    ['bbox', 'array'],
+    ['divisionId', 'text'],
+    ['identifiers', 'null'],
+    ['isLand', 'integer'],
+    ['isLand', 'true'],
+    ['isTerritorial', 'integer'],
+    ['isTerritorial', 'false'],
+    ['sources', 'object'],
+    ['type', 'text'],
+    ['variant', 'text'],
+  ]
+  const schema = await getSourceRecordSchema({
+    family: 'divisions',
+    sourceReleaseCode,
+    env: {
+      DB_SOURCE_HK_2026: sourceDatabase(
+        fields.map(([name, type]) => ({
+          name,
+          type,
+          occurrences: name === 'isLand' || name === 'isTerritorial' ? 1 : 2,
+          total: 2,
+        })),
+        'ssDivisionArea',
+      ),
+    } as never,
+    metaDb: metaDatabase({
+      datasetCode: 'ds-hk-saanseoi-division',
+      resourceType: 'divisionArea',
+      sourceReleaseCode,
+    }),
+  })
+  expect(schema).not.toBeNull()
+  for (const [name] of fields) {
+    expect(schema?.properties[name!]).toHaveProperty('description', expect.any(String))
+    expect(schema?.required).toContain(name!)
+  }
+  for (const name of ['isLand', 'isTerritorial']) {
+    expect(schema?.properties[name]).toMatchObject({
+      anyOf: [{ type: 'integer' }, { type: 'boolean' }],
+      description: expect.stringContaining('Values are booleans'),
+    })
+  }
+})
 
 test('SaanSeoi source samples, downloads and schema omit internal containment evidence', async () => {
   const datasetCode = 'ds-hk-saanseoi-division'
@@ -1143,6 +1206,10 @@ test('SaanSeoi source samples, downloads and schema omit internal containment ev
   expect(schema?.properties.sources).toHaveProperty(
     'additionalProperties.items.properties.recordId.description',
   )
+  expect(schema?.properties.sources).not.toHaveProperty(
+    'additionalProperties.items.properties.release',
+  )
+  expect(schema?.properties.memberships).not.toHaveProperty('items.properties.release')
   expect(schema?.properties.memberships).toHaveProperty(
     'items.properties.collection.description',
   )
@@ -1183,4 +1250,49 @@ test('raw Overture source records preserve publisher field spelling', () => {
     'divisions',
   )
   expect(result.properties).toEqual(properties)
+})
+
+test('LandsD source schema defines classifications and joined publisher name rows', async () => {
+  const code = 'dr-hk-hkgov-landsd-division-2026-06-10.0'
+  const rows = ['district', 'geoNameId', 'placeClass', 'placeType', 'placeNames'].map(
+    name => ({
+      name,
+      type: name === 'placeNames' ? 'array' : 'text',
+      occurrences: 2,
+      total: 2,
+    }),
+  )
+  const schema = await getSourceRecordSchema({
+    family: 'divisions',
+    sourceReleaseCode: code,
+    metaDb: metaDatabase({
+      datasetCode: 'ds-hk-hkgov-landsd-division',
+      sourceReleaseCode: code,
+      sourceVersion: '2026-06-10.0',
+    }),
+    env: {
+      DB_SOURCE_HK_2026: sourceDatabase(rows, 'hkgovLandsdPlaceNames', '2026-06-10.0'),
+    } as never,
+  })
+  expect(schema?.required).toHaveLength(5)
+  for (const field of Object.values(schema!.properties))
+    expect(field.description).toBeTruthy()
+  expect(schema?.properties.placeClass).toHaveProperty('enum', [
+    'Settlement',
+    'Hydrographic',
+    'Topographic',
+  ])
+  expect(schema?.properties.placeNames).toMatchObject({
+    type: 'array',
+    nullable: false,
+    items: {
+      type: 'object',
+      required: ['nameEn', 'nameZhHant', 'nameStatus'],
+      properties: {
+        nameEn: { type: 'string', nullable: true },
+        nameZhHant: { type: 'string', nullable: true },
+        nameStatus: { type: 'string', enum: ['Official', 'Alias'] },
+      },
+    },
+  })
 })

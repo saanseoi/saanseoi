@@ -11,15 +11,18 @@ export type SourceRecordCatalogueEntry = {
 }
 
 const DIVISION_SOURCE_RECORD_CATALOGUE = {
+  'ds-hk-hkgov-rvd-division': {
+    tableName: 'hkgovRvdAreas',
+  },
+  'ds-hk-protomaps-island': {
+    resourceType: 'divisionArea',
+    geometryColumn: 'sourceGeometry',
+    tableName: 'protomapsIslandFeatures',
+  },
   'ds-hk-saanseoi-division': {
     geometryColumn: 'sourceGeometry',
     scopeByDataset: true,
     tableName: 'ssDivision',
-  },
-  'ds-hk-saanseoi-division-area': {
-    geometryColumn: 'sourceGeometry',
-    scopeByDataset: true,
-    tableName: 'ssDivisionArea',
   },
   'ds-hk-hkgov-had-division-area-district': {
     geometryColumn: 'sourceGeometry',
@@ -41,16 +44,6 @@ const DIVISION_SOURCE_RECORD_CATALOGUE = {
     geometryColumn: 'sourceGeometry',
     randomSampleStrategy: 'uuid-pivot',
     tableName: 'overtureDivisions',
-  },
-  'ds-hk-overture-division-area': {
-    geometryColumn: 'sourceGeometry',
-    randomSampleStrategy: 'uuid-pivot',
-    tableName: 'overtureDivisionAreas',
-  },
-  'ds-hk-overture-division-boundary': {
-    geometryColumn: 'sourceGeometry',
-    randomSampleStrategy: 'uuid-pivot',
-    tableName: 'overtureDivisionBoundaries',
   },
 } as const satisfies Record<string, SourceRecordCatalogueEntry>
 
@@ -137,6 +130,7 @@ const STREET_SOURCE_RECORD_CATALOGUE: Record<string, SourceRecordCatalogueEntry>
 
 export function sourceCatalogueFor(
   family: SourceFamily,
+  resourceType?: string,
 ): Record<string, SourceRecordCatalogueEntry> {
   switch (family) {
     case 'addresses':
@@ -144,6 +138,30 @@ export function sourceCatalogueFor(
     case 'divisions':
       return {
         ...DIVISION_SOURCE_RECORD_CATALOGUE,
+        ...(resourceType === 'divisionArea'
+          ? {
+              'ds-hk-saanseoi-division': {
+                geometryColumn: 'sourceGeometry' as const,
+                scopeByDataset: true,
+                tableName: 'ssDivisionArea',
+              },
+              'ds-hk-overture-division': {
+                geometryColumn: 'sourceGeometry' as const,
+                randomSampleStrategy: 'uuid-pivot' as const,
+                tableName: 'overtureDivisionAreas',
+                geometryEncoding: 'brotli-json' as const,
+              },
+            }
+          : resourceType === 'divisionBoundary'
+            ? {
+                'ds-hk-overture-division': {
+                  geometryColumn: 'sourceGeometry' as const,
+                  randomSampleStrategy: 'uuid-pivot' as const,
+                  tableName: 'overtureDivisionBoundaries',
+                  geometryEncoding: 'brotli-json' as const,
+                },
+              }
+            : {}),
         ...STATISTIC_SOURCE_RECORD_CATALOGUE,
       }
     case 'places':

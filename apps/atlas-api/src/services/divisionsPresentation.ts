@@ -1,6 +1,11 @@
-import { divisionIdentifiers } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
-import type { PublicDivisionHierarchies } from '../schema/divisions'
+import { publicDivisionHierarchies } from '@repo/core/publicDivisionHierarchies'
+export { publicDivisionHierarchies } from '@repo/core/publicDivisionHierarchies'
+import {
+  divisionIdentifiers,
+  type DivisionIdentifiers,
+} from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
 import type { DivisionHierarchies } from '@repo/db'
+import type { PublicDivisionHierarchies, PublicDivisionI18n } from '../schema/divisions'
 import { divisionHierarchyEntries } from '@repo/core/pipeline/services/divisions/divisionHierarchies.ts'
 import type { ApiRegion } from '../schema/region'
 import {
@@ -103,9 +108,9 @@ type DivisionResourcePayload = {
     createdAt?: string
     updatedAt?: string
     sources?: SourcesPayload | null
-    identifiers?: unknown
+    identifiers?: DivisionIdentifiers | null
     variant?: string
-    i18n?: DivisionRecord['i18n']
+    i18n?: PublicDivisionI18n
   }
   relationships: {
     areas?: { data: Array<{ type: 'division-areas'; id: string }> }
@@ -123,16 +128,15 @@ type DivisionGeometryResourceAttributes = {
   isLand: boolean | null
   isTerritorial: boolean | null
   sources?: SourcesPayload | null
-  identifiers?: unknown
+  identifiers?: DivisionIdentifiers | null
   variant?:
     | 'hkgov-censtatd'
     | 'hkgov-censtatd-landclipped'
     | 'hkgov-had'
     | 'hkgov-pland-new-town'
     | 'hkgov-pland-pu'
-    | 'stub'
-    | 'overture'
     | 'saanseoi'
+    | 'overture'
 }
 
 type DivisionGeometryResourcePayload =
@@ -375,14 +379,13 @@ function isMapDivisionProfile(profile: DivisionProfile) {
 function projectDivisionI18n(
   i18n: DivisionRecord['i18n'],
   profile: DivisionProfile,
-): DivisionRecord['i18n'] | undefined {
+): PublicDivisionI18n | undefined {
   const projectedEntries = Object.entries(i18n)
     .map(([locale, value]) => {
       const projectedValue =
         profile === 'full'
           ? {
               name: value.name,
-              nameVariant: value.nameVariant ?? null,
               nameAlts: value.nameAlts ?? null,
               nameRules: value.nameRules ?? null,
             }
@@ -423,41 +426,6 @@ export function matchesDivisionFilters(
   return record.division.hierarchies.full.some(
     path => path.at(-1)?.id === filters.parent,
   )
-}
-
-/** Keep geometry-validation evidence in stored records, outside the public contract. */
-export function publicDivisionHierarchies(
-  hierarchies: DivisionHierarchies | PublicDivisionHierarchies,
-): PublicDivisionHierarchies {
-  return Object.fromEntries(
-    Object.entries(hierarchies).map(([category, paths]) => [
-      category,
-      paths?.map(
-        (
-          path: Array<
-            | DivisionHierarchies['full'][number][number]
-            | PublicDivisionHierarchies['full'][number][number]
-          >,
-        ) =>
-          path.map(entry => {
-            const { id, name, class: klass } = entry
-            // Native canonical storage and SaanSeoi source archives have separate contracts.
-            const fullContainment =
-              'fullContainment' in entry
-                ? entry.fullContainment
-                : 'full_containment' in entry
-                  ? entry.full_containment
-                  : undefined
-            return {
-              id,
-              name,
-              class: klass,
-              ...(fullContainment !== undefined ? { fullContainment } : {}),
-            }
-          }),
-      ),
-    ]),
-  ) as PublicDivisionHierarchies
 }
 
 export function createDivisionResource(args: {
@@ -762,7 +730,7 @@ export function requestedGeometryVariants(
   value: string | undefined,
   domainCode: string,
   transform?: string,
-  inventory = 'overture',
+  inventory = 'saanseoi',
 ) {
   const includes = requestedIncludes(value)
   const area = [...includes].find(item => item.startsWith('areas:'))
@@ -835,7 +803,7 @@ export function createIncludedDivisionGeometryResource(args: {
           snapshotId: record.snapshotId,
         }
       : {}),
-    identifiers: record.identifiers,
+    identifiers: divisionIdentifiers(record.identifiers),
     variant: record.variant,
   })
   if (args.kind === 'area') {

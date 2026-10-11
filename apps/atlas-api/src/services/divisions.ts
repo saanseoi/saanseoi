@@ -1,4 +1,4 @@
-import { hasDivisionStubVariant, listDivisionStubAreas } from './divisionStubAreas'
+import { matchesGeographicMembership } from '../lib/geographicFilterContext'
 import {
   getPublicationReadiness,
   hasSupersedingPublication,
@@ -192,15 +192,7 @@ async function getActiveDivisionSnapshot(
     effectiveFrom: selection.releaseSet.effectiveFrom,
     schemaVersion: selection.releaseSet.schemaVersion,
     rulesetVersion: selection.releaseSet.rulesetVersion,
-    areaSnapshotId:
-      variants.area === 'stub' &&
-      resolveDataRegion(selectors.region) === 'hk' &&
-      hasDivisionStubVariant(
-        selection.releaseSet.domainCode,
-        selection.releaseSet.cohortKey,
-      )
-        ? primarySnapshot.snapshotId
-        : (areaSnapshot?.snapshotId ?? null),
+    areaSnapshotId: areaSnapshot?.snapshotId ?? null,
     boundarySnapshotId: boundarySnapshot?.snapshotId ?? null,
   }
 }
@@ -325,23 +317,19 @@ async function loadDivisionGeometry(args: {
     variant: args.variants?.boundary,
   }
   const [areas, boundaries] = await Promise.all([
-    args.includeArea &&
-    args.variants?.area === 'stub' &&
-    hasDivisionStubVariant(args.snapshot.domainCode, args.snapshot.cohortKey)
-      ? listDivisionStubAreas(args.divisionIds)
-      : args.includeArea && areaSnapshotId
-        ? readSnapshot(
-            areaSnapshotId,
-            'divisionArea',
-            () =>
-              dependencies.listDivisionAreasCurrentByDivisionIds(args.currentDb, {
-                snapshotId: areaSnapshotId,
-                ...areaLookup,
-              }),
-            versions =>
-              dependencies.listReplayedDivisionAreasByDivisionIds(versions, areaLookup),
-          )
-        : [],
+    args.includeArea && areaSnapshotId
+      ? readSnapshot(
+          areaSnapshotId,
+          'divisionArea',
+          () =>
+            dependencies.listDivisionAreasCurrentByDivisionIds(args.currentDb, {
+              snapshotId: areaSnapshotId,
+              ...areaLookup,
+            }),
+          versions =>
+            dependencies.listReplayedDivisionAreasByDivisionIds(versions, areaLookup),
+        )
+      : [],
     args.includeBoundary && boundarySnapshotId
       ? readSnapshot(
           boundarySnapshotId,
@@ -582,7 +570,13 @@ export async function listDivisions(args: {
           parent: args.query['filter[parent]'],
         } satisfies DivisionFilters
         const matchingRecords = replayedRecords
-          .filter(record => matchesDivisionFilters(record, filters))
+          .filter(
+            record =>
+              matchesDivisionFilters(record, filters) &&
+              matchesGeographicMembership([record.division.id], {
+                snapshotId: record.division.snapshotId,
+              }),
+          )
           .sort(
             (left, right) =>
               (left.division.level ?? -1) - (right.division.level ?? -1) ||
@@ -875,7 +869,12 @@ export async function getDivisionDetail(args: {
         const record =
           replayedRecords.find(candidate => candidate.division.id === args.id) ?? null
 
-        if (!record) {
+        if (
+          !record ||
+          !matchesGeographicMembership([record.division.id], {
+            snapshotId: record.division.snapshotId,
+          })
+        ) {
           return {
             status: 404,
             body: {

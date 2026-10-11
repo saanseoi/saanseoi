@@ -1,7 +1,9 @@
+import { rvdSourceFields } from '@repo/core/rvdSourceSchema'
+import { landsdPlaceNameSourceFields } from '@repo/core/landsdPlaceNameSourceSchema'
 import { camelCaseFieldName, camelCaseJson } from '@repo/core/jsonKeys'
-import type { DivisionHierarchies } from '@repo/db'
 import { saanseoiDivisionSourceFields } from './saanseoiDivisionSourceSchema'
-import { publicDivisionHierarchies } from './divisionsPresentation'
+import { protomapsSourceFields } from './protomapsSourceSchema'
+import { publicSaanseoiDivisionProperties } from '@repo/core/publicSaanseoiDivisionProperties'
 import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import { decompressJsonBrotli } from '@repo/core/pipeline/services/storage/brotliJson.ts'
 
@@ -113,7 +115,13 @@ function parseSourceGeometry(value: unknown, entry: SourceRecordCatalogueEntry) 
   if (entry.geometryEncoding === 'brotli-json') {
     if (value instanceof Uint8Array) return decompressJsonBrotli(value)
     if (value instanceof ArrayBuffer) return decompressJsonBrotli(value)
-    throw new Error('C&SD source geometry must be a Brotli-compressed BLOB.')
+    // D1 serialises BLOB results as arrays of bytes.
+    if (
+      Array.isArray(value) &&
+      value.every(byte => Number.isInteger(byte) && byte >= 0 && byte <= 255)
+    )
+      return decompressJsonBrotli(Uint8Array.from(value))
+    throw new Error('Source geometry must be a Brotli-compressed BLOB.')
   }
 
   if (typeof value !== 'string') {
@@ -438,27 +446,11 @@ export function toSourceRecord(
   includeGeometry: boolean,
   family: SourceFamily,
 ): SourceRecord {
-  const properties = parseProperties(row.properties)
-  if (release.datasetCode === 'ds-hk-saanseoi-division' && properties?.hierarchies) {
-    properties.hierarchies = publicDivisionHierarchies(
-      properties.hierarchies as DivisionHierarchies,
-    )
-  }
-  if (
-    release.datasetCode === 'ds-hk-saanseoi-division' &&
-    properties?.names &&
-    typeof properties.names === 'object' &&
-    !Array.isArray(properties.names)
-  ) {
-    properties.names = Object.fromEntries(
-      Object.entries(properties.names).map(([locale, value]) => {
-        if (!value || typeof value !== 'object' || Array.isArray(value))
-          return [locale, value]
-        const { nameVariant: _variants, ...name } = value as Record<string, unknown>
-        return [locale, name]
-      }),
-    )
-  }
+  const parsed = parseProperties(row.properties)
+  const properties =
+    release.datasetCode === 'ds-hk-saanseoi-division'
+      ? publicSaanseoiDivisionProperties(parsed)
+      : parsed
   const record: SourceRecord = {
     properties: release.datasetCode.startsWith('ds-hk-saanseoi-')
       ? camelCaseJson(properties)
@@ -497,7 +489,9 @@ export async function resolveRecordsRequest(args: {
   )
   if (!release) return null
 
-  const entry = sourceCatalogueFor(args.family)[release.datasetCode]
+  const entry = sourceCatalogueFor(args.family, release.resourceType)[
+    release.datasetCode
+  ]
   const sourceDbs = (release.bindingNames ?? [release.bindingName]).map(name =>
     sourceBindingForName(args.env, name),
   )
@@ -659,7 +653,13 @@ export async function getSourceRecordSchema(args: {
         const contract =
           resolved.release.datasetCode === 'ds-hk-saanseoi-division'
             ? saanseoiDivisionSourceFields[name]
-            : undefined
+            : resolved.release.datasetCode === 'ds-hk-protomaps-island'
+              ? protomapsSourceFields[name]
+              : resolved.release.datasetCode === 'ds-hk-hkgov-landsd-division'
+                ? landsdPlaceNameSourceFields()[name]
+                : resolved.release.datasetCode === 'ds-hk-hkgov-rvd-division'
+                  ? rvdSourceFields()[name]
+                  : undefined
         const definitions = nonNull.map(type => ({
           type,
           ...(type === 'object' ? { additionalProperties: true } : {}),

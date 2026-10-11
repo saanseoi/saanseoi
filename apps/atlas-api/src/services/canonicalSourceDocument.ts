@@ -130,7 +130,8 @@ export async function hydrateCanonicalSourceDocument(
         sourceVersion: release.sourceVersion,
         cohortKey: release.cohortKey,
         sourceSchemaVersion: release.sourceSchemaVersion,
-        originalFileName: release.originalFileName,
+        // Archive names are not retained on resource releases.
+        originalFileName: sql<string | null>`NULL`,
       })
       .from(release)
       .innerJoin(dataset, eq(release.datasetId, dataset.id))

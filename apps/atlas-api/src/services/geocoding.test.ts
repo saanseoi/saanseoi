@@ -44,6 +44,7 @@ const address = (
     areaId: null,
     districtId: null,
     townId: null,
+    ruralAreaId: null,
     macrohoodId: null,
     neighbourhoodId: null,
     microhoodId: null,

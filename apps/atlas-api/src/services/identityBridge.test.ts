@@ -174,3 +174,25 @@ test('lookup reads the selected immutable version, not a later version or a dele
     sqlite.close()
   }
 })
+
+test('publisher-grouped Planning identifiers expose only their own level and retain New Town IDs', () => {
+  expect(
+    extractIdentityMappings(
+      {
+        'hkgov-pland': {
+          ppu: '3',
+          spu: '35',
+          tpu: '351',
+          subunit: '30',
+          newTownId: 'town',
+        },
+        'hkgov-landsd': { geoNameId: '001' },
+      },
+      'd',
+    ),
+  ).toEqual([
+    { namespace: 'hkgov-pland.subunit', identifier: '351-30', canonicalId: 'd' },
+    { namespace: 'hkgov-pland.newTownId', identifier: 'town', canonicalId: 'd' },
+    { namespace: 'hkgov-landsd.geoNameId', identifier: '001', canonicalId: 'd' },
+  ])
+})

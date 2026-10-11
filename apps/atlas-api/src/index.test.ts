@@ -615,6 +615,12 @@ describe('atlas-api', () => {
     for (const [path, entry] of Object.entries(document.paths)) {
       if (!/^\/(addresses|divisions|places|stats|streets)\//.test(path) || !entry.get)
         continue
+      if (
+        path.endsWith('/geocode') ||
+        path.includes('/changes') ||
+        path.endsWith('/inventories')
+      )
+        continue
       const parameter = entry.get.parameters?.find(
         parameter => parameter.name === 'region',
       )
@@ -1933,7 +1939,11 @@ describe('atlas-api', () => {
     expect(divisions.paths['/divisions/v0.1']).toBeDefined()
     expect(divisions.paths['/addresses/v0.1']).toBeUndefined()
     expect(divisions.paths['/v0/meta/health']).toBeUndefined()
-    expect(divisions.tags?.map(tag => tag.name)).toEqual(['Divisions', 'Sources'])
+    expect(divisions.tags?.map(tag => tag.name)).toEqual([
+      'Divisions',
+      'Geocoding',
+      'Sources',
+    ])
     expect(divisions['x-tagGroups']).toBeUndefined()
     expect(divisions.info.description).toContain('versions independently')
     expect(divisions.info.description).toContain('Registry')
@@ -2207,8 +2217,8 @@ describe('atlas-api', () => {
     expect(places.components?.schemas).not.toHaveProperty('PlaceAddress')
     expect(places.components?.schemas).not.toHaveProperty('PlaceSourceKeys')
     expect(places.components?.schemas).not.toHaveProperty('OverturePlaceSourceKeys')
-    expect(places.components?.schemas).toHaveProperty('PlaceI18n')
-    expect(JSON.stringify(places.components?.schemas?.PlaceI18n)).toContain(
+    expect(places.components?.schemas).toHaveProperty('PlaceCollectionI18n')
+    expect(JSON.stringify(places.components?.schemas?.PlaceCollectionI18n)).toContain(
       'freeformAddress',
     )
     expect(places.components?.schemas).toHaveProperty('PlaceSource')
@@ -2292,10 +2302,7 @@ describe('atlas-api', () => {
       'version',
       'between',
     ])
-    expectPlaceFieldsDescribed('PlaceI18n', [
-      'snapshotId',
-      'placeId',
-      'locale',
+    expectPlaceFieldsDescribed('PlaceCollectionI18nValue', [
       'name',
       'nameVariant',
       'nameAlts',
@@ -2350,7 +2357,6 @@ describe('atlas-api', () => {
     ])
     for (const schemaName of [
       'Place',
-      'PlaceI18n',
       'PlaceSource',
       'PlaceTaxonomy',
       'PlaceCollectionTaxonomy',

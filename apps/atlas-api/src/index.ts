@@ -470,8 +470,6 @@ for (const path of apiRoutePaths) {
   })
 }
 
-for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
-
 for (const path of apiRoutePaths) {
   app.use(path, async (c, next) => {
     const startedAt = performance.now()
@@ -542,6 +540,8 @@ for (const path of apiRoutePaths) {
     }
   })
 }
+
+for (const path of apiRoutePaths) app.use(path, apiVersionLifecycleMiddleware)
 
 // Attribution is attached by the route after it has selected the exact
 // source release or API ReleaseSet. This middleware runs after the

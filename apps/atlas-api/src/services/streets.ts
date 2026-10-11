@@ -1,3 +1,7 @@
+import {
+  matchesGeographicMembership,
+  geographicFilterContext,
+} from '../lib/geographicFilterContext'
 import { getPublicationReadiness, guardPublicationRead } from '../db/publicationState'
 import { resolveDataRegion, type ApiRegion } from '../schema/region'
 import type {
@@ -180,11 +184,18 @@ export async function replayHongKongStreetChangelog(input: {
     input.historyDbsByBinding,
     input.metaDb,
     snapshot.id,
-    ['streetChangelog'],
+    geographicFilterContext() ? ['streetChangelog', 'street'] : ['streetChangelog'],
   )
   const rows = await loadStreetChangelogRows(
     refs.filter(ref => ref.recordType === 'streetChangelog'),
   )
+  const allowed = geographicFilterContext()
+    ? new Set(
+        (await loadStreetRows(refs.filter(ref => ref.recordType === 'street')))
+          .filter(row => matchesGeographicMembership(stringArray(row.districtIds)))
+          .map(row => row.id),
+      )
+    : null
   const seen = new Set<string>()
   const data = rows
     .flat()
@@ -194,6 +205,7 @@ export async function replayHongKongStreetChangelog(input: {
       ),
     )
     .flatMap(row => {
+      if (allowed && !allowed.has(row.streetId)) return []
       const id = `${row.recordKey}:${row.streetId}`
       if (seen.has(id)) return []
       seen.add(id)
@@ -259,7 +271,9 @@ async function getStreetHistory(
   ])
   const changelogForStreet = changelog.filter(row => row.streetId === id)
   const byVersion = new Map<number, StreetState>()
-  for (const street of streets.filter(row => row.id === id)) {
+  for (const street of streets.filter(
+    row => row.id === id && matchesGeographicMembership(stringArray(row.districtIds)),
+  )) {
     // Version numbers are logical identities. Duplicate rows across a shard
     // retry are equivalent and should not make history traversal ambiguous.
     if (!byVersion.has(street.version)) {

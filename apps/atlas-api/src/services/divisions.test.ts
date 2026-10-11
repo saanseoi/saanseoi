@@ -24,7 +24,7 @@ test('included geometry exposes source evidence only in full responses', () => {
       isLand: true,
       isTerritorial: false,
       variant: 'overture',
-      identifiers: { publisher: 'original-id' },
+      identifiers: { overture: { sourceId: 'original-id' } },
       sources: { overture: [{ dataset: 'publisher', recordId: 'original-id' }] },
     } as Parameters<typeof createIncludedDivisionGeometryResource>[0]['record']
     for (const profile of ['compact', 'default', 'map', 'full'] as const) {
@@ -32,7 +32,9 @@ test('included geometry exposes source evidence only in full responses', () => {
       expect(Object.hasOwn(resource.attributes, 'sources')).toBe(profile === 'full')
       if (profile === 'full')
         expect(record.sources).toEqual(resource.attributes.sources)
-      expect(resource.attributes.identifiers).toEqual(record.identifiers)
+      expect(resource.attributes.identifiers).toEqual({
+        overture: { sourceId: 'original-id' },
+      })
     }
   }
 })
@@ -419,6 +421,42 @@ describe('division services', () => {
     })
   })
 
+  test('loads SaanSeoi estimated areas from the published DivisionArea snapshot', async () => {
+    const result = await listDivisions({
+      currentDb: {} as never,
+      historyDbsByBinding,
+      metaDb: {} as never,
+      requestUrl: 'http://localhost/divisions/v0.1?include=areas:saanseoi',
+      requestedVersionPath: 'divisions/v0.1',
+      requestedApiVersion: '0.1',
+      resolvedApiVersion: 'api-divisions-v0.1',
+      query: { include: 'areas:saanseoi' },
+      dependencies: {
+        ...divisionServiceDependencies,
+        resolveApiReleaseSetSnapshotsForRequest: async () =>
+          ({
+            ...resolvedReleaseSet,
+            snapshots: [
+              ...resolvedReleaseSet.snapshots,
+              {
+                snapshotResourceType: 'divisionArea',
+                snapshotId: 'snapshot-saanseoi-areas',
+                role: 'supporting',
+                variant: 'saanseoi',
+              },
+            ],
+          }) as never,
+      },
+    })
+
+    expect(result.status).toBe(200)
+    expect(divisionAreaLookups).toContainEqual({
+      snapshotId: 'snapshot-saanseoi-areas',
+      divisionIds: ['division-a-kung-ngam'],
+      variant: 'saanseoi',
+    })
+  })
+
   test('accepts source membership with a contribution role', () => {
     expect(
       SourcesSchema.safeParse({
@@ -641,13 +679,11 @@ describe('division services', () => {
           i18n: {
             en: {
               name: 'A Kung Ngam',
-              nameVariant: ['A Kung Ngam'],
               nameAlts: ['A Kung-Ngam'],
               nameRules: [{ value: 'A Kung-Ngam', variant: 'alternate' }],
             },
             'zh-hant': {
               name: '阿公岩',
-              nameVariant: ['阿公岩', '阿公岩 A Kung Ngam'],
               nameAlts: ['阿公岩 A Kung Ngam'],
               nameRules: [{ value: '阿公岩 A Kung Ngam', variant: 'alternate' }],
             },
@@ -905,30 +941,4 @@ test('an explicitly older Division release continues to replay immutable history
     (await listDivisions({ ...args, query: { releaseSet: 'older' } })).status,
   ).toBe(200)
   expect(replay).toHaveBeenCalledTimes(1)
-})
-
-test('explicit stub requests use only the matching geographic review cohort and never query provider storage', async () => {
-  const previousCalls = listDivisionAreasCurrentByDivisionIdsMock.mock.calls.length
-  const request = (cohortKey: string, include: string) =>
-    listDivisions({
-      currentDb: {} as never,
-      historyDbsByBinding,
-      metaDb: {} as never,
-      requestUrl: `http://localhost/divisions/v0.1?include=${include}`,
-      requestedVersionPath: 'divisions/v0.1',
-      requestedApiVersion: '0.1',
-      resolvedApiVersion: 'api-divisions-v0.1',
-      query: { include },
-      dependencies: {
-        ...divisionServiceDependencies,
-        resolveApiReleaseSetSnapshotsForRequest: (async () => ({
-          ...resolvedReleaseSet,
-          releaseSet: { ...resolvedReleaseSet.releaseSet, cohortKey },
-        })) as unknown as DivisionServiceDependencies['resolveApiReleaseSetSnapshotsForRequest'],
-      },
-    })
-  expect((await request('2026-08-19.0', 'areas:stub')).status).toBe(200)
-  expect(listDivisionAreasCurrentByDivisionIdsMock).toHaveBeenCalledTimes(previousCalls)
-  expect((await request('2026-06-17.0', 'areas:stub')).status).toBe(409)
-  expect((await request('2026-08-19.0', 'areas')).status).toBe(409)
 })

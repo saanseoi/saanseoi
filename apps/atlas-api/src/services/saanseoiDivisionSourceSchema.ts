@@ -32,27 +32,46 @@ const classesAtLevel = (level: number | null) =>
     .map(([name]) => `\`${name}\``)
     .join(', ')
 
+const versionFreeReference = {
+  not: {
+    anyOf: [
+      'release',
+      'releaseCode',
+      'sourceRelease',
+      'sourceReleaseId',
+      'sourceVersion',
+    ].map(key => ({ required: [key] })),
+  },
+}
+
 const reference: Schema = {
+  ...versionFreeReference,
   type: 'object',
-  description: 'Reference to a contributing source record or curation.',
+  description:
+    'Contributing retained source record. Exact input versions and processing rules belong to release-set provenance.',
+  required: ['dataset', 'recordId'],
   properties: {
     dataset: text('Source dataset code.'),
     recordId: text('Record identifier within the source dataset.'),
-    release: text('Source release code, when recorded.'),
-    curation: text('Curation identifier, when the contribution comes from a curation.'),
-    contributions: strings('Fields or aspects contributed by this source.'),
+    componentIndexes: {
+      type: 'array',
+      minItems: 1,
+      uniqueItems: true,
+      description: 'Selected component indexes in the retained full source geometry.',
+      items: { type: 'integer', minimum: 0 },
+    },
   },
-  additionalProperties: true,
+  additionalProperties: false,
 }
 
 const hierarchyDescriptions: Record<string, string> = {
   administrative:
     'Official administrative divisions as recognised by the HKSAR Government. Each inner array is one path.',
   locality:
-    'Provides the hierarchy within a distinct settlement (city, town, village or hamlet), including its neighbourhood hierarchy. Each inner array is one path.',
+    'Provides the hierarchy within a distinct settlement (city, town, rural area, village or hamlet), including its neighbourhood hierarchy. Each inner array is one path.',
   landform:
     'Provides landform membership, including which island or island group a place belongs to. Currently, islands are the only recognised landforms. Each inner array is one path.',
-  full: 'Combines the administrative, locality and landform hierarchies into one ordered hierarchy, placing each division at the appropriate level. For example, it inserts island landforms into the hierarchy and omits the city where it overlaps with the Area. Each inner array is one path.',
+  full: 'Combines the administrative, locality and landform hierarchies into one ordered hierarchy, placing each division at the appropriate level. It omits all city entries and the Hong Kong Island landform; other island landforms remain in the hierarchy. Each inner array is one path.',
 }
 
 const hierarchies = z.toJSONSchema(DivisionHierarchiesSchema) as Schema
@@ -72,6 +91,21 @@ for (const [category, paths] of Object.entries(hierarchies.properties ?? {})) {
 
 /** Nested field contracts; top-level presence and nullability come from retained rows. */
 export const saanseoiDivisionSourceFields: Record<string, Schema> = {
+  divisionId: text('Identifier of the division represented by this geometry.'),
+  isLand: {
+    description:
+      'Whether the geometry represents land, when known. Values are booleans; null or absent means unknown.',
+  },
+  isTerritorial: {
+    description:
+      'Whether the geometry represents the division’s territory, when known. Territorial geometry may include land and water; land-clipped geometry is not territorial. Values are booleans; null or absent means unknown.',
+  },
+  type: text(
+    'Source geometry classification, for example land, maritime or mixed (land and water).',
+  ),
+  variant: text(
+    'Provider and variant key for this geometry. Curated SaanSeoi geometry uses saanseoi; its land and territorial representations share this variant.',
+  ),
   bbox: {
     type: 'array',
     items: { type: 'number' },
@@ -117,23 +151,38 @@ export const saanseoiDivisionSourceFields: Record<string, Schema> = {
   identifiers: {
     type: 'object',
     description:
-      'External identifiers keyed by their authority and identifier name, for example LANDSD:GEO_NAME_ID.',
-    'x-additionalPropertiesName': 'identifier key',
-    additionalProperties: text('Identifier assigned by the named authority.'),
+      'Identifiers grouped by publisher code and camelCase identifier type, for example hkgov-landsd.geoNameId and saanseoi.sourceId.',
+    'x-additionalPropertiesName': 'publisher code',
+    propertyNames: { pattern: '^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$' },
+    additionalProperties: {
+      type: 'object',
+      'x-additionalPropertiesName': 'identifier type',
+      propertyNames: { pattern: '^[a-z][a-zA-Z0-9]*$' },
+      additionalProperties: {
+        description: 'Identifier value, preserved as supplied.',
+        anyOf: [
+          { type: 'string' },
+          { type: 'number' },
+          { type: 'array', items: { anyOf: [{ type: 'string' }, { type: 'number' }] } },
+        ],
+      },
+    },
   },
   memberships: {
     type: 'array',
     description: 'Memberships in geographic collections.',
     items: {
+      ...versionFreeReference,
       type: 'object',
       additionalProperties: true,
       properties: {
         collection: text('Geographic collection identifier.'),
         key: text('Membership key within the collection.'),
         keyAuthority: text('Authority assigning the membership key.'),
-        dataset: text('Dataset establishing the membership.'),
+        dataset: text(
+          'Dataset establishing the membership; resolve its version from the owning release sourceReleases metadata.',
+        ),
         recordId: text('Source record establishing the membership.'),
-        release: text('Source release establishing the membership.'),
       },
     },
   },
@@ -174,7 +223,7 @@ export const saanseoiDivisionSourceFields: Record<string, Schema> = {
         isLocaleInferred: {
           type: ['boolean', 'number'],
           description:
-            'Whether the locale was inferred. Retained numeric flags use 0 for false and 1 for true.',
+            'Whether the locale was inferred. Values are booleans; null or absent means unknown.',
         },
       },
     },
@@ -182,7 +231,7 @@ export const saanseoiDivisionSourceFields: Record<string, Schema> = {
   sources: {
     type: 'object',
     description:
-      'Source contributions grouped by provider, for example overture or saanseoi.',
+      'Retained source record references grouped by provider, for example overture or saanseoi.',
     'x-additionalPropertiesName': 'provider',
     additionalProperties: { type: 'array', items: reference },
   },

@@ -1,3 +1,4 @@
+import { matchesGeographicMembership } from '../lib/geographicFilterContext'
 import { z } from '@hono/zod-openapi'
 import {
   DivisionChangesError,
@@ -93,7 +94,7 @@ async function definitions(data: Definitions) {
   const areas = new Map<string, Array<{ geometry: unknown }>>()
   for (const area of data.areas) {
     // Match the authoritative association used by the geocoder, never label points.
-    if (area.variant !== 'stub') continue
+    if (area.variant !== 'saanseoi' && area.variant !== 'overture') continue
     const geometry = area.geometry as { type?: string } | null
     if (geometry?.type !== 'Polygon' && geometry?.type !== 'MultiPolygon') continue
     const items = areas.get(area.divisionId) ?? []
@@ -249,7 +250,11 @@ export async function getDivisionChangeDefinition(
     const loaded = await dependencies.loadDefinitions(args, release)
     const data = await definitions({
       ...loaded,
-      records: loaded.records.filter(record => record.division.id === args.id),
+      records: loaded.records.filter(
+        record =>
+          record.division.id === args.id &&
+          matchesGeographicMembership([record.division.id]),
+      ),
     })
     if (data.get(args.id)?.hash !== args.definitionHash)
       throw new DivisionChangesError(
@@ -354,7 +359,11 @@ export async function listDivisionChanges(
       )
     const changed = [...new Set([...before.keys(), ...after.keys()])]
       .sort(compare)
-      .filter(id => before.get(id)?.hash !== after.get(id)?.hash)
+      .filter(
+        id =>
+          before.get(id)?.hash !== after.get(id)?.hash &&
+          matchesGeographicMembership([id]),
+      )
     if (cursor?.after && !changed.includes(cursor.after))
       throw new DivisionChangesError(
         422,
@@ -465,7 +474,7 @@ export async function listDivisionChanges(
           total: changed.length,
           limit,
           nextCursor,
-          membershipGeometry: 'stub',
+          membershipGeometry: 'saanseoi',
           dependencies: 'transitive-before-and-after',
           coverage: { before: coverage(before), after: coverage(after) },
         },

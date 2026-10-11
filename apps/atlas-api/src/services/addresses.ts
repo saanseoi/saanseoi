@@ -1,3 +1,4 @@
+import { matchesAddressGeographicMembership } from '../lib/geographicFilterContext'
 import {
   getPublicationReadiness,
   guardPublicationRead,
@@ -153,6 +154,7 @@ type AddressFilters = {
   area?: string
   district?: string
   town?: string
+  rural_area?: string
   macrohood?: string
   neighbourhood?: string
   microhood?: string
@@ -539,6 +541,7 @@ function addressHierarchyIds(address: AddressRecord['address']) {
     address.areaId,
     address.districtId,
     address.townId,
+    address.ruralAreaId,
     address.macrohoodId,
     address.neighbourhoodId,
     address.villageId,
@@ -1159,7 +1162,10 @@ export async function getAddressDetail(args: {
                 }),
           )
         )[0]
-        if (!record) {
+        if (
+          !record ||
+          !matchesAddressGeographicMembership(record.address.divisionRelationships)
+        ) {
           return {
             status: 404,
             body: {

@@ -34,7 +34,7 @@ export function area(id: string, west = 0, east = 10): DivisionAreaRecord {
   return {
     id: `area-${id}`,
     divisionId: id,
-    variant: 'stub',
+    variant: 'saanseoi',
     geometry: {
       type: 'Polygon',
       coordinates: [

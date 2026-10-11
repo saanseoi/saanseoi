@@ -72,7 +72,8 @@ export async function resolveGeocodingRelease(
       rulesetVersion: sets.rulesetVersion,
     })
     .from(sets)
-    .innerJoin(versions, eq(sets.apiVersionId, versions.id))
+    .innerJoin(versionSets, eq(versionSets.apiReleaseSetId, sets.id))
+    .innerJoin(versions, eq(versionSets.apiVersionId, versions.id))
     .where(
       and(
         eq(
@@ -82,7 +83,7 @@ export async function resolveGeocodingRelease(
         ),
         eq(sets.regionCode, 'hk'),
         eq(sets.domainCode, domainCode),
-        sql`${sets.status} <> 'draft' and ${sets.publishedAt} is not null`,
+        sql`${versionSets.status} <> 'draft' and ${versionSets.publishedAt} is not null`,
         code ? eq(sets.code, code) : undefined,
         divisionSnapshotIds
           ? sql`exists (select 1 from ${members} where ${members.apiReleaseSetId} = ${sets.id} and ${members.snapshotId} in (select value from json_each(${JSON.stringify(divisionSnapshotIds)})))`

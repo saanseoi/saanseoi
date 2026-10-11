@@ -106,7 +106,7 @@ export function createDivisionResolver(
   }
   const index = areas.flatMap(area => {
     const geometry = area.geometry as Polygon | MultiPolygon
-    return ['saanseoi', 'overture', 'stub'].includes(area.variant) &&
+    return ['saanseoi', 'overture'].includes(area.variant) &&
       byId.has(area.divisionId) &&
       (geometry?.type === 'Polygon' || geometry?.type === 'MultiPolygon')
       ? [{ id: area.divisionId, geometry, bbox: reviewAreaBounds(geometry) }]
@@ -461,7 +461,7 @@ export function createDivisionResolver(
           ? 'saanseoi'
           : areas.some(area => area.variant === 'overture')
             ? 'overture'
-            : 'stub',
+            : 'saanseoi',
         covered: covered.size,
         total: byId.size,
         missingAncestorIds: [...missing].sort(),

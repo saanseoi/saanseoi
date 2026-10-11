@@ -248,7 +248,7 @@ test('label points, descriptive metadata and non-authoritative polygons do not i
   const body = successful(
     await fixture(
       { records: [old], areas: [] },
-      { records: [next], areas: [{ ...area('a'), variant: 'overture' }] },
+      { records: [next], areas: [{ ...area('a'), variant: 'hkgov-censtatd' }] },
     ).run(),
   )
   expect(body.data[0]).toMatchObject({
@@ -391,4 +391,21 @@ test('default feed omits polygons and supplies immutable geometry links', async 
   expect(body.data[0]!.after!.membershipGeometry).toBeUndefined()
   expect(body.data[0]!.after!.geometry).toContain('definitionHash=')
   expect(body.data[0]!.after!.attributes.names).toEqual({ en: { name: 'a' } })
+})
+
+test('Overture inventory geometry changes remain visible in the change feed', async () => {
+  const before = {
+    records: [division('a')],
+    areas: [{ ...area('a'), variant: 'overture' as const }],
+  }
+  const after = {
+    records: [division('a')],
+    areas: [{ ...area('a', 0, 15), variant: 'overture' as const }],
+  }
+  const body = successful(await fixture(before, after).run())
+  expect(body.data).toHaveLength(1)
+  expect(body.data[0]).toMatchObject({
+    type: 'revision',
+    changedFields: ['membershipGeometry'],
+  })
 })
