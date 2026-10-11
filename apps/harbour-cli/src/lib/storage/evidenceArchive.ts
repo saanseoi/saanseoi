@@ -22,6 +22,8 @@ export type EvidenceEntry = {
   objectKey: string
   kind: string
   sourceVersion?: string
+  originalPath?: string
+  gitBlobOid?: string
 }
 export type EvidenceManifest = {
   schemaVersion: 1
@@ -49,7 +51,7 @@ export function parseEvidenceManifest(value: unknown): EvidenceManifest {
     if (
       !entry ||
       typeof entry.path !== 'string' ||
-      !/^fixtures\/reviews\/[a-zA-Z0-9_./-]+\.json$/.test(entry.path) ||
+      !/^fixtures\/reviews\/[a-zA-Z0-9_./-]+\.jsonl?$/.test(entry.path) ||
       entry.path.split('/').some(part => part === '..' || part === '.' || !part) ||
       entry.path === MANIFEST_PATH ||
       paths.has(entry.path) ||
@@ -59,7 +61,13 @@ export function parseEvidenceManifest(value: unknown): EvidenceManifest {
       entry.objectKey !== `evidence/sha256/${entry.sha256}` ||
       typeof entry.kind !== 'string' ||
       !entry.kind ||
-      (entry.sourceVersion !== undefined && typeof entry.sourceVersion !== 'string')
+      (entry.sourceVersion !== undefined && typeof entry.sourceVersion !== 'string') ||
+      (entry.gitBlobOid !== undefined && !/^[a-f0-9]{40,64}$/.test(entry.gitBlobOid)) ||
+      (entry.originalPath !== undefined &&
+        (!/^[a-zA-Z0-9_./-]+$/.test(entry.originalPath) ||
+          entry.originalPath
+            .split('/')
+            .some(part => part === '..' || part === '.' || !part)))
     )
       throw new Error('Invalid evidence archive entry.')
     paths.add(entry.path)
@@ -106,7 +114,7 @@ export async function listReviewFiles(root: string): Promise<string[]> {
       if (entry.isDirectory()) await visit(child)
       else if (
         entry.isFile() &&
-        entry.name.endsWith('.json') &&
+        /\.jsonl?$/.test(entry.name) &&
         child !== MANIFEST_PATH
       )
         files.push(child)
@@ -118,7 +126,7 @@ export async function listReviewFiles(root: string): Promise<string[]> {
 
 async function describeEvidence(root: string, path: string): Promise<EvidenceEntry> {
   const bytes = await readFile(await safePath(root, path))
-  const record = JSON.parse(bytes.toString('utf8'))
+  const record = path.endsWith('.jsonl') ? {} : JSON.parse(bytes.toString('utf8'))
   const sha256 = hash(bytes)
   const snapshot = resolve(root, '.local/evidence-archive/sha256', sha256)
   await mkdir(dirname(snapshot), { recursive: true })
@@ -178,7 +186,10 @@ export async function refreshEvidenceManifest(root: string) {
   await updateManifest(root, async manifest => {
     const entries = new Map(manifest.entries.map(entry => [entry.path, entry]))
     for (const path of await listReviewFiles(root))
-      entries.set(path, await describeEvidence(root, path))
+      entries.set(path, {
+        ...entries.get(path),
+        ...(await describeEvidence(root, path)),
+      })
     manifest.entries = [...entries.values()]
   })
 }
