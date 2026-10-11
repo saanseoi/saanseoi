@@ -46,12 +46,53 @@ basemapRelease: "2026-10-01"
 
 ## Changelog
 
-- October 2026 山水 | SaanSeoi release, with **{{divisionCount}} Division records** and
-  **{{areaCount}} DivisionArea records** in one dataset.
-- Curated bilingual names and aliases, division codes, classifications and ancestry,
-  drawing on Overture, Lands Department Place Names and named island evidence.
-- Polygon coverage includes curated locality and neighbourhood drawings, island
-  outlines, administrative territories and separate land-clipped areas.
+### Overture
+
+The October edition uses Overture `{{overtureVersion}}`, replacing `2026-08-19.0`. In
+the retained Hong Kong Division input, **199 existing records gain Wikidata IDs** and
+**eight records have point-geometry changes**. The upstream refresh adds five identities
+and drops four. Most point shifts are small; the Islands District representative point
+moves approximately 1.1 km. SaanSeoi applies the following reviewed identity decisions.
+
+| Dropped upstream               | Handling in SaanSeoi                                                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Hung Lung Hang (恐龍坑)        | Retained under its existing identifier, with its accepted names and reference geometry; classified as a level-4 rural area (`rural_area`). |
+| Green Wood Villa (木棉山村)    | Removed after review identified it as a building, outside Division coverage.                                                               |
+| Wan Tsai (灣仔)                | Retained under its existing identifier as a well-defined peninsula, with its accepted names and reference geometry.                        |
+| Lau Fau Shan Market (流浮山墟) | Removed after confirming that the separate Lau Fau Shan (流浮山) identity remains in the October inventory.                                |
+
+Retained identities continue to cite the accepted Overture release that supplied them;
+an upstream removal does not automatically remove a curated place.
+
+| Added upstream               | Handling in SaanSeoi                          |
+| ---------------------------- | --------------------------------------------- |
+| Four Little Dragons (四小龍) | Included as a `microhood`.                    |
+| Man Hang (蚊坑)              | Included as a `hamlet`.                       |
+| 羅馬廣場                     | Excluded by the plaza/square coverage policy. |
+| Shui Hau (水口)              | Included as a `macrohood`.                    |
+| Fuk Lok Village (福樂村)     | Included as a `hamlet`.                       |
+
+### Protomaps
+
+The coastline and island input uses Protomaps `{{protomapsVersion}}`, replacing
+`2026-09-01.3`. Six islands lose alternative or local-name tags upstream. SaanSeoi's
+name inventory retains these names as aliases, without replacing the islands' primary
+names or identities.
+
+| Island                   | Retained aliases               |
+| ------------------------ | ------------------------------ |
+| Tong Hau Pai (塘口排)    | Wok Tuk Pai                    |
+| Pyramid Rock (尖柱石)    | Wei Sam Chau                   |
+| Tuen Tau Chau (斷頭洲)   | Tse Leung Chau                 |
+| Magazine Island (火藥洲) | Chu Kwu Chau; 豬牯洲           |
+| Cha Kwo Chau (茶果洲)    | Yeung Chau; 洋洲               |
+| Wong Mau Chau (黃茅洲)   | South Gau; Nam Kau; 南牛; 南滘 |
+
+### LandD & RVD
+
+Lands Department Place Names (`{{landsdVersion}}`) and the Rating and Valuation
+Department list (`{{rvdVersion}}`) have no new releases since the September SaanSeoi
+edition. Both inputs are carried forward unchanged.
 
 ## Introduction
 
@@ -218,10 +259,45 @@ polygons, preserving sea gaps; member islands also retain their individual polyg
 
 ## 更新紀錄
 
-- 山水 | SaanSeoi 2026 年 10 月版本，同一資料集包含 **{{divisionCount}}
-  筆 Division 記錄**及 **{{areaCount}} 筆 DivisionArea 記錄**。
-- 採用 Overture、地政總署地名及具名島嶼證據，審核雙語名稱及別名、分區代碼、分類及上層關係。
-- 多邊形涵蓋範圍包括經審核的聚落及鄰里圖形、島嶼輪廓、行政領土範圍及分開保留的陸地裁切面域。
+### Overture 來源更新
+
+十月版本採用 Overture `{{overtureVersion}}`，取代
+`2026-08-19.0`。保留的香港 Division 輸入中，**199 筆現有記錄新增 Wikidata 識別碼**，**八筆記錄的位置點幾何有所調整**。上游新增五個實體並移除四個。大部分位置點只作小幅調整；離島區的代表點移動約 1.1 公里。SaanSeoi 按以下實體審核決定處理。
+
+| 上游移除的地方               | SaanSeoi 的處理                                                               |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| 恐龍坑（Hung Lung Hang）     | 保留原有識別碼、已確認名稱及參照幾何，分類為第 4 級鄉郊地域（`rural_area`）。 |
+| 木棉山村（Green Wood Villa） | 審核確認為建築物，不屬地理分區涵蓋範圍，因此移除。                            |
+| 灣仔（Wan Tsai）             | 確認為範圍明確的半島，保留原有識別碼、已確認名稱及參照幾何。                  |
+| 流浮山墟                     | 確認十月清單仍保留獨立的流浮山實體後，移除此記錄。                            |
+
+保留的實體繼續引用提供該記錄的已確認 Overture 版本；上游移除記錄並不會自動移除經審核的地方。
+
+| 上游新增的地方            | SaanSeoi 的處理      |
+| ------------------------- | -------------------- |
+| 四小龍                    | 納入為 `microhood`。 |
+| 蚊坑（Man Hang）          | 納入為 `hamlet`。    |
+| 羅馬廣場                  | 按廣場涵蓋政策排除。 |
+| 水口（Shui Hau）          | 納入為 `macrohood`。 |
+| 福樂村（Fuk Lok Village） | 納入為 `hamlet`。    |
+
+### Protomaps 來源更新及島嶼別名保留
+
+海岸線及島嶼輸入採用 Protomaps `{{protomapsVersion}}`，取代
+`2026-09-01.3`。六個島嶼在上游失去別名或地方名稱標籤。SaanSeoi 的名稱清單將以下名稱保留為別名，不取代島嶼的主名稱或身分。
+
+| 島嶼                      | 保留的別名                     |
+| ------------------------- | ------------------------------ |
+| 塘口排（Tong Hau Pai）    | Wok Tuk Pai                    |
+| 尖柱石（Pyramid Rock）    | Wei Sam Chau                   |
+| 斷頭洲（Tuen Tau Chau）   | Tse Leung Chau                 |
+| 火藥洲（Magazine Island） | Chu Kwu Chau；豬牯洲           |
+| 茶果洲（Cha Kwo Chau）    | Yeung Chau；洋洲               |
+| 黃茅洲（Wong Mau Chau）   | South Gau；Nam Kau；南牛；南滘 |
+
+### 沿用的來源
+
+地政總署地名（`{{landsdVersion}}`）及差餉物業估價署名單（`{{rvdVersion}}`）自九月 SaanSeoi 版本以來均無新版本，兩項輸入原樣沿用。
 
 ## 簡介
 
@@ -336,10 +412,45 @@ schema
 
 ## 更新记录
 
-- 山水 | SaanSeoi 2026 年 10 月版本，同一数据集包含 **{{divisionCount}}
-  笔 Division 记录**及 **{{areaCount}} 笔 DivisionArea 记录**。
-- 采用 Overture、地政总署地名及具名岛屿证据，审核双语名称及别名、分区代码、分类及上层关系。
-- 多边形覆盖范围包括经审核的聚落及邻里图形、岛屿轮廓、行政领土范围及分开保留的陆地裁切面域。
+### Overture 来源更新
+
+十月版本采用 Overture `{{overtureVersion}}`，取代
+`2026-08-19.0`。保留的香港 Division 输入中，**199 笔现有记录新增 Wikidata 标识码**，**八笔记录的位置点几何有所调整**。上游新增五个实体并移除四个。大部分位置点只作小幅调整；离岛区的代表点移动约 1.1 公里。SaanSeoi 按以下实体审核决定处理。
+
+| 上游移除的地方               | SaanSeoi 的处理                                                               |
+| ---------------------------- | ----------------------------------------------------------------------------- |
+| 恐龙坑（Hung Lung Hang）     | 保留原有标识码、已确认名称及参照几何，分类为第 4 级乡郊地域（`rural_area`）。 |
+| 木棉山村（Green Wood Villa） | 审核确认为建筑物，不属地理分区覆盖范围，因此移除。                            |
+| 湾仔（Wan Tsai）             | 确认为范围明确的半岛，保留原有标识码、已确认名称及参照几何。                  |
+| 流浮山墟                     | 确认十月清单仍保留独立的流浮山实体后，移除此记录。                            |
+
+保留的实体继续引用提供该记录的已确认 Overture 版本；上游移除记录并不会自动移除经审核的地方。
+
+| 上游新增的地方            | SaanSeoi 的处理      |
+| ------------------------- | -------------------- |
+| 四小龙                    | 纳入为 `microhood`。 |
+| 蚊坑（Man Hang）          | 纳入为 `hamlet`。    |
+| 罗马广场                  | 按广场覆盖政策排除。 |
+| 水口（Shui Hau）          | 纳入为 `macrohood`。 |
+| 福乐村（Fuk Lok Village） | 纳入为 `hamlet`。    |
+
+### Protomaps 来源更新及岛屿别名保留
+
+海岸线及岛屿输入采用 Protomaps `{{protomapsVersion}}`，取代
+`2026-09-01.3`。六个岛屿在上游失去别名或地方名称标签。SaanSeoi 的名称清单将以下名称保留为别名，不取代岛屿的主名称或身份。
+
+| 岛屿                      | 保留的别名                     |
+| ------------------------- | ------------------------------ |
+| 塘口排（Tong Hau Pai）    | Wok Tuk Pai                    |
+| 尖柱石（Pyramid Rock）    | Wei Sam Chau                   |
+| 断头洲（Tuen Tau Chau）   | Tse Leung Chau                 |
+| 火药洲（Magazine Island） | Chu Kwu Chau；豬牯洲           |
+| 茶果洲（Cha Kwo Chau）    | Yeung Chau；洋洲               |
+| 黄茅洲（Wong Mau Chau）   | South Gau；Nam Kau；南牛；南滘 |
+
+### 沿用的来源
+
+地政总署地名（`{{landsdVersion}}`）及差饷物业估价署名单（`{{rvdVersion}}`）自九月 SaanSeoi 版本以来均无新版本，两项输入原样沿用。
 
 ## 简介
 
