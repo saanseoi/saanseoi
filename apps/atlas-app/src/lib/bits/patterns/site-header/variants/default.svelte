@@ -1,5 +1,6 @@
 <script lang="ts">
 import { page } from '$app/state'
+
 import { getAuthRedirectPath, getSignInHref, getSignUpHref } from '#lib/authRedirect.js'
 
 import HeaderActions from '../components/headerActions.svelte'
@@ -13,14 +14,15 @@ type User = {
 }
 
 let { user = null }: { user?: User | null } = $props()
+let currentUrl = $derived(page.shallow?.url ?? page.url)
 let mobileHeaderVisible = $state(true)
-let isLandingPage = $derived(page.url.pathname === '/')
+let isLandingPage = $derived(currentUrl.pathname === '/')
 let authRedirectPath = $derived(
   getAuthRedirectPath(
-    page.url.searchParams.get('next') ??
-      page.url.searchParams.get('continue') ??
-      `${page.url.pathname}${page.url.search}${page.url.hash}`,
-    page.url,
+    currentUrl.searchParams.get('next') ??
+      currentUrl.searchParams.get('continue') ??
+      `${currentUrl.pathname}${currentUrl.search}${currentUrl.hash}`,
+    currentUrl,
   ),
 )
 let signInHref = $derived(getSignInHref(authRedirectPath))

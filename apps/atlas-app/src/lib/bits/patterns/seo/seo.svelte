@@ -1,5 +1,6 @@
 <script lang="ts">
 import { page } from '$app/state'
+
 import { getCurrentLocale } from '#lib/bits/internal/i18n.js'
 
 type JsonLd = Record<string, unknown>
@@ -29,12 +30,13 @@ let {
   structuredData,
 }: Props = $props()
 
+let currentUrl = $derived(page.shallow?.url ?? page.url)
 let siteLocale = $derived(getCurrentLocale())
 let ogLocale = $derived(
   siteLocale === 'zh-Hant' ? 'zh_HK' : siteLocale === 'zh-Hans' ? 'zh_CN' : 'en_HK',
 )
 let fullTitle = $derived(title === siteName ? title : `${title} | ${siteName}`)
-let canonicalUrl = $derived(`${siteUrl}${page.url.pathname}`)
+let canonicalUrl = $derived(`${siteUrl}${currentUrl.pathname}`)
 let imageUrl = $derived(image ? new URL(image, siteUrl).toString() : undefined)
 let robots = $derived(noindex ? 'noindex, follow' : 'index, follow')
 let schema = $derived(
@@ -67,7 +69,9 @@ let serialisedSchema = $derived(JSON.stringify(schema).replaceAll('<', '\\u003c'
   <meta property="og:description" content={description}>
   <meta property="og:url" content={canonicalUrl}>
   <meta property="og:locale" content={ogLocale}>
-  {#each ['en_HK', 'zh_HK', 'zh_CN'].filter(locale => locale !== ogLocale) as alternateLocale}
+  {#each ['en_HK', 'zh_HK', 'zh_CN'].filter(
+    locale => locale !== ogLocale,
+  ) as alternateLocale}
     <meta property="og:locale:alternate" content={alternateLocale}>
   {/each}
   {#if imageUrl}
