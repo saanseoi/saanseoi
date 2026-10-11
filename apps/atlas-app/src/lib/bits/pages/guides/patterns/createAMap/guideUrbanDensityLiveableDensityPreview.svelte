@@ -49,8 +49,8 @@ onMount(() => {
         ariaLabel={label}
         center={[114.16, 22.32]}
         onMapReady={async map => {
-  await addUrbanDensityLiveableLand(map)
-}}
+          await addUrbanDensityLiveableLand(map)
+        }}
         {renderer}
         {styleUrl}
         {tilejsonUrl}
@@ -73,7 +73,7 @@ onMount(() => {
             {metric.name}
           </p>
           <strong
-            class="my-1 block text-[1.35rem] leading-none tracking-tight tabular-nums sm:text-[2rem]"
+            class="my-1 block text-[1.35rem] leading-none tracking-tight tabular-nums sm:text-headline-lg"
             >{Math.round(metric.peoplePerSqKm).toLocaleString()}</strong
           >
           <span class="block text-[0.68rem] leading-tight text-white/65 sm:text-xs"

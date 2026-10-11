@@ -134,7 +134,7 @@ const geometryPath = (geometry: Geometry) => {
               count: divisions.length,
             })}
           </h3>
-          <span class="text-[10px] text-white/45"
+          <span class="text-xxs text-white/45"
             >{m.guide_data_urban_density_preview_tap()}</span
           >
         </div>
@@ -152,7 +152,7 @@ const geometryPath = (geometry: Geometry) => {
               onclick={() => (selectedDivisionCode = code)}
             >
               <span class="block font-semibold tracking-[0.08em]">{code}</span>
-              <span class="mt-1 block truncate text-[10px] opacity-65"
+              <span class="mt-1 block truncate text-xxs opacity-65"
                 >{areaName(division)}</span
               >
             </button>
@@ -175,7 +175,7 @@ const geometryPath = (geometry: Geometry) => {
                   {selectedDivision.attributes.i18n.en.name}
                 </p>
               </div>
-              <span class="text-[10px] tracking-[0.08em] text-white/45 uppercase"
+              <span class="text-xxs tracking-[0.08em] text-white/45 uppercase"
                 >attributes</span
               >
             </div>
@@ -208,7 +208,7 @@ const geometryPath = (geometry: Geometry) => {
               count: included.length,
             })}
           </h3>
-          <span class="text-[10px] text-white/45"
+          <span class="text-xxs text-white/45"
             >{m.guide_data_urban_density_preview_tap()}</span
           >
         </div>
@@ -244,7 +244,7 @@ const geometryPath = (geometry: Geometry) => {
               <span class="block font-semibold tracking-[0.08em]"
                 >{includedLabel(resource)}</span
               >
-              <span class="mt-1 block truncate text-[10px] opacity-65">
+              <span class="mt-1 block truncate text-xxs opacity-65">
                 {isGeometryResource(resource)
                   ? divisionName(resource.attributes.divisionCode)
                   : resource.attributes.i18n.en.name}
@@ -271,7 +271,7 @@ const geometryPath = (geometry: Geometry) => {
                     : selectedIncluded.attributes.i18n.en.name}
                 </p>
               </div>
-              <span class="text-[10px] tracking-[0.08em] text-white/45 uppercase"
+              <span class="text-xxs tracking-[0.08em] text-white/45 uppercase"
                 >attributes</span
               >
             </div>

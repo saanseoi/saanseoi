@@ -738,8 +738,8 @@ const liveableAreaMapComments = [
         />
         <GuideSubSectionBody
           content={hasNonHongKongBasemap
-  ? m.guide_data_urban_density_inputs_hong_kong_description()
-  : m.guide_data_urban_density_inputs_description()}
+            ? m.guide_data_urban_density_inputs_hong_kong_description()
+            : m.guide_data_urban_density_inputs_description()}
         >
           <GuidePreviewCodeBlock
             label={m.guide_data_urban_density_inputs_code()}
@@ -773,19 +773,19 @@ const liveableAreaMapComments = [
       <GuideSubSectionHeader
         id="project-fetch-stats"
         title={renumberGuideTitle(
-  m.guide_data_urban_density_calculate_title(),
-  llmGuidanceEnabled ? 1 : 2,
-)}
+          m.guide_data_urban_density_calculate_title(),
+          llmGuidanceEnabled ? 1 : 2,
+        )}
       />
       <GuideSubSectionBody
         content={llmGuidanceEnabled
-  ? m.guide_data_urban_density_calculate_llm_description()
-  : m.guide_data_urban_density_calculate_description()}
+          ? m.guide_data_urban_density_calculate_llm_description()
+          : m.guide_data_urban_density_calculate_description()}
         contentClass="[&_code.guide-urban-density-level]:text-foreground"
       >
         {#if !llmGuidanceEnabled}
           <GuideParagraph
-            class="mb-5 [&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:border-[#005142]! [&_code]:!bg-secondary-container/15 [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:text-[0.78em]! [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:border-[#2f8f78]!"
+            class="mb-5 [&_code]:mx-0.75 [&_code]:inline-flex [&_code]:items-center [&_code]:rounded-sm [&_code]:border [&_code]:border-[#005142]! [&_code]:bg-secondary-container/15! [&_code]:px-1 [&_code]:py-1 [&_code]:align-middle [&_code]:font-mono [&_code]:text-[0.78em]! [&_code]:font-semibold [&_code]:leading-none [&_code]:text-secondary dark:[&_code]:border-[#2f8f78]!"
           >
             {@html m.guide_data_urban_density_calculate_preview_explanation()}
           </GuideParagraph>
@@ -797,7 +797,10 @@ const liveableAreaMapComments = [
               promptIcon={llmPromptIcon}
               previewHeightMultiplier={2}
               references={llmReferences.stats}
-              title={renumberGuideTitle(m.guide_data_urban_density_calculate_title(), 1)}
+              title={renumberGuideTitle(
+                m.guide_data_urban_density_calculate_title(),
+                1,
+              )}
             >
               {#snippet preview()}
                 <GuideUrbanDensityStatsPreview table />
@@ -833,13 +836,14 @@ const liveableAreaMapComments = [
             <GuideVisibleCodeCallouts
               visibleLines={statsVisibleLines}
               callouts={[
-  {
-    line: 28,
-    label: m.guide_data_urban_density_statistics_callout_label(),
-    title: m.guide_data_urban_density_statistics_callout_title(),
-    description: m.guide_data_urban_density_calculate_explore_statistics(),
-  },
-]}
+                {
+                  line: 28,
+                  label: m.guide_data_urban_density_statistics_callout_label(),
+                  title: m.guide_data_urban_density_statistics_callout_title(),
+                  description:
+                    m.guide_data_urban_density_calculate_explore_statistics(),
+                },
+              ]}
             />
           </div>
         {/if}
@@ -847,9 +851,9 @@ const liveableAreaMapComments = [
           <GuideSubSectionHeader
             id="project-calc-pop-density"
             title={renumberGuideTitle(
-  m.guide_data_urban_density_results_title(),
-  llmGuidanceEnabled ? 2 : 3,
-)}
+              m.guide_data_urban_density_results_title(),
+              llmGuidanceEnabled ? 2 : 3,
+            )}
           />
           <GuideSubSectionBody
             content={m.guide_data_urban_density_results_description()}
@@ -868,7 +872,10 @@ const liveableAreaMapComments = [
                   promptIcon={llmPromptIcon}
                   previewHeightMultiplier={2}
                   references={llmReferences.calculation}
-                  title={renumberGuideTitle(m.guide_data_urban_density_results_title(), 2)}
+                  title={renumberGuideTitle(
+                    m.guide_data_urban_density_results_title(),
+                    2,
+                  )}
                 >
                   {#snippet preview()}
                     <GuideUrbanDensityDivisionsPreview />
@@ -903,20 +910,25 @@ const liveableAreaMapComments = [
                 <GuideVisibleCodeCallouts
                   visibleLines={calculationVisibleLines}
                   callouts={[
-  {
-    line: 13,
-    label: m.guide_data_urban_density_calculation_level_callout_label(),
-    title: m.guide_data_urban_density_calculation_level_callout_title(),
-    description: m.guide_data_urban_density_calculation_comment_level_explainer(),
-  },
-  {
-    line: 30,
-    label: m.guide_data_urban_density_calculation_geojson_feature_callout_label(),
-    title: m.guide_data_urban_density_calculation_geojson_feature_callout_title(),
-    description:
-      m.guide_data_urban_density_calculation_geojson_feature_callout_description(),
-  },
-]}
+                    {
+                      line: 13,
+                      label:
+                        m.guide_data_urban_density_calculation_level_callout_label(),
+                      title:
+                        m.guide_data_urban_density_calculation_level_callout_title(),
+                      description:
+                        m.guide_data_urban_density_calculation_comment_level_explainer(),
+                    },
+                    {
+                      line: 30,
+                      label:
+                        m.guide_data_urban_density_calculation_geojson_feature_callout_label(),
+                      title:
+                        m.guide_data_urban_density_calculation_geojson_feature_callout_title(),
+                      description:
+                        m.guide_data_urban_density_calculation_geojson_feature_callout_description(),
+                    },
+                  ]}
                 />
               </div>
             {/if}
@@ -939,9 +951,9 @@ const liveableAreaMapComments = [
           <GuideSubSectionHeader
             id="project-add-stats-to-map"
             title={renumberGuideTitle(
-  m.guide_data_urban_density_results_map_title(),
-  llmGuidanceEnabled ? 3 : 4,
-)}
+              m.guide_data_urban_density_results_map_title(),
+              llmGuidanceEnabled ? 3 : 4,
+            )}
           />
           {#if llmGuidanceEnabled}
             <GuideSubSectionBody
@@ -952,7 +964,10 @@ const liveableAreaMapComments = [
                   prompt={llmPrompts.addStatsToMap}
                   promptIcon={llmPromptIcon}
                   references={llmReferences.metrics}
-                  title={renumberGuideTitle(m.guide_data_urban_density_results_map_title(), 3)}
+                  title={renumberGuideTitle(
+                    m.guide_data_urban_density_results_map_title(),
+                    3,
+                  )}
                 >
                   {#snippet preview()}
                     <GuideUrbanDensityPreview
@@ -1035,7 +1050,10 @@ const liveableAreaMapComments = [
     <section>
       <GuideSubSectionHeader
         id="project-highlight-excl"
-        title={renumberGuideTitle(m.guide_data_urban_density_map_title(), llmGuidanceEnabled ? 4 : 5)}
+        title={renumberGuideTitle(
+          m.guide_data_urban_density_map_title(),
+          llmGuidanceEnabled ? 4 : 5,
+        )}
       />
       <GuideSubSectionBody content={m.guide_data_urban_density_map_description()}>
         {#if llmGuidanceEnabled}
@@ -1094,9 +1112,9 @@ const liveableAreaMapComments = [
           <GuideSubSectionHeader
             id="project-calc-liveable-land"
             title={renumberGuideTitle(
-  m.guide_data_urban_density_liveable_area_title(),
-  llmGuidanceEnabled ? 5 : 6,
-)}
+              m.guide_data_urban_density_liveable_area_title(),
+              llmGuidanceEnabled ? 5 : 6,
+            )}
           />
           {#if llmGuidanceEnabled}
             <GuideSubSectionBody>
@@ -1123,14 +1141,14 @@ const liveableAreaMapComments = [
                 tileZoomCalloutTitle={m.guide_data_urban_density_tile_zoom_callout_title()}
                 tileZoomCalloutDescription={m.guide_data_urban_density_tile_zoom_callout_description()}
                 approachSteps={[
-  m.guide_data_urban_density_liveable_approach_features(),
-  m.guide_data_urban_density_liveable_approach_download(),
-  m.guide_data_urban_density_liveable_approach_intersect(),
-  m.guide_data_urban_density_liveable_approach_measure(),
-  m.guide_data_urban_density_liveable_approach_sum(),
-  m.guide_data_urban_density_liveable_approach_subtract(),
-  m.guide_data_urban_density_liveable_approach_display(),
-]}
+                  m.guide_data_urban_density_liveable_approach_features(),
+                  m.guide_data_urban_density_liveable_approach_download(),
+                  m.guide_data_urban_density_liveable_approach_intersect(),
+                  m.guide_data_urban_density_liveable_approach_measure(),
+                  m.guide_data_urban_density_liveable_approach_sum(),
+                  m.guide_data_urban_density_liveable_approach_subtract(),
+                  m.guide_data_urban_density_liveable_approach_display(),
+                ]}
               />
               <GuideTextSubHeader
                 class="mt-8"
@@ -1144,7 +1162,10 @@ const liveableAreaMapComments = [
                   prompt={llmPrompts.calculateLiveableArea}
                   promptIcon={llmPromptIcon}
                   references={llmReferences.liveable}
-                  title={renumberGuideTitle(m.guide_data_urban_density_liveable_area_title(), 5)}
+                  title={renumberGuideTitle(
+                    m.guide_data_urban_density_liveable_area_title(),
+                    5,
+                  )}
                 >
                   {#snippet preview()}
                     <GuideUrbanDensityLiveableAnalysisPreview
@@ -1171,21 +1192,23 @@ const liveableAreaMapComments = [
                 tileZoomCalloutDescription={m.guide_data_urban_density_tile_zoom_callout_description()}
                 turfExplanation={m.guide_data_urban_density_turf_explanation()}
                 approachSteps={[
-  m.guide_data_urban_density_liveable_approach_features(),
-  m.guide_data_urban_density_liveable_approach_download(),
-  m.guide_data_urban_density_liveable_approach_intersect(),
-  m.guide_data_urban_density_liveable_approach_measure(),
-  m.guide_data_urban_density_liveable_approach_sum(),
-  m.guide_data_urban_density_liveable_approach_subtract(),
-  m.guide_data_urban_density_liveable_approach_display(),
-]}
+                  m.guide_data_urban_density_liveable_approach_features(),
+                  m.guide_data_urban_density_liveable_approach_download(),
+                  m.guide_data_urban_density_liveable_approach_intersect(),
+                  m.guide_data_urban_density_liveable_approach_measure(),
+                  m.guide_data_urban_density_liveable_approach_sum(),
+                  m.guide_data_urban_density_liveable_approach_subtract(),
+                  m.guide_data_urban_density_liveable_approach_display(),
+                ]}
               >
                 {#snippet children()}
                   <GuideUrbanDensityResourceDownload
                     closeLabel={m.common_close()}
-                    downloadInstructions={m.guide_data_urban_density_resource_download_instructions({
-  path: landAnalysisFilePath,
-})}
+                    downloadInstructions={m.guide_data_urban_density_resource_download_instructions(
+                      {
+                        path: landAnalysisFilePath,
+                      },
+                    )}
                     downloadInstructionsTitle={m.guide_data_urban_density_resource_download_instructions_title()}
                     downloadLabel={m.guide_data_urban_density_resource_download_json_result()}
                     explanation={m.guide_data_urban_density_resource_explanation()}
@@ -1196,9 +1219,9 @@ const liveableAreaMapComments = [
               </GuideUrbanDensityLiveableLandInputs>
               <GuideCodeBlock
                 label={m.guide_setup_terminal_label({
-  action: m.guide_data_urban_density_install_code(),
-  path: terminalProjectPath,
-})}
+                  action: m.guide_data_urban_density_install_code(),
+                  path: terminalProjectPath,
+                })}
                 code={turfInstallCode}
                 language="bash"
                 copyLabel={m.common_copy()}
@@ -1268,25 +1291,28 @@ const liveableAreaMapComments = [
                 <GuideVisibleCodeCallouts
                   visibleLines={tileFetcherVisibleLines}
                   callouts={[
-  {
-    line: 10,
-    label: m.guide_data_urban_density_web_mercator_callout_label(),
-    title: m.guide_data_urban_density_web_mercator_callout_title(),
-    description: m.guide_data_urban_density_web_mercator_callout_description(),
-  },
-  {
-    line: 47,
-    label: m.guide_data_urban_density_tile_ownership_callout_label(),
-    title: m.guide_data_urban_density_tile_ownership_callout_title(),
-    description: m.guide_data_urban_density_tile_ownership_callout_description(),
-  },
-  {
-    line: 170,
-    label: m.guide_data_urban_density_tile_decoding_callout_label(),
-    title: m.guide_data_urban_density_tile_decoding_callout_title(),
-    description: m.guide_data_urban_density_tile_decoding_callout_description(),
-  },
-]}
+                    {
+                      line: 10,
+                      label: m.guide_data_urban_density_web_mercator_callout_label(),
+                      title: m.guide_data_urban_density_web_mercator_callout_title(),
+                      description:
+                        m.guide_data_urban_density_web_mercator_callout_description(),
+                    },
+                    {
+                      line: 47,
+                      label: m.guide_data_urban_density_tile_ownership_callout_label(),
+                      title: m.guide_data_urban_density_tile_ownership_callout_title(),
+                      description:
+                        m.guide_data_urban_density_tile_ownership_callout_description(),
+                    },
+                    {
+                      line: 170,
+                      label: m.guide_data_urban_density_tile_decoding_callout_label(),
+                      title: m.guide_data_urban_density_tile_decoding_callout_title(),
+                      description:
+                        m.guide_data_urban_density_tile_decoding_callout_description(),
+                    },
+                  ]}
                 />
               </div>
               <GuideParagraph class="mt-6">
@@ -1397,9 +1423,9 @@ const liveableAreaMapComments = [
           <GuideSubSectionHeader
             id="project-finalise-map"
             title={renumberGuideTitle(
-  m.guide_data_urban_density_liveable_metrics_title(),
-  llmGuidanceEnabled ? 6 : 7,
-)}
+              m.guide_data_urban_density_liveable_metrics_title(),
+              llmGuidanceEnabled ? 6 : 7,
+            )}
           />
           {#if llmGuidanceEnabled}
             <GuideSubSectionBody
@@ -1410,7 +1436,10 @@ const liveableAreaMapComments = [
                   prompt={llmPrompts.finaliseMap}
                   promptIcon={llmPromptIcon}
                   references={llmReferences.final}
-                  title={renumberGuideTitle(m.guide_data_urban_density_liveable_metrics_title(), 6)}
+                  title={renumberGuideTitle(
+                    m.guide_data_urban_density_liveable_metrics_title(),
+                    6,
+                  )}
                 >
                   {#snippet preview()}
                     <GuideUrbanDensityLiveableDensityPreview

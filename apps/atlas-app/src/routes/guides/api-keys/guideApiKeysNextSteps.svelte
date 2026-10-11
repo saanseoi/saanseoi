@@ -62,7 +62,7 @@ const nextSteps = [
         </div>
         <div class="relative flex min-w-0 flex-col px-5 pt-6 pb-4 sm:pl-6">
           <h3
-            class="font-[Caveat] text-[clamp(1.75rem,2.6vw,2.25rem)] font-bold leading-[0.78] tracking-[-0.04em] text-primary"
+            class="font-[Caveat] text-[clamp(1.75rem,2.6vw,2.25rem)] font-bold leading-[0.78] tracking-display-lg text-primary"
           >
             {step.title()}
           </h3>

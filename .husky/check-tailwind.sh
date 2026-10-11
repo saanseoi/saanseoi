@@ -3,7 +3,8 @@
 # Tailwind's upgrader is a mutating migration command. Run it in a disposable
 # clean worktree for every relevant pushed commit, then reject the push when it
 # finds canonicalisations to commit. This must never write into the developer's
-# working tree, which may contain unrelated in-progress work.
+# working tree, which may contain unrelated in-progress work. Clean results are
+# cached by the entire committed tree, checker and runtime versions.
 set -eu
 
 ZERO_OID=0000000000000000000000000000000000000000
@@ -71,7 +72,7 @@ do
   # an unavailable object.
   if [ "$remote_oid" = "$ZERO_OID" ] || \
     ! git cat-file -e "$remote_oid^{commit}" 2>/dev/null || \
-    ! git diff --quiet "$remote_oid" "$local_oid" -- apps/atlas-app package.json bun.lock; then
+    ! git diff --quiet "$remote_oid" "$local_oid" -- apps/atlas-app apps/basemap-viewer libs package.json bun.lock .gitignore; then
     if ! grep -Fqx "$local_oid" "$CHECK_OIDS"; then
       printf '%s\n' "$local_oid" >> "$CHECK_OIDS"
     fi
@@ -90,11 +91,36 @@ if ! command -v bun >/dev/null 2>&1; then
   exit 1
 fi
 
+CACHE_DIR="$GIT_COMMON_DIR/saanseoi-tailwind-cache"
+mkdir -p "$CACHE_DIR"
+CHECKER_OID=$(git hash-object "$REPO_ROOT/.husky/check-tailwind.sh")
+BUN_EXECUTABLE=$(command -v bun)
+BUN_VERSION=$(bun --version)
+NODE_VERSION=$(node --version)
+# Keep the frozen dependency tree intact: the migration CLI otherwise runs
+# `bun add ...@latest` between stylesheet and template processing.
+mkdir -p "$CHECK_DIR/bin"
+cat > "$CHECK_DIR/bin/bun" <<'BUN_WRAPPER'
+#!/usr/bin/env sh
+case "${1:-}" in
+  add|remove) exit 0 ;;
+  *) exec "$SAANSEOI_TAILWIND_BUN" "$@" ;;
+esac
+BUN_WRAPPER
+chmod +x "$CHECK_DIR/bin/bun"
+
 TAILWIND_FAILURES=0
 CHECK_INDEX=0
 
 while IFS= read -r local_oid
 do
+  TREE_OID=$(git rev-parse "$local_oid^{tree}")
+  CACHE_KEY=$(printf '%s\n' "$TREE_OID" "$CHECKER_OID" "$BUN_VERSION" "$NODE_VERSION" | git hash-object --stdin)
+  if [ -f "$CACHE_DIR/$CACHE_KEY" ]; then
+    echo "Tailwind canonical class check passed (cached for $local_oid)."
+    continue
+  fi
+
   CHECK_INDEX=$((CHECK_INDEX + 1))
   CURRENT_WORKTREE="$CHECK_DIR/worktree-$CHECK_INDEX"
   # A normal `worktree add` runs the repository's post-checkout hook, which
@@ -119,13 +145,29 @@ do
     exit 1
   fi
 
-  echo "Checking Tailwind canonical class names..."
-  if ! (
-    cd "$CURRENT_WORKTREE"
-    "$UPGRADE_BIN" --force apps/atlas-app/src/routes/app.css
-  ); then
-    exit 1
-  fi
+  # The upgrader has no positional CSS input. Running at the repository root
+  # discovers both themes and processes shared templates using the first theme.
+  # Give each frontend its own scan root and design system instead.
+  for frontend in apps/atlas-app apps/basemap-viewer
+  do
+    [ -d "$CURRENT_WORKTREE/$frontend" ] || continue
+    echo "Checking Tailwind canonical class names in $frontend..."
+    if ! (
+      cd "$CURRENT_WORKTREE/$frontend"
+      PATH="$CHECK_DIR/bin:$PATH" SAANSEOI_TAILWIND_BUN="$BUN_EXECUTABLE" "$UPGRADE_BIN" --force
+    ); then
+      exit 1
+    fi
+  done
+
+  # This hook checks canonical styles/classes, not dependency upgrades. The
+  # migration CLI also updates manifests; discard only those incidental edits
+  # inside the disposable worktree, retaining all stylesheet/template changes.
+  git -C "$CURRENT_WORKTREE" diff --name-only -- '**/package.json' package.json bun.lock > "$CHECK_DIR/dependency-files"
+  while IFS= read -r dependency_file
+  do
+    git -c core.hooksPath=/dev/null -C "$CURRENT_WORKTREE" restore --source=HEAD --worktree -- "$dependency_file"
+  done < "$CHECK_DIR/dependency-files"
 
   TAILWIND_CHANGES=$(git -C "$CURRENT_WORKTREE" status --porcelain | sed '/^?? node_modules$/d')
   if [ -n "$TAILWIND_CHANGES" ]; then
@@ -144,6 +186,12 @@ do
       echo "Resolve the reported local state, then rerun the push to import the canonicalisations." >&2
     fi
     TAILWIND_FAILURES=1
+  else
+    # Publish only a successful result, atomically; never cache a migration
+    # failure, a dirty result, or canonicalisations merely imported for review.
+    CACHE_TEMP=$(mktemp "$CACHE_DIR/.passed.XXXXXX")
+    printf '%s\n' "$local_oid" > "$CACHE_TEMP"
+    mv "$CACHE_TEMP" "$CACHE_DIR/$CACHE_KEY"
   fi
 
   git worktree remove --force "$CURRENT_WORKTREE" >/dev/null

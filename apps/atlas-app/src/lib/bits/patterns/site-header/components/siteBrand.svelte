@@ -25,7 +25,7 @@ const environmentLabel = dev
     SaanSeoi
     {#if environmentLabel}
       <span
-        class="pointer-events-none absolute bottom-full left-full ml-1 font-mono text-[10px] leading-none tracking-[0.08em] text-secondary"
+        class="pointer-events-none absolute bottom-full left-full ml-1 font-mono text-xxs leading-none tracking-[0.08em] text-secondary"
         >{environmentLabel}</span
       >
     {/if}

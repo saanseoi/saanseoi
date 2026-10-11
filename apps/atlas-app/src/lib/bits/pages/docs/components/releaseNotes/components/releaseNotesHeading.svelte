@@ -23,7 +23,7 @@ let { depth, id, tableLabel = false, children }: Props = $props()
 {:else if depth === 3}
   <h3
     {id}
-    class={`${tableLabel ? 'mt-8 mb-3 rounded-md border border-outline-variant/60 bg-surface-container-high px-4 py-2.5 text-center font-mono text-sm font-medium tracking-[0.04em] text-primary uppercase dark:border-outline-variant dark:text-[#edf2ee]!' : ''} scroll-mt-24 lg:scroll-mt-[120px]`}
+    class={`${tableLabel ? 'mt-8 mb-3 rounded-md border border-outline-variant/60 bg-surface-container-high px-4 py-2.5 text-center font-mono text-sm font-medium -tracking-display-lg text-primary uppercase dark:border-outline-variant dark:text-[#edf2ee]!' : ''} scroll-mt-24 lg:scroll-mt-[120px]`}
   >
     <Anchor {id} {children} />
   </h3>

@@ -32,7 +32,7 @@ let {
 
 <header class="bg-data-surface-container-lowest dark:border-data-outline-variant">
   <div
-    class="flex flex-col gap-3 px-6 py-3 min-[30rem]:flex-row min-[30rem]:items-center min-[30rem]:justify-between min-[30rem]:gap-4 md:px-8"
+    class="flex flex-col gap-3 px-6 py-3 xs:flex-row xs:items-center xs:justify-between xs:gap-4 md:px-8"
   >
     <a
       class="group flex min-w-0 flex-1 items-center gap-4 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-data-primary"

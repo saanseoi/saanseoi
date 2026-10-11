@@ -83,7 +83,7 @@ const stopCardInteraction = (event: Event) => event.stopPropagation()
             >{m.postcard_basemap()}</span
           >
           <span
-            class="mt-2 block font-[Caveat] text-[clamp(2.15rem,5vw,3.3rem)] leading-[0.82] font-bold tracking-[-0.02em]"
+            class="mt-2 block font-[Caveat] text-[clamp(2.15rem,5vw,3.3rem)] leading-[0.82] font-bold tracking-headline-lg"
             style={`color: ${accent};`}
             >{regionalName}</span
           >

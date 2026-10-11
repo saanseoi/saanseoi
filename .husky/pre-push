@@ -5,12 +5,12 @@ push_records=$(mktemp "${TMPDIR:-/tmp}/saanseoi-push.XXXXXX")
 trap 'rm -f "$push_records"' EXIT HUP INT TERM
 cat > "$push_records"
 
-bun --env-file=.env --env-file=.env.local ./scripts/evidence-archive.ts push "$push_records"
-
 ./.husky/check-merge.sh
 bun run lint:branch
+bun --env-file=.env --env-file=.env.local ./scripts/evidence-archive.ts push "$push_records"
 ./.husky/check-tailwind.sh < "$push_records"
 bun run test:run
 bun run test:evidence
+bun run test:hooks
 echo "Running workspace checks..."
 bun run check

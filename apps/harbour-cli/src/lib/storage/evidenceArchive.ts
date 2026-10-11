@@ -360,43 +360,70 @@ export async function syncEvidence(
   manifest: EvidenceManifest,
   store: EvidenceStore,
 ) {
-  for (const entry of manifest.entries) {
-    const path = await safePath(root, entry.path)
-    let matches = false
-    try {
-      await verifyEvidence(entry, path)
-      matches = true
-    } catch (error) {
-      if (
-        (error as NodeJS.ErrnoException).code !== 'ENOENT' &&
-        !(
-          error instanceof Error &&
-          error.message.startsWith('Evidence checksum mismatch:')
-        )
-      )
-        throw error
-    }
-    if (matches) await store.retain(entry, path)
-    else {
-      const snapshot = resolve(root, '.local/evidence-archive/sha256', entry.sha256)
-      try {
-        await verifyEvidence(entry, snapshot)
-        await store.retain(entry, snapshot)
-        continue
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+  let next = 0
+  let failed = false
+  let failure: unknown
+  const workers = Array.from(
+    { length: Math.min(4, manifest.entries.length) },
+    async () => {
+      while (!failed && next < manifest.entries.length) {
+        const entry = manifest.entries[next++]!
+        try {
+          await syncEvidenceEntry(root, entry, store)
+        } catch (error) {
+          if (!failed) failure = error
+          failed = true
+          throw error
+        }
       }
+    },
+  )
+  // The caller disposes the shared store in finally. Drain active operations
+  // before rejecting, and stop scheduling entries after the first failure.
+  await Promise.allSettled(workers)
+  if (failed) throw failure
+}
 
-      // Earlier commits may refer to an older version of a mutable index. Verify
-      // those remote bytes without replacing the current local file.
-      const directory = await mkdtemp(resolve(tmpdir(), 'saanseoi-evidence-verify-'))
-      try {
-        const temporary = resolve(directory, 'object')
-        await store.download(entry, temporary)
-        await verifyEvidence(entry, temporary)
-      } finally {
-        await rm(directory, { recursive: true, force: true })
-      }
+async function syncEvidenceEntry(
+  root: string,
+  entry: EvidenceEntry,
+  store: EvidenceStore,
+) {
+  const path = await safePath(root, entry.path)
+  let matches = false
+  try {
+    await verifyEvidence(entry, path)
+    matches = true
+  } catch (error) {
+    if (
+      (error as NodeJS.ErrnoException).code !== 'ENOENT' &&
+      !(
+        error instanceof Error &&
+        error.message.startsWith('Evidence checksum mismatch:')
+      )
+    )
+      throw error
+  }
+  if (matches) await store.retain(entry, path)
+  else {
+    const snapshot = resolve(root, '.local/evidence-archive/sha256', entry.sha256)
+    try {
+      await verifyEvidence(entry, snapshot)
+      await store.retain(entry, snapshot)
+      return
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+    }
+
+    // Earlier commits may refer to an older version of a mutable index. Verify
+    // those remote bytes without replacing the current local file.
+    const directory = await mkdtemp(resolve(tmpdir(), 'saanseoi-evidence-verify-'))
+    try {
+      const temporary = resolve(directory, 'object')
+      await store.download(entry, temporary)
+      await verifyEvidence(entry, temporary)
+    } finally {
+      await rm(directory, { recursive: true, force: true })
     }
   }
 }

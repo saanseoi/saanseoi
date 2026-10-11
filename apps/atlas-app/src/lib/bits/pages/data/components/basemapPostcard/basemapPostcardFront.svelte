@@ -93,7 +93,7 @@ let isPreviewLoaded = $state(false)
             >{m.postcard_basemap()}</span
           >
           <span
-            class={`${isChineseLocale ? 'mt-0.5' : 'mt-1'} block font-[Caveat] text-[clamp(1.35rem,2.7vw,1.9rem)] leading-[0.82] font-bold tracking-[-0.02em]`}
+            class={`${isChineseLocale ? 'mt-0.5' : 'mt-1'} block font-[Caveat] text-[clamp(1.35rem,2.7vw,1.9rem)] leading-[0.82] font-bold tracking-headline-lg`}
             style={`color: ${accent};`}
             >{regionalName}</span
           >

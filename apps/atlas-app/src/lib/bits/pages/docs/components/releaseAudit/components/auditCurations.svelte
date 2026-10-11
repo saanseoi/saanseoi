@@ -82,7 +82,7 @@ $effect(() => {
           >
           {#if section.origin}
             <span
-              class="rounded border border-current/20 px-1.5 py-0.5 text-[10px] font-normal uppercase opacity-60"
+              class="rounded border border-current/20 px-1.5 py-0.5 text-xxs font-normal uppercase opacity-60"
               title={section.origin === 'Guard'
                 ? 'Decision linked to a retained guard'
                 : 'Authored choice with no recorded guard trigger'}

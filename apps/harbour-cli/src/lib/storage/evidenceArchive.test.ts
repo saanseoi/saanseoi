@@ -158,6 +158,25 @@ test('Node R2 adapter retains and restores exact bytes through a local Wrangler 
     await rm(resolve(root, item.path))
     await hydrateEvidence(root, item, archive)
     expect(await readFile(resolve(root, item.path), 'utf8')).toBe(text)
+    const entries = Array.from({ length: 9 }, (_, index) =>
+      entry(
+        `{"transport":${index}}`,
+        `fixtures/reviews/source/transport-${index}.json`,
+      ),
+    )
+    const manifest = { schemaVersion: 1 as const, bucket: 'ss-evidence-test', entries }
+    await Promise.all(
+      entries.map((item, index) =>
+        writeFile(resolve(root, item.path), `{"transport":${index}}`),
+      ),
+    )
+    await syncEvidence(root, manifest, archive)
+    await syncEvidence(root, manifest, archive)
+    await Promise.all(entries.map(item => rm(resolve(root, item.path))))
+    // Remote-only versions are verified concurrently without overwriting the cache.
+    await syncEvidence(root, manifest, archive)
+    for (const item of entries)
+      await expect(readFile(resolve(root, item.path))).rejects.toThrow()
   } finally {
     await archive?.dispose()
     if (oldLogPath === undefined) delete process.env.WRANGLER_LOG_PATH
@@ -198,6 +217,131 @@ test('historical JSONL versions retain their original Git identity through catal
       }),
     ).toThrow('Invalid')
   } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+function deferred() {
+  let resolve!: () => void
+  const promise = new Promise<void>(done => {
+    resolve = done
+  })
+  return { promise, resolve }
+}
+
+test('evidence sync uses at most four operations and retains every entry', async () => {
+  const root = await fixture()
+  const firstWave = deferred()
+  const release = deferred()
+  let active = 0,
+    peak = 0,
+    started = 0,
+    completed = 0
+  const entries = Array.from({ length: 9 }, (_, index) =>
+    entry(`{"index":${index}}`, `fixtures/reviews/source/${index}.json`),
+  )
+  const archive: EvidenceStore = {
+    async retain(item, path) {
+      await verifyEvidence(item, path)
+      active++
+      started++
+      peak = Math.max(peak, active)
+      if (started === 4) firstWave.resolve()
+      await release.promise
+      active--
+      completed++
+    },
+    async download() {
+      throw new Error('unexpected download')
+    },
+    async dispose() {},
+  }
+  try {
+    await Promise.all(
+      entries.map((item, index) =>
+        writeFile(resolve(root, item.path), `{"index":${index}}`),
+      ),
+    )
+    const pending = syncEvidence(
+      root,
+      { schemaVersion: 1, bucket: 'ss-evidence', entries },
+      archive,
+    )
+    await firstWave.promise
+    expect(started).toBe(4)
+    expect(active).toBe(4)
+    release.resolve()
+    await pending
+    expect(peak).toBe(4)
+    expect(completed).toBe(entries.length)
+  } finally {
+    release.resolve()
+    await rm(root, { recursive: true, force: true })
+  }
+})
+
+test('failed evidence sync drains in-flight work before rejection and stops scheduling entries', async () => {
+  const root = await fixture()
+  const firstWave = deferred(),
+    fail = deferred(),
+    release = deferred(),
+    failed = deferred()
+  const entries = Array.from({ length: 8 }, (_, index) =>
+    entry(`{"index":${index}}`, `fixtures/reviews/source/${index}.json`),
+  )
+  let started = 0,
+    completed = 0,
+    settled = false
+  const archive: EvidenceStore = {
+    async retain() {
+      const ordinal = ++started
+      if (started === 4) firstWave.resolve()
+      if (ordinal === 1) {
+        await fail.promise
+        failed.resolve()
+        throw new Error('immutable conflict')
+      }
+      await release.promise
+      completed++
+    },
+    async download() {
+      throw new Error('unexpected download')
+    },
+    async dispose() {},
+  }
+  try {
+    await Promise.all(
+      entries.map((item, index) =>
+        writeFile(resolve(root, item.path), `{"index":${index}}`),
+      ),
+    )
+    const pending = syncEvidence(
+      root,
+      { schemaVersion: 1, bucket: 'ss-evidence', entries },
+      archive,
+    ).then(
+      () => {
+        settled = true
+        return undefined
+      },
+      error => {
+        settled = true
+        return error
+      },
+    )
+    await firstWave.promise
+    fail.resolve()
+    await failed.promise
+    await Promise.resolve()
+    expect(settled).toBe(false)
+    expect(started).toBe(4)
+    release.resolve()
+    expect(await pending).toEqual(new Error('immutable conflict'))
+    expect(completed).toBe(3)
+    expect(started).toBe(4)
+  } finally {
+    fail.resolve()
+    release.resolve()
     await rm(root, { recursive: true, force: true })
   }
 })

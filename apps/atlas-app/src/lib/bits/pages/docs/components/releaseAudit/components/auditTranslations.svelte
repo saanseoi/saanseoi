@@ -206,7 +206,7 @@ async function toggle(side: 'source' | 'target', value: string) {
                 class="grid h-full min-w-0 flex-1 grid-cols-[minmax(8rem,1fr)_minmax(0,2fr)] items-center gap-3"
               >
                 <span class="min-w-0 space-y-2">
-                  <span class="flex items-center gap-1 text-[10px] sm:text-xs">
+                  <span class="flex items-center gap-1 text-xxs sm:text-xs">
                     <span class="rounded bg-current/5 px-1.5 py-0.5 text-current/60"
                       >{locale(entry, 'source')}</span
                     >

@@ -109,7 +109,7 @@ const areaDistrictLayers: LayerSpecification[] = [
           {metric.name}
         </p>
         <strong
-          class={`font-body text-[1.35rem] leading-none tracking-tight tabular-nums sm:my-1 sm:block sm:text-[2rem] ${appearance === 'dark' ? 'text-white' : 'text-[#10151a]'}`}
+          class={`font-body text-[1.35rem] leading-none tracking-tight tabular-nums sm:my-1 sm:block sm:text-headline-lg ${appearance === 'dark' ? 'text-white' : 'text-[#10151a]'}`}
           >{Math.round(metric.peoplePerSqKm).toLocaleString()}</strong
         >
         <span
@@ -126,8 +126,8 @@ const areaDistrictLayers: LayerSpecification[] = [
             >
           {:else}
             {m.guide_data_urban_density_preview_density_for_area({
-  area: metric.landAreaSqKm.toFixed(1),
-})}
+              area: metric.landAreaSqKm.toFixed(1),
+            })}
           {/if}
         </span>
       </article>
