@@ -54,3 +54,16 @@ The local initial-retention receipt is
 checksum, object keys, checksums, sizes and verification time. Initial retention
 verifies every downloaded object against its original local bytes before payload JSON is
 ignored by Git. The catalogue and this document remain tracked.
+
+## Historical fixture versions
+
+`retired-git-history` entries retain exact historical JSON and JSONL bytes. Each entry
+records its original repository path and Git blob ID as well as its SHA-256 checksum and
+immutable R2 object key. The cache path identifies that particular version; restoration
+does not replace a current curation file with a historical export.
+
+The historical catalogue covers retired division stub areas, hierarchy patches, review
+inventories and island areas, together with every retained Place address ledger version.
+Authored division geometry and the current small Place decision ledger remain repository
+inputs. `bun run evidence:restore` restores the checksum-verified historical cache files
+alongside investigation evidence.

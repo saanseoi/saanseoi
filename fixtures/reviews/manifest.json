@@ -348,7 +348,11 @@
       "path": "fixtures/reviews/retired-git-history/96f90e90e6f5b9cd9fd60181622d9eeed40b8d6cd144a1ce38984fc33224d219.json",
       "sha256": "96f90e90e6f5b9cd9fd60181622d9eeed40b8d6cd144a1ce38984fc33224d219",
       "objectKey": "evidence/sha256/96f90e90e6f5b9cd9fd60181622d9eeed40b8d6cd144a1ce38984fc33224d219",
-      "kind": "retired-git-history"
+      "kind": "retired-git-history",
+      "originalPaths": [
+        "fixtures/divisions/hk/stub-areas.json",
+        "fixtures/divisions/hk/stub-areas.geojson"
+      ]
     },
     {
       "gitBlobOid": "2c7bac46f0747196fa0fe818adb73c6f49ff32bb",
