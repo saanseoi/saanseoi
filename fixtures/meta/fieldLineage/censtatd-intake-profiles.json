@@ -1,0 +1,133 @@
+{
+  "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups": {
+    "layers": [
+      {
+        "expectedRowCount": 3322,
+        "name": "BG_21C",
+        "required": [
+          "bg",
+          "hma",
+          "t_pop"
+        ]
+      },
+      {
+        "expectedRowCount": 173,
+        "name": "HMA_21C",
+        "required": [
+          "hma",
+          "t_pop"
+        ]
+      }
+    ],
+    "sourceVersions": [
+      "2021"
+    ]
+  },
+  "ds-hk-hkgov-censtatd-division-statistic-major-housing-estates": {
+    "layers": [
+      {
+        "expectedRowCount": 540,
+        "name": "MHE_21C",
+        "required": [
+          "estate",
+          "t_pop"
+        ]
+      }
+    ],
+    "sourceVersions": [
+      "2021"
+    ]
+  },
+  "ds-hk-hkgov-censtatd-division-statistic-new-towns": {
+    "layers": [
+      {
+        "expectedRowCount": 13,
+        "name": "NewTown_21C",
+        "required": [
+          "newtown",
+          "t_pop"
+        ]
+      }
+    ],
+    "sourceVersions": [
+      "2021"
+    ]
+  },
+  "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters": {
+    "layers": [
+      {
+        "expectedRowCount": 3,
+        "name": "AREA_LQ_2023",
+        "required": [
+          "AREA_ENG",
+          "PERIOD"
+        ]
+      }
+    ],
+    "sourceVersions": [
+      "2023-H2"
+    ]
+  },
+  "ds-hk-hkgov-censtatd-division-statistic-permanent-living-quarters-district": {
+    "layers": [
+      {
+        "expectedRowCount": 18,
+        "name": "DCD_LQ_Q32023",
+        "required": [
+          "DC",
+          "YEAR",
+          "LQ"
+        ]
+      }
+    ],
+    "sourceVersions": [
+      "2023-H2"
+    ]
+  },
+  "ds-hk-hkgov-censtatd-division-statistic-population-households-district": {
+    "layers": [
+      {
+        "name": "DC_GHS",
+        "required": [
+          "dc",
+          "dc_class",
+          "year"
+        ],
+        "rowsPerReferencePeriod": {
+          "field": "year",
+          "count": 18
+        }
+      }
+    ],
+    "sourceVersions": [
+      "2024",
+      "2026-Q2"
+    ]
+  },
+  "ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district": {
+    "layers": [
+      {
+        "expectedRowCount": 18,
+        "name": "DC_16BC_SDU",
+        "required": [
+          "dc",
+          "dc_class",
+          "sdu_pop"
+        ]
+      },
+      {
+        "expectedRowCount": 18,
+        "name": "DC_21C_SDU",
+        "required": [
+          "dc",
+          "dc_class",
+          "sdu_pop"
+        ]
+      }
+    ],
+    "sourceVersions": [
+      "2016",
+      "2021"
+    ]
+  }
+}

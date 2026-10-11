@@ -1,0 +1,202 @@
+{
+  "hkgovAls2dBackfills": [
+    "hkgov-dpo-address-2d-backfills"
+  ],
+  "hkgovAls3dBackfills": [
+    "hkgov-dpo-address-3d-backfills"
+  ],
+  "hkgovAls3dCorrections": [
+    "hkgov-dpo-address-3d-corrections"
+  ],
+  "hkgovAls3dSuppressions": [
+    "hkgov-dpo-address-3d-suppressions"
+  ],
+  "hkgovAlsAliasedPremiseCoalescences": [
+    "hkgov-dpo-address-aliased-premise-coalescences"
+  ],
+  "hkgovAlsApprovedEstateBatch": [
+    "hkgov-dpo-address-approved-estate-batch"
+  ],
+  "hkgovAlsApprovedIssueBatch": [
+    "hkgov-dpo-address-approved-issue-batch"
+  ],
+  "hkgovAlsAuditFixtures": [
+    "address-granularity",
+    "hkgov-dpo-address-2d-backfills",
+    "hkgov-dpo-address-3d-backfills",
+    "hkgov-dpo-address-3d-corrections",
+    "hkgov-dpo-address-3d-suppressions",
+    "hkgov-dpo-address-aliased-premise-coalescences",
+    "hkgov-dpo-address-approved-estate-batch",
+    "hkgov-dpo-address-approved-issue-batch",
+    "hkgov-dpo-address-august-deletion-retentions",
+    "hkgov-dpo-address-block-detail-backfills",
+    "hkgov-dpo-address-building-overrides",
+    "hkgov-dpo-address-commercial-retentions",
+    "hkgov-dpo-address-complex-promotions",
+    "hkgov-dpo-address-components",
+    "hkgov-dpo-address-coordinate-backfills",
+    "hkgov-dpo-address-csu-corrections",
+    "hkgov-dpo-address-december-deletion-retentions",
+    "hkgov-dpo-address-estate-complex-decisions",
+    "hkgov-dpo-address-estate-component-gaps",
+    "hkgov-dpo-address-estate-components",
+    "hkgov-dpo-address-estate-names",
+    "hkgov-dpo-address-february-deletion-retentions",
+    "hkgov-dpo-address-february-source-guards",
+    "hkgov-dpo-address-hierarchies",
+    "hkgov-dpo-address-house-retentions",
+    "hkgov-dpo-address-house-street-identities",
+    "hkgov-dpo-address-identity-component-backfills",
+    "hkgov-dpo-address-january-deletion-retentions",
+    "hkgov-dpo-address-lin-tsui",
+    "hkgov-dpo-address-localities",
+    "hkgov-dpo-address-named-premise-retentions",
+    "hkgov-dpo-address-nested-premises",
+    "hkgov-dpo-address-november-deletion-retentions",
+    "hkgov-dpo-address-october-deletion-retentions",
+    "hkgov-dpo-address-oi-hei-backfill",
+    "hkgov-dpo-address-premise-consolidations",
+    "hkgov-dpo-address-premise-reconstructions",
+    "hkgov-dpo-address-premise-renames",
+    "hkgov-dpo-address-reviewed-continuity-decisions",
+    "hkgov-dpo-address-reviewed-estate-ownership",
+    "hkgov-dpo-address-reviewed-premise-retentions",
+    "hkgov-dpo-address-school-reconciliations",
+    "hkgov-dpo-address-september-deletion-retentions",
+    "hkgov-dpo-address-street-estate-complexes",
+    "hkgov-dpo-address-tsz-fai-dated-event",
+    "hkgov-dpo-address-university-hill-retentions",
+    "hkgov-dpo-address-unnamed-premise-suppressions",
+    "hkgov-dpo-address-upper-estate-complexes",
+    "hkgov-dpo-address-yau-yue-decisions",
+    "hkgov-dpo-address-yung-shing-shared-building"
+  ],
+  "hkgovAlsBlockDetailBackfills": [
+    "hkgov-dpo-address-block-detail-backfills"
+  ],
+  "hkgovAlsBuildingOverrides": [
+    "hkgov-dpo-address-building-overrides"
+  ],
+  "hkgovAlsCommercialRetentions": [
+    "hkgov-dpo-address-commercial-retentions"
+  ],
+  "hkgovAlsComplexPromotions": [
+    "hkgov-dpo-address-complex-promotions"
+  ],
+  "hkgovAlsCoordinateBackfills": [
+    "hkgov-dpo-address-coordinate-backfills"
+  ],
+  "hkgovAlsCsuCorrections": [
+    "hkgov-dpo-address-csu-corrections"
+  ],
+  "hkgovAlsCurationLifecycle": [
+    "hkgov-dpo-address-estate-component-gaps",
+    "hkgov-dpo-address-estate-components"
+  ],
+  "hkgovAlsDecemberReview": [
+    "hkgov-dpo-address-december-deletion-retentions"
+  ],
+  "hkgovAlsDeletionPreflight": [
+    "hkgov-dpo-address-approved-retirements"
+  ],
+  "hkgovAlsEstateComplexDecisions": [
+    "hkgov-dpo-address-estate-complex-decisions"
+  ],
+  "hkgovAlsEstateComponents": [
+    "hkgov-dpo-address-estate-components"
+  ],
+  "hkgovAlsEstateGapRestorations": [
+    "hkgov-dpo-address-estate-component-gaps"
+  ],
+  "hkgovAlsEstateNames": [
+    "hkgov-dpo-address-estate-names"
+  ],
+  "hkgovAlsFebruaryReview": [
+    "hkgov-dpo-address-february-deletion-retentions",
+    "hkgov-dpo-address-february-source-guards"
+  ],
+  "hkgovAlsHierarchies": [
+    "hkgov-dpo-address-hierarchies"
+  ],
+  "hkgovAlsHouseRetentionEvidence": [
+    "hkgov-dpo-address-house-retentions"
+  ],
+  "hkgovAlsHouseStreetIdentities": [
+    "hkgov-dpo-address-house-street-identities"
+  ],
+  "hkgovAlsIdentityComponentBackfills": [
+    "hkgov-dpo-address-identity-component-backfills"
+  ],
+  "hkgovAlsJanuaryReview": [
+    "hkgov-dpo-address-january-deletion-retentions"
+  ],
+  "hkgovAlsLinTsui": [
+    "hkgov-dpo-address-lin-tsui"
+  ],
+  "hkgovAlsLocalities": [
+    "hkgov-dpo-address-localities"
+  ],
+  "hkgovAlsNamedPremiseRetentions": [
+    "hkgov-dpo-address-named-premise-retentions"
+  ],
+  "hkgovAlsNestedPremises": [
+    "hkgov-dpo-address-nested-premises"
+  ],
+  "hkgovAlsNovemberReview": [
+    "hkgov-dpo-address-november-deletion-retentions"
+  ],
+  "hkgovAlsOctoberReview": [
+    "hkgov-dpo-address-october-deletion-retentions"
+  ],
+  "hkgovAlsOiHeiBackfill": [
+    "hkgov-dpo-address-oi-hei-backfill"
+  ],
+  "hkgovAlsPremiseConsolidations": [
+    "hkgov-dpo-address-premise-consolidations"
+  ],
+  "hkgovAlsPremiseReconstructions": [
+    "hkgov-dpo-address-premise-reconstructions"
+  ],
+  "hkgovAlsPremiseRenames": [
+    "hkgov-dpo-address-premise-renames"
+  ],
+  "hkgovAlsReviewedEstateOwnership": [
+    "hkgov-dpo-address-reviewed-estate-ownership"
+  ],
+  "hkgovAlsReviewedPremiseRetentions": [
+    "hkgov-dpo-address-august-deletion-retentions",
+    "hkgov-dpo-address-december-deletion-retentions",
+    "hkgov-dpo-address-february-deletion-retentions",
+    "hkgov-dpo-address-january-deletion-retentions",
+    "hkgov-dpo-address-november-deletion-retentions",
+    "hkgov-dpo-address-october-deletion-retentions",
+    "hkgov-dpo-address-reviewed-continuity-decisions",
+    "hkgov-dpo-address-reviewed-premise-retentions",
+    "hkgov-dpo-address-september-deletion-retentions",
+    "hkgov-dpo-address-university-hill-retentions"
+  ],
+  "hkgovAlsSchoolReconciliations": [
+    "hkgov-dpo-address-school-reconciliations"
+  ],
+  "hkgovAlsSeptemberReview": [
+    "hkgov-dpo-address-september-deletion-retentions"
+  ],
+  "hkgovAlsStreetEstateComplexes": [
+    "hkgov-dpo-address-street-estate-complexes",
+    "hkgov-dpo-address-upper-estate-complexes",
+    "hkgov-dpo-address-yau-yue-decisions"
+  ],
+  "hkgovAlsTszFaiDatedEvent": [
+    "hkgov-dpo-address-tsz-fai-dated-event"
+  ],
+  "hkgovAlsUnnamedPremiseSuppressions": [
+    "hkgov-dpo-address-unnamed-premise-suppressions"
+  ],
+  "hkgovAlsYueWanSuppression": [
+    "hkgov-dpo-address-yau-yue-decisions"
+  ],
+  "hkgovAlsYungShingSharedBuilding": [
+    "hkgov-dpo-address-yung-shing-shared-building"
+  ]
+}
