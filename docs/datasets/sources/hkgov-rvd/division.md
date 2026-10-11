@@ -45,14 +45,6 @@ assertions, including their PDF page evidence. These assertions have no geometry
 Source-only ingestion links the BEFORE SOURCE shard and publishes release record counts,
 counts by assertion kind and changes against the previous retained edition.
 
-Existing local metadata can be repaired from the retained rows without re-ingestion. Run
-without `--apply` to inspect the counts; applying creates a SQLite backup and updates
-only source-shard assignments and record/change stats for this dataset.
-
-```sh
-bun apps/harbour-cli/scripts/repair-local-source-only-metadata.ts ds-hk-hkgov-rvd-division META.sqlite SOURCE_BEFORE.sqlite --apply
-```
-
 ## Membership contract
 
 The SaanSeoi SOURCE payload uses `memberships`, an array of collection assertions:

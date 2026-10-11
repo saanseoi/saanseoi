@@ -63,24 +63,6 @@ retain those bodies as managed sidecars and establish their source links before 
 the migration, or use a separately authorised rebuild. Schema migration alone does not
 copy database JSON into R2.
 
-## Address ID reconciliation candidates
-
-Run the following with every current/history SQLite file and a new output directory:
-
-```sh
-bun apps/harbour-cli/scripts/reconcile-address-id-copies.ts OUTPUT_DIRECTORY DB_FILES...
-```
-
-The tool reads live inputs without modifying them, takes SQLite-consistent copies,
-rejects prefix collisions and unexpected collection seeds, updates canonical references
-and snapshot membership, and checks foreign keys. Publisher properties and original
-audit assertions retain their original identifiers. It rejects candidates if the inputs
-change during the run.
-
-These copies are review artefacts. Their original version hashes remain available for
-comparison; canonical versions and dependent publications must be regenerated before
-publication. Do not replace live database files with these candidates.
-
 ## Shared Statistics definition selections
 
 `statsRecords.definitionSetId` references the immutable field-definition map in

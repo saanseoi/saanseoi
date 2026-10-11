@@ -175,12 +175,4 @@ published. A missing or expired version fails ingestion. Existing audit entries 
 `native-source-row-count` record successful SQL delivery only; they do not represent
 this independent verification.
 
-The local metadata repair is a dry run by default and backs up META before applying
-changes. It leaves source records and release status unchanged:
-
-```sh
-bun apps/harbour-cli/scripts/repair-local-source-only-metadata.ts ds-hk-protomaps-island META.sqlite SOURCE.sqlite --apply
-```
-
-Supply every SOURCE shard needed to cover the retained releases. Release-note fixtures
-live under `fixtures/meta/releases/ds-hk-protomaps-island/`.
+Release-note fixtures live under `fixtures/meta/releases/ds-hk-protomaps-island/`.

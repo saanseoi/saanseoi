@@ -129,9 +129,3 @@ version labels. A different storage hash alone does not constitute a content cha
 
 The Changes and Stats tabs read these saved counts. API release-set statistics describe
 canonical output separately.
-
-For local retained releases, run
-`apps/harbour-cli/scripts/repair-local-overture-division-churn.ts` with the META SQLite
-path followed by every retained SOURCE SQLite path. The default is a dry run. `--apply`
-saves the previous churn rows beside META and replaces only source-release `changes`
-statistics in one transaction.

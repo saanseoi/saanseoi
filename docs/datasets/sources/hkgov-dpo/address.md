@@ -1535,21 +1535,22 @@ unresolved work remains visible after ingestion.
 
 `SAANSEOI_ALS_INVESTIGATION_AUTHORITY` supplies the explicit authority for creating 2026
 deferrals. Each acknowledgement matches the source version, predecessor and exact report
-digest. The durable queue in `fixtures/reviews/hkgov-dpo-address-investigations/`
-preserves previous identities, candidate evidence and lost inventories, including unit
-IDs. Preparation deferrals preserve the sealed evidence for identity drift, unverified
-curations and conflicting reviewed street components. A street conflict retains the
-assembled source assertion, previous correction and conflicting values; it does not
-apply the disputed correction. Missing street fields may be restored only when all
-supplied values agree with the reviewed street. Missing previously reviewed inventories
-retain the expected canonical unit IDs in preparation investigations. Existing
-inventories with changed canonical unit IDs still fail integrity validation. Preparation
-evidence is sealed after these inventory checks. Conflicting hierarchy evidence
-preserves the proposed relationship and all estate records as an investigation before
-any part of that relationship is applied. The disputed correction remains unapplied;
-final parent and membership validation still runs. A change to evidence invalidates the
-matching acknowledgement. Invalid hierarchy, missing parents, file-integrity failures
-and division-linkage errors remain blocking.
+digest. The durable queue is retained in the `ss-evidence` R2 archive, catalogued in
+`fixtures/reviews/manifest.json` and cached in
+`fixtures/reviews/hkgov-dpo-address-investigations/`. It preserves previous identities,
+candidate evidence and lost inventories, including unit IDs. Preparation deferrals
+preserve the sealed evidence for identity drift, unverified curations and conflicting
+reviewed street components. A street conflict retains the assembled source assertion,
+previous correction and conflicting values; it does not apply the disputed correction.
+Missing street fields may be restored only when all supplied values agree with the
+reviewed street. Missing previously reviewed inventories retain the expected canonical
+unit IDs in preparation investigations. Existing inventories with changed canonical unit
+IDs still fail integrity validation. Preparation evidence is sealed after these
+inventory checks. Conflicting hierarchy evidence preserves the proposed relationship and
+all estate records as an investigation before any part of that relationship is applied.
+The disputed correction remains unapplied; final parent and membership validation still
+runs. A change to evidence invalidates the matching acknowledgement. Invalid hierarchy,
+missing parents, file-integrity failures and division-linkage errors remain blocking.
 
 Confident continuations require one-to-one evidence. Exact bilingual addresses,
 number-format corrections and omitted names retain the established identity when the

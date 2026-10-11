@@ -31,17 +31,6 @@ validity start. A return to identical content opens a separate validity period; 
 periods remain closed. Release-specific source resolutions retain complete publisher
 membership, including records excluded from canonical materialisation.
 
-`apps/harbour-cli/scripts/repair-overture-geometry-periods.ts` reconstructs local
-periods from those resolutions and retained payloads. Its JSON configuration contains
-`meta` (SQLite path), `histories` (SQLite paths), `sources` (binding name to SQLite
-path) and `backupDirectory`. Run it with the configuration path for a dry run, then
-append `--apply` to back up the source databases and replace their area/boundary
-validity periods. Source databases must already use the current baseline schema. It
-checks membership counts against release statistics, rejects missing or conflicting
-evidence, rehearses the repair and verifies every retained release before applying. Run
-with ingestion stopped; the repair checks for concurrent changes and acquires source
-write locks. Content hashes, publisher payloads and snapshot resolutions remain intact.
-
 Each newly published area or boundary resource release supersedes the preceding release
 of that resource. Current snapshot cleanup removes superseded geometry once it is no
 longer required by a current or draft API release set. Historical requests replay the
@@ -439,14 +428,7 @@ Kowloon and New Territories identities. It is selected by the SaanSeoi API compo
 not the native Overture composition. Overture release sets retain their own area and
 boundary snapshots, HAD district areas and C&SD land-clipped district areas.
 
-## Local historical audit repair
-
-`apps/harbour-cli/scripts/repair-local-overture-audits.ts` prepares a local-only audit
-repair for published Overture Division editions. Pass the META SQLite path, a new
-receipt directory and the SOURCE history shard paths; add `--apply` to consume the
-prepared plan. Local R2 is required. The repair verifies retained object hashes and
-historical source inventories, preserves original manifests, backs up META and checks
-for concurrent catalogue or source changes before replacing audit registrations.
+## Historical audit evidence
 
 Recorded Guangdong geometry exclusions and source checks belong to ingestion. Historical
 source revalidation and country-reference evidence checks carry their actual

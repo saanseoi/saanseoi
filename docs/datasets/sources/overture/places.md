@@ -714,10 +714,13 @@ Address3D evidence. The decision is retained in
 
 Uncertain Place address identities may be accepted for ingestion under an explicit
 `SAANSEOI_PLACES_INVESTIGATION_AUTHORITY` acknowledgement. These cases remain
-`needs-further-investigation`, with low priority, in
-`fixtures/reviews/overture-place-address-investigations/`. Each record retains the
-complete release-specific review evidence and its SHA-256 digest. Exact retained
-evidence can be replayed without a new acknowledgement. Publisher address text is
-preserved, but no uncertain canonical Address link or supplementary Address is created.
-Assembly audits retain these investigations separately from applied human decisions.
-Malformed evidence and concurrent curation changes still block ingestion.
+`needs-further-investigation`, with low priority, in the `ss-evidence` R2 archive.
+`fixtures/reviews/manifest.json` catalogues the immutable objects;
+`fixtures/reviews/overture-place-address-investigations/` caches their verified bytes
+locally. Place provenance references portable `evidence:sha256:{checksum}` identifiers.
+Each record retains the complete release-specific review evidence and its SHA-256
+digest. Exact retained evidence can be replayed without a new acknowledgement. Publisher
+address text is preserved, but no uncertain canonical Address link or supplementary
+Address is created. Assembly audits retain these investigations separately from applied
+human decisions. Malformed evidence and concurrent curation changes still block
+ingestion.

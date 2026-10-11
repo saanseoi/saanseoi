@@ -1880,14 +1880,7 @@ releases; closed periods are never reopened. Release membership and the local re
 workflow are documented in
 [Overture geometry ingestion](../sources/overture/divisionGeometry.md).
 
-## Local historical audit repair
-
-`apps/harbour-cli/scripts/repair-local-overture-audits.ts` prepares a local-only audit
-repair for published Overture Division editions. Pass the META SQLite path, a new
-receipt directory and the SOURCE history shard paths; add `--apply` to consume the
-prepared plan. Local R2 is required. The repair verifies retained object hashes and
-historical source inventories, preserves original manifests, backs up META and checks
-for concurrent catalogue or source changes before replacing audit registrations.
+## Historical audit evidence
 
 Recorded Guangdong geometry exclusions and source checks belong to ingestion. Historical
 source revalidation and country-reference evidence checks carry their actual
@@ -1905,7 +1898,7 @@ release validity periods; unchanged records remain visible even when first impor
 an earlier release. Counts cover both OSM island features and full coastline records,
 including mainland, so they are not counts of distinct islands. See
 [Protomaps release inspection](../sources/openstreetmap/protomapsIsland.md#release-inspection-and-verification)
-for import verification and local metadata repair.
+for import verification.
 
 ## Retained island aliases
 

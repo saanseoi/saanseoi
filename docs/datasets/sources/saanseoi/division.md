@@ -64,21 +64,6 @@ Record Types reports source divisions and the number of locale entries with a no
 name, labelled Divisions and Divisions I18n. These are source-content counts rather than
 counts of assembled API records.
 
-## Local backfill
-
-Run the shared calculator against explicit local SQLite files:
-
-```fish
-bun apps/harbour-cli/scripts/repair-local-saanseoi-division-stats.ts META.sqlite SOURCE.sqlite
-```
-
-Supply every retained source shard containing SaanSeoi Division history. The command
-defaults to a dry run and checks for ambiguous source identities and missing retained
-releases. Add `--apply` to back up the existing statistics beside the metadata database
-and transactionally replace only source-owned changes, records and localised-record
-statistics for published SaanSeoi Division releases. Completeness, quality, geometry
-resources and API release-set statistics remain independently owned.
-
 ## Preparation audit
 
 Audit groups start collapsed. Search stays below the release navigation while scrolling.
