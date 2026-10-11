@@ -165,3 +165,39 @@ test('Node R2 adapter retains and restores exact bytes through a local Wrangler 
     await rm(root, { recursive: true, force: true })
   }
 }, 60_000)
+
+test('historical JSONL versions retain their original Git identity through catalogue refresh', async () => {
+  const root = await fixture()
+  try {
+    const text = '{"decision":"first"}\n{"decision":"second"}\n'
+    const item = {
+      ...entry(text, 'fixtures/reviews/source/history.jsonl'),
+      originalPath: 'fixtures/meta/curations/overture-place-address.jsonl',
+      gitBlobOid: 'a'.repeat(40),
+    }
+    await writeFile(resolve(root, item.path), text)
+    await writeFile(
+      resolve(root, MANIFEST_PATH),
+      JSON.stringify({ schemaVersion: 1, bucket: 'ss-evidence', entries: [item] }),
+    )
+    await refreshEvidenceManifest(root)
+    const manifest = await readManifest(root)
+    expect(manifest.entries[0]!.originalPath).toBe(item.originalPath)
+    expect(manifest.entries[0]!.gitBlobOid).toBe(item.gitBlobOid)
+    await validateReviewCache(root, manifest)
+    expect(() =>
+      parseEvidenceManifest({
+        ...manifest,
+        entries: [{ ...item, originalPath: '../outside' }],
+      }),
+    ).toThrow('Invalid')
+    expect(() =>
+      parseEvidenceManifest({
+        ...manifest,
+        entries: [{ ...item, gitBlobOid: 'not-a-git-object' }],
+      }),
+    ).toThrow('Invalid')
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
