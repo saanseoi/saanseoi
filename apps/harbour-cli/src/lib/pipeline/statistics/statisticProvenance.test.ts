@@ -64,6 +64,7 @@ test('Statistics retains bulk counts and reviewed definitions without source or 
   const canonical = normaliseHkgovCenstatdStatistics(source, { fieldMetadata })
   const before = structuredClone(source)
   const result = await retainStatisticProvenance(store, {
+    scope: { stage: 'ingestion', ownerId: 'release' },
     resourceReleaseId: 'release',
     datasetCode,
     source,

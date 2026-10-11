@@ -1,3 +1,4 @@
+import type { AuditScope } from '@repo/core/provenance'
 import { requireDefined } from '@repo/core/requireDefined'
 import { retainStatisticTranslations } from './statisticTranslationAudit'
 import { statisticFieldCurationRule } from './statisticFieldCurationRule'
@@ -24,6 +25,7 @@ import type {
 export async function retainStatisticProvenance(
   store: ProvenanceStore,
   input: {
+    scope: AuditScope
     resourceReleaseId: string
     datasetCode: string
     source: HkgovCenstatdStatisticSourceRow[]
@@ -49,18 +51,22 @@ export async function retainStatisticProvenance(
   const fields = [...input.fieldMetadata]
     .filter(([key]) => key.startsWith(`${datasetCode}\u0000`))
     .map(([key, metadata]) => ({ sourceField: key.split('\u0000')[1], metadata }))
-  const fixture = await retainObject(store, {
+  const fieldDocument = {
     kind: 'statistic-field-curations',
     schemaVersion: 1,
     datasetCode,
     fields,
-  })
+  }
   const documents = [
     ...curationDocumentsFor(input.fieldMetadata, input.measureMetadata).filter(
       f => (f.document as { datasetCode?: string }).datasetCode === datasetCode,
     ),
     ...(input.geographyFixtures ?? []),
   ]
+  const authoredFields = documents.filter(f => f.type !== 'identity-mappings')
+  const fixture = authoredFields.length
+    ? null
+    : await retainObject(store, fieldDocument)
   const bulk: BulkAudit[] = []
   const add = async (declaration: RuleDeclaration, affected: number) => {
     const { id, summary, basis } = declaration
@@ -77,7 +83,9 @@ export async function retainStatisticProvenance(
         decisions: { applied: affected },
       },
       fixtures:
-        basis === 'fixture' ? [{ type: 'statistic-fields', object: fixture }] : [],
+        basis === 'fixture' && fixture
+          ? [{ type: 'statistic-fields', object: fixture }]
+          : [],
     })
   }
   await add(statisticNormalisationRule.declaration, source.length)
@@ -196,6 +204,7 @@ export async function retainStatisticProvenance(
   ]
   const failed = guards.some(g => g.status === 'failed')
   return retainAuditResult(store, {
+    scope: input.scope,
     apiFields,
     resourceReleaseId,
     datasetCode,
@@ -203,6 +212,9 @@ export async function retainStatisticProvenance(
     bulk,
     guards,
     individuals: await retainStatisticTranslations(store, {
+      documents: authoredFields.length
+        ? documents.map(f => f.document)
+        : [fieldDocument],
       ...input,
       appliedFields: new Set(canonical.fields.map(field => field.fieldName)),
       appliedMeasures: new Set(canonical.measures.map(measure => measure.measureCode)),

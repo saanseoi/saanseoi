@@ -1,11 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import {
-  encodeAuditGroup,
-  type AuditSummary,
-} from '@repo/core/pipeline/db/processingActionCodec'
 
 import {
-  buildReleaseProcessingActionsMetaSqlBatches,
   buildReleaseStatsMetaSqlBatches,
   buildStatisticSnapshotMetaSqlBatches,
   replayReleaseStatsMetaToRemote,
@@ -95,47 +90,6 @@ describe('release statistics metadata replay', () => {
         },
       ),
     ).rejects.toThrow('D1 import failed')
-  })
-
-  test('replaces audit actions and only their processing stats', async () => {
-    const action: AuditSummary = {
-      action: 'map_censtatd_district_code_to_canonical_division',
-      affectedRecordCount: 18,
-      createdAt: '2026-08-18T00:00:00.000Z',
-      generation: 'generation-1',
-      decisionCount: 1,
-      id: 'audit-1',
-      mode: 'automatic',
-      resourceReleaseId,
-      updatedAt: '2026-08-18T00:00:00.000Z',
-    }
-    const sql = buildReleaseProcessingActionsMetaSqlBatches(resourceReleaseId, {
-      actions: [action],
-      chunks: await encodeAuditGroup(action, [
-        {
-          action: action.action,
-          mode: action.mode,
-          summary: 'Mapped C&SD districts.',
-          evidence: { cohortKey: '2021' },
-          affectedRecordCount: 18,
-        },
-      ]),
-      stats: [
-        {
-          ...stats[0],
-          category: 'processing',
-          dimension: 'action',
-          dimensionValue: 'automatic:map_censtatd_district_code_to_canonical_division',
-          id: 'processing-1',
-          measure: 'processing',
-        },
-      ],
-    }).join('\n')
-
-    expect(sql).toContain('DELETE FROM "releaseProcessingActions"')
-    expect(sql).toContain(`AND "category" = 'processing';`)
-    expect(sql).toContain("'audit-1'")
-    expect(sql).toContain("'processing-1'")
   })
 
   test('replays statistic snapshot metadata before publication', () => {

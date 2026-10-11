@@ -1,3 +1,4 @@
+import { recordSnapshotAssembly } from '@repo/core/db/metaRegistry'
 import { expect, test } from 'bun:test'
 import { Database } from 'bun:sqlite'
 import { resolve } from 'node:path'
@@ -9,8 +10,10 @@ import {
 } from '@repo/core/db/metaRegistry'
 import { readStatisticSnapshotRecords } from '@repo/core/pipeline/services/statistics/statisticSnapshotRecords'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures'
-import { handlePublishDataset } from '../../../../../harbour-api/src/lib/services/control'
-import { handleBootstrapStatsReleaseSets } from '../../../../../harbour-api/src/lib/services/controlReconciliation'
+import {
+  handlePublishDataset,
+  handleBootstrapStatsReleaseSets,
+} from '../../../../../harbour-api/src/lib/services/controlFixtures.fixtures'
 import { planCanonicalStatistics } from './planCanonicalStatistics'
 import { initialDatasets } from '@repo/db/registry'
 import type { CanonicalStatsRows } from './normaliseHkgovCenstatdStatistics'
@@ -58,10 +61,6 @@ function fixture() {
         ),
         resourceReleaseId,
       )
-    meta
-      .query(`INSERT INTO releaseProvenance(resourceReleaseId,manifestHash,byteLength,applicationCount,attemptStatus)
-      VALUES(?,?,1,1,'completed')`)
-      .run(resourceReleaseId, `sha256:${'0'.repeat(64)}`)
     const result = await ensureDraftSnapshotForRelease(db, 'divisionStatistic', {
       cohortKey: period,
       datasetCode,
@@ -71,7 +70,22 @@ function fixture() {
       sourceReleaseId: resourceReleaseId,
       variant: datasetCode,
     })
-    await upsertSnapshotSource(db, result.id, 'dataset', resourceReleaseId, 'primary')
+    await upsertSnapshotSource(db, result.id, 'dataset', resourceReleaseId, 'primary', {
+      anchorReleaseId: resourceReleaseId,
+      selectedByRule: 'assembly:division-statistic:reference-period-release:v1',
+      selectionMode: 'exact_ref',
+      sourceCohortKey: period,
+    })
+    await recordSnapshotAssembly(db, {
+      snapshotId: result.id,
+      resourceType: 'divisionStatistic',
+      anchorReleaseId: resourceReleaseId,
+      anchorCohortKey: period,
+    })
+    meta
+      .query(`INSERT INTO processingAudits(resourceReleaseId,stage,ownerId,manifestHash,byteLength,applicationCount,attemptStatus)
+      VALUES(?, 'assembly', ?, ?, 1, 1, 'completed')`)
+      .run(resourceReleaseId, result.id, `sha256:${'0'.repeat(64)}`)
     return result
   }
   const stage = async (
@@ -256,10 +270,10 @@ test.each(['draft', 'missing-audit', 'failed-audit', 'processing', 'revoked'])(
       if (state === 'draft')
         f.meta.query("UPDATE snapshots SET status='draft' WHERE id=?").run(second.id)
       else if (state === 'missing-audit')
-        f.meta.exec("DELETE FROM releaseProvenance WHERE resourceReleaseId='second'")
+        f.meta.exec("DELETE FROM processingAudits WHERE resourceReleaseId='second'")
       else if (state === 'failed-audit')
         f.meta.exec(
-          "UPDATE releaseProvenance SET attemptStatus='failed' WHERE resourceReleaseId='second'",
+          "UPDATE processingAudits SET attemptStatus='failed' WHERE resourceReleaseId='second'",
         )
       else
         f.meta

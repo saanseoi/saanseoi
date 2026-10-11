@@ -1,3 +1,4 @@
+import { statisticAuditPeriod } from './statisticAuditPeriod'
 import sourceFixture from '../../../../../../fixtures/meta/processing-rules/ingestion/censtatd-generic-source-assertion.json'
 import { registerRule, ruleDeclarationFromFixture } from '@repo/core/provenance'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
@@ -188,6 +189,11 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     onProgress: (completed, total) =>
       progress.message(`SQL delivery: ${completed}/${total} batches`),
   })
+  let failureAuditScope: import('@repo/core/provenance').AuditScope = {
+    stage: 'preparation',
+    ownerId: resourceReleaseId,
+  }
+
   try {
     const rows = await runStatisticProgressStep(
       progress,
@@ -357,6 +363,8 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
       resourceReleaseId,
       target,
     })
+    if (snapshots[0])
+      failureAuditScope = { stage: 'assembly', ownerId: snapshots[0].id }
     const canonicalPlan = await planCanonicalStatistics({
       canonical,
       snapshots,
@@ -489,27 +497,29 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
         const store = new LocalPipelineBucket(
           sqlDeliveryPhaseDirectory(delivery('statistics-provenance')),
         )
-        const result = await retainStatisticProvenance(store, {
-          resourceReleaseId,
-          datasetCode,
-          source: canonicalInput,
-          canonical,
-          fieldMetadata,
-          measureMetadata,
-          additionalRules: districtsBySourceCode
-            ? [
-                {
-                  declaration: censtatdDistrictIdentityRule.declaration,
-                  count: districtsBySourceCode.size,
-                },
-              ]
-            : [],
-          geographyFixtures: curationDocumentsFor(
-            districtsBySourceCode,
-            newTownsBySourceCode,
-          ),
-        })
-        await deliverProcessingResult(target, store, result.ref)
+        for (const snapshot of snapshots) {
+          const result = await retainStatisticProvenance(store, {
+            scope: { stage: 'assembly', ownerId: snapshot.id },
+            resourceReleaseId,
+            datasetCode,
+            ...statisticAuditPeriod(canonical, canonicalInput, snapshot.cohortKey),
+            fieldMetadata,
+            measureMetadata,
+            additionalRules: districtsBySourceCode
+              ? [
+                  {
+                    declaration: censtatdDistrictIdentityRule.declaration,
+                    count: districtsBySourceCode.size,
+                  },
+                ]
+              : [],
+            geographyFixtures: curationDocumentsFor(
+              districtsBySourceCode,
+              newTownsBySourceCode,
+            ),
+          })
+          await deliverProcessingResult(target, store, result.ref)
+        }
       },
     )
     const published = await runStatisticProgressStep(
@@ -568,6 +578,7 @@ export async function processLocalHkgovCenstatdStatisticSqlUpload(
     return published
   } catch (error) {
     await retainProcessingFailure({
+      scope: failureAuditScope,
       error,
       target,
       resourceReleaseId,

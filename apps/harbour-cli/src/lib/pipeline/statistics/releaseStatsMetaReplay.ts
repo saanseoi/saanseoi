@@ -6,8 +6,6 @@ import { eq } from 'drizzle-orm'
 
 import type { ReleaseStatsRow } from '@repo/db/metaSchema'
 import { metaSchema } from '@repo/db'
-import type { MaterialisedReleaseProcessingActions } from '@repo/core/pipeline/db/processingActions'
-import { buildAuditReplaySql } from '@repo/core/pipeline/db/processingActionReplay'
 import type { HarbourReadableDb, HarbourWritableDb } from '@repo/core/db/types'
 
 import type { UploadTarget } from '../../cli/options.ts'
@@ -127,66 +125,6 @@ export async function replayReleaseStatsMetaToRemote(
   }
 }
 
-export function buildReleaseProcessingActionsMetaSqlBatches(
-  resourceReleaseId: string,
-  materialised: MaterialisedReleaseProcessingActions,
-) {
-  return buildAuditReplaySql(resourceReleaseId, materialised)
-}
-
-export async function replayReleaseProcessingActionsMetaToRemote(
-  target: UploadTarget,
-  context: MetaContext,
-  resourceReleaseId: string,
-  materialised: MaterialisedReleaseProcessingActions,
-  options: {
-    delivery?: SqlDeliveryPhase
-    executeSql?: typeof executeSqlText
-    importOptions?: Pick<SqlImportExecutionOptions, 'accountId' | 'apiToken'>
-  } = {},
-) {
-  if (target.remote && options.delivery) {
-    await deliverSqlPhase(options.delivery, () =>
-      replayReleaseProcessingActionsMetaToRemote(
-        target,
-        context,
-        resourceReleaseId,
-        materialised,
-        { ...options, delivery: undefined },
-      ),
-    )
-    return
-  }
-  if (!target.remote) return
-  const accountId =
-    options.importOptions?.accountId ?? resolveCloudflareAccountId(target)
-  const apiToken =
-    options.importOptions?.apiToken ?? process.env.CLOUDFLARE_D1_TOKEN?.trim()
-  const databaseId = context.state.bindings.DB_META?.databaseId
-  const missing = [
-    !accountId?.trim() && 'CLOUDFLARE_ACCOUNT_ID',
-    !apiToken?.trim() && 'CLOUDFLARE_D1_TOKEN',
-    !databaseId?.trim() && 'meta.databaseId',
-  ].filter(Boolean)
-  if (missing.length) {
-    throw new Error(
-      `Release processing-action metadata replay requires ${missing.join(', ')}.`,
-    )
-  }
-  const execute = options.executeSql ?? executeSqlText
-  const destination: SqlImportTargetContext = {
-    databaseId: databaseId ?? null,
-    name: 'meta',
-  }
-  for (const sql of buildReleaseProcessingActionsMetaSqlBatches(
-    resourceReleaseId,
-    materialised,
-  )) {
-    await execute(destination, sql, { accountId, apiToken, isLocal: false })
-  }
-}
-
-/** Replays locally materialised statistic snapshots to DB_META before publish. */
 export async function replayStatisticSnapshotMetaToRemote(
   target: UploadTarget,
   context: MetaContext,

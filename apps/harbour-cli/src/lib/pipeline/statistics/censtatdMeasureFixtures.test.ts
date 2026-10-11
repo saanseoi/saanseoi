@@ -341,7 +341,7 @@ test('normalises localisations for equivalent C&SD source fields', async () => {
   }
 })
 
-test('keeps reviewed names readable and range identifiers explicit', async () => {
+test('keeps curated names readable and range identifiers explicit', async () => {
   const manifests = await readFieldManifests()
   const fields = manifests.flatMap(manifest => manifest.fields)
 

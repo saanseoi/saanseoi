@@ -1,5 +1,5 @@
 import {
-  retainObject,
+  retainCurationReference,
   type IndividualAudit,
   type JsonRecord,
   type ProvenanceStore,
@@ -12,6 +12,7 @@ import type { CenstatdFieldLocalisation } from './censtatdMeasureCurationTypes'
 export async function retainStatisticTranslations(
   store: ProvenanceStore,
   input: {
+    documents?: unknown[]
     datasetCode: string
     fieldMetadata: ReadonlyMap<string, unknown>
     measureMetadata?: ReadonlyMap<string, unknown>
@@ -43,14 +44,11 @@ export async function retainStatisticTranslations(
           (origin.kind !== 'machine-translated' && origin.kind !== 'human-translated')
         )
           continue
-        const fixture = await retainObject(store, {
-          kind: 'statistic-translation-curation',
-          schemaVersion: 1,
-          datasetCode: input.datasetCode,
-          type,
-          key,
+        const fixture = await retainCurationReference(
+          store,
           localisation,
-        })
+          input.documents,
+        )
         individuals.push({
           id: `${type}:${key}:${localisation.locale}`,
           operation: statisticLocalisationRule.declaration.id,
@@ -65,7 +63,7 @@ export async function retainStatisticTranslations(
               ? `Applied ${origin.kind} ${localisation.locale} localisation.`
               : 'The selected curation has no matching dictionary entry in this release.',
           definition,
-          fixture: { object: fixture, pointer: '/localisation' },
+          fixture,
           record: {
             id: id ?? key,
             names: [origin.sourceName, localisation.name],
