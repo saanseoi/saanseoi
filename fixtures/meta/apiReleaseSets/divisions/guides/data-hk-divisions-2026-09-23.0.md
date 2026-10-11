@@ -1,0 +1,807 @@
+---
+createdAt: "2026-10-11T04:00:00.000Z"
+updatedAt: "2026-10-11T04:00:00.000Z"
+apiFamily: "divisions"
+apiVersion: "api-divisions-v0.1"
+apiReleaseSet: "data-hk-divisions-2026-09-23.0"
+revision: "0"
+regionCode: "hk"
+cohortKey: "2026-09-23.0"
+domainCode: "geographic"
+timeTravelEffectiveAt: "2026-09-23T00:00:00.000Z"
+timeTravelKnownAt: "2026-10-07T17:53:01.000Z"
+timeTravelCatalogRevision: "catalog-hk-divisions-v0.1-2026-10-07.12"
+---
+
+# EN
+
+<note title="Deprecated API endpoint">
+<orange>Deprecated</orange> The <black>/divisions/v0.1</black> API endpoint is deprecated. For new integrations, use <black>/divisions/v0.2</black> and its SaanSeoi inventory. This release documents the Overture inventory; its identities, hierarchy and geometry choices are specific to v0.1. See the [v0.2 guide](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide).
+</note>
+
+## Using the Divisions API
+
+For the full reference, see the
+[Divisions API docs](/docs#tag/divisions/GET/divisions/v0).
+
+This guide explains how to make requests to the Divisions API. For the shape and
+contents of API <i>responses</i>, see the [response schema](?tab=schema) and
+[sample responses](?tab=samples). Each section stands on its own, so you can go straight
+to the one you need.
+
+{{apiKeyNote:en}}
+
+To inspect the original Overture object behind this release, use the
+[Divisions source-record endpoint](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)
+with the required `sourceRelease` query parameter. The response returns the retained
+object under `properties`.
+
+## Requesting Data
+
+{{experimentalApiWarning:en}}
+
+Use <black>GET /{{apiFamily}}/{{ apiVersionPath }}</black> to get a list of divisions.
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}
+```
+
+Every division in the list has an <black>id</black>. Use it with <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/{id}</black> to get one division:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/e70ad27b-857b-45f9-b94f-2168550591da?
+                 profile=full&
+                 include=areas:hkgov-had
+```
+
+**Version Selection**
+
+Unless you specify a [cohort](saanseoi:en:definition/cohort/v1) or
+[domain](saanseoi:en:definition/domain/v1), the API returns records from the
+<black>latest</black> cohort in the default <black>geographic</black> domain.
+
+To request records from this specific release, include both selectors:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}
+```
+
+Or you can select the published release directly:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 releaseSet={{ apiReleaseSet }}
+```
+
+The collection and detail examples below include the cohort and domain for consistency,
+even where they do not affect the feature being explained.
+
+## Searching for Divisions
+
+Use <black>GET /{{apiFamily}}/{{ apiVersionPath }}/search</black> to find divisions by
+name, alias, or code. The required <black>q</black> parameter accepts partial English
+text and Chinese substrings, making it suitable for suggestions as someone types:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Sham%20Shui&
+                 limit=20
+```
+
+Search uses the <black>latest published</black> release in each domain and searches
+<black>all domains</black> unless you specify one. It does not select this guide's
+<black>{{ cohortKey }}</black> cohort. To search only the domain shown in this guide,
+add <black>domain={{ domainCode }}</black>.
+
+For example, search for <black>水埗</black> within names such as <black>深水埗</black>:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=%E6%B0%B4%E5%9F%97&
+                 domain={{ domainCode }}&
+                 locale=zh-hant
+```
+
+Omit <black>locale</black> to search every available localisation, or supply one locale
+to restrict matching. Search uses the singular <black>locale</black> parameter, rather
+than the collection's <black>locales</black>. The default region is Hong Kong; use
+<black>region=mo</black> for Macao. <black>region=gba</black> selects Hong Kong data.
+
+**Choose what to match**
+
+Names, alternate names and curated <black>divisionCode</black> values are always
+searched. English matching is case-insensitive. Chinese queries can contain one or more
+characters. Every word or Chinese substring in the query must match; punctuation
+separates terms. Wildcards and full-text query operators are not supported.
+
+Ancestor names are excluded by default. Add <black>ancestors=true</black> to also find
+divisions through names in their stored hierarchy. For example, include microhoods
+(<black>microhood</black>), the finest hood type in this domain, whose stored ancestor
+names contain <black>Kowloon</black>:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Kowloon&
+                 domain={{ domainCode }}&
+                 ancestors=true
+```
+
+Direct name, alias and code matches appear before ancestor matches, with exact name/code
+matches and name prefixes preferred. Each <black>results</black> entry identifies the
+division, its domain and matched locale. <black>match=self</black> means that its own
+name, alias or code matched; <black>match=ancestor</black> means that matching also used
+ancestor names. Results contain one entry per division and domain, so the same division
+can appear in more than one domain. Use its <black>divisionId</black> and
+<black>domain</black> with the detail endpoint to retrieve the complete record.
+
+Queries hold at most 120 characters and eight terms. Search returns 20 results by
+default and at most 100; set <black>limit</black> to change this. It does not use
+collection pagination, <black>profile</black>, or <black>include</black>. Release and
+time-travel selectors are also unavailable on search; use the collection and detail
+endpoints when selecting a historical release.
+
+## Shaping the Response
+
+{{responseProfilesSection:en}}
+
+## Adding Geometry
+
+Each division has point geometry (i.e. latitude, longitude coordinates) for positioning
+a map label. It is included when using <black>profile=map</black> and
+<black>profile=full</black>.
+
+<note title="Geometry quality">
+Overture geometry has known quality issues. While it is one of SaanSeoi's project goals to provide extensive
+consensus geometry for Hong Kong neighbourhoods, for the time being, please select a companion dataset
+where the geometry best fits your purpose; for example, <black>include=areas:hkgov-had</black> provides official district-area geometry.
+</note>
+
+Choose additional geometry from the following companion datasets by setting
+<black>include=</black>:
+
+{{apiReleaseSetCompanions:en}}
+
+For example, request <black>area</black> or <black>boundary</black> companions with
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=areas:hkgov-had
+```
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=boundaries
+```
+
+You can name a specific companion, or let the API choose the usual one:
+
+1. A qualified selector wins: <black>include=boundaries:overture</black>.
+2. An unqualified geometry selector (i.e. <i>areas</i>, <i>boundaries</i>) in
+   <black>geographic</black> defaults to <black>overture</black>.
+
+**Simplify Geometry**
+
+For division-level maps, detailed boundaries can be unnecessary. Combine
+<black>transform=simplified</black> with a Government-department area provider to
+request topology-preserving, low-detail display geometry. This will keep your map
+running smoothly. The <black>transform=simplified</black> is available for every
+Government-department-sourced geometry companion.
+
+You may also want a <i>specific</i> reference year when including government geometry,
+for example when using statistics from that year. Use the <black>@{year}</black> suffix
+to include geometry from C&SD's published <black>{year}</black> cohort. The request's
+<black>domain</black> and <black>cohort</black> still select the release set that
+supplies the canonical division identities and hierarchy. The following therefore
+returns the <black>{{ cohortKey }}</black> division definitions, but geometry from the
+<black>2021</black> reference year.
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=areas:hkgov-censtatd-landclipped@2021&
+                 transform=simplified
+```
+
+Omit <black>transform=simplified</black> when your analysis depends on the original
+detailed boundary.
+
+## Adding Hierarchies
+
+Every primary division resource always contains a <black>relationships.hierarchy</black>
+relationship, whatever <black>include</black> you select. Its <black>data</black> lists
+the identifiers of its parent divisions, all the way up to Hong Kong SAR; a division
+with no parents has an empty <black>data</black> array. Use
+<black>include=hierarchy</black> only when you also need those parent division resources
+in the top-level <black>included</black> array:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=hierarchy
+```
+
+Request more than one companion by separating their codes with a <black>,</black>:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=hierarchy,areas,boundaries
+```
+
+Use <black>include=none</black> when you do not need any related resources in
+<black>included</black>. It leaves <black>relationships.hierarchy</black> unchanged;
+only the expansion of its identifiers into resources is omitted.
+
+## Adding Languages (`I18n`)
+
+{{localeSelectionSection:en}}
+
+## Filters & Pagination
+
+{{paginationSection:en}}
+
+Filters narrow the list before it is split into pages. Use `filter[level]` for a
+[hierarchy level](saanseoi:en:note/division-hierarchy-levels/v1), `filter[class]` for a
+canonical [division type](saanseoi:en:note/canonical-division-types/v1), and
+`filter[parent]` for the direct children of one division. Its value is the parent
+Division's <black>id</black>. For example, this lists level-3 towns whose parent is Sha
+Tin District:
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 filter[level]=3&
+                 filter[class]=town&
+                 filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
+```
+
+## Time travel
+
+{{timeTravelSection:en}}
+
+## Switching domains
+
+A [domain](saanseoi:en:definition/domain/v1) is a separate collection within the
+Divisions API. Keep domains separate when comparing results: their identities, geometry,
+and fields come from different sources.
+
+{{domains:en}}
+
+## Recover from Failure
+
+The API returns a number of error codes. Here is how to recover from each one:
+
+- `404` from a detail request means that the ID is not in the selected release. Recheck
+  the ID and its domain, cohort, and time-travel selectors.
+- `409` with <black>variant_unavailable</black> means the requested area or boundary
+  variant is not available in that release. Choose an available qualified companion from
+  the list above, or use a release that contains the required variant; the API does not
+  substitute another publisher.
+- `422` means that the request is invalid. Read the validation details, then correct the
+  selector, filter, locale, search, or pagination value before trying again.
+- `503` with <black>snapshot_not_ready</black> means that no active division snapshot
+  matches the selection. Retry after it is published or choose a published release; do
+  not treat the response as an empty result.
+- `503` with <black>fts_not_ready</black> applies to search only: search is not ready
+  for the latest published releases. Retry after search finalisation completes. An empty
+  <black>results</black> array means that there are no matches in the selected published
+  domains.
+
+# ZH-HANT
+
+<note title="已棄用的 API 端點">
+<orange>已棄用</orange> <black>/divisions/v0.1</black> API 端點已棄用。新整合請使用 <black>/divisions/v0.2</black> 及其 SaanSeoi inventory。此發布記錄 Overture inventory；其識別碼、層級及幾何選項屬於 v0.1。請參閱 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
+</note>
+
+## 使用 Divisions API
+
+完整參考請見[Divisions API 文件](/docs#tag/divisions/GET/divisions/v0)。
+
+本指南說明如何向 Divisions API 發出請求。API
+<i>回應</i>的結構及內容，請參閱[回應 schema](?tab=schema)
+和[回應範例](?tab=samples)。各節均可獨立閱讀，請直接前往所需內容。
+
+{{apiKeyNote:zh-Hant}}
+
+如要查看此版本背後的原始 Overture 物件，請使用
+[Divisions 來源記錄端點](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，並提供必要的
+`sourceRelease` 查詢參數。回應會在 `properties` 下返回獲保留的物件。
+
+## 要求資料
+
+{{experimentalApiWarning:zh-Hant}}
+
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}</black> 取得區劃清單。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}
+```
+
+清單中的每個區劃均有 <black>id</black>。以 <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/{id}</black>
+取得單一區劃。如需相同視圖，請使用相同的發布、回應形狀、語言及幾何資料 selector（詳見下文）：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/e70ad27b-857b-45f9-b94f-2168550591da?
+                 profile=full&
+                 include=areas:hkgov-had
+```
+
+**選取版本**
+
+除非指定 [cohort](saanseoi:zh-hant:definition/cohort/v1) 或
+[domain](saanseoi:zh-hant:definition/domain/v1)，否則 API 會傳回預設
+<black>geographic</black> domain 中<black>最新</black> cohort 的記錄。
+
+如要要求這個特定發布的記錄，請同時提供兩個 selector：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}
+```
+
+下列集合及詳情範例均包含 cohort 及 domain，以保持一致，即使它們不影響正在說明的功能。
+
+## 搜尋區劃
+
+使用 <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/search</black>，按名稱、別名或代碼尋找區劃。必填的
+<black>q</black> 參數接受部分英文文字及中文子字串，適合在使用者輸入時提供建議：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Sham%20Shui&
+                 limit=20
+```
+
+搜尋使用各 domain 的<black>最新已發布</black>版本，除非指定其中一個 domain，否則會搜尋<black>所有 domain</black>。它不會選取本指南的
+<black>{{ cohortKey }}</black> cohort。如只想搜尋本指南所示的 domain，請加入
+<black>domain={{ domainCode }}</black>。
+
+例如，以 <black>水埗</black> 搜尋 <black>深水埗</black> 等名稱中的部分文字：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=%E6%B0%B4%E5%9F%97&
+                 domain={{ domainCode }}&
+                 locale=zh-hant
+```
+
+省略 <black>locale</black>
+可搜尋所有可用的語言版本，或指定一種語言以限制配對範圍。搜尋使用單數的
+<black>locale</black> 參數，而非集合端點的
+<black>locales</black>。預設地區為香港；如要搜尋澳門，請使用
+<black>region=mo</black>。<black>region=gba</black> 會選取香港資料。
+
+**選擇配對內容**
+
+名稱、別名及經整理的 <black>divisionCode</black>
+值一律納入搜尋。英文配對不區分大小寫。中文查詢可包含一個或多個字元。查詢中的每個詞或中文子字串都必須相符；標點符號會分隔搜尋詞。不支援萬用字元及全文查詢運算子。
+
+預設不搜尋上層區劃的名稱。加入
+<black>ancestors=true</black>，亦可透過已儲存層級中的名稱尋找區劃。例如，搜尋此 domain 中最細的鄰里類型——微型鄰里（<black>microhood</black>），將已儲存的上層名稱包含
+<black>Kowloon</black> 的區劃納入結果：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Kowloon&
+                 domain={{ domainCode }}&
+                 ancestors=true
+```
+
+直接的名稱、別名及代碼相符結果會排在上層名稱相符結果之前，並優先顯示名稱或代碼完全相符及名稱前綴相符的結果。每個
+<black>results</black>
+項目會標示區劃、所屬 domain 及配對到的語言。<black>match=self</black>
+表示其本身的名稱、別名或代碼相符；<black>match=ancestor</black>
+表示配對亦使用了上層名稱。每個區劃在每個 domain 最多有一個結果，因此同一區劃可出現在多個 domain。使用其
+<black>divisionId</black> 及 <black>domain</black> 呼叫詳情端點，即可取得完整記錄。
+
+查詢最多可包含 120 個字元及八個搜尋詞。搜尋預設傳回 20 個結果，最多 100 個；使用
+<black>limit</black> 調整數量。搜尋不使用集合端點的分頁、<black>profile</black> 或
+<black>include</black>，亦不支援版本及時間旅行 selector；如要選取歷史版本，請使用集合及詳情端點。
+
+## 設定回應形狀
+
+{{responseProfilesSection:zh-Hant}}
+
+## 加入幾何資料
+
+每個區劃均有點幾何資料（即緯度、經度座標），供放置地圖標籤之用。使用
+<black>profile=map</black> 或 <black>profile=full</black> 時會包含此資料。
+
+<note title="幾何資料品質">
+Overture 的幾何資料有已知品質問題。SaanSeoi 的目標之一，是為香港鄰里提供廣泛的共識幾何資料；現階段請按用途選擇最合適的配套資料集。例如，<black>include=areas:hkgov-had</black> 提供官方地區面積幾何資料。
+</note>
+
+以 <black>include=</black> 設定，從下列配套資料集選取額外幾何資料：
+
+{{apiReleaseSetCompanions:zh-Hant}}
+
+例如，以下分別要求 <black>area</black> 或 <black>boundary</black> 配套資源：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=areas:hkgov-had
+```
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=boundaries
+```
+
+可指定配套資源，或讓 API 選取慣常資源：
+
+1. 限定 selector 優先，例如：<black>include=boundaries:overture</black>。
+2. 在 <black>geographic</black> domain 中，未限定的幾何資料 selector（即
+   <i>areas</i>、<i>boundaries</i>）預設為 <black>overture</black>。
+
+**簡化幾何資料**
+
+區劃層級地圖的詳細邊界有時並非必要。將 <black>transform=simplified</black>
+與政府部門的面積提供者配合使用，即可請求保留拓撲、低細節的顯示幾何資料。這可令地圖保持流暢運作。每個由政府部門提供的幾何資料配套資源均可使用
+<black>transform=simplified</black>。
+
+納入政府幾何資料時，您可能也希望使用<i>特定</i>參考年份，例如配合該年份的統計資料。請使用
+<black>@{year}</black> 後綴，納入 C&SD 已發布的 <black>{year}</black>
+組別中之幾何資料。要求中的 <black>domain</black> 和 <black>cohort</black>
+仍會選取提供標準區劃識別資料及階層結構的 <black>release set</black>。因此，下例會取得
+<black>{{ cohortKey }}</black> 的區劃定義，但使用 <black>2021</black>
+參考年份的幾何資料。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=areas:hkgov-censtatd-landclipped@2021&
+                 transform=simplified
+```
+
+如分析依賴原有的精細邊界，請省略 <black>transform=simplified</black>。
+
+## 加入層級關係
+
+每個主要區劃資源一律包含 <black>relationships.hierarchy</black> 關係，不受
+<black>include</black> 選擇影響。其 <black>data</black>
+列出所有上層區劃的識別碼，直至香港特別行政區；沒有上層區劃的資源，其 <black>data</black>
+陣列為空。只有在同時需要於頂層 <black>included</black>
+陣列取得這些上層區劃資源時，才使用 <black>include=hierarchy</black>：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=hierarchy
+```
+
+以 <black>,</black> 分隔代碼，即可要求多個配套資源：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=hierarchy,areas,boundaries
+```
+
+如不需要 <black>included</black> 中的任何相關資源，請使用
+<black>include=none</black>。它不會改變
+<black>relationships.hierarchy</black>；只會略過將其識別碼展開為資源。
+
+## 加入語言（`I18n`）
+
+{{localeSelectionSection:zh-Hant}}
+
+## 篩選及分頁
+
+{{paginationSection:zh-Hant}}
+
+篩選會先縮小清單，再分頁。使用 `filter[level]`
+篩選[層級](saanseoi:zh-hant:note/division-hierarchy-levels/v1)，使用 `filter[class]`
+篩選標準[區劃類型](saanseoi:zh-hant:note/canonical-division-types/v1)，以及使用
+`filter[parent]` 篩選某一區劃的直接下層區劃。其值為父區劃的
+<black>id</black>。例如，下列要求傳回父區劃為沙田區的第 3 級城鎮：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 filter[level]=3&
+                 filter[class]=town&
+                 filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
+```
+
+## 時間旅行
+
+{{timeTravelSection:zh-Hant}}
+
+## 切換 domain
+
+[domain](saanseoi:zh-hant:definition/domain/v1) 是 Divisions
+API 中獨立的集合。比較結果時，應將不同 domain 分開處理：它們的識別、幾何資料和欄位來自不同來源。
+
+{{domains:zh-Hant}}
+
+## 從失敗中復原
+
+API 會傳回多種錯誤碼。以下說明各種情況的復原方法：
+
+- 詳情要求的 `404`
+  表示該 ID 不在所選發布中。請重新檢查 ID，以及其 domain、cohort 和時間旅行 selector。
+- 帶有 <black>variant_unavailable</black> 的 `409`
+  表示所要求的面或邊界 variant 不在該發布中。請從上表選取可用的限定配套資源，或改用包含所需 variant 的發布；API 不會改用其他發布者。
+- `422`
+  表示要求無效。請閱讀驗證詳情，然後修正 selector、篩選條件、locale、搜尋或分頁值，再次嘗試。
+- 帶有 <black>snapshot_not_ready</black> 的 `503`
+  表示沒有已發布的有效區劃 snapshot 符合選擇條件。請在發布後重試，或選取已發布的 release；請勿將此回應視為空結果。
+- 帶有 <black>fts_not_ready</black> 的 `503`
+  僅適用於搜尋：最新已發布版本的搜尋尚未就緒。請在搜尋準備完成後重試。空的
+  <black>results</black> 陣列表示所選的已發布 domain 中沒有相符結果。
+
+# ZH-HANS
+
+<note title="已弃用的 API 端点">
+<orange>已弃用</orange> <black>/divisions/v0.1</black> API 端点已弃用。新集成请使用 <black>/divisions/v0.2</black> 及其 SaanSeoi inventory。此发布记录 Overture inventory；其标识符、层级及几何选项属于 v0.1。请参阅 [v0.2 指南](/apis/divisions/data-hk-divisions-2026-10-01.0?tab=guide)。
+</note>
+
+## 使用 Divisions API
+
+完整参考请见[Divisions API 文档](/docs#tag/divisions/GET/divisions/v0)。
+
+本指南说明如何向 Divisions API 发出请求。API
+<i>响应</i>的结构及内容，请参阅[响应 schema](?tab=schema)
+和[响应示例](?tab=samples)。各节均可独立阅读，请直接前往所需内容。
+
+{{apiKeyNote:zh-Hans}}
+
+如要查看此版本背后的原始 Overture 对象，请使用
+[Divisions 源记录端点](/docs#tag/Sources/operation/listDivisionSourceRecordsV0)，并提供必要的
+`sourceRelease` 查询参数。响应会在 `properties` 下返回保留的对象。
+
+## 请求数据
+
+{{experimentalApiWarning:zh-Hans}}
+
+使用 <black>GET /{{apiFamily}}/{{ apiVersionPath }}</black> 获取区划列表。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}
+```
+
+列表中的每个区划均有 <black>id</black>。以 <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/{id}</black>
+获取单一区划。如需相同视图，请使用相同的发布、响应形状、语言及几何数据 selector（详见下文）：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/e70ad27b-857b-45f9-b94f-2168550591da?
+                 profile=full&
+                 include=areas:hkgov-had
+```
+
+**选择版本**
+
+除非指定 [cohort](saanseoi:zh-hans:definition/cohort/v1) 或
+[domain](saanseoi:zh-hans:definition/domain/v1)，否则 API 会返回默认
+<black>geographic</black> domain 中<black>最新</black> cohort 的记录。
+
+如要请求这个特定发布的记录，请同时提供两个 selector：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}
+```
+
+下列集合及详情示例均包含 cohort 及 domain，以保持一致，即使它们不影响正在说明的功能。
+
+## 搜索区划
+
+使用 <black>GET
+/{{apiFamily}}/{{ apiVersionPath }}/search</black>，按名称、别名或代码查找区划。必填的
+<black>q</black> 参数接受部分英文文本及中文子字符串，适合在用户输入时提供建议：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Sham%20Shui&
+                 limit=20
+```
+
+搜索使用各 domain 的<black>最新已发布</black>版本，除非指定其中一个 domain，否则会搜索<black>所有 domain</black>。它不会选取本指南的
+<black>{{ cohortKey }}</black> cohort。如只想搜索本指南所示的 domain，请添加
+<black>domain={{ domainCode }}</black>。
+
+例如，以 <black>水埗</black> 搜索 <black>深水埗</black> 等名称中的部分文字：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=%E6%B0%B4%E5%9F%97&
+                 domain={{ domainCode }}&
+                 locale=zh-hant
+```
+
+省略 <black>locale</black>
+可搜索所有可用的语言版本，或指定一种语言以限制匹配范围。搜索使用单数的
+<black>locale</black> 参数，而非集合端点的
+<black>locales</black>。默认地区为香港；如要搜索澳门，请使用
+<black>region=mo</black>。<black>region=gba</black> 会选取香港数据。
+
+**选择匹配内容**
+
+名称、别名及经整理的 <black>divisionCode</black>
+值一律纳入搜索。英文匹配不区分大小写。中文查询可包含一个或多个字符。查询中的每个词或中文子字符串都必须匹配；标点符号会分隔搜索词。不支持通配符及全文查询运算符。
+
+默认不搜索上层区划的名称。添加
+<black>ancestors=true</black>，也可通过已存储层级中的名称查找区划。例如，搜索此 domain 中最细的邻里类型——微型邻里（<black>microhood</black>），将已存储的上层名称包含
+<black>Kowloon</black> 的区划纳入结果：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}/search?
+                 q=Kowloon&
+                 domain={{ domainCode }}&
+                 ancestors=true
+```
+
+直接的名称、别名及代码匹配结果会排在上层名称匹配结果之前，并优先显示名称或代码完全匹配及名称前缀匹配的结果。每个
+<black>results</black>
+条目会标示区划、所属 domain 及匹配到的语言。<black>match=self</black>
+表示其本身的名称、别名或代码匹配；<black>match=ancestor</black>
+表示匹配也使用了上层名称。每个区划在每个 domain 最多有一个结果，因此同一区划可出现在多个 domain。使用其
+<black>divisionId</black> 及 <black>domain</black> 调用详情端点，即可获取完整记录。
+
+查询最多可包含 120 个字符及八个搜索词。搜索默认返回 20 个结果，最多 100 个；使用
+<black>limit</black> 调整数量。搜索不使用集合端点的分页、<black>profile</black> 或
+<black>include</black>，也不支持版本及时间旅行 selector；如要选取历史版本，请使用集合及详情端点。
+
+## 设置响应形状
+
+{{responseProfilesSection:zh-Hans}}
+
+## 添加几何数据
+
+每个区划均有点几何数据（即纬度、经度坐标），供放置地图标签之用。使用
+<black>profile=map</black> 或 <black>profile=full</black> 时会包含此数据。
+
+<note title="几何数据质量">
+Overture 的几何数据有已知质量问题。SaanSeoi 的目标之一，是为香港邻里提供广泛的共识几何数据；现阶段请按用途选择最合适的配套数据集。例如，<black>include=areas:hkgov-had</black> 提供官方地区面积几何数据。
+</note>
+
+以 <black>include=</black> 设置，从下列配套数据集选择额外几何数据：
+
+{{apiReleaseSetCompanions:zh-Hans}}
+
+例如，以下分别请求 <black>area</black> 或 <black>boundary</black> 配套资源：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=areas:hkgov-had
+```
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=boundaries
+```
+
+可指定配套资源，或让 API 选择惯常资源：
+
+1. 限定 selector 优先，例如：<black>include=boundaries:overture</black>。
+2. 在 <black>geographic</black> domain 中，未限定的几何数据 selector（即
+   <i>areas</i>、<i>boundaries</i>）默认为 <black>overture</black>。
+
+**简化几何数据**
+
+区划层级地图的精细边界有时并非必要。将 <black>transform=simplified</black>
+与政府部门的面积提供方配合使用，即可请求保留拓扑、低细节的显示几何数据。这可使地图保持流畅运行。每个由政府部门提供的几何数据配套资源均可使用
+<black>transform=simplified</black>。
+
+包含政府几何数据时，您可能也希望使用<i>特定</i>参考年份，例如配合该年份的统计数据。请使用
+<black>@{year}</black> 后缀，包含 C&SD 已发布的 <black>{year}</black>
+cohort 中的几何数据。请求中的 <black>domain</black> 和 <black>cohort</black>
+仍会选择提供规范区划标识和层级的 <black>release set</black>。因此，下例会取得
+<black>{{ cohortKey }}</black> 的区划定义，但使用 <black>2021</black>
+参考年份的几何数据。
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=areas:hkgov-censtatd-landclipped@2021&
+                 transform=simplified
+```
+
+如分析依赖原有的精细边界，请省略 <black>transform=simplified</black>。
+
+## 添加层级关系
+
+每个主要区划资源一律包含 <black>relationships.hierarchy</black> 关系，不受
+<black>include</black> 选择影响。其 <black>data</black>
+列出所有上层区划的标识符，直至香港特别行政区；没有上层区划的资源，其 <black>data</black>
+数组为空。只有在同时需要于顶层 <black>included</black>
+数组获取这些上层区划资源时，才使用 <black>include=hierarchy</black>：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=hierarchy
+```
+
+以 <black>,</black> 分隔代码，即可请求多个配套资源：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 include=hierarchy,areas,boundaries
+```
+
+如不需要 <black>included</black> 中的任何相关资源，请使用
+<black>include=none</black>。它不会改变
+<black>relationships.hierarchy</black>；只会略过将其标识符展开为资源。
+
+## 添加语言（`I18n`）
+
+{{localeSelectionSection:zh-Hans}}
+
+## 筛选及分页
+
+{{paginationSection:zh-Hans}}
+
+筛选会先缩小列表，再分页。使用 `filter[level]`
+筛选[层级](saanseoi:zh-hans:note/division-hierarchy-levels/v1)，使用 `filter[class]`
+筛选规范[区划类型](saanseoi:zh-hans:note/canonical-division-types/v1)，以及使用
+`filter[parent]` 筛选某一区划的直接下层区划。其值为父区划的
+<black>id</black>。例如，下列请求返回父区划为沙田区的第 3 级城镇：
+
+```url
+/{{apiFamily}}/{{ apiVersionPath }}?
+                 domain={{ domainCode }}&
+                 cohort={{ cohortKey }}&
+                 filter[level]=3&
+                 filter[class]=town&
+                 filter[parent]=e70ad27b-857b-45f9-b94f-2168550591da
+```
+
+## 时间旅行
+
+{{timeTravelSection:zh-Hans}}
+
+## 切换 domain
+
+[domain](saanseoi:zh-hans:definition/domain/v1) 是 Divisions
+API 中独立的集合。比较结果时，应将不同 domain 分开处理：它们的标识、几何数据和字段来自不同来源。
+
+{{domains:zh-Hans}}
+
+## 从失败中恢复
+
+API 会返回多种错误码。以下说明各种情况的恢复方法：
+
+- 详情请求的 `404`
+  表示该 ID 不在所选发布中。请重新检查 ID，以及其 domain、cohort 和时间旅行 selector。
+- 带有 <black>variant_unavailable</black> 的 `409`
+  表示所请求的面或边界 variant 不在该发布中。请从上表选择可用的限定配套资源，或改用包含所需 variant 的发布；API 不会改用其他发布者。
+- `422`
+  表示请求无效。请阅读验证详情，然后修正 selector、筛选条件、locale、搜索或分页值，再次尝试。
+- 带有 <black>snapshot_not_ready</black> 的 `503`
+  表示没有已发布的有效区划 snapshot 符合选择条件。请在发布后重试，或选择已发布的 release；请勿将此响应视为空结果。
+- 带有 <black>fts_not_ready</black> 的 `503`
+  仅适用于搜索：最新已发布版本的搜索尚未就绪。请在搜索准备完成后重试。空的
+  <black>results</black> 数组表示所选的已发布 domain 中没有匹配结果。
