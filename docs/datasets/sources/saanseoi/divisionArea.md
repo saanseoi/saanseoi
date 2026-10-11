@@ -94,6 +94,8 @@ simplification, rounding, snapping or buffering runs during assembly. Review-onl
 original drawings and working baselines are not published as geometry.
 
 An active drawing may carry a `corePoint` coordinate in its GeoJSON properties. The
+monthly assembler applies drawings only to identities in its reviewed edition inventory
+or island inputs; drawings for identities absent from that edition remain unapplied. The
 editor exposes the selected division's point as a draggable marker and saves a moved
 marker with that polygon. The point must be finite and inside the curated geometry.
 Hierarchy derivation and Division publication use it in place of the source point;

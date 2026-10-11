@@ -252,7 +252,10 @@ parents at each tier. That remainder continues through narrower tiers with its e
 ancestry, so a division partly inside a macrohood also retains a path for the portion
 outside it. Overlapping parents are subtracted together; boundary contact alone does not
 create a branch. Containment flags describe the whole division against each ancestor and
-do not themselves determine the number of paths.
+do not themselves determine the number of paths. The preparation guard accepts remainder
+paths ending at SAR or Area, while requiring every district-bearing path to contain SAR
+→ Area → District and matching administrative ancestry in the full and administrative
+projections.
 
 Hong Kong Island, Kowloon and New Territories administrative areas have deterministic
 SaanSeoi UUIDs and district-union geometry. Kowloon city retains its source UUID
@@ -1344,6 +1347,8 @@ curation reasons. The editor applies this distinction to seed data, saved work a
 imports. Only active `features` contribute to hierarchy generation and publication.
 
 Active drawing features can retain a curator-selected `corePoint` inside their polygon.
+Monthly assembly selects drawings only for identities in the reviewed edition inventory
+or its island inputs. A drawing does not introduce an identity into an earlier edition.
 This representative point replaces the publisher point for hierarchy derivation and the
 assembled Division point geometry. The DivisionArea polygon is not changed when the
 marker moves.

@@ -91,7 +91,7 @@ export function checkPreparedHierarchy(records: Row[], names: Row[]): AuditGuard
   const guard: AuditGuard = {
     id: 'saanseoi-sar-area-district-hierarchy',
     summary:
-      'Administrative and full hierarchies must follow Hong Kong SAR → Area → District.',
+      'District ancestry must follow Hong Kong SAR → Area → District; spatial remainders may end at SAR or Area.',
     consequence: 'block-ingestion',
     status: 'not-applicable',
     checked: 0,
@@ -99,6 +99,7 @@ export function checkPreparedHierarchy(records: Row[], names: Row[]): AuditGuard
     reason: 'No district ancestry is present.',
   }
   const byId = new Map(records.map(row => [row.id, row]))
+  const failedIds: string[] = []
   const english = new Map(
     names.filter(row => row.locale === 'en').map(row => [row.divisionId, row.name]),
   )
@@ -120,6 +121,34 @@ export function checkPreparedHierarchy(records: Row[], names: Row[]): AuditGuard
     const validPath = (ancestors: Row[], fullPath = false) => {
       const path = [...ancestors, ...(row.class === 'district' ? [row] : [])]
       const districts = path.filter(parent => parent.class === 'district')
+      const validReferences =
+        new Set(path.map(parent => parent.id)).size === path.length &&
+        path.every(parent => {
+          const actual = byId.get(parent.id)
+          return (
+            actual?.class === parent.class &&
+            actual?.level === geographicDivisionClassification(parent.class)?.level
+          )
+        })
+      // Spatial remainders may stop at SAR or Area when no district covers them.
+      if (!districts.length && row.class !== 'district') {
+        const administrative = path.filter(parent =>
+          ['sar', 'area', 'district'].includes(parent.class),
+        )
+        return (
+          validReferences &&
+          administrative.length > 0 &&
+          administrative.length <= 2 &&
+          path[0]?.id === OVERTURE_HONG_KONG_SAR_DIVISION_ID &&
+          path[0]?.class === 'sar' &&
+          (administrative.length === 1 ||
+            (path[1]?.class === 'area' &&
+              overtureHongKongAreas.some(
+                area => path[1]?.id === overtureHongKongAreaDivisionId(area.code),
+              ))) &&
+          (fullPath || path.length === administrative.length)
+        )
+      }
       if (districts.length !== 1) return false
       const district = districts[0]!
       const area = overtureHongKongAreas.find(area =>
@@ -133,14 +162,7 @@ export function checkPreparedHierarchy(records: Row[], names: Row[]): AuditGuard
         path[1]?.id === overtureHongKongAreaDivisionId(area.code) &&
         path[1]?.class === 'area' &&
         path[2]?.id === district.id &&
-        new Set(path.map(parent => parent.id)).size === path.length &&
-        path.every(parent => {
-          const actual = byId.get(parent.id)
-          return (
-            actual?.class === parent.class &&
-            actual?.level === geographicDivisionClassification(parent.class)?.level
-          )
-        })
+        validReferences
       )
     }
     const signature = (path: Row[]) =>
@@ -157,13 +179,16 @@ export function checkPreparedHierarchy(records: Row[], names: Row[]): AuditGuard
       full.every(path => validPath(path, true)) &&
       administrativePaths.size === fullPaths.size &&
       [...administrativePaths].every(path => fullPaths.has(path))
-    if (!valid) guard.failed++
+    if (!valid) {
+      guard.failed++
+      failedIds.push(row.id)
+    }
   }
   guard.status = guard.failed ? 'failed' : guard.checked ? 'passed' : 'not-applicable'
   if (guard.checked)
     guard.reason = guard.failed
-      ? `${guard.failed} divisions have invalid administrative or full ancestry.`
-      : 'Every checked division follows SAR → Area → District in both its administrative and full hierarchy, with matching administrative ancestry.'
+      ? `${guard.failed} divisions have invalid administrative or full ancestry: ${failedIds.join(', ')}.`
+      : 'Every checked district path follows SAR → Area → District; remainder paths retain a valid SAR or Area prefix, with matching administrative ancestry in both projections.'
   return guard
 }
 

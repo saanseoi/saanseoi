@@ -17,7 +17,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { prepareCuratedDivisionRow } from '@repo/core/pipeline/services/divisions/division'
 import { normaliseDivisionAreaGeometryRow } from '@repo/core/pipeline/services/divisions/divisionGeometry'
-import { divisionCuration } from './curationInputs'
+import { divisionCuration, editionGeometry } from './curationInputs'
 import islandGroups from '../../../../../../fixtures/meta/curations/saanseoi-division/island-groups.json'
 import reviewPins from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-review.json'
 import releaseInputs from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-release-policy.json'
@@ -244,7 +244,9 @@ export async function buildCuratedDivisionRelease(
     }),
     administrativeAreas,
     hierarchy,
-    estimatedAreas: divisionCuration.geometry,
+    estimatedAreas: editionGeometry(
+      new Set([...inventoryIds, ...islands.map(island => island.id)]),
+    ),
     islands,
     islandReview,
     islandGroups: islandGroups.entries,
@@ -420,7 +422,10 @@ export async function buildCuratedDivisionRelease(
   rules.guards.push(...data.pointGuards)
   if (rules.guards.some(guard => guard.status === 'failed'))
     throw new ProcessingGuardError(
-      'Invalid prepared administrative hierarchy.',
+      `Invalid prepared divisions: ${rules.guards
+        .filter(guard => guard.status === 'failed')
+        .map(guard => `${guard.id}: ${guard.reason}`)
+        .join('; ')}`,
       rules.guards,
     )
   const output = []

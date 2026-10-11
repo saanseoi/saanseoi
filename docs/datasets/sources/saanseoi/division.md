@@ -31,7 +31,9 @@ remainder outside those parents. The remainder retains its existing ancestry and
 checked against subsequent tiers. This preserves paths for portions outside a partially
 covering macrohood without inventing combinations of unrelated ancestors.
 `fullContainment` measures each ancestor against the whole division; it is annotated
-after paths are resolved and does not create branches.
+after paths are resolved and does not create branches. Preparation validates SAR-only
+and SAR → Area remainder paths alongside complete district paths. Both hierarchy
+projections must retain the same administrative branches.
 
 Expanded representative-point audit cards show a marker on the SaanSeoi basemap beside
 the retained coordinates. The preview loads only while the card is expanded.

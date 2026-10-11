@@ -31,6 +31,27 @@ const names = [
   },
 ]
 
+test('validates uncovered SAR and Area branches alongside complete district ancestry', () => {
+  const child = {
+    id: 'partial-coverage',
+    class: 'macrohood',
+    level: 4,
+    hierarchies: {
+      administrative: [[sar, area, district], [sar], [sar, area]],
+      full: [[sar, area, district], [sar], [sar, area]],
+    },
+  }
+  const rows = [sar, area, district, child]
+  expect(checkPreparedHierarchy(rows, names).status).toBe('passed')
+  child.hierarchies.full = [[sar, area, district], [sar]]
+  expect(checkPreparedHierarchy(rows, names).status).toBe('failed')
+  child.hierarchies.full = child.hierarchies.administrative = [
+    [sar, area, district],
+    [area],
+  ]
+  expect(checkPreparedHierarchy(rows, names).status).toBe('failed')
+})
+
 test('checks final administrative paths, including each branch of shared ancestry', () => {
   const child = {
     id: 'child',

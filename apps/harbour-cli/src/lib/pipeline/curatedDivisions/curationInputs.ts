@@ -5,3 +5,13 @@ import points from '../../../../../../fixtures/meta/curations/saanseoi-division/
 import bounds from '../../../../../../fixtures/meta/curations/saanseoi-division/division-bounds-overrides.json'
 /** Authored polygons are an assembly/editor input, never a Worker module dependency. */
 export const divisionCuration = { ...definitions, geometry, selections, points, bounds }
+
+/** Drawings refine identities present in an edition; they do not introduce identities. */
+export function editionGeometry(identityIds: ReadonlySet<string>) {
+  return {
+    ...geometry,
+    features: geometry.features.filter(feature =>
+      identityIds.has(feature.properties.divisionId),
+    ),
+  }
+}
