@@ -83,14 +83,14 @@ const tones = {
         class="size-4 shrink-0"
       />
       <span class="min-w-0 flex-1">
-        <span class="block break-words font-body text-body-md text-primary">
+        <span class="block wrap-break-word font-body text-body-md text-primary">
           {summary.name === id ? copy.record : summary.name}
         </span>
         <span
           class="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-foreground-alt"
         >
           {#if summary.detail}
-            <span class="break-words font-body text-caption">{summary.detail}</span>
+            <span class="wrap-break-word font-body text-caption">{summary.detail}</span>
           {/if}
           {#if changedKeys.length}
             <span class="flex flex-wrap items-center gap-1.5">

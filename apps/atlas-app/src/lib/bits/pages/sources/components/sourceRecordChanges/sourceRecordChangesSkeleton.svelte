@@ -15,7 +15,7 @@ let { label }: { label: string } = $props()
     >
       <div class="size-4 rounded bg-surface-container-high"></div>
       <div class="min-w-0 flex-1">
-        <div class="flex h-[1lh] items-center text-body-md">
+        <div class="flex h-lh items-center text-body-md">
           <div class={`h-4 rounded bg-surface-container-high ${width}`}></div>
         </div>
         <div class="mt-0.5 flex h-5 items-center gap-2 text-caption">

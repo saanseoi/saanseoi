@@ -57,7 +57,7 @@ onMount(() => {
 <section
   id={releaseAuditHeadingId}
   style:top={`${stickyTop}px`}
-  class="sticky z-40 -mx-6 !my-0 bg-background px-6 pt-1 pb-2 md:-mx-8 md:px-8"
+  class="sticky z-40 -mx-6 my-0! bg-background px-6 pt-1 pb-2 md:-mx-8 md:px-8"
 >
   <Tooltip.Provider>
     <ReleaseAuditControlsHeader

@@ -23,7 +23,7 @@ const labels: Record<string, string> = {
         <ul class="space-y-1">
           {#each entries as entry}
             {@const member = auditObject(entry)}
-            <li class="break-words" title={String(member.id)}>
+            <li class="wrap-break-word" title={String(member.id)}>
               {divisionAuditTitle({ id: member.id, canonicalNames: member.names })}
             </li>
           {/each}
