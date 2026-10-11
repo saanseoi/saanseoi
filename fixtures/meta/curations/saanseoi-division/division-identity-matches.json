@@ -5,7 +5,9 @@
     {
       "divisionId": "ss-c6a6fa05-5065-59c8-b29d-9d2183f50b0e",
       "identifiers": {
-        "LANDSD:GEO_NAME_ID": "3038"
+        "hkgov-landsd": {
+          "geoNameId": "3038"
+        }
       },
       "references": [
         {
@@ -18,52 +20,66 @@
     {
       "divisionId": "4ce57ea5-ebe4-4d08-bca3-5f0b4e6d473b",
       "identifiers": {
-        "LANDSD:GEO_NAME_ID": "1111"
+        "hkgov-landsd": {
+          "geoNameId": "1111"
+        }
       },
       "matchingNote": "Curated match to LandsD Mid-Levels 半山區; canonical 半山 is retained, with 半山區 as a curated alias."
     },
     {
       "divisionId": "ac162f33-9966-4d6e-9d53-8a6df575775f",
       "identifiers": {
-        "LANDSD:GEO_NAME_ID": "1250"
+        "hkgov-landsd": {
+          "geoNameId": "1250"
+        }
       },
       "geometryReview": "draw-required"
     },
     {
       "divisionId": "ss-a7102279-c138-57f4-aeb8-fa9d1507dfe7",
       "identifiers": {
-        "LANDSD:GEO_NAME_ID": "1211"
+        "hkgov-landsd": {
+          "geoNameId": "1211"
+        }
       },
       "geometryReview": "draw-required"
     },
     {
       "divisionId": "ss-8b76fa2a-3216-5845-9eae-3aa4b6936047",
       "identifiers": {
-        "LANDSD:GEO_NAME_ID": "3180"
+        "hkgov-landsd": {
+          "geoNameId": "3180"
+        }
       }
     },
     {
       "divisionId": "13363714-2649-4066-935d-c24757ff2a86",
       "identifiers": {
-        "LANDSD:GEO_NAME_ID": "3181"
+        "hkgov-landsd": {
+          "geoNameId": "3181"
+        }
       }
     },
     {
       "divisionId": "15de4c83-f54a-4eaa-b002-c88de1f8c310",
       "identifiers": {
-        "LANDSD:GEO_NAME_ID": "3182"
+        "hkgov-landsd": {
+          "geoNameId": "3182"
+        }
       }
     },
     {
       "divisionId": "ss-735bf116-27f8-5888-b81a-4b1076329049",
       "identifiers": {
-        "LANDSD:GEO_NAME_ID": "3183"
+        "hkgov-landsd": {
+          "geoNameId": "3183"
+        }
       }
     },
     {
       "divisionId": "ss-1df48b7f-e05d-5529-8e89-3b3edbf77146",
       "identifiers": {
-        "saanseoiIsland": {
+        "saanseoi": {
           "sourceId": "BASEMAP:ISLAND:00e285208161a7e1"
         }
       }

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "purpose": "Define identities absent from the pinned source inventory, retaining stable IDs and the names, class and point authored for each addition.",
   "entries": [
     {
@@ -63,7 +63,7 @@
         "code": "saanseoi-hk-waterfall-bay",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Waterfall Bay neighbourhood addition; geometry awaits local review."
+        "purpose": "User-curated Waterfall Bay neighbourhood addition."
       }
     },
     {
@@ -79,7 +79,7 @@
         "code": "saanseoi-hk-prince-edward",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Prince Edward neighbourhood addition; geometry awaits local review."
+        "purpose": "User-curated Prince Edward neighbourhood addition."
       }
     },
     {
@@ -98,7 +98,7 @@
         "code": "saanseoi-hk-jordan",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Jordan neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
+        "purpose": "User-curated Jordan neighbourhood addition with Yau Tsim Mong ancestry."
       }
     },
     {
@@ -114,7 +114,7 @@
         "code": "saanseoi-hk-austin",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Austin neighbourhood addition with Yau Tsim Mong ancestry; geometry awaits local review."
+        "purpose": "User-curated Austin neighbourhood addition with Yau Tsim Mong ancestry."
       }
     },
     {
@@ -133,7 +133,7 @@
         "code": "saanseoi-hk-lan-kwai-fong",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Lan Kwai Fong microhood addition; its representative point is on Lan Kwai Fong and geometry awaits local review."
+        "purpose": "User-curated Lan Kwai Fong microhood addition; its representative point is on Lan Kwai Fong."
       }
     },
     {
@@ -152,7 +152,7 @@
         "code": "saanseoi-hk-thirty-houses",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-requested Thirty Houses level-6 microhood addition; its representative point is within the historic community and geometry awaits local review."
+        "purpose": "User-requested Thirty Houses level-6 microhood addition; its representative point is within the historic community."
       }
     },
     {
@@ -171,7 +171,7 @@
         "code": "saanseoi-hk-tai-tam-gap",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-requested Tai Tam Gap level-5 neighbourhood addition; its representative point is the mapped mountain pass and its boundary awaits local review."
+        "purpose": "User-requested Tai Tam Gap level-5 neighbourhood addition; its representative point is the mapped mountain pass."
       }
     },
     {
@@ -190,7 +190,7 @@
         "code": "saanseoi-hk-tai-tam-tau",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-requested Tai Tam Tau level-6 microhood addition beside Bluff Head; its representative point is the mapped cape and its boundary awaits local review."
+        "purpose": "User-requested Tai Tam Tau level-6 microhood addition beside Bluff Head; its representative point is the mapped cape."
       }
     },
     {
@@ -209,7 +209,7 @@
         "code": "saanseoi-hk-cape-collinson",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-requested Cape Collinson level-5 neighbourhood addition; its representative point is the mapped locality and its boundary awaits local review."
+        "purpose": "User-requested Cape Collinson level-5 neighbourhood addition; its representative point is the mapped locality."
       }
     },
     {
@@ -228,7 +228,7 @@
         "code": "saanseoi-hk-hok-tsui-lower-village",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-requested Hok Tsui Lower Village level-6 hamlet addition; its representative point is the mapped locality and its boundary awaits local review."
+        "purpose": "User-requested Hok Tsui Lower Village level-6 hamlet addition; its representative point is the mapped locality."
       }
     },
     {
@@ -247,7 +247,7 @@
         "code": "saanseoi-hk-sandy-bay-gap",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-requested Sandy Bay Gap level-6 microhood addition; its representative point is the mapped mountain pass and its boundary awaits local review."
+        "purpose": "User-requested Sandy Bay Gap level-6 microhood addition; its representative point is the mapped mountain pass."
       }
     },
     {
@@ -266,7 +266,7 @@
         "code": "saanseoi-hk-kai-tak-sports-park",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Kai Tak Sports Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+        "purpose": "User-curated Kai Tak Sports Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature."
       }
     },
     {
@@ -285,7 +285,7 @@
         "code": "saanseoi-hk-kai-tak-metro-park",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Kai Tak Metro Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+        "purpose": "User-curated Kai Tak Metro Park level-6 microhood addition under Kai Tak; its representative point is the mapped feature."
       }
     },
     {
@@ -304,7 +304,7 @@
         "code": "saanseoi-hk-kai-tak-cruise-terminal",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Kai Tak Cruise Terminal level-6 microhood addition under Kai Tak; its representative point is the mapped feature and its boundary awaits local review."
+        "purpose": "User-curated Kai Tak Cruise Terminal level-6 microhood addition under Kai Tak; its representative point is the mapped feature."
       }
     },
     {
@@ -323,7 +323,7 @@
         "code": "saanseoi-hk-sheung-yuen-leng",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Sheung Yuen Leng level-5 neighbourhood addition; its representative point is the mapped locality and its boundary awaits local review."
+        "purpose": "User-curated Sheung Yuen Leng level-5 neighbourhood addition; its representative point is the mapped locality."
       }
     },
     {
@@ -342,7 +342,7 @@
         "code": "saanseoi-hk-ha-yuen-leng",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Ha Yuen Leng level-6 microhood addition; its representative point is the mapped locality and its boundary awaits local review."
+        "purpose": "User-curated Ha Yuen Leng level-6 microhood addition; its representative point is the mapped locality."
       }
     },
     {
@@ -361,7 +361,7 @@
         "code": "saanseoi-hk-cha-liu-au",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Cha Liu Au level-4 macrohood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
+        "purpose": "User-curated Cha Liu Au level-4 macrohood addition under Kwun Tong District; its representative point is the mapped locality."
       }
     },
     {
@@ -380,20 +380,8 @@
         "code": "saanseoi-hk-ping-shan",
         "version": 1,
         "reviewStatus": "reviewed",
-        "purpose": "User-curated Ping Shan level-5 neighbourhood addition under Kwun Tong District; its representative point is the mapped locality and its boundary awaits local review."
+        "purpose": "User-curated Ping Shan level-5 neighbourhood addition under Kwun Tong District; its representative point is the mapped locality."
       }
-    },
-    {
-      "id": "15062812-a4d2-4d4a-b589-2f50bc31943f",
-      "class": "microhood",
-      "names": {
-        "en": "West Kowloon Four Little Dragons",
-        "zh-hant": "四小龍"
-      },
-      "point": [
-        114.150384,
-        22.334585
-      ]
     },
     {
       "id": "ss-7d7383e7-286b-52f2-b6ef-9859f3b56f56",
@@ -513,6 +501,166 @@
         114.1683894,
         22.2765703
       ]
+    }
+  ],
+  "releaseEntries": [
+    {
+      "divisionId": "acfc9f3b-0b28-4934-bf06-e77b83a6bdd3",
+      "appliesFrom": "2026-10-01.0",
+      "reason": "Confirmed well-defined peninsula.",
+      "review": {
+        "kind": "curation",
+        "guard": {
+          "id": "division-source-updates",
+          "summary": "Removed divisions and changed accepted names require an exact reviewed decision.",
+          "consequence": "block-ingestion"
+        },
+        "fingerprint": "a28bc1cadeddd79176662176147ee42d5f94a3ac65832c3a3b4352ee053e64d4",
+        "field": "$record",
+        "before": {
+          "category": "hood",
+          "class": "macrohood",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "sar",
+                  "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+                  "name": "Hong Kong"
+                },
+                {
+                  "class": "area",
+                  "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+                  "name": "New Territories"
+                },
+                {
+                  "class": "district",
+                  "id": "f20e26ca-8ab6-422d-bf31-d4648b931b8c",
+                  "name": "Tai Po District"
+                }
+              ]
+            ],
+            "full": [
+              [
+                {
+                  "class": "sar",
+                  "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+                  "name": "Hong Kong"
+                },
+                {
+                  "class": "area",
+                  "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+                  "name": "New Territories"
+                },
+                {
+                  "class": "district",
+                  "id": "f20e26ca-8ab6-422d-bf31-d4648b931b8c",
+                  "name": "Tai Po District"
+                }
+              ]
+            ],
+            "landform": [],
+            "locality": []
+          },
+          "id": "acfc9f3b-0b28-4934-bf06-e77b83a6bdd3",
+          "level": 4,
+          "names": {
+            "en": "Wan Tsai",
+            "zh-hans": "湾仔",
+            "zh-hant": "灣仔"
+          },
+          "point": [
+            114.3415425,
+            22.4722492
+          ]
+        },
+        "proposed": null
+      }
+    },
+    {
+      "divisionId": "037738a8-a0cd-44a1-b62c-6b41c14ffc73",
+      "appliesFrom": "2026-10-01.0",
+      "reason": "User confirmed retention of Hung Lung Hang and its reclassification as a level-4 rural_area locality.",
+      "review": {
+        "kind": "curation",
+        "guard": {
+          "id": "division-source-updates",
+          "summary": "Removed divisions and changed accepted names require an exact reviewed decision.",
+          "consequence": "block-ingestion"
+        },
+        "fingerprint": "6dda99d75502c2a9fb18fdd8f3b3e9e8036d6c3dfbb57a105b8aa8dd7226f792",
+        "field": "$record",
+        "before": {
+          "category": "locality",
+          "class": "rural_area",
+          "hierarchies": {
+            "administrative": [
+              [
+                {
+                  "class": "sar",
+                  "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+                  "name": "Hong Kong"
+                },
+                {
+                  "class": "area",
+                  "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+                  "name": "New Territories"
+                },
+                {
+                  "class": "district",
+                  "id": "e0c8872f-c29e-4ea3-8efd-88afccef2b08",
+                  "name": "North District"
+                }
+              ]
+            ],
+            "full": [
+              [
+                {
+                  "class": "sar",
+                  "id": "b4f09a9f-4cba-4a7c-bf58-2e63bc2e913d",
+                  "name": "Hong Kong"
+                },
+                {
+                  "class": "area",
+                  "id": "ss-780c42b7-213b-5076-9d36-6ae0024e3bd3",
+                  "name": "New Territories"
+                },
+                {
+                  "class": "district",
+                  "id": "e0c8872f-c29e-4ea3-8efd-88afccef2b08",
+                  "name": "North District"
+                },
+                {
+                  "class": "town",
+                  "id": "4521cf02-f22f-4bb0-932f-a03b03ad567f",
+                  "name": "Sheung Shui"
+                }
+              ]
+            ],
+            "landform": [],
+            "locality": [
+              [
+                {
+                  "class": "town",
+                  "id": "4521cf02-f22f-4bb0-932f-a03b03ad567f",
+                  "name": "Sheung Shui"
+                }
+              ]
+            ]
+          },
+          "id": "037738a8-a0cd-44a1-b62c-6b41c14ffc73",
+          "level": 4,
+          "names": {
+            "en": "Hung Lung Hang",
+            "zh-hant": "恐龍坑"
+          },
+          "point": [
+            114.1406108,
+            22.5276144
+          ]
+        },
+        "proposed": null
+      }
     }
   ]
 }
