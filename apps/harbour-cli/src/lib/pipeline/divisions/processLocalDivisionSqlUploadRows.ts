@@ -1,12 +1,10 @@
 import { divisionLocaleContent } from '@repo/core/pipeline/db/divisionHistory'
-import {
-  sourceResolutionSql,
-  resolvedEntities,
-} from '@repo/core/pipeline/db/sourceResolutions'
+import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
 import {
   overtureSourcePayload,
   saanseoiSourcePayload,
 } from '@repo/core/pipeline/services/sources/sourcePayload'
+import { divisionSourceResolutions } from '@repo/core/pipeline/services/divisions/divisionContainmentEvidence'
 import type { DatasetProcessingMessage } from '@repo/core'
 import { splitLargeInsertLiterals } from '../local/largeSqlLiterals.ts'
 import { buildSourceReleaseId } from '@repo/core/pipeline/db/source'
@@ -161,7 +159,10 @@ export async function buildDivisionHistorySqlFile(
             sourceReleaseId: message.resourceReleaseId ?? message.datasetId,
             sourceRecordId: record.id,
             sourceVersionHash: record.sourcePayloadHash,
-            resolutions: { entities: resolvedEntities({ division: record.id }) },
+            resolutions: divisionSourceResolutions(
+              record.id,
+              message.source === 'saanseoi' ? record.raw : undefined,
+            ),
           }),
         )
       if (record.sourceResolution)

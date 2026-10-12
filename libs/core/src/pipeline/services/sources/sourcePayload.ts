@@ -1,4 +1,5 @@
 import { curatedRecordSources } from './curatedRecordSources'
+import { divisionHierarchyContent } from '../divisions/divisionContainmentEvidence'
 import { assertInternalSourceReferences } from './internalSourceReferences'
 import { divisionIdentifierProperties } from './divisionIdentifiers'
 import { camelCaseJson } from '../../../jsonKeys'
@@ -132,6 +133,15 @@ function saanseoiSourcePayloadInternal(row: Record<string, unknown>) {
     properties: camelCaseJson(
       divisionIdentifierProperties({
         ...properties,
+        ...(properties.hierarchies
+          ? {
+              hierarchies: divisionHierarchyContent(
+                typeof properties.hierarchies === 'string'
+                  ? JSON.parse(properties.hierarchies)
+                  : properties.hierarchies,
+              ),
+            }
+          : {}),
         sources: curatedRecordSources(properties.sources, String(row.id)),
       }),
     ),

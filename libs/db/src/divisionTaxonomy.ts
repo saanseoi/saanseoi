@@ -33,7 +33,7 @@ export type DivisionHierarchyEntry = {
   class: string
   /** This ancestor covers the owning division's entire area, including boundaries. */
   full_containment?: boolean | null
-  /** Geometry identities for this assertion; null/absent evidence cannot skip checks. */
+  /** Editor/archive evidence; ingestion moves this out of canonical hierarchy content. */
   containment_geometry?: { division: string; ancestor: string }
 }
 

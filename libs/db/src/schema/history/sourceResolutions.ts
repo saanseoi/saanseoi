@@ -4,6 +4,11 @@ import { jsonText } from '../shared'
 /** Interpretation of exact source evidence within a snapshot or statistics release. */
 export type SourceResolutions = {
   entities: Record<string, string[]>
+  /** Geometry-scoped shortcut evidence, separate from Division content versions. */
+  divisionContainment?: Record<
+    string,
+    Record<string, { division: string; ancestor: string }>
+  >
   decisions?: Array<Record<string, unknown>>
   methods?: Record<string, string>
 }

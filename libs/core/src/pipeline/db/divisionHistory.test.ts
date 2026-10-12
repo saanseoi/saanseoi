@@ -32,6 +32,8 @@ import {
   type DivisionHistoryShard,
 } from './divisionHistory'
 import { recordSourceResolutions } from './sourceResolutions'
+import { divisionSourceResolutions } from '../services/divisions/divisionContainmentEvidence'
+import { normaliseCuratedDivision } from '../services/divisions/curatedDivision'
 
 const timestamp = '2025-01-01T00:00:00Z'
 const updated = '2026-01-01T00:00:00Z'
@@ -588,4 +590,82 @@ test('locale content identity includes name provenance independently of base fie
       updatedAt: updated,
     }),
   )
+})
+
+test('geometry evidence changes write only snapshot interpretation, without Division versions or current-row churn', async () => {
+  const data = fixture()
+  const raw = (ancestor: string) => ({
+    id: 'a',
+    record: {
+      id: 'a',
+      class: 'village',
+      names: { en: { name: 'Village' } },
+      hierarchies: {
+        full: [
+          [
+            {
+              id: 'parent',
+              class: 'district',
+              name: 'Parent',
+              fullContainment: true,
+              containmentGeometry: { division: 'sha256:child', ancestor },
+            },
+          ],
+        ],
+      },
+    },
+  })
+  const record = (ancestor: string) => {
+    const value = normaliseCuratedDivision(raw(ancestor))
+    return { base: value.base, i18n: value.i18n }
+  }
+  const evidence = (snapshotId: string, ancestor: string): NewSourceResolution => ({
+    ...assertion(snapshotId),
+    sourceRecordId: 'a',
+    resolutions: divisionSourceResolutions('a', raw(ancestor)),
+  })
+  try {
+    await data.write({
+      plan: [],
+      snapshotId: 'first',
+      binding: 'old',
+      rows: [record('sha256:old')],
+      assertions: [evidence('first', 'sha256:old')],
+    })
+    const first = [step('first', null, 'old')]
+    expect(
+      await data.write({
+        plan: first,
+        snapshotId: 'next',
+        binding: 'new',
+        rows: [record('sha256:new')],
+        assertions: [evidence('next', 'sha256:new')],
+      }),
+    ).toEqual({ current: 0, old: 0, new: 1 })
+    expect(data.client('new').query('SELECT * FROM divisions').all()).toHaveLength(0)
+    expect(
+      data.client('new').query('SELECT * FROM snapshotVersionChanges').all(),
+    ).toHaveLength(0)
+    const state = await data.parent([...first, step('next', 'first', 'new')])
+    expect(
+      state.sourceResolutions.get('a')?.resolutions.divisionContainment?.a?.parent
+        ?.ancestor,
+    ).toBe('sha256:new')
+    expect(
+      JSON.stringify(
+        data.client('old').query('SELECT hierarchies FROM divisions').get(),
+      ),
+    ).not.toContain('containment_geometry')
+    expect(
+      await data.write({
+        plan: [...first, step('next', 'first', 'new')],
+        snapshotId: 'same',
+        binding: 'new',
+        rows: [record('sha256:new')],
+        assertions: [evidence('same', 'sha256:new')],
+      }),
+    ).toEqual({ current: 0, old: 0, new: 0 })
+  } finally {
+    data.close()
+  }
 })

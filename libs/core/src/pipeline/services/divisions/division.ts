@@ -1,4 +1,8 @@
 import { canonicalDivisionPoint, createDivisionPointGuard } from './divisionPoint'
+import {
+  divisionHierarchyContent,
+  divisionSourceResolutions,
+} from './divisionContainmentEvidence'
 import { buildSourceChurnCounts, type SourceChurnRecord } from '../sources/sourceChurn'
 import { buildSaanseoiDivisionSourceStats } from '../sources/saanseoiDivisionSourceStats'
 import { applyDivisionNamePatch } from './divisionNamePatch'
@@ -30,7 +34,7 @@ import {
 } from '../publication/sql'
 import { geographicDivisionClassification, emptyDivisionHierarchies } from '@repo/db'
 import { materialiseDivisionHierarchies } from './divisionHierarchies'
-import { recordSourceResolutions, resolvedEntities } from '../../db/sourceResolutions'
+import { recordSourceResolutions } from '../../db/sourceResolutions'
 import { landsdPlaceNameResolutions } from '../../db/landsdPlaceNameSources'
 import type { NewSourceResolution } from '@repo/db/historySchema'
 import { overtureSourcePayload } from '../sources/sourcePayload'
@@ -663,7 +667,10 @@ export async function processDivisionDataset(
           sourceReleaseId: resourceReleaseId,
           sourceRecordId: normalised.base.id,
           sourceVersionHash: sourcePayloadHash,
-          resolutions: { entities: resolvedEntities({ division: normalised.base.id }) },
+          resolutions: divisionSourceResolutions(
+            normalised.base.id,
+            message.source === 'saanseoi' ? row : undefined,
+          ),
         })
         const currentSource = currentSourceRows?.get(normalised.base.id) ?? null
         sourceChanged = currentSource?.sourcePayloadHash !== sourcePayloadHash
@@ -1491,6 +1498,10 @@ export function normaliseDivisionRow(
 ) {
   try {
     const normalised = divisionNormalisationRule.execute({ row, options })
+    if (!options.editorial)
+      normalised.base.hierarchies = divisionHierarchyContent(
+        normalised.base.hierarchies,
+      )
     const sourceGeometry = normalised.base.geometry as GeoJsonGeometry | null
     const geometry = canonicalDivisionPoint(sourceGeometry, {
       id: normalised.base.id,
@@ -1659,7 +1670,7 @@ export function buildDivisionBaseHashInput(
     cartography: base.cartography ?? null,
     divisionCode: base.divisionCode ?? null,
     geometry: base.geometry ?? null,
-    hierarchies: base.hierarchies,
+    hierarchies: divisionHierarchyContent(base.hierarchies),
     id: base.id,
     identifiers: base.identifiers ?? null,
     level: base.level ?? null,

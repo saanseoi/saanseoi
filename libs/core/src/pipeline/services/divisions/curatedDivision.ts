@@ -1,4 +1,5 @@
 import { curatedRecordSources } from '../sources/curatedRecordSources'
+import { divisionHierarchyContent } from './divisionContainmentEvidence'
 import { assertInternalSourceReferences } from '../sources/internalSourceReferences'
 import { geographicDivisionClassification } from '@repo/db'
 import type { GeoJsonGeometry } from '../../geojson'
@@ -28,7 +29,7 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
   >
   if (!localisations || Array.isArray(localisations))
     throw new Error('Curated names must be keyed by locale.')
-  const hierarchies = structuredClone(
+  const hierarchies = divisionHierarchyContent(
     json(base.hierarchies),
   ) as NewDivisionRow['hierarchies']
   if (!hierarchies || !Array.isArray(hierarchies.full))
@@ -40,10 +41,6 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
         if ('fullContainment' in source) {
           source.full_containment = source.fullContainment
           delete source.fullContainment
-        }
-        if ('containmentGeometry' in source) {
-          source.containment_geometry = source.containmentGeometry
-          delete source.containmentGeometry
         }
       }
     }

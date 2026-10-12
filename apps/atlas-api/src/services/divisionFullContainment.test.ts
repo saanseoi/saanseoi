@@ -4,6 +4,11 @@ import { division, area, entry } from './geocoding.fixtures'
 import { createFullContainmentAnnotator } from '@repo/core/pipeline/services/divisions/fullContainment.ts'
 import { containsReviewPoint } from '@repo/core/pipeline/services/divisions/geographicReview.ts'
 import type { Polygon, MultiPolygon } from 'geojson'
+import {
+  divisionHierarchyContent,
+  divisionSourceResolutions,
+} from '@repo/core/pipeline/services/divisions/divisionContainmentEvidence.ts'
+import type { DivisionContainmentEvidence } from './divisionContainmentEvidence'
 
 function fixture() {
   const areas = [
@@ -33,7 +38,16 @@ function fixture() {
       record.division.hierarchies!,
     )
   const calls: string[] = []
+  const containmentEvidence: DivisionContainmentEvidence = new Map()
+  for (const record of records) {
+    const id = record.division.id
+    const resolution = divisionSourceResolutions(id, { record: record.division })
+    const evidence = resolution.divisionContainment?.[id]
+    if (evidence) containmentEvidence.set(id, evidence)
+    record.division.hierarchies = divisionHierarchyContent(record.division.hierarchies)
+  }
   const options = {
+    containmentEvidence,
     containsPoint: ((point, geometry) => {
       calls.push(areas.find(a => a.geometry === geometry)!.divisionId)
       return containsReviewPoint(point, geometry)
@@ -86,9 +100,7 @@ test.each(['root', 'village'])(
 
 test('a bare true flag, absent polygon or named identity supplies no shortcut', () => {
   const { areas, records, calls, options } = fixture()
-  for (const paths of Object.values(records[3]!.division.hierarchies!))
-    for (const path of paths)
-      for (const ancestor of path) delete ancestor.containment_geometry
+  options.containmentEvidence.clear()
   createDivisionResolver(records, areas, options).resolve([2, 2])
   expect(calls).toContain('root')
   expect(calls).toContain('west')

@@ -1,4 +1,5 @@
 import { camelCaseJson } from '@repo/core/jsonKeys'
+import { divisionHierarchyContent } from '@repo/core/pipeline/services/divisions/divisionContainmentEvidence'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { join } from 'node:path'
@@ -36,7 +37,22 @@ test('curated division SOURCE preserves names and source fields through replay, 
     id: 'division',
     class: 'island_group',
     names: { en: { name: 'Original' }, 'zh-hant': { name: '群島' } },
-    hierarchies: { full: [] },
+    hierarchies: {
+      full: [
+        [
+          {
+            id: 'parent',
+            name: 'Parent',
+            class: 'district',
+            full_containment: true,
+            containment_geometry: {
+              division: 'sha256:child',
+              ancestor: 'sha256:september',
+            },
+          },
+        ],
+      ],
+    },
     geometry: { type: 'Point', coordinates: [114, 22] },
     sources: {
       hkgovLandsd: [{ dataset: 'ds-hk-hkgov-landsd-division', recordId: '3180' }],
@@ -94,13 +110,36 @@ test('curated division SOURCE preserves names and source fields through replay, 
     await run('2026-09-01.0', [original])
     const retained = db.query('SELECT * FROM ssDivision').get() as any
     const { id, geometry, ...properties } = original
-    expect(JSON.parse(retained.properties)).toEqual(camelCaseJson(properties))
+    expect(JSON.parse(retained.properties)).toEqual(
+      camelCaseJson({
+        ...properties,
+        hierarchies: divisionHierarchyContent(properties.hierarchies),
+        sources: [
+          {
+            dataset: 'ds-hk-hkgov-landsd-division',
+            publisherCode: 'hkgovLandsd',
+            recordId: '3180',
+          },
+        ],
+      }),
+    )
     expect(JSON.parse(retained.sourceGeometry)).toEqual(geometry)
     expect(retained.resourceReleaseId).toBe('release-2026-09-01.0')
     await run('2026-09-01.0', [original])
-    await run('2026-10-01.0', [original])
+    const october = structuredClone(original)
+    october.hierarchies.full[0]![0]!.containment_geometry.ancestor = 'sha256:october'
+    await run('2026-10-01.0', [october])
     expect(db.query('SELECT * FROM ssDivision').all()).toHaveLength(1)
     expect(db.query('SELECT * FROM ssDivision').get()).toEqual(retained)
+    const proof = db
+      .query(
+        "SELECT resolutions, sourceVersionHash FROM sourceResolutions WHERE snapshotId='snapshot-2026-10-01.0'",
+      )
+      .get() as any
+    expect(proof.sourceVersionHash).toBe(retained.versionHash)
+    expect(
+      JSON.parse(proof.resolutions).divisionContainment.division.parent.ancestor,
+    ).toBe('sha256:october')
     await run('2026-11-01.0', [
       { ...original, names: { ...original.names, en: { name: 'Changed' } } },
     ])

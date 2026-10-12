@@ -159,11 +159,17 @@ label point, bounding box or vertex samples. Polygon coverage uses a topological
 Internal `containment_geometry` evidence records SHA-256 identities for the division and
 ancestor geometries. Fingerprints retain exact coordinates and are independent of
 area-row order and Polygon/MultiPolygon packaging. Assembly recomputes the flags and
-fingerprints after identity remapping and all geometry replacements.
+fingerprints after identity remapping and all geometry replacements. The reviewed
+archive carries this evidence; ingestion stores it separately in
+`sourceResolutions.resolutions.divisionContainment`, keyed by division and ancestor ID.
+Canonical hierarchies and retained SaanSeoi source-record properties contain the
+containment result but no geometry fingerprints. An evidence-only update writes a
+snapshot interpretation without creating a Division or source-content version.
 
 The geocoder checks children before ancestors. After a spatial child match, it can
 inherit an ancestor's membership when `full_containment` is `true` and both fingerprints
-match the loaded areas. It validates fingerprints lazily within the request-owned index.
+match the loaded areas. It replays snapshot-scoped evidence independently of canonical
+record versions and validates fingerprints lazily within the request-owned index.
 Missing evidence, changed geometry and partial containment use ordinary point checks; a
 name match alone cannot trigger inheritance. Multiple surviving paths remain ambiguous.
 Geometry fingerprints remain internal to hierarchy resolution and are omitted from
@@ -173,11 +179,9 @@ expose `fullContainment` for the canonical geometry of the selected release; tra
 or alternative geometry does not inherit this assertion. The geocoding response shape
 does not include containment evidence.
 
-A local comparison on the retained 2,088-division, 488-area assembly reduced polygon
-checks from approximately 8.3 to 5 per sampled lookup and preserved results across 713
-grid points. Repeated lookups were modestly faster, but constructing a fresh resolver
-and validating fingerprints added approximately 0.7 ms to the sampled median. This
-reduces polygon work; it is not evidence of an end-to-end HTTP latency improvement.
+The shortcut reduces polygon work; resolving snapshot evidence and constructing the
+request-owned index also have a cost. Polygon-check counts alone do not establish an
+end-to-end HTTP latency improvement.
 
 ## Canonical assembly
 

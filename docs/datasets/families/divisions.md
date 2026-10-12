@@ -187,8 +187,11 @@ Canonical Division and included area/boundary resources expose `sources` only wi
 
 Record-content hashes exclude observation timestamps and publisher version labels,
 including nested attribution metadata. Effective dates, statistical periods and content
-dependency hashes remain significant. Retained source payloads preserve the original
-metadata. File checksums and processing-cache identities retain their complete inputs.
+dependency hashes remain significant. Containment optimisation fingerprints belong to
+snapshot-scoped source resolutions, not canonical or retained source-record content.
+Evidence-only updates leave Division versions and change counts unchanged. Retained
+source payloads preserve observation metadata. File checksums and processing-cache
+identities retain their complete inputs.
 
 The [versioned geocoding contract](../../geocoding.md) uses published SaanSeoi area
 polygons, with Overture fallback, for containment and preserves separate administrative
@@ -1340,9 +1343,12 @@ cohort constraints, provenance, coverage limitations and geocoding examples.
 Curated hierarchy ancestor entries include a geometry-derived `full_containment` flag
 (`true`, `false`, or `null` for unknown). The editor generates whole-area coverage
 evidence and assembly recomputes it against the final polygons. The geocoder can skip an
-ancestor point check after a child spatial match only when the stored child and ancestor
-geometry fingerprints match the loaded areas. Partial or unknown containment retains
-point checks and ambiguous branches. See
+ancestor point check after a child spatial match only when separately replayed child and
+ancestor geometry fingerprints match the loaded areas. The fingerprints live in
+`sourceResolutions.resolutions.divisionContainment`, keyed by division and ancestor ID;
+sparse snapshot replay selects the evidence independently of Division content versions.
+Canonical hierarchies retain `full_containment` but omit the fingerprints. Partial or
+unknown containment retains point checks and ambiguous branches. See
 [full ancestor containment](../sources/saanseoi/divisionArea.md#full-ancestor-containment).
 
 The drawing fixture retains ineligible drawings as `withheld` review data with their

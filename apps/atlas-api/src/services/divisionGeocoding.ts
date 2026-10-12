@@ -2,6 +2,7 @@ import type { Polygon, MultiPolygon } from 'geojson'
 import { createHash } from 'node:crypto'
 import { containmentGeometryKey } from '@repo/core/pipeline/services/divisions/containmentGeometry.ts'
 import type { DivisionRecord, DivisionAreaRecord } from '../db/divisions'
+import type { DivisionContainmentEvidence } from './divisionContainmentEvidence'
 import {
   geographicDivisionClassification,
   type DivisionHierarchies,
@@ -73,7 +74,10 @@ function normaliseHierarchies(value: unknown): DivisionHierarchies {
 export function createDivisionResolver(
   records: DivisionRecord[],
   areas: DivisionAreaRecord[],
-  options: { containsPoint?: typeof containsReviewPoint } = {},
+  options: {
+    containsPoint?: typeof containsReviewPoint
+    containmentEvidence?: DivisionContainmentEvidence
+  } = {},
 ) {
   const byId = new Map(records.map(record => [record.division.id, record]))
   const hierarchiesById = new Map(
@@ -120,16 +124,17 @@ export function createDivisionResolver(
     string,
     Array<{
       id: string
-      evidence: NonNullable<DivisionHierarchyEntry['containment_geometry']>
+      evidence: { division: string; ancestor: string }
     }>
   >()
   for (const [id, hierarchy] of hierarchiesById) {
     if (!covered.has(id)) continue
     const seen = new Set<string>()
     for (const entry of Object.values(hierarchy).flat(2)) {
+      const evidence = options.containmentEvidence?.get(id)?.[entry.id]
       if (
         entry.full_containment !== true ||
-        !entry.containment_geometry ||
+        !evidence ||
         entry.id === id ||
         seen.has(entry.id) ||
         !covered.has(id) ||
@@ -139,7 +144,7 @@ export function createDivisionResolver(
       seen.add(entry.id)
       containedChildren.set(entry.id, [
         ...(containedChildren.get(entry.id) ?? []),
-        { id, evidence: entry.containment_geometry },
+        { id, evidence },
       ])
     }
   }

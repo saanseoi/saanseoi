@@ -1,4 +1,8 @@
 import { selectApiInventory } from '@repo/core/db/apiInventory'
+import {
+  loadDivisionContainmentEvidence,
+  type DivisionContainmentEvidence,
+} from './divisionContainmentEvidence'
 import { listDivisionAreasCurrentByDivisionIds } from '../db/divisions'
 import { listReplayedDivisionAreasByDivisionIds } from '../db/divisionGeometryReplay'
 import { and, desc, eq, sql, metaSchema } from '@repo/db'
@@ -140,7 +144,12 @@ function snapshotIds(release: GeocodingRelease, family: 'address' | 'division') 
 export async function loadGeocodingDivisions(
   db: GeocodingDatabases,
   release: GeocodingRelease,
-) {
+  options: { includeContainmentEvidence?: boolean } = {},
+): Promise<{
+  records: Awaited<ReturnType<typeof listDivisionRecordsCurrent>>
+  areas: Awaited<ReturnType<typeof listDivisionAreasCurrentByDivisionIds>>
+  containmentEvidence?: DivisionContainmentEvidence
+}> {
   const ids = snapshotIds(release, 'division')
   if (!ids.length)
     throw new PublicationReadUnavailableError('Division snapshot is unavailable.')
@@ -237,7 +246,25 @@ export async function loadGeocodingDivisions(
     if (!result) throw new PublicationReadUnavailableError('Area publication changed.')
     areas = result
   }
-  return { records: unique, areas }
+  const containmentEvidence: DivisionContainmentEvidence = new Map()
+  const owners = new Map(
+    unique.map(record => [record.division.id, record.division.snapshotId]),
+  )
+  const shards = new Map(
+    Object.entries(db.historyDbsByBinding).map(([bindingName, history]) => [
+      bindingName,
+      { bindingName, db: history as never },
+    ]),
+  )
+  for (const id of options.includeContainmentEvidence ? ids : []) {
+    const evidence = await loadDivisionContainmentEvidence(
+      await replayPlan(db, id),
+      shards,
+    )
+    for (const [divisionId, proof] of evidence)
+      if (owners.get(divisionId) === id) containmentEvidence.set(divisionId, proof)
+  }
+  return { records: unique, areas, containmentEvidence }
 }
 
 export async function loadGeocodingAddresses(
