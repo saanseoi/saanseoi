@@ -8,8 +8,6 @@ test('every source validity ledger distinguishes recurring periods or explicit r
   for (const table of Object.values(source)) {
     if (!is(table, SQLiteTable)) continue
     const config = getTableConfig(table)
-    // C&SD uses explicit release memberships and separately materialised transforms.
-    if (config.name.startsWith('hkgovCenstatd')) continue
     if (!config.columns.some(column => column.name === 'validFromRelease')) continue
     const key = config.primaryKeys.flatMap(key =>
       key.columns.map(column => column.name),

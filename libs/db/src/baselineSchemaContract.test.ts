@@ -19,7 +19,16 @@ for (const [family, schema] of Object.entries({ meta, current, history, source }
         .map(entry => entry.name)
         .sort()
       expect(migrations.length).toBeGreaterThan(0)
+      let previousSnapshotId: string | undefined
       for (const migration of migrations) {
+        const snapshot = JSON.parse(
+          readFileSync(resolve(root, migration, 'snapshot.json'), 'utf8'),
+        ) as { id: string; prevIds: string[] }
+        if (previousSnapshotId)
+          expect(snapshot.prevIds, `${family}/${migration}`).toEqual([
+            previousSnapshotId,
+          ])
+        previousSnapshotId = snapshot.id
         db.exec(readFileSync(resolve(root, migration, 'migration.sql'), 'utf8'))
       }
       const tables = Object.values(schema).filter(table => is(table, SQLiteTable))

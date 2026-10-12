@@ -9,7 +9,7 @@ import {
   censtatdDerivativeRow,
 } from '../../core/src/pipeline/services/sources/censtatdGeometry'
 
-export const migrationName = '20261012033249_dry_la_nuit/migration.sql'
+export const migrationName = '20261012040635_lying_colonel_america/migration.sql'
 const migrationSql = readFileSync(
   resolve(import.meta.dir, '../migrations/source', migrationName),
   'utf8',
