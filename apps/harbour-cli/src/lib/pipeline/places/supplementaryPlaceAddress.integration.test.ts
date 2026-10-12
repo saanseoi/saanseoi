@@ -434,6 +434,13 @@ test('supplementary editions reuse cross-year components, replay immutable prove
         .get(`source-${resourceReleaseId}`),
     ).toEqual({ status: 'processing' })
     expect(first.addresses).toHaveLength(1)
+    expect(first.addresses[0]?.current.sources).toEqual([
+      {
+        publisherCode: 'overture',
+        dataset: 'ds-hk-overture-place',
+        recordId: 'citygate-place',
+      },
+    ])
     expect(first.addresses[0]?.canonical.granularity).toBe('unknown')
     expect(first.addresses[0]?.canonical).not.toHaveProperty('granularityProvenance')
     expect(JSON.parse(await readFile(curationPath, 'utf8'))).not.toHaveProperty(
@@ -454,7 +461,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       history
         .query('SELECT count(*) AS n FROM snapshotVersionChanges WHERE snapshotId = ?')
         .get(first.snapshotId),
-    ).toEqual({ n: 3 })
+    ).toEqual({ n: 2 })
     expect(current.query('SELECT count(*) AS n FROM places').get()).toEqual({ n: 0 })
     const retry = await prepareSupplementaryAddresses(input)
     expect(auditHashes).toHaveLength(2)
@@ -468,16 +475,14 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     expect((await readdir(root)).filter(name => name.endsWith('.tmp'))).toEqual([])
     expect(history.query('SELECT count(*) AS n FROM address2d').get()).toEqual({ n: 1 })
     const immutableLedgerText = await readFile(entryLedgerPath, 'utf8')
-    const changedEvidenceLedger = JSON.parse(immutableLedgerText)
-    changedEvidenceLedger.entries[0].score += 1
-    await writeFile(entryLedgerPath, JSON.stringify(changedEvidenceLedger))
+    const changedLedger = JSON.parse(immutableLedgerText)
+    changedLedger.entries[0].values[0].formattedAddress =
+      changedLedger.entries[0].values[0].formattedAddress.toLowerCase()
+    await writeFile(entryLedgerPath, JSON.stringify(changedLedger))
     await expect(prepareSupplementaryAddresses(input)).rejects.toThrow(
       'Published supplementary snapshot differs from curation',
     )
     await writeFile(entryLedgerPath, immutableLedgerText)
-    expect(history.query('SELECT count(*) AS n FROM address2dEvidence').get()).toEqual({
-      n: 1,
-    })
     // The parent Places workflow normally finalises this retained receipt after
     // both outputs succeed. This focused test invokes only the Address stage.
     await completeSqlDeliveryRelease(root, resourceReleaseId)
@@ -584,7 +589,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     expect(unchangedReplay.get(generatedAddressId)?.base.sources).toEqual(
       unchanged.addresses[0]?.current.sources,
     )
-    expect(unchangedReplay.get(generatedAddressId)?.base.sources).not.toEqual(
+    expect(unchangedReplay.get(generatedAddressId)?.base.sources).toEqual(
       firstReplay.get(generatedAddressId)?.base.sources,
     )
     const unchangedPlan = await resolveSnapshotReplayPlan(db, unchanged.snapshotId)
@@ -593,7 +598,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     const unchangedState = await resolveSnapshotVersionState(
       unchangedPlan,
       replayShards,
-      ['address2d', 'address2dI18n', 'address2dEvidence'],
+      ['address2d', 'address2dI18n'],
     )
     expect(
       [...unchangedState.values()].map(row => [row.recordType, row.shard.bindingName]),
@@ -601,7 +606,6 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       expect.arrayContaining([
         ['address2d', 'DB_HISTORY_HK_2025'],
         ['address2dI18n', 'DB_HISTORY_HK_2025'],
-        ['address2dEvidence', 'DB_HISTORY_HK_2026'],
       ]),
     )
     insertFixtureRelease(meta, {
@@ -639,9 +643,6 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     const sourceOnly = await nextEdition('2026-01-28.0', [place], officialNext.id)
     assertComponentsRetained()
     expect(
-      sourceOnly.addresses[0]?.evidence.sources[0]?.selectedAlsBase?.snapshotId,
-    ).toBe(officialNext.id)
-    expect(
       (await replay(sourceOnly.snapshotId)).get(generatedAddressId)?.base.sources,
     ).toEqual(sourceOnly.addresses[0]?.current.sources)
     expect(await replay(first.snapshotId)).toEqual(firstReplay)
@@ -654,10 +655,21 @@ test('supplementary editions reuse cross-year components, replay immutable prove
       raw: { ...place.raw, id: 'citygate-place-2' },
     }
     const supported = await nextEdition('2026-02-18.0', [place, anotherPlace])
-    assertComponentsRetained()
+    expect(
+      (
+        history
+          .query('SELECT count(*) AS n FROM address2d WHERE id=? AND isCurrent=1')
+          .get(generatedAddressId) as { n: number }
+      ).n +
+        (
+          historyNext
+            .query('SELECT count(*) AS n FROM address2d WHERE id=? AND isCurrent=1')
+            .get(generatedAddressId) as { n: number }
+        ).n,
+    ).toBe(1)
     expect(supported.addresses).toHaveLength(1)
     expect(
-      supported.addresses[0]?.evidence.sources.map(source => source.sourceRecordId),
+      supported.addresses[0]?.current.sources.map(source => source.recordId),
     ).toEqual(['citygate-place', 'citygate-place-2'])
     const ledger = JSON.parse(await readFile(entryLedgerPath, 'utf8'))
     for (const entry of ledger.entries)
@@ -666,7 +678,18 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     await writeFile(entryLedgerPath, JSON.stringify(ledger))
     const localised = await nextEdition('2026-03-18.0', [place, anotherPlace])
     expect(localised.addresses[0]?.current.id).toBe(generatedAddressId)
-    expect(history.query('SELECT * FROM address2d').all()).toEqual(originalBase)
+    expect(
+      (
+        history
+          .query('SELECT count(*) AS n FROM address2d WHERE id=? AND isCurrent=1')
+          .get(generatedAddressId) as { n: number }
+      ).n +
+        (
+          historyNext
+            .query('SELECT count(*) AS n FROM address2d WHERE id=? AND isCurrent=1')
+            .get(generatedAddressId) as { n: number }
+        ).n,
+    ).toBe(1)
     expect(history.query('SELECT * FROM address2dBuildingNumberLookup').all()).toEqual(
       originalLookup,
     )
@@ -699,9 +722,20 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     const revoked = await nextEdition('2026-04-15.0', [place, anotherPlace])
     expect(revoked.addresses).toHaveLength(1)
     expect(
-      revoked.addresses[0]?.evidence.sources.map(source => source.sourceRecordId),
+      revoked.addresses[0]?.current.sources.map(source => source.recordId),
     ).toEqual(['citygate-place'])
-    expect(history.query('SELECT * FROM address2d').all()).toEqual(originalBase)
+    expect(
+      (
+        history
+          .query('SELECT count(*) AS n FROM address2d WHERE id=? AND isCurrent=1')
+          .get(generatedAddressId) as { n: number }
+      ).n +
+        (
+          historyNext
+            .query('SELECT count(*) AS n FROM address2d WHERE id=? AND isCurrent=1')
+            .get(generatedAddressId) as { n: number }
+        ).n,
+    ).toBe(1)
     expect(historyNext.query('SELECT count(*) AS n FROM address2dI18n').get()).toEqual({
       n: 1,
     })
@@ -717,16 +751,9 @@ test('supplementary editions reuse cross-year components, replay immutable prove
         VALUES('ss-opa-other-lineage','other-locale','en','Another address','other-snapshot','other-release',1);
       INSERT INTO address2dBuildingNumberLookup(addressId,versionHash,buildingNumber,numericStem,evidence,snapshotId,sourceReleaseId,isCurrent)
         VALUES('ss-opa-other-lineage','other-lookup','2',2,'source_endpoint','other-snapshot','other-release',1);
-      INSERT INTO address2dEvidence(addressId,versionHash,sources,snapshotId,sourceReleaseId,isCurrent)
-        VALUES('ss-opa-other-lineage','other-evidence','[]','other-snapshot','other-release',1);
     `)
     const foreignComponents = () =>
-      [
-        'address2d',
-        'address2dI18n',
-        'address2dBuildingNumberLookup',
-        'address2dEvidence',
-      ].map(table =>
+      ['address2d', 'address2dI18n', 'address2dBuildingNumberLookup'].map(table =>
         historyNext
           .query(`SELECT * FROM ${table} WHERE snapshotId='other-snapshot'`)
           .all(),
@@ -807,11 +834,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
           'SELECT recordType FROM snapshotVersionChanges WHERE snapshotId=? ORDER BY recordType',
         )
         .all(withdrawn.snapshotId),
-    ).toEqual([
-      { recordType: 'address2d' },
-      { recordType: 'address2dEvidence' },
-      { recordType: 'address2dI18n' },
-    ])
+    ).toEqual([{ recordType: 'address2d' }, { recordType: 'address2dI18n' }])
     expect(await replay(first.snapshotId)).toEqual(firstReplay)
     expect(historyNext.query('SELECT isCurrent FROM address2dI18n').get()).toEqual({
       isCurrent: 0,
@@ -909,7 +932,7 @@ test('supplementary editions reuse cross-year components, replay immutable prove
     expect(
       historyNext
         .query(
-          "SELECT count(*) AS n FROM address2dEvidence WHERE snapshotId <> 'other-snapshot'",
+          "SELECT count(*) AS n FROM address2d WHERE snapshotId <> 'other-snapshot'",
         )
         .get(),
     ).toEqual({ n: 0 })

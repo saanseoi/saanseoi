@@ -522,22 +522,22 @@ preserves the ALS snapshots used as derivation evidence.
 
 Supplementary snapshots are complete and parentless, including when there are no
 accepted rows. Full membership journals are retained deliberately to bound replay
-ancestry; each edition journals the accepted base, locale and evidence selections,
-together with explicit withdrawals. Building-number lookups are reproducible from those
-locales. Its assembly records retain a materialisation hash, combined
-policy/entry-ledger hash and policy versions.
+ancestry; each edition journals the accepted base and locale selections, together with
+explicit withdrawals. Building-number lookups are reproducible from those locales. Its
+assembly records retain a materialisation hash, combined policy/entry-ledger hash and
+policy versions.
 
 Canonical base, locale and building-number lookup payloads have independent hashes.
-Edition assertions and resolution provenance are versioned separately in
-`address2dEvidence`: Place source releases and IDs, policy decisions, localisation
-provenance and selected ALS and Division evidence remain available for exact replay.
-Multiple supporting Places share canonical components while retaining every supporting
-assertion. Source-only evidence changes do not create new canonical component versions;
-locale-only changes replace only the affected locale content. Repeated components remain
-in their original history shard, including across year boundaries, and every snapshot
-records the shards containing its selected versions. Current Address `sources` and
-historical API replay expose the complete selected edition provenance, including release
-references.
+Address `sources` identifies the Overture publisher, registered Places dataset and every
+supporting Place record ID. Multiple supporting Places share canonical components while
+retaining their Address links. Curation decisions and localisation provenance belong to
+the Place audit, and source records remain available in the Place source archives.
+Historical lookup follows the matching source edition. Address history retains canonical
+components without a separate evidence payload or evidence index. Changes to supporting
+Place attribution create a canonical base version; locale-only changes replace only the
+affected locale content. Repeated components remain in their original history shard,
+including across year boundaries, and every snapshot records its selected component
+versions and their owning shards.
 
 Address history and `snapshotVersionChanges` reproduce each snapshot independently. An
 existing published supplementary snapshot must reproduce its recorded materialisation;

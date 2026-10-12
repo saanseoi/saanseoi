@@ -48,15 +48,10 @@ export async function buildSupplementaryAddressRows(input: {
   officialAddresses: Map<string, AddressDivisionReference>
   snapshotId: string
   divisionSnapshotId: string
-  sourceReleaseId: string
-  placeSourceReleaseId: string
   sourceVersion: string
-  datasetId: string
+  datasetCode: string
 }) {
   const groups = new Map<string, SupplementaryEntry[]>()
-  const observations = new Map(
-    input.resolutions.map(resolution => [resolution.placeId, resolution]),
-  )
   for (const resolution of input.resolutions) {
     if (resolution.tier === 'review')
       throw new Error('Unresolved supplementary address review.')
@@ -91,40 +86,10 @@ export async function buildSupplementaryAddressRows(input: {
     const divisions = Object.fromEntries(
       ADDRESS_DIVISION_FIELDS.map(field => [field, base?.[field] ?? null]),
     ) as Record<(typeof ADDRESS_DIVISION_FIELDS)[number], string | null>
-    const sources = entries.map(accepted => ({
-      source: 'overture-place-address',
-      datasetId: input.datasetId,
-      sourceRecordId: accepted.placeId,
-      sourceReleaseId: input.sourceReleaseId,
-      placeSourceReleaseId: input.placeSourceReleaseId,
-      sourceVersion: input.sourceVersion,
-      publisherAddress: observations.get(accepted.placeId)?.sourceTexts,
-      publisherAddressFingerprint: observations.get(accepted.placeId)?.fingerprint,
-      curationEntry: {
-        placeId: accepted.placeId,
-        identityKey: accepted.identityKey,
-        firstSeen: accepted.firstSeen,
-        acceptanceMode: accepted.acceptanceMode,
-      },
-      policyVersion: accepted.policyVersion,
-      localisationProvenance: Object.fromEntries(
-        accepted.values
-          .filter(value => value.provenance)
-          .map(value => [value.locale, value.provenance]),
-      ),
-      score: accepted.score,
-      evidence:
-        accepted.evidence.find(
-          candidate => candidate.addressId === accepted.baseAddressId,
-        ) ?? null,
-      selectedAlsBase: base
-        ? {
-            snapshotId: base.snapshotId,
-            addressId: base.id,
-            divisionSnapshotId: base.divisionSnapshotId,
-            divisions,
-          }
-        : null,
+    const attribution = entries.map(accepted => ({
+      publisherCode: 'overture',
+      dataset: input.datasetCode,
+      recordId: accepted.placeId,
     }))
     const canonical = {
       id,
@@ -138,8 +103,8 @@ export async function buildSupplementaryAddressRows(input: {
       streetId: null,
       geometry: null,
       bbox: null,
-      // The key is generation evidence, retained in the curation ledger and
-      // address2dEvidence. Canonical identity is already represented by `id`.
+      sources: attribution,
+      // Identity-generation inputs remain in the Place curation ledger.
       identifiers: null,
     }
     const i18n = entry.values.map(({ provenance: _provenance, ...value }) => ({
@@ -163,14 +128,8 @@ export async function buildSupplementaryAddressRows(input: {
       versionHash,
       i18nVersionHashes,
       lookups,
-      evidence: {
-        addressId: id,
-        sources,
-        versionHash: await createHash({ addressId: id, sources }),
-      },
       current: {
         ...canonical,
-        sources,
         snapshotId: input.snapshotId,
         divisionSnapshotId: base?.divisionSnapshotId ?? input.divisionSnapshotId,
         streetSnapshotId: null,

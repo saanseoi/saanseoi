@@ -1,7 +1,6 @@
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { resolve } from 'node:path'
-import { createHash } from '@repo/core/pipeline/utils'
 import { loadMigrationSql } from '../../../../../../libs/core/src/testing/metaFixtures.ts'
 import { materialiseSupplementaryAddressHistory } from './supplementaryAddressHistory.ts'
 import { buildSupplementaryAddressRows } from './supplementaryPlaceAddressRows.ts'
@@ -81,10 +80,8 @@ test.each(['scope-a', 'scope-b'] as const)(
         officialAddresses: new Map(),
         snapshotId: 'a-first',
         divisionSnapshotId: 'division',
-        sourceReleaseId: 'address-source',
-        placeSourceReleaseId: 'place-source',
         sourceVersion: '2025-12-17.0',
-        datasetId: 'dataset',
+        datasetCode: 'ds-hk-overture-place',
       })
       const candidates = {
         DB_CURRENT: { db: current },
@@ -118,12 +115,7 @@ test.each(['scope-a', 'scope-b'] as const)(
           .run(scopeId, snapshotId, `token-${snapshotId}`)
         return owners
       }
-      const tables = [
-        'address2d',
-        'address2dI18n',
-        'address2dBuildingNumberLookup',
-        'address2dEvidence',
-      ]
+      const tables = ['address2d', 'address2dI18n', 'address2dBuildingNumberLookup']
       const components = (db: Database) =>
         tables.map(table =>
           db.query<Record<string, unknown>, []>(`SELECT * FROM ${table}`).all(),
@@ -146,15 +138,7 @@ test.each(['scope-a', 'scope-b'] as const)(
           .query('SELECT identifiers FROM address2d WHERE id=?')
           .get(identity.addressId),
       ).toEqual({ identifiers: null })
-      const retainedEvidence = old
-        .query<{ sources: string }, [string]>(
-          'SELECT sources FROM address2dEvidence WHERE addressId=?',
-        )
-        .get(identity.addressId)
-      expect(JSON.parse(retainedEvidence!.sources)[0].curationEntry.identityKey).toBe(
-        identity.identityKey,
-      )
-      expect(originalComponents.map(rows => rows.length)).toEqual([1, 2, 1, 1])
+      expect(originalComponents.map(rows => rows.length)).toEqual([1, 2, 1])
       expect(
         current
           .query("SELECT count(*) AS n FROM address2d WHERE snapshotId='scope-b'")
@@ -163,7 +147,7 @@ test.each(['scope-a', 'scope-b'] as const)(
       const owners = await publish('scope-b', 'b-first', [])
       expect(owners).toEqual(new Set(['DB_HISTORY_HK_2025', 'DB_HISTORY_HK_2026']))
       expect(components(old)).toEqual(originalComponents)
-      expect(components(next)).toEqual([[], [], [], []])
+      expect(components(next)).toEqual([[], [], []])
       expect(
         ['address2d', 'address2dI18n', 'address2dBuildingNumberLookup'].map(table =>
           current.query(`SELECT * FROM ${table} WHERE snapshotId='scope-b'`).all(),
@@ -186,46 +170,20 @@ test.each(['scope-a', 'scope-b'] as const)(
           .all(),
       ).toEqual([
         { recordType: 'address2d', operation: 'upsert' },
-        { recordType: 'address2dEvidence', operation: 'upsert' },
         { recordType: 'address2dI18n', operation: 'upsert' },
         { recordType: 'address2dI18n', operation: 'upsert' },
       ])
-      const nextAddresses = await Promise.all(
-        addresses.map(async row => {
-          const sources = row.evidence.sources.map(source => ({
-            ...source,
-            sourceReleaseId: 'next-address-source',
-            placeSourceReleaseId: 'next-place-source',
-            sourceVersion: '2026-01-21.0',
-          }))
-          return {
-            ...row,
-            current: row.current,
-            evidence: {
-              addressId: row.current.id,
-              sources,
-              versionHash: await createHash({ addressId: row.current.id, sources }),
-            },
-          }
-        }),
-      )
-      await publish('scope-b', 'b-second', ['b-first'], nextAddresses)
+      await publish('scope-b', 'b-second', ['b-first'], addresses)
       expect(components(old)).toEqual(originalComponents)
       const nextComponents = components(next)
-      expect(nextComponents.map(rows => rows.length)).toEqual([0, 0, 0, 1])
+      expect(nextComponents.map(rows => rows.length)).toEqual([0, 0, 0])
       const priorSnapshots = {
         'scope-a': ['a-first'],
         'scope-b': ['b-first', 'b-second'],
       }
       const lastOwner = firstOwner === 'scope-a' ? 'scope-b' : 'scope-a'
       await publish(firstOwner, `${firstOwner}-empty`, priorSnapshots[firstOwner], [])
-      expect(components(old)).toEqual(
-        originalComponents.map((rows, index) =>
-          firstOwner === 'scope-a' && index === 3
-            ? rows.map(row => ({ ...row, isCurrent: 0 }))
-            : rows,
-        ),
-      )
+      expect(components(old)).toEqual(originalComponents)
       expect(components(next)).toEqual(
         firstOwner === 'scope-a'
           ? nextComponents

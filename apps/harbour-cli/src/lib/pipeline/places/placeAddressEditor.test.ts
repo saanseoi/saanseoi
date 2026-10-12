@@ -127,14 +127,13 @@ test('New Address decisions replay without an ALS base and retain localisation p
     officialAddresses: new Map(),
     snapshotId: 's',
     divisionSnapshotId: 'd',
-    sourceReleaseId: 'r',
-    placeSourceReleaseId: 'p',
     sourceVersion: 'v',
-    datasetId: 'ds',
+    datasetCode: 'ds',
   })
   expect(rows[0]?.current.districtId).toBeNull()
   expect(
-    rows[0]?.evidence.sources[0]?.localisationProvenance['zh-hant']?.isHumanVerified,
+    first.entry?.values.find(value => value.locale === 'zh-hant')?.provenance
+      ?.isHumanVerified,
   ).toEqual([])
   expect(rows[0]?.i18n[1]).not.toHaveProperty('provenance')
 })

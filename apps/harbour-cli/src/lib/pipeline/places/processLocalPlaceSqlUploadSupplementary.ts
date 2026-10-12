@@ -595,10 +595,8 @@ async function prepareSupplementaryAddressesLocked(
     officialAddresses: officialById,
     snapshotId: snapshot.id,
     divisionSnapshotId: input.snapshots.divisionSnapshotId,
-    sourceReleaseId: resourceReleaseId,
-    placeSourceReleaseId: input.resourceReleaseId,
     sourceVersion: input.plan.sourceVersion,
-    datasetId,
+    datasetCode,
   })
   if (input.dependencyDb && addresses.length) {
     const selectedDivision = await db

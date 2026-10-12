@@ -822,10 +822,6 @@ async function assertPlacesResetStillSafe(
   for (const target of context.historyTargets) {
     for (const { table, addressId } of [
       { table: historySchema.address2d, addressId: historySchema.address2d.id },
-      {
-        table: historySchema.address2dEvidence,
-        addressId: historySchema.address2dEvidence.addressId,
-      },
     ]) {
       const unexpectedAddressHistory = await (target.db as HarbourReadableDb)
         .select({ snapshotId: table.snapshotId })
@@ -1029,7 +1025,6 @@ export function buildPlacesResetSql(owned: OwnedPlaces) {
     `DELETE FROM places WHERE snapshotId IN (${placeSnapshots}) OR sourceReleaseId IN (${placeReleases});`,
     `DELETE FROM address2dBuildingNumberLookup WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
     `DELETE FROM address2dI18n WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
-    `DELETE FROM address2dEvidence WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
     `DELETE FROM address2d WHERE snapshotId IN (${addressSnapshots}) OR sourceReleaseId IN (${addressReleases});`,
     `DELETE FROM snapshotVersionChanges WHERE snapshotId IN (${snapshots});`,
     `DELETE FROM sourceResolutions WHERE snapshotId IN (${snapshots}) OR sourceReleaseId IN (${placeReleases});`,

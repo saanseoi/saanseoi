@@ -79,21 +79,26 @@ locale reads follow their own journal entries and shards. ALS snapshot journals 
 only actual component changes and explicit retirements.
 
 Supplementary Overture Address snapshots hash the canonical base, each locale and each
-building-number lookup independently. Source-edition assertions, participating Place
-IDs, resolution decisions and selected ALS and Division dependencies have a separate
-versioned `address2dEvidence` payload. Snapshot replay selects that evidence alongside
-the canonical components and restores the complete public `sources` output, including
-release references. Repeating an accepted address in another edition can retain its
-component versions while recording the edition's evidence and updating current
-provenance. Reused versions remain in their owning history shard across year boundaries;
-the snapshot records every shard needed to replay its component and evidence selections.
+building-number lookup independently. The deterministic ID is generated from accepted
+bilingual 2D values; its identity-generation inputs remain in Place curation, not
+canonical `identifiers`. The record-level `address2d.sources` array contains the
+Overture publisher, registered Places dataset and supporting Place record IDs and is
+part of the canonical base version. It excludes match scores, candidate addresses,
+curation decisions, fingerprints, selected ALS dependencies and localisation reasoning.
+Curation entries and decisions are retained in the Place audit; upstream records are
+retrieved through the Place source archives using the matching source edition. Places
+retain their Address links. Address history stores canonical components without a
+separate evidence payload or evidence index. Historical API replay keeps `sources` from
+the canonical Address version. Repeated components remain in their owning history shard
+across year boundaries; the snapshot records every shard needed to replay its component
+selections.
 
 Supplementary snapshots are deliberately parentless to bound replay ancestry. Every
-snapshot journals its complete accepted base, locale and evidence membership, including
-a valid empty set and explicit withdrawals. Building-number lookups are reproducible
-from the selected locales. Full membership journals remain a per-edition cost even when
-all canonical content is unchanged. Published evidence and membership are immutable;
-changed accepted materialisation requires a release revision.
+snapshot journals its complete accepted base and locale membership, including a valid
+empty set and explicit withdrawals. Building-number lookups are reproducible from the
+selected locales. Full membership journals remain a per-edition cost even when all
+canonical content is unchanged. Published membership and retained Place audits are
+immutable; changed accepted materialisation requires a release revision.
 
 ALS source interpretations in `sourceResolutions` inherit through snapshot ancestry.
 Repeated identical source hashes and resolutions need no new row. Changed resolutions,

@@ -94,7 +94,7 @@ export function placeResolutionProducer(path: string): ProducerSpecification | n
         'resolutions',
         'officialAddresses',
         'sourceVersion',
-        'sourceReleaseId',
+        'datasetCode',
         'dependencySelection',
       ],
       implementation: {
@@ -105,21 +105,11 @@ export function placeResolutionProducer(path: string): ProducerSpecification | n
         'Group tier=supplementary resolutions by entry.addressId; materialise each accepted structured Address exactly once.',
       steps: [
         'Require entry.addressId === resolution.addressId. Sort entries by placeId; require byte-equivalent JSON values and equal baseAddressId in a group. Require any base in the selected official Address inventory.',
-        'Copy all ten ADDRESS_DIVISION_FIELDS from the base or null. Set geometry, bbox, parentAddressId, streetId and identifiers to null; compute granularity from accepted locale values. Retain supplementaryIdentityKey in curation and address2dEvidence as ID-generation evidence.',
+        'Copy all ten ADDRESS_DIVISION_FIELDS from the base or null. Set geometry, bbox, parentAddressId, streetId and identifiers to null; compute granularity from accepted locale values. Retain supplementaryIdentityKey in Place curation as ID-generation evidence.',
         'Strip localisation provenance from API i18n rows and assign addressId. Hash canonical base and each locale independently; produce building-number lookup rows and their hashes.',
-        'Retain every contributing Place occurrence, publisher address/fingerprint, acceptance mode, policy version, localisation provenance, score, selected base evidence and both source release identities.',
+        'Attribute every contributing Place record in sources using the Overture publisher, registered Places dataset and Place record ID. Curation details remain in the Place audit.',
         'Current divisionSnapshotId is the base snapshot when present, otherwise the selected Division dependency. Sources belong to the supplementary materialisation; Place enrichment consumes this result, never the reverse.',
       ],
-    }
-  if (path === 'placeSourceReleaseId')
-    return {
-      inputs: ['resourceReleaseId'],
-      implementation: {
-        path: `${dir}processLocalPlaceSqlUploadSupplementary.ts`,
-        symbol: 'prepareSupplementaryAddressesLocked',
-      },
-      expression:
-        'The incoming Overture Place resourceReleaseId passed as placeSourceReleaseId to buildSupplementaryAddressRows; not the supplementary Address release ID.',
     }
   return null
 }

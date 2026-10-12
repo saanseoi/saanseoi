@@ -86,12 +86,7 @@ export function reconcileAddressIdCopy(db: Database, mapping: AddressIdMapping) 
               kind,
               JSON.stringify(
                 kind === 'address2d'
-                  ? [
-                      'address2d',
-                      'address2dI18n',
-                      'address2dEvidence',
-                      'address2dBuildingNumberLookup',
-                    ]
+                  ? ['address2d', 'address2dI18n', 'address2dBuildingNumberLookup']
                   : ['address3d', 'address3dI18n'],
               ),
               kind,

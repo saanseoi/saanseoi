@@ -111,7 +111,7 @@ function compileInput(
   if (
     context.resourceType === 'address' &&
     datasetCode === 'ds-hk-overture-place' &&
-    !['resolutions', 'placeSourceReleaseId'].includes(path)
+    path !== 'resolutions'
   ) {
     if (['officialAddresses', 'divisionMaps', 'dependencySelection'].includes(path))
       return compilePreparedFieldInput(path, context.forDataset(datasetCode, 'place'))

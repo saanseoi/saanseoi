@@ -165,8 +165,8 @@ export function currentAddressFieldRule(
         [],
       ],
       sources: [
-        'Group accepted entries by addressId; retain each publisher occurrence, acceptance mode, policy version and selected ALS base evidence.',
-        ['resolutions', 'officialAddresses', 'sourceReleaseId', 'placeSourceReleaseId'],
+        'Group accepted entries by addressId; attribute each supporting Place record to the Overture publisher and registered Places dataset.',
+        ['resolutions', 'datasetCode'],
       ],
       'relationships.divisions': [
         'Copy ADDRESS_DIVISION_FIELDS from the selected ALS base, or null per field when no base exists.',

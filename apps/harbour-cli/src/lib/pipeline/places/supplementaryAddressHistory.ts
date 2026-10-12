@@ -13,7 +13,6 @@ const policies = [
     keys: ['addressId', 'buildingNumber'],
     journal: false,
   },
-  { table: 'address2dEvidence', keys: ['addressId'], journal: true },
 ] as const
 const identity = (row: Record<string, unknown>, keys: readonly string[]) =>
   JSON.stringify(keys.map(key => row[key]))
@@ -22,8 +21,8 @@ const where = (keys: readonly string[]) =>
 
 /**
  * Root snapshots keep full membership journals in the shard owning each immutable
- * component. Only changed or withdrawn components close; edition evidence has its
- * own version. All writes here target disposable net-plan candidates.
+ * component. Only changed or withdrawn components close. All writes here target
+ * disposable net-plan candidates.
  */
 export async function materialiseSupplementaryAddressHistory(input: {
   candidates: Record<string, { db: Database }>
@@ -101,8 +100,6 @@ export async function materialiseSupplementaryAddressHistory(input: {
           })
         case 'address2dBuildingNumberLookup':
           return row.lookups
-        case 'address2dEvidence':
-          return [row.evidence]
       }
       throw new Error('Unknown supplementary Address component.')
     })
@@ -234,7 +231,6 @@ export async function materialiseSupplementaryAddressHistory(input: {
   }
   for (const id of input.revokedAddressIds) {
     journal(target, 'address2d', id, '', null)
-    journal(target, 'address2dEvidence', id, '', null)
   }
   const selectedLocales = new Set(
     input.addresses.flatMap(row =>

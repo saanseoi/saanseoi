@@ -36,7 +36,6 @@ import {
 } from '../utils'
 import { recordSnapshotVersionChanges } from './snapshotVersionChanges'
 import { buildAddressBuildingNumberLookupRows } from '../services/addresses/normalisation'
-import { loadReplayedAddressEvidence } from './addressEvidenceReplay'
 
 const CURRENT_ADDRESS2D_COLUMN_COUNT = 23
 const CURRENT_ADDRESS2D_I18N_COLUMN_COUNT = 20
@@ -584,11 +583,7 @@ export async function getReplayedAddressVersionMap(
   const resolvedVersions = await resolveSnapshotVersionState(
     plan,
     historyShards,
-    [
-      'address2d',
-      'address2dEvidence',
-      ...(selection?.includeLocales === false ? [] : ['address2dI18n']),
-    ],
+    ['address2d', ...(selection?.includeLocales === false ? [] : ['address2dI18n'])],
     selection?.recordIds,
   )
   const baseVersions = [...resolvedVersions.values()].filter(
@@ -598,18 +593,6 @@ export async function getReplayedAddressVersionMap(
     version => version.recordType === 'address2dI18n',
   )
   const baseRows = await loadReplayedAddressBaseRows(baseVersions)
-  const evidence = await loadReplayedAddressEvidence(
-    [...resolvedVersions.values()].filter(
-      version => version.recordType === 'address2dEvidence',
-    ),
-  )
-  for (const row of baseRows) {
-    if (evidence.has(row.id)) row.sources = evidence.get(row.id)
-    else if (row.id.startsWith('ss-opa-') && row.sources === null)
-      throw new Error(
-        `Snapshot ${snapshotId} is missing supplementary Address evidence for ${row.id}.`,
-      )
-  }
   const i18nRows = await loadReplayedAddressI18nRows(i18nVersions)
   const snapshots = await buildAddressVersionSnapshotMapFromRows(
     baseRows,

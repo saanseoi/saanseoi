@@ -42,12 +42,7 @@ export function addressMutationTables(binding: string): NetTablePolicy[] {
     binding === 'DB_CURRENT'
       ? addressTables
       : binding.startsWith('DB_HISTORY_')
-        ? [
-            ...addressTables,
-            'address2dEvidence',
-            'snapshotVersionChanges',
-            'sourceResolutions',
-          ]
+        ? [...addressTables, 'snapshotVersionChanges', 'sourceResolutions']
         : binding.startsWith('DB_SOURCE_')
           ? ['hkgovAlsAddresses2d', 'hkgovAlsAddresses3d']
           : []

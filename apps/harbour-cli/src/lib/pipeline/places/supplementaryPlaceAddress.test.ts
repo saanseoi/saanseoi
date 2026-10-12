@@ -592,10 +592,8 @@ describe('supplementary Place Address policy', () => {
       ]),
       snapshotId: 'supplementary',
       divisionSnapshotId: 'division',
-      sourceReleaseId: 'supp-release',
-      placeSourceReleaseId: 'place-release',
       sourceVersion: '2026-08-19.0',
-      datasetId: 'supp-dataset',
+      datasetCode: 'supp-dataset',
     })
     expect(rows).toHaveLength(1)
     expect(rows[0]?.current).toMatchObject({
@@ -604,10 +602,13 @@ describe('supplementary Place Address policy', () => {
       geometry: null,
       streetId: null,
     })
-    expect(rows[0]?.evidence.sources.map(source => source.sourceRecordId)).toEqual([
+    expect(rows[0]?.current.sources.map(source => source.recordId)).toEqual([
       'p1',
       'p2',
     ])
+    expect(rows[0]?.canonical.identifiers).toBeNull()
+    expect(rows[0]).not.toHaveProperty('evidence')
+    expect(rows[0]).not.toHaveProperty('evidenceDocument')
   })
   test('supplementary IDs stay stable and conflicting values sharing an ID are rejected', async () => {
     const { analyse } = setup()
@@ -620,7 +621,7 @@ describe('supplementary Place Address policy', () => {
     )
     expect(sameIdentity).toEqual({
       identityKey: first.entry!.identityKey,
-      addressId: first.addressId,
+      addressId: first.addressId!,
     })
     const conflicting = structuredClone(first)
     conflicting.placeId = 'p2'
@@ -632,10 +633,8 @@ describe('supplementary Place Address policy', () => {
         officialAddresses: new Map(),
         snapshotId: 'supplementary',
         divisionSnapshotId: 'division',
-        sourceReleaseId: 'supp-release',
-        placeSourceReleaseId: 'place-release',
         sourceVersion: '2026-08-19.0',
-        datasetId: 'supp-dataset',
+        datasetCode: 'supp-dataset',
       }),
     ).rejects.toThrow('conflicting structured values')
   })
@@ -670,10 +669,8 @@ describe('supplementary Place Address policy', () => {
       officialAddresses: new Map([[citygate.addressId, base]]),
       snapshotId: 'first',
       divisionSnapshotId: 'division-selected',
-      sourceReleaseId: 'supp-first',
-      placeSourceReleaseId: 'place-first',
       sourceVersion: '2025-12-17.0',
-      datasetId: 'places-dataset',
+      datasetCode: 'places-dataset',
     }
     const build = async (changes: Partial<typeof input> = {}) => {
       const [row] = await buildSupplementaryAddressRows({ ...input, ...changes })
@@ -689,35 +686,32 @@ describe('supplementary Place Address policy', () => {
     })
     const edition = await build({
       snapshotId: 'second',
-      sourceReleaseId: 'supp-second',
-      placeSourceReleaseId: 'place-second',
       sourceVersion: '2026-01-21.0',
     })
     expect(components(edition)).toEqual(components(first))
-    expect(edition.evidence.versionHash).not.toBe(first.evidence.versionHash)
-    expect(edition.current.sources).toEqual(edition.evidence.sources)
+    expect(edition.current.sources).toEqual([
+      { publisherCode: 'overture', dataset: 'places-dataset', recordId: 'p1' },
+    ])
     const dependency = await build({
       officialAddresses: new Map([
         [citygate.addressId, { ...base, snapshotId: 'als-next' }],
       ]),
     })
     expect(components(dependency)).toEqual(components(first))
-    expect(dependency.evidence.versionHash).not.toBe(first.evidence.versionHash)
     const supportingPlace = {
       ...structuredClone(resolution),
       placeId: 'p2',
       entry: { ...structuredClone(accepted), placeId: 'p2' },
     }
     const supported = await build({ resolutions: [supportingPlace, resolution] })
-    expect(components(supported)).toEqual(components(first))
-    expect(supported.evidence.versionHash).not.toBe(first.evidence.versionHash)
-    expect(supported.evidence.sources.map(source => source.sourceRecordId)).toEqual([
+    expect(components(supported)).not.toEqual(components(first))
+    expect(supported.current.sources.map(source => source.recordId)).toEqual([
       'p1',
       'p2',
     ])
     expect(
-      (await build({ resolutions: [resolution, supportingPlace] })).evidence,
-    ).toEqual(supported.evidence)
+      (await build({ resolutions: [resolution, supportingPlace] })).canonical,
+    ).toEqual(supported.canonical)
     const changedLocale = structuredClone(resolution)
     const changedEntry = changedLocale.entry
     if (!changedEntry) throw new Error('Expected an accepted Address.')
@@ -780,10 +774,8 @@ describe('supplementary Place Address policy', () => {
       officialAddresses: new Map(),
       snapshotId: 'supplementary',
       divisionSnapshotId: 'division',
-      sourceReleaseId: 'supp-release',
-      placeSourceReleaseId: 'place-release',
       sourceVersion: '2026-08-19.0',
-      datasetId: 'supp-dataset',
+      datasetCode: 'supp-dataset',
     })
     expect(rows[0]?.current).toMatchObject({
       countryId: null,
