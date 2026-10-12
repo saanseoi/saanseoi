@@ -42,7 +42,7 @@ test('resolves inherited annual source shards and compares a year-boundary basel
       db.exec(
         'CREATE TABLE overtureDivisions(sourceRecordId,versionHash,properties,sourceGeometry,validFromRelease,validToRelease)',
       )
-    for (let i = 0; i < 80; i++)
+    for (let i = 0; i < 4200; i++)
       old.run('INSERT INTO overtureDivisions VALUES(?,?,?,NULL,?,NULL)', [
         `retained-${String(i).padStart(3, '0')}`,
         'same',
@@ -68,6 +68,13 @@ test('resolves inherited annual source shards and compares a year-boundary basel
       JSON.stringify({ name: 'Added' }),
       '2026-02',
     ])
+    // An identical assertion retained in both annual shards is one record.
+    current.run('INSERT INTO overtureDivisions VALUES(?,?,?,NULL,?,NULL)', [
+      'retained-000',
+      'same',
+      JSON.stringify({ name: 'Retained 0' }),
+      '2026-01',
+    ])
     const args = {
       env: {
         DB_SOURCE_HK_2025: binding(old),
@@ -82,7 +89,8 @@ test('resolves inherited annual source shards and compares a year-boundary basel
       sourceReleaseCode: 'jan',
       limit: 100,
     })
-    expect(baseline?.records).toHaveLength(81)
+    expect(baseline?.records).toHaveLength(100)
+    expect(baseline?.nextCursor).not.toBeNull()
     const query = SourceChangesQuerySchema.parse({
       fromRelease: 'jan',
       toRelease: 'feb',

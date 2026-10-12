@@ -5,12 +5,16 @@ import type { AppBindings, AppEnv } from '../types'
 import type { AccessAttribution } from './accessAnalytics'
 import type { SourceChangesQuery, SourceChangesResponse } from '../schema/sourceChanges'
 import {
-  readSourceRecordPage,
   resolveRecordsRequest,
   toSourceRecord,
   type SourceFamily,
-  type SourceRecordRow,
 } from './sourceRecords'
+import {
+  readSourceChangeIdentities,
+  readSourceChangeRecords,
+  SOURCE_CHANGE_SCAN_SIZE,
+  type SourceRecordIdentity,
+} from './sourceChangeRecords'
 
 export class SourceChangesError extends Error {
   constructor(
@@ -115,64 +119,88 @@ export async function listSourceChanges(args: {
   })
   const records: SourceChangesResponse['records'] = []
   let after = cursor?.after
-  const batchSize = 64
+  const batchSize = SOURCE_CHANGE_SCAN_SIZE
+  const index = <T extends SourceRecordIdentity>(rows: T[]) => {
+    const map = new Map<string, T>()
+    for (const row of rows) {
+      if (map.has(row.sourceRecordId))
+        throw new SourceChangesError(
+          409,
+          'ambiguous_source_identity',
+          'Multiple retained versions are active for one source record.',
+        )
+      map.set(row.sourceRecordId, row)
+    }
+    return map
+  }
   // Keep reads bounded, but fill the page with matching changes. One matching
   // lookahead establishes whether a continuation actually exists.
   while (records.length <= query.limit) {
-    const read = (resolved: NonNullable<typeof from>) =>
-      readSourceRecordPage({
-        ...resolved,
-        cursor: after ? { sourceRecordId: after, versionHash: '\uffff' } : null,
-        includeGeometry: true,
-        limit: batchSize,
-        random: false,
-      })
-    const [oldRows, newRows] = await Promise.all([read(from), read(to)])
+    const [oldRows, newRows] = await Promise.all([
+      readSourceChangeIdentities(from, after),
+      readSourceChangeIdentities(to, after),
+    ])
     const ends = [oldRows, newRows]
-      .filter(rows => rows.length === batchSize)
+      .filter(rows => rows.length >= batchSize)
       .map(rows => rows.at(-1)!.sourceRecordId)
       .sort()
     const end = ends[0]
-    const index = (rows: SourceRecordRow[]) => {
-      const map = new Map<string, SourceRecordRow>()
-      for (const row of rows) {
-        if (map.has(row.sourceRecordId))
-          throw new SourceChangesError(
-            409,
-            'ambiguous_source_identity',
-            'Multiple retained versions are active for one source record.',
-          )
-        map.set(row.sourceRecordId, row)
-      }
-      return map
-    }
     const old = index(oldRows),
       current = index(newRows)
     const ids = [...new Set([...old.keys(), ...current.keys()])]
       .sort()
       .filter(id => !end || id <= end)
-    for (const id of ids) {
-      after = id
+    const candidates = ids.filter(id => {
       const left = old.get(id),
         right = current.get(id)
-      if (left && right && left.versionHash === right.versionHash) {
-        continue
-      }
+      if (left && right && left.versionHash === right.versionHash) return false
       const type = !left ? 'added' : !right ? 'removed' : 'changed'
-      if (query.type && query.type !== type) continue
-      const before = left
-        ? toSourceRecord(left, from.release, from.entry, true, args.family)
-        : null
-      const afterRecord = right
-        ? toSourceRecord(right, to.release, to.entry, true, args.family)
-        : null
-      const fields = jsonFieldDiff(recordContent(before), recordContent(afterRecord))
-      if (type === 'changed' && !fields.length) {
-        continue
+      return !query.type || query.type === type
+    })
+    for (
+      let offset = 0;
+      offset < candidates.length && records.length <= query.limit;
+    ) {
+      const batch = candidates.slice(offset, offset + query.limit + 1 - records.length)
+      offset += batch.length
+      const [beforeRows, afterRows] = await Promise.all([
+        readSourceChangeRecords(
+          from,
+          batch.filter(id => old.has(id)),
+        ),
+        readSourceChangeRecords(
+          to,
+          batch.filter(id => current.has(id)),
+        ),
+      ])
+      const beforeIndex = index(beforeRows),
+        afterIndex = index(afterRows)
+      for (const id of batch) {
+        const left = beforeIndex.get(id),
+          right = afterIndex.get(id)
+        // Do not turn concurrent retention changes into invented additions/removals.
+        if (
+          left?.versionHash !== old.get(id)?.versionHash ||
+          right?.versionHash !== current.get(id)?.versionHash
+        )
+          throw new SourceChangesError(
+            409,
+            'source_comparison_changed',
+            'Source records changed during comparison. Retry the request.',
+          )
+        const type = !left ? 'added' : !right ? 'removed' : 'changed'
+        const before = left
+          ? toSourceRecord(left, from.release, from.entry, true, args.family)
+          : null
+        const afterRecord = right
+          ? toSourceRecord(right, to.release, to.entry, true, args.family)
+          : null
+        const fields = jsonFieldDiff(recordContent(before), recordContent(afterRecord))
+        if (type === 'changed' && !fields.length) continue
+        records.push({ sourceRecordId: id, type, before, after: afterRecord, fields })
       }
-      records.push({ sourceRecordId: id, type, before, after: afterRecord, fields })
-      if (records.length > query.limit) break
     }
+    after = ids.at(-1) ?? after
     if (!end) break
   }
   const hasMore = records.length > query.limit

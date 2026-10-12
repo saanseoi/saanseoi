@@ -413,7 +413,7 @@ async function readRandomOrderedSourceRecordPage(args: {
   return result.results
 }
 
-function sourceReleaseCondition(entry: SourceRecordCatalogueEntry, prefix = '') {
+export function sourceReleaseCondition(entry: SourceRecordCatalogueEntry, prefix = '') {
   if (entry.exactReleaseOwnership) {
     return `${prefix}datasetCode = ? AND ${prefix}resourceReleaseId = ?`
   }
@@ -427,7 +427,7 @@ function sourceDatasetCondition(entry: SourceRecordCatalogueEntry, prefix = '') 
     : '1 = 1'
 }
 
-function sourceValidityValues(args: {
+export function sourceValidityValues(args: {
   entry: SourceRecordCatalogueEntry
   release: SourceReleaseRow
 }): string[] {
