@@ -22,12 +22,11 @@ cohort-matching rule.
 The local SQL workflow processes parquet in chunks through `normalise`, `sql-source`,
 `sql-history`, and `sql-current` stages. For a remote upload, `sql-source` compares each
 normalised source payload with the persistent local mirror of the source D1 shard. It
-imports full staging rows only for changed assertions; unchanged assertions are sent as
-compact source-record IDs in `stagingAddresses2dReleaseRows` so their release lifecycle
-can still advance. The source record hash excludes release and ingestion bookkeeping
-(including the source version and file, resolved identity metadata, and division
-snapshot) with the publisher address source record. History, current, and meta SQL are
-then imported into their respective D1 databases.
+imports full staging rows only for changed assertions; unchanged assertions require no
+source-row or membership writes. The source record hash excludes release and ingestion
+bookkeeping (including the source version and file, resolved identity metadata, and
+division snapshot) with the publisher address source record. History, current, and meta
+SQL are then imported into their respective D1 databases.
 
 ## Stored data
 

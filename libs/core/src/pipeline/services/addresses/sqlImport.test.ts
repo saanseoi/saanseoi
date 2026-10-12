@@ -416,7 +416,6 @@ describe('HKGov ALS source SQL', () => {
       },
     )[0]
 
-    expect(sourceFile?.sql).not.toContain('stagingAddresses2dReleaseRows')
     expect(sourceFile?.sql).not.toContain('source-unchanged')
     expect(sourceFile?.sql).toContain('source-changed')
     expect(sourceFile?.sql).not.toContain('unchanged-payload')
