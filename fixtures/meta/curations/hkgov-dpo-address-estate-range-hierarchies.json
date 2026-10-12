@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "code": "derive-estate-range",
+      "id": "long-shin-estate",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "selector": {
+        "enEstateName": "LONG SHIN ESTATE"
+      },
+      "targetGuard": {
+        "enEstateName": "LONG SHIN ESTATE",
+        "zhHantEstateName": "朗善邨",
+        "enDistrict": "YUEN LONG DISTRICT",
+        "enStreetName": "YAU SHIN STREET",
+        "zhHantStreetName": "友善街",
+        "enBlockNumber": null,
+        "zhHantBlockNumber": null
+      },
+      "buildings": [
+        {
+          "csu": "2272633682T20151209",
+          "enName": "SHIN LEUNG HOUSE",
+          "zhName": "善良樓",
+          "number": "11"
+        },
+        {
+          "csu": "2271133599T20151209",
+          "enName": "SHIN OI HOUSE",
+          "zhName": "善愛樓",
+          "number": "11"
+        },
+        {
+          "csu": "2262033581T20151210",
+          "enName": "SHIN YUNG HOUSE",
+          "zhName": "善勇樓",
+          "number": "12"
+        }
+      ],
+      "fromNumber": "11",
+      "toNumber": "12",
+      "epochs": [
+        {
+          "sourceVersionFrom": "2024-07-25.0",
+          "assertionCount": 2
+        },
+        {
+          "sourceVersionFrom": "2026-04-03.0",
+          "assertionCount": 1
+        }
+      ],
+      "aliasCuration": "long-shin-range-alias",
+      "provenanceKey": "hkgovAlsLongShin",
+      "authority": "User decision, 2026-09-07: 11–12 belongs to the estate; retain specific building addresses.",
+      "uuidNamespace": "b2da2675-daca-5920-a99e-c4d562a4c950",
+      "enFormattedAddress": "LONG SHIN ESTATE, 11–12 YAU SHIN STREET",
+      "zhHantFormattedAddress": "友善街11–12號朗善邨",
+      "evidence": "Publisher building range alternatives identify the estate address, not additional unit owners.",
+      "curationFile": "hkgov-dpo-address-hierarchies.json"
+    }
+  ]
+}

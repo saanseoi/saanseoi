@@ -3997,37 +3997,77 @@
     {
       "id": "ss-7922b090-a47e-55ba-89b3-edb2ed47e862",
       "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7",
-      "enEstateName": "SILVERSTRAND VILLA",
-      "enStreetName": "SAPPHIRE PATH",
-      "enStreetNumberFrom": "1"
+      "targetGuard": {
+        "enEstateName": "SILVERSTRAND VILLA",
+        "enStreetName": "SAPPHIRE PATH",
+        "enStreetNumberFrom": "1"
+      },
+      "provenance": {
+        "id": "august-2025-reviewed-20",
+        "curationFile": "hkgov-dpo-address-august-2025-reviewed-retentions.json",
+        "authority": "User August review, 2026-10-06: keep complex and buildings",
+        "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7"
+      }
     },
     {
       "id": "ss-8b57b770-6c6d-557d-9d1f-13a23084527e",
       "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7",
-      "enEstateName": "SILVERSTRAND VILLA",
-      "enStreetName": "SAPPHIRE PATH",
-      "enStreetNumberFrom": "1"
+      "targetGuard": {
+        "enEstateName": "SILVERSTRAND VILLA",
+        "enStreetName": "SAPPHIRE PATH",
+        "enStreetNumberFrom": "1"
+      },
+      "provenance": {
+        "id": "august-2025-reviewed-20",
+        "curationFile": "hkgov-dpo-address-august-2025-reviewed-retentions.json",
+        "authority": "User August review, 2026-10-06: keep complex and buildings",
+        "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7"
+      }
     },
     {
       "id": "ss-b4de2f85-9b32-5c03-a779-805fb62a663e",
       "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7",
-      "enEstateName": "SILVERSTRAND VILLA",
-      "enStreetName": "SAPPHIRE PATH",
-      "enStreetNumberFrom": "1"
+      "targetGuard": {
+        "enEstateName": "SILVERSTRAND VILLA",
+        "enStreetName": "SAPPHIRE PATH",
+        "enStreetNumberFrom": "1"
+      },
+      "provenance": {
+        "id": "august-2025-reviewed-20",
+        "curationFile": "hkgov-dpo-address-august-2025-reviewed-retentions.json",
+        "authority": "User August review, 2026-10-06: keep complex and buildings",
+        "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7"
+      }
     },
     {
       "id": "ss-d553ba60-6413-57b0-b840-c2b5122fdafb",
       "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7",
-      "enEstateName": "SILVERSTRAND VILLA",
-      "enStreetName": "SAPPHIRE PATH",
-      "enStreetNumberFrom": "1"
+      "targetGuard": {
+        "enEstateName": "SILVERSTRAND VILLA",
+        "enStreetName": "SAPPHIRE PATH",
+        "enStreetNumberFrom": "1"
+      },
+      "provenance": {
+        "id": "august-2025-reviewed-20",
+        "curationFile": "hkgov-dpo-address-august-2025-reviewed-retentions.json",
+        "authority": "User August review, 2026-10-06: keep complex and buildings",
+        "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7"
+      }
     },
     {
       "id": "ss-ef70a2b4-0285-5c6b-9feb-db3f2748a05f",
       "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7",
-      "enEstateName": "SILVERSTRAND VILLA",
-      "enStreetName": "SAPPHIRE PATH",
-      "enStreetNumberFrom": "1"
+      "targetGuard": {
+        "enEstateName": "SILVERSTRAND VILLA",
+        "enStreetName": "SAPPHIRE PATH",
+        "enStreetNumberFrom": "1"
+      },
+      "provenance": {
+        "id": "august-2025-reviewed-20",
+        "curationFile": "hkgov-dpo-address-august-2025-reviewed-retentions.json",
+        "authority": "User August review, 2026-10-06: keep complex and buildings",
+        "parentId": "ss-e1b3e80b-52ce-551e-89d8-31f42f66d2b7"
+      }
     }
   ]
 }

@@ -11,11 +11,48 @@
       "inventoryHash": "fd1c14fc72db457105fbe74618551228e443a7586dcb707e37fa81f31d46cc05",
       "unitCount": 780,
       "streets": [
-        { "en": "TAI WAN ROAD", "zh": "大環道", "number": "28" },
-        { "en": "DYER AVENUE", "zh": "戴亞街", "number": "9" }
+        {
+          "en": "TAI WAN ROAD",
+          "zh": "大環道",
+          "number": "28"
+        },
+        {
+          "en": "DYER AVENUE",
+          "zh": "戴亞街",
+          "number": "9"
+        }
       ],
-      "coordinates": [[114.18909, 22.30801], [114.18903, 22.30795]],
+      "coordinates": [
+        [
+          114.18909,
+          22.30801
+        ],
+        [
+          114.18903,
+          22.30795
+        ]
+      ],
       "reason": "The unnamed address CSU belongs to Hung Yat House, but its 780-unit arrays incorrectly match Hung Yiu House. Retain only Hung Yat's named 456-unit collection. Phase 2 uses 28 Tai Wan Road, not 9 Dyer Avenue. Preserve the rejected raw inventory without assigning its units to Hung Yat."
+    }
+  ],
+  "exactSuppressions": [
+    {
+      "code": "suppress-exact-inventory",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2025-01-23.0",
+      "csu": "3864823026T20050430",
+      "sourceHash": "0f1e35cee47833b7cc9001ca39a0b4dcef1727ab445d92836d9aedf10783a4ed",
+      "id": "tsz-lok-phase-3-unnamed-inventory",
+      "reason": "Approved suppression of the redundant unnamed 633-expression inventory. Preserve its raw provenance and every named building inventory; no shared physical flats or additional building are inferred."
+    },
+    {
+      "code": "suppress-exact-inventory",
+      "sourceVersionFrom": "2026-07-22.0",
+      "sourceVersionTo": "2026-08-19.0",
+      "csu": "3532121484T20121220",
+      "sourceHash": "fcfd494831ac14fd6d8aac02d46e34f3c93c8972b7ddc72654ce2f69bd0ef4d0",
+      "id": "shek-kip-mei-phase-2-unnamed-inventory",
+      "reason": "Reviewed unnamed 780-unit assertion is not an additional building inventory. Preserve both named houses and their separate 779-unit inventories; retain this rejected assertion as raw provenance."
     }
   ]
 }

@@ -1,0 +1,446 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SaanSeoi DPO editorial review program",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "operations"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "operations": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "guard-source-group"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "provenanceKey",
+              "returnedAliases"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "reconcile-identity"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "provenanceKey": {
+                "type": "string",
+                "minLength": 1
+              },
+              "returnedAliases": {
+                "enum": [
+                  "reject",
+                  "coalesce-guarded"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom",
+              "authority",
+              "phase",
+              "matchIdentityAliases"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "assign-parent"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              },
+              "authority": {
+                "type": "string",
+                "minLength": 1
+              },
+              "phase": {
+                "enum": [
+                  "hierarchy",
+                  "initial-hierarchy"
+                ]
+              },
+              "matchIdentityAliases": {
+                "type": "boolean"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom",
+              "phase"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "classify-premise"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              },
+              "phase": {
+                "enum": [
+                  "shops",
+                  "final-parents"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "suppress-duplicate-premise"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom",
+              "authority"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "derive-parent"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              },
+              "authority": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "record-coalescence"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom",
+              "mode"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "guard-inventory"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              },
+              "mode": {
+                "enum": [
+                  "coalesced",
+                  "retained"
+                ]
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "preserve-section-ownership"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "reconcile-block-frontages"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection",
+              "sourceVersionFrom"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "reconstruct-frontages"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              },
+              "sourceVersionFrom": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}\\.\\d+$"
+              }
+            }
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "id",
+              "code",
+              "fixture",
+              "collection"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "code": {
+                "const": "retain-premise"
+              },
+              "fixture": {
+                "type": "string",
+                "minLength": 1
+              },
+              "collection": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

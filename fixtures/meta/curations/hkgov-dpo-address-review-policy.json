@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "scopes": [
+    {
+      "code": "confident-continuity",
+      "sourceVersionFrom": "2026-01-01.0",
+      "sourceVersionBefore": "2027-01-01.0",
+      "id": "confident-2026-continuity",
+      "authority": "User-authorised confident 2026 resolutions, 2026-10-07"
+    },
+    {
+      "code": "defer-investigation",
+      "sourceVersionFrom": "2026-01-01.0",
+      "sourceVersionBefore": "2027-01-01.0",
+      "issueCodes": [
+        "identity-drift",
+        "unverified-curation",
+        "street-component-conflict",
+        "reviewed-inventory-omission",
+        "hierarchy-evidence-conflict"
+      ]
+    }
+  ],
+  "retentionAliasFiles": [
+    "hkgov-dpo-address-june-final-retentions.json",
+    "hkgov-dpo-address-august-2025-reviewed-retentions.json",
+    "hkgov-dpo-address-september-2025-reviewed-retentions.json",
+    "hkgov-dpo-address-november-2025-reviewed-retentions.json",
+    "hkgov-dpo-address-december-2025-reviewed-retentions.json",
+    "hkgov-dpo-address-september-deletion-retentions.json",
+    "hkgov-dpo-address-october-deletion-retentions.json",
+    "hkgov-dpo-address-november-deletion-retentions.json",
+    "hkgov-dpo-address-december-deletion-retentions.json",
+    "hkgov-dpo-address-january-deletion-retentions.json",
+    "hkgov-dpo-address-february-deletion-retentions.json",
+    "hkgov-dpo-address-march-deletion-retentions.json",
+    "hkgov-dpo-address-april-deletion-retentions.json"
+  ],
+  "coalescenceAliasFiles": [
+    "hkgov-dpo-address-december-deletion-retentions.json",
+    "hkgov-dpo-address-april-deletion-retentions.json"
+  ]
+}

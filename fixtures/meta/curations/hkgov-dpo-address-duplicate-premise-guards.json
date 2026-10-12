@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "code": "suppress-empty-premise-duplicate",
+      "id": "ko-yee-duplicate",
+      "sourceVersionFrom": "2024-07-25.0",
+      "sourceVersionTo": "2026-07-10.0",
+      "estateName": "KO YEE ESTATE",
+      "ownerGuard": {
+        "hkgovCsuId": "4291717546T20050430",
+        "enBuildingName": "KO SHING HOUSE"
+      },
+      "ownerExpected": {
+        "zhHantBuildingName": "高盛樓"
+      },
+      "duplicateCsu": "4286117561T20050430",
+      "duplicateExpected": {
+        "enBuildingName": null,
+        "zhHantBuildingName": null
+      },
+      "sharedGuard": {
+        "zhHantEstateName": "高怡邨",
+        "enStreetName": "KO CHIU ROAD",
+        "zhHantStreetName": "高超道",
+        "enStreetNumberFrom": "28",
+        "zhHantStreetNumberFrom": "28",
+        "geoAddress": "4286117561T20050430",
+        "enBlockNumber": null,
+        "zhHantBlockNumber": null
+      },
+      "epochs": [
+        {
+          "sourceVersionFrom": "2024-07-25.0",
+          "coordinates": [
+            114.24114,
+            22.29688
+          ]
+        },
+        {
+          "sourceVersionFrom": "2026-04-03.0",
+          "coordinates": [
+            114.24086,
+            22.29696
+          ]
+        }
+      ],
+      "provenanceKey": "hkgovAlsKoYeeDuplicate",
+      "authority": "User decision, 2026-09-07: collapse reviewed Ko Shing variants and backfill current coordinates.",
+      "evidenceSourceVersion": "2026-08-19.0"
+    }
+  ]
+}

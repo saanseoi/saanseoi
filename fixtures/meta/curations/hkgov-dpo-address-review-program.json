@@ -1,0 +1,407 @@
+{
+  "$schema": "./hkgov-dpo-address-review-program.schema.json",
+  "schemaVersion": 1,
+  "operations": [
+    {
+      "id": "hkgov-dpo-address-september-deletion-retentions-source-guards",
+      "code": "guard-source-group",
+      "fixture": "hkgov-dpo-address-september-deletion-retentions",
+      "collection": "sourceGuards",
+      "sourceVersionFrom": "2024-09-03.0"
+    },
+    {
+      "id": "hkgov-dpo-address-october-deletion-retentions-source-guards",
+      "code": "guard-source-group",
+      "fixture": "hkgov-dpo-address-october-deletion-retentions",
+      "collection": "sourceGuards",
+      "sourceVersionFrom": "2024-10-18.0"
+    },
+    {
+      "id": "hkgov-dpo-address-november-deletion-retentions-source-guards",
+      "code": "guard-source-group",
+      "fixture": "hkgov-dpo-address-november-deletion-retentions",
+      "collection": "sourceGuards",
+      "sourceVersionFrom": "2024-11-13.0"
+    },
+    {
+      "id": "hkgov-dpo-address-december-deletion-retentions-source-guards",
+      "code": "guard-source-group",
+      "fixture": "hkgov-dpo-address-december-deletion-retentions",
+      "collection": "sourceGuards",
+      "sourceVersionFrom": "2024-12-12.0"
+    },
+    {
+      "id": "hkgov-dpo-address-january-deletion-retentions-source-guards",
+      "code": "guard-source-group",
+      "fixture": "hkgov-dpo-address-january-deletion-retentions",
+      "collection": "sourceGuards",
+      "sourceVersionFrom": "2025-01-23.0"
+    },
+    {
+      "id": "hkgov-dpo-address-february-source-guards-source-guards",
+      "code": "guard-source-group",
+      "fixture": "hkgov-dpo-address-february-source-guards",
+      "collection": "sourceGuards",
+      "sourceVersionFrom": "2025-02-25.0"
+    },
+    {
+      "id": "hkgov-dpo-address-march-deletion-retentions-source-guards",
+      "code": "guard-source-group",
+      "fixture": "hkgov-dpo-address-march-deletion-retentions",
+      "collection": "sourceGuards",
+      "sourceVersionFrom": "2025-03-21.0"
+    },
+    {
+      "id": "hkgov-dpo-address-april-deletion-retentions-source-guards",
+      "code": "guard-source-group",
+      "fixture": "hkgov-dpo-address-april-deletion-retentions",
+      "collection": "sourceGuards",
+      "sourceVersionFrom": "2025-04-26.0"
+    },
+    {
+      "id": "hkgov-dpo-address-august-2025-reviewed-retentions-aliases",
+      "code": "reconcile-identity",
+      "fixture": "hkgov-dpo-address-august-2025-reviewed-retentions",
+      "collection": "identityReconciliations",
+      "provenanceKey": "hkgovAlsAugustReviewedIdentityReconciliation",
+      "returnedAliases": "reject"
+    },
+    {
+      "id": "hkgov-dpo-address-june-reviewed-retentions-aliases",
+      "code": "reconcile-identity",
+      "fixture": "hkgov-dpo-address-june-reviewed-retentions",
+      "collection": "identityReconciliations",
+      "provenanceKey": "hkgovAlsJuneReviewedIdentityReconciliation",
+      "returnedAliases": "reject"
+    },
+    {
+      "id": "hkgov-dpo-address-november-2025-reviewed-retentions-aliases",
+      "code": "reconcile-identity",
+      "fixture": "hkgov-dpo-address-november-2025-reviewed-retentions",
+      "collection": "identityReconciliations",
+      "provenanceKey": "hkgovAlsNovemberReviewedIdentityReconciliation",
+      "returnedAliases": "coalesce-guarded"
+    },
+    {
+      "id": "hkgov-dpo-address-september-2025-reviewed-retentions-aliases",
+      "code": "reconcile-identity",
+      "fixture": "hkgov-dpo-address-september-2025-reviewed-retentions",
+      "collection": "identityReconciliations",
+      "provenanceKey": "hkgovAlsSeptemberReviewedIdentityReconciliation",
+      "returnedAliases": "coalesce-guarded"
+    },
+    {
+      "id": "hkgov-dpo-address-december-2025-reviewed-retentions-aliases",
+      "code": "reconcile-identity",
+      "fixture": "hkgov-dpo-address-december-2025-reviewed-retentions",
+      "collection": "identityReconciliations",
+      "provenanceKey": "hkgovAlsDecember2025ReviewedIdentityReconciliation",
+      "returnedAliases": "coalesce-guarded"
+    },
+    {
+      "id": "hkgov-dpo-address-october-deletion-retentions-parents",
+      "code": "assign-parent",
+      "fixture": "hkgov-dpo-address-october-deletion-retentions",
+      "collection": "groups",
+      "sourceVersionFrom": "2024-10-18.0",
+      "authority": "User decisions, 2026-10-04",
+      "phase": "hierarchy",
+      "matchIdentityAliases": true
+    },
+    {
+      "id": "hkgov-dpo-address-november-deletion-retentions-parents",
+      "code": "assign-parent",
+      "fixture": "hkgov-dpo-address-november-deletion-retentions",
+      "collection": "groups",
+      "sourceVersionFrom": "2024-11-13.0",
+      "authority": "User decisions, 2026-10-04",
+      "phase": "hierarchy",
+      "matchIdentityAliases": true
+    },
+    {
+      "id": "hkgov-dpo-address-december-deletion-retentions-parents",
+      "code": "assign-parent",
+      "fixture": "hkgov-dpo-address-december-deletion-retentions",
+      "collection": "groups",
+      "sourceVersionFrom": "2024-12-12.0",
+      "authority": "Assistant inference authorised by user, 2026-10-04",
+      "phase": "hierarchy",
+      "matchIdentityAliases": true
+    },
+    {
+      "id": "hkgov-dpo-address-january-deletion-retentions-parents",
+      "code": "assign-parent",
+      "fixture": "hkgov-dpo-address-january-deletion-retentions",
+      "collection": "groups",
+      "sourceVersionFrom": "2025-01-23.0",
+      "authority": "Assistant inference authorised by user, 2026-10-05",
+      "phase": "hierarchy",
+      "matchIdentityAliases": true
+    },
+    {
+      "id": "hkgov-dpo-address-february-deletion-retentions-parents",
+      "code": "assign-parent",
+      "fixture": "hkgov-dpo-address-february-deletion-retentions",
+      "collection": "groups",
+      "sourceVersionFrom": "2025-02-25.0",
+      "authority": "User decisions, 2026-10-05",
+      "phase": "hierarchy",
+      "matchIdentityAliases": true
+    },
+    {
+      "id": "hkgov-dpo-address-march-deletion-retentions-parents",
+      "code": "assign-parent",
+      "fixture": "hkgov-dpo-address-march-deletion-retentions",
+      "collection": "groups",
+      "sourceVersionFrom": "2025-03-21.0",
+      "authority": "Assistant inference authorised by user, 2026-10-05",
+      "phase": "hierarchy",
+      "matchIdentityAliases": true
+    },
+    {
+      "id": "hkgov-dpo-address-april-deletion-retentions-parents",
+      "code": "assign-parent",
+      "fixture": "hkgov-dpo-address-april-deletion-retentions",
+      "collection": "groups",
+      "sourceVersionFrom": "2025-04-26.0",
+      "authority": "User decisions, 2026-10-05",
+      "phase": "initial-hierarchy",
+      "matchIdentityAliases": false
+    },
+    {
+      "id": "hkgov-dpo-address-review-operations-november2025Shops",
+      "code": "classify-premise",
+      "fixture": "hkgov-dpo-address-review-operations",
+      "collection": "november2025Shops",
+      "sourceVersionFrom": "2025-11-04.0",
+      "phase": "shops"
+    },
+    {
+      "id": "hkgov-dpo-address-review-operations-september2025Shops",
+      "code": "classify-premise",
+      "fixture": "hkgov-dpo-address-review-operations",
+      "collection": "september2025Shops",
+      "sourceVersionFrom": "2025-09-03.0",
+      "phase": "shops"
+    },
+    {
+      "id": "hkgov-dpo-address-august-2025-reviewed-retentions-parent-classification",
+      "code": "classify-premise",
+      "fixture": "hkgov-dpo-address-august-2025-reviewed-retentions",
+      "collection": "parentAssignments",
+      "sourceVersionFrom": "2025-08-13.0",
+      "phase": "final-parents"
+    },
+    {
+      "id": "hkgov-dpo-address-september-deletion-retentions-suppressions",
+      "code": "suppress-duplicate-premise",
+      "fixture": "hkgov-dpo-address-september-deletion-retentions",
+      "collection": "suppressions",
+      "sourceVersionFrom": "2024-09-03.0"
+    },
+    {
+      "id": "hkgov-dpo-address-september-deletion-retentions-groups",
+      "code": "derive-parent",
+      "fixture": "hkgov-dpo-address-september-deletion-retentions",
+      "collection": "groups",
+      "sourceVersionFrom": "2024-09-03.0",
+      "authority": "User decisions, 2026-10-04"
+    },
+    {
+      "id": "hkgov-dpo-address-december-deletion-retentions-coalescences",
+      "code": "record-coalescence",
+      "fixture": "hkgov-dpo-address-december-deletion-retentions",
+      "collection": "coalescences",
+      "sourceVersionFrom": "2024-12-12.0"
+    },
+    {
+      "id": "hkgov-dpo-address-december-deletion-retentions-coalescences-inventory",
+      "code": "guard-inventory",
+      "fixture": "hkgov-dpo-address-december-deletion-retentions",
+      "collection": "coalescences",
+      "sourceVersionFrom": "2024-12-12.0",
+      "mode": "coalesced"
+    },
+    {
+      "id": "hkgov-dpo-address-february-deletion-retentions-inventories-inventory",
+      "code": "guard-inventory",
+      "fixture": "hkgov-dpo-address-february-deletion-retentions",
+      "collection": "inventories",
+      "sourceVersionFrom": "2025-02-25.0",
+      "mode": "retained"
+    },
+    {
+      "id": "hkgov-dpo-address-april-deletion-retentions-inventories-inventory",
+      "code": "guard-inventory",
+      "fixture": "hkgov-dpo-address-april-deletion-retentions",
+      "collection": "inventories",
+      "sourceVersionFrom": "2025-04-26.0",
+      "mode": "retained"
+    },
+    {
+      "id": "hkgov-dpo-address-february-deletion-retentions-groups-ownership",
+      "code": "preserve-section-ownership",
+      "fixture": "hkgov-dpo-address-february-deletion-retentions",
+      "collection": "groups",
+      "sourceVersionFrom": "2025-02-25.0"
+    },
+    {
+      "id": "hkgov-dpo-address-review-operations-blockFrontages",
+      "code": "reconcile-block-frontages",
+      "fixture": "hkgov-dpo-address-review-operations",
+      "collection": "blockFrontages",
+      "sourceVersionFrom": "2025-04-26.0"
+    },
+    {
+      "id": "hkgov-dpo-address-review-operations-reconstructedFrontages",
+      "code": "reconstruct-frontages",
+      "fixture": "hkgov-dpo-address-review-operations",
+      "collection": "reconstructedFrontages",
+      "sourceVersionFrom": "2025-04-26.0"
+    },
+    {
+      "id": "hkgov-dpo-address-2026-reviewed-continuity-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-2026-reviewed-continuity",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-reviewed-premise-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-reviewed-premise-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-reviewed-continuity-decisions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-reviewed-continuity-decisions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-university-hill-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-university-hill-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-august-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-august-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-september-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-september-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-october-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-october-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-november-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-november-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-december-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-december-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-january-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-january-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-february-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-february-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-march-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-march-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-april-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-april-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-may-deletion-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-may-deletion-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-june-confidence-continuity-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-june-confidence-continuity",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-june-reviewed-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-june-reviewed-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-june-final-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-june-final-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-august-2025-continuity-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-august-2025-continuity",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-september-2025-continuity-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-september-2025-continuity",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-november-2025-continuity-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-november-2025-continuity",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-november-2025-reviewed-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-november-2025-reviewed-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-december-2025-reviewed-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-december-2025-reviewed-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-august-2025-reviewed-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-august-2025-reviewed-retentions",
+      "collection": "rules"
+    },
+    {
+      "id": "hkgov-dpo-address-september-2025-reviewed-retentions-retentions",
+      "code": "retain-premise",
+      "fixture": "hkgov-dpo-address-september-2025-reviewed-retentions",
+      "collection": "rules"
+    }
+  ]
+}

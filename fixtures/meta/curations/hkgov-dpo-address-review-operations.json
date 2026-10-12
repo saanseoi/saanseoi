@@ -1,0 +1,240 @@
+{
+  "version": 1,
+  "november2025Shops": [
+    {
+      "id": "ss-b685bacd-6920-5b5b-aea2-607143ba10d6",
+      "parentId": "ss-9fe9c6db-2a07-53b0-893c-69b8588c0b58",
+      "targetGuard": {
+        "enBuildingName": "LOK YUEN HOUSE",
+        "enStreetName": "NELSON STREET",
+        "enStreetNumberFrom": "2L"
+      },
+      "granularity": "unit",
+      "provenance": {
+        "id": "november-2025-reviewed-shops",
+        "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
+        "authority": "User November review: numbered frontages are shops"
+      }
+    },
+    {
+      "id": "ss-fc1db7ea-f561-5091-be89-d408e6ab89a8",
+      "parentId": "ss-9fe9c6db-2a07-53b0-893c-69b8588c0b58",
+      "targetGuard": {
+        "enBuildingName": "LOK YUEN HOUSE",
+        "enStreetName": "NELSON STREET",
+        "enStreetNumberFrom": "2M"
+      },
+      "granularity": "unit",
+      "provenance": {
+        "id": "november-2025-reviewed-shops",
+        "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
+        "authority": "User November review: numbered frontages are shops"
+      }
+    },
+    {
+      "id": "ss-8cf21582-cbbe-55b9-8f65-736967225eb8",
+      "parentId": "ss-17b4e0a7-ebeb-5ce6-b213-9da513f97727",
+      "targetGuard": {
+        "enBuildingName": "LOK YUEN HOUSE",
+        "enStreetName": "THISTLE STREET",
+        "enStreetNumberFrom": "21"
+      },
+      "granularity": "unit",
+      "provenance": {
+        "id": "november-2025-reviewed-shops",
+        "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
+        "authority": "User November review: numbered frontages are shops"
+      }
+    },
+    {
+      "id": "ss-2e35911e-652d-5ef1-baad-c0dbbbe6b096",
+      "parentId": "ss-17b4e0a7-ebeb-5ce6-b213-9da513f97727",
+      "targetGuard": {
+        "enBuildingName": "LOK YUEN HOUSE",
+        "enStreetName": "THISTLE STREET",
+        "enStreetNumberFrom": "23"
+      },
+      "granularity": "unit",
+      "provenance": {
+        "id": "november-2025-reviewed-shops",
+        "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
+        "authority": "User November review: numbered frontages are shops"
+      }
+    },
+    {
+      "id": "ss-6aff2daf-4330-525d-b729-f13ee8474ad0",
+      "parentId": "ss-17b4e0a7-ebeb-5ce6-b213-9da513f97727",
+      "targetGuard": {
+        "enBuildingName": "LOK YUEN HOUSE",
+        "enStreetName": "THISTLE STREET",
+        "enStreetNumberFrom": "19"
+      },
+      "granularity": "unit",
+      "provenance": {
+        "id": "november-2025-reviewed-shops",
+        "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
+        "authority": "User November review: numbered frontages are shops"
+      }
+    },
+    {
+      "id": "ss-7aaf8289-05c4-5c16-92ed-e71c087092f0",
+      "parentId": "ss-17b4e0a7-ebeb-5ce6-b213-9da513f97727",
+      "targetGuard": {
+        "enBuildingName": "LOK YUEN HOUSE",
+        "enStreetName": "THISTLE STREET",
+        "enStreetNumberFrom": "17"
+      },
+      "granularity": "unit",
+      "provenance": {
+        "id": "november-2025-reviewed-shops",
+        "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
+        "authority": "User November review: numbered frontages are shops"
+      }
+    },
+    {
+      "id": "ss-6f6fbe7e-97d4-52dd-86e7-eaa29370ef3c",
+      "parentId": "ss-17b4e0a7-ebeb-5ce6-b213-9da513f97727",
+      "targetGuard": {
+        "enBuildingName": "LOK YUEN HOUSE",
+        "enStreetName": "THISTLE STREET",
+        "enStreetNumberFrom": "15"
+      },
+      "granularity": "unit",
+      "provenance": {
+        "id": "november-2025-reviewed-shops",
+        "curationFile": "hkgov-dpo-address-november-2025-reviewed-retentions.json",
+        "authority": "User November review: numbered frontages are shops"
+      }
+    }
+  ],
+  "september2025Shops": [
+    {
+      "id": "ss-fce72898-af79-51db-be6c-6247d0a7044f",
+      "parentId": "ss-2bc8efc1-3ac0-578a-9bd4-2e2ceb2da35e",
+      "targetGuard": {
+        "enBuildingName": "TSING FUNG BUILDING",
+        "enStreetName": "TSING FUNG STREET",
+        "enStreetNumberFrom": "12"
+      },
+      "granularity": "unit",
+      "provenance": {
+        "id": "september-2025-reviewed-4",
+        "curationFile": "hkgov-dpo-address-september-2025-reviewed-retentions.json",
+        "authority": "User September review: 10 and 12 are shops"
+      }
+    },
+    {
+      "id": "ss-632d1f31-678e-5d10-b9bc-625cc645172d",
+      "parentId": "ss-2bc8efc1-3ac0-578a-9bd4-2e2ceb2da35e",
+      "targetGuard": {
+        "enBuildingName": "TSING FUNG BUILDING",
+        "enStreetName": "TSING FUNG STREET",
+        "enStreetNumberFrom": "10"
+      },
+      "granularity": "unit",
+      "provenance": {
+        "id": "september-2025-reviewed-4",
+        "curationFile": "hkgov-dpo-address-september-2025-reviewed-retentions.json",
+        "authority": "User September review: 10 and 12 are shops"
+      }
+    }
+  ],
+  "blockFrontages": [
+    {
+      "id": "april-seaside-sonata-towers",
+      "selector": {
+        "enEstateName": "SEASIDE SONATA",
+        "enBlockDescriptor": "TOWER"
+      },
+      "blocks": [
+        {
+          "number": "1",
+          "preferredNumber": "201",
+          "aliasIds": [],
+          "identityKey": "april-seaside-sonata-tower:1"
+        },
+        {
+          "number": "2",
+          "preferredNumber": "203",
+          "aliasIds": [
+            "ss-27686a7f-a722-51a6-8afe-b00d61f44984",
+            "ss-65537b62-a551-5834-9c81-ea327319d269"
+          ],
+          "identityKey": "april-seaside-sonata-tower:2"
+        },
+        {
+          "number": "3",
+          "preferredNumber": "201",
+          "aliasIds": [],
+          "identityKey": "april-seaside-sonata-tower:3"
+        },
+        {
+          "number": "5",
+          "preferredNumber": "201",
+          "aliasIds": [],
+          "identityKey": "april-seaside-sonata-tower:5"
+        }
+      ],
+      "fromNumber": "201",
+      "toNumber": "218",
+      "curationFile": "hkgov-dpo-address-april-deletion-retentions.json",
+      "provenanceKey": "hkgovAlsAprilAddressReconciliation",
+      "provenance": {
+        "authority": "User-reviewed reconciliation, 2026-10-05",
+        "curationFile": "hkgov-dpo-address-april-deletion-retentions.json",
+        "sharedRange": "201-218 HAI TAN STREET"
+      }
+    }
+  ],
+  "reconstructedFrontages": [
+    {
+      "id": "april-2025-shiu-king-frontages",
+      "selector": {
+        "hkgovCsuId": "4037420364T20241122",
+        "enBuildingName": "SIU KING BUILDING",
+        "enStreetName": "ON WAH STREET",
+        "enStreetNumberFrom": "6"
+      },
+      "frontages": [
+        {
+          "id": "ss-2350ce85-0f68-5839-89d5-94086500dbe6",
+          "fromNumber": "177",
+          "toNumber": "181",
+          "street": "NGAU TAU KOK ROAD",
+          "zhStreet": "牛頭角道",
+          "identityKey": "april-shiu-king-building:ss-2350ce85-0f68-5839-89d5-94086500dbe6"
+        },
+        {
+          "id": "ss-33e5d265-1d22-52e6-9155-4e439e59558d",
+          "fromNumber": "2",
+          "toNumber": "8",
+          "street": "ON WAH STREET",
+          "zhStreet": "安華街",
+          "identityKey": "april-shiu-king-building:ss-33e5d265-1d22-52e6-9155-4e439e59558d"
+        },
+        {
+          "id": "ss-f5947d7b-082e-50cb-91da-dd6269799604",
+          "fromNumber": "10",
+          "toNumber": null,
+          "street": "CHUN WAH ROAD",
+          "zhStreet": "振華道",
+          "identityKey": "april-shiu-king-building:ss-f5947d7b-082e-50cb-91da-dd6269799604"
+        }
+      ],
+      "curationFile": "hkgov-dpo-address-april-deletion-retentions.json",
+      "authority": "User-reviewed reconciliation, 2026-10-05",
+      "identityMatchMethod": "april-reviewed-address-reconciliation",
+      "sourceRecordId": "aae8ba0f-2d83-5af9-bdb3-09be07f043d8",
+      "derivedFromCurrentPremise": "6 ON WAH STREET",
+      "frontageProvenanceKey": "hkgovAlsAprilAddressSupplement",
+      "subpremise": {
+        "id": "ss-9f77c50f-9932-532a-89c3-47efffeba555",
+        "decisionId": "april-2025-shiu-king-shop-subpremise",
+        "identityKey": "april-shiu-king-shop-subpremise",
+        "parentId": "ss-33e5d265-1d22-52e6-9155-4e439e59558d",
+        "role": "shop sub-premises",
+        "provenanceKey": "hkgovAlsAprilShopSubpremise"
+      }
+    }
+  ]
+}
