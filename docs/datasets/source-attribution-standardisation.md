@@ -105,5 +105,6 @@ C&SD geometry, LandsD Streets and district density statistics. The shared API sc
 requires flat attribution arrays. Retained-row conversion still requires snapshot
 replay, R2 evidence verification, cache invalidation, rollback receipts and fresh API
 reads. Do not reset a scope with a publication in progress. The native dataset “Maps
-Entity Variant Names” requires verified publisher ownership before complete Overture
-Division reingestion.
+Entity Variant Names” maps to Overture attribution by explicit policy, preserving its
+property pointer, record reference and licence. This policy does not establish the
+original publisher’s ownership.

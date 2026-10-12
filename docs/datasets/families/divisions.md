@@ -2030,3 +2030,8 @@ upstream property pointers through the explicit native-name mapping. Planning re
 enumerate contributing cells or New Town records. C&SD requires an explicit dataset
 code. Curated processing references and component indexes remain in retained inputs and
 audits; synthetic district unions collect attribution from their contributing areas.
+
+The native “Maps Entity Variant Names” dataset maps to `publisherCode: overture` and
+`dataset: overture` by explicit attribution policy. Its property pointer, record
+reference and licence are preserved; retained native source payloads keep the original
+dataset label.

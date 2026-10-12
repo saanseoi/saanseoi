@@ -83,7 +83,7 @@ test('retained camelCase references preserve identity without guessing unknown p
   ])
   expect(() =>
     normaliseOvertureAttribution([
-      { dataset: 'Maps Entity Variant Names', recordId: 'R913110' },
+      { dataset: 'Unregistered upstream dataset', recordId: 'unknown' },
     ]),
   ).toThrow('Unregistered')
   expect(() =>
@@ -91,4 +91,27 @@ test('retained camelCase references preserve identity without guessing unknown p
       { dataset: 'meta', record_id: 'one', recordId: 'two' },
     ]),
   ).toThrow('Conflicting')
+})
+
+test('attributes Maps Entity Variant Names to Overture under the explicit policy', () => {
+  expect(
+    normaliseOvertureAttribution([
+      {
+        dataset: 'Maps Entity Variant Names',
+        property: '/properties/names/primary',
+        recordId: 'R913110',
+        license: 'CC0-1.0',
+        updateTime: null,
+        confidence: null,
+      },
+    ]),
+  ).toEqual([
+    {
+      publisherCode: 'overture',
+      dataset: 'overture',
+      property: '/properties/names/primary',
+      recordId: 'R913110',
+      license: 'CC0-1.0',
+    },
+  ])
 })

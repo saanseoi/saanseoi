@@ -59,15 +59,15 @@
       "publisherCode": "esri",
       "dataset": "esri-community-maps",
       "publisherReference": "https://docs.overturemaps.org/attribution/"
-    }
-  ],
-  "unresolved": [
+    },
     {
       "names": [
         "Maps Entity Variant Names"
       ],
-      "dataset": "maps-entity-variant-names",
-      "reason": "Retained Division attribution identifies the dataset and CC0-1.0 licence but does not identify its publisher. Publisher ownership must be established before canonical attribution can be emitted."
+      "publisherCode": "overture",
+      "dataset": "overture",
+      "reason": "Explicit attribution policy: attribute this native dataset to Overture; retain its property pointer, record reference and licence without asserting original publisher ownership."
     }
-  ]
+  ],
+  "unresolved": []
 }

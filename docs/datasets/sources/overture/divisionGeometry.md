@@ -447,3 +447,8 @@ Canonical attribution normalises native Overture source items through
 optional record metadata. Unknown publisher identities block normalisation. Synthetic
 area unions collect their constituent areas' attribution; processing markers are
 excluded from `sources`.
+
+The native “Maps Entity Variant Names” dataset maps to `publisherCode: overture` and
+`dataset: overture` by explicit attribution policy. Its property pointer, record
+reference and licence are preserved; retained native source payloads keep the original
+dataset label.
