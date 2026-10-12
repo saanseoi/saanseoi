@@ -30,7 +30,7 @@ const apiFamilies = [
   {
     id: 'divisions',
     label: () => m.openapi_label_divisions(),
-    versions: ['v0', 'v0.1'],
+    versions: ['v0', 'v0.1', 'v0.2'],
     visible: true,
   },
   {

@@ -252,9 +252,22 @@ const handleViewportResize = () => {
   if (window.innerWidth <= 900) activeApiIndex = null
 }
 
-const apiByFamily = $derived(
-  new Map(apiData?.apis.map(api => [api.familyType.toLowerCase(), api]) ?? []),
-)
+const apiByFamily = $derived.by(() => {
+  const apisByFamily = new Map<string, NonNullable<typeof apiData>['apis'][number]>()
+  for (const api of apiData?.apis ?? []) {
+    const familyType = api.familyType.toLowerCase()
+    const selected = apisByFamily.get(familyType)
+    if (
+      !selected ||
+      (api.status === 'current' && selected.status !== 'current') ||
+      (api.status === selected.status &&
+        api.version.localeCompare(selected.version, undefined, { numeric: true }) > 0)
+    ) {
+      apisByFamily.set(familyType, api)
+    }
+  }
+  return apisByFamily
+})
 const apiDirectory = $derived(
   apiFamilyOrder.map(familyType => {
     const api = apiByFamily.get(familyType)
@@ -616,8 +629,8 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         <Popover.Root>
           <Popover.Trigger openOnHover openDelay={200}>
             {#snippet child({
-  props,
-})}
+              props,
+            })}
               <button
                 {...props}
                 class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
@@ -642,13 +655,16 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
         <Popover.Root>
           <Popover.Trigger openOnHover openDelay={200}>
             {#snippet child({
-  props,
-})}
+              props,
+            })}
               <button
                 {...props}
                 class="font-inherit font-semibold text-secondary underline decoration-dotted underline-offset-4 hover:text-primary"
                 type="button"
-                aria-label={getMarkdownTransclusionDisplayTitle(basemapDefinition, locale)}
+                aria-label={getMarkdownTransclusionDisplayTitle(
+                  basemapDefinition,
+                  locale,
+                )}
               >
                 {m.reference_basemap()}
               </button>
@@ -699,7 +715,8 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
             class={apiCardClass(apiIndex, orderIndex)}
             style={`--api-accent: ${api.theme.colorway.primary}; --api-ink: ${api.theme.colorway.ink}; --api-card-foreground: #fff9ed; --swipe-x: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX : 0}px; --swipe-y: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaY : 0}px; --swipe-rotate: ${apiSwipeState.draggedApiIndex === apiIndex ? apiSwipeState.deltaX * 0.035 : 0}deg;`}
             onclickcapture={handleApiClickCapture}
-            onpointerdown={(event: PointerEvent) => handleApiPointerDown(event, apiIndex, orderIndex)}
+            onpointerdown={(event: PointerEvent) =>
+              handleApiPointerDown(event, apiIndex, orderIndex)}
             onpointermove={handleApiPointerMove}
             onpointerup={handleApiPointerEnd}
             onpointercancel={handleApiPointerEnd}
@@ -711,15 +728,18 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
               <CardDeck.ApiVisual image={api.theme.image} />
               <CardDeck.ApiBody
                 active={activeApiIndex === apiIndex}
-                anotherCardActive={activeApiIndex !== null && activeApiIndex !== apiIndex}
+                anotherCardActive={activeApiIndex !== null &&
+                  activeApiIndex !== apiIndex}
                 isLoading={false}
                 familyLabel={m.sources_flow_api_family()}
-                accessLabel={api.isPending ? m.data_coming_soon() : m.data_open_access()}
+                accessLabel={api.isPending
+                  ? m.data_coming_soon()
+                  : m.data_open_access()}
                 name={api.theme.name}
                 description={apiFamilyDescription(api.familyType)}
                 releasesHref={api.latestRelease
-  ? `/apis/${api.familyType}/${api.latestRelease.code}`
-  : `/apis/${api.familyType}`}
+                  ? `/apis/${api.familyType}/${api.latestRelease.code}`
+                  : `/apis/${api.familyType}`}
                 releasesLabel={m.data_releases()}
                 docsHref={docsUrlForFamily(api.familyType)}
                 docsLabel={m.data_docs()}
@@ -765,14 +785,23 @@ const basemapCardClass = (code: (typeof basemapDirectory)[number]['code']) => {
               intro={{ y: 18, duration: 360, delay: index * 70 }}
               isSelected={activeBasemapCode === region.code}
               isShrunk={activeBasemapCode !== null && activeBasemapCode !== region.code}
-              shrunkIndex={activeBasemapCode !== null && activeBasemapCode !== region.code
-  ? basemapInactiveIndex(region.code)
-  : null}
-              isDragging={basemapDragState.isDragging && basemapDragState.draggedCode === region.code}
-              isThrowing={basemapDragState.isThrowing && basemapDragState.throwingCode === region.code}
-              throwPhase={basemapDragState.throwingCode === region.code ? basemapDragState.throwPhase : null}
-              dragX={basemapDragState.draggedCode === region.code ? basemapDragState.deltaX : 0}
-              dragY={basemapDragState.draggedCode === region.code ? basemapDragState.deltaY : 0}
+              shrunkIndex={activeBasemapCode !== null &&
+              activeBasemapCode !== region.code
+                ? basemapInactiveIndex(region.code)
+                : null}
+              isDragging={basemapDragState.isDragging &&
+                basemapDragState.draggedCode === region.code}
+              isThrowing={basemapDragState.isThrowing &&
+                basemapDragState.throwingCode === region.code}
+              throwPhase={basemapDragState.throwingCode === region.code
+                ? basemapDragState.throwPhase
+                : null}
+              dragX={basemapDragState.draggedCode === region.code
+                ? basemapDragState.deltaX
+                : 0}
+              dragY={basemapDragState.draggedCode === region.code
+                ? basemapDragState.deltaY
+                : 0}
               flipDirection={basemapFlipDirection}
               layoutClass={basemapCardClass(region.code)}
               onactivate={() => activateBasemap(region.code)}
