@@ -619,7 +619,6 @@ export function currentDivisionFieldRule(
       'category',
       'class',
       'geometry',
-      'bbox',
       'cartography',
       'identifiers',
       'identifiers.wikidata.id',
@@ -640,7 +639,7 @@ export function currentDivisionFieldRule(
             `record.${['level', 'category'].includes(field) ? 'class' : field.startsWith('i18n.') ? field.replace(/^i18n\./, 'names.') : field}`,
           ],
       {
-        ...(['geometry', 'bbox', 'cartography', 'identifiers'].includes(field)
+        ...(['geometry', 'cartography', 'identifiers'].includes(field)
           ? {
               explanation: {
                 version: 1 as const,
@@ -662,7 +661,7 @@ export function currentDivisionFieldRule(
           'Names must be keyed by locale and full ancestry must be an array.',
         ],
         steps: [
-          'Parse JSON-valued geometry, bbox, cartography, identifiers, sources and hierarchy fields.',
+          'Parse JSON-valued geometry, cartography, identifiers, sources and hierarchy fields.',
           'Import the reviewed archive without reapplying upstream curations or patches.',
         ],
       },
@@ -677,10 +676,6 @@ export function currentDivisionFieldRule(
         ['canonical_type'],
       ],
       geometry: ['parseJsonGeometry(row.geometry, "geometry")', ['geometry']],
-      bbox: [
-        'calculateGeoJsonBbox(parseJsonGeometry(row.geometry, "geometry"))',
-        ['geometry'],
-      ],
       identifiers: ['canonicalIdentifiers(row.identifiers)', ['identifiers']],
       sources: [
         '{hkgovCenstatd: parseJsonValue(row.sources, "sources").map(reference => ({record_id: requireNonEmpty(reference.sourceRecordId)}))}',
@@ -718,7 +713,6 @@ export function currentDivisionFieldRule(
       "row.source === 'hkgov-landsd' ? 5 : resolveDivisionLevel({ row, otClass, otSubtype, parentDivisionId })",
     category:
       'geographicDivisionClassification(resolveDivisionClass({ row, otClass, otSubtype, parentDivisionId }))?.category ?? null; specific classification curations and patches are separate candidates.',
-    bbox: 'normalisedGeometry ? calculateGeoJsonBbox(normalisedGeometry) : null',
     geometry: 'parseWkbGeometry(row.geometry)',
     identifiers: 'divisionIdentifiersWithWikidata(row.identifiers, row.wikidata)',
     'identifiers.wikidata.id':
@@ -778,7 +772,6 @@ export function currentDivisionFieldRule(
               'parent_division_id',
               'source',
             ],
-            bbox: ['geometry'],
             geometry: ['geometry'],
             identifiers: ['identifiers', 'wikidata'],
             'identifiers.wikidata.id': ['identifiers', 'wikidata'],

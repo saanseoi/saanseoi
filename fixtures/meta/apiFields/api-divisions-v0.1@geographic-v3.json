@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2e413545faec9370a21344fa25f4b19cc3237447bcfdc2f5be4a2104897d23e3",
+  "versionHash": "sha256:d6eb3a1579fa57551a94f93a9640f133eb392f09aaff3ec4b368619e398a8cba",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 3,
@@ -93,7 +93,6 @@
       "properties.isTerritorial": "rows[].isTerritorial",
       "properties.sources": "rows[].sources",
       "properties.class": "rows[].class",
-      "properties.bbox": "rows[].bbox",
       "properties.hierarchies": "rows[].hierarchies",
       "properties.cartography": "rows[].cartography",
       "properties.names.en.name": "rows[].names.en.name",
@@ -253,20 +252,6 @@
             {
               "origin": "source",
               "fieldPath": "geometry"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.bbox",
-          "sourceDatasetCode": "ds-hk-saanseoi-division",
-          "resolverCode": "direct_copy",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "source",
-              "fieldPath": "properties.bbox"
             }
           ]
         },

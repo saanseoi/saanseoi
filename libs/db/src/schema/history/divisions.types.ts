@@ -13,7 +13,6 @@ export type CurrentDivisionVersionRow = Pick<
   | 'identifiers'
   | 'hierarchies'
   | 'level'
-  | 'bbox'
   | 'cartography'
   | 'geometry'
   | 'sources'

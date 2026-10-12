@@ -167,7 +167,7 @@ export const canonicalDivision = {
     .notNull(),
   cartography: jsonText('cartography'),
   sources: jsonText('sources'),
-  ...geoBbox,
+  geometry: jsonTextOrBinary('geometry'),
 }
 
 export const canonicalDivisionGeometry = {

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:38d7da5700ce19b680dd2babcf9478ff97b7635f73eea32d4747c6e2289df099",
+  "versionHash": "sha256:07abceb806d49fd948e20a01ffa94ebbb444b5962bcf5628687c9180e14937e6",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-new-town",
   "mappingVersion": 1,
@@ -131,20 +131,6 @@
             {
               "origin": "intermediate",
               "fieldPath": "planning.geometryUnionAndRepair"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.bbox",
-          "sourceDatasetCode": "ds-hk-hkgov-pland-division-new-town",
-          "resolverCode": "derive_bbox_from_geometry",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "intermediate",
-              "fieldPath": "planning.geometry"
             }
           ]
         },

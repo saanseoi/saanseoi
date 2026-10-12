@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:de81e6e3bf0d72e9e85ded95f65806f7e7e3bc81f25e498278719a7109fccd7d",
+  "versionHash": "sha256:810b72e20c3e12890f41e5e25a57cf3fb285801c51cc22e6e992dc6393e5a916",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "geographic",
   "mappingVersion": 2,
@@ -450,20 +450,6 @@
           "apiField": "attributes.geometry",
           "sourceDatasetCode": "ds-hk-overture-division",
           "resolverCode": "decode_wkb_geometry_to_geojson",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "source",
-              "fieldPath": "geometry"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.bbox",
-          "sourceDatasetCode": "ds-hk-overture-division",
-          "resolverCode": "derive_bbox_from_geometry",
           "contributionType": "primary",
           "priority": 0,
           "confidence": 1,

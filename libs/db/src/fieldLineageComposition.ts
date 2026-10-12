@@ -72,7 +72,6 @@ export function compileResponseField(args: {
             'attributes.createdAt',
             'attributes.updatedAt',
             'attributes.geometry',
-            'attributes.bbox',
             'attributes.cartography',
             'attributes.snapshotId',
             'attributes.sources',

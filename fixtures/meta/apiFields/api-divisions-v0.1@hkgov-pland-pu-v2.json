@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:5e598d9656f57a339c2490b80f48e13abd8b043b35cbef2dc4040a6bf41a1847",
+  "versionHash": "sha256:6479cca228191cc957bfa7f08938dd639c88c7af3392f4abca4fa09da320c1bd",
   "apiVersion": "api-divisions-v0.1",
   "domainCode": "hkgov-pland-pu",
   "mappingVersion": 2,
@@ -132,20 +132,6 @@
             {
               "origin": "intermediate",
               "fieldPath": "planning.geometryUnionAndRepair"
-            }
-          ]
-        },
-        {
-          "apiField": "attributes.bbox",
-          "sourceDatasetCode": "ds-hk-hkgov-pland-division-pu",
-          "resolverCode": "derive_bbox_from_geometry",
-          "contributionType": "primary",
-          "priority": 0,
-          "confidence": 1,
-          "inputs": [
-            {
-              "origin": "intermediate",
-              "fieldPath": "planning.geometry"
             }
           ]
         },
