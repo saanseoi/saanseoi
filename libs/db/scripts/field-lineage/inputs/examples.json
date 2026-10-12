@@ -1,0 +1,980 @@
+{
+  "kind": "field-lineage-review-examples",
+  "schemaVersion": 1,
+  "examples": [
+    {
+      "id": "saanseoi-division-english-name",
+      "generationReady": false,
+      "unresolved": [
+        "Replace symbolic immutable references with captured hashes and branch definitions.",
+        "Bind request/schema/profile/locale selectors and exact raw/prepared assets."
+      ],
+      "notes": [
+        "The raw archive name links through archive-build scope to the separate upstream policy below. Source and canonical import preserve the reviewed name. Actual compact/profile locale projection is supplied by the release response policy."
+      ],
+      "definition": {
+        "kind": "api-response-lineage-definition",
+        "schemaVersion": 2,
+        "api": {
+          "version": "api-divisions-v0.2",
+          "responseSchemaVersion": "<selected-response-schema>",
+          "responseSchemaHash": "<response-schema-hash>"
+        },
+        "scopes": [
+          {
+            "id": "archive",
+            "kind": "raw-asset",
+            "bindingRole": "saanseoiDivisionArchive",
+            "datasetCode": "ds-hk-saanseoi-division"
+          },
+          {
+            "id": "transport",
+            "kind": "prepared-artefact",
+            "bindingRole": "saanseoiDivisionPreparedRows"
+          },
+          {
+            "id": "source",
+            "kind": "source-release",
+            "bindingRole": "divisionPublisherInput",
+            "datasetCode": "ds-hk-saanseoi-division"
+          },
+          {
+            "id": "canonical",
+            "kind": "snapshot",
+            "bindingRole": "selectedDivisionInventory"
+          },
+          {
+            "id": "archive-build",
+            "kind": "upstream-lineage",
+            "bindingRole": "archiveNameBuild"
+          },
+          {
+            "id": "response",
+            "kind": "response",
+            "bindingRole": "selectedApiResponseContract"
+          }
+        ],
+        "resolution": {
+          "layerOrder": ["baseline", "conditional-rule", "curation", "patch"],
+          "withinLayer": "first-applicable",
+          "priorityOrder": "ascending",
+          "onEqualPriorityConflict": "error",
+          "validation": "effective-output"
+        },
+        "nodes": [
+          {
+            "id": "name.prepare",
+            "stage": "preparation",
+            "output": {
+              "scope": "transport",
+              "collection": "record",
+              "path": "names.en.name"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "archive": {
+                "stage": "raw",
+                "scope": "archive",
+                "collection": "record",
+                "path": "names.en.name",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "resolver",
+              "definition": {
+                "store": "processingRuleDefinitions",
+                "definitionId": "<captured-definition-hash>",
+                "operationCode": "decode-curated-archive-record",
+                "ruleId": "decode-curated-archive-record"
+              },
+              "arguments": {
+                "recordName": "archive"
+              },
+              "parameters": {}
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "name.ingest",
+            "stage": "ingestion",
+            "output": {
+              "scope": "source",
+              "collection": "division",
+              "path": "properties.names.en.name"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "preparedName": {
+                "node": "name.prepare",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "copy",
+              "input": "preparedName"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "name.assemble",
+            "stage": "assembly",
+            "output": {
+              "scope": "canonical",
+              "collection": "divisionI18n",
+              "path": "en.name"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "sourceName": {
+                "node": "name.ingest",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "copy",
+              "input": "sourceName"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "name.response",
+            "stage": "composition",
+            "output": {
+              "scope": "response",
+              "collection": "api",
+              "path": "attributes.i18n.en.name"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "name": {
+                "node": "name.assemble",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "copy",
+              "input": "name"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          }
+        ],
+        "resolutionGroups": [],
+        "fields": [
+          {
+            "resourceType": "division",
+            "apiField": "attributes.i18n.en.name",
+            "emitWhen": {
+              "kind": "always"
+            },
+            "terminalNode": "name.response",
+            "provenance": {
+              "preparation": ["name.prepare"],
+              "ingestion": ["name.ingest"],
+              "assembly": ["name.assemble"],
+              "composition": ["name.response"]
+            },
+            "completeness": "complete"
+          }
+        ]
+      },
+      "upstreamPolicies": [
+        {
+          "id": "archiveNameBuild",
+          "generationReady": false,
+          "output": "archive.record.names.en.name",
+          "rules": [
+            {
+              "id": "archiveName.baseline",
+              "layer": "baseline",
+              "auditCategory": "rules",
+              "scope": "bulk",
+              "inputs": ["selected pinned source ingredient names"],
+              "operation": "selected-ingredient-English-name",
+              "definitionRef": "<captured-archive-build-name-rule>"
+            },
+            {
+              "id": "archiveName.curated",
+              "layer": "curation",
+              "auditCategory": "curations",
+              "scope": "individual",
+              "when": {
+                "fixtureEntryMatches": "divisionId",
+                "hasField": "entry.names.en.name"
+              },
+              "inputs": ["divisionNames.entry.names.en.name"],
+              "operation": "copy-reviewed-name",
+              "auditBinding": {
+                "owner": "archive-build audit",
+                "recordKey": "divisionId",
+                "fixturePointer": "/entries/<matched-entry>/names/en/name"
+              },
+              "definitionRef": "<retained-division-name-curation>"
+            }
+          ],
+          "notes": [
+            "Authored additions have a curated baseline instead of a publisher baseline. Alias suffix rules affect aliases, not this primary-name output. Do not label ordinary name curations as QA patches."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "censtatd-population-mid-year",
+      "generationReady": false,
+      "unresolved": [
+        "Replace symbolic immutable references with captured hashes and branch definitions.",
+        "Bind request/schema/profile/locale selectors and exact raw/prepared assets."
+      ],
+      "notes": [
+        "The MYPOPN_LAND -> populationMidYear key and person unit must resolve from the pinned dictionary scope. This is a field-specific expansion, not a hard-coded name for all Statistics fields.",
+        "No numeric floating-point coercion. A missing publisher field may omit the observation; that presence policy is unresolved here rather than represented as zero."
+      ],
+      "definition": {
+        "kind": "api-response-lineage-definition",
+        "schemaVersion": 2,
+        "api": {
+          "version": "api-stats-v0.1",
+          "responseSchemaVersion": "<selected-response-schema>",
+          "responseSchemaHash": "<response-schema-hash>"
+        },
+        "scopes": [
+          {
+            "id": "raw",
+            "kind": "raw-asset",
+            "bindingRole": "censtatdPublisherFeature"
+          },
+          {
+            "id": "prepared",
+            "kind": "prepared-artefact",
+            "bindingRole": "censtatdPreparedFeatures"
+          },
+          {
+            "id": "source",
+            "kind": "source-release",
+            "bindingRole": "statisticPublisherInput",
+            "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district"
+          },
+          {
+            "id": "canonical",
+            "kind": "snapshot",
+            "bindingRole": "selectedStatisticsSnapshot"
+          },
+          {
+            "id": "dictionary",
+            "kind": "registry",
+            "bindingRole": "recordPinnedFieldDefinitions"
+          },
+          {
+            "id": "response",
+            "kind": "response",
+            "bindingRole": "selectedApiResponseContract"
+          }
+        ],
+        "resolution": {
+          "layerOrder": ["baseline", "conditional-rule", "curation", "patch"],
+          "withinLayer": "first-applicable",
+          "priorityOrder": "ascending",
+          "onEqualPriorityConflict": "error",
+          "validation": "effective-output"
+        },
+        "nodes": [
+          {
+            "id": "population.prepare",
+            "stage": "preparation",
+            "output": {
+              "scope": "prepared",
+              "collection": "feature",
+              "path": "properties.MYPOPN_LAND"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "raw": {
+                "stage": "raw",
+                "scope": "raw",
+                "collection": "feature",
+                "path": "properties.MYPOPN_LAND",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "copy",
+              "input": "raw"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "population.ingest",
+            "stage": "ingestion",
+            "output": {
+              "scope": "source",
+              "collection": "statistic",
+              "path": "properties.MYPOPN_LAND"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "value": {
+                "node": "population.prepare",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "copy",
+              "input": "value"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "population.literal",
+            "stage": "assembly",
+            "output": {
+              "scope": "canonical",
+              "collection": "statsRecord",
+              "path": "values.populationMidYear"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "raw": {
+                "node": "population.ingest",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "resolver",
+              "definition": {
+                "store": "processingRuleDefinitions",
+                "definitionId": "<captured-definition-hash>",
+                "operationCode": "publisher-statistic-literal",
+                "ruleId": "publisher-statistic-literal"
+              },
+              "arguments": {
+                "literal": "raw"
+              },
+              "parameters": {}
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "population.numeric",
+            "stage": "assembly",
+            "output": {
+              "scope": "canonical",
+              "collection": "statsRecord",
+              "path": "values.populationMidYear"
+            },
+            "layer": "conditional-rule",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "raw": {
+                "node": "population.ingest",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "compare",
+              "input": "raw",
+              "operator": "matches",
+              "value": "^[+-]?\\d+(?:\\.\\d+)?$"
+            },
+            "operation": {
+              "kind": "resolver",
+              "definition": {
+                "store": "processingRuleDefinitions",
+                "definitionId": "<captured-definition-hash>",
+                "operationCode": "normalise_censtatd_population_thousands_to_persons",
+                "ruleId": "normalise_censtatd_population_thousands_to_persons"
+              },
+              "arguments": {
+                "value": "raw"
+              },
+              "parameters": {
+                "factor": 1000,
+                "arithmetic": "exact-decimal-string"
+              }
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "population.suppressed",
+            "stage": "assembly",
+            "output": {
+              "scope": "canonical",
+              "collection": "statsRecord",
+              "path": "values.populationMidYear"
+            },
+            "layer": "conditional-rule",
+            "priority": 1,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "raw": {
+                "node": "population.ingest",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "compare",
+              "input": "raw",
+              "operator": "eq",
+              "value": "**"
+            },
+            "operation": {
+              "kind": "constant",
+              "value": "suppressed"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "population.unavailable",
+            "stage": "assembly",
+            "output": {
+              "scope": "canonical",
+              "collection": "statsRecord",
+              "path": "values.populationMidYear"
+            },
+            "layer": "conditional-rule",
+            "priority": 2,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "raw": {
+                "node": "population.ingest",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "compare",
+              "input": "raw",
+              "operator": "in",
+              "value": ["-", "N.A.", "NA"]
+            },
+            "operation": {
+              "kind": "constant",
+              "value": "unavailable"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "population.response",
+            "stage": "composition",
+            "output": {
+              "scope": "response",
+              "collection": "api",
+              "path": "attributes.values.populationMidYear"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "effective": {
+                "group": "population.value",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "copy",
+              "input": "effective"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          }
+        ],
+        "resolutionGroups": [
+          {
+            "id": "population.value",
+            "output": {
+              "scope": "canonical",
+              "collection": "statsRecord",
+              "path": "values.populationMidYear"
+            },
+            "candidates": [
+              "population.literal",
+              "population.numeric",
+              "population.suppressed",
+              "population.unavailable"
+            ],
+            "evaluation": "per-record",
+            "keyInputs": [
+              {
+                "stage": "source",
+                "scope": "source",
+                "collection": "statistic",
+                "path": "sourceRecordId",
+                "role": "selection"
+              }
+            ]
+          }
+        ],
+        "fields": [
+          {
+            "resourceType": "statistic",
+            "apiField": "attributes.values.populationMidYear",
+            "emitWhen": {
+              "kind": "always"
+            },
+            "terminalNode": "population.response",
+            "provenance": {
+              "preparation": ["population.prepare"],
+              "ingestion": ["population.ingest"],
+              "assembly": [
+                "population.literal",
+                "population.numeric",
+                "population.suppressed",
+                "population.unavailable"
+              ],
+              "composition": ["population.response"]
+            },
+            "completeness": "complete"
+          }
+        ]
+      }
+    },
+    {
+      "id": "planning-tpu-area-geometry",
+      "generationReady": false,
+      "unresolved": [
+        "Replace symbolic immutable references with captured hashes and branch definitions.",
+        "Bind request/schema/profile/locale selectors and exact raw/prepared assets."
+      ],
+      "notes": [
+        "geometry.original retains the SOURCE evidence but is not a dependency of canonical geometry: the prepared aggregate is consumed directly.",
+        "Acquisition must dispatch between publisher GeoJSON CRS contract and mirrored SHP reprojection. No invented local reprojection for already transformed GeoJSON.",
+        "Repair applies to invalid polygons by predicate, not to a fixed list of six cells. The aggregate operation must expand its 2021-versus-other strategy before generation."
+      ],
+      "definition": {
+        "kind": "api-response-lineage-definition",
+        "schemaVersion": 2,
+        "api": {
+          "version": "api-divisions-v0.2",
+          "responseSchemaVersion": "<selected-response-schema>",
+          "responseSchemaHash": "<response-schema-hash>"
+        },
+        "scopes": [
+          {
+            "id": "raw",
+            "kind": "raw-asset",
+            "bindingRole": "planningPublisherCells",
+            "datasetCode": "ds-hk-hkgov-pland-division-pu"
+          },
+          {
+            "id": "prepared",
+            "kind": "prepared-artefact",
+            "bindingRole": "planningPreparedGeometry"
+          },
+          {
+            "id": "source",
+            "kind": "source-release",
+            "bindingRole": "planningOriginalCells",
+            "datasetCode": "ds-hk-hkgov-pland-division-pu"
+          },
+          {
+            "id": "canonical",
+            "kind": "snapshot",
+            "bindingRole": "selectedPlanningAreas"
+          },
+          {
+            "id": "response",
+            "kind": "response",
+            "bindingRole": "selectedApiResponseContract"
+          }
+        ],
+        "resolution": {
+          "layerOrder": ["baseline", "conditional-rule", "curation", "patch"],
+          "withinLayer": "first-applicable",
+          "priorityOrder": "ascending",
+          "onEqualPriorityConflict": "error",
+          "validation": "effective-output"
+        },
+        "nodes": [
+          {
+            "id": "geometry.original",
+            "stage": "ingestion",
+            "output": {
+              "scope": "source",
+              "collection": "planningCell",
+              "path": "geometry"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "raw": {
+                "stage": "raw",
+                "scope": "raw",
+                "collection": "feature",
+                "path": "geometry",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "copy",
+              "input": "raw"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "geometry.cell",
+            "stage": "preparation",
+            "output": {
+              "scope": "prepared",
+              "collection": "planningCell",
+              "path": "geometry"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "raw": {
+                "stage": "raw",
+                "scope": "raw",
+                "collection": "feature",
+                "path": "geometry",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "copy",
+              "input": "raw"
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "geometry.repair",
+            "stage": "preparation",
+            "output": {
+              "scope": "prepared",
+              "collection": "planningCell",
+              "path": "geometry"
+            },
+            "layer": "conditional-rule",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "raw": {
+                "stage": "raw",
+                "scope": "raw",
+                "collection": "feature",
+                "path": "geometry",
+                "role": "value"
+              },
+              "validityInput": {
+                "stage": "raw",
+                "scope": "raw",
+                "collection": "feature",
+                "path": "geometry",
+                "role": "condition"
+              }
+            },
+            "when": {
+              "kind": "predicate",
+              "definition": {
+                "store": "processingRuleDefinitions",
+                "definitionId": "<captured-definition-hash>",
+                "operationCode": "polygon-is-invalid",
+                "ruleId": "polygon-is-invalid"
+              },
+              "arguments": {
+                "geometry": "validityInput"
+              }
+            },
+            "operation": {
+              "kind": "resolver",
+              "definition": {
+                "store": "processingRuleDefinitions",
+                "definitionId": "<captured-definition-hash>",
+                "operationCode": "repair-invalid-planning-polygon",
+                "ruleId": "repair-invalid-planning-polygon"
+              },
+              "arguments": {
+                "geometry": "raw"
+              },
+              "parameters": {
+                "bufferDistance": 0,
+                "requireValidPolygon": true
+              }
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "geometry.aggregate",
+            "stage": "preparation",
+            "output": {
+              "scope": "prepared",
+              "collection": "planningDivision",
+              "path": "geometry"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "cells": {
+                "group": "geometry.effectiveCell",
+                "role": "value"
+              },
+              "tpu": {
+                "stage": "raw",
+                "scope": "raw",
+                "collection": "feature",
+                "path": "properties.TPU",
+                "role": "join-key"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "resolver",
+              "definition": {
+                "store": "processingRuleDefinitions",
+                "definitionId": "<captured-definition-hash>",
+                "operationCode": "planning-tpu-geometry-union",
+                "ruleId": "planning-tpu-geometry-union"
+              },
+              "arguments": {
+                "geometry": "cells",
+                "groupKey": "tpu"
+              },
+              "parameters": {
+                "groupBy": "TPU",
+                "retainSourceVersionStrategy": true
+              }
+            },
+            "onAbsent": "error",
+            "onFailure": "error",
+            "selection": {
+              "cardinality": "many-to-one",
+              "definition": {
+                "store": "processingRuleDefinitions",
+                "definitionId": "<captured-definition-hash>",
+                "operationCode": "planning-tpu-group-selection",
+                "ruleId": "planning-tpu-group-selection"
+              },
+              "joinKeys": ["tpu"],
+              "orderBy": [],
+              "onEmpty": "error",
+              "onMultiple": "retain-all"
+            }
+          },
+          {
+            "id": "geometry.assemble",
+            "stage": "assembly",
+            "output": {
+              "scope": "canonical",
+              "collection": "divisionArea",
+              "path": "geometry"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "aggregate": {
+                "node": "geometry.aggregate",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "resolver",
+              "definition": {
+                "store": "processingRuleDefinitions",
+                "definitionId": "<captured-definition-hash>",
+                "operationCode": "normalise-division-area-geometry",
+                "ruleId": "normalise-division-area-geometry"
+              },
+              "arguments": {
+                "geometry": "aggregate"
+              },
+              "parameters": {
+                "omitEmbeddedBbox": true
+              }
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          },
+          {
+            "id": "geometry.response",
+            "stage": "composition",
+            "output": {
+              "scope": "response",
+              "collection": "api",
+              "path": "attributes.geometry"
+            },
+            "layer": "baseline",
+            "priority": 0,
+            "audit": {
+              "category": "rules",
+              "scope": "bulk"
+            },
+            "inputs": {
+              "canonical": {
+                "node": "geometry.assemble",
+                "role": "value"
+              }
+            },
+            "when": {
+              "kind": "always"
+            },
+            "operation": {
+              "kind": "resolver",
+              "definition": {
+                "store": "processingRuleDefinitions",
+                "definitionId": "<captured-definition-hash>",
+                "operationCode": "present-division-area-geojson",
+                "ruleId": "present-division-area-geojson"
+              },
+              "arguments": {
+                "geometry": "canonical"
+              },
+              "parameters": {}
+            },
+            "onAbsent": "error",
+            "onFailure": "error"
+          }
+        ],
+        "resolutionGroups": [
+          {
+            "id": "geometry.effectiveCell",
+            "output": {
+              "scope": "prepared",
+              "collection": "planningCell",
+              "path": "geometry"
+            },
+            "candidates": ["geometry.cell", "geometry.repair"],
+            "evaluation": "per-record",
+            "keyInputs": [
+              {
+                "stage": "raw",
+                "scope": "raw",
+                "collection": "feature",
+                "path": "id",
+                "role": "selection"
+              }
+            ]
+          }
+        ],
+        "fields": [
+          {
+            "resourceType": "divisionArea",
+            "apiField": "attributes.geometry",
+            "emitWhen": {
+              "kind": "always"
+            },
+            "terminalNode": "geometry.response",
+            "provenance": {
+              "preparation": ["geometry.cell", "geometry.repair", "geometry.aggregate"],
+              "ingestion": [],
+              "assembly": ["geometry.assemble"],
+              "composition": ["geometry.response"]
+            },
+            "completeness": "complete"
+          }
+        ]
+      }
+    }
+  ]
+}

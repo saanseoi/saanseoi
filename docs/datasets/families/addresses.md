@@ -1542,3 +1542,21 @@ A subsequent revision can resolve an investigation and restore a previously omit
 identity. Original publisher assertions, earlier memberships and the investigation
 evidence remain available for that decision. Deferral itself does not establish that a
 record persisted.
+
+## DPO review operation contract
+
+DPO editorial decisions are durable ingestion inputs. The validated
+`hkgov-dpo-address-review-program.json` selects fixed operations over registered review
+JSON: `guard-source-group`, `reconcile-identity` and `assign-parent`. Release bounds,
+reviewed identities, source hashes and parent relationships belong in those fixtures.
+The shared executor applies them at the appropriate preparation stages and retains both
+the program and originating editorial evidence in the audit inputs.
+
+Editors can extend an existing operation with reviewed data without adding a monthly
+TypeScript handler. A new semantic operation requires an explicit contract and tests.
+Triage labels and generated preparation issue reports do not authorise mutations.
+Specialised reconstruction, inventory integrity, investigation acknowledgements and
+retirement approvals have separate contracts; no review operation bypasses those gates.
+See
+[the DPO operation reference](../sources/hkgov-dpo/address.md#executable-review-decisions)
+for inputs, execution order and extension requirements.

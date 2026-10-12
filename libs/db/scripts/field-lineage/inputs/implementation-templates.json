@@ -1,0 +1,1081 @@
+{
+  "kind": "field-lineage-implementation-template-catalogue",
+  "schemaVersion": 1,
+  "templates": [
+    {
+      "id": "constant",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Resource discriminators and protocol versions are constants, not publisher-derived fields.",
+      "composition": {
+        "operation": "constant",
+        "valueFrom": "serializer/schema literal"
+      },
+      "upstream": [],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/lib/api.ts",
+          "symbol": "document builders"
+        }
+      ],
+      "requiredCapabilities": ["constants", "no-source-needed"],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "request-envelope",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Links, cursors, filters, limits and selected locales depend on the request and result set.",
+      "composition": {
+        "operation": "request-document-projection",
+        "inputs": [
+          "request URL, selectors, profile, locales",
+          "result count and ordering",
+          "release binding"
+        ]
+      },
+      "upstream": [],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/lib/api.ts",
+          "symbol": "list/detail document builders"
+        },
+        {
+          "file": "apps/atlas-api/src/services/divisionsPresentation.ts",
+          "symbol": "buildListDocument/buildDetailDocument"
+        }
+      ],
+      "requiredCapabilities": [
+        "request-scopes",
+        "absence",
+        "ordering",
+        "encoding",
+        "selection-vs-value"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "release-metadata",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Response release/catalogue/domain/cohort/schema/ruleset identity comes from selected META bindings.",
+      "composition": {
+        "operation": "release-metadata",
+        "inputs": [
+          "selected API version release set",
+          "catalogue revision",
+          "companion selections"
+        ]
+      },
+      "upstream": [],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/divisionsPresentation.ts",
+          "symbol": "buildListDocument"
+        },
+        {
+          "file": "apps/atlas-api/src/services/addresses.ts",
+          "symbol": "buildMetadata"
+        }
+      ],
+      "requiredCapabilities": [
+        "registry-scopes",
+        "multiple-release-bindings",
+        "no-source-needed"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "error",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Errors and guard diagnostics derive from route validation and failed selection/processing predicates.",
+      "composition": {
+        "operation": "error-projection",
+        "inputs": ["request validation", "publication/readiness state", "guard result"]
+      },
+      "upstream": [],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/schema/common.ts",
+          "symbol": "error schemas"
+        },
+        {
+          "file": "apps/atlas-api/src/index.ts",
+          "symbol": "error handlers"
+        }
+      ],
+      "requiredCapabilities": ["predicate", "guard", "error", "no-source-needed"],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "identity",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Resource IDs may be publisher identities, deterministic canonical IDs, joined IDs or derived result IDs; dispatch by resource and source.",
+      "composition": {
+        "operation": "copy-or-resource-identity-resolver",
+        "inputs": ["canonical/registry identity", "resource discriminator"]
+      },
+      "upstream": [
+        "ingestion source identity",
+        "assembly identity continuity/curated identity resolution"
+      ],
+      "evidence": [
+        {
+          "file": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
+          "symbol": "canonicalGeometryId use"
+        },
+        {
+          "file": "apps/atlas-api/src/services/statistics.ts",
+          "symbol": "createIncludedStatisticFieldResource"
+        },
+        {
+          "file": "apps/atlas-api/src/services/geocodingPresentation.ts",
+          "symbol": "result ID construction"
+        }
+      ],
+      "requiredCapabilities": [
+        "resource-discriminators",
+        "dataset-branches",
+        "identity",
+        "joins"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "division-classification",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Class is selected from curated identity policy before native fallback; level/category follow taxonomy. divisionCode is a separate curated assignment.",
+      "composition": {
+        "operation": "copy canonical field"
+      },
+      "upstream": [
+        "assembly: curated classification, native taxonomy branches, code assignment",
+        "ingestion: retain publisher taxonomy",
+        "preparation: pinned archive inventory and additions"
+      ],
+      "evidence": [
+        {
+          "file": "libs/core/src/pipeline/services/divisions/division.ts",
+          "symbol": "normaliseDivisionRowInternal"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/divisions/curatedDivisionPolicy.ts",
+          "symbol": "curatedDivisionClassification"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/curatedDivisions/recordContract.ts",
+          "symbol": "record contract"
+        }
+      ],
+      "requiredCapabilities": [
+        "baseline-curation",
+        "conditional-rule",
+        "field-specific-overrides",
+        "schema-pins",
+        "guard"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "division-names",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Primary names, alternatives and rules have distinct derivations. Locale fallback and curated overrides must be explicit; public projection filters duplicate/genuine variants and respects profiles.",
+      "composition": {
+        "operation": "projectDivisionI18n",
+        "inputs": ["canonical locale rows", "request profile/locales"]
+      },
+      "upstream": [
+        "assembly: native name normalisation, locale fallback, reviewed name/translation decisions",
+        "SaanSeoi: source archive already curated; link to archive-build lineage",
+        "ingestion: retain original locale-keyed publisher evidence"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/divisionsPresentation.ts",
+          "symbol": "projectDivisionI18n"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/divisions/division.ts",
+          "symbol": "normaliseDivisionI18n/buildCanonicalDivisionApiI18n"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/divisions/curatedDivisionPolicy.ts",
+          "symbol": "applyCuratedDivisionNames"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/divisions/curatedDivision.ts",
+          "symbol": "normaliseCuratedDivision"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/curatedDivisions/buildRelease.ts",
+          "symbol": "build curated archive"
+        }
+      ],
+      "requiredCapabilities": [
+        "locale-selector",
+        "fallback",
+        "patch-audit",
+        "upstream-lineage",
+        "array-operations",
+        "field-specific-overrides"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "division-hierarchy",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Nested ordered ancestry paths are correlated branches, not a bag of IDs. Public projection removes internal containment_geometry but retains full_containment.",
+      "composition": {
+        "operation": "publicDivisionHierarchies",
+        "inputs": ["canonical hierarchy paths", "ancestor names/classes"]
+      },
+      "upstream": [
+        "assembly: identity resolution, hierarchy curation, correlated category projection and containment relationships",
+        "preparation: curated archive hierarchy construction"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/divisionsPresentation.ts",
+          "symbol": "createDivisionResource"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/divisions/divisionHierarchies.ts",
+          "symbol": "hierarchy construction"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/curatedDivisions/resolveHierarchies.ts",
+          "symbol": "curated hierarchy resolution"
+        }
+      ],
+      "requiredCapabilities": [
+        "join",
+        "correlated-paths",
+        "ordering",
+        "projection-exclusion",
+        "field-specific-overrides"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "geometry",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Different branches construct Points, decode stored polygons/lines, preserve original source geometry, union cells or derive curated island/group geometry. Extents are computed separately.",
+      "composition": {
+        "operation": "resource-specific geometry presentation",
+        "inputs": ["canonical geometry or lng/lat", "request profile/include"]
+      },
+      "upstream": [
+        "assembly: resource-specific geometry selection and normalisation; prepared aggregates may be direct inputs",
+        "ingestion: retain raw geometry independently of canonical repair",
+        "preparation: acquisition contract, polygon validation/repair and cell union; curated shape selection"
+      ],
+      "evidence": [
+        {
+          "file": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
+          "symbol": "normalise area/boundary, calculateGeoJsonBbox"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/sources/hkgov/pland/hkgovPland.ts",
+          "symbol": "repairGeometryIfRequired/buildPlanningDivision/unionGeometries"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/curatedDivisions/islandGroupGeometry.ts",
+          "symbol": "island group geometry"
+        },
+        {
+          "file": "apps/atlas-api/src/services/divisionsPresentation.ts",
+          "symbol": "asDivisionGeometry/createIncludedDivisionGeometryResource"
+        },
+        {
+          "file": "apps/atlas-api/src/services/places.ts",
+          "symbol": "createPlaceResource"
+        },
+        {
+          "file": "apps/atlas-api/src/services/addresses.ts",
+          "symbol": "addressPointGeometry"
+        }
+      ],
+      "requiredCapabilities": [
+        "many-to-one",
+        "intermediate-nodes",
+        "direct-prepared-input",
+        "schema-pins",
+        "source-version-condition",
+        "guard",
+        "upstream-lineage"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "geometry-type",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "For area/boundary, both effective flags true selects mixed; otherwise land/maritime class passes through; invalid effective class errors. Government flags have provider-specific constants.",
+      "composition": {
+        "operation": "copy canonical type/flags"
+      },
+      "upstream": [
+        "assembly: provider flag defaults then resolveGeometryType",
+        "ingestion: original flags/class retained"
+      ],
+      "evidence": [
+        {
+          "file": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
+          "symbol": "resolveGeometryType/normalise area geometry"
+        }
+      ],
+      "requiredCapabilities": [
+        "conditions",
+        "value-vs-condition-inputs",
+        "intermediates",
+        "effective-validation"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "cartography",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Cartographic hints are class-dependent curated policy; response visibility depends on profile.",
+      "composition": {
+        "operation": "copy canonical hints"
+      },
+      "upstream": ["assembly/archive-build: class -> zoom/prominence policy"],
+      "evidence": [
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/curatedDivisions/recordContract.ts",
+          "symbol": "divisionCartography"
+        },
+        {
+          "file": "apps/atlas-api/src/services/divisionsPresentation.ts",
+          "symbol": "createDivisionResource"
+        }
+      ],
+      "requiredCapabilities": ["policy-lookup", "profile", "dynamic-object"],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "relationships",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Relationship IDs derive from explicit foreign keys, selected snapshot joins and request includes. Empty linkage, null and omitted relationship are distinct.",
+      "composition": {
+        "operation": "resource-specific relationship builder"
+      },
+      "upstream": [
+        "assembly: resolve Address/Division/Place identities and ownership",
+        "composition: join included resources using exact companion snapshots"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/divisionsPresentation.ts",
+          "symbol": "createDivisionResource"
+        },
+        {
+          "file": "apps/atlas-api/src/services/addresses.ts",
+          "symbol": "createAddressResource/addressHierarchyIds"
+        },
+        {
+          "file": "apps/atlas-api/src/services/places.ts",
+          "symbol": "createPlaceResource"
+        },
+        {
+          "file": "apps/atlas-api/src/services/statistics.ts",
+          "symbol": "createStatisticResource"
+        }
+      ],
+      "requiredCapabilities": [
+        "joins",
+        "cardinality",
+        "companion-release",
+        "null-vs-omit",
+        "stable-order"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "provenance-metadata",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Sources/identifiers/snapshot IDs and timestamps are not interchangeable raw source values. Some are expanded from compact evidence at response time, or generated during processing.",
+      "composition": {
+        "operation": "copy/expand retained references",
+        "inputs": [
+          "canonical evidence",
+          "selected snapshot and source-release metadata"
+        ]
+      },
+      "upstream": [
+        "ingestion: record/source identities and source evidence",
+        "assembly: reference selection, timestamps, curated provenance"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/addresses.ts",
+          "symbol": "expandAddressSourceReferences call"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/addresses/sourceReferences.ts",
+          "symbol": "source reference expansion"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/divisions/divisionGeometry.ts",
+          "symbol": "geometrySourceReferences"
+        },
+        {
+          "file": "apps/atlas-api/src/services/sourceRecords.ts",
+          "symbol": "toSourceRecord"
+        }
+      ],
+      "requiredCapabilities": [
+        "registry-joins",
+        "audit-reference",
+        "generated-values",
+        "profile",
+        "wildcard-source-schema"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "address-localisation",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Prepared ALS components map to locale rows; building numbers, block/phase fields and formatted addresses use distinct parsers. Compact profile emits formattedAddress only.",
+      "composition": {
+        "operation": "projectAddressI18n"
+      },
+      "upstream": [
+        "preparation: reconstruct/normalise reviewed ALS components and retain publisher occurrences",
+        "ingestion: source assertions separate from prepared transport",
+        "assembly: normalisePreparedHkgovAddressRow component selection/corrections"
+      ],
+      "evidence": [
+        {
+          "file": "libs/core/src/pipeline/services/addresses/normalisation.ts",
+          "symbol": "normalisePreparedHkgovAddressRow"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/addresses/componentCorrections.ts",
+          "symbol": "component corrections"
+        },
+        {
+          "file": "apps/atlas-api/src/services/addresses.ts",
+          "symbol": "projectAddressI18n"
+        }
+      ],
+      "requiredCapabilities": [
+        "locale",
+        "component-specific-rules",
+        "curation-guard",
+        "direct-prepared-input",
+        "profile"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "address-structure",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Parent/granularity/hierarchy/3D coverage are derived, not ordinary SOURCE copies. Coverage is a discriminated union with owner/membership and missing states.",
+      "composition": {
+        "operation": "createAddressResource",
+        "inputs": [
+          "canonical Address",
+          "3D collection coverage",
+          "selected snapshot dataset map"
+        ]
+      },
+      "upstream": [
+        "assembly: granularity, parent reconstruction, hierarchy association and identity continuity",
+        "preparation: ALS building/3D ownership and memberships"
+      ],
+      "evidence": [
+        {
+          "file": "libs/core/src/pipeline/services/addresses/granularity.ts",
+          "symbol": "establishAddressGranularity"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/addresses/normalisation.ts",
+          "symbol": "parentAddressId prepared-row selection"
+        },
+        {
+          "file": "apps/atlas-api/src/services/addresses.ts",
+          "symbol": "createAddressResource/loadIncludedAddressUnits"
+        }
+      ],
+      "requiredCapabilities": [
+        "discriminated-union",
+        "many-to-one",
+        "membership",
+        "identity-continuity",
+        "registry-scopes"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "address3d",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Units are collection members keyed by stable unit IDs; floor/unit references and expressions differ. Localised units are keyed by locale then unit ID.",
+      "composition": {
+        "operation": "createAddress3dResource/getAddressUnits"
+      },
+      "upstream": [
+        "preparation: ALS Address3D collection/unit construction",
+        "assembly: collection ownership, membership, counts and locale maps"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/addresses.ts",
+          "symbol": "createAddress3dResource"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/addresses/address3dImport.ts",
+          "symbol": "3D import"
+        }
+      ],
+      "requiredCapabilities": [
+        "nested-map",
+        "unit-id-selector",
+        "ownership",
+        "counts",
+        "profile"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "place-name",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Reference name is composed from canonical English/Traditional Chinese choices; localised names/brands/freeform address have inference, translation and provenance branches.",
+      "composition": {
+        "operation": "derivePlaceReferenceName/projectPlaceI18n"
+      },
+      "upstream": [
+        "assembly: normaliseOverturePlace/mergePlaceI18n and reviewed localisations",
+        "ingestion: publisher name/brand/address retention"
+      ],
+      "evidence": [
+        {
+          "file": "libs/core/src/pipeline/services/places/place.ts",
+          "symbol": "derivePlaceReferenceName/mergePlaceI18n"
+        },
+        {
+          "file": "apps/atlas-api/src/services/places.ts",
+          "symbol": "createPlaceResource/projectPlaceI18n"
+        }
+      ],
+      "requiredCapabilities": [
+        "locale",
+        "composition-derived-value",
+        "translation",
+        "ordered-fallback",
+        "profile"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "place-taxonomy",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Basic category and primary/alternate/hierarchical taxonomy use versioned category mapping; profile controls exposed taxonomy.",
+      "composition": {
+        "operation": "placeTaxonomy"
+      },
+      "upstream": ["assembly: source categories -> canonical category taxonomy"],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/places.ts",
+          "symbol": "placeTaxonomy/createPlaceResource"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/places/place.ts",
+          "symbol": "normaliseOverturePlaceInternal"
+        }
+      ],
+      "requiredCapabilities": [
+        "versioned-vocabulary",
+        "source-schema-branches",
+        "profile"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "place-address",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Place-to-Address links combine multilingual text matching, reviewed identity decisions, selected Address snapshots and Address3D memberships; unresolved and absent remain explicit.",
+      "composition": {
+        "operation": "copy materialised link/membership; load companion includes"
+      },
+      "upstream": [
+        "assembly: exact/heuristic matching, review guards, supplementary Address generation and unit membership",
+        "preparation: country filters and source-address labels"
+      ],
+      "evidence": [
+        {
+          "file": "libs/core/src/pipeline/services/places/placeAddressAssembly.ts",
+          "symbol": "recordPlaceAddressAssembly"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/places/placeProvenance.ts",
+          "symbol": "retained place-address decisions"
+        },
+        {
+          "file": "apps/atlas-api/src/services/places.ts",
+          "symbol": "createPlaceResource/loadIncludedDivisions"
+        }
+      ],
+      "requiredCapabilities": [
+        "joins",
+        "matching-predicate",
+        "curation",
+        "guard",
+        "one-to-many",
+        "multiple-release-binding"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "place-content",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Contact/status/confidence/first-last-seen content is normalised from source properties; confidence is a response value, not confidence in a lineage rule.",
+      "composition": {
+        "operation": "copy canonical Place content"
+      },
+      "upstream": [
+        "assembly: normaliseOverturePlaceInternal/contact and lifecycle normalisation",
+        "ingestion: retain source properties"
+      ],
+      "evidence": [
+        {
+          "file": "libs/core/src/pipeline/services/places/place.ts",
+          "symbol": "normaliseOverturePlaceInternal"
+        },
+        {
+          "file": "apps/atlas-api/src/services/places.ts",
+          "symbol": "createPlaceResource"
+        }
+      ],
+      "requiredCapabilities": [
+        "schema-pins",
+        "normalisation",
+        "no-invented-lineage-confidence"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "statistics-values",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Dynamic field keys come from retained field metadata. Numeric literals, exact decimal scaling, suppression/unavailability codes and duplicate-field guards determine values.",
+      "composition": {
+        "operation": "copy canonical values[fieldName]"
+      },
+      "upstream": [
+        "assembly: parseObservationValue, statisticFieldCurationRule field-key selection, exact scaling, dictionary assembly",
+        "ingestion/preparation: retain/extract original field values"
+      ],
+      "evidence": [
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/statistics/normaliseHkgovCenstatdStatistics.ts",
+          "symbol": "parseObservationValue/isPopulationThousands/record.values assignment"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/statistics/statisticRules.ts",
+          "symbol": "populationThousandsRule"
+        },
+        {
+          "file": "apps/atlas-api/src/services/statistics.ts",
+          "symbol": "createStatisticResource"
+        }
+      ],
+      "requiredCapabilities": [
+        "dynamic-key",
+        "exact-decimal",
+        "sentinel-values",
+        "curation-key-mapping",
+        "field-definition-pin",
+        "guard"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "statistics-definition",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Field/measure dictionaries are retained definitions, not ordinary canonical SOURCE projections. Units, kind, aggregation, dimensions, comparability and localisations have separate reviewed origin.",
+      "composition": {
+        "operation": "createIncludedStatisticFieldResource/registry projection"
+      },
+      "upstream": [
+        "assembly: field/measure/identity fixtures and localisation decisions",
+        "registry: definition hashes pinned by stats record/selected catalogue"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/statistics.ts",
+          "symbol": "createIncludedStatisticFieldResource"
+        },
+        {
+          "file": "apps/atlas-api/src/services/statisticsRegistry.ts",
+          "symbol": "fieldRegistryResource/measureRegistryResource"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/statistics/normaliseHkgovCenstatdStatistics.ts",
+          "symbol": "field metadata and definition construction"
+        }
+      ],
+      "requiredCapabilities": [
+        "registry-scopes",
+        "definition-pin",
+        "translation-origin",
+        "baseline-curation",
+        "dynamic-map"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "statistics-geography",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Reference period and geography are decoded from dataset-specific source dimensions/period policies; companions require release-scoped Division/code/geometry selections.",
+      "composition": {
+        "operation": "copy dimensions/period/geography; join relationship"
+      },
+      "upstream": [
+        "assembly: dataset profile period/geography resolution, canonical identity matching",
+        "composition: companion selection and mapping"
+      ],
+      "evidence": [
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/statistics/normaliseHkgovCenstatdStatistics.ts",
+          "symbol": "dataset profiles/period metadata"
+        },
+        {
+          "file": "apps/atlas-api/src/services/statistics.ts",
+          "symbol": "createStatisticResource"
+        },
+        {
+          "file": "apps/atlas-api/src/services/statisticsGeometry.ts",
+          "symbol": "loadStatisticAreas"
+        }
+      ],
+      "requiredCapabilities": [
+        "dataset-branches",
+        "time",
+        "join",
+        "companion-release",
+        "dimensions"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "statistics-aggregate",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Geography/series endpoints reshape selected records into maps by geography or time. They enforce uniqueness/comparability and may use direct district codes when canonical joins are unavailable; do not assume arithmetic summation.",
+      "composition": {
+        "operation": "request-time series/geography projection"
+      },
+      "upstream": [
+        "composition: record selection, field definition, geography map, related Division selection and guarded direct-code fallback"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/statisticsAggregates.ts",
+          "symbol": "resolveAggregateValues/getStatisticsGeographies/getStatisticsSeries"
+        }
+      ],
+      "requiredCapabilities": [
+        "many-to-one",
+        "request-time-computation",
+        "guarded-fallback",
+        "maps",
+        "uniqueness",
+        "comparability",
+        "temporal-keys"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "street-lifecycle",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Street names/status/dates/version/deletion arise from ordered baseline and notice events; partial name changes and reviewed text corrections are field-specific. History replay is chronological, not priority selection.",
+      "composition": {
+        "operation": "resource/locales/history projection"
+      },
+      "upstream": [
+        "preparation: PDF baseline/gazette extraction and notice matching",
+        "ingestion: preserve baseline/notice evidence and diagnostics",
+        "assembly: ordered lifecycle fold, text corrections and translations"
+      ],
+      "evidence": [
+        {
+          "file": "apps/harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetLifecycle.ts",
+          "symbol": "materialiseLandsdStreetLifecycleInternal/applyNotice/applyCorrection"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/sources/hkgov/landsd/street/landsdStreetPdf.ts",
+          "symbol": "PDF extraction"
+        },
+        {
+          "file": "apps/atlas-api/src/services/streets.ts",
+          "symbol": "resource/locales"
+        }
+      ],
+      "requiredCapabilities": [
+        "ordered-fold",
+        "event-time",
+        "patch",
+        "translation",
+        "partial-update",
+        "deferred-source-payload"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "street-evidence",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Changelog entries and evidence URLs are projected from retained events and asset metadata, with local source occurrence exceptions.",
+      "composition": {
+        "operation": "publicChangelogEntry/publicAssetLinks"
+      },
+      "upstream": [
+        "ingestion: notice/baseline assets and manifest/source identity",
+        "assembly: event outcome/kind/effective date and evidence association"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/streets.ts",
+          "symbol": "publicChangelogEntry/publicAssetLinks"
+        },
+        {
+          "file": "apps/harbour-cli/src/lib/pipeline/streets/streetProvenance.ts",
+          "symbol": "street evidence retention"
+        }
+      ],
+      "requiredCapabilities": [
+        "assets",
+        "joins",
+        "source-occurrences",
+        "ordered-history",
+        "deferred-source-payload"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "geocoding",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Forward text matching/reverse spatial membership generates rank, score, distance, coordinate role, status, alternatives, coverage and correlated hierarchy paths at request time.",
+      "composition": {
+        "operation": "candidate resolver/projectGeocodingDocument",
+        "inputs": [
+          "request text or coordinates",
+          "selected Address/Division/geometry snapshots",
+          "candidate set and ordering"
+        ]
+      },
+      "upstream": [
+        "reuse lineage of included Address/Division resources; geocoding calculations do not re-ingest publisher values"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/geocoding.ts",
+          "symbol": "geocoding orchestration"
+        },
+        {
+          "file": "apps/atlas-api/src/services/divisionGeocoding.ts",
+          "symbol": "nameScore/distanceMetres/createDivisionResolver"
+        },
+        {
+          "file": "apps/atlas-api/src/services/geocodingPresentation.ts",
+          "symbol": "projection"
+        }
+      ],
+      "requiredCapabilities": [
+        "spatial-predicate",
+        "request-computation",
+        "multiple-release-binding",
+        "ranking",
+        "correlated-paths",
+        "dynamic-meta"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "division-search",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Search returns selected indexed names and taxonomy plus request-dependent match information; locale and inventory selection are explicit.",
+      "composition": {
+        "operation": "search index projection",
+        "inputs": [
+          "request query",
+          "selected Division snapshot/inventory",
+          "indexed names"
+        ]
+      },
+      "upstream": [
+        "reuse Division name/taxonomy lineage; search-index preparation retains normalisation policy"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/routes/divisions/v0/search.ts",
+          "symbol": "search route"
+        },
+        {
+          "file": "apps/atlas-api/src/db/divisionSearch.ts",
+          "symbol": "search index query"
+        }
+      ],
+      "requiredCapabilities": [
+        "request-computation",
+        "index-contract",
+        "locale",
+        "selection"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "division-changes",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Before/after field comparisons use TWO release bindings, normalised definitions/hashes, geometry membership and descendant closure. Definition hash is computed, not a stored publisher value.",
+      "composition": {
+        "operation": "compare release definitions/descendant sets"
+      },
+      "upstream": [
+        "reuse each release lineage; distinguish membership polygons from label points",
+        "composition: canonicalisation, hashes, diff, descendant traversal, cursor"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/divisionChanges.ts",
+          "symbol": "attributes/definitions/listDivisionChanges"
+        }
+      ],
+      "requiredCapabilities": [
+        "two-release-binding",
+        "canonical-hash",
+        "set-vs-sequence",
+        "transitive-closure",
+        "request-computation"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "source-record",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Public SOURCE records expose retained publisher properties with explicit dataset-specific projection exclusions. Geometry is optional; acquisition geometry and transformed geometry must be distinguished.",
+      "composition": {
+        "operation": "toSourceRecord/getSourceRecordSchema/NDJSON stream"
+      },
+      "upstream": [
+        "ingestion: retained source payload and schema-version locator",
+        "preparation: original publisher acquisition/extraction contract"
+      ],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/sourceRecords.ts",
+          "symbol": "toSourceRecord/getSourceRecordSchema/streamSourceRecordsNdjson"
+        },
+        {
+          "file": "libs/core/src/pipeline/services/sources/sourcePayload.ts",
+          "symbol": "publisher retention"
+        }
+      ],
+      "requiredCapabilities": [
+        "source-terminal",
+        "wildcard-source-schema",
+        "projection-exclusion",
+        "streaming",
+        "schema-pins"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "registry",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Generic registry returns META definitions/selected rows; loose schemas require field enumeration from registry readers, not assumed canonical-to-API copies.",
+      "composition": {
+        "operation": "registry reader projection"
+      },
+      "upstream": [],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/routes/v0/registry.ts",
+          "symbol": "REGISTRY_RESOURCES"
+        },
+        {
+          "file": "libs/core/src/lib/db/metaRegistry.ts",
+          "symbol": "listRegistry/getRegistry readers"
+        },
+        {
+          "file": "apps/atlas-api/src/routes/divisions/v0/inventories.ts",
+          "symbol": "inventory catalogue"
+        }
+      ],
+      "requiredCapabilities": [
+        "registry-scopes",
+        "dynamic-object",
+        "definition-reference",
+        "no-source-needed"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "identity-bridge",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Namespace/identifier/canonicalId are release-selected identity mappings; identifiers can map to multiple resources.",
+      "composition": {
+        "operation": "listIdentityBridge",
+        "inputs": [
+          "selected release canonical identifiers",
+          "request namespace/identifier filters"
+        ]
+      },
+      "upstream": ["reuse canonical identity lineage"],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/services/identityBridge.ts",
+          "symbol": "listIdentityBridge"
+        }
+      ],
+      "requiredCapabilities": ["many-to-many", "release-selection", "request-filter"],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "asset-style",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Assets and styles are byte streams, with object identity, acquisition metadata and response headers; not field-level canonical data.",
+      "composition": {
+        "operation": "R2 asset/style retrieval"
+      },
+      "upstream": [],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/routes/v0/assets.ts",
+          "symbol": "managed asset handler"
+        },
+        {
+          "file": "apps/atlas-api/src/routes/v0/styles.ts",
+          "symbol": "style handler"
+        }
+      ],
+      "requiredCapabilities": [
+        "asset-hash",
+        "non-json-response",
+        "conditional-request",
+        "no-source-needed"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    },
+    {
+      "id": "operational",
+      "status": "reviewed-implementation-plan",
+      "behaviour": "Health/probe/subscription responses derive from runtime checks/external operations, not a dataset release.",
+      "composition": {
+        "operation": "operational response builder"
+      },
+      "upstream": [],
+      "evidence": [
+        {
+          "file": "apps/atlas-api/src/routes/v0/meta.ts",
+          "symbol": "health/subscription"
+        },
+        {
+          "file": "apps/atlas-api/src/routes/v0/probe.ts",
+          "symbol": "probe route"
+        }
+      ],
+      "requiredCapabilities": [
+        "runtime-scope",
+        "external-result",
+        "no-release-binding"
+      ],
+      "generationGate": "Resolve every input scope and immutable rule/branch reference from the selected release; never copy current fixture policy into a historical binding."
+    }
+  ]
+}

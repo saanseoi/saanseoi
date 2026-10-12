@@ -58,8 +58,8 @@ content and pointers; missing evidence cannot fall back to current fixtures.
 Registry readers expand per-field stage arrays from shared nodes. Unresolved operations
 remain explicit, and cannot be labelled complete. Record values and per-record automatic
 rule traces do not belong in these definitions. The
-[field-lineage correspondence report](../reviews/field-lineage/README.md#runtime-implementation-and-correspondence)
-tracks remaining field-specific implementation and evidence gaps.
+[field-lineage review workflow](field-lineage.md#artefacts-and-regeneration) tracks
+remaining field-specific implementation and evidence gaps.
 
 Response dependencies are shared by API version and canonical schema version in
 `fixtures/meta/apiResponseFields/`, independently of source mappings and composition

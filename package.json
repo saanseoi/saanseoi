@@ -114,6 +114,7 @@
     "evidence:sync": "bun --env-file=.env --env-file=.env.local ./scripts/evidence-archive.ts sync",
     "evidence:restore": "bun --env-file=.env --env-file=.env.local ./scripts/evidence-archive.ts restore",
     "rehash:fixture": "bun ./scripts/rehash-fixture.ts",
+    "lineage:review": "bun libs/db/scripts/field-lineage/generate-inventory.ts && bun libs/db/scripts/field-lineage/validate-review.ts",
     "test": "turbo run test",
     "test:run": "turbo run test",
     "test:watch": "turbo run test:watch",

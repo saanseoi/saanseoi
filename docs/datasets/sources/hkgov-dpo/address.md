@@ -1582,3 +1582,68 @@ A subsequent revision can resolve an investigation and restore a previously omit
 identity. Original publisher assertions, earlier memberships and the investigation
 evidence remain available for that decision. Deferral itself does not establish that a
 record persisted.
+
+## Executable review decisions
+
+Monthly review JSON is durable editorial input to preparation. The TypeScript under
+`apps/harbour-cli/src/lib/sources/hkgov/dpo/` runs during ingestion; it is not a set of
+one-off report generators. Generated `.review.json` files describe preparation issues
+and sealed evidence. They do not authorise a correction or retirement.
+
+`fixtures/meta/curations/hkgov-dpo-address-review-program.json` declares ordered
+operations over the editor fixtures registered in `hkgovAlsAuditFixtures.ts`.
+`hkgovAlsReviewProgram.ts` validates the entire program and referenced collections
+before execution. `schemaVersion` is `1`; unknown operation codes, missing fixtures,
+missing collections, duplicate operation IDs and malformed evidence are errors.
+
+| Code                 | Input collection          | Effect and required evidence                                                                                                                                                                                                                                                                   |
+| -------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `guard-source-group` | `sourceGuards`            | Checks the complete publisher CSU group, including siblings. Requires an exact assertion for the prepared source version and compares all premise/geometry hashes. An absent district input is skipped; an absent group in a present district is checked as an empty group.                    |
+| `reconcile-identity` | `identityReconciliations` | Preserves the guarded canonical owner and records approved aliases. `returnedAliases: "reject"` requires aliases to be absent. `"coalesce-guarded"` requires each returned alias to match its bilingual address and coordinates before removal; its publisher assertions remain in provenance. |
+| `assign-parent`      | `groups`                  | Links selected child IDs to a distinct, unique parent and assigns building, section or unit granularity. Can match resolved identity aliases or explicitly qualified estate blocks. Missing parents with present children fail.                                                                |
+
+For example, an editor registers a reviewed source guard collection using:
+
+```json
+{
+  "id": "review-cohort-source-guards",
+  "code": "guard-source-group",
+  "fixture": "hkgov-dpo-address-reviewed-cohort",
+  "collection": "sourceGuards",
+  "sourceVersionFrom": "2026-08-19.0"
+}
+```
+
+The referenced fixture supplies `sourceFile`, `csu` and
+`assertions: [{ "version": "…", "hashes": ["…"] }]` for each guarded group. Fixture
+names omit `.json`. Register a new fixture in `hkgovAlsAuditFixtures.ts` and add its
+operation to the program; an existing operation needs no month-specific handler. Keep
+review report digests, authority, reasons and inspected source assertions in the
+editorial fixtures. A triage label such as `retain-reconcile` is not sufficient to
+execute a mutation: the selected operation also needs its concrete identity, parent or
+source evidence.
+
+Execution follows preparation stages: source guards run before retained assertions are
+replayed; parent assignments run after premise retention and again after final identity
+resolution; `initial-hierarchy` assignments run only before specialised address
+reconstruction; identity reconciliation runs after resolved IDs have been consolidated.
+Within each stage, program order is significant. Each operation's `sourceVersionFrom` is
+inclusive. Identity decisions carry their own activation version and may supply
+exact-version target or coordinate guards. These are data, not permission to accept an
+unreviewed release. Provenance keys and originating curation filenames remain part of
+the prepared evidence. The executable program is also included in the retained audit
+fixtures.
+
+Specialised reconstruction remains separate: derived building parents, street-range
+reconciliation, shop classification and retained unit namespaces need distinct semantics
+beyond the three shared operations. New behaviour should have a named, guarded operation
+with focused tests rather than another monthly implementation. The source review and
+family documentation must describe its effect before editors use it. Historical test
+names may identify months because they exercise particular review cohorts.
+
+Investigation acknowledgement is a separate policy. The current 2026-only deferral rules
+and exact-evidence acknowledgements do not confer retirement approval, and must not
+become a general “ignore errors” operation. Moving those rules into data requires
+explicit release scope and the same distinction between semantic uncertainty and
+structural integrity failures. Membership/unit identity checks, review-cache hashes and
+deletion approval digests remain independent gates.

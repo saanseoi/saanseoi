@@ -1,0 +1,140 @@
+{
+  "kind": "supplementary-api-surface-plans",
+  "schemaVersion": 1,
+  "plans": [
+    {
+      "id": "registry-loose-responses",
+      "templateId": "registry",
+      "paths": ["/v0.1/registry/*"],
+      "selectors": ["loose data objects and nested definition JSON"],
+      "evidenceFile": "libs/core/src/lib/db/metaRegistry.ts",
+      "implementation": "Use implementation-shapes.json to enumerate META reader output keys; expand retained definition schemas and locale dictionaries. Do not invent SOURCE lineage for registry definitions.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "source-properties",
+      "templateId": "source-record",
+      "paths": ["/{family}/v0.1/sources/*/records", "/{family}/v0.1/sources/*/schema"],
+      "selectors": [
+        "properties.*",
+        "geometry",
+        "sourceRecordId",
+        "validity metadata",
+        "schema fields/locators"
+      ],
+      "evidenceFile": "apps/atlas-api/src/services/sourceRecords.ts",
+      "implementation": "Expand each selected source schema; retain raw-versus-prepared acquisition contract, geometry encoding, SOURCE validity and public exclusions. Streets keeps its documented deferred payload boundary.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "source-ndjson",
+      "templateId": "source-record",
+      "paths": ["source record NDJSON downloads"],
+      "selectors": ["one source record per line"],
+      "evidenceFile": "apps/atlas-api/src/services/sourceRecords.ts",
+      "implementation": "Use the same source-record field rules; describe stream framing, release selection and optional geometry separately.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "geocoding-dynamic-meta",
+      "templateId": "geocoding",
+      "paths": ["/geocoding"],
+      "selectors": [
+        "data[].meta.alternatives",
+        "coverage",
+        "ambiguity",
+        "evidence",
+        "datasetCoverage",
+        "meta.release",
+        "meta.addressRelease",
+        "meta.divisionRelease"
+      ],
+      "evidenceFile": "apps/atlas-api/src/services/geocodingPresentation.ts",
+      "implementation": "Enumerate emitted keys from presentGeocoding and resolver results; profile/direction control emission and companion roots. The Zod dynamic-map boundary is not a completed definition.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "middleware-errors",
+      "templateId": "error",
+      "paths": ["all mounted routes"],
+      "selectors": [
+        "jsonapi/error documents",
+        "validation errors",
+        "authorization errors",
+        "publication failures"
+      ],
+      "evidenceFile": "apps/atlas-api/src/index.ts",
+      "implementation": "Record central request validation/auth/error projections and geocoding JSON:API error rewriting; no dataset derivation for protocol error fields.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "asset-bytes",
+      "templateId": "asset-style",
+      "paths": ["/v0.1/assets/{assetId}"],
+      "selectors": ["body bytes", "content type", "etag/cache headers"],
+      "evidenceFile": "apps/atlas-api/src/routes/v0/assets.ts",
+      "implementation": "Bind immutable asset identity, selected source attribution and HTTP presentation; no fabricated scalar field graph for bytes.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "map-style-json",
+      "templateId": "asset-style",
+      "paths": ["/v0.1/styles/{style}/{version}"],
+      "selectors": ["style JSON.*", "etag/304"],
+      "evidenceFile": "apps/atlas-api/src/routes/v0/styles.ts",
+      "implementation": "Root at the selected style asset/version/hash. Style JSON is an asset contract independent of a dataset release set.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "generated-openapi",
+      "templateId": "operational",
+      "paths": ["/openapi", "/openapi/{product}/{version}"],
+      "selectors": ["OpenAPI document.*"],
+      "evidenceFile": "apps/atlas-api/src/index.ts",
+      "implementation": "Root at generated route/schema definitions and locale/product selection; implementation schema inventory is input evidence, not publisher data.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "html-and-text",
+      "templateId": "operational",
+      "paths": ["/docs", "/llms.txt", "/"],
+      "selectors": ["HTML documentation", "generated Markdown", "redirect"],
+      "evidenceFile": "apps/atlas-api/src/index.ts",
+      "implementation": "Describe document generation and redirect contract; do not expand HTML/text into dataset field definitions.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "runtime-and-external",
+      "templateId": "operational",
+      "paths": ["health", "placement probe", "subscription"],
+      "selectors": ["runtime counts/timings/request location", "subscription state"],
+      "evidenceFile": "apps/atlas-api/src/routes/v0/meta.ts",
+      "implementation": "Use operation context and runtime/external results; probe also uses routes/v0/probe.ts. No API release set is fabricated.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "included-resource-unions",
+      "templateId": "relationships",
+      "paths": ["all resource includes"],
+      "selectors": ["included[].type", "included[].attributes.*"],
+      "evidenceFile": "apps/atlas-api/src/services/divisionsPresentation.ts",
+      "implementation": "Select each included-resource discriminator and its own schema and release/snapshot scope; never inherit the parent resource family by default.",
+      "status": "reviewed-implementation-plan"
+    },
+    {
+      "id": "dynamic-statistic-keys",
+      "templateId": "statistics-values",
+      "paths": ["/stats/v0.1/*"],
+      "selectors": [
+        "values[fieldName]",
+        "fieldDefinitionHashes[fieldName]",
+        "fieldSources[fieldName]",
+        "dimensions[dimension]",
+        "time/geography map keys"
+      ],
+      "evidenceFile": "apps/atlas-api/src/services/statistics.ts",
+      "implementation": "Expand from release-pinned dictionaries and dataset profiles, not from a wildcard guessed at publication. Definitions and values have distinct lineage.",
+      "status": "reviewed-implementation-plan"
+    }
+  ]
+}

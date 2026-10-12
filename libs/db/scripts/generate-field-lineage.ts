@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { listApiFieldFixtures } from '../src/apiFieldFixtures'
 import { computeVersionHash } from '../src/versioning'
@@ -219,7 +219,6 @@ const fields = fixtures.flatMap(fixture => {
     }
   })
 })
-const plans = read('docs/reviews/field-lineage/field-plans.json')
 const report = {
   kind: 'field-lineage-implementation-correspondence',
   schemaVersion: 1,
@@ -233,7 +232,6 @@ const report = {
     'operational',
   ],
   operationCatalogueHash: computeVersionHash(operations),
-  staticSelectorPlans: plans.plans.length,
   authoredSignatures: fixtures.length,
   fieldSourcePlans: fields.length,
   assemblySpecifications: fields.filter(field => field.assemblyOperation !== null)
@@ -261,7 +259,6 @@ const outputs = [
       implementations: evidence,
     },
   ],
-  ['docs/reviews/field-lineage/correspondence.json', report],
 ] as const
 for (const [path, value] of outputs) {
   const text = `${JSON.stringify(value, null, 2)}\n`
@@ -269,6 +266,14 @@ for (const [path, value] of outputs) {
     if (readFileSync(resolve(root, path), 'utf8') !== text)
       throw new Error(`Stale lineage artefact: ${path}`)
   } else writeFileSync(resolve(root, path), text)
+}
+if (process.argv.includes('--report')) {
+  const folder = resolve(root, '.local/reports/field-lineage')
+  mkdirSync(folder, { recursive: true })
+  writeFileSync(
+    resolve(folder, 'correspondence.json'),
+    `${JSON.stringify(report, null, 2)}\n`,
+  )
 }
 console.log(
   JSON.stringify({

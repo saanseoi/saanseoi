@@ -102,34 +102,16 @@ export const alsInventoryTransforms = [
     'Apply reviewed September hierarchy and synthetic parent relationships.',
   ],
   [
-    'applyOctoberInferredAlsHierarchy',
-    'hkgovAlsOctoberReview',
-    'curation',
-    'Infer the declared cohort hierarchy only for matching source evidence.',
-  ],
-  [
-    'applyNovemberInferredAlsHierarchy',
-    'hkgovAlsNovemberReview',
-    'curation',
-    'Infer the declared cohort hierarchy only for matching source evidence.',
-  ],
-  [
     'applyDecemberInferredAlsHierarchy',
     'hkgovAlsDecemberReview',
     'curation',
-    'Infer the declared cohort hierarchy only for matching source evidence.',
+    'Record guarded identity coalescence evidence for the declared cohort.',
   ],
   [
-    'applyJanuaryInferredAlsHierarchy',
-    'hkgovAlsJanuaryReview',
+    'applyReviewedAlsParents',
+    'hkgovAlsReviewProgram',
     'curation',
-    'Infer the declared cohort hierarchy only for matching source evidence.',
-  ],
-  [
-    'applyFebruaryInferredAlsHierarchy',
-    'hkgovAlsFebruaryReview',
-    'curation',
-    'Apply reviewed parent/child hierarchy from February 2025 under exact identity and source guards.',
+    'Apply declared parent assignments from the validated review program under source-version and identity guards.',
   ],
 ] as const
 const tailTransforms = [
