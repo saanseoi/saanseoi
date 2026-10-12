@@ -1,3 +1,7 @@
+import {
+  stagePlaceIdentities,
+  canonicalAddressResolutions,
+} from './placeIdentityPreparation'
 import type { DatasetProcessingStats } from '@repo/core/pipeline/processingRunStats'
 import { PlaceRecordCache } from './placeRecordCache.ts'
 import { mkdir } from 'node:fs/promises'
@@ -21,7 +25,6 @@ import { resolveApiReleaseSetStatsTarget } from '../../api/apiReleaseSetStats.ts
 import type { PreparedUploadFile } from '../../upload/parquetRepack.ts'
 import type { UploadTarget } from '../../cli/options.ts'
 import type { NormalisedPlace } from '@repo/core/pipeline/services/places/place'
-import type { StagedAddressResolution } from './supplementaryPlaceAddress.ts'
 import { createHarbourControlClient } from '../../api/harbourControl.ts'
 import {
   replayRemoteCacheWithRetry,
@@ -247,12 +250,27 @@ export async function processLocalPlaceSqlUpload(
       previewPlan.regionCode,
       shardYear,
     )
+    const identities = await runPlaceProgressPhase(
+      progress,
+      'Match',
+      'Place identities',
+      () =>
+        stagePlaceIdentities({
+          sourcePath: stagedPlaces.path,
+          historyRows,
+          scope: snapshots.snapshotLineageId,
+          predecessorSnapshotId: publicationPrevious?.snapshotId ?? null,
+          sourceVersion: previewPlan.sourceVersion,
+          releaseRoot,
+        }),
+    )
     const supplementary = await runPlaceProgressPhase(
       progress,
       'Analyse',
       'official Address definitions',
       reportProgress =>
         prepareSupplementaryAddresses({
+          placeIdentities: identities.bySourceId,
           recordCache,
           context,
           dependencyDb: dependencyView.db,
@@ -271,12 +289,18 @@ export async function processLocalPlaceSqlUpload(
               target,
               directory: resolve(releaseRoot, `provenance-${auditReleaseId}`),
               allowFailed: auditReleaseId === resourceReleaseId,
-              identity:
-                addresses.materialisationHash ??
-                JSON.stringify({
+              identity: JSON.stringify({
+                addresses: addresses.materialisationHash ?? {
                   resolutions: await deliveryFileSha256(addresses.resolutionPath),
                   fixture: addresses.fixture,
-                }),
+                },
+                ...(auditReleaseId === resourceReleaseId
+                  ? {
+                      identities: await deliveryFileSha256(identities.path),
+                      computationContract: recordCache?.contract,
+                    }
+                  : {}),
+              }),
               retain: store =>
                 retainPlaceProvenance(store, {
                   snapshotId: addresses.snapshotId,
@@ -284,7 +308,11 @@ export async function processLocalPlaceSqlUpload(
                   datasetCode: auditDatasetCode,
                   addresses,
                   ...(auditReleaseId === resourceReleaseId
-                    ? { staged: stagedPlaces }
+                    ? {
+                        staged: stagedPlaces,
+                        identityPath: identities.path,
+                        identityLedger: identities.ledger,
+                      }
                     : {}),
                 }),
             }),
@@ -301,12 +329,15 @@ export async function processLocalPlaceSqlUpload(
         stageEnrichedPlaces(
           dependencyView.db,
           snapshots,
-          readStagedJsonLines<NormalisedPlace>(stagedPlaces.path),
-          readStagedJsonLines<StagedAddressResolution>(supplementary.resolutionPath),
+          readStagedJsonLines<NormalisedPlace>(identities.path),
+          canonicalAddressResolutions(
+            supplementary.resolutionPath,
+            identities.bySourceId,
+          ),
           releaseRoot,
           current => reportProgress(current),
           supplementary,
-          stagedPlaces.path,
+          identities.path,
           recordCache,
         ),
       stagedPlaces.includedRows,

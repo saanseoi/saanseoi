@@ -736,3 +736,35 @@ address text is preserved, but no uncertain canonical Address link or supplement
 Address is created. Assembly audits retain these investigations separately from applied
 human decisions. Malformed evidence and concurrent curation changes still block
 ingestion.
+
+## Publisher and canonical identity
+
+Overture Places participate in GERS, but matching changes can replace publisher IDs.
+Source retention preserves those IDs and original payloads. Canonical preparation uses
+the [Place identity evidence policy](../../internal/overture/place-identity.md) to match
+observations to the exact predecessor, retain confidence evidence and assign
+deterministic SaanSeoi IDs when a match is not sufficiently supported. Publisher-ID
+Address curations remain attached to their source observations. Canonical source
+resolutions retain the publisher-to-Place mapping, including across ID churn.
+
+### Identity decision evidence
+
+Canonical identity curation uses the exact predecessor and stores its automatic
+decisions in immutable, partitioned R2 audit objects. Local JSONL ledgers are disposable
+staging; Git contains the policy and human-authored curation. Each record retains the
+normalised incoming evidence and candidate predecessor evidence, including original
+Overture IDs, release references, agreements, conflicts, score and competing-match
+margins. The ledger header pins the observed release, scope, policy and implementation
+hashes.
+
+Places Source Audit shows before/after comparisons under the assembly identity rule and
+retains an immutable, partitioned copy linked to the ledger hash. Raw Overture SOURCE
+records remain unchanged. Unknown opening hours do not count as matching hours. The
+ledger documents automatic decisions; it does not imply human approval. See the ledger
+README for retry, retention and storage details.
+
+When a publisher ID changes but canonical Place identity continues, Address preparation
+can carry its predecessor's supplementary entry forward. Matching address evidence and a
+reproducible base remain required. Stale automatic Address defaults are recomputed
+against the canonical predecessor; human-curated decisions keep their validation and
+precedence.

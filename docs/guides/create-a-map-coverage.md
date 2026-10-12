@@ -11,6 +11,10 @@ Place provenance uses `attributes.resourceReleaseId` for the processed resource 
 and `snapshotId` for the canonical snapshot. The hand-over instructions describe these
 identifiers; marker rendering does not require either identifier.
 
+Place IDs are opaque canonical identifiers, distinct from publisher/GERS IDs. The
+hand-over instructions preserve this distinction and do not infer openings or closures
+from observed arrival/disappearance. Marker clients use `data[].id` without parsing it.
+
 Places pagination follows `links.next` until absent. Materialised snapshots provide
 `meta.page.total`; historical snapshots provide `meta.page.hasMore` without scanning the
 whole release for an exact count. Tutorial clients must not require `total`.

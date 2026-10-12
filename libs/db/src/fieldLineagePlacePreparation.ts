@@ -26,6 +26,21 @@ export function placePreparedSpecification(path: string) {
           'The staging pass checks publisher address cardinality and excludes CN/MO address countries. A missing country remains included.',
         ],
       }
+    case 'canonicalPlaceIdentity':
+      return {
+        inputs: ['place', 'predecessorPlaceHistory', 'sourceVersion'],
+        implementation: {
+          path: 'libs/core/src/pipeline/services/places/placeIdentity.ts',
+          symbol: 'matchPlaceIdentities',
+        },
+        expression:
+          'matchPlaceIdentities(incomingEvidence, exactPredecessorEvidence, lineageScope, sourceVersion)',
+        steps: [
+          'Retain publisher IDs in raw source records. Match canonical Place IDs across the complete incoming release with a minimum score of 85 and a bidirectional margin of 15.',
+          'Require an identity/contact anchor and proximity; reject conflicting shop units/floors. Rebrands additionally require identical known phones, category and another continuity signal, within 30 metres, without ancillary conflicts.',
+          'Allocate deterministic SaanSeoi UUIDs from scope, birth release and normalised evidence when evidence is insufficient or ambiguous. Retain scores, conflicts and candidate IDs in source resolutions and canonical history.',
+        ],
+      }
     case 'i18n':
       return {
         inputs: ['place'],
@@ -158,6 +173,7 @@ export function placePreparedSpecification(path: string) {
         expression: 'createHash(canonicalBaseContent)',
         steps: [
           'Hash id, effective coordinates, publisher bbox, operatingStatus, basicCategory, taxonomyPrimary/Hierarchy/Alternates, wikidataId, websites, socials, emails, phones, addresses and confidence.',
+          'Include retained Place identity evidence so source-ID transitions and the latest matching inputs survive historical replay.',
           'Include addressDependencyHash, address2dId, all three nullable Address3D references, sorted unique divisionIds and divisionAssociation when present.',
           'Localised fields, first/last seen months, source payload, publication snapshot IDs and timestamps are not independent base-content hash fields. Locales have separate content hashes.',
         ],

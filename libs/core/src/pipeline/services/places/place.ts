@@ -1,3 +1,4 @@
+import type { PlaceIdentityDecision } from './placeIdentity'
 import { createHash } from '../../utils'
 import referenceNameFixture from '../../../../../../fixtures/meta/processing-rules/assembly/place-reference-name.json'
 
@@ -72,13 +73,21 @@ export type NormalisedPlace = {
   phones: unknown
   addresses: string[] | null
   confidence: number | null
-  sources: { overture: unknown[] }
+  sources: { overture: unknown[]; placeIdentity?: PlaceIdentityDecision }
   firstSeenMonth: string
   lastSeenMonth: string
   i18n: PlaceI18nRecord[]
   /** Transient resolver evidence; persisted through release audit actions only. */
   localeConflicts: PlaceLocaleConflict[]
   raw: Record<string, unknown>
+}
+
+/** Publisher identity is independent of the canonical Place ID assigned in preparation. */
+export function publisherPlaceId(place: Pick<NormalisedPlace, 'raw'>): string {
+  const id = place.raw.id
+  if (typeof id !== 'string' || !id.trim())
+    throw new Error('Place requires a retained publisher ID.')
+  return id
 }
 
 export type PlaceAddressTexts = string[]
@@ -210,6 +219,7 @@ export async function hashPlaceMaterialisation(
     phones: place.phones,
     addresses: place.addresses,
     confidence: place.confidence,
+    placeIdentity: place.sources.placeIdentity?.evidence ?? null,
     addressDependencyHash: references.addressDependencyHash ?? null,
     addressId: references.addressId,
     address3dId: references.address3dId ?? null,

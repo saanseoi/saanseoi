@@ -460,3 +460,29 @@ describe('Overture Places initialisation ownership', () => {
     sqlite.close()
   })
 })
+
+test('Places reset removes processing runs owned by release, snapshot or API release set', () => {
+  const db = new SQLiteDatabase(':memory:')
+  db.exec(`CREATE TABLE processingRuns(runId TEXT PRIMARY KEY, resourceReleaseId TEXT, snapshotId TEXT, apiReleaseSetId TEXT);
+    INSERT INTO processingRuns VALUES ('release','owned-release',NULL,NULL),('snapshot',NULL,'owned-snapshot',NULL),('api',NULL,NULL,'owned-api'),('unrelated',NULL,NULL,'other-api');`)
+  const { metaSql } = buildPlacesResetSql({
+    releaseIds: ['owned-release'],
+    snapshotIds: ['owned-snapshot'],
+    apiReleaseSetIds: ['owned-api'],
+    addressReleaseIds: [],
+    addressSnapshotIds: [],
+    placeReleaseIds: [],
+    placeSnapshotIds: [],
+    releaseCodes: [],
+    sourceReleaseIds: [],
+    assets: [],
+  })
+  const statement = metaSql
+    .split('\n')
+    .find(sql => sql.startsWith('DELETE FROM processingRuns'))!
+  db.exec(statement)
+  expect(db.query('SELECT runId FROM processingRuns').all()).toEqual([
+    { runId: 'unrelated' },
+  ])
+  db.close()
+})

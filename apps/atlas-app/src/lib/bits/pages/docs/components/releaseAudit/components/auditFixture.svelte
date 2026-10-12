@@ -6,6 +6,8 @@ import FieldMappings from './auditFieldMappings.svelte'
 import IdentityMappings from './auditIdentityMappings.svelte'
 import Measures from './auditMeasures.svelte'
 import Translations from './auditTranslations.svelte'
+import PlaceIdentityLedger from './auditPlaceIdentityLedger.svelte'
+import PlaceIdentity from './auditPlaceIdentity.svelte'
 import VirtualList from './auditVirtualList.svelte'
 let { value }: { value: Json } = $props()
 const label = (key: string) =>
@@ -19,8 +21,8 @@ const label = (key: string) =>
     {#if item.length > 24}
       <VirtualList items={item}>
         {#snippet children(
-  entry,
-)}
+          entry,
+        )}
           {@render render(entry)}
         {/snippet}
       </VirtualList>
@@ -31,6 +33,13 @@ const label = (key: string) =>
         {/each}
       </ul>
     {/if}
+  {:else if item !== null &&
+    typeof item === 'object' &&
+    'sourceRelease' in item &&
+    'candidates' in item &&
+    'evidence' in item &&
+    'requiredMargin' in item}
+    <PlaceIdentity value={item} />
   {:else if item !== null && typeof item === 'object'}
     <dl class="grid grid-cols-[minmax(7rem,1fr)_minmax(0,3fr)] gap-x-4 gap-y-2 text-sm">
       {#each Object.entries(item) as [key, child]}
@@ -48,6 +57,15 @@ const label = (key: string) =>
     >
   {/if}
 {/snippet}
+
+{#if value &&
+  typeof value === 'object' &&
+  !Array.isArray(value) &&
+  value.ledger &&
+  typeof value.ledger === 'object' &&
+  !Array.isArray(value.ledger)}
+  <PlaceIdentityLedger value={value.ledger} />
+{/if}
 
 {#if value &&
   typeof value === 'object' &&

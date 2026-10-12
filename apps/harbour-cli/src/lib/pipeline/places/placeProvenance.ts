@@ -1,3 +1,8 @@
+import { createHash } from 'node:crypto'
+import { readFile } from 'node:fs/promises'
+import type { writePlaceIdentityLedger } from './placeIdentityLedger'
+import { placeIdentityDeclaration } from '@repo/core/pipeline/services/places/placeIdentity'
+import type { NormalisedPlace } from '@repo/core/pipeline/services/places/place'
 import {
   retainCurationReference,
   type AuditGuard,
@@ -37,6 +42,8 @@ export async function retainPlaceProvenance(
     datasetCode: string
     addresses: PlaceAddressAuditInput
     staged?: StagedPlaces
+    identityLedger?: Awaited<ReturnType<typeof writePlaceIdentityLedger>>
+    identityPath?: string
   },
 ) {
   const counts: Record<string, number> = {
@@ -171,6 +178,54 @@ export async function retainPlaceProvenance(
       ],
     },
   ]
+  if (input.identityPath) {
+    const counts: Record<string, number> = {}
+    let total = 0
+    const entries = []
+    for await (const place of readStagedJsonLines<NormalisedPlace>(
+      input.identityPath,
+    )) {
+      const identity = place.sources.placeIdentity
+      if (!identity || identity.id !== place.id || identity.sourceId !== place.raw.id)
+        throw new Error(`Missing Place identity evidence ${place.id}.`)
+      entries.push(identity)
+      counts[identity.reason] = (counts[identity.reason] ?? 0) + 1
+      total++
+    }
+    if (!input.identityLedger)
+      throw new Error('Place identity audit requires staged identity evidence.')
+    const ledgerText = await readFile(input.identityLedger.path, 'utf8')
+    if (
+      createHash('sha256').update(ledgerText).digest('hex') !==
+      input.identityLedger.hash
+    )
+      throw new Error('Place identity ledger hash mismatch.')
+    const ledgerRows = ledgerText
+      .trim()
+      .split('\n')
+      .slice(1)
+      .map(line => JSON.parse(line))
+    if (
+      JSON.stringify(ledgerRows) !==
+      JSON.stringify([...entries].sort((a, b) => a.sourceId.localeCompare(b.sourceId)))
+    )
+      throw new Error('Place identity audit differs from staged identity evidence.')
+    const { path: _path, ...ledgerReference } = input.identityLedger
+    rules.push({
+      declaration: placeIdentityDeclaration,
+      inputs: { 'publisher-places': total },
+      outputs: { 'canonical-places': total },
+      recordsAffected: total,
+      decisions: counts,
+      fixtures: [
+        {
+          type: 'place-identity-decisions',
+          document: { basis: 'automatic', ledger: ledgerReference, entries },
+          arrayKey: 'entries',
+        },
+      ],
+    })
+  }
   if (input.staged) {
     const staged = input.staged
     const excluded = staged.actions

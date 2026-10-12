@@ -106,6 +106,15 @@ export async function captureResolvedPlaceDelivery(input: {
         .get(input.sqlInput.snapshots.snapshotLineageId)
       if (previous && !previous.preparedAt)
         throw new Error('Places predecessor is incomplete; resume its sealed delivery.')
+      if (
+        Object.hasOwn(input.sqlInput, 'publicationPrevious') &&
+        (previous?.snapshotId !== input.sqlInput.publicationPrevious?.snapshotId ||
+          previous?.publicationToken !==
+            input.sqlInput.publicationPrevious?.publicationToken)
+      )
+        throw new Error(
+          'Place identity predecessor changed during preparation; prepare again.',
+        )
       const referenceScopes = new Map<string, string>()
       for (const table of ['addressPublicationState', 'divisionPublicationState'])
         for (const row of current.db

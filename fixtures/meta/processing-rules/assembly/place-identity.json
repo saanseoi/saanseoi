@@ -1,0 +1,17 @@
+{
+  "kind": "processing-rule",
+  "schemaVersion": 1,
+  "id": "resolve-place-identity",
+  "scope": "bulk",
+  "basis": "code",
+  "summary": "Match business continuity to the exact predecessor using publisher identity, attribution, contacts, names, category and location. Retain evidence, abstain on conflicting or ambiguous matches and allocate deterministic SaanSeoi IDs for unmatched observations.",
+  "inputs": ["publisher-places", "predecessor-places"],
+  "outputs": ["canonical-places", "place-identity-decisions"],
+  "parameters": {"model": "place-identity-v1", "minimumScore": 85, "minimumMargin": 15, "maximumDistanceMetres": 150, "rebrandMaximumDistanceMetres": 30},
+  "implementation": {"path": "libs/core/src/pipeline/services/places/placeIdentity.ts", "symbol": "matchPlaceIdentities"},
+  "i18n": {
+    "en": {"description": "Match Place identities using retained continuity evidence; ambiguous or contradictory observations receive separate deterministic identities."},
+    "zh-hant": {"description": "根據保留的連續性證據配對地點身份；證據含糊或矛盾的記錄獲分配獨立且確定的身份。"},
+    "zh-hans": {"description": "根据保留的连续性证据配对地点身份；证据含糊或矛盾的记录获分配独立且确定的身份。"}
+  }
+}

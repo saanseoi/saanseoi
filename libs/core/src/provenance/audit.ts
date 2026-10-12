@@ -375,6 +375,7 @@ export async function verifyAuditResult(
       scope: string
       basis: string
       inputs?: string[]
+      outputs?: string[]
     }
     if (
       definition.id !== bulk.id ||
@@ -385,7 +386,13 @@ export async function verifyAuditResult(
     if (
       bulk.basis === 'code' &&
       bulk.fixtures.some(
-        f => f.type !== 'identity-mappings' || !definition.inputs?.includes(f.type),
+        f =>
+          !(f.type === 'identity-mappings' && definition.inputs?.includes(f.type)) &&
+          !(
+            bulk.id === 'resolve-place-identity' &&
+            f.type === 'place-identity-decisions' &&
+            definition.outputs?.includes(f.type)
+          ),
       )
     )
       throw new Error(

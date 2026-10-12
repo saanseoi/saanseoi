@@ -271,3 +271,86 @@ test('deferred investigations pass the review gate without claiming a resolved i
     review: 0,
   })
 })
+
+test('identity audit retains before/after evidence and verifies the versioned ledger', async () => {
+  const { matchPlaceIdentities, placeIdentityEvidence } = await import(
+    '@repo/core/pipeline/services/places/placeIdentity'
+  )
+  const { writePlaceIdentityLedger } = await import('./placeIdentityLedger')
+  const directory = await mkdtemp(join(tmpdir(), 'place-identity-audit-'))
+  directories.push(directory)
+  const previous = placeIdentityEvidence(
+    { id: 'old', names: { primary: 'Cafe' }, phones: ['23456789'] },
+    114,
+    22,
+  )
+  const incoming = { ...previous, sourceId: 'new' }
+  const decisions = matchPlaceIdentities(
+    [incoming],
+    [{ id: 'canonical', evidence: previous, release: 'previous' }],
+    'hk',
+    'current',
+  )
+  const identityLedger = await writePlaceIdentityLedger({
+    scope: 'hk',
+    sourceVersion: 'current',
+    decisions,
+    stagingRoot: directory,
+  })
+  const identityPath = join(directory, 'identity.jsonl')
+  await writeFile(
+    identityPath,
+    JSON.stringify({
+      id: decisions[0]!.id,
+      raw: { id: 'new' },
+      sources: { placeIdentity: decisions[0] },
+    }),
+  )
+  const resolutionPath = join(directory, 'resolutions.jsonl')
+  await writeFile(resolutionPath, '')
+  const store = new LocalPipelineBucket(join(directory, 'objects'))
+  const input = {
+    snapshotId: 'snapshot',
+    resourceReleaseId: 'release',
+    datasetCode: 'places',
+    identityPath,
+    identityLedger,
+    addresses: {
+      snapshotId: 'snapshot',
+      fixture: {
+        ...parseSupplementaryCuration(structuredClone(policy)),
+        entries: [],
+        decisions: [],
+      },
+      resolutionPath,
+      sourceVersion: 'current',
+      supplementaryCount: 0,
+    },
+  }
+  const result = await retainPlaceProvenance(store, input)
+  const fixture = result.manifest.bulk.find(
+    rule => rule.id === 'resolve-place-identity',
+  )!.fixtures[0]!
+  expect(await readObject(store, fixture.object)).toMatchObject({
+    basis: 'automatic',
+    ledger: { hash: identityLedger.hash },
+    entries: [
+      {
+        sourceId: 'new',
+        candidates: [{ evidence: { sourceId: 'old' }, release: 'previous' }],
+      },
+    ],
+  })
+  await verifyAuditResult(store, result.manifest)
+  await writeFile(
+    identityPath,
+    JSON.stringify({
+      id: decisions[0]!.id,
+      raw: { id: 'new' },
+      sources: { placeIdentity: { ...decisions[0], reason: 'rebrand' } },
+    }),
+  )
+  await expect(retainPlaceProvenance(store, input)).rejects.toThrow(
+    'differs from staged identity evidence',
+  )
+})

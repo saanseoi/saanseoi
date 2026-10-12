@@ -85,13 +85,21 @@ export function placeComputationContract() {
       .map(name => resolve(import.meta.dir, name)),
     ...[
       'libs/core/src/pipeline/services/places/place.ts',
+      'libs/core/src/pipeline/services/places/placeIdentity.ts',
+      'apps/harbour-cli/src/lib/pipeline/places/placeIdentityLedger.ts',
+      'apps/harbour-cli/src/lib/pipeline/places/placeAddressIdentityContinuity.ts',
       'libs/core/src/pipeline/services/sources/recordContent.ts',
       'libs/core/src/pipeline/utils.ts',
       'libs/db/src/address3d.ts',
       'bun.lock',
     ].map(name => resolve(root, name)),
-    ...['place-normalisation', 'place-country-selection', 'place-address-analysis'].map(
-      name => resolve(root, `fixtures/meta/processing-rules/assembly/${name}.json`),
+    ...[
+      'place-normalisation',
+      'place-country-selection',
+      'place-address-analysis',
+      'place-identity',
+    ].map(name =>
+      resolve(root, `fixtures/meta/processing-rules/assembly/${name}.json`),
     ),
   ]
   const hash = createHash('sha256')

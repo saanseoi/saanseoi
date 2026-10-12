@@ -1,3 +1,4 @@
+import { publisherPlaceId } from '@repo/core/pipeline/services/places/place'
 import { PlaceProjectionSql } from './placeProjectionSql.ts'
 import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
 import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
@@ -113,6 +114,7 @@ export async function buildPlaceSql(
   let processedPlaceRows = 0
   for (const row of input.places) {
     const place = row.place
+    const sourceId = publisherPlaceId(place)
     const resolvedSources = {
       ...place.sources,
       ...(row.divisionAssociation
@@ -120,6 +122,9 @@ export async function buildPlaceSql(
         : {}),
     }
     const resolutions = {
+      ...(place.sources.placeIdentity
+        ? { placeIdentity: place.sources.placeIdentity }
+        : {}),
       ...(row.divisionAssociation
         ? { divisionAssociation: row.divisionAssociation }
         : {}),
@@ -133,7 +138,7 @@ export async function buildPlaceSql(
         ...(row.address3dUnitId ? { address3dUnit: [row.address3dUnitId] } : {}),
       },
     }
-    const priorResolution = input.sourceResolutions?.get(place.id)
+    const priorResolution = input.sourceResolutions?.get(sourceId)
     if (
       priorResolution?.sourceVersionHash !== row.sourcePayloadHash ||
       canonicalPlaceJson(priorResolution.resolutions) !==
@@ -145,7 +150,7 @@ export async function buildPlaceSql(
         sourceResolutionSql({
           snapshotId: input.snapshots.snapshotId,
           sourceReleaseId,
-          sourceRecordId: place.id,
+          sourceRecordId: sourceId,
           sourceVersionHash: row.sourcePayloadHash,
           resolutions,
         }),
@@ -168,7 +173,7 @@ export async function buildPlaceSql(
       typeof previous?.row.firstSeenMonth === 'string'
         ? previous.row.firstSeenMonth
         : place.firstSeenMonth
-    const source = input.sourceRows?.get(place.id)
+    const source = input.sourceRows?.get(sourceId)
     // A release is assigned every source shard that contains one of its
     // retained assertions. An unchanged assertion therefore remains owned by
     // its original shard across a year boundary; only a changed, new or
@@ -176,13 +181,13 @@ export async function buildPlaceSql(
     if (!source || source.versionHash !== row.sourcePayloadHash) {
       if (source)
         sourceStatements(source.bindingName).push(
-          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE sourceRecordId = ${lit(place.id)} AND isCurrent = 1${source.bindingName === input.activeSourceBindingName ? ` AND versionHash <> ${lit(row.sourcePayloadHash)}` : ''};`,
+          `UPDATE overturePlaces SET isCurrent = 0, validToRelease = ${lit(input.message.sourceVersion)}, updatedAt = ${lit(now)} WHERE sourceRecordId = ${lit(sourceId)} AND isCurrent = 1${source.bindingName === input.activeSourceBindingName ? ` AND versionHash <> ${lit(row.sourcePayloadHash)}` : ''};`,
         )
       sourceStatements(input.activeSourceBindingName).push(
         insertSql(
           'overturePlaces',
           {
-            sourceRecordId: place.id,
+            sourceRecordId: sourceId,
             properties: overtureSourcePayload(place.raw).properties,
             sourceGeometry: overtureSourcePayload(place.raw).sourceGeometry,
             versionHash: row.sourcePayloadHash,
@@ -444,7 +449,8 @@ export async function buildPlaceSql(
     // Also close omissions on a rebuild of the same release, where resourceReleaseId
     // alone cannot distinguish retained rows from removed rows.
     const seenSourceIds =
-      options.seenSourceRecordIds ?? new Set(input.places.map(row => row.place.id))
+      options.seenSourceRecordIds ??
+      new Set(input.places.map(row => publisherPlaceId(row.place)))
     for (const [sourceRecordId, previous] of input.sourceResolutions ?? []) {
       if (seenSourceIds.has(sourceRecordId)) continue
       const resolutions = { entities: {}, decisions: [{ type: 'source_omission' }] }
@@ -462,7 +468,9 @@ export async function buildPlaceSql(
         }),
       )
     }
-    for (const predicate of missingPlaceMembershipPredicates([...seenSourceIds]))
+    for (const predicate of missingPlaceMembershipPredicates([
+      ...(options.seenPlaceIds ?? new Set(input.places.map(row => row.place.id))),
+    ]))
       currentSql.push(
         `DELETE FROM places WHERE snapshotId = ${lit(scopeId)} AND ${predicate};`,
       )
@@ -517,6 +525,7 @@ export async function* buildPlaceSqlBatches(
     input.historyRows.map(state => [String(state.row.id), state]),
   )
   const seen = new Set<string>()
+  const seenSources = new Set<string>()
   let processedRows = 0
 
   for await (const places of readStagedJsonBatches<EnrichedPlace>(
@@ -527,6 +536,7 @@ export async function* buildPlaceSqlBatches(
     for (const place of places) {
       const placeId = place.place.id
       seen.add(placeId)
+      seenSources.add(publisherPlaceId(place.place))
       const previous = historyById.get(placeId)
       if (previous) historyRows.push(previous)
     }
@@ -550,7 +560,8 @@ export async function* buildPlaceSqlBatches(
     { ...input, historyRows: removedHistoryRows, places: [] },
     {
       includeRemovedPlaces: true,
-      seenSourceRecordIds: seen,
+      seenSourceRecordIds: seenSources,
+      seenPlaceIds: seen,
       timestamp,
     },
   )

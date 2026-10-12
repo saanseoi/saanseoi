@@ -410,3 +410,53 @@ with patch.object(bootstrap, 'CONFIG', config):
       for (const db of Object.values(clients)) db.close()
     }
   }))
+
+test('publisher ID churn preserves canonical membership through full delivery', () =>
+  fixture(async f => {
+    const initial = await f.run(1, [f.row])
+    initial.execute()
+    const row = {
+      ...f.row,
+      place: { ...f.row.place, raw: { ...f.row.place.raw, id: 'publisher-next' } },
+      sourcePayloadHash: 'publisher-next-hash',
+    }
+    const next = await f.run(2, [row])
+    next.execute()
+    expect(f.current.query('SELECT id FROM places').all()).toEqual([{ id: 'place' }])
+    expect(
+      f.source
+        .query(
+          'SELECT sourceRecordId,isCurrent FROM overturePlaces ORDER BY sourceRecordId',
+        )
+        .all(),
+    ).toEqual([
+      { sourceRecordId: 'place', isCurrent: 0 },
+      { sourceRecordId: 'publisher-next', isCurrent: 1 },
+    ])
+    const resolution = f.history
+      .query<{ resolutions: string }, []>(
+        "SELECT resolutions FROM sourceResolutions WHERE snapshotId='revision-2' AND sourceRecordId='publisher-next'",
+      )
+      .get()
+    expect(JSON.parse(resolution!.resolutions).entities.place).toEqual(['place'])
+  }))
+
+test('identity preparation refuses a changed publication predecessor before capture', () =>
+  fixture(async f => {
+    const initial = await f.run(1, [f.row])
+    initial.execute()
+    let writes = 0
+    await expect(
+      captureResolvedPlaceDelivery({
+        context: f.context,
+        sqlInput: { ...initial.input, publicationPrevious: null },
+        path: initial.path,
+        totalRows: 1,
+        timestamp: 'later',
+        capture: async () => {
+          writes++
+        },
+      }),
+    ).rejects.toThrow('Place identity predecessor changed')
+    expect(writes).toBe(0)
+  }))

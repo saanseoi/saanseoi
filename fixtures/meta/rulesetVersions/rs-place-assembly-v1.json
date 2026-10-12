@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:5721fcf34bb19a6261f087de977227b7f0973a027a8d95521aff36ff944d6cbc",
+  "versionHash": "sha256:3d92c73f55c54b742f93ebd14dc9f749042fee22ef77f436d268723cc59061e7",
   "code": "rs-place-assembly-v1",
   "stage": "assembly",
   "resourceType": "place",
@@ -21,6 +21,10 @@
     {
       "operationCode": "compose-place-reference-name",
       "ruleFixture": "place-reference-name"
+    },
+    {
+      "operationCode": "resolve-place-identity",
+      "ruleFixture": "place-identity"
     }
   ]
 }

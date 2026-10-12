@@ -158,3 +158,25 @@ test('ambiguous retained identities and duplicate incoming identities fail inste
     f.close()
   }
 })
+
+test('source statistics use publisher IDs even when canonical IDs differ', async () => {
+  const f = fixture()
+  try {
+    f.add(0, 'publisher', 'Same')
+    async function* canonical() {
+      for await (const place of places([['publisher', 'Same']]))
+        yield { ...place, id: 'ss-canonical' }
+    }
+    expect(
+      counts(await buildPlaceSourceStats({ ...f.input, places: canonical() })),
+    ).toEqual({
+      count: 1,
+      added_count: 0,
+      changed_count: 0,
+      removed_count: 0,
+      unchanged_count: 1,
+    })
+  } finally {
+    f.close()
+  }
+})

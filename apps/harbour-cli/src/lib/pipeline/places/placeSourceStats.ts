@@ -5,7 +5,10 @@ import {
   type SourceChurnRecord,
 } from '@repo/core/pipeline/services/sources/sourceChurn'
 import { overtureSourcePayload } from '@repo/core/pipeline/services/sources/sourcePayload'
-import type { NormalisedPlace } from '@repo/core/pipeline/services/places/place'
+import {
+  publisherPlaceId,
+  type NormalisedPlace,
+} from '@repo/core/pipeline/services/places/place'
 import { metaSchema, sourceSchema } from '@repo/db'
 import { and, asc, desc, eq, gt, isNull, lt, lte, or } from 'drizzle-orm'
 
@@ -85,9 +88,10 @@ export async function buildPlaceSourceStats(input: {
     : new Map<string, SourceChurnRecord>()
   const after = new Map<string, SourceChurnRecord>()
   for await (const place of input.places) {
-    if (after.has(place.id))
-      throw new Error(`Duplicate Places source identity: ${place.id}`)
-    after.set(place.id, overtureSourcePayload(place.raw))
+    const sourceId = publisherPlaceId(place)
+    if (after.has(sourceId))
+      throw new Error(`Duplicate Places source identity: ${sourceId}`)
+    after.set(sourceId, overtureSourcePayload(place.raw))
   }
   const { totals } = buildSourceChurnCounts(before, after)
   return buildChurnStatsRows({ totals, byType: new Map() })

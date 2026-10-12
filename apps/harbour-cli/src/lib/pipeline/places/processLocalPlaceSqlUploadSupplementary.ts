@@ -1,3 +1,5 @@
+import { reconcilePlaceAddressIdentityContinuity } from './placeAddressIdentityContinuity'
+import type { PlaceIdentityDecision } from '@repo/core/pipeline/services/places/placeIdentity'
 import { reviewEvidenceId } from '../../storage/evidenceArchive.ts'
 import {
   deferPlaceAddressReviews,
@@ -100,6 +102,7 @@ type PrepareSupplementaryAddressesInput = {
     divisionSnapshotId: string
   }
   places: Iterable<NormalisedPlace> | AsyncIterable<NormalisedPlace>
+  placeIdentities?: ReadonlyMap<string, PlaceIdentityDecision>
   historyRows: PlaceHistoryState[]
   releaseRoot: string
   plan: PlaceUploadPlan
@@ -261,17 +264,17 @@ async function prepareSupplementaryAddressesLocked(
   const entryLedger = entryLedgerText
     ? parseSupplementaryEntryLedger(JSON.parse(entryLedgerText))
     : emptySupplementaryEntryLedger()
+  const defaultDecisions = defaultDecisionText
+    ? parseSupplementaryDecisionJsonLines(defaultDecisionText)
+    : []
+  const curatedDecisions =
+    decisionText === undefined
+      ? JSON.parse(fixtureText).decisions
+      : parseSupplementaryDecisionJsonLines(decisionText)
   const fixture = parseSupplementaryCuration(
     {
       ...JSON.parse(fixtureText),
-      decisions: mergeSupplementaryDecisions(
-        defaultDecisionText
-          ? parseSupplementaryDecisionJsonLines(defaultDecisionText)
-          : [],
-        decisionText === undefined
-          ? JSON.parse(fixtureText).decisions
-          : parseSupplementaryDecisionJsonLines(decisionText),
-      ),
+      decisions: mergeSupplementaryDecisions(defaultDecisions, curatedDecisions),
     },
     entryLedger,
   )
@@ -346,6 +349,17 @@ async function prepareSupplementaryAddressesLocked(
     }
   }
   const officialById = new Map(official.map(row => [row.id, row]))
+  if (input.placeIdentities) {
+    const defaults = reconcilePlaceAddressIdentityContinuity({
+      fixture,
+      defaults: defaultDecisions,
+      identities: input.placeIdentities,
+      historyRows: input.historyRows,
+      sourceRelease: input.plan.sourceVersion,
+      officialIds: new Set(officialById.keys()),
+    })
+    fixture.decisions = mergeSupplementaryDecisions(defaults, curatedDecisions)
+  }
   const analyse = createSupplementaryAddressAnalyser(
     definitions,
     new Set(officialById.keys()),
@@ -386,6 +400,9 @@ async function prepareSupplementaryAddressesLocked(
         previousById.set(row.id, row)
     }
   }
+  const identityPredecessors = new Map(
+    input.historyRows.map(state => [state.row.id, state.row]),
+  )
   input.onStage?.('Place Address candidates')
   const resolutionPath = resolve(input.releaseRoot, 'overture-place-address.jsonl')
   const resolutionTempPath = temporaryPath(resolutionPath)
@@ -398,7 +415,12 @@ async function prepareSupplementaryAddressesLocked(
     try {
       for await (const place of input.places) {
         observedPlaceIds.add(place.id)
-        const previous = previousById.get(place.id)
+        const identity = input.placeIdentities?.get(place.id)
+        if (input.placeIdentities && !identity)
+          throw new Error(`Missing Place identity ${place.id}.`)
+        const previous = input.placeIdentities
+          ? identityPredecessors.get(identity!.id)
+          : previousById.get(place.id)
         const resolution = analyse(
           {
             placeId: place.id,

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "target": "local",
+  "sourceRelease": "2025-10-22.0",
+  "records": 135347,
+  "ledgerHash": "bedecbff8c9f3a8b147babc66a1bcff429f6819240ee3db45c224e89d3626adf",
+  "manifest": {
+    "hash": "sha256:d852957a1c402cd05cfd72e9f41b0e4a0ef4919ff2bb1f6790bf92267e3ed78e",
+    "byteLength": 21299
+  }
+}

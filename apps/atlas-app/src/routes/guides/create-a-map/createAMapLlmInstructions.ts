@@ -14,6 +14,7 @@ const joinInstructions = (sections: string[]) =>
   [
     ...sections,
     'When inspecting Place provenance, attributes.resourceReleaseId identifies the processed resource release; snapshotId identifies the canonical snapshot.',
+    'Treat data[].id as an opaque canonical SaanSeoi Place ID, not an Overture/GERS lookup key. Publisher IDs and identity decisions belong to source provenance. An observation arriving or disappearing does not by itself prove a business opened or closed.',
     'For Places pagination, follow links.next until it is absent. Historical snapshots expose meta.page.hasMore instead of an exact meta.page.total; do not require a total to load subsequent pages.',
   ]
     .map(section => section.trim())

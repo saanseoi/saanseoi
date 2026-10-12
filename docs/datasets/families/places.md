@@ -607,3 +607,47 @@ address text is preserved, but no uncertain canonical Address link or supplement
 Address is created. Assembly audits retain these investigations separately from applied
 human decisions. Malformed evidence and concurrent curation changes still block
 ingestion.
+
+## Canonical Place identity
+
+Preparation assigns canonical Place IDs using evidence-based, one-to-one matching
+against the exact serving predecessor. Accepted matches reuse an ID; unmatched or
+ambiguous observations receive a deterministic SaanSeoi ID. Publisher IDs remain source
+identities. Rebrands require unchanged phone and business-type evidence plus further
+continuity support, with no known ancillary contradictions. Missing evidence is not
+agreement.
+
+The [identity evidence and matching policy](../internal/overture/place-identity.md)
+defines scoring, distance limits, ambiguity handling, retained decisions and replay
+boundaries. Source-record additions/removals and canonical observation
+arrivals/disappearances are separate measures. Neither alone establishes a business
+opening or closure.
+
+### Identity curation storage and audit
+
+Place identity preparation writes content-addressed JSONL decision ledgers to ignored
+local staging. Complete decision evidence is retained in immutable, partitioned R2 audit
+objects. Git contains the matching policy and human-authored curation. Ledgers contain
+the scope and observed release, policy and implementation hashes, and each assignment's
+before/after evidence, candidates, conflicts, threshold and ambiguity margins. Unchanged
+observations preserve their original assignment decision. These are automatic curations,
+not human-reviewed approvals.
+
+The Places Source Audit presents these decisions under the assembly identity rule. Each
+expandable result shows the canonical ID, old/new publisher IDs, predecessor and
+assignment release references, compared names, contacts, category, opening hours,
+address and location, plus candidate scores and competing observations. Missing evidence
+is shown as unknown. The audit retains partitioned immutable copies and a reference to
+the staged ledger hash; retention fails if the ledger and prepared decisions differ.
+
+Publisher SOURCE rows keep their own IDs. Canonical history retains identity evidence
+and source resolutions map publisher records to canonical Places. Local staging and
+caches are disposable. Generated ledgers are not stored in Git; published historical
+audits require an explicit rebuild to contain the evidence.
+
+Address preparation follows the matched canonical predecessor across publisher-ID
+changes. It carries the predecessor's generated supplementary entry to the new publisher
+observation; the Address analyser must still reproduce its address evidence and base
+before reusing it. Disposable automatic defaults are recomputed when their expected
+previous link or target no longer matches the exact predecessor. Version-controlled
+human decisions retain precedence and their previous-link validation.

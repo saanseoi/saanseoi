@@ -1,3 +1,4 @@
+import placeIdentity from '../../../../fixtures/meta/processing-rules/assembly/place-identity.json'
 import { computeVersionHash } from '@repo/db'
 import streetAssembly from '../../../../fixtures/meta/processing-rules/assembly/landsd-street-assembly.json'
 import streetRuleset from '../../../../fixtures/meta/rulesetVersions/rs-street-assembly-v1.json'
@@ -76,6 +77,7 @@ const definitions = resolveRuleFixtureCatalog({
   'place-address-analysis': d22,
   'place-country-selection': d23,
   'place-normalisation': d24,
+  'place-identity': placeIdentity,
   'place-reference-name': d25,
   'planning-division-normalisation': d26,
   'protomaps-source-extraction': d27,
