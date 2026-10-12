@@ -17,6 +17,8 @@ import {
   eq,
   inArray,
   metaAssets,
+  metaDatasets,
+  sql,
   metaResourceReleases,
   metaSourceReleases,
   stats,
@@ -172,57 +174,23 @@ export const getSourcesPageData = query(async () => {
 
 export const getPublishersPageData = query(async () => {
   const db = getMetaDb()
-  const [registryPublishers, registrySources] = await Promise.all([
+  const [registryPublishers, counts] = await Promise.all([
     listRegistrySourcePublishers(db),
-    listRegistrySourcesPage(db, 200),
+    db
+      .select({ publisherId: metaDatasets.publisherId, count: sql<number>`count(*)` })
+      .from(metaDatasets)
+      .groupBy(metaDatasets.publisherId)
+      .all(),
   ])
-  const publishers = registryPublishers as RegistryPublisher[]
-  const sourceCounts = new Map<string, number>()
-
-  for (const source of registrySources) {
-    sourceCounts.set(
-      source.publisherId,
-      (sourceCounts.get(source.publisherId) ?? 0) + 1,
-    )
-  }
-
-  const childrenByPublisherId = new Map<string, RegistryPublisher[]>()
-  for (const publisher of publishers) {
-    if (!publisher.parentPublisherId) continue
-    const children = childrenByPublisherId.get(publisher.parentPublisherId) ?? []
-    children.push(publisher)
-    childrenByPublisherId.set(publisher.parentPublisherId, children)
-  }
-
-  const contributionCounts = new Map<string, number>()
-  const countContributions = (
-    publisherId: string,
-    ancestors = new Set<string>(),
-  ): number => {
-    const cachedCount = contributionCounts.get(publisherId)
-    if (cachedCount !== undefined) return cachedCount
-    if (ancestors.has(publisherId)) return sourceCounts.get(publisherId) ?? 0
-
-    const nextAncestors = new Set(ancestors).add(publisherId)
-    const count =
-      (sourceCounts.get(publisherId) ?? 0) +
-      (childrenByPublisherId.get(publisherId) ?? []).reduce(
-        (total, child) => total + countContributions(child.id, nextAncestors),
-        0,
-      )
-    contributionCounts.set(publisherId, count)
-    return count
-  }
-
+  const sourceCounts = new Map(counts.map(row => [row.publisherId, row.count]))
   return {
-    publishers: publishers
+    publishers: (registryPublishers as RegistryPublisher[])
+      .filter(publisher => (sourceCounts.get(publisher.id) ?? 0) > 0)
       .map(publisher => ({
         ...publisher,
-        isInstitution:
-          countContributions(publisher.id) > (sourceCounts.get(publisher.id) ?? 0),
-        sourceCount: countContributions(publisher.id),
-      }))
-      .filter(publisher => publisher.sourceCount > 0),
+        isInstitution: false,
+        sourceCount: sourceCounts.get(publisher.id) ?? 0,
+      })),
   }
 })
 

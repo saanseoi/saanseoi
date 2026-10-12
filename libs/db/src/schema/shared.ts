@@ -411,6 +411,7 @@ export const canonicalAddress2d = {
   districtId: text('districtId'),
   areaId: text('areaId'),
   countryId: text('countryId'),
+  /** External identifiers only; supplementary identity-generation keys belong to evidence. */
   identifiers: jsonText('identifiers'),
   sources: jsonText('sources'),
   ...geoBbox,

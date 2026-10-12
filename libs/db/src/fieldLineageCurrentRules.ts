@@ -369,7 +369,7 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
     'taxonomy.alternates':
       'jsonValue(categories?.alternate ?? taxonomy?.alternates ?? taxonomy?.alternate)',
     geometry: "{ type: 'Point', coordinates: [lng, lat] }",
-    sources: '{ overture: asArray(row.sources) }',
+    sources: 'normaliseOvertureAttribution(row.sources)',
     firstSeenMonth:
       'Preserve the existing identity firstSeenMonth; for a new identity use sourceVersion.slice(0, 7).',
     lastSeenMonth: 'The completed selected publication cohortKey.slice(0, 7).',
@@ -427,7 +427,7 @@ export function currentPlaceFieldRule(apiField: string): CurrentFieldRule | null
       ['place', 'divisionAssociation', 'previousIdentity', 'contentHash'],
       {
         steps: [
-          'resolvedSources merges place.sources with divisionAssociation when present.',
+          'resolvedSources normalises native upstream attribution using the registered publisher/dataset mapping; per-record decisions are retained in R2.',
         ],
       },
     )

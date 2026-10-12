@@ -645,6 +645,21 @@ and source resolutions map publisher records to canonical Places. Local staging 
 caches are disposable. Generated ledgers are not stored in Git; published historical
 audits require an explicit rebuild to contain the evidence.
 
+## Record attribution and evidence
+
+Canonical `sources` is an array with required `publisherCode` and `dataset` fields. The
+upstream `property` JSON Pointer is preserved; optional record ID, update time, record
+version, confidence and licence are retained only when supplied. Native dataset names
+resolve through `fixtures/meta/sourceAttributions/overture.json`. Unknown names require
+an explicit mapping. No ingestion release is added to the attribution.
+
+Place identity and Division association decisions are retained as immutable R2
+record-evidence objects before SQL delivery. Source resolutions hold entity membership
+and a content digest/byte-length locator. Supplementary Address decisions belong to the
+Place audit and retained source archives; Address history retains canonical values and
+attribution without a separate evidence index. Public record attribution excludes these
+processing assertions.
+
 Address preparation follows the matched canonical predecessor across publisher-ID
 changes. It carries the predecessor's generated supplementary entry to the new publisher
 observation; the Address analyser must still reproduce its address evidence and base

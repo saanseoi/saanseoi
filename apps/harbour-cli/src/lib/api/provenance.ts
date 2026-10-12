@@ -257,3 +257,28 @@ export async function deliverProcessingResult(
   onProgress?.(`Registering provenance after ${uploaded} objects`, uploaded)
   await registerProvenanceResult(baseUrl, headers, manifest.resourceReleaseId, ref)
 }
+
+/** Retain independent replay assertions before their database references are committed. */
+export async function deliverRecordEvidence(
+  target: UploadTarget,
+  documents: unknown[],
+) {
+  const baseUrl = normaliseBaseUrl(resolveHarbourApiUrl(target))
+  const headers = getAuthHeaders()
+  for (let offset = 0; offset < documents.length; offset += 4) {
+    await Promise.all(
+      documents.slice(offset, offset + 4).map(async document => {
+        const bytes = new TextEncoder().encode(serialise(document))
+        if (bytes.byteLength > MAX_OBJECT_BYTES)
+          throw new Error('Record evidence exceeds object limit.')
+        const hash = await hashBytes(bytes)
+        const r2 = resolveR2Target(target)
+        if (!target.remote && r2 !== 'local')
+          await retainRemoteR2Object(r2, objectKey(hash), bytes, {
+            contentType: 'application/json',
+          })
+        await uploadProvenanceObject(baseUrl, headers, hash, bytes.buffer)
+      }),
+    )
+  }
+}

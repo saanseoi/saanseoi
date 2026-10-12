@@ -1,0 +1,22 @@
+{
+  "code": "pinmeto",
+  "url": "https://www.pinmeto.com",
+  "i18n": {
+    "en": {
+      "name": "PinMeTo",
+      "nameShort": "PinMeTo",
+      "description": "Business location management platform that helps organisations maintain and distribute location details, opening hours and other place information to maps, search engines and directories."
+    },
+    "zh-hant": {
+      "name": "PinMeTo",
+      "nameShort": "PinMeTo",
+      "description": "商戶位置管理平台，協助機構維護地點詳情、營業時間及其他地點資料，並發布至地圖、搜尋引擎及目錄服務。"
+    },
+    "zh-hans": {
+      "name": "PinMeTo",
+      "nameShort": "PinMeTo",
+      "description": "商户位置管理平台，协助机构维护地点详情、营业时间及其他地点信息，并发布至地图、搜索引擎及目录服务。"
+    }
+  },
+  "versionHash": "sha256:74a6f56b5298594e2a2d4065e9d233c1908b630bc94b56c7c18ce2aa209a5b9b"
+}

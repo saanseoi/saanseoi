@@ -1,0 +1,22 @@
+{
+  "code": "microsoft",
+  "url": "https://www.microsoft.com",
+  "i18n": {
+    "en": {
+      "name": "Microsoft",
+      "nameShort": "Microsoft",
+      "description": "Technology company that provides mapping platforms and publishes open geospatial datasets, including building footprints extracted from imagery using machine learning."
+    },
+    "zh-hant": {
+      "name": "微軟",
+      "nameShort": "微軟",
+      "description": "科技公司，提供地圖平台並發布開放地理空間數據集，包括運用機器學習從影像擷取的建築物輪廓。"
+    },
+    "zh-hans": {
+      "name": "微软",
+      "nameShort": "微软",
+      "description": "科技公司，提供地图平台并发布开放地理空间数据集，包括运用机器学习从影像提取的建筑物轮廓。"
+    }
+  },
+  "versionHash": "sha256:e4200cb778a9f5685a46eb87070d4fc362b0c14c0cd6f4306760db7750a61cdc"
+}

@@ -44,7 +44,13 @@ export async function importPlaceSqlChunks(
   sql: Awaited<ReturnType<typeof buildPlaceSql>>,
   options: SqlImportExecutionOptions,
   onProgress?: (completed: number, total: number) => void,
+  retainEvidence?: (documents: unknown[]) => Promise<void>,
 ) {
+  if (sql.evidenceDocuments.length) {
+    if (!retainEvidence)
+      throw new Error('Place evidence must be retained in R2 before SQL delivery.')
+    await retainEvidence(sql.evidenceDocuments)
+  }
   const batchBytes = options.isLocal
     ? MAX_SQL_BYTES
     : (options.remoteImportBatchBytes ?? REMOTE_IMPORT_BATCH_BYTES)
@@ -176,12 +182,17 @@ export async function importPlaceSqlBatches(
     sql.currentSql = sql.currentSql.map(statement =>
       buildGuardedPublicationSql(publication, [statement]),
     )
-    await importPlaceSqlChunks(targets, sql, options, (completed, total) =>
-      onProgress?.({
-        current: batchEnd,
-        detail: `import ${completed}/${total} SQL chunks`,
-        phase: 'import',
-      }),
+    await importPlaceSqlChunks(
+      targets,
+      sql,
+      options,
+      (completed, total) =>
+        onProgress?.({
+          current: batchEnd,
+          detail: `import ${completed}/${total} SQL chunks`,
+          phase: 'import',
+        }),
+      input.retainEvidence,
     )
     completedBatches += 1
     onProgress?.({

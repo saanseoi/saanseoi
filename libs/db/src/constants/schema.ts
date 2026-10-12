@@ -20,6 +20,7 @@ export const resolverCodes = [
   'lookup_registry',
   'constant_value',
   'wrap_publisher_sources',
+  'normalise_source_attribution',
   'merge_first_non_null',
   'derive_release_month',
   'compose_identifier',

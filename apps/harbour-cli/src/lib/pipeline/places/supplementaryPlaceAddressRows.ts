@@ -1,7 +1,7 @@
 import { createHash } from '@repo/core/pipeline/utils'
 import { establishAddressGranularity } from '@repo/core/pipeline/services/addresses/granularity'
 import { buildAddressBuildingNumberLookupRows } from '@repo/core/pipeline/services/addresses/normalisation'
-import { currentSchema } from '@repo/db'
+import { currentSchema, type SourceAttribution } from '@repo/db'
 import { eq } from 'drizzle-orm'
 import type { HarbourReadableDb } from '@repo/core/db/types'
 import type {
@@ -86,7 +86,7 @@ export async function buildSupplementaryAddressRows(input: {
     const divisions = Object.fromEntries(
       ADDRESS_DIVISION_FIELDS.map(field => [field, base?.[field] ?? null]),
     ) as Record<(typeof ADDRESS_DIVISION_FIELDS)[number], string | null>
-    const attribution = entries.map(accepted => ({
+    const attribution: SourceAttribution[] = entries.map(accepted => ({
       publisherCode: 'overture',
       dataset: input.datasetCode,
       recordId: accepted.placeId,

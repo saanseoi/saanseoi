@@ -1,3 +1,5 @@
+import { prepareRecordEvidence } from '@repo/core/provenance'
+import { normaliseOvertureAttribution } from '@repo/core/pipeline/services/sources/sourceAttribution'
 import { publisherPlaceId } from '@repo/core/pipeline/services/places/place'
 import { PlaceProjectionSql } from './placeProjectionSql.ts'
 import { sourceResolutionSql } from '@repo/core/pipeline/db/sourceResolutions'
@@ -110,24 +112,23 @@ export async function buildPlaceSql(
     })
   }
 
+  const evidenceDocuments: unknown[] = []
   const publicationCounts = { localisedRows: 0, divisionLinks: 0, cells: 0 }
   let processedPlaceRows = 0
   for (const row of input.places) {
     const place = row.place
     const sourceId = publisherPlaceId(place)
-    const resolvedSources = {
-      ...place.sources,
-      ...(row.divisionAssociation
-        ? { divisionAssociation: row.divisionAssociation }
-        : {}),
-    }
-    const resolutions = {
+    const resolvedSources = normaliseOvertureAttribution(place.sources.overture)
+    const retained = await prepareRecordEvidence('places', place.id, {
       ...(place.sources.placeIdentity
         ? { placeIdentity: place.sources.placeIdentity }
         : {}),
       ...(row.divisionAssociation
         ? { divisionAssociation: row.divisionAssociation }
         : {}),
+    })
+    const resolutions = {
+      evidence: retained.reference,
       entities: {
         place: [place.id],
         ...(row.divisionIds.length
@@ -144,6 +145,7 @@ export async function buildPlaceSql(
       canonicalPlaceJson(priorResolution.resolutions) !==
         canonicalPlaceJson(resolutions)
     ) {
+      evidenceDocuments.push(retained.document)
       const sourceReleaseId = input.message.resourceReleaseId
       if (!sourceReleaseId) throw new Error('Places require a source release ID.')
       historyStatements(input.activeHistoryBindingName).push(
@@ -485,6 +487,7 @@ export async function buildPlaceSql(
   }
 
   return {
+    evidenceDocuments,
     publicationCounts,
     currentSql: [...currentSql, ...currentInserts.finish()],
     historySqlByBinding,

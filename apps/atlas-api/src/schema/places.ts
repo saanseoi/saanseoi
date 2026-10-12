@@ -72,99 +72,28 @@ const PlaceGeometrySchema = z
   })
 
 const PlaceSourceSchema = z
-  .object({
+  .strictObject({
+    publisherCode: z.string().min(1),
+    dataset: z.string().min(1),
     property: z
       .string()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_property_description'),
-        examples: [''],
-      }),
-    dataset: z
-      .string()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_dataset_description'),
-        examples: ['meta', 'overture'],
-      }),
-    license: z
-      .string()
+      .regex(/^(?:\/(?:[^~/]|~[01])*)*$/)
       .nullable()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_license_description'),
-        examples: ['CDLA-Permissive-2.0', null],
-      }),
-    recordId: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_record_id_description'),
-        examples: ['110864367186379', null],
-      }),
-    updateTime: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_update_time_description'),
-        examples: ['2025-09-15T07:00:00.000Z', null],
-      }),
-    confidence: z
-      .number()
-      .min(0)
-      .max(1)
-      .nullable()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_confidence_description'),
-        examples: [0.6096840190952489, 0.9563699245119883, null],
-      }),
-    provider: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_provider_description'),
-        examples: [null],
-      }),
-    resource: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_resource_description'),
-        examples: [null],
-      }),
-    version: z
-      .string()
-      .nullable()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_version_description'),
-        examples: [null],
-      }),
-    between: z
-      .tuple([z.number(), z.number()])
-      .nullable()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_places_source_between_description'),
-        examples: [null],
-      }),
+      .optional(),
+    recordId: z.string().optional(),
+    updateTime: z.string().optional(),
+    version: z.string().optional().describe('Upstream record version.'),
+    confidence: z.number().min(0).max(1).optional(),
+    license: z.string().optional(),
   })
-  .loose()
   .openapi('PlaceSource', {
-    description: openApiText('openapi_places_sources_description'),
+    description:
+      'An upstream publisher and dataset reference. A property pointer qualifies the upstream attribution; absent, null or empty applies to the whole record.',
   })
 
-const PlaceSourcesSchema = z
-  .object({ overture: z.array(PlaceSourceSchema) })
-  .nullable()
-  .openapi({
-    description: openApiText('openapi_places_sources_description'),
-  }) as z.ZodType<unknown>
+export const PlaceSourcesSchema = z.array(PlaceSourceSchema).nullable().openapi({
+  description: 'Upstream source attributions for this record.',
+}) as z.ZodType<unknown>
 
 const PlaceTaxonomyHierarchySchema = z
   .array(z.string())

@@ -87,6 +87,8 @@ export type PlaceHistoryState = {
 }
 
 export type BuildPlaceSqlInput = {
+  /** Required when delivering generated SQL containing R2 evidence references. */
+  retainEvidence?: (documents: unknown[]) => Promise<void>
   publicationPrevious?: import('@repo/core/pipeline/services/publication/sql.ts').PublicationPreparation['previous']
   /** Physical current scopes selected by logical Address and Division snapshots. */
   referenceScopes?: ReadonlyMap<string, string>

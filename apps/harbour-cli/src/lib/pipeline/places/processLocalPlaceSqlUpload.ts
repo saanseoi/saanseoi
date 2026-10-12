@@ -1,3 +1,4 @@
+import { deliverRecordEvidence } from '../../api/provenance'
 import {
   stagePlaceIdentities,
   canonicalAddressResolutions,
@@ -361,6 +362,7 @@ export async function processLocalPlaceSqlUpload(
       ...new Set([...sourceRows.values()].map(row => row.bindingName)),
     ]
     const sqlInput: BuildPlaceSqlInput = {
+      retainEvidence: documents => deliverRecordEvidence(target, documents),
       sourceRows,
       activeHistoryBindingName,
       activeSourceBindingName,

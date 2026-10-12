@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:191fa1e8c6f1a36eded1e204a69b8f58b05fecd4cfc91c76d79b9b0d385bb159",
+  "versionHash": "sha256:f79f54ec7fef9ba6f08f0fe9d7513ee03deec61219b657cfe8c0e47b0a4cfbc7",
   "code": "hkgov-rvd",
   "parentCode": "hkgov",
   "url": "https://www.rvd.gov.hk/",
@@ -8,15 +8,17 @@
     "en": {
       "name": "Rating and Valuation Department",
       "nameShort": "RVD",
-      "description": "Hong Kong property valuation, rating and property market statistics."
+      "description": "Hong Kong’s property valuation and rating authority, publishing property information and market statistics that support address referencing and geographic analysis of the property market."
     },
     "zh-hant": {
       "name": "差餉物業估價署",
-      "nameShort": "差估署"
+      "nameShort": "差估署",
+      "description": "香港物業估價及差餉評估機構，發布物業資料及市場統計數據，支援地址查考及物業市場的地理分析。"
     },
     "zh-hans": {
       "name": "差饷物业估价署",
-      "nameShort": "差估署"
+      "nameShort": "差估署",
+      "description": "香港物业估价及差饷评估机构，发布物业资料及市场统计数据，支持地址查考及物业市场的地理分析。"
     }
   }
 }

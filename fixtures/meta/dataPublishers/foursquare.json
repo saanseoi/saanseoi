@@ -1,0 +1,22 @@
+{
+  "code": "foursquare",
+  "url": "https://foursquare.com",
+  "i18n": {
+    "en": {
+      "name": "Foursquare",
+      "nameShort": "Foursquare",
+      "description": "Location technology company that maintains and publishes global points-of-interest data, including business locations, categories and other place attributes for mapping and spatial analysis."
+    },
+    "zh-hant": {
+      "name": "Foursquare",
+      "nameShort": "Foursquare",
+      "description": "位置技術公司，維護及發布全球興趣點數據，涵蓋商戶位置、分類及其他地點屬性，供製圖及空間分析使用。"
+    },
+    "zh-hans": {
+      "name": "Foursquare",
+      "nameShort": "Foursquare",
+      "description": "位置技术公司，维护及发布全球兴趣点数据，涵盖商户位置、分类及其他地点属性，供制图及空间分析使用。"
+    }
+  },
+  "versionHash": "sha256:24e426f82754a7b90bbd1b12db91c3c8102efb0e977b3faec1fa76c11ac02c40"
+}

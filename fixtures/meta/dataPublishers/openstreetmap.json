@@ -1,0 +1,22 @@
+{
+  "code": "openstreetmap",
+  "url": "https://www.openstreetmap.org",
+  "i18n": {
+    "en": {
+      "name": "OpenStreetMap",
+      "nameShort": "OpenStreetMap",
+      "description": "Collaborative project that creates and distributes an openly licensed geographic database of roads, buildings, places and other features mapped by contributors around the world."
+    },
+    "zh-hant": {
+      "name": "OpenStreetMap",
+      "nameShort": "OpenStreetMap",
+      "description": "協作製圖計劃，由世界各地的貢獻者繪製道路、建築物、地點及其他地理要素，建立並以開放授權發布地理資料庫。"
+    },
+    "zh-hans": {
+      "name": "OpenStreetMap",
+      "nameShort": "OpenStreetMap",
+      "description": "协作制图项目，由世界各地的贡献者绘制道路、建筑物、地点及其他地理要素，建立并以开放许可发布地理数据库。"
+    }
+  },
+  "versionHash": "sha256:527fd03020fde473fa4c8aa00ca393513a29e3b91bf69bce0cd4d08e586286ac"
+}

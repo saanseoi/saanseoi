@@ -1,0 +1,22 @@
+{
+  "code": "esri",
+  "url": "https://www.esri.com",
+  "i18n": {
+    "en": {
+      "name": "Esri",
+      "nameShort": "Esri",
+      "description": "Geographic information system (GIS) company that publishes basemaps, imagery and thematic geospatial data through ArcGIS, including maps assembled with contributions from its user community."
+    },
+    "zh-hant": {
+      "name": "Esri",
+      "nameShort": "Esri",
+      "description": "地理資訊系統（GIS）公司，透過 ArcGIS 發布底圖、影像及專題地理空間數據，包括結合用戶社群貢獻資料編製的地圖。"
+    },
+    "zh-hans": {
+      "name": "Esri",
+      "nameShort": "Esri",
+      "description": "地理信息系统（GIS）公司，通过 ArcGIS 发布底图、影像及专题地理空间数据，包括结合用户社区贡献数据编制的地图。"
+    }
+  },
+  "versionHash": "sha256:aa6bd0ba4d383facb58623cfabafd42f6a2879e9fe7fbf41f93151a83a13c963"
+}

@@ -1,3 +1,5 @@
+import { retainObject } from '@repo/core/provenance'
+import { LocalPipelineBucket } from '../local/localBucket'
 import { Database } from 'bun:sqlite'
 import { expect, test } from 'bun:test'
 import { mkdtemp, rm } from 'node:fs/promises'
@@ -134,6 +136,10 @@ async function setup() {
     const path = join(root, `rows-${revision}.jsonl`)
     await Bun.write(path, rows.map(row => JSON.stringify(row)).join('\n'))
     const input: BuildPlaceSqlInput = {
+      retainEvidence: async documents => {
+        const store = new LocalPipelineBucket(join(root, 'evidence'))
+        for (const document of documents) await retainObject(store, document)
+      },
       activeHistoryBindingName: 'DB_HISTORY_HK_2025',
       activeSourceBindingName: 'DB_SOURCE_HK_2025',
       sourceBindingNames: ['DB_SOURCE_HK_2025'],

@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:a85166db2054aab846f622466cfd0126ba2b0ed2aa581c3a86ad7c86032227d9",
+  "versionHash": "sha256:dc69f6f6324722b2331ad3b7ad78c63977fc32558f8766386b970e95bbaecfba",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "mappingVersion": 1,
@@ -339,7 +339,7 @@
     {
       "apiField": "attributes.sources",
       "sourceDatasetCode": "ds-hk-overture-place",
-      "resolverCode": "wrap_publisher_sources",
+      "resolverCode": "normalise_source_attribution",
       "contributionType": "primary",
       "priority": 0,
       "confidence": 1,

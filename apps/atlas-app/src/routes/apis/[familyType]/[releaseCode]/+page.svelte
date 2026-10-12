@@ -10,6 +10,7 @@ import {
   sourceRecordChangesCopy,
   type SourceChangeType,
 } from '#lib/bits/pages/sources/components/sourceRecordChanges/sourceRecordChanges.copy.js'
+import * as ReleaseProvenance from '#lib/bits/pages/docs/components/releaseProvenance/index.js'
 import { Audit } from '#lib/bits/pages/docs/components/releaseAudit/index.js'
 import { goto } from '$app/navigation'
 import { page } from '$app/state'
@@ -205,6 +206,7 @@ type ApiReleaseTab =
   | 'stats'
   | 'audit'
   | 'sources'
+  | 'provenance'
 type ApiReleaseUrl = {
   searchParams: {
     get(name: string): string | null
@@ -221,6 +223,7 @@ const getApiReleaseTabFromUrl = (url: ApiReleaseUrl): ApiReleaseTab => {
     'stats',
     'audit',
     'sources',
+    'provenance',
   ].includes(tab)
     ? (tab as ApiReleaseTab)
     : 'release'
@@ -610,6 +613,7 @@ let tabs = $derived<ReleaseNavTab[]>([
   ...(['divisions', 'stats'].includes(api.familyType) || release.bulkActions?.length
     ? [{ id: 'audit', label: m.api_release_audit() }]
     : []),
+  { id: 'provenance', label: 'Provenance' },
   { id: 'sources', label: m.pipeline_sources_eyebrow() },
 ])
 
@@ -731,6 +735,7 @@ let hasContent = $derived.by(() => {
   }
   if (activeTab === 'changes') return true
   if (activeTab === 'stats') return Boolean(release.stats?.length)
+  if (activeTab === 'provenance') return true
   if (activeTab === 'schema') return true
   if (activeTab === 'samples') return true
   if (activeTab === 'audit') {
@@ -933,6 +938,10 @@ $effect(() => {
               {/key}
             {/await}
           {/if}
+        {:else if activeTab === 'provenance'}
+          {#key release.id}
+            <ReleaseProvenance.Root releaseSetId={release.id} />
+          {/key}
         {:else if activeTab === 'audit'}
           <Audit
             familyType={api.familyType}

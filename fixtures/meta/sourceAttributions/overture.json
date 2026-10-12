@@ -1,0 +1,72 @@
+{
+  "description": "Native upstream dataset names observed in retained Overture attribution. These identify upstream datasets, not ingestion datasets owned by SaanSeoi.",
+  "datasets": [
+    {
+      "names": [
+        "meta"
+      ],
+      "publisherCode": "meta",
+      "dataset": "meta"
+    },
+    {
+      "names": [
+        "Microsoft"
+      ],
+      "publisherCode": "microsoft",
+      "dataset": "microsoft"
+    },
+    {
+      "names": [
+        "Foursquare"
+      ],
+      "publisherCode": "foursquare",
+      "dataset": "foursquare"
+    },
+    {
+      "names": [
+        "PinMeTo"
+      ],
+      "publisherCode": "pinmeto",
+      "dataset": "pinmeto"
+    },
+    {
+      "names": [
+        "OpenStreetMap",
+        "openstreetmap"
+      ],
+      "publisherCode": "openstreetmap",
+      "dataset": "openstreetmap"
+    },
+    {
+      "names": [
+        "Overture"
+      ],
+      "publisherCode": "overture",
+      "dataset": "overture"
+    },
+    {
+      "names": [
+        "Overture-signals"
+      ],
+      "publisherCode": "overture",
+      "dataset": "overture-signals"
+    },
+    {
+      "names": [
+        "Esri Community Maps"
+      ],
+      "publisherCode": "esri",
+      "dataset": "esri-community-maps",
+      "publisherReference": "https://docs.overturemaps.org/attribution/"
+    }
+  ],
+  "unresolved": [
+    {
+      "names": [
+        "Maps Entity Variant Names"
+      ],
+      "dataset": "maps-entity-variant-names",
+      "reason": "Retained Division attribution identifies the dataset and CC0-1.0 licence but does not identify its publisher. Publisher ownership must be established before canonical attribution can be emitted."
+    }
+  ]
+}

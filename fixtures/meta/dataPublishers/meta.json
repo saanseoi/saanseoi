@@ -1,0 +1,22 @@
+{
+  "code": "meta",
+  "url": "https://about.meta.com",
+  "i18n": {
+    "en": {
+      "name": "Meta",
+      "nameShort": "Meta",
+      "description": "Technology company that contributes to open mapping and publishes geospatial datasets, including population distribution and transport network data, to support research and humanitarian work."
+    },
+    "zh-hant": {
+      "name": "Meta",
+      "nameShort": "Meta",
+      "description": "科技公司，參與開放製圖並發布地理空間數據集，包括人口分布及交通網絡數據，支援研究及人道救援工作。"
+    },
+    "zh-hans": {
+      "name": "Meta",
+      "nameShort": "Meta",
+      "description": "科技公司，参与开放制图并发布地理空间数据集，包括人口分布及交通网络数据，支持研究及人道救援工作。"
+    }
+  },
+  "versionHash": "sha256:6f717e81458235d43c2ff6b3549c8622c63f79a3ba0d94e675230a1e9c3eae4b"
+}

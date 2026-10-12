@@ -197,7 +197,9 @@ test('Places inherit independent base, locales and source resolutions across yea
     const row = await place()
     await f.run([row])
     row.place.lastSeenMonth = '2025-02'
-    row.place.sources = { overture: ['new release assertion'] }
+    row.place.sources = {
+      overture: [{ dataset: 'meta', record_id: 'new release assertion' }],
+    }
     const repeated = await f.run([row])
     expect(repeated.historySqlByBinding.size).toBe(0)
     expect(repeated.sourceSqlByBinding.size).toBe(0)
@@ -543,7 +545,7 @@ test('Place replay batches exact indexed identities even when many places share 
   }
 })
 
-test('spatial membership evidence is retained in current and historical Places without an Address', async () => {
+test('spatial membership evidence leaves public Places and is referenced by the source resolution', async () => {
   const f = fixture()
   try {
     const row = await place()
@@ -556,7 +558,16 @@ test('spatial membership evidence is retained in current and historical Places w
       divisionAreaSnapshotId: 'areas-a',
       evidence: [{ divisionId: 'town', method: 'geometry' }],
     }
-    await f.run([row])
+    const generated = await f.run([row])
+    expect(generated.evidenceDocuments).toEqual([
+      expect.objectContaining({
+        collection: 'places',
+        recordId: row.place.id,
+        evidence: expect.objectContaining({
+          divisionAssociation: row.divisionAssociation,
+        }),
+      }),
+    ])
     for (const db of [f.current, getDatabase(f.databases, 'old')]) {
       const stored = db
         .query(
@@ -564,7 +575,7 @@ test('spatial membership evidence is retained in current and historical Places w
         )
         .get(row.place.id) as { address2dId: string | null; association: string }
       expect(stored.address2dId).toBeNull()
-      expect(JSON.parse(stored.association)).toEqual(row.divisionAssociation)
+      expect(stored.association).toBeNull()
     }
   } finally {
     f.close()

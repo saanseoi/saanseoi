@@ -23,3 +23,4 @@ export * from './fieldLineageAudit'
 export * from './fieldLineageStorage'
 
 export * from './auditScope'
+export * from './recordEvidence'
