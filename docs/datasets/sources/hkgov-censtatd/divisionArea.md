@@ -487,3 +487,9 @@ context retains method, settings, engine version and coverage geometry IDs. Stat
 provenance uses `hkgov-censtatd/<datasetCode>/<sourceVersion>/<sourceRecordId>`. Source
 samples select exact dataset and resource-release rows, then join shared geometry;
 statistics and geometry resource children retain independent properties and locators.
+
+## Canonical source attribution
+
+Canonical geometry attribution requires the selected registered dataset code and native
+source record IDs. A dataset code must be supplied by ingestion; the publisher name
+alone cannot identify which C&SD dataset contributed the geometry.

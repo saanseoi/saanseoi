@@ -1,4 +1,5 @@
 import { hkDistricts, type HkDistrictCode } from '../../../codes'
+import densityDataset from '../../../../../../fixtures/meta/datasets/hkgov-censtatd-hk-division-statistic-land-area-population-density-district.json'
 
 export type DistrictIdentifierBridgeRow = {
   canonicalId: string
@@ -98,7 +99,13 @@ export function buildHkgovCenstatdDistrictStatisticHistoryRecord(
     midYearPopulation: source.midYearPopulation,
     midYearPopulationDensityPerSqKm: source.midYearPopulationDensityPerSqKm,
     referenceYear: source.referenceYear,
-    sources: source.sources,
+    sources: [
+      {
+        publisherCode: densityDataset.publisherCode,
+        dataset: densityDataset.code,
+        recordId: source.id,
+      },
+    ],
   }
 }
 

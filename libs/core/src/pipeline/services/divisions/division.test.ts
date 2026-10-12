@@ -457,9 +457,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
         expect.objectContaining({ locale: 'zh-hant', name: '柯士甸' }),
       ]),
     })
-    expect(row.sources).toEqual([
-      { dataset: 'SaanSeoi curated additions', record_id: 'saanseoi-hk-austin' },
-    ])
+    expect(row.sources).toEqual([])
   })
   test('adds Jordan as a curated neighbourhood under Yau Tsim Mong', () => {
     const row = getSupplementalDivisionFixtureRows({
@@ -475,9 +473,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
         expect.objectContaining({ locale: 'zh-hant', name: '佐敦' }),
       ]),
     })
-    expect(row.sources).toEqual([
-      { dataset: 'SaanSeoi curated additions', record_id: 'saanseoi-hk-jordan' },
-    ])
+    expect(row.sources).toEqual([])
   })
   test('adds Prince Edward as a curated neighbourhood', () => {
     const row = getSupplementalDivisionFixtureRows({
@@ -492,12 +488,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
         expect.objectContaining({ locale: 'zh-hant', name: '太子' }),
       ]),
     })
-    expect(row.sources).toEqual([
-      {
-        dataset: 'SaanSeoi curated additions',
-        record_id: 'saanseoi-hk-prince-edward',
-      },
-    ])
+    expect(row.sources).toEqual([])
   })
   test('adds curated Waterfall Bay as a neighbourhood with SaanSeoi provenance', () => {
     const row = getSupplementalDivisionFixtureRows({
@@ -505,12 +496,7 @@ describe('getSupplementalDivisionFixtureRows', () => {
       resourceType: 'division',
       regionCode: 'hk',
     }).find(row => row.id === 'ss-03386e65-c456-5b59-a1e7-3eac52cd3a97')!
-    expect(row.sources).toEqual([
-      {
-        dataset: 'SaanSeoi curated additions',
-        record_id: 'saanseoi-hk-waterfall-bay',
-      },
-    ])
+    expect(row.sources).toEqual([])
     expect(normaliseDivisionRow(row)).toMatchObject({
       base: { class: 'neighbourhood', level: 5 },
       i18n: expect.arrayContaining([
@@ -727,26 +713,36 @@ describe('overtureHongKongAreaForDistrictName', () => {
 
 describe('normaliseDivisionRow i18n', () => {
   test('keeps C&SD Housing Market Areas outside the Division hierarchy', () => {
-    const normalised = normaliseDivisionRow({
-      canonical_type: 'housing-market-area',
-      geometry: {
-        coordinates: [
-          [
-            [114.15, 22.28],
-            [114.16, 22.28],
-            [114.16, 22.29],
-            [114.15, 22.28],
+    const normalised = normaliseDivisionRow(
+      {
+        canonical_type: 'housing-market-area',
+        geometry: {
+          coordinates: [
+            [
+              [114.15, 22.28],
+              [114.16, 22.28],
+              [114.16, 22.29],
+              [114.15, 22.28],
+            ],
           ],
-        ],
-        type: 'Polygon',
+          type: 'Polygon',
+        },
+        id: 'CENSTATD:HMA:HMA001',
+        identifiers: { hkgovCenstatd: { code: 'HMA001' } },
+        names: { common: { en: ['Example HMA'], 'zh-hant': ['示例樓市片區'] } },
+        source: 'hkgov-censtatd',
+        source_properties: { hma: 'HMA001' },
+        sources: [],
       },
-      id: 'CENSTATD:HMA:HMA001',
-      identifiers: { hkgovCenstatd: { code: 'HMA001' } },
-      names: { common: { en: ['Example HMA'], 'zh-hant': ['示例樓市片區'] } },
-      source: 'hkgov-censtatd',
-      source_properties: { hma: 'HMA001' },
-      sources: [],
-    })
+      {
+        source: {
+          source: 'hkgov-censtatd',
+          sourceVersion: '2021',
+          datasetCode:
+            'ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups',
+        },
+      },
+    )
 
     expect(normalised.base.geometry).toMatchObject({ type: 'Point' })
     expect(normalised).toMatchObject({
@@ -782,9 +778,13 @@ describe('normaliseDivisionRow i18n', () => {
       base: {
         geometry: { coordinates: [114.1577, 22.2855], type: 'Point' },
         level: 5,
-        sources: {
-          sourceResolutions: { entityId: 'LANDSD:101' },
-        },
+        sources: [
+          {
+            publisherCode: 'hkgov-landsd',
+            dataset: 'ds-hk-hkgov-landsd-division',
+            recordId: 'LANDSD:PLACE_NAME:101',
+          },
+        ],
         class: 'settlement',
       },
       i18n: expect.arrayContaining([
@@ -945,15 +945,14 @@ describe('normaliseDivisionRow hierarchy', () => {
       ],
     })
 
-    expect(normalised.base.sources).toEqual({
-      overture: [
-        {
-          property: '/properties/id',
-          dataset: 'overture',
-          record_id: 'division-with-feature-version',
-        },
-      ],
-    })
+    expect(normalised.base.sources).toEqual([
+      {
+        publisherCode: 'overture',
+        property: '/properties/id',
+        dataset: 'overture',
+        recordId: 'division-with-feature-version',
+      },
+    ])
   })
 
   test('normalises Overture hierarchy entries using division i18n lookup', () => {

@@ -288,12 +288,11 @@ export function collectionStatements(
   // The prepared envelope seals the complete bilingual inventory. Stored base
   // content has independent identity, so editing one locale leaves it open.
   const base = { ...baseFields, contentHash: als3dHash({ units: baseFields.units }) }
-  const sources = [
-    ...sourceRecordIds.map(sourceRecordId => ({
-      sourceRecordId,
-    })),
-    ...(processingSources?.length ? [{ auditRecordId: collection.id }] : []),
-  ]
+  const sources = sourceRecordIds.map(recordId => ({
+    publisherCode: 'hkgov-dpo',
+    dataset: 'ds-hk-hkgov-dpo-address',
+    recordId,
+  }))
   const versionHash = als3dHash(recordContent({ ...base, sources }))
   const history = {
     ...base,

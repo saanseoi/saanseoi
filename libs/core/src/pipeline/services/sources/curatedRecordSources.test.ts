@@ -31,13 +31,13 @@ test('retains only concrete references and deduplicates roles for the same input
       },
       'area',
     ),
-  ).toEqual({ protomaps: [ref] })
+  ).toEqual([
+    { publisherCode: 'protomaps', dataset: ref.dataset, recordId: ref.recordId },
+  ])
 })
 
-test('authored assertions reference their retained record, without curation metadata', () => {
-  const expected = {
-    saanseoi: [{ dataset: 'ds-hk-saanseoi-division', recordId: 'area' }],
-  }
+test('curation references remain in the retained internal source rather than public attribution', () => {
+  const expected: ReturnType<typeof curatedRecordSources> = []
   const result = curatedRecordSources(
     {
       saanseoi: [

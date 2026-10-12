@@ -29,7 +29,7 @@ export type PreparedDivision = {
     id: string
     identifiers: Record<string, unknown> | null
     level: number
-    sources: Record<string, unknown>
+    sources: import('@repo/db').SourceAttribution[]
     class: string
     category: import('@repo/db').DivisionCategory | null
   }

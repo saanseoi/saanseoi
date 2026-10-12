@@ -179,3 +179,9 @@ The Division guard `prepared-island-group-members` requires every output island 
 have at least one resolved member. Members must be unique output islands, not missing
 IDs, non-island divisions or the group itself. Preparation retains the resolved
 membership used to construct group geometry; seed lists alone do not satisfy this check.
+
+## Canonical source attribution
+
+Public attribution flattens concrete upstream references into publisher/dataset/record
+items and deduplicates references independently of contribution roles. Curation entries
+and synthetic processing markers are retained internally and excluded from `sources`.

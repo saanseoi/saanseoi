@@ -220,6 +220,21 @@ function buildSyntheticAreaRows(
     )
     if (!normalisedArea)
       throw new Error(`Failed to normalise synthetic ${area.code} area.`)
+    normalisedArea.canonical.sources = [
+      ...new Map(
+        normalised
+          .filter(
+            row =>
+              'divisionId' in row.canonical &&
+              area.districtDivisionIds.includes(row.canonical.divisionId) &&
+              row.canonical.isLand === true,
+          )
+          .flatMap(row =>
+            Array.isArray(row.canonical.sources) ? row.canonical.sources : [],
+          )
+          .map(source => [JSON.stringify(source), source]),
+      ).values(),
+    ]
     return normalisedArea
   })
 }
@@ -235,13 +250,7 @@ function syntheticOvertureHongKongAreaSourceRow(
     id: `SAANSEOI:OVERTURE:HK:AREA:${area.code}`,
     is_land: true,
     is_territorial: false,
-    sources: [
-      {
-        dataset: 'SaanSeoi corrective processing',
-        property: 'synthetic:union-overture-district-areas',
-        record_id: `overture:hk:area:${area.code}`,
-      },
-    ],
+    sources: [],
   }
 }
 

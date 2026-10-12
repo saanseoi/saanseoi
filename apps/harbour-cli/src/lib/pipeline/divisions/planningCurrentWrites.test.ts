@@ -54,7 +54,7 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
           ],
         ],
       },
-      sources: { sourceResolutions: { entityId: 'one' } },
+      sources: [],
     },
     versionHash: version,
     i18n: [

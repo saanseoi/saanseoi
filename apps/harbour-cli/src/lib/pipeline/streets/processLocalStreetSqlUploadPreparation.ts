@@ -204,16 +204,14 @@ export function indexCanonicalStreetIdsBySourceRecord(
 ) {
   const result = new Map<string, string[]>()
   for (const street of streets) {
-    const landsd = street.sources.hkgovLandsd
-    if (!landsd || typeof landsd !== 'object' || Array.isArray(landsd)) continue
-    const sourceReferences = landsd as Record<string, unknown>
-    for (const key of ['baselineRecordKeys', 'noticeRecordKeys'] as const) {
-      const recordKeys = sourceReferences[key]
-      if (!Array.isArray(recordKeys)) continue
-      for (const recordKey of recordKeys) {
-        if (typeof recordKey !== 'string') continue
-        result.set(recordKey, [...(result.get(recordKey) ?? []), street.id])
-      }
+    for (const source of street.sources) {
+      if (
+        source.publisherCode !== 'hkgov-landsd' ||
+        source.dataset !== 'ds-hk-hkgov-landsd-street' ||
+        !source.recordId
+      )
+        continue
+      result.set(source.recordId, [...(result.get(source.recordId) ?? []), street.id])
     }
   }
   return result

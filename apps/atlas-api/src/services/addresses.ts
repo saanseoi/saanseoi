@@ -1,3 +1,7 @@
+import {
+  canonicalIdentifiers,
+  type CanonicalIdentifiers,
+} from '@repo/core/pipeline/services/sources/canonicalIdentifiers.ts'
 import { matchesAddressGeographicMembership } from '../lib/geographicFilterContext'
 import {
   getPublicationReadiness,
@@ -54,7 +58,6 @@ import {
   type SnapshotNotReadyResponse,
 } from '../lib/api'
 import { runWithD1ReadRetry } from '../lib/d1'
-import { expandAddressSourceReferences } from './addressSourceReferences'
 import type { AppEnv } from '../types'
 import type { AccessAttribution } from './accessAnalytics'
 import {
@@ -117,7 +120,7 @@ type AddressResourcePayload = {
     bbox?: BBox | null
     createdAt?: string
     updatedAt?: string
-    identifiers?: unknown
+    identifiers?: CanonicalIdentifiers | null
     sources?: unknown
     i18n?: Record<string, AddressLocaleValue>
   }
@@ -310,7 +313,7 @@ function createAddress3dResource(args: {
       address2dId: args.record.collection.address2dId,
       unitCount: args.record.collection.unitCount,
       ...(args.profile === 'full'
-        ? { sources: { sourceResolutions: { entityId: args.record.collection.id } } }
+        ? { sources: args.record.collection.sources ?? [] }
         : {}),
       units: args.record.collection.units,
       i18n: Object.fromEntries(
@@ -550,29 +553,11 @@ function addressHierarchyIds(address: AddressRecord['address']) {
   ].filter((id): id is string => Boolean(id))
 }
 
-function publicAddressSources(value: unknown): unknown {
-  if (!Array.isArray(value)) return value
-  return value.map(source => {
-    if (!source || typeof source !== 'object' || Array.isArray(source)) return source
-    const record = source as Record<string, unknown>
-    const curationEntry = record.curationEntry
-    if (
-      !curationEntry ||
-      typeof curationEntry !== 'object' ||
-      Array.isArray(curationEntry)
-    )
-      return source
-    const { identityKey: _identityKey, ...publicCurationEntry } =
-      curationEntry as Record<string, unknown>
-    return { ...record, curationEntry: publicCurationEntry }
-  })
-}
-
-function publicAddressIdentifiers(value: unknown): unknown {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+function publicAddressIdentifiers(value: unknown): CanonicalIdentifiers | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null
   const { 'SS:supplementaryIdentityKey': _identityKey, ...identifiers } =
     value as Record<string, unknown>
-  return Object.keys(identifiers).length ? identifiers : null
+  return canonicalIdentifiers(identifiers)
 }
 
 function createAddressResource(args: {
@@ -605,15 +590,7 @@ function createAddressResource(args: {
   if (args.routeState.profile === 'full') {
     attributes.snapshotId = address.snapshotId
     attributes.identifiers = publicAddressIdentifiers(address.identifiers)
-    attributes.sources = publicAddressSources(
-      expandAddressSourceReferences(address.sources, {
-        snapshotId: address.snapshotId,
-        datasetCode,
-        sourceReleaseId: args.activeSnapshot.sourceReleaseBySnapshot?.get(
-          address.snapshotId,
-        ),
-      }),
-    )
+    attributes.sources = address.sources ?? []
   }
 
   const i18n = projectAddressI18n(args.record.i18n, args.routeState.profile)

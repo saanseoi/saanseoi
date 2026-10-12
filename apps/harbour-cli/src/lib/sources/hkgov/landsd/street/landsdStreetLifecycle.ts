@@ -8,6 +8,7 @@ import type {
   StreetEvidenceAsset,
   StreetLocaleCode,
   StreetStatus,
+  SourceAttribution,
 } from '@repo/db'
 import type { LandsdStreetSourceKind } from './landsdStreet.ts'
 
@@ -72,7 +73,7 @@ export type LandsdStreetMaterialisedStreet = {
   gazetteDate: string | null
   i18n: LandsdStreetLifecycleI18n[]
   id: string
-  sources: Record<string, unknown>
+  sources: SourceAttribution[]
   status: StreetStatus
   version: number
 }
@@ -242,12 +243,7 @@ function makeStreet(
     gazetteDate: event.gazetteDate,
     i18n: cloneI18n(event.i18n),
     id,
-    sources: {
-      hkgovLandsd: {
-        baselineRecordKeys: event.sourceKind === 'baseline' ? [event.recordKey] : [],
-        noticeRecordKeys: event.sourceKind === 'baseline' ? [] : [event.recordKey],
-      },
-    },
+    sources: [streetSourceReference(event.recordKey)],
     status: 'active',
     version: version + 1,
   }
@@ -366,22 +362,24 @@ function mergeI18n(
   })
 }
 function appendSourceReference(
-  sources: Record<string, unknown>,
+  sources: SourceAttribution[],
   event: LandsdStreetLifecycleInput,
 ) {
-  const root =
-    sources.hkgovLandsd && typeof sources.hkgovLandsd === 'object'
-      ? (sources.hkgovLandsd as Record<string, unknown>)
-      : {}
-  const noticeRecordKeys = Array.isArray(root.noticeRecordKeys)
-    ? root.noticeRecordKeys.filter((x): x is string => typeof x === 'string')
-    : []
+  const result = new Map(
+    [...sources, streetSourceReference(event.recordKey)].map(source => [
+      JSON.stringify(source),
+      source,
+    ]),
+  )
+  return [...result.values()].sort((a, b) =>
+    JSON.stringify(a).localeCompare(JSON.stringify(b)),
+  )
+}
+function streetSourceReference(recordId: string): SourceAttribution {
   return {
-    ...sources,
-    hkgovLandsd: {
-      ...root,
-      noticeRecordKeys: [...new Set([...noticeRecordKeys, event.recordKey])].sort(),
-    },
+    publisherCode: 'hkgov-landsd',
+    dataset: 'ds-hk-hkgov-landsd-street',
+    recordId,
   }
 }
 function sameMaterialisedState(

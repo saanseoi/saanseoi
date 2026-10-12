@@ -76,12 +76,13 @@ test('corrects bilingual Address2D components without changing identity, street 
   }
   expect(result.coverageComponents).toContain('estate_name')
   expect(result.coverageComponents).not.toContain('building_name')
-  expect(result.base.sources).toMatchObject({
-    hkgovAls: [{ record_id: 'source-theme-village', versionHash: 'source-hash' }],
-    componentCorrections: [
-      { record_id: 'ngong-ping-theme-village-estate', revision: 1 },
-    ],
-  })
+  expect(result.base.sources).toEqual([
+    {
+      publisherCode: 'hkgov-dpo',
+      dataset: 'ds-hk-hkgov-dpo-address',
+      recordId: 'source-theme-village',
+    },
+  ])
   expect(source).toEqual(before)
   expect(buildHkgovAlsSourceHashInput(source)).toEqual(hashInput)
 })
@@ -96,14 +97,18 @@ test('supports the reviewed GeoAddress change in the August 2026 delivery', () =
   ).toHaveLength(1)
 })
 
-test('preserves array-shaped source references alongside correction provenance', () => {
+test('keeps correction provenance out of canonical source references', () => {
   const references = JSON.parse(source.sources).hkgovAls
   expect(
     normaliseAddressRowForPipeline({ ...source, sources: JSON.stringify(references) })
       .base.sources,
-  ).toMatchObject({
-    hkgovAls: [{ record_id: 'source-theme-village', versionHash: 'source-hash' }],
-  })
+  ).toEqual([
+    {
+      publisherCode: 'hkgov-dpo',
+      dataset: 'ds-hk-hkgov-dpo-address',
+      recordId: 'source-theme-village',
+    },
+  ])
 })
 
 test('leaves Ngong Ping Tsuen and unrelated similarly named premises untouched', () => {
@@ -182,7 +187,7 @@ test.each(['sql', 'direct'] as const)(
       sourceRecordId TEXT, versionHash TEXT, resourceReleaseId TEXT, validFromRelease TEXT,
       validToRelease TEXT, isCurrent INTEGER, sourceLocator TEXT,
       properties TEXT, sourceGeometry TEXT, version INTEGER, createdAt TEXT, updatedAt TEXT,
-      PRIMARY KEY (sourceRecordId, versionHash)
+      PRIMARY KEY (sourceRecordId, versionHash, validFromRelease)
     )`)
       if (mode === 'sql') {
         for (const file of buildAddressSourceSqlImportFiles(message, artefact)) {

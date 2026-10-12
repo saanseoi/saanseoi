@@ -68,7 +68,7 @@ test('Street native delivery preserves unchanged current rows and only writes ch
       districtIds: [],
       deletedAt: null,
       gazetteDate: null,
-      sources: {},
+      sources: [],
       versionHash: id,
       i18n: [
         { locale: 'en', name: id, description: null },

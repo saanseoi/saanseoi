@@ -1,3 +1,4 @@
+import { SourcesSchema } from './sourceAttribution'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
@@ -71,29 +72,7 @@ const PlaceGeometrySchema = z
     ],
   })
 
-const PlaceSourceSchema = z
-  .strictObject({
-    publisherCode: z.string().min(1),
-    dataset: z.string().min(1),
-    property: z
-      .string()
-      .regex(/^(?:\/(?:[^~/]|~[01])*)*$/)
-      .nullable()
-      .optional(),
-    recordId: z.string().optional(),
-    updateTime: z.string().optional(),
-    version: z.string().optional().describe('Upstream record version.'),
-    confidence: z.number().min(0).max(1).optional(),
-    license: z.string().optional(),
-  })
-  .openapi('PlaceSource', {
-    description:
-      'An upstream publisher and dataset reference. A property pointer qualifies the upstream attribution; absent, null or empty applies to the whole record.',
-  })
-
-export const PlaceSourcesSchema = z.array(PlaceSourceSchema).nullable().openapi({
-  description: 'Upstream source attributions for this record.',
-}) as z.ZodType<unknown>
+export const PlaceSourcesSchema = SourcesSchema.nullable() as z.ZodType<unknown>
 
 const PlaceTaxonomyHierarchySchema = z
   .array(z.string())

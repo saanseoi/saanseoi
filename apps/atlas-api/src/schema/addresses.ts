@@ -1,3 +1,5 @@
+import { IdentifiersSchema } from './identifiers'
+import { SourcesSchema } from './sourceAttribution'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
@@ -22,8 +24,7 @@ const Address3dResourceSchema = z
       snapshotId: z.string(),
       address2dId: z.string(),
       unitCount: z.number().int(),
-      sources: z
-        .unknown()
+      sources: (SourcesSchema.nullable() as z.ZodType<unknown>)
         .optional()
         .describe('Exact source references, included only for the full profile.'),
       units: z.array(
@@ -300,19 +301,14 @@ const AddressAttributesSchema = z
       .openapi({
         description: openApiText('openapi_addresses_updated_at_description'),
       }),
-    identifiers: z
-      .record(z.string(), z.unknown())
-      .nullable()
+    identifiers: IdentifiersSchema.nullable()
       .optional()
       .openapi({
         description: openApiText('openapi_addresses_identifiers_description'),
       }),
-    sources: z
-      .unknown()
-      .optional()
-      .openapi({
-        description: openApiText('openapi_addresses_sources_description'),
-      }),
+    sources: (SourcesSchema.nullable() as z.ZodType<unknown>).optional().openapi({
+      description: openApiText('openapi_addresses_sources_description'),
+    }),
     i18n: AddressI18nSchema.optional().openapi({
       description: openApiText('openapi_addresses_i18n_field_description'),
     }),

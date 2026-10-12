@@ -532,3 +532,9 @@ contributing cell as `sources.hkgovPland[].cell_id` in both current and history 
 Missing cell membership rejects the import. Canonical Divisions use
 `sources.sourceResolutions.entityId` to request replay of their retained
 interpretations.
+
+## Canonical source attribution
+
+Canonical Planning Division and Area attribution lists `hkgov-pland`, the registered
+Planning dataset code and every contributing native cell or New Town record ID. It
+excludes assembly pointers and publication identifiers.

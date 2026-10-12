@@ -1,5 +1,23 @@
 import { expect, test } from 'bun:test'
-import { normaliseOvertureAttribution } from './sourceAttribution'
+import {
+  normaliseOvertureAttribution,
+  readSourceAttributions,
+} from './sourceAttribution'
+
+test('canonical attribution rejects legacy metadata, missing identity and malformed pointers', () => {
+  for (const value of [
+    { hkgovAls: [] },
+    [{}],
+    [{ publisherCode: ' ', dataset: 'd' }],
+    [{ publisherCode: 'p', dataset: 'd', versionHash: 'internal' }],
+    [{ publisherCode: 'p', dataset: 'd', property: '/bad~2' }],
+  ])
+    expect(() => readSourceAttributions(value)).toThrow()
+  const sources = [
+    { publisherCode: 'p', dataset: 'd', property: null, recordId: 'x', version: '3' },
+  ]
+  expect(readSourceAttributions(sources)).toEqual(sources)
+})
 
 test('preserves native attribution and excludes processing metadata', () => {
   expect(

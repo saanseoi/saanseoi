@@ -16,6 +16,7 @@ import {
   divisionIdentifiersWithWikidata,
 } from '../sources/divisionIdentifiers'
 import { recordContent } from '../sources/recordContent'
+import { normaliseOvertureAttribution } from '../sources/sourceAttribution'
 import {
   beginSnapshotPublication,
   completeSnapshotPublication,
@@ -239,7 +240,7 @@ type DivisionNormaliseOptions = {
   branchCounts?: BranchCounts
   hierarchyLookup?: DivisionHierarchyLookup
   source?: Pick<DatasetProcessingMessage, 'source' | 'sourceVersion'> &
-    Partial<Pick<DatasetProcessingMessage, 'regionCode'>>
+    Partial<Pick<DatasetProcessingMessage, 'regionCode' | 'datasetCode'>>
 }
 
 const DIVISION_BATCH_SIZE = 128
@@ -1240,7 +1241,11 @@ function normaliseDivisionRowInternal(
   if (options.source?.source === 'saanseoi' || row.source === 'saanseoi')
     return normaliseCuratedDivision(row)
   if (row.source === 'hkgov-censtatd') {
-    return normaliseHkgovCenstatdStatisticDivisionRow(row, options.branchCounts)
+    return normaliseHkgovCenstatdStatisticDivisionRow(
+      row,
+      options.branchCounts,
+      options.source?.datasetCode,
+    )
   }
   const id = asNonEmptyString(row.id)
   const now = new Date().toISOString()
@@ -1346,10 +1351,14 @@ function normaliseDivisionRowInternal(
       category: geographicDivisionClassification(type)?.category ?? null,
       class: type,
       sources: landsdPlaceName
-        ? { sourceResolutions: { entityId: id } }
-        : options.nativeSourceEvidence
-          ? { sourceResolutions: { entityId: id } }
-          : normaliseOvertureSources(row.sources),
+        ? [
+            {
+              publisherCode: 'hkgov-landsd',
+              dataset: 'ds-hk-hkgov-landsd-division',
+              recordId: requirePublisherPlaceNameId(row),
+            },
+          ]
+        : normaliseOvertureSources(row.sources),
       updatedAt: now,
     } satisfies Omit<NewDivisionRow, 'snapshotId'>,
     i18n,
@@ -1568,7 +1577,9 @@ export function buildOvertureHongKongDivisionClassificationProcessingActions(
 function normaliseHkgovCenstatdStatisticDivisionRow(
   row: Record<string, unknown>,
   branchCounts?: BranchCounts,
+  datasetCode?: string,
 ) {
+  if (!datasetCode) throw new Error('C&SD attribution requires its dataset code.')
   const id = asNonEmptyString(row.id)
   const type = asNonEmptyString(row.canonical_type)
   const level = asOptionalInteger(row.canonical_level)
@@ -1593,16 +1604,13 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
       id,
       identifiers,
       level,
-      sources: {
-        hkgovCenstatd: (Array.isArray(sources) ? sources : []).map(reference => {
-          const recordId = asNonEmptyString(
-            (reference as Record<string, unknown>)?.sourceRecordId,
-          )
-          if (!recordId)
-            throw new Error('C&SD source reference requires sourceRecordId.')
-          return { record_id: recordId }
-        }),
-      },
+      sources: (Array.isArray(sources) ? sources : []).map(reference => {
+        const recordId = asNonEmptyString(
+          (reference as Record<string, unknown>)?.sourceRecordId,
+        )
+        if (!recordId) throw new Error('C&SD source reference requires sourceRecordId.')
+        return { publisherCode: 'hkgov-censtatd', dataset: datasetCode, recordId }
+      }),
       class: type,
       category: geographicDivisionClassification(type)?.category ?? null,
       updatedAt: now,
@@ -1818,11 +1826,13 @@ function isDivisionI18nFallbackSource(
 }
 
 function normaliseOvertureSources(sources: unknown) {
-  if (!Array.isArray(sources) || sources.length === 0) {
-    return undefined
-  }
+  return normaliseOvertureAttribution(sources)
+}
 
-  return { overture: sources }
+function requirePublisherPlaceNameId(row: Record<string, unknown>) {
+  const id = asNonEmptyString(row.geo_name_id)
+  if (!id) throw new Error('LandsD attribution requires geo_name_id.')
+  return `LANDSD:PLACE_NAME:${id}`
 }
 
 export function normaliseOvertureSourceReferences(sources: unknown) {

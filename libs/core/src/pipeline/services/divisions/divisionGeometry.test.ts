@@ -33,9 +33,13 @@ describe('division geometry normalisation', () => {
       },
       'hkgov-pland-pu',
     )
-    expect(row?.canonical.sources).toEqual({
-      hkgovPland: cells.map(cell_id => ({ cell_id })),
-    })
+    expect(row?.canonical.sources).toEqual(
+      cells.map(recordId => ({
+        publisherCode: 'hkgov-pland',
+        dataset: 'ds-hk-hkgov-pland-division-pu',
+        recordId,
+      })),
+    )
     expect(row?.canonical.isLand).toBe(true)
     expect(row?.canonical.isTerritorial).toBe(true)
     for (const source_cell_ids of [undefined, [], ['']])
@@ -401,7 +405,11 @@ describe('division geometry normalisation', () => {
         sources: [{ dataset: 'hkgov-censtatd', districtClass: 'A' }],
       },
       'hkgov-censtatd',
-      { variant: 'hkgov-censtatd:simplified' },
+      {
+        variant: 'hkgov-censtatd:simplified',
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+      },
     )
     if (!normalised) throw new Error('Expected a C&SD display area row.')
 
@@ -409,9 +417,14 @@ describe('division geometry normalisation', () => {
     expect(normalised.canonical.identifiers).toEqual({
       'hkgov-censtatd': { dcClass: 'A', dcCode: 11 },
     })
-    expect(normalised.canonical.sources).toEqual({
-      sourceResolutions: { entityId: normalised.canonical.id },
-    })
+    expect(normalised.canonical.sources).toEqual([
+      {
+        publisherCode: 'hkgov-censtatd',
+        dataset:
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        recordId: 'CENSTATD:A',
+      },
+    ])
     expect(normalised.source.properties).toEqual({
       dc: 11,
       dcZhHant: '中西區',

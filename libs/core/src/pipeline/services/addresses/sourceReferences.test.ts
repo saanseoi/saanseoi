@@ -19,10 +19,13 @@ test('canonical references preserve exact assertions without copying processing 
     }),
   }
   const references = addressSourceReferences(row, 'ss-complex')
-  expect(references).toEqual({
-    hkgovAls: [{ record_id: 'publisher-occurrence', versionHash: 'exact-hash' }],
-    curation: [{ record_id: 'ss-complex' }],
-  })
+  expect(references).toEqual([
+    {
+      publisherCode: 'hkgov-dpo',
+      dataset: 'ds-hk-hkgov-dpo-address',
+      recordId: 'publisher-occurrence',
+    },
+  ])
   expect(
     addressSourceReferences({ ...row, sourceVersion: 'next' }, 'ss-complex'),
   ).toEqual(references)
@@ -34,5 +37,14 @@ test('canonical references preserve exact assertions without copying processing 
       { ...row, publisherSource: { ...row.publisherSource, versionHash: 'changed' } },
       'ss-complex',
     ),
-  ).not.toEqual(references)
+  ).toEqual(references)
+})
+
+test('an authored record without a publisher occurrence does not invent an upstream record', () => {
+  expect(
+    addressSourceReferences(
+      { sources: { curation: [{ record_id: 'internal' }] } },
+      'canonical',
+    ),
+  ).toEqual([])
 })

@@ -227,3 +227,9 @@ The native Division lineage fixture traces GEO_PLACE_NAME and PLACE_NAME by GEO_
 settlement selection, official-before-alias name order, HK80 projection and the fixed
 settlement classification. It also records the source-release translation and canonical
 response stages.
+
+## Canonical source attribution
+
+Canonical Division attribution uses `hkgov-landsd`, `ds-hk-hkgov-landsd-division` and
+the retained `LANDSD:PLACE_NAME:<GEO_NAME_ID>` publisher record identity. Canonical
+entity-resolution markers are excluded from public attribution.

@@ -90,7 +90,7 @@ export function missingOvertureHongKongCityRows(
             name: city.districtNames[index],
           },
         ]),
-        sources: [{ dataset: 'SaanSeoi city reconstruction', record_id: city.code }],
+        sources: [],
       },
     ]
   })

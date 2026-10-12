@@ -19,7 +19,7 @@ const supplementalNeighbourhoods = additions.entries
         value,
       })),
     },
-    sources: [{ dataset: 'SaanSeoi curated additions', record_id: row.key }],
+    sources: [],
     fixture: row.evidence,
   }))
 import { readDivisionInputBatches, type DivisionInput } from './divisionInput'

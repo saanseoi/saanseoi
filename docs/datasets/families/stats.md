@@ -560,3 +560,9 @@ publisher and dataset prefixes because references carry the dataset and release.
 cross-release continuity claim. Delivery ordinals are one-based and refer to the
 original input order. Canonical observation IDs and publisher codes used for grouping
 are separate from retained source record IDs.
+
+## Canonical source attribution
+
+Canonical district density `sources` uses the shared publisher/dataset/record
+attribution contract. Source archive metadata remains with retained publisher
+assertions; reference periods are not upstream record versions.

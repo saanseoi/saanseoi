@@ -144,7 +144,7 @@ test('Street rollover closes source and canonical versions in their owning year 
       districtIds: [],
       deletedAt: null,
       gazetteDate: null,
-      sources: {},
+      sources: [],
       versionHash: 'original-street',
       i18n: record.i18n,
     }

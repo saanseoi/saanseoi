@@ -166,8 +166,21 @@ export async function normalisePreparedDivision(
   const level = requireString(value.planning_level, 'planning_level')
   const sourceProperties = asRecord(value.source_properties)
   const identifiers = asRecord(value.identifiers)
-  const sourceCellIds = value.source_cell_ids ?? []
+  const sourceCellIds =
+    typeof value.source_cell_ids === 'string'
+      ? JSON.parse(value.source_cell_ids)
+      : (value.source_cell_ids ?? [])
   const i18n = normaliseI18n(value.i18n)
+  const cells =
+    level === 'subunit' ? normalisePlanningCells(sourceProperties.sourceFeatures) : []
+  const newTown = level === 'newtown' ? normaliseNewTown(sourceProperties, i18n) : null
+  const attributionIds = newTown ? [newTown.sourceRecordId] : sourceCellIds
+  if (
+    !Array.isArray(attributionIds) ||
+    !attributionIds.length ||
+    attributionIds.some(id => typeof id !== 'string' || !id)
+  )
+    throw new Error('Planning attribution requires native source cell IDs.')
   const geometry = canonicalDivisionPoint(parseWkbGeometry(value.geometry), {
     id,
     guard: pointGuard,
@@ -182,16 +195,17 @@ export async function normalisePreparedDivision(
     id,
     identifiers,
     level: levelNumber(level),
-    sources: {
-      sourceResolutions: { entityId: id },
-    },
+    sources: attributionIds.map(recordId => ({
+      publisherCode: 'hkgov-pland',
+      dataset: newTown
+        ? 'ds-hk-hkgov-pland-division-new-town'
+        : 'ds-hk-hkgov-pland-division-pu',
+      recordId,
+    })),
     class: `planning-${level}`,
     category: null,
   }
   const versionHash = await createHash(recordContent(base))
-  const cells =
-    level === 'subunit' ? normalisePlanningCells(sourceProperties.sourceFeatures) : []
-  const newTown = level === 'newtown' ? normaliseNewTown(sourceProperties, i18n) : null
   return {
     base,
     cells,

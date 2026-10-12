@@ -365,7 +365,17 @@ test('writes large bound collections, replays idempotently and journals removed 
     await runSourceRelease('2026-12-01.0', 'changed-hash')
     expect(
       databases.source.query('SELECT count(*) AS n FROM hkgovAlsAddresses3d').get(),
-    ).toEqual({ n: 2 })
+    ).toEqual({ n: 3 })
+    expect(
+      databases.source
+        .query(
+          "SELECT validFromRelease, validToRelease FROM hkgovAlsAddresses3d WHERE versionHash='changed-hash' ORDER BY validFromRelease",
+        )
+        .all(),
+    ).toEqual([
+      { validFromRelease: '2026-10-01.0', validToRelease: '2026-11-01.0' },
+      { validFromRelease: '2026-12-01.0', validToRelease: null },
+    ])
     // Restore the preparation used by the owner-validation checks below.
     await writeFile(path, records.map(row => JSON.stringify(row)).join('\n'))
     const other = collectionStatements(

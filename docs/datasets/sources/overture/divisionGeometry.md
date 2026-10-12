@@ -439,3 +439,11 @@ source revalidation and country-reference evidence checks carry their actual
 revalidation date. They do not assert that those checks ran during the original import.
 Extraction and clipping require their own retained execution evidence. Source records,
 snapshots and API release membership remain unchanged.
+
+## Canonical source attribution
+
+Canonical attribution normalises native Overture source items through
+`fixtures/meta/sourceAttributions/overture.json`, preserving upstream JSON Pointers and
+optional record metadata. Unknown publisher identities block normalisation. Synthetic
+area unions collect their constituent areas' attribution; processing markers are
+excluded from `sources`.

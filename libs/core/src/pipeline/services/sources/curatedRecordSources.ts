@@ -1,28 +1,17 @@
-/** Record references only. Processing rules belong to release-set field provenance. */
-export type CuratedRecordSource = {
-  dataset: string
-  recordId: string
-  componentIndexes?: number[]
-}
-
-const authoredCurations = new Set([
-  'division-geometry',
-  'division-additions',
-  'division-names',
-  'division-update-policy',
-])
+import type { SourceAttribution } from '@repo/db'
+import { readSourceAttributions } from './sourceAttribution'
 
 export function curatedRecordSources(
   value: unknown,
   ownerId: string,
-): Record<string, CuratedRecordSource[]> {
+): SourceAttribution[] {
   const sources = typeof value === 'string' ? JSON.parse(value) : value
-  const result: Record<string, CuratedRecordSource[]> = {}
-  if (!sources || typeof sources !== 'object' || Array.isArray(sources)) return result
+  const result = new Map<string, SourceAttribution>()
+  if (!sources || typeof sources !== 'object') return []
+  if (Array.isArray(sources)) return readSourceAttributions(sources)
   for (const [provider, references] of Object.entries(sources)) {
     if (!Array.isArray(references))
       throw Error(`Invalid source references: ${provider}`)
-    const unique = new Map<string, CuratedRecordSource>()
     for (const reference of references) {
       if (!reference || typeof reference !== 'object')
         throw Error('Invalid source reference')
@@ -33,12 +22,9 @@ export function curatedRecordSources(
         continue
       // External lookups without a retained dataset belong to field provenance.
       if (!reference.dataset) continue
-      let recordId = reference.recordId ?? reference.record_id
+      const recordId = reference.recordId ?? reference.record_id
       if (reference.curation) {
-        if (provider !== 'saanseoi' || !authoredCurations.has(reference.curation))
-          continue
-        // An authored assertion belongs to this retained record, not a review alias.
-        recordId = ownerId
+        continue
       }
       if (
         typeof reference.dataset !== 'string' ||
@@ -49,7 +35,11 @@ export function curatedRecordSources(
         throw Error(
           `Source reference requires dataset and recordId: ${ownerId}/${provider}/${JSON.stringify(reference)}`,
         )
-      const next: CuratedRecordSource = { dataset: reference.dataset, recordId }
+      const next: SourceAttribution = {
+        publisherCode: provider,
+        dataset: reference.dataset,
+        recordId,
+      }
       if (reference.componentIndexes !== undefined) {
         const indexes = reference.componentIndexes
         if (
@@ -63,11 +53,9 @@ export function curatedRecordSources(
           )
         )
           throw Error('Invalid source component indexes')
-        next.componentIndexes = [...indexes]
       }
-      unique.set(JSON.stringify(next), next)
+      result.set(JSON.stringify(next), next)
     }
-    if (unique.size) result[provider] = [...unique.values()]
   }
-  return result
+  return [...result.values()]
 }

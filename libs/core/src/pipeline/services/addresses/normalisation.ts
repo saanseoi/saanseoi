@@ -56,17 +56,7 @@ function normaliseAddressRowForPipelineInternal(
     sourceVersion,
     corrected.applied,
   )
-  if (corrected.applied.length) {
-    normalised.base.sources = {
-      ...(Array.isArray(normalised.base.sources)
-        ? { hkgovAls: normalised.base.sources }
-        : asRecord(normalised.base.sources)),
-      componentCorrections: corrected.applied.map(correction => ({
-        record_id: correction.id,
-        revision: correction.revision,
-      })),
-    }
-  }
+  // Correction fixtures are retained with the ALS audit, not public attribution.
   return normalised
 }
 

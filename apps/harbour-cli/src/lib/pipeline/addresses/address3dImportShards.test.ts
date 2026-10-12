@@ -386,7 +386,7 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
         current.query<{ sources: string }, []>('SELECT sources FROM address3d').get()
           ?.sources ?? 'null',
       ),
-    ).toEqual([{ auditRecordId: retained.id }])
+    ).toEqual([])
     const audit = historyNew
       .query<{ resolutions: string }, [string]>(
         'SELECT resolutions FROM sourceResolutions WHERE sourceRecordId = ?',

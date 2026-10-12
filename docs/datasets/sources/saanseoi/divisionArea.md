@@ -644,3 +644,10 @@ SaanSeoi area archives encode `isLand` and `isTerritorial` as JSON booleans. Nul
 absent values mean unknown. Preparation converts internal SQLite `0`/`1` flags to
 booleans before writing the archive. Ingestion rejects numeric, string and structured
 flag values, including in retained source properties.
+
+## Canonical source attribution
+
+Public attribution flattens concrete upstream references into publisher/dataset/record
+items. Component-selection indexes and curation decisions remain in the retained
+internal input and audit; they do not qualify public attribution. Only upstream JSON
+Pointer qualifications belong in `property`.

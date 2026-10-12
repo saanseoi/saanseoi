@@ -1,27 +1,19 @@
 import { readAlsPublisherSource } from '../sources/alsSourcePayload'
+import type { SourceAttribution } from '@repo/db'
 
-/** A record points to evidence; publisher payloads and processing decisions live elsewhere. */
+/** Publisher occurrence only; release selection and curation belong to retained evidence. */
 export function addressSourceReferences(
   row: Record<string, unknown>,
-  canonicalId: string,
-) {
+  _canonicalId: string,
+): SourceAttribution[] {
   const publisher = readAlsPublisherSource(row)
-  const references: Record<string, Array<Record<string, unknown>>> = {}
-  if (publisher)
-    references.hkgovAls = [
-      { record_id: publisher.sourceRecordId, versionHash: publisher.versionHash },
-    ]
-  const sources =
-    typeof row.sources === 'string' ? JSON.parse(row.sources) : row.sources
-  if (
-    !publisher ||
-    (sources &&
-      typeof sources === 'object' &&
-      Object.keys(sources).some(key => key !== 'hkgovAls'))
-  ) {
-    // Exact release audit selection comes from the requested snapshot, independently
-    // of the version that last changed the canonical address components.
-    references.curation = [{ record_id: canonicalId }]
-  }
-  return references
+  return publisher
+    ? [
+        {
+          publisherCode: 'hkgov-dpo',
+          dataset: 'ds-hk-hkgov-dpo-address',
+          recordId: publisher.sourceRecordId,
+        },
+      ]
+    : []
 }

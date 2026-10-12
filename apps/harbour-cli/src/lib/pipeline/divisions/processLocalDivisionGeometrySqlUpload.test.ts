@@ -287,6 +287,10 @@ describe('createGeometryChurnCounts', () => {
         },
       },
       'hkgov-censtatd',
+      {
+        datasetCode:
+          'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+      },
     )
     if (!row) throw new Error('Expected normalised geometry.')
 

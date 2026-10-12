@@ -2021,3 +2021,12 @@ separate from retained source record IDs.
 C&SD source samples and schema inventories select exact dataset and resource-release
 ownership from statistics rows and join their shared geometry. Independent census
 cohorts remain addressable without relying on one validity timeline.
+
+## Canonical source attribution
+
+Canonical Division, Division Area and Division Boundary attribution is a flat array of
+publisher, dataset and upstream record references. Overture attribution preserves
+upstream property pointers through the explicit native-name mapping. Planning references
+enumerate contributing cells or New Town records. C&SD requires an explicit dataset
+code. Curated processing references and component indexes remain in retained inputs and
+audits; synthetic district unions collect attribution from their contributing areas.

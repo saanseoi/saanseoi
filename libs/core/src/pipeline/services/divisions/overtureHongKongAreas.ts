@@ -178,13 +178,7 @@ export function missingOvertureHongKongAreaRows(
           primary: area.names.en,
         },
         parent_division_id: OVERTURE_HONG_KONG_SAR_DIVISION_ID,
-        sources: [
-          {
-            dataset: 'SaanSeoi corrective processing',
-            property: 'synthetic:missing-overture-hong-kong-area',
-            record_id: `overture:hk:area:${area.code}`,
-          },
-        ],
+        sources: [],
         subtype: 'locality',
         type: 'division',
         wikidata: area.wikidata,

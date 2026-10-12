@@ -1259,9 +1259,10 @@ Derived `townAssociation` evidence retains the input names, method and division 
 separately from the publisher payload. Prepared files carry `townId` into Address2D
 storage and version hashing.
 
-Canonical Address2D identifiers use `ALS:CsuId` and retain the original identifier
-value. Curation identities use the `SS:` namespace; native source properties retain
-their original structure.
+Canonical Address2D identifiers use publisher-grouped objects with camelCase identifier
+types: `hkgov-dpo.csuId` and `hkgov-dpo.geoAddress`. Identifier values remain unchanged.
+Curation identities use `saanseoi.curationId`; native source properties retain their own
+source contract.
 
 ## Geographic membership
 
@@ -1692,3 +1693,12 @@ An operation or policy with new semantics requires an explicit implementation co
 guarded inputs and focused tests. Extend reviewed data within the existing vocabulary
 when the treatment is already supported. Do not use an exception catch or a release
 number to introduce a new editorial decision.
+
+## Canonical source attribution
+
+Canonical Address attribution uses `publisherCode: hkgov-dpo`,
+`dataset: ds-hk-hkgov-dpo-address` and the retained publisher occurrence as `recordId`.
+Address3D inventories list all contributing publisher occurrences. Content hashes, audit
+references and component corrections belong to retained source history or the R2 audit,
+not public attribution. Reappearing source assertions retain separate validity
+intervals.

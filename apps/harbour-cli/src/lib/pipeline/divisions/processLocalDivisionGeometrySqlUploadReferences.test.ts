@@ -96,6 +96,10 @@ test('historical C&SD geometry validates against later SaanSeoi history without 
           geometry,
         },
         'hkgov-censtatd',
+        {
+          datasetCode:
+            'ds-hk-hkgov-censtatd-division-statistic-subdivided-units-district',
+        },
       )
       if (!row) throw new Error(`Invalid geometry fixture: ${id}`)
       return row

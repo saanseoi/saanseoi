@@ -176,3 +176,11 @@ Publication retains the executed source-retention and lifecycle-assembly rules w
 counts from the sealed SQL delivery. It verifies delivered source hashes and baseline
 coverage before transferring a completed processing audit. Retries reuse the retained
 audit graph and SQL delivery receipts.
+
+## Canonical source attribution
+
+Canonical Street attribution lists `hkgov-landsd`, `ds-hk-hkgov-landsd-street` and
+retained baseline/notice record keys as `recordId`. Lifecycle replay indexes those
+references to preserve canonical identities. Notice application decisions and
+source-kind distinctions remain in their source/lifecycle evidence, not attribution
+fields.

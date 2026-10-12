@@ -90,3 +90,20 @@ The initial implementation standardises supplementary Address2D attribution and 
 its assembly evidence separate. The rest of the matrix is the worklist for
 family-by-family adapter and retained-record migration; it is not a claim that all
 legacy rows have already been rewritten.
+
+## Local verification and reingestion gates
+
+`bun scripts/audit-source-attributions.ts <sqlite-directory> <report.json>` scans every
+populated SQLite file read-only. It groups every stored `sources` shape by
+snapshot/source-release scope, inspects native `properties.sources`, reports empty
+source columns, and emits a coverage entry for every metadata snapshot. Publication
+pointers distinguish logical snapshots from physical scopes. Journal deltas and stored
+historical versions do not establish full replay coverage.
+
+Producer adapters cover official Addresses, Overture and curated Divisions, Planning and
+C&SD geometry, LandsD Streets and district density statistics. The shared API schema
+requires flat attribution arrays. Retained-row conversion still requires snapshot
+replay, R2 evidence verification, cache invalidation, rollback receipts and fresh API
+reads. Do not reset a scope with a publication in progress. The native dataset “Maps
+Entity Variant Names” requires verified publisher ownership before complete Overture
+Division reingestion.

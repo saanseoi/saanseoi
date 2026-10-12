@@ -9,7 +9,7 @@ test('Street version counters do not change content identity but lifecycle dates
     gazetteDate: '2026-01-01',
     districtIds: [],
     i18n: [],
-    sources: {},
+    sources: [],
     status: 'active' as const,
   }
   const first = await addMaterialisedStreetHash(street)

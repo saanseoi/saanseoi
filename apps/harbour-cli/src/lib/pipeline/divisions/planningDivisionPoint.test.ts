@@ -24,6 +24,7 @@ test('Planning assembly derives and audits an interior Point without mutating so
     planning_level: 'ppu',
     geometry,
     source_properties: {},
+    source_cell_ids: JSON.stringify(['native-cell']),
     identifiers: {},
     i18n: [],
   }
@@ -31,6 +32,13 @@ test('Planning assembly derives and audits an interior Point without mutating so
   const guard = createDivisionPointGuard()
   const record = await normalisePreparedDivision(source, new Map(), guard)
   expect(record.base.geometry).toMatchObject({ type: 'Point' })
+  expect(record.base.sources).toEqual([
+    {
+      publisherCode: 'hkgov-pland',
+      dataset: 'ds-hk-hkgov-pland-division-pu',
+      recordId: 'native-cell',
+    },
+  ])
   expect(source).toEqual(before)
   expect(guard.snapshot()[0]).toMatchObject({ status: 'passed', checked: 1 })
 })

@@ -60,6 +60,14 @@ test('resolves C&SD DC only while creating the history observation', () => {
     districtCode: 'CW',
     divisionId: 'division-0',
     midYearPopulation: 2_500,
+    sources: [
+      {
+        publisherCode: 'hkgov-censtatd',
+        dataset:
+          'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        recordId: 'CENSTATD:DENSITY:1',
+      },
+    ],
   })
 })
 

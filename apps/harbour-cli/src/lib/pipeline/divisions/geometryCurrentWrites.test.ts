@@ -90,6 +90,10 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
           },
         },
         sourceName,
+        {
+          datasetCode:
+            'ds-hk-hkgov-censtatd-division-statistic-land-area-population-density-district',
+        },
       )
       if (!item) throw new Error('Invalid geometry fixture')
       // Publication fixtures use readable identities; producer identity is tested separately.

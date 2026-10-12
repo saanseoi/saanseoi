@@ -1,6 +1,8 @@
 import { composeSourceRecordId } from '../../../sourceRecordIdentity'
 import { datasetSourceRecordIdentity } from '../sources/datasetSourceRecordIdentity'
 import { curatedRecordSources } from '../sources/curatedRecordSources'
+import { normaliseOvertureAttribution } from '../sources/sourceAttribution'
+import type { SourceAttribution } from '@repo/db'
 import { assertInternalSourceReferences } from '../sources/internalSourceReferences'
 import { camelCaseJson } from '../../../jsonKeys'
 import {
@@ -72,6 +74,7 @@ export const divisionGeometryExclusionRule =
 export type GeometryNormalisationOptions = {
   validateGeometry?: boolean
   variant?: string
+  datasetCode?: string
 }
 
 type GeometryBase = {
@@ -81,7 +84,7 @@ type GeometryBase = {
   isLand: boolean | null
   isTerritorial: boolean | null
   identifiers: Record<string, unknown> | null
-  sources: Record<string, unknown> | undefined
+  sources: SourceAttribution[]
   type: 'land' | 'maritime' | 'mixed'
   variant: string
 }
@@ -168,7 +171,7 @@ function normaliseDivisionAreaGeometry(
   const identifiers = divisionIdentifiers(buildIdentifiers(row, source))
   const canonicalId =
     source === 'saanseoi' ? id : canonicalGeometryId('divisionArea', source, id)
-  const sources = geometrySourceReferences(row, source, canonicalId)
+  const sources = geometrySourceReferences(row, source, options.datasetCode)
   const base: GeometryBase = {
     bbox,
     geometry: withoutEmbeddedBbox(geometry),
@@ -241,7 +244,7 @@ function normaliseDivisionBoundaryGeometry(
 
   const identifiers = divisionIdentifiers(buildIdentifiers(row, source))
   const canonicalId = canonicalGeometryId('divisionBoundary', source, id)
-  const sources = geometrySourceReferences(row, source, canonicalId)
+  const sources = geometrySourceReferences(row, source, options.datasetCode)
   const base: GeometryBase = {
     bbox,
     geometry: withoutEmbeddedBbox(geometry),
@@ -336,14 +339,29 @@ export function normaliseDivisionBoundaryGeometryRow(
 function geometrySourceReferences(
   row: Record<string, unknown>,
   source: string,
-  id: string,
-) {
+  datasetCode?: string,
+): SourceAttribution[] {
   if (source === 'saanseoi') return curatedRecordSources(row.sources, String(row.id))
+  if (source === 'overture') return normaliseOvertureAttribution(row.sources)
+  if (source === 'hkgov-had')
+    return [
+      {
+        publisherCode: 'hkgov-had',
+        dataset: 'ds-hk-hkgov-had-division-area-district',
+        recordId: hadPublisherId(row),
+      },
+    ]
   if (source === 'hkgov-pland-new-town') {
     const recordId = asNonEmptyString(row.newtown_id)
     if (!recordId)
       throw new Error('Planning New Town geometry requires its native record ID.')
-    return { hkgovPland: [{ record_id: recordId }] }
+    return [
+      {
+        publisherCode: 'hkgov-pland',
+        dataset: 'ds-hk-hkgov-pland-division-new-town',
+        recordId,
+      },
+    ]
   }
   if (source === 'hkgov-pland-pu') {
     const cells =
@@ -356,15 +374,24 @@ function geometrySourceReferences(
       cells.some(cell => typeof cell !== 'string' || !cell)
     )
       throw new Error('Planning geometry requires its contributing native cell IDs.')
-    return { hkgovPland: cells.map(cell => ({ cell_id: cell })) }
+    return cells.map(recordId => ({
+      publisherCode: 'hkgov-pland',
+      dataset: 'ds-hk-hkgov-pland-division-pu',
+      recordId,
+    }))
   }
-  if (source === 'hkgov-censtatd' && Array.isArray(row.sources)) {
-    const ids = row.sources
+  if (source === 'hkgov-censtatd') {
+    const ids = (Array.isArray(row.sources) ? row.sources : [])
       .map(reference => reference?.sourceRecordId)
       .filter((value): value is string => typeof value === 'string' && !!value)
-    if (ids.length) return { hkgovCenstatd: ids.map(record_id => ({ record_id })) }
+    if (!datasetCode) throw new Error('C&SD attribution requires its dataset code.')
+    return (ids.length ? ids : [censtatdPublisherId(row)]).map(recordId => ({
+      publisherCode: 'hkgov-censtatd',
+      dataset: datasetCode,
+      recordId,
+    }))
   }
-  return { sourceResolutions: { entityId: id } }
+  throw new Error(`Unsupported geometry attribution source: ${source}`)
 }
 
 function normaliseSourceReferences(value: unknown): SourceReferences | null {

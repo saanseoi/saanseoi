@@ -8,6 +8,49 @@ const datasets = new Map(
 )
 const pointer = /^(?:\/(?:[^~/]|~[01])*)*$/
 
+/** Validate the canonical boundary without accepting legacy evidence envelopes. */
+export function readSourceAttributions(value: unknown): SourceAttribution[] {
+  if (value == null) return []
+  if (!Array.isArray(value))
+    throw new Error('Source attribution requires an array; reingest this snapshot.')
+  const fields = new Set([
+    'publisherCode',
+    'dataset',
+    'property',
+    'recordId',
+    'updateTime',
+    'version',
+    'confidence',
+    'license',
+  ])
+  for (const item of value) {
+    if (!item || typeof item !== 'object' || Array.isArray(item))
+      throw new Error('Invalid source attribution item.')
+    if (Object.keys(item).some(key => !fields.has(key)))
+      throw new Error('Source attribution contains processing metadata.')
+    for (const field of ['publisherCode', 'dataset'])
+      if (typeof item[field] !== 'string' || !item[field].trim())
+        throw new Error(`Source attribution requires ${field}.`)
+    for (const field of ['recordId', 'updateTime', 'version', 'license'])
+      if (item[field] !== undefined && typeof item[field] !== 'string')
+        throw new Error(`Source ${field} must be a string.`)
+    if (
+      item.property != null &&
+      (typeof item.property !== 'string' || !pointer.test(item.property))
+    )
+      throw new Error('Source property must be an RFC 6901 JSON Pointer.')
+    if (
+      item.confidence !== undefined &&
+      (typeof item.confidence !== 'number' ||
+        !Number.isFinite(item.confidence) ||
+        item.confidence < 0 ||
+        item.confidence > 1)
+    )
+      throw new Error('Source confidence must be between zero and one.')
+  }
+  return value
+}
+
 /** Normalise publisher attribution only; preparation and decision evidence stays outside it. */
 export function normaliseOvertureAttribution(value: unknown): SourceAttribution[] {
   if (value === null || value === undefined) return []

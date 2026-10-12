@@ -115,10 +115,7 @@ export async function listCurrentMaterialisedStreets(
     i18n: i18nByStreet.get(row.id) ?? [],
     id: row.id,
     gazetteDate: row.gazetteDate,
-    sources:
-      row.sources && typeof row.sources === 'object'
-        ? (row.sources as Record<string, unknown>)
-        : {},
+    sources: readSourceAttributions(row.sources),
     status: row.status === 'deleted' ? 'deleted' : 'active',
     version: row.version,
   }))
@@ -831,3 +828,4 @@ export const landsdStreetSourceRule = registerRule(
 export function insertSourceRows(...args: Parameters<typeof insertSourceRowsInternal>) {
   return landsdStreetSourceRule.execute(args)
 }
+import { readSourceAttributions } from '@repo/core/pipeline/services/sources/sourceAttribution'

@@ -39,7 +39,8 @@
     },
     {
       "names": [
-        "Overture"
+        "Overture",
+        "overture"
       ],
       "publisherCode": "overture",
       "dataset": "overture"

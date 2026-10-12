@@ -1,5 +1,9 @@
 # Addresses dataset family
 
+Canonical identifiers use publisher → camelCase identifier type → unchanged value,
+including `hkgov-dpo.csuId`, `hkgov-dpo.geoAddress` and `saanseoi.curationId`. The
+Address and Division APIs share the identifier schema.
+
 Source ledgers retain separate occurrences of recurring content under the
 [shared source validity contract](source-evidence.md#recurring-source-validity-periods).
 
@@ -1576,3 +1580,12 @@ cache hashes and deletion approvals remain independent gates.
 See
 [the DPO operation reference](../sources/hkgov-dpo/address.md#executable-review-decisions)
 for the code vocabulary, inputs, execution stages and extension requirements.
+
+## Canonical source attribution
+
+Official Address2D and Address3D attribution lists `hkgov-dpo`, the registered Address
+dataset and each retained publisher occurrence ID. Hashes, audit IDs and component
+corrections are excluded. Component correction fixtures remain in the ALS R2 audit. A
+curated record without an identified upstream occurrence has an empty attribution array.
+Full API responses return these stored references without adding snapshot or release
+identifiers.

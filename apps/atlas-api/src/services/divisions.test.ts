@@ -102,15 +102,14 @@ const baseRecord: DivisionRecord = {
     cartography: {
       kind: 'label-center',
     },
-    sources: {
-      overture: [
-        {
-          property: '/properties/id',
-          dataset: 'overture',
-          record_id: 'ovt-division-a-kung-ngam',
-        },
-      ],
-    },
+    sources: [
+      {
+        publisherCode: 'overture',
+        property: '/properties/id',
+        dataset: 'overture',
+        recordId: 'ovt-division-a-kung-ngam',
+      },
+    ],
     createdAt: '2026-06-17T00:00:00.000Z',
     updatedAt: '2026-06-18T00:00:00.000Z',
   },
@@ -457,7 +456,7 @@ describe('division services', () => {
     })
   })
 
-  test('accepts source membership with a contribution role', () => {
+  test('rejects source membership envelopes containing contribution roles', () => {
     expect(
       SourcesSchema.safeParse({
         overture: [
@@ -477,7 +476,7 @@ describe('division services', () => {
           },
         ],
       }).success,
-    ).toBe(true)
+    ).toBe(false)
   })
 
   test('keeps current division identities while selecting an explicit area cohort', async () => {
@@ -667,15 +666,14 @@ describe('division services', () => {
           identifiers: { wikidata: { id: 'Q123456' } },
           createdAt: '2026-06-17T00:00:00.000Z',
           updatedAt: '2026-06-18T00:00:00.000Z',
-          sources: {
-            overture: [
-              {
-                property: '/properties/id',
-                dataset: 'overture',
-                record_id: 'ovt-division-a-kung-ngam',
-              },
-            ],
-          },
+          sources: [
+            {
+              publisherCode: 'overture',
+              property: '/properties/id',
+              dataset: 'overture',
+              recordId: 'ovt-division-a-kung-ngam',
+            },
+          ],
           i18n: {
             en: {
               name: 'A Kung Ngam',

@@ -421,10 +421,12 @@ export async function processLocalDivisionGeometrySqlUpload(
                 ? normaliseDivisionAreaGeometryRow(sourceRow, previewPlan.source, {
                     validateGeometry: options.validateGeometry,
                     variant: geometryVariant(previewPlan),
+                    datasetCode,
                   })
                 : normaliseDivisionBoundaryGeometryRow(sourceRow, previewPlan.source, {
                     validateGeometry: options.validateGeometry,
                     variant: geometryVariant(previewPlan),
+                    datasetCode,
                   })
             if (value) normalised.push(value as NonNullable<NormalisedGeometry>)
           } catch (error) {

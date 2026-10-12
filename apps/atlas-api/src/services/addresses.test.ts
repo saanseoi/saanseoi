@@ -251,7 +251,11 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
           countryId,
           identifiers:
             id === 'b'
-              ? { 'SS:supplementaryIdentityKey': '[internal identity evidence]' }
+              ? {
+                  'SS:supplementaryIdentityKey': '[internal identity evidence]',
+                  'hkgov-dpo': { csuId: '000123' },
+                  saanseoi: { curationId: 'estate-01' },
+                }
               : null,
           districtId: id === 'b' ? 'division-district' : null,
           parentAddressId: id === 'b' ? 'a' : null,
@@ -260,12 +264,9 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
             id === 'b'
               ? [
                   {
-                    source: 'overture-place-address',
-                    curationEntry: {
-                      placeId: 'place-b',
-                      identityKey: '[internal identity evidence]',
-                      acceptanceMode: 'curated',
-                    },
+                    publisherCode: 'overture',
+                    dataset: 'ds-hk-overture-place',
+                    recordId: 'place-b',
                   },
                 ]
               : null,
@@ -413,6 +414,10 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       query: { profile: 'full' },
     })
     expect(full.status === 200 && full.body.data.attributes.granularity).toBe('unit')
+    expect(full.status === 200 && full.body.data.attributes.identifiers).toEqual({
+      'hkgov-dpo': { csuId: '000123' },
+      saanseoi: { curationId: 'estate-01' },
+    })
     expect(
       JSON.stringify(full.status === 200 ? full.body.data.attributes.sources : null),
     ).not.toContain('identityKey')

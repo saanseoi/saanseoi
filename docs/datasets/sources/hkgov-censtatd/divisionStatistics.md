@@ -769,3 +769,10 @@ DivisionArea IDs remain independent of the publisher record ID. Source samples a
 schema inventories select statistics directly by dataset and resource release, then join
 their shared geometry. Statistics and geometry resource children each own their source
 rows.
+
+## Canonical source attribution
+
+District land-area/population-density records identify `hkgov-censtatd`, the registered
+density dataset and the publisher source record ID in canonical `sources`. Reference
+periods remain domain fields; archive identifiers and processing metadata are excluded
+from attribution.
