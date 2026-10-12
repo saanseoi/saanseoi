@@ -193,6 +193,18 @@ export function recordSummary(
     record.properties && typeof record.properties === 'object'
       ? (record.properties as Record<string, unknown>)
       : record
+  const planningCodes = [
+    ['PPU', props.ppu],
+    ['SPU', props.spu],
+    ['TPU', props.tpu],
+    ['SB_VC', props.sbVc],
+  ]
+    .filter(
+      (entry): entry is [string, string | number] =>
+        (typeof entry[1] === 'string' && entry[1].trim().length > 0) ||
+        typeof entry[1] === 'number',
+    )
+    .map(([label, code]) => `${label} ${code}`)
   function name(value: unknown): string | undefined {
     if (typeof value === 'string' && value.trim()) return value
     if (Array.isArray(value)) return value.map(name).find(Boolean)
@@ -215,9 +227,12 @@ export function recordSummary(
       name(props.translations) ??
       name(props.address) ??
       fallback,
-    detail: [props.type, props.subtype, props.class, props.status]
-      .filter((value): value is string => typeof value === 'string')
-      .join(' · '),
+    detail:
+      planningCodes.length > 0
+        ? planningCodes.join(' · ')
+        : [props.type, props.subtype, props.class, props.status]
+            .filter((value): value is string => typeof value === 'string')
+            .join(' · '),
   }
 }
 

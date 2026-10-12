@@ -35,6 +35,21 @@ test('records start collapsed and changed fields use previous/current columns', 
     .not.toBeInTheDocument()
 })
 
+test('Planning record headers show the unit codes and omit absent SB_VC', async () => {
+  const screen = await render(SourceRecordChange, {
+    id: 'planning-cell-1',
+    type: 'added',
+    before: null,
+    after: { properties: { ppu: 1, spu: 11, tpu: 111 } },
+    fields: [],
+    locale: 'en',
+  })
+  await expect
+    .element(screen.getByRole('button', { name: /PPU 1 · SPU 11 · TPU 111/ }))
+    .toBeVisible()
+  await expect.element(screen.getByText(/SB_VC/)).not.toBeInTheDocument()
+})
+
 for (const type of ['added', 'removed'] as const) {
   test(`${type} records use a single value column`, async () => {
     const value = { name: 'Test village', properties: { retained: 'Record detail' } }

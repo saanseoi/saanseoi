@@ -52,6 +52,15 @@ test('summary selects localised publisher names and useful record context', () =
   ).toEqual({ name: '村', detail: 'village' })
 })
 
+test('Planning source record summary shows PPU, SPU, TPU and optional SB_VC codes', () => {
+  expect(
+    recordSummary({ properties: { ppu: 1, spu: 11, tpu: 111, sbVc: 2 } }, 'en', 'id'),
+  ).toEqual({ name: 'id', detail: 'PPU 1 · SPU 11 · TPU 111 · SB_VC 2' })
+  expect(
+    recordSummary({ properties: { ppu: 1, spu: 11, tpu: 111 } }, 'en', 'id'),
+  ).toEqual({ name: 'id', detail: 'PPU 1 · SPU 11 · TPU 111' })
+})
+
 test('coarse nested-array differences omit equal ancestors and equal object values', () => {
   const before = {
     hierarchies: [[{ name: 'Country' }, { name: 'Old', subtype: 'locality' }]],

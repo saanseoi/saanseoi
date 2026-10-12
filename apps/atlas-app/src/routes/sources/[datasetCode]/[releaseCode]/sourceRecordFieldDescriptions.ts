@@ -1,5 +1,11 @@
 /** Publisher field meanings; the retained schema supplies types and nullability. */
 const planningUnitFields: Record<string, string> = {
+  ppu: 'Primary planning unit code. Identifies the primary planning unit containing this source cell.',
+  spu: 'Secondary planning unit code. Identifies the secondary planning unit within the primary planning unit containing this source cell.',
+  tpu: 'Tertiary planning unit code. Identifies the tertiary planning unit within the secondary planning unit containing this source cell.',
+  subunit:
+    'Subunit code. Identifies the subunit within the tertiary planning unit containing this source cell.',
+  sbVc: 'Subunit or village cluster code within the tertiary planning unit containing this source cell.',
   PPU: 'Primary planning unit code. Identifies the primary planning unit containing this source cell.',
   SPU: 'Secondary planning unit code. Identifies the secondary planning unit within the primary planning unit containing this source cell.',
   TPU: 'Tertiary planning unit code. Identifies the tertiary planning unit within the secondary planning unit containing this source cell.',
