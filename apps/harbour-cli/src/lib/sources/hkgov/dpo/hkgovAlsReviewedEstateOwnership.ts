@@ -40,7 +40,7 @@ export function suppressHungHomPhase2Aliases(
   assert.equal(owner.zhHantStreetNumberFrom, '28')
   assert.equal(owner.enStreetNumberTo, null)
   assert.equal(owner.zhHantStreetNumberTo, null)
-  const earlier = version < '2026-04-03.0'
+  const earlier = version < fixture.currentEvidenceFrom
   assert.equal(aliases.length, earlier ? 2 : 1, 'Hung Hom: alias epoch changed')
   const addresses: string[] = []
   for (const row of aliases) {
@@ -109,7 +109,10 @@ export function applyKoYeeEstateOwnership(
   assert.equal(estate.zhHantDistrict, '觀塘區')
   assert.deepEqual(JSON.parse(requireDefined(estate.geometry)), {
     type: 'Point',
-    coordinates: version < '2026-04-03.0' ? rule.earlierCoordinates : rule.coordinates,
+    coordinates:
+      version < fixture.currentEvidenceFrom
+        ? rule.earlierCoordinates
+        : rule.coordinates,
   })
   const children = rule.buildings.map(([csu, en, zh]) => {
     const matches = estateRows.filter(

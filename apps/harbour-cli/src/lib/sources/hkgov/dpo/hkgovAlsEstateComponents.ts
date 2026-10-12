@@ -1,4 +1,6 @@
+import { permitsAlsReviewIssue } from './hkgovAlsReviewPolicy'
 import { strict as assert } from 'node:assert'
+import { reportAlsReviewIssue } from './hkgovAlsReviewIssue'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-components.json'
 import {
   curationProvenance,
@@ -47,8 +49,8 @@ export function restoreAlsEstateComponents(
         continue
       }
       assert(!en.EngEstate && !zh.ChiEstate, 'Reviewed estate gap source changed')
-      assert.equal(row.enEstateName, null)
-      assert.equal(row.zhHantEstateName, null)
+      assert(row.enEstateName === null || row.enEstateName === d.enEstate)
+      assert(row.zhHantEstateName === null || row.zhHantEstateName === d.zhEstate)
       row.enEstateName = d.enEstate
       row.zhHantEstateName = d.zhEstate
       row.enFormattedAddress = formatEnPremisesAddress({
@@ -99,27 +101,47 @@ export function restoreAlsEstateComponents(
       const sourceStreetMatches =
         en.EngStreet?.StreetName === d.enStreet.StreetName &&
         en.EngStreet?.BuildingNoFrom === d.enStreet.BuildingNoFrom &&
-        en.EngStreet?.BuildingNoTo === d.enStreet.BuildingNoTo &&
+        (en.EngStreet?.BuildingNoTo ?? null) === (d.enStreet.BuildingNoTo ?? null) &&
         zh.ChiStreet?.StreetName === d.zhStreet.StreetName &&
         zh.ChiStreet?.BuildingNoFrom === d.zhStreet.BuildingNoFrom &&
-        zh.ChiStreet?.BuildingNoTo === d.zhStreet.BuildingNoTo
+        (zh.ChiStreet?.BuildingNoTo ?? null) === (d.zhStreet.BuildingNoTo ?? null)
       if (sourceStreetMatches) continue
 
-      assert(
-        !en.EngStreet?.StreetName &&
-          !en.EngStreet?.BuildingNoFrom &&
-          !en.EngStreet?.BuildingNoTo &&
-          !zh.ChiStreet?.StreetName &&
-          !zh.ChiStreet?.BuildingNoFrom &&
-          !zh.ChiStreet?.BuildingNoTo,
-        'Reviewed street component omission changed; review required',
+      const conflicts = [
+        [en.EngStreet?.StreetName, d.enStreet.StreetName],
+        [en.EngStreet?.BuildingNoFrom, d.enStreet.BuildingNoFrom],
+        [en.EngStreet?.BuildingNoTo, d.enStreet.BuildingNoTo],
+        [zh.ChiStreet?.StreetName, d.zhStreet.StreetName],
+        [zh.ChiStreet?.BuildingNoFrom, d.zhStreet.BuildingNoFrom],
+        [zh.ChiStreet?.BuildingNoTo, d.zhStreet.BuildingNoTo],
+        [row.enStreetName, d.enStreet.StreetName],
+        [row.enStreetNumberFrom, d.enStreet.BuildingNoFrom],
+        [row.enStreetNumberTo, d.enStreet.BuildingNoTo],
+        [row.zhHantStreetName, d.zhStreet.StreetName],
+        [row.zhHantStreetNumberFrom, d.zhStreet.BuildingNoFrom],
+        [row.zhHantStreetNumberTo, d.zhStreet.BuildingNoTo],
+      ].filter(
+        ([actual, expected]) => actual != null && actual !== '' && actual !== expected,
       )
-      assert.equal(row.enStreetName, null)
-      assert.equal(row.enStreetNumberFrom, null)
-      assert.equal(row.enStreetNumberTo, null)
-      assert.equal(row.zhHantStreetName, null)
-      assert.equal(row.zhHantStreetNumberFrom, null)
-      assert.equal(row.zhHantStreetNumberTo, null)
+      if (
+        conflicts.length &&
+        permitsAlsReviewIssue('street-component-conflict', version)
+      ) {
+        reportAlsReviewIssue({
+          code: 'street-component-conflict',
+          sourceVersion: version,
+          decisionId: d.id,
+          curationFile: 'hkgov-dpo-address-estate-components.json',
+          decision: d,
+          record: structuredClone(row),
+          conflicts: conflicts.map(([actual, expected]) => ({ actual, expected })),
+        })
+        continue
+      }
+      assert(
+        !conflicts.length,
+        `Reviewed street component omission changed; review required: ${d.id}`,
+      )
 
       row.enStreetName = d.enStreet.StreetName
       row.enStreetNumberFrom = d.enStreet.BuildingNoFrom
@@ -145,7 +167,7 @@ export function restoreAlsEstateComponents(
             sourceVersion: version,
             verification,
           }),
-          originalStreet: { en: null, 'zh-hant': null },
+          originalStreet: { en: en.EngStreet ?? null, 'zh-hant': zh.ChiStreet ?? null },
         },
       })
       restored++

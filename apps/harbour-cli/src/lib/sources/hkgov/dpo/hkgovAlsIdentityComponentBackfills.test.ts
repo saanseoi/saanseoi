@@ -27,7 +27,7 @@ const targets = [
   ['sai_kung', '4578121087T20050430'],
 ] as const
 
-test('reviewed identity components remain stable across retained releases', async () => {
+test('curated identity components remain stable across retained releases', async () => {
   const ids = new Map<string, string>()
   let releases = 0
   for (const dir of (await readdir('data/hkgov/dpo/ALS'))

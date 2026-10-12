@@ -1,3 +1,5 @@
+import { deferAlsDeletionReview } from './hkgovAlsDeferredInvestigations'
+import { duplicateInventoryUnitAliases } from './hkgovAlsDuplicateInventoryAliases'
 import approvedRetirements from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-approved-retirements.json'
 import { createHash } from 'node:crypto'
 import { createReadStream } from 'node:fs'
@@ -71,6 +73,14 @@ export function buildAlsDeletionReport(
     }
     return id
   }
+  const unitAliasReplacements = duplicateInventoryUnitAliases(
+    previous,
+    current,
+    resolveId,
+  )
+  const duplicateUnitAliases = new Map(
+    unitAliasReplacements.map(({ from, to }) => [from, to]),
+  )
   const summary = (row: AlsMembershipAddress): AddressSummary => ({
     id: row.id,
     level: row.level,
@@ -148,7 +158,8 @@ export function buildAlsDeletionReport(
     let removed = 0
     for (const [id, , , en, zhHant] of collection.units) {
       // Unit identity belongs to the physical building: an owner move is not deletion.
-      if (currentUnits.has(id)) continue
+      if (currentUnits.has(id) || currentUnits.has(duplicateUnitAliases.get(id) ?? ''))
+        continue
       removed++
       group('unit').retirements.push({
         id,
@@ -359,6 +370,7 @@ export function buildAlsDeletionReport(
     ),
     wholeInventoryLosses,
     aliasReplacements,
+    ...(unitAliasReplacements.length ? { unitAliasReplacements } : {}),
     rawSourceOmissions,
     retainedPublisherUnitOmissions,
     reviewedRetirements,
@@ -395,6 +407,8 @@ export async function reviewAlsDeletions(input: {
   current: AlsMembership
   reportFile: string
   approvalsFile?: string
+  deferAuthority?: string
+  investigationsDirectory?: string
 }) {
   const report = buildAlsDeletionReport(input.previous, input.current)
   await mkdir(dirname(input.reportFile), { recursive: true })
@@ -405,16 +419,31 @@ export async function reviewAlsDeletions(input: {
       if (error.code === 'ENOENT') return null
       throw error
     })
+  const deferredFile =
+    report.requiresReview && !hasAlsDeletionReview(report, approvals)
+      ? await deferAlsDeletionReview({
+          report,
+          previous: input.previous,
+          current: input.current,
+          authority: input.deferAuthority,
+          directory: input.investigationsDirectory,
+        })
+      : null
   const reviewedReport = {
+    ...(deferredFile ? { investigationsFile: deferredFile } : {}),
     ...report,
     reviewStatus: report.requiresReview
       ? hasAlsDeletionReview(report, approvals)
         ? 'reviewed'
-        : 'unreviewed'
+        : deferredFile
+          ? 'needs-further-investigation'
+          : 'unreviewed'
       : 'not_required',
     ingestionDisposition:
       report.requiresReview && !hasAlsDeletionReview(report, approvals)
-        ? 'blocked'
+        ? deferredFile
+          ? 'ready-with-investigations'
+          : 'blocked'
         : 'ready',
   }
   await writeFile(input.reportFile, JSON.stringify(reviewedReport, null, 2))
@@ -458,6 +487,7 @@ export async function assertPreparedAlsDeletionReview(input: {
       input.reportFile ??
       resolve(ALS_DELETION_REPORT_DIRECTORY, `${input.sourceVersion}.json`),
     approvalsFile: input.approvalsFile,
+    deferAuthority: process.env.SAANSEOI_ALS_INVESTIGATION_AUTHORITY,
   })
   if (review.reviewStatus === 'unreviewed')
     throw new Error(

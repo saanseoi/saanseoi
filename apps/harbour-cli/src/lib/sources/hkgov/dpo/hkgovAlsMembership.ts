@@ -208,7 +208,9 @@ export function buildAlsMembership(input: {
         for (const child of Object.values(item)) visit(child)
       }
       if (captured) sourceIds.add(captured.sourceRecordId)
-      visit(normalised.base.sources)
+      // API source references are compact pointers. Membership needs the prepared
+      // processing evidence to distinguish curated retention from publisher loss.
+      visit(typeof row.sources === 'string' ? JSON.parse(row.sources) : row.sources)
       if (row.hierarchyCuration) curations.add(row.hierarchyCuration)
       const geometry = normalised.base.geometry as { coordinates?: number[] } | null
       const coordinates = geometry?.coordinates

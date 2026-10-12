@@ -7,7 +7,7 @@ import type {
   HkgovAlsIdentityHistory,
   HkgovAlsIdentityRecord,
 } from './hkgovAlsDrift.ts'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import type { AddressDivisionQualityCounts } from '@repo/core/pipeline/services/metrics/releaseStats'
 import type { HkgovAls3dParentBlockEnrichment } from './hkgovAls3dBlockEnrichment.ts'
 import type { AlsMembershipReference } from './hkgovAlsMembership'
@@ -159,7 +159,7 @@ export type PreparedHkgovAlsRow = {
   publisherSource?: string | null
   als3dParentBlockEnrichment?: HkgovAls3dParentBlockEnrichment
   parentAddressId?: string
-  curatedGranularity?: 'complex' | 'building' | 'section'
+  curatedGranularity?: 'complex' | 'phase' | 'building' | 'section' | 'unit' | 'unknown'
   hierarchyCuration?: string
   id: string
   canonicalId: string
@@ -175,6 +175,7 @@ export type PreparedHkgovAlsRow = {
   identifiers: string | null
   sources: string
   divisionSnapshotId: string
+  ruralAreaId?: string | null
   macrohoodId?: string | null
   neighbourhoodId?: string | null
   villageId?: string | null

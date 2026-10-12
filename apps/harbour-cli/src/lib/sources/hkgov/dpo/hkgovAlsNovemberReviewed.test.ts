@@ -1,7 +1,6 @@
-import {
-  applyNovemberReviewedIdentityAliases,
-  applyNovember2025ReviewedShops,
-} from './hkgovAlsNovember2025Review'
+import { classifyReviewedAlsPremises } from './hkgovAlsReviewHierarchy'
+import { applyReviewedAlsIdentityAliases } from './hkgovAlsReviewProgram'
+
 import { expect, test } from 'bun:test'
 import { readdir } from 'node:fs/promises'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-november-2025-reviewed-retentions.json'
@@ -148,3 +147,18 @@ test('Lok Yuen preserves both building frontages and seven shops with explicit p
   rows[2]!.enStreetNumberFrom = '2N'
   expect(() => applyNovember2025ReviewedShops(rows, '2025-11-04.0')).toThrow()
 })
+
+const applyNovemberReviewedIdentityAliases = (
+  rows: Parameters<typeof applyReviewedAlsIdentityAliases>[0],
+  version: string,
+) =>
+  applyReviewedAlsIdentityAliases(
+    rows,
+    version,
+    'hkgov-dpo-address-november-2025-reviewed-retentions',
+  )
+
+const applyNovember2025ReviewedShops = (
+  rows: Parameters<typeof classifyReviewedAlsPremises>[0],
+  version: string,
+) => classifyReviewedAlsPremises(rows, version, 'shops', 'november2025Shops')

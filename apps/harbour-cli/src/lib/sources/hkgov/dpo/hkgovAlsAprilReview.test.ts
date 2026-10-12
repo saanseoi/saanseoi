@@ -1,5 +1,7 @@
+import { applyReviewedAlsFrontages as applyAprilReviewedAlsReconciliationsSpecialised } from './hkgovAlsReviewFrontages'
+import { applyReviewedAlsParents } from './hkgovAlsReviewProgram'
 import { expect, test } from 'bun:test'
-import { applyAprilReviewedAlsReconciliations } from './hkgovAlsAprilReview'
+
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 
 function row(options: {
@@ -168,7 +170,9 @@ test('April reconciliation keeps 6 On Wah as a shop sub-premises under the build
     }),
   ]
 
-  applyAprilReviewedAlsReconciliations(rows, '2025-04-26.0')
+  // Earlier retention may already resolve the predecessor to its canonical ID.
+  rows[1]!.identityAlias = rows[1]!.id
+  applyAprilReviewedAlsReconciliations(rows, '2025-05-22.0')
 
   expect(rows.map(r => r.id).sort()).toEqual([
     'ss-2350ce85-0f68-5839-89d5-94086500dbe6',
@@ -177,6 +181,11 @@ test('April reconciliation keeps 6 On Wah as a shop sub-premises under the build
     'ss-f5947d7b-082e-50cb-91da-dd6269799604',
   ])
   const shop = rows.find(r => r.curatedGranularity === 'unit')!
+  expect(
+    JSON.parse(shop.sources).hkgovAlsReviewedIdentityCoalescence?.aliasIds ?? [],
+  ).not.toContain(shop.id)
+  expect(JSON.parse(shop.sources).reviewedIdentityAliases ?? []).not.toContain(shop.id)
+  expect(shop.identityAlias).not.toBe(shop.id)
   expect(shop.parentAddressId).toBe('ss-33e5d265-1d22-52e6-9155-4e439e59558d')
   expect(shop.enStreetNumberFrom).toBe('6')
   expect(shop.enBuildingName).toBeNull()
@@ -190,3 +199,16 @@ test('April reconciliation keeps 6 On Wah as a shop sub-premises under the build
     curatedGranularity: 'building',
   })
 })
+
+const applyAprilReviewedAlsReconciliations = (
+  rows: Parameters<typeof applyReviewedAlsParents>[0],
+  version: string,
+) => {
+  applyReviewedAlsParents(
+    rows,
+    version,
+    'initial-hierarchy',
+    'hkgov-dpo-address-april-deletion-retentions',
+  )
+  applyAprilReviewedAlsReconciliationsSpecialised(rows, version)
+}

@@ -36,7 +36,7 @@ function rowEvidence(row: PreparedHkgovAlsRow) {
   }
 }
 
-/** Reviewed records only; raw bilingual assertions remain unchanged for 3D ownership. */
+/** Curated records only; raw bilingual assertions remain unchanged for 3D ownership. */
 export function applyApprovedIssueBatch(
   rows: PreparedHkgovAlsRow[],
   version: string,

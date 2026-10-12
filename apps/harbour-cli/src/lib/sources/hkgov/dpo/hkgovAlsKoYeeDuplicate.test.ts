@@ -1,9 +1,9 @@
 import { requireDefined } from '@repo/core/requireDefined'
 import { expect, test } from 'bun:test'
 import {
-  assertKoYeeEmptyInventory,
-  suppressKoYeeDuplicate,
-} from './hkgovAlsKoYeeDuplicate'
+  assertReviewedDuplicateEmptyInventories,
+  suppressReviewedDuplicatePremises,
+} from './hkgovAlsDuplicatePremiseGuards'
 import type { Als3dFeature } from './hkgovAls3d'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 
@@ -60,19 +60,21 @@ test('Ko Yee refuses a newly populated inventory on the suppressed empty alias',
       },
     },
   } as Als3dFeature
-  expect(() => assertKoYeeEmptyInventory(feature, '2024-07-25.0')).not.toThrow()
+  expect(() =>
+    assertReviewedDuplicateEmptyInventories(feature, '2024-07-25.0'),
+  ).not.toThrow()
   requireDefined(
     feature.properties.Address.PremisesAddress.ChiPremisesAddress,
   ).Chi3dAddress = [{}]
-  expect(() => assertKoYeeEmptyInventory(feature, '2024-07-25.0')).toThrow(
-    'Chinese inventory is no longer empty',
-  )
+  expect(() =>
+    assertReviewedDuplicateEmptyInventories(feature, '2024-07-25.0'),
+  ).toThrow('Chinese inventory is no longer empty')
 })
 
 test('Ko Yee retains the distinct unnamed assertion and all suppressed publisher evidence', () => {
   const input = rows()
   const original = structuredClone(input[1])
-  expect(suppressKoYeeDuplicate(input, '2024-07-25.0')).toBe(1)
+  expect(suppressReviewedDuplicatePremises(input, '2024-07-25.0')).toBe(1)
   expect(input.map(row => row.id)).toEqual(['owner', 'unresolved'])
   expect(
     JSON.parse(requireDefined(input[0]).sources).hkgovAlsKoYeeDuplicate
@@ -87,9 +89,9 @@ test('Ko Yee fails closed on point or GeoAddress drift and leaves later releases
   ]) {
     const input = rows()
     Object.assign(requireDefined(input[1]), change)
-    expect(() => suppressKoYeeDuplicate(input, '2024-07-25.0')).toThrow()
+    expect(() => suppressReviewedDuplicatePremises(input, '2024-07-25.0')).toThrow()
     expect(input).toHaveLength(3)
   }
   const input = rows().filter(row => row.id !== 'duplicate')
-  expect(suppressKoYeeDuplicate(input, '2026-08-19.0')).toBe(0)
+  expect(suppressReviewedDuplicatePremises(input, '2026-08-19.0')).toBe(0)
 })

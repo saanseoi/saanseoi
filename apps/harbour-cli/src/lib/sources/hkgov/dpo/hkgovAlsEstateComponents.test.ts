@@ -1,3 +1,4 @@
+import { collectAlsReviewIssues } from './hkgovAlsReviewIssue'
 import { test, expect } from 'bun:test'
 import { restoreAlsEstateComponents } from './hkgovAlsEstateComponents'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
@@ -92,4 +93,87 @@ test('restores a reviewed bilingual street omission without changing raw ALS', (
       verificationStatus: 'verified',
     }),
   )
+})
+
+test('accepts the identical estate already carried forward, but rejects conflicting derived names', () => {
+  const r = row()
+  restoreAlsEstateComponents([r], '2026-04-03.0')
+  expect(restoreAlsEstateComponents([r], '2026-04-03.0').restored).toBe(1)
+  r.enEstateName = 'OTHER ESTATE'
+  expect(() => restoreAlsEstateComponents([r], '2026-04-03.0')).toThrow()
+})
+
+test('a returned verified street treats absent and null range ends alike', () => {
+  const r = {
+    ...row(),
+    hkgovCsuId: '3608735975T20210226',
+    engPremisesAddressJson: JSON.stringify({
+      BuildingName: 'HIN TIP HOUSE',
+      EngStreet: { StreetName: 'CHOI TIP STREET', BuildingNoFrom: '11' },
+    }),
+    chiPremisesAddressJson: JSON.stringify({
+      BuildingName: '蜆蝶樓',
+      ChiStreet: { StreetName: '彩蝶街', BuildingNoFrom: '11' },
+    }),
+  } as PreparedHkgovAlsRow
+  expect(restoreAlsEstateComponents([r], '2026-07-08.0').restored).toBe(0)
+  r.engPremisesAddressJson = JSON.stringify({
+    BuildingName: 'HIN TIP HOUSE',
+    EngStreet: { StreetName: 'CHOI TIP STREET', BuildingNoFrom: '12' },
+  })
+  const before = JSON.stringify(r)
+  collectAlsReviewIssues(issues => {
+    expect(restoreAlsEstateComponents([r], '2026-07-08.0').restored).toBe(0)
+    expect(issues).toHaveLength(1)
+    expect(issues[0]).toEqual(
+      expect.objectContaining({
+        code: 'street-component-conflict',
+        record: JSON.parse(before),
+        conflicts: expect.arrayContaining([{ actual: '12', expected: '11' }]),
+      }),
+    )
+  })
+  expect(JSON.stringify(r)).toBe(before)
+})
+
+test('restores missing street fields when supplied number and derived fields agree', () => {
+  const r = {
+    ...row(),
+    hkgovCsuId: '3608735975T20210226',
+    enStreetName: null,
+    zhHantStreetName: null,
+    enStreetNumberFrom: '11',
+    zhHantStreetNumberFrom: '11',
+    enStreetNumberTo: null,
+    zhHantStreetNumberTo: null,
+    engPremisesAddressJson: JSON.stringify({
+      BuildingName: 'HIN TIP HOUSE',
+      EngStreet: { BuildingNoFrom: '11' },
+    }),
+    chiPremisesAddressJson: JSON.stringify({
+      BuildingName: '蜆蝶樓',
+      ChiStreet: { BuildingNoFrom: '11' },
+    }),
+  } as PreparedHkgovAlsRow
+  const raw = r.engPremisesAddressJson
+  expect(restoreAlsEstateComponents([r], '2026-07-08.0').restored).toBe(1)
+  expect(r.enStreetName).toBe('CHOI TIP STREET')
+  expect(r.engPremisesAddressJson).toBe(raw)
+  expect(
+    JSON.parse(r.sources).hkgovAlsStreetComponentRestoration.originalStreet.en,
+  ).toEqual({ BuildingNoFrom: '11' })
+  r.enStreetNumberFrom = '12'
+  const before = JSON.stringify(r)
+  collectAlsReviewIssues(issues => {
+    expect(restoreAlsEstateComponents([r], '2026-07-08.0').restored).toBe(0)
+    expect(issues).toHaveLength(1)
+    expect(issues[0]).toEqual(
+      expect.objectContaining({
+        code: 'street-component-conflict',
+        record: JSON.parse(before),
+        conflicts: expect.arrayContaining([{ actual: '12', expected: '11' }]),
+      }),
+    )
+  })
+  expect(JSON.stringify(r)).toBe(before)
 })

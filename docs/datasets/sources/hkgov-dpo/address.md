@@ -1668,10 +1668,13 @@ retention remain mandatory.
 ### Investigation and continuity policy
 
 `hkgov-dpo-address-review-policy.json` declares bounded `confident-continuity` and
-`defer-investigation` scopes. Scope starts are inclusive and ends are exclusive. The
-current authorisation covers 2026 and does not extend to 2025 or 2027. Confident
-continuity still requires one-to-one matching evidence. Deferral still requires an
-explicit authority and an acknowledgement bound to the exact review evidence.
+`defer-investigation` scopes. Scope starts are inclusive and ends are exclusive. These
+scopes control automatic continuity and creation of new investigation acknowledgements.
+The current scope covers 2026 and does not extend to 2025 or 2027. Existing
+acknowledgements replay only when their original authority and exact-evidence checks
+pass. Confident continuity still requires one-to-one matching evidence. Deferral still
+requires an explicit authority and an acknowledgement bound to the exact review
+evidence.
 
 Only identity drift, unverified curation, street-component conflict, reviewed inventory
 omission and hierarchy-evidence conflict are eligible investigation codes. Unknown or

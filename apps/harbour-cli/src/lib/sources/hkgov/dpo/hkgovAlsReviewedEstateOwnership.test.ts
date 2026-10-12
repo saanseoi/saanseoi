@@ -6,7 +6,7 @@ import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
-import { suppressKoYeeDuplicate } from './hkgovAlsKoYeeDuplicate'
+import { suppressReviewedDuplicatePremises } from './hkgovAlsDuplicatePremiseGuards'
 import {
   suppressHungHomPhase2Aliases,
   applyKoYeeEstateOwnership,
@@ -99,7 +99,7 @@ test.skipIf(!existsSync(root))(
         expect(suppressHungHomPhase2Aliases(rows, version)).toBe(
           version < '2026-04-03.0' ? 2 : 1,
         )
-        suppressKoYeeDuplicate(rows, version)
+        suppressReviewedDuplicatePremises(rows, version)
         expect(result.collectionCount).toBe(9)
         const records = (await readFile(`${outputFile}.address3d.jsonl`, 'utf8'))
           .trim()

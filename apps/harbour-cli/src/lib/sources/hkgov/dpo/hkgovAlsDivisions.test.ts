@@ -36,9 +36,9 @@ test('ALS current Division lookup resolves a prepared scope and retains its late
       'No published division snapshot',
     )
     meta.exec(`INSERT INTO snapshotLineages VALUES ('curated','saanseoi','hk'),('curated-area','saanseoi','hk');
-      INSERT INTO snapshots VALUES ('reviewed','curated','division','published','2026-09-01.0',1),('reviewed-area','curated-area','divisionArea','published','2026-09-01.0',1);`)
+      INSERT INTO snapshots VALUES ('reviewed','curated','division','published','2026-09-01.0',1),('curated-area','curated-area','divisionArea','published','2026-09-01.0',1);`)
     current.exec(`INSERT INTO divisionPublicationState VALUES ('curated','reviewed','ready','curated');
-      INSERT INTO divisionAreaPublicationState VALUES ('curated-area','reviewed-area','ready','curated');
+      INSERT INTO divisionAreaPublicationState VALUES ('curated-area','curated-area','ready','curated');
       INSERT INTO divisions VALUES ('curated','town',3,'locality','town','{"full":[]}');
       INSERT INTO divisionsI18n VALUES ('curated','town','en','Reviewed Town');`)
     current.query('INSERT INTO divisionAreas VALUES (?,?,?)').run(
@@ -59,11 +59,11 @@ test('ALS current Division lookup resolves a prepared scope and retains its late
     )
     const curated = await loadDivisionLookupMaps(options)
     expect(curated.snapshotId).toBe('reviewed')
-    expect(curated.areaSnapshotId).toBe('reviewed-area')
+    expect(curated.areaSnapshotId).toBe('curated-area')
     expect(curated.membership?.resolve({ lng: 0.5, lat: 0.5 }).references.townId).toBe(
       'town',
     )
-    meta.exec("DELETE FROM snapshots WHERE id='reviewed-area'")
+    meta.exec("DELETE FROM snapshots WHERE id='curated-area'")
     await expect(loadDivisionLookupMaps(options)).rejects.toThrow(
       'requires published saanseoi divisionArea',
     )

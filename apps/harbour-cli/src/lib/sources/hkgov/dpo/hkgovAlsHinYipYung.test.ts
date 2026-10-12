@@ -318,3 +318,32 @@ test.skipIf(!process.env.ALS_RETAINED_RELEASE_TEST)(
   },
   600000,
 )
+
+test('returning Yip Wong publisher houses keep the reviewed owner IDs without changing source components', () => {
+  const ids: Record<string, string> = {
+    'YIP SIN HOUSE': 'ss-4eaf6d92-a68f-5655-a445-2034e0229550',
+    'YIP TSZ HOUSE': 'ss-2136c454-fa81-52d9-9581-8ed99bdfaf2f',
+    'YIP WO HOUSE': 'ss-a6690d01-e0b1-5c3a-b2ea-a6d798a53910',
+    'YIP TAK HOUSE': 'ss-ec061e5e-b051-52af-8e03-074641b17c9c',
+  }
+  for (const rule of rules.filter(r => r.estate === 'YIP WONG ESTATE')) {
+    for (const evidence of rule.evidence2d) {
+      const version = evidence.sourceVersions[0]!
+      const row = normalise(wrapped(evidence.feature), version)
+      const original = [
+        row.engPremisesAddressJson,
+        row.chiPremisesAddressJson,
+        row.geometry,
+      ]
+      labelAlsHouseRetentions([row], new Map())
+      expect(row.id).toBe(ids[rule.name]!)
+      expect([
+        row.engPremisesAddressJson,
+        row.chiPremisesAddressJson,
+        row.geometry,
+      ]).toEqual(original)
+      expect(row.identityAlias).not.toBe(row.id)
+      expect(JSON.parse(row.sources).hkgovAlsHouseIdentityContinuity).toBeDefined()
+    }
+  }
+})

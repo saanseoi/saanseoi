@@ -226,3 +226,34 @@ test('changed street components, repeated same-CSU assertions and out-of-bounds 
   expect(applyAlsAddressHierarchies(future, '2026-09-01.0').size).toBe(0)
   expect(future).toHaveLength(2)
 })
+
+test('2026 conflicting hierarchy evidence is retained for investigation before applying parentage', async () => {
+  const { collectAlsReviewIssues } = await import('./hkgovAlsReviewIssue')
+  const fixture = (
+    await import(
+      '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json'
+    )
+  ).default
+  const relationship = fixture.relationships.find(r => r.id === 'fu-tip-estate')!
+  const rows = relationship.buildings.map((building, index) => ({
+    ...premises()[0]!,
+    ...building.expected,
+    id: `test-${index}`,
+    hkgovCsuId: building.source.hkgovCsuId,
+    enEstateName: relationship.complex.enName,
+    sourceVersion: '2026-08-19.0',
+  }))
+  rows.find(r => r.enBuildingName === 'HIN TIP HOUSE')!.enBlockNumber = null
+  collectAlsReviewIssues(issues => {
+    applyAlsAddressHierarchies(rows, '2026-08-19.0')
+    expect(issues).toContainEqual(
+      expect.objectContaining({
+        code: 'hierarchy-evidence-conflict',
+        decisionId: 'fu-tip-estate',
+        records: expect.any(Array),
+      }),
+    )
+    expect(rows).toHaveLength(relationship.buildings.length)
+    expect(rows.every(r => !r.parentAddressId)).toBe(true)
+  })
+})

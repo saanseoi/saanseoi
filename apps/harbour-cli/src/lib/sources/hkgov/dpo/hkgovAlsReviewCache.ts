@@ -1,3 +1,4 @@
+import { deferAlsPreparationReview } from './hkgovAlsDeferredInvestigations'
 import { readFile } from 'node:fs/promises'
 import { dirname, basename } from 'node:path'
 import { fileSha256 } from '../../../pipeline/addresses/address3dImport'
@@ -76,7 +77,15 @@ export async function assertPreparedAlsReview(
     throw new Error(
       'ALS review cache does not match the prepared release; prepare it again.',
     )
-  if (review.issues.length)
+  if (
+    review.issues.length &&
+    !(await deferAlsPreparationReview({
+      sourceVersion,
+      reviewSha256,
+      issues: review.issues,
+      authority: process.env.SAANSEOI_ALS_INVESTIGATION_AUTHORITY,
+    }))
+  )
     throw new Error(
       `Address assembly blocked by ${review.issues.length} unresolved ALS issues. Resolve the cases in ${path} and prepare the release again.`,
     )

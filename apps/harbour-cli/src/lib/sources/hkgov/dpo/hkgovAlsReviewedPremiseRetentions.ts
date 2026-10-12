@@ -1,12 +1,10 @@
-import universityHill from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-university-hill-retentions.json'
-import continuity from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-reviewed-continuity-decisions.json'
+import { alsReviewOperations } from './hkgovAlsReviewProgram'
+import type { ReviewedPremiseRetention as Rule } from './hkgovAlsReviewRetentionSchema'
 import { strict as assert } from 'node:assert'
-import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-reviewed-premise-retentions.json'
 import { als3dHash } from './hkgovAls3d'
 import {
   curationProvenance,
   resolveHkgovAlsCurationVerification,
-  type HkgovAlsCurationApplication,
 } from './hkgovAlsCurationLifecycle'
 import {
   formatEnPremisesAddress,
@@ -18,37 +16,10 @@ import type {
   PreparedHkgovAlsRow,
 } from './hkgovAlsTypes'
 
-type Rule = {
-  id: string
-  authority: string
-  sourceFile: string
-  csus: string[]
-  canonicalId: string
-  retain: boolean
-  role?: string
-  parentRule?: string
-  publisherTower?: { estate: string; name: string; section: string; number: string }
-  application: HkgovAlsCurationApplication
-  assertions: { version: string; hashes: string[] }[]
-  evidence: { sourceVersion: string; feature: HkgovAlsFeature }
-  externalEvidence?: unknown
-  patch: {
-    enName?: string | null
-    zhName?: string | null
-    blockNumber?: string | null
-    granularity?: 'complex' | 'building' | 'unknown'
-    enEstate?: string | null
-    zhEstate?: string | null
-    clearPhase?: boolean
-    preserveStructure?: boolean
-    coordinates?: number[]
-  }
-}
-const rules = [
-  ...fixture.rules,
-  ...continuity.rules,
-  ...universityHill.rules,
-] as unknown as Rule[]
+const rules = alsReviewOperations.flatMap(operation =>
+  operation.code === 'retain-premise' ? operation.decisions : [],
+)
+
 const curationFile = 'hkgov-dpo-address-reviewed-premise-retentions.json'
 const locator = (file: string, index: number) => `${file}:${index}`
 const hash = (feature: HkgovAlsFeature) =>
@@ -62,9 +33,19 @@ export function retainReviewedAlsPremises(
 ) {
   const applications = new Map<
     string,
-    { rule: Rule; retained: boolean; verification: 'verified' | 'unverified' }
+    {
+      rule: Rule
+      retained: boolean
+      verification: 'verified' | 'unverified'
+      sourceAssertions: {
+        sourceFile: string
+        featureIndexOneBased: number
+        sourceVersion: string
+      }[]
+    }
   >()
   for (const rule of decisions) {
+    if (rule.sourceVersionFrom && version < rule.sourceVersionFrom) continue
     // A district-only preparation must never acquire another district's premises.
     if (!features.some(f => f.sourceFile === rule.sourceFile)) continue
     const verification = resolveHkgovAlsCurationVerification(
@@ -80,6 +61,25 @@ export function retainReviewedAlsPremises(
         !rule.csus.includes(p?.BuildingCsuInformation?.CsuId ?? '')
       )
         return false
+      if (rule.premiseSelectors) {
+        const en = p?.EngPremisesAddress
+        const selector = [
+          en?.BuildingName ?? null,
+          en?.EngEstate?.EstateName ?? null,
+          en?.EngStreet?.StreetName ?? null,
+          en?.EngStreet?.BuildingNoFrom ?? null,
+          en?.EngStreet?.BuildingNoTo ?? null,
+          en?.EngBlock?.BlockDescriptor ?? null,
+          en?.EngBlock?.BlockNo ?? null,
+          en?.EngVillage ?? null,
+          p?.ChiPremisesAddress?.ChiVillage ?? null,
+          en?.EngPhase ?? null,
+          p?.ChiPremisesAddress?.ChiPhase ?? null,
+        ]
+        return rule.premiseSelectors.some(
+          s => JSON.stringify(s) === JSON.stringify(selector.slice(0, s.length)),
+        )
+      }
       if (rule.publisherTower) {
         const e = p?.EngPremisesAddress,
           t = rule.publisherTower
@@ -96,13 +96,16 @@ export function retainReviewedAlsPremises(
         return !p?.EngPremisesAddress?.EngBlock && !p?.ChiPremisesAddress?.ChiBlock
       return !rule.role || (rule.role === 'complex' ? !named : named)
     })
-    assert(matches.length <= 1, `${rule.id}: ambiguous premise evidence`)
+    assert(
+      rule.coalesce || matches.length <= 1,
+      `${rule.id}: ambiguous premise evidence`,
+    )
     const assertion = rule.assertions.find(a => a.version === version)
     const accepted = assertion?.hashes ?? rule.assertions.flatMap(a => a.hashes)
     for (const match of matches)
       assert(
         accepted.includes(hash(match.feature)),
-        `${rule.id}: source evidence changed`,
+        `${rule.id}: source evidence changed in ${version}`,
       )
     if (assertion)
       assert.equal(
@@ -119,7 +122,7 @@ export function retainReviewedAlsPremises(
       )
       const restored = {
         feature,
-        sourceFile: curationFile,
+        sourceFile: rule.curationFile ?? curationFile,
         featureIndexOneBased: rules.findIndex(r => r.id === rule.id) + 1,
       }
       assert(restored.featureIndexOneBased > 0, `${rule.id}: missing fixture identity`)
@@ -132,6 +135,11 @@ export function retainReviewedAlsPremises(
         rule,
         retained,
         verification,
+        sourceAssertions: matches.map(m => ({
+          sourceFile: m.sourceFile,
+          featureIndexOneBased: m.featureIndexOneBased,
+          sourceVersion: version,
+        })),
       })
   }
   return applications
@@ -148,7 +156,7 @@ export function applyReviewedAlsPremiseRetentions(
       locator(row.sourceFile, row.sourceFeatureIndexOneBased),
     )
     if (!application) continue
-    const { rule, retained, verification } = application
+    const { rule, retained, verification, sourceAssertions } = application
     const en = JSON.parse(row.engPremisesAddressJson ?? '{}')
     const zh = JSON.parse(row.chiPremisesAddressJson ?? '{}')
     const patch = rule.patch
@@ -164,16 +172,23 @@ export function applyReviewedAlsPremiseRetentions(
     }
     if ('blockNumber' in patch) {
       row.enBlockNumber = row.zhHantBlockNumber = patch.blockNumber ?? null
-      row.enBlockDescriptor = patch.blockNumber ? 'BLK' : null
-      row.zhHantBlockDescriptor = patch.blockNumber ? '座' : null
+      row.enBlockDescriptor = patch.blockNumber
+        ? (patch.blockDescriptor ?? 'BLK')
+        : null
+      row.zhHantBlockDescriptor = patch.blockNumber
+        ? (patch.zhBlockDescriptor ?? '座')
+        : null
       row.blockDescriptorPrecedenceIndicator = patch.blockNumber ? 'Y' : null
       if (patch.blockNumber) {
         en.EngBlock = {
           BlockNo: patch.blockNumber,
-          BlockDescriptor: 'BLK',
+          BlockDescriptor: patch.blockDescriptor ?? 'BLK',
           BlockDescriptorPrecedenceIndicator: 'Y',
         }
-        zh.ChiBlock = { BlockNo: patch.blockNumber, BlockDescriptor: '座' }
+        zh.ChiBlock = {
+          BlockNo: patch.blockNumber,
+          BlockDescriptor: patch.zhBlockDescriptor ?? '座',
+        }
       } else {
         delete en.EngBlock
         delete zh.ChiBlock
@@ -189,18 +204,83 @@ export function applyReviewedAlsPremiseRetentions(
       if (patch.zhEstate) zh.ChiEstate = { EstateName: patch.zhEstate }
       else delete zh.ChiEstate
     }
+    if ('enPhaseName' in patch) {
+      row.enPhaseName = patch.enPhaseName ?? null
+      row.enPhaseRef = null
+      if (en.EngEstate && patch.enPhaseName)
+        en.EngEstate.EngPhase = { PhaseName: patch.enPhaseName }
+    }
+    if ('zhPhaseName' in patch) {
+      row.zhHantPhaseName = patch.zhPhaseName ?? null
+      row.zhHantPhaseRef = null
+      if (zh.ChiEstate && patch.zhPhaseName)
+        zh.ChiEstate.ChiPhase = { PhaseName: patch.zhPhaseName }
+    }
+    if (patch.enStreet) {
+      row.enStreetName = patch.enStreet
+      en.EngStreet = { ...en.EngStreet, StreetName: patch.enStreet }
+    }
+    if (patch.zhStreet) {
+      row.zhHantStreetName = patch.zhStreet
+      zh.ChiStreet = { ...zh.ChiStreet, StreetName: patch.zhStreet }
+    }
+    if (patch.clearVillage) {
+      row.enVillageName = row.zhHantVillageName = null
+      row.enVillageNumberFrom = row.enVillageNumberTo = null
+      row.zhHantVillageNumberFrom = row.zhHantVillageNumberTo = null
+      delete en.EngVillage
+      delete zh.ChiVillage
+    }
+    if (patch.clearVillageNumber) {
+      row.enVillageNumberFrom = row.enVillageNumberTo = null
+      row.zhHantVillageNumberFrom = row.zhHantVillageNumberTo = null
+      if (en.EngVillage) {
+        delete en.EngVillage.BuildingNoFrom
+        delete en.EngVillage.BuildingNoTo
+      }
+      if (zh.ChiVillage) {
+        delete zh.ChiVillage.BuildingNoFrom
+        delete zh.ChiVillage.BuildingNoTo
+      }
+    }
     if (patch.clearPhase) {
       row.enPhaseName = row.zhHantPhaseName = null
       row.enPhaseRef = row.zhHantPhaseRef = null
       if (en.EngEstate) delete en.EngEstate.EngPhase
       if (zh.ChiEstate) delete zh.ChiEstate.ChiPhase
     }
+    if (patch.streetNumberFrom) {
+      row.enStreetNumberFrom = row.zhHantStreetNumberFrom = patch.streetNumberFrom
+      row.enStreetNumberTo = row.zhHantStreetNumberTo = patch.streetNumberTo ?? null
+      en.EngStreet = {
+        ...en.EngStreet,
+        BuildingNoFrom: patch.streetNumberFrom,
+        BuildingNoTo: patch.streetNumberTo,
+      }
+      zh.ChiStreet = {
+        ...zh.ChiStreet,
+        BuildingNoFrom: patch.streetNumberFrom,
+        BuildingNoTo: patch.streetNumberTo,
+      }
+    }
     row.enFormattedAddress = formatEnPremisesAddress(en)
     row.zhHantFormattedAddress = formatZhPremisesAddress(zh)
     if (!patch.preserveStructure)
-      row.curatedGranularity =
-        patch.granularity === 'unknown' ? undefined : (patch.granularity ?? 'building')
-    row.identityAlias = row.id
+      row.curatedGranularity = patch.granularity ?? 'building'
+    if (patch.granularity)
+      row.hierarchyCuration = JSON.stringify({
+        id: rule.id,
+        curationFile: rule.curationFile ?? curationFile,
+        authority: rule.authority,
+      })
+    if (rule.sharedProvisionalId)
+      assert.equal(
+        row.id,
+        rule.sharedProvisionalId,
+        `${rule.id}: shared provisional identity changed`,
+      )
+    row.identityAlias =
+      rule.sharedProvisionalId || row.id === rule.canonicalId ? null : row.id
     row.id = row.canonicalId = row.identityBuildingId = rule.canonicalId
     row.identityKey =
       row.identityContinuityKey = `reviewed-premise-retention:${rule.id}`
@@ -214,11 +294,12 @@ export function applyReviewedAlsPremiseRetentions(
       ...JSON.parse(row.sources),
       hkgovAlsReviewedPremiseRetention: {
         id: rule.id,
-        curationFile,
+        curationFile: rule.curationFile ?? curationFile,
         authority: rule.authority,
         retained,
         evidence: rule.evidence,
         externalEvidence: rule.externalEvidence,
+        sourceAssertions,
         originalGeometry: JSON.parse(row.geometry ?? 'null'),
         curation: curationProvenance({
           application: rule.application,
@@ -231,7 +312,7 @@ export function applyReviewedAlsPremiseRetentions(
   }
 }
 
-/** Apply reviewed geometry and parentage after the general estate/coordinate passes. */
+/** Apply curated geometry and parentage after the general estate/coordinate passes. */
 export function finishReviewedAlsPremiseRetentions(rows: PreparedHkgovAlsRow[]) {
   const byRule = new Map(
     rows.flatMap(row => {
@@ -258,7 +339,7 @@ export function finishReviewedAlsPremiseRetentions(rows: PreparedHkgovAlsRow[]) 
       row.parentAddressId = parent.id
       row.hierarchyCuration = JSON.stringify({
         id: rule.id,
-        curationFile,
+        curationFile: rule.curationFile ?? curationFile,
         authority: rule.authority,
         parentRule: rule.parentRule,
       })

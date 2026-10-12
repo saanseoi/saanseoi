@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-unnamed-premise-suppressions.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
-import { suppressKoYeeDuplicate } from './hkgovAlsKoYeeDuplicate'
+import { suppressReviewedDuplicatePremises } from './hkgovAlsDuplicatePremiseGuards'
 import { suppressLinTsuiVariants } from './hkgovAlsLinTsui'
 import { suppressHungHomPhase2Aliases } from './hkgovAlsReviewedEstateOwnership'
 import { suppressApprovedEstateDuplicates } from './hkgovAlsApprovedEstateBatch'
@@ -14,7 +14,7 @@ export function suppressAlsUnnamedPremises(
   version: string,
 ) {
   let suppressed =
-    suppressKoYeeDuplicate(rows, version) +
+    suppressReviewedDuplicatePremises(rows, version) +
     suppressLinTsuiVariants(rows) +
     suppressHungHomPhase2Aliases(rows, version) +
     suppressApprovedEstateDuplicates(rows, version)

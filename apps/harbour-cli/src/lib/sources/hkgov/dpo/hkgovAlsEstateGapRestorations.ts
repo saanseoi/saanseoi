@@ -58,10 +58,14 @@ export function restoreAlsEstateGaps(
       continue
     }
     assert(!en.EngEstate && !zh.ChiEstate, 'Estate gap source changed; review required')
-    assert.equal(row.enEstateName, null)
-    assert.equal(row.zhHantEstateName, null)
+    // Confident continuity can already carry the same reviewed estate forward.
+    assert(row.enEstateName === null || row.enEstateName === d.enEstate.EstateName)
+    assert(
+      row.zhHantEstateName === null || row.zhHantEstateName === d.zhEstate.EstateName,
+    )
     const e = {
       ...en,
+      ...(row.enEstateName ? { EngEstate: d.enEstate } : {}),
       BuildingName: row.enBuildingName,
       EngBlock: {
         ...en.EngBlock,
@@ -71,6 +75,7 @@ export function restoreAlsEstateGaps(
     }
     const z = {
       ...zh,
+      ...(row.zhHantEstateName ? { ChiEstate: d.zhEstate } : {}),
       BuildingName: row.zhHantBuildingName,
       ChiBlock: {
         ...zh.ChiBlock,
@@ -96,7 +101,7 @@ export function restoreAlsEstateGaps(
       ChiEstate: d.zhEstate,
     })
     if ('canonicalId' in d && d.canonicalId) {
-      row.identityAlias = row.id
+      if (row.id !== d.canonicalId) row.identityAlias = row.id
       row.id = row.canonicalId = row.identityBuildingId = d.canonicalId
       row.identityMatchMethod = 'reviewed-estate-gap-continuity'
       row.identitySummary = { ...row.identitySummary, estateName: row.enEstateName }

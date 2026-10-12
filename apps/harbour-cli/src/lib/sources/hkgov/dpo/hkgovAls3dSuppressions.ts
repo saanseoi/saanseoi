@@ -1,11 +1,22 @@
+import { sourceBounds } from './hkgovAlsReviewValidation'
 import { AssertionError, strict as assert } from 'node:assert'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-suppressions.json'
 import { als3dHash, type Als3dFeature } from './hkgovAls3d'
-import { assertKoYeeEmptyInventory } from './hkgovAlsKoYeeDuplicate'
+import { assertReviewedDuplicateEmptyInventories } from './hkgovAlsDuplicatePremiseGuards'
 import { assertApprovedEmptyInventory } from './hkgovAlsApprovedEstateBatch'
 import { approvedIssue3dSuppression } from './hkgovAlsApprovedIssueBatch'
 import { reviewedYueWan3dSuppression } from './hkgovAlsYueWanSuppression'
 import { reportAlsCurationGuard } from './hkgovAlsReviewIssue'
+
+for (const rule of fixture.exactSuppressions) {
+  assert.equal(
+    rule.code,
+    'suppress-exact-inventory',
+    'Unknown exact inventory suppression code',
+  )
+  sourceBounds(rule)
+  assert(/^[a-f0-9]{64}$/.test(rule.sourceHash), 'Invalid exact suppression hash')
+}
 
 /** Drop only the reviewed collection assertion, never its raw source or 2D address. */
 export function als3dSuppression(feature: Als3dFeature, version: string, skip = false) {
@@ -32,46 +43,33 @@ function resolveAls3dSuppression(
   version: string,
   skip: boolean,
 ) {
-  if (
-    version >= '2024-07-25.0' &&
-    version <= '2025-01-23.0' &&
-    feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId ===
-      '3864823026T20050430'
-  ) {
+  for (const rule of fixture.exactSuppressions) {
+    if (
+      version < rule.sourceVersionFrom ||
+      version > rule.sourceVersionTo ||
+      feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId !==
+        rule.csu
+    )
+      continue
+    assert.equal(
+      rule.code,
+      'suppress-exact-inventory',
+      'Unknown exact inventory suppression code',
+    )
     assert.equal(
       als3dHash(feature),
-      '0f1e35cee47833b7cc9001ca39a0b4dcef1727ab445d92836d9aedf10783a4ed',
-      'ALS 3D suppression tsz-lok-phase-3-unnamed-inventory: source evidence changed',
+      rule.sourceHash,
+      `ALS 3D suppression ${rule.id}: source evidence changed`,
     )
     return {
       dataset: 'saanseoi-address3d-suppression',
-      id: 'tsz-lok-phase-3-unnamed-inventory',
+      id: rule.id,
       sourceVersion: version,
-      reason:
-        'Approved suppression of the redundant unnamed 633-expression inventory. Preserve its raw provenance and every named building inventory; no shared physical flats or additional building are inferred.',
-    }
-  }
-  if (
-    version >= '2026-07-22.0' &&
-    version <= '2026-08-19.0' &&
-    feature.properties.Address.PremisesAddress.BuildingCsuInformation?.CsuId ===
-      '3532121484T20121220'
-  ) {
-    assert.equal(
-      als3dHash(feature),
-      'fcfd494831ac14fd6d8aac02d46e34f3c93c8972b7ddc72654ce2f69bd0ef4d0',
-      'ALS 3D suppression shek-kip-mei-phase-2-unnamed-inventory: source evidence changed',
-    )
-    return {
-      dataset: 'saanseoi-address3d-suppression',
-      id: 'shek-kip-mei-phase-2-unnamed-inventory',
-      sourceVersion: version,
-      reason:
-        'Reviewed unnamed 780-unit assertion is not an additional building inventory. Preserve both named houses and their separate 779-unit inventories; retain this rejected assertion as raw provenance.',
+      reason: rule.reason,
     }
   }
   if (!skip) {
-    assertKoYeeEmptyInventory(feature, version)
+    assertReviewedDuplicateEmptyInventories(feature, version)
     assertApprovedEmptyInventory(feature, version)
   }
   const p = feature.properties.Address.PremisesAddress

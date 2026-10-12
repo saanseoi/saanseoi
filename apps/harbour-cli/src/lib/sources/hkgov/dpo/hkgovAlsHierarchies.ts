@@ -1,15 +1,18 @@
+import { permitsAlsReviewIssue } from './hkgovAlsReviewPolicy'
+import { reviewedAlsSectionOwnership } from './hkgovAlsReviewHierarchy'
+import { reportAlsReviewIssue } from './hkgovAlsReviewIssue'
 import { buildDeterministicUuidV5 } from '@repo/db'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-hierarchies.json'
 import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 import { linkAlsStructuredBlocks } from './hkgovAlsStructuredBlocks'
-import { applyLongShinHierarchy } from './hkgovAlsLongShin'
+import { applyReviewedEstateRanges } from './hkgovAlsEstateRangeHierarchy'
 import { applyKoYeeEstateOwnership } from './hkgovAlsReviewedEstateOwnership'
 import { applyYungShingSharedBuilding } from './hkgovAlsYungShingSharedBuilding'
 
 const NAMESPACE = 'b2da2675-daca-5920-a99e-c4d562a4c950'
 type HierarchyRow = PreparedHkgovAlsRow & {
   parentAddressId?: string
-  curatedGranularity?: 'complex' | 'building' | 'section'
+  curatedGranularity?: 'complex' | 'phase' | 'building' | 'section' | 'unit' | 'unknown'
   hierarchyCuration?: string
 }
 
@@ -18,7 +21,7 @@ export function applyAlsAddressHierarchies(
   rows: HierarchyRow[],
   sourceVersion: string,
 ) {
-  const ownership = applyLongShinHierarchy(rows, sourceVersion)
+  const ownership = applyReviewedEstateRanges(rows, sourceVersion)
   for (const [id, owner] of applyYungShingSharedBuilding(rows, sourceVersion))
     ownership.set(id, owner)
   for (const [id, owner] of applyKoYeeEstateOwnership(rows, sourceVersion))
@@ -38,63 +41,87 @@ export function applyAlsAddressHierarchies(
     )
       continue
     if (!estateNames.has(relationship.complex.enName)) continue
-    const matches = relationship.buildings.map(building => {
-      const variants =
-        'expectedVariants' in building ? building.expectedVariants : [building.expected]
-      const candidates = (sourceByCsu.get(building.source.hkgovCsuId) ?? []).filter(
-        row =>
-          row.enEstateName === relationship.complex.enName &&
-          variants.some(
-            expected =>
-              row.enBuildingName === expected.enBuildingName &&
-              row.zhHantBuildingName === expected.zhHantBuildingName,
-          ),
+    const resolveMatches = () =>
+      relationship.buildings.map(building => {
+        const variants =
+          'expectedVariants' in building
+            ? building.expectedVariants
+            : [building.expected]
+        const candidates = (sourceByCsu.get(building.source.hkgovCsuId) ?? []).filter(
+          row =>
+            row.enEstateName === relationship.complex.enName &&
+            variants.some(
+              expected =>
+                row.enBuildingName === expected.enBuildingName &&
+                row.zhHantBuildingName === expected.zhHantBuildingName,
+            ),
+        )
+        if (!candidates.length)
+          throw new Error(`ALS hierarchy ${building.id}: source premise is missing`)
+        for (const row of candidates) {
+          if ('expectedVariants' in building) {
+            if (
+              !variants.some(expected =>
+                Object.entries(expected).every(
+                  ([key, value]) => row[key as keyof PreparedHkgovAlsRow] === value,
+                ),
+              )
+            )
+              throw new Error(
+                `ALS hierarchy ${building.id}: source variant changed; review required`,
+              )
+            continue
+          }
+          for (const [key, expected] of Object.entries(building.expected)) {
+            if (row[key as keyof PreparedHkgovAlsRow] !== expected)
+              throw new Error(
+                `ALS hierarchy ${building.id}: ${key} changed; review required`,
+              )
+          }
+        }
+        const sections = 'sections' in building ? building.sections : undefined
+        if (sections) {
+          if (new Set(candidates.map(row => row.geometry)).size !== 1)
+            throw new Error(
+              `ALS hierarchy ${building.id}: section coordinates disagree; review required`,
+            )
+          const expected = sections
+            .map(section =>
+              JSON.stringify([section.enStreetNumberFrom, section.enStreetNumberTo]),
+            )
+            .sort()
+          const actual = candidates
+            .map(row => JSON.stringify([row.enStreetNumberFrom, row.enStreetNumberTo]))
+            .sort()
+          if (JSON.stringify(expected) !== JSON.stringify(actual))
+            throw new Error(
+              `ALS hierarchy ${building.id}: section membership changed; review required`,
+            )
+        } else if (candidates.length !== 1)
+          throw new Error(`ALS hierarchy ${building.id}: ambiguous building owner`)
+        return { building, candidates }
+      })
+    let matches: ReturnType<typeof resolveMatches>
+    try {
+      matches = resolveMatches()
+    } catch (error) {
+      if (
+        !permitsAlsReviewIssue('hierarchy-evidence-conflict', sourceVersion) ||
+        !(error instanceof Error) ||
+        !error.message.startsWith('ALS hierarchy ')
       )
-      if (!candidates.length)
-        throw new Error(`ALS hierarchy ${building.id}: source premise is missing`)
-      for (const row of candidates) {
-        if ('expectedVariants' in building) {
-          if (
-            !variants.some(expected =>
-              Object.entries(expected).every(
-                ([key, value]) => row[key as keyof PreparedHkgovAlsRow] === value,
-              ),
-            )
-          )
-            throw new Error(
-              `ALS hierarchy ${building.id}: source variant changed; review required`,
-            )
-          continue
-        }
-        for (const [key, expected] of Object.entries(building.expected)) {
-          if (row[key as keyof PreparedHkgovAlsRow] !== expected)
-            throw new Error(
-              `ALS hierarchy ${building.id}: ${key} changed; review required`,
-            )
-        }
-      }
-      const sections = 'sections' in building ? building.sections : undefined
-      if (sections) {
-        if (new Set(candidates.map(row => row.geometry)).size !== 1)
-          throw new Error(
-            `ALS hierarchy ${building.id}: section coordinates disagree; review required`,
-          )
-        const expected = sections
-          .map(section =>
-            JSON.stringify([section.enStreetNumberFrom, section.enStreetNumberTo]),
-          )
-          .sort()
-        const actual = candidates
-          .map(row => JSON.stringify([row.enStreetNumberFrom, row.enStreetNumberTo]))
-          .sort()
-        if (JSON.stringify(expected) !== JSON.stringify(actual))
-          throw new Error(
-            `ALS hierarchy ${building.id}: section membership changed; review required`,
-          )
-      } else if (candidates.length !== 1)
-        throw new Error(`ALS hierarchy ${building.id}: ambiguous building owner`)
-      return { building, candidates }
-    })
+        throw error
+      reportAlsReviewIssue({
+        code: 'hierarchy-evidence-conflict',
+        sourceVersion,
+        decisionId: relationship.id,
+        curationFile: 'hkgov-dpo-address-hierarchies.json',
+        decision: relationship,
+        records: rows.filter(row => row.enEstateName === relationship.complex.enName),
+        message: error.message,
+      })
+      continue
+    }
     const template = matches[0]?.candidates[0]
     if (!template) throw new Error(`ALS hierarchy ${relationship.id}: no template`)
     // Reuse a publisher estate-level record only when it is unambiguously a complex.
@@ -227,6 +254,8 @@ export function applyAlsAddressHierarchies(
     }
   }
   linkAlsStructuredBlocks(rows)
+  for (const [id, owner] of reviewedAlsSectionOwnership(rows, sourceVersion))
+    ownership.set(id, owner)
   return ownership
 }
 

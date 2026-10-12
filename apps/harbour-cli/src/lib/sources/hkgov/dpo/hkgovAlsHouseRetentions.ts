@@ -194,6 +194,33 @@ export function labelAlsHouseRetentions(
           row.identityContinuityKey = `reviewed-house-retention:${rule.id}`
         row.identitySummary = { ...row.identitySummary, estateName: rule.estate }
       }
+    } else {
+      // A returning publisher house keeps the same reviewed physical owner and units.
+      const entry = active(row.sourceVersion).find(
+        ({ rule }) =>
+          'backfillBeforeEvidence' in rule &&
+          rule.backfillBeforeEvidence &&
+          rule.csus.includes(row.hkgovCsuId ?? '') &&
+          row.enBuildingName === rule.name &&
+          row.enEstateName === rule.estate,
+      )
+      if (!entry) continue
+      const { rule, curation } = entry
+      const id = `ss-${buildDeterministicUuidV5('3fc33c3e-2837-4fc7-a331-439be8c2c981', rule.id)}`
+      row.identityAlias = row.id === id ? null : row.id
+      row.id = row.canonicalId = row.identityBuildingId = id
+      row.identityKey =
+        row.identityContinuityKey = `reviewed-house-retention:${rule.id}`
+      row.identityMatchMethod = 'reviewed-house-continuity'
+      row.sources = JSON.stringify({
+        ...JSON.parse(row.sources),
+        hkgovAlsHouseIdentityContinuity: {
+          id: rule.id,
+          curationFile,
+          authority: rule.authority,
+          curation,
+        },
+      })
     }
 }
 
@@ -208,7 +235,13 @@ export async function* readAls3dWithHouseRetentions(
       !('addressOnly' in rule && rule.addressOnly) &&
       rows.some(r => r.enEstateName === rule.estate) &&
       rows.some(
-        r => r.sourceFile === curationFile && rule.csus.includes(r.hkgovCsuId ?? ''),
+        r =>
+          rule.csus.includes(r.hkgovCsuId ?? '') &&
+          (r.sourceFile === curationFile ||
+            ('backfillBeforeEvidence' in rule &&
+              rule.backfillBeforeEvidence &&
+              r.enBuildingName === rule.name &&
+              r.enEstateName === rule.estate)),
       ),
   )
   const captured = new Map<

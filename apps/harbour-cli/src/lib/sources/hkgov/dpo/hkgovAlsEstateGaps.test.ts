@@ -154,3 +154,39 @@ test('Golden Wheel restored estate gaps retain the named complex identity and ra
   expect(restored).toBe(3)
   expect(named).toBeGreaterThan(0)
 })
+
+test('reviewed gaps accept matching continuity names without changing publisher evidence', async () => {
+  const fixture = (
+    await import(
+      '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-estate-component-gaps.json'
+    )
+  ).default
+  const { formatEnPremisesAddress, formatZhPremisesAddress } = await import(
+    './hkgovAlsNormalisation'
+  )
+  const d = fixture.restorations.find(r => r.enEstate.EstateName === 'CHO YIU CHUEN')!
+  const r = {
+    id: 'stable',
+    hkgovCsuId: d.csu,
+    enEstateName: null,
+    zhHantEstateName: null,
+    enBuildingName: null,
+    zhHantBuildingName: null,
+    enBlockNumber: null,
+    zhHantBlockNumber: null,
+    enBlockDescriptor: null,
+    zhHantBlockDescriptor: null,
+    engPremisesAddressJson: JSON.stringify(d.expectedEn),
+    chiPremisesAddressJson: JSON.stringify(d.expectedZh),
+    enFormattedAddress: formatEnPremisesAddress(d.expectedEn),
+    zhHantFormattedAddress: formatZhPremisesAddress(d.expectedZh),
+    sources: '{}',
+  } as PreparedHkgovAlsRow
+  const source = r.engPremisesAddressJson
+  restoreAlsEstateGaps([r], '2026-04-03.0')
+  expect(restoreAlsEstateGaps([r], '2026-04-03.0').restored).toBe(1)
+  expect(r.enEstateName).toBe('CHO YIU CHUEN')
+  expect(r.engPremisesAddressJson).toBe(source)
+  r.enEstateName = 'OTHER'
+  expect(() => restoreAlsEstateGaps([r], '2026-04-03.0')).toThrow()
+})

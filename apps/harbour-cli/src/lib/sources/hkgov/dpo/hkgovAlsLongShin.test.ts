@@ -7,7 +7,7 @@ import { join } from 'node:path'
 import fixture from '../../../../../../../fixtures/meta/curations/hkgov-dpo-address-3d-backfills.json'
 import { normaliseHkgovAlsFeature } from './hkgovAlsNormalisation'
 import { prepareAls3dCollections } from './hkgovAls3dPreparation'
-import { applyLongShinHierarchy } from './hkgovAlsLongShin'
+import { applyReviewedEstateRanges } from './hkgovAlsEstateRangeHierarchy'
 import type { HkgovAlsFeature } from './hkgovAlsTypes'
 import type { Als3dFeature } from './hkgovAls3d'
 
@@ -140,8 +140,8 @@ test('Long Shin estate range does not duplicate house collections; every raw sou
 test('Long Shin rejects changed range labels and does not extrapolate beyond reviewed releases', () => {
   const changed = rows(features(true), '2024-07-25.0')
   requireDefined(changed[1]).enStreetNumberTo = '13'
-  expect(() => applyLongShinHierarchy(changed, '2024-07-25.0')).toThrow()
+  expect(() => applyReviewedEstateRanges(changed, '2024-07-25.0')).toThrow()
   expect(
-    applyLongShinHierarchy(rows(features(), '2026-09-01.0'), '2026-09-01.0').size,
+    applyReviewedEstateRanges(rows(features(), '2026-09-01.0'), '2026-09-01.0').size,
   ).toBe(0)
 })

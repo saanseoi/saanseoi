@@ -10,7 +10,7 @@ import type { PreparedHkgovAlsRow } from './hkgovAlsTypes'
 
 const namespace = '6a0c2c1b-4522-5b1d-a1c8-1d37b3992777'
 
-/** Restore reviewed identity components without changing the publisher payload. */
+/** Restore curated identity components without changing the publisher payload. */
 export function applyReviewedIdentityComponentBackfills(
   rows: PreparedHkgovAlsRow[],
   version: string,

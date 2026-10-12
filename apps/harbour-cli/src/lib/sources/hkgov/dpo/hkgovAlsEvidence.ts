@@ -1,5 +1,5 @@
 import type { HkgovAlsIdentityDecisions } from './hkgovAlsDrift.ts'
-import type { ReleaseProcessingAction } from '@repo/core/pipeline/db/processingActions'
+import type { ReleaseProcessingAction } from '@repo/core/provenance/processingAction'
 import type {
   HkgovAlsDivisionQuality,
   HkgovAlsFeature,

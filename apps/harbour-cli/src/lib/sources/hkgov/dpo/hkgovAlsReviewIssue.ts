@@ -14,7 +14,37 @@ export type AlsReviewIssue = {
   candidateAddressIds: string[]
 }
 
-export type AlsPendingIssue = AlsReviewIssue | AlsCurationGuardIssue
+export type AlsStreetComponentConflict = {
+  code: 'street-component-conflict'
+  sourceVersion: string
+  decisionId: string
+  curationFile: string
+  decision: unknown
+  record: unknown
+  conflicts: Array<{ actual: unknown; expected: unknown }>
+}
+
+export type AlsPendingIssue =
+  | {
+      code: 'hierarchy-evidence-conflict'
+      sourceVersion: string
+      decisionId: string
+      curationFile: string
+      decision: unknown
+      records: unknown[]
+      message: string
+    }
+  | AlsReviewIssue
+  | AlsCurationGuardIssue
+  | AlsStreetComponentConflict
+  | {
+      code: 'reviewed-inventory-omission'
+      sourceVersion: string
+      decisionId: string
+      curationFile: string
+      decision: unknown
+      owner: unknown
+    }
 const reviewIssues = new AsyncLocalStorage<AlsPendingIssue[]>()
 
 export function collectAlsReviewIssues<T>(run: (issues: AlsPendingIssue[]) => T): T {
@@ -24,7 +54,7 @@ export function collectAlsReviewIssues<T>(run: (issues: AlsPendingIssue[]) => T)
 
 /** Machine-readable line retained by the ingestion log without approving an identity. */
 export function reportAlsReviewIssue(
-  issue: AlsReviewIssue | AlsCurationGuardIssue,
+  issue: AlsPendingIssue,
   warn: (line: string) => void = console.warn,
 ) {
   reviewIssues.getStore()?.push(issue)
