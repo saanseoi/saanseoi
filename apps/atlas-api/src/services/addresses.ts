@@ -550,6 +550,31 @@ function addressHierarchyIds(address: AddressRecord['address']) {
   ].filter((id): id is string => Boolean(id))
 }
 
+function publicAddressSources(value: unknown): unknown {
+  if (!Array.isArray(value)) return value
+  return value.map(source => {
+    if (!source || typeof source !== 'object' || Array.isArray(source)) return source
+    const record = source as Record<string, unknown>
+    const curationEntry = record.curationEntry
+    if (
+      !curationEntry ||
+      typeof curationEntry !== 'object' ||
+      Array.isArray(curationEntry)
+    )
+      return source
+    const { identityKey: _identityKey, ...publicCurationEntry } =
+      curationEntry as Record<string, unknown>
+    return { ...record, curationEntry: publicCurationEntry }
+  })
+}
+
+function publicAddressIdentifiers(value: unknown): unknown {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return value
+  const { 'SS:supplementaryIdentityKey': _identityKey, ...identifiers } =
+    value as Record<string, unknown>
+  return Object.keys(identifiers).length ? identifiers : null
+}
+
 function createAddressResource(args: {
   baseUrl: string
   routeState: AddressRouteState
@@ -579,14 +604,16 @@ function createAddressResource(args: {
 
   if (args.routeState.profile === 'full') {
     attributes.snapshotId = address.snapshotId
-    attributes.identifiers = address.identifiers
-    attributes.sources = expandAddressSourceReferences(address.sources, {
-      snapshotId: address.snapshotId,
-      datasetCode,
-      sourceReleaseId: args.activeSnapshot.sourceReleaseBySnapshot?.get(
-        address.snapshotId,
-      ),
-    })
+    attributes.identifiers = publicAddressIdentifiers(address.identifiers)
+    attributes.sources = publicAddressSources(
+      expandAddressSourceReferences(address.sources, {
+        snapshotId: address.snapshotId,
+        datasetCode,
+        sourceReleaseId: args.activeSnapshot.sourceReleaseBySnapshot?.get(
+          address.snapshotId,
+        ),
+      }),
+    )
   }
 
   const i18n = projectAddressI18n(args.record.i18n, args.routeState.profile)

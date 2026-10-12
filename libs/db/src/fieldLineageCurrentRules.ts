@@ -161,7 +161,7 @@ export function currentAddressFieldRule(
         ['resolutions', 'sourceVersion'],
       ],
       'identifiers.ALS:CsuId': [
-        'undefined: supplementary identities use SS:supplementaryIdentityKey',
+        'undefined: supplementary Addresses have no publisher identifier; supplementaryIdentityKey is retained as internal ID-generation evidence',
         [],
       ],
       sources: [

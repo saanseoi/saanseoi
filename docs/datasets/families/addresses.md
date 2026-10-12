@@ -77,8 +77,7 @@ only actual component changes and explicit retirements.
 
 Supplementary Overture Address snapshots hash the canonical base, each locale and each
 building-number lookup independently. Source-edition assertions, participating Place
-IDs, resolution decisions and selected ALS and Division dependencies have a separate
-versioned `address2dEvidence` payload. Snapshot replay selects that evidence alongside
+IDs, resolution decisions and selected ALS and Division dependencies have a separate versioned `address2dEvidence` payload. Snapshot replay selects that evidence alongside
 the canonical components and restores the complete public `sources` output, including
 release references. Repeating an accepted address in another edition can retain its
 component versions while recording the edition's evidence and updating current

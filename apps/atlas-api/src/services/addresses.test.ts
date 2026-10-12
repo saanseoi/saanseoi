@@ -249,9 +249,26 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
           snapshotId: `scope:${snapshotId}`,
           divisionSnapshotId: 'division',
           countryId,
+          identifiers:
+            id === 'b'
+              ? { 'SS:supplementaryIdentityKey': '[internal identity evidence]' }
+              : null,
           districtId: id === 'b' ? 'division-district' : null,
           parentAddressId: id === 'b' ? 'a' : null,
           granularity: id === 'a' ? 'complex' : id === 'b' ? 'unit' : 'unknown',
+          sources:
+            id === 'b'
+              ? [
+                  {
+                    source: 'overture-place-address',
+                    curationEntry: {
+                      placeId: 'place-b',
+                      identityKey: '[internal identity evidence]',
+                      acceptanceMode: 'curated',
+                    },
+                  },
+                ]
+              : null,
           geometry: { type: 'Point', coordinates: [114.13, 22.28] },
           bbox: [114.13, 22.28, 114.13, 22.28],
         })
@@ -396,6 +413,14 @@ UPDATE datasets SET resourceTypes = json_insert(resourceTypes, '$[#]', 'address'
       query: { profile: 'full' },
     })
     expect(full.status === 200 && full.body.data.attributes.granularity).toBe('unit')
+    expect(
+      JSON.stringify(full.status === 200 ? full.body.data.attributes.sources : null),
+    ).not.toContain('identityKey')
+    expect(
+      JSON.stringify(
+        full.status === 200 ? full.body.data.attributes.identifiers : null,
+      ),
+    ).not.toContain('supplementaryIdentityKey')
     expect(full.status === 200 && full.body.data.attributes).not.toHaveProperty(
       'granularityProvenance',
     )

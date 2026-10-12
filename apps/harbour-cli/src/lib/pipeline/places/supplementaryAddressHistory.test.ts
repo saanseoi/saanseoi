@@ -141,6 +141,19 @@ test.each(['scope-a', 'scope-b'] as const)(
           )
           .all(),
       )
+      expect(
+        current
+          .query('SELECT identifiers FROM address2d WHERE id=?')
+          .get(identity.addressId),
+      ).toEqual({ identifiers: null })
+      const retainedEvidence = old
+        .query<{ sources: string }, [string]>(
+          'SELECT sources FROM address2dEvidence WHERE addressId=?',
+        )
+        .get(identity.addressId)
+      expect(JSON.parse(retainedEvidence!.sources)[0].curationEntry.identityKey).toBe(
+        identity.identityKey,
+      )
       expect(originalComponents.map(rows => rows.length)).toEqual([1, 2, 1, 1])
       expect(
         current
@@ -187,7 +200,7 @@ test.each(['scope-a', 'scope-b'] as const)(
           }))
           return {
             ...row,
-            current: { ...row.current, sources },
+            current: row.current,
             evidence: {
               addressId: row.current.id,
               sources,

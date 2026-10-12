@@ -2942,7 +2942,7 @@
   "openapi_addresses_bbox_description": "The address geometry's bounding box in west, south, east, north order, when available.",
   "openapi_addresses_created_at_description": "When SaanSeoi first created this canonical address record.",
   "openapi_addresses_updated_at_description": "When SaanSeoi last updated this canonical address record.",
-  "openapi_addresses_identifiers_description": "Identifiers supplied by SaanSeoi or the source publisher.",
+  "openapi_addresses_identifiers_description": "External identifiers supplied by SaanSeoi or source publishers. Internal identity-generation evidence is omitted.",
   "openapi_addresses_sources_description": "Source attribution and premise-normalisation evidence for this address.",
   "openapi_addresses_granularity_description": "The scope identified by this address, not a quality score. Unknown means the scope is not established. Number ranges alone do not identify a building, unit or containment relationship.",
   "openapi_addresses_parent_address_id_description": "The containing Address ID, or null when no parent has been established. This is an explicit containment reference, not an ALS derivation link or evidence that missing numbers in a range exist.",

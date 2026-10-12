@@ -2945,7 +2945,7 @@
   "openapi_addresses_bbox_description": "地址幾何的邊界框，順序為西、南、東、北；如有提供。",
   "openapi_addresses_created_at_description": "SaanSeoi 首次建立此標準地址記錄的時間。",
   "openapi_addresses_updated_at_description": "SaanSeoi 最後更新此標準地址記錄的時間。",
-  "openapi_addresses_identifiers_description": "由 SaanSeoi 或來源發布者提供的識別碼。",
+  "openapi_addresses_identifiers_description": "由 SaanSeoi 或來源發布者提供的外部識別碼；內部身份生成證據不會提供。",
   "openapi_addresses_sources_description": "此地址的來源歸屬及地址前提正規化證據。",
   "openapi_addresses_granularity_description": "此地址所指的範圍，並非品質分數。unknown 表示範圍尚未確立。單憑門牌號碼範圍不能判定建築物、單位或包含關係。",
   "openapi_addresses_parent_address_id_description": "包含此地址的上層地址 ID；尚未確立上層地址時為 null。此欄位表示明確的包含關係，並非 ALS 衍生連結，也不能證明號碼範圍內缺漏的門牌確實存在。",

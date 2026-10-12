@@ -609,6 +609,36 @@ describe('supplementary Place Address policy', () => {
       'p2',
     ])
   })
+  test('supplementary IDs stay stable and conflicting values sharing an ID are rejected', async () => {
+    const { analyse } = setup()
+    const first = analyse(observation('Citygate Outlets, Tat Tung Road', 'p1'), null)
+    const sameIdentity = supplementaryIdentity(
+      first.entry!.values.map(value => ({
+        ...value,
+        formattedAddress: value.formattedAddress.toLowerCase(),
+      })),
+    )
+    expect(sameIdentity).toEqual({
+      identityKey: first.entry!.identityKey,
+      addressId: first.addressId,
+    })
+    const conflicting = structuredClone(first)
+    conflicting.placeId = 'p2'
+    conflicting.entry!.placeId = 'p2'
+    conflicting.entry!.values[0]!.buildingName = 'Different Building'
+    await expect(
+      buildSupplementaryAddressRows({
+        resolutions: [first, conflicting],
+        officialAddresses: new Map(),
+        snapshotId: 'supplementary',
+        divisionSnapshotId: 'division',
+        sourceReleaseId: 'supp-release',
+        placeSourceReleaseId: 'place-release',
+        sourceVersion: '2026-08-19.0',
+        datasetId: 'supp-dataset',
+      }),
+    ).rejects.toThrow('conflicting structured values')
+  })
   test('hashes canonical, locale and lookup content independently of edition and resolution evidence', async () => {
     const { analyse } = setup()
     const resolution = analyse(

@@ -138,7 +138,9 @@ export async function buildSupplementaryAddressRows(input: {
       streetId: null,
       geometry: null,
       bbox: null,
-      identifiers: { 'SS:supplementaryIdentityKey': entry.identityKey },
+      // The key is generation evidence, retained in the curation ledger and
+      // address2dEvidence. Canonical identity is already represented by `id`.
+      identifiers: null,
     }
     const i18n = entry.values.map(({ provenance: _provenance, ...value }) => ({
       ...value,
