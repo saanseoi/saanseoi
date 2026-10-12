@@ -22,11 +22,11 @@
   },
   "devDependencies": {
     "@types/bun": "1.4.2",
-    "bun-types": "^1.4.2",
+    "bun-types": "^1.4.3",
     "drizzle-kit": "1.0.0-rc.4-5d5b77c",
     "typescript": "^6.0.3",
     "vitest": "^5.0.3",
-    "wrangler": "^4.147.0"
+    "wrangler": "^4.149.0"
   },
   "dependencies": {
     "@hono/zod-openapi": "^1.6.3",
@@ -34,10 +34,10 @@
     "@repo/core": "workspace:*",
     "@repo/db": "workspace:*",
     "@repo/i18n": "workspace:*",
-    "@scalar/hono-api-reference": "^0.12.9",
-    "@scalar/openapi-to-markdown": "^1.5.1",
+    "@scalar/hono-api-reference": "^0.12.11",
+    "@scalar/openapi-to-markdown": "^1.5.3",
     "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
     "hono": "^4.13.13",
-    "zod": "^4.6.5"
+    "zod": "^4.6.6"
   }
 }
