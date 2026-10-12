@@ -16,14 +16,10 @@ import {
   decompressJsonBrotli,
 } from '../libs/core/src/pipeline/services/storage/brotliJson'
 
-const retired = [
-  'hkgovCenstatdDivisionAreas',
-  'hkgovCenstatdStatistics',
-  'hkgovCenstatdDistrictLandAreaPopulationDensities',
-]
+const retired = ['hkgovCenstatdStatistics']
 const featureTable = 'hkgovCenstatdFeatures'
 const derivativeTable = 'hkgovCenstatdDivisionAreaDerivatives'
-const membershipTable = 'hkgovCenstatdFeatureReleases'
+const membershipTable = 'hkgovCenstatdFeaturesReleaseMemberships'
 type Row = Record<string, string | number | null | Uint8Array>
 const args = Bun.argv.slice(2)
 function argument(name: string) {

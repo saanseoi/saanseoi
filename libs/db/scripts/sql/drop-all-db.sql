@@ -28,7 +28,7 @@ DROP TABLE IF EXISTS `hkgovHydStrategicStreets`;
 DROP TABLE IF EXISTS `hkgovHydSensitiveStreets`;
 DROP TABLE IF EXISTS `hkgovHydStreetNamePlates`;
 DROP TABLE IF EXISTS `hkgovHadDivisionAreas`;
-DROP TABLE IF EXISTS `hkgovCenstatdFeatureReleases`;
+DROP TABLE IF EXISTS `hkgovCenstatdFeaturesReleaseMemberships`;
 DROP TABLE IF EXISTS `hkgovCenstatdFeatures`;
 DROP TABLE IF EXISTS `hkgovCenstatdDistrictLandAreaPopulationDensityI18n`;
 DROP TABLE IF EXISTS `hkgovCenstatdDivisionAreaDerivatives`;
@@ -188,6 +188,4 @@ DROP TABLE IF EXISTS `ssDivision`;
 
 DROP TABLE IF EXISTS `hkgovRvdAreas`;
 
-DROP TABLE IF EXISTS `hkgovCenstatdDivisionAreas`;
 DROP TABLE IF EXISTS `hkgovCenstatdStatistics`;
-DROP TABLE IF EXISTS `hkgovCenstatdDistrictLandAreaPopulationDensities`;

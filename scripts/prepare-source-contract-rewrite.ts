@@ -28,8 +28,6 @@ const tables = [
   'hkgovAlsAddresses3d',
   'hkgovLandsdPlaceNames',
   'hkgovHadDivisionAreas',
-  'hkgovCenstatdDivisionAreas',
-  'hkgovCenstatdDistrictLandAreaPopulationDensities',
   'hkgovCenstatdStatistics',
   'hkgovPlandPlanningCells',
   'hkgovPlandNewTowns',
