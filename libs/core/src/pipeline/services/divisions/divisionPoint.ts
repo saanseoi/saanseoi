@@ -51,7 +51,8 @@ export function canonicalDivisionPoint(
       if (polygon && (polygon.isEmpty() || !new IsValidOp(polygon).isValid()))
         throw new Error(`Division ${options.id} has invalid or empty area geometry.`)
       let point: DivisionPoint
-      if (geometry?.type === 'Point') point = geometry
+      if (geometry?.type === 'Point')
+        point = { type: 'Point', coordinates: geometry.coordinates }
       else {
         const interior = area && polygonLabelPoint(area as Polygon | MultiPolygon)
         if (!interior)

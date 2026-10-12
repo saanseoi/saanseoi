@@ -15,7 +15,6 @@ export function division(
         id === 'root' ? 'sar' : category === 'landform' ? 'minor_island' : 'district',
       category,
       geometry: null,
-      bbox: null,
       hierarchies: { ...emptyDivisionHierarchies(), ...paths },
       cartography: null,
       sources: null,
@@ -35,6 +34,7 @@ export function area(id: string, west = 0, east = 10): DivisionAreaRecord {
     id: `area-${id}`,
     divisionId: id,
     variant: 'saanseoi',
+    bbox: [west, 0, east, 10],
     geometry: {
       type: 'Polygon',
       coordinates: [
@@ -47,7 +47,6 @@ export function area(id: string, west = 0, east = 10): DivisionAreaRecord {
         ],
       ],
     },
-    bbox: [west, 0, east, 10],
     identifiers: null,
     sources: null,
     type: 'mixed',

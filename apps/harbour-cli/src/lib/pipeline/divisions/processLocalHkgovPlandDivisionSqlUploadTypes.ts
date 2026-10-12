@@ -21,7 +21,6 @@ export type HkgovPlandDivisionUploadPlan = {
 
 export type PreparedDivision = {
   base: {
-    bbox: unknown
     cartography: null
     divisionCode: string | null
     geometry: unknown

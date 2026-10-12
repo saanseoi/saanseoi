@@ -52,9 +52,20 @@ test('taxonomy consumes fixture mappings, precedence and fallbacks', () => {
   const policy = structuredClone(fixture.parameters)
   validateDivisionPolicy(policy)
   for (const entry of policy.localityClasses) {
-    const input = { ...hints, subtype: 'locality', class: entry.token }
-    expect(divisionLevel(policy, input)).toBe(entry.level)
-    expect(divisionClass(policy, input)).toBe(entry.class)
+    for (const subtype of ['', 'locality', 'unknown', 'microhood']) {
+      const input = { ...hints, subtype, class: entry.token }
+      if (subtype === 'locality') expect(divisionLevel(policy, input)).toBe(entry.level)
+      expect(divisionClass(policy, input)).toBe(entry.class)
+    }
+    for (const [subtype, result] of [
+      ['country', 'country'],
+      ['dependency', 'sar'],
+      ['region', 'district'],
+    ]) {
+      expect(
+        divisionClass(policy, { ...hints, subtype: subtype!, class: entry.token }),
+      ).toBe(result!)
+    }
   }
   expect(divisionLevel(policy, { ...hints, subtype: 'subdistrict' })).toBe(2)
   expect(

@@ -148,8 +148,8 @@ polygon coverage.
   additions and unmatched island identities use deterministic `ss-` UUIDs from stable
   fixture keys. Division, area and hierarchy references use the same canonical
   identifiers.
-- Available point `geometry`, `bbox`, `cartography`, `identifiers` and `sources` are
-  carried forward subject to curated choices.
+- Available point `geometry`, `cartography`, `identifiers` and `sources` are carried
+  forward subject to curated choices.
 
 #### Curated and Enriched Fields
 
@@ -291,8 +291,7 @@ schema
 - `id` 為已確認配對的實體保留 Overture GERS
   UUID。SaanSeoi 新增及未配對的島嶼實體，以穩定的 fixture 鍵產生確定性的 `ss-`
   UUID。地理分區、面域及層級參照使用相同的標準識別碼。
-- 可用的點 `geometry`、`bbox`、`cartography`、`identifiers` 及 `sources`
-  按審核選擇保留。
+- 可用的點 `geometry`、`cartography`、`identifiers` 及 `sources` 按審核選擇保留。
 
 #### 審核及增補欄位
 
@@ -409,8 +408,7 @@ schema
 - `id` 为已确认匹配的实体保留 Overture GERS
   UUID。SaanSeoi 新增及未匹配的岛屿实体，以稳定的 fixture 键生成确定性的 `ss-`
   UUID。地理分区、面域及层级参照使用相同的标准标识码。
-- 可用的点 `geometry`、`bbox`、`cartography`、`identifiers` 及 `sources`
-  按审核选择保留。
+- 可用的点 `geometry`、`cartography`、`identifiers` 及 `sources` 按审核选择保留。
 
 #### 审核及增补字段
 

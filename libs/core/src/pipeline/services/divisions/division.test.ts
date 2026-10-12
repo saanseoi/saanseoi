@@ -935,6 +935,7 @@ describe('normaliseDivisionRow hierarchy', () => {
     const normalised = normaliseDivisionRow({
       id: 'division-with-feature-version',
       subtype: 'locality',
+      class: 'city',
       version: 42,
       sources: [
         {

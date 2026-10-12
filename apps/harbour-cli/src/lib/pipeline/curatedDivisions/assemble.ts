@@ -1,9 +1,10 @@
+import { applyDivisionClassificationPatch } from '@repo/core/pipeline/services/divisions/divisionClassificationPatch'
 import {
   canonicalDivisionPoint,
   createDivisionPointGuard,
   divisionAreaUnion,
 } from '@repo/core/pipeline/services/divisions/divisionPoint'
-import { calculateGeoJsonBbox, type GeoJsonGeometry } from '@repo/core/pipeline/geojson'
+import type { GeoJsonGeometry } from '@repo/core/pipeline/geojson'
 import type { ProtomapsIslandSelection } from '@repo/core/pipeline/services/sources/protomapsSourceViews'
 import {
   curatedSourceIdentifiers,
@@ -191,39 +192,47 @@ function assembleCuratedDivisionsInternal(input: {
       name.nameVariant = JSON.stringify([...new Set([...(variants ?? []), ...deduped])])
     }
   }
+  const correctionFor = (id: string) =>
+    input.classificationPatches?.find(patch => patch.divisionId === id)?.replacement ??
+    applyDivisionClassificationPatch({ id })
   const aliases = new Map<string, string>()
   for (const island of islands) {
     if (excluded.has(island.id) || excluded.has(uuid(island.id))) continue
     const candidates = (island.matches ?? [])
       .map((m: Row) => divisions.get(m.id))
       .filter(
-        (d: Row) => d && ['major_island', 'minor_island', 'islet'].includes(d.class),
+        (d: Row) =>
+          d &&
+          (['major_island', 'minor_island', 'islet'].includes(d.class) ||
+            correctionFor(d.id)),
       )
     if (candidates.length > 1) throw Error(`Ambiguous island identity: ${island.name}`)
     const id = candidates[0]?.id ?? uuid(island.id)
     aliases.set(island.id, id)
+    const islandClass =
+      correctionFor(id)?.class ??
+      correctionFor(island.id)?.class ??
+      curatedDivisionClassification(island.id)?.class ??
+      curatedDivisionClassification(id)?.class ??
+      classifyIslandArea(island.areaKm2)
+    const islandClassification = geographicDivisionClassification(islandClass)
+    if (!islandClassification)
+      throw Error(`Unknown island classification: ${islandClass}`)
     if (candidates[0]) {
       Object.assign(candidates[0], {
-        category: 'landform',
-        class:
-          curatedDivisionClassification(island.id)?.class ??
-          classifyIslandArea(island.areaKm2),
-        level: null,
+        ...islandClassification,
+        class: islandClass,
       })
     }
     if (!divisions.has(id)) {
       divisions.set(id, {
         id,
-        category: 'landform',
-        class:
-          curatedDivisionClassification(island.id)?.class ??
-          classifyIslandArea(island.areaKm2),
-        level: null,
+        ...islandClassification,
+        class: islandClass,
         geometry: island.point
           ? JSON.stringify({ type: 'Point', coordinates: island.point })
           : null,
         hierarchies: '{}',
-        bbox: null,
         identifiers: JSON.stringify(
           mergeDivisionIdentifiers(
             curatedSourceIdentifiers(island.id),
@@ -340,7 +349,10 @@ function assembleCuratedDivisionsInternal(input: {
       const classification = geographicDivisionClassification(entry.expectedClass)
       if (!classification)
         throw Error(`Unknown curated classification: ${entry.expectedClass}`)
-      Object.assign(division, classification, { class: entry.expectedClass })
+      if (division.class !== entry.expectedClass)
+        throw Error(
+          `Hierarchy class mismatch for ${id}: classification resolved ${division.class}, hierarchy expects ${entry.expectedClass}. Update the explicit SaanSeoi classification or regenerate the hierarchy input.`,
+        )
     }
     const hierarchy = remap(entry.hierarchies)
     for (const key of Object.keys(hierarchy))
@@ -496,12 +508,6 @@ function assembleCuratedDivisionsInternal(input: {
         type: 'Point',
         coordinates: feature.properties.corePoint,
       })
-      division.bbox = JSON.stringify([
-        feature.properties.corePoint[0],
-        feature.properties.corePoint[1],
-        feature.properties.corePoint[0],
-        feature.properties.corePoint[1],
-      ])
     }
     put(
       divisionId,
@@ -579,10 +585,6 @@ function assembleCuratedDivisionsInternal(input: {
     })
     division.geometry =
       typeof division.geometry === 'string' ? JSON.stringify(point) : point
-    if (point && geometry?.type !== 'Point') {
-      const bbox = calculateGeoJsonBbox(point)
-      division.bbox = typeof division.bbox === 'string' ? JSON.stringify(bbox) : bbox
-    }
   }
   resolveCuratedHierarchies(
     [...divisions.values()],

@@ -80,13 +80,13 @@ identities remain retrievable through their source release while history is reta
 
 ## Change semantics
 
-| Changed field                                                                             | Can affect geocoding membership?                                               |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `membershipGeometry`                                                                      | Yes: expansion, contraction, movement or coverage changes                      |
-| `hierarchies`                                                                             | Yes: ordered ancestor IDs/classes and alternative branches in every projection |
-| `category`, `class`, `level`                                                              | Yes: classification and branch selection inputs                                |
-| `names`, `hierarchyNames`                                                                 | No: refresh labels; forward name-search results can change                     |
-| `divisionCode`, `identifiers`, `wikidataId`, `geometry`, `bbox`, `cartography`, `sources` | No: descriptive metadata and label/display geometry                            |
+| Changed field                                                                     | Can affect geocoding membership?                                               |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `membershipGeometry`                                                              | Yes: expansion, contraction, movement or coverage changes                      |
+| `hierarchies`                                                                     | Yes: ordered ancestor IDs/classes and alternative branches in every projection |
+| `category`, `class`, `level`                                                      | Yes: classification and branch selection inputs                                |
+| `names`, `hierarchyNames`                                                         | No: refresh labels; forward name-search results can change                     |
+| `divisionCode`, `identifiers`, `wikidataId`, `geometry`, `cartography`, `sources` | No: descriptive metadata and label/display geometry                            |
 
 Additions and deletions always have potential membership impact, including identities
 without their own polygons that participate in descendant ancestry. A true revision

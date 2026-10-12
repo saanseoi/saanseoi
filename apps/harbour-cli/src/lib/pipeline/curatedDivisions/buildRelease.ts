@@ -23,7 +23,7 @@ import reviewPins from '../../../../../../fixtures/meta/datasetInputs/saanseoi-d
 import releaseInputs from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-release-policy.json'
 import publicationInputs from '../../../../../../fixtures/meta/datasetInputs/saanseoi-division-release-inputs.json'
 import type { UploadTarget } from '../../cli/options'
-import { applyCuratedBounds, applyRvdMembership } from './listMembership'
+import { applyRvdMembership } from './listMembership'
 import { applyCuratedAreaContract, applyCuratedRecordContract } from './recordContract'
 import { buildAdministrativeAreas } from './administrativeAreas'
 import { attachIngredientMembership } from './ingredientMembership'
@@ -308,9 +308,8 @@ export async function buildCuratedDivisionRelease(
       )
     }).length,
   }
-  applyCuratedRecordContract(data.divisions, data.areas)
+  applyCuratedRecordContract(data.divisions)
   applyCuratedAreaContract(data.areas)
-  applyCuratedBounds(data.divisions)
   const rvdPin = pin('ds-hk-hkgov-rvd-division')
   const rvd = await readReviewSource(rvdPin, archives)
   applyRvdMembership(

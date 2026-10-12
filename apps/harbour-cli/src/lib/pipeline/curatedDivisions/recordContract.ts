@@ -1,6 +1,5 @@
 import { divisionIdentifiersWithWikidata } from '@repo/core/pipeline/services/sources/divisionIdentifiers.ts'
 import geographicCodes from '../../../../../../fixtures/meta/divisionCodes/geographic.json'
-import { calculateGeoJsonBbox } from '@repo/core/pipeline/geojson'
 
 const object = (value: any) => (typeof value === 'string' ? JSON.parse(value) : value)
 
@@ -17,20 +16,8 @@ export function curatedNameObject(value: Record<string, any>) {
   )
 }
 
-export function applyCuratedRecordContract(
-  rows: Record<string, any>[],
-  areas: Record<string, any>[] = [],
-) {
+export function applyCuratedRecordContract(rows: Record<string, any>[]) {
   for (const row of rows) {
-    const geometry = object(row.geometry)
-    const polygons = areas
-      .filter(area => area.divisionId === row.id)
-      .map(area => object(area.geometry))
-    row.bbox = geometry
-      ? calculateGeoJsonBbox(geometry)
-      : polygons.length
-        ? calculateGeoJsonBbox({ type: 'GeometryCollection', geometries: polygons })
-        : (object(row.bbox) ?? null)
     row.divisionCode ??= null
     const policy = divisionCartography[row.class as keyof typeof divisionCartography]
     if (!policy) throw Error(`Missing cartography policy for ${row.class}`)

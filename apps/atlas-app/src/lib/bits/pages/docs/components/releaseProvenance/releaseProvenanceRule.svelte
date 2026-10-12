@@ -1,22 +1,46 @@
 <script lang="ts">
+import SourceSelection from './releaseProvenanceSelection.svelte'
+import FieldReference from './releaseProvenanceRuleReference.svelte'
 import Rule from './releaseProvenanceRule.svelte'
 import type { HumanOperation } from '@repo/db/fieldLineageHuman'
 let { rule }: { rule: NonNullable<HumanOperation['rule']> } = $props()
 </script>
-{#if rule.kind === 'sections'}
+{#if rule.kind === 'source-selection'}
+  <SourceSelection {rule} />
+{:else if rule.kind === 'sections'}
   <div class="space-y-2">
-    {#each rule.sections as section}
-      <details class="rounded-md border border-foreground/15">
-        <summary class="cursor-pointer px-3 py-2 font-semibold text-foreground">
-          {section.title}
-        </summary>
-        <div class="space-y-2 px-3 pb-3">
-          <p class="leading-relaxed text-foreground/65">{section.description}</p>
+    {#each rule.sections as section, index}
+      {#if section.rule.kind === 'field-reference'}
+        <FieldReference rule={section.rule} />
+      {:else if rule.layout === 'flow' || rule.layout === 'cases'}
+        <section class="space-y-2 not-first:mt-5">
+          {#if index && rule.layout === 'flow'}
+            <div aria-hidden="true" class="pl-2 text-foreground/40">↓</div>
+          {/if}
+          <h5 class="font-semibold">
+            <span class="mr-2 font-mono text-foreground/50">{index + 1}</span>
+            {section.title}
+          </h5>
+          {#if section.description}
+            <p class="text-foreground/60">{section.description}</p>
+          {/if}
           <Rule rule={section.rule} />
-        </div>
-      </details>
+        </section>
+      {:else}
+        <details class="rounded-md border border-foreground/15">
+          <summary class="cursor-pointer px-3 py-2 font-semibold text-foreground">
+            {section.title}
+          </summary>
+          <div class="space-y-2 px-3 pb-3">
+            <p class="leading-relaxed text-foreground/65">{section.description}</p>
+            <Rule rule={section.rule} />
+          </div>
+        </details>
+      {/if}
     {/each}
   </div>
+{:else if rule.kind === 'field-reference'}
+  <FieldReference {rule} />
 {:else if rule.kind === 'mapping'}
   <table
     class="w-full table-fixed text-left text-xs"
@@ -56,11 +80,24 @@ let { rule }: { rule: NonNullable<HumanOperation['rule']> } = $props()
   <dl class="space-y-2" aria-label="Conditional derivation">
     {#each rule.branches as branch}
       <div
-        class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1.2fr)] items-start gap-2 rounded-md bg-foreground/5 p-2.5 text-xs leading-relaxed"
+        class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1.2fr)] items-center gap-2 rounded-md bg-foreground/5 p-2.5 text-xs leading-relaxed"
       >
         <dt class="text-foreground/65">{branch.when}</dt>
         <span aria-hidden="true" class="self-center text-primary">→</span>
         <dd class="font-medium text-foreground/90">{branch.value}</dd>
+        {#if branch.rule}
+          <dd class="col-span-3">
+            <details class="border-t border-foreground/10 pt-2">
+              <summary class="cursor-pointer text-secondary">Show mapping</summary>
+              <div class="space-y-2 pt-2">
+                <Rule rule={branch.rule} />
+                {#if branch.note}
+                  <p class="text-foreground/60">{branch.note}</p>
+                {/if}
+              </div>
+            </details>
+          </dd>
+        {/if}
       </div>
     {/each}
   </dl>

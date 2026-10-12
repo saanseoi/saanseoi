@@ -68,7 +68,6 @@ test('Planning copies isolate failed preparation and resume partial delivery wit
     const record: PreparedDivision = {
       base: {
         id: 'planning-test',
-        bbox: [114, 22, 115, 23],
         cartography: null,
         divisionCode: 'test',
         geometry: {

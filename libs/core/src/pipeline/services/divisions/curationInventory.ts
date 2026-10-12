@@ -1,3 +1,6 @@
+import policy from '../../../../../../fixtures/meta/processing-rules/assembly/division-normalisation.json'
+import { divisionClass } from './divisionTaxonomy'
+import { applyDivisionClassificationPatch } from './divisionClassificationPatch'
 import {
   curationApplies,
   scopedExclusions,
@@ -25,13 +28,24 @@ import {
 
 type Row = Record<string, any>
 export function sourceDivisionClass(row: Row) {
-  return (
-    row.class ??
-    ({ region: 'district', dependency: 'sar', neighborhood: 'neighbourhood' } as Row)[
-      row.subtype
-    ] ??
-    row.subtype
-  )
+  const token = (value: unknown) =>
+    typeof value === 'string'
+      ? value
+          .trim()
+          .toLowerCase()
+          .replaceAll(/[\s-]+/g, '_')
+      : ''
+  const klass = token(row.class)
+  if (geographicDivisionClassification(klass)?.category === 'landform') return klass
+  return divisionClass(policy.parameters, {
+    subtype: token(row.subtype),
+    class: klass,
+    adminLevel: '',
+    hasParent: false,
+    isHongKongArea: overtureHongKongAreas.some(
+      area => area.code === row.identifiers?.saanseoiCorrection?.code,
+    ),
+  })
 }
 export function sourceDivisionNames(row: Row): Record<string, string> {
   const common = row.names?.common ?? {}
@@ -109,7 +123,10 @@ export function buildCurationInventory(
       .filter(row => !omitted.has(row.id) && !authored.has(row.id))
       .map(row => ({
         id: row.id,
-        class: classes.get(row.id) ?? sourceDivisionClass(row),
+        class:
+          applyDivisionClassificationPatch(row)?.class ??
+          classes.get(row.id) ??
+          sourceDivisionClass(row),
         names: sourceDivisionNames(row),
         point: row.geometry?.coordinates ?? null,
         paths: (row.hierarchies ?? []).map((path: Row[]) =>

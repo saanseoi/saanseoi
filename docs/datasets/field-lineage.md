@@ -491,9 +491,10 @@ expression strings. Implementation anchors and source hashes remain attached to 
 retained rule.
 
 Curated Division dependencies project the consumed archive fields through the record
-envelope. Record-wide validation is supporting evidence. Preprocessing source cards show
-retained record-selection rules alongside the exact release pins. They describe possible
-selections, not a historical execution.
+envelope. Record-wide validation is supporting evidence. Division has no bbox;
+DivisionArea and DivisionBoundary bounds derive from their selected geometry.
+Preprocessing source cards show retained record-selection rules alongside the exact
+release pins. They describe possible selections, not a historical execution.
 
 Geometry lineage uses declarative tables for coverage type, flags, bounding coordinates
 and bordering Division identities. Boundary identities retain the publisher's pair
@@ -514,7 +515,11 @@ ambiguous targets retain their full graph traversal.
 Conditional diagrams give each fallback its own condition and result. Source cards
 retain structured selection tables separately from the value calculation.
 
-Division class lineage retains the same ordered classification branches consumed by the
-processor and audit. Expand the Overture mapping for all class conditions, the
-fallback-level mapping for its supporting rules, and SaanSeoi curation for subsequent
-classification decisions. An inventory matching helper is not the class producer.
+Division class lineage presents one first-match table: SaanSeoi correction, explicit
+class assignment, selected individual-island size, then publisher subtype/class rules.
+Island groups use explicit class assignments. Publisher mapping branches are shared by
+the processor, inventory and audit. Level does not determine class; an unresolved class
+blocks ingestion. Hierarchy expectations validate classification without overwriting it.
+Source selection distinguishes independent cases, ordered actions and conditions that
+must all match. Hierarchy lineage links to the assembled SaanSeoi DivisionArea geometry,
+including authored polygons, with representative points used only when no area exists.

@@ -53,7 +53,6 @@ Fields that retain the Overture value directly:
 - `id` - [Id](/docs#models/Id) - a stable GERS UUID; see
   [Overture's GERS documentation](https://docs.overturemaps.org/gers/)
 - `cartography` - [CartographicHints](/docs#models/CartographicHints)
-- `bbox` - [BBox](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
 - `wikidata` - [WikidataId](/docs#models/WikidataId)
 
@@ -367,7 +366,6 @@ schema（`{{sourceSchemaVersion}}`），我們在以下方面有所偏離：
 - `id` - [Id](/docs#models/Id) - 穩定的 GERS UUID；見
   [Overture 的 GERS 文件](https://docs.overturemaps.org/gers/)
 - `cartography` - [CartographicHints](/docs#models/CartographicHints)
-- `bbox` - [BBox](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
 - `wikidata` - [WikidataId](/docs#models/WikidataId)
 
@@ -655,7 +653,6 @@ schema（`{{sourceSchemaVersion}}`），我们在以下方面有所偏离：
 - `id` - [Id](/docs#models/Id) - 稳定的 GERS UUID；见
   [Overture 的 GERS 文档](https://docs.overturemaps.org/gers/)
 - `cartography` - [CartographicHints](/docs#models/CartographicHints)
-- `bbox` - [BBox](/docs#models/BBox)
 - `geometry` - [Geometry](/docs#models/Geometry)
 - `wikidata` - [WikidataId](/docs#models/WikidataId)
 

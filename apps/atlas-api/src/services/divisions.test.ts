@@ -18,7 +18,6 @@ test('included geometry exposes source evidence only in full responses', () => {
     const record = {
       id: 'geometry',
       divisionId: 'division',
-      bbox: null,
       geometry: null,
       type: 'land',
       isLand: true,
@@ -97,7 +96,6 @@ const baseRecord: DivisionRecord = {
       type: 'Point',
       coordinates: [114.2262, 22.2788],
     },
-    bbox: [114.22, 22.27, 114.23, 22.28],
     identifiers: { wikidata: { id: 'Q123456' } },
     cartography: {
       kind: 'label-center',
@@ -138,7 +136,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       class: 'country',
       category: 'administrative',
       geometry: null,
-      bbox: null,
       identifiers: null,
       hierarchies: { administrative: [], locality: [], landform: [], full: [] },
       cartography: null,
@@ -160,7 +157,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       class: 'sar',
       category: 'administrative',
       geometry: null,
-      bbox: null,
       identifiers: null,
       hierarchies: { administrative: [], locality: [], landform: [], full: [] },
       cartography: null,
@@ -182,7 +178,6 @@ const includedRecordsById: Record<string, DivisionRecord> = {
       class: 'district',
       category: 'administrative',
       geometry: null,
-      bbox: null,
       identifiers: null,
       hierarchies: { administrative: [], locality: [], landform: [], full: [] },
       cartography: null,
@@ -585,6 +580,7 @@ describe('division services', () => {
         continue
       }
 
+      expect(resource.attributes).not.toHaveProperty('bbox')
       expect(resource.attributes.level).toBe(3)
       expect(resource.attributes.class).toBe('locality')
       expect('divisionType' in resource.attributes).toBe(false)
@@ -639,7 +635,6 @@ describe('division services', () => {
             type: 'Point',
             coordinates: [114.2262, 22.2788],
           },
-          bbox: [114.22, 22.27, 114.23, 22.28],
           cartography: {
             kind: 'label-center',
           },
@@ -659,7 +654,6 @@ describe('division services', () => {
             type: 'Point',
             coordinates: [114.2262, 22.2788],
           },
-          bbox: [114.22, 22.27, 114.23, 22.28],
           cartography: {
             kind: 'label-center',
           },

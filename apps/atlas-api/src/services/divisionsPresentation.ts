@@ -103,7 +103,6 @@ type DivisionResourcePayload = {
     divisionCode?: string
     snapshotId?: string
     geometry?: DivisionGeometry | null
-    bbox?: BBox | null
     cartography?: JsonObject | null
     createdAt?: string
     updatedAt?: string
@@ -448,7 +447,6 @@ export function createDivisionResource(args: {
     ...(isMapDivisionProfile(routeState.profile)
       ? {
           geometry: asDivisionGeometry(division.geometry),
-          bbox: (division.bbox as BBox | null) ?? null,
           cartography: (division.cartography as JsonObject | null) ?? null,
         }
       : {}),

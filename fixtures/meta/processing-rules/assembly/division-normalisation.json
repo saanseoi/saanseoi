@@ -207,16 +207,7 @@
     ],
     "fallback": {
       "parentLevel": 1,
-      "rootLevel": 0,
-      "classesByLevel": [
-        "sar",
-        "area",
-        "district",
-        "town",
-        "macrohood",
-        "neighbourhood"
-      ],
-      "class": "microhood"
+      "rootLevel": 0
     }
   },
   "implementation": {

@@ -4,7 +4,7 @@ import {
   applyCuratedRecordContract,
   curatedNameObject,
 } from './recordContract'
-test('curated records have point bounds, grouped identifiers and classified cartography with attribution', () => {
+test('curated records have no bounds, grouped identifiers and classified cartography with attribution', () => {
   const row: any = {
     id: 'new',
     class: 'neighbourhood',
@@ -12,7 +12,7 @@ test('curated records have point bounds, grouped identifiers and classified cart
     sources: { sourceResolutions: { entityId: 'new' } },
   }
   applyCuratedRecordContract([row])
-  expect(row.bbox).toEqual([114, 22, 114, 22])
+  expect(row).not.toHaveProperty('bbox')
   expect(row).not.toHaveProperty('wikidata')
   expect(row.cartography).toEqual({ minZoom: 14, maxZoom: 18, prominence: 60 })
   expect(row.sources.sourceResolutions).toBeUndefined()

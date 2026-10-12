@@ -12,17 +12,19 @@ canonical materialisation reads that prepared contract.
 
 The `division-normalisation.json` processing fixture owns subtype/class mappings,
 hierarchy classifications, ordered level tokens, curated Hong Kong area identity
-recognition and fallbacks. The normaliser consumes these parameters directly.
-Level-token order and substring matching are significant; review both when editing
-taxonomy policy.
+recognition and publisher-level defaults. The normaliser consumes these parameters
+directly. Level-token order and substring matching are significant; review both when
+editing taxonomy policy.
 
 The retained declaration includes the executor's ordered condition trees and stable
 branch IDs. Level-token branches distinguish subtype, class and administrative-level
-matches. Locality mappings are counted separately for level and class; class fallback
-does not count its supporting level lookup a second time. Bulk matched counts count only
-selected branches, and changed counts compare canonical results with raw source `level`
-and `class` values. Unselected branches retain zeroes. Missing historical conditions or
-counts remain **not recorded**.
+matches. Locality mappings are counted separately for level and class. Class is never
+inferred from level. Unmapped publisher classifications block canonical ingestion with
+the record identity and publisher hints in the error. SaanSeoi preparation requires an
+explicit classification for these records before producing its curated archive. Bulk
+matched counts count only selected branches, and changed counts compare canonical
+results with raw source `level` and `class` values. Unselected branches retain zeroes.
+Missing historical conditions or counts remain **not recorded**.
 
 Local division ingestion reports provenance retention and delivery after SQL generation.
 Shared audit fixtures use a bounded cache of verified JSON objects during verification;
@@ -129,3 +131,8 @@ version labels. A different storage hash alone does not constitute a content cha
 
 The Changes and Stats tabs read these saved counts. API release-set statistics describe
 canonical output separately.
+
+Publisher classes `city`, `town`, `village` and `hamlet` select their canonical class
+without requiring subtype `locality`. Earlier subtype rules retain their precedence:
+`country`, `dependency` and `region` select `country`, `sar` and `district` respectively
+for class normalisation.

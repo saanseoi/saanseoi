@@ -131,3 +131,16 @@ test('island-group labels may lie outside their member geometry while individual
     }),
   ).toThrow('invalid or empty area')
 })
+
+test('representative points omit embedded bounds without changing publisher evidence', () => {
+  const source = Object.freeze({
+    type: 'Point' as const,
+    coordinates: [114, 22] as [number, number],
+    bbox: [113, 21, 115, 23],
+  })
+  expect(canonicalDivisionPoint(source, { id: 'division' })).toEqual({
+    type: 'Point',
+    coordinates: [114, 22],
+  })
+  expect(source.bbox).toEqual([113, 21, 115, 23])
+})

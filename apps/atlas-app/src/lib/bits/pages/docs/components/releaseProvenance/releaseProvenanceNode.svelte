@@ -14,7 +14,6 @@ let {
   node,
   humanOverride,
   definition,
-  reference,
   references,
   scopeLabels,
   binding,
@@ -45,20 +44,24 @@ let pin = $derived(binding?.scopes.find(scope => scope.scopeId === selectedScope
   <Collapsible.Root bind:open>
     <Collapsible.Trigger
       class="flex w-full items-center gap-3 rounded-lg px-4 py-4 text-left hover:bg-foreground/5"
-      aria-label={`${open ? 'Hide' : 'Show'} details: ${(human?.title ?? visibleNodeTitle(node, definition))}`}
+      aria-label={`${open ? 'Hide' : 'Show'} details: ${human?.title ?? visibleNodeTitle(node, definition)}`}
     >
       <span class="flex min-w-0 flex-1 flex-col gap-1">
         <span
           class="flex flex-wrap items-center gap-x-2 text-xs leading-4 text-foreground/60"
         >
-          {#if nodeStageLabel(node, definition) !== human?.title}<span>{nodeStageLabel(node, definition)}</span>{/if}
+          {#if nodeStageLabel(node, definition) !== human?.title}
+            <span>{nodeStageLabel(node, definition)}</span>
+          {/if}
           {#if node.stage !== 'composition'}
-            {#if nodeStageLabel(node, definition) !== human?.title}<span aria-hidden="true">·</span>{/if}
+            {#if nodeStageLabel(node, definition) !== human?.title}
+              <span aria-hidden="true">·</span>
+            {/if}
             <span>{scopeLabels[selectedScope]?.split(' · ')[0] ?? selectedScope}</span>
           {/if}
         </span>
         <span class="block text-sm font-semibold leading-5"
-          >{(human?.title ?? visibleNodeTitle(node, definition))}</span
+          >{human?.title ?? visibleNodeTitle(node, definition)}</span
         >
         {#if node.stage === 'composition' ||
           definition.scopes.some(
@@ -73,21 +76,28 @@ let pin = $derived(binding?.scopes.find(scope => scope.scopeId === selectedScope
         >{open ? '−' : '+'}</span
       >
     </Collapsible.Trigger>
-    <div class="px-4 pb-3 text-xs text-foreground/65">
+    <div class="px-4 py-3 text-xs text-foreground/65">
       {#if node.when.kind !== 'always' &&
         !(node.when.kind === 'compare' && node.when.input === 'selectedSource')}
         <p class="mb-2 leading-6">
-          Applies when <Condition {definition} condition={node.when} labels={scopeLabels} />
+          Applies when
+          <Condition {definition} condition={node.when} labels={scopeLabels} />
         </p>
       {/if}
       {#if human?.rule}
         <Rule rule={human.rule} />
       {:else if human?.decisions?.length}
-        <div class="space-y-2 border-l-2 border-secondary/40 pl-3" aria-label="Value choices">
+        <section
+          class="space-y-2 border-l-2 border-secondary/40 pl-3"
+          aria-label="Value choices"
+        >
           {#each human.decisions as decision}
-            <div><p class="font-semibold">{decision.when}</p><p class="mt-1 leading-relaxed">{decision.result}</p></div>
+            <div>
+              <p class="font-semibold">{decision.when}</p>
+              <p class="mt-1 leading-relaxed">{decision.result}</p>
+            </div>
           {/each}
-        </div>
+        </section>
       {/if}
     </div>
     <Collapsible.Content class="px-4 pb-4">
@@ -97,7 +107,6 @@ let pin = $derived(binding?.scopes.find(scope => scope.scopeId === selectedScope
         {definition}
         {references}
         {scopeLabels}
-        scope={selectedScope}
         {pin}
       />
     </Collapsible.Content>

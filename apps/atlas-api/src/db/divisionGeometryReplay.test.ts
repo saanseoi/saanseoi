@@ -301,7 +301,6 @@ const divisionRecord: DivisionRecord = {
     class: 'district',
     category: 'administrative',
     geometry: null,
-    bbox: null,
     hierarchies: { administrative: [], locality: [], landform: [], full: [] },
     cartography: null,
     sources: null,

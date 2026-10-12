@@ -165,7 +165,6 @@ test('Division schema and full responses use the reviewed attribute order', () =
     'i18n',
     'hierarchies',
     'geometry',
-    'bbox',
     'cartography',
     'identifiers',
     'sources',

@@ -29,7 +29,7 @@ test('Tai O publishes the exported core point inside its unchanged curated polyg
     type: 'Point',
     coordinates: point,
   })
-  expect(JSON.parse(result.divisions[0]!.bbox)).toEqual([...point, ...point])
+  expect(result.divisions[0]).not.toHaveProperty('bbox')
   expect(JSON.parse(result.areas[0]!.geometry)).toEqual(drawing.geometry)
 })
 

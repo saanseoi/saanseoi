@@ -173,3 +173,20 @@ test('area archive serialises database flags as booleans and rejects invalid val
         }),
       ).rejects.toThrow(`requires boolean ${field}`)
 })
+
+test('archives omit Division bounds and retain selected area bounds', async () => {
+  const input = await fixture()
+  const bbox = [1, 2, 3, 4]
+  for (const resourceType of ['division', 'divisionArea'] as const) {
+    const asset = await prepareCuratedReleaseAsset({
+      ...input,
+      resourceType,
+      rows: [{ id: 'record', geometry: { type: 'Point', coordinates: [1, 2] }, bbox }],
+      names: [{ divisionId: 'record', locale: 'en', name: 'Record' }],
+    })
+    const zip = unzipSync(await readFile(asset.filePath))
+    const row = JSON.parse(strFromU8(zip['records.json']!)).rows[0]
+    if (resourceType === 'division') expect(row).not.toHaveProperty('bbox')
+    else expect(row.bbox).toEqual(bbox)
+  }
+})

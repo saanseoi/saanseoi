@@ -44,7 +44,9 @@ export function divisionTaxonomyBranches(policy: DivisionPolicy): RuleBranch[] {
     for (const entry of policy.localityClasses)
       add(
         `locality.${entry.token}`,
-        { all: [eq('subtype', 'locality'), eq('class', entry.token)] },
+        kind === 'class'
+          ? eq('class', entry.token)
+          : { all: [eq('subtype', 'locality'), eq('class', entry.token)] },
         entry[kind],
       )
     if (kind === 'level') {
@@ -69,9 +71,6 @@ export function divisionTaxonomyBranches(policy: DivisionPolicy): RuleBranch[] {
           },
           entry.class,
         )
-      for (const [level, type] of policy.fallback.classesByLevel.entries())
-        add(`fallback.level.${level}`, eq('level', level), type)
-      add('fallback.other', { all: [] }, policy.fallback.class)
     }
   }
   if (Object.isFrozen(policy)) branchCache.set(policy, branches)

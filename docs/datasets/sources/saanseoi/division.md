@@ -1,5 +1,17 @@
 # SaanSeoi Division statistics
 
+Geographic Division classification uses the first matching rule: SaanSeoi correction to
+Overture, explicit SaanSeoi class assignment (including `island_group`), selected
+individual-island polygon size, then the ordered publisher subtype/class mapping.
+Corrections and explicit assignments take precedence over island size. Level never
+supplies a class. If neither classification is available, processing fails with the
+record identity; add a SaanSeoi classification before preparing the curated archive.
+Final API level is derived from the curated class. The generated hierarchy’s expected
+class validates that classification; it cannot assign or overwrite it. Selected
+individual islands retain their area-based size class when the hierarchy expects an
+individual-island class. Island groups require an explicit SaanSeoi `island_group`
+classification.
+
 Retained source assertions use
 [distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
 An unchanged open occurrence continues; returning content starts a new occurrence.
@@ -86,22 +98,21 @@ same-ID Overture input have no single-record Before baseline. These comparisons 
 recorded automatically, not individually reviewed or verified before ingestion. They do
 not represent a complete source-to-source merge comparison.
 
-Curations are grouped by purpose: additions, map bounds, classifications, hierarchy,
-exclusions, island decisions, source matches, names, representative points and boundary
-selection. Each row displays Traditional Chinese and English names when recorded. Search
-includes these names as well as record IDs. File metadata and general policy settings
-are separate from the count of individual curations.
+Curations are grouped by purpose: additions, classifications, hierarchy, exclusions,
+island decisions, source matches, names, representative points and boundary selection.
+Each row displays Traditional Chinese and English names when recorded. Search includes
+these names as well as record IDs. File metadata and general policy settings are
+separate from the count of individual curations.
 
 Preparation retains a companion name index from its pinned source ingredients and final
 names, including excluded identities. It supports readable audit labels without changing
 the frozen curation documents.
 
 Drawn and withheld boundaries have map previews of their retained geometry. These are
-Division Area inputs: a withheld drawing is not a published boundary. Map bounds are
-viewing rectangles; representative points are label locations; boundary selections
-choose source shapes and record alternatives. General geometry file information is not
-an individual curation. Obsolete local-review wording is omitted from presentation
-without rewriting immutable evidence.
+Division Area inputs: a withheld drawing is not a published boundary. Representative
+points are label locations; boundary selections choose source shapes and record
+alternatives. General geometry file information is not an individual curation. Obsolete
+local-review wording is omitted from presentation without rewriting immutable evidence.
 
 The preparation summary owns input/output counts and the complete before/after view.
 Fixture lists sit under Curations, Patches or Rules. Curations distinguish authored
@@ -109,7 +120,7 @@ choices from decisions triggered by a guard. Identity instructions belong to Div
 boundary drawings, selections and geometry decisions belong to DivisionArea. Island
 actions are Division curations. The shared preparation summary appears once above both
 resources. Rule results sit inside their rule card and start collapsed. Independent
-classification, name, point and bounds corrections are Patches.
+classification, name, point corrections are Patches.
 
 One additions file and one exclusions file hold both authored instructions (`entries`)
 and guard-triggered decisions (`releaseEntries`). The distinct collections keep the
@@ -185,3 +196,7 @@ membership used to construct group geometry; seed lists alone do not satisfy thi
 Public attribution flattens concrete upstream references into publisher/dataset/record
 items and deduplicates references independently of contribution roles. Curation entries
 and synthetic processing markers are retained internally and excluded from `sources`.
+
+Division records have no bounding box. For map framing, select a DivisionArea variant
+and use its `bbox`, calculated from that variant’s polygon. DivisionBoundary bounds
+likewise describe the selected line geometry.

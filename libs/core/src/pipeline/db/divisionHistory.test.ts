@@ -54,7 +54,6 @@ const base = (id = 'a'): DivisionBaseRecord => ({
   level: 2,
   hierarchies: { full: [], administrative: [], locality: [], landform: [] },
   geometry: { type: 'Point', coordinates: [114.1, 22.3] },
-  bbox: [114.1, 22.3, 114.1, 22.3],
   cartography: { minZoom: 2 },
   identifiers: { wikidata: { id: 'Q123' } },
   sources: { overture: [{ dataset: 'publisher', sourceVersion: '2025' }] },

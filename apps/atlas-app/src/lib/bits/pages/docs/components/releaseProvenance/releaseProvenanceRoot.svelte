@@ -1,7 +1,7 @@
 <script lang="ts">
 import { getReleaseProvenance } from '#lib/registry/provenance.remote.js'
 import ProvenanceFlow from './releaseProvenanceFlow.svelte'
-import { provideProvenanceSources } from './provenanceContext'
+import { provideProvenanceSources, provideFieldNavigation } from './provenanceContext'
 let { releaseSetId }: { releaseSetId: string } = $props()
 let search = $state('')
 let selectedKey = $state('')
@@ -18,10 +18,40 @@ let fields = $derived(
 const key = (field: { resourceType: string; apiField: string; terminalNode: string }) =>
   `${field.resourceType}:${field.apiField}:${field.terminalNode}`
 let selected = $derived(fields.find(field => key(field) === selectedKey) ?? fields[0])
+function selectField(terminalNode: string) {
+  const field = definition?.fields.find(field => field.terminalNode === terminalNode)
+  if (field) {
+    search = ''
+    selectedKey = key(field)
+  }
+}
+provideFieldNavigation({
+  target: (name, resourceType) => {
+    const matches = definition?.fields.filter(
+      field =>
+        field.resourceType === (resourceType ?? selected?.resourceType) &&
+        (field.variant ?? null) ===
+          (resourceType ? null : (selected?.variant ?? null)) &&
+        (field.operationId ?? null) === (selected?.operationId ?? null) &&
+        field.apiField === `attributes.${name}`,
+    )
+    return matches?.length === 1 ? matches[0]?.terminalNode : undefined
+  },
+  select: selectField,
+})
 </script>
 <section class="space-y-5" aria-label="Field provenance">
   <header>
-    <div class="flex items-center justify-between gap-3"><h2 class="text-xl font-semibold">Field lineage</h2><button type="button" class="text-xs text-foreground/60 underline underline-offset-4 hover:text-foreground" onclick={() => request.refresh()}>Reload lineage</button></div>
+    <div class="flex items-center justify-between gap-3">
+      <h2 class="text-xl font-semibold">Field lineage</h2>
+      <button
+        type="button"
+        class="text-xs text-foreground/60 underline underline-offset-4 hover:text-foreground"
+        onclick={() => request.refresh()}
+      >
+        Reload lineage
+      </button>
+    </div>
     <p class="mt-2 max-w-3xl text-sm text-foreground/65">
       Trace a response field back to its sources. Branches show possible paths, not a
       recorded execution.
@@ -58,7 +88,10 @@ let selected = $derived(fields.find(field => key(field) === selectedKey) ?? fiel
           class="w-full rounded-lg border border-foreground/20 bg-background px-3 py-2"
         >
         <p class="text-xs text-foreground/60">{fields.length} fields</p>
-        <nav aria-label="API fields" class="max-h-[50vh] space-y-1 overflow-y-auto">
+        <nav
+          aria-label="API fields"
+          class="max-h-[50vh] space-y-1 overflow-y-auto pr-1"
+        >
           {#each fields as field, index (`${key(field)}:${index}`)}
             <button
               type="button"
@@ -91,10 +124,7 @@ let selected = $derived(fields.find(field => key(field) === selectedKey) ?? fiel
           {#key key(selected)}
             <ProvenanceFlow
               {definition}
-              onSelectField={(terminalNode) => {
-                const field = definition.fields.find(field => field.terminalNode === terminalNode)
-                if (field) { search = ''; selectedKey = key(field) }
-              }}
+              onSelectField={selectField}
               terminalNode={selected.terminalNode}
               binding={request.current!.binding}
               scopeLabels={request.current!.scopeLabels}

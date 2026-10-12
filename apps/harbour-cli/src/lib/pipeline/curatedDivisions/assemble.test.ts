@@ -61,7 +61,7 @@ test('curated geometry replaces source coverage without moving any vertex', () =
 test('curated geometry publishes its curated core point on the division', () => {
   const result = assembleCuratedDivisions({
     ...input,
-    divisions: [{ ...input.divisions[0], geometry: null, bbox: null }],
+    divisions: [{ ...input.divisions[0], geometry: null }],
     estimatedAreas: {
       features: [
         {
@@ -75,7 +75,7 @@ test('curated geometry publishes its curated core point on the division', () => 
     type: 'Point',
     coordinates: [0.25, 0.75],
   })
-  expect(JSON.parse(result.divisions[0]!.bbox)).toEqual([0.25, 0.75, 0.25, 0.75])
+  expect(result.divisions[0]).not.toHaveProperty('bbox')
 })
 test('source coverage remains the fallback for divisions without drawings', () => {
   expect(
@@ -650,7 +650,7 @@ test('curated assembly removes Jordan aliases from Kwun Chung without removing J
   const result = assembleCuratedDivisions({
     ...input,
     divisions: [
-      { id: kwunChung, class: 'neighbourhood', level: 5 },
+      { id: kwunChung, class: 'microhood', level: 6 },
       { id: 'jordan', class: 'neighbourhood', level: 5 },
     ],
     names: [
@@ -827,4 +827,48 @@ test('islands retain reviewed Protomaps aliases after upstream name tags disappe
       contributions: ['names'],
     })
   }
+})
+
+test('hierarchy validates class without silently replacing classification', () => {
+  expect(() =>
+    assembleCuratedDivisions({
+      ...input,
+      hierarchy: {
+        entries: [{ ...input.hierarchy.entries[0], expectedClass: 'microhood' }],
+      },
+    }),
+  ).toThrow(
+    'Hierarchy class mismatch for hood: classification resolved neighbourhood, hierarchy expects microhood',
+  )
+  expect(input.divisions[0]!.class).toBe('neighbourhood')
+})
+
+test('island correction wins over polygon size without changing its matched identity', () => {
+  const result = assembleCuratedDivisions({
+    ...input,
+    divisions: [
+      ...input.divisions,
+      { id: 'corrected-island', class: 'minor_island', level: null },
+    ],
+    islands: [
+      {
+        id: 'selected-island',
+        name: 'Island',
+        areaKm2: 0.001,
+        matches: [{ id: 'corrected-island' }],
+      },
+    ],
+    classificationPatches: [
+      {
+        divisionId: 'corrected-island',
+        replacement: { class: 'major_island', level: null },
+      },
+    ],
+  })
+  expect(result.aliases['selected-island']).toBe('corrected-island')
+  expect(result.divisions.find(row => row.id === 'corrected-island')).toMatchObject({
+    class: 'major_island',
+    category: 'landform',
+    level: null,
+  })
 })

@@ -82,7 +82,7 @@ export function curatedArchiveRows(bytes: Uint8Array) {
     const row = { ...input }
     for (const key of [
       'geometry',
-      'bbox',
+      ...(manifest.resourceType === 'divisionArea' ? ['bbox'] : []),
       'hierarchies',
       'identifiers',
       'sources',

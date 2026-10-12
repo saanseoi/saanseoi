@@ -241,12 +241,6 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_geometry_field_description'),
       }),
-    bbox: z
-      .union([BBoxSchema, z.null()])
-      .optional()
-      .openapi({
-        description: openApiText('openapi_divisions_bbox_field_description'),
-      }),
     cartography: z
       .union([CartographicHintsSchema, z.null()])
       .optional()

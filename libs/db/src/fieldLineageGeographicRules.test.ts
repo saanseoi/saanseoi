@@ -48,7 +48,8 @@ test('category and level tables agree with actual curated ingestion for every cl
       record: { id: 'example', class: klass, names: {}, hierarchies: { full: [] } },
     })
     for (const field of ['category', 'level'] as const) {
-      const rule = geographicFieldRule(field)!
+      const result = geographicFieldRule(field)!
+      const rule = result.kind === 'sections' ? result.sections[0]!.rule : result
       if (rule.kind !== 'mapping') throw Error('Expected mapping')
       const rows = rule.rows.filter(row => row[0]!.split(', ').includes(klass))
       expect(rows).toHaveLength(1)
@@ -108,23 +109,26 @@ test('rule schema rejects malformed tables and empty choices', () => {
     expect(() => validateGeographicRule(rule)).toThrow()
 })
 
-test('class lineage uses the processor mapping, including ordered fallbacks', async () => {
+test('class lineage uses the processor mapping, without level inference', async () => {
   const { publisherClassificationRules } = await import('./fieldLineageDivisionClass')
   const { normaliseDivisionRow } = await import(
     '../../core/src/pipeline/services/divisions/division'
   )
   const rule = publisherClassificationRules('Class Classification')
   if (rule.kind !== 'mapping') throw Error('Expected class mapping')
-  expect(rule.rows).toHaveLength(18)
+  expect(rule.rows).toHaveLength(11)
   for (const [subtype, klass, result] of [
     ['country', '', 'country'],
     ['dependency', '', 'sar'],
     ['region', 'town', 'district'],
     ['locality', 'town', 'town'],
+    ['', 'city', 'city'],
+    ['unknown', 'town', 'town'],
+    ['microhood', 'hamlet', 'hamlet'],
     ['locality', 'village', 'village'],
     ['neighborhood', '', 'neighbourhood'],
     ['unknown', 'macrohood', 'macrohood'],
-  ]) {
+  ] as const) {
     const row = normaliseDivisionRow({
       id: 'test',
       subtype,
@@ -137,7 +141,7 @@ test('class lineage uses the processor mapping, including ordered fallbacks', as
     expect(rule.rows.some(entry => entry[1] === result)).toBe(true)
   }
   const human = curatedPreparationField('record.class')
-  expect(human.rule?.kind).toBe('sections')
+  expect(human.rule?.kind).toBe('mapping')
   expect(human.detailRules).toBeUndefined()
   expect(JSON.stringify(human.rule)).not.toContain('Keep the publisher class')
 })
@@ -163,4 +167,52 @@ test('displayed automatic name variant agrees with the actual name processor', a
   expect(JSON.stringify(geographicFieldRule('i18n.*.nameRules', true))).toContain(
     'Village',
   )
+})
+
+test('class never depends on level and level shows only the final class mapping', () => {
+  const rule = geographicFieldRule('class')!
+  if (rule.kind !== 'mapping') throw Error('Expected mapping')
+  expect(rule.columns[0]).toBe('First matching check wins')
+  expect(rule.rows.slice(0, 5).map(row => row[1])).toEqual([
+    'Corrected class',
+    'Assigned class (including island_group)',
+    'major_island',
+    'minor_island',
+    'islet',
+  ])
+  expect(JSON.stringify(rule)).not.toContain('field-reference')
+  expect(JSON.stringify(rule)).toContain('explicit SaanSeoi classification')
+  expect(geographicFieldRule('level')!.kind).toBe('mapping')
+})
+
+test('source selection distinguishes ordered actions from conditions required together', async () => {
+  const { withRecordSelection } = await import('./fieldLineageRecordSelection')
+  const { validateGeographicRule } = await import('./fieldLineageGeographicRules')
+  const [source] = withRecordSelection([
+    {
+      datasetCode: 'ds-hk-overture-division',
+      resourceType: 'divisionArea',
+      contribution: 'Territory',
+    },
+  ])
+  const rule = source!.selection!
+  validateGeographicRule(rule)
+  if (rule.kind !== 'source-selection') throw Error('Expected source selection')
+  expect(rule.cases).toHaveLength(2)
+  expect(rule.cases[0]!.steps[0]!.all).toEqual([
+    'divisionId = this Division’s ID',
+    'isTerritorial = true',
+  ])
+  expect(() =>
+    validateGeographicRule({
+      kind: 'source-selection',
+      cases: [{ when: 'Territory', steps: [{ action: 'Select', all: [] }] }],
+    }),
+  ).toThrow('Invalid source selection')
+  expect(() =>
+    validateGeographicRule({
+      kind: 'source-selection',
+      cases: [{ when: 'Territory', steps: [] }],
+    }),
+  ).toThrow('Invalid source selection')
 })

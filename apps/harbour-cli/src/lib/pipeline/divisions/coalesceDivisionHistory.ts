@@ -18,7 +18,6 @@ const metadata = new Set([
 ])
 const jsonColumns = new Set([
   'geometry',
-  'bbox',
   'hierarchies',
   'identifiers',
   'cartography',

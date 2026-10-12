@@ -698,7 +698,6 @@ async function loadReplayedDivisionRows(versions: ResolvedSnapshotVersion[]) {
       ]
       const batchRows = await db
         .select({
-          bbox: historySchema.divisions.bbox,
           cartography: historySchema.divisions.cartography,
           divisionCode: historySchema.divisions.divisionCode,
           geometry: historySchema.divisions.geometry,

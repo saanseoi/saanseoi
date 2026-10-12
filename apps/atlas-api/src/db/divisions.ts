@@ -54,7 +54,6 @@ export type DivisionRecord = {
     class: string
     category: import('@repo/db').DivisionCategory | null
     geometry: typeof divisions.$inferSelect.geometry
-    bbox: typeof divisions.$inferSelect.bbox
     identifiers?: typeof divisions.$inferSelect.identifiers
     hierarchies: typeof divisions.$inferSelect.hierarchies
     cartography: typeof divisions.$inferSelect.cartography
@@ -107,7 +106,6 @@ type DivisionRow = {
   class: string
   category: import('@repo/db').DivisionCategory | null
   geometry: typeof divisions.$inferSelect.geometry
-  bbox: typeof divisions.$inferSelect.bbox
   identifiers: typeof divisions.$inferSelect.identifiers
   hierarchies: typeof divisions.$inferSelect.hierarchies
   cartography: typeof divisions.$inferSelect.cartography
@@ -354,7 +352,6 @@ function mapDivisionRow(row: DivisionRow): DivisionRecord {
       class: row.class,
       category: row.category,
       geometry: row.geometry,
-      bbox: row.bbox,
       identifiers: row.identifiers,
       hierarchies: row.hierarchies,
       cartography: row.cartography,
@@ -438,7 +435,6 @@ export async function listReplayedDivisionRecords(
                   category: historyDivisions.category,
                   class: historyDivisions.class,
                   geometry: historyDivisions.geometry,
-                  bbox: historyDivisions.bbox,
                   identifiers: historyDivisions.identifiers,
                   hierarchies: historyDivisions.hierarchies,
                   cartography: historyDivisions.cartography,
@@ -603,7 +599,6 @@ export async function listDivisionRecordsCurrent(
       category: divisions.category,
       class: divisions.class,
       geometry: divisions.geometry,
-      bbox: divisions.bbox,
       identifiers: divisions.identifiers,
       hierarchies: divisions.hierarchies,
       cartography: divisions.cartography,
@@ -668,7 +663,6 @@ export async function listDivisionRecordsCurrentByIds(
             category: divisions.category,
             class: divisions.class,
             geometry: divisions.geometry,
-            bbox: divisions.bbox,
             identifiers: divisions.identifiers,
             hierarchies: divisions.hierarchies,
             cartography: divisions.cartography,

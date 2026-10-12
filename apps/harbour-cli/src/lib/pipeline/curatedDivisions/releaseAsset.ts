@@ -56,19 +56,21 @@ export async function prepareCuratedReleaseAsset(input: {
   }
   const rows = curatedContentRows(input.rows).map(row =>
     Object.fromEntries(
-      Object.entries(row).map(([key, value]) => [
-        key,
-        [
-          'geometry',
-          'bbox',
-          'hierarchies',
-          'identifiers',
-          'sources',
-          'cartography',
-        ].includes(key) && typeof value === 'string'
-          ? JSON.parse(value)
-          : value,
-      ]),
+      Object.entries(row)
+        .filter(([key]) => input.resourceType !== 'division' || key !== 'bbox')
+        .map(([key, value]) => [
+          key,
+          [
+            'geometry',
+            'bbox',
+            'hierarchies',
+            'identifiers',
+            'sources',
+            'cartography',
+          ].includes(key) && typeof value === 'string'
+            ? JSON.parse(value)
+            : value,
+        ]),
     ),
   )
   for (const row of rows) {

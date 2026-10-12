@@ -27,14 +27,15 @@ test('classification counts selected branches once and compares actual source va
     { branchCounts: counts },
   )
   expect(row.base.level).toBe(2)
-  expect(row.base.class).toBe('district')
+  expect(row.base.class).toBe('city')
   expect(counts['level.contains.subtype.district']).toEqual({ matched: 1, changed: 0 })
   expect(counts['level.contains.subtype.subdistrict']).toEqual({
     matched: 0,
     changed: 0,
   })
   expect(counts['level.contains.class.city']).toEqual({ matched: 0, changed: 0 })
-  expect(counts['class.fallback.level.2']).toEqual({ matched: 1, changed: 1 })
+  expect(Object.keys(counts).some(id => id.startsWith('class.fallback.'))).toBe(false)
+  expect(counts['class.locality.city']).toEqual({ matched: 1, changed: 0 })
   expect(counts['inference.han']).toEqual({ matched: 1, changed: 1 })
   expect(
     Object.entries(counts)
@@ -73,6 +74,7 @@ test('locale mapping distinguishes copied, preserved, absent and shadowed candid
   const counts = createDivisionBranchCounts()
   const source = normaliseDivisionRow({
     id: 'one',
+    class: 'city',
     names: { common: { en: 'Name', 'zh-hk': '香港', 'zh-tw': '臺灣' } },
   }).i18n
   const rows = buildCanonicalDivisionApiI18n(source, counts)

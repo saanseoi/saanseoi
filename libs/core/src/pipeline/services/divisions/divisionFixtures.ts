@@ -10,7 +10,6 @@ const supplementalNeighbourhoods = additions.entries
     class: row.class,
     admin_level: null,
     geometry: row.point ? { type: 'Point', coordinates: row.point } : null,
-    bbox: null,
     hierarchies: [],
     names: {
       primary: [row.names['zh-hant'], row.names.en].filter(Boolean).join(' '),

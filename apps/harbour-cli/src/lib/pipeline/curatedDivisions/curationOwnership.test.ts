@@ -11,7 +11,7 @@ test('authored geometry, source selections and independent overrides have separa
     )
   }
   expect(hasCoordinates(c.selections)).toBe(false)
-  for (const fixture of [c.geometry, c.selections, c.points, c.bounds])
+  for (const fixture of [c.geometry, c.selections, c.points])
     expect(fixture.purpose.length).toBeGreaterThan(20)
   const corePoints = new Map(
     c.geometry.features.map(feature => [

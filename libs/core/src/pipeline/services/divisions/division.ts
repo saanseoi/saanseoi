@@ -44,6 +44,7 @@ import {
   type BranchCounts,
 } from '../../../provenance/branches'
 import { divisionTaxonomyBranches } from './divisionTaxonomy'
+import { matchesBranch } from '../../../provenance/branches'
 import { divisionLocaleBranches } from './divisionLocaleBranches'
 import { localeDetection, localeInferenceBranches } from '../../localeInference'
 import {
@@ -91,11 +92,7 @@ import type {
   NewDivisionRow,
   NewDivisionI18nRow,
 } from '@repo/db/currentSchema'
-import {
-  calculateGeoJsonBbox,
-  type GeoJsonGeometry,
-  type GeoJsonPosition,
-} from '../../geojson'
+import type { GeoJsonGeometry, GeoJsonPosition } from '../../geojson'
 import type { AsyncBuffer } from 'hyparquet'
 import { readDivisionInputBatches, type DivisionInput } from './divisionInput'
 import { resolveSourceRecordSchema } from '../../../sourceRecordSchemas'
@@ -1346,7 +1343,6 @@ function normaliseDivisionRowInternal(
 
   return {
     base: {
-      bbox: normalisedGeometry ? calculateGeoJsonBbox(normalisedGeometry) : null,
       cartography: row.cartography ?? null,
       createdAt: now,
       divisionCode: null,
@@ -1509,8 +1505,6 @@ export function normaliseDivisionRow(
       guard: options.pointGuard,
     })
     normalised.base.geometry = geometry
-    if (geometry && sourceGeometry?.type !== 'Point')
-      normalised.base.bbox = calculateGeoJsonBbox(geometry)
     return normalised
   } catch (error) {
     if (error instanceof ProcessingGuardError) throw error
@@ -1606,7 +1600,6 @@ function normaliseHkgovCenstatdStatisticDivisionRow(
   const now = new Date().toISOString()
   return {
     base: {
-      bbox: calculateGeoJsonBbox(geometry),
       cartography: null,
       createdAt: now,
       divisionCode: null,
@@ -1666,7 +1659,6 @@ export function buildDivisionBaseHashInput(
     | Omit<NewDivisionRow, 'snapshotId'>,
 ) {
   return {
-    bbox: base.bbox ?? null,
     cartography: base.cartography ?? null,
     divisionCode: base.divisionCode ?? null,
     geometry: base.geometry ?? null,
@@ -2322,9 +2314,24 @@ function resolveDivisionLevel(input: DivisionTaxonomyInput): number | null {
 function resolveDivisionClass(input: DivisionTaxonomyInput): string {
   if (geographicDivisionClassification(input.otClass ?? '')?.category === 'landform')
     return input.otClass!
+  const hints = divisionTaxonomyHints(input)
+  const branches = divisionTaxonomyBranches(
+    divisionNormalisationRule.declaration.parameters,
+  )
+  if (
+    !branches.some(
+      branch =>
+        branch.group === 'Class Classification' &&
+        matchesBranch(branch.condition, hints),
+    )
+  ) {
+    throw new Error(
+      `Division ${String(input.row.id)} has no supported publisher classification (subtype: ${input.otSubtype ?? 'null'}, class: ${input.otClass ?? 'null'}). Provide an explicit SaanSeoi classification during curated preparation; level cannot determine class.`,
+    )
+  }
   return divisionClass(
     divisionNormalisationRule.declaration.parameters,
-    divisionTaxonomyHints(input),
+    hints,
     input.branchCounts,
     input.row.class,
   )

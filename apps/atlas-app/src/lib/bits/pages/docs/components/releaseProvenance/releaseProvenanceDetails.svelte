@@ -11,15 +11,12 @@ let {
   humanOverride,
   definition,
   scopeLabels,
-  scope,
-  pin,
 }: {
   node: Node
   humanOverride?: import('@repo/db/fieldLineageHuman').HumanOperation
   definition: LineageDefinition
   references?: Map<string, string>
   scopeLabels: Record<string, string>
-  scope: string
   pin?: ReleaseBinding['scopes'][number]
 } = $props()
 let human = $derived(humanOverride ?? humanOperation(node, definition))
@@ -53,26 +50,28 @@ function inputLabel(input: Node['inputs'][string]) {
       known inputs are shown below.
     </p>
   {/if}
-  {#each human?.detailRules ?? [] as rule}<Rule {rule} />{/each}
+  {#each human?.detailRules ?? [] as rule}
+    <Rule {rule} />
+  {/each}
   {#if Object.values(node.inputs).filter(input => input.role === 'value').length > 1}
-  <section aria-label="Derived from" class="rounded-lg bg-foreground/5 p-3">
-    <h5 class="mb-2 text-xs font-semibold text-foreground/60">Derived from</h5>
-    <ul class="space-y-2">
-      {#each Object.values(node.inputs).filter(
-        input => input.role === 'value',
-      ) as input}
-        {@const value = inputLabel(input)}
-        <li>
-          <span class="font-medium">{value.label}</span>
-          {#if value.description}
-            <span class="block text-xs text-foreground/60">{value.description}</span>
-          {/if}
-        </li>
-      {:else}
-        <li>No source value required.</li>
-      {/each}
-    </ul>
-  </section>
+    <section aria-label="Derived from" class="rounded-lg bg-foreground/5 p-3">
+      <h5 class="mb-2 text-xs font-semibold text-foreground/60">Derived from</h5>
+      <ul class="space-y-2">
+        {#each Object.values(node.inputs).filter(
+          input => input.role === 'value',
+        ) as input}
+          {@const value = inputLabel(input)}
+          <li>
+            <span class="font-medium">{value.label}</span>
+            {#if value.description}
+              <span class="block text-xs text-foreground/60">{value.description}</span>
+            {/if}
+          </li>
+        {:else}
+          <li>No source value required.</li>
+        {/each}
+      </ul>
+    </section>
   {/if}
   {#if node.onAbsent === 'null' ||
     node.onAbsent === 'omit' ||

@@ -75,7 +75,6 @@ Every file in `fixtures/meta/curations/saanseoi-division/` has a root `purpose`.
 | `division-geometry.json`            | Authored boundaries, core points and unique editing inputs                     |
 | `division-geometry-selections.json` | Retained source polygon references and source-selection rules                  |
 | `division-point-overrides.json`     | Explicit representative-point corrections                                      |
-| `division-bounds-overrides.json`    | Bounds unavailable from retained geometry, with source attribution             |
 | `division-hierarchy.json`           | Reviewed ID-only ancestry where spatial evidence is incomplete                 |
 | `island-groups.json`                | Seed member IDs and optional membership overrides                              |
 
@@ -493,12 +492,11 @@ naming or geometry contribution. Geometry attribution identifies the actual inpu
 fields omitted. Retained archives can carry `nameVariant` as internal evidence. Public
 Divisions responses and SaanSeoi source-record samples omit it; `name` supplies the
 primary label, `nameAlts` supplies alternatives and `nameRules` supplies qualified
-forms. The public schemas describe those fields without `nameVariant`. Bounding boxes
-are derived from the available Division geometry, including degenerate point bounds, or
-from its published areas when no Division geometry exists. Records without either
-geometry cannot supply a bounding box. Geographic division codes come from
-`fixtures/meta/divisionCodes/geographic.json`; codes in other inventories retain their
-own domain.
+forms. The public schemas describe those fields without `nameVariant`. Division has no
+bounding box. Each DivisionArea variant supplies a `bbox` calculated from its own
+polygon geometry. Select that variant when framing a division on a map. Geographic
+division codes come from `fixtures/meta/divisionCodes/geographic.json`; codes in other
+inventories retain their own domain.
 
 ## Map display policy
 

@@ -1,3 +1,4 @@
+import { hierarchyPreparationRules } from './fieldLineageHierarchyRules'
 import { divisionClassRules } from './fieldLineageDivisionClass'
 import names from '../../../fixtures/meta/curations/saanseoi-division/division-names.json'
 import { divisionTaxonomy, divisionCartography } from './divisionTaxonomy'
@@ -5,11 +6,31 @@ import { divisionTaxonomy, divisionCartography } from './divisionTaxonomy'
 /** Retained, declarative rules rendered as tables or ordered choices. */
 export type GeographicRule =
   | {
+      kind: 'source-selection'
+      cases: Array<{ when: string; steps: Array<{ action: string; all?: string[] }> }>
+    }
+  | {
       kind: 'sections'
+      layout?: 'flow' | 'cases'
       sections: Array<{ title: string; description: string; rule: GeographicRule }>
     }
+  | {
+      kind: 'field-reference'
+      field: string
+      resourceType?: string
+      label: string
+      description: string
+    }
   | { kind: 'mapping'; columns: string[]; rows: string[][] }
-  | { kind: 'priority'; branches: Array<{ when: string; value: string }> }
+  | {
+      kind: 'priority'
+      branches: Array<{
+        when: string
+        value: string
+        rule?: GeographicRule
+        note?: string
+      }>
+    }
   | { kind: 'sequence'; steps: string[] }
 
 const mapping = (columns: string[], rows: string[][]): GeographicRule => ({
@@ -43,7 +64,8 @@ export function geographicFieldRule(
     .replace(/^attributes\./, '')
     .replace(/^record\./, '')
     .replace(/^names\./, 'i18n.')
-  if (field === 'category' || field === 'level') return taxonomyMapping(field)
+  if (field === 'category') return taxonomyMapping(field)
+  if (field === 'level') return taxonomyMapping('level')
   if (field === 'class') return divisionClassRules()
   if (field === 'cartography')
     return mapping(
@@ -75,28 +97,51 @@ export function geographicFieldRule(
       : undefined
   if (field === 'hierarchies')
     return preparation
-      ? sequence(
-          'Final Division area, or its point when no area exists',
-          'Find eligible parents with overlapping areas',
-          'Build separate ancestor paths for each covered part',
-          'Preserve explicit ancestors without area geometry; calculate full containment',
-        )
-      : mapping(
-          ['Output', 'Rule'],
-          [
-            ['administrative', 'Administrative ancestors'],
-            ['landform', 'Landform ancestors'],
-            ['locality', 'Ancestors in the locality or hood categories'],
-            [
-              'full',
-              'Combined ancestor path; omit city and the Hong Kong Island landform',
-            ],
-            [
-              'fullContainment',
-              'Whether the ancestor area covers the entire Division area',
-            ],
+      ? hierarchyPreparationRules()
+      : {
+          kind: 'sections',
+          sections: [
+            {
+              title: 'Ancestor paths',
+              description:
+                'Project each path built during preparation separately. Keep ancestor order, remove empty paths and deduplicate identical ID sequences. Never combine separate branches.',
+              rule: mapping(
+                ['Path key', 'How each path is formed'],
+                [
+                  [
+                    'administrative',
+                    'From each prepared path, keep only administrative ancestors',
+                  ],
+                  ['landform', 'From each prepared path, keep only landform ancestors'],
+                  [
+                    'locality',
+                    'From each prepared path, keep ancestors in the locality or hood categories',
+                  ],
+                  [
+                    'full',
+                    'Keep the prepared path across all categories; remove city ancestors and the Hong Kong Island landform. Do not concatenate the other path lists',
+                  ],
+                ],
+              ),
+            },
+            {
+              title: 'On each ancestor entry: fullContainment',
+              description:
+                'Describes whether that ancestor covers this Division’s entire canonical area for the selected release.',
+              rule: mapping(
+                ['Value', 'Meaning'],
+                [
+                  [
+                    'true',
+                    'Covers the entire area, including boundaries and every polygon part',
+                  ],
+                  ['false', 'Some of the area lies outside this ancestor'],
+                  ['null or absent', 'Unknown'],
+                ],
+              ),
+            },
           ],
-        )
+        }
   if (field.endsWith('.nameAlts'))
     return sequence(
       'Publisher alternatives + SaanSeoi curated aliases',
@@ -207,7 +252,23 @@ export function validateGeographicRule(
   value: unknown,
 ): asserts value is GeographicRule {
   const rule = value as GeographicRule
+  if (rule?.kind === 'field-reference') {
+    if (
+      rule.resourceType !== undefined &&
+      (typeof rule.resourceType !== 'string' || !rule.resourceType.trim())
+    )
+      throw Error('Invalid field reference resource')
+    if (
+      ![rule.field, rule.label, rule.description].every(
+        value => typeof value === 'string' && value.trim(),
+      )
+    )
+      throw Error('Invalid field reference')
+    return
+  }
   if (rule?.kind === 'sections') {
+    if (rule.layout !== undefined && !['flow', 'cases'].includes(rule.layout))
+      throw Error('Invalid rule layout')
     if (!Array.isArray(rule.sections) || !rule.sections.length)
       throw Error('Invalid geographic rule sections')
     for (const section of rule.sections) {
@@ -224,6 +285,27 @@ export function validateGeographicRule(
   }
   const strings = (v: unknown): v is string[] =>
     Array.isArray(v) && v.length > 0 && v.every(s => typeof s === 'string' && s.trim())
+  if (rule?.kind === 'source-selection') {
+    if (
+      !Array.isArray(rule.cases) ||
+      !rule.cases.length ||
+      rule.cases.some(
+        item =>
+          !item ||
+          !strings([item.when]) ||
+          !Array.isArray(item.steps) ||
+          !item.steps.length ||
+          item.steps.some(
+            step =>
+              !step ||
+              !strings([step.action]) ||
+              (step.all !== undefined && !strings(step.all)),
+          ),
+      )
+    )
+      throw Error('Invalid source selection')
+    return
+  }
   if (
     !rule ||
     (rule.kind === 'mapping'
@@ -242,4 +324,10 @@ export function validateGeographicRule(
           : true)
   )
     throw Error('Invalid geographic rule diagram')
+  if (rule.kind === 'priority')
+    for (const branch of rule.branches) {
+      if (branch.rule) validateGeographicRule(branch.rule)
+      if (branch.note !== undefined && typeof branch.note !== 'string')
+        throw Error('Invalid rule note')
+    }
 }

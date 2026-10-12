@@ -1,5 +1,17 @@
 # Divisions dataset family
 
+Geographic Division classification uses the first matching rule: SaanSeoi correction to
+Overture, explicit SaanSeoi class assignment (including `island_group`), selected
+individual-island polygon size, then the ordered publisher subtype/class mapping.
+Corrections and explicit assignments take precedence over island size. Level never
+supplies a class. If neither classification is available, processing fails with the
+record identity; add a SaanSeoi classification before preparing the curated archive.
+Final API level is derived from the curated class. The generated hierarchy’s expected
+class validates that classification; it cannot assign or overwrite it. Selected
+individual islands retain their area-based size class when the hierarchy expects an
+individual-island class. Island groups require an explicit SaanSeoi `island_group`
+classification.
+
 Source ledgers retain separate occurrences of recurring content under the
 [shared source validity contract](source-evidence.md#recurring-source-validity-periods).
 
@@ -10,7 +22,7 @@ assertion is retained in its source payload and mapped into the grouped identifi
 during canonical processing and SaanSeoi preparation.
 
 API Division attributes are ordered as `divisionCode`, `category`, `class`, `level`,
-`i18n`, `hierarchies`, `geometry`, `bbox`, `cartography`, `identifiers`, `sources`,
+`i18n`, `hierarchies`, `geometry`, `cartography`, `identifiers`, `sources`,
 `snapshotId`, `createdAt`, `updatedAt`. Profile omissions preserve this order.
 Identifiers are available in the default, map and full profiles.
 
@@ -38,8 +50,9 @@ Division geometry is `null`; canonicalisation does not invent coordinates.
 
 Request `include=areas` or `include=boundaries` to load geometry resources through
 `relationships.areas` or `relationships.boundaries` and the response's `included` array.
-A derived Point receives a point bounding box. Existing authored display bounds are
-preserved; use the area resource's bounding box for the polygon extent.
+Division has no bounding box. Use the selected DivisionArea variant's `bbox` for polygon
+framing, or the selected DivisionBoundary's `bbox` for its line extent. No area variant
+is implicitly selected.
 
 Village-name curations retain the place name when adding ` Village` in English or `村`
 in Traditional Chinese. Standalone suffixes are excluded from alternate names and
@@ -308,12 +321,12 @@ records their exact identities in its manifest and snapshot membership. See the
 
 Each curation file has a root `purpose`. The shared loader generates identities and
 reference geometry from pinned archives. Names, classifications, identity matches,
-exclusions, authored geometry, source-geometry selections, independent point/bounds
-overrides and explicit parent decisions have separate owners. Category and level are
-derived from class; hierarchy labels and containment are generated. Unique original
-drawings and pencil linework remain with authored geometry. Editable recovery state is
-optional local cache under `.local/division-review/`. Published Division records retain
-complete materialised hierarchy paths. See the
+exclusions, authored geometry, source-geometry selections, independent point overrides
+and explicit parent decisions have separate owners. Category and level are derived from
+class; hierarchy labels and containment are generated. Unique original drawings and
+pencil linework remain with authored geometry. Editable recovery state is optional local
+cache under `.local/division-review/`. Published Division records retain complete
+materialised hierarchy paths. See the
 [curation ownership table](../sources/saanseoi/divisionArea.md#curation-ownership).
 
 Named islands are curated as geographic landforms in a separate SaanSeoi assembly. The
@@ -1629,10 +1642,9 @@ review.
 The [RVD ingredient](../sources/hkgov-rvd/division.md) contributes historical list
 membership. Its source release exposes the retained assertion schema and samples, plus
 record counts by assertion kind and source changes. Membership is separate from
-identifiers, current ancestry and record contributions. China bounds are a curated OSM
-relation assertion in `division-geometry.json`; the bounding rectangle is not used as a
-polygon or invented representative point. Geometry-less divisions retain null bounds
-until evidence exists.
+identifiers, current ancestry and record contributions. Map framing uses the bbox of the
+selected DivisionArea or DivisionBoundary resource; Division representative points do
+not define a display extent.
 
 Reviewed division name aliases are defined in
 `fixtures/meta/curations/saanseoi-division/division-names.json`. Its locale-keyed
@@ -2043,3 +2055,8 @@ The native “Maps Entity Variant Names” dataset maps to `publisherCode: overt
 `dataset: overture` by explicit attribution policy. Its property pointer, record
 reference and licence are preserved; retained native source payloads keep the original
 dataset label.
+
+Publisher classes `city`, `town`, `village` and `hamlet` select their canonical class
+without requiring subtype `locality`. Earlier subtype rules retain their precedence:
+`country`, `dependency` and `region` select `country`, `sar` and `district` respectively
+for class normalisation.

@@ -3,6 +3,7 @@ import {
   buildCurationInventory,
   curatedPrimaryNames,
   sourceDivisionNames,
+  sourceDivisionClass,
   divisionCuration,
 } from './curationInventory'
 const context = { cohort: '2026-08-19.0', releaseSet: 'test' }
@@ -133,4 +134,32 @@ test('Four Little Dragons enters through the source inventory and retains its cu
     level: 6,
     names: { en: 'West Kowloon Four Little Dragons', 'zh-hant': '四小龍' },
   })
+})
+
+test('inventory uses the same ordered publisher classification as the lineage', () => {
+  expect(sourceDivisionClass({ subtype: 'region', class: 'town' })).toBe('district')
+  expect(sourceDivisionClass({ subtype: 'unknown', class: 'City' })).toBe('city')
+  expect(sourceDivisionClass({ subtype: 'neighborhood' })).toBe('neighbourhood')
+  expect(() =>
+    sourceDivisionClass({ subtype: 'locality', class: null, level: 2 }),
+  ).toThrow()
+})
+
+test('Lei Yue Mun correction retains the published rural-area classification', () => {
+  const result = buildCurationInventory(
+    [
+      {
+        id: 'd3ec706f-f6f0-414d-9e8b-193e73c90c1c',
+        subtype: 'macrohood',
+        class: 'macrohood',
+        names: { primary: 'Lei Yue Mun' },
+        hierarchies: [],
+      },
+    ],
+    context,
+    false,
+  )
+  expect(
+    result.divisions.find(row => row.id === 'd3ec706f-f6f0-414d-9e8b-193e73c90c1c'),
+  ).toMatchObject({ class: 'rural_area', category: 'locality', level: 4 })
 })

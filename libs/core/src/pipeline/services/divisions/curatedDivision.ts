@@ -48,13 +48,11 @@ export function normaliseCuratedDivision(row: Record<string, unknown>) {
   const now = new Date().toISOString()
   return {
     base: {
-      ...base,
       ...classification,
       id: String(record.id),
       class: record.class,
       hierarchies,
       geometry: json(base.geometry) ?? null,
-      bbox: json(base.bbox) ?? null,
       cartography: json(base.cartography) ?? null,
       identifiers: json(base.identifiers) ?? null,
       sources: curatedRecordSources(base.sources, String(record.id)),

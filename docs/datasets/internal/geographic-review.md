@@ -143,9 +143,9 @@ identities are held for later review. Run `scripts/divisions/recommend-codes.py`
 
 The island editor exports decisions to `division-exclusions.json` and source references
 to `division-geometry-selections.json`. Replacing an authored island correction also
-exports the updated `division-geometry.json`. Independent point and bounds corrections
-belong in `division-point-overrides.json` and `division-bounds-overrides.json`; ordinary
-source points, polygon core points and derived bounds are not repeated there.
+exports the updated `division-geometry.json`. Independent point corrections belong in
+`division-point-overrides.json`; ordinary source points and polygon core points are not
+repeated there. Map extents come from the selected DivisionArea geometry.
 
 ## Versioned local division editor
 

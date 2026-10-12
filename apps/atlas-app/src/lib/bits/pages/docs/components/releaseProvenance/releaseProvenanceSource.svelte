@@ -8,7 +8,6 @@ import { fieldName } from './humanPresentation'
 let {
   input,
   scopeLabels,
-  binding,
   uses = [],
 }: {
   input: FieldRef
@@ -75,7 +74,7 @@ let missingSources = $derived(
     aria-label="Source releases"
   >
     <div class="rounded-lg border border-foreground/15 bg-foreground/5 p-3">
-      <p class="font-semibold">
+      {#snippet sourceTitle()}
         {#each labelParts as part, index}
           {#if index > 0}
             <span class="mx-1">·</span>
@@ -86,40 +85,52 @@ let missingSources = $derived(
             {part}
           {/if}
         {/each}
-      </p>
+      {/snippet}
+      {#if published[0]}
+        <a
+          class="font-semibold text-secondary hover:underline underline-offset-4"
+          href={`/sources/${published[0].datasetCode}/${published[0].releaseCode}`}
+        >
+          {@render sourceTitle()}
+        </a>
+      {:else}
+        <p class="font-semibold">{@render sourceTitle()}</p>
+      {/if}
       {#if input.path !== '$'}
         <p class="mt-1 text-foreground/65">{fieldName(input.path)}</p>
       {/if}
       {#each published as source}
-        <a
-          class="mt-2 block font-mono text-secondary hover:underline underline-offset-4"
-          href={`/sources/${source.datasetCode}/${source.releaseCode}`}
-          >{source.releaseCode}</a
-        >
+        <p class="mt-2 font-mono text-foreground/60">{source.releaseCode}</p>
       {:else}
         <p class="mt-2 text-foreground/60">Release identity unavailable.</p>
       {/each}
     </div>
     {#if upstream.length}
+      {#if published.some(source => source.datasetCode === 'ds-hk-saanseoi-division')}
+        <p class="leading-relaxed text-foreground/75">
+          SaanSeoi curates the inventory of Divisions. Each inventory entry identifies
+          the source records or SaanSeoi-provided data used for that Division. The cases
+          below follow those references.
+        </p>
+      {/if}
       <h5 class="font-semibold text-foreground/60">
         Source inputs used by these preparation rules
       </h5>
       <div class="ml-3 space-y-3 border-l border-secondary/30 pl-3">
         {#each upstream as source}
           <article class="rounded-lg border border-foreground/15 p-3">
-            <p class="font-semibold">
+            <a
+              class="font-semibold text-secondary hover:underline underline-offset-4"
+              href={`/sources/${source.datasetCode}/${source.releaseCode}`}
+            >
               {publishers[source.datasetCode] ?? source.label ?? source.datasetCode}
               <span class="mx-1">·</span> <code>{source.resourceType}</code>
-            </p>
+            </a>
             <p class="mt-1 leading-relaxed text-foreground/75">{source.contribution}</p>
             {#if source.selection}
               <div class="mt-2"><Rule rule={source.selection} /></div>
             {/if}
-            <a
-              class="mt-2 block font-mono text-secondary hover:underline underline-offset-4"
-              href={`/sources/${source.datasetCode}/${source.releaseCode}`}
-              >{source.releaseCode}</a
-            >
+            <p class="mt-2 font-mono text-foreground/60">{source.releaseCode}</p>
           </article>
         {/each}
       </div>

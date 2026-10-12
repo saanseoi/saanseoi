@@ -20,7 +20,7 @@ export function classificationCondition(condition: BranchCondition): string {
       subtype: 'Publisher subtype',
       class: 'Publisher class',
       adminLevel: 'Publisher administrative level',
-      level: 'Fallback level',
+      level: 'Publisher level',
     }[condition.field] ?? condition.field
   return 'contains' in condition
     ? `${label} contains ${condition.contains}`
@@ -33,7 +33,7 @@ export function publisherClassificationRules(
     kind: 'mapping',
     columns: [
       'First matching condition',
-      group === 'Class Classification' ? 'Class' : 'Fallback level',
+      group === 'Class Classification' ? 'Class' : 'Publisher level',
     ],
     rows: divisionTaxonomyBranches(policy)
       .filter(branch => branch.group === group)
@@ -44,44 +44,19 @@ export function publisherClassificationRules(
   }
 }
 export function divisionClassRules(): GeographicRule {
+  const publisher = publisherClassificationRules('Class Classification')
+  if (publisher.kind !== 'mapping') throw Error('Expected classification mapping')
   return {
-    kind: 'sections',
-    sections: [
-      {
-        title: 'Overture → Division class',
-        description:
-          'First matching row wins. Existing landform classes (major_island, minor_island, islet, island_group) are retained. Other inputs are lowercased, trimmed, and spaces or hyphens become underscores.',
-        rule: publisherClassificationRules('Class Classification'),
-      },
-      {
-        title: 'Fallback level used by the Overture mapping',
-        description:
-          'Only used when the class mapping reaches its fallback rows. First matching row wins; substring checks follow subtype, class, then administrative level. This is a classification input, not the final API level.',
-        rule: publisherClassificationRules('Level Classification'),
-      },
-      {
-        title: 'SaanSeoi curation → final class',
-        description:
-          'Apply these steps in order. Local additions start with their SaanSeoi provided class.',
-        rule: {
-          kind: 'mapping',
-          columns: ['Step', 'Class selection'],
-          rows: [
-            [
-              'Classification instructions',
-              'Matching classification correction; otherwise SaanSeoi class assignment; otherwise the Overture mapping above',
-            ],
-            [
-              'Selected individual island',
-              'SaanSeoi island class assignment; otherwise polygon area ≥ 10 km² → major_island; ≥ 0.01 km² → minor_island; otherwise islet',
-            ],
-            [
-              'Curated hierarchy assignment',
-              'Use the assigned class, including island_group. Selected individual islands keep their size classification when the hierarchy expects an individual-island class',
-            ],
-          ],
-        },
-      },
+    kind: 'mapping',
+    columns: ['First matching check wins', 'Class'],
+    rows: [
+      ['SaanSeoi correction to Overture', 'Corrected class'],
+      ['SaanSeoi class assignment', 'Assigned class (including island_group)'],
+      ['Selected individual island; polygon area ≥ 10 km²', 'major_island'],
+      ['Selected individual island; polygon area ≥ 0.01 km²', 'minor_island'],
+      ['Selected individual island', 'islet'],
+      ...publisher.rows,
+      ['No match', 'Stop ingestion; explicit SaanSeoi classification required'],
     ],
   }
 }

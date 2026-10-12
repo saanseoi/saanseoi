@@ -47,7 +47,11 @@ test('name patch wins against a conflicting curated primary name', async () => {
       }).i18n.find(row => row.locale === 'en')?.name,
     ).toBe('QA patch name')
     const lookup = await buildDivisionHierarchyLookup(
-      { rows: [{ id: entry.divisionId, names: { primary: 'Publisher name' } }] },
+      {
+        rows: [
+          { id: entry.divisionId, class: 'city', names: { primary: 'Publisher name' } },
+        ],
+      },
       { source: 'overture', sourceVersion: '2026-08-19.0' },
     )
     expect(lookup.get(entry.divisionId)?.i18n.en?.name).toBe('Publisher name')

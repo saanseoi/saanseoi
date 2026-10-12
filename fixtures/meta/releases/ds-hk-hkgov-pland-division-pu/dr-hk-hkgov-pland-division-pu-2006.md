@@ -43,7 +43,6 @@ identifiers and hierarchy edges.
 
 - `sources` - attribution lineage of the source is retained under the
   <black>hkgovPland</black> key
-- `bbox` - calculated from canonical geometry
 
 ### Normalised Fields
 
@@ -87,7 +86,6 @@ edges。
 ### 增補欄位
 
 - `sources` - 來源歸屬鏈保留於 <black>hkgovPland</black> key 下
-- `bbox` - 由標準幾何計算
 
 ### 正規化欄位
 
@@ -128,7 +126,6 @@ edges。
 ### 增补字段
 
 - `sources` - 来源归属链保留于 <black>hkgovPland</black> key 下
-- `bbox` - 由标准几何计算
 
 ### 规范化字段
 

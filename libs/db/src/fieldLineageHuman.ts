@@ -515,7 +515,7 @@ export function curatedPreparationField(
           datasetCode: overture,
           resourceType: 'division',
           contribution:
-            'Publisher subtype and class, mapped by the ordered classification rules above.',
+            'Use the referenced Overture record’s subtype and class in the mapping above.',
         },
         {
           datasetCode: protomaps,
@@ -529,57 +529,15 @@ export function curatedPreparationField(
     human = {
       ...human,
       description:
-        'Resolve ancestry from the final areas and representative points. Preserve separate paths where a Division spans multiple parents.',
-      detailRules: [
-        {
-          kind: 'mapping',
-          columns: ['Parent', 'Eligibility'],
-          rows: [
-            [
-              'Administrative',
-              'Any non-administrative child; administrative children require a smaller parent level',
-            ],
-            [
-              'Landform',
-              'Non-administrative children; individual islands can belong to an island group; groups use explicit membership where supplied',
-            ],
-            [
-              'Locality or neighbourhood',
-              'Non-administrative, non-landform children with a larger level',
-            ],
-            ['Hong Kong Island landform', 'Districts are not parent candidates'],
-            ['Point child', 'Parent area must cover the point'],
-            [
-              'Area child',
-              'Positive-area intersection; boundary contact alone does not qualify',
-            ],
-            ['Full path', 'Exclude city and the Hong Kong Island landform'],
-          ],
-        },
-      ],
-      sources: [
-        {
-          datasetCode: overture,
-          resourceType: 'divisionArea',
-          contribution: 'Administrative and territorial parent areas.',
-        },
-        {
-          datasetCode: protomaps,
-          resourceType: 'divisionArea',
-          contribution: 'Selected island areas used for geographic ancestry.',
-        },
-        {
-          datasetCode: landsd,
-          resourceType: 'division',
-          contribution: 'Selected place point when the Division has no area.',
-        },
-      ],
+        'Build ancestry using the assembled SaanSeoi DivisionAreas, including hand-drawn polygons. Use the Division’s representative point only when it has no area.',
+      sources: [],
     }
   if (path === 'record.identifiers.wikidata.id')
     human = {
       kind: 'copy',
       title: 'Retain the Wikidata link',
-      description: 'Use the accepted publisher or SaanSeoi curated Wikidata Q identifier.',
+      description:
+        'Use the accepted publisher or SaanSeoi curated Wikidata Q identifier.',
       sources: [
         {
           datasetCode: overture,

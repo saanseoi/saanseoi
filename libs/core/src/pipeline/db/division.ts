@@ -69,7 +69,6 @@ function excluded(column: string) {
 
 const divisionPayloadColumns = [
   'divisionCode',
-  'bbox',
   'cartography',
   'geometry',
   'hierarchies',
@@ -161,7 +160,6 @@ export async function getCurrentDivisionVersionMap(
     .select({
       id: historySchema.divisions.id,
       divisionCode: historySchema.divisions.divisionCode,
-      bbox: historySchema.divisions.bbox,
       cartography: historySchema.divisions.cartography,
       geometry: historySchema.divisions.geometry,
       hierarchies: historySchema.divisions.hierarchies,
@@ -257,7 +255,6 @@ export async function getDivisionVersionMapForSnapshot(
     .select({
       id: currentSchema.divisions.id,
       divisionCode: currentSchema.divisions.divisionCode,
-      bbox: currentSchema.divisions.bbox,
       cartography: currentSchema.divisions.cartography,
       geometry: currentSchema.divisions.geometry,
       hierarchies: currentSchema.divisions.hierarchies,
@@ -755,7 +752,6 @@ export async function upsertDivisionCurrentStates(
             target: [currentSchema.divisions.snapshotId, currentSchema.divisions.id],
             set: {
               divisionCode: excluded('divisionCode'),
-              bbox: excluded('bbox'),
               cartography: excluded('cartography'),
               geometry: excluded('geometry'),
               hierarchies: excluded('hierarchies'),
@@ -897,7 +893,6 @@ export async function insertDivisionVersionRows(
         category: row.category,
         divisionCode: row.divisionCode,
         geometry: row.geometry,
-        bbox: row.bbox,
         hierarchies: row.hierarchies,
         identifiers: row.identifiers,
         cartography: row.cartography,

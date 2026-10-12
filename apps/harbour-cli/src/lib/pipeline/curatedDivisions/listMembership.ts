@@ -1,19 +1,6 @@
-import bounds from '../../../../../../fixtures/meta/curations/saanseoi-division/division-bounds-overrides.json'
 import matches from '../../../../../../fixtures/meta/curations/saanseoi-division/division-identity-matches.json'
 const crosswalk = matches.sourceMemberships.rvd
 const object = (v: any) => (typeof v === 'string' ? JSON.parse(v) : v)
-
-export function applyCuratedBounds(divisions: any[]) {
-  for (const entry of bounds.entries) {
-    const row = divisions.find(row => row.id === entry.divisionId)
-    if (!row) throw Error(`Missing bounds target ${entry.divisionId}`)
-    if (!row.bbox) {
-      row.bbox = entry.bbox
-      const { publisher, ...source } = entry.source
-      row.sources = { ...object(row.sources), [publisher]: [source] }
-    }
-  }
-}
 
 /** List inclusion is source evidence; it does not assert current spatial parentage. */
 export function applyRvdMembership(

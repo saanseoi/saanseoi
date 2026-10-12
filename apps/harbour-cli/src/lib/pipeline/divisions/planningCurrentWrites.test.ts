@@ -41,7 +41,6 @@ test('Planning canonical reuse and local/remote current delivery skip an unchang
       level: 6,
       identifiers: null,
       cartography: null,
-      bbox: null,
       hierarchies: { full: [], administrative: [], locality: [], landform: [] },
       geometry: {
         type: 'Polygon',

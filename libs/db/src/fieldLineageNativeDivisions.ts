@@ -255,7 +255,6 @@ export function nativeDivisionFieldRule(
       hma ? 'parseJsonGeometry(geometry)' : 'parseWkbGeometry(geometry)',
       ['geometry'],
     ],
-    bbox: ['calculateGeoJsonBbox(normalisedGeometry)', ['geometry']],
     identifiers: ['canonicalIdentifiers(identifiers)', ['identifiers']],
     sources: [
       hma

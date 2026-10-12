@@ -16,7 +16,6 @@ import {
   createAsyncBufferFromR2,
   readParquetObjectsInBatches,
 } from '@repo/core/pipeline/parquetR2'
-import { calculateGeoJsonBbox } from '@repo/core/pipeline/geojson'
 import { parseWkbGeometry } from '@repo/core/pipeline/services/divisions/division'
 import { createHash } from '@repo/core/pipeline/utils'
 import { historySchema, metaSchema } from '@repo/db'
@@ -42,7 +41,6 @@ export async function listCurrentHistoryRows(
     .select({
       id: historySchema.divisions.id,
       geometry: historySchema.divisions.geometry,
-      bbox: historySchema.divisions.bbox,
       divisionCode: historySchema.divisions.divisionCode,
       identifiers: historySchema.divisions.identifiers,
       level: historySchema.divisions.level,
@@ -187,7 +185,6 @@ export async function normalisePreparedDivision(
   })
   if (!geometry) throw new Error(`Planning division ${id} has invalid geometry.`)
   const base = {
-    bbox: calculateGeoJsonBbox(geometry),
     cartography: null,
     divisionCode: resolvePlandDivisionCode(level, id, divisionCodesByCanonicalId),
     geometry,

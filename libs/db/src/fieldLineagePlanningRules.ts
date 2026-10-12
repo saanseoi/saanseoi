@@ -23,7 +23,6 @@ export function planningDivisionFieldRule(field: string): CurrentFieldRule | nul
       'parseWkbGeometry(value.geometry); reject absent or invalid geometry.',
       ['geometry'],
     ],
-    bbox: ['calculateGeoJsonBbox(parseWkbGeometry(value.geometry))', ['geometry']],
     identifiers: ['asRecord(value.identifiers)', ['identifiers']],
     sources: [
       '{ sourceResolutions: { entityId: requireString(value.id, "id") } }',

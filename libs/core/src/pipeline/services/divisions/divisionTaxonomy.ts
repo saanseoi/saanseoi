@@ -37,7 +37,7 @@ export function divisionClass(
 ): string {
   return selectBranch(
     divisionTaxonomyBranches(policy).filter(b => b.group === 'Class Classification'),
-    { ...hints, level: divisionLevel(policy, hints) },
+    hints,
     before,
     counts,
   ) as string
@@ -82,9 +82,6 @@ export function validateDivisionPolicy(policy: DivisionPolicy): void {
     !text(policy.hongKongArea.class) ||
     !level(policy.fallback.parentLevel) ||
     !level(policy.fallback.rootLevel) ||
-    !text(policy.fallback.class) ||
-    !policy.fallback.classesByLevel.length ||
-    !policy.fallback.classesByLevel.every(text) ||
     !policy.hongKongAreaNames.length ||
     !policy.hongKongAreaNames.every(text) ||
     !policy.hoodClasses.length ||
