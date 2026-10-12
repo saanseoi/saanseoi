@@ -416,3 +416,28 @@ test('prepared spatial and village references survive normalisation and affect v
     )
   }
 })
+
+test('address assembly stores and hashes publisher-grouped identifiers', async () => {
+  const identifiers = { hkgovCsuId: '4013721048T20080331', curationId: 'estate-01' }
+  const { base } = normaliseAddressRowForPipeline({
+    id: 'address-1',
+    divisionSnapshotId: 'division-snapshot',
+    identifiers: JSON.stringify(identifiers),
+  })
+  const expected = {
+    'hkgov-dpo': { csuId: '4013721048T20080331' },
+    saanseoi: { curationId: 'estate-01' },
+  }
+  expect(base.identifiers).toEqual(expected)
+  const hashInput = buildAddressBaseHashInput({ id: 'address-1', ...base })
+  expect(hashInput.identifiers).toEqual(expected)
+  expect(await createHash(hashInput)).not.toBe(
+    await createHash({
+      ...hashInput,
+      identifiers: {
+        'ALS:CsuId': identifiers.hkgovCsuId,
+        'SS:curationId': 'estate-01',
+      },
+    }),
+  )
+})

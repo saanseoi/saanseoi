@@ -8,7 +8,9 @@ test('Address identifier lineage uses the canonical publisher-qualified key', ()
     fixture => fixture.apiVersion === 'api-addresses-v0.1',
   )!
   expect(
-    address.fields.some(field => field.apiField === 'attributes.identifiers.ALS:CsuId'),
+    address.fields.some(
+      field => field.apiField === 'attributes.identifiers.hkgov-dpo.csuId',
+    ),
   ).toBe(true)
   expect(
     address.fields.some(
@@ -18,10 +20,10 @@ test('Address identifier lineage uses the canonical publisher-qualified key', ()
   expect(
     currentFieldRule(
       'address',
-      'attributes.identifiers.ALS:CsuId',
+      'attributes.identifiers.hkgov-dpo.csuId',
       'ds-hk-hkgov-dpo-address',
     )?.expression,
-  ).toBe("canonicalIdentifiers(row.identifiers)?.['ALS:CsuId']")
+  ).toBe("canonicalIdentifiers(row.identifiers)?.['hkgov-dpo']?.csuId")
 })
 
 test('independent geometry and identity outputs do not claim unrelated publisher dependencies', () => {

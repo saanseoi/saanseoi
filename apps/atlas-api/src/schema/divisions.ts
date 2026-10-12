@@ -1,3 +1,4 @@
+import { IdentifiersSchema } from './identifiers'
 import { geographicCodeQueryShape } from './geographicCodeFilters'
 import { RegionFilterSchema } from './region'
 import { z } from '@hono/zod-openapi'
@@ -213,24 +214,6 @@ const DivisionGeometrySchema = DivisionPointGeometrySchema.openapi('DivisionGeom
   description: openApiText('openapi_divisions_geometry_field_description'),
 })
 
-const IdentifierValueSchema = z
-  .union([z.string(), z.number(), z.array(z.union([z.string(), z.number()]))])
-  .openapi({
-    description: openApiText('openapi_identifier_type_description'),
-  })
-
-const DivisionIdentifiersSchema = z
-  .record(
-    z.string().regex(/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/),
-    z.record(z.string().regex(/^[a-z][a-zA-Z0-9]*$/), IdentifierValueSchema).openapi({
-      'x-additionalPropertiesName': openApiText('openapi_identifier_type_label'),
-      description: openApiText('openapi_identifier_publisher_description'),
-    }),
-  )
-  .openapi('DivisionIdentifiers', {
-    'x-additionalPropertiesName': openApiText('openapi_identifier_publisher_label'),
-  })
-
 const DivisionAttributesSchema = z
   .object({
     divisionCode: z
@@ -270,7 +253,7 @@ const DivisionAttributesSchema = z
       .openapi({
         description: openApiText('openapi_divisions_cartography_field_description'),
       }),
-    identifiers: DivisionIdentifiersSchema.nullable()
+    identifiers: IdentifiersSchema.nullable()
       .optional()
       .openapi({
         description: openApiText('openapi_divisions_identifiers_field_description'),
@@ -365,7 +348,7 @@ const DivisionGeometryResourceAttributesSchema = z.object({
     .openapi({
       description: openApiText('openapi_divisions_geometry_sources_description'),
     }),
-  identifiers: DivisionIdentifiersSchema.nullable()
+  identifiers: IdentifiersSchema.nullable()
     .optional()
     .openapi({
       description: openApiText('openapi_divisions_identifiers_field_description'),

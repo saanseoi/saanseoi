@@ -394,7 +394,7 @@ export function compileResponseField(args: {
         'bbox',
         'snapshotId',
         'identifiers',
-        'identifiers.ALS:CsuId',
+        'identifiers.hkgov-dpo.csuId',
         'sources',
         'i18n',
         'relationships.divisions',

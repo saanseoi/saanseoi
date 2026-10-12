@@ -73,7 +73,7 @@ correlated ancestry paths.
 English/Chinese JSON preserves publisher content while flattened components can undergo
 premise-structure and Roman-numeral normalisation. Identity uses corrected
 CSU/GeoAddress, route, premise components and coordinates. The canonical identifier key
-is `ALS:CsuId`.
+is `hkgov-dpo.csuId`.
 
 `prepareHkgovAlsAddressParquetInternal` in `hkgovAls.ts` then performs these producer
 phases:

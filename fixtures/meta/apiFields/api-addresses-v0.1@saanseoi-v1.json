@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:3c6be9aa81dd25e3d1a8f10e81a9f79436adf570fc16fb1adb866722a457a6bb",
+  "versionHash": "sha256:5488b3de8b71df4ad4c853b87765eeab8d784e0ddc2e5faed4568a3172dedcc9",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -503,7 +503,7 @@
       ]
     },
     {
-      "apiField": "attributes.identifiers.ALS:CsuId",
+      "apiField": "attributes.identifiers.hkgov-dpo.csuId",
       "sourceDatasetCode": "ds-hk-hkgov-dpo-address",
       "resolverCode": "normalise_whitespace",
       "contributionType": "primary",

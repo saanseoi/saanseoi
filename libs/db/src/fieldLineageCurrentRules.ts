@@ -160,7 +160,7 @@ export function currentAddressFieldRule(
         'establishAddressGranularity({addressId: id, values: entry.values, sourceVersion}).granularity',
         ['resolutions', 'sourceVersion'],
       ],
-      'identifiers.ALS:CsuId': [
+      'identifiers.hkgov-dpo.csuId': [
         'undefined: supplementary Addresses have no publisher identifier; supplementaryIdentityKey is retained as internal ID-generation evidence',
         [],
       ],
@@ -280,7 +280,8 @@ export function currentAddressFieldRule(
     parentAddressId: 'asNonEmptyString(row.parentAddressId)',
     granularity:
       "row.hierarchyCuration && ['complex','phase','building','section','unit'].includes(row.curatedGranularity) ? row.curatedGranularity : establishAddressGranularity({addressId: canonicalId, values: i18n, sourceVersion, componentCorrections}).granularity",
-    'identifiers.ALS:CsuId': "canonicalIdentifiers(row.identifiers)?.['ALS:CsuId']",
+    'identifiers.hkgov-dpo.csuId':
+      "canonicalIdentifiers(row.identifiers)?.['hkgov-dpo']?.csuId",
     sources: 'addressSourceReferences(row, canonicalId)',
     i18n: 'Normalise the en and zh-hant component rows independently, keyed by locale.',
     'relationships.divisions':
@@ -304,7 +305,7 @@ export function currentAddressFieldRule(
               'sourceVersion',
               'componentCorrections',
             ],
-            'identifiers.ALS:CsuId': ['identifiers'],
+            'identifiers.hkgov-dpo.csuId': ['identifiers'],
             sources: ['publisherSource', 'canonicalId', 'id'],
             i18n: ['enFormattedAddress', 'zhHantFormattedAddress'],
             'relationships.divisions': ['divisionSnapshotId', 'divisionRelationships'],

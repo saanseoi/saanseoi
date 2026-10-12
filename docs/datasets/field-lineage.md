@@ -92,9 +92,10 @@ supplementary Address grouping, exact companion inventories and predecessor sele
 Hierarchy classification and effective-name dependencies retain baseline, conditional,
 curation and patch operations. ALS Address graphs follow the ordered inventory
 mutations, identity consolidation, final surviving-row selection and component
-corrections. The Address CSU identifier selector is `attributes.identifiers.ALS:CsuId`.
-See the [complex producer contracts](field-lineage-producers.md) for implementation
-paths and verification boundaries.
+corrections. The Address CSU identifier selector is
+`attributes.identifiers.hkgov-dpo.csuId`. See the
+[complex producer contracts](field-lineage-producers.md) for implementation paths and
+verification boundaries.
 
 Stage closure is a structural check; processor correspondence tests exercise the
 associated transformations separately. This scope excludes search, changes, geocoding,
