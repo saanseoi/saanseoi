@@ -22,6 +22,7 @@
   ],
   "hkgovAlsAuditFixtures": [
     "address-granularity",
+    "hkgov-dpo-address-2026-reviewed-continuity",
     "hkgov-dpo-address-2d-backfills",
     "hkgov-dpo-address-3d-backfills",
     "hkgov-dpo-address-3d-corrections",
@@ -43,10 +44,12 @@
     "hkgov-dpo-address-december-2025-reviewed-retentions",
     "hkgov-dpo-address-december-deletion-retentions",
     "hkgov-dpo-address-duplicate-inventory-owners",
+    "hkgov-dpo-address-duplicate-premise-guards",
     "hkgov-dpo-address-estate-complex-decisions",
     "hkgov-dpo-address-estate-component-gaps",
     "hkgov-dpo-address-estate-components",
     "hkgov-dpo-address-estate-names",
+    "hkgov-dpo-address-estate-range-hierarchies",
     "hkgov-dpo-address-february-deletion-retentions",
     "hkgov-dpo-address-february-source-guards",
     "hkgov-dpo-address-hierarchies",
@@ -71,6 +74,8 @@
     "hkgov-dpo-address-premise-consolidations",
     "hkgov-dpo-address-premise-reconstructions",
     "hkgov-dpo-address-premise-renames",
+    "hkgov-dpo-address-review-operations",
+    "hkgov-dpo-address-review-policy",
     "hkgov-dpo-address-review-program",
     "hkgov-dpo-address-reviewed-continuity-decisions",
     "hkgov-dpo-address-reviewed-estate-ownership",
@@ -109,17 +114,18 @@
     "hkgov-dpo-address-estate-component-gaps",
     "hkgov-dpo-address-estate-components"
   ],
-  "hkgovAlsDecemberReview": [
-    "hkgov-dpo-address-december-deletion-retentions"
-  ],
   "hkgovAlsDeletionPreflight": [
     "hkgov-dpo-address-approved-retirements"
+  ],
+  "hkgovAlsDuplicatePremiseGuards": [
+    "hkgov-dpo-address-duplicate-premise-guards"
   ],
   "hkgovAlsEstateComplexDecisions": [
     "hkgov-dpo-address-estate-complex-decisions"
   ],
   "hkgovAlsEstateComponents": [
-    "hkgov-dpo-address-estate-components"
+    "hkgov-dpo-address-estate-components",
+    "hkgov-dpo-address-review-policy"
   ],
   "hkgovAlsEstateGapRestorations": [
     "hkgov-dpo-address-estate-component-gaps"
@@ -127,11 +133,12 @@
   "hkgovAlsEstateNames": [
     "hkgov-dpo-address-estate-names"
   ],
-  "hkgovAlsFebruaryReview": [
-    "hkgov-dpo-address-february-deletion-retentions"
+  "hkgovAlsEstateRangeHierarchy": [
+    "hkgov-dpo-address-estate-range-hierarchies"
   ],
   "hkgovAlsHierarchies": [
-    "hkgov-dpo-address-hierarchies"
+    "hkgov-dpo-address-hierarchies",
+    "hkgov-dpo-address-review-policy"
   ],
   "hkgovAlsHouseRetentionEvidence": [
     "hkgov-dpo-address-house-retentions"
@@ -166,8 +173,44 @@
   "hkgovAlsPremiseRenames": [
     "hkgov-dpo-address-premise-renames"
   ],
-  "hkgovAlsReviewProgram": [
+  "hkgovAlsReviewFrontages": [
+    "hkgov-dpo-address-review-operations",
     "hkgov-dpo-address-review-program"
+  ],
+  "hkgovAlsReviewHierarchy": [
+    "hkgov-dpo-address-august-2025-reviewed-retentions",
+    "hkgov-dpo-address-december-deletion-retentions",
+    "hkgov-dpo-address-february-deletion-retentions",
+    "hkgov-dpo-address-review-operations",
+    "hkgov-dpo-address-review-program",
+    "hkgov-dpo-address-september-deletion-retentions"
+  ],
+  "hkgovAlsReviewInventories": [
+    "hkgov-dpo-address-april-deletion-retentions",
+    "hkgov-dpo-address-december-deletion-retentions",
+    "hkgov-dpo-address-february-deletion-retentions",
+    "hkgov-dpo-address-review-policy",
+    "hkgov-dpo-address-review-program"
+  ],
+  "hkgovAlsReviewPolicy": [
+    "hkgov-dpo-address-review-policy"
+  ],
+  "hkgovAlsReviewProgram": [
+    "hkgov-dpo-address-april-deletion-retentions",
+    "hkgov-dpo-address-august-2025-reviewed-retentions",
+    "hkgov-dpo-address-december-2025-reviewed-retentions",
+    "hkgov-dpo-address-december-deletion-retentions",
+    "hkgov-dpo-address-february-deletion-retentions",
+    "hkgov-dpo-address-february-source-guards",
+    "hkgov-dpo-address-january-deletion-retentions",
+    "hkgov-dpo-address-june-reviewed-retentions",
+    "hkgov-dpo-address-march-deletion-retentions",
+    "hkgov-dpo-address-november-2025-reviewed-retentions",
+    "hkgov-dpo-address-november-deletion-retentions",
+    "hkgov-dpo-address-october-deletion-retentions",
+    "hkgov-dpo-address-review-program",
+    "hkgov-dpo-address-september-2025-reviewed-retentions",
+    "hkgov-dpo-address-september-deletion-retentions"
   ],
   "hkgovAlsReviewedEstateOwnership": [
     "hkgov-dpo-address-reviewed-estate-ownership"
@@ -191,6 +234,7 @@
     "hkgov-dpo-address-november-2025-reviewed-retentions",
     "hkgov-dpo-address-november-deletion-retentions",
     "hkgov-dpo-address-october-deletion-retentions",
+    "hkgov-dpo-address-review-program",
     "hkgov-dpo-address-reviewed-continuity-decisions",
     "hkgov-dpo-address-reviewed-premise-retentions",
     "hkgov-dpo-address-september-2025-continuity",
@@ -200,9 +244,6 @@
   ],
   "hkgovAlsSchoolReconciliations": [
     "hkgov-dpo-address-school-reconciliations"
-  ],
-  "hkgovAlsSeptemberReview": [
-    "hkgov-dpo-address-september-deletion-retentions"
   ],
   "hkgovAlsStreetEstateComplexes": [
     "hkgov-dpo-address-street-estate-complexes",

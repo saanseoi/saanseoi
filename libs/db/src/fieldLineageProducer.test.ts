@@ -1,3 +1,4 @@
+import reviewProgram from '../../../fixtures/meta/curations/hkgov-dpo-address-review-program.json'
 import { expect, test } from 'bun:test'
 import { resolveFieldLineageDependency } from './fieldLineageProducer'
 import type { ReleaseBinding } from './fieldLineageTypes'
@@ -73,6 +74,22 @@ test('ALS inventory transform ordering and instruction sources match the executo
           .at(-1)!
           .replace(/\.json$/, ''),
       )
+    // Shared executors resolve their concrete editorial inputs through the program.
+    if (implementation.includes('alsReviewOperations')) {
+      const codes = new Set(
+        [
+          ...implementation.matchAll(/operation\.code\s*[!=]==\s*['"]([^'"]+)['"]/g),
+        ].map(match => match[1]),
+      )
+      actual.push(
+        'hkgov-dpo-address-review-program',
+        ...reviewProgram.operations
+          .filter(operation => codes.has(operation.code))
+          .map(operation => operation.fixture),
+      )
+    }
+    if (implementation.includes("from './hkgovAlsReviewPolicy'"))
+      actual.push('hkgov-dpo-address-review-policy')
     expect([...new Set(actual)].sort()).toEqual(types)
   }
 })

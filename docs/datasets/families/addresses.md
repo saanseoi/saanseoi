@@ -1546,17 +1546,25 @@ record persisted.
 ## DPO review operation contract
 
 DPO editorial decisions are durable ingestion inputs. The validated
-`hkgov-dpo-address-review-program.json` selects fixed operations over registered review
-JSON: `guard-source-group`, `reconcile-identity` and `assign-parent`. Release bounds,
-reviewed identities, source hashes and parent relationships belong in those fixtures.
-The shared executor applies them at the appropriate preparation stages and retains both
-the program and originating editorial evidence in the audit inputs.
+`hkgov-dpo-address-review-program.json` selects semantic operations over registered
+review JSON, covering source guards, premise retention, identity reconciliation,
+classification, derived parents, duplicate suppression, frontage reconstruction and
+inventory ownership. Release bounds, reviewed identities, source hashes and parent
+relationships belong in the fixtures. Shared executors preserve operation order and
+retain the program, policy and originating evidence in the audit inputs.
 
-Editors can extend an existing operation with reviewed data without adding a monthly
-TypeScript handler. A new semantic operation requires an explicit contract and tests.
-Triage labels and generated preparation issue reports do not authorise mutations.
-Specialised reconstruction, inventory integrity, investigation acknowledgements and
-retirement approvals have separate contracts; no review operation bypasses those gates.
+Editors register a decision fixture once and select supported operation codes without
+adding monthly TypeScript handlers. The program's adjacent JSON Schema describes the
+executable envelope; runtime validators check each decision collection. Existing
+canonical IDs, identity keys, provenance and evidence guards remain part of the
+contract. New semantics require an explicit operation and tests.
+
+`hkgov-dpo-address-review-policy.json` defines bounded continuity and investigation
+scopes. The 2026 authorisation does not extend to other years. Deferral requires exact
+evidence and an explicit authority; structural errors remain blocking. Triage labels and
+generated issue reports do not authorise mutations or retirements. Membership integrity,
+cache hashes and deletion approvals remain independent gates.
+
 See
 [the DPO operation reference](../sources/hkgov-dpo/address.md#executable-review-decisions)
-for inputs, execution order and extension requirements.
+for the code vocabulary, inputs, execution stages and extension requirements.

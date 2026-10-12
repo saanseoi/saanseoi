@@ -458,7 +458,7 @@
     "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts#prepareHkgovAlsAddressParquetInternal": {
       "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls.ts",
       "symbol": "prepareHkgovAlsAddressParquetInternal",
-      "sourceHash": "sha256:6177a4ff23913d716f377d908a56d8d4ce1d22d779eec5fa61a2c33afa7536df",
+      "sourceHash": "sha256:527b67f3417655d295f1731e869c6498091c500f20cb085ae79c881e24dc9d57",
       "dependencies": [
         {
           "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAls2dBackfills.ts",
@@ -662,37 +662,13 @@
     "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsSeptemberReview.ts#applySeptemberReviewedAlsHierarchy": {
       "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsSeptemberReview.ts",
       "symbol": "applySeptemberReviewedAlsHierarchy",
-      "sourceHash": "sha256:fedce9bc127b74b4829809cadb5b07eab54a91adfecb5f783c70edf862657bdd",
-      "dependencies": []
-    },
-    "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsOctoberReview.ts#applyOctoberInferredAlsHierarchy": {
-      "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsOctoberReview.ts",
-      "symbol": "applyOctoberInferredAlsHierarchy",
-      "sourceHash": "sha256:a97511cfd7092f5bf5303692bdb2e3592d114d98cbbd2975ada7e2d964c38538",
-      "dependencies": []
-    },
-    "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsNovemberReview.ts#applyNovemberInferredAlsHierarchy": {
-      "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsNovemberReview.ts",
-      "symbol": "applyNovemberInferredAlsHierarchy",
-      "sourceHash": "sha256:4d688b9e97b5a8f1389c468cbbe57fb55028b8438a5f379d37a1c9daa53b8af4",
+      "sourceHash": "sha256:f28bc5f57e8d126ce2e3c5376f9951d72f54bb3314b54c6665c0a0daf130336b",
       "dependencies": []
     },
     "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDecemberReview.ts#applyDecemberInferredAlsHierarchy": {
       "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsDecemberReview.ts",
       "symbol": "applyDecemberInferredAlsHierarchy",
-      "sourceHash": "sha256:ae0805cccf9b38fa01c6050704bbc1039b794e388e0fffbcac0e0c3be1a744bf",
-      "dependencies": []
-    },
-    "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsJanuaryReview.ts#applyJanuaryInferredAlsHierarchy": {
-      "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsJanuaryReview.ts",
-      "symbol": "applyJanuaryInferredAlsHierarchy",
-      "sourceHash": "sha256:1bac36df586e83729c88bab76cb616199ea2fb01bdade3f5ddbd7c5e0d161b75",
-      "dependencies": []
-    },
-    "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsFebruaryReview.ts#applyFebruaryInferredAlsHierarchy": {
-      "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsFebruaryReview.ts",
-      "symbol": "applyFebruaryInferredAlsHierarchy",
-      "sourceHash": "sha256:e63e94551bd789f87f463fcfc86895a750ee06b0c139566dfcd47756bfc873f1",
+      "sourceHash": "sha256:0b079feac1c49154fadcede466e638484887598d8a5e4e79b9de7335adb837f0",
       "dependencies": []
     },
     "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsEstateNames.ts#applyAlsEstateNames": {
@@ -1113,6 +1089,12 @@
       "path": "apps/atlas-api/src/services/statistics.ts",
       "symbol": "createStatisticResource",
       "sourceHash": "sha256:4e7243bffe6d4b00acf3715125c1ffa8acdec3b2d42da131850757c5f4cb615f",
+      "dependencies": []
+    },
+    "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsReviewProgram.ts#applyReviewedAlsParents": {
+      "path": "apps/harbour-cli/src/lib/sources/hkgov/dpo/hkgovAlsReviewProgram.ts",
+      "symbol": "applyReviewedAlsParents",
+      "sourceHash": "sha256:7db0f02cfee5184083ebabe43684e0dd598491f6ab43d5accbae61604ec34e50",
       "dependencies": []
     }
   }
