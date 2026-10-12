@@ -610,6 +610,10 @@ ingestion.
 
 ## Canonical Place identity
 
+Place snapshot recipes select `resolve-place-identity` from `rs-place-assembly-v1`. API
+identity provenance pins this assembly rule; supplementary Address recipes retain their
+own identity operations.
+
 Preparation assigns canonical Place IDs using evidence-based, one-to-one matching
 against the exact serving predecessor. Accepted matches reuse an ID; unmatched or
 ambiguous observations receive a deterministic SaanSeoi ID. Publisher IDs remain source

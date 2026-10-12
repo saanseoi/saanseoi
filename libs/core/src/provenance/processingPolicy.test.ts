@@ -159,3 +159,25 @@ test('operation references reject missing, duplicate and wrong-stage selections'
     'Duplicate processing ruleset selection',
   )
 })
+
+test('Place identity belongs to the Place assembly recipe, not supplementary Addresses', () => {
+  const datasetCodes = ['ds-hk-overture-place']
+  const places = resolveSnapshotProcessingRules(datasetCodes, 'place')
+  const identityRules = places.rulesets
+    .flatMap(ruleset => ruleset.rules)
+    .filter(rule => rule.operationCode === 'resolve-place-identity')
+  expect(identityRules).toHaveLength(1)
+  expect(identityRules[0]?.definition).toMatchObject({
+    id: 'resolve-place-identity',
+    implementation: {
+      path: 'libs/core/src/pipeline/services/places/placeIdentity.ts',
+      symbol: 'matchPlaceIdentities',
+    },
+  })
+  const addresses = resolveSnapshotProcessingRules(datasetCodes, 'address')
+  expect(
+    addresses.rulesets
+      .flatMap(ruleset => ruleset.rules)
+      .some(rule => rule.operationCode === 'resolve-place-identity'),
+  ).toBe(false)
+})

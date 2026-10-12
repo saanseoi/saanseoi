@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:f80775963cd6771a8cdcdfa33465033804f0bd54b28019a68539266e4b196df8",
+  "versionHash": "sha256:6b11ab0c4ccde6de506e90988178d6df7d187a75f2a34ae4cd6e3f63cdc196dd",
   "policies": [
     {
       "datasetCode": "ds-hk-hkgov-censtatd-division-statistic-housing-market-areas-building-groups",
@@ -345,7 +345,8 @@
             "normalise-overture-places",
             "resolve-place-addresses",
             "compose-place-reference-name",
-            "select-place-countries"
+            "select-place-countries",
+            "resolve-place-identity"
           ]
         }
       ]

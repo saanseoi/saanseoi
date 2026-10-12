@@ -1,5 +1,9 @@
 # Overture Places
 
+The Place snapshot policy selects `resolve-place-identity` as an assembly operation.
+Canonical Place ID provenance refers to that recipe rule, while source ingestion retains
+publisher identities independently.
+
 Retained source assertions use
 [distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
 An unchanged open occurrence continues; returning content starts a new occurrence.
