@@ -67,6 +67,7 @@ import { prepareSupplementaryAddresses } from './processLocalPlaceSqlUploadSuppl
 import { buildPlaceReleaseStatsRowsFromAccumulator } from './processLocalPlaceSqlUploadStatistics.ts'
 import { getPreparedPublication } from '../local/snapshotPublication.ts'
 import { PlaceDependencyView } from './placeDependencyView.ts'
+import { buildPlaceSourceStats } from './placeSourceStats.ts'
 
 /**
  * Materialises an Overture Places release. The lifecycle is intentionally
@@ -360,12 +361,19 @@ export async function processLocalPlaceSqlUpload(
       progress,
       'Calculate',
       'release statistics',
-      () =>
-        replaceDatasetStats(
-          metaDb,
-          resourceReleaseId,
-          buildPlaceReleaseStatsRowsFromAccumulator(stagedEnrichedPlaces.stats),
-        ),
+      async () =>
+        replaceDatasetStats(metaDb, resourceReleaseId, [
+          ...buildPlaceReleaseStatsRowsFromAccumulator(stagedEnrichedPlaces.stats),
+          ...(await buildPlaceSourceStats({
+            metaDb,
+            sourceDbs: context.sourceTargets.map(
+              target => target.db as HarbourReadableDb,
+            ),
+            datasetId,
+            sourceVersion: previewPlan.sourceVersion,
+            places: readStagedJsonLines<NormalisedPlace>(stagedPlaces.path),
+          })),
+        ]),
       stagedEnrichedPlaces.processedRows,
     )
 

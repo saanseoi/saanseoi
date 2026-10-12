@@ -1,5 +1,10 @@
 # Places dataset family
 
+Source release statistics include added, changed, removed and unchanged Places against
+the preceding published release of the same dataset. Comparisons use retained publisher
+properties and geometry across source shards, excluding observation timestamps and
+publisher version labels. The first release counts all retained Places as added.
+
 Processing runs, reusable rule mappings and counts-only curation evidence follow the
 [shared processing contract](../pipeline.md#processing-stages-and-retained-evidence).
 

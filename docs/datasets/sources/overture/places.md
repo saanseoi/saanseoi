@@ -90,6 +90,14 @@ releases. Other datasets' source assertions remain outside this membership bound
 sealed plan contains final keyed differences and is reused unchanged for remote
 delivery, local replay and interrupted recovery.
 
+Release change statistics compare incoming retained Place payloads with the preceding
+published resource release of the same dataset. The baseline uses source validity
+intervals across all prepared year shards, including assertions closed by a retry of the
+incoming release. Counts cover added, changed, removed and unchanged records; publisher
+version labels and observation timestamps do not count as content changes. The first
+release counts every retained Place as added, and an empty release counts every
+predecessor record as removed. Ambiguous retained identities stop calculation.
+
 Canonical base and locale history versions inherit independently. Unchanged reissues add
 no history versions, journal entries or source resolutions. Changed interpretations and
 explicit `source_omission` entries override inherited snapshot ancestry. Snapshot
