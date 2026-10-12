@@ -174,7 +174,7 @@ export async function buildPlandSourceSql(
   const sourceInsert = prepareRowsForSql(
     affectedRows,
     columns,
-    ['sourceRecordId', 'versionHash'],
+    ['sourceRecordId', 'versionHash', 'validFromRelease'],
     ['sourceGeometry'],
   )
   const statements = [
@@ -184,7 +184,11 @@ export async function buildPlandSourceSql(
       plan.sourceVersion,
     ),
     ...buildInsertStatements(tableName, columns, sourceInsert.rows, {
-      suffix: buildUpdateSuffix(columns, ['sourceRecordId', 'versionHash']),
+      suffix: buildUpdateSuffix(columns, [
+        'sourceRecordId',
+        'versionHash',
+        'validFromRelease',
+      ]),
     }),
     ...buildLargeTextUpdates(tableName, sourceInsert.largeTextUpdates),
   ]

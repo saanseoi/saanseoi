@@ -22,6 +22,7 @@ export const sourceVersioning = {
   versionHash: text('versionHash').notNull(),
   resourceReleaseId: text('resourceReleaseId').notNull(),
   // Version components within the owning source dataset, never full release codes.
+  // The start release is part of period identity: recurring content gets a new row.
   validFromRelease: text('validFromRelease').notNull(),
   validToRelease: text('validToRelease'),
   isCurrent: integer('isCurrent', { mode: 'boolean' }).notNull(),

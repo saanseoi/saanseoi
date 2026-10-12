@@ -114,3 +114,15 @@ reference identifies its origin, collection and programmatic path, while descrip
 remain separate localised prose.
 
 See the [processing policy contract](../pipeline.md#define-audit-processing-rules).
+
+## Recurring source validity periods
+
+A source assertion with release-validity bounds is identified by
+`(sourceRecordId, versionHash, validFromRelease)`. The hash identifies content; the
+start release identifies one continuous occurrence. A return to earlier content creates
+a new period, including after a removal. Only an open occurrence can continue into the
+next release. Closed occurrences retain their original start, end and release owner.
+Retries address the same complete period key, including SQL replay and large-payload
+updates. A source ledger explicitly keyed by resource release records membership per
+release instead. Canonical history uses snapshot membership and retains its content
+keys.

@@ -13,7 +13,12 @@ import {
 } from './processLocalDivisionGeometrySqlUploadReplay.ts'
 import { MAX_D1_GEOMETRY_SQL_STATEMENT_BYTES } from './processLocalDivisionGeometrySqlUploadConfig.ts'
 
-for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
+for (const sourceName of [
+  'overture',
+  'hkgov-censtatd',
+  'hkgov-had',
+  'saanseoi',
+] as const)
   test(`remote geometry capture retains immutable ${sourceName} membership and source closures`, async () => {
     const root = await mkdtemp(join(tmpdir(), 'geometry-closure-replay-'))
     const historyBinding = resolveShardBindingName('history', 'HK', '2026')
@@ -29,8 +34,12 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
       history: new Database(':memory:'),
       source: new Database(':memory:'),
     }
-    const sourceTable =
-      sourceName === 'overture' ? 'overtureDivisionAreas' : 'hkgovCenstatdStatistics'
+    const sourceTable = {
+      overture: 'overtureDivisionAreas',
+      'hkgov-censtatd': 'hkgovCenstatdStatistics',
+      'hkgov-had': 'hkgovHadDivisionAreas',
+      saanseoi: 'ssDivisionArea',
+    }[sourceName]
     try {
       const meta = local.DB_META
       if (!meta) throw new Error('Missing meta')
@@ -83,6 +92,11 @@ for (const sourceName of ['overture', 'hkgov-censtatd'] as const)
         remote.source.exec(
           "INSERT INTO hkgovCenstatdDivisionAreaDerivatives (resourceReleaseId,sourceRecordId,inputVersionHash,transform,versionHash,isCurrent,validToRelease,updatedAt) VALUES('new-release','removed','exact','simplified','stale',1,NULL,'stale')",
         )
+      if (sourceName !== 'hkgov-censtatd')
+        for (const db of [local[sourceBinding], remote.source])
+          db?.exec(
+            `INSERT INTO "${sourceTable}" (resourceReleaseId,sourceRecordId,versionHash,isCurrent,validFromRelease,validToRelease,updatedAt,geometry) VALUES('historic','changed','v1',0,'2024-01','2025-01','historic',X'00FF');`,
+          )
       const payloads: Array<{ target: string; sql: string }> = []
       // Local context selects generation only; explicit capture forbids network writes.
       const context = {

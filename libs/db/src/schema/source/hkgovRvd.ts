@@ -10,7 +10,9 @@ export const sourceHkgovRvdAreas = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovRvdAreas'),
   ],
 )

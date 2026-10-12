@@ -64,7 +64,7 @@ function database() {
     sourceRecordId TEXT, versionHash TEXT, resourceReleaseId TEXT, validFromRelease TEXT,
     validToRelease TEXT, isCurrent INTEGER, createdAt TEXT, updatedAt TEXT,
     properties TEXT, sourceGeometry TEXT, version INTEGER,
-    PRIMARY KEY (sourceRecordId, versionHash));`)
+    PRIMARY KEY (sourceRecordId, versionHash, validFromRelease));`)
   return db
 }
 
@@ -312,5 +312,65 @@ test('streamed source finalisation runs after all chunks even without removed hi
   } finally {
     db.close()
     await rm(directory, { recursive: true, force: true })
+  }
+})
+
+test('Places retain A to B to A as three disjoint source periods, including retry and reappearance', async () => {
+  const db = database()
+  try {
+    const run = async (version: string, hash: string | null) => {
+      const data = input(hash ? [place('recurring', hash)] : [])
+      data.message.sourceVersion = version
+      data.message.resourceReleaseId = `release-${version}`
+      const current = db
+        .query<{ versionHash: string }, []>(
+          'SELECT versionHash FROM overturePlaces WHERE isCurrent=1',
+        )
+        .get()
+      data.sourceRows = new Map(
+        current
+          ? [['recurring', { bindingName: 'new', versionHash: current.versionHash }]]
+          : [],
+      )
+      data.sourceResolutions = new Map(
+        current
+          ? [
+              [
+                'recurring',
+                {
+                  sourceVersionHash: current.versionHash,
+                  resolutions: { entities: { place: ['recurring'] } },
+                },
+              ],
+            ]
+          : [],
+      )
+      const sql = await buildPlaceSql(data, { timestamp: version })
+      for (const statements of sql.sourceSqlByBinding.values())
+        db.exec(statements.join(''))
+    }
+    await run('2026-05', 'A')
+    await run('2026-06', 'B')
+    await run('2026-07', 'A')
+    await run('2026-07', 'A')
+    expect(
+      db
+        .query(
+          'SELECT versionHash,validFromRelease,validToRelease FROM overturePlaces ORDER BY validFromRelease',
+        )
+        .all(),
+    ).toEqual([
+      { versionHash: 'A', validFromRelease: '2026-05', validToRelease: '2026-06' },
+      { versionHash: 'B', validFromRelease: '2026-06', validToRelease: '2026-07' },
+      { versionHash: 'A', validFromRelease: '2026-07', validToRelease: null },
+    ])
+    await run('2026-08', null)
+    await run('2026-09', 'A')
+    expect(db.query('SELECT COUNT(*) AS n FROM overturePlaces').get()).toEqual({ n: 4 })
+    expect(
+      db.query('SELECT validFromRelease FROM overturePlaces WHERE isCurrent=1').get(),
+    ).toEqual({ validFromRelease: '2026-09' })
+  } finally {
+    db.close()
   }
 })

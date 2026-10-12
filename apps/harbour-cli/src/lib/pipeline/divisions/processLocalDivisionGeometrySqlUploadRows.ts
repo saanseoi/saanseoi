@@ -244,7 +244,11 @@ export async function writeGeometryRows(
   }
   // Repeated content can have disjoint validity periods (A -> B -> A).
   // Continue an open period only; never reopen a closed occurrence.
-  const periodSource = version.source === 'overture'
+  const periodSource =
+    !isDisplayDerivative &&
+    !['hkgov-censtatd', 'hkgov-pland-pu', 'hkgov-pland-new-town'].includes(
+      version.source,
+    )
   const openSourcePeriods = periodSource
     ? await context.sourceDb
         .select({
@@ -517,7 +521,11 @@ export async function writeGeometryRows(
                     sourceTable.sourceRecordId,
                     sourceTable.versionHash,
                   ]
-                : [sourceTable.sourceRecordId, sourceTable.versionHash],
+                : [
+                    sourceTable.sourceRecordId,
+                    sourceTable.versionHash,
+                    sourceTable.validFromRelease,
+                  ],
             setWhere: sql`isCurrent <> 1 OR validToRelease IS NOT NULL`,
             set: {
               resourceReleaseId: version.resourceReleaseId,

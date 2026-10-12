@@ -43,7 +43,9 @@ export const sourceHkgovLandsdPlaceNames = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovLandsdPlaceNames'),
   ],
 )
@@ -65,7 +67,9 @@ export const sourceHkgovLandsdStreetBaselineRecords = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovLandsdStreetBaselineRecords'),
     index('hkgovLandsdStreetBaselineRecords_deferToNotices_idx').on(
       table.deferToNotices,
@@ -101,7 +105,9 @@ export const sourceHkgovLandsdStreetNotices = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovLandsdStreetNotices'),
     index('hkgovLandsdStreetNotices_gazetteDate_idx').on(table.gazetteDate),
     index('hkgovLandsdStreetNotices_kind_idx').on(table.kind),
@@ -130,7 +136,9 @@ export const sourceHkgovLandsdStreetNoticeApplications = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovLandsdStreetNoticeApplications'),
   ],
 )
@@ -149,7 +157,7 @@ export const sourceHkgovLandsdRoadCentrelines = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.sourceRecordId, table.versionHash],
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
     }),
     ...sourceVersionIndexes(table, 'hkgovLandsdRoadCentrelines'),
   ],

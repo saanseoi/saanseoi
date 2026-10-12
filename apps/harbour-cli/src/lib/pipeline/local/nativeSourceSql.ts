@@ -940,7 +940,7 @@ async function buildNativeSourceSqlInternal(
       // Acquisition metadata can be recovered without changing publisher identity.
       if (row.sourceLocator)
         statements.push(
-          `UPDATE "${table.name}" SET "sourceLocator" = ${sqlValue(row.sourceLocator)} WHERE "sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)} AND "sourceLocator" IS NULL;`,
+          `UPDATE "${table.name}" SET "sourceLocator" = ${sqlValue(row.sourceLocator)} WHERE "sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)} AND "isCurrent" = 1 AND "sourceLocator" IS NULL;`,
         )
     }
     statements.push(
@@ -983,7 +983,7 @@ function nativeRowStatements(table: string, row: Record<string, unknown>) {
     .map(column => `"${column}" = excluded."${column}"`)
     .join(', ')
   const insert = (values: Record<string, unknown>) =>
-    `INSERT INTO "${table}" (${columns.map(column => `"${column}"`).join(', ')}) VALUES (${columns.map(column => sqlValue(values[column])).join(', ')}) ON CONFLICT ("sourceRecordId", "versionHash") DO UPDATE SET ${updates} WHERE "${table}"."isCurrent" <> 1 OR "${table}"."validToRelease" IS NOT NULL;`
+    `INSERT INTO "${table}" (${columns.map(column => `"${column}"`).join(', ')}) SELECT ${columns.map(column => sqlValue(values[column])).join(', ')} WHERE NOT EXISTS (SELECT 1 FROM "${table}" WHERE "sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)} AND "isCurrent" = 1) ON CONFLICT ("sourceRecordId", "versionHash", "validFromRelease") DO UPDATE SET ${updates} WHERE "${table}"."isCurrent" <> 1 OR "${table}"."validToRelease" IS NOT NULL;`
   const direct = insert(row)
   if (Buffer.byteLength(direct) <= SQL_STATEMENT_BYTE_LIMIT) return [direct]
 
@@ -998,7 +998,7 @@ function nativeRowStatements(table: string, row: Record<string, unknown>) {
     largeValues.push([column, text])
     placeholder[column] = ''
   }
-  const where = `"sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)} AND "isCurrent" = 0`
+  const where = `"sourceRecordId" = ${sqlValue(row.sourceRecordId)} AND "versionHash" = ${sqlValue(row.versionHash)} AND "validFromRelease" = ${sqlValue(row.validFromRelease)} AND "isCurrent" = 0`
   const statements = [insert(placeholder)]
   for (const [column, value] of largeValues) {
     // Iterate code points so a chunk never splits a UTF-8 character. Even

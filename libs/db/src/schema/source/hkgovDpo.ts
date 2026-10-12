@@ -14,7 +14,9 @@ export const sourceHkgovAlsAddresses3d = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovAlsAddresses3d'),
   ],
 )
@@ -30,7 +32,7 @@ export const sourceHkgovAlsAddresses2d = sqliteTable(
   },
   table => [
     primaryKey({
-      columns: [table.sourceRecordId, table.versionHash],
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
     }),
     ...sourceVersionIndexes(table, 'hkgovAlsAddresses2d'),
   ],

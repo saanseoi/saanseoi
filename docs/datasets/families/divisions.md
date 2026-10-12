@@ -1,5 +1,8 @@
 # Divisions dataset family
 
+Source ledgers retain separate occurrences of recurring content under the
+[shared source validity contract](source-evidence.md#recurring-source-validity-periods).
+
 Division Wikidata links use `identifiers.wikidata.id`, for example
 `{ "wikidata": { "id": "Q123" } }`. Canonical Division rows, prepared SaanSeoi records
 and API attributes have no standalone Wikidata field. Overture's native `wikidata`

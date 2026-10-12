@@ -1,5 +1,9 @@
 # Overture division geometry ingestion
 
+Retained source assertions use
+[distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
+An unchanged open occurrence continues; returning content starts a new occurrence.
+
 Canonical Division identities use representative Points. Canonicalisation preserves a
 valid source point or derives an interior point from polygonal source geometry using JTS
 `InteriorPoint`. The `division-representative-point` audit guard verifies point validity

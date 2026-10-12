@@ -24,7 +24,7 @@ export async function preRetireAddressSources(
     const isUpsert =
       /^INSERT INTO "hkgovAlsAddresses(?:2d|3d)" /.test(statement.sql) &&
       statement.sql.endsWith(
-        'ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET resourceReleaseId=excluded.resourceReleaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt',
+        'ON CONFLICT(sourceRecordId,versionHash,validFromRelease) DO UPDATE SET resourceReleaseId=excluded.resourceReleaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt',
       )
     if (
       (!isClosure && !isUpdate && !isUpsert) ||

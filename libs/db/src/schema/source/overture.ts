@@ -18,11 +18,9 @@ function overtureSourceTable<TName extends string>(
       ...timestamps,
     },
     table => [
-      compressedGeometry
-        ? primaryKey({
-            columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
-          })
-        : primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+      primaryKey({
+        columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+      }),
       ...sourceVersionIndexes(table, name),
     ],
   )

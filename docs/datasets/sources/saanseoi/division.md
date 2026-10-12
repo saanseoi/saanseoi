@@ -1,5 +1,9 @@
 # SaanSeoi Division statistics
 
+Retained source assertions use
+[distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
+An unchanged open occurrence continues; returning content starts a new occurrence.
+
 Division Wikidata links use `identifiers.wikidata.id`, for example
 `{ "wikidata": { "id": "Q123" } }`. Canonical Division rows, prepared SaanSeoi records
 and API attributes have no standalone Wikidata field. Overture's native `wikidata`

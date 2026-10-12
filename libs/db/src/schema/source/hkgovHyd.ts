@@ -11,7 +11,9 @@ export const sourceHkgovHydStreetNamePlates = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovHydStreetNamePlates'),
   ],
 )
@@ -24,7 +26,9 @@ export const sourceHkgovHydSensitiveStreets = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovHydSensitiveStreets'),
   ],
 )
@@ -37,7 +41,9 @@ export const sourceHkgovHydStrategicStreets = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovHydStrategicStreets'),
   ],
 )

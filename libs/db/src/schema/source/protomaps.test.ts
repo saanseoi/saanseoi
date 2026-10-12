@@ -22,6 +22,7 @@ describe('Protomaps island source payload boundary', () => {
     expect(config.primaryKeys[0]?.columns.map(column => column.name)).toEqual([
       'sourceRecordId',
       'versionHash',
+      'validFromRelease',
     ])
     expect(config.indexes.map(index => index.config.name).sort()).toEqual([
       `${config.name}_open_records_idx`,

@@ -1,5 +1,9 @@
 # Home Affairs Department District Boundary area ingestion
 
+Retained source assertions use
+[distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
+An unchanged open occurrence continues; returning content starts a new occurrence.
+
 Canonical source references follow the
 [source evidence contract](../../families/source-evidence.md). Original publisher
 properties remain in retained source assertions. The release identifies the retained

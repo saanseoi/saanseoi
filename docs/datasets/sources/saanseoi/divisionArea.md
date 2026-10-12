@@ -1,5 +1,9 @@
 # SaanSeoi curated DivisionArea
 
+Retained source assertions use
+[distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
+An unchanged open occurrence continues; returning content starts a new occurrence.
+
 ## Identifier and construction metadata
 
 SaanSeoi `identifiers` contains publisher-keyed identifier types with text, numeric or

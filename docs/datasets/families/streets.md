@@ -1,5 +1,8 @@
 # Streets API family
 
+Source ledgers retain separate occurrences of recurring content under the
+[shared source validity contract](source-evidence.md#recurring-source-validity-periods).
+
 Canonical Street content hashes exclude the lifecycle version counter. Gazette dates,
 effective dates and deletion dates remain significant lifecycle content.
 

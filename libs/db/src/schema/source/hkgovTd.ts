@@ -28,7 +28,9 @@ export const sourceHkgovTdPedestrianStreets = sqliteTable(
     ...timestamps,
   },
   table => [
-    primaryKey({ columns: [table.sourceRecordId, table.versionHash] }),
+    primaryKey({
+      columns: [table.sourceRecordId, table.versionHash, table.validFromRelease],
+    }),
     ...sourceVersionIndexes(table, 'hkgovTdPedestrianStreets'),
     index('hkgovTdPedestrianStreets_kind_idx').on(table.kind),
   ],

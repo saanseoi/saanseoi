@@ -1,5 +1,9 @@
 # LandsD Road Centreline
 
+Retained source assertions use
+[distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
+An unchanged open occurrence continues; returning content starts a new occurrence.
+
 Source validity uses the owning release's version component in `validFromRelease` and
 `validToRelease`. Dataset prefixes and resource suffixes are omitted;
 `resourceReleaseId` retains the release association.

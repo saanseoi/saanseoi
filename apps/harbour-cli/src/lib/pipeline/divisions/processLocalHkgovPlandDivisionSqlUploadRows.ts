@@ -287,6 +287,7 @@ export async function insertSourceRows(
           target: [
             sourceSchema.sourceHkgovPlandPlanningCells.sourceRecordId,
             sourceSchema.sourceHkgovPlandPlanningCells.versionHash,
+            sourceSchema.sourceHkgovPlandPlanningCells.validFromRelease,
           ],
           set: sourceVersionConflictUpdate(resourceReleaseId, sourceVersion, now),
         })
@@ -321,6 +322,7 @@ export async function insertSourceRows(
         target: [
           sourceSchema.sourceHkgovPlandNewTowns.sourceRecordId,
           sourceSchema.sourceHkgovPlandNewTowns.versionHash,
+          sourceSchema.sourceHkgovPlandNewTowns.validFromRelease,
         ],
         set: sourceVersionConflictUpdate(resourceReleaseId, sourceVersion, now),
       })

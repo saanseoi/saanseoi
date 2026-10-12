@@ -81,7 +81,7 @@ test('road centreline schema reuses unchanged features across different archives
   const db = new Database(':memory:')
   const config = getTableConfig(sourceSchema.sourceHkgovLandsdRoadCentrelines)
   db.exec(
-    `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}${column.notNull ? ' NOT NULL' : ''}`).join(',')}, PRIMARY KEY(sourceRecordId,versionHash))`,
+    `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}${column.notNull ? ' NOT NULL' : ''}`).join(',')}, PRIMARY KEY(sourceRecordId,versionHash,validFromRelease))`,
   )
   const original = {
     sourceRecordId: 'road',
@@ -135,6 +135,19 @@ test('road centreline schema reuses unchanged features across different archives
     expect(
       db.query(`SELECT validToRelease FROM "${config.name}" WHERE isCurrent=0`).get(),
     ).toEqual({ validToRelease: '2025-11-19.0' })
+    await run('2025-12-01.0', [original])
+    await run('2025-12-01.0', [original])
+    expect(
+      db
+        .query(
+          `SELECT validFromRelease, validToRelease FROM "${config.name}" ORDER BY validFromRelease`,
+        )
+        .all(),
+    ).toEqual([
+      { validFromRelease: '2025-09-24.0', validToRelease: '2025-11-19.0' },
+      { validFromRelease: '2025-11-19.0', validToRelease: '2025-12-01.0' },
+      { validFromRelease: '2025-12-01.0', validToRelease: null },
+    ])
     await run('2025-12-17.0', [])
     expect(
       db.query(`SELECT count(*) AS n FROM "${config.name}" WHERE isCurrent=1`).get(),
@@ -151,7 +164,7 @@ test('replays native polygon values and duplicate assertions without losing hist
     sourceGeometry TEXT NOT NULL, properties TEXT NOT NULL,
     createdAt TEXT NOT NULL, updatedAt TEXT NOT NULL, isCurrent INTEGER NOT NULL,
     resourceReleaseId TEXT NOT NULL, validFromRelease TEXT NOT NULL, validToRelease TEXT,
-    PRIMARY KEY(sourceRecordId, versionHash)
+    PRIMARY KEY(sourceRecordId, versionHash, validFromRelease)
   )`)
   const original = {
     sourceRecordId: 'one',
@@ -219,7 +232,7 @@ test('imports all three cached HyD archives with lossless geometry and repeatabl
     const db = new Database(':memory:')
     const columns = Object.keys(firstRow)
     db.exec(
-      `CREATE TABLE evidence (${columns.map(column => `"${column}" ${column === 'isCurrent' ? 'INTEGER' : 'TEXT'}`).join(', ')}, PRIMARY KEY(sourceRecordId, versionHash))`,
+      `CREATE TABLE evidence (${columns.map(column => `"${column}" ${column === 'isCurrent' ? 'INTEGER' : 'TEXT'}`).join(', ')}, PRIMARY KEY(sourceRecordId, versionHash, validFromRelease))`,
     )
     try {
       const sql = await buildNativeSourceSql(
@@ -260,7 +273,7 @@ test('Protomaps polygons retain native geometry and acquisition evidence in the 
   const db = new Database(':memory:')
   const config = getTableConfig(sourceSchema.sourceProtomapsIslandFeatures)
   db.exec(
-    `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}${column.notNull ? ' NOT NULL' : ''}`).join(',')}, PRIMARY KEY(sourceRecordId,versionHash))`,
+    `CREATE TABLE "${config.name}" (${config.columns.map(column => `"${column.name}" ${column.getSQLType()}${column.notNull ? ' NOT NULL' : ''}`).join(',')}, PRIMARY KEY(sourceRecordId,versionHash,validFromRelease))`,
   )
   const geometry = {
     type: 'Polygon',

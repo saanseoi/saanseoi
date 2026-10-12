@@ -322,21 +322,31 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
     raw.versionHash = 'raw-3d'
     raw.properties.raw = 'unaltered'
     await run('2026-05-01.0', 'new', 's6', [], changed)
-    expect(count(sourceNew, 'hkgovAlsAddresses3d')).toBe(1)
-    expect(sourceNew.query('SELECT isCurrent FROM hkgovAlsAddresses3d').get()).toEqual({
-      isCurrent: 0,
-    })
+    expect(count(sourceNew, 'hkgovAlsAddresses3d')).toBe(2)
+    expect(
+      sourceNew
+        .query(
+          'SELECT validFromRelease,validToRelease,isCurrent FROM hkgovAlsAddresses3d ORDER BY validFromRelease',
+        )
+        .all(),
+    ).toEqual([
+      {
+        validFromRelease: '2026-03-01.0',
+        validToRelease: '2026-04-01.0',
+        isCurrent: 0,
+      },
+      { validFromRelease: '2026-05-01.0', validToRelease: null, isCurrent: 1 },
+    ])
     expect(
       sourceOld
         .query(
-          'SELECT properties,resourceReleaseId,validFromRelease,isCurrent FROM hkgovAlsAddresses3d',
+          'SELECT resourceReleaseId,validFromRelease,isCurrent FROM hkgovAlsAddresses3d',
         )
         .get(),
     ).toEqual({
-      properties: JSON.stringify(raw.properties),
       resourceReleaseId: 's1',
       validFromRelease: '2025-12-01.0',
-      isCurrent: 1,
+      isCurrent: 0,
     })
     expect(historyNew.query('SELECT isCurrent FROM address3d').get()).toEqual({
       isCurrent: 1,
@@ -362,7 +372,14 @@ test('yearly shards reuse prior content, close locale-only omissions and superse
     )
     expect(
       sourceOld.query('SELECT isCurrent,validToRelease FROM hkgovAlsAddresses3d').get(),
-    ).toEqual({ isCurrent: 0, validToRelease: '2026-06-01.0' })
+    ).toEqual({ isCurrent: 0, validToRelease: '2026-03-01.0' })
+    expect(
+      sourceNew
+        .query(
+          "SELECT validToRelease FROM hkgovAlsAddresses3d WHERE validFromRelease='2026-05-01.0'",
+        )
+        .get(),
+    ).toEqual({ validToRelease: '2026-06-01.0' })
     expect(count(current, 'address3d')).toBe(1)
     expect(
       JSON.parse(

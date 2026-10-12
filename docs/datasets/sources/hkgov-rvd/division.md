@@ -1,5 +1,9 @@
 # RVD Property Review area membership
 
+Retained source assertions use
+[distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
+An unchanged open occurrence continues; returning content starts a new occurrence.
+
 RVD source rows retain PDF page evidence in `properties`. The shared PDF member belongs
 in the processing receipt; `hkgovRvdAreas` has no `sourceLocator` column.
 

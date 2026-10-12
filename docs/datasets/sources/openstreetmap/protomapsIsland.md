@@ -1,5 +1,9 @@
 # Protomaps island source evidence
 
+Retained source assertions use
+[distinct validity periods for recurring content](../../families/source-evidence.md#recurring-source-validity-periods).
+An unchanged open occurrence continues; returning content starts a new occurrence.
+
 The Protomaps source table omits `sourceLocator`; its release archive and
 `sourceRecordId` identify the retained publisher feature.
 

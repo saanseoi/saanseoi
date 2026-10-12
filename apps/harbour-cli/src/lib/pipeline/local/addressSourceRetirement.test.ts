@@ -19,7 +19,7 @@ const closure = {
   sql: 'UPDATE hkgovAlsAddresses2d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE isCurrent = 1 AND resourceReleaseId <> ?',
   params: ['new-version', 'now', 'new-release'],
 }
-const insertSql = `INSERT INTO "hkgovAlsAddresses2d" (${columns.map(column => `"${column}"`).join(',')}) VALUES (${columns.map(() => '?').join(',')}) ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET resourceReleaseId=excluded.resourceReleaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt`
+const insertSql = `INSERT INTO "hkgovAlsAddresses2d" (${columns.map(column => `"${column}"`).join(',')}) VALUES (${columns.map(() => '?').join(',')}) ON CONFLICT(sourceRecordId,versionHash,validFromRelease) DO UPDATE SET resourceReleaseId=excluded.resourceReleaseId,isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt`
 const statements = [
   {
     sql: 'UPDATE hkgovAlsAddresses2d SET isCurrent = 0, validToRelease = ?, updatedAt = ? WHERE sourceRecordId = ? AND isCurrent = 1 AND versionHash <> ?',
@@ -62,7 +62,7 @@ const statements = [
 function database() {
   const db = new Database(':memory:')
   db.exec(
-    `CREATE TABLE hkgovAlsAddresses2d (${columns.map(column => `${column} ${column === 'isCurrent' ? 'INTEGER' : 'TEXT'}`).join(',')}, PRIMARY KEY(sourceRecordId,versionHash))`,
+    `CREATE TABLE hkgovAlsAddresses2d (${columns.map(column => `${column} ${column === 'isCurrent' ? 'INTEGER' : 'TEXT'}`).join(',')}, PRIMARY KEY(sourceRecordId,versionHash,validFromRelease))`,
   )
   db.transaction(() => {
     for (let index = 0; index < 2500; index++)

@@ -1,5 +1,8 @@
 # Places dataset family
 
+Source ledgers retain separate occurrences of recurring content under the
+[shared source validity contract](source-evidence.md#recurring-source-validity-periods).
+
 Source release statistics include added, changed, removed and unchanged Places against
 the preceding published release of the same dataset. Comparisons use retained publisher
 properties and geometry across source shards, excluding observation timestamps and

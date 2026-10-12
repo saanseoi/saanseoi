@@ -385,7 +385,7 @@ export async function insertSourceDivisionVersions(
     table,
     rows,
     SOURCE_OVERTURE_DIVISION_VERSION_COLUMN_COUNT,
-    [table.sourceRecordId, table.versionHash],
+    [table.sourceRecordId, table.versionHash, table.validFromRelease],
     options,
   )
 }
@@ -402,6 +402,7 @@ export async function insertSourceHkgovAlsAddresses2dVersions(
     [
       sourceSchema.sourceHkgovAlsAddresses2d.sourceRecordId,
       sourceSchema.sourceHkgovAlsAddresses2d.versionHash,
+      sourceSchema.sourceHkgovAlsAddresses2d.validFromRelease,
     ],
   )
 }
@@ -710,9 +711,10 @@ async function insertVersionRows<TTable>(
           locale?: string
           sourceRecordId: string
           versionHash: string
+          validFromRelease: string
         }>
       ).map(row => [
-        `${row.sourceRecordId}\0${row.versionHash}\0${row.locale ?? ''}`,
+        `${row.sourceRecordId}\0${row.versionHash}\0${row.validFromRelease}\0${row.locale ?? ''}`,
         row,
       ]),
     ).values(),

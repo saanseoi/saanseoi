@@ -694,6 +694,7 @@ async function insertSourceRowsInternal(
         target: [
           sourceSchema.sourceHkgovLandsdStreetBaselineRecords.sourceRecordId,
           sourceSchema.sourceHkgovLandsdStreetBaselineRecords.versionHash,
+          sourceSchema.sourceHkgovLandsdStreetBaselineRecords.validFromRelease,
         ],
         set: {
           isCurrent: true,
@@ -758,6 +759,7 @@ async function insertSourceRowsInternal(
         target: [
           sourceSchema.sourceHkgovLandsdStreetNotices.sourceRecordId,
           sourceSchema.sourceHkgovLandsdStreetNotices.versionHash,
+          sourceSchema.sourceHkgovLandsdStreetNotices.validFromRelease,
         ],
         set: {
           isCurrent: true,
@@ -792,6 +794,7 @@ async function insertSourceRowsInternal(
           target: [
             sourceSchema.sourceHkgovLandsdStreetNoticeApplications.sourceRecordId,
             sourceSchema.sourceHkgovLandsdStreetNoticeApplications.versionHash,
+            sourceSchema.sourceHkgovLandsdStreetNoticeApplications.validFromRelease,
           ],
           set: {
             isCurrent: true,

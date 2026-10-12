@@ -121,7 +121,7 @@ export async function buildDivisionSourceSqlFile(
       changedBaseRows,
       {
         suffix: `
-ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
+ON CONFLICT(sourceRecordId, versionHash, validFromRelease) DO UPDATE SET
   resourceReleaseId = excluded.resourceReleaseId,
   validFromRelease = excluded.validFromRelease,
   validToRelease = NULL,

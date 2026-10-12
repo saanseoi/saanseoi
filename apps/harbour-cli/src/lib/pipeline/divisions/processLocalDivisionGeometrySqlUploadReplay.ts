@@ -195,13 +195,13 @@ export async function generateGeometryReplaySql(
               iterateGeometryCacheRows(
                 context.state.dbCacheDir,
                 sourceBindingName,
-                `SELECT ${plan.source === 'hkgov-censtatd' ? '"datasetCode", ' : ''}"sourceRecordId", "versionHash", ${plan.source === 'overture' ? '"validFromRelease", ' : ''}"isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}${plan.source === 'hkgov-censtatd' ? ` AND "datasetCode" = ${geometrySqlLiteral(plan.datasetCode)}` : ''}`,
+                `SELECT ${plan.source === 'hkgov-censtatd' ? '"datasetCode", ' : ''}"sourceRecordId", "versionHash", ${plan.source !== 'hkgov-censtatd' ? '"validFromRelease", ' : ''}"isCurrent", "validToRelease", "updatedAt" FROM "${sourceTable}" WHERE "isCurrent" = 0 AND "validToRelease" = ${geometrySqlLiteral(plan.sourceVersion)}${plan.source === 'hkgov-censtatd' ? ` AND "datasetCode" = ${geometrySqlLiteral(plan.datasetCode)}` : ''}`,
               ),
               [
                 ...(plan.source === 'hkgov-censtatd' ? ['datasetCode'] : []),
                 'sourceRecordId',
                 'versionHash',
-                ...(plan.source === 'overture' ? ['validFromRelease'] : []),
+                ...(plan.source !== 'hkgov-censtatd' ? ['validFromRelease'] : []),
               ],
             )
             yield* geometryReplayStatements(
@@ -512,7 +512,7 @@ function geometryBuildChunkedUpsertSql(
   suffix: string,
   immutable = false,
 ) {
-  const keyColumns = geometryReplayKeyColumns(row, tableName)
+  const keyColumns = geometryReplayKeyColumns(row)
   if (!keyColumns) {
     const rowBytes = new TextEncoder().encode(
       `${prefix}(${columns.map(column => geometrySqlLiteral(row[column])).join(', ')})${suffix}`,
@@ -614,7 +614,7 @@ function geometryBuildChunkedUpsertSql(
   ].join('\n')
 }
 
-function geometryReplayKeyColumns(row: Record<string, unknown>, tableName: string) {
+function geometryReplayKeyColumns(row: Record<string, unknown>) {
   if (typeof row.id === 'string' && typeof row.versionHash === 'string') {
     return ['id', 'versionHash']
   }
@@ -628,7 +628,8 @@ function geometryReplayKeyColumns(row: Record<string, unknown>, tableName: strin
       ...(typeof row.datasetCode === 'string' ? ['datasetCode'] : []),
       'sourceRecordId',
       'versionHash',
-      ...(['overtureDivisionAreas', 'overtureDivisionBoundaries'].includes(tableName)
+      ...(typeof row.datasetCode !== 'string' &&
+      typeof row.validFromRelease === 'string'
         ? ['validFromRelease']
         : []),
     ]
@@ -704,6 +705,7 @@ function resolveGeometrySourceTable(plan: GeometryUploadPlan) {
   if (plan.source === 'hkgov-had') return 'hkgovHadDivisionAreas'
   if (plan.source === 'hkgov-censtatd') return 'hkgovCenstatdStatistics'
   if (plan.source === 'overture') return 'overtureDivisionAreas'
+  if (plan.source === 'saanseoi') return 'ssDivisionArea'
   return null
 }
 

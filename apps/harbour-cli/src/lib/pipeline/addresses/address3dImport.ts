@@ -585,7 +585,7 @@ export async function importAddress3dCollections(args: {
             a.validFromRelease.localeCompare(b.validFromRelease) ||
             a.shard.bindingName.localeCompare(b.shard.bindingName),
         )
-      let existing = matches[0]
+      const existing = matches[0]
       for (const prior of previous) {
         if (prior === existing) continue
         if (prior.versionHash === record.versionHash) {
@@ -618,35 +618,6 @@ export async function importAddress3dCollections(args: {
             },
           ])
       }
-      if (!existing) {
-        // A reappearing payload can already live in an older source shard.
-        for (const shard of sourceShards) {
-          const rows = await shard.execute([
-            {
-              sql: `SELECT versionHash, resourceReleaseId, validFromRelease FROM ${sourceTable} WHERE sourceRecordId = ? AND versionHash = ?`,
-              params: [record.sourceRecordId, record.versionHash],
-            },
-          ])
-          if (!rows.length) continue
-          if (existing)
-            throw new Error(
-              `Duplicate retained ALS source version ${record.sourceRecordId} across shards.`,
-            )
-          existing = {
-            versionHash: record.versionHash,
-            shard,
-            resourceReleaseId: String(rows[0]?.resourceReleaseId),
-            validFromRelease: String(rows[0]?.validFromRelease),
-          }
-        }
-        if (existing)
-          await existing.shard.execute([
-            {
-              sql: `UPDATE ${sourceTable} SET isCurrent = 1, validToRelease = NULL, updatedAt = ? WHERE sourceRecordId = ? AND versionHash = ? AND (isCurrent <> 1 OR validToRelease IS NOT NULL)`,
-              params: [now, record.sourceRecordId, record.versionHash],
-            },
-          ])
-      }
       if (!existing)
         await args.execute('source', [
           insert(
@@ -664,7 +635,7 @@ export async function importAddress3dCollections(args: {
               createdAt: now,
               updatedAt: now,
             },
-            `ON CONFLICT(sourceRecordId,versionHash) DO UPDATE SET isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt WHERE ${sourceTable}.isCurrent <> 1 OR ${sourceTable}.validToRelease IS NOT NULL`,
+            `ON CONFLICT(sourceRecordId,versionHash,validFromRelease) DO UPDATE SET isCurrent=1,validToRelease=NULL,updatedAt=excluded.updatedAt WHERE ${sourceTable}.isCurrent <> 1 OR ${sourceTable}.validToRelease IS NOT NULL`,
           ),
         ])
     } else if (record.kind === 'collection') {

@@ -881,7 +881,7 @@ SELECT
 FROM ${NORMALIZED_ROWS_TABLE} r
 WHERE r.runId = ${run}
   AND EXISTS (SELECT 1 FROM ${SOURCE_CHANGED_TABLE} changed WHERE changed.runId = r.runId AND changed.sourceRecordId = r.sourceRecordId)
-ON CONFLICT(sourceRecordId, versionHash) DO UPDATE SET
+ON CONFLICT(sourceRecordId, versionHash, validFromRelease) DO UPDATE SET
   resourceReleaseId = excluded.resourceReleaseId,
   validFromRelease = excluded.validFromRelease,
   validToRelease = NULL,
