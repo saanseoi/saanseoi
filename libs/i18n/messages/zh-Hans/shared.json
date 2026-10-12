@@ -2833,7 +2833,6 @@
   "openapi_divisions_geometry_point_description": "单一坐标位置；用于以一个位置而非区域表示的分区。",
   "openapi_divisions_geometry_polygon_description": "一个封闭区域。坐标包含外环，也可包含内部孔洞。",
   "openapi_divisions_geometry_multi_polygon_description": "两个或以上彼此分离的封闭区域。每个多边形都有外环，也可包含内部孔洞。",
-  "openapi_divisions_bbox_field_description": "分区几何的边界框，顺序为西、南、东、北（如有）。",
   "openapi_divisions_cartography_field_description": "用于显示此分区的制图提示，例如重要性及缩放限制。",
   "openapi_divisions_wikidata_id_field_description": "与此分区相关的 Wikidata 标识符（如有）。",
   "openapi_divisions_sources_field_description": "此分区及其规范化的来源归因。",

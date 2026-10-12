@@ -2839,7 +2839,6 @@
   "openapi_divisions_geometry_point_description": "單一座標位置；用於以一個位置而非區域表示的分區。",
   "openapi_divisions_geometry_polygon_description": "一個封閉區域。座標包含外環，亦可包含內部孔洞。",
   "openapi_divisions_geometry_multi_polygon_description": "兩個或以上彼此分離的封閉區域。每個多邊形都有外環，亦可包含內部孔洞。",
-  "openapi_divisions_bbox_field_description": "分區幾何資料的邊界框，次序為西、南、東、北（如有）。",
   "openapi_divisions_cartography_field_description": "用於顯示此分區的製圖提示，例如重要性及縮放限制。",
   "openapi_divisions_wikidata_id_field_description": "與此分區相關的 Wikidata 識別碼（如有）。",
   "openapi_divisions_sources_field_description": "此分區及其標準化的來源歸因。",

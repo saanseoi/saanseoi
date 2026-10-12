@@ -2836,7 +2836,6 @@
   "openapi_divisions_geometry_point_description": "A single position, used when the division is represented by one location rather than an area.",
   "openapi_divisions_geometry_polygon_description": "One enclosed area. Coordinates contain an outer ring and may contain interior holes.",
   "openapi_divisions_geometry_multi_polygon_description": "Two or more separate enclosed areas. Each polygon has an outer ring and may contain interior holes.",
-  "openapi_divisions_bbox_field_description": "The division geometry's bounding box in west, south, east, north order, when available.",
   "openapi_divisions_cartography_field_description": "Cartographic hints supplied for displaying this division, such as prominence and zoom limits.",
   "openapi_divisions_wikidata_id_field_description": "The Wikidata identifier associated with this division, when available.",
   "openapi_divisions_sources_field_description": "Source attribution for this division and its canonicalisation.",
