@@ -218,6 +218,11 @@ compatible reference snapshot available at its cohort, falling forward only when
 earlier snapshot exists. The selected snapshot IDs are recorded as lookup provenance and
 are used by both publication and replay.
 
+Deferred Places initialisation reconciles the combined Address release sets before the
+Places release sets, then publishes documentation and completes its ownership manifest.
+Their API field fixtures cover the retained curated Division ingredients, including
+Lands Department, Rating and Valuation Department and Protomaps sources.
+
 The supplementary member uses `exact_ref` and is produced within Places ingestion. The
 Overture Places dataset declares `place` and `address` in its `datasets.resourceTypes`
 JSON array and retains one publisher source release for the Place and Address resource

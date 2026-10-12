@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:249f3747714ac61e3fe685e1715f9bd531b643522b26111de25433d460f3b122",
+  "versionHash": "sha256:3c6be9aa81dd25e3d1a8f10e81a9f79436adf570fc16fb1adb866722a457a6bb",
   "apiVersion": "api-addresses-v0.1",
   "domainCode": "saanseoi",
   "mappingVersion": 1,
@@ -19,6 +19,18 @@
       "max": "2.0.0"
     },
     "ds-hk-saanseoi-division": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-landsd-division": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-rvd-division": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-protomaps-island": {
       "min": "1.0",
       "max": "1.0"
     }
@@ -150,6 +162,40 @@
         "ds-hk-hkgov-dpo-address",
         "ds-hk-overture-division",
         "ds-hk-overture-place",
+        "ds-hk-saanseoi-division"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-address-hkgov-dpo-2024-07-25.0",
+        "ss-hk-address-hkgov-dpo-2025-01-23.0",
+        "ss-hk-address-hkgov-dpo-2025-02-25.0",
+        "ss-hk-address-hkgov-dpo-2025-03-21.0",
+        "ss-hk-address-hkgov-dpo-2025-04-26.0",
+        "ss-hk-address-hkgov-dpo-2025-05-22.0",
+        "ss-hk-address-hkgov-dpo-2025-06-20.0",
+        "ss-hk-address-hkgov-dpo-2025-08-13.0",
+        "ss-hk-address-hkgov-dpo-2025-09-03.0",
+        "ss-hk-address-hkgov-dpo-2025-09-24.0",
+        "ss-hk-address-hkgov-dpo-2025-11-04.0",
+        "ss-hk-address-hkgov-dpo-2025-12-16.0",
+        "ss-hk-address-hkgov-dpo-2026-02-04.0",
+        "ss-hk-address-hkgov-dpo-2026-04-03.0",
+        "ss-hk-address-hkgov-dpo-2026-04-22.0",
+        "ss-hk-address-hkgov-dpo-2026-04-25.0",
+        "ss-hk-address-hkgov-dpo-2026-06-04.0",
+        "ss-hk-address-hkgov-dpo-2026-06-24.0",
+        "ss-hk-address-hkgov-dpo-2026-07-08.0",
+        "ss-hk-address-hkgov-dpo-2026-07-10.0",
+        "ss-hk-address-hkgov-dpo-2026-07-22.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-dpo-address",
+        "ds-hk-hkgov-landsd-division",
+        "ds-hk-hkgov-rvd-division",
+        "ds-hk-overture-division",
+        "ds-hk-overture-place",
+        "ds-hk-protomaps-island",
         "ds-hk-saanseoi-division"
       ],
       "anchorSnapshotVersions": [

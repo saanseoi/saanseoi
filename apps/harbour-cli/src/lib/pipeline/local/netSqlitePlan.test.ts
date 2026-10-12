@@ -33,6 +33,30 @@ const policies: NetTablePolicy[] = [
   { name: 'locale' },
 ]
 
+test('candidate generation cannot leave an open transaction or emit partial work', async () => {
+  await fixture(async ({ db, path }) => {
+    db.exec(standardSchema)
+    let emitted = false
+    await expect(
+      captureNetSqlitePlan({
+        targets: { CURRENT: { path, tables: policies } },
+        append: async () => {
+          emitted = true
+        },
+        generate: async candidates => {
+          candidates.CURRENT!.db.exec(
+            "BEGIN; UPDATE address SET name='unfinished' WHERE id='a'",
+          )
+        },
+      }),
+    ).rejects.toThrow('generation left an open transaction: CURRENT')
+    expect(emitted).toBe(false)
+    expect(db.query("SELECT name FROM address WHERE id='a'").get()).toEqual({
+      name: 'first',
+    })
+  })
+})
+
 test('net plan coalesces intermediate work and normalises timestamp-only differences without touching a WAL mirror', async () => {
   await fixture(async ({ db, path }) => {
     db.exec(standardSchema)

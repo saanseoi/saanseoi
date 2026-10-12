@@ -97,6 +97,13 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
     }
     phase = 'generate candidate databases'
     const result = await input.generate(candidates)
+    // Generation is finished. Release its prepared statements and native caches
+    // before opening the exact diff readers and replay databases.
+    for (const [binding, candidate] of Object.entries(candidates)) {
+      if (candidate.db.inTransaction)
+        throw new Error(`Net-plan generation left an open transaction: ${binding}`)
+      candidate.db.close()
+    }
     const insert = journal.query(
       'INSERT INTO mutations(binding,groupKey,sortOrder,statement,tableName,kind,rowKey) VALUES(?,?,?,?,?,?,?)',
     )
@@ -108,8 +115,6 @@ export async function captureNetSqlitePlan<T>(input: NetSqlitePlanInput<T>) {
       const ordered = tables[binding]
       if (!candidate || !baseline || !ordered)
         throw new Error('Missing net-plan target.')
-      if (candidate.db.inTransaction)
-        throw new Error(`Net-plan generation left an open transaction: ${binding}`)
       // Existing planners use ordinary numeric results. Exact diff readers preserve
       // all SQLite integers, including values above JavaScript's safe range.
       const db = new Database(candidate.path, {

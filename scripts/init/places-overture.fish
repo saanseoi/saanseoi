@@ -71,6 +71,9 @@ end
 init_complete
 
 init_reconcile_draft_release_sets ./bin/saanseoi release-sets:reconcile --target $saanseoi_init_target \
+    --api-family addresses --region hk
+
+init_reconcile_draft_release_sets ./bin/saanseoi release-sets:reconcile --target $saanseoi_init_target \
     --api-family places --region hk
 
 init_publish_docs_if_needed

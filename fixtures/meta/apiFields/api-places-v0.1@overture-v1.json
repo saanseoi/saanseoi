@@ -1,5 +1,5 @@
 {
-  "versionHash": "sha256:2355f6b5be5acf1bfcb31b54d330f1bc5a74461a2b6cc4bd6c9461b8d36f926f",
+  "versionHash": "sha256:c0f5aa0fb93ffe0d8cddd5ea5940a1c8d89f9cd1b112294be2f30165c5804dc5",
   "apiVersion": "api-places-v0.1",
   "domainCode": "overture",
   "mappingVersion": 1,
@@ -19,6 +19,18 @@
       "max": "2.0.0"
     },
     "ds-hk-saanseoi-division": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-landsd-division": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-hkgov-rvd-division": {
+      "min": "1.0",
+      "max": "1.0"
+    },
+    "ds-hk-protomaps-island": {
       "min": "1.0",
       "max": "1.0"
     }
@@ -74,6 +86,31 @@
         "ds-hk-hkgov-dpo-address",
         "ds-hk-overture-division",
         "ds-hk-overture-place",
+        "ds-hk-saanseoi-division"
+      ],
+      "anchorSnapshotVersions": [
+        "ss-hk-place-2025-09-24.0",
+        "ss-hk-place-2025-10-22.0",
+        "ss-hk-place-2025-12-17.0",
+        "ss-hk-place-2026-01-21.0",
+        "ss-hk-place-2026-02-18.0",
+        "ss-hk-place-2026-03-18.0",
+        "ss-hk-place-2026-04-15.0",
+        "ss-hk-place-2026-05-20.0",
+        "ss-hk-place-2026-06-17.0",
+        "ss-hk-place-2026-07-22.0",
+        "ss-hk-place-2026-08-19.0",
+        "ss-hk-place-2026-09-23.0"
+      ]
+    },
+    {
+      "datasetCodes": [
+        "ds-hk-hkgov-dpo-address",
+        "ds-hk-hkgov-landsd-division",
+        "ds-hk-hkgov-rvd-division",
+        "ds-hk-overture-division",
+        "ds-hk-overture-place",
+        "ds-hk-protomaps-island",
         "ds-hk-saanseoi-division"
       ],
       "anchorSnapshotVersions": [

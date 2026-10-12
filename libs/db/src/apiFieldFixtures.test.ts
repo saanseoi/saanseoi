@@ -250,6 +250,50 @@ describe('api field fixtures', () => {
     }
   })
 
+  test('Address and Places fixtures cover retained curated Division ingredients', () => {
+    for (const apiVersion of ['api-addresses-v0.1', 'api-places-v0.1']) {
+      const fixture = listApiFieldFixtures().find(f => f.apiVersion === apiVersion)!
+      for (const anchor of fixture.lineageAnchors) {
+        const sourceSchemas = {
+          'ds-hk-hkgov-dpo-address': '3.2',
+          'ds-hk-overture-place': '1.12.0',
+          'ds-hk-overture-division': '2.0.0',
+          'ds-hk-saanseoi-division': '1.0',
+          'ds-hk-hkgov-landsd-division': '1.0',
+          'ds-hk-hkgov-rvd-division': '1.0',
+          'ds-hk-protomaps-island': '1.0',
+        }
+        const lookup = {
+          apiVersion,
+          domainCode: fixture.domainCode,
+          schemaVersion: fixture.schemaVersion,
+          rulesetVersion: fixture.rulesetVersion,
+          lineageSnapshotVersions: [anchor.snapshotVersion],
+          sourceSchemas,
+        }
+        expect(resolveApiFieldFixture(lookup)).not.toBeNull()
+        expect(
+          resolveApiFieldFixture({
+            ...lookup,
+            sourceSchemas: { ...sourceSchemas, 'ds-hk-overture-place': '2.0.0' },
+          }),
+        ).not.toBeNull()
+        for (const ingredient of [
+          'ds-hk-hkgov-landsd-division',
+          'ds-hk-hkgov-rvd-division',
+          'ds-hk-protomaps-island',
+        ]) {
+          expect(
+            resolveApiFieldFixture({
+              ...lookup,
+              sourceSchemas: { ...sourceSchemas, [ingredient]: '2.0' },
+            }),
+          ).toBeNull()
+        }
+      }
+    }
+  })
+
   test('bundled mappings have current hashes and registered resolvers', () => {
     for (const fixture of listApiFieldFixtures()) {
       expect(fixture.versionHash).toBe(computeVersionHash(fixture))

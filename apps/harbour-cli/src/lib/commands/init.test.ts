@@ -507,6 +507,46 @@ describe('initialisation commands', () => {
     )
   })
 
+  test('finalises deferred Address and Places publications before completing Places', () => {
+    const source = readFileSync(
+      resolve(repoRoot, 'scripts/init/places-overture.fish'),
+      'utf8',
+    )
+    const result = Bun.spawnSync({
+      cmd: [
+        'fish',
+        '--no-config',
+        '-c',
+        `
+        function init_complete
+          echo cohorts-complete
+        end
+        function init_reconcile_draft_release_sets
+          echo $argv
+        end
+        function init_publish_docs_if_needed
+          echo docs
+        end
+        function init_run_step
+          echo $argv
+        end
+        set saanseoi_init_target local
+        ${source.slice(source.indexOf('\ninit_complete\n'))}
+      `,
+      ],
+      cwd: repoRoot,
+    })
+    expect(result.exitCode).toBe(0)
+    expect(result.stderr.toString()).toBe('')
+    expect(result.stdout.toString().trim().split('\n')).toEqual([
+      'cohorts-complete',
+      './bin/saanseoi release-sets:reconcile --target local --api-family addresses --region hk',
+      './bin/saanseoi release-sets:reconcile --target local --api-family places --region hk',
+      'docs',
+      './bin/saanseoi init:places:overture:complete --target local',
+    ])
+  })
+
   test('publishes curated Division releases after every pinned input is ingested', () => {
     const source = readFileSync(
       resolve(repoRoot, 'scripts/init/divisions.fish'),

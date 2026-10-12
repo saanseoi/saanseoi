@@ -145,10 +145,10 @@ and level/localisation definition. Hydrated lookup rows never enter delivered cu
 tables.
 
 Standalone publication finalises Place and supplementary Address indexes together.
-Deferred upload sequences finalise once during release-set reconciliation after every
-release is ready. Failed finalisation can be retried through reconciliation; search
-returns `503 fts_not_ready` until the latest snapshot mapping is ready. Planning mirrors
-omit these derived indexes.
+Deferred upload sequences reconcile Address release sets and then Places release sets
+after every release is ready. Failed finalisation can be retried through reconciliation;
+search returns `503 fts_not_ready` until the latest snapshot mapping is ready. Planning
+mirrors omit these derived indexes.
 
 Places metadata and supplementary Address SQL are retained as receipt-backed
 [delivery phases](../../sql-delivery.md). Supplementary SQL capture excludes policy
